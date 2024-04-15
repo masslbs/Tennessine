@@ -207,7 +207,6 @@ export const buildState = (
           signature,
         },
       });
-      console.log(`Set signature: ${signature} for cartId: ${cartId}`);
     }
   });
   return { _products: products, _allTags: allTags };
