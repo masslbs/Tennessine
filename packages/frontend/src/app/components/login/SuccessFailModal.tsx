@@ -33,13 +33,15 @@ function SuccessFailModal({
   return (
     <section className="bg-white h-screen absolute top-0	right-0	left-0 flex flex-col">
       <div className="h-fit border-gray-200 p-4 text-base flex justify-end ">
-        <Image
-          src="/assets/quit.svg"
-          width={24}
-          height={24}
-          alt="quit-icon"
-          className="h-6"
-        />
+        <Link href={"/products"}>
+          <Image
+            src="/assets/quit.svg"
+            width={24}
+            height={24}
+            alt="quit-icon"
+            className="h-6"
+          />
+        </Link>
       </div>
       <section className="mx-4 my-6 text-center">
         <div className="flex justify-center mt-40">
