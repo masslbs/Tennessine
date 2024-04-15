@@ -10,6 +10,7 @@ export const UPDATE_CART_ITEM = "UPDATE_CART_ITEM";
 export const SET_ALL_CART_ITEMS = "SET_ALL_CART_ITEMS";
 export const UPDATE_CART_STATUS = "UPDATE_CART_STATUS";
 export const UPDATE_CART_HASH = "UPDATE_CART_HASH";
+export const SET_CART_SIG = "SET_CART_SIG";
 
 type cartAction = {
   type: "REMOVE_CART_ITEM";
@@ -43,12 +44,20 @@ type hashUpdate = {
     txHash: `0x${string}`;
   };
 };
+type sigUpdate = {
+  type: "SET_CART_SIG";
+  payload: {
+    cartId: CartId;
+    signature: `0x${string}`;
+  };
+};
 
 type ItemState = { [key: ItemId]: number };
 type CartState = {
   items: ItemState;
   status?: IStatus;
   txHash?: `0x${string}`;
+  signature?: `0x${string}`;
 };
 
 export type allCartActions =
@@ -57,7 +66,8 @@ export type allCartActions =
   | updateCartAction
   | setAllITems
   | statusUpdate
-  | hashUpdate;
+  | hashUpdate
+  | sigUpdate;
 
 export const cartReducer = (
   state: Map<CartId, CartState>,
@@ -80,6 +90,7 @@ export const cartReducer = (
     case REMOVE_CART_ITEM:
     case UPDATE_CART_HASH:
     case CLEAR_CART:
+    case SET_CART_SIG:
       _state.set(
         action.payload.cartId,
         cartStateReducer(
@@ -99,7 +110,8 @@ function cartStateReducer(
     | updateCartAction
     | statusUpdate
     | hashUpdate
-    | clearAction,
+    | clearAction
+    | sigUpdate,
 ): CartState {
   switch (action.type) {
     case UPDATE_CART_ITEM:
@@ -123,7 +135,11 @@ function cartStateReducer(
         ...state,
         items: {},
       };
-
+    case SET_CART_SIG:
+      return {
+        ...state,
+        signature: action.payload.signature,
+      };
     default:
       return { ...state };
   }

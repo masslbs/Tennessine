@@ -22,6 +22,7 @@ import {
   REMOVE_CART_ITEM,
   UPDATE_CART_STATUS,
   UPDATE_CART_HASH,
+  SET_CART_SIG,
 } from "@/reducers/cartReducers";
 import { SET_CART } from "@/reducers/finalizedCartReducers";
 // TODO: cleanup workspace import madness so that we can get mmproto from dmp-ts-lib/protobuf
@@ -196,6 +197,17 @@ export const buildState = (
           status: IStatus.Failed,
         },
       });
+    } else if (e.createCart) {
+      const cartId = bytesToHex(e.createCart.eventId);
+      const signature = bytesToHex(e.signature);
+      setCartItems({
+        type: SET_CART_SIG,
+        payload: {
+          cartId,
+          signature,
+        },
+      });
+      console.log(`Set signature: ${signature} for cartId: ${cartId}`);
     }
   });
   return { _products: products, _allTags: allTags };

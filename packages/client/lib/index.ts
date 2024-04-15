@@ -9,6 +9,8 @@ import {
   hexToBytes,
   toBytes,
   Address,
+  createPublicClient,
+  http,
   type WalletClient,
   type Transport,
   type Account,
@@ -291,6 +293,33 @@ export class RelayClient extends EventEmitter {
       this.connection.addEventListener("close", resolve);
       this.connection.close(1000);
     });
+  }
+
+  async verifySignedTypeData(cartId: `0x${string}`, signature: `0x${string}`) {
+    const publicClient = createPublicClient({
+      chain: this.chain,
+      transport: http(),
+    });
+    const types = {
+      CreateCart: [
+        {
+          name: "event_id",
+          type: "bytes32",
+        },
+      ],
+    };
+    const valid = await publicClient.verifyTypedData({
+      address: this.wallet.account.address,
+      domain: this.DOMAIN_SEPARATOR,
+      types,
+      primaryType: "CreateCart",
+      message: {
+        event_id: cartId,
+      },
+      signature,
+    });
+    console.log({ valid });
+    return valid;
   }
 
   async enrollKeycard() {
