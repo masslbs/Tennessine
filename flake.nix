@@ -51,6 +51,7 @@
                 cp ${schema}/testVectors.json ./packages/client/test/testVectors.json
                 cp $MASS_CONTRACTS_PATH/abi/*.json ./packages/contracts/abi/
                 cp $MASS_CONTRACTS_PATH/deploymentAddresses.json ./packages/contracts/
+                prettier -w ./packages/client/test/testVectors.json ./packages/contracts/deploymentAddresses.json
               fi
             '';
 

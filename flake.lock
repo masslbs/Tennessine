@@ -112,10 +112,7 @@
     "foundry": {
       "inputs": {
         "flake-utils": "flake-utils",
-        "nixpkgs": [
-          "contracts",
-          "nixpkgs"
-        ]
+        "nixpkgs": ["contracts", "nixpkgs"]
       },
       "locked": {
         "lastModified": 1709457044,
@@ -134,10 +131,7 @@
     },
     "gitignore": {
       "inputs": {
-        "nixpkgs": [
-          "pre-commit-hooks",
-          "nixpkgs"
-        ]
+        "nixpkgs": ["pre-commit-hooks", "nixpkgs"]
       },
       "locked": {
         "lastModified": 1709087332,
