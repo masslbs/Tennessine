@@ -1,0 +1,61 @@
+/*
+ * SPDX-FileCopyrightText: 2024 Mass Labs
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* :root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+} */
+
+@layer base {
+  html {
+    font-family: "protoMono", system-ui, sans-serif;
+  }
+}
+
+@font-face {
+  font-family: "protoMono";
+  src: url("../../public/fonts/ProtoMono-Light.woff2");
+}
+
+body {
+  overflow: visible;
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+
+  h2 {
+    font-size: 24px;
+  }
+  h3 {
+    font-size: 22px;
+  }
+  h4 {
+    font-size: 20px;
+  }
+  h5 {
+    font-size: 18px;
+  }
+  h6 {
+    font-size: 16px;
+  }
+}
