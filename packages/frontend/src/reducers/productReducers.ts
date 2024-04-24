@@ -49,14 +49,7 @@ export const productReducer = (
   const _state = new Map(state);
   const itemId = action.payload.itemId;
   const updateItem = _state.get(itemId) as IProduct;
-  if (
-    action.type !== ADD_PRODUCT &&
-    action.type !== UPDATE_PRODUCT &&
-    action.type !== SET_PRODUCTS &&
-    !updateItem
-  ) {
-    return _state;
-  }
+
   switch (action.type) {
     case ADD_PRODUCT:
     case UPDATE_PRODUCT:
