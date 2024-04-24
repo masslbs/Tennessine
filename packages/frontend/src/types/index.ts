@@ -11,7 +11,7 @@ export type IProduct = {
   price: string;
   stockQty: number;
   metadata: Metadata;
-  blob?: Blob;
+  blob?: Blob | FormData;
   tagIds?: TagId[];
   saleQty?: number;
 };
@@ -68,13 +68,13 @@ export type IContributor = {
   walletAddress: string;
 };
 
-export type IRelay = {
-  id: `0x${string}`;
-  name: string;
-  location: string;
-  status: RelayStatus;
-  provisioned: boolean;
-};
+// export type IRelay = {
+//   id: `0x${string}`;
+//   name: string;
+//   location: string;
+//   status: RelayStatus;
+//   provisioned: boolean;
+// };
 
 export type ITag = {
   id: TagId;
@@ -93,14 +93,14 @@ export enum SortOption {
   unavailable = "Unavailable",
 }
 
-export type Store = {
-  id: number;
-  name: string;
-  thumbnail: string;
-  products: IProduct[];
-  transactions: ITransaction[];
-  contributors: IContributor[];
-  authorizedKeyCards: number[];
-  relays: IRelay[];
-  tags: ITag[];
-};
+// export type Store = {
+//   id: number;
+//   name: string;
+//   thumbnail: string;
+//   products: IProduct[];
+//   transactions: ITransaction[];
+//   contributors: IContributor[];
+//   authorizedKeyCards: number[];
+//   relays: IRelay[];
+//   tags: ITag[];
+// };

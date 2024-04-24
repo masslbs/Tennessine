@@ -24,13 +24,13 @@ const TransactionDetails = ({
 }) => {
   if (!opened) return null;
 
-  const [totalProductsPrice, setTotalPrice] = useState(0);
+  const [totalProductsPrice, setTotalPrice] = useState<number>(0);
   const items = Object.entries(order);
   const { products } = useStoreContext();
   const { publicClient } = useMyContext();
-  const [time, setTime] = useState("");
-  const [date, setDate] = useState("");
-  const [symbol, setSymbol] = useState("USDC");
+  const [time, setTime] = useState<string>("");
+  const [date, setDate] = useState<string>("");
+  const [symbol, setSymbol] = useState<string>("");
 
   useEffect(() => {
     let total = 0;
@@ -41,6 +41,7 @@ const TransactionDetails = ({
       total += qty * Number(p.price);
     });
     setTotalPrice(total);
+    setSymbol("USDC")
   }, []);
 
   const formatTime = (hour: number) => {

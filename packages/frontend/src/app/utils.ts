@@ -5,7 +5,7 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { Metadata } from "@/types/index";
-
+import { ReadonlyURLSearchParams } from "next/navigation";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -33,10 +33,9 @@ export const decodeMetadata = (metadata: Uint8Array) => {
 export const createQueryString = (
   name: string,
   value: string,
-  // @ts-ignore
-  searchParams,
+  searchParams: ReadonlyURLSearchParams
 ) => {
-  const params = new URLSearchParams(searchParams.toString());
+  const params = new URLSearchParams(searchParams);
   params.set(name, value);
 
   return params.toString();

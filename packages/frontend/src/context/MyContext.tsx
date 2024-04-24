@@ -2,8 +2,6 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// @ts-nocheck
-
 import React, { createContext, useContext, useEffect, useState } from "react";
 import {
   useAccount,
@@ -19,7 +17,7 @@ import {
 } from "@massmarket/client";
 import { hardhat, sepolia, mainnet, type Chain } from "viem/chains";
 import { http, createPublicClient, hexToBytes, bytesToHex } from "viem";
-import { IRelayClient, ClientContext } from "./types";
+import { IRelayClient, ClientContext } from "@/context/types";
 import { useAuth } from "@/context/AuthContext";
 import * as abi from "@massmarket/contracts";
 import { IStatus } from "../types";
@@ -34,23 +32,28 @@ export const MyContext = createContext<ClientContext>({
   inviteSecret: null,
   setInviteSecret: () => {},
   setWallet: () => {},
-  getTokenName: () => {},
+  getTokenInformation: () =>
+    new Promise(() => {
+      return { name: "", symbol: "", decimals: 0 };
+    }),
 });
 
-export const MyContextProvider = ({ children }) => {
+export const MyContextProvider = (
+  props: React.HTMLAttributes<HTMLDivElement>
+) => {
   const [walletAddress, setWalletAddress] = useState<`0x${string}` | null>(
-    null,
+    null
   );
   const [relayClient, setRelayClient] = useState<IRelayClient | null>(null);
-  const [balance, setBalance] = useState(null);
-  const [avatar, setAvatar] = useState(null);
-  const [ensName, setEnsName] = useState(null);
+  const [balance, setBalance] = useState<string | null>(null);
+  const [avatar, setAvatar] = useState<string | null>(null);
+  const [ensName, setEnsName] = useState<string | null>(null);
   const [clientWallet, setWallet] = useState<WalletClientWithAccount | null>(
-    null,
+    null
   );
   const [inviteSecret, setInviteSecret] = useState<`0x${string}` | null>(null);
   const { address, isConnected } = useAccount();
-  const name = useEnsName({ address })?.data;
+  const name = useEnsName({ address })?.data || null;
   const ensAvatar = useEnsAvatar({ name: ensName! })?.data;
   const { data: _wallet, status: walletStatus } = useWalletClient();
   const { setIsAuthenticated } = useAuth();
@@ -61,10 +64,14 @@ export const MyContextProvider = ({ children }) => {
   }
   const storeId =
     localStorage.getItem("storeId") || process.env.NEXT_PUBLIC_STORE_ID;
+
+  if (!storeId) {
+    throw Error("missing store ID");
+  }
   const savedKC = localStorage.getItem("keyCard") as `0x${string}`;
 
   let usedChain: Chain;
-  let chainName = process.env.NEXT_PUBLIC_CHAIN_NAME!;
+  const chainName = process.env.NEXT_PUBLIC_CHAIN_NAME!;
   switch (chainName) {
     case "hardhat":
       usedChain = hardhat;
@@ -88,24 +95,24 @@ export const MyContextProvider = ({ children }) => {
   });
 
   const getTokenInformation = async (erc20Addr: `0x${string}`) => {
-    const name = await publicClient.readContract({
+    const name = (await publicClient.readContract({
       address: erc20Addr,
       abi: abi.ERC20,
       functionName: "name",
       args: [],
-    });
-    const symbol = await publicClient.readContract({
+    })) as string;
+    const symbol = (await publicClient.readContract({
       address: erc20Addr,
       abi: abi.ERC20,
       functionName: "symbol",
       args: [],
-    });
-    const decimals = await publicClient.readContract({
+    })) as string;
+    const decimals = (await publicClient.readContract({
       address: erc20Addr,
       abi: abi.ERC20,
       functionName: "decimals",
       args: [],
-    });
+    })) as number;
     return { name, symbol, decimals };
   };
 
@@ -134,16 +141,18 @@ export const MyContextProvider = ({ children }) => {
         keyCard = hexToBytes(savedKC);
       }
       const user: ClientArgs = {
-        relayEndpoint: process.env.NEXT_PUBLIC_RELAY_ENDPOINT,
+        relayEndpoint:
+          process.env.NEXT_PUBLIC_RELAY_ENDPOINT ||
+          "wss://relay-beta.mass.market/v1",
         privateKey: inviteSecret ? hexToBytes(inviteSecret) : keyCard,
-        storeId: storeId,
+        storeId: storeId as `0x${string}`,
         wallet: clientWallet,
         chain: usedChain,
       };
       const _relayClient = new RelayClient(user);
       setRelayClient(_relayClient);
       console.log(
-        `relay client set ${user.relayEndpoint} with store: ${storeId}`,
+        `relay client set ${user.relayEndpoint} with store: ${storeId}`
       );
     }
   }, [clientWallet]);
@@ -166,6 +175,7 @@ export const MyContextProvider = ({ children }) => {
   }, [relayClient]);
 
   const value = {
+    name,
     walletAddress,
     balance,
     avatar,
@@ -178,7 +188,9 @@ export const MyContextProvider = ({ children }) => {
     getTokenInformation,
   };
 
-  return <MyContext.Provider value={value}>{children}</MyContext.Provider>;
+  return (
+    <MyContext.Provider value={value}>{props.children}</MyContext.Provider>
+  );
 };
 
 export const useMyContext = () => useContext(MyContext);

@@ -20,7 +20,7 @@ export type selectedTagsAction = {
 };
 
 export const selectedTagReducer = (
-  state: Map<string, ITag>,
+  state: Map<`0x${string}`, ITag>,
   action: selectedTagsAction,
 ) => {
   const _state = new Map(state);

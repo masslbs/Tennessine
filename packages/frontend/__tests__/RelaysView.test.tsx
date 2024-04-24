@@ -11,14 +11,14 @@ import { IRelay, RelayStatus } from "@/types/index";
 
 const dummy: IRelay[] = [
   {
-    id: 9,
+    id: "0x9",
     name: "Betafish",
     location: "Unknown",
     status: RelayStatus.Available,
     provisioned: true,
   },
   {
-    id: 3,
+    id: "0x10",
     name: "Pufferfish",
     location: "Unknown",
     status: RelayStatus.Available,

@@ -12,7 +12,7 @@ describe("Wagmi Provider", () => {
   let user: UserEvent;
   beforeEach(() => {
     user = userEvent.setup();
-    render(<ConnectWallet />);
+    render(<ConnectWallet close={()=>{}}/>);
   });
 
   it("Displays all three connectors set in wagmi config.", async () => {

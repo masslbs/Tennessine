@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// @ts-nocheck
 import { IProduct, Metadata, ItemId, TagId } from "@/types";
 
 export const ADD_PRODUCT = "ADD_PRODUCT";
@@ -94,10 +93,9 @@ const productItemReducer = (
         metadata: action.payload.metadata,
       };
     case UPDATE_STOCKQTY:
-      const prevUnit = state?.stockQty ? state.stockQty : 0;
       return {
         ...state,
-        stockQty: Number(prevUnit) + Number(action.payload.unitDiff),
+        stockQty: Number(state?.stockQty ? state.stockQty : 0) + Number(action.payload.unitDiff),
       };
     case REMOVE_PRODUCT_TAG:
     case ADD_PRODUCT_TAGS:
@@ -127,18 +125,38 @@ export const initialState = {
   stockQty: null,
   blob: null,
 };
-
-type NewProductAction = {
-  type: "EDIT_TITLE" | "EDIT_IMG" | "EDIT_PRICE" | "EDIT_UNIT" | "UPLOAD_IMG";
+type editUnit = {
+  type: "EDIT_UNIT" ,
+  payload: {
+    unit: number;
+  }
+}
+type editTitle = {
+  type: "EDIT_TITLE",
+  payload: {
+    title: string;
+  }
+}
+type editPrice ={
+  type: "EDIT_PRICE",
+  payload: {
+    price: string;
+  }
+}
+type editImg = {
+  type: "EDIT_IMG",
   payload: {
     img: string;
-    blob: Blob | null;
-    price?: string;
-    unit?: number;
+  }
+}
+type uploadImg = {
+  type:  "UPLOAD_IMG";
+  payload: {
+    blob: Blob | FormData | null;
   };
 };
 
-export const newProductReducer = (state, action: NewProductAction) => {
+export const newProductReducer = (state: IProduct, action: uploadImg | editImg | editPrice | editTitle | editUnit) => {
   switch (action.type) {
     case EDIT_TITLE:
     case EDIT_IMG:
@@ -159,7 +177,7 @@ export const newProductReducer = (state, action: NewProductAction) => {
 
 export const updateNewProductReducer = (
   state: Metadata,
-  action: EDIT_IMG | EDIT_TITLE,
+  action: editImg | editTitle,
 ) => {
   switch (action.type) {
     case EDIT_IMG:

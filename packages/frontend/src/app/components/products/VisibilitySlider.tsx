@@ -18,7 +18,7 @@ const VisibilitySlider = ({
   selectedTags,
 }: {
   selectedTagsDispatch: (t: selectedTagsAction) => void;
-  itemId: ItemId;
+  itemId: ItemId | null;
   selectedTags: Map<TagId, ITag>;
 }) => {
   const { publishedTagId, allTags, addProductToTag, removeProductFromTag } =

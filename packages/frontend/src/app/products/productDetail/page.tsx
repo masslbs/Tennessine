@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// @ts-nocheck TODO: fix this
 "use client";
 import React, { useState, useEffect, createRef } from "react";
 import ModalHeader from "@/app/common/components/ModalHeader";

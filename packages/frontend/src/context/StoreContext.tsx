@@ -2,8 +2,6 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// @ts-nocheck
-
 import React, {
   createContext,
   useContext,
@@ -13,18 +11,15 @@ import React, {
 } from "react";
 import { bytesToHex } from "viem";
 
-import {
-  IRelay,
-  IProduct,
-  TagId,
-  ItemId,
-  ITag,
-  CartId,
-  IStatus,
-} from "@/types/index";
-import { dummyRelays } from "./dummyData";
+import { IProduct, TagId, ItemId, CartId, IStatus } from "@/types/index";
 import { useMyContext } from "./MyContext";
-import { StoreContent, ItemField } from "@/context/types";
+import {
+  StoreContent,
+  ItemField,
+  ProductsMap,
+  TagsMap,
+  CartsMap,
+} from "@/context/types";
 import {
   productReducer,
   ADD_PRODUCT,
@@ -49,68 +44,88 @@ import {
 import { finalizedCartReducer } from "@/reducers/finalizedCartReducers";
 
 export const StoreContext = createContext<StoreContent>({
-  store: null,
-  relays: dummyRelays,
   products: new Map(),
   allTags: new Map(),
   cartItems: new Map(),
-  cartId: null,
-  erc20Addr: null,
-  publishedTagId: null,
+  cartId: `0x`,
+  erc20Addr: `0x`,
+  publishedTagId: `0x`,
   finalizedCarts: new Map(),
-  updateCart: () => {},
-  addProduct: () => {},
-  updateProduct: () => {},
+  updateCart: () =>
+    new Promise(() => {
+      return { error: null };
+    }),
+  addProduct: () =>
+    new Promise(() => {
+      return { error: null };
+    }),
+  updateProduct: () =>
+    new Promise(() => {
+      return { error: null };
+    }),
   createState: () => {},
-  createTag: () => {},
-  addProductToTag: () => {},
-  removeProductFromTag: () => {},
-  commitCart: () => {},
+  createTag: () =>
+    new Promise(() => {
+      return `0x`;
+    }),
+  addProductToTag: () =>
+    new Promise(() => {
+      return {
+        tagId: `0x`,
+        itemId: `0x`,
+      };
+    }),
+  removeProductFromTag: () =>
+    new Promise(() => {
+      return {
+        tagId: `0x`,
+        itemId: `0x`,
+      };
+    }),
+  commitCart: () =>
+    new Promise(() => {
+      return {
+        cartFinalizedId: `0x`,
+        requestId: `0x`,
+      };
+    }),
   invalidateCart: () => {},
   setErc20Addr: () => {},
   setPublishedTagId: () => {},
   setCartId: () => {},
 });
 
-//@ts-ignore
-export const StoreContextProvider = ({ children }) => {
-  const [store, setStore] = useState(null);
-  const [relays, setRelays] = useState<IRelay[]>(dummyRelays);
+export const StoreContextProvider = (
+  props: React.HTMLAttributes<HTMLDivElement>
+) => {
   const [cartItems, setCartItems] = useReducer(cartReducer, new Map());
   const [products, setProducts] = useReducer(productReducer, new Map());
   const [allTags, setAllTags] = useReducer(allTagsReducer, new Map());
   const [cartId, setCartId] = useState<CartId | null>(null);
   const [erc20Addr, setErc20Addr] = useState<null | `0x${string}`>(null);
   const [publishedTagId, setPublishedTagId] = useState<null | `0x${string}`>(
-    null,
+    null
   );
   const [finalizedCarts, setFinalizedCarts] = useReducer(
     finalizedCartReducer,
-    new Map(),
+    new Map()
   );
   const { relayClient } = useMyContext();
 
   useEffect(() => {
-    const localStorageProducts = getStateFromLocalStorage("products") as Map<
-      ItemId,
-      IProduct
-    >;
-    const localStorageTags = getStateFromLocalStorage("tags") as Map<
-      ItemId,
-      ITag
-    >;
+    const localStorageProducts = getStateFromLocalStorage(
+      "products"
+    ) as ProductsMap;
+    const localStorageTags = getStateFromLocalStorage("tags") as TagsMap;
 
-    const cartItemsLocal = getStateFromLocalStorage("cartItems") as Map<
-      CartId,
-      number
-    >;
+    const cartItemsLocal = getStateFromLocalStorage("cartItems") as CartsMap;
     const cartIdLocal = JSON.parse(localStorage.getItem("cartId")) as CartId;
     const erc20AddrLocal = JSON.parse(
-      localStorage.getItem("erc20Addr"),
+      localStorage.getItem("erc20Addr")
     ) as `0x${string}`;
 
     const publishedTagIdLocal = JSON.parse(
-      localStorage.getItem("publishedTagId"),
+      localStorage.getItem("publishedTagId")
     ) as `0x${string}`;
     if (publishedTagIdLocal) {
       setPublishedTagId(publishedTagIdLocal);
@@ -195,7 +210,7 @@ export const StoreContextProvider = ({ children }) => {
             setCartItems,
             setErc20Addr,
             setPublishedTagId,
-            setFinalizedCarts,
+            setFinalizedCarts
           );
           evt.done();
         });
@@ -241,7 +256,7 @@ export const StoreContextProvider = ({ children }) => {
     itemId: ItemId,
     fields: { price: boolean; metadata: boolean; stockQty: boolean },
     updatedProduct: IProduct,
-    selectedTagIds: TagId[],
+    selectedTagIds: TagId[]
   ) => {
     try {
       if (fields.price) {
@@ -250,7 +265,7 @@ export const StoreContextProvider = ({ children }) => {
         await relayClient!.updateItem(
           itemId,
           ItemField.ITEM_FIELD_PRICE,
-          updatedProduct.price,
+          updatedProduct.price
         );
         setProducts({
           type: UPDATE_PRICE,
@@ -275,7 +290,7 @@ export const StoreContextProvider = ({ children }) => {
         await relayClient!.updateItem(
           itemId,
           ItemField.ITEM_FIELD_METADATA,
-          metadata,
+          metadata
         );
         setProducts({
           type: UPDATE_METADATA,
@@ -454,16 +469,15 @@ export const StoreContextProvider = ({ children }) => {
     }
   };
 
-  //@ts-ignore
-  const saveToLocalStorage = (key: string, map: Map<string, any>) => {
-    //FIXME
+  const saveToLocalStorage = (
+    key: string,
+    map: CartsMap | TagsMap | ProductsMap
+  ) => {
     const mapArray = Array.from(map.entries());
     localStorage.setItem(key, JSON.stringify(mapArray));
   };
 
   const value = {
-    store,
-    relays,
     products,
     allTags,
     cartItems,
@@ -486,7 +500,9 @@ export const StoreContextProvider = ({ children }) => {
   };
 
   return (
-    <StoreContext.Provider value={value}>{children}</StoreContext.Provider>
+    <StoreContext.Provider value={value}>
+      {props.children}
+    </StoreContext.Provider>
   );
 };
 

@@ -66,7 +66,7 @@ const EditName = ({
           </p>
         </section>
         <div className="mt-auto">
-          <Button onClick={saveName}>Update Name</Button>
+          <Button disabled={disabled} onClick={saveName}>Update Name</Button>
           {/* <button className="flex justify-center bg-green-600 w-full text-white px-4 py-4 rounded-md">
                 <Image
                   src="/assets/checkmark.svg"

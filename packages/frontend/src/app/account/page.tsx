@@ -24,7 +24,6 @@ const AccountSettings = () => {
   );
   const [firstName, setFirstName] = useState<string>("Martin");
   const [ethAdd, setEthAdd] = useState<string>("");
-  const [role, setRole] = useState<IRole>(IRole.Admin);
   const router = useRouter();
   const { setIsAuthenticated } = useAuth();
 
@@ -112,7 +111,7 @@ const AccountSettings = () => {
           </section>
           <section className="border-b border-gray-200 py-6">
             <p className="text-xs text-gray-500">Role</p>
-            <p className="text-gray-700 mt-2">{role}</p>
+            <p className="text-gray-700 mt-2">{IRole.Admin}</p>
           </section>
         </section>
         <section className="py-12">

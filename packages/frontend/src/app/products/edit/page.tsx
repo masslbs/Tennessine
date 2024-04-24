@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// @ts-nocheck TODO: fix this
 
 "use client";
 
@@ -35,7 +34,7 @@ import VisibilitySlider from "@/app/components/products/VisibilitySlider";
 const AddProductView = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const itemId = searchParams.get("itemId");
+  const itemId = searchParams.get("itemId") as `0x${string}` | "new";
   const editView = itemId !== "new";
   const { addProduct, updateProduct, allTags, products } = useStoreContext();
   const productInView = editView ? products.get(itemId) : null;
@@ -101,14 +100,14 @@ const AddProductView = () => {
         blob.append("file", fileInput.files[0]);
 
         reader.onload = function (e) {
-          const url = e.target?.result!;
+          const r = e.target as FileReader
+          const url = r.result
           typeof url == "string" && setImg(url);
           updateNewProduct({
             type: UPLOAD_IMG,
-            // @ts-ignore
             payload: { blob },
           });
-          updateNewProduct({
+          typeof url == "string" && updateNewProduct({
             type: EDIT_IMG,
             payload: { img: url },
           });
@@ -131,7 +130,6 @@ const AddProductView = () => {
     });
     updateNewProduct({
       type: UPLOAD_IMG,
-      // @ts-ignore
       payload: { blob: null },
     });
   };
@@ -151,7 +149,6 @@ const AddProductView = () => {
         metadata: editedMetaData,
         stockQty: editedUnit,
       };
-      // @ts-ignore
       const selectedTagKeys: `0x${string}`[] | 0 =
         selectedTags.size && Array.from([...selectedTags.keys()]);
       const res =
