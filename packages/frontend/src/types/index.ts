@@ -11,7 +11,7 @@ export type IProduct = {
   price: string;
   stockQty: number;
   metadata: Metadata;
-  blob?: Blob;
+  blob?: Blob | FormData;
   tagIds?: TagId[];
   saleQty?: number;
 };
@@ -93,14 +93,14 @@ export enum SortOption {
   unavailable = "Unavailable",
 }
 
-export type Store = {
-  id: number;
-  name: string;
-  thumbnail: string;
-  products: IProduct[];
-  transactions: ITransaction[];
-  contributors: IContributor[];
-  authorizedKeyCards: number[];
-  relays: IRelay[];
-  tags: ITag[];
-};
+// export type Store = {
+//   id: number;
+//   name: string;
+//   thumbnail: string;
+//   products: IProduct[];
+//   transactions: ITransaction[];
+//   contributors: IContributor[];
+//   authorizedKeyCards: number[];
+//   relays: IRelay[];
+//   tags: ITag[];
+// };

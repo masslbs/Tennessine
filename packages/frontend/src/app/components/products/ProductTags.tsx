@@ -35,7 +35,7 @@ const ProductsTags = ({
 }: {
   selectedTags: Map<TagId, ITag>;
   selectedTagsDispatch: (t: selectedTagsAction) => void;
-  itemId: ItemId;
+  itemId: ItemId | null;
   setError: Dispatch<SetStateAction<null | string>>;
 }) => {
   const { createTag, allTags, addProductToTag, removeProductFromTag } =
@@ -66,7 +66,6 @@ const ProductsTags = ({
       const tag = allTags.get(t) as ITag;
       if (!tag) return null;
       return (
-        // @ts-ignore TODO: fix this
         <Tag key={tag.id} tag={tag} removeFn={() => handleDeselectTag(tag)} />
       );
     });

@@ -11,7 +11,7 @@ import { WalletClientWithAccount } from "@massmarket/client";
 // import * as pb from "client/lib/protobuf/compiled";
 // import mmproto = pb.market.mass;
 
-import { Store, IRelay, IProduct, ITag, IStatus } from "@/types/index";
+import { IProduct, ITag, IStatus, IRelay } from "@/types/index";
 
 export interface MyEvents {
   connect: Record<string, never>;
@@ -64,7 +64,7 @@ export type IRelayClient = EventEmitter & {
   writeStoreManifest: (pId?: TagId) => Promise<IRelayWriteResponse>;
   updateManifest: (
     field: number,
-    value: string,
+    value: string
   ) => Promise<IRelayWriteResponse>;
   createInviteSecret: () => Promise<`0x${string}`>;
   createStore: (storeId: `0x${string}`) => Promise<`0x${string}`>;
@@ -75,23 +75,28 @@ export type IRelayClient = EventEmitter & {
   updateItem: (
     itemId: ItemId,
     field: ItemField,
-    value: string | { title: string; description: string; image: string },
+    value: string | { title: string; description: string; image: string }
   ) => Promise<`0x${string}`>;
   addItemToTag: (tagId: TagId, itemId: ItemId) => Promise<IRelayWriteResponse>;
   removeFromTag: (tagId: TagId, itemId: ItemId) => Promise<IRelayWriteResponse>;
-  uploadBlob: (blob: Blob) => Promise<string>;
-  addListener: (event: string, callback: (result: any) => void) => void;
+  uploadBlob: (blob: Blob) => Promise<{ url: string }>;
+  addListener: (event: string, callback: (e: Event) => void) => void;
   createTag: (name: string) => Promise<TagId>;
   changeCart: (
-    cardId: `0x${string}`,
+    cardId: CartId,
     itemId: ItemId,
-    saleQty: number,
+    saleQty: number
   ) => Promise<IRelayWriteResponse>;
   createCart: () => Promise<`0x${string}`>;
   changeStock: (
     itemId: ItemId[],
-    diffs: number[],
+    diffs: number[]
   ) => Promise<IRelayWriteResponse>;
+  abandonCart: (cardId: CartId) => Promise<void>;
+  commitCart: (
+    cardId: CartId,
+    erc20: `0x${string}` | null
+  ) => Promise<{ requestId: Uint8Array; cartFinalizedId: Uint8Array }>;
 };
 
 export type ClientContext = {
@@ -102,15 +107,14 @@ export type ClientContext = {
   relayClient: IRelayClient | null;
   publicClient: PublicClient | null;
   inviteSecret: `0x${string}` | null;
-  setInviteSecret: Dispatch<SetStateAction<`0x${string}`>>;
-  setWallet: Dispatch<SetStateAction<WalletClientWithAccount>>;
+  setInviteSecret: Dispatch<SetStateAction<`0x${string}` | null>>;
+  setWallet: Dispatch<SetStateAction<WalletClientWithAccount | null>>;
   getTokenInformation: (
-    d: `0x${string}`,
+    d: `0x${string}`
   ) => Promise<{ name: string; symbol: string; decimals: number }>;
 };
 
 export type StoreContent = {
-  store: Store | null;
   relays: IRelay[];
   products: Map<ItemId, IProduct>;
   allTags: Map<TagId, ITag>;
@@ -121,27 +125,27 @@ export type StoreContent = {
   finalizedCarts: Map<EventId, FinalizedCartState>;
   addProduct: (
     p: IProduct,
-    keysArr: ItemId[] | 0,
+    keysArr: ItemId[] | 0
   ) => Promise<ItemId | { error: string }>;
   updateProduct: (
     itemId: ItemId,
     updatedFields: { price: boolean; metadata: boolean },
     newProduct: IProduct,
-    keysArr: ItemId[] | 0,
+    keysArr: ItemId[] | 0
   ) => Promise<{ error: string | null }>;
   createState: () => void;
   createTag: (name: string) => Promise<TagId>;
   addProductToTag: (
     tagId: TagId,
-    itemId: ItemId,
+    itemId: ItemId
   ) => Promise<{ error: string | null }>;
   removeProductFromTag: (
     tagId: TagId,
-    itemId: ItemId,
+    itemId: ItemId
   ) => Promise<{ error: string | null }>;
   updateCart: (
     itemId?: ItemId,
-    quantity?: number,
+    quantity?: number
   ) => Promise<{ error?: string }>;
   commitCart: (erc20: boolean) => Promise<{
     cartFinalizedId: `0x${string}`;
@@ -154,3 +158,9 @@ export type StoreContent = {
   setPublishedTagId: (id: TagId) => void;
   setCartId: (cartId: CartId | null) => void;
 };
+
+export type ProductsMap = Map<ItemId, IProduct>;
+
+export type TagsMap = Map<TagId, ITag>;
+
+export type CartsMap = Map<CartId, CartState>;

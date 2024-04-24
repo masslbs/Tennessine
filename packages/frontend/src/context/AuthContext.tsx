@@ -15,15 +15,17 @@ const AuthContext = createContext<IAuthContext>({
   setIsAuthenticated: () => {},
 });
 
-// @ts-ignore
-export const AuthProvider = ({ children }) => {
+type Props = {
+  children: React.ReactNode;
+};
+
+export const AuthProvider = (props: Props) => {
   const [isAuthenticated, setIsAuthenticated] = useState<IStatus>(
-    IStatus.Pending,
+    IStatus.Pending
   );
   return (
-    // @ts-ignore
     <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated }}>
-      {children}
+      {props.children}
     </AuthContext.Provider>
   );
 };

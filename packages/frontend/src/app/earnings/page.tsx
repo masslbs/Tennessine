@@ -13,8 +13,13 @@ import { CartState } from "@/context/types";
 
 function Page() {
   const [totalEarnings, setTotalEarnings] = useState<number>(255.4);
-  const [currency, setCurrency] = useState<string>("USDC");
+  const [currency, setCurrency] = useState<string>("");
   const { cartItems, products } = useStoreContext();
+
+  //FIXME: for when we integrate store settings
+  useEffect(()=>{
+    setCurrency("USDC")
+  },[])
 
   useEffect(() => {
     const carts = Array.from([...cartItems.values()]);

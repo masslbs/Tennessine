@@ -4,7 +4,7 @@
 
 "use client";
 
-import React, { Dispatch, SetStateAction, FormEvent } from "react";
+import React, { Dispatch, SetStateAction, FormEvent, ChangeEvent } from "react";
 import Image from "next/image";
 
 const Search = ({
@@ -14,7 +14,7 @@ const Search = ({
   setSearchPhrase: Dispatch<SetStateAction<string>>;
   searchPhrase: string;
 }) => {
-  const handleSearchChange = (e: FormEvent<HTMLFormElement>) => {
+  const handleSearchChange = (e: FormEvent<HTMLInputElement>) => {
     const inputElem = e.target as HTMLInputElement;
     if (!inputElem) return;
     setSearchPhrase(inputElem.value);
@@ -50,8 +50,7 @@ const Search = ({
           name="products"
           placeholder="Search products"
           value={searchPhrase}
-          // @ts-ignore TODO
-          onChange={(e) => handleSearchChange(e)}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearchChange(e)}
         />
       </form>
     </div>

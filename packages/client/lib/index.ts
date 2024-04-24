@@ -43,7 +43,6 @@ export type WalletClientWithAccount = WalletClient<
 
 export type ClientArgs = {
   relayEndpoint: string;
-  useTLS: boolean;
   privateKey: Uint8Array;
   storeId: `0x${string}`;
   chain: Chain;

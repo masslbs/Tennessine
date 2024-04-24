@@ -8,7 +8,6 @@ import QRCode from "qrcode";
 import { useStoreContext } from "@/context/StoreContext";
 import { IStatus } from "@/types/index";
 
-// @ts-ignore
 function QRScan({
   imgSrc,
   setStatusScreen,

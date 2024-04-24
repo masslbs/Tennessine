@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// @ts-nocheck
 
 import {
   ADD_PRODUCT,
@@ -14,7 +13,7 @@ import {
 } from "@/reducers/productReducers";
 import { ADD_TAG } from "@/reducers/tagReducers";
 import { bytesToHex } from "viem";
-import { parseMetadata, decodeMetadata } from "@/app/utils";
+import { parseMetadata } from "@/app/utils";
 import { ItemField } from "@/context/types";
 import { IProduct, IStatus } from "@/types/index";
 import {

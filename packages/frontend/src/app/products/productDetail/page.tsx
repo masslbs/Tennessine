@@ -2,14 +2,13 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// @ts-nocheck TODO: fix this
 "use client";
 import React, { useState, useEffect, createRef } from "react";
 import ModalHeader from "@/app/common/components/ModalHeader";
 import Image from "next/image";
 import Button from "@/app/common/components/Button";
 import SeeProductActions from "@/app/components/products/SeeProductActions";
-import { IProduct } from "@/types/index";
+import { IProduct, ItemId } from "@/types/index";
 import { useStoreContext } from "@/context/StoreContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ItemState } from "@/context/types";
@@ -20,22 +19,23 @@ const ProductDetail = () => {
     useStoreContext();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const itemId = searchParams.get("itemId");
+  const itemId = searchParams.get("itemId") as ItemId;
   const [quantity, setQuantity] = useState<number>(0);
   const [showActions, setShowActions] = useState<boolean>(false);
   const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
-  const [item, setItem] = useState<IProduct>(products.get(itemId));
+  const [item, setItem] = useState<IProduct | null>(null);
 
   const [addedToCart, setAddedToCart] = useState<boolean>(false);
   const [buttonState, setButton] = useState<"Success" | "Review" | "Update">(
-    "Review",
+    "Review"
   );
   const [showErrorMessage, setShowErrorMessage] = useState<null | string>(null);
   const [available, setAvailable] = useState<number>(0);
 
   const flyoutRef = createRef();
 
-  const handleFlyout = (event) => {
+  const handleFlyout = (event: MouseEvent) => {
+    // @ts-expect-error FIXME
     if (flyoutRef.current && !flyoutRef.current.contains(event.target)) {
       setShowActions(false);
     }
@@ -56,6 +56,7 @@ const ProductDetail = () => {
     const tagId = findRemoveTagId();
     const res = tagId ? await addProductToTag(tagId, itemId) : null;
     if (!res || res.error) {
+      // @ts-expect-error FIXME
       setShowErrorMessage(res.error);
     } else {
       console.log("successfully removed item");
@@ -64,26 +65,33 @@ const ProductDetail = () => {
   };
 
   useEffect(() => {
-    document.addEventListener("mousedown", (event) => handleFlyout(event));
+    document.addEventListener("mousedown", (event: MouseEvent) =>
+      handleFlyout(event)
+    );
     return () => {
-      document.removeEventListener("mousedown", (event) => handleFlyout(event));
+      document.removeEventListener("mousedown", (event: MouseEvent) =>
+        handleFlyout(event)
+      );
     };
   }, [flyoutRef]);
 
   useEffect(() => {
-    const itemsInCurrentCart: ItemState =
-      cartId && cartItems.get(cartId)?.items;
+    const itemsInCurrentCart: ItemState | null =
+      (cartId && cartItems.get(cartId)?.items) || null;
     if (itemId && itemsInCurrentCart?.[itemId]) {
       setAddedToCart(true);
     }
   }, [cartItems, item]);
 
   useEffect(() => {
-    const _item = products.get(itemId);
-    setItem(_item);
-    setAvailable(_item?.stockQty);
-    const qty = _item ? cartItems.get(cartId)?.items?.[itemId] || 0 : 0;
-    setQuantity(qty);
+    if (itemId) {
+      const _item = products.get(itemId);
+      _item && setItem(_item);
+      _item && setAvailable(_item?.stockQty);
+      const qty =
+        _item && cartId ? cartItems.get(cartId)?.items?.[itemId] || 0 : 0;
+      setQuantity(qty);
+    }
   }, [itemId]);
 
   const increment = () => {
@@ -103,6 +111,7 @@ const ProductDetail = () => {
   };
 
   const rightIcon = showActions ? (
+    // @ts-expect-error FIXME
     <div ref={flyoutRef}>
       <SeeProductActions
         showConfirmModal={openConfirmModal}

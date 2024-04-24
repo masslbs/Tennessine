@@ -13,9 +13,9 @@ const Tag = ({
   removeFn,
   onClick,
 }: {
-  onClick: () => void;
+  onClick?: () => void;
   tag: ITag;
-  removeFn?: () => void | null;
+  removeFn?: () => Promise<void>
 }) => {
   const hex = tag.id.slice(-6).replace("0", "f");
   //FIXME: kind of a hacky way of removing items for now.
