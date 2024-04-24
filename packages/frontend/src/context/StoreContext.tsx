@@ -2,8 +2,6 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// @ts-nocheck
-
 import React, {
   createContext,
   useContext,
@@ -13,18 +11,15 @@ import React, {
 } from "react";
 import { bytesToHex } from "viem";
 
-import {
-  IRelay,
-  IProduct,
-  TagId,
-  ItemId,
-  ITag,
-  CartId,
-  IStatus,
-} from "@/types/index";
-import { dummyRelays } from "./dummyData";
+import { IProduct, TagId, ItemId, CartId, IStatus, IRelay } from "@/types";
 import { useMyContext } from "./MyContext";
-import { StoreContent, ItemField } from "@/context/types";
+import {
+  StoreContent,
+  ItemField,
+  ProductsMap,
+  TagsMap,
+  CartsMap,
+} from "@/context/types";
 import {
   productReducer,
   ADD_PRODUCT,
@@ -47,35 +42,15 @@ import {
   cartReducer,
 } from "@/reducers/cartReducers";
 import { finalizedCartReducer } from "@/reducers/finalizedCartReducers";
+import { initialStoreContext } from "../context/initialLoadingState";
+import { dummyRelays } from "./dummyData";
 
-export const StoreContext = createContext<StoreContent>({
-  store: null,
-  relays: dummyRelays,
-  products: new Map(),
-  allTags: new Map(),
-  cartItems: new Map(),
-  cartId: null,
-  erc20Addr: null,
-  publishedTagId: null,
-  finalizedCarts: new Map(),
-  updateCart: () => {},
-  addProduct: () => {},
-  updateProduct: () => {},
-  createState: () => {},
-  createTag: () => {},
-  addProductToTag: () => {},
-  removeProductFromTag: () => {},
-  commitCart: () => {},
-  invalidateCart: () => {},
-  setErc20Addr: () => {},
-  setPublishedTagId: () => {},
-  setCartId: () => {},
-});
+// @ts-expect-error FIXME
+export const StoreContext = createContext<StoreContent>(initialStoreContext);
 
-//@ts-ignore
-export const StoreContextProvider = ({ children }) => {
-  const [store, setStore] = useState(null);
-  const [relays, setRelays] = useState<IRelay[]>(dummyRelays);
+export const StoreContextProvider = (
+  props: React.HTMLAttributes<HTMLDivElement>,
+) => {
   const [cartItems, setCartItems] = useReducer(cartReducer, new Map());
   const [products, setProducts] = useReducer(productReducer, new Map());
   const [allTags, setAllTags] = useReducer(allTagsReducer, new Map());
@@ -88,33 +63,42 @@ export const StoreContextProvider = ({ children }) => {
     finalizedCartReducer,
     new Map(),
   );
+  const [relays, setRelays] = useState<IRelay[]>(dummyRelays);
+
   const { relayClient } = useMyContext();
 
   useEffect(() => {
-    const localStorageProducts = getStateFromLocalStorage("products") as Map<
-      ItemId,
-      IProduct
-    >;
-    const localStorageTags = getStateFromLocalStorage("tags") as Map<
-      ItemId,
-      ITag
-    >;
+    //FIXME: to fix once we intergrate multiple relays
+    setRelays(dummyRelays);
 
-    const cartItemsLocal = getStateFromLocalStorage("cartItems") as Map<
-      CartId,
-      number
-    >;
-    const cartIdLocal = JSON.parse(localStorage.getItem("cartId")) as CartId;
-    const erc20AddrLocal = JSON.parse(
-      localStorage.getItem("erc20Addr"),
-    ) as `0x${string}`;
+    const localStorageProducts = getStateFromLocalStorage(
+      "products",
+    ) as ProductsMap;
+    const localStorageTags = getStateFromLocalStorage("tags") as TagsMap;
 
-    const publishedTagIdLocal = JSON.parse(
-      localStorage.getItem("publishedTagId"),
-    ) as `0x${string}`;
-    if (publishedTagIdLocal) {
-      setPublishedTagId(publishedTagIdLocal);
+    const cartItemsLocal = getStateFromLocalStorage("cartItems") as CartsMap;
+
+    let cartIdLocal = localStorage.getItem("cartId") || null;
+    if (cartIdLocal) {
+      cartIdLocal = JSON.parse(cartIdLocal);
     }
+    let erc20AddrLocal = localStorage.getItem("erc20Addr");
+    if (erc20AddrLocal) {
+      erc20AddrLocal = JSON.parse(erc20AddrLocal);
+    }
+    let publishedTagIdLocal = localStorage.getItem("publishedTagId");
+    if (publishedTagIdLocal) {
+      publishedTagIdLocal = JSON.parse(publishedTagIdLocal);
+      setPublishedTagId(publishedTagIdLocal as `0x${string}`);
+    }
+    if (erc20AddrLocal) {
+      erc20AddrLocal = JSON.parse(erc20AddrLocal) as `0x${string}`;
+    }
+    if (publishedTagIdLocal) {
+      publishedTagIdLocal = JSON.parse(publishedTagIdLocal);
+      setPublishedTagId(publishedTagIdLocal as `0x${string}`);
+    }
+
     if (localStorageProducts?.size) {
       setProducts({
         type: SET_PRODUCTS,
@@ -138,10 +122,10 @@ export const StoreContextProvider = ({ children }) => {
       });
     }
     if (cartIdLocal && cartIdLocal !== null) {
-      setCartId(cartIdLocal);
+      setCartId(cartIdLocal as `0x${string}`);
     }
     if (erc20AddrLocal && erc20AddrLocal !== null) {
-      setErc20Addr(erc20AddrLocal);
+      setErc20Addr(erc20AddrLocal as `0x${string}`);
     }
     if (publishedTagId && publishedTagId !== null) {
       setPublishedTagId(publishedTagId);
@@ -204,7 +188,10 @@ export const StoreContextProvider = ({ children }) => {
     }
   };
 
-  const addProduct = async (product: IProduct, selectedTagIds: TagId[]) => {
+  const addProduct = async (
+    product: IProduct,
+    selectedTagIds: TagId[] | [],
+  ) => {
     try {
       const path = await relayClient!.uploadBlob(product.blob as Blob);
       const metadata = {
@@ -224,24 +211,25 @@ export const StoreContextProvider = ({ children }) => {
           payload: { itemId: product.id, item: product },
         });
 
-      changeStock([iid], [product.stockQty]);
+      changeStock([iid], [product.stockQty || 0]);
 
       selectedTagIds &&
         selectedTagIds.map((id) => {
           addProductToTag(id, iid);
         });
-      return iid;
+      return { id: iid, error: null };
     } catch (error) {
       console.error({ error });
-      return { error: error.message };
+      const errMsg = error as { message: string };
+      return { error: errMsg.message };
     }
   };
 
   const updateProduct = async (
     itemId: ItemId,
-    fields: { price: boolean; metadata: boolean; stockQty: boolean },
+    fields: { price: boolean; metadata: boolean; stockQty?: boolean },
     updatedProduct: IProduct,
-    selectedTagIds: TagId[],
+    selectedTagIds: TagId[] | [],
   ) => {
     try {
       if (fields.price) {
@@ -265,12 +253,12 @@ export const StoreContextProvider = ({ children }) => {
           updatedProduct.metadata.image.includes("data:image");
         const path = hasEmbeddedImage
           ? await relayClient!.uploadBlob(updatedProduct.blob as Blob)
-          : updatedProduct.metadata.image;
+          : { url: updatedProduct.metadata.image };
 
         const metadata = {
           title: updatedProduct.metadata.title,
           description: "updating product",
-          image: hasEmbeddedImage ? path.url : path,
+          image: path.url,
         };
         await relayClient!.updateItem(
           itemId,
@@ -308,7 +296,8 @@ export const StoreContextProvider = ({ children }) => {
       return { error: null };
     } catch (error) {
       console.log({ error });
-      return { error: error.message };
+      const errMsg = error as { message: string };
+      return { error: errMsg.message };
     }
   };
 
@@ -318,10 +307,11 @@ export const StoreContextProvider = ({ children }) => {
       const id: TagId = await relayClient!.createTag(_name);
       const tag = { id, text: _name, color: "special" }; // TODO: color: hex?
       setAllTags({ type: ADD_TAG, payload: { tag } });
-      return id;
+      return { id, error: null };
     } catch (error) {
       console.log({ error });
-      return { error: error.message };
+      const errMsg = error as { message: string };
+      return { error: errMsg.message };
     }
   };
 
@@ -338,7 +328,8 @@ export const StoreContextProvider = ({ children }) => {
       return { error: null };
     } catch (error) {
       console.log({ error });
-      return { error: error.message };
+      const errMsg = error as { message: string };
+      return { error: errMsg.message };
     }
   };
 
@@ -352,16 +343,18 @@ export const StoreContextProvider = ({ children }) => {
           tagId,
         },
       });
-      return tagId;
+      return { id: tagId, error: null };
     } catch (error) {
       console.log({ error });
+      const errMsg = error as { message: string };
+      return { error: errMsg.message };
     }
   };
 
-  const updateCart = async (itemId: ItemId, saleQty: number) => {
+  const updateCart = async (itemId?: ItemId, saleQty: number = 0) => {
     const cart_id = !cartId ? await createCart() : cartId;
     try {
-      const activeCartItems = cartId && cartItems.get(cartId)?.items;
+      const activeCartItems = (cartId && cartItems.get(cartId)?.items) || {};
 
       if (!itemId) {
         //Clear cart and set every item in cart to quantity 0
@@ -395,28 +388,30 @@ export const StoreContextProvider = ({ children }) => {
           },
         });
       }
+      return { error: null };
     } catch (error) {
-      // invalidateCart(error.message);
+      const errMsg = error as { message: string };
       return {
-        error: `${error.message}. Create New Sale in the navigation menu. `,
+        error: `${errMsg.message}. Create New Sale in the navigation menu. `,
       };
     }
   };
 
-  const invalidateCart = async (msg: string = null) => {
+  const invalidateCart = async (msg: string | null = null) => {
     try {
       console.log(`Invalidating cart: ${msg}`);
-
+      if (!cartId) throw Error(`No ${cartId} found`);
+      if (!relayClient) throw Error(`Disconnected from relayClient`);
       await relayClient.abandonCart(cartId);
       setCartItems({
         type: UPDATE_CART_STATUS,
-        payload: { cartId: cartId, status: IStatus.Failed },
+        payload: { cartId: cartId as `0x${string}`, status: IStatus.Failed },
       });
       await createCart();
     } catch (error) {
       setCartItems({
         type: UPDATE_CART_STATUS,
-        payload: { cartId: cartId, status: IStatus.Failed },
+        payload: { cartId: cartId as `0x${string}`, status: IStatus.Failed },
       });
       await createCart();
     }
@@ -443,27 +438,30 @@ export const StoreContextProvider = ({ children }) => {
       if (erc20) {
         console.log("committing cart with erc20");
       }
+      if (!relayClient) throw Error(`Disconnected from relayClient`);
+
       const checkout = await relayClient.commitCart(cartId, erc20);
       return {
         requestId: bytesToHex(checkout.requestId),
         cartFinalizedId: bytesToHex(checkout.cartFinalizedId),
+        error: null,
       };
     } catch (error) {
-      invalidateCart(error.message);
-      return { error: error.message };
+      const errMsg = error as { message: string };
+      invalidateCart(errMsg.message);
+      return { error: errMsg.message };
     }
   };
 
-  //@ts-ignore
-  const saveToLocalStorage = (key: string, map: Map<string, any>) => {
-    //FIXME
-    const mapArray = Array.from(map.entries());
+  const saveToLocalStorage = (
+    key: string,
+    map: CartsMap | TagsMap | ProductsMap,
+  ) => {
+    const mapArray = Array.from([...map.entries()]);
     localStorage.setItem(key, JSON.stringify(mapArray));
   };
 
   const value = {
-    store,
-    relays,
     products,
     allTags,
     cartItems,
@@ -471,6 +469,7 @@ export const StoreContextProvider = ({ children }) => {
     erc20Addr,
     publishedTagId,
     finalizedCarts,
+    relays,
     addProduct,
     updateProduct,
     createState,
@@ -486,7 +485,9 @@ export const StoreContextProvider = ({ children }) => {
   };
 
   return (
-    <StoreContext.Provider value={value}>{children}</StoreContext.Provider>
+    <StoreContext.Provider value={value}>
+      {props.children}
+    </StoreContext.Provider>
   );
 };
 

@@ -2,8 +2,6 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// @ts-nocheck TODO: fix this
-
 "use client";
 
 import React, {
@@ -22,12 +20,13 @@ import {
   EDIT_IMG,
   newProductReducer,
   initialState,
+  newProductActions,
 } from "@/reducers/productReducers";
 import { SELECT_TAG, selectedTagReducer } from "@/reducers/tagReducers";
 import { useStoreContext } from "@/context/StoreContext";
 import ProductsTags from "@/app/components/products/ProductTags";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ITag } from "@/types/index";
+import { IProduct, ITag } from "@/types";
 import { createQueryString } from "@/app/utils";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import VisibilitySlider from "@/app/components/products/VisibilitySlider";
@@ -35,7 +34,7 @@ import VisibilitySlider from "@/app/components/products/VisibilitySlider";
 const AddProductView = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const itemId = searchParams.get("itemId");
+  const itemId = searchParams.get("itemId") as `0x${string}` | "new";
   const editView = itemId !== "new";
   const { addProduct, updateProduct, allTags, products } = useStoreContext();
   const productInView = editView ? products.get(itemId) : null;
@@ -58,16 +57,15 @@ const AddProductView = () => {
       ? {
           id: productInView.id,
           price: price,
-          stockQty: stockQty,
+          stockQty: Number(stockQty),
           blob: null,
           tagIds: productInView.tagIds,
           metadata: productInView.metadata,
         }
       : initialState;
-  const [newProduct, updateNewProduct] = useReducer(
-    newProductReducer,
-    _initialState,
-  );
+  const [newProduct, updateNewProduct] = useReducer<
+    (state: IProduct, actions: newProductActions) => IProduct
+  >(newProductReducer, _initialState);
 
   useEffect(() => {
     if (!productInView?.tagIds) return;
@@ -101,22 +99,23 @@ const AddProductView = () => {
         blob.append("file", fileInput.files[0]);
 
         reader.onload = function (e) {
-          const url = e.target?.result!;
+          const r = e.target as FileReader;
+          const url = r.result;
           typeof url == "string" && setImg(url);
           updateNewProduct({
             type: UPLOAD_IMG,
-            // @ts-ignore
             payload: { blob },
           });
-          updateNewProduct({
-            type: EDIT_IMG,
-            payload: { img: url },
-          });
+          typeof url == "string" &&
+            updateNewProduct({
+              type: EDIT_IMG,
+              payload: { img: url },
+            });
         };
 
         reader.readAsDataURL(fileInput.files[0]);
         //manually reset value for subsequent uploads in the same session.
-        e.target.value = null;
+        e.target.value = "";
       }
     } catch (error) {
       console.error(error);
@@ -131,7 +130,6 @@ const AddProductView = () => {
     });
     updateNewProduct({
       type: UPLOAD_IMG,
-      // @ts-ignore
       payload: { blob: null },
     });
   };
@@ -151,9 +149,9 @@ const AddProductView = () => {
         metadata: editedMetaData,
         stockQty: editedUnit,
       };
-      // @ts-ignore
-      const selectedTagKeys: `0x${string}`[] | 0 =
-        selectedTags.size && Array.from([...selectedTags.keys()]);
+      const selectedTagKeys: `0x${string}`[] | [] = selectedTags.size
+        ? Array.from([...selectedTags.keys()])
+        : [];
       const res =
         editView && productInView
           ? await updateProduct(

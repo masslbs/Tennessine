@@ -11,7 +11,7 @@ import { useMyContext } from "../../context/MyContext";
 import { formatEthAdd } from "../utils";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { IStatus } from "@/types/index";
+import { IStatus } from "@/types";
 
 const MyWallet = () => {
   const [walletBalance, setWalletBalance] = useState<string>("0");

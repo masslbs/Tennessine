@@ -3,15 +3,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // components/withAuth.js
-import React from "react";
+import React, { FunctionComponent } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { IStatus } from "@/types/index";
+import { IStatus } from "@/types";
+interface PageProps {
+  params: { slug: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+}
 
-//@ts-ignore
-const withAuth = (WrappedComponent) => {
-  //@ts-ignore
-  return (props) => {
+const withAuth = (WrappedComponent: FunctionComponent<PageProps>) => {
+  return (props: PageProps) => {
     const router = useRouter();
     const { isAuthenticated } = useAuth();
     if (typeof window == "undefined") {

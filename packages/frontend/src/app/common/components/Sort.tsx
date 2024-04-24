@@ -8,7 +8,7 @@ import React, { Dispatch, SetStateAction, useState, ChangeEvent } from "react";
 import HalfModal from "./HalfModal";
 import Button from "./Button";
 
-import { SortOption } from "@/types/index";
+import { SortOption } from "@/types";
 
 const Sort = ({
   isOpen,

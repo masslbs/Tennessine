@@ -3,14 +3,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useStoreContext } from "@/context/StoreContext";
-import { ItemId } from "@/types/index";
+import { ItemId } from "@/types";
 import React, { useEffect, useState } from "react";
 import {
   selectedTagsAction,
   SELECT_TAG,
   DESELECT_TAG,
 } from "@/reducers/tagReducers";
-import { TagId, ITag } from "@/types/index";
+import { TagId, ITag } from "@/types";
 
 const VisibilitySlider = ({
   selectedTagsDispatch,
@@ -18,7 +18,7 @@ const VisibilitySlider = ({
   selectedTags,
 }: {
   selectedTagsDispatch: (t: selectedTagsAction) => void;
-  itemId: ItemId;
+  itemId: ItemId | null;
   selectedTags: Map<TagId, ITag>;
 }) => {
   const { publishedTagId, allTags, addProductToTag, removeProductFromTag } =

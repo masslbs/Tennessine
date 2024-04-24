@@ -1,9 +1,6 @@
 // SPDX-FileCopyrightText: 2024 Mass Labs
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
-
-// @ts-nocheck
-
 import {
   ADD_PRODUCT,
   UPDATE_METADATA,
@@ -11,62 +8,67 @@ import {
   ADD_PRODUCT_TAGS,
   REMOVE_PRODUCT_TAG,
   UPDATE_STOCKQTY,
+  updateProductAction,
+  productAction,
 } from "@/reducers/productReducers";
-import { ADD_TAG } from "@/reducers/tagReducers";
+import { ADD_TAG, allTagsAction } from "@/reducers/tagReducers";
 import { bytesToHex } from "viem";
-import { parseMetadata, decodeMetadata } from "@/app/utils";
+import { parseMetadata } from "@/app/utils";
 import { ItemField } from "@/context/types";
-import { IProduct, IStatus } from "@/types/index";
+import { IProduct, IStatus, ITag } from "@/types";
 import {
   UPDATE_CART_ITEM,
   REMOVE_CART_ITEM,
   UPDATE_CART_STATUS,
   UPDATE_CART_HASH,
+  allCartActions,
 } from "@/reducers/cartReducers";
-import { SET_CART } from "@/reducers/finalizedCartReducers";
-// TODO: cleanup workspace import madness so that we can get mmproto from dmp-ts-lib/protobuf
-// see types.ts for more
-enum ManifestUpdateFields {
-  resetPublishedTagId = 2,
-  ERC20Add = 3,
-  ERC20Remove = 4,
-}
+import {
+  SET_CART,
+  finalizedCartActions,
+} from "@/reducers/finalizedCartReducers";
+import { Dispatch } from "react";
+import { market } from "@massmarket/client/lib/protobuf/compiled";
+import mmproto = market.mass;
+
+const ManifestField = mmproto.UpdateManifest.ManifestField;
 
 export const buildState = (
-  products,
-  allTags,
-  events,
-  productsDispatch,
-  tagsDisaptch,
-  setCartItems,
-  setErc20Addr,
-  setPublishedTagId,
-  setFinalizedCarts,
+  products: Map<`0x${string}`, IProduct>,
+  allTags: Map<`0x${string}`, ITag>,
+  events: mmproto.IEvent[],
+  productsDispatch: Dispatch<updateProductAction | productAction>,
+  tagsDisaptch: Dispatch<allTagsAction>,
+  setCartItems: Dispatch<allCartActions>,
+  setErc20Addr: Dispatch<`0x${string}` | null>,
+  setPublishedTagId: Dispatch<`0x${string}`>,
+  setFinalizedCarts: Dispatch<finalizedCartActions>,
 ) => {
   events.map((e) => {
     if (e.updateManifest) {
       const um = e.updateManifest;
       const f = um.field;
-      if (f == ManifestUpdateFields.ERC20Add) {
+      if (f == ManifestField.MANIFEST_FIELD_ADD_ERC20 && um.erc20Addr) {
         console.log(
           `Adding erc20 ${bytesToHex(um.erc20Addr)} to payment options`,
         );
         setErc20Addr(bytesToHex(um.erc20Addr));
-      } else if (f === ManifestUpdateFields.ERC20Remove) {
+      } else if (
+        f === ManifestField.MANIFEST_FIELD_REMOVE_ERC20 &&
+        um.erc20Addr
+      ) {
         console.log(
           `Removing erc20 ${bytesToHex(um.erc20Addr)} from payment options`,
         );
         setErc20Addr(null);
       }
 
-      if (f == ManifestUpdateFields.resetPublishedTagId) {
+      if (f == ManifestField.MANIFEST_FIELD_PUBLISHED_TAG && um.tagId) {
         console.log(`Resetting published tag id to: ${bytesToHex(um.tagId)}`);
         setPublishedTagId(bytesToHex(um.tagId));
       }
     } else if (e.createItem) {
       const _meta = parseMetadata(e.createItem.metadata);
-
-      //FIXME: ipfs url
       const id = bytesToHex(e.createItem.eventId);
       const item: IProduct = {
         id,
@@ -76,7 +78,10 @@ export const buildState = (
       productsDispatch({ type: ADD_PRODUCT, payload: { itemId: id, item } });
     } else if (e.updateItem) {
       const id = bytesToHex(e.updateItem.itemId);
-      if (e.updateItem.field == ItemField.ITEM_FIELD_METADATA) {
+      if (
+        e.updateItem.field == ItemField.ITEM_FIELD_METADATA &&
+        e.updateItem.metadata
+      ) {
         const _meta = parseMetadata(e.updateItem.metadata);
         productsDispatch({
           type: UPDATE_METADATA,
@@ -85,7 +90,10 @@ export const buildState = (
             metadata: _meta,
           },
         });
-      } else if (e.updateItem.field == ItemField.ITEM_FIELD_PRICE) {
+      } else if (
+        e.updateItem.field == ItemField.ITEM_FIELD_PRICE &&
+        e.updateItem.price
+      ) {
         productsDispatch({
           type: UPDATE_PRICE,
           payload: {
@@ -119,32 +127,34 @@ export const buildState = (
         },
       });
     } else if (e.changeStock) {
-      if (e.changeStock.cartId.byteLength) {
+      const evt = e.changeStock;
+      if (evt.cartId && evt.cartId.byteLength && evt.txHash) {
         setCartItems({
           type: UPDATE_CART_STATUS,
           payload: {
-            cartId: bytesToHex(e.changeStock.cartId),
+            cartId: bytesToHex(evt.cartId),
             status: IStatus.Complete,
           },
         });
         setCartItems({
           type: UPDATE_CART_HASH,
           payload: {
-            cartId: bytesToHex(e.changeStock.cartId),
-            txHash: bytesToHex(e.changeStock.txHash),
+            cartId: bytesToHex(evt.cartId),
+            txHash: bytesToHex(evt.txHash),
           },
         });
       }
-      e.changeStock.itemIds.map((id, i) => {
-        const itemId = bytesToHex(id);
-        productsDispatch({
-          type: UPDATE_STOCKQTY,
-          payload: {
-            itemId: itemId,
-            unitDiff: e.changeStock.diffs[i],
-          },
+      evt.itemIds?.length &&
+        evt.itemIds.map((id, i) => {
+          const itemId = bytesToHex(id);
+          productsDispatch({
+            type: UPDATE_STOCKQTY,
+            payload: {
+              itemId: itemId,
+              unitDiff: evt.diffs ? evt.diffs[i] : 0,
+            },
+          });
         });
-      });
     } else if (e.changeCart) {
       const itemId = bytesToHex(e.changeCart.itemId);
       const _cartId = bytesToHex(e.changeCart.cartId);
@@ -172,13 +182,13 @@ export const buildState = (
         subTotal,
       } = e.cartFinalized;
       const cartObj = {
-        erc20Addr: bytesToHex(erc20Addr),
+        erc20Addr: erc20Addr ? bytesToHex(erc20Addr) : null,
         cartId: bytesToHex(cartId),
         purchaseAddress: bytesToHex(purchaseAddr),
-        salesTax: salesTax,
-        total: total,
-        subTotal: subTotal,
-        totalInCrypto: totalInCrypto,
+        salesTax: salesTax || null,
+        total: total || null,
+        subTotal: subTotal || null,
+        totalInCrypto: totalInCrypto || null,
       };
 
       setFinalizedCarts({
