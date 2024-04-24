@@ -44,19 +44,12 @@ export type updateProductAction = {
 };
 export const productReducer = (
   state: Map<`0x${string}`, IProduct>,
-  action: productAction | updateProductAction,
+  action: productAction | updateProductAction
 ) => {
   const _state = new Map(state);
   const itemId = action.payload.itemId;
   const updateItem = _state.get(itemId) as IProduct;
-  if (
-    action.type !== ADD_PRODUCT &&
-    action.type !== UPDATE_PRODUCT &&
-    action.type !== SET_PRODUCTS &&
-    !updateItem
-  ) {
-    return _state;
-  }
+
   switch (action.type) {
     case ADD_PRODUCT:
     case UPDATE_PRODUCT:
@@ -78,7 +71,7 @@ export const productReducer = (
 
 const productTagReducer = (
   state: TagId[],
-  action: productAction | updateProductAction,
+  action: productAction | updateProductAction
 ) => {
   switch (action.type) {
     case REMOVE_PRODUCT_TAG:
@@ -92,7 +85,7 @@ const productTagReducer = (
 
 const productItemReducer = (
   state: IProduct,
-  action: productAction | updateProductAction,
+  action: productAction | updateProductAction
 ) => {
   switch (action.type) {
     case UPDATE_METADATA:
@@ -166,7 +159,7 @@ export const newProductReducer = (state, action: NewProductAction) => {
 
 export const updateNewProductReducer = (
   state: Metadata,
-  action: EDIT_IMG | EDIT_TITLE,
+  action: EDIT_IMG | EDIT_TITLE
 ) => {
   switch (action.type) {
     case EDIT_IMG:
