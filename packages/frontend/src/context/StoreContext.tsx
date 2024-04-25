@@ -49,60 +49,10 @@ import {
   cartReducer,
 } from "@/reducers/cartReducers";
 import { finalizedCartReducer } from "@/reducers/finalizedCartReducers";
+import { initialStoreContext } from "../context/initialLoadingState";
 import { dummyRelays } from "./dummyData";
 
-export const StoreContext = createContext<StoreContent>({
-  products: new Map(),
-  allTags: new Map(),
-  cartItems: new Map(),
-  cartId: `0x`,
-  erc20Addr: `0x`,
-  publishedTagId: `0x`,
-  finalizedCarts: new Map(),
-  relays: dummyRelays,
-  updateCart: () =>
-    new Promise(() => {
-      return { error: null };
-    }),
-  addProduct: () =>
-    new Promise(() => {
-      return { error: null };
-    }),
-  updateProduct: () =>
-    new Promise(() => {
-      return { error: null };
-    }),
-  createState: () => {},
-  createTag: () =>
-    new Promise(() => {
-      return `0x`;
-    }),
-  addProductToTag: () =>
-    new Promise(() => {
-      return {
-        tagId: `0x`,
-        itemId: `0x`,
-      };
-    }),
-  removeProductFromTag: () =>
-    new Promise(() => {
-      return {
-        tagId: `0x`,
-        itemId: `0x`,
-      };
-    }),
-  commitCart: () =>
-    new Promise(() => {
-      return {
-        cartFinalizedId: `0x`,
-        requestId: `0x`,
-      };
-    }),
-  invalidateCart: () => {},
-  setErc20Addr: () => {},
-  setPublishedTagId: () => {},
-  setCartId: () => {},
-});
+export const StoreContext = createContext<StoreContent>(initialStoreContext);
 
 export const StoreContextProvider = (
   props: React.HTMLAttributes<HTMLDivElement>
@@ -133,16 +83,19 @@ export const StoreContextProvider = (
     const localStorageTags = getStateFromLocalStorage("tags") as TagsMap;
 
     const cartItemsLocal = getStateFromLocalStorage("cartItems") as CartsMap;
-    const cartIdLocal = JSON.parse(localStorage.getItem("cartId")) as CartId;
-    const erc20AddrLocal = JSON.parse(
-      localStorage.getItem("erc20Addr")
-    ) as `0x${string}`;
 
-    const publishedTagIdLocal = JSON.parse(
-      localStorage.getItem("publishedTagId")
-    ) as `0x${string}`;
+    let cartIdLocal = localStorage.getItem("cartId") || null;
+    if (cartIdLocal) {
+      cartIdLocal = JSON.parse(cartIdLocal);
+    }
+    let erc20AddrLocal = localStorage.getItem("erc20Addr");
+    if (erc20AddrLocal) {
+      erc20AddrLocal = JSON.parse(erc20AddrLocal);
+    }
+    let publishedTagIdLocal = localStorage.getItem("publishedTagId");
     if (publishedTagIdLocal) {
-      setPublishedTagId(publishedTagIdLocal);
+      publishedTagIdLocal = JSON.parse(publishedTagIdLocal);
+      setPublishedTagId(publishedTagIdLocal as `0x${string}`);
     }
     if (localStorageProducts?.size) {
       setProducts({
@@ -167,10 +120,10 @@ export const StoreContextProvider = (
       });
     }
     if (cartIdLocal && cartIdLocal !== null) {
-      setCartId(cartIdLocal);
+      setCartId(cartIdLocal as `0x${string}`);
     }
     if (erc20AddrLocal && erc20AddrLocal !== null) {
-      setErc20Addr(erc20AddrLocal);
+      setErc20Addr(erc20AddrLocal as `0x${string}`);
     }
     if (publishedTagId && publishedTagId !== null) {
       setPublishedTagId(publishedTagId);
