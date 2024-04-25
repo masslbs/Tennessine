@@ -8,7 +8,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Sort from "../common/components/Sort";
 import Search from "../common/components/Search";
-import { SortOption, IProduct } from "@/types/index";
+import { SortOption, IProduct } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import Link from "next/link";
 import withAuth from "../components/withAuth";
@@ -59,7 +59,7 @@ const Products = () => {
 
   const viewProductDetails = (item: IProduct) => {
     router.push(
-      `/products/productDetail?${createQueryString("itemId", item.id, searchParams)}`,
+      `/products/productDetail?${createQueryString("itemId", item.id, searchParams)}`
     );
   };
 
@@ -79,7 +79,7 @@ const Products = () => {
           ? arr
           : arr.filter(
               (product) =>
-                !product?.tagIds || !product.tagIds.includes(publishedTagId),
+                !product?.tagIds || !product.tagIds.includes(publishedTagId)
             );
       case SortOption.available:
         return arr.filter(
@@ -87,7 +87,7 @@ const Products = () => {
             product.stockQty &&
             publishedTagId &&
             product.tagIds &&
-            product.tagIds?.includes(publishedTagId),
+            product.tagIds?.includes(publishedTagId)
         );
       case SortOption.unavailable:
         return arr.filter((product) => !product.stockQty);

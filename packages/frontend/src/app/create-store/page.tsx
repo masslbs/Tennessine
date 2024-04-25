@@ -12,7 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 import * as abi from "@massmarket/contracts";
 import { ManifestField } from "@massmarket/client";
 import { useStoreContext } from "@/context/StoreContext";
-import { IStatus } from "@/types/index";
+import { IStatus } from "@/types";
 
 const CreateStore = () => {
   const { relayClient, publicClient, walletAddress } = useMyContext();
@@ -65,7 +65,7 @@ const CreateStore = () => {
           // setPublishedTagId(publishedTagId);
           console.log("store manifested.");
           const keyCardToEnroll = localStorage.getItem(
-            "keyCardToEnroll",
+            "keyCardToEnroll"
           ) as `0x${string}`;
           localStorage.setItem("keyCard", keyCardToEnroll);
           localStorage.removeItem("keyCardToEnroll");
@@ -133,7 +133,7 @@ const CreateStore = () => {
   const addERC20 = async () => {
     await relayClient!.updateManifest(
       ManifestField.MANIFEST_FIELD_ADD_ERC20,
-      newERC20,
+      newERC20
     );
     localStorage.setItem("erc20Addr", newERC20);
     setErc20Addr(newERC20 as `0x${string}`);
@@ -144,7 +144,7 @@ const CreateStore = () => {
     console.log(`updating store published tag id to: ${publishedTagId}`);
     await relayClient!.updateManifest(
       ManifestField.MANIFEST_FIELD_PUBLISHED_TAG,
-      publishedTagId,
+      publishedTagId
     );
     setPublishedTagId(publishedTagId);
     localStorage.setItem("publishedTagId", publishedTagId);

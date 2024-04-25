@@ -6,7 +6,7 @@ import Image from "next/image";
 import React, { useState, useEffect, SetStateAction, Dispatch } from "react";
 import QRCode from "qrcode";
 import { useStoreContext } from "@/context/StoreContext";
-import { IStatus } from "@/types/index";
+import { IStatus } from "@/types";
 
 function QRScan({
   imgSrc,

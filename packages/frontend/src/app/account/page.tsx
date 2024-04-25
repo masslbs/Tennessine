@@ -8,7 +8,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import EditName from "../components/account/EditName";
 import AccountProfilePhoto from "../components/account/AccountProfilePhoto";
-import { IRole, IStatus } from "@/types/index";
+import { IRole, IStatus } from "@/types";
 import { useMyContext } from "@/context/MyContext";
 import { useAuth } from "@/context/AuthContext";
 import { formatEthAdd } from "../utils";
@@ -20,7 +20,7 @@ const AccountSettings = () => {
   const [openNameEdit, setOpenNameEdit] = useState<boolean>(false);
   const [openPhotoUpload, setOpenPhotoUpload] = useState<boolean>(false);
   const [profilePhoto, setProfilePhoto] = useState<string>(
-    "/assets/example-avatar.svg",
+    "/assets/example-avatar.svg"
   );
   const [firstName, setFirstName] = useState<string>("Martin");
   const [ethAdd, setEthAdd] = useState<string>("");

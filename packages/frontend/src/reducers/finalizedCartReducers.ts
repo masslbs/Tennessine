@@ -6,12 +6,12 @@ export const SET_CART = "SET_CART";
 export type EventId = `0x${string}`;
 
 export type FinalizedCartState = {
-  erc20Addr: `0x${string}`;
+  erc20Addr: `0x${string}` | null;
   cartId: `0x${string}`;
   purchaseAddress: `0x${string}`;
-  salesTax: string;
-  total: string;
-  totalInCrypto: string;
+  salesTax: string | null;
+  total: string | null;
+  totalInCrypto: string | null;
 };
 
 export type finalizedCartActions = {

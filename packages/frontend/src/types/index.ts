@@ -9,9 +9,9 @@ export type CartId = `0x${string}`;
 export type IProduct = {
   id: ItemId;
   price: string;
-  stockQty: number;
   metadata: Metadata;
-  blob?: Blob | FormData;
+  stockQty?: number;
+  blob?: Blob | FormData | null;
   tagIds?: TagId[];
   saleQty?: number;
 };

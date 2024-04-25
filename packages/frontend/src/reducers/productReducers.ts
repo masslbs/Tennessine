@@ -26,24 +26,44 @@ export type productAction =
       payload: { itemId: ItemId; allProducts: Map<ItemId, IProduct> };
     };
 
-export type updateProductAction = {
-  type:
-    | "UPDATE_METADATA"
-    | "UPDATE_PRICE"
-    | "ADD_PRODUCT_TAGS"
-    | "REMOVE_PRODUCT_TAG"
-    | "UPDATE_STOCKQTY";
+export type updateProductAction =
+  | updateMetadataAction
+  | updatePriceAction
+  | updateProductTags
+  | updateStockyQty;
+
+type updateMetadataAction = {
+  type: "UPDATE_METADATA";
   payload: {
     itemId: ItemId;
-    metadata?: Metadata;
-    price?: string;
-    tagId?: TagId;
-    unitDiff?: number;
+    metadata: Metadata;
   };
 };
+type updatePriceAction = {
+  type: "UPDATE_PRICE";
+  payload: {
+    itemId: ItemId;
+    price: string;
+  };
+};
+type updateProductTags = {
+  type: "ADD_PRODUCT_TAGS" | "REMOVE_PRODUCT_TAG";
+  payload: {
+    itemId: ItemId;
+    tagId: TagId;
+  };
+};
+export type updateStockyQty = {
+  type: "UPDATE_STOCKQTY";
+  payload: {
+    itemId: ItemId;
+    unitDiff: number;
+  };
+};
+
 export const productReducer = (
   state: Map<`0x${string}`, IProduct>,
-  action: productAction | updateProductAction,
+  action: updateProductAction | productAction
 ) => {
   const _state = new Map(state);
   const itemId = action.payload.itemId;
@@ -70,7 +90,7 @@ export const productReducer = (
 
 const productTagReducer = (
   state: TagId[],
-  action: productAction | updateProductAction,
+  action: productAction | updateProductAction | updateProductTags
 ) => {
   switch (action.type) {
     case REMOVE_PRODUCT_TAG:
@@ -84,7 +104,12 @@ const productTagReducer = (
 
 const productItemReducer = (
   state: IProduct,
-  action: productAction | updateProductAction,
+  action:
+    | productAction
+    | updateProductAction
+    | updateMetadataAction
+    | updatePriceAction
+    | updateProductTags
 ) => {
   switch (action.type) {
     case UPDATE_METADATA:
@@ -95,7 +120,9 @@ const productItemReducer = (
     case UPDATE_STOCKQTY:
       return {
         ...state,
-        stockQty: Number(state?.stockQty ? state.stockQty : 0) + Number(action.payload.unitDiff),
+        stockQty:
+          Number(state?.stockQty ? state.stockQty : 0) +
+          Number(action.payload.unitDiff),
       };
     case REMOVE_PRODUCT_TAG:
     case ADD_PRODUCT_TAGS:
@@ -120,43 +147,52 @@ export const EDIT_UNIT = "EDIT_UNIT";
 export const UPLOAD_IMG = "UPLOAD_IMG";
 
 export const initialState = {
-  metadata: { title: "", image: "" },
-  price: null,
-  stockQty: null,
+  id: "0x0" as ItemId,
+  metadata: { title: "", image: "", description: "" },
+  price: "0",
+  stockQty: 0,
   blob: null,
 };
 type editUnit = {
-  type: "EDIT_UNIT" ,
+  type: "EDIT_UNIT";
   payload: {
     unit: number;
-  }
-}
+  };
+};
 type editTitle = {
-  type: "EDIT_TITLE",
+  type: "EDIT_TITLE";
   payload: {
     title: string;
-  }
-}
-type editPrice ={
-  type: "EDIT_PRICE",
+  };
+};
+type editPrice = {
+  type: "EDIT_PRICE";
   payload: {
     price: string;
-  }
-}
+  };
+};
 type editImg = {
-  type: "EDIT_IMG",
+  type: "EDIT_IMG";
   payload: {
     img: string;
-  }
-}
+  };
+};
 type uploadImg = {
-  type:  "UPLOAD_IMG";
+  type: "UPLOAD_IMG";
   payload: {
     blob: Blob | FormData | null;
   };
 };
-
-export const newProductReducer = (state: IProduct, action: uploadImg | editImg | editPrice | editTitle | editUnit) => {
+export type newProductActions =
+  | uploadImg
+  | editImg
+  | editPrice
+  | editTitle
+  | editUnit;
+export const newProductReducer = (
+  state: IProduct,
+  action: newProductActions
+): IProduct => {
   switch (action.type) {
     case EDIT_TITLE:
     case EDIT_IMG:
@@ -177,7 +213,7 @@ export const newProductReducer = (state: IProduct, action: uploadImg | editImg |
 
 export const updateNewProductReducer = (
   state: Metadata,
-  action: editImg | editTitle,
+  action: editImg | editTitle
 ) => {
   switch (action.type) {
     case EDIT_IMG:

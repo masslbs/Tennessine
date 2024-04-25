@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { IStatus, CartId, ItemId } from "@/types/index";
+import { IStatus, CartId, ItemId } from "@/types";
 
 export const REMOVE_CART_ITEM = "REMOVE_CART_ITEM";
 export const CLEAR_CART = "CLEAR_CART";
@@ -61,7 +61,7 @@ export type allCartActions =
 
 export const cartReducer = (
   state: Map<CartId, CartState>,
-  action: allCartActions,
+  action: allCartActions
 ): Map<CartId, CartState> => {
   const _state = new Map(state);
   switch (action.type) {
@@ -70,8 +70,8 @@ export const cartReducer = (
         action.payload.cartId,
         cartStateReducer(
           _state.get(action.payload.cartId) || { items: {} },
-          action,
-        ),
+          action
+        )
       );
       return _state;
     case SET_ALL_CART_ITEMS:
@@ -84,8 +84,8 @@ export const cartReducer = (
         action.payload.cartId,
         cartStateReducer(
           _state.get(action.payload.cartId) || { items: {} },
-          action,
-        ),
+          action
+        )
       );
       return _state;
     default:
@@ -99,7 +99,7 @@ function cartStateReducer(
     | updateCartAction
     | statusUpdate
     | hashUpdate
-    | clearAction,
+    | clearAction
 ): CartState {
   switch (action.type) {
     case UPDATE_CART_ITEM:
@@ -130,7 +130,7 @@ function cartStateReducer(
 }
 function cartItemReducer(
   state: ItemState,
-  action: cartAction | updateCartAction | statusUpdate,
+  action: cartAction | updateCartAction | statusUpdate
 ): ItemState {
   switch (action.type) {
     case UPDATE_CART_ITEM:

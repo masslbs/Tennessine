@@ -4,7 +4,7 @@
 
 import React, { SetStateAction, Dispatch } from "react";
 import { createContext, useContext, useState } from "react";
-import { IStatus } from "@/types/index";
+import { IStatus } from "@/types";
 
 export type IAuthContext = {
   isAuthenticated: IStatus;

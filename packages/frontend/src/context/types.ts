@@ -11,7 +11,7 @@ import { WalletClientWithAccount } from "@massmarket/client";
 // import * as pb from "client/lib/protobuf/compiled";
 // import mmproto = pb.market.mass;
 
-import { IProduct, ITag, IStatus, IRelay } from "@/types/index";
+import { IProduct, ITag, IStatus, IRelay } from "@/types";
 
 export interface MyEvents {
   connect: Record<string, never>;

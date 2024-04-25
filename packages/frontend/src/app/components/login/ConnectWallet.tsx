@@ -13,7 +13,7 @@ import * as abi from "@massmarket/contracts";
 
 import { useAuth } from "@/context/AuthContext";
 import SuccessFailModal from "./SuccessFailModal";
-import { IStatus } from "@/types/index";
+import { IStatus } from "@/types";
 
 const ConnectWallet = ({ close }: { close: () => void }) => {
   const { connectors, connect } = useConnect();
@@ -28,7 +28,7 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
   const redeemSecret = useRef(false);
   const { data: _wallet, status: walletStatus } = useWalletClient();
   const [connectionStatus, setConnectionStatus] = useState<IStatus>(
-    IStatus.Pending,
+    IStatus.Pending
   );
   if (typeof window == "undefined") {
     console.warn("not a browser session");
@@ -36,7 +36,7 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
   }
   const savedKC = localStorage.getItem("keyCard") as `0x${string}`;
   const keyCardToEnroll = localStorage.getItem(
-    "keyCardToEnroll",
+    "keyCardToEnroll"
   ) as `0x${string}`;
 
   const tryAgain = () => {

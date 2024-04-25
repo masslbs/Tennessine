@@ -11,14 +11,7 @@ import React, {
 } from "react";
 import { bytesToHex } from "viem";
 
-import {
-  IProduct,
-  TagId,
-  ItemId,
-  CartId,
-  IStatus,
-  IRelay,
-} from "@/types/index";
+import { IProduct, TagId, ItemId, CartId, IStatus, IRelay } from "@/types";
 import { useMyContext } from "./MyContext";
 import {
   StoreContent,
@@ -52,6 +45,7 @@ import { finalizedCartReducer } from "@/reducers/finalizedCartReducers";
 import { initialStoreContext } from "../context/initialLoadingState";
 import { dummyRelays } from "./dummyData";
 
+// @ts-expect-error FIXME
 export const StoreContext = createContext<StoreContent>(initialStoreContext);
 
 export const StoreContextProvider = (
@@ -97,6 +91,14 @@ export const StoreContextProvider = (
       publishedTagIdLocal = JSON.parse(publishedTagIdLocal);
       setPublishedTagId(publishedTagIdLocal as `0x${string}`);
     }
+    if (erc20AddrLocal) {
+      erc20AddrLocal = JSON.parse(erc20AddrLocal) as `0x${string}`;
+    }
+    if (publishedTagIdLocal) {
+      publishedTagIdLocal = JSON.parse(publishedTagIdLocal);
+      setPublishedTagId(publishedTagIdLocal as `0x${string}`);
+    }
+
     if (localStorageProducts?.size) {
       setProducts({
         type: SET_PRODUCTS,
@@ -206,7 +208,7 @@ export const StoreContextProvider = (
           payload: { itemId: product.id, item: product },
         });
 
-      changeStock([iid], [product.stockQty]);
+      changeStock([iid], [product.stockQty || 0]);
 
       selectedTagIds &&
         selectedTagIds.map((id) => {
@@ -215,7 +217,8 @@ export const StoreContextProvider = (
       return iid;
     } catch (error) {
       console.error({ error });
-      return { error: error.message };
+      const errMsg = error as { message: string };
+      return { error: errMsg.message };
     }
   };
 
@@ -247,12 +250,12 @@ export const StoreContextProvider = (
           updatedProduct.metadata.image.includes("data:image");
         const path = hasEmbeddedImage
           ? await relayClient!.uploadBlob(updatedProduct.blob as Blob)
-          : updatedProduct.metadata.image;
+          : { url: updatedProduct.metadata.image };
 
         const metadata = {
           title: updatedProduct.metadata.title,
           description: "updating product",
-          image: hasEmbeddedImage ? path.url : path,
+          image: path.url,
         };
         await relayClient!.updateItem(
           itemId,
@@ -290,7 +293,8 @@ export const StoreContextProvider = (
       return { error: null };
     } catch (error) {
       console.log({ error });
-      return { error: error.message };
+      const errMsg = error as { message: string };
+      return { error: errMsg.message };
     }
   };
 
@@ -303,7 +307,8 @@ export const StoreContextProvider = (
       return id;
     } catch (error) {
       console.log({ error });
-      return { error: error.message };
+      const errMsg = error as { message: string };
+      return { error: errMsg.message };
     }
   };
 
@@ -320,7 +325,8 @@ export const StoreContextProvider = (
       return { error: null };
     } catch (error) {
       console.log({ error });
-      return { error: error.message };
+      const errMsg = error as { message: string };
+      return { error: errMsg.message };
     }
   };
 
@@ -343,7 +349,7 @@ export const StoreContextProvider = (
   const updateCart = async (itemId: ItemId, saleQty: number) => {
     const cart_id = !cartId ? await createCart() : cartId;
     try {
-      const activeCartItems = cartId && cartItems.get(cartId)?.items;
+      const activeCartItems = (cartId && cartItems.get(cartId)?.items) || {};
 
       if (!itemId) {
         //Clear cart and set every item in cart to quantity 0
@@ -378,27 +384,28 @@ export const StoreContextProvider = (
         });
       }
     } catch (error) {
-      // invalidateCart(error.message);
+      const errMsg = error as { message: string };
       return {
-        error: `${error.message}. Create New Sale in the navigation menu. `,
+        error: `${errMsg.message}. Create New Sale in the navigation menu. `,
       };
     }
   };
 
-  const invalidateCart = async (msg: string = null) => {
+  const invalidateCart = async (msg: string | null = null) => {
     try {
       console.log(`Invalidating cart: ${msg}`);
-
+      if (!cartId) throw Error(`No ${cartId} found`);
+      if (!relayClient) throw Error(`Disconnected from relayClient`);
       await relayClient.abandonCart(cartId);
       setCartItems({
         type: UPDATE_CART_STATUS,
-        payload: { cartId: cartId, status: IStatus.Failed },
+        payload: { cartId: cartId as `0x${string}`, status: IStatus.Failed },
       });
       await createCart();
     } catch (error) {
       setCartItems({
         type: UPDATE_CART_STATUS,
-        payload: { cartId: cartId, status: IStatus.Failed },
+        payload: { cartId: cartId as `0x${string}`, status: IStatus.Failed },
       });
       await createCart();
     }
@@ -425,14 +432,17 @@ export const StoreContextProvider = (
       if (erc20) {
         console.log("committing cart with erc20");
       }
+      if (!relayClient) throw Error(`Disconnected from relayClient`);
+
       const checkout = await relayClient.commitCart(cartId, erc20);
       return {
         requestId: bytesToHex(checkout.requestId),
         cartFinalizedId: bytesToHex(checkout.cartFinalizedId),
       };
     } catch (error) {
-      invalidateCart(error.message);
-      return { error: error.message };
+      const errMsg = error as { message: string };
+      invalidateCart(errMsg.message);
+      return { error: errMsg.message };
     }
   };
 
@@ -440,7 +450,7 @@ export const StoreContextProvider = (
     key: string,
     map: CartsMap | TagsMap | ProductsMap
   ) => {
-    const mapArray = Array.from(map.entries());
+    const mapArray = Array.from([...map.entries()]);
     localStorage.setItem(key, JSON.stringify(mapArray));
   };
 
@@ -468,6 +478,7 @@ export const StoreContextProvider = (
   };
 
   return (
+    // @ts-expect-error FIXME
     <StoreContext.Provider value={value}>
       {props.children}
     </StoreContext.Provider>

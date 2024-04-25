@@ -8,7 +8,7 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import withAuth from "../components/withAuth";
 import { useStoreContext } from "@/context/StoreContext";
-import { IStatus, ItemId } from "@/types/index";
+import { IStatus, ItemId } from "@/types";
 import { CartState } from "@/context/types";
 
 function Page() {
@@ -17,9 +17,9 @@ function Page() {
   const { cartItems, products } = useStoreContext();
 
   //FIXME: for when we integrate store settings
-  useEffect(()=>{
-    setCurrency("USDC")
-  },[])
+  useEffect(() => {
+    setCurrency("USDC");
+  }, []);
 
   useEffect(() => {
     const carts = Array.from([...cartItems.values()]);

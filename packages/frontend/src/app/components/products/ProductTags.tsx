@@ -15,7 +15,7 @@ import React, {
 } from "react";
 import Image from "next/image";
 import Tag from "./Tag";
-import { ITag, TagId, ItemId } from "@/types/index";
+import { ITag, TagId, ItemId } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import {
   searchReducer,
@@ -44,7 +44,7 @@ const ProductsTags = ({
   const [searchResults, searchDispatch] = useReducer(searchReducer, new Map());
   const [tagName, setTagName] = useState<string>("");
   const [_selectedTags, setSelectedTags] = useState<Map<TagId, ITag>>(
-    new Map(),
+    new Map()
   );
   if (!allTags) return null;
 

@@ -20,12 +20,13 @@ import {
   EDIT_IMG,
   newProductReducer,
   initialState,
+  newProductActions,
 } from "@/reducers/productReducers";
 import { SELECT_TAG, selectedTagReducer } from "@/reducers/tagReducers";
 import { useStoreContext } from "@/context/StoreContext";
 import ProductsTags from "@/app/components/products/ProductTags";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ITag } from "@/types/index";
+import { IProduct, ITag } from "@/types";
 import { createQueryString } from "@/app/utils";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import VisibilitySlider from "@/app/components/products/VisibilitySlider";
@@ -40,7 +41,7 @@ const AddProductView = () => {
   const [img, setImg] = useState<string>(productInView?.metadata?.image || "");
   const [price, setPrice] = useState<string>(productInView?.price || "");
   const [title, setTitle] = useState<string>(
-    productInView?.metadata?.title || "",
+    productInView?.metadata?.title || ""
   );
   const [stockQty, setStockQty] = useState(productInView?.stockQty || "0");
   const [editedPrice, setEditedPrice] = useState(false);
@@ -49,23 +50,22 @@ const AddProductView = () => {
   const [error, setError] = useState<null | string>(null);
   const [selectedTags, selectedTagsDispatch] = useReducer(
     selectedTagReducer,
-    new Map(),
+    new Map()
   );
   const _initialState =
     editView && productInView
       ? {
           id: productInView.id,
           price: price,
-          stockQty: stockQty,
+          stockQty: Number(stockQty),
           blob: null,
           tagIds: productInView.tagIds,
           metadata: productInView.metadata,
         }
       : initialState;
-  const [newProduct, updateNewProduct] = useReducer(
-    newProductReducer,
-    _initialState,
-  );
+  const [newProduct, updateNewProduct] = useReducer<
+    (state: IProduct, actions: newProductActions) => IProduct
+  >(newProductReducer, _initialState);
 
   useEffect(() => {
     if (!productInView?.tagIds) return;
@@ -99,17 +99,18 @@ const AddProductView = () => {
         blob.append("file", fileInput.files[0]);
 
         reader.onload = function (e) {
-          const r = e.target as FileReader
-          const url = r.result
+          const r = e.target as FileReader;
+          const url = r.result;
           typeof url == "string" && setImg(url);
           updateNewProduct({
             type: UPLOAD_IMG,
             payload: { blob },
           });
-          typeof url == "string" && updateNewProduct({
-            type: EDIT_IMG,
-            payload: { img: url },
-          });
+          typeof url == "string" &&
+            updateNewProduct({
+              type: EDIT_IMG,
+              payload: { img: url },
+            });
         };
 
         reader.readAsDataURL(fileInput.files[0]);
@@ -156,7 +157,7 @@ const AddProductView = () => {
               productInView.id,
               changedFields,
               newProduct,
-              selectedTagKeys,
+              selectedTagKeys
             )
           : await addProduct(newProduct, selectedTagKeys);
       // @ts-expect-error FIXME

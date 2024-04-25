@@ -10,7 +10,7 @@ import { useStoreContext } from "@/context/StoreContext";
 import { useRouter } from "next/navigation";
 import Button from "@/app/common/components/Button";
 import TransactionStatus from "@/app/components/transactions/TransactionStatus";
-import { ItemId } from "@/types/index";
+import { ItemId } from "@/types";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import PaymentOptions from "@/app/components/transactions/PaymentOptions";
 import { ItemState } from "@/context/types";
@@ -29,7 +29,7 @@ const Cart = () => {
   const [openCheckoutFlow, setOpenModal] = useState<boolean>(false);
   const [imgSrc, setSrc] = useState<null | string>(null);
   const [checkoutReqId, setCheckoutRequestId] = useState<`0x${string}` | null>(
-    null,
+    null
   );
   const [showErrorMessage, setShowErrorMessage] = useState<null | string>(null);
   const [showPaymentOptions, setShowPaymentOptions] = useState<boolean>(false);
@@ -38,7 +38,7 @@ const Cart = () => {
   const [purchaseAdd, setPurchaseAdd] = useState<string>("");
   const [totalDollar, setTotalDollar] = useState<string>("0");
   const [activeCartItems, setActiveCartItems] = useState<ItemState | null>(
-    null,
+    null
   );
 
   let quantity: number = 0;
@@ -64,7 +64,7 @@ const Cart = () => {
       setTotalDollar(total);
       if (erc20Checkout) {
         setSrc(
-          `ethereum:${erc20Addr}/transfer?address=${purchaseAddress}&uint256=${totalInCrypto}`,
+          `ethereum:${erc20Addr}/transfer?address=${purchaseAddress}&uint256=${totalInCrypto}`
         );
       } else {
         setSrc(`ethereum:${purchaseAddress}?value=${totalInCrypto}`);

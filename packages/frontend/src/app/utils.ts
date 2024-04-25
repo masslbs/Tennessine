@@ -4,7 +4,7 @@
 
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { Metadata } from "@/types/index";
+import { Metadata } from "@/types";
 import { ReadonlyURLSearchParams } from "next/navigation";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

@@ -6,7 +6,7 @@
 import React, { FunctionComponent } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { IStatus } from "@/types/index";
+import { IStatus } from "@/types";
 interface PageProps {
   params: { slug: string };
   searchParams: { [key: string]: string | string[] | undefined };

@@ -8,7 +8,7 @@ import ModalHeader from "@/app/common/components/ModalHeader";
 import Image from "next/image";
 import Button from "@/app/common/components/Button";
 import SeeProductActions from "@/app/components/products/SeeProductActions";
-import { IProduct, ItemId } from "@/types/index";
+import { IProduct, ItemId } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ItemState } from "@/context/types";
@@ -87,7 +87,7 @@ const ProductDetail = () => {
     if (itemId) {
       const _item = products.get(itemId);
       _item && setItem(_item);
-      _item && setAvailable(_item?.stockQty);
+      _item && setAvailable(_item?.stockQty || 0);
       const qty =
         _item && cartId ? cartItems.get(cartId)?.items?.[itemId] || 0 : 0;
       setQuantity(qty);

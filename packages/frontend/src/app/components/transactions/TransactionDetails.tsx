@@ -7,7 +7,7 @@ import React, { useEffect, useState } from "react";
 import FullModal from "@/app/common/components/FullModal";
 import Image from "next/image";
 import { useStoreContext } from "@/context/StoreContext";
-import { IProduct, ItemId } from "@/types/index";
+import { IProduct, ItemId } from "@/types";
 import { ItemState } from "@/context/types";
 import { useMyContext } from "@/context/MyContext";
 
@@ -41,7 +41,7 @@ const TransactionDetails = ({
       total += qty * Number(p.price);
     });
     setTotalPrice(total);
-    setSymbol("USDC")
+    setSymbol("USDC");
   }, []);
 
   const formatTime = (hour: number) => {
