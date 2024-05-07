@@ -56,9 +56,7 @@ export const StoreContextProvider = (
   const [allTags, setAllTags] = useReducer(allTagsReducer, new Map());
   const [cartId, setCartId] = useState<CartId | null>(null);
   const [erc20Addr, setErc20Addr] = useState<null | `0x${string}`>(null);
-  const [publishedTagId, setPublishedTagId] = useState<null | `0x${string}`>(
-    null,
-  );
+  const [publishedTagId, setPublishedTagId] = useState<null | TagId>(null);
   const [finalizedCarts, setFinalizedCarts] = useReducer(
     finalizedCartReducer,
     new Map(),
@@ -89,14 +87,14 @@ export const StoreContextProvider = (
     let publishedTagIdLocal = localStorage.getItem("publishedTagId");
     if (publishedTagIdLocal) {
       publishedTagIdLocal = JSON.parse(publishedTagIdLocal);
-      setPublishedTagId(publishedTagIdLocal as `0x${string}`);
+      setPublishedTagId(publishedTagIdLocal as TagId);
     }
     if (erc20AddrLocal) {
       erc20AddrLocal = JSON.parse(erc20AddrLocal) as `0x${string}`;
     }
     if (publishedTagIdLocal) {
       publishedTagIdLocal = JSON.parse(publishedTagIdLocal);
-      setPublishedTagId(publishedTagIdLocal as `0x${string}`);
+      setPublishedTagId(publishedTagIdLocal as TagId);
     }
 
     if (localStorageProducts?.size) {
@@ -122,7 +120,7 @@ export const StoreContextProvider = (
       });
     }
     if (cartIdLocal && cartIdLocal !== null) {
-      setCartId(cartIdLocal as `0x${string}`);
+      setCartId(cartIdLocal as CartId);
     }
     if (erc20AddrLocal && erc20AddrLocal !== null) {
       setErc20Addr(erc20AddrLocal as `0x${string}`);
@@ -405,13 +403,13 @@ export const StoreContextProvider = (
       await relayClient.abandonCart(cartId);
       setCartItems({
         type: UPDATE_CART_STATUS,
-        payload: { cartId: cartId as `0x${string}`, status: IStatus.Failed },
+        payload: { cartId: cartId as CartId, status: IStatus.Failed },
       });
       await createCart();
     } catch (error) {
       setCartItems({
         type: UPDATE_CART_STATUS,
-        payload: { cartId: cartId as `0x${string}`, status: IStatus.Failed },
+        payload: { cartId: cartId as CartId, status: IStatus.Failed },
       });
       await createCart();
     }

@@ -16,11 +16,11 @@ function Transactions() {
   const { cartItems } = useStoreContext();
   const [selectedOrder, setSelectedOrder] = useState<ItemState | null>(null);
   const [selectedTxHash, setSelectedTxHash] = useState<`0x${string}` | null>(
-    null
+    null,
   );
   const [searchPhrase, setSearchPhrase] = useState<string>("");
   const [transactions, setTransactions] = useState<[CartId, CartState][] | []>(
-    []
+    [],
   );
   useEffect(() => {
     const carts = Array.from([...cartItems.entries()]);
@@ -29,7 +29,7 @@ function Transactions() {
 
   const handleTransactionsClick = (
     order: ItemState,
-    hash: `0x${string}` | null
+    hash: `0x${string}` | null,
   ) => {
     setSelectedOrder(order);
     hash && setSelectedTxHash(hash);

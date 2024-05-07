@@ -15,10 +15,10 @@ const StoreProfile = ({ close }: { close: () => void }) => {
   const [avatar, setAvatar] = useState<string | null>(null);
 
   //FIXME: once we set up ts client for saving store name and url.
-  useEffect(()=>{
-    setStoreName("ethDubai")
-    setStoreURL("ethdubai.mass.market")
-  },[])
+  useEffect(() => {
+    setStoreName("ethDubai");
+    setStoreURL("ethdubai.mass.market");
+  }, []);
 
   return (
     <section className="pt-under-nav h-screen">

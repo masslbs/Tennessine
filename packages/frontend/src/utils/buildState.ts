@@ -15,7 +15,7 @@ import { ADD_TAG, allTagsAction } from "@/reducers/tagReducers";
 import { bytesToHex } from "viem";
 import { parseMetadata } from "@/app/utils";
 import { ItemField } from "@/context/types";
-import { IProduct, IStatus, ITag } from "@/types";
+import { IProduct, IStatus, ITag, ItemId, TagId } from "@/types";
 import {
   UPDATE_CART_ITEM,
   REMOVE_CART_ITEM,
@@ -34,14 +34,14 @@ import mmproto = market.mass;
 const ManifestField = mmproto.UpdateManifest.ManifestField;
 
 export const buildState = (
-  products: Map<`0x${string}`, IProduct>,
-  allTags: Map<`0x${string}`, ITag>,
+  products: Map<ItemId, IProduct>,
+  allTags: Map<TagId, ITag>,
   events: mmproto.IEvent[],
   productsDispatch: Dispatch<updateProductAction | productAction>,
   tagsDisaptch: Dispatch<allTagsAction>,
   setCartItems: Dispatch<allCartActions>,
   setErc20Addr: Dispatch<`0x${string}` | null>,
-  setPublishedTagId: Dispatch<`0x${string}`>,
+  setPublishedTagId: Dispatch<TagId>,
   setFinalizedCarts: Dispatch<finalizedCartActions>,
 ) => {
   events.map((e) => {

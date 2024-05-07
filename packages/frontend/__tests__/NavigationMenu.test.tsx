@@ -9,7 +9,7 @@ import { render, screen } from "../test";
 
 describe("Navigation Menu", () => {
   beforeEach(() => {
-    render(<NavigationMenu isOpen={true}  onClose={()=>{}}/>);
+    render(<NavigationMenu isOpen={true} onClose={() => {}} />);
   });
   it("Renders all 6 menu options", async () => {
     expect(screen.getByTestId("menu-button-home")).toBeInTheDocument();

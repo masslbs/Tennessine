@@ -30,7 +30,7 @@ export type EventId = `0x${string}`;
 
 export type FinalizedCartState = {
   erc20Addr: `0x${string}` | null;
-  cartId: `0x${string}`;
+  cartId: CartId;
   purchaseAddress: `0x${string}`;
   salesTax: string | null;
   total: string | null;
@@ -119,9 +119,9 @@ export type StoreContent = {
   products: Map<ItemId, IProduct>;
   allTags: Map<TagId, ITag>;
   cartItems: Map<CartId, CartState>;
-  cartId: `0x${string}` | null;
+  cartId: CartId | null;
   erc20Addr: `0x${string}` | null;
-  publishedTagId: `0x${string}` | null;
+  publishedTagId: TagId | null;
   finalizedCarts: Map<EventId, FinalizedCartState>;
   addProduct: (
     p: IProduct,
@@ -148,7 +148,7 @@ export type StoreContent = {
     saleQty?: number,
   ) => Promise<{ error: string | null }>;
   commitCart: (erc20: boolean) => Promise<{
-    cartFinalizedId?: `0x${string}`;
+    cartFinalizedId?: CartId;
     requestId?: `0x${string}`;
     error: string | null;
     erc20?: `0x${string}`;

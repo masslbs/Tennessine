@@ -62,7 +62,7 @@ export type updateStockyQty = {
 };
 
 export const productReducer = (
-  state: Map<`0x${string}`, IProduct>,
+  state: Map<ItemId, IProduct>,
   action: updateProductAction | productAction,
 ) => {
   const _state = new Map(state);

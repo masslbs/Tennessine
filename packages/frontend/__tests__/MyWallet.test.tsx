@@ -13,10 +13,12 @@ describe("My wallet consumes context state correctly", () => {
   const customRender = (
     component: ReactElement,
     // @ts-expect-error FIXME
-    providerProps
+    providerProps,
   ) => {
     return render(
-      <MyContext.Provider value={providerProps}>{component}</MyContext.Provider>
+      <MyContext.Provider value={providerProps}>
+        {component}
+      </MyContext.Provider>,
     );
   };
   beforeEach(() => {
@@ -32,10 +34,10 @@ describe("My wallet consumes context state correctly", () => {
   it("Correctly formatted wallet address is rendered", async () => {
     expect(screen.getByTestId("wallet-address")).toBeInTheDocument();
     expect(screen.getByTestId("wallet-address")).toHaveTextContent(
-      formatEthAdd("0xC3A04fCb63b95552cCc1456d807A1041CBD45C0B")
+      formatEthAdd("0xC3A04fCb63b95552cCc1456d807A1041CBD45C0B"),
     );
     expect(screen.getByTestId("wallet-address")).toHaveTextContent(
-      formatEthAdd("0xC3A0...5C0B")
+      formatEthAdd("0xC3A0...5C0B"),
     );
   });
   it("Correct balance is rendered", async () => {

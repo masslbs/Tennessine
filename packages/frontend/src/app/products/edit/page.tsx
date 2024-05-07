@@ -26,7 +26,7 @@ import { SELECT_TAG, selectedTagReducer } from "@/reducers/tagReducers";
 import { useStoreContext } from "@/context/StoreContext";
 import ProductsTags from "@/app/components/products/ProductTags";
 import { useRouter, useSearchParams } from "next/navigation";
-import { IProduct, ITag } from "@/types";
+import { IProduct, ITag, ItemId, TagId } from "@/types";
 import { createQueryString } from "@/app/utils";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import VisibilitySlider from "@/app/components/products/VisibilitySlider";
@@ -34,7 +34,7 @@ import VisibilitySlider from "@/app/components/products/VisibilitySlider";
 const AddProductView = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const itemId = searchParams.get("itemId") as `0x${string}` | "new";
+  const itemId = searchParams.get("itemId") as ItemId | "new";
   const editView = itemId !== "new";
   const { addProduct, updateProduct, allTags, products } = useStoreContext();
   const productInView = editView ? products.get(itemId) : null;
@@ -149,7 +149,7 @@ const AddProductView = () => {
         metadata: editedMetaData,
         stockQty: editedUnit,
       };
-      const selectedTagKeys: `0x${string}`[] | [] = selectedTags.size
+      const selectedTagKeys: TagId[] | [] = selectedTags.size
         ? Array.from([...selectedTags.keys()])
         : [];
       const res =
