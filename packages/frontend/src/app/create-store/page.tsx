@@ -12,7 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 import * as abi from "@massmarket/contracts";
 import { ManifestField } from "@massmarket/client";
 import { useStoreContext } from "@/context/StoreContext";
-import { IStatus } from "@/types/index";
+import { IStatus } from "@/types";
 
 const CreateStore = () => {
   const { relayClient, publicClient, walletAddress } = useMyContext();
@@ -140,14 +140,19 @@ const CreateStore = () => {
     console.log(`added new erc20: ${newERC20}`);
   };
   const renewPid = async () => {
-    const publishedTagId = await createTag(":visible");
-    console.log(`updating store published tag id to: ${publishedTagId}`);
-    await relayClient!.updateManifest(
-      ManifestField.MANIFEST_FIELD_PUBLISHED_TAG,
-      publishedTagId,
-    );
-    setPublishedTagId(publishedTagId);
-    localStorage.setItem("publishedTagId", publishedTagId);
+    const res = await createTag(":visible");
+    const publishedTagId = res.id;
+    if (publishedTagId) {
+      console.log(`updating store published tag id to: ${publishedTagId}`);
+      await relayClient!.updateManifest(
+        ManifestField.MANIFEST_FIELD_PUBLISHED_TAG,
+        publishedTagId,
+      );
+      setPublishedTagId(publishedTagId);
+      localStorage.setItem("publishedTagId", publishedTagId);
+    } else {
+      console.error("Error creating published tag id.");
+    }
   };
 
   return (

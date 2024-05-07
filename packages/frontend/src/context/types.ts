@@ -11,7 +11,7 @@ import { WalletClientWithAccount } from "@massmarket/client";
 // import * as pb from "client/lib/protobuf/compiled";
 // import mmproto = pb.market.mass;
 
-import { Store, IRelay, IProduct, ITag, IStatus } from "@/types/index";
+import { IProduct, ITag, IStatus, IRelay } from "@/types";
 
 export interface MyEvents {
   connect: Record<string, never>;
@@ -29,13 +29,13 @@ export type CartId = `0x${string}`;
 export type EventId = `0x${string}`;
 
 export type FinalizedCartState = {
-  erc20Addr: `0x${string}`;
-  cartId: `0x${string}`;
+  erc20Addr: `0x${string}` | null;
+  cartId: CartId;
   purchaseAddress: `0x${string}`;
-  salesTax: string;
-  subTotal: string;
-  total: string;
-  totalInCrypto: string;
+  salesTax: string | null;
+  total: string | null;
+  totalInCrypto: string | null;
+  subTotal: string | null;
 };
 export type UpdateItemProps = {
   itemId: ItemId;
@@ -79,11 +79,11 @@ export type IRelayClient = EventEmitter & {
   ) => Promise<`0x${string}`>;
   addItemToTag: (tagId: TagId, itemId: ItemId) => Promise<IRelayWriteResponse>;
   removeFromTag: (tagId: TagId, itemId: ItemId) => Promise<IRelayWriteResponse>;
-  uploadBlob: (blob: Blob) => Promise<string>;
-  addListener: (event: string, callback: (result: any) => void) => void;
+  uploadBlob: (blob: Blob) => Promise<{ url: string }>;
+  addListener: (event: string, callback: (e: Event) => void) => void;
   createTag: (name: string) => Promise<TagId>;
   changeCart: (
-    cardId: `0x${string}`,
+    cardId: CartId,
     itemId: ItemId,
     saleQty: number,
   ) => Promise<IRelayWriteResponse>;
@@ -92,6 +92,11 @@ export type IRelayClient = EventEmitter & {
     itemId: ItemId[],
     diffs: number[],
   ) => Promise<IRelayWriteResponse>;
+  abandonCart: (cardId: CartId) => Promise<void>;
+  commitCart: (
+    cardId: CartId,
+    erc20: `0x${string}` | null,
+  ) => Promise<{ requestId: Uint8Array; cartFinalizedId: Uint8Array }>;
 };
 
 export type ClientContext = {
@@ -102,35 +107,34 @@ export type ClientContext = {
   relayClient: IRelayClient | null;
   publicClient: PublicClient | null;
   inviteSecret: `0x${string}` | null;
-  setInviteSecret: Dispatch<SetStateAction<`0x${string}`>>;
-  setWallet: Dispatch<SetStateAction<WalletClientWithAccount>>;
+  setInviteSecret: Dispatch<SetStateAction<`0x${string}` | null>>;
+  setWallet: Dispatch<SetStateAction<WalletClientWithAccount | null>>;
   getTokenInformation: (
     d: `0x${string}`,
   ) => Promise<{ name: string; symbol: string; decimals: number }>;
 };
 
 export type StoreContent = {
-  store: Store | null;
   relays: IRelay[];
   products: Map<ItemId, IProduct>;
   allTags: Map<TagId, ITag>;
   cartItems: Map<CartId, CartState>;
-  cartId: `0x${string}` | null;
+  cartId: CartId | null;
   erc20Addr: `0x${string}` | null;
-  publishedTagId: `0x${string}` | null;
+  publishedTagId: TagId | null;
   finalizedCarts: Map<EventId, FinalizedCartState>;
   addProduct: (
     p: IProduct,
-    keysArr: ItemId[] | 0,
-  ) => Promise<ItemId | { error: string }>;
+    keysArr: ItemId[] | [],
+  ) => Promise<{ id?: ItemId; error: null | string }>;
   updateProduct: (
     itemId: ItemId,
     updatedFields: { price: boolean; metadata: boolean },
     newProduct: IProduct,
-    keysArr: ItemId[] | 0,
+    keysArr: ItemId[] | [],
   ) => Promise<{ error: string | null }>;
   createState: () => void;
-  createTag: (name: string) => Promise<TagId>;
+  createTag: (name: string) => Promise<{ id?: TagId; error: null | string }>;
   addProductToTag: (
     tagId: TagId,
     itemId: ItemId,
@@ -138,15 +142,15 @@ export type StoreContent = {
   removeProductFromTag: (
     tagId: TagId,
     itemId: ItemId,
-  ) => Promise<{ error: string | null }>;
+  ) => Promise<{ id?: TagId; error: string | null }>;
   updateCart: (
     itemId?: ItemId,
-    quantity?: number,
-  ) => Promise<{ error?: string }>;
+    saleQty?: number,
+  ) => Promise<{ error: string | null }>;
   commitCart: (erc20: boolean) => Promise<{
-    cartFinalizedId: `0x${string}`;
-    requestId: `0x${string}`;
-    error?: string;
+    cartFinalizedId?: CartId;
+    requestId?: `0x${string}`;
+    error: string | null;
     erc20?: `0x${string}`;
   }>;
   invalidateCart: (msg: string) => void;
@@ -154,3 +158,9 @@ export type StoreContent = {
   setPublishedTagId: (id: TagId) => void;
   setCartId: (cartId: CartId | null) => void;
 };
+
+export type ProductsMap = Map<ItemId, IProduct>;
+
+export type TagsMap = Map<TagId, ITag>;
+
+export type CartsMap = Map<CartId, CartState>;

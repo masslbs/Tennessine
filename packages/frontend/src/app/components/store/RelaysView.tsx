@@ -9,7 +9,7 @@ import ModalHeader from "../../common/components/ModalHeader";
 import RelayBlock from "./RelayBlock";
 import Image from "next/image";
 
-import { IRelay } from "@/types/index";
+import { IRelay } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 
 const RelaysView = ({ close }: { close: () => void }) => {

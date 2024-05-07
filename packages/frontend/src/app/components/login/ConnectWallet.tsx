@@ -13,7 +13,7 @@ import * as abi from "@massmarket/contracts";
 
 import { useAuth } from "@/context/AuthContext";
 import SuccessFailModal from "./SuccessFailModal";
-import { IStatus } from "@/types/index";
+import { IStatus } from "@/types";
 
 const ConnectWallet = ({ close }: { close: () => void }) => {
   const { connectors, connect } = useConnect();

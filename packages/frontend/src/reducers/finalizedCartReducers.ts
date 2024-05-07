@@ -1,18 +1,9 @@
 // SPDX-FileCopyrightText: 2024 Mass Labs
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
-
+import { FinalizedCartState } from "../context/types";
 export const SET_CART = "SET_CART";
 export type EventId = `0x${string}`;
-
-export type FinalizedCartState = {
-  erc20Addr: `0x${string}`;
-  cartId: `0x${string}`;
-  purchaseAddress: `0x${string}`;
-  salesTax: string;
-  total: string;
-  totalInCrypto: string;
-};
 
 export type finalizedCartActions = {
   type: "SET_CART";

@@ -5,11 +5,11 @@
 import React from "react";
 import NavigationMenu from "../src/app/components/nav/NavigationMenu";
 import { describe, expect, it, beforeEach } from "vitest";
-import { render, screen, userEvent, UserEvent, act, waitFor } from "../test";
+import { render, screen } from "../test";
 
 describe("Navigation Menu", () => {
   beforeEach(() => {
-    render(<NavigationMenu isOpen={true} />);
+    render(<NavigationMenu isOpen={true} onClose={() => {}} />);
   });
   it("Renders all 6 menu options", async () => {
     expect(screen.getByTestId("menu-button-home")).toBeInTheDocument();

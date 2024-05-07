@@ -4,7 +4,7 @@
 
 "use client";
 
-import { ItemId } from "@/types/index";
+import { ItemId } from "@/types";
 import Link from "next/link";
 import React from "react";
 import { useSearchParams } from "next/navigation";

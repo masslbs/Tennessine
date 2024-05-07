@@ -10,7 +10,7 @@ import { useStoreContext } from "@/context/StoreContext";
 import { useRouter } from "next/navigation";
 import Button from "@/app/common/components/Button";
 import TransactionStatus from "@/app/components/transactions/TransactionStatus";
-import { ItemId } from "@/types/index";
+import { ItemId } from "@/types";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import PaymentOptions from "@/app/components/transactions/PaymentOptions";
 import { ItemState } from "@/context/types";
@@ -34,9 +34,9 @@ const Cart = () => {
   const [showErrorMessage, setShowErrorMessage] = useState<null | string>(null);
   const [showPaymentOptions, setShowPaymentOptions] = useState<boolean>(false);
   const [erc20Checkout, setErc20Checkout] = useState<boolean>(false);
-  const [cryptoTotal, setCryptoTotal] = useState<string>("0");
-  const [purchaseAdd, setPurchaseAdd] = useState<string>("");
-  const [totalDollar, setTotalDollar] = useState<string>("0");
+  const [cryptoTotal, setCryptoTotal] = useState<string | null>(null);
+  const [purchaseAdd, setPurchaseAdd] = useState<string | null>(null);
+  const [totalDollar, setTotalDollar] = useState<string | null>(null);
   const [activeCartItems, setActiveCartItems] = useState<ItemState | null>(
     null,
   );
@@ -79,7 +79,7 @@ const Cart = () => {
       setShowPaymentOptions(false);
       setOpenModal(false);
       setShowErrorMessage(res.error);
-    } else {
+    } else if (res.cartFinalizedId) {
       setCheckoutRequestId(res.cartFinalizedId);
       setOpenModal(true);
       setShowPaymentOptions(false);
@@ -139,15 +139,17 @@ const Cart = () => {
         }}
         checkout={checkout}
       />
-      <TransactionStatus
-        onClose={() => setOpenModal(false)}
-        isOpen={openCheckoutFlow}
-        imgSrc={imgSrc}
-        displayedTotal={cryptoTotal}
-        erc20Checkout={erc20Checkout}
-        purchaseAddress={purchaseAdd}
-        totalDollar={totalDollar}
-      />
+      {purchaseAdd && (
+        <TransactionStatus
+          onClose={() => setOpenModal(false)}
+          isOpen={openCheckoutFlow}
+          imgSrc={imgSrc}
+          displayedTotal={cryptoTotal ? cryptoTotal : "0"}
+          erc20Checkout={erc20Checkout}
+          purchaseAddress={purchaseAdd}
+          totalDollar={totalDollar ? totalDollar : "0"}
+        />
+      )}
       <section className="pt-under-nav h-screen bg-gray-100">
         <ModalHeader
           headerText="Review Sale"

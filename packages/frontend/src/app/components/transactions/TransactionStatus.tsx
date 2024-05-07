@@ -7,7 +7,7 @@ import React, { useState, useEffect } from "react";
 import FullModal from "@/app/common/components/FullModal";
 import Image from "next/image";
 import QRScan from "@/app/components/transactions/QRScan";
-import { IStatus } from "@/types/index";
+import { IStatus } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useMyContext } from "@/context/MyContext";
 

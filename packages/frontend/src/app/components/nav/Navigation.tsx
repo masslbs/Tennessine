@@ -12,7 +12,7 @@ import Link from "next/link";
 import { useMyContext } from "@/context/MyContext";
 import { useStoreContext } from "@/context/StoreContext";
 import { useAuth } from "@/context/AuthContext";
-import { IStatus } from "@/types/index";
+import { IStatus } from "@/types";
 
 const Navigation = () => {
   const [menuOpened, setMenuOpened] = useState<boolean>(false);
