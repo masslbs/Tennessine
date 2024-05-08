@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2024 Mass Labs
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { Dispatch } from "react";
 import {
   ADD_PRODUCT,
   UPDATE_METADATA,
@@ -10,24 +11,23 @@ import {
   UPDATE_STOCKQTY,
   updateProductAction,
   productAction,
-} from "@/reducers/productReducers";
-import { ADD_TAG, allTagsAction } from "@/reducers/tagReducers";
+} from "../reducers/productReducers";
+import { ADD_TAG, allTagsAction } from "../reducers/tagReducers";
 import { bytesToHex } from "viem";
-import { parseMetadata } from "@/app/utils";
-import { ItemField } from "@/context/types";
-import { IProduct, IStatus, ITag, ItemId, TagId } from "@/types";
+import { parseMetadata } from "../app/utils";
+import { ItemField } from "../context/types";
+import { IProduct, IStatus, ITag, ItemId, TagId } from "../types";
 import {
   UPDATE_CART_ITEM,
   REMOVE_CART_ITEM,
   UPDATE_CART_STATUS,
   UPDATE_CART_HASH,
   allCartActions,
-} from "@/reducers/cartReducers";
+} from "../reducers/cartReducers";
 import {
   SET_CART,
   finalizedCartActions,
-} from "@/reducers/finalizedCartReducers";
-import { Dispatch } from "react";
+} from "../reducers/finalizedCartReducers";
 import { market } from "@massmarket/client/lib/protobuf/compiled";
 import mmproto = market.mass;
 

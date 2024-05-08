@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { ITag, TagId } from "@/types";
+import { ITag, TagId } from "../types";
 
 export const ADD_TAG = "ADD_TAG";
 export const SET_ALL_TAGS = "SET_ALL_TAGS";

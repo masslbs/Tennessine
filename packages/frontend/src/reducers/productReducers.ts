@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { IProduct, Metadata, ItemId, TagId } from "@/types";
+import { IProduct, Metadata, ItemId, TagId } from "../types";
 
 export const ADD_PRODUCT = "ADD_PRODUCT";
 // export const REMOVE_PRODUCT = "REMOVE_PRODUCT";
