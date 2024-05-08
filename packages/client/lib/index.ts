@@ -277,14 +277,13 @@ export class RelayClient extends EventEmitter {
     });
   }
 
-  disconnect(): Promise<CloseEvent | string> {
+  disconnect(): Promise<CloseEvent> {
     return new Promise((resolve) => {
       if (
         typeof this.connection === "undefined" ||
         this.connection.readyState === WebSocket.CLOSED
       ) {
-        // TODO: find out how to instantiate a CloseEvent
-        resolve("already closed");
+        resolve(new CloseEvent("disconnect", { reason: "already closed" }));
         return;
       }
       this.connection.addEventListener("close", resolve);

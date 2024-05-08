@@ -60,6 +60,7 @@ describe("mockclient", async () => {
       products,
       allTags,
       e.request.events,
+      // @ts-expect-error FIXME
       productsDispatch,
       tagsDisaptch,
       setCartItems,

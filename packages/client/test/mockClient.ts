@@ -67,6 +67,7 @@ export class MockClient extends EventEmitter {
 
   constructor() {
     super();
+    // @ts-expect-error FIXME
     this.vectors = testVectorsData;
     console.log(
       `[vectors] events: ${JSON.stringify(this.vectors.events.length)}`,
@@ -76,7 +77,9 @@ export class MockClient extends EventEmitter {
   async connect() {
     for (let index = 0; index < this.vectors.events.length; index++) {
       const evt = this.vectors.events[index];
-      const decodedEvent = mmproto.Event.decode(hexToBytes("0x" + evt.encoded));
+      const decodedEvent = mmproto.Event.decode(
+        hexToBytes(("0x" + evt.encoded) as `0x${string}`),
+      );
       const pushReq = new mmproto.EventPushRequest({
         requestId: sequentialReqId(),
         events: [decodedEvent],

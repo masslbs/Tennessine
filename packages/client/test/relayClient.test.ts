@@ -52,7 +52,6 @@ beforeEach(async () => {
   crypto.getRandomValues(keyCard);
   relayClient = new RelayClient({
     relayEndpoint,
-    useTLS: false,
     privateKey: keyCard,
     storeId,
     wallet,
@@ -95,7 +94,7 @@ describe("RelayClient", async () => {
     await wallet.sendTransaction({
       account,
       to: acc2.address,
-      value: 250000000000000000n,
+      value: BigInt(250000000000000000),
     });
 
     const client2 = createWalletClient({
@@ -154,6 +153,7 @@ describe("user behaviour", () => {
     let r = await relayClient.writeStoreManifest(publishedTagId);
     // This is a hack to please browser and node world
     // Find out why one return number and the other class Long
+    // @ts-expect-error FIXME
     if (r.eventSequenceNo !== 2 && r.eventSequenceNo.low !== 2) {
       expect(true).toBe(false);
     }
@@ -295,7 +295,7 @@ describe("user behaviour", () => {
     await wallet.sendTransaction({
       account,
       to: acc2.address,
-      value: 250000000000000000n,
+      value: BigInt(250000000000000000),
     });
     console.log("transacted coins to acc2");
 
