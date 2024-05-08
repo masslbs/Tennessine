@@ -9,6 +9,7 @@ import { buildState } from "@massmarket/frontend/src/utils/buildState";
 import {
   productReducer,
   productAction,
+  updateProductAction,
 } from "@massmarket/frontend/src/reducers/productReducers";
 import {
   allTagsReducer,
@@ -33,7 +34,7 @@ describe("mockclient", async () => {
   const events = [];
   let finalizedCarts = new Map();
 
-  function productsDispatch(action: productAction) {
+  function productsDispatch(action: productAction | updateProductAction) {
     products = productReducer(products, action);
   }
   function tagsDisaptch(action: allTagsAction) {
@@ -60,7 +61,6 @@ describe("mockclient", async () => {
       products,
       allTags,
       e.request.events,
-      // @ts-expect-error FIXME
       productsDispatch,
       tagsDisaptch,
       setCartItems,

@@ -32,8 +32,8 @@ export type VectorItems = {
 export type TestVectors = {
   signatures: {
     chain_id: number;
-    contract_address: `0x${string}`;
-    signer_address: `0x${string}`;
+    contract_address: string;
+    signer_address: string;
   };
   events: VectorEvent[];
   reduced: {
@@ -50,8 +50,6 @@ export type TestVectors = {
     published_items: string[];
     // cart_id -> item_id -> quantity
     open_carts: { [key: string]: { [key: string]: number } };
-    // list of finished cart_ids
-    finalized_carts: string[];
     // item_id -> quantity
     inventory: { [key: string]: number };
   };
@@ -67,7 +65,6 @@ export class MockClient extends EventEmitter {
 
   constructor() {
     super();
-    // @ts-expect-error FIXME
     this.vectors = testVectorsData;
     console.log(
       `[vectors] events: ${JSON.stringify(this.vectors.events.length)}`,

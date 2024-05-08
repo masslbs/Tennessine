@@ -68,7 +68,8 @@ describe("RelayClient", async () => {
   describe("connection behavior", () => {
     test("should connect and disconnect", async () => {
       const closeEvent = await relayClient.disconnect();
-      expect(closeEvent.wasClean).toBe(true);
+      const r = closeEvent as CloseEvent;
+      expect(r.wasClean).toBe(true);
     });
 
     test("should reconnect", async () => {
@@ -151,9 +152,9 @@ describe("user behaviour", () => {
   test("write store manifest", async () => {
     const publishedTagId = null;
     let r = await relayClient.writeStoreManifest(publishedTagId);
+    // @ts-expect-error FIXME:
     // This is a hack to please browser and node world
     // Find out why one return number and the other class Long
-    // @ts-expect-error FIXME
     if (r.eventSequenceNo !== 2 && r.eventSequenceNo.low !== 2) {
       expect(true).toBe(false);
     }
