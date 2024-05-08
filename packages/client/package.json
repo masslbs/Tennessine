@@ -36,6 +36,6 @@
     "pbjs-build": "pbjs -t static-module -w es6 -r market.mass -o ./lib/protobuf/compiled.js $NETWORK_SCHEMA_PATH/schema.proto",
     "pbts-build": "pbts -r market.mass -o ./lib/protobuf/compiled.d.ts ./lib/protobuf/compiled.js",
     "pb-build": "pnpm pbjs-build && pnpm pbts-build",
-    "lint": "eslint --ext .ts ."
+    "lint": "eslint --ext .ts . && pnpm tsc --build"
   }
 }
