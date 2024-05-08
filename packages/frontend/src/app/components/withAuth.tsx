@@ -7,10 +7,10 @@ import React, { FunctionComponent } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { IStatus } from "@/types";
-interface PageProps {
+type PageProps = {
   params: { slug: string };
   searchParams: { [key: string]: string | string[] | undefined };
-}
+};
 
 const withAuth = (WrappedComponent: FunctionComponent<PageProps>) => {
   return (props: PageProps) => {

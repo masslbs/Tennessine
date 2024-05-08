@@ -1,4 +1,19 @@
 {
+  "compilerOptions": {
+    "strict": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "noEmit": true
+  },
+  "references": [
+    {
+      "path": "../frontend"
+    }
+  ],
   "extends": ["../../tsconfig.json"],
   "include": ["lib/**/*.ts", "test/**/*.ts"]
 }
