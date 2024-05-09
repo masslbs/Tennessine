@@ -75,22 +75,6 @@ function formatArray(array: Uint8Array[] | number[]) {
   }
 }
 
-export class IncomingEvent {
-  client: RelayClient;
-  request: mmproto.EventPushRequest;
-
-  constructor(client: RelayClient, request: mmproto.EventPushRequest) {
-    this.client = client;
-    this.request = request;
-  }
-
-  done() {
-    this.client.encodeAndSend(mmproto.EventPushResponse, {
-      requestId: this.request.requestId,
-    });
-  }
-}
-
 // TODO: there are a lot of assumptions backed in here that should be commented
 function formatMessageForSigning(
   obj: Record<string, Uint8Array | string | number | Uint8Array[] | number[]>,
@@ -121,7 +105,7 @@ export class RelayClient extends EventEmitter {
   endpoint;
   useTLS: boolean;
   DOMAIN_SEPARATOR;
-
+  firstEvent: mmproto.EventPushResponse | null;
   constructor({
     relayEndpoint,
     privateKey,
@@ -142,6 +126,7 @@ export class RelayClient extends EventEmitter {
       chainId: this.chain.id,
       verifyingContract: abi.addresses.StoreReg as Address,
     };
+    this.firstEvent = null;
   }
 
   #handlePingRequest(ping: mmproto.PingRequest) {
@@ -206,16 +191,53 @@ export class RelayClient extends EventEmitter {
         break;
       case mmproto.EventPushRequest:
         // TODO: add signature verification
-        this.emit(
-          "event",
-          new IncomingEvent(this, message as mmproto.EventPushRequest),
-        );
+        this.emit("event", message as mmproto.EventPushRequest);
         break;
       default:
         this.emit(bytesToHex(message.requestId), message);
     }
   }
 
+  createEventStream() {
+    let requestId: Uint8Array | null = null;
+    const parentInstance = this;
+    let enqueueFn: any;
+    const enqueueWrapperFn = (controller: any) => {
+      return (enqueueFn = (event: any) => {
+        requestId = event.requestId;
+        controller.enqueue(event);
+      });
+    };
+
+    return new ReadableStream(
+      {
+        start(controller) {
+          try {
+            if (parentInstance.firstEvent) {
+              requestId = parentInstance.firstEvent.requestId;
+              controller.enqueue(parentInstance.firstEvent);
+              parentInstance.firstEvent = null;
+            }
+            parentInstance.on("event", enqueueWrapperFn(controller));
+          } catch (error) {
+            console.log({ error });
+          }
+        },
+        pull() {
+          if (requestId) {
+            parentInstance.encodeAndSend(mmproto.EventPushResponse, {
+              requestId,
+            });
+          }
+        },
+        cancel() {
+          console.log("Cancel");
+          parentInstance.removeListener("event", enqueueFn);
+        },
+      },
+      { highWaterMark: 0 },
+    );
+  }
   // TODO: there are a lot of assumptions backed in here that should be commented
   // for eG why isnt this used in enrollKeycard
   #signTypedDataMessage(

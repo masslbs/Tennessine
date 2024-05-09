@@ -8,14 +8,11 @@ import { type PrivateKeyAccount } from "viem/accounts";
 import { EventEmitter } from "stream";
 
 import { WalletClientWithAccount } from "@massmarket/client";
-// import * as pb from "client/lib/protobuf/compiled";
-// import mmproto = pb.market.mass;
+import { market } from "@massmarket/client/lib/protobuf/compiled";
+import mmproto = market.mass;
 
 import { IProduct, ITag, IStatus, IRelay } from "@/types";
 
-export interface MyEvents {
-  connect: Record<string, never>;
-}
 export enum ItemField {
   ITEM_FIELD_UNSPECIFIED = 0,
   ITEM_FIELD_PRICE = 1,
@@ -97,6 +94,7 @@ export type IRelayClient = EventEmitter & {
     cardId: CartId,
     erc20: `0x${string}` | null,
   ) => Promise<{ requestId: Uint8Array; cartFinalizedId: Uint8Array }>;
+  createEventStream: () => Promise<{ events: mmproto.IEvent[] }>[];
 };
 
 export type ClientContext = {
