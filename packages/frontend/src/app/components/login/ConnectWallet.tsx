@@ -17,7 +17,7 @@ import { IStatus } from "@/types/index";
 
 const ConnectWallet = ({ close }: { close: () => void }) => {
   const { connectors, connect } = useConnect();
-  const { publicClient } = useMyContext();
+  const { publicClient, clientWallet } = useMyContext();
   const [pending, setPending] = useState<boolean>(false);
   const [hasAccess, setAccess] = useState<boolean>(false);
   const { walletAddress, inviteSecret, relayClient, setWallet } =
@@ -51,10 +51,10 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
   useEffect(() => {
     if (relayClient) {
       if (enrollKeycard.current) return;
-      if (keyCardToEnroll) {
+      if (keyCardToEnroll && clientWallet) {
         enrollKeycard.current = true;
         relayClient.once("keycard enroll", async () => {
-          const res = await relayClient.enrollKeycard();
+          const res = await relayClient.enrollKeycard(clientWallet);
           if (res.ok) {
             setKeycardEnrolled(true);
           } else {
@@ -83,7 +83,7 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
         setConnectionStatus(status);
       });
     }
-  }, [relayClient]);
+  }, [relayClient, clientWallet]);
 
   const storeId =
     localStorage.getItem("storeId") || process.env.NEXT_PUBLIC_STORE_ID;
@@ -102,7 +102,10 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
       redeemSecret.current = true;
       (async () => {
         setPending(true);
-        const hash = await relayClient.redeemInviteSecret(inviteSecret);
+        const hash = await relayClient.redeemInviteSecret(
+          inviteSecret,
+          clientWallet,
+        );
         const transaction = await publicClient.waitForTransactionReceipt({
           hash,
         });

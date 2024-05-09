@@ -47,7 +47,6 @@ export type ClientArgs = {
   privateKey: Uint8Array;
   storeId: `0x${string}`;
   chain: Chain;
-  wallet: WalletClientWithAccount;
 };
 
 function randomBytes(n: number) {
@@ -116,7 +115,6 @@ function formatMessageForSigning(
 export class RelayClient extends EventEmitter {
   connection!: WebSocket;
   storeId!: `0x${string}`;
-  wallet;
   chain;
   keyCard;
   endpoint;
@@ -127,7 +125,6 @@ export class RelayClient extends EventEmitter {
     relayEndpoint,
     privateKey,
     chain = hardhat,
-    wallet,
     storeId,
   }: ClientArgs) {
     super();
@@ -135,7 +132,6 @@ export class RelayClient extends EventEmitter {
     this.endpoint = relayEndpoint;
     this.useTLS = relayEndpoint.startsWith("wss");
     this.chain = chain;
-    this.wallet = wallet;
     this.storeId = storeId;
     this.DOMAIN_SEPARATOR = {
       name: "MassMarket",
@@ -293,7 +289,7 @@ export class RelayClient extends EventEmitter {
     });
   }
 
-  async enrollKeycard() {
+  async enrollKeycard(wallet: WalletClientWithAccount) {
     const publicKey = toBytes(this.keyCard.publicKey).slice(1);
 
     const types = {
@@ -304,7 +300,7 @@ export class RelayClient extends EventEmitter {
     };
     // formatMessageForSigning(message); will turn keyCard into key_card
     // const sig = await this.#signTypedDataMessage(types, message);
-    const signature = await this.wallet.signTypedData({
+    const signature = await wallet.signTypedData({
       types,
       domain: this.DOMAIN_SEPARATOR,
       primaryType: "Enrollment",
@@ -326,24 +322,27 @@ export class RelayClient extends EventEmitter {
     return response;
   }
 
-  async createStore(id: `0x${string}` = bytesToHex(RelayClient.eventId())) {
-    const r = await this.wallet.writeContract({
+  async createStore(
+    id: `0x${string}` = bytesToHex(RelayClient.eventId()),
+    wallet: WalletClientWithAccount,
+  ) {
+    const r = await wallet.writeContract({
       address: abi.addresses.StoreReg as Address,
       abi: abi.StoreReg,
       functionName: "mint",
-      args: [BigInt(id), this.wallet.account.address],
+      args: [BigInt(id), wallet.account.address],
     });
     this.storeId = id;
     return r;
   }
 
-  async createInviteSecret() {
+  async createInviteSecret(wallet: WalletClientWithAccount) {
     if (!this.storeId)
       throw new Error("A store ID is needed before creating an invite");
     const privateKey = bytesToHex(randomBytes(32)) as `0x${string}`;
     const token = privateKeyToAccount(privateKey);
     // Save the public key onchain
-    await this.wallet.writeContract({
+    await wallet.writeContract({
       address: abi.addresses.StoreReg as Address,
       abi: abi.StoreReg,
       functionName: "publishInviteVerifier",
@@ -352,10 +351,13 @@ export class RelayClient extends EventEmitter {
     return privateKey;
   }
 
-  async redeemInviteSecret(secret: `0x${string}`) {
+  async redeemInviteSecret(
+    secret: `0x${string}`,
+    wallet: WalletClientWithAccount,
+  ) {
     if (!this.storeId)
       throw new Error("A store ID is need before creating an invite");
-    const message = "enrolling:" + this.wallet.account.address.toLowerCase();
+    const message = "enrolling:" + wallet.account.address.toLowerCase();
     const tokenAccount = privateKeyToAccount(secret);
     const sig = await tokenAccount.signMessage({
       message,
@@ -364,11 +366,11 @@ export class RelayClient extends EventEmitter {
     const v = sigBytes[64];
     const r = bytesToHex(sigBytes.slice(0, 32));
     const s = bytesToHex(sigBytes.slice(32, 64));
-    return this.wallet.writeContract({
+    return wallet.writeContract({
       address: abi.addresses.StoreReg as Address,
       abi: abi.StoreReg,
       functionName: "redeemInvite",
-      args: [BigInt(this.storeId), v, r, s, this.wallet.account.address],
+      args: [BigInt(this.storeId), v, r, s, wallet.account.address],
     });
   }
 

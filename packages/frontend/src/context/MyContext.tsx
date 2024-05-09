@@ -125,27 +125,24 @@ export const MyContextProvider = ({ children }) => {
   }, [isConnected, clientWallet, data, ensAvatar, name]);
 
   useEffect(() => {
-    if (clientWallet) {
-      let keyCard = new Uint8Array(32);
-      crypto.getRandomValues(keyCard);
-      if (!savedKC) {
-        localStorage.setItem("keyCardToEnroll", bytesToHex(keyCard));
-      } else {
-        keyCard = hexToBytes(savedKC);
-      }
-      const user: ClientArgs = {
-        relayEndpoint: process.env.NEXT_PUBLIC_RELAY_ENDPOINT,
-        privateKey: inviteSecret ? hexToBytes(inviteSecret) : keyCard,
-        storeId: storeId,
-        wallet: clientWallet,
-        chain: usedChain,
-      };
-      const _relayClient = new RelayClient(user);
-      setRelayClient(_relayClient);
-      console.log(
-        `relay client set ${user.relayEndpoint} with store: ${storeId}`,
-      );
+    let keyCard = new Uint8Array(32);
+    crypto.getRandomValues(keyCard);
+    if (!savedKC) {
+      localStorage.setItem("keyCardToEnroll", bytesToHex(keyCard));
+    } else {
+      keyCard = hexToBytes(savedKC);
     }
+    const user: ClientArgs = {
+      relayEndpoint: process.env.NEXT_PUBLIC_RELAY_ENDPOINT,
+      privateKey: inviteSecret ? hexToBytes(inviteSecret) : keyCard,
+      storeId: storeId,
+      chain: usedChain,
+    };
+    const _relayClient = new RelayClient(user);
+    setRelayClient(_relayClient);
+    console.log(
+      `relay client set ${user.relayEndpoint} with store: ${storeId}`,
+    );
   }, [clientWallet]);
 
   useEffect(() => {

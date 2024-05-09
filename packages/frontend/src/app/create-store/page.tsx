@@ -15,7 +15,8 @@ import { useStoreContext } from "@/context/StoreContext";
 import { IStatus } from "@/types/index";
 
 const CreateStore = () => {
-  const { relayClient, publicClient, walletAddress } = useMyContext();
+  const { relayClient, publicClient, walletAddress, clientWallet } =
+    useMyContext();
   const [storeCreated, setStoreCreated] = useState<string | null>(null);
 
   const enrollKeycard = useRef(false);
@@ -85,7 +86,7 @@ const CreateStore = () => {
       if (relayClient && publicClient && storeId) {
         try {
           localStorage.setItem("storeId", storeId);
-          const hash = await relayClient.createStore(storeId);
+          const hash = await relayClient.createStore(storeId, clientWallet);
           console.log({ hash });
           const transaction =
             publicClient &&
