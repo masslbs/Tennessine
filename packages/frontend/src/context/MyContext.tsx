@@ -21,6 +21,7 @@ import { IRelayClient, ClientContext } from "@/context/types";
 import { useAuth } from "@/context/AuthContext";
 import * as abi from "@massmarket/contracts";
 import { IStatus } from "../types";
+import { privateKeyToAccount } from "viem/accounts";
 
 export const MyContext = createContext<ClientContext>({
   walletAddress: null,
@@ -30,6 +31,7 @@ export const MyContext = createContext<ClientContext>({
   relayClient: null,
   publicClient: null,
   inviteSecret: null,
+  clientWallet: null,
   setInviteSecret: () => {},
   setWallet: () => {},
   getTokenInformation: () =>
@@ -132,37 +134,24 @@ export const MyContextProvider = (
   }, [isConnected, clientWallet, data, ensAvatar, name]);
 
   useEffect(() => {
-    if (clientWallet) {
-      let keyCard = new Uint8Array(32);
-      crypto.getRandomValues(keyCard);
-      if (!savedKC) {
-        localStorage.setItem("keyCardToEnroll", bytesToHex(keyCard));
-      } else {
-        keyCard = hexToBytes(savedKC);
-      }
-      const user: ClientArgs = {
-        relayEndpoint:
-          process.env.NEXT_PUBLIC_RELAY_ENDPOINT ||
-          "wss://relay-beta.mass.market/v1",
-        privateKey: inviteSecret ? hexToBytes(inviteSecret) : keyCard,
-        storeId: storeId as `0x${string}`,
-        wallet: clientWallet,
-        chain: usedChain,
-      };
-      const _relayClient = new RelayClient(user);
-      // @ts-expect-error FIXME
-      setRelayClient(_relayClient);
-      console.log(
-        `relay client set ${user.relayEndpoint} with store: ${storeId}`,
-      );
+    let keyCard = new Uint8Array(32);
+    crypto.getRandomValues(keyCard);
+    if (!savedKC) {
+      localStorage.setItem("keyCardToEnroll", bytesToHex(keyCard));
+    } else {
+      keyCard = hexToBytes(savedKC);
     }
+    const privateKey = inviteSecret ? inviteSecret : bytesToHex(keyCard);
     const user: ClientArgs = {
-      relayEndpoint: process.env.NEXT_PUBLIC_RELAY_ENDPOINT,
-      privateKey: inviteSecret ? hexToBytes(inviteSecret) : keyCard,
-      storeId: storeId,
+      relayEndpoint:
+        process.env.NEXT_PUBLIC_RELAY_ENDPOINT ||
+        "wss://relay-beta.mass.market/v1",
+      account: privateKeyToAccount(privateKey),
+      storeId: storeId as `0x${string}`,
       chain: usedChain,
     };
     const _relayClient = new RelayClient(user);
+    // @ts-expect-error FIXME
     setRelayClient(_relayClient);
     console.log(
       `relay client set ${user.relayEndpoint} with store: ${storeId}`,
@@ -195,6 +184,7 @@ export const MyContextProvider = (
     relayClient,
     publicClient,
     inviteSecret,
+    clientWallet,
     setInviteSecret,
     setWallet,
     getTokenInformation,

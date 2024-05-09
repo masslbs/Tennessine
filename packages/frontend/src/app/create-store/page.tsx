@@ -39,13 +39,13 @@ const CreateStore = () => {
   }, [relayClient]);
 
   useEffect(() => {
-    if (relayClient) {
+    if (relayClient && clientWallet) {
       if (enrollKeycard.current) return;
 
       relayClient.once("keycard enroll", async () => {
         enrollKeycard.current = true;
 
-        const res = await relayClient.enrollKeycard();
+        const res = await relayClient.enrollKeycard(clientWallet);
         if (res.ok) {
           console.log("keycard enrolled");
           setKeycardEnrolled(true);
@@ -83,7 +83,7 @@ const CreateStore = () => {
 
   const createStore = () => {
     (async () => {
-      if (relayClient && publicClient && storeId) {
+      if (relayClient && publicClient && storeId && clientWallet) {
         try {
           localStorage.setItem("storeId", storeId);
           const hash = await relayClient.createStore(storeId, clientWallet);

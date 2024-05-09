@@ -44,8 +44,12 @@ const Permissions = ({ close }: { close: () => void }) => {
 
   //FIXME make this button pending for await
   const generateInvitationLink = async () => {
-    const sk = await relayClient!.createInviteSecret(clientWallet);
-    setInviteLink(sk);
+    if (clientWallet) {
+      const sk = await relayClient!.createInviteSecret(clientWallet);
+      setInviteLink(sk);
+    } else {
+      console.warn("Must connect to wallet.");
+    }
   };
 
   const copyToClipboard = () => {

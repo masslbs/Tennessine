@@ -97,11 +97,13 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
       !pending &&
       publicClient &&
       relayClient &&
-      !redeemSecret.current
+      !redeemSecret.current &&
+      clientWallet
     ) {
       redeemSecret.current = true;
       (async () => {
         setPending(true);
+
         const hash = await relayClient.redeemInviteSecret(
           inviteSecret,
           clientWallet,
