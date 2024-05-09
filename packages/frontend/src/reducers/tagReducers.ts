@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { ITag, TagId } from "@/types/index";
+import { ITag, TagId } from "@/types";
 
 export const ADD_TAG = "ADD_TAG";
 export const SET_ALL_TAGS = "SET_ALL_TAGS";
@@ -20,7 +20,7 @@ export type selectedTagsAction = {
 };
 
 export const selectedTagReducer = (
-  state: Map<string, ITag>,
+  state: Map<TagId, ITag>,
   action: selectedTagsAction,
 ) => {
   const _state = new Map(state);

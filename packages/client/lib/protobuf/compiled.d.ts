@@ -293,13 +293,13 @@ export namespace market {
     /** Properties of a CreateItem. */
     interface ICreateItem {
       /** CreateItem eventId */
-      eventId?: Uint8Array | null;
+      eventId: Uint8Array;
 
       /** CreateItem price */
-      price?: string | null;
+      price: string;
 
       /** CreateItem metadata */
-      metadata?: Uint8Array | null;
+      metadata: Uint8Array;
     }
 
     /** Represents a CreateItem. */
@@ -418,10 +418,10 @@ export namespace market {
     /** Properties of an UpdateItem. */
     interface IUpdateItem {
       /** UpdateItem eventId */
-      eventId?: Uint8Array | null;
+      eventId: Uint8Array;
 
       /** UpdateItem itemId */
-      itemId?: Uint8Array | null;
+      itemId: Uint8Array;
 
       /** UpdateItem field */
       field?: market.mass.UpdateItem.ItemField | null;
@@ -567,10 +567,10 @@ export namespace market {
     /** Properties of a CreateTag. */
     interface ICreateTag {
       /** CreateTag eventId */
-      eventId?: Uint8Array | null;
+      eventId: Uint8Array;
 
       /** CreateTag name */
-      name?: string | null;
+      name: string;
     }
 
     /** Represents a CreateTag. */
@@ -686,13 +686,13 @@ export namespace market {
     /** Properties of an AddToTag. */
     interface IAddToTag {
       /** AddToTag eventId */
-      eventId?: Uint8Array | null;
+      eventId: Uint8Array;
 
       /** AddToTag tagId */
-      tagId?: Uint8Array | null;
+      tagId: Uint8Array;
 
       /** AddToTag itemId */
-      itemId?: Uint8Array | null;
+      itemId: Uint8Array;
     }
 
     /** Represents an AddToTag. */
@@ -811,13 +811,13 @@ export namespace market {
     /** Properties of a RemoveFromTag. */
     interface IRemoveFromTag {
       /** RemoveFromTag eventId */
-      eventId?: Uint8Array | null;
+      eventId: Uint8Array;
 
       /** RemoveFromTag tagId */
-      tagId?: Uint8Array | null;
+      tagId: Uint8Array;
 
       /** RemoveFromTag itemId */
-      itemId?: Uint8Array | null;
+      itemId: Uint8Array;
     }
 
     /** Represents a RemoveFromTag. */
@@ -1555,16 +1555,16 @@ export namespace market {
     /** Properties of a ChangeCart. */
     interface IChangeCart {
       /** ChangeCart eventId */
-      eventId?: Uint8Array | null;
+      eventId: Uint8Array;
 
       /** ChangeCart cartId */
-      cartId?: Uint8Array | null;
+      cartId: Uint8Array;
 
       /** ChangeCart itemId */
-      itemId?: Uint8Array | null;
+      itemId: Uint8Array;
 
       /** ChangeCart quantity */
-      quantity?: number | null;
+      quantity: number;
     }
 
     /** Represents a ChangeCart. */
@@ -1686,13 +1686,13 @@ export namespace market {
     /** Properties of a CartFinalized. */
     interface ICartFinalized {
       /** CartFinalized eventId */
-      eventId?: Uint8Array | null;
+      eventId: Uint8Array;
 
       /** CartFinalized cartId */
-      cartId?: Uint8Array | null;
+      cartId: Uint8Array;
 
       /** CartFinalized purchaseAddr */
-      purchaseAddr?: Uint8Array | null;
+      purchaseAddr: Uint8Array;
 
       /** CartFinalized erc20Addr */
       erc20Addr?: Uint8Array | null;
@@ -1841,10 +1841,10 @@ export namespace market {
     /** Properties of a CartAbandoned. */
     interface ICartAbandoned {
       /** CartAbandoned eventId */
-      eventId?: Uint8Array | null;
+      eventId: Uint8Array;
 
       /** CartAbandoned cartId */
-      cartId?: Uint8Array | null;
+      cartId: Uint8Array;
     }
 
     /** Represents a CartAbandoned. */

@@ -32,8 +32,8 @@ export type VectorItems = {
 export type TestVectors = {
   signatures: {
     chain_id: number;
-    contract_address: `0x${string}`;
-    signer_address: `0x${string}`;
+    contract_address: string;
+    signer_address: string;
   };
   events: VectorEvent[];
   reduced: {
@@ -50,8 +50,6 @@ export type TestVectors = {
     published_items: string[];
     // cart_id -> item_id -> quantity
     open_carts: { [key: string]: { [key: string]: number } };
-    // list of finished cart_ids
-    finalized_carts: string[];
     // item_id -> quantity
     inventory: { [key: string]: number };
   };
@@ -76,7 +74,9 @@ export class MockClient extends EventEmitter {
   async connect() {
     for (let index = 0; index < this.vectors.events.length; index++) {
       const evt = this.vectors.events[index];
-      const decodedEvent = mmproto.Event.decode(hexToBytes("0x" + evt.encoded));
+      const decodedEvent = mmproto.Event.decode(
+        hexToBytes(("0x" + evt.encoded) as `0x${string}`),
+      );
       const pushReq = new mmproto.EventPushRequest({
         requestId: sequentialReqId(),
         events: [decodedEvent],

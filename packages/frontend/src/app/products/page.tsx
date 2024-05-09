@@ -8,7 +8,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Sort from "../common/components/Sort";
 import Search from "../common/components/Search";
-import { SortOption, IProduct } from "@/types/index";
+import { SortOption, IProduct } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import Link from "next/link";
 import withAuth from "../components/withAuth";
@@ -25,7 +25,7 @@ const Products = () => {
   const [searchPhrase, setSearchPhrase] = useState<string>("");
   const [showSuccessMsg, setMsg] = useState<boolean>(success !== null);
   const { products, publishedTagId, allTags } = useStoreContext();
-  const [arrToReder, setArrToRender] = useState<IProduct[] | null>(null);
+  const [arrToRender, setArrToRender] = useState<IProduct[] | null>(null);
   const [resultCount, setResultCount] = useState<number>(products.size);
 
   const findRemoveTagId = () => {
@@ -97,8 +97,8 @@ const Products = () => {
   };
 
   const renderProducts = () => {
-    if (!arrToReder?.length) return null;
-    return arrToReder.map((item) => {
+    if (!arrToRender?.length) return null;
+    return arrToRender.map((item) => {
       const { metadata } = item;
       if (!metadata) return null;
       if (searchPhrase?.length) {

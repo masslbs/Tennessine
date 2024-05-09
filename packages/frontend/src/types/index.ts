@@ -9,9 +9,9 @@ export type CartId = `0x${string}`;
 export type IProduct = {
   id: ItemId;
   price: string;
-  stockQty: number;
   metadata: Metadata;
-  blob?: Blob;
+  stockQty?: number;
+  blob?: Blob | FormData | null;
   tagIds?: TagId[];
   saleQty?: number;
 };
@@ -93,14 +93,14 @@ export enum SortOption {
   unavailable = "Unavailable",
 }
 
-export type Store = {
-  id: number;
-  name: string;
-  thumbnail: string;
-  products: IProduct[];
-  transactions: ITransaction[];
-  contributors: IContributor[];
-  authorizedKeyCards: number[];
-  relays: IRelay[];
-  tags: ITag[];
-};
+// export type Store = {
+//   id: number;
+//   name: string;
+//   thumbnail: string;
+//   products: IProduct[];
+//   transactions: ITransaction[];
+//   contributors: IContributor[];
+//   authorizedKeyCards: number[];
+//   relays: IRelay[];
+//   tags: ITag[];
+// };

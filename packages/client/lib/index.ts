@@ -43,7 +43,6 @@ export type WalletClientWithAccount = WalletClient<
 
 export type ClientArgs = {
   relayEndpoint: string;
-  useTLS: boolean;
   privateKey: Uint8Array;
   storeId: `0x${string}`;
   chain: Chain;
@@ -280,7 +279,6 @@ export class RelayClient extends EventEmitter {
         typeof this.connection === "undefined" ||
         this.connection.readyState === WebSocket.CLOSED
       ) {
-        // TODO: find out how to instantiate a CloseEvent
         resolve("already closed");
         return;
       }

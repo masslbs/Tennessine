@@ -5,7 +5,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { IStatus, ItemId, IProduct } from "@/types/index";
+import { IStatus, ItemId, IProduct } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { ItemState } from "@/context/types";
 import { useMyContext } from "@/context/MyContext";

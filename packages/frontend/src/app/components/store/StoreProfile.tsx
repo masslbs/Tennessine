@@ -4,17 +4,21 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ModalHeader from "../../common/components/ModalHeader";
 import PhotoUpload from "../../common/components/PhotoUpload";
 import Button from "../../common/components/Button";
-import HalfModal from "../../common/components/HalfModal";
-import Contributor from "./Contributor";
 
 const StoreProfile = ({ close }: { close: () => void }) => {
   const [storeName, setStoreName] = useState<string>("ethDubai");
   const [storeURL, setStoreURL] = useState<string>("ethdubai.mass.market");
   const [avatar, setAvatar] = useState<string | null>(null);
+
+  //FIXME: once we set up ts client for saving store name and url.
+  useEffect(() => {
+    setStoreName("ethDubai");
+    setStoreURL("ethdubai.mass.market");
+  }, []);
 
   return (
     <section className="pt-under-nav h-screen">

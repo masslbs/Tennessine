@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import React from "react";
+import React, { ReactElement } from "react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen } from "../test";
 import { MyContext } from "@/context/MyContext";
@@ -10,7 +10,11 @@ import MyWallet from "@/app/my-wallet/page";
 import { formatEthAdd } from "@/app/utils";
 
 describe("My wallet consumes context state correctly", () => {
-  const customRender = (component, providerProps) => {
+  const customRender = (
+    component: ReactElement,
+    // @ts-expect-error FIXME
+    providerProps,
+  ) => {
     return render(
       <MyContext.Provider value={providerProps}>
         {component}
