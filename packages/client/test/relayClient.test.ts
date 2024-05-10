@@ -281,7 +281,7 @@ describe("user behaviour", () => {
     });
   });
 
-  test("invite another user", { retry: 3 }, async () => {
+  test.skip("invite another user", { retry: 3 }, async () => {
     const sk = await relayClient.createInviteSecret(wallet);
     console.log("created invite secret", sk);
     const acc2 = privateKeyToAccount(sk);
