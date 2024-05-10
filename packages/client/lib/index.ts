@@ -15,7 +15,7 @@ import {
   type Chain,
 } from "viem";
 
-import { privateKeyToAccount } from "viem/accounts";
+import { privateKeyToAccount, PrivateKeyAccount } from "viem/accounts";
 import { hardhat } from "viem/chains";
 import type { TypedData } from "abitype";
 import { EventEmitter } from "events";
@@ -43,7 +43,7 @@ export type WalletClientWithAccount = WalletClient<
 
 export type ClientArgs = {
   relayEndpoint: string;
-  account: any;
+  account: PrivateKeyAccount;
   storeId: `0x${string}`;
   chain: Chain;
 };
