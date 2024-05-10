@@ -231,7 +231,6 @@ export class RelayClient extends EventEmitter {
           }
         },
         cancel() {
-          console.log("Cancel");
           parentInstance.removeListener("event", enqueueFn);
         },
       },
