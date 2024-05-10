@@ -13,7 +13,7 @@ import {
 } from "viem";
 import { hardhat } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
-import { describe, beforeEach, afterEach, expect, test, vi } from "vitest";
+import { describe, beforeEach, afterEach, expect, test } from "vitest";
 
 import { RelayClient, ManifestField } from "../lib";
 import { market } from "../lib/protobuf/compiled";
@@ -241,27 +241,18 @@ describe("user behaviour", () => {
         expect(checkout).not.toBeNull();
         expect(checkout.cartFinalizedId).not.toBeNull();
 
-        // waiter for changeStock event from relay
-        let received = false;
-
-        relayClient.on("event", async (e) => {
-          for (const event of e.request.events) {
+        const stream = relayClient.createEventStream();
+        // @ts-expect-error FIXME
+        for await (const evt of stream) {
+          for (const event of evt.events) {
             if (
               event.cartFinalized &&
               bytesToHex(event.cartFinalized!.cartId!) === cartId
             ) {
-              received = true;
+              return true;
             }
           }
-          e.done();
-        });
-
-        await vi.waitUntil(
-          async () => {
-            return received;
-          },
-          { timeout: 10000 },
-        );
+        }
       });
 
       test("erc20 checkout", { timeout: 10000 }, async () => {
@@ -318,14 +309,14 @@ describe("user behaviour", () => {
     );
     console.log("client2 updated manifest");
 
-    // TODO: what exactly is this testing for? the listen is pretty late in the test
-    await new Promise((resolve) => {
-      relayClient2.on("event", async (e: any) => {
-        expect(e.request.events.length).toBeGreaterThan(0);
-        resolve(true);
-        e.done();
-      });
-    });
+    const stream = relayClient.createEventStream();
+    if (stream) {
+      // @ts-expect-error FIXME
+      for await (const evt of stream) {
+        console.log({ evt });
+        expect(evt.events.length).toBeGreaterThan(0);
+      }
+    }
     console.log("client2 has 7 events");
 
     await relayClient2.disconnect();

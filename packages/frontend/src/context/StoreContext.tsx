@@ -164,14 +164,15 @@ export const StoreContextProvider = (
     } else return null;
   };
 
-  const createState = () => {
+  const createState = async () => {
     try {
-      relayClient &&
-        relayClient.addListener("event", (evt) => {
+      const stream = relayClient && relayClient.createEventStream();
+      if (stream) {
+        for await (const evt of stream) {
           buildState(
             products,
             allTags,
-            evt.request.events,
+            evt.events,
             setProducts,
             setAllTags,
             setCartItems,
@@ -179,8 +180,8 @@ export const StoreContextProvider = (
             setPublishedTagId,
             setFinalizedCarts,
           );
-          evt.done();
-        });
+        }
+      }
     } catch (err) {
       console.error("error receiving events", err);
     }
