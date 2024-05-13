@@ -43,7 +43,7 @@ export type WalletClientWithAccount = WalletClient<
 
 export type ClientArgs = {
   relayEndpoint: string;
-  account: PrivateKeyAccount;
+  keyCardWallet: PrivateKeyAccount;
   storeId: `0x${string}`;
   chain: Chain;
 };
@@ -99,19 +99,19 @@ export class RelayClient extends EventEmitter {
   connection!: WebSocket;
   storeId!: `0x${string}`;
   chain;
-  account;
+  keyCardWallet;
   endpoint;
   useTLS: boolean;
   DOMAIN_SEPARATOR;
   firstEvent: mmproto.EventPushResponse | null;
   constructor({
     relayEndpoint,
-    account,
+    keyCardWallet,
     chain = hardhat,
     storeId,
   }: ClientArgs) {
     super();
-    this.account = account;
+    this.keyCardWallet = keyCardWallet;
     this.endpoint = relayEndpoint;
     this.useTLS = relayEndpoint.startsWith("wss");
     this.chain = chain;
@@ -242,7 +242,7 @@ export class RelayClient extends EventEmitter {
       Uint8Array | string | number | Uint8Array[] | number[]
     >,
   ) {
-    return this.account.signTypedData({
+    return this.keyCardWallet.signTypedData({
       types,
       primaryType: Object.keys(types)[0],
       domain: this.DOMAIN_SEPARATOR,
@@ -309,7 +309,7 @@ export class RelayClient extends EventEmitter {
   }
 
   async enrollKeycard(wallet: WalletClientWithAccount) {
-    const publicKey = toBytes(this.account.publicKey).slice(1);
+    const publicKey = toBytes(this.keyCardWallet.publicKey).slice(1);
 
     const types = {
       Enrollment: [{ name: "keyCard", type: "string" }],
@@ -397,7 +397,7 @@ export class RelayClient extends EventEmitter {
     await this.connect();
 
     const response = (await this.encodeAndSend(mmproto.AuthenticateRequest, {
-      publicKey: toBytes(this.account.publicKey).slice(1),
+      publicKey: toBytes(this.keyCardWallet.publicKey).slice(1),
     })) as mmproto.AuthenticateResponse;
 
     const types = {
