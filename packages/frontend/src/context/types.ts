@@ -63,10 +63,20 @@ export type IRelayClient = EventEmitter & {
     field: number,
     value: string,
   ) => Promise<IRelayWriteResponse>;
-  createInviteSecret: () => Promise<`0x${string}`>;
-  createStore: (storeId: `0x${string}`) => Promise<`0x${string}`>;
-  redeemInviteSecret: (secret: `0x${string}`) => Promise<`0x${string}`>;
-  enrollKeycard: () => Promise<{ ok?: boolean; error?: string }>;
+  createInviteSecret: (
+    wallet: WalletClientWithAccount,
+  ) => Promise<`0x${string}`>;
+  createStore: (
+    storeId: `0x${string}`,
+    wallet: WalletClientWithAccount,
+  ) => Promise<`0x${string}`>;
+  redeemInviteSecret: (
+    secret: `0x${string}`,
+    wallet: WalletClientWithAccount,
+  ) => Promise<`0x${string}`>;
+  enrollKeycard: (
+    wallet: WalletClientWithAccount,
+  ) => Promise<{ ok?: boolean; error?: string }>;
   login: () => Promise<`0x${string}`>;
   createItem: (price: string, metadata: metadata) => Promise<ItemId>;
   updateItem: (
@@ -99,6 +109,7 @@ export type IRelayClient = EventEmitter & {
 
 export type ClientContext = {
   walletAddress: `0x${string}` | null;
+  clientWallet: WalletClientWithAccount | null;
   balance: string | null;
   avatar: string | null;
   name: string | null;

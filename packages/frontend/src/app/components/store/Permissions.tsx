@@ -29,6 +29,7 @@ const clerks: IContributor[] = [
 ];
 
 const Permissions = ({ close }: { close: () => void }) => {
+  const { clientWallet } = useMyContext();
   const [showInviteLink, setShowInviteLink] = useState<boolean>(false);
   const [inviteLink, setInviteLink] = useState<`0x${string}` | null>(null);
   const [isHalfModalOpen, setIsHalfModalOpen] = useState(false);
@@ -43,8 +44,12 @@ const Permissions = ({ close }: { close: () => void }) => {
 
   //FIXME make this button pending for await
   const generateInvitationLink = async () => {
-    const sk = await relayClient!.createInviteSecret();
-    setInviteLink(sk);
+    if (clientWallet) {
+      const sk = await relayClient!.createInviteSecret(clientWallet);
+      setInviteLink(sk);
+    } else {
+      console.warn("Must connect to wallet.");
+    }
   };
 
   const copyToClipboard = () => {

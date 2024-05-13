@@ -15,7 +15,8 @@ import { useStoreContext } from "@/context/StoreContext";
 import { IStatus } from "@/types";
 
 const CreateStore = () => {
-  const { relayClient, publicClient, walletAddress } = useMyContext();
+  const { relayClient, publicClient, walletAddress, clientWallet } =
+    useMyContext();
   const [storeCreated, setStoreCreated] = useState<string | null>(null);
 
   const enrollKeycard = useRef(false);
@@ -38,13 +39,13 @@ const CreateStore = () => {
   }, [relayClient]);
 
   useEffect(() => {
-    if (relayClient) {
+    if (relayClient && clientWallet) {
       if (enrollKeycard.current) return;
 
       relayClient.once("keycard enroll", async () => {
         enrollKeycard.current = true;
 
-        const res = await relayClient.enrollKeycard();
+        const res = await relayClient.enrollKeycard(clientWallet);
         if (res.ok) {
           console.log("keycard enrolled");
           setKeycardEnrolled(true);
@@ -82,10 +83,10 @@ const CreateStore = () => {
 
   const createStore = () => {
     (async () => {
-      if (relayClient && publicClient && storeId) {
+      if (relayClient && publicClient && storeId && clientWallet) {
         try {
           localStorage.setItem("storeId", storeId);
-          const hash = await relayClient.createStore(storeId);
+          const hash = await relayClient.createStore(storeId, clientWallet);
           console.log({ hash });
           const transaction =
             publicClient &&
