@@ -9,7 +9,6 @@
     /  /    \/ /\     \    /    \ \  /    \/ /   /  \/  \/  \  /    \   \
    /  /      \/  \/\   \  /      \    /   /    \
 __/__/_______/___/__\___\__________________________________________________
-
 ```
 This is a persistent [Merkle Mountain Range](https://github.com/opentimestamps/opentimestamps-server/blob/master/doc/merkle-mountain-range.md) implementation that stive for simplicity and readability. It is not optimized for performance.
 
