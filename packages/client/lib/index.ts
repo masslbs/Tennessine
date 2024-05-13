@@ -135,10 +135,15 @@ export class RelayClient extends EventEmitter {
     typedPr.set(pr, 1);
     this.connection.send(typedPr);
   }
+  async #reAuthenticateAndSend(encoder: PBMessage, object: PBObject = {}) {
+    await this.login();
+    await this.encodeAndSend(encoder, object, true);
+  }
 
   encodeAndSend(
     encoder: PBMessage,
     object: PBObject = {},
+    reauthentication: boolean = false,
   ): Promise<PBInstance> {
     if (!object.requestId) {
       object.requestId = RelayClient.requestId();
@@ -155,8 +160,12 @@ export class RelayClient extends EventEmitter {
       this.once(bytesToHex(id), (result) => {
         if (result.error) {
           const { code, message } = result.error;
-          console.error(`network error[${code}]: ${message}`);
-          reject(result.error);
+          if (code === "notAuthenticated" && !reauthentication) {
+            this.#reAuthenticateAndSend(encoder, object);
+          } else {
+            console.error(`network error[${code}]: ${message}`);
+            reject(result.error);
+          }
         } else {
           resolve(result);
         }
