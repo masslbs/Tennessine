@@ -104,6 +104,7 @@ export class RelayClient extends EventEmitter {
   useTLS: boolean;
   DOMAIN_SEPARATOR;
   firstEvent: mmproto.EventPushResponse | null;
+  authenticated: boolean;
   constructor({
     relayEndpoint,
     keyCardWallet,
@@ -123,6 +124,7 @@ export class RelayClient extends EventEmitter {
       verifyingContract: abi.addresses.StoreReg as Address,
     };
     this.firstEvent = null;
+    this.authenticated = true;
   }
 
   #handlePingRequest(ping: mmproto.PingRequest) {
@@ -268,8 +270,21 @@ export class RelayClient extends EventEmitter {
     };
     return this.encodeAndSend(mmproto.EventWriteRequest, eventRequest);
   }
-
-  connect(): Promise<void | Event> {
+  async #authenticate() {
+    const response = (await this.encodeAndSend(mmproto.AuthenticateRequest, {
+      publicKey: toBytes(this.keyCardWallet.publicKey).slice(1),
+    })) as mmproto.AuthenticateResponse;
+    const types = {
+      Challenge: [{ name: "challenge", type: "string" }],
+    };
+    const sig = await this.#signTypedDataMessage(types, {
+      challenge: bytesToHex(response.challenge).slice(2),
+    });
+    return this.encodeAndSend(mmproto.ChallengeSolvedRequest, {
+      signature: toBytes(sig),
+    });
+  }
+  async connect(): Promise<void | Event> {
     if (
       !this.connection ||
       this.connection.readyState === WebSocket.CLOSING ||
@@ -284,7 +299,13 @@ export class RelayClient extends EventEmitter {
         this.#decodeMessage.bind(this),
       );
     }
-
+    if (
+      this.connection.readyState === WebSocket.OPEN &&
+      !this.authenticated &&
+      this.keyCardWallet
+    ) {
+      await this.#authenticate();
+    }
     return new Promise((resolve) => {
       if (this.connection.readyState === WebSocket.OPEN) {
         resolve();
@@ -295,6 +316,7 @@ export class RelayClient extends EventEmitter {
   }
 
   disconnect(): Promise<CloseEvent | string> {
+    this.authenticated = false;
     return new Promise((resolve) => {
       if (
         typeof this.connection === "undefined" ||
@@ -395,21 +417,7 @@ export class RelayClient extends EventEmitter {
 
   async login(): Promise<mmproto.ChallengeSolvedResponse> {
     await this.connect();
-
-    const response = (await this.encodeAndSend(mmproto.AuthenticateRequest, {
-      publicKey: toBytes(this.keyCardWallet.publicKey).slice(1),
-    })) as mmproto.AuthenticateResponse;
-
-    const types = {
-      Challenge: [{ name: "challenge", type: "string" }],
-    };
-    const sig = await this.#signTypedDataMessage(types, {
-      challenge: bytesToHex(response.challenge).slice(2),
-    });
-
-    return this.encodeAndSend(mmproto.ChallengeSolvedRequest, {
-      signature: toBytes(sig),
-    });
+    return await this.#authenticate();
   }
 
   async uploadBlob(blob: FormData) {
