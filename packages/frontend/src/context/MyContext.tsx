@@ -146,7 +146,7 @@ export const MyContextProvider = (
       relayEndpoint:
         process.env.NEXT_PUBLIC_RELAY_ENDPOINT ||
         "wss://relay-beta.mass.market/v1",
-      account: privateKeyToAccount(privateKey),
+      keyCardWallet: privateKeyToAccount(privateKey),
       storeId: storeId as `0x${string}`,
       chain: usedChain,
     };

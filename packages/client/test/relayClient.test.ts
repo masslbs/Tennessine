@@ -51,7 +51,7 @@ beforeEach(async () => {
   crypto.getRandomValues(keyCard);
   relayClient = new RelayClient({
     relayEndpoint,
-    account: privateKeyToAccount(bytesToHex(keyCard)),
+    keyCardWallet: privateKeyToAccount(bytesToHex(keyCard)),
     storeId,
     chain: hardhat,
   });
@@ -104,7 +104,7 @@ describe("RelayClient", async () => {
 
     const relayClient2 = new RelayClient({
       relayEndpoint,
-      account: privateKeyToAccount(sk),
+      keyCardWallet: privateKeyToAccount(sk),
       storeId: storeId as `0x${string}`,
       chain: hardhat,
     });
@@ -290,7 +290,7 @@ describe("user behaviour", () => {
     });
     const relayClient2 = new RelayClient({
       relayEndpoint,
-      account: privateKeyToAccount(sk),
+      keyCardWallet: privateKeyToAccount(sk),
       storeId: storeId as `0x${string}`,
       chain: hardhat,
     });
