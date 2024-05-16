@@ -20,10 +20,14 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
   const { publicClient, clientWallet } = useMyContext();
   const [pending, setPending] = useState<boolean>(false);
   const [hasAccess, setAccess] = useState<boolean>(false);
-  const { walletAddress, inviteSecret, relayClient, setWallet } =
-    useMyContext();
+  const {
+    walletAddress,
+    inviteSecret,
+    relayClient,
+    setWallet,
+    setKeyCardEnrolled,
+  } = useMyContext();
   const { isAuthenticated, setIsAuthenticated } = useAuth();
-  const [keycardEnrolled, setKeycardEnrolled] = useState(false);
   const enrollKeycard = useRef(false);
   const redeemSecret = useRef(false);
   const { data: _wallet, status: walletStatus } = useWalletClient();
@@ -56,32 +60,19 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
         relayClient.once("keycard enroll", async () => {
           const res = await relayClient.enrollKeycard(clientWallet);
           if (res.ok) {
-            setKeycardEnrolled(true);
+            setKeyCardEnrolled(keyCardToEnroll);
+            keyCardToEnroll && localStorage.setItem("keyCard", keyCardToEnroll);
+            setIsAuthenticated(IStatus.Complete);
+            setConnectionStatus(IStatus.Complete);
           } else {
             enrollKeycard.current = false;
             setConnectionStatus(IStatus.Failed);
+            setIsAuthenticated(IStatus.Failed);
+            localStorage.removeItem("keyCard");
           }
+          localStorage.removeItem("keyCardToEnroll");
         });
-      } else if (savedKC) {
-        setKeycardEnrolled(true);
       }
-
-      relayClient.once("login", async () => {
-        const authenticated = await relayClient.login();
-        console.log({ authenticated });
-        if (authenticated) {
-          keyCardToEnroll && localStorage.setItem("keyCard", keyCardToEnroll);
-          setIsAuthenticated(IStatus.Complete);
-        } else {
-          setIsAuthenticated(IStatus.Failed);
-
-          localStorage.removeItem("keyCard");
-        }
-        localStorage.removeItem("keyCardToEnroll");
-
-        const status = authenticated ? IStatus.Complete : IStatus.Failed;
-        setConnectionStatus(status);
-      });
     }
   }, [relayClient, clientWallet]);
 
@@ -133,12 +124,9 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
     ) {
       (async () => {
         keyCardToEnroll && relayClient.emit("keycard enroll");
-        if (keycardEnrolled) {
-          relayClient.emit("login");
-        }
       })();
     }
-  }, [keycardEnrolled, hasAccess, relayClient]);
+  }, [hasAccess, relayClient]);
 
   const displayConnectors = () => {
     return connectors.map((connector: Connector) => (

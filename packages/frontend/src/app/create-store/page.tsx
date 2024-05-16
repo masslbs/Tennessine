@@ -15,13 +15,19 @@ import { useStoreContext } from "@/context/StoreContext";
 import { IStatus } from "@/types";
 
 const CreateStore = () => {
-  const { relayClient, publicClient, walletAddress, clientWallet } =
-    useMyContext();
+  const {
+    relayClient,
+    publicClient,
+    walletAddress,
+    clientWallet,
+    keyCardEnrolled,
+    setKeyCardEnrolled,
+  } = useMyContext();
   const [storeCreated, setStoreCreated] = useState<string | null>(null);
 
   const enrollKeycard = useRef(false);
   const { setIsAuthenticated } = useAuth();
-  const [keycardEnrolled, setKeycardEnrolled] = useState(false);
+  // const [keycardEnrolled, setKeycardEnrolled] = useState(false);
   const [hasAccess, setAccess] = useState<boolean>(false);
   const [storeId, setStoreId] = useState<`0x${string}` | null>(null);
   const randomStoreIdHasBeenSet = useRef(false);
@@ -47,29 +53,18 @@ const CreateStore = () => {
 
         const res = await relayClient.enrollKeycard(clientWallet);
         if (res.ok) {
-          console.log("keycard enrolled");
-          setKeycardEnrolled(true);
-        } else {
-          console.error("failed to enroll keycard");
-        }
-      });
-
-      relayClient.once("login", async () => {
-        const authenticated = await relayClient.login();
-        if (authenticated) {
-          console.log("user authenticated.");
-          setIsAuthenticated(IStatus.Complete);
-          // console.log("User authenticated. Creating published tags...");
-          // const publishedTagId = await createTag(":visible");
-          // await relayClient.writeStoreManifest(publishedTagId);
-          await relayClient.writeStoreManifest();
-          // setPublishedTagId(publishedTagId);
-          console.log("store manifested.");
           const keyCardToEnroll = localStorage.getItem(
             "keyCardToEnroll",
           ) as `0x${string}`;
           localStorage.setItem("keyCard", keyCardToEnroll);
           localStorage.removeItem("keyCardToEnroll");
+          console.log("keycard enrolled");
+          setKeyCardEnrolled(keyCardToEnroll);
+          setIsAuthenticated(IStatus.Complete);
+          await relayClient.writeStoreManifest();
+          console.log("store manifested.");
+        } else {
+          console.error("failed to enroll keycard");
         }
       });
     }
@@ -122,14 +117,11 @@ const CreateStore = () => {
         });
         if (_hasAccess) {
           relayClient.emit("keycard enroll");
-          if (keycardEnrolled) {
-            relayClient.emit("login");
-          }
           setStoreCreated("Store has been created");
         }
       })();
     }
-  }, [hasAccess, keycardEnrolled]);
+  }, [hasAccess, keyCardEnrolled]);
 
   const addERC20 = async () => {
     await relayClient!.updateManifest(

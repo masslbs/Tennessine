@@ -46,6 +46,7 @@ export type ClientArgs = {
   keyCardWallet: PrivateKeyAccount;
   storeId: `0x${string}`;
   chain: Chain;
+  keyCardEnrolled: boolean;
 };
 
 function randomBytes(n: number) {
@@ -110,6 +111,7 @@ export class RelayClient extends EventEmitter {
     keyCardWallet,
     chain = hardhat,
     storeId,
+    keyCardEnrolled,
   }: ClientArgs) {
     super();
     this.keyCardWallet = keyCardWallet;
@@ -124,7 +126,7 @@ export class RelayClient extends EventEmitter {
       verifyingContract: abi.addresses.StoreReg as Address,
     };
     this.firstEvent = null;
-    this.keyCardEnrolled = false;
+    this.keyCardEnrolled = keyCardEnrolled;
   }
 
   #handlePingRequest(ping: mmproto.PingRequest) {
@@ -424,12 +426,6 @@ export class RelayClient extends EventEmitter {
       functionName: "redeemInvite",
       args: [BigInt(this.storeId), v, r, s, wallet.account.address],
     });
-  }
-
-  async login(): Promise<mmproto.ChallengeSolvedResponse> {
-    this.keyCardEnrolled = true;
-    const res = (await this.connect()) as mmproto.ChallengeSolvedResponse;
-    return res;
   }
 
   async uploadBlob(blob: FormData) {
