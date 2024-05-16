@@ -55,7 +55,6 @@ beforeEach(async () => {
     storeId,
     chain: hardhat,
   });
-  await relayClient.connect();
 });
 
 afterEach(async () => {
@@ -65,6 +64,8 @@ afterEach(async () => {
 describe("RelayClient", async () => {
   describe("connection behavior", () => {
     test("should connect and disconnect", async () => {
+      await relayClient.connect();
+
       const closeEvent = await relayClient.disconnect();
       const r = closeEvent as CloseEvent;
       expect(r.wasClean).toBe(true);
