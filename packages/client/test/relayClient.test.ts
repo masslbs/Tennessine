@@ -295,6 +295,7 @@ describe("user behaviour", () => {
       keyCardWallet: privateKeyToAccount(sk),
       storeId: storeId as `0x${string}`,
       chain: hardhat,
+      keyCardEnrolled: false,
     });
 
     // the new client redeems the invite, and now is a clerk
@@ -302,7 +303,7 @@ describe("user behaviour", () => {
     console.log("client2 redeemed invite");
     await relayClient2.enrollKeycard(client2Wallet);
     console.log("client2 enrolled keyCard");
-    await relayClient2.login();
+    await relayClient2.connect();
     console.log("client2 logged in");
 
     await relayClient2.updateManifest(
