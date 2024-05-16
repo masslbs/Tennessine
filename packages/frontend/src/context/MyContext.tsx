@@ -156,7 +156,7 @@ export const MyContextProvider = (
     console.log(
       `relay client set ${user.relayEndpoint} with store: ${storeId}`,
     );
-  }, [clientWallet]);
+  }, []);
 
   useEffect(() => {
     if (savedKC && relayClient) {

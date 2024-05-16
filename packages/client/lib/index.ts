@@ -104,7 +104,7 @@ export class RelayClient extends EventEmitter {
   useTLS: boolean;
   DOMAIN_SEPARATOR;
   firstEvent: mmproto.EventPushResponse | null;
-  authenticated: boolean;
+  keyCardEnrolled: boolean;
   constructor({
     relayEndpoint,
     keyCardWallet,
@@ -124,7 +124,7 @@ export class RelayClient extends EventEmitter {
       verifyingContract: abi.addresses.StoreReg as Address,
     };
     this.firstEvent = null;
-    this.authenticated = true;
+    this.keyCardEnrolled = false;
   }
 
   #handlePingRequest(ping: mmproto.PingRequest) {
@@ -284,7 +284,9 @@ export class RelayClient extends EventEmitter {
       signature: toBytes(sig),
     });
   }
-  async connect(): Promise<void | Event> {
+  async connect(): Promise<
+    void | Event | mmproto.ChallengeSolvedResponse | string
+  > {
     if (
       !this.connection ||
       this.connection.readyState === WebSocket.CLOSING ||
@@ -299,24 +301,30 @@ export class RelayClient extends EventEmitter {
         this.#decodeMessage.bind(this),
       );
     }
-    if (
-      this.connection.readyState === WebSocket.OPEN &&
-      !this.authenticated &&
-      this.keyCardWallet
-    ) {
-      await this.#authenticate();
-    }
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       if (this.connection.readyState === WebSocket.OPEN) {
         resolve();
       } else {
-        this.connection.addEventListener("open", resolve);
+        this.connection.addEventListener("open", async () => {
+          console.log("ws open");
+          if (this.keyCardEnrolled) {
+            const res = await this.#authenticate();
+            if (res) {
+              console.log("authentication success");
+              resolve(res);
+            } else {
+              console.log("authentication failed");
+              reject(res);
+            }
+          } else {
+            resolve("ws connected without authentication");
+          }
+        });
       }
     });
   }
 
   disconnect(): Promise<CloseEvent | string> {
-    this.authenticated = false;
     return new Promise((resolve) => {
       if (
         typeof this.connection === "undefined" ||
@@ -360,6 +368,9 @@ export class RelayClient extends EventEmitter {
       method: "POST",
       body,
     });
+    if (response.ok) {
+      this.keyCardEnrolled = true;
+    }
     return response;
   }
 
@@ -416,8 +427,9 @@ export class RelayClient extends EventEmitter {
   }
 
   async login(): Promise<mmproto.ChallengeSolvedResponse> {
-    await this.connect();
-    return await this.#authenticate();
+    this.keyCardEnrolled = true;
+    const res = (await this.connect()) as mmproto.ChallengeSolvedResponse;
+    return res;
   }
 
   async uploadBlob(blob: FormData) {

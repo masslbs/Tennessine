@@ -73,7 +73,7 @@ const CreateStore = () => {
         }
       });
     }
-  }, [relayClient]);
+  }, [relayClient, clientWallet]);
 
   const copy = !relayClient
     ? "Connect your wallet to create store."
