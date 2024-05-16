@@ -165,9 +165,10 @@ export const MyContextProvider = (
     // @ts-expect-error FIXME
     setRelayClient(_relayClient);
     if (keyCardEnrolled) {
-      console.log("connecting to client...");
       (async () => {
+        console.log("connecting to client...");
         const authenticated = await _relayClient.connect();
+        console.log({ authenticated });
         if (authenticated) {
           setIsAuthenticated(IStatus.Complete);
         } else {

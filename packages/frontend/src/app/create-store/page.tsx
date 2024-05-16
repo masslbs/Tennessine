@@ -26,7 +26,7 @@ const CreateStore = () => {
   const [storeCreated, setStoreCreated] = useState<string | null>(null);
 
   const enrollKeycard = useRef(false);
-  const { setIsAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   // const [keycardEnrolled, setKeycardEnrolled] = useState(false);
   const [hasAccess, setAccess] = useState<boolean>(false);
   const [storeId, setStoreId] = useState<`0x${string}` | null>(null);
@@ -58,17 +58,23 @@ const CreateStore = () => {
           ) as `0x${string}`;
           localStorage.setItem("keyCard", keyCardToEnroll);
           localStorage.removeItem("keyCardToEnroll");
-          console.log("keycard enrolled");
+          console.log("keycard enrolled:", keyCardToEnroll);
           setKeyCardEnrolled(keyCardToEnroll);
-          setIsAuthenticated(IStatus.Complete);
-          await relayClient.writeStoreManifest();
-          console.log("store manifested.");
         } else {
           console.error("failed to enroll keycard");
         }
       });
     }
   }, [relayClient, clientWallet]);
+
+  useEffect(() => {
+    if (relayClient && isAuthenticated === IStatus.Complete) {
+      (async () => {
+        await relayClient.writeStoreManifest();
+        console.log("store manifested.");
+      })();
+    }
+  }, [isAuthenticated, relayClient]);
 
   const copy = !relayClient
     ? "Connect your wallet to create store."

@@ -54,18 +54,17 @@ beforeEach(async () => {
     keyCardWallet: privateKeyToAccount(bytesToHex(keyCard)),
     storeId,
     chain: hardhat,
+    keyCardEnrolled: false,
   });
 });
 
 afterEach(async () => {
   await relayClient.disconnect();
 });
-
 describe("RelayClient", async () => {
   describe("connection behavior", () => {
     test("should connect and disconnect", async () => {
       await relayClient.connect();
-
       const closeEvent = await relayClient.disconnect();
       const r = closeEvent as CloseEvent;
       expect(r.wasClean).toBe(true);
@@ -108,6 +107,7 @@ describe("RelayClient", async () => {
       keyCardWallet: privateKeyToAccount(sk),
       storeId: storeId as `0x${string}`,
       chain: hardhat,
+      keyCardEnrolled: false,
     });
 
     // the new client redeems the invite, and now is a clerk
@@ -143,8 +143,9 @@ describe("user behaviour", () => {
   beforeEach(async () => {
     const response = await relayClient.enrollKeycard(wallet);
     expect(response.status).toBe(201);
-    const res = await relayClient.login();
-    expect(res.error).toBeNull();
+    const authenticated =
+      (await relayClient.connect()) as mmproto.ChallengeSolvedResponse;
+    expect(authenticated.error).toBeNull();
   });
 
   test("write store manifest", async () => {
