@@ -46,6 +46,7 @@ export type ClientArgs = {
   keyCardWallet: PrivateKeyAccount;
   storeId: `0x${string}`;
   chain: Chain;
+  keyCardEnrolled: boolean;
 };
 
 function randomBytes(n: number) {
@@ -104,11 +105,13 @@ export class RelayClient extends EventEmitter {
   useTLS: boolean;
   DOMAIN_SEPARATOR;
   firstEvent: mmproto.EventPushResponse | null;
+  keyCardEnrolled: boolean;
   constructor({
     relayEndpoint,
     keyCardWallet,
     chain = hardhat,
     storeId,
+    keyCardEnrolled,
   }: ClientArgs) {
     super();
     this.keyCardWallet = keyCardWallet;
@@ -123,6 +126,7 @@ export class RelayClient extends EventEmitter {
       verifyingContract: abi.addresses.StoreReg as Address,
     };
     this.firstEvent = null;
+    this.keyCardEnrolled = keyCardEnrolled;
   }
 
   #handlePingRequest(ping: mmproto.PingRequest) {
@@ -268,8 +272,23 @@ export class RelayClient extends EventEmitter {
     };
     return this.encodeAndSend(mmproto.EventWriteRequest, eventRequest);
   }
-
-  connect(): Promise<void | Event> {
+  async #authenticate() {
+    const response = (await this.encodeAndSend(mmproto.AuthenticateRequest, {
+      publicKey: toBytes(this.keyCardWallet.publicKey).slice(1),
+    })) as mmproto.AuthenticateResponse;
+    const types = {
+      Challenge: [{ name: "challenge", type: "string" }],
+    };
+    const sig = await this.#signTypedDataMessage(types, {
+      challenge: bytesToHex(response.challenge).slice(2),
+    });
+    return this.encodeAndSend(mmproto.ChallengeSolvedRequest, {
+      signature: toBytes(sig),
+    });
+  }
+  async connect(): Promise<
+    void | Event | mmproto.ChallengeSolvedResponse | string
+  > {
     if (
       !this.connection ||
       this.connection.readyState === WebSocket.CLOSING ||
@@ -284,12 +303,25 @@ export class RelayClient extends EventEmitter {
         this.#decodeMessage.bind(this),
       );
     }
-
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       if (this.connection.readyState === WebSocket.OPEN) {
         resolve();
       } else {
-        this.connection.addEventListener("open", resolve);
+        this.connection.addEventListener("open", async () => {
+          console.log("ws open");
+          if (this.keyCardEnrolled) {
+            const res = await this.#authenticate();
+            if (res) {
+              console.log("authentication success");
+              resolve(res);
+            } else {
+              console.log("authentication failed");
+              reject(res);
+            }
+          } else {
+            resolve("ws connected without authentication");
+          }
+        });
       }
     });
   }
@@ -338,6 +370,9 @@ export class RelayClient extends EventEmitter {
       method: "POST",
       body,
     });
+    if (response.ok) {
+      this.keyCardEnrolled = true;
+    }
     return response;
   }
 
@@ -390,25 +425,6 @@ export class RelayClient extends EventEmitter {
       abi: abi.StoreReg,
       functionName: "redeemInvite",
       args: [BigInt(this.storeId), v, r, s, wallet.account.address],
-    });
-  }
-
-  async login(): Promise<mmproto.ChallengeSolvedResponse> {
-    await this.connect();
-
-    const response = (await this.encodeAndSend(mmproto.AuthenticateRequest, {
-      publicKey: toBytes(this.keyCardWallet.publicKey).slice(1),
-    })) as mmproto.AuthenticateResponse;
-
-    const types = {
-      Challenge: [{ name: "challenge", type: "string" }],
-    };
-    const sig = await this.#signTypedDataMessage(types, {
-      challenge: bytesToHex(response.challenge).slice(2),
-    });
-
-    return this.encodeAndSend(mmproto.ChallengeSolvedRequest, {
-      signature: toBytes(sig),
     });
   }
 

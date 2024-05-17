@@ -32,6 +32,8 @@ export const MyContext = createContext<ClientContext>({
   publicClient: null,
   inviteSecret: null,
   clientWallet: null,
+  keyCardEnrolled: null,
+  setKeyCardEnrolled: () => {},
   setInviteSecret: () => {},
   setWallet: () => {},
   getTokenInformation: () =>
@@ -59,7 +61,9 @@ export const MyContextProvider = (
   const ensAvatar = useEnsAvatar({ name: ensName! })?.data;
   const { data: _wallet, status: walletStatus } = useWalletClient();
   const { setIsAuthenticated } = useAuth();
-
+  const [keyCardEnrolled, setKeyCardEnrolled] = useState<null | `0x${string}`>(
+    null,
+  );
   if (typeof window == "undefined") {
     console.warn("not a browser session");
     return;
@@ -71,6 +75,12 @@ export const MyContextProvider = (
     throw Error("missing store ID");
   }
   const savedKC = localStorage.getItem("keyCard") as `0x${string}`;
+
+  useEffect(() => {
+    if (savedKC) {
+      setKeyCardEnrolled(savedKC);
+    }
+  }, []);
 
   let usedChain: Chain;
   const chainName = process.env.NEXT_PUBLIC_CHAIN_NAME!;
@@ -136,7 +146,7 @@ export const MyContextProvider = (
   useEffect(() => {
     let keyCard = new Uint8Array(32);
     crypto.getRandomValues(keyCard);
-    if (!savedKC) {
+    if (!keyCardEnrolled && !savedKC) {
       localStorage.setItem("keyCardToEnroll", bytesToHex(keyCard));
     } else {
       keyCard = hexToBytes(savedKC);
@@ -149,31 +159,27 @@ export const MyContextProvider = (
       keyCardWallet: privateKeyToAccount(privateKey),
       storeId: storeId as `0x${string}`,
       chain: usedChain,
+      keyCardEnrolled: !!keyCardEnrolled,
     };
     const _relayClient = new RelayClient(user);
     // @ts-expect-error FIXME
     setRelayClient(_relayClient);
-    console.log(
-      `relay client set ${user.relayEndpoint} with store: ${storeId}`,
-    );
-  }, [clientWallet]);
-
-  useEffect(() => {
-    if (savedKC && relayClient) {
-      //if we already have a saved KC, then just log in.
-      relayClient.once("login", async () => {
-        const authenticated = await relayClient.login();
+    if (keyCardEnrolled) {
+      (async () => {
+        console.log("connecting to client...");
+        const authenticated = await _relayClient.connect();
+        console.log({ authenticated });
         if (authenticated) {
-          console.log("authenticated");
           setIsAuthenticated(IStatus.Complete);
         } else {
           setIsAuthenticated(IStatus.Failed);
-          localStorage.removeItem("keyCard");
         }
-      });
-      relayClient.emit("login");
+      })();
     }
-  }, [relayClient]);
+    console.log(
+      `relay client set ${user.relayEndpoint} with store: ${storeId}`,
+    );
+  }, [keyCardEnrolled]);
 
   const value = {
     name,
@@ -185,9 +191,11 @@ export const MyContextProvider = (
     publicClient,
     inviteSecret,
     clientWallet,
+    keyCardEnrolled,
     setInviteSecret,
     setWallet,
     getTokenInformation,
+    setKeyCardEnrolled,
   };
 
   return (

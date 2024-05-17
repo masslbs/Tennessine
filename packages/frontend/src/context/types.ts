@@ -108,6 +108,7 @@ export type IRelayClient = EventEmitter & {
 };
 
 export type ClientContext = {
+  keyCardEnrolled: `0x${string}` | null;
   walletAddress: `0x${string}` | null;
   clientWallet: WalletClientWithAccount | null;
   balance: string | null;
@@ -116,6 +117,7 @@ export type ClientContext = {
   relayClient: IRelayClient | null;
   publicClient: PublicClient | null;
   inviteSecret: `0x${string}` | null;
+  setKeyCardEnrolled: Dispatch<SetStateAction<`0x${string}` | null>>;
   setInviteSecret: Dispatch<SetStateAction<`0x${string}` | null>>;
   setWallet: Dispatch<SetStateAction<WalletClientWithAccount | null>>;
   getTokenInformation: (
