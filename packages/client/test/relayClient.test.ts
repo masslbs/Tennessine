@@ -242,7 +242,7 @@ describe("user behaviour", () => {
         expect(checkout).not.toBeNull();
         expect(checkout.cartFinalizedId).not.toBeNull();
 
-        const streamFn = async () => {
+        const getStream = async () => {
           const stream = relayClient.createEventStream();
           let received = false;
           // @ts-expect-error FIXME
@@ -261,7 +261,7 @@ describe("user behaviour", () => {
           return received;
         };
 
-        const res = await streamFn();
+        const res = await getStream();
         expect(res).toBe(true);
       });
 
@@ -325,7 +325,7 @@ describe("user behaviour", () => {
     });
 
     test("client 2 receives streams successfully", async () => {
-      const streamFn = async () => {
+      const getStream = async () => {
         const stream = relayClient2.createEventStream();
         console.log({ stream });
         // @ts-expect-error FIXME
@@ -333,11 +333,11 @@ describe("user behaviour", () => {
           return evt.events.length;
         }
       };
-      const res = await streamFn();
+      const res = await getStream();
       expect(res).toBeGreaterThan(0);
     });
 
-    test("relayClient disconnect", async () => {
+    test("client2 disconnect", async () => {
       await relayClient2.disconnect();
       console.log("client2 disconnected");
     });
