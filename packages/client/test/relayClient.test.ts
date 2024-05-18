@@ -61,6 +61,7 @@ beforeEach(async () => {
 afterEach(async () => {
   await relayClient.disconnect();
 });
+
 describe("RelayClient", async () => {
   describe("connection behavior", () => {
     test("should connect and disconnect", async () => {
@@ -110,7 +111,6 @@ describe("RelayClient", async () => {
       keyCardEnrolled: false,
     });
 
-    // the new client redeems the invite, and now is a clerk
     const hash = await relayClient2.redeemInviteSecret(sk, client2Wallet);
     // wait for the transaction to be included in the blockchain
     const transaction = await publicClient.waitForTransactionReceipt({
@@ -244,25 +244,19 @@ describe("user behaviour", () => {
 
         const getStream = async () => {
           const stream = relayClient.createEventStream();
-          let received = false;
           // @ts-expect-error FIXME
           for await (const evt of stream) {
             for (const event of evt.events) {
-              if (
-                event.cartFinalized &&
-                bytesToHex(event.cartFinalized!.cartId!)! == cartId
-              ) {
-                received = true;
-                break;
+              if (event.cartFinalized) {
+                return bytesToHex(event.cartFinalized!.cartId!);
               }
             }
             break;
           }
-          return received;
+          return null;
         };
-
-        const res = await getStream();
-        expect(res).toBe(true);
+        const receivedId = await getStream();
+        expect(receivedId).toEqual(cartId);
       });
 
       test("erc20 checkout", { timeout: 10000 }, async () => {
@@ -307,13 +301,12 @@ describe("user behaviour", () => {
         chain: hardhat,
         keyCardEnrolled: false,
       });
-      // the new client redeems the invite, and now is a clerk
       await relayClient2.redeemInviteSecret(sk, client2Wallet);
       console.log("client2 redeemed invite");
       await relayClient2.enrollKeycard(client2Wallet);
       console.log("client2 enrolled keyCard");
       await relayClient2.connect();
-      console.log("client2 logged in");
+      console.log("client2 connected");
     });
 
     test("client2 successfully updates manifest", async () => {
@@ -324,22 +317,17 @@ describe("user behaviour", () => {
       console.log("client2 updated manifest");
     });
 
-    test("client 2 receives streams successfully", async () => {
+    test("client 2 receives streams from createEventStream", async () => {
       const getStream = async () => {
         const stream = relayClient2.createEventStream();
-        console.log({ stream });
         // @ts-expect-error FIXME
         for await (const evt of stream) {
           return evt.events.length;
         }
       };
-      const res = await getStream();
-      expect(res).toBeGreaterThan(0);
-    });
-
-    test("client2 disconnect", async () => {
+      const evtLength = await getStream();
+      expect(evtLength).toBeGreaterThan(0);
       await relayClient2.disconnect();
-      console.log("client2 disconnected");
     });
   });
 });
