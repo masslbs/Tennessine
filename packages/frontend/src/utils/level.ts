@@ -1,39 +1,73 @@
 import { Level } from "level";
 import { ProductsMap, TagsMap, CartsMap } from "@/context/types";
 
-const setMapData = async (
+const setMapData = (
   key: string,
   value: CartsMap | TagsMap | ProductsMap,
-  db: Level<string, string>,
+  db: Level<string, string> | null,
 ) => {
+  if (!db) return;
+  if (db.status !== "open" && db.status !== "opening") {
+    db.open((e) => {
+      if (e) console.log("error while opening db", { e }, "status", db.status);
+    });
+  }
   const mapArray = Array.from([...value.entries()]);
-  await db.put(key, JSON.stringify(mapArray));
-  console.log(`Data for ${key} saved.`);
+  db.put(key, JSON.stringify(mapArray), (err) => {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log(`Data for ${key} saved.`);
+    }
+  });
 };
 
-const setItem = async (
+const setItem = (
   key: string,
   value: string,
-  db: Level<string, string>,
+  db: Level<string, string> | null,
 ) => {
-  await db.put(key, JSON.stringify(value));
-  console.log(`Data for ${key} saved.`);
+  if (!db) return;
+  if (db.status !== "open" && db.status !== "opening") {
+    db.open((e) => {
+      if (e) console.log("error while opening db", { e }, "status", db.status);
+    });
+  }
+  db.put(key, JSON.stringify(value), (err) => {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log(`Data for ${key} saved.`);
+    }
+  });
 };
 
 const getParsedMapData = async (
   key: "products" | "tags" | "cartItems",
   db: Level<string, string>,
 ) => {
-  const map = await db.get(key);
-  if (map) {
-    return new Map(JSON.parse(map));
-  } else return null;
+  if (db.status !== "open" && db.status !== "opening") {
+    db.open((e) => {
+      if (e) console.log("error while opening db", { e }, "status", db.status);
+    });
+  }
+  const data = await db.get(key);
+  if (data) {
+    return new Map(JSON.parse(data));
+  }
+
+  return null;
 };
 
 const getItem = async (key: string, db: Level<string, string>) => {
-  console.log("error handler");
+  if (db.status !== "open" && db.status !== "opening") {
+    db.open((e) => {
+      if (e) console.log("error while opening db", { e }, "status", db.status);
+    });
+  }
   const data = await db.get(key);
   if (data) return JSON.parse(data);
+
   return null;
 };
 
