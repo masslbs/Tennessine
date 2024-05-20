@@ -61,6 +61,7 @@ beforeEach(async () => {
 afterEach(async () => {
   await relayClient.disconnect();
 });
+
 describe("RelayClient", async () => {
   describe("connection behavior", () => {
     test("should connect and disconnect", async () => {
@@ -110,7 +111,6 @@ describe("RelayClient", async () => {
       keyCardEnrolled: false,
     });
 
-    // the new client redeems the invite, and now is a clerk
     const hash = await relayClient2.redeemInviteSecret(sk, client2Wallet);
     // wait for the transaction to be included in the blockchain
     const transaction = await publicClient.waitForTransactionReceipt({
@@ -238,23 +238,25 @@ describe("user behaviour", () => {
 
       test("single item checkout", { timeout: 10000 }, async () => {
         await relayClient.changeCart(cartId, itemId, 1);
-
         const checkout = await relayClient.commitCart(cartId);
         expect(checkout).not.toBeNull();
         expect(checkout.cartFinalizedId).not.toBeNull();
 
-        const stream = relayClient.createEventStream();
-        // @ts-expect-error FIXME
-        for await (const evt of stream) {
-          for (const event of evt.events) {
-            if (
-              event.cartFinalized &&
-              bytesToHex(event.cartFinalized!.cartId!) === cartId
-            ) {
-              return true;
+        const getStream = async () => {
+          const stream = relayClient.createEventStream();
+          // @ts-expect-error FIXME
+          for await (const evt of stream) {
+            for (const event of evt.events) {
+              if (event.cartFinalized) {
+                return bytesToHex(event.cartFinalized!.cartId!);
+              }
             }
+            break;
           }
-        }
+          return null;
+        };
+        const receivedId = await getStream();
+        expect(receivedId).toEqual(cartId);
       });
 
       test("erc20 checkout", { timeout: 10000 }, async () => {
@@ -274,55 +276,58 @@ describe("user behaviour", () => {
     });
   });
 
-  test.skip("invite another user", { retry: 3 }, async () => {
-    const sk = await relayClient.createInviteSecret(wallet);
-    console.log("created invite secret", sk);
-    const acc2 = privateKeyToAccount(sk);
-    await wallet.sendTransaction({
-      account,
-      to: acc2.address,
-      value: BigInt(250000000000000000),
+  describe("invite another user", { retry: 3 }, async () => {
+    let client2Wallet;
+    let relayClient2: RelayClient;
+    let sk;
+    beforeEach(async () => {
+      sk = await relayClient.createInviteSecret(wallet);
+      const acc2 = privateKeyToAccount(sk);
+      await wallet.sendTransaction({
+        account,
+        to: acc2.address,
+        value: BigInt(250000000000000000),
+      });
+      console.log("transacted coins to acc2");
+      client2Wallet = createWalletClient({
+        account: acc2,
+        chain: hardhat,
+        transport: http(),
+      });
+      relayClient2 = new RelayClient({
+        relayEndpoint,
+        keyCardWallet: privateKeyToAccount(sk),
+        storeId: storeId as `0x${string}`,
+        chain: hardhat,
+        keyCardEnrolled: false,
+      });
+      await relayClient2.redeemInviteSecret(sk, client2Wallet);
+      console.log("client2 redeemed invite");
+      await relayClient2.enrollKeycard(client2Wallet);
+      console.log("client2 enrolled keyCard");
+      await relayClient2.connect();
+      console.log("client2 connected");
     });
-    console.log("transacted coins to acc2");
 
-    const client2Wallet = createWalletClient({
-      account: acc2,
-      chain: hardhat,
-      transport: http(),
-    });
-    const relayClient2 = new RelayClient({
-      relayEndpoint,
-      keyCardWallet: privateKeyToAccount(sk),
-      storeId: storeId as `0x${string}`,
-      chain: hardhat,
-      keyCardEnrolled: false,
+    test("client2 successfully updates manifest", async () => {
+      await relayClient2.updateManifest(
+        ManifestField.MANIFEST_FIELD_DOMAIN,
+        "test2-test",
+      );
+      console.log("client2 updated manifest");
     });
 
-    // the new client redeems the invite, and now is a clerk
-    await relayClient2.redeemInviteSecret(sk, client2Wallet);
-    console.log("client2 redeemed invite");
-    await relayClient2.enrollKeycard(client2Wallet);
-    console.log("client2 enrolled keyCard");
-    await relayClient2.connect();
-    console.log("client2 logged in");
-
-    await relayClient2.updateManifest(
-      ManifestField.MANIFEST_FIELD_DOMAIN,
-      "test2-test",
-    );
-    console.log("client2 updated manifest");
-
-    const stream = relayClient.createEventStream();
-    if (stream) {
-      // @ts-expect-error FIXME
-      for await (const evt of stream) {
-        console.log({ evt });
-        expect(evt.events.length).toBeGreaterThan(0);
-      }
-    }
-    console.log("client2 has 7 events");
-
-    await relayClient2.disconnect();
-    console.log("clients disconnected");
+    test("client 2 receives streams from createEventStream", async () => {
+      const getStream = async () => {
+        const stream = relayClient2.createEventStream();
+        // @ts-expect-error FIXME
+        for await (const evt of stream) {
+          return evt.events.length;
+        }
+      };
+      const evtLength = await getStream();
+      expect(evtLength).toBeGreaterThan(0);
+      await relayClient2.disconnect();
+    });
   });
 });
