@@ -64,13 +64,13 @@ export const StoreContextProvider = (
   );
   const [relays, setRelays] = useState<IRelay[]>(dummyRelays);
   const [db, setDb] = useState<Level<string, string>>(
-    new Level("./db", { valueEncoding: "json" }),
+    new Level("mydb", { valueEncoding: "json" }),
   );
   const { relayClient } = useMyContext();
 
   useEffect(() => {
     if (!db) {
-      setDb(new Level("./db", { valueEncoding: "json" }));
+      setDb(new Level("mydb", { valueEncoding: "json" }));
     }
   });
   useEffect(() => {
