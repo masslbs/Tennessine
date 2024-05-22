@@ -81,11 +81,42 @@ export class MockClient extends EventEmitter {
         requestId: sequentialReqId(),
         events: [decodedEvent],
       });
-      this.emit("event", {
-        request: pushReq,
-        done: () => {},
-      });
+      this.emit("event", pushReq);
     }
+  }
+  createEventStream() {
+    let requestId: Uint8Array | null = null;
+    const parentInstance = this;
+    let enqueueFn: any;
+    const enqueueWrapperFn = (controller: any) => {
+      return (enqueueFn = (event: any) => {
+        requestId = event.requestId;
+        controller.enqueue(event);
+      });
+    };
+
+    return new ReadableStream(
+      {
+        start(controller) {
+          try {
+            parentInstance.on("event", enqueueWrapperFn(controller));
+          } catch (error) {
+            console.log({ error });
+          }
+        },
+        // pull() {
+        //   if (requestId) {
+        //     parentInstance.encodeAndSend(mmproto.EventPushResponse, {
+        //       requestId,
+        //     });
+        //   }
+        // },
+        cancel() {
+          parentInstance.removeListener("event", enqueueFn);
+        },
+      },
+      { highWaterMark: 0 },
+    );
   }
 }
 
