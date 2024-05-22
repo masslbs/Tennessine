@@ -7,19 +7,8 @@ const setMapData = (
   db: BrowserLevel<string, string> | null,
 ) => {
   if (!db) return;
-  if (db.status !== "open" && db.status !== "opening") {
-    db.open((e) => {
-      if (e) console.log("error while opening db", { e }, "status", db.status);
-    });
-  }
   const mapArray = Array.from([...value.entries()]);
-  db.put(key, JSON.stringify(mapArray), (err) => {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log(`Data for ${key} saved.`);
-    }
-  });
+  return db.put(key, JSON.stringify(mapArray));
 };
 
 const setItem = (
@@ -28,46 +17,23 @@ const setItem = (
   db: BrowserLevel<string, string> | null,
 ) => {
   if (!db) return;
-  if (db.status !== "open" && db.status !== "opening") {
-    db.open((e) => {
-      if (e) console.log("error while opening db", { e }, "status", db.status);
-    });
-  }
-  db.put(key, JSON.stringify(value), (err) => {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log(`Data for ${key} saved.`);
-    }
-  });
+  return db.put(key, JSON.stringify(value));
 };
 
 const getParsedMapData = async (
   key: "products" | "tags" | "cartItems",
   db: BrowserLevel<string, string>,
 ) => {
-  if (db.status !== "open" && db.status !== "opening") {
-    db.open((e) => {
-      if (e) console.log("error while opening db", { e }, "status", db.status);
-    });
-  }
   const data = await db.get(key);
   if (data) {
     return new Map(JSON.parse(data));
   }
-
   return null;
 };
 
 const getItem = async (key: string, db: BrowserLevel<string, string>) => {
-  if (db.status !== "open" && db.status !== "opening") {
-    db.open((e) => {
-      if (e) console.log("error while opening db", { e }, "status", db.status);
-    });
-  }
   const data = await db.get(key);
   if (data) return JSON.parse(data);
-
   return null;
 };
 

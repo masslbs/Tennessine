@@ -65,13 +65,20 @@ export const StoreContextProvider = (
   );
   const [relays, setRelays] = useState<IRelay[]>(dummyRelays);
   const [db, setDb] = useState<BrowserLevel<string, string>>(
-    new BrowserLevel("./db", { valueEncoding: "json" }),
+    new BrowserLevel("db", { valueEncoding: "json" }),
   );
   const { relayClient } = useMyContext();
 
+  if (window) {
+    window.addEventListener("beforeunload", () => {
+      console.log("closing db connection");
+      db.close();
+    });
+  }
+
   useEffect(() => {
     if (!db) {
-      setDb(new BrowserLevel("./db", { valueEncoding: "json" }));
+      setDb(new BrowserLevel("db", { valueEncoding: "json" }));
     }
   });
 
@@ -127,38 +134,57 @@ export const StoreContextProvider = (
         if (publishedTagIdLocal) {
           setPublishedTagId(publishedTagIdLocal as TagId);
         }
-        if (db.status !== "closed" && db.status !== "closing") {
-          db.close((e) => {
-            if (e) console.log({ e });
-          });
-        }
       })();
     }
     createState();
   }, [relayClient]);
 
   useEffect(() => {
-    products && setMapData("products", products, db);
+    try {
+      products.size && setMapData("products", products, db);
+    } catch (error) {
+      console.log(error);
+    }
   }, [products]);
 
   useEffect(() => {
-    allTags && setMapData("tags", allTags, db);
+    try {
+      allTags.size && setMapData("tags", allTags, db);
+    } catch (error) {
+      console.log(error);
+    }
   }, [allTags]);
 
   useEffect(() => {
-    cartItems && setMapData("cartItems", cartItems, db);
+    try {
+      cartItems.size && setMapData("cartItems", cartItems, db);
+    } catch (error) {
+      console.log(error);
+    }
   }, [cartItems]);
 
   useEffect(() => {
-    cartId && setItem("cartId", cartId, db);
+    try {
+      cartId && setItem("cartId", cartId, db);
+    } catch (error) {
+      console.log(error);
+    }
   }, [cartId]);
 
   useEffect(() => {
-    erc20Addr && setItem("erc20Addr", erc20Addr, db);
+    try {
+      erc20Addr && setItem("erc20Addr", erc20Addr, db);
+    } catch (error) {
+      console.log(error);
+    }
   }, [erc20Addr]);
 
   useEffect(() => {
-    publishedTagId && setItem("publishedTagId", publishedTagId, db);
+    try {
+      publishedTagId && setItem("publishedTagId", publishedTagId, db);
+    } catch (error) {
+      console.log(error);
+    }
   }, [publishedTagId]);
 
   const createState = async () => {
