@@ -44,7 +44,9 @@ import {
 import { finalizedCartReducer } from "@/reducers/finalizedCartReducers";
 import { initialStoreContext } from "../context/initialLoadingState";
 import { dummyRelays } from "./dummyData";
+import { BrowserLevel } from "browser-level";
 
+import { setMapData, getParsedMapData, setItem, getItem } from "@/utils/level";
 // @ts-expect-error FIXME
 export const StoreContext = createContext<StoreContent>(initialStoreContext);
 
@@ -62,107 +64,121 @@ export const StoreContextProvider = (
     new Map(),
   );
   const [relays, setRelays] = useState<IRelay[]>(dummyRelays);
-
+  const [db] = useState<BrowserLevel<string, string>>(
+    new BrowserLevel("db", { valueEncoding: "json" }),
+  );
   const { relayClient } = useMyContext();
+
+  if (window) {
+    window.addEventListener("beforeunload", () => {
+      console.log("closing db connection");
+      db.close();
+    });
+  }
 
   useEffect(() => {
     //FIXME: to fix once we intergrate multiple relays
     setRelays(dummyRelays);
 
-    const localStorageProducts = getStateFromLocalStorage(
-      "products",
-    ) as ProductsMap;
-    const localStorageTags = getStateFromLocalStorage("tags") as TagsMap;
+    (async () => {
+      const productsLocal = (await getParsedMapData(
+        "products",
+        db,
+      )) as ProductsMap;
 
-    const cartItemsLocal = getStateFromLocalStorage("cartItems") as CartsMap;
+      const tagsLocal = (await getParsedMapData("tags", db)) as TagsMap;
+      const cartItemsLocal = (await getParsedMapData(
+        "cartItems",
+        db,
+      )) as CartsMap;
 
-    let cartIdLocal = localStorage.getItem("cartId") || null;
-    if (cartIdLocal) {
-      cartIdLocal = JSON.parse(cartIdLocal);
-    }
-    let erc20AddrLocal = localStorage.getItem("erc20Addr");
-    if (erc20AddrLocal) {
-      erc20AddrLocal = JSON.parse(erc20AddrLocal);
-    }
-    let publishedTagIdLocal = localStorage.getItem("publishedTagId");
-    if (publishedTagIdLocal) {
-      publishedTagIdLocal = JSON.parse(publishedTagIdLocal);
-      setPublishedTagId(publishedTagIdLocal as TagId);
-    }
-    if (erc20AddrLocal) {
-      erc20AddrLocal = JSON.parse(erc20AddrLocal) as `0x${string}`;
-    }
-    if (publishedTagIdLocal) {
-      publishedTagIdLocal = JSON.parse(publishedTagIdLocal);
-      setPublishedTagId(publishedTagIdLocal as TagId);
-    }
+      const cartIdLocal = await getItem("cartId", db);
+      const erc20AddrLocal = await getItem("erc20Addr", db);
+      const publishedTagIdLocal = await getItem("publishedTagId", db);
 
-    if (localStorageProducts?.size) {
-      setProducts({
-        type: SET_PRODUCTS,
-        payload: {
-          itemId: localStorageProducts.keys().next().value,
-          allProducts: localStorageProducts,
-        },
-      });
-    }
-    if (localStorageTags?.size) {
-      setAllTags({
-        type: SET_ALL_TAGS,
-        payload: { allTags: localStorageTags },
-      });
-    }
+      if (productsLocal?.size) {
+        setProducts({
+          type: SET_PRODUCTS,
+          payload: {
+            itemId: productsLocal.keys().next().value,
+            allProducts: productsLocal,
+          },
+        });
+      }
+      if (tagsLocal?.size) {
+        setAllTags({
+          type: SET_ALL_TAGS,
+          payload: { allTags: tagsLocal },
+        });
+      }
 
-    if (cartItemsLocal?.size) {
-      setCartItems({
-        type: SET_ALL_CART_ITEMS,
-        payload: { allCartItems: cartItemsLocal },
-      });
-    }
-    if (cartIdLocal && cartIdLocal !== null) {
-      setCartId(cartIdLocal as CartId);
-    }
-    if (erc20AddrLocal && erc20AddrLocal !== null) {
-      setErc20Addr(erc20AddrLocal as `0x${string}`);
-    }
-    if (publishedTagId && publishedTagId !== null) {
-      setPublishedTagId(publishedTagId);
-    }
+      if (cartItemsLocal?.size) {
+        setCartItems({
+          type: SET_ALL_CART_ITEMS,
+          payload: { allCartItems: cartItemsLocal },
+        });
+      }
+      if (cartIdLocal && cartIdLocal !== null) {
+        setCartId(cartIdLocal as CartId);
+      }
+      if (erc20AddrLocal && erc20AddrLocal !== null) {
+        setErc20Addr(erc20AddrLocal as `0x${string}`);
+      }
+      if (publishedTagIdLocal) {
+        setPublishedTagId(publishedTagIdLocal as TagId);
+      }
+    })();
 
     createState();
   }, [relayClient]);
 
   useEffect(() => {
-    console.log(`updating products with ${products.size} items`);
-    saveToLocalStorage("products", products);
+    try {
+      products.size && setMapData("products", products, db);
+    } catch (error) {
+      console.log(error);
+    }
   }, [products]);
 
   useEffect(() => {
-    saveToLocalStorage("tags", allTags);
+    try {
+      allTags.size && setMapData("tags", allTags, db);
+    } catch (error) {
+      console.log(error);
+    }
   }, [allTags]);
 
   useEffect(() => {
-    saveToLocalStorage("cartItems", cartItems);
+    try {
+      cartItems.size && setMapData("cartItems", cartItems, db);
+    } catch (error) {
+      console.log(error);
+    }
   }, [cartItems]);
 
   useEffect(() => {
-    localStorage.setItem("cartId", JSON.stringify(cartId));
+    try {
+      cartId && setItem("cartId", cartId, db);
+    } catch (error) {
+      console.log(error);
+    }
   }, [cartId]);
 
   useEffect(() => {
-    localStorage.setItem("erc20Addr", JSON.stringify(erc20Addr));
+    try {
+      erc20Addr && setItem("erc20Addr", erc20Addr, db);
+    } catch (error) {
+      console.log(error);
+    }
   }, [erc20Addr]);
 
   useEffect(() => {
-    localStorage.setItem("publishedTagId", JSON.stringify(publishedTagId));
+    try {
+      publishedTagId && setItem("publishedTagId", publishedTagId, db);
+    } catch (error) {
+      console.log(error);
+    }
   }, [publishedTagId]);
-
-  const getStateFromLocalStorage = (key: "products" | "tags" | "cartItems") => {
-    const state = localStorage.getItem(key);
-    if (state) {
-      return new Map(JSON.parse(state));
-    } else return null;
-  };
 
   const createState = async () => {
     try {
@@ -452,14 +468,6 @@ export const StoreContextProvider = (
     }
   };
 
-  const saveToLocalStorage = (
-    key: string,
-    map: CartsMap | TagsMap | ProductsMap,
-  ) => {
-    const mapArray = Array.from([...map.entries()]);
-    localStorage.setItem(key, JSON.stringify(mapArray));
-  };
-
   const value = {
     products,
     allTags,
@@ -469,6 +477,7 @@ export const StoreContextProvider = (
     publishedTagId,
     finalizedCarts,
     relays,
+    db,
     addProduct,
     updateProduct,
     createState,

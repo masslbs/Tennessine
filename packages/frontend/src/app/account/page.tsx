@@ -14,6 +14,7 @@ import { useAuth } from "@/context/AuthContext";
 import { formatEthAdd } from "../utils";
 import withAuth from "../components/withAuth";
 import { useRouter } from "next/navigation";
+import { BrowserLevel } from "browser-level";
 
 const AccountSettings = () => {
   const { walletAddress, avatar, name } = useMyContext();
@@ -44,6 +45,7 @@ const AccountSettings = () => {
   };
 
   const logout = () => {
+    BrowserLevel.destroy("db");
     setIsAuthenticated(IStatus.Pending);
     localStorage.clear();
     router.push("/");
