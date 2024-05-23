@@ -4,9 +4,8 @@ import { ProductsMap, TagsMap, CartsMap } from "@/context/types";
 const setMapData = (
   key: string,
   value: CartsMap | TagsMap | ProductsMap,
-  db: BrowserLevel<string, string> | null,
+  db: BrowserLevel<string, string>,
 ) => {
-  if (!db) return;
   const mapArray = Array.from([...value.entries()]);
   return db.put(key, JSON.stringify(mapArray));
 };
@@ -14,9 +13,8 @@ const setMapData = (
 const setItem = (
   key: string,
   value: string,
-  db: BrowserLevel<string, string> | null,
+  db: BrowserLevel<string, string>,
 ) => {
-  if (!db) return;
   return db.put(key, JSON.stringify(value));
 };
 

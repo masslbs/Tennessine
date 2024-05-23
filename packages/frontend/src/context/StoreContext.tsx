@@ -80,56 +80,55 @@ export const StoreContextProvider = (
     //FIXME: to fix once we intergrate multiple relays
     setRelays(dummyRelays);
 
-    if (db) {
-      (async () => {
-        const productsLocal = (await getParsedMapData(
-          "products",
-          db,
-        )) as ProductsMap;
+    (async () => {
+      const productsLocal = (await getParsedMapData(
+        "products",
+        db,
+      )) as ProductsMap;
 
-        const tagsLocal = (await getParsedMapData("tags", db)) as TagsMap;
-        const cartItemsLocal = (await getParsedMapData(
-          "cartItems",
-          db,
-        )) as CartsMap;
+      const tagsLocal = (await getParsedMapData("tags", db)) as TagsMap;
+      const cartItemsLocal = (await getParsedMapData(
+        "cartItems",
+        db,
+      )) as CartsMap;
 
-        const cartIdLocal = await getItem("cartId", db);
-        const erc20AddrLocal = await getItem("erc20Addr", db);
-        const publishedTagIdLocal = await getItem("publishedTagId", db);
+      const cartIdLocal = await getItem("cartId", db);
+      const erc20AddrLocal = await getItem("erc20Addr", db);
+      const publishedTagIdLocal = await getItem("publishedTagId", db);
 
-        if (productsLocal?.size) {
-          setProducts({
-            type: SET_PRODUCTS,
-            payload: {
-              itemId: productsLocal.keys().next().value,
-              allProducts: productsLocal,
-            },
-          });
-        }
-        if (tagsLocal?.size) {
-          setAllTags({
-            type: SET_ALL_TAGS,
-            payload: { allTags: tagsLocal },
-          });
-        }
+      if (productsLocal?.size) {
+        setProducts({
+          type: SET_PRODUCTS,
+          payload: {
+            itemId: productsLocal.keys().next().value,
+            allProducts: productsLocal,
+          },
+        });
+      }
+      if (tagsLocal?.size) {
+        setAllTags({
+          type: SET_ALL_TAGS,
+          payload: { allTags: tagsLocal },
+        });
+      }
 
-        if (cartItemsLocal?.size) {
-          setCartItems({
-            type: SET_ALL_CART_ITEMS,
-            payload: { allCartItems: cartItemsLocal },
-          });
-        }
-        if (cartIdLocal && cartIdLocal !== null) {
-          setCartId(cartIdLocal as CartId);
-        }
-        if (erc20AddrLocal && erc20AddrLocal !== null) {
-          setErc20Addr(erc20AddrLocal as `0x${string}`);
-        }
-        if (publishedTagIdLocal) {
-          setPublishedTagId(publishedTagIdLocal as TagId);
-        }
-      })();
-    }
+      if (cartItemsLocal?.size) {
+        setCartItems({
+          type: SET_ALL_CART_ITEMS,
+          payload: { allCartItems: cartItemsLocal },
+        });
+      }
+      if (cartIdLocal && cartIdLocal !== null) {
+        setCartId(cartIdLocal as CartId);
+      }
+      if (erc20AddrLocal && erc20AddrLocal !== null) {
+        setErc20Addr(erc20AddrLocal as `0x${string}`);
+      }
+      if (publishedTagIdLocal) {
+        setPublishedTagId(publishedTagIdLocal as TagId);
+      }
+    })();
+
     createState();
   }, [relayClient]);
 
