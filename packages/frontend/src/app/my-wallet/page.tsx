@@ -12,6 +12,7 @@ import { formatEthAdd } from "../utils";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { IStatus } from "@/types";
+import { BrowserLevel } from "browser-level";
 
 const MyWallet = () => {
   const [walletBalance, setWalletBalance] = useState<string>("0");
@@ -33,6 +34,7 @@ const MyWallet = () => {
     navigator.clipboard.writeText(walletAdd);
   };
   const logout = () => {
+    BrowserLevel.destroy("db");
     setIsAuthenticated(IStatus.Pending);
     localStorage.clear();
     router.push("/");
