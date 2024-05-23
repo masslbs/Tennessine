@@ -64,7 +64,7 @@ export const StoreContextProvider = (
     new Map(),
   );
   const [relays, setRelays] = useState<IRelay[]>(dummyRelays);
-  const [db, setDb] = useState<BrowserLevel<string, string>>(
+  const [db] = useState<BrowserLevel<string, string>>(
     new BrowserLevel("db", { valueEncoding: "json" }),
   );
   const { relayClient } = useMyContext();
@@ -75,12 +75,6 @@ export const StoreContextProvider = (
       db.close();
     });
   }
-
-  useEffect(() => {
-    if (!db) {
-      setDb(new BrowserLevel("db", { valueEncoding: "json" }));
-    }
-  });
 
   useEffect(() => {
     //FIXME: to fix once we intergrate multiple relays
