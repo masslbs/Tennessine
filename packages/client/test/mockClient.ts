@@ -85,12 +85,10 @@ export class MockClient extends EventEmitter {
     }
   }
   createEventStream() {
-    let requestId: Uint8Array | null = null;
     const parentInstance = this;
     let enqueueFn: any;
     const enqueueWrapperFn = (controller: any) => {
       return (enqueueFn = (event: any) => {
-        requestId = event.requestId;
         controller.enqueue(event);
       });
     };
@@ -104,13 +102,7 @@ export class MockClient extends EventEmitter {
             console.log({ error });
           }
         },
-        // pull() {
-        //   if (requestId) {
-        //     parentInstance.encodeAndSend(mmproto.EventPushResponse, {
-        //       requestId,
-        //     });
-        //   }
-        // },
+
         cancel() {
           parentInstance.removeListener("event", enqueueFn);
         },

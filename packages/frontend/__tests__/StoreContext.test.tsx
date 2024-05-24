@@ -14,7 +14,6 @@ import {
   fireEvent,
   waitFor,
 } from "@testing-library/react";
-import "fake-indexeddb/auto";
 import Products from "@/app/products/page";
 import { AuthContext } from "@/context/AuthContext";
 import { IStatus } from "@/types";
@@ -76,8 +75,9 @@ describe("StoreContext", () => {
     );
   };
 
-  it("Receives store data from streams correctly", async () => {
+  it("Receives and builds store state from streams", async () => {
     render(<Wrapper />);
+
     await act(async () => {
       await client.connect();
     });
@@ -87,9 +87,7 @@ describe("StoreContext", () => {
     expect(item).toHaveTextContent("58 Available");
 
     const button = screen.getByRole("button");
-
     fireEvent.click(button);
-
     await waitFor(() => {
       const savedPrice = screen.getByTestId("price");
       expect(savedPrice).toHaveTextContent("23.00");
