@@ -2,44 +2,99 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import React, { ReactElement, useEffect } from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-// import { render, screen } from "../test";
-import { MyContext, useMyContext } from "@/context/MyContext";
+import React, { useState } from "react";
+import { describe, expect, it, vi } from "vitest";
+import { MyContext } from "@/context/MyContext";
 import { MockClient } from "@massmarket/client/test/mockClient";
 import { StoreContextProvider, useStoreContext } from "@/context/StoreContext";
-import { render, screen } from "@testing-library/react";
+import {
+  render,
+  act,
+  screen,
+  fireEvent,
+  waitFor,
+} from "@testing-library/react";
+import "fake-indexeddb/auto";
+import Products from "@/app/products/page";
+import { AuthContext } from "@/context/AuthContext";
+import { IStatus } from "@/types";
+import { getParsedMapData } from "@/utils/level";
 
-// const FauxComponent = () => {
-//   const { products } = useStoreContext();
-//   const { relayClient } = useMyContext();
-//   useEffect(() => {
-//     (async () => {
-//       relayClient && (await relayClient.connect());
-//     })();
-//   });
-//   console.log({ products });
-//   return <div></div>;
-// };
-
-describe("My wallet consumes context state correctly", () => {
+const TestComponent = () => {
+  const { db } = useStoreContext();
+  const [price, setPrice] = useState("");
+  const [stockQty, setStockQty] = useState(0);
+  const getState = async () => {
+    const data = await getParsedMapData("products", db);
+    if (data) {
+      const { value } = data.values().next();
+      setStockQty(value.stockQty);
+      setPrice(value.price);
+    }
+  };
+  return (
+    <div>
+      <button onClick={getState}>Test Button</button>
+      <p data-testid="price">{price}</p>
+      <p data-testid="stockQty">{stockQty}</p>
+    </div>
+  );
+};
+describe("StoreContext", () => {
   const client = new MockClient();
 
+  vi.mock("next/navigation", () => ({
+    useRouter() {
+      return {
+        route: "/",
+        push: () => {},
+      };
+    },
+    useSearchParams() {
+      return {
+        get: () => {},
+      };
+    },
+  }));
   const Wrapper = () => {
     return (
-      <MyContext.Provider value={{ relayClient: client }}>
-        <StoreContextProvider />
-        {/* <StoreContextProvider>
-          <FauxComponent />
-        </StoreContextProvider> */}
-      </MyContext.Provider>
+      <AuthContext.Provider
+        value={{
+          isAuthenticated: IStatus.Complete,
+          setIsAuthenticated: () => {},
+        }}
+      >
+        {/* @ts-expect-error FIXME */}
+        <MyContext.Provider value={{ relayClient: client }}>
+          <StoreContextProvider>
+            {/* @ts-expect-error FIXME */}
+            <Products />
+            <TestComponent />
+          </StoreContextProvider>
+        </MyContext.Provider>
+      </AuthContext.Provider>
     );
   };
 
-  it("first test", async () => {
+  it("Receives store data from streams correctly", async () => {
     render(<Wrapper />);
+    await act(async () => {
+      await client.connect();
+    });
+    const item = screen.getByTestId("product-best schoes");
+    expect(item).toHaveTextContent("best schoes");
+    expect(item).toHaveTextContent("23.00");
+    expect(item).toHaveTextContent("58 Available");
 
-    await client.connect();
-    // expect(screen.getByTestId("hi")).toHaveTextContent("Betafish");
+    const button = screen.getByRole("button");
+
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      const savedPrice = screen.getByTestId("price");
+      expect(savedPrice).toHaveTextContent("23.00");
+      const savedStockQty = screen.getByTestId("stockQty");
+      expect(savedStockQty).toHaveTextContent("58");
+    });
   });
 });

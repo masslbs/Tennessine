@@ -10,7 +10,7 @@ export type IAuthContext = {
   isAuthenticated: IStatus;
   setIsAuthenticated: Dispatch<SetStateAction<IStatus>>;
 };
-const AuthContext = createContext<IAuthContext>({
+export const AuthContext = createContext<IAuthContext>({
   isAuthenticated: IStatus.Pending,
   setIsAuthenticated: () => {},
 });

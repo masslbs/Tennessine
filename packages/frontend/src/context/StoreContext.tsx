@@ -44,7 +44,6 @@ import {
 import { finalizedCartReducer } from "@/reducers/finalizedCartReducers";
 import { initialStoreContext } from "../context/initialLoadingState";
 import { dummyRelays } from "./dummyData";
-import { BrowserLevel } from "browser-level";
 
 import { setMapData, getParsedMapData, setItem, getItem } from "@/utils/level";
 // @ts-expect-error FIXME
@@ -63,74 +62,83 @@ export const StoreContextProvider = (
     finalizedCartReducer,
     new Map(),
   );
-  const [relays, setRelays] = useState<IRelay[]>(dummyRelays);
-  const [db] = useState<BrowserLevel<string, string>>(
-    new BrowserLevel("db", { valueEncoding: "json" }),
-  );
-  const { relayClient } = useMyContext();
+  const [db, setDb] = useState(null);
 
-  if (window) {
-    window.addEventListener("beforeunload", () => {
-      console.log("closing db connection");
-      db.close();
-    });
-  }
+  useEffect(() => {
+    (async () => {
+      const { Level } = await import("level");
+      const db = new Level("./db", { valueEncoding: "json" });
+      console.log("here", db);
+      // @ts-expect-error FIXME
+      setDb(db);
+      if (window && db) {
+        window.addEventListener("beforeunload", () => {
+          console.log("closing db connection");
+          db.close();
+        });
+      }
+    })();
+  }, []);
+
+  const [relays, setRelays] = useState<IRelay[]>(dummyRelays);
+  const { relayClient } = useMyContext();
 
   useEffect(() => {
     //FIXME: to fix once we intergrate multiple relays
     setRelays(dummyRelays);
 
     (async () => {
-      const productsLocal = (await getParsedMapData(
-        "products",
-        db,
-      )) as ProductsMap;
+      if (db) {
+        const productsLocal = (await getParsedMapData(
+          "products",
+          db,
+        )) as ProductsMap;
 
-      const tagsLocal = (await getParsedMapData("tags", db)) as TagsMap;
-      const cartItemsLocal = (await getParsedMapData(
-        "cartItems",
-        db,
-      )) as CartsMap;
+        const tagsLocal = (await getParsedMapData("tags", db)) as TagsMap;
+        const cartItemsLocal = (await getParsedMapData(
+          "cartItems",
+          db,
+        )) as CartsMap;
 
-      const cartIdLocal = await getItem("cartId", db);
-      const erc20AddrLocal = await getItem("erc20Addr", db);
-      const publishedTagIdLocal = await getItem("publishedTagId", db);
+        const cartIdLocal = await getItem("cartId", db);
+        const erc20AddrLocal = await getItem("erc20Addr", db);
+        const publishedTagIdLocal = await getItem("publishedTagId", db);
 
-      if (productsLocal?.size) {
-        setProducts({
-          type: SET_PRODUCTS,
-          payload: {
-            itemId: productsLocal.keys().next().value,
-            allProducts: productsLocal,
-          },
-        });
-      }
-      if (tagsLocal?.size) {
-        setAllTags({
-          type: SET_ALL_TAGS,
-          payload: { allTags: tagsLocal },
-        });
-      }
-
-      if (cartItemsLocal?.size) {
-        setCartItems({
-          type: SET_ALL_CART_ITEMS,
-          payload: { allCartItems: cartItemsLocal },
-        });
-      }
-      if (cartIdLocal && cartIdLocal !== null) {
-        setCartId(cartIdLocal as CartId);
-      }
-      if (erc20AddrLocal && erc20AddrLocal !== null) {
-        setErc20Addr(erc20AddrLocal as `0x${string}`);
-      }
-      if (publishedTagIdLocal) {
-        setPublishedTagId(publishedTagIdLocal as TagId);
+        if (productsLocal?.size) {
+          setProducts({
+            type: SET_PRODUCTS,
+            payload: {
+              itemId: productsLocal.keys().next().value,
+              allProducts: productsLocal,
+            },
+          });
+        }
+        if (tagsLocal?.size) {
+          setAllTags({
+            type: SET_ALL_TAGS,
+            payload: { allTags: tagsLocal },
+          });
+        }
+        if (cartItemsLocal?.size) {
+          setCartItems({
+            type: SET_ALL_CART_ITEMS,
+            payload: { allCartItems: cartItemsLocal },
+          });
+        }
+        if (cartIdLocal && cartIdLocal !== null) {
+          setCartId(cartIdLocal as CartId);
+        }
+        if (erc20AddrLocal && erc20AddrLocal !== null) {
+          setErc20Addr(erc20AddrLocal as `0x${string}`);
+        }
+        if (publishedTagIdLocal) {
+          setPublishedTagId(publishedTagIdLocal as TagId);
+        }
       }
     })();
 
     createState();
-  }, [relayClient]);
+  }, [relayClient, db]);
 
   useEffect(() => {
     try {
@@ -493,6 +501,7 @@ export const StoreContextProvider = (
   };
 
   return (
+    // @ts-expect-error FIXME
     <StoreContext.Provider value={value}>
       {props.children}
     </StoreContext.Provider>

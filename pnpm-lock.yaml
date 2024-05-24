@@ -108,6 +108,9 @@ importers:
       browser-level:
         specifier: ^1.0.1
         version: 1.0.1
+      level:
+        specifier: ^8.0.1
+        version: 8.0.1
       next:
         specifier: 14.0.4
         version: 14.0.4(@babel/core@7.23.9)(react-dom@18.2.0)(react@18.2.0)
@@ -172,6 +175,9 @@ importers:
       eslint-plugin-react:
         specifier: ^7.33.2
         version: 7.33.2(eslint@8.56.0)
+      fake-indexeddb:
+        specifier: ^6.0.0
+        version: 6.0.0
       jest:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@20.11.17)(ts-node@10.9.2)
@@ -7025,18 +7031,6 @@ packages:
         integrity: sha512-cKV8tMCEpQs4hK/ik71d6LrPOnpkpGBR0wzxqr68g2m/LB2GxVYQroAjMJZRVM1Y4BCjCKc3vAamxSzOY2RP+w==,
       }
 
-  /browser-level@1.0.1:
-    resolution:
-      {
-        integrity: sha512-XECYKJ+Dbzw0lbydyQuJzwNXtOpbMSq737qxJN11sIRTErOMShvDpbzTlgju7orJKvx4epULolZAuJGLzCmWRQ==,
-      }
-    dependencies:
-      abstract-level: 1.0.4
-      catering: 2.1.1
-      module-error: 1.0.2
-      run-parallel-limit: 1.1.0
-    dev: false
-
   /browser-resolve@2.0.0:
     resolution:
       {
@@ -9444,6 +9438,14 @@ packages:
     dependencies:
       webextension-polyfill: 0.10.0
     dev: false
+
+  /fake-indexeddb@6.0.0:
+    resolution:
+      {
+        integrity: sha512-YEboHE5VfopUclOck7LncgIqskAqnv4q0EWbYCaxKKjAvO93c+TJIaBuGy8CBFdbg9nKdpN3AuPRwVBJ4k7NrQ==,
+      }
+    engines: { node: ">=18" }
+    dev: true
 
   /fast-deep-equal@2.0.1:
     resolution:
