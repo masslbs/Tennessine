@@ -68,7 +68,6 @@ export const StoreContextProvider = (
     (async () => {
       const { Level } = await import("level");
       const db = new Level("./db", { valueEncoding: "json" });
-      console.log("here", db);
       // @ts-expect-error FIXME
       setDb(db);
       if (window && db) {
