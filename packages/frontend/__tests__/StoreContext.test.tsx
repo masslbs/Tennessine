@@ -23,12 +23,16 @@ const TestComponent = () => {
   const { db } = useStoreContext();
   const [price, setPrice] = useState("");
   const [stockQty, setStockQty] = useState(0);
+  const [tagName, setTagName] = useState("");
   const getState = async () => {
     const data = await getParsedMapData("products", db);
+    const tagsData = await getParsedMapData("tags", db);
     if (data) {
       const { value } = data.values().next();
+      const tag = tagsData?.values().next().value;
       setStockQty(value.stockQty);
       setPrice(value.price);
+      setTagName(tag.text);
     }
   };
   return (
@@ -36,6 +40,7 @@ const TestComponent = () => {
       <button onClick={getState}>Test Button</button>
       <p data-testid="price">{price}</p>
       <p data-testid="stockQty">{stockQty}</p>
+      <p data-testid="tagName">{tagName}</p>
     </div>
   );
 };
@@ -85,7 +90,7 @@ describe("StoreContext", () => {
     expect(item).toHaveTextContent("best schoes");
     expect(item).toHaveTextContent("23.00");
     expect(item).toHaveTextContent("58 Available");
-
+    //Testing LevelDb
     const button = screen.getByRole("button");
     fireEvent.click(button);
     await waitFor(() => {
@@ -93,6 +98,8 @@ describe("StoreContext", () => {
       expect(savedPrice).toHaveTextContent("23.00");
       const savedStockQty = screen.getByTestId("stockQty");
       expect(savedStockQty).toHaveTextContent("58");
+      const savedTag = screen.getByTestId("tagName");
+      expect(savedTag).toHaveTextContent("Tag1");
     });
   });
 });
