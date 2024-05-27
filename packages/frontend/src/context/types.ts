@@ -12,6 +12,7 @@ import { market } from "@massmarket/client/lib/protobuf/compiled";
 import mmproto = market.mass;
 
 import { IProduct, ITag, IStatus, IRelay } from "@/types";
+import { Level } from "level";
 
 export enum ItemField {
   ITEM_FIELD_UNSPECIFIED = 0,
@@ -134,6 +135,7 @@ export type StoreContent = {
   erc20Addr: `0x${string}` | null;
   publishedTagId: TagId | null;
   finalizedCarts: Map<EventId, FinalizedCartState>;
+  db: Level<string, string>;
   addProduct: (
     p: IProduct,
     keysArr: ItemId[] | [],

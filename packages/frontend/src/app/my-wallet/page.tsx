@@ -12,12 +12,13 @@ import { formatEthAdd } from "../utils";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { IStatus } from "@/types";
-import { BrowserLevel } from "browser-level";
+import { useStoreContext } from "@/context/StoreContext";
 
 const MyWallet = () => {
   const [walletBalance, setWalletBalance] = useState<string>("0");
   const [walletAdd, setWalletAdd] = useState<string>("");
   const { balance, walletAddress } = useMyContext();
+  const { db } = useStoreContext();
   const router = useRouter();
   const { setIsAuthenticated } = useAuth();
 
@@ -34,7 +35,7 @@ const MyWallet = () => {
     navigator.clipboard.writeText(walletAdd);
   };
   const logout = () => {
-    BrowserLevel.destroy("db");
+    db.clear();
     setIsAuthenticated(IStatus.Pending);
     localStorage.clear();
     router.push("/");
