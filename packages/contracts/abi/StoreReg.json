@@ -12,6 +12,123 @@
   },
   {
     "type": "function",
+    "name": "PERM_addPermission",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "PERM_addRelay",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "PERM_publishInviteVerifier",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "PERM_registerUser",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "PERM_removePermission",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "PERM_removeRelay",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "PERM_removeUser",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "PERM_replaceRelay",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "PERM_updateRootHash",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "_getTokenMessageHash",
     "inputs": [
       {
@@ -31,6 +148,29 @@
   },
   {
     "type": "function",
+    "name": "addPermission",
+    "inputs": [
+      {
+        "name": "storeId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "user",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "perm",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "addRelay",
     "inputs": [
       {
@@ -46,6 +186,24 @@
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "allPermissionsGuard",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "perms",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -78,6 +236,30 @@
     "outputs": [
       {
         "name": "result",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getAllPermissions",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "user",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -143,22 +325,51 @@
   },
   {
     "type": "function",
-    "name": "hasAtLeastAccess",
+    "name": "hasEnoughPermissions",
     "inputs": [
       {
-        "name": "storeId",
+        "name": "id",
         "type": "uint256",
         "internalType": "uint256"
       },
       {
-        "name": "addr",
+        "name": "user",
         "type": "address",
         "internalType": "address"
       },
       {
-        "name": "want",
+        "name": "perms",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "hasPermission",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "user",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "perm",
         "type": "uint8",
-        "internalType": "enum AccessLevel"
+        "internalType": "uint8"
       }
     ],
     "outputs": [
@@ -246,6 +457,43 @@
   },
   {
     "type": "function",
+    "name": "permissionGuard",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "perm",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "permsToBitmap",
+    "inputs": [
+      {
+        "name": "perms",
+        "type": "uint8[]",
+        "internalType": "uint8[]"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "pure"
+  },
+  {
+    "type": "function",
     "name": "publishInviteVerifier",
     "inputs": [
       {
@@ -305,14 +553,14 @@
         "internalType": "uint256"
       },
       {
-        "name": "addr",
+        "name": "user",
         "type": "address",
         "internalType": "address"
       },
       {
-        "name": "acl",
-        "type": "uint8",
-        "internalType": "enum AccessLevel"
+        "name": "perms",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "outputs": [],
@@ -357,6 +605,29 @@
   },
   {
     "type": "function",
+    "name": "removePermission",
+    "inputs": [
+      {
+        "name": "storeId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "user",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "perm",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "removeRelay",
     "inputs": [
       {
@@ -383,7 +654,7 @@
         "internalType": "uint256"
       },
       {
-        "name": "who",
+        "name": "user",
         "type": "address",
         "internalType": "address"
       }
@@ -413,24 +684,6 @@
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "requireOnlyAdminOrHigher",
-    "inputs": [
-      {
-        "name": "storeId",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "who",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -519,30 +772,6 @@
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "storesToUsers",
-    "inputs": [
-      {
-        "name": "storeid",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "storeuser",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint8",
-        "internalType": "enum AccessLevel"
-      }
-    ],
-    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -688,6 +917,56 @@
   },
   {
     "type": "event",
+    "name": "PermissionAdded",
+    "inputs": [
+      {
+        "name": "storeId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "user",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "permission",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "uint8"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PermissionRemoved",
+    "inputs": [
+      {
+        "name": "storeId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "user",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "permission",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "uint8"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "Transfer",
     "inputs": [
       {
@@ -726,6 +1005,12 @@
         "type": "address",
         "indexed": false,
         "internalType": "address"
+      },
+      {
+        "name": "permissions",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
       }
     ],
     "anonymous": false
@@ -761,18 +1046,19 @@
   },
   {
     "type": "error",
-    "name": "InvalidAccessLevel",
-    "inputs": []
-  },
-  {
-    "type": "error",
     "name": "NoVerifier",
     "inputs": []
   },
   {
     "type": "error",
     "name": "NotAuthorized",
-    "inputs": []
+    "inputs": [
+      {
+        "name": "permision",
+        "type": "uint8",
+        "internalType": "uint8"
+      }
+    ]
   },
   {
     "type": "error",
