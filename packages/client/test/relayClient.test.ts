@@ -118,19 +118,30 @@ describe("RelayClient", async () => {
     });
     expect(transaction.status).to.equal("success");
 
-    // verify access level
-    const hasAccess = await publicClient.readContract({
+    //
+    const PERMRootHash = await publicClient.readContract({
       address: abi.addresses.StoreReg as Address,
       abi: abi.StoreReg,
-      functionName: "hasAtLeastAccess",
-      args: [storeId, acc2.address, 1],
+      functionName: "PERM_updateRootHash",
     });
-    expect(hasAccess).toBe(true);
+    const PERMRemoveUser = await publicClient.readContract({
+      address: abi.addresses.StoreReg as Address,
+      abi: abi.StoreReg,
+      functionName: "PERM_removeUser",
+    });
+    // verify access level
+    const canUpdateRootHash = await publicClient.readContract({
+      address: abi.addresses.StoreReg as Address,
+      abi: abi.StoreReg,
+      functionName: "hasPermission",
+      args: [storeId, acc2.address, PERMRootHash],
+    });
+    expect(canUpdateRootHash).toBe(true);
     const isAdmin = await publicClient.readContract({
       address: abi.addresses.StoreReg as Address,
       abi: abi.StoreReg,
-      functionName: "hasAtLeastAccess",
-      args: [storeId, acc2.address, 2],
+      functionName: "hasPermission",
+      args: [storeId, acc2.address, PERMRemoveUser],
     });
     expect(isAdmin).toBe(false);
 

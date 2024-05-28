@@ -8,7 +8,9 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts/ac5d0b2d4d51a53a1cd4a4a10d22f4a12c3fe652";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
-    contracts.url = "github:masslbs/contracts";
+    pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
+    contracts.url = "github:masslbs/contracts/wanderer";
+    contracts.inputs.nixpkgs.follows = "nixpkgs";
     schema = {
       url = "git+ssh://git@github.com/masslbs/network-schema.git";
       flake = false;
@@ -62,13 +64,13 @@
                 nodejs_latest
                 nodePackages.pnpm
                 playwright-driver.browsers
-                contracts.packages.${system}.market-build
+                contracts.packages.${system}.default
                 reuse
               ]
               ++ config.pre-commit.settings.enabledPackages;
 
             NETWORK_SCHEMA_PATH = "${schema}";
-            MASS_CONTRACTS_PATH = "${contracts.packages.${system}.market-build}";
+            MASS_CONTRACTS_PATH = "${contracts.packages.${system}.default}";
             PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS = true;
             PLAYWRIGHT_NODEJS_PATH = "${pkgs.nodejs}/bin/node";
             PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright-driver.browsers}";

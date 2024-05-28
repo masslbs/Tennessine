@@ -38,7 +38,6 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
     console.warn("not a browser session");
     return;
   }
-  const savedKC = localStorage.getItem("keyCard") as `0x${string}`;
   const keyCardToEnroll = localStorage.getItem(
     "keyCardToEnroll",
   ) as `0x${string}`;
@@ -103,11 +102,16 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
           hash,
         });
         if (transaction.status == "success") {
+          const PERMRootHash = await publicClient.readContract({
+            address: abi.addresses.StoreReg as `0x${string}`,
+            abi: abi.StoreReg,
+            functionName: "PERM_updateRootHash",
+          });
           const hasAccess = await publicClient.readContract({
             address: abi.addresses.StoreReg as `0x${string}`,
             abi: abi.StoreReg,
-            functionName: "hasAtLeastAccess",
-            args: [storeId, walletAddress, 1],
+            functionName: "hasPermission",
+            args: [storeId, walletAddress, PERMRootHash],
           });
           console.log({ hasAccess });
           setAccess(true);
