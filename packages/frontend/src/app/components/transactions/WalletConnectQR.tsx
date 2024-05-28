@@ -1,68 +1,130 @@
 import React, { useState, useEffect } from "react";
-import {
-  useSwitchAccount,
-  useSendTransaction,
-  useAccount,
-  useConnect,
-} from "wagmi";
-import { parseEther } from "viem";
+import { SignClient } from "@walletconnect/sign-client";
+import { WalletConnectModal } from "@walletconnect/modal";
+import { sepolia, mainnet } from "viem/chains";
+import { SignClient as ISignClient } from "@walletconnect/sign-client/dist/types/client";
+import { SessionTypes } from "@walletconnect/types";
 
-function WalletConnectQR({ purchaseAddress, displayedTotal }) {
-  const { switchAccount } = useSwitchAccount();
-  const { connectors, connect } = useConnect();
+function WalletConnectQR({
+  purchaseAddress,
+  displayedTotal,
+}: {
+  purchaseAddress: string;
+  displayedTotal: string;
+}) {
+  const [signClient, setSignClient] = useState<null | ISignClient>(null);
+  const [session, setSession] = useState<SessionTypes.Struct | null>(null);
+  const [account, setAccount] = useState<[] | string>([]);
+  const chainName = process.env.NEXT_PUBLIC_CHAIN_NAME!;
+  const usedChain: number = chainName === "sepolia" ? sepolia.id : mainnet.id;
+  const walletConnectModal = new WalletConnectModal({
+    projectId: "6c432edcd930e0fa2c87a8d940ae5b91",
+    chains: [`eip155:${usedChain}`],
+  });
+  async function createClient() {
+    try {
+      const signClient = await SignClient.init({
+        projectId: "6c432edcd930e0fa2c87a8d940ae5b91",
+      });
+      signClient && setSignClient(signClient);
+    } catch (e) {
+      console.log(e);
+    }
+  }
 
-  const { sendTransaction } = useSendTransaction();
-  const account = useAccount();
-  console.log({ account });
+  async function handleConnect() {
+    if (!signClient) throw Error("Client is not set");
+    try {
+      const proposalNamespace = {
+        eip155: {
+          methods: ["eth_sendTransaction"],
+          chains: [`eip155:${usedChain}`],
+          events: ["connect", "disconnect"],
+        },
+      };
 
-  const handleTransaction = () => {
-    sendTransaction({
-      to: purchaseAddress,
-      value: displayedTotal,
-    });
+      const { uri, approval } = await signClient.connect({
+        requiredNamespaces: proposalNamespace,
+      });
+
+      if (uri) {
+        walletConnectModal.openModal({ uri });
+        const sessionNamespace = await approval();
+        if (sessionNamespace) {
+          setSession(sessionNamespace);
+          setAccount(sessionNamespace.namespaces.eip155.accounts[0].slice(9));
+        }
+        walletConnectModal.closeModal();
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  async function handleDisconnect() {
+    try {
+      signClient &&
+        session &&
+        (await signClient.disconnect({
+          topic: session.topic,
+          message: "User disconnected",
+          code: 6000,
+        }));
+      reset();
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  async function handleSend() {
+    if (!account.length) throw Error("No account found");
+    try {
+      const tx = {
+        from: account,
+        to: purchaseAddress,
+        value: displayedTotal,
+      };
+
+      signClient &&
+        session &&
+        (await signClient.request({
+          topic: session.topic,
+          chainId: `eip155:${usedChain}`,
+          request: {
+            method: "eth_sendTransaction",
+            params: [tx],
+          },
+        }));
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  const reset = () => {
+    setAccount([]);
+    setSession(null);
   };
-  const displayConnectors = () => {
-    return connectors.map((connector) => (
-      <button
-        key={connector.uid}
-        onClick={() => connect({ connector })}
-        className="p-4 bg-white my-4 border rounded w-full"
-      >
-        {connector.name}
-      </button>
-    ));
-  };
-  // async function handleSend() {
-  //   if (!account.length) throw Error("No account found");
-  //   try {
-  //     const tx = {
-  //       from: account,
-  //       to: "0xBDE1EAE59cE082505bB73fedBa56252b1b9C60Ce",
-  //       data: "0x",
-  //       gasPrice: "0x029104e28c",
-  //       gasLimit: "0x5208",
-  //       value: "0x00",
-  //     };
 
-  //     const result = await signClient.request({
-  //       topic: session.topic,
-  //       chainId: "eip155:5",
-  //       request: {
-  //         method: "eth_sendTransaction",
-  //         params: [tx],
-  //       },
-  //     });
-  //     setTxnUrl(result);
-  //   } catch (e) {
-  //     console.log(e);
-  //   }
-  // }
+  useEffect(() => {
+    if (!signClient) {
+      createClient();
+    }
+  }, [signClient]);
 
   return (
     <div className="App">
       <h1>Sign v2 Standalone</h1>
-      <div>{displayConnectors()}</div>
-      <button onClick={}>Send transaction</button>
+      {account.length ? (
+        <>
+          <p>{account}</p>
+          <button onClick={handleSend}>Send Transaction</button>
+          <button onClick={handleDisconnect}>Disconnect</button>
+        </>
+      ) : (
+        <button onClick={handleConnect} disabled={!signClient}>
+          Connect
+        </button>
+      )}
     </div>
   );
 }
