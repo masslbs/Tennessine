@@ -115,11 +115,16 @@ const CreateStore = () => {
   useEffect(() => {
     if (hasAccess && relayClient && publicClient) {
       (async () => {
+        const PERMRootHash = await publicClient.readContract({
+          address: abi.addresses.StoreReg as `0x${string}`,
+          abi: abi.StoreReg,
+          functionName: "PERM_updateRootHash",
+        });
         const _hasAccess = await publicClient.readContract({
           address: abi.addresses.StoreReg as `0x${string}`,
           abi: abi.StoreReg,
-          functionName: "hasAtLeastAccess",
-          args: [storeId, walletAddress, 1],
+          functionName: "hasPermission",
+          args: [storeId, walletAddress, PERMRootHash],
         });
         if (_hasAccess) {
           relayClient.emit("keycard enroll");
