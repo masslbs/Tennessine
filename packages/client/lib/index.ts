@@ -9,8 +9,7 @@ import {
   hexToBytes,
   toBytes,
   Address,
-  createPublicClient,
-  http,
+  verifyTypedData,
   type WalletClient,
   type Transport,
   type Account,
@@ -342,11 +341,11 @@ export class RelayClient extends EventEmitter {
     });
   }
 
-  async verifySignedTypeData(cartId: `0x${string}`, signature: `0x${string}`) {
-    const publicClient = createPublicClient({
-      chain: this.chain,
-      transport: http(),
-    });
+  async verifySignedTypeData(
+    cartId: `0x${string}`,
+    signature: `0x${string}`,
+    address: `0x${string}`,
+  ) {
     const types = {
       CreateCart: [
         {
@@ -355,8 +354,8 @@ export class RelayClient extends EventEmitter {
         },
       ],
     };
-    const valid = await publicClient.verifyTypedData({
-      address: this.wallet.account.address,
+    const valid = await verifyTypedData({
+      address: address,
       domain: this.DOMAIN_SEPARATOR,
       types,
       primaryType: "CreateCart",
@@ -365,12 +364,11 @@ export class RelayClient extends EventEmitter {
       },
       signature,
     });
-    console.log({ valid });
     return valid;
   }
 
-  async enrollKeycard() {
-    const publicKey = toBytes(this.keyCard.publicKey).slice(1);
+  async enrollKeycard(wallet: WalletClientWithAccount) {
+    const publicKey = toBytes(this.keyCardWallet.publicKey).slice(1);
 
     const types = {
       Enrollment: [{ name: "keyCard", type: "string" }],
