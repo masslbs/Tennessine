@@ -342,7 +342,11 @@ export class RelayClient extends EventEmitter {
     });
   }
 
-  async verifySignedTypeData(cartId: `0x${string}`, signature: `0x${string}`) {
+  async verifySignedTypeData(
+    cartId: `0x${string}`,
+    signature: `0x${string}`,
+    wallet: WalletClientWithAccount,
+  ) {
     const publicClient = createPublicClient({
       chain: this.chain,
       transport: http(),
@@ -356,7 +360,7 @@ export class RelayClient extends EventEmitter {
       ],
     };
     const valid = await publicClient.verifyTypedData({
-      address: this.wallet.account.address,
+      address: wallet.account.address,
       domain: this.DOMAIN_SEPARATOR,
       types,
       primaryType: "CreateCart",
@@ -369,8 +373,8 @@ export class RelayClient extends EventEmitter {
     return valid;
   }
 
-  async enrollKeycard() {
-    const publicKey = toBytes(this.keyCard.publicKey).slice(1);
+  async enrollKeycard(wallet: WalletClientWithAccount) {
+    const publicKey = toBytes(this.keyCardWallet.publicKey).slice(1);
 
     const types = {
       Enrollment: [{ name: "keyCard", type: "string" }],
