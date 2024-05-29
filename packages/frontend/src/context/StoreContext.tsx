@@ -67,7 +67,9 @@ export const StoreContextProvider = (
   useEffect(() => {
     (async () => {
       const { Level } = await import("level");
-      const db = new Level("./db", { valueEncoding: "json" });
+      const db = new Level(`./${process.env.NEXT_PUBLIC_STORE_ID}`, {
+        valueEncoding: "json",
+      });
       // @ts-expect-error FIXME
       setDb(db);
       if (window && db) {

@@ -52,6 +52,10 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
   }, [walletStatus]);
 
   useEffect(() => {
+    enrollKeycard.current = false;
+  }, [clientWallet]);
+
+  useEffect(() => {
     if (relayClient) {
       if (enrollKeycard.current) return;
       if (keyCardToEnroll && clientWallet) {
@@ -130,7 +134,7 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
         keyCardToEnroll && relayClient.emit("keycard enroll");
       })();
     }
-  }, [hasAccess, relayClient]);
+  }, [hasAccess, relayClient, clientWallet]);
 
   const displayConnectors = () => {
     return connectors.map((connector: Connector) => (
