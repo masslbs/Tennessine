@@ -67,6 +67,7 @@ function WalletConnectQR({
         session &&
         (await signClient.disconnect({
           topic: session.topic,
+          // @ts-expect-error FIXME
           message: "User disconnected",
           code: 6000,
         }));
