@@ -22,11 +22,13 @@ import {
   UPDATE_CART_STATUS,
   UPDATE_CART_HASH,
   SET_CART_SIG,
+  allCartActions,
 } from "@/reducers/cartReducers";
 import {
   SET_CART,
   finalizedCartActions,
 } from "@/reducers/finalizedCartReducers";
+import { ADD_KC_PUBKEY, pubKeyAction } from "@/reducers/KCPubKeysReducers";
 import { Dispatch } from "react";
 import { market } from "@massmarket/client/lib/protobuf/compiled";
 import mmproto = market.mass;
@@ -43,6 +45,8 @@ export const buildState = (
   setErc20Addr: Dispatch<`0x${string}` | null>,
   setPublishedTagId: Dispatch<TagId>,
   setFinalizedCarts: Dispatch<finalizedCartActions>,
+  setPubKeys: Dispatch<pubKeyAction>,
+  walletAddress?: `0x${string}`,
 ) => {
   events.map((e) => {
     if (e.updateManifest) {
@@ -216,6 +220,21 @@ export const buildState = (
           signature,
         },
       });
+    } else if (e.newKeyCard) {
+      const userWalletAddr = bytesToHex(e.newKeyCard.userWalletAddr);
+      const cardPublicKey = bytesToHex(e.newKeyCard.cardPublicKey);
+      // const signature = bytesToHex(e.signature);
+      if (
+        walletAddress &&
+        walletAddress.toLowerCase() == userWalletAddr.toLowerCase()
+      ) {
+        setPubKeys({
+          type: ADD_KC_PUBKEY,
+          payload: {
+            cardPublicKey,
+          },
+        });
+      }
     }
   });
   return { _products: products, _allTags: allTags };

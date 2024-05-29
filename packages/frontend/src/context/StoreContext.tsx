@@ -9,7 +9,7 @@ import React, {
   useReducer,
   useEffect,
 } from "react";
-import { bytesToHex } from "viem";
+import { bytesToHex, hexToBytes } from "viem";
 
 import { IProduct, TagId, ItemId, CartId, IStatus, IRelay } from "@/types";
 import { useMyContext } from "./MyContext";
@@ -44,8 +44,10 @@ import {
 import { finalizedCartReducer } from "@/reducers/finalizedCartReducers";
 import { initialStoreContext } from "../context/initialLoadingState";
 import { dummyRelays } from "./dummyData";
-
+import { pubKeyReducer } from "@/reducers/KCPubKeysReducers";
 import { setMapData, getParsedMapData, setItem, getItem } from "@/utils/level";
+import { Address } from "@ethereumjs/util";
+
 // @ts-expect-error FIXME
 export const StoreContext = createContext<StoreContent>(initialStoreContext);
 
@@ -62,12 +64,15 @@ export const StoreContextProvider = (
     finalizedCartReducer,
     new Map(),
   );
+  const [pubKeys, setPubKeys] = useReducer(pubKeyReducer, []);
   const [db, setDb] = useState(null);
 
   useEffect(() => {
     (async () => {
       const { Level } = await import("level");
-      const db = new Level(`./${process.env.NEXT_PUBLIC_STORE_ID}`, {
+      const storeId =
+        localStorage.getItem("storeId") || process.env.NEXT_PUBLIC_STORE_ID;
+      const db = new Level(`./${storeId}`, {
         valueEncoding: "json",
       });
       // @ts-expect-error FIXME
@@ -82,7 +87,7 @@ export const StoreContextProvider = (
   }, []);
 
   const [relays, setRelays] = useState<IRelay[]>(dummyRelays);
-  const { relayClient } = useMyContext();
+  const { relayClient, walletAddress } = useMyContext();
 
   useEffect(() => {
     //FIXME: to fix once we intergrate multiple relays
@@ -126,7 +131,7 @@ export const StoreContextProvider = (
             payload: { allCartItems: cartItemsLocal },
           });
         }
-        if (cartIdLocal && cartIdLocal !== null) {
+        if (cartIdLocal) {
           setCartId(cartIdLocal as CartId);
         }
         if (erc20AddrLocal && erc20AddrLocal !== null) {
@@ -137,9 +142,12 @@ export const StoreContextProvider = (
         }
       }
     })();
-
     createState();
   }, [relayClient, db]);
+
+  useEffect(() => {
+    pubKeys.length && cartItems.size && verify(cartItems, pubKeys);
+  }, [pubKeys]);
 
   useEffect(() => {
     try {
@@ -204,11 +212,38 @@ export const StoreContextProvider = (
             setErc20Addr,
             setPublishedTagId,
             setFinalizedCarts,
+            setPubKeys,
+            walletAddress,
           );
         }
       }
     } catch (err) {
       console.error("error receiving events", err);
+    }
+  };
+  const verify = async (_cartItems, _pubKeys) => {
+    console.log("cartItems@@@", { _cartItems });
+    for (const key of _pubKeys) {
+      console.log({ key });
+      const add = Address.fromPublicKey(hexToBytes(key)).toString();
+      const keysArr: `0x${string}`[] | null = _cartItems.size
+        ? Array.from([..._cartItems.keys()])
+        : [];
+      for (const _cartId of keysArr) {
+        const _cart = _cartItems.get(_cartId);
+        if (_cart) {
+          const sig = _cart.signature;
+
+          console.log("inside verify", { _cartId }, { sig }, { add });
+          const valid =
+            _cart.status !== IStatus.Failed
+              ? await relayClient!.verifySignedTypeData(_cartId, sig, add)
+              : false;
+          if (valid) {
+            setCartId(_cartId);
+          }
+        }
+      }
     }
   };
 
