@@ -31,7 +31,6 @@ inputs:
     type: string
   ssh-key:
     description: SSH key used to fetch the repository
-    required: true
   fallback-branch:
     default: "main"
     required: false
@@ -49,7 +48,13 @@ runs:
         # for sandboxed install
         # export GIT_SSH_COMMAND="ssh -i ssh_keyfile -o IdentitiesOnly=yes -o UserKnownHostsFile=/run/github-runner/ssh_known_hosts"
         export GIT_SSH_COMMAND="ssh -i ssh_keyfile -o IdentitiesOnly=yes"
-        if git ls-remote --heads --quiet --exit-code git@github.com:${{ inputs.repository }}.git ${{ inputs.ref }}
+        if [[ "${{ inputs.ssh-key }}" = "" ]]
+        then
+          export GIT_CHECKOUT_URL="https://github.com/${{ inputs.repository }}.git"
+        else
+          export GIT_CHECKOUT_URL="git@github.com:${{ inputs.repository }}.git"
+        fi
+        if git ls-remote --heads --quiet --exit-code $GIT_CHECKOUT_URL ${{ inputs.ref }}
         then
           echo "::notice::Checkout: ${{ inputs.repository }} using ${{ inputs.ref }}"
           echo "ref-exists=true" >> $GITHUB_OUTPUT

@@ -2,14 +2,13 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-// @ts-nocheck TODO: fix this
 "use client";
 import React, { useState, useEffect, createRef } from "react";
 import ModalHeader from "@/app/common/components/ModalHeader";
 import Image from "next/image";
 import Button from "@/app/common/components/Button";
 import SeeProductActions from "@/app/components/products/SeeProductActions";
-import { IProduct } from "@/types/index";
+import { IProduct, ItemId } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ItemState } from "@/context/types";
@@ -20,11 +19,11 @@ const ProductDetail = () => {
     useStoreContext();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const itemId = searchParams.get("itemId");
+  const itemId = searchParams.get("itemId") as ItemId;
   const [quantity, setQuantity] = useState<number>(0);
   const [showActions, setShowActions] = useState<boolean>(false);
   const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
-  const [item, setItem] = useState<IProduct>(products.get(itemId));
+  const [item, setItem] = useState<IProduct | null>(null);
 
   const [addedToCart, setAddedToCart] = useState<boolean>(false);
   const [buttonState, setButton] = useState<"Success" | "Review" | "Update">(
@@ -33,15 +32,17 @@ const ProductDetail = () => {
   const [showErrorMessage, setShowErrorMessage] = useState<null | string>(null);
   const [available, setAvailable] = useState<number>(0);
 
-  const flyoutRef = createRef();
+  const flyoutRef = createRef<HTMLDivElement>();
 
-  const handleFlyout = (event) => {
-    if (flyoutRef.current && !flyoutRef.current.contains(event.target)) {
+  const handleFlyout = (event: MouseEvent) => {
+    if (
+      flyoutRef.current &&
+      !flyoutRef.current.contains(event.target as Node)
+    ) {
       setShowActions(false);
     }
   };
 
-  //FIXME: kind of a hacky way of removing items for now.
   const findRemoveTagId = () => {
     for (const [key, value] of allTags.entries()) {
       if (value.text && value.text === "remove") {
@@ -56,7 +57,9 @@ const ProductDetail = () => {
     const tagId = findRemoveTagId();
     const res = tagId ? await addProductToTag(tagId, itemId) : null;
     if (!res || res.error) {
-      setShowErrorMessage(res.error);
+      setShowErrorMessage(
+        res?.error || "There was an error removing tag from Item.",
+      );
     } else {
       console.log("successfully removed item");
       router.push("/products");
@@ -64,26 +67,33 @@ const ProductDetail = () => {
   };
 
   useEffect(() => {
-    document.addEventListener("mousedown", (event) => handleFlyout(event));
+    document.addEventListener("mousedown", (event: MouseEvent) =>
+      handleFlyout(event),
+    );
     return () => {
-      document.removeEventListener("mousedown", (event) => handleFlyout(event));
+      document.removeEventListener("mousedown", (event: MouseEvent) =>
+        handleFlyout(event),
+      );
     };
   }, [flyoutRef]);
 
   useEffect(() => {
-    const itemsInCurrentCart: ItemState =
-      cartId && cartItems.get(cartId)?.items;
+    const itemsInCurrentCart: ItemState | null =
+      (cartId && cartItems.get(cartId)?.items) || null;
     if (itemId && itemsInCurrentCart?.[itemId]) {
       setAddedToCart(true);
     }
   }, [cartItems, item]);
 
   useEffect(() => {
-    const _item = products.get(itemId);
-    setItem(_item);
-    setAvailable(_item?.stockQty);
-    const qty = _item ? cartItems.get(cartId)?.items?.[itemId] || 0 : 0;
-    setQuantity(qty);
+    if (itemId) {
+      const _item = products.get(itemId);
+      _item && setItem(_item);
+      _item && setAvailable(_item?.stockQty || 0);
+      const qty =
+        _item && cartId ? cartItems.get(cartId)?.items?.[itemId] || 0 : 0;
+      setQuantity(qty);
+    }
   }, [itemId]);
 
   const increment = () => {

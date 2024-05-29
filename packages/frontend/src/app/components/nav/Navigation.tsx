@@ -12,8 +12,7 @@ import Link from "next/link";
 import { useMyContext } from "@/context/MyContext";
 import { useStoreContext } from "@/context/StoreContext";
 import { useAuth } from "@/context/AuthContext";
-import { IStatus } from "@/types/index";
-import { useRouter } from "next/navigation";
+import { IStatus } from "@/types";
 
 const Navigation = () => {
   const [menuOpened, setMenuOpened] = useState<boolean>(false);
@@ -21,7 +20,6 @@ const Navigation = () => {
   const { avatar } = useMyContext();
   const { isAuthenticated } = useAuth();
   const { cartItems, cartId } = useStoreContext();
-  const router = useRouter();
 
   const profilePhoto = avatar ? avatar : "example-avatar.svg";
   const activeCartItems = cartId && cartItems.get(cartId)?.items;
@@ -82,9 +80,7 @@ const Navigation = () => {
         ) : (
           <Button
             style={{ width: "fit-content", padding: "8px 15px" }}
-            onClick={() => {
-              router.push("/connect");
-            }}
+            onClick={() => {}}
           >
             Connect
           </Button>

@@ -4,26 +4,28 @@
 
 import React, { SetStateAction, Dispatch } from "react";
 import { createContext, useContext, useState } from "react";
-import { IStatus } from "@/types/index";
+import { IStatus } from "@/types";
 
 export type IAuthContext = {
   isAuthenticated: IStatus;
   setIsAuthenticated: Dispatch<SetStateAction<IStatus>>;
 };
-const AuthContext = createContext<IAuthContext>({
+export const AuthContext = createContext<IAuthContext>({
   isAuthenticated: IStatus.Pending,
   setIsAuthenticated: () => {},
 });
 
-// @ts-ignore
-export const AuthProvider = ({ children }) => {
+type Props = {
+  children: React.ReactNode;
+};
+
+export const AuthProvider = (props: Props) => {
   const [isAuthenticated, setIsAuthenticated] = useState<IStatus>(
     IStatus.Pending,
   );
   return (
-    // @ts-ignore
     <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated }}>
-      {children}
+      {props.children}
     </AuthContext.Provider>
   );
 };

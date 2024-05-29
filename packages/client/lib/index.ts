@@ -17,7 +17,7 @@ import {
   type Chain,
 } from "viem";
 
-import { privateKeyToAccount } from "viem/accounts";
+import { privateKeyToAccount, PrivateKeyAccount } from "viem/accounts";
 import { hardhat } from "viem/chains";
 import type { TypedData } from "abitype";
 import { EventEmitter } from "events";
@@ -45,11 +45,10 @@ export type WalletClientWithAccount = WalletClient<
 
 export type ClientArgs = {
   relayEndpoint: string;
-  useTLS: boolean;
-  privateKey: Uint8Array;
+  keyCardWallet: PrivateKeyAccount;
   storeId: `0x${string}`;
   chain: Chain;
-  wallet: WalletClientWithAccount;
+  keyCardEnrolled: boolean;
 };
 
 function randomBytes(n: number) {
@@ -78,22 +77,6 @@ function formatArray(array: Uint8Array[] | number[]) {
   }
 }
 
-export class IncomingEvent {
-  client: RelayClient;
-  request: mmproto.EventPushRequest;
-
-  constructor(client: RelayClient, request: mmproto.EventPushRequest) {
-    this.client = client;
-    this.request = request;
-  }
-
-  done() {
-    this.client.encodeAndSend(mmproto.EventPushResponse, {
-      requestId: this.request.requestId,
-    });
-  }
-}
-
 // TODO: there are a lot of assumptions backed in here that should be commented
 function formatMessageForSigning(
   obj: Record<string, Uint8Array | string | number | Uint8Array[] | number[]>,
@@ -118,26 +101,25 @@ function formatMessageForSigning(
 export class RelayClient extends EventEmitter {
   connection!: WebSocket;
   storeId!: `0x${string}`;
-  wallet;
   chain;
-  keyCard;
+  keyCardWallet;
   endpoint;
   useTLS: boolean;
   DOMAIN_SEPARATOR;
-
+  firstEvent: mmproto.EventPushResponse | null;
+  keyCardEnrolled: boolean;
   constructor({
     relayEndpoint,
-    privateKey,
+    keyCardWallet,
     chain = hardhat,
-    wallet,
     storeId,
+    keyCardEnrolled,
   }: ClientArgs) {
     super();
-    this.keyCard = privateKeyToAccount(bytesToHex(privateKey));
+    this.keyCardWallet = keyCardWallet;
     this.endpoint = relayEndpoint;
     this.useTLS = relayEndpoint.startsWith("wss");
     this.chain = chain;
-    this.wallet = wallet;
     this.storeId = storeId;
     this.DOMAIN_SEPARATOR = {
       name: "MassMarket",
@@ -145,6 +127,8 @@ export class RelayClient extends EventEmitter {
       chainId: this.chain.id,
       verifyingContract: abi.addresses.StoreReg as Address,
     };
+    this.firstEvent = null;
+    this.keyCardEnrolled = keyCardEnrolled;
   }
 
   #handlePingRequest(ping: mmproto.PingRequest) {
@@ -209,16 +193,52 @@ export class RelayClient extends EventEmitter {
         break;
       case mmproto.EventPushRequest:
         // TODO: add signature verification
-        this.emit(
-          "event",
-          new IncomingEvent(this, message as mmproto.EventPushRequest),
-        );
+        this.emit("event", message as mmproto.EventPushRequest);
         break;
       default:
         this.emit(bytesToHex(message.requestId), message);
     }
   }
 
+  createEventStream() {
+    let requestId: Uint8Array | null = null;
+    const parentInstance = this;
+    let enqueueFn: any;
+    const enqueueWrapperFn = (controller: any) => {
+      return (enqueueFn = (event: any) => {
+        requestId = event.requestId;
+        controller.enqueue(event);
+      });
+    };
+
+    return new ReadableStream(
+      {
+        start(controller) {
+          try {
+            if (parentInstance.firstEvent) {
+              requestId = parentInstance.firstEvent.requestId;
+              controller.enqueue(parentInstance.firstEvent);
+              parentInstance.firstEvent = null;
+            }
+            parentInstance.on("event", enqueueWrapperFn(controller));
+          } catch (error) {
+            console.log({ error });
+          }
+        },
+        pull() {
+          if (requestId) {
+            parentInstance.encodeAndSend(mmproto.EventPushResponse, {
+              requestId,
+            });
+          }
+        },
+        cancel() {
+          parentInstance.removeListener("event", enqueueFn);
+        },
+      },
+      { highWaterMark: 0 },
+    );
+  }
   // TODO: there are a lot of assumptions backed in here that should be commented
   // for eG why isnt this used in enrollKeycard
   #signTypedDataMessage(
@@ -228,7 +248,7 @@ export class RelayClient extends EventEmitter {
       Uint8Array | string | number | Uint8Array[] | number[]
     >,
   ) {
-    return this.keyCard.signTypedData({
+    return this.keyCardWallet.signTypedData({
       types,
       primaryType: Object.keys(types)[0],
       domain: this.DOMAIN_SEPARATOR,
@@ -254,8 +274,23 @@ export class RelayClient extends EventEmitter {
     };
     return this.encodeAndSend(mmproto.EventWriteRequest, eventRequest);
   }
-
-  connect(): Promise<void | Event> {
+  async #authenticate() {
+    const response = (await this.encodeAndSend(mmproto.AuthenticateRequest, {
+      publicKey: toBytes(this.keyCardWallet.publicKey).slice(1),
+    })) as mmproto.AuthenticateResponse;
+    const types = {
+      Challenge: [{ name: "challenge", type: "string" }],
+    };
+    const sig = await this.#signTypedDataMessage(types, {
+      challenge: bytesToHex(response.challenge).slice(2),
+    });
+    return this.encodeAndSend(mmproto.ChallengeSolvedRequest, {
+      signature: toBytes(sig),
+    });
+  }
+  async connect(): Promise<
+    void | Event | mmproto.ChallengeSolvedResponse | string
+  > {
     if (
       !this.connection ||
       this.connection.readyState === WebSocket.CLOSING ||
@@ -270,12 +305,25 @@ export class RelayClient extends EventEmitter {
         this.#decodeMessage.bind(this),
       );
     }
-
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       if (this.connection.readyState === WebSocket.OPEN) {
         resolve();
       } else {
-        this.connection.addEventListener("open", resolve);
+        this.connection.addEventListener("open", async () => {
+          console.log("ws open");
+          if (this.keyCardEnrolled) {
+            const res = await this.#authenticate();
+            if (res) {
+              console.log("authentication success");
+              resolve(res);
+            } else {
+              console.log("authentication failed");
+              reject(res);
+            }
+          } else {
+            resolve("ws connected without authentication");
+          }
+        });
       }
     });
   }
@@ -286,7 +334,6 @@ export class RelayClient extends EventEmitter {
         typeof this.connection === "undefined" ||
         this.connection.readyState === WebSocket.CLOSED
       ) {
-        // TODO: find out how to instantiate a CloseEvent
         resolve("already closed");
         return;
       }
@@ -333,7 +380,7 @@ export class RelayClient extends EventEmitter {
     };
     // formatMessageForSigning(message); will turn keyCard into key_card
     // const sig = await this.#signTypedDataMessage(types, message);
-    const signature = await this.wallet.signTypedData({
+    const signature = await wallet.signTypedData({
       types,
       domain: this.DOMAIN_SEPARATOR,
       primaryType: "Enrollment",
@@ -352,27 +399,33 @@ export class RelayClient extends EventEmitter {
       method: "POST",
       body,
     });
+    if (response.ok) {
+      this.keyCardEnrolled = true;
+    }
     return response;
   }
 
-  async createStore(id: `0x${string}` = bytesToHex(RelayClient.eventId())) {
-    const r = await this.wallet.writeContract({
+  async createStore(
+    id: `0x${string}` = bytesToHex(RelayClient.eventId()),
+    wallet: WalletClientWithAccount,
+  ) {
+    const r = await wallet.writeContract({
       address: abi.addresses.StoreReg as Address,
       abi: abi.StoreReg,
       functionName: "mint",
-      args: [BigInt(id), this.wallet.account.address],
+      args: [BigInt(id), wallet.account.address],
     });
     this.storeId = id;
     return r;
   }
 
-  async createInviteSecret() {
+  async createInviteSecret(wallet: WalletClientWithAccount) {
     if (!this.storeId)
       throw new Error("A store ID is needed before creating an invite");
     const privateKey = bytesToHex(randomBytes(32)) as `0x${string}`;
     const token = privateKeyToAccount(privateKey);
     // Save the public key onchain
-    await this.wallet.writeContract({
+    await wallet.writeContract({
       address: abi.addresses.StoreReg as Address,
       abi: abi.StoreReg,
       functionName: "publishInviteVerifier",
@@ -381,10 +434,13 @@ export class RelayClient extends EventEmitter {
     return privateKey;
   }
 
-  async redeemInviteSecret(secret: `0x${string}`) {
+  async redeemInviteSecret(
+    secret: `0x${string}`,
+    wallet: WalletClientWithAccount,
+  ) {
     if (!this.storeId)
       throw new Error("A store ID is need before creating an invite");
-    const message = "enrolling:" + this.wallet.account.address.toLowerCase();
+    const message = "enrolling:" + wallet.account.address.toLowerCase();
     const tokenAccount = privateKeyToAccount(secret);
     const sig = await tokenAccount.signMessage({
       message,
@@ -393,30 +449,11 @@ export class RelayClient extends EventEmitter {
     const v = sigBytes[64];
     const r = bytesToHex(sigBytes.slice(0, 32));
     const s = bytesToHex(sigBytes.slice(32, 64));
-    return this.wallet.writeContract({
+    return wallet.writeContract({
       address: abi.addresses.StoreReg as Address,
       abi: abi.StoreReg,
       functionName: "redeemInvite",
-      args: [BigInt(this.storeId), v, r, s, this.wallet.account.address],
-    });
-  }
-
-  async login(): Promise<mmproto.ChallengeSolvedResponse> {
-    await this.connect();
-
-    const response = (await this.encodeAndSend(mmproto.AuthenticateRequest, {
-      publicKey: toBytes(this.keyCard.publicKey).slice(1),
-    })) as mmproto.AuthenticateResponse;
-
-    const types = {
-      Challenge: [{ name: "challenge", type: "string" }],
-    };
-    const sig = await this.#signTypedDataMessage(types, {
-      challenge: bytesToHex(response.challenge).slice(2),
-    });
-
-    return this.encodeAndSend(mmproto.ChallengeSolvedRequest, {
-      signature: toBytes(sig),
+      args: [BigInt(this.storeId), v, r, s, wallet.account.address],
     });
   }
 

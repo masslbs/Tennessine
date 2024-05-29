@@ -16,7 +16,6 @@ export const config = createConfig({
   ],
   ssr: true,
   transports: {
-    // @ts-ignore
     [mainnet.id]: http(),
     [sepolia.id]: http(),
     [hardhat.id]: http(),

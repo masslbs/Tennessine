@@ -13,17 +13,21 @@ import * as abi from "@massmarket/contracts";
 
 import { useAuth } from "@/context/AuthContext";
 import SuccessFailModal from "./SuccessFailModal";
-import { IStatus } from "@/types/index";
+import { IStatus } from "@/types";
 
 const ConnectWallet = ({ close }: { close: () => void }) => {
   const { connectors, connect } = useConnect();
-  const { publicClient } = useMyContext();
+  const { publicClient, clientWallet } = useMyContext();
   const [pending, setPending] = useState<boolean>(false);
   const [hasAccess, setAccess] = useState<boolean>(false);
-  const { walletAddress, inviteSecret, relayClient, setWallet } =
-    useMyContext();
+  const {
+    walletAddress,
+    inviteSecret,
+    relayClient,
+    setWallet,
+    setKeyCardEnrolled,
+  } = useMyContext();
   const { isAuthenticated, setIsAuthenticated } = useAuth();
-  const [keycardEnrolled, setKeycardEnrolled] = useState(false);
   const enrollKeycard = useRef(false);
   const redeemSecret = useRef(false);
   const { data: _wallet, status: walletStatus } = useWalletClient();
@@ -34,7 +38,6 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
     console.warn("not a browser session");
     return;
   }
-  const savedKC = localStorage.getItem("keyCard") as `0x${string}`;
   const keyCardToEnroll = localStorage.getItem(
     "keyCardToEnroll",
   ) as `0x${string}`;
@@ -51,39 +54,26 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
   useEffect(() => {
     if (relayClient) {
       if (enrollKeycard.current) return;
-      if (keyCardToEnroll) {
+      if (keyCardToEnroll && clientWallet) {
         enrollKeycard.current = true;
         relayClient.once("keycard enroll", async () => {
-          const res = await relayClient.enrollKeycard();
+          const res = await relayClient.enrollKeycard(clientWallet);
           if (res.ok) {
-            setKeycardEnrolled(true);
+            setKeyCardEnrolled(keyCardToEnroll);
+            keyCardToEnroll && localStorage.setItem("keyCard", keyCardToEnroll);
+            setIsAuthenticated(IStatus.Complete);
+            setConnectionStatus(IStatus.Complete);
           } else {
             enrollKeycard.current = false;
             setConnectionStatus(IStatus.Failed);
+            setIsAuthenticated(IStatus.Failed);
+            localStorage.removeItem("keyCard");
           }
+          localStorage.removeItem("keyCardToEnroll");
         });
-      } else if (savedKC) {
-        setKeycardEnrolled(true);
       }
-
-      relayClient.once("login", async () => {
-        const authenticated = await relayClient.login();
-        console.log({ authenticated });
-        if (authenticated) {
-          keyCardToEnroll && localStorage.setItem("keyCard", keyCardToEnroll);
-          setIsAuthenticated(IStatus.Complete);
-        } else {
-          setIsAuthenticated(IStatus.Failed);
-
-          localStorage.removeItem("keyCard");
-        }
-        localStorage.removeItem("keyCardToEnroll");
-
-        const status = authenticated ? IStatus.Complete : IStatus.Failed;
-        setConnectionStatus(status);
-      });
     }
-  }, [relayClient]);
+  }, [relayClient, clientWallet]);
 
   const storeId =
     localStorage.getItem("storeId") || process.env.NEXT_PUBLIC_STORE_ID;
@@ -97,21 +87,31 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
       !pending &&
       publicClient &&
       relayClient &&
-      !redeemSecret.current
+      !redeemSecret.current &&
+      clientWallet
     ) {
       redeemSecret.current = true;
       (async () => {
         setPending(true);
-        const hash = await relayClient.redeemInviteSecret(inviteSecret);
+
+        const hash = await relayClient.redeemInviteSecret(
+          inviteSecret,
+          clientWallet,
+        );
         const transaction = await publicClient.waitForTransactionReceipt({
           hash,
         });
         if (transaction.status == "success") {
+          const PERMRootHash = await publicClient.readContract({
+            address: abi.addresses.StoreReg as `0x${string}`,
+            abi: abi.StoreReg,
+            functionName: "PERM_updateRootHash",
+          });
           const hasAccess = await publicClient.readContract({
             address: abi.addresses.StoreReg as `0x${string}`,
             abi: abi.StoreReg,
-            functionName: "hasAtLeastAccess",
-            args: [storeId, walletAddress, 1],
+            functionName: "hasPermission",
+            args: [storeId, walletAddress, PERMRootHash],
           });
           console.log({ hasAccess });
           setAccess(true);
@@ -128,12 +128,9 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
     ) {
       (async () => {
         keyCardToEnroll && relayClient.emit("keycard enroll");
-        if (keycardEnrolled) {
-          relayClient.emit("login");
-        }
       })();
     }
-  }, [keycardEnrolled, hasAccess, relayClient]);
+  }, [hasAccess, relayClient]);
 
   const displayConnectors = () => {
     return connectors.map((connector: Connector) => (

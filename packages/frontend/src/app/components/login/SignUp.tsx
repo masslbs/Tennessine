@@ -9,7 +9,7 @@ import Image from "next/image";
 import ConnectWallet from "./ConnectWallet";
 import BigArrowRightButton from "../../common/components/BigArrowRightButton";
 import { useAuth } from "@/context/AuthContext";
-import { IStatus } from "@/types/index";
+import { IStatus } from "@/types";
 import SuccessFailModal from "@/app/components/login/SuccessFailModal";
 
 const SignUp = ({ backToLanding }: { backToLanding: () => void }) => {

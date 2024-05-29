@@ -117,9 +117,13 @@ jobs:
         run: nix develop -c bash -c "pnpm i && pnpm lint"
         working-directory: Tennessine/packages/client
 
-      - name: Run node tests
+      - name: Run node tests on client
         run: nix develop -c bash -c "pnpm i && pnpm exec vitest --watch=false"
         working-directory: Tennessine/packages/client
+
+      - name: Run node tests on mmr
+        run: nix develop -c bash -c "pnpm i && pnpm exec vitest --watch=false"
+        working-directory: Tennessine/packages/mmr
 
       - name: Run browser tests
         run: nix develop -c bash -c "pnpm i && pnpm exec vitest --browser --watch=false"

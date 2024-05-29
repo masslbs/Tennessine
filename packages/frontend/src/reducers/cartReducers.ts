@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { IStatus, CartId, ItemId } from "@/types/index";
+import { IStatus, CartId, ItemId } from "@/types";
 
 export const REMOVE_CART_ITEM = "REMOVE_CART_ITEM";
 export const CLEAR_CART = "CLEAR_CART";

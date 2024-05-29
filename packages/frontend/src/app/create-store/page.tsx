@@ -12,15 +12,22 @@ import { useAuth } from "@/context/AuthContext";
 import * as abi from "@massmarket/contracts";
 import { ManifestField } from "@massmarket/client";
 import { useStoreContext } from "@/context/StoreContext";
-import { IStatus } from "@/types/index";
+import { IStatus } from "@/types";
 
 const CreateStore = () => {
-  const { relayClient, publicClient, walletAddress } = useMyContext();
+  const {
+    relayClient,
+    publicClient,
+    walletAddress,
+    clientWallet,
+    keyCardEnrolled,
+    setKeyCardEnrolled,
+  } = useMyContext();
   const [storeCreated, setStoreCreated] = useState<string | null>(null);
 
   const enrollKeycard = useRef(false);
-  const { setIsAuthenticated } = useAuth();
-  const [keycardEnrolled, setKeycardEnrolled] = useState(false);
+  const { isAuthenticated } = useAuth();
+  // const [keycardEnrolled, setKeycardEnrolled] = useState(false);
   const [hasAccess, setAccess] = useState<boolean>(false);
   const [storeId, setStoreId] = useState<`0x${string}` | null>(null);
   const randomStoreIdHasBeenSet = useRef(false);
@@ -38,41 +45,36 @@ const CreateStore = () => {
   }, [relayClient]);
 
   useEffect(() => {
-    if (relayClient) {
+    if (relayClient && clientWallet) {
       if (enrollKeycard.current) return;
 
       relayClient.once("keycard enroll", async () => {
         enrollKeycard.current = true;
 
-        const res = await relayClient.enrollKeycard();
+        const res = await relayClient.enrollKeycard(clientWallet);
         if (res.ok) {
-          console.log("keycard enrolled");
-          setKeycardEnrolled(true);
-        } else {
-          console.error("failed to enroll keycard");
-        }
-      });
-
-      relayClient.once("login", async () => {
-        const authenticated = await relayClient.login();
-        if (authenticated) {
-          console.log("user authenticated.");
-          setIsAuthenticated(IStatus.Complete);
-          // console.log("User authenticated. Creating published tags...");
-          // const publishedTagId = await createTag(":visible");
-          // await relayClient.writeStoreManifest(publishedTagId);
-          await relayClient.writeStoreManifest();
-          // setPublishedTagId(publishedTagId);
-          console.log("store manifested.");
           const keyCardToEnroll = localStorage.getItem(
             "keyCardToEnroll",
           ) as `0x${string}`;
           localStorage.setItem("keyCard", keyCardToEnroll);
           localStorage.removeItem("keyCardToEnroll");
+          console.log("keycard enrolled:", keyCardToEnroll);
+          setKeyCardEnrolled(keyCardToEnroll);
+        } else {
+          console.error("failed to enroll keycard");
         }
       });
     }
-  }, [relayClient]);
+  }, [relayClient, clientWallet]);
+
+  useEffect(() => {
+    if (relayClient && isAuthenticated === IStatus.Complete) {
+      (async () => {
+        await relayClient.writeStoreManifest();
+        console.log("store manifested.");
+      })();
+    }
+  }, [isAuthenticated, relayClient]);
 
   const copy = !relayClient
     ? "Connect your wallet to create store."
@@ -82,10 +84,10 @@ const CreateStore = () => {
 
   const createStore = () => {
     (async () => {
-      if (relayClient && publicClient && storeId) {
+      if (relayClient && publicClient && storeId && clientWallet) {
         try {
           localStorage.setItem("storeId", storeId);
-          const hash = await relayClient.createStore(storeId);
+          const hash = await relayClient.createStore(storeId, clientWallet);
           console.log({ hash });
           const transaction =
             publicClient &&
@@ -113,22 +115,24 @@ const CreateStore = () => {
   useEffect(() => {
     if (hasAccess && relayClient && publicClient) {
       (async () => {
+        const PERMRootHash = await publicClient.readContract({
+          address: abi.addresses.StoreReg as `0x${string}`,
+          abi: abi.StoreReg,
+          functionName: "PERM_updateRootHash",
+        });
         const _hasAccess = await publicClient.readContract({
           address: abi.addresses.StoreReg as `0x${string}`,
           abi: abi.StoreReg,
-          functionName: "hasAtLeastAccess",
-          args: [storeId, walletAddress, 1],
+          functionName: "hasPermission",
+          args: [storeId, walletAddress, PERMRootHash],
         });
         if (_hasAccess) {
           relayClient.emit("keycard enroll");
-          if (keycardEnrolled) {
-            relayClient.emit("login");
-          }
           setStoreCreated("Store has been created");
         }
       })();
     }
-  }, [hasAccess, keycardEnrolled]);
+  }, [hasAccess, keyCardEnrolled]);
 
   const addERC20 = async () => {
     await relayClient!.updateManifest(
@@ -140,14 +144,19 @@ const CreateStore = () => {
     console.log(`added new erc20: ${newERC20}`);
   };
   const renewPid = async () => {
-    const publishedTagId = await createTag(":visible");
-    console.log(`updating store published tag id to: ${publishedTagId}`);
-    await relayClient!.updateManifest(
-      ManifestField.MANIFEST_FIELD_PUBLISHED_TAG,
-      publishedTagId,
-    );
-    setPublishedTagId(publishedTagId);
-    localStorage.setItem("publishedTagId", publishedTagId);
+    const res = await createTag(":visible");
+    const publishedTagId = res.id;
+    if (publishedTagId) {
+      console.log(`updating store published tag id to: ${publishedTagId}`);
+      await relayClient!.updateManifest(
+        ManifestField.MANIFEST_FIELD_PUBLISHED_TAG,
+        publishedTagId,
+      );
+      setPublishedTagId(publishedTagId);
+      localStorage.setItem("publishedTagId", publishedTagId);
+    } else {
+      console.error("Error creating published tag id.");
+    }
   };
 
   return (
