@@ -46,7 +46,7 @@ export const buildState = (
   setPublishedTagId: Dispatch<TagId>,
   setFinalizedCarts: Dispatch<finalizedCartActions>,
   setPubKeys: Dispatch<pubKeyAction>,
-  walletAddress?: `0x${string}`,
+  walletAddress?: `0x${string}` | null,
 ) => {
   events.map((e) => {
     if (e.updateManifest) {
@@ -211,8 +211,8 @@ export const buildState = (
         },
       });
     } else if (e.createCart) {
-      const cartId = bytesToHex(e.createCart.eventId);
-      const signature = bytesToHex(e.signature);
+      const cartId = bytesToHex(e.createCart.eventId!);
+      const signature = bytesToHex(e.signature!);
       setCartItems({
         type: SET_CART_SIG,
         payload: {
@@ -221,8 +221,8 @@ export const buildState = (
         },
       });
     } else if (e.newKeyCard) {
-      const userWalletAddr = bytesToHex(e.newKeyCard.userWalletAddr);
-      const cardPublicKey = bytesToHex(e.newKeyCard.cardPublicKey);
+      const userWalletAddr = bytesToHex(e.newKeyCard.userWalletAddr!);
+      const cardPublicKey = bytesToHex(e.newKeyCard.cardPublicKey!);
       if (
         walletAddress &&
         walletAddress.toLowerCase() == userWalletAddr.toLowerCase()

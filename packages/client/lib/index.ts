@@ -9,7 +9,7 @@ import {
   hexToBytes,
   toBytes,
   Address,
-  verifyTypedData,
+  recoverTypedDataAddress,
   type WalletClient,
   type Transport,
   type Account,
@@ -341,11 +341,7 @@ export class RelayClient extends EventEmitter {
     });
   }
 
-  async verifySignedTypeData(
-    cartId: `0x${string}`,
-    signature: `0x${string}`,
-    address: `0x${string}`,
-  ) {
+  async recoverSignedAddress(cartId: `0x${string}`, signature: `0x${string}`) {
     const types = {
       CreateCart: [
         {
@@ -354,8 +350,7 @@ export class RelayClient extends EventEmitter {
         },
       ],
     };
-    const valid = await verifyTypedData({
-      address: address,
+    const address = await recoverTypedDataAddress({
       domain: this.DOMAIN_SEPARATOR,
       types,
       primaryType: "CreateCart",
@@ -364,7 +359,7 @@ export class RelayClient extends EventEmitter {
       },
       signature,
     });
-    return valid;
+    return address;
   }
 
   async enrollKeycard(wallet: WalletClientWithAccount) {

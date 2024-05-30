@@ -53,7 +53,7 @@ type sigUpdate = {
 };
 
 type ItemState = { [key: ItemId]: number };
-type CartState = {
+export type CartState = {
   items: ItemState;
   status?: IStatus;
   txHash?: `0x${string}`;

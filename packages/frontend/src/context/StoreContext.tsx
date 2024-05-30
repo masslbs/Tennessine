@@ -67,28 +67,31 @@ export const StoreContextProvider = (
   );
   const [pubKeys, setPubKeys] = useReducer(pubKeyReducer, []);
   const [db, setDb] = useState(null);
-
-  useEffect(() => {
-    (async () => {
-      const { Level } = await import("level");
-      const storeId =
-        localStorage.getItem("storeId") || process.env.NEXT_PUBLIC_STORE_ID;
-      const db = new Level(`./${storeId}`, {
-        valueEncoding: "json",
-      });
-      // @ts-expect-error FIXME
-      setDb(db);
-      if (window && db) {
-        window.addEventListener("beforeunload", () => {
-          console.log("closing db connection");
-          db.close();
-        });
-      }
-    })();
-  }, []);
-
   const [relays, setRelays] = useState<IRelay[]>(dummyRelays);
   const { relayClient, walletAddress } = useMyContext();
+
+  useEffect(() => {
+    if (walletAddress) {
+      (async () => {
+        const { Level } = await import("level");
+        const storeId =
+          localStorage.getItem("storeId") || process.env.NEXT_PUBLIC_STORE_ID;
+        const dbName = `${storeId?.slice(0, 5)}${walletAddress?.slice(0, 5)}`;
+        console.log("using level db:", { dbName });
+        const db = new Level(`./${dbName}`, {
+          valueEncoding: "json",
+        });
+        // @ts-expect-error FIXME
+        setDb(db);
+        if (window && db) {
+          window.addEventListener("beforeunload", () => {
+            console.log("closing db connection");
+            db.close();
+          });
+        }
+      })();
+    }
+  }, [walletAddress]);
 
   useEffect(() => {
     //FIXME: to fix once we intergrate multiple relays
@@ -148,7 +151,7 @@ export const StoreContextProvider = (
 
   useEffect(() => {
     pubKeys.length && cartItems.size && verify(cartItems, pubKeys);
-  }, [pubKeys]);
+  }, [pubKeys, cartItems]);
 
   useEffect(() => {
     try {
@@ -226,23 +229,23 @@ export const StoreContextProvider = (
     _cartItems: Map<CartId, CartState>,
     _pubKeys: `0x${string}`[],
   ) => {
-    for (const key of _pubKeys) {
-      const add = Address.fromPublicKey(hexToBytes(key)).toString();
-      const keysArr: `0x${string}`[] = _cartItems.size
-        ? Array.from([..._cartItems.keys()])
-        : [];
-      for (const _cartId of keysArr) {
-        const _cart = _cartItems.get(_cartId);
-        if (_cart) {
-          const sig = _cart.signature;
-
-          const valid =
-            _cart.status !== IStatus.Failed
-              ? await relayClient!.verifySignedTypeData(_cartId, sig, add)
-              : false;
-          if (valid) {
-            setCartId(_cartId);
-          }
+    const addresses = _pubKeys.map((k) => {
+      return Address.fromPublicKey(hexToBytes(k)).toString();
+    });
+    const keysArr: `0x${string}`[] = _cartItems.size
+      ? Array.from([..._cartItems.keys()])
+      : [];
+    for (const _cartId of keysArr) {
+      const _cart = _cartItems.get(_cartId) as CartState;
+      if (_cart && _cart.status !== IStatus.Failed) {
+        const sig = _cart.signature as `0x${string}`;
+        const retrievedAdd = await relayClient!.recoverSignedAddress(
+          _cartId,
+          sig,
+        );
+        if (addresses.includes(retrievedAdd.toLowerCase())) {
+          console.log("inside inclue", _cartId);
+          setCartId(_cartId);
         }
       }
     }
