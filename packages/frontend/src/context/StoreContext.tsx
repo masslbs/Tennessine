@@ -67,7 +67,9 @@ export const StoreContextProvider = (
   useEffect(() => {
     (async () => {
       const { Level } = await import("level");
-      const db = new Level(`./${process.env.NEXT_PUBLIC_STORE_ID}`, {
+      const storeId =
+        localStorage.getItem("storeId") || process.env.NEXT_PUBLIC_STORE_ID;
+      const db = new Level(`./${storeId}`, {
         valueEncoding: "json",
       });
       // @ts-expect-error FIXME
