@@ -223,7 +223,6 @@ export const buildState = (
     } else if (e.newKeyCard) {
       const userWalletAddr = bytesToHex(e.newKeyCard.userWalletAddr);
       const cardPublicKey = bytesToHex(e.newKeyCard.cardPublicKey);
-      // const signature = bytesToHex(e.signature);
       if (
         walletAddress &&
         walletAddress.toLowerCase() == userWalletAddr.toLowerCase()

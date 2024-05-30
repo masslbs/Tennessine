@@ -40,6 +40,7 @@ import {
   UPDATE_CART_STATUS,
   SET_ALL_CART_ITEMS,
   cartReducer,
+  CartState,
 } from "@/reducers/cartReducers";
 import { finalizedCartReducer } from "@/reducers/finalizedCartReducers";
 import { initialStoreContext } from "../context/initialLoadingState";
@@ -221,12 +222,13 @@ export const StoreContextProvider = (
       console.error("error receiving events", err);
     }
   };
-  const verify = async (_cartItems, _pubKeys) => {
-    console.log("cartItems@@@", { _cartItems });
+  const verify = async (
+    _cartItems: Map<CartId, CartState>,
+    _pubKeys: `0x${string}`[],
+  ) => {
     for (const key of _pubKeys) {
-      console.log({ key });
       const add = Address.fromPublicKey(hexToBytes(key)).toString();
-      const keysArr: `0x${string}`[] | null = _cartItems.size
+      const keysArr: `0x${string}`[] = _cartItems.size
         ? Array.from([..._cartItems.keys()])
         : [];
       for (const _cartId of keysArr) {
@@ -234,7 +236,6 @@ export const StoreContextProvider = (
         if (_cart) {
           const sig = _cart.signature;
 
-          console.log("inside verify", { _cartId }, { sig }, { add });
           const valid =
             _cart.status !== IStatus.Failed
               ? await relayClient!.verifySignedTypeData(_cartId, sig, add)

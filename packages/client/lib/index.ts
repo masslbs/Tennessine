@@ -9,8 +9,6 @@ import {
   hexToBytes,
   toBytes,
   Address,
-  createPublicClient,
-  http,
   verifyTypedData,
   type WalletClient,
   type Transport,
