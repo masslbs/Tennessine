@@ -125,6 +125,10 @@ jobs:
         run: nix develop -c bash -c "pnpm i && pnpm exec vitest --watch=false"
         working-directory: Tennessine/packages/mmr
 
+      - name: Run frontend tests
+        run: nix develop -c bash -c "pnpm test"
+        working-directory: Tennessine/packages/frontend
+
       - name: Run browser tests
         run: nix develop -c bash -c "pnpm i && pnpm exec vitest --browser --watch=false"
         working-directory: Tennessine/packages/client

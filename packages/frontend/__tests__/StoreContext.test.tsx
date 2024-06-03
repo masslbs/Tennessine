@@ -89,7 +89,7 @@ describe("StoreContext", () => {
     const item = screen.getByTestId("product-best schoes");
     expect(item).toHaveTextContent("best schoes");
     expect(item).toHaveTextContent("23.00");
-    expect(item).toHaveTextContent("58 Available");
+    expect(item).toHaveTextContent("58 left");
     //Testing LevelDb
     const button = screen.getByRole("button");
     fireEvent.click(button);

@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import React, { ReactElement } from "react";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "../test";
 import { MyContext } from "@/context/MyContext";
 import MyWallet from "@/app/my-wallet/page";
@@ -29,6 +29,14 @@ describe("My wallet consumes context state correctly", () => {
     };
 
     customRender(<MyWallet />, dummyValues);
+    vi.mock("next/navigation", () => ({
+      useRouter() {
+        return {
+          route: "/",
+          push: () => {},
+        };
+      },
+    }));
   });
 
   it("Correctly formatted wallet address is rendered", async () => {
@@ -42,6 +50,6 @@ describe("My wallet consumes context state correctly", () => {
   });
   it("Correct balance is rendered", async () => {
     expect(screen.getByTestId("balance")).toBeInTheDocument();
-    expect(screen.getByTestId("balance")).toHaveTextContent("$1 USD");
+    expect(screen.getByTestId("balance")).toHaveTextContent("1.00 ETH");
   });
 });
