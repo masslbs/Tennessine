@@ -115,29 +115,29 @@ const Products = () => {
         <div
           onClick={() => viewProductDetails(item)}
           key={item.id}
-          className={`flex ${!visible ? "opacity-50" : ""}`}
+          className={`flex ${!visible ? "opacity-50" : ""} `}
         >
-          <div className="border p-1 rounded bg-white">
-            <Image
-              src={metadata.image || "/assets/no-image.png"}
-              width={64}
-              height={64}
-              alt="product-thumb"
-              unoptimized={true}
-              style={{ maxHeight: "64px", maxWidth: "64px" }}
-              onError={(e) => {
-                (e.target as HTMLImageElement).onerror = null;
-                (e.target as HTMLImageElement).src = "/assets/no-image.png";
-              }}
-            />
-          </div>
           <div
-            className="flex flex-col ml-4"
+            className="product-box gap-2 flex flex-col ml-4 text-center	border p-3 rounded bg-white"
             data-testid={`product-${metadata.title}`}
           >
             <p data-testid={`product-title`}>{metadata.title}</p>
+            <div className="flex justify-center">
+              <Image
+                src={metadata.image || "/assets/no-image.png"}
+                width={64}
+                height={64}
+                alt="product-thumb"
+                unoptimized={true}
+                style={{ maxHeight: "64px", maxWidth: "64px" }}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).onerror = null;
+                  (e.target as HTMLImageElement).src = "/assets/no-image.png";
+                }}
+              />
+            </div>
             <p className="text-sm">{item.price}</p>
-            <p className="text-sm text-gray-400">{item.stockQty} Available</p>
+            <p className="text-sm text-gray-400">{item.stockQty} left</p>
           </div>
         </div>
       );
@@ -189,8 +189,8 @@ const Products = () => {
               />
             </div>
           </div>
-          <section className="flex flex-col gap-4 mt-4">
-            {renderProducts()}
+          <section className="product-list-container flex flex-col gap-4 mt-4">
+            <div className="flex flex-wrap">{renderProducts()}</div>
           </section>
         </section>
       </section>
