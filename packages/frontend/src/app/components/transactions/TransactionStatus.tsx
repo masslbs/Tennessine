@@ -10,6 +10,7 @@ import QRScan from "@/app/components/transactions/QRScan";
 import { IStatus } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useMyContext } from "@/context/MyContext";
+// import WalletConnectQR from "@/app/components/transactions/WalletConnectQR";
 
 const TransactionStatus = ({
   onClose,
@@ -123,6 +124,10 @@ const TransactionStatus = ({
           totalDollar={totalDollar}
           purchaseAddress={purchaseAddress}
         />
+        {/* <WalletConnectQR
+          purchaseAddress={purchaseAddress}
+          displayedTotal={displayedTotal}
+        /> */}
       </FullModal>
     );
   } else {
