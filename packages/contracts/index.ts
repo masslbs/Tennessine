@@ -4,8 +4,8 @@
 
 import addresses from "./deploymentAddresses.json" assert { type: "json" };
 export { addresses };
-import PaymentFactory from "./abi/PaymentFactory.json" assert { type: "json" };
-export { PaymentFactory };
+import Payments from "./abi/Payments.json" assert { type: "json" };
+export { Payments };
 import RelayReg from "./abi/RelayReg.json" assert { type: "json" };
 export { RelayReg };
 import StoreReg from "./abi/StoreReg.json" assert { type: "json" };

@@ -438,6 +438,25 @@
   },
   {
     "type": "function",
+    "name": "nonce",
+    "inputs": [
+      {
+        "name": "storeid",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "ownerOf",
     "inputs": [
       {
@@ -860,6 +879,11 @@
         "name": "hash",
         "type": "bytes32",
         "internalType": "bytes32"
+      },
+      {
+        "name": "_nonce",
+        "type": "uint64",
+        "internalType": "uint64"
       }
     ],
     "outputs": [],
@@ -1043,6 +1067,22 @@
     "type": "error",
     "name": "BalanceQueryForZeroAddress",
     "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidNonce",
+    "inputs": [
+      {
+        "name": "cur",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "_nonce",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ]
   },
   {
     "type": "error",

@@ -39,10 +39,6 @@ const publicClient = createPublicClient({
 const relayEndpoint =
   (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v1";
 
-let testingDiscoveryURL = new URL(relayEndpoint);
-testingDiscoveryURL.protocol = "http";
-testingDiscoveryURL.pathname = "/testing/discovery";
-
 let relayClient: RelayClient;
 const storeId: `0x${string}` = `0x${randomBytes(32).toString("hex")}`;
 const keyCard = new Uint8Array(32);

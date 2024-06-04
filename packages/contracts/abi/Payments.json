@@ -17,15 +17,20 @@
       {
         "name": "payment",
         "type": "tuple",
-        "internalType": "struct PaymentIntent",
+        "internalType": "struct PaymentRequest",
         "components": [
+          {
+            "name": "chainId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
           {
             "name": "ttl",
             "type": "uint256",
             "internalType": "uint256"
           },
           {
-            "name": "receipt",
+            "name": "order",
             "type": "bytes32",
             "internalType": "bytes32"
           },
@@ -40,26 +45,14 @@
             "internalType": "uint256"
           },
           {
-            "name": "payee",
-            "type": "tuple",
-            "internalType": "struct PaymentEndpointDetails",
-            "components": [
-              {
-                "name": "payeeAddress",
-                "type": "address",
-                "internalType": "address"
-              },
-              {
-                "name": "payload",
-                "type": "bytes",
-                "internalType": "bytes"
-              },
-              {
-                "name": "canRevert",
-                "type": "bool",
-                "internalType": "bool"
-              }
-            ]
+            "name": "payeeAddress",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "isPaymentEndpoint",
+            "type": "bool",
+            "internalType": "bool"
           },
           {
             "name": "shopId",
@@ -68,11 +61,6 @@
           },
           {
             "name": "shopSignature",
-            "type": "bytes",
-            "internalType": "bytes"
-          },
-          {
-            "name": "permit2signature",
             "type": "bytes",
             "internalType": "bytes"
           }
@@ -100,15 +88,20 @@
       {
         "name": "payment",
         "type": "tuple",
-        "internalType": "struct PaymentIntent",
+        "internalType": "struct PaymentRequest",
         "components": [
+          {
+            "name": "chainId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
           {
             "name": "ttl",
             "type": "uint256",
             "internalType": "uint256"
           },
           {
-            "name": "receipt",
+            "name": "order",
             "type": "bytes32",
             "internalType": "bytes32"
           },
@@ -123,26 +116,14 @@
             "internalType": "uint256"
           },
           {
-            "name": "payee",
-            "type": "tuple",
-            "internalType": "struct PaymentEndpointDetails",
-            "components": [
-              {
-                "name": "payeeAddress",
-                "type": "address",
-                "internalType": "address"
-              },
-              {
-                "name": "payload",
-                "type": "bytes",
-                "internalType": "bytes"
-              },
-              {
-                "name": "canRevert",
-                "type": "bool",
-                "internalType": "bool"
-              }
-            ]
+            "name": "payeeAddress",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "isPaymentEndpoint",
+            "type": "bool",
+            "internalType": "bool"
           },
           {
             "name": "shopId",
@@ -151,11 +132,6 @@
           },
           {
             "name": "shopSignature",
-            "type": "bytes",
-            "internalType": "bytes"
-          },
-          {
-            "name": "permit2signature",
             "type": "bytes",
             "internalType": "bytes"
           }
@@ -178,15 +154,20 @@
       {
         "name": "payments",
         "type": "tuple[]",
-        "internalType": "struct PaymentIntent[]",
+        "internalType": "struct PaymentRequest[]",
         "components": [
+          {
+            "name": "chainId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
           {
             "name": "ttl",
             "type": "uint256",
             "internalType": "uint256"
           },
           {
-            "name": "receipt",
+            "name": "order",
             "type": "bytes32",
             "internalType": "bytes32"
           },
@@ -201,26 +182,14 @@
             "internalType": "uint256"
           },
           {
-            "name": "payee",
-            "type": "tuple",
-            "internalType": "struct PaymentEndpointDetails",
-            "components": [
-              {
-                "name": "payeeAddress",
-                "type": "address",
-                "internalType": "address"
-              },
-              {
-                "name": "payload",
-                "type": "bytes",
-                "internalType": "bytes"
-              },
-              {
-                "name": "canRevert",
-                "type": "bool",
-                "internalType": "bool"
-              }
-            ]
+            "name": "payeeAddress",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "isPaymentEndpoint",
+            "type": "bool",
+            "internalType": "bool"
           },
           {
             "name": "shopId",
@@ -231,13 +200,13 @@
             "name": "shopSignature",
             "type": "bytes",
             "internalType": "bytes"
-          },
-          {
-            "name": "permit2signature",
-            "type": "bytes",
-            "internalType": "bytes"
           }
         ]
+      },
+      {
+        "name": "permit2Sigs",
+        "type": "bytes[]",
+        "internalType": "bytes[]"
       }
     ],
     "outputs": [],
@@ -250,15 +219,20 @@
       {
         "name": "payment",
         "type": "tuple",
-        "internalType": "struct PaymentIntent",
+        "internalType": "struct PaymentRequest",
         "components": [
+          {
+            "name": "chainId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
           {
             "name": "ttl",
             "type": "uint256",
             "internalType": "uint256"
           },
           {
-            "name": "receipt",
+            "name": "order",
             "type": "bytes32",
             "internalType": "bytes32"
           },
@@ -273,26 +247,14 @@
             "internalType": "uint256"
           },
           {
-            "name": "payee",
-            "type": "tuple",
-            "internalType": "struct PaymentEndpointDetails",
-            "components": [
-              {
-                "name": "payeeAddress",
-                "type": "address",
-                "internalType": "address"
-              },
-              {
-                "name": "payload",
-                "type": "bytes",
-                "internalType": "bytes"
-              },
-              {
-                "name": "canRevert",
-                "type": "bool",
-                "internalType": "bool"
-              }
-            ]
+            "name": "payeeAddress",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "isPaymentEndpoint",
+            "type": "bool",
+            "internalType": "bool"
           },
           {
             "name": "shopId",
@@ -301,11 +263,6 @@
           },
           {
             "name": "shopSignature",
-            "type": "bytes",
-            "internalType": "bytes"
-          },
-          {
-            "name": "permit2signature",
             "type": "bytes",
             "internalType": "bytes"
           }
@@ -322,15 +279,20 @@
       {
         "name": "payment",
         "type": "tuple",
-        "internalType": "struct PaymentIntent",
+        "internalType": "struct PaymentRequest",
         "components": [
+          {
+            "name": "chainId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
           {
             "name": "ttl",
             "type": "uint256",
             "internalType": "uint256"
           },
           {
-            "name": "receipt",
+            "name": "order",
             "type": "bytes32",
             "internalType": "bytes32"
           },
@@ -345,26 +307,14 @@
             "internalType": "uint256"
           },
           {
-            "name": "payee",
-            "type": "tuple",
-            "internalType": "struct PaymentEndpointDetails",
-            "components": [
-              {
-                "name": "payeeAddress",
-                "type": "address",
-                "internalType": "address"
-              },
-              {
-                "name": "payload",
-                "type": "bytes",
-                "internalType": "bytes"
-              },
-              {
-                "name": "canRevert",
-                "type": "bool",
-                "internalType": "bool"
-              }
-            ]
+            "name": "payeeAddress",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "isPaymentEndpoint",
+            "type": "bool",
+            "internalType": "bool"
           },
           {
             "name": "shopId",
@@ -373,11 +323,6 @@
           },
           {
             "name": "shopSignature",
-            "type": "bytes",
-            "internalType": "bytes"
-          },
-          {
-            "name": "permit2signature",
             "type": "bytes",
             "internalType": "bytes"
           }
@@ -394,15 +339,20 @@
       {
         "name": "payment",
         "type": "tuple",
-        "internalType": "struct PaymentIntent",
+        "internalType": "struct PaymentRequest",
         "components": [
+          {
+            "name": "chainId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
           {
             "name": "ttl",
             "type": "uint256",
             "internalType": "uint256"
           },
           {
-            "name": "receipt",
+            "name": "order",
             "type": "bytes32",
             "internalType": "bytes32"
           },
@@ -417,26 +367,14 @@
             "internalType": "uint256"
           },
           {
-            "name": "payee",
-            "type": "tuple",
-            "internalType": "struct PaymentEndpointDetails",
-            "components": [
-              {
-                "name": "payeeAddress",
-                "type": "address",
-                "internalType": "address"
-              },
-              {
-                "name": "payload",
-                "type": "bytes",
-                "internalType": "bytes"
-              },
-              {
-                "name": "canRevert",
-                "type": "bool",
-                "internalType": "bool"
-              }
-            ]
+            "name": "payeeAddress",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "isPaymentEndpoint",
+            "type": "bool",
+            "internalType": "bool"
           },
           {
             "name": "shopId",
@@ -447,13 +385,13 @@
             "name": "shopSignature",
             "type": "bytes",
             "internalType": "bytes"
-          },
-          {
-            "name": "permit2signature",
-            "type": "bytes",
-            "internalType": "bytes"
           }
         ]
+      },
+      {
+        "name": "permit2signature",
+        "type": "bytes",
+        "internalType": "bytes"
       }
     ],
     "outputs": [],
@@ -466,15 +404,20 @@
       {
         "name": "payment",
         "type": "tuple",
-        "internalType": "struct PaymentIntent",
+        "internalType": "struct PaymentRequest",
         "components": [
+          {
+            "name": "chainId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
           {
             "name": "ttl",
             "type": "uint256",
             "internalType": "uint256"
           },
           {
-            "name": "receipt",
+            "name": "order",
             "type": "bytes32",
             "internalType": "bytes32"
           },
@@ -489,26 +432,14 @@
             "internalType": "uint256"
           },
           {
-            "name": "payee",
-            "type": "tuple",
-            "internalType": "struct PaymentEndpointDetails",
-            "components": [
-              {
-                "name": "payeeAddress",
-                "type": "address",
-                "internalType": "address"
-              },
-              {
-                "name": "payload",
-                "type": "bytes",
-                "internalType": "bytes"
-              },
-              {
-                "name": "canRevert",
-                "type": "bool",
-                "internalType": "bool"
-              }
-            ]
+            "name": "payeeAddress",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "isPaymentEndpoint",
+            "type": "bool",
+            "internalType": "bool"
           },
           {
             "name": "shopId",
@@ -517,11 +448,6 @@
           },
           {
             "name": "shopSignature",
-            "type": "bytes",
-            "internalType": "bytes"
-          },
-          {
-            "name": "permit2signature",
             "type": "bytes",
             "internalType": "bytes"
           }
@@ -543,15 +469,20 @@
       {
         "name": "payment",
         "type": "tuple",
-        "internalType": "struct PaymentIntent",
+        "internalType": "struct PaymentRequest",
         "components": [
+          {
+            "name": "chainId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
           {
             "name": "ttl",
             "type": "uint256",
             "internalType": "uint256"
           },
           {
-            "name": "receipt",
+            "name": "order",
             "type": "bytes32",
             "internalType": "bytes32"
           },
@@ -566,26 +497,14 @@
             "internalType": "uint256"
           },
           {
-            "name": "payee",
-            "type": "tuple",
-            "internalType": "struct PaymentEndpointDetails",
-            "components": [
-              {
-                "name": "payeeAddress",
-                "type": "address",
-                "internalType": "address"
-              },
-              {
-                "name": "payload",
-                "type": "bytes",
-                "internalType": "bytes"
-              },
-              {
-                "name": "canRevert",
-                "type": "bool",
-                "internalType": "bool"
-              }
-            ]
+            "name": "payeeAddress",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "isPaymentEndpoint",
+            "type": "bool",
+            "internalType": "bool"
           },
           {
             "name": "shopId",
@@ -596,17 +515,25 @@
             "name": "shopSignature",
             "type": "bytes",
             "internalType": "bytes"
-          },
-          {
-            "name": "permit2signature",
-            "type": "bytes",
-            "internalType": "bytes"
           }
         ]
       }
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "event",
+    "name": "PaymentMade",
+    "inputs": [
+      {
+        "name": "paymentId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
   },
   {
     "type": "error",
@@ -645,7 +572,7 @@
   },
   {
     "type": "error",
-    "name": "RevertNotAllowed",
+    "name": "WrongChain",
     "inputs": []
   }
 ]

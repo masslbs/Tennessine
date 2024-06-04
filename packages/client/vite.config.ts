@@ -1,13 +1,17 @@
 // SPDX-FileCopyrightText: 2024 Mass Labs
 //
 // SPDX-License-Identifier: MIT
-
+import type { ParsedStack } from "vitest";
 import { defineConfig } from "vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 import path from "path";
 
 export default defineConfig({
   test: {
+    onStackTrace(error: Error, { file }: ParsedStack): boolean | void {
+      return;
+    },
+
     include: ["test/*.test.ts"],
     browser: {
       name: "chromium",
