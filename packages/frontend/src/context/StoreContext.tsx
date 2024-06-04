@@ -9,7 +9,7 @@ import React, {
   useReducer,
   useEffect,
 } from "react";
-import { bytesToHex } from "viem";
+import { bytesToHex, hexToBytes } from "viem";
 
 import { IProduct, TagId, ItemId, CartId, IStatus, IRelay } from "@/types";
 import { useMyContext } from "./MyContext";
@@ -40,12 +40,15 @@ import {
   UPDATE_CART_STATUS,
   SET_ALL_CART_ITEMS,
   cartReducer,
+  CartState,
 } from "@/reducers/cartReducers";
 import { finalizedCartReducer } from "@/reducers/finalizedCartReducers";
 import { initialStoreContext } from "../context/initialLoadingState";
 import { dummyRelays } from "./dummyData";
-
+import { pubKeyReducer } from "@/reducers/KCPubKeysReducers";
 import { setMapData, getParsedMapData, setItem, getItem } from "@/utils/level";
+import { Address } from "@ethereumjs/util";
+
 // @ts-expect-error FIXME
 export const StoreContext = createContext<StoreContent>(initialStoreContext);
 
@@ -62,25 +65,33 @@ export const StoreContextProvider = (
     finalizedCartReducer,
     new Map(),
   );
+  const [pubKeys, setPubKeys] = useReducer(pubKeyReducer, []);
   const [db, setDb] = useState(null);
+  const [relays, setRelays] = useState<IRelay[]>(dummyRelays);
+  const { relayClient, walletAddress } = useMyContext();
 
   useEffect(() => {
-    (async () => {
-      const { Level } = await import("level");
-      const db = new Level("./db", { valueEncoding: "json" });
-      // @ts-expect-error FIXME
-      setDb(db);
-      if (window && db) {
-        window.addEventListener("beforeunload", () => {
-          console.log("closing db connection");
-          db.close();
+    if (walletAddress) {
+      (async () => {
+        const { Level } = await import("level");
+        const storeId =
+          localStorage.getItem("storeId") || process.env.NEXT_PUBLIC_STORE_ID;
+        const dbName = `${storeId?.slice(0, 5)}${walletAddress?.slice(0, 5)}`;
+        console.log("using level db:", { dbName });
+        const db = new Level(`./${dbName}`, {
+          valueEncoding: "json",
         });
-      }
-    })();
-  }, []);
-
-  const [relays, setRelays] = useState<IRelay[]>(dummyRelays);
-  const { relayClient } = useMyContext();
+        // @ts-expect-error FIXME
+        setDb(db);
+        if (window && db) {
+          window.addEventListener("beforeunload", () => {
+            console.log("closing db connection");
+            db.close();
+          });
+        }
+      })();
+    }
+  }, [walletAddress]);
 
   useEffect(() => {
     //FIXME: to fix once we intergrate multiple relays
@@ -124,7 +135,7 @@ export const StoreContextProvider = (
             payload: { allCartItems: cartItemsLocal },
           });
         }
-        if (cartIdLocal && cartIdLocal !== null) {
+        if (cartIdLocal) {
           setCartId(cartIdLocal as CartId);
         }
         if (erc20AddrLocal && erc20AddrLocal !== null) {
@@ -135,9 +146,12 @@ export const StoreContextProvider = (
         }
       }
     })();
-
     createState();
   }, [relayClient, db]);
+
+  useEffect(() => {
+    pubKeys.length && cartItems.size && verify(cartItems, pubKeys);
+  }, [pubKeys, cartItems]);
 
   useEffect(() => {
     try {
@@ -202,11 +216,38 @@ export const StoreContextProvider = (
             setErc20Addr,
             setPublishedTagId,
             setFinalizedCarts,
+            setPubKeys,
+            walletAddress,
           );
         }
       }
     } catch (err) {
       console.error("error receiving events", err);
+    }
+  };
+  const verify = async (
+    _cartItems: Map<CartId, CartState>,
+    _pubKeys: `0x${string}`[],
+  ) => {
+    const addresses = _pubKeys.map((k) => {
+      return Address.fromPublicKey(hexToBytes(k)).toString();
+    });
+    const keysArr: `0x${string}`[] = _cartItems.size
+      ? Array.from([..._cartItems.keys()])
+      : [];
+    for (const _cartId of keysArr) {
+      const _cart = _cartItems.get(_cartId) as CartState;
+      if (_cart && _cart.status !== IStatus.Failed) {
+        const sig = _cart.signature as `0x${string}`;
+        const retrievedAdd = await relayClient!.recoverSignedAddress(
+          _cartId,
+          sig,
+        );
+        if (addresses.includes(retrievedAdd.toLowerCase())) {
+          console.log("inside inclue", _cartId);
+          setCartId(_cartId);
+        }
+      }
     }
   };
 

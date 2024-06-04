@@ -9,6 +9,7 @@ import {
   hexToBytes,
   toBytes,
   Address,
+  recoverTypedDataAddress,
   type WalletClient,
   type Transport,
   type Account,
@@ -338,6 +339,27 @@ export class RelayClient extends EventEmitter {
       this.connection.addEventListener("close", resolve);
       this.connection.close(1000);
     });
+  }
+
+  async recoverSignedAddress(cartId: `0x${string}`, signature: `0x${string}`) {
+    const types = {
+      CreateCart: [
+        {
+          name: "event_id",
+          type: "bytes32",
+        },
+      ],
+    };
+    const address = await recoverTypedDataAddress({
+      domain: this.DOMAIN_SEPARATOR,
+      types,
+      primaryType: "CreateCart",
+      message: {
+        event_id: cartId,
+      },
+      signature,
+    });
+    return address;
   }
 
   async enrollKeycard(wallet: WalletClientWithAccount) {

@@ -23,6 +23,10 @@ import {
   finalizedCartActions,
   finalizedCartReducer,
 } from "@massmarket/frontend/src/reducers/finalizedCartReducers";
+import {
+  pubKeyReducer,
+  pubKeyAction,
+} from "@massmarket/frontend/src/reducers/KCPubKeysReducers";
 
 describe("mockclient", async () => {
   const client = new MockClient();
@@ -33,7 +37,7 @@ describe("mockclient", async () => {
   let publishedTagId = null;
   const events = [];
   let finalizedCarts = new Map();
-
+  let pubKeys: `0x${string}`[] = [];
   function productsDispatch(action: productAction | updateProductAction) {
     products = productReducer(products, action);
   }
@@ -54,6 +58,9 @@ describe("mockclient", async () => {
   function setFinalizedCarts(action: finalizedCartActions) {
     finalizedCarts = finalizedCartReducer(finalizedCarts, action);
   }
+  function setPubKeys(action: pubKeyAction) {
+    pubKeys = pubKeyReducer(pubKeys, action);
+  }
 
   client.on("event", (e) => {
     events.push(e.request);
@@ -67,6 +74,7 @@ describe("mockclient", async () => {
       setErc20Addr,
       setPublishedTagId,
       setFinalizedCarts,
+      setPubKeys,
     );
   });
 

@@ -50,7 +50,9 @@ const AccountProfilePhoto = ({
           </p>
         </section>
         <div className="mt-auto">
-          <Button onClick={saveSelectedPhoto}>Change Profile Photo</Button>
+          <Button disabled={true} onClick={saveSelectedPhoto}>
+            Change Profile Photo
+          </Button>
         </div>
       </section>
     </section>

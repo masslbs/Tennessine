@@ -93,6 +93,10 @@ export function TransactionBlock({
             height={64}
             alt="information-icon"
             unoptimized={true}
+            onError={(e) => {
+              (e.target as HTMLImageElement).onerror = null;
+              (e.target as HTMLImageElement).src = "/assets/no-image.png";
+            }}
           />
         )}
       </div>

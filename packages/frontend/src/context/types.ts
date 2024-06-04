@@ -106,6 +106,10 @@ export type IRelayClient = EventEmitter & {
     erc20: `0x${string}` | null,
   ) => Promise<{ requestId: Uint8Array; cartFinalizedId: Uint8Array }>;
   createEventStream: () => Promise<{ events: mmproto.IEvent[] }>[];
+  recoverSignedAddress: (
+    cartId: `0x${string}`,
+    signature: `0x${string}`,
+  ) => `0x${string}`;
 };
 
 export type ClientContext = {

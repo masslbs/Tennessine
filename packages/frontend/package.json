@@ -10,6 +10,7 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
+    "@ethereumjs/util": "^9.0.3",
     "@massmarket/client": "workspace:*",
     "@massmarket/contracts": "workspace:*",
     "@tanstack/react-query": "^5.18.1",
