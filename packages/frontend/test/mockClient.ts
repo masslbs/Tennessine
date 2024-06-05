@@ -5,9 +5,9 @@
 import { EventEmitter } from "events";
 import { hexToBytes } from "viem";
 
-import testVectorsData from "./testVectors.json" assert { type: "json" };
+import testVectorsData from "@massmarket/client/test/testVectors.json" assert { type: "json" };
 
-import { market } from "../lib/protobuf/compiled";
+import { market } from "@massmarket/client/lib/protobuf/compiled";
 import mmproto = market.mass;
 
 type VectorEvent = {
