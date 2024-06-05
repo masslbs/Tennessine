@@ -39,10 +39,6 @@ const publicClient = createPublicClient({
 const relayEndpoint =
   (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v1";
 
-let testingDiscoveryURL = new URL(relayEndpoint);
-testingDiscoveryURL.protocol = "http";
-testingDiscoveryURL.pathname = "/testing/discovery";
-
 let relayClient: RelayClient;
 const storeId: `0x${string}` = `0x${randomBytes(32).toString("hex")}`;
 const keyCard = new Uint8Array(32);
@@ -162,7 +158,6 @@ describe("user behaviour", () => {
   test("write store manifest", async () => {
     const publishedTagId = null;
     let r = await relayClient.writeStoreManifest(publishedTagId);
-    // @ts-expect-error FIXME:
     // This is a hack to please browser and node world
     // Find out why one return number and the other class Long
     if (r.eventSequenceNo !== 2 && r.eventSequenceNo.low !== 2) {

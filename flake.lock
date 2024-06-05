@@ -2,6 +2,7 @@
   "nodes": {
     "contracts": {
       "inputs": {
+        "ds-test": "ds-test",
         "flake-parts": "flake-parts",
         "forge-std": "forge-std",
         "foundry": "foundry",
@@ -10,17 +11,32 @@
         "solady": "solady"
       },
       "locked": {
-        "lastModified": 1712612591,
-        "narHash": "sha256-AmV5r0NW4nYHv0T85whKNUcjrSVf1ZtD/h7xIOkid3s=",
+        "lastModified": 1717502262,
+        "narHash": "sha256-mfJmZ0kKtb/T6O9WuYZqIcJySCXhuxCqbSiQvPEdc/o=",
         "owner": "masslbs",
         "repo": "contracts",
-        "rev": "40e546096c8b253cd948f9275b1c67fba596fcbe",
+        "rev": "c2efd6ad09570392e4d30595f0e0120384dbadfb",
         "type": "github"
       },
       "original": {
         "owner": "masslbs",
-        "ref": "wanderer",
         "repo": "contracts",
+        "type": "github"
+      }
+    },
+    "ds-test": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1677883973,
+        "narHash": "sha256-wXtNq4ZUohndNGs9VttOI9m9VW5QlVKOPtR8+mv2fBM=",
+        "owner": "dapphub",
+        "repo": "ds-test",
+        "rev": "e282159d5170298eb2455a6c05280ab5a73a4ef0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "dapphub",
+        "repo": "ds-test",
         "type": "github"
       }
     },
@@ -45,11 +61,11 @@
         "nixpkgs-lib": "nixpkgs-lib"
       },
       "locked": {
-        "lastModified": 1712014858,
-        "narHash": "sha256-sB4SWl2lX95bExY2gMFG5HIzvva5AVMJd4Igm+GpZNw=",
+        "lastModified": 1717285511,
+        "narHash": "sha256-iKzJcpdXih14qYVcZ9QC9XuZYnPc6T8YImb6dX166kw=",
         "owner": "hercules-ci",
         "repo": "flake-parts",
-        "rev": "9126214d0a59633752a136528f5f3b9aa8565b7d",
+        "rev": "2a55567fcf15b1b1c7ed712a2c6fadaec7412ea8",
         "type": "github"
       },
       "original": {
@@ -95,19 +111,17 @@
     "forge-std": {
       "flake": false,
       "locked": {
-        "lastModified": 1711427226,
-        "narHash": "sha256-34hRHqOvNbiWZlIV/bds6a+frf5nCntwjYzideerVgQ=",
-        "ref": "refs/heads/master",
-        "rev": "e4aef94c1768803a16fe19f7ce8b65defd027cfd",
-        "revCount": 321,
-        "submodules": true,
-        "type": "git",
-        "url": "https://github.com/foundry-rs/forge-std"
+        "lastModified": 1715903882,
+        "narHash": "sha256-Uqr0ZwCnQL9ShWxIgG/ci/5ukGyuqt2n+C0GFKlJiho=",
+        "owner": "foundry-rs",
+        "repo": "forge-std",
+        "rev": "52715a217dc51d0de15877878ab8213f6cbbbab5",
+        "type": "github"
       },
       "original": {
-        "submodules": true,
-        "type": "git",
-        "url": "https://github.com/foundry-rs/forge-std"
+        "owner": "foundry-rs",
+        "repo": "forge-std",
+        "type": "github"
       }
     },
     "foundry": {
@@ -116,18 +130,18 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1712135466,
-        "narHash": "sha256-+xFfYk17EI0zZTGmhh3MyeSpl7RVohoVp/4HaSvGj4I=",
-        "ref": "monthly",
-        "rev": "ece7c960a440c6725a7a5576d1f49a5fabde3747",
-        "revCount": 434,
-        "type": "git",
-        "url": "https://github.com/shazow/foundry.nix.git"
+        "lastModified": 1714727549,
+        "narHash": "sha256-CWXRTxxcgMfQubJugpeg3yVWIfm70MYTtgaKWKgD60U=",
+        "owner": "shazow",
+        "repo": "foundry.nix",
+        "rev": "47cf189ec395eda4b3e0623179d1075c8027ca97",
+        "type": "github"
       },
       "original": {
-        "ref": "monthly",
-        "type": "git",
-        "url": "https://github.com/shazow/foundry.nix.git"
+        "owner": "shazow",
+        "repo": "foundry.nix",
+        "rev": "47cf189ec395eda4b3e0623179d1075c8027ca97",
+        "type": "github"
       }
     },
     "gitignore": {
@@ -164,20 +178,14 @@
     },
     "nixpkgs-lib": {
       "locked": {
-        "dir": "lib",
-        "lastModified": 1711703276,
-        "narHash": "sha256-iMUFArF0WCatKK6RzfUJknjem0H9m4KgorO/p3Dopkk=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "d8fe5e6c92d0d190646fb9f1056741a229980089",
-        "type": "github"
+        "lastModified": 1717284937,
+        "narHash": "sha256-lIbdfCsf8LMFloheeE6N31+BMIeixqyQWbSr2vk79EQ=",
+        "type": "tarball",
+        "url": "https://github.com/NixOS/nixpkgs/archive/eb9ceca17df2ea50a250b6b27f7bf6ab0186f198.tar.gz"
       },
       "original": {
-        "dir": "lib",
-        "owner": "NixOS",
-        "ref": "nixos-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
+        "type": "tarball",
+        "url": "https://github.com/NixOS/nixpkgs/archive/eb9ceca17df2ea50a250b6b27f7bf6ab0186f198.tar.gz"
       }
     },
     "nixpkgs-lib_2": {
@@ -216,11 +224,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1716715802,
-        "narHash": "sha256-usk0vE7VlxPX8jOavrtpOqphdfqEQpf9lgedlY/r66c=",
+        "lastModified": 1717399147,
+        "narHash": "sha256-eCWaE/q1VItpFAxxLVt171MdtDcjEnwi6QB/yuF73JU=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "e2dd4e18cc1c7314e24154331bae07df76eb582f",
+        "rev": "4a4ecb0ab415c9fccfb005567a215e6a9564cdf5",
         "type": "github"
       },
       "original": {
@@ -235,15 +243,15 @@
       "locked": {
         "lastModified": 1696001773,
         "narHash": "sha256-sevmJhYn5/odTvS9si+KFw/R234KNaNfrnECdkVcL9w=",
-        "ref": "refs/heads/main",
+        "owner": "uniswap",
+        "repo": "permit2",
         "rev": "cc56ad0f3439c502c246fc5cfcc3db92bb8b7219",
-        "revCount": 184,
-        "type": "git",
-        "url": "https://github.com/uniswap/permit2.git"
+        "type": "github"
       },
       "original": {
-        "type": "git",
-        "url": "https://github.com/uniswap/permit2.git"
+        "owner": "uniswap",
+        "repo": "permit2",
+        "type": "github"
       }
     },
     "pre-commit-hooks": {
@@ -279,27 +287,28 @@
     "schema": {
       "flake": false,
       "locked": {
-        "lastModified": 1713864796,
-        "narHash": "sha256-1eqpiYyVtcJfHuV55SHSkZIMFCabTTpe7etr6Dvtqq0=",
-        "ref": "refs/heads/main",
-        "rev": "1ccb579bd1e651605256d144b1fb3575cea81284",
-        "revCount": 1,
-        "type": "git",
-        "url": "ssh://git@github.com/masslbs/network-schema.git"
+        "lastModified": 1717519045,
+        "narHash": "sha256-EwPhdBnDdDggFryPczb+RIwTvWhGdS+GttLBjVo0W7U=",
+        "owner": "masslbs",
+        "repo": "network-schema",
+        "rev": "2df596c6b0e474c9505e2457b7f33bc911fdf289",
+        "type": "github"
       },
       "original": {
-        "type": "git",
-        "url": "ssh://git@github.com/masslbs/network-schema.git"
+        "owner": "masslbs",
+        "ref": "payments-v2-intergration",
+        "repo": "network-schema",
+        "type": "github"
       }
     },
     "solady": {
       "flake": false,
       "locked": {
-        "lastModified": 1712595757,
-        "narHash": "sha256-H9eLADP5UcgKzyJiFuhEj1d8vfqnYhTacknUHaHfP8U=",
+        "lastModified": 1717493279,
+        "narHash": "sha256-mFKKe6CrYOT69H7LypN/MrMfQLuA9rv3sNSMABQx0us=",
         "owner": "Vectorized",
         "repo": "solady",
-        "rev": "4ed19e1e837d00a76c5b60f003be688045bd971d",
+        "rev": "54eb8737224ba015e5591c4c8e97c78cdf8f0e0f",
         "type": "github"
       },
       "original": {

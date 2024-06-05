@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2024 Mass Labs
 #
 # SPDX-License-Identifier: Unlicense
-
 {
   description = "massmarket-typescript";
   inputs = {
@@ -9,10 +8,10 @@
     flake-parts.url = "github:hercules-ci/flake-parts/ac5d0b2d4d51a53a1cd4a4a10d22f4a12c3fe652";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
-    contracts.url = "github:masslbs/contracts/wanderer";
+    contracts.url = "github:masslbs/contracts";
     contracts.inputs.nixpkgs.follows = "nixpkgs";
     schema = {
-      url = "git+ssh://git@github.com/masslbs/network-schema.git";
+      url = "github:masslbs/network-schema/payments-v2-intergration";
       flake = false;
     };
   };
@@ -50,6 +49,7 @@
             shellHook = ''
               # these fail if 'nix develop' isnt run from the root of the project
               if [ -d ./packages ]; then
+                # todo; maybe linking would be better
                 cp ${schema}/testVectors.json ./packages/client/test/testVectors.json
                 cp $MASS_CONTRACTS_PATH/abi/*.json ./packages/contracts/abi/
                 cp $MASS_CONTRACTS_PATH/deploymentAddresses.json ./packages/contracts/

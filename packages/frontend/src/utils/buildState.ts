@@ -72,16 +72,16 @@ export const buildState = (
         setPublishedTagId(bytesToHex(um.tagId));
       }
     } else if (e.createItem) {
-      const _meta = parseMetadata(e.createItem.metadata);
-      const id = bytesToHex(e.createItem.eventId);
+      const _meta = parseMetadata(e.createItem.metadata!);
+      const id = bytesToHex(e.createItem.eventId!);
       const item: IProduct = {
         id,
-        price: e.createItem.price,
+        price: e.createItem.price!,
         metadata: _meta,
       };
       productsDispatch({ type: ADD_PRODUCT, payload: { itemId: id, item } });
     } else if (e.updateItem) {
-      const id = bytesToHex(e.updateItem.itemId);
+      const id = bytesToHex(e.updateItem.itemId!);
       if (
         e.updateItem.field == ItemField.ITEM_FIELD_METADATA &&
         e.updateItem.metadata
@@ -107,12 +107,12 @@ export const buildState = (
         });
       }
     } else if (e.createTag) {
-      const id = bytesToHex(e.createTag.eventId);
-      const tag = { id, text: e.createTag.name };
+      const id = bytesToHex(e.createTag.eventId!);
+      const tag = { id, text: e.createTag.name! };
       tagsDisaptch({ type: ADD_TAG, payload: { tag } });
     } else if (e.addToTag) {
-      const itemId = bytesToHex(e.addToTag.itemId);
-      const tagId = bytesToHex(e.addToTag.tagId);
+      const itemId = bytesToHex(e.addToTag.itemId!);
+      const tagId = bytesToHex(e.addToTag.tagId!);
       productsDispatch({
         type: ADD_PRODUCT_TAGS,
         payload: {
@@ -121,8 +121,8 @@ export const buildState = (
         },
       });
     } else if (e.removeFromTag) {
-      const itemId = bytesToHex(e.removeFromTag.itemId);
-      const tagId = bytesToHex(e.removeFromTag.tagId);
+      const itemId = bytesToHex(e.removeFromTag.itemId!);
+      const tagId = bytesToHex(e.removeFromTag.tagId!);
       productsDispatch({
         type: REMOVE_PRODUCT_TAG,
         payload: {
@@ -160,9 +160,9 @@ export const buildState = (
           });
         });
     } else if (e.changeCart) {
-      const itemId = bytesToHex(e.changeCart.itemId);
-      const _cartId = bytesToHex(e.changeCart.cartId);
-      const { quantity } = e.changeCart;
+      const itemId = bytesToHex(e.changeCart.itemId!);
+      const _cartId = bytesToHex(e.changeCart.cartId!);
+      const quantity = e.changeCart.quantity!;
       if (quantity === 0) {
         setCartItems({
           type: REMOVE_CART_ITEM,
@@ -187,8 +187,8 @@ export const buildState = (
       } = e.cartFinalized;
       const cartObj = {
         erc20Addr: erc20Addr ? bytesToHex(erc20Addr) : null,
-        cartId: bytesToHex(cartId),
-        purchaseAddress: bytesToHex(purchaseAddr),
+        cartId: bytesToHex(cartId!),
+        purchaseAddress: bytesToHex(purchaseAddr!),
         salesTax: salesTax || null,
         total: total || null,
         subTotal: subTotal || null,
@@ -198,7 +198,7 @@ export const buildState = (
       setFinalizedCarts({
         type: SET_CART,
         payload: {
-          eventId: bytesToHex(eventId),
+          eventId: bytesToHex(eventId!),
           cart: cartObj,
         },
       });
@@ -206,7 +206,7 @@ export const buildState = (
       setCartItems({
         type: UPDATE_CART_STATUS,
         payload: {
-          cartId: bytesToHex(e.cartAbandoned.cartId),
+          cartId: bytesToHex(e.cartAbandoned.cartId!),
           status: IStatus.Failed,
         },
       });

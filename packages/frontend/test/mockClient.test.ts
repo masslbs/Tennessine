@@ -5,28 +5,19 @@
 import { expect, test, vi, describe } from "vitest";
 
 import { MockClient, type VectorItems } from "./mockClient";
-import { buildState } from "@massmarket/frontend/src/utils/buildState";
+import { buildState } from "../src/utils/buildState";
 import {
   productReducer,
   productAction,
   updateProductAction,
-} from "@massmarket/frontend/src/reducers/productReducers";
-import {
-  allTagsReducer,
-  allTagsAction,
-} from "@massmarket/frontend/src/reducers/tagReducers";
-import {
-  cartReducer,
-  allCartActions,
-} from "@massmarket/frontend/src/reducers/cartReducers";
+} from "../src/reducers/productReducers";
+import { allTagsReducer, allTagsAction } from "../src/reducers/tagReducers";
+import { cartReducer, allCartActions } from "../src/reducers/cartReducers";
 import {
   finalizedCartActions,
   finalizedCartReducer,
-} from "@massmarket/frontend/src/reducers/finalizedCartReducers";
-import {
-  pubKeyReducer,
-  pubKeyAction,
-} from "@massmarket/frontend/src/reducers/KCPubKeysReducers";
+} from "../src/reducers/finalizedCartReducers";
+import { pubKeyReducer, pubKeyAction } from "../src/reducers/KCPubKeysReducers";
 
 describe("mockclient", async () => {
   const client = new MockClient();

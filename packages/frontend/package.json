@@ -13,6 +13,7 @@
     "@ethereumjs/util": "^9.0.3",
     "@massmarket/client": "workspace:*",
     "@massmarket/contracts": "workspace:*",
+    "@massmarket/frontend": "link:",
     "@tanstack/react-query": "^5.18.1",
     "@testing-library/user-event": "^14.5.2",
     "@types/qrcode": "^1.5.5",

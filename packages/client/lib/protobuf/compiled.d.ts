@@ -1,7 +1,3 @@
-// SPDX-FileCopyrightText: 2024 Mass Labs
-//
-// SPDX-License-Identifier: MIT
-
 import * as $protobuf from "protobufjs";
 import Long = require("long");
 /** Namespace market. */
@@ -293,13 +289,13 @@ export namespace market {
     /** Properties of a CreateItem. */
     interface ICreateItem {
       /** CreateItem eventId */
-      eventId: Uint8Array;
+      eventId?: Uint8Array | null;
 
       /** CreateItem price */
-      price: string;
+      price?: string | null;
 
       /** CreateItem metadata */
-      metadata: Uint8Array;
+      metadata?: Uint8Array | null;
     }
 
     /** Represents a CreateItem. */
@@ -418,10 +414,10 @@ export namespace market {
     /** Properties of an UpdateItem. */
     interface IUpdateItem {
       /** UpdateItem eventId */
-      eventId: Uint8Array;
+      eventId?: Uint8Array | null;
 
       /** UpdateItem itemId */
-      itemId: Uint8Array;
+      itemId?: Uint8Array | null;
 
       /** UpdateItem field */
       field?: market.mass.UpdateItem.ItemField | null;
@@ -567,10 +563,10 @@ export namespace market {
     /** Properties of a CreateTag. */
     interface ICreateTag {
       /** CreateTag eventId */
-      eventId: Uint8Array;
+      eventId?: Uint8Array | null;
 
       /** CreateTag name */
-      name: string;
+      name?: string | null;
     }
 
     /** Represents a CreateTag. */
@@ -686,13 +682,13 @@ export namespace market {
     /** Properties of an AddToTag. */
     interface IAddToTag {
       /** AddToTag eventId */
-      eventId: Uint8Array;
+      eventId?: Uint8Array | null;
 
       /** AddToTag tagId */
-      tagId: Uint8Array;
+      tagId?: Uint8Array | null;
 
       /** AddToTag itemId */
-      itemId: Uint8Array;
+      itemId?: Uint8Array | null;
     }
 
     /** Represents an AddToTag. */
@@ -811,13 +807,13 @@ export namespace market {
     /** Properties of a RemoveFromTag. */
     interface IRemoveFromTag {
       /** RemoveFromTag eventId */
-      eventId: Uint8Array;
+      eventId?: Uint8Array | null;
 
       /** RemoveFromTag tagId */
-      tagId: Uint8Array;
+      tagId?: Uint8Array | null;
 
       /** RemoveFromTag itemId */
-      itemId: Uint8Array;
+      itemId?: Uint8Array | null;
     }
 
     /** Represents a RemoveFromTag. */
@@ -1555,16 +1551,16 @@ export namespace market {
     /** Properties of a ChangeCart. */
     interface IChangeCart {
       /** ChangeCart eventId */
-      eventId: Uint8Array;
+      eventId?: Uint8Array | null;
 
       /** ChangeCart cartId */
-      cartId: Uint8Array;
+      cartId?: Uint8Array | null;
 
       /** ChangeCart itemId */
-      itemId: Uint8Array;
+      itemId?: Uint8Array | null;
 
       /** ChangeCart quantity */
-      quantity: number;
+      quantity?: number | null;
     }
 
     /** Represents a ChangeCart. */
@@ -1686,13 +1682,13 @@ export namespace market {
     /** Properties of a CartFinalized. */
     interface ICartFinalized {
       /** CartFinalized eventId */
-      eventId: Uint8Array;
+      eventId?: Uint8Array | null;
 
       /** CartFinalized cartId */
-      cartId: Uint8Array;
+      cartId?: Uint8Array | null;
 
       /** CartFinalized purchaseAddr */
-      purchaseAddr: Uint8Array;
+      purchaseAddr?: Uint8Array | null;
 
       /** CartFinalized erc20Addr */
       erc20Addr?: Uint8Array | null;
@@ -1708,6 +1704,12 @@ export namespace market {
 
       /** CartFinalized totalInCrypto */
       totalInCrypto?: string | null;
+
+      /** CartFinalized paymentId */
+      paymentId?: Uint8Array | null;
+
+      /** CartFinalized paymentTtl */
+      paymentTtl?: string | null;
     }
 
     /** Represents a CartFinalized. */
@@ -1741,6 +1743,12 @@ export namespace market {
 
       /** CartFinalized totalInCrypto. */
       public totalInCrypto: string;
+
+      /** CartFinalized paymentId. */
+      public paymentId: Uint8Array;
+
+      /** CartFinalized paymentTtl. */
+      public paymentTtl: string;
 
       /**
        * Creates a new CartFinalized instance using the specified properties.
@@ -1841,10 +1849,10 @@ export namespace market {
     /** Properties of a CartAbandoned. */
     interface ICartAbandoned {
       /** CartAbandoned eventId */
-      eventId: Uint8Array;
+      eventId?: Uint8Array | null;
 
       /** CartAbandoned cartId */
-      cartId: Uint8Array;
+      cartId?: Uint8Array | null;
     }
 
     /** Represents a CartAbandoned. */
@@ -2666,6 +2674,9 @@ export namespace market {
 
       /** CommitCartRequest erc20Addr */
       erc20Addr?: Uint8Array | null;
+
+      /** CommitCartRequest escrowAddr */
+      escrowAddr?: Uint8Array | null;
     }
 
     /** Represents a CommitCartRequest. */
@@ -2684,6 +2695,9 @@ export namespace market {
 
       /** CommitCartRequest erc20Addr. */
       public erc20Addr: Uint8Array;
+
+      /** CommitCartRequest escrowAddr. */
+      public escrowAddr: Uint8Array;
 
       /**
        * Creates a new CommitCartRequest instance using the specified properties.

@@ -1,7 +1,3 @@
-// SPDX-FileCopyrightText: 2024 Mass Labs
-//
-// SPDX-License-Identifier: MIT
-
 /*eslint-disable block-scoped-var, id-length, no-control-regex, no-magic-numbers, no-prototype-builtins, no-redeclare, no-shadow, no-var, sort-vars*/
 import * as $protobuf from "protobufjs/minimal";
 
@@ -4447,6 +4443,8 @@ export const market = ($root.market = (() => {
        * @property {string|null} [salesTax] CartFinalized salesTax
        * @property {string|null} [total] CartFinalized total
        * @property {string|null} [totalInCrypto] CartFinalized totalInCrypto
+       * @property {Uint8Array|null} [paymentId] CartFinalized paymentId
+       * @property {string|null} [paymentTtl] CartFinalized paymentTtl
        */
 
       /**
@@ -4529,6 +4527,22 @@ export const market = ($root.market = (() => {
       CartFinalized.prototype.totalInCrypto = "";
 
       /**
+       * CartFinalized paymentId.
+       * @member {Uint8Array} paymentId
+       * @memberof market.mass.CartFinalized
+       * @instance
+       */
+      CartFinalized.prototype.paymentId = $util.newBuffer([]);
+
+      /**
+       * CartFinalized paymentTtl.
+       * @member {string} paymentTtl
+       * @memberof market.mass.CartFinalized
+       * @instance
+       */
+      CartFinalized.prototype.paymentTtl = "";
+
+      /**
        * Creates a new CartFinalized instance using the specified properties.
        * @function create
        * @memberof market.mass.CartFinalized
@@ -4593,6 +4607,16 @@ export const market = ($root.market = (() => {
           Object.hasOwnProperty.call(message, "erc20Addr")
         )
           writer.uint32(/* id 8, wireType 2 =*/ 66).bytes(message.erc20Addr);
+        if (
+          message.paymentId != null &&
+          Object.hasOwnProperty.call(message, "paymentId")
+        )
+          writer.uint32(/* id 9, wireType 2 =*/ 74).bytes(message.paymentId);
+        if (
+          message.paymentTtl != null &&
+          Object.hasOwnProperty.call(message, "paymentTtl")
+        )
+          writer.uint32(/* id 10, wireType 2 =*/ 82).string(message.paymentTtl);
         return writer;
       };
 
@@ -4660,6 +4684,14 @@ export const market = ($root.market = (() => {
             }
             case 7: {
               message.totalInCrypto = reader.string();
+              break;
+            }
+            case 9: {
+              message.paymentId = reader.bytes();
+              break;
+            }
+            case 10: {
+              message.paymentTtl = reader.string();
               break;
             }
             default:
@@ -4747,6 +4779,18 @@ export const market = ($root.market = (() => {
         )
           if (!$util.isString(message.totalInCrypto))
             return "totalInCrypto: string expected";
+        if (message.paymentId != null && message.hasOwnProperty("paymentId"))
+          if (
+            !(
+              (message.paymentId &&
+                typeof message.paymentId.length === "number") ||
+              $util.isString(message.paymentId)
+            )
+          )
+            return "paymentId: buffer expected";
+        if (message.paymentTtl != null && message.hasOwnProperty("paymentTtl"))
+          if (!$util.isString(message.paymentTtl))
+            return "paymentTtl: string expected";
         return null;
       };
 
@@ -4808,6 +4852,19 @@ export const market = ($root.market = (() => {
         if (object.total != null) message.total = String(object.total);
         if (object.totalInCrypto != null)
           message.totalInCrypto = String(object.totalInCrypto);
+        if (object.paymentId != null)
+          if (typeof object.paymentId === "string")
+            $util.base64.decode(
+              object.paymentId,
+              (message.paymentId = $util.newBuffer(
+                $util.base64.length(object.paymentId),
+              )),
+              0,
+            );
+          else if (object.paymentId.length >= 0)
+            message.paymentId = object.paymentId;
+        if (object.paymentTtl != null)
+          message.paymentTtl = String(object.paymentTtl);
         return message;
       };
 
@@ -4852,6 +4909,13 @@ export const market = ($root.market = (() => {
             if (options.bytes !== Array)
               object.erc20Addr = $util.newBuffer(object.erc20Addr);
           }
+          if (options.bytes === String) object.paymentId = "";
+          else {
+            object.paymentId = [];
+            if (options.bytes !== Array)
+              object.paymentId = $util.newBuffer(object.paymentId);
+          }
+          object.paymentTtl = "";
         }
         if (message.eventId != null && message.hasOwnProperty("eventId"))
           object.eventId =
@@ -4903,6 +4967,19 @@ export const market = ($root.market = (() => {
               : options.bytes === Array
                 ? Array.prototype.slice.call(message.erc20Addr)
                 : message.erc20Addr;
+        if (message.paymentId != null && message.hasOwnProperty("paymentId"))
+          object.paymentId =
+            options.bytes === String
+              ? $util.base64.encode(
+                  message.paymentId,
+                  0,
+                  message.paymentId.length,
+                )
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.paymentId)
+                : message.paymentId;
+        if (message.paymentTtl != null && message.hasOwnProperty("paymentTtl"))
+          object.paymentTtl = message.paymentTtl;
         return object;
       };
 
@@ -7451,6 +7528,7 @@ export const market = ($root.market = (() => {
        * @property {Uint8Array|null} [requestId] CommitCartRequest requestId
        * @property {Uint8Array|null} [cartId] CommitCartRequest cartId
        * @property {Uint8Array|null} [erc20Addr] CommitCartRequest erc20Addr
+       * @property {Uint8Array|null} [escrowAddr] CommitCartRequest escrowAddr
        */
 
       /**
@@ -7493,6 +7571,14 @@ export const market = ($root.market = (() => {
       CommitCartRequest.prototype.erc20Addr = $util.newBuffer([]);
 
       /**
+       * CommitCartRequest escrowAddr.
+       * @member {Uint8Array} escrowAddr
+       * @memberof market.mass.CommitCartRequest
+       * @instance
+       */
+      CommitCartRequest.prototype.escrowAddr = $util.newBuffer([]);
+
+      /**
        * Creates a new CommitCartRequest instance using the specified properties.
        * @function create
        * @memberof market.mass.CommitCartRequest
@@ -7530,6 +7616,11 @@ export const market = ($root.market = (() => {
           Object.hasOwnProperty.call(message, "erc20Addr")
         )
           writer.uint32(/* id 3, wireType 2 =*/ 26).bytes(message.erc20Addr);
+        if (
+          message.escrowAddr != null &&
+          Object.hasOwnProperty.call(message, "escrowAddr")
+        )
+          writer.uint32(/* id 4, wireType 2 =*/ 34).bytes(message.escrowAddr);
         return writer;
       };
 
@@ -7577,6 +7668,10 @@ export const market = ($root.market = (() => {
             }
             case 3: {
               message.erc20Addr = reader.bytes();
+              break;
+            }
+            case 4: {
+              message.escrowAddr = reader.bytes();
               break;
             }
             default:
@@ -7639,6 +7734,15 @@ export const market = ($root.market = (() => {
             )
           )
             return "erc20Addr: buffer expected";
+        if (message.escrowAddr != null && message.hasOwnProperty("escrowAddr"))
+          if (
+            !(
+              (message.escrowAddr &&
+                typeof message.escrowAddr.length === "number") ||
+              $util.isString(message.escrowAddr)
+            )
+          )
+            return "escrowAddr: buffer expected";
         return null;
       };
 
@@ -7686,6 +7790,17 @@ export const market = ($root.market = (() => {
             );
           else if (object.erc20Addr.length >= 0)
             message.erc20Addr = object.erc20Addr;
+        if (object.escrowAddr != null)
+          if (typeof object.escrowAddr === "string")
+            $util.base64.decode(
+              object.escrowAddr,
+              (message.escrowAddr = $util.newBuffer(
+                $util.base64.length(object.escrowAddr),
+              )),
+              0,
+            );
+          else if (object.escrowAddr.length >= 0)
+            message.escrowAddr = object.escrowAddr;
         return message;
       };
 
@@ -7720,6 +7835,12 @@ export const market = ($root.market = (() => {
             if (options.bytes !== Array)
               object.erc20Addr = $util.newBuffer(object.erc20Addr);
           }
+          if (options.bytes === String) object.escrowAddr = "";
+          else {
+            object.escrowAddr = [];
+            if (options.bytes !== Array)
+              object.escrowAddr = $util.newBuffer(object.escrowAddr);
+          }
         }
         if (message.requestId != null && message.hasOwnProperty("requestId"))
           object.requestId =
@@ -7750,6 +7871,17 @@ export const market = ($root.market = (() => {
               : options.bytes === Array
                 ? Array.prototype.slice.call(message.erc20Addr)
                 : message.erc20Addr;
+        if (message.escrowAddr != null && message.hasOwnProperty("escrowAddr"))
+          object.escrowAddr =
+            options.bytes === String
+              ? $util.base64.encode(
+                  message.escrowAddr,
+                  0,
+                  message.escrowAddr.length,
+                )
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.escrowAddr)
+                : message.escrowAddr;
         return object;
       };
 

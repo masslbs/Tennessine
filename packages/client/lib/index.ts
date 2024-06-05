@@ -815,18 +815,27 @@ export class RelayClient extends EventEmitter {
   async commitCart(
     cartId: `0x${string}`,
     erc20Addr: `0x${string}` | null = null,
+    escrowAddr: `0x${string}` | null = null,
   ): Promise<mmproto.CommitCartResponse> {
-    let addrBytes: Uint8Array | null = null;
+    let erc20AddrBytes: Uint8Array | null = null;
+    let escrowAddrBytes: Uint8Array | null = null;
+    if (escrowAddr) {
+      escrowAddrBytes = hexToBytes(escrowAddr);
+      if (escrowAddrBytes.length !== 20) {
+        return Promise.reject(new Error("escrowAddr must be 20 bytes"));
+      }
+    }
     if (erc20Addr) {
-      addrBytes = hexToBytes(erc20Addr);
-      if (addrBytes.length !== 20) {
+      erc20AddrBytes = hexToBytes(erc20Addr);
+      if (erc20AddrBytes.length !== 20) {
         return Promise.reject(new Error("erc20Addr must be 20 bytes"));
       }
     }
     await this.connect();
     return this.encodeAndSend(mmproto.CommitCartRequest, {
       cartId: hexToBytes(cartId),
-      erc20Addr: addrBytes,
+      erc20Addr: erc20AddrBytes,
+      escrowAddr: escrowAddrBytes,
     }) as Promise<mmproto.CommitCartResponse>;
   }
 
