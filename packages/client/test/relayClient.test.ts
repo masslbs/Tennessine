@@ -158,7 +158,6 @@ describe("user behaviour", () => {
   test("write store manifest", async () => {
     const publishedTagId = null;
     let r = await relayClient.writeStoreManifest(publishedTagId);
-    // @ts-expect-error FIXME:
     // This is a hack to please browser and node world
     // Find out why one return number and the other class Long
     if (r.eventSequenceNo !== 2 && r.eventSequenceNo.low !== 2) {

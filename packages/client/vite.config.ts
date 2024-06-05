@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: MIT
 import { defineConfig } from "vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
-import path from "path";
 
 export default defineConfig({
   test: {
@@ -18,13 +17,6 @@ export default defineConfig({
           args: ["--no-sandbox", "--no-zygote"],
         },
       },
-    },
-  },
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "../frontend/src/"),
-      "@/reducers/*": path.resolve(__dirname, "../frontend/src/reducers"),
-      "@/utils/*": path.resolve(__dirname, "../frontend/src/utils"),
     },
   },
   plugins: [
