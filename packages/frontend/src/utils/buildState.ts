@@ -72,16 +72,16 @@ export const buildState = (
         setPublishedTagId(bytesToHex(um.tagId));
       }
     } else if (e.createItem) {
-      const _meta = parseMetadata(e.createItem.metadata);
-      const id = bytesToHex(e.createItem.eventId);
+      const _meta = parseMetadata(e.createItem.metadata!);
+      const id = bytesToHex(e.createItem.eventId!);
       const item: IProduct = {
         id,
-        price: e.createItem.price,
+        price: e.createItem.price!,
         metadata: _meta,
       };
       productsDispatch({ type: ADD_PRODUCT, payload: { itemId: id, item } });
     } else if (e.updateItem) {
-      const id = bytesToHex(e.updateItem.itemId);
+      const id = bytesToHex(e.updateItem.itemId!);
       if (
         e.updateItem.field == ItemField.ITEM_FIELD_METADATA &&
         e.updateItem.metadata
