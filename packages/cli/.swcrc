@@ -1,0 +1,12 @@
+{
+    "jsc": {
+        "target": "esnext",
+            "parser": {
+                "syntax": "typescript",
+                "tsx": true,
+            },
+            "externalHelpers": true
+    }
+}
+
+

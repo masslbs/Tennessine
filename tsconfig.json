@@ -9,6 +9,7 @@
     "strict": true,
     "outDir": "./dist/",
     "skipLibCheck": true,
-    "allowJs": true
+    "allowJs": true,
+    "isolatedModules": true
   }
 }
