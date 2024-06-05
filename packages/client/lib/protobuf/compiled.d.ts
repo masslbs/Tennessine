@@ -2348,6 +2348,9 @@ export namespace market {
 
             /** CommitCartRequest erc20Addr */
             erc20Addr?: (Uint8Array|null);
+
+            /** CommitCartRequest escrowAddr */
+            escrowAddr?: (Uint8Array|null);
         }
 
         /** Represents a CommitCartRequest. */
@@ -2367,6 +2370,9 @@ export namespace market {
 
             /** CommitCartRequest erc20Addr. */
             public erc20Addr: Uint8Array;
+
+            /** CommitCartRequest escrowAddr. */
+            public escrowAddr: Uint8Array;
 
             /**
              * Creates a new CommitCartRequest instance using the specified properties.

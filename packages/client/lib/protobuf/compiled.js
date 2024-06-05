@@ -6295,6 +6295,7 @@ export const market = $root.market = (() => {
              * @property {Uint8Array|null} [requestId] CommitCartRequest requestId
              * @property {Uint8Array|null} [cartId] CommitCartRequest cartId
              * @property {Uint8Array|null} [erc20Addr] CommitCartRequest erc20Addr
+             * @property {Uint8Array|null} [escrowAddr] CommitCartRequest escrowAddr
              */
 
             /**
@@ -6337,6 +6338,14 @@ export const market = $root.market = (() => {
             CommitCartRequest.prototype.erc20Addr = $util.newBuffer([]);
 
             /**
+             * CommitCartRequest escrowAddr.
+             * @member {Uint8Array} escrowAddr
+             * @memberof market.mass.CommitCartRequest
+             * @instance
+             */
+            CommitCartRequest.prototype.escrowAddr = $util.newBuffer([]);
+
+            /**
              * Creates a new CommitCartRequest instance using the specified properties.
              * @function create
              * @memberof market.mass.CommitCartRequest
@@ -6366,6 +6375,8 @@ export const market = $root.market = (() => {
                     writer.uint32(/* id 2, wireType 2 =*/18).bytes(message.cartId);
                 if (message.erc20Addr != null && Object.hasOwnProperty.call(message, "erc20Addr"))
                     writer.uint32(/* id 3, wireType 2 =*/26).bytes(message.erc20Addr);
+                if (message.escrowAddr != null && Object.hasOwnProperty.call(message, "escrowAddr"))
+                    writer.uint32(/* id 4, wireType 2 =*/34).bytes(message.escrowAddr);
                 return writer;
             };
 
@@ -6412,6 +6423,10 @@ export const market = $root.market = (() => {
                             message.erc20Addr = reader.bytes();
                             break;
                         }
+                    case 4: {
+                            message.escrowAddr = reader.bytes();
+                            break;
+                        }
                     default:
                         reader.skipType(tag & 7);
                         break;
@@ -6456,6 +6471,9 @@ export const market = $root.market = (() => {
                 if (message.erc20Addr != null && message.hasOwnProperty("erc20Addr"))
                     if (!(message.erc20Addr && typeof message.erc20Addr.length === "number" || $util.isString(message.erc20Addr)))
                         return "erc20Addr: buffer expected";
+                if (message.escrowAddr != null && message.hasOwnProperty("escrowAddr"))
+                    if (!(message.escrowAddr && typeof message.escrowAddr.length === "number" || $util.isString(message.escrowAddr)))
+                        return "escrowAddr: buffer expected";
                 return null;
             };
 
@@ -6486,6 +6504,11 @@ export const market = $root.market = (() => {
                         $util.base64.decode(object.erc20Addr, message.erc20Addr = $util.newBuffer($util.base64.length(object.erc20Addr)), 0);
                     else if (object.erc20Addr.length >= 0)
                         message.erc20Addr = object.erc20Addr;
+                if (object.escrowAddr != null)
+                    if (typeof object.escrowAddr === "string")
+                        $util.base64.decode(object.escrowAddr, message.escrowAddr = $util.newBuffer($util.base64.length(object.escrowAddr)), 0);
+                    else if (object.escrowAddr.length >= 0)
+                        message.escrowAddr = object.escrowAddr;
                 return message;
             };
 
@@ -6524,6 +6547,13 @@ export const market = $root.market = (() => {
                         if (options.bytes !== Array)
                             object.erc20Addr = $util.newBuffer(object.erc20Addr);
                     }
+                    if (options.bytes === String)
+                        object.escrowAddr = "";
+                    else {
+                        object.escrowAddr = [];
+                        if (options.bytes !== Array)
+                            object.escrowAddr = $util.newBuffer(object.escrowAddr);
+                    }
                 }
                 if (message.requestId != null && message.hasOwnProperty("requestId"))
                     object.requestId = options.bytes === String ? $util.base64.encode(message.requestId, 0, message.requestId.length) : options.bytes === Array ? Array.prototype.slice.call(message.requestId) : message.requestId;
@@ -6531,6 +6561,8 @@ export const market = $root.market = (() => {
                     object.cartId = options.bytes === String ? $util.base64.encode(message.cartId, 0, message.cartId.length) : options.bytes === Array ? Array.prototype.slice.call(message.cartId) : message.cartId;
                 if (message.erc20Addr != null && message.hasOwnProperty("erc20Addr"))
                     object.erc20Addr = options.bytes === String ? $util.base64.encode(message.erc20Addr, 0, message.erc20Addr.length) : options.bytes === Array ? Array.prototype.slice.call(message.erc20Addr) : message.erc20Addr;
+                if (message.escrowAddr != null && message.hasOwnProperty("escrowAddr"))
+                    object.escrowAddr = options.bytes === String ? $util.base64.encode(message.escrowAddr, 0, message.escrowAddr.length) : options.bytes === Array ? Array.prototype.slice.call(message.escrowAddr) : message.escrowAddr;
                 return object;
             };
 
