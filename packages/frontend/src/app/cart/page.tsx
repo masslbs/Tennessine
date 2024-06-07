@@ -190,7 +190,7 @@ const Cart = () => {
             </div>
             <div>
               <Button
-                onClick={() => setShowPaymentOptions(true)}
+                onClick={() => router.push("/checkout")}
                 disabled={noItems}
               >
                 <Image

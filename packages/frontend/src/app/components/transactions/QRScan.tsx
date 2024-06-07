@@ -10,14 +10,14 @@ import { IStatus } from "@/types";
 
 function QRScan({
   imgSrc,
-  setStatusScreen,
-  totalToRender,
+  // setStatusScreen,
+  // totalToRender,
   totalDollar,
   purchaseAddress,
 }: {
   imgSrc: string | null;
-  setStatusScreen: Dispatch<SetStateAction<boolean>>;
-  totalToRender: string | null;
+  // setStatusScreen: Dispatch<SetStateAction<boolean>>;
+  // totalToRender: string | null;
   totalDollar: string;
   purchaseAddress: string;
 }) {
@@ -39,7 +39,7 @@ function QRScan({
       cartId &&
       cartItems.get(cartId)?.status === IStatus.Complete
     ) {
-      setStatusScreen(true);
+      // setStatusScreen(true);
       setCartId(null);
     }
   }, [cartItems]);
@@ -48,7 +48,7 @@ function QRScan({
     <main className="text-center flex flex-col ">
       <div className="mt-24 flex flex-col ">
         <h3 className="pt-10 text-gray-400">Total</h3>
-        <p className="text-4xl text-blue-700 mt-4">{totalToRender}</p>
+        {/* <p className="text-4xl text-blue-700 mt-4">{totalToRender}</p> */}
         <p className="text-4xl text-blue-700 mt-8">Scan to Pay</p>
       </div>
       <div className="flex justify-center mt-4">
