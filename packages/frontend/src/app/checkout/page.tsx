@@ -7,6 +7,7 @@ import { ItemId } from "@/types";
 import { ItemState } from "@/context/types";
 import Button from "@/app/common/components/Button";
 import QRScan from "@/app/components/transactions/QRScan";
+import NewCart from "@/app/cart/NewCart";
 
 const CheckoutFlow = () => {
   const { cartItems, products, cartId, commitCart, finalizedCarts } =
@@ -29,8 +30,6 @@ const CheckoutFlow = () => {
   const [cryptoTotal, setCryptoTotal] = useState<string | null>(null);
   const [purchaseAdd, setPurchaseAdd] = useState<string | null>(null);
   const [totalDollar, setTotalDollar] = useState<string | null>(null);
-  const noItems =
-    !cartId || !activeCartItems || !Object.keys(activeCartItems).length;
 
   useEffect(() => {
     if (cartId) {
@@ -69,45 +68,9 @@ const CheckoutFlow = () => {
     }
   };
 
-  const renderItems = () => {
-    if (noItems) return <p className="text-center">you have no items</p>;
-
-    return Object.keys(activeCartItems).map((id) => {
-      const itemId = id as ItemId;
-      const item = products.get(itemId);
-      if (!item || !item.metadata.image) return;
-
-      return (
-        <div key={item.metadata.title} className="flex my-4">
-          <div className="flex justify-center mr-3">
-            <input type="checkbox" checked />
-          </div>
-          <Image
-            src={item.metadata.image}
-            width={58}
-            height={58}
-            alt="item-thumbnail"
-            unoptimized={true}
-          />
-          <div className="flex flex-col ml-4 mr-auto">
-            <p>{item.metadata.title}</p>
-            <p className="text-xs">{item.metadata.description}</p>
-          </div>
-        </div>
-      );
-    });
-  };
-
   const content =
     step == 1 ? (
-      <div>
-        <h2 className="text-center my-4">80ETH</h2>
-        <Button onClick={() => setStep(2)}>Proceed</Button>
-        <section className="mt-10">
-          <p>Deselect all items</p>
-          {renderItems()}
-        </section>
-      </div>
+      <NewCart next={() => setStep(2)} />
     ) : step === 2 ? (
       <div className=" mt-4">
         <form
