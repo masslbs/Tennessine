@@ -1,0 +1,55 @@
+import { Buffer } from "node:buffer";
+import { bytesToHex, toBytes } from "viem";
+export function requestId() {
+    return randomBytes(16);
+}
+export function eventId() {
+    return randomBytes(32);
+}
+export function randomBytes(n) {
+    const b = new Uint8Array(n);
+    crypto.getRandomValues(b);
+    return b;
+}
+export function convertFirstCharToLowerCase(str) {
+    return str.charAt(0).toLowerCase() + str.slice(1);
+}
+export function snakeToCamel(str) {
+    return str.replace(/_([a-z])/g, (match, letter) => `${letter.toUpperCase()}`);
+}
+function camelToSnake(str) {
+    return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+}
+function formatArray(array) {
+    if (typeof array[0] === "number") {
+        return array.map((num) => BigInt(num));
+    }
+    else {
+        return array.map((m) => bytesToHex(m));
+    }
+}
+// TODO: there are a lot of assumptions backed in here that should be commented
+export function formatMessageForSigning(obj) {
+    const snakeCase = {};
+    for (const [key, value] of Object.entries(obj)) {
+        // TODO: Refactor this. Nested ternary operators are hard to read and a nightmare to change.
+        snakeCase[camelToSnake(key)] = Array.isArray(value)
+            ? formatArray(value)
+            : typeof value === "string"
+                ? value
+                : typeof value === "number"
+                    ? BigInt(value)
+                    : bytesToHex(value);
+    }
+    return snakeCase;
+}
+export function getRandomStoreId() {
+    return bytesToHex(randomBytes(32));
+}
+export function generatePk() {
+    return bytesToHex(randomBytes(32));
+}
+export function hexToBase64(hex) {
+    const u8 = new Uint8Array(toBytes(hex));
+    return Buffer.from(u8).toString("base64");
+}

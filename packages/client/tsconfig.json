@@ -1,4 +1,7 @@
 {
-  "extends": ["../../tsconfig.json"],
-  "include": ["lib/**/*.ts", "test/**/*.ts"]
+  "extends": ["@massmarket/tsconfig/base.json"],
+  "include": ["lib/**/*.ts", "test/**/*.ts"],
+  "compilerOptions": {
+    "outDir": "./dist"
+  }
 }
