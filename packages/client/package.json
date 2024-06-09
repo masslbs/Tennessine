@@ -5,6 +5,7 @@
     "@massmarket/client": "link:",
     "@massmarket/contracts": "workspace:*",
     "abitype": "^1.0.1",
+    "buffer": "^6.0.3",
     "isows": "^1.0.3",
     "long": "^5.2.3",
     "protobufjs": "^7.2.6",

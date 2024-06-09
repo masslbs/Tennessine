@@ -10,7 +10,7 @@
     "skipLibCheck": true,
     "allowJs": true,
     "isolatedModules": true,
-    "incremental":true, 
-     "composite": true
+    "incremental": true,
+    "composite": true
   }
 }

@@ -66,7 +66,6 @@
                 playwright-driver.browsers
                 contracts.packages.${system}.default
                 reuse
-                swc
               ]
               ++ config.pre-commit.settings.enabledPackages;
 
