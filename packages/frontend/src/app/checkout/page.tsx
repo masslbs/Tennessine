@@ -1,14 +1,14 @@
 "use client";
 import ProgressBar from "@/app/components/checkout/ProgressBar";
 import React, { useEffect, useState } from "react";
-import Image from "next/image";
 import { useStoreContext } from "@/context/StoreContext";
-import { ItemId } from "@/types";
 import { ItemState } from "@/context/types";
-import Button from "@/app/common/components/Button";
+import Button from "@/app/common/components/PrimaryButton";
 import QRScan from "@/app/components/transactions/QRScan";
 import NewCart from "@/app/cart/NewCart";
-// import WalletConnectQR from "../components/transactions/WalletConnectQR";
+import CurrencyChange from "@/app/common/components/CurrencyChange";
+import CurrencyButton from "@/app/common/components/CurrencyButton";
+// import WalletConnectQR from "@/app/components/transactions/WalletConnectQR";
 
 const CheckoutFlow = () => {
   const { cartItems, products, cartId, commitCart, finalizedCarts } =
@@ -31,6 +31,8 @@ const CheckoutFlow = () => {
   const [cryptoTotal, setCryptoTotal] = useState<string | null>(null);
   const [purchaseAdd, setPurchaseAdd] = useState<string | null>(null);
   const [totalDollar, setTotalDollar] = useState<string | null>(null);
+  const [showCurrencyOptions, setShowCurrencyOptions] =
+    useState<boolean>(false);
 
   useEffect(() => {
     if (cartId) {
@@ -152,8 +154,17 @@ const CheckoutFlow = () => {
 
   return (
     <main className="pt-under-nav h-screen bg-gray-100 px-5">
-      <ProgressBar currentStep={step} />
-      {renderContent()}
+      <CurrencyButton
+        toggle={() => setShowCurrencyOptions(!showCurrencyOptions)}
+      />
+      {showCurrencyOptions ? (
+        <CurrencyChange />
+      ) : (
+        <div>
+          <ProgressBar currentStep={step} />
+          {renderContent()}
+        </div>
+      )}
     </main>
   );
 };
