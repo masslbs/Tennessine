@@ -8,6 +8,7 @@ import { ItemState } from "@/context/types";
 import Button from "@/app/common/components/Button";
 import QRScan from "@/app/components/transactions/QRScan";
 import NewCart from "@/app/cart/NewCart";
+// import WalletConnectQR from "../components/transactions/WalletConnectQR";
 
 const CheckoutFlow = () => {
   const { cartItems, products, cartId, commitCart, finalizedCarts } =
@@ -68,75 +69,91 @@ const CheckoutFlow = () => {
     }
   };
 
-  const content =
-    step == 1 ? (
-      <NewCart next={() => setStep(2)} />
-    ) : step === 2 ? (
-      <div className=" mt-4">
-        <form
-          className="flex flex-col"
-          onSubmit={(e) => {
-            e.preventDefault();
-          }}
-        >
-          <label htmlFor="price">Name</label>
-          <input
-            className="border-2 border-solid mt-1 p-3 rounded-lg"
-            id="price"
-            name="price"
-            onChange={(e) => setName(e.target.value)}
+  const renderContent = () => {
+    if (step === 1) {
+      return <NewCart next={() => setStep(2)} />;
+    } else if (step === 2) {
+      return (
+        <div className="mt-4 flex flex-col gap-4">
+          <form
+            className="flex flex-col"
+            onSubmit={(e) => {
+              e.preventDefault();
+            }}
+          >
+            <label htmlFor="price">Name</label>
+            <input
+              className="border-2 border-solid mt-1 p-3 rounded-lg"
+              id="price"
+              name="price"
+              onChange={(e) => setName(e.target.value)}
+            />
+          </form>
+          <form
+            className="flex flex-col"
+            onSubmit={(e) => {
+              e.preventDefault();
+            }}
+          >
+            <label htmlFor="price">Address</label>
+            <input
+              className="border-2 border-solid mt-1 p-3 rounded-lg"
+              id="price"
+              name="price"
+              onChange={(e) => setAddress(e.target.value)}
+            />
+          </form>
+          <form
+            className="flex flex-col"
+            onSubmit={(e) => {
+              e.preventDefault();
+            }}
+          >
+            <label htmlFor="price">City</label>
+            <input
+              className="border-2 border-solid mt-1 p-3 rounded-lg"
+              id="price"
+              name="price"
+              onChange={(e) => setCity(e.target.value)}
+            />
+          </form>
+          <Button
+            onClick={() => {
+              checkout();
+            }}
+          >
+            Checkout
+          </Button>
+        </div>
+      );
+    } else if (step === 3) {
+      return (
+        <div>
+          {/* FIXME: WalletConnect QR option */}
+          {/* <WalletConnectQR /> */}
+          <QRScan
+            imgSrc={imgSrc}
+            // totalToRender={header}
+            totalDollar={totalDollar}
+            purchaseAddress={purchaseAdd}
           />
-        </form>
-        <form
-          className="flex flex-col"
-          onSubmit={(e) => {
-            e.preventDefault();
-          }}
-        >
-          <label htmlFor="price">Address</label>
-          <input
-            className="border-2 border-solid mt-1 p-3 rounded-lg"
-            id="price"
-            name="price"
-            onChange={(e) => setAddress(e.target.value)}
-          />
-        </form>
-        <form
-          className="flex flex-col"
-          onSubmit={(e) => {
-            e.preventDefault();
-          }}
-        >
-          <label htmlFor="price">City</label>
-          <input
-            className="border-2 border-solid mt-1 p-3 rounded-lg"
-            id="price"
-            name="price"
-            onChange={(e) => setCity(e.target.value)}
-          />
-        </form>
-        <Button
-          onClick={() => {
-            checkout();
-          }}
-        >
-          Checkout
-        </Button>
-      </div>
-    ) : (
-      <div>
-        <QRScan
-          imgSrc={imgSrc}
-          // totalToRender={header}
-          totalDollar={totalDollar}
-          purchaseAddress={purchaseAdd}
-        />
-      </div>
-    );
+          <button onClick={() => setStep(4)}>see next UI</button>
+        </div>
+      );
+    } else {
+      return (
+        <div>
+          <p>Congratulations! you bought</p>
+          <p>Tx hash:</p>
+        </div>
+      );
+    }
+  };
+
   return (
     <main className="pt-under-nav h-screen bg-gray-100 px-5">
       <ProgressBar currentStep={step} />
-      {content}
+      {renderContent()}
     </main>
   );
 };
