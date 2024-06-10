@@ -35,7 +35,7 @@ function formatArray(array: Uint8Array[] | number[]) {
   }
 }
 
-// TODO: there are a lot of assumptions backed in here that should be commented
+// TODO: there are a lot of assumptions baked in here that should be commented
 export function formatMessageForSigning(
   obj: Record<string, Uint8Array | string | number | Uint8Array[] | number[]>,
 ) {
@@ -43,15 +43,19 @@ export function formatMessageForSigning(
     string,
     string | `0x${string}`[] | BigInt | BigInt[]
   > = {};
+  const convert = (value) => {
+    if (Array.isArray(value)) {
+      return formatArray(value)
+    } else if (typeof value === "string") {
+      return value
+    } else if (typeof value === "number") {
+      return BigInt(value)
+    } else {
+      return bytesToHex(value)
+    }
+  }
   for (const [key, value] of Object.entries(obj)) {
-    // TODO: Refactor this. Nested ternary operators are hard to read and a nightmare to change.
-    snakeCase[camelToSnake(key)] = Array.isArray(value)
-      ? formatArray(value)
-      : typeof value === "string"
-        ? value
-        : typeof value === "number"
-          ? BigInt(value)
-          : bytesToHex(value);
+    snakeCase[camelToSnake(key)] = convert(value)
   }
   return snakeCase;
 }

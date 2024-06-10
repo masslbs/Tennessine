@@ -37,7 +37,7 @@ const publicClient = createPublicClient({
 });
 
 const relayEndpoint =
-  (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v1";
+  (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v2";
 
 let relayClient: RelayClient;
 const storeId: `0x${string}` = `0x${randomBytes(32).toString("hex")}`;
@@ -173,22 +173,10 @@ describe("user behaviour", () => {
   });
 
   test("update store manifest", async () => {
-    await relayClient.updateManifest(
-      ManifestField.MANIFEST_FIELD_DOMAIN,
-      "test",
-    );
-    await relayClient.updateManifest(
-      ManifestField.MANIFEST_FIELD_DOMAIN,
-      "socks.mass.market",
-    );
-    await relayClient.updateManifest(
-      ManifestField.MANIFEST_FIELD_ADD_ERC20,
-      abi.addresses.Eddies,
-    );
-    await relayClient.updateManifest(
-      ManifestField.MANIFEST_FIELD_REMOVE_ERC20,
-      abi.addresses.Eddies,
-    );
+    await relayClient.updateStoreManifest({domain: "socks.mass.market"});
+    await relayClient.updateStoreManifest({publishedTagId: bytesToHex(randomBytes(32)) });
+    await relayClient.updateStoreManifest({addERC20: abi.addresses.Eddies});
+    await relayClient.updateStoreManifest({removeERC20: abi.addresses.Eddies});
   });
 
   test("blob upload", async () => {
@@ -210,7 +198,7 @@ describe("user behaviour", () => {
       const metadata = {
         name: "test",
         description: "test",
-        image: "https://http.cat/images/202.jpg",
+        image: "https://http.cat/images/200.jpg",
       };
       itemId = await relayClient.createItem("10.99", metadata);
       expect(itemId).not.toBeNull();
@@ -219,8 +207,15 @@ describe("user behaviour", () => {
     test("update item - price", async () => {
       await relayClient.updateItem(
         itemId,
-        mmproto.UpdateItem.ItemField.ITEM_FIELD_PRICE,
-        "20.99",
+        { price: "20.99"},
+      );
+      expect(itemId).not.toBeNull();
+    });
+
+    test("update item - metadata", async () => {
+      await relayClient.updateItem(
+        itemId,
+        { metadata: {name: "new name", image: "https://http.cat/images/200.jpg" }},
       );
       expect(itemId).not.toBeNull();
     });

@@ -14,30 +14,33 @@ export type PBObject =
   | mmproto.IChallengeSolvedResponse
   | mmproto.IEventWriteRequest
   | mmproto.IEventWriteResponse
-  | mmproto.ICommitCartRequest
-  | mmproto.ICommitCartResponse
-  | mmproto.IGetBlobUploadURLRequest
-  | mmproto.IGetBlobUploadURLResponse
   | mmproto.ISyncStatusRequest
-  | mmproto.ISyncStatusResponse;
+  | mmproto.ISyncStatusResponse
+  | mmproto.ICommitItemsToOrderRequest
+  | mmproto.ICommitItemsToOrderResponse
+  | mmproto.IGetBlobUploadURLRequest
+  | mmproto.IGetBlobUploadURLResponse;
 
 export type PBMessage =
+  // transport
   | typeof mmproto.PingRequest
   | typeof mmproto.PingResponse
+  | typeof mmproto.EventWriteRequest
+  | typeof mmproto.EventWriteResponse
+  | typeof mmproto.EventPushRequest
+  | typeof mmproto.EventPushResponse
+  | typeof mmproto.SyncStatusRequest
+  | typeof mmproto.SyncStatusResponse
+  // auth
   | typeof mmproto.AuthenticateRequest
   | typeof mmproto.AuthenticateResponse
   | typeof mmproto.ChallengeSolvedRequest
   | typeof mmproto.ChallengeSolvedResponse
-  | typeof mmproto.EventWriteRequest
-  | typeof mmproto.EventWriteResponse
-  | typeof mmproto.CommitCartRequest
-  | typeof mmproto.CommitCartResponse
+  // store
+  | typeof mmproto.CommitItemsToOrderRequest
+  | typeof mmproto.CommitItemsToOrderResponse
   | typeof mmproto.GetBlobUploadURLRequest
-  | typeof mmproto.GetBlobUploadURLResponse
-  | typeof mmproto.SyncStatusRequest
-  | typeof mmproto.SyncStatusResponse
-  | typeof mmproto.EventPushRequest
-  | typeof mmproto.EventPushResponse;
+  | typeof mmproto.GetBlobUploadURLResponse;
 
 export type PBInstance =
   | mmproto.PingRequest
@@ -46,53 +49,57 @@ export type PBInstance =
   | mmproto.AuthenticateResponse
   | mmproto.ChallengeSolvedRequest
   | mmproto.ChallengeSolvedResponse
-  | mmproto.EventWriteRequest
-  | mmproto.EventWriteResponse
-  | mmproto.CommitCartRequest
-  | mmproto.CommitCartResponse
-  | mmproto.GetBlobUploadURLRequest
-  | mmproto.GetBlobUploadURLResponse
   | mmproto.SyncStatusRequest
   | mmproto.SyncStatusResponse
+  | mmproto.EventWriteRequest
+  | mmproto.EventWriteResponse
   | mmproto.EventPushRequest
-  | mmproto.EventPushResponse;
+  | mmproto.EventPushResponse
+  | mmproto.CommitItemsToOrderRequest
+  | mmproto.CommitItemsToOrderResponse
+  | mmproto.GetBlobUploadURLRequest
+  | mmproto.GetBlobUploadURLResponse;
 
 // TODO: codegen these
 export const MESSAGE_TYPES = new Map([
   [mmproto.PingRequest, 1],
   [mmproto.PingResponse, 2],
-  [mmproto.AuthenticateRequest, 3],
-  [mmproto.AuthenticateResponse, 4],
-  [mmproto.ChallengeSolvedRequest, 5],
-  [mmproto.ChallengeSolvedResponse, 6],
-  [mmproto.GetBlobUploadURLRequest, 9],
-  [mmproto.GetBlobUploadURLResponse, 0x0a],
-  [mmproto.EventWriteRequest, 0x0d],
-  [mmproto.EventWriteResponse, 0x0e],
-  [mmproto.CommitCartRequest, 0x13],
-  [mmproto.CommitCartResponse, 0x14],
-  [mmproto.SyncStatusRequest, 0x0f],
-  [mmproto.SyncStatusResponse, 0x10],
-  [mmproto.EventPushRequest, 0x11],
-  [mmproto.EventPushResponse, 0x12],
+  [mmproto.EventWriteRequest, 3],
+  [mmproto.EventWriteResponse, 4],
+  [mmproto.SyncStatusRequest, 5],
+  [mmproto.SyncStatusResponse, 6],
+  [mmproto.EventPushRequest, 7],
+  [mmproto.EventPushResponse, 8],
+  // auth
+  [mmproto.AuthenticateRequest, 20],
+  [mmproto.AuthenticateResponse, 21],
+  [mmproto.ChallengeSolvedRequest, 22],
+  [mmproto.ChallengeSolvedResponse, 23],
+  // store
+  [mmproto.GetBlobUploadURLRequest, 30],
+  [mmproto.GetBlobUploadURLResponse, 31],
+  [mmproto.CommitItemsToOrderRequest, 32],
+  [mmproto.CommitItemsToOrderResponse, 33],
 ]);
 
 // TODO: codegen these
 export const MESSAGE_PREFIXES = new Map([
   [1, mmproto.PingRequest],
   [2, mmproto.PingResponse],
-  [3, mmproto.AuthenticateRequest],
-  [4, mmproto.AuthenticateResponse],
-  [5, mmproto.ChallengeSolvedRequest],
-  [6, mmproto.ChallengeSolvedResponse],
-  [9, mmproto.GetBlobUploadURLRequest],
-  [0x0a, mmproto.GetBlobUploadURLResponse],
-  [0x0d, mmproto.EventWriteRequest],
-  [0x0e, mmproto.EventWriteResponse],
-  [0x0f, mmproto.SyncStatusRequest],
-  [0x10, mmproto.SyncStatusResponse],
-  [0x11, mmproto.EventPushRequest],
-  [0x12, mmproto.EventPushResponse],
-  [0x13, mmproto.CommitCartRequest],
-  [0x14, mmproto.CommitCartResponse],
+  [3, mmproto.EventWriteRequest],
+  [4, mmproto.EventWriteResponse],
+  [5, mmproto.SyncStatusRequest],
+  [6, mmproto.SyncStatusResponse],
+  [7, mmproto.EventPushRequest],
+  [8, mmproto.EventPushResponse],
+
+  [20, mmproto.AuthenticateRequest],
+  [21, mmproto.AuthenticateResponse],
+  [22, mmproto.ChallengeSolvedRequest],
+  [23, mmproto.ChallengeSolvedResponse],
+
+  [30, mmproto.GetBlobUploadURLRequest],
+  [31, mmproto.GetBlobUploadURLResponse],
+  [32, mmproto.CommitItemsToOrderRequest],
+  [33, mmproto.CommitItemsToOrderResponse],
 ]);

@@ -40,9 +40,6 @@ import {
 } from "./utils";
 import * as abi from "@massmarket/contracts";
 
-export const ManifestField = mmproto.UpdateManifest.ManifestField;
-const UpdateItemField = mmproto.UpdateItem.ItemField;
-
 export type WalletClientWithAccount = WalletClient<
   Transport,
   Chain,
@@ -59,7 +56,20 @@ export type ClientArgs = {
   storeId: `0x${string}` | undefined;
 };
 
+type UpdateStoreManifestOpts = {
+  domain?: string;
+  publishedTagId?: `0x${string}`;
+  addERC20?: `0x${string}`;
+  removeERC20?: `0x${string}`;
+}
+
+type UpdateItemOpts = {
+  price?: string;
+  metadata: any // TODO: actually should be an object...
+}
+
 export class RelayClient extends EventEmitter {
+
   connection!: WebSocket;
   private chain;
   blockchain: BlockchainClient;
@@ -67,8 +77,8 @@ export class RelayClient extends EventEmitter {
   private endpoint;
   private useTLS: boolean;
   private DOMAIN_SEPARATOR;
-  private firstEvent: mmproto.EventPushResponse | null;
   keyCardEnrolled: boolean;
+
   constructor({
     relayEndpoint,
     keyCardWallet,
@@ -88,7 +98,6 @@ export class RelayClient extends EventEmitter {
       chainId: this.chain.id,
       verifyingContract: abi.addresses.StoreReg as Address,
     };
-    this.firstEvent = null;
     this.keyCardEnrolled = keyCardEnrolled;
   }
 
@@ -161,46 +170,7 @@ export class RelayClient extends EventEmitter {
     }
   }
 
-  createEventStream() {
-    let requestId: Uint8Array | null = null;
-    const parentInstance = this;
-    let enqueueFn: any;
-    const enqueueWrapperFn = (controller: any) => {
-      return (enqueueFn = (event: any) => {
-        requestId = event.requestId;
-        controller.enqueue(event);
-      });
-    };
-
-    return new ReadableStream(
-      {
-        start(controller) {
-          try {
-            if (parentInstance.firstEvent) {
-              requestId = parentInstance.firstEvent.requestId;
-              controller.enqueue(parentInstance.firstEvent);
-              parentInstance.firstEvent = null;
-            }
-            parentInstance.on("event", enqueueWrapperFn(controller));
-          } catch (error) {
-            console.log({ error });
-          }
-        },
-        pull() {
-          if (requestId) {
-            parentInstance.encodeAndSend(mmproto.EventPushResponse, {
-              requestId,
-            });
-          }
-        },
-        cancel() {
-          parentInstance.removeListener("event", enqueueFn);
-        },
-      },
-      { highWaterMark: 0 },
-    );
-  }
-  // TODO: there are a lot of assumptions backed in here that should be commented
+  // TODO: there are a lot of assumptions baked in here that should be commented
   // for eG why isnt this used in enrollKeycard
   #signTypedDataMessage(
     types: TypedData,
@@ -217,7 +187,7 @@ export class RelayClient extends EventEmitter {
     });
   }
 
-  // TODO: there are a lot of assumptions backed in here that should be commented
+  // TODO: there are a lot of assumptions baked in here that should be commented
   async #signAndSendEvent(
     types: any,
     message: Record<
@@ -227,14 +197,51 @@ export class RelayClient extends EventEmitter {
   ) {
     const sig = await this.#signTypedDataMessage(types, message);
     let key = convertFirstCharToLowerCase(Object.keys(types)[0]);
-    const eventRequest = {
-      event: {
-        signature: hexToBytes(sig),
-        [key]: message,
-      },
+    const event = {
+      signature: hexToBytes(sig),
+      [key]: message,
     };
-    return this.encodeAndSend(mmproto.EventWriteRequest, eventRequest);
+    console.log(event)
+    const write = {
+      event: {
+        type_url: "type.googleapis.com/market.mass.StoreEvent",
+        value: mmproto.StoreEvent.encode(event).finish(),
+      }
+    }
+    return this.encodeAndSend(mmproto.EventWriteRequest, write);
   }
+
+  createEventStream() {
+    let requestId: Uint8Array | null = null;
+    const parentInstance = this;
+    let enqueueFn: any;
+    const enqueueWrapperFn = (controller: any) => {
+      return (enqueueFn = (event: any) => {
+        requestId = event.requestId;
+        controller.enqueue(event);
+      });
+    };
+    return new ReadableStream(
+      {
+        start(controller) {
+          parentInstance.on("event", enqueueWrapperFn(controller));
+        },
+        pull() {
+          if (requestId) {
+            parentInstance.encodeAndSend(mmproto.EventPushResponse, {
+              requestId,
+            });
+            requestId = null;
+          }
+        },
+        cancel() {
+          parentInstance.removeListener("event", enqueueFn);
+        },
+      },
+      { highWaterMark: 0 },
+    );
+  }
+
   async #authenticate() {
     const response = (await this.encodeAndSend(mmproto.AuthenticateRequest, {
       publicKey: toBytes(this.keyCardWallet.publicKey).slice(1),
@@ -249,6 +256,7 @@ export class RelayClient extends EventEmitter {
       signature: toBytes(sig),
     });
   }
+
   async connect(): Promise<
     void | Event | mmproto.ChallengeSolvedResponse | string
   > {
@@ -303,6 +311,7 @@ export class RelayClient extends EventEmitter {
     });
   }
 
+  // TODO: implement for other types
   async recoverSignedAddress(cartId: `0x${string}`, signature: `0x${string}`) {
     const types = {
       CreateCart: [
@@ -369,6 +378,11 @@ export class RelayClient extends EventEmitter {
       method: "POST",
       body: blob,
     });
+    if (ipfsHash.status !== 201) {
+      console.log(ipfsHash)
+      throw new Error(`unexpected status: ${ipfsHash.statusText} (${ipfsHash.status})`)
+      return
+    }
     return ipfsHash.json();
   }
 
@@ -414,6 +428,63 @@ export class RelayClient extends EventEmitter {
     ) as Promise<mmproto.EventWriteResponse>;
   }
 
+  async updateStoreManifest(update: UpdateStoreManifestOpts) {
+    await this.connect();
+
+    const types = [
+      {
+          name: "event_id",
+          type: "bytes32",
+      }
+    ];
+
+    let message = {
+      eventId: eventId(),
+    };
+
+    if (update.domain !== undefined) {
+      const field = "domain"
+      types.push({
+        name: field,
+        type: "string",
+      })
+      message[field] = update.domain
+    }
+    if (update.publishedTagId !== undefined) {
+      types.push({
+        name: "published_tag_id",
+        type: "bytes32",
+      })
+      message["publishedTagId"] = hexToBytes(update.publishedTagId)
+    }
+    if (update.addERC20 !== undefined) {
+      types.push({
+        name: "add_erc20_addr",
+        type: "address",
+      })
+      message["addErc20Addr"] = hexToBytes(update.addERC20)
+    }
+    if (update.removeERC20 !== undefined) {
+      types.push({
+        name: "remove_erc20_addr",
+        type: "address",
+      })
+      message["removeErc20Addr"] = hexToBytes(update.removeERC20)
+    }
+    console.log("Update:")
+    console.log(update)
+    console.log(`Types:`)
+    console.log(types)
+    console.log(`Message:`)
+    console.log(message)
+    console.log("============")
+
+    return this.#signAndSendEvent({
+      UpdateStoreManifest: types
+    }, message);
+  }
+
+
   async createItem(
     price: string,
     metadata: { name: string; description: string; image: string },
@@ -422,7 +493,7 @@ export class RelayClient extends EventEmitter {
     const jsonString = JSON.stringify(metadata);
     const encoder = new TextEncoder();
     const utf8Encoded = encoder.encode(jsonString);
-    const iid = eventId();
+    const iid = eventId()
     const item = {
       eventId: iid,
       price: price,
@@ -450,119 +521,41 @@ export class RelayClient extends EventEmitter {
 
   async updateItem(
     itemId: `0x${string}`,
-    field: mmproto.UpdateItem.ItemField,
-    value: any,
+    update: UpdateItemOpts,
   ) {
     await this.connect();
 
-    const fieldMap = new Map([
-      [UpdateItemField.ITEM_FIELD_PRICE, { name: "price", type: "string" }],
-      [
-        UpdateItemField.ITEM_FIELD_METADATA,
-        { name: "metadata", type: "bytes" },
-      ],
-    ]);
-
-    const fieldType = fieldMap.get(field)?.name as string;
-    const getValue = () => {
-      if (field === UpdateItemField.ITEM_FIELD_METADATA) {
-        const jsonString = JSON.stringify(value);
-        const encoder = new TextEncoder();
-        const utf8Encoded = encoder.encode(jsonString);
-        return utf8Encoded;
-      } else {
-        return value;
-      }
-    };
-    const update = {
+    const message = {
       eventId: eventId(),
       itemId: hexToBytes(itemId),
-      field: field as number,
-      [fieldType]: getValue(),
     };
 
-    const types = {
-      UpdateItem: [
-        {
-          name: "event_id",
-          type: "bytes32",
-        },
-        {
-          name: "item_id",
-          type: "bytes32",
-        },
-        {
-          name: "field",
-          type: "int256",
-        },
-        fieldMap.get(field),
-      ],
-    };
+    const types = [
+      {
+        name: "event_id",
+        type: "bytes32",
+      },
+      {
+        name: "item_id",
+        type: "bytes32",
+      }
+    ]
 
-    return this.#signAndSendEvent(types, update);
-  }
+    if (update.price !== undefined) {
+      types.push({ name: "price", type: "string" })
+      message["price"] = update.price
+    }
+    if (update.metadata !== undefined) {
+      const jsonString = JSON.stringify(update.metadata);
+      const encoder = new TextEncoder();
+      const utf8Encoded = encoder.encode(jsonString);
+      types.push({ name: "metadata", type: "bytes" })
+      message["metadata"] = utf8Encoded
+    }
 
-  async updateManifest(
-    field: mmproto.UpdateManifest.ManifestField,
-    value: string,
-  ) {
-    await this.connect();
-    const fieldMap = new Map([
-      [
-        ManifestField.MANIFEST_FIELD_DOMAIN,
-        {
-          name: "string",
-          type: "string",
-        },
-      ],
-      [
-        ManifestField.MANIFEST_FIELD_PUBLISHED_TAG,
-        {
-          name: "tag_id",
-          type: "bytes32",
-        },
-      ],
-      [
-        ManifestField.MANIFEST_FIELD_ADD_ERC20,
-        {
-          name: "erc20_addr",
-          type: "address",
-        },
-      ],
-      [
-        ManifestField.MANIFEST_FIELD_REMOVE_ERC20,
-        {
-          name: "erc20_addr",
-          type: "address",
-        },
-      ],
-    ]);
-
-    const fieldType = fieldMap.get(field)?.name as string;
-    const manifest = {
-      eventId: eventId(),
-      field: field as number,
-      [snakeToCamel(fieldType)]:
-        field === ManifestField.MANIFEST_FIELD_DOMAIN
-          ? value
-          : hexToBytes(value as `0x${string}`),
-    };
-
-    const types = {
-      UpdateManifest: [
-        {
-          name: "event_id",
-          type: "bytes32",
-        },
-        {
-          name: "field",
-          type: "int256",
-        },
-        fieldMap.get(field),
-      ],
-    };
-
-    return this.#signAndSendEvent(types, manifest);
+    return this.#signAndSendEvent({
+      UpdateItem: types
+    }, message);
   }
 
   async createTag(name: string) {
@@ -594,11 +587,11 @@ export class RelayClient extends EventEmitter {
     const tag = {
       eventId: eventId(),
       tagId: hexToBytes(tagId),
-      itemId: hexToBytes(itemId),
+      addItemId: hexToBytes(itemId),
     };
 
     const types = {
-      AddToTag: [
+      UpdateTag: [
         {
           name: "event_id",
           type: "bytes32",
@@ -608,7 +601,7 @@ export class RelayClient extends EventEmitter {
           type: "bytes32",
         },
         {
-          name: "item_id",
+          name: "add_item_id",
           type: "bytes32",
         },
       ],
@@ -621,11 +614,11 @@ export class RelayClient extends EventEmitter {
     const tag = {
       eventId: eventId(),
       tagId: hexToBytes(tagId),
-      itemId: hexToBytes(itemId),
+      removeItemId: hexToBytes(itemId),
     };
 
     const types = {
-      RemoveFromTag: [
+      UpdateTag: [
         {
           name: "event_id",
           type: "bytes32",
@@ -635,13 +628,14 @@ export class RelayClient extends EventEmitter {
           type: "bytes32",
         },
         {
-          name: "item_id",
+          name: "remove_item_id",
           type: "bytes32",
         },
       ],
     };
     return this.#signAndSendEvent(types, tag);
   }
+
   async abandonCart(cartId: `0x${string}`) {
     await this.connect();
 
