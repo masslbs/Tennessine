@@ -224,11 +224,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1717399147,
-        "narHash": "sha256-eCWaE/q1VItpFAxxLVt171MdtDcjEnwi6QB/yuF73JU=",
+        "lastModified": 1717868076,
+        "narHash": "sha256-c83Y9t815Wa34khrux81j8K8ET94ESmCuwORSKm2bQY=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "4a4ecb0ab415c9fccfb005567a215e6a9564cdf5",
+        "rev": "cd18e2ae9ab8e2a0a8d715b60c91b54c0ac35ff9",
         "type": "github"
       },
       "original": {
@@ -262,11 +262,11 @@
         "nixpkgs-stable": "nixpkgs-stable"
       },
       "locked": {
-        "lastModified": 1716213921,
-        "narHash": "sha256-xrsYFST8ij4QWaV6HEokCUNIZLjjLP1bYC60K8XiBVA=",
+        "lastModified": 1717664902,
+        "narHash": "sha256-7XfBuLULizXjXfBYy/VV+SpYMHreNRHk9nKMsm1bgb4=",
         "owner": "cachix",
         "repo": "pre-commit-hooks.nix",
-        "rev": "0e8fcc54b842ad8428c9e705cb5994eaf05c26a0",
+        "rev": "cc4d466cb1254af050ff7bdf47f6d404a7c646d1",
         "type": "github"
       },
       "original": {
@@ -287,16 +287,16 @@
     "schema": {
       "flake": false,
       "locked": {
-        "lastModified": 1717519045,
-        "narHash": "sha256-EwPhdBnDdDggFryPczb+RIwTvWhGdS+GttLBjVo0W7U=",
+        "lastModified": 1718013206,
+        "narHash": "sha256-ruNFbHd1S8LlomG8X3s4hgHyNpsuSuPxZ1Ai0rG5FQA=",
         "owner": "masslbs",
         "repo": "network-schema",
-        "rev": "2df596c6b0e474c9505e2457b7f33bc911fdf289",
+        "rev": "be77b219de57fa5a37e58e8b2fa8c90d9de4d3a8",
         "type": "github"
       },
       "original": {
         "owner": "masslbs",
-        "ref": "payments-v2-intergration",
+        "ref": "wip/v2",
         "repo": "network-schema",
         "type": "github"
       }
