@@ -8,7 +8,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Sort from "../common/components/Sort";
 import Search from "../common/components/Search";
-import { SortOption, IProduct } from "@/types";
+import { SortOption, IProduct, TagId } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import Link from "next/link";
 import withAuth from "../components/withAuth";
@@ -29,6 +29,7 @@ const Products = () => {
   const [arrToRender, setArrToRender] = useState<IProduct[] | null>(null);
   const [resultCount, setResultCount] = useState<number>(products.size);
   const [showTags, setShowTags] = useState<boolean>(false);
+  const [tagIdToFilter, setTagIdToFilter] = useState<null | TagId>(null);
 
   const findRemoveTagId = () => {
     for (const [key, value] of allTags.entries()) {
@@ -52,12 +53,15 @@ const Products = () => {
         item.tagIds.includes(removeTagId)
       ) {
         return false;
+      } else if (tagIdToFilter && item.tagIds?.includes(tagIdToFilter)) {
+        return false;
       }
       return true;
     });
+
     arrayToRender.length && setArrToRender(arrayToRender);
     setResultCount(arrayToRender.length);
-  }, [sortOption, products]);
+  }, [sortOption, products, tagIdToFilter]);
 
   const viewProductDetails = (item: IProduct) => {
     router.push(
@@ -149,12 +153,12 @@ const Products = () => {
   return (
     <main className=" bg-gray-100 pt-under-nav h-screen">
       <SuccessMessage show={showSuccessMsg} onClose={() => setMsg(false)} />
-      {/* <Sort
+      <Sort
         isOpen={sortOpened}
         close={() => setSortOpened(false)}
         sortOption={sortOption}
         setCheck={setCheck}
-      /> */}
+      />
       <section className="bg-gray-100 pb-6">
         <section className="m-4">
           <div className="flex pb-4">
@@ -192,7 +196,9 @@ const Products = () => {
             </div>
           </div> */}
           <div className="flex gap-2 py-4 text-sm">
-            <SecondaryButton>Filters</SecondaryButton>
+            <SecondaryButton onClick={() => setSortOpened(true)}>
+              Filters
+            </SecondaryButton>
             <SecondaryButton
               onClick={() => {
                 setShowTags(!showTags);
