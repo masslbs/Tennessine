@@ -15,6 +15,7 @@ import withAuth from "../components/withAuth";
 import SuccessMessage from "../common/components/SuccessMessage";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createQueryString } from "@/app/utils";
+import SecondaryButton from "../common/components/SecondaryButton";
 
 const Products = () => {
   const searchParams = useSearchParams();
@@ -27,6 +28,7 @@ const Products = () => {
   const { products, publishedTagId, allTags } = useStoreContext();
   const [arrToRender, setArrToRender] = useState<IProduct[] | null>(null);
   const [resultCount, setResultCount] = useState<number>(products.size);
+  const [showTags, setShowTags] = useState<boolean>(false);
 
   const findRemoveTagId = () => {
     for (const [key, value] of allTags.entries()) {
@@ -147,12 +149,12 @@ const Products = () => {
   return (
     <main className=" bg-gray-100 pt-under-nav h-screen">
       <SuccessMessage show={showSuccessMsg} onClose={() => setMsg(false)} />
-      <Sort
+      {/* <Sort
         isOpen={sortOpened}
         close={() => setSortOpened(false)}
         sortOption={sortOption}
         setCheck={setCheck}
-      />
+      /> */}
       <section className="bg-gray-100 pb-6">
         <section className="m-4">
           <div className="flex pb-4">
@@ -167,7 +169,7 @@ const Products = () => {
             setSearchPhrase={setSearchPhrase}
             searchPhrase={searchPhrase}
           />
-          <div className="flex gap-2 py-4 text-sm">
+          {/* <div className="flex gap-2 py-4 text-sm">
             <Image
               src="/assets/products.svg"
               width={19}
@@ -188,7 +190,38 @@ const Products = () => {
                 alt="down-icon"
               />
             </div>
+          </div> */}
+          <div className="flex gap-2 py-4 text-sm">
+            <SecondaryButton>Filters</SecondaryButton>
+            <SecondaryButton
+              onClick={() => {
+                setShowTags(!showTags);
+              }}
+            >
+              <div className="items-center flex gap-3">
+                Tags
+                <Image
+                  src="/assets/tags.svg"
+                  width={20}
+                  height={12}
+                  alt="tags"
+                />
+              </div>
+            </SecondaryButton>
           </div>
+          {showTags ? (
+            <div className="inline-flex gap-3">
+              <button className="bg-tags-blue text-white text-sm rounded p-2">
+                Stickers
+              </button>
+              <button className="bg-tags-blue text-white text-sm rounded p-2">
+                EthCC Exclusives
+              </button>
+              <button className="bg-tags-blue text-white  text-sm rounded p-2">
+                Offers
+              </button>
+            </div>
+          ) : null}
           <section className="flex flex-col gap-4 mt-4">
             {renderProducts()}
           </section>

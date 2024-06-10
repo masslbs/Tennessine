@@ -27,6 +27,7 @@ const config: Config = {
         "primary-button": "#FCD062",
         "remove-button": "#F04F62",
         "primary-gray": "#777777",
+        "tags-blue": "#5794F7",
       },
 
       fontFamily: {
