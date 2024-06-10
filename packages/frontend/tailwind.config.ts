@@ -24,7 +24,7 @@ const config: Config = {
       colors: {
         "button-gradient-start": "#57229F",
         "button-gradient-end": "#5A89E3",
-        "primary-button": "#0D3481",
+        "primary-button": "#FCD062",
         "remove-button": "#F04F62",
       },
 
