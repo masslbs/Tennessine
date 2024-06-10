@@ -5,7 +5,7 @@
 import React, { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { MyContext } from "@/context/MyContext";
-import { MockClient } from "@massmarket/client/test/mockClient";
+import { MockClient } from "../test/mockClient";
 import { StoreContextProvider, useStoreContext } from "@/context/StoreContext";
 import {
   render,

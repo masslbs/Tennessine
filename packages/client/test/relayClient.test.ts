@@ -46,9 +46,9 @@ const keyCard = new Uint8Array(32);
 beforeEach(async () => {
   crypto.getRandomValues(keyCard);
   relayClient = new RelayClient({
+    storeId,
     relayEndpoint,
     keyCardWallet: privateKeyToAccount(bytesToHex(keyCard)),
-    storeId,
     chain: hardhat,
     keyCardEnrolled: false,
   });
@@ -75,7 +75,11 @@ describe("RelayClient", async () => {
   });
 
   test("should create a store", async () => {
-    const result = await relayClient.createStore(storeId, wallet);
+    const result = await relayClient.blockchain.createStore(wallet);
+    const transaction = await publicClient.waitForTransactionReceipt({
+      hash: result,
+    });
+    console.log(transaction);
     expect(result).not.toBeNull();
   });
 
@@ -85,7 +89,7 @@ describe("RelayClient", async () => {
     // acc2 is the "long term wallet" of the new user
     // if we knew that before hand, we could just call registerUser(acc2.address, Clerk)
 
-    const sk = await relayClient.createInviteSecret(wallet);
+    const sk = await relayClient.blockchain.createInviteSecret(wallet);
     const acc2 = privateKeyToAccount(sk);
     await wallet.sendTransaction({
       account,
@@ -102,12 +106,15 @@ describe("RelayClient", async () => {
     const relayClient2 = new RelayClient({
       relayEndpoint,
       keyCardWallet: privateKeyToAccount(sk),
-      storeId: storeId as `0x${string}`,
       chain: hardhat,
       keyCardEnrolled: false,
+      storeId,
     });
 
-    const hash = await relayClient2.redeemInviteSecret(sk, client2Wallet);
+    const hash = await relayClient.blockchain.redeemInviteSecret(
+      sk,
+      client2Wallet,
+    );
     // wait for the transaction to be included in the blockchain
     const transaction = await publicClient.waitForTransactionReceipt({
       hash,
@@ -287,7 +294,7 @@ describe("user behaviour", () => {
     let relayClient2: RelayClient;
     let sk;
     beforeEach(async () => {
-      sk = await relayClient.createInviteSecret(wallet);
+      sk = await relayClient.blockchain.createInviteSecret(wallet);
       const acc2 = privateKeyToAccount(sk);
       await wallet.sendTransaction({
         account,
@@ -303,11 +310,11 @@ describe("user behaviour", () => {
       relayClient2 = new RelayClient({
         relayEndpoint,
         keyCardWallet: privateKeyToAccount(sk),
-        storeId: storeId as `0x${string}`,
         chain: hardhat,
         keyCardEnrolled: false,
+        storeId,
       });
-      await relayClient2.redeemInviteSecret(sk, client2Wallet);
+      await relayClient.blockchain.redeemInviteSecret(sk, client2Wallet);
       console.log("client2 redeemed invite");
       await relayClient2.enrollKeycard(client2Wallet);
       console.log("client2 enrolled keyCard");

@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: MIT
 
 import { WebSocket } from "isows";
-
 import {
   bytesToHex,
   hexToBytes,
@@ -16,7 +15,7 @@ import {
   type Chain,
 } from "viem";
 
-import { privateKeyToAccount, PrivateKeyAccount } from "viem/accounts";
+import { PrivateKeyAccount } from "viem/accounts";
 import { hardhat } from "viem/chains";
 import type { TypedData } from "abitype";
 import { EventEmitter } from "events";
@@ -29,6 +28,16 @@ import {
   MESSAGE_TYPES,
   MESSAGE_PREFIXES,
 } from "./protobuf/constants";
+
+import { BlockchainClient } from "./blockchainClient";
+import {
+  formatMessageForSigning,
+  requestId,
+  eventId,
+  hexToBase64,
+  convertFirstCharToLowerCase,
+  snakeToCamel,
+} from "./utils";
 import * as abi from "@massmarket/contracts";
 
 export const ManifestField = mmproto.UpdateManifest.ManifestField;
@@ -45,81 +54,34 @@ export type WalletClientWithAccount = WalletClient<
 export type ClientArgs = {
   relayEndpoint: string;
   keyCardWallet: PrivateKeyAccount;
-  storeId: `0x${string}`;
   chain: Chain;
   keyCardEnrolled: boolean;
+  storeId: `0x${string}` | undefined;
 };
-
-function randomBytes(n: number) {
-  const b = new Uint8Array(n);
-  crypto.getRandomValues(b);
-  return b;
-}
-
-function convertFirstCharToLowerCase(str: string) {
-  return str.charAt(0).toLowerCase() + str.slice(1);
-}
-
-function snakeToCamel(str: string) {
-  return str.replace(/_([a-z])/g, (match, letter) => `${letter.toUpperCase()}`);
-}
-
-function camelToSnake(str: string) {
-  return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
-}
-
-function formatArray(array: Uint8Array[] | number[]) {
-  if (typeof array[0] === "number") {
-    return array.map((num) => BigInt(num as number));
-  } else {
-    return array.map((m) => bytesToHex(m as Uint8Array));
-  }
-}
-
-// TODO: there are a lot of assumptions backed in here that should be commented
-function formatMessageForSigning(
-  obj: Record<string, Uint8Array | string | number | Uint8Array[] | number[]>,
-) {
-  const snakeCase: Record<
-    string,
-    string | `0x${string}`[] | BigInt | BigInt[]
-  > = {};
-  for (const [key, value] of Object.entries(obj)) {
-    // TODO: Refactor this. Nested ternary operators are hard to read and a nightmare to change.
-    snakeCase[camelToSnake(key)] = Array.isArray(value)
-      ? formatArray(value)
-      : typeof value === "string"
-        ? value
-        : typeof value === "number"
-          ? BigInt(value)
-          : bytesToHex(value);
-  }
-  return snakeCase;
-}
 
 export class RelayClient extends EventEmitter {
   connection!: WebSocket;
-  storeId!: `0x${string}`;
-  chain;
-  keyCardWallet;
-  endpoint;
-  useTLS: boolean;
-  DOMAIN_SEPARATOR;
-  firstEvent: mmproto.EventPushResponse | null;
+  private chain;
+  blockchain: BlockchainClient;
+  private keyCardWallet;
+  private endpoint;
+  private useTLS: boolean;
+  private DOMAIN_SEPARATOR;
+  private firstEvent: mmproto.EventPushResponse | null;
   keyCardEnrolled: boolean;
   constructor({
     relayEndpoint,
     keyCardWallet,
     chain = hardhat,
-    storeId,
     keyCardEnrolled,
+    storeId,
   }: ClientArgs) {
     super();
+    this.blockchain = new BlockchainClient(storeId);
     this.keyCardWallet = keyCardWallet;
     this.endpoint = relayEndpoint;
     this.useTLS = relayEndpoint.startsWith("wss");
     this.chain = chain;
-    this.storeId = storeId;
     this.DOMAIN_SEPARATOR = {
       name: "MassMarket",
       version: "1",
@@ -146,7 +108,7 @@ export class RelayClient extends EventEmitter {
     object: PBObject = {},
   ): Promise<PBInstance> {
     if (!object.requestId) {
-      object.requestId = RelayClient.requestId();
+      object.requestId = requestId();
     }
     const id = object.requestId;
     const payload = encoder.encode(object).finish();
@@ -381,8 +343,8 @@ export class RelayClient extends EventEmitter {
     });
     const body = JSON.stringify({
       key_card: Buffer.from(publicKey).toString("base64"),
-      signature: RelayClient.hexToBase64(signature),
-      store_token_id: RelayClient.hexToBase64(this.storeId),
+      signature: hexToBase64(signature),
+      store_token_id: hexToBase64(this.blockchain.storeId),
     });
     const endpointURL = new URL(this.endpoint);
     endpointURL.protocol = this.useTLS ? "https" : "http";
@@ -396,58 +358,6 @@ export class RelayClient extends EventEmitter {
       this.keyCardEnrolled = true;
     }
     return response;
-  }
-
-  async createStore(
-    id: `0x${string}` = bytesToHex(RelayClient.eventId()),
-    wallet: WalletClientWithAccount,
-  ) {
-    const r = await wallet.writeContract({
-      address: abi.addresses.StoreReg as Address,
-      abi: abi.StoreReg,
-      functionName: "mint",
-      args: [BigInt(id), wallet.account.address],
-    });
-    this.storeId = id;
-    return r;
-  }
-
-  async createInviteSecret(wallet: WalletClientWithAccount) {
-    if (!this.storeId)
-      throw new Error("A store ID is needed before creating an invite");
-    const privateKey = bytesToHex(randomBytes(32)) as `0x${string}`;
-    const token = privateKeyToAccount(privateKey);
-    // Save the public key onchain
-    await wallet.writeContract({
-      address: abi.addresses.StoreReg as Address,
-      abi: abi.StoreReg,
-      functionName: "publishInviteVerifier",
-      args: [BigInt(this.storeId), token.address],
-    });
-    return privateKey;
-  }
-
-  async redeemInviteSecret(
-    secret: `0x${string}`,
-    wallet: WalletClientWithAccount,
-  ) {
-    if (!this.storeId)
-      throw new Error("A store ID is need before creating an invite");
-    const message = "enrolling:" + wallet.account.address.toLowerCase();
-    const tokenAccount = privateKeyToAccount(secret);
-    const sig = await tokenAccount.signMessage({
-      message,
-    });
-    const sigBytes = hexToBytes(sig);
-    const v = sigBytes[64];
-    const r = bytesToHex(sigBytes.slice(0, 32));
-    const s = bytesToHex(sigBytes.slice(32, 64));
-    return wallet.writeContract({
-      address: abi.addresses.StoreReg as Address,
-      abi: abi.StoreReg,
-      functionName: "redeemInvite",
-      args: [BigInt(this.storeId), v, r, s, wallet.account.address],
-    });
   }
 
   async uploadBlob(blob: FormData) {
@@ -466,13 +376,13 @@ export class RelayClient extends EventEmitter {
     publishedTagId: `0x${string}` | null = null,
   ): Promise<mmproto.EventWriteResponse> {
     await this.connect();
-    let pId = RelayClient.eventId();
+    let pId = eventId();
     if (publishedTagId) {
       pId = hexToBytes(publishedTagId);
     }
     const storeManifest = {
-      eventId: RelayClient.eventId(),
-      storeTokenId: hexToBytes(this.storeId),
+      eventId: eventId(),
+      storeTokenId: hexToBytes(this.blockchain.storeId),
       domain: "socks.mass.market",
       publishedTagId: pId,
     };
@@ -512,7 +422,7 @@ export class RelayClient extends EventEmitter {
     const jsonString = JSON.stringify(metadata);
     const encoder = new TextEncoder();
     const utf8Encoded = encoder.encode(jsonString);
-    const iid = RelayClient.eventId();
+    const iid = eventId();
     const item = {
       eventId: iid,
       price: price,
@@ -565,7 +475,7 @@ export class RelayClient extends EventEmitter {
       }
     };
     const update = {
-      eventId: RelayClient.eventId(),
+      eventId: eventId(),
       itemId: hexToBytes(itemId),
       field: field as number,
       [fieldType]: getValue(),
@@ -630,7 +540,7 @@ export class RelayClient extends EventEmitter {
 
     const fieldType = fieldMap.get(field)?.name as string;
     const manifest = {
-      eventId: RelayClient.eventId(),
+      eventId: eventId(),
       field: field as number,
       [snakeToCamel(fieldType)]:
         field === ManifestField.MANIFEST_FIELD_DOMAIN
@@ -657,7 +567,7 @@ export class RelayClient extends EventEmitter {
 
   async createTag(name: string) {
     await this.connect();
-    const tagId = RelayClient.eventId();
+    const tagId = eventId();
     const tag = {
       eventId: tagId,
       name: name,
@@ -682,7 +592,7 @@ export class RelayClient extends EventEmitter {
   async addItemToTag(tagId: `0x${string}`, itemId: `0x${string}`) {
     await this.connect();
     const tag = {
-      eventId: RelayClient.eventId(),
+      eventId: eventId(),
       tagId: hexToBytes(tagId),
       itemId: hexToBytes(itemId),
     };
@@ -709,7 +619,7 @@ export class RelayClient extends EventEmitter {
   async removeFromTag(tagId: `0x${string}`, itemId: `0x${string}`) {
     await this.connect();
     const tag = {
-      eventId: RelayClient.eventId(),
+      eventId: eventId(),
       tagId: hexToBytes(tagId),
       itemId: hexToBytes(itemId),
     };
@@ -736,7 +646,7 @@ export class RelayClient extends EventEmitter {
     await this.connect();
 
     const cart = {
-      eventId: RelayClient.eventId(),
+      eventId: eventId(),
       cartId: hexToBytes(cartId),
     };
 
@@ -755,7 +665,7 @@ export class RelayClient extends EventEmitter {
 
   async createCart() {
     await this.connect();
-    const reqId = RelayClient.eventId();
+    const reqId = eventId();
     const cart = {
       eventId: reqId,
     };
@@ -781,7 +691,7 @@ export class RelayClient extends EventEmitter {
     await this.connect();
 
     const cart = {
-      eventId: RelayClient.eventId(),
+      eventId: eventId(),
       cartId: hexToBytes(cartId),
       itemId: hexToBytes(itemId),
       quantity,
@@ -842,7 +752,7 @@ export class RelayClient extends EventEmitter {
   async changeStock(itemIds: `0x${string}`[], diffs: number[]) {
     await this.connect();
     const stock = {
-      eventId: RelayClient.eventId(),
+      eventId: eventId(),
       itemIds: itemIds.map((d) => hexToBytes(d)),
       diffs: diffs,
     };
@@ -864,26 +774,5 @@ export class RelayClient extends EventEmitter {
       ],
     };
     return this.#signAndSendEvent(types, stock);
-  }
-
-  getRandomStoreId() {
-    return bytesToHex(randomBytes(32));
-  }
-
-  static generatePk() {
-    return bytesToHex(randomBytes(32));
-  }
-
-  static hexToBase64(hex: string) {
-    const u8 = new Uint8Array(toBytes(hex));
-    return Buffer.from(u8).toString("base64");
-  }
-
-  static requestId() {
-    return randomBytes(16);
-  }
-
-  static eventId() {
-    return randomBytes(32);
   }
 }

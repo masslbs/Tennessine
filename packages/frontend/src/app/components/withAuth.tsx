@@ -12,8 +12,8 @@ interface PageProps {
   searchParams: { [key: string]: string | string[] | undefined };
 }
 
-const withAuth = (WrappedComponent: FunctionComponent<PageProps>) => {
-  return (props: PageProps) => {
+export default (WrappedComponent: FunctionComponent<PageProps>) => {
+  return function WithAuth(props: PageProps) {
     const router = useRouter();
     const { isAuthenticated } = useAuth();
     if (typeof window == "undefined") {
@@ -27,5 +27,3 @@ const withAuth = (WrappedComponent: FunctionComponent<PageProps>) => {
     }
   };
 };
-
-export default withAuth;
