@@ -52,10 +52,7 @@ export type IRelayWriteResponse = {
   // TODO: should be mmproto.EventWriteResponse but can't import anymore somehow
 };
 type blockchain = {
-  createStore: (
-    storeId: `0x${string}`,
-    wallet: WalletClientWithAccount,
-  ) => Promise<`0x${string}`>;
+  createStore: (wallet: WalletClientWithAccount) => Promise<`0x${string}`>;
 };
 // TODO: should move this to client package and use it in tests to make sure it's in sync
 export type IRelayClient = EventEmitter & {
