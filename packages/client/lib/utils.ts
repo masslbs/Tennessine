@@ -50,8 +50,13 @@ export function formatMessageForSigning(
       return value
     } else if (typeof value === "number") {
       return BigInt(value)
-    } else {
+    } else if (value instanceof Uint8Array) {
       return bytesToHex(value)
+    } else if (typeof value === "object") {
+      return formatMessageForSigning(value)
+    } else {
+      console.warn(value)
+      throw new Error(`unhandled type in signing conversion`)
     }
   }
   for (const [key, value] of Object.entries(obj)) {

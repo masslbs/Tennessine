@@ -237,49 +237,45 @@ describe("user behaviour", () => {
     });
 
     describe("checkout process", () => {
-      let cartId: `0x${string}`;
+      let orderId: `0x${string}`;
       beforeEach(async () => {
-        cartId = await relayClient.createCart();
+        orderId = await relayClient.createOrder();
         // increase stock
         await relayClient.changeStock([itemId], [10]);
       });
 
       test("single item checkout", { timeout: 10000 }, async () => {
-        await relayClient.changeCart(cartId, itemId, 1);
-        const checkout = await relayClient.commitCart(cartId);
+        await relayClient.changeOrder(orderId, itemId, 1);
+        const checkout = await relayClient.commitOrder(orderId);
         expect(checkout).not.toBeNull();
-        expect(checkout.cartFinalizedId).not.toBeNull();
+        expect(checkout.orderFinalizedId).not.toBeNull();
 
         const getStream = async () => {
           const stream = relayClient.createEventStream();
           // @ts-expect-error FIXME
-          for await (const evt of stream) {
-            for (const event of evt.events) {
-              if (event.cartFinalized) {
-                return bytesToHex(event.cartFinalized!.cartId!);
-              }
+          for await (const event of stream) {
+            if (event.updateOrder?.itemsFinalized) {
+              return bytesToHex(event.updateOrder.orderId);
             }
-            break;
           }
           return null;
         };
         const receivedId = await getStream();
-        expect(receivedId).toEqual(cartId);
+        expect(receivedId).toEqual(orderId);
       });
 
       test("erc20 checkout", { timeout: 10000 }, async () => {
-        await relayClient.updateManifest(
-          ManifestField.MANIFEST_FIELD_ADD_ERC20,
-          abi.addresses.Eddies,
-        );
-        await relayClient.changeCart(cartId, itemId, 1);
+        await relayClient.updateStoreManifest({
+          addERC20: abi.addresses.Eddies
+        });
+        await relayClient.changeOrder(orderId, itemId, 1);
 
-        const checkout = await relayClient.commitCart(
-          cartId,
+        const checkout = await relayClient.commitOrder(
+          orderId,
           abi.addresses.Eddies as Address,
         );
         expect(checkout).not.toBeNull();
-        expect(checkout.cartFinalizedId).not.toBeNull();
+        expect(checkout.orderFinalizedId).not.toBeNull();
       });
     });
   });
@@ -318,19 +314,18 @@ describe("user behaviour", () => {
     });
 
     test("client2 successfully updates manifest", async () => {
-      await relayClient2.updateManifest(
-        ManifestField.MANIFEST_FIELD_DOMAIN,
-        "test2-test",
-      );
+      await relayClient2.updateStoreManifest({
+        domain: "test2-test",
+      });
       console.log("client2 updated manifest");
     });
 
-    test("client 2 receives streams from createEventStream", async () => {
+    test("client 2 receives events from createEventStream", async () => {
       const getStream = async () => {
         const stream = relayClient2.createEventStream();
         // @ts-expect-error FIXME
         for await (const evt of stream) {
-          return evt.events.length;
+          return 1
         }
       };
       const evtLength = await getStream();
