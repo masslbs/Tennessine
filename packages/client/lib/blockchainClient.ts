@@ -32,9 +32,6 @@ export class BlockchainClient {
     });
 
     return hash;
-    // return wallet.waitForTransactionReceipt({
-    //   hash,
-    // });
   }
 
   async createInviteSecret(wallet: WalletClientWithAccount) {

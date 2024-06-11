@@ -75,12 +75,13 @@ describe("RelayClient", async () => {
   });
 
   test("should create a store", async () => {
-    const result = await relayClient.blockchain.createStore(wallet);
-    const transaction = await publicClient.waitForTransactionReceipt({
-      hash: result,
+    const transactionHash = await relayClient.blockchain.createStore(wallet);
+    // wait for the transaction to be included in the blockchain
+    const receipt = await publicClient.waitForTransactionReceipt({
+      hash: transactionHash,
     });
-    console.log(transaction);
-    expect(result).not.toBeNull();
+    console.log(receipt);
+    expect(receipt.status).equals("success");
   });
 
   test("regstrationTokenRedeem", async () => {
