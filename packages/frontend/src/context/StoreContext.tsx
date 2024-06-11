@@ -11,14 +11,14 @@ import React, {
 } from "react";
 import { bytesToHex, hexToBytes } from "viem";
 
-import { IProduct, TagId, ItemId, CartId, IStatus, IRelay } from "@/types";
+import { IProduct, TagId, ItemId, OrderId, IStatus, IRelay } from "@/types";
 import { useMyContext } from "./MyContext";
 import {
   StoreContent,
   ItemField,
   ProductsMap,
   TagsMap,
-  CartsMap,
+  OrdersMap,
 } from "@/context/types";
 import {
   productReducer,
@@ -34,15 +34,15 @@ import {
 import { allTagsReducer, ADD_TAG, SET_ALL_TAGS } from "@/reducers/tagReducers";
 import { buildState } from "@/utils/buildState";
 import {
-  CLEAR_CART,
-  REMOVE_CART_ITEM,
-  UPDATE_CART_ITEM,
-  UPDATE_CART_STATUS,
-  SET_ALL_CART_ITEMS,
-  cartReducer,
-  CartState,
-} from "@/reducers/cartReducers";
-import { finalizedCartReducer } from "@/reducers/finalizedCartReducers";
+  CLEAR_ORDER,
+  REMOVE_ORDER_ITEM,
+  UPDATE_ORDER_ITEM,
+  UPDATE_ORDER_STATUS,
+  SET_ALL_ORDER_ITEMS,
+  orderReducer,
+  OrderState,
+} from "@/reducers/orderReducers";
+import { finalizedOrderReducer } from "@/reducers/finalizedOrderReducers";
 import { initialStoreContext } from "../context/initialLoadingState";
 import { dummyRelays } from "./dummyData";
 import { pubKeyReducer } from "@/reducers/KCPubKeysReducers";
@@ -55,14 +55,14 @@ export const StoreContext = createContext<StoreContent>(initialStoreContext);
 export const StoreContextProvider = (
   props: React.HTMLAttributes<HTMLDivElement>,
 ) => {
-  const [cartItems, setCartItems] = useReducer(cartReducer, new Map());
+  const [orderItems, setOrderItems] = useReducer(orderReducer, new Map());
   const [products, setProducts] = useReducer(productReducer, new Map());
   const [allTags, setAllTags] = useReducer(allTagsReducer, new Map());
-  const [cartId, setCartId] = useState<CartId | null>(null);
+  const [orderId, setOrderId] = useState<OrderId | null>(null);
   const [erc20Addr, setErc20Addr] = useState<null | `0x${string}`>(null);
   const [publishedTagId, setPublishedTagId] = useState<null | TagId>(null);
-  const [finalizedCarts, setFinalizedCarts] = useReducer(
-    finalizedCartReducer,
+  const [finalizedOrders, setFinalizedOrders] = useReducer(
+    finalizedOrderReducer,
     new Map(),
   );
   const [pubKeys, setPubKeys] = useReducer(pubKeyReducer, []);
@@ -105,12 +105,12 @@ export const StoreContextProvider = (
         )) as ProductsMap;
 
         const tagsLocal = (await getParsedMapData("tags", db)) as TagsMap;
-        const cartItemsLocal = (await getParsedMapData(
-          "cartItems",
+        const orderItemsLocal = (await getParsedMapData(
+          "orderItems",
           db,
-        )) as CartsMap;
+        )) as OrdersMap;
 
-        const cartIdLocal = await getItem("cartId", db);
+        const orderIdLocal = await getItem("orderId", db);
         const erc20AddrLocal = await getItem("erc20Addr", db);
         const publishedTagIdLocal = await getItem("publishedTagId", db);
 
@@ -129,14 +129,14 @@ export const StoreContextProvider = (
             payload: { allTags: tagsLocal },
           });
         }
-        if (cartItemsLocal?.size) {
-          setCartItems({
-            type: SET_ALL_CART_ITEMS,
-            payload: { allCartItems: cartItemsLocal },
+        if (orderItemsLocal?.size) {
+          setOrderItems({
+            type: SET_ALL_ORDER_ITEMS,
+            payload: { allOrderItems: orderItemsLocal },
           });
         }
-        if (cartIdLocal) {
-          setCartId(cartIdLocal as CartId);
+        if (orderIdLocal) {
+          setOrderId(orderIdLocal as OrderId);
         }
         if (erc20AddrLocal && erc20AddrLocal !== null) {
           setErc20Addr(erc20AddrLocal as `0x${string}`);
@@ -150,8 +150,8 @@ export const StoreContextProvider = (
   }, [relayClient, db]);
 
   useEffect(() => {
-    pubKeys.length && cartItems.size && verify(cartItems, pubKeys);
-  }, [pubKeys, cartItems]);
+    pubKeys.length && orderItems.size && verify(orderItems, pubKeys);
+  }, [pubKeys, orderItems]);
 
   useEffect(() => {
     try {
@@ -171,19 +171,19 @@ export const StoreContextProvider = (
 
   useEffect(() => {
     try {
-      cartItems.size && setMapData("cartItems", cartItems, db);
+      orderItems.size && setMapData("orderItems", orderItems, db);
     } catch (error) {
       console.log(error);
     }
-  }, [cartItems]);
+  }, [orderItems]);
 
   useEffect(() => {
     try {
-      cartId && setItem("cartId", cartId, db);
+      orderId && setItem("orderId", orderId, db);
     } catch (error) {
       console.log(error);
     }
-  }, [cartId]);
+  }, [orderId]);
 
   useEffect(() => {
     try {
@@ -212,10 +212,10 @@ export const StoreContextProvider = (
             evt.events,
             setProducts,
             setAllTags,
-            setCartItems,
+            setOrderItems,
             setErc20Addr,
             setPublishedTagId,
-            setFinalizedCarts,
+            setFinalizedOrders,
             setPubKeys,
             walletAddress,
           );
@@ -226,26 +226,26 @@ export const StoreContextProvider = (
     }
   };
   const verify = async (
-    _cartItems: Map<CartId, CartState>,
+    _orderItems: Map<OrderId, OrderState>,
     _pubKeys: `0x${string}`[],
   ) => {
     const addresses = _pubKeys.map((k) => {
       return Address.fromPublicKey(hexToBytes(k)).toString();
     });
-    const keysArr: `0x${string}`[] = _cartItems.size
-      ? Array.from([..._cartItems.keys()])
+    const keysArr: `0x${string}`[] = _orderItems.size
+      ? Array.from([..._orderItems.keys()])
       : [];
-    for (const _cartId of keysArr) {
-      const _cart = _cartItems.get(_cartId) as CartState;
-      if (_cart && _cart.status !== IStatus.Failed) {
-        const sig = _cart.signature as `0x${string}`;
+    for (const _orderId of keysArr) {
+      const _order = _orderItems.get(_orderId) as OrderState;
+      if (_order && _order.status !== IStatus.Failed) {
+        const sig = _order.signature as `0x${string}`;
         const retrievedAdd = await relayClient!.recoverSignedAddress(
-          _cartId,
+          _orderId,
           sig,
         );
         if (addresses.includes(retrievedAdd.toLowerCase())) {
-          console.log("inside inclue", _cartId);
-          setCartId(_cartId);
+          console.log("inside inclue", _orderId);
+          setOrderId(_orderId);
         }
       }
     }
@@ -414,38 +414,38 @@ export const StoreContextProvider = (
     }
   };
 
-  const updateCart = async (itemId?: ItemId, saleQty: number = 0) => {
-    const cart_id = !cartId ? await createCart() : cartId;
+  const updateOrder = async (itemId?: ItemId, saleQty: number = 0) => {
+    const order_id = !orderId ? await createOrder() : orderId;
     try {
-      const activeCartItems = (cartId && cartItems.get(cartId)?.items) || {};
+      const activeOrderItems = (orderId && orderItems.get(orderId)?.items) || {};
 
       if (!itemId) {
-        //Clear cart and set every item in cart to quantity 0
-        const itemIds = Object.keys(activeCartItems);
+        //Clear order and set every item in order to quantity 0
+        const itemIds = Object.keys(activeOrderItems);
         for (const itemId of itemIds) {
-          await relayClient!.changeCart(cart_id, itemId as ItemId, 0);
+          await relayClient!.changeOrder(order_id, itemId as ItemId, 0);
         }
-        setCartItems({ type: CLEAR_CART, payload: { cartId: cart_id } });
+        setOrderItems({ type: CLEAR_ORDER, payload: { orderId: order_id } });
       } else if (saleQty === 0) {
-        //delete it from cartItems
-        await relayClient!.changeCart(cart_id, itemId, saleQty);
-        setCartItems({
-          type: REMOVE_CART_ITEM,
+        //delete it from orderItems
+        await relayClient!.changeOrder(order_id, itemId, saleQty);
+        setOrderItems({
+          type: REMOVE_ORDER_ITEM,
           payload: {
             itemId,
-            cartId: cart_id,
+            orderId: order_id,
           },
         });
       } else {
         //update item sale qty
-        await relayClient!.changeCart(cart_id, itemId, saleQty);
-        // const difference = (activeCartItems?.[itemId] || 0) - Number(saleQty);
+        await relayClient!.changeOrder(order_id, itemId, saleQty);
+        // const difference = (activeOrderItems?.[itemId] || 0) - Number(saleQty);
         // updateUnitChnage(itemId, difference);
 
-        setCartItems({
-          type: UPDATE_CART_ITEM,
+        setOrderItems({
+          type: UPDATE_ORDER_ITEM,
           payload: {
-            cartId: cart_id,
+            orderId: order_id,
             itemId,
             saleQty,
           },
@@ -460,58 +460,58 @@ export const StoreContextProvider = (
     }
   };
 
-  const invalidateCart = async (msg: string | null = null) => {
+  const invalidateOrder = async (msg: string | null = null) => {
     try {
-      console.log(`Invalidating cart: ${msg}`);
-      if (!cartId) throw Error(`No ${cartId} found`);
+      console.log(`Invalidating order: ${msg}`);
+      if (!orderId) throw Error(`No ${orderId} found`);
       if (!relayClient) throw Error(`Disconnected from relayClient`);
-      await relayClient.abandonCart(cartId);
-      setCartItems({
-        type: UPDATE_CART_STATUS,
-        payload: { cartId: cartId as CartId, status: IStatus.Failed },
+      await relayClient.abandonOrder(orderId);
+      setOrderItems({
+        type: UPDATE_ORDER_STATUS,
+        payload: { orderId: orderId as OrderId, status: IStatus.Failed },
       });
-      await createCart();
+      await createOrder();
     } catch (error) {
-      setCartItems({
-        type: UPDATE_CART_STATUS,
-        payload: { cartId: cartId as CartId, status: IStatus.Failed },
+      setOrderItems({
+        type: UPDATE_ORDER_STATUS,
+        payload: { orderId: orderId as OrderId, status: IStatus.Failed },
       });
-      await createCart();
+      await createOrder();
     }
   };
 
-  const createCart = async () => {
-    const cartId = await relayClient!.createCart();
-    setCartId(cartId);
-    return cartId;
+  const createOrder = async () => {
+    const orderId = await relayClient!.createOrder();
+    setOrderId(orderId);
+    return orderId;
   };
 
   const changeStock = async (itemIds: ItemId[], diffs: number[]) => {
     await relayClient!.changeStock(itemIds, diffs);
   };
 
-  const commitCart = async (isERC20Checkout: boolean) => {
+  const commitOrder = async (isERC20Checkout: boolean) => {
     try {
       const erc20 = erc20Addr && isERC20Checkout ? erc20Addr : null;
       if (isERC20Checkout && !erc20Addr) {
         return { error: "no erc20 address found." };
-      } else if (!cartId) {
-        return { error: "no cart set" };
+      } else if (!orderId) {
+        return { error: "no order set" };
       }
       if (erc20) {
-        console.log("committing cart with erc20");
+        console.log("committing order with erc20");
       }
       if (!relayClient) throw Error(`Disconnected from relayClient`);
 
-      const checkout = await relayClient.commitCart(cartId, erc20);
+      const checkout = await relayClient.commitOrder(orderId, erc20);
       return {
         requestId: bytesToHex(checkout.requestId),
-        cartFinalizedId: bytesToHex(checkout.cartFinalizedId),
+        orderFinalizedId: bytesToHex(checkout.orderFinalizedId),
         error: null,
       };
     } catch (error) {
       const errMsg = error as { message: string };
-      invalidateCart(errMsg.message);
+      invalidateOrder(errMsg.message);
       return { error: errMsg.message };
     }
   };
@@ -519,11 +519,11 @@ export const StoreContextProvider = (
   const value = {
     products,
     allTags,
-    cartItems,
-    cartId,
+    orderItems,
+    orderId,
     erc20Addr,
     publishedTagId,
-    finalizedCarts,
+    finalizedOrders,
     relays,
     db,
     addProduct,
@@ -532,12 +532,12 @@ export const StoreContextProvider = (
     createTag,
     addProductToTag,
     removeProductFromTag,
-    updateCart,
-    commitCart,
-    invalidateCart,
+    updateOrder,
+    commitOrder,
+    invalidateOrder,
     setErc20Addr,
     setPublishedTagId,
-    setCartId,
+    setOrderId,
   };
 
   return (

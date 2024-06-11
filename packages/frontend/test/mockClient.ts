@@ -5,7 +5,7 @@
 import { EventEmitter } from "events";
 import { hexToBytes } from "viem";
 
-import testVectorsData from "@massmarket/client/test/testVectors.json" assert { type: "json" };
+import testVectorsData from "@massmarket/frontend/test/testVectors.json" assert { type: "json" };
 
 import { market } from "@massmarket/client/lib/protobuf/compiled";
 import mmproto = market.mass;
@@ -74,7 +74,7 @@ export class MockClient extends EventEmitter {
   async connect() {
     for (let index = 0; index < this.vectors.events.length; index++) {
       const evt = this.vectors.events[index];
-      const decodedEvent = mmproto.Event.decode(
+      const decodedEvent = mmproto.StoreEvent.decode(
         hexToBytes(("0x" + evt.encoded) as `0x${string}`),
       );
       const pushReq = new mmproto.EventPushRequest({
