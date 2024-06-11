@@ -14,21 +14,15 @@ import mmproto = market.mass;
 import { IProduct, ITag, IStatus, IRelay } from "@/types";
 import { Level } from "level";
 
-export enum ItemField {
-  ITEM_FIELD_UNSPECIFIED = 0,
-  ITEM_FIELD_PRICE = 1,
-  ITEM_FIELD_METADATA = 2,
-}
-
 type metadata = { title: string; description: string; image: string };
 export type ItemId = `0x${string}`;
 export type TagId = `0x${string}`;
-export type CartId = `0x${string}`;
+export type OrderId = `0x${string}`;
 export type EventId = `0x${string}`;
 
-export type FinalizedCartState = {
+export type FinalizedOrderState = {
   erc20Addr: `0x${string}` | null;
-  cartId: CartId;
+  orderId: OrderId;
   purchaseAddress: `0x${string}`;
   salesTax: string | null;
   total: string | null;
@@ -37,12 +31,11 @@ export type FinalizedCartState = {
 };
 export type UpdateItemProps = {
   itemId: ItemId;
-  field: ItemField;
   value: number | { title: string; description: string; image: string };
 };
 
 export type ItemState = { [key: ItemId]: number };
-export type CartState = {
+export type OrderState = {
   items: ItemState;
   status?: IStatus;
   txHash?: `0x${string}`;
@@ -82,7 +75,6 @@ export type IRelayClient = EventEmitter & {
   createItem: (price: string, metadata: metadata) => Promise<ItemId>;
   updateItem: (
     itemId: ItemId,
-    field: ItemField,
     value: string | { title: string; description: string; image: string },
   ) => Promise<`0x${string}`>;
   addItemToTag: (tagId: TagId, itemId: ItemId) => Promise<IRelayWriteResponse>;
@@ -90,24 +82,24 @@ export type IRelayClient = EventEmitter & {
   uploadBlob: (blob: Blob) => Promise<{ url: string }>;
   addListener: (event: string, callback: (e: Event) => void) => void;
   createTag: (name: string) => Promise<TagId>;
-  changeCart: (
-    cardId: CartId,
+  changeOrder: (
+    cardId: OrderId,
     itemId: ItemId,
     saleQty: number,
   ) => Promise<IRelayWriteResponse>;
-  createCart: () => Promise<`0x${string}`>;
+  createOrder: () => Promise<`0x${string}`>;
   changeStock: (
     itemId: ItemId[],
     diffs: number[],
   ) => Promise<IRelayWriteResponse>;
-  abandonCart: (cardId: CartId) => Promise<void>;
-  commitCart: (
-    cardId: CartId,
+  abandonOrder: (cardId: OrderId) => Promise<void>;
+  commitOrder: (
+    cardId: OrderId,
     erc20: `0x${string}` | null,
-  ) => Promise<{ requestId: Uint8Array; cartFinalizedId: Uint8Array }>;
+  ) => Promise<{ requestId: Uint8Array; orderFinalizedId: Uint8Array }>;
   createEventStream: () => Promise<{ events: mmproto.IEvent[] }>[];
   recoverSignedAddress: (
-    cartId: `0x${string}`,
+    orderId: `0x${string}`,
     signature: `0x${string}`,
   ) => `0x${string}`;
 };
@@ -134,11 +126,11 @@ export type StoreContent = {
   relays: IRelay[];
   products: Map<ItemId, IProduct>;
   allTags: Map<TagId, ITag>;
-  cartItems: Map<CartId, CartState>;
-  cartId: CartId | null;
+  orderItems: Map<OrderId, OrderState>;
+  orderId: OrderId | null;
   erc20Addr: `0x${string}` | null;
   publishedTagId: TagId | null;
-  finalizedCarts: Map<EventId, FinalizedCartState>;
+  finalizedOrders: Map<EventId, FinalizedOrderState>;
   db: Level<string, string>;
   addProduct: (
     p: IProduct,
@@ -160,24 +152,24 @@ export type StoreContent = {
     tagId: TagId,
     itemId: ItemId,
   ) => Promise<{ id?: TagId; error: string | null }>;
-  updateCart: (
+  updateOrder: (
     itemId?: ItemId,
     saleQty?: number,
   ) => Promise<{ error: string | null }>;
-  commitCart: (erc20: boolean) => Promise<{
-    cartFinalizedId?: CartId;
+  commitOrder: (erc20: boolean) => Promise<{
+    orderFinalizedId?: OrderId;
     requestId?: `0x${string}`;
     error: string | null;
     erc20?: `0x${string}`;
   }>;
-  invalidateCart: (msg: string) => void;
+  invalidateOrder: (msg: string) => void;
   setErc20Addr: (erc20: `0x${string}`) => void;
   setPublishedTagId: (id: TagId) => void;
-  setCartId: (cartId: CartId | null) => void;
+  setOrderId: (orderId: OrderId | null) => void;
 };
 
 export type ProductsMap = Map<ItemId, IProduct>;
 
 export type TagsMap = Map<TagId, ITag>;
 
-export type CartsMap = Map<CartId, CartState>;
+export type OrdersMap = Map<OrderId, OrderState>;
