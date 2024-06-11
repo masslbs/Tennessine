@@ -377,9 +377,8 @@ export class RelayClient extends EventEmitter {
     )) as mmproto.GetBlobUploadURLResponse;
     if (uploadURLResp.error !== null) {
       throw new Error(
-        `Failed to get blob upload URL: ${uploadURLResp.error.message}`,
+        `Failed to get blob upload URL: ${uploadURLResp.error!.message}`,
       );
-      return;
     }
     const uploadResp = await fetch(uploadURLResp.url, {
       method: "POST",
@@ -390,7 +389,6 @@ export class RelayClient extends EventEmitter {
       throw new Error(
         `unexpected status: ${uploadResp.statusText} (${uploadResp.status})`,
       );
-      return;
     }
     return uploadResp.json();
   }
