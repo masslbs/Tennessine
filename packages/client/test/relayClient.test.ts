@@ -15,7 +15,7 @@ import { hardhat } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 import { describe, beforeEach, afterEach, expect, test } from "vitest";
 
-import { RelayClient, ManifestField } from "../lib";
+import { RelayClient } from "../lib";
 import { market } from "../lib/protobuf/compiled";
 import mmproto = market.mass;
 
@@ -177,9 +177,11 @@ describe("user behaviour", () => {
     await relayClient.updateStoreManifest({
       publishedTagId: bytesToHex(randomBytes(32)),
     });
-    await relayClient.updateStoreManifest({ addERC20: abi.addresses.Eddies });
     await relayClient.updateStoreManifest({
-      removeERC20: abi.addresses.Eddies,
+      addERC20: abi.addresses.Eddies as Address,
+    });
+    await relayClient.updateStoreManifest({
+      removeERC20: abi.addresses.Eddies as Address,
     });
   });
 
@@ -269,7 +271,7 @@ describe("user behaviour", () => {
 
       test("erc20 checkout", { timeout: 10000 }, async () => {
         await relayClient.updateStoreManifest({
-          addERC20: abi.addresses.Eddies,
+          addERC20: abi.addresses.Eddies as Address,
         });
         await relayClient.changeOrder(orderId, itemId, 1);
 

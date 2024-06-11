@@ -36,7 +36,7 @@ import {
   eventId,
   hexToBase64,
   convertFirstCharToLowerCase,
-  snakeToCamel,
+  type NetworkMessage,
 } from "./utils";
 import * as abi from "@massmarket/contracts";
 
@@ -65,7 +65,7 @@ type UpdateStoreManifestOpts = {
 
 type UpdateItemOpts = {
   price?: string;
-  metadata: any; // TODO: actually should be an object...
+  metadata?: any; // TODO: actually should be an object...
 };
 
 export class RelayClient extends EventEmitter {
@@ -171,13 +171,7 @@ export class RelayClient extends EventEmitter {
 
   // TODO: there are a lot of assumptions baked in here that should be commented
   // for eG why isnt this used in enrollKeycard
-  #signTypedDataMessage(
-    types: TypedData,
-    message: Record<
-      string,
-      Uint8Array | string | number | Uint8Array[] | number[]
-    >,
-  ) {
+  #signTypedDataMessage(types: TypedData, message: NetworkMessage) {
     return this.keyCardWallet.signTypedData({
       types,
       primaryType: Object.keys(types)[0],
@@ -187,13 +181,7 @@ export class RelayClient extends EventEmitter {
   }
 
   // TODO: there are a lot of assumptions baked in here that should be commented
-  async #signAndSendStoreEvent(
-    types: any,
-    message: Record<
-      string,
-      Uint8Array | string | number | Uint8Array[] | number[]
-    >,
-  ) {
+  async #signAndSendStoreEvent(types: TypedData, message: NetworkMessage) {
     const sig = await this.#signTypedDataMessage(types, message);
     let key = convertFirstCharToLowerCase(Object.keys(types)[0]);
     const event = {
@@ -447,7 +435,7 @@ export class RelayClient extends EventEmitter {
 
     let message = {
       eventId: eventId(),
-    };
+    } as { [key: string]: any };
 
     if (update.domain !== undefined) {
       const field = "domain";
@@ -534,7 +522,7 @@ export class RelayClient extends EventEmitter {
     const message = {
       eventId: eventId(),
       itemId: hexToBytes(itemId),
-    };
+    } as Record<string, Uint8Array | string | number | Uint8Array[] | number[]>;
 
     const types = [
       {
@@ -735,8 +723,8 @@ export class RelayClient extends EventEmitter {
   // null erc20Addr means vanilla ethererum is used
   async commitOrder(
     orderId: `0x${string}`,
-    erc20Addr?: `0x${string}` = null,
-  ): Promise<mmproto.CommitItemsToOrderRsponse> {
+    erc20Addr?: `0x${string}`,
+  ): Promise<mmproto.CommitItemsToOrderResponse> {
     let erc20AddrBytes: Uint8Array | null = null;
     if (erc20Addr) {
       erc20AddrBytes = hexToBytes(erc20Addr);
@@ -749,7 +737,7 @@ export class RelayClient extends EventEmitter {
       orderId: hexToBytes(orderId),
       erc20Addr: erc20AddrBytes,
       chainId: this.chain.id,
-    }) as Promise<mmproto.CommitItemsToOrderRequest>;
+    }) as Promise<mmproto.CommitItemsToOrderResponse>;
   }
 
   async changeStock(itemIds: `0x${string}`[], diffs: number[]) {
