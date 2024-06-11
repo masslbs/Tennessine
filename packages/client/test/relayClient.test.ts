@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { randomBytes } from "crypto";
 import { WebSocket } from "isows";
 import {
   bytesToHex,
@@ -16,6 +15,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { describe, beforeEach, afterEach, expect, test } from "vitest";
 
 import { RelayClient, ManifestField } from "../lib";
+import { random32BytesHex } from "../lib/utils";
 import { market } from "../lib/protobuf/compiled";
 import mmproto = market.mass;
 
@@ -40,15 +40,13 @@ const relayEndpoint =
   (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v1";
 
 let relayClient: RelayClient;
-const storeId: `0x${string}` = `0x${randomBytes(32).toString("hex")}`;
-const keyCard = new Uint8Array(32);
+const storeId = random32BytesHex();
 
 beforeEach(async () => {
-  crypto.getRandomValues(keyCard);
   relayClient = new RelayClient({
     storeId,
     relayEndpoint,
-    keyCardWallet: privateKeyToAccount(bytesToHex(keyCard)),
+    keyCardWallet: privateKeyToAccount(random32BytesHex()),
     chain: hardhat,
     keyCardEnrolled: false,
   });
@@ -80,7 +78,6 @@ describe("RelayClient", async () => {
     const receipt = await publicClient.waitForTransactionReceipt({
       hash: transactionHash,
     });
-    console.log(receipt);
     expect(receipt.status).equals("success");
   });
 
@@ -89,8 +86,19 @@ describe("RelayClient", async () => {
     //
     // acc2 is the "long term wallet" of the new user
     // if we knew that before hand, we could just call registerUser(acc2.address, Clerk)
+    const sk = random32BytesHex();
+    const token = privateKeyToAccount(sk);
+    const hash = await relayClient.blockchain.createInviteSecret(
+      wallet,
+      token.address,
+    );
 
-    const sk = await relayClient.blockchain.createInviteSecret(wallet);
+    // wait for the transaction to be included in the blockchain
+    const receipt = await publicClient.waitForTransactionReceipt({
+      hash,
+    });
+
+    expect(receipt.status).to.equal("success");
     const acc2 = privateKeyToAccount(sk);
     await wallet.sendTransaction({
       account,
@@ -112,13 +120,13 @@ describe("RelayClient", async () => {
       storeId,
     });
 
-    const hash = await relayClient.blockchain.redeemInviteSecret(
+    const hash2 = await relayClient.blockchain.redeemInviteSecret(
       sk,
       client2Wallet,
     );
     // wait for the transaction to be included in the blockchain
     const transaction = await publicClient.waitForTransactionReceipt({
-      hash,
+      hash: hash2,
     });
     expect(transaction.status).to.equal("success");
 
@@ -293,16 +301,26 @@ describe("user behaviour", () => {
   describe("invite another user", { retry: 3 }, async () => {
     let client2Wallet;
     let relayClient2: RelayClient;
-    let sk;
     beforeEach(async () => {
-      sk = await relayClient.blockchain.createInviteSecret(wallet);
+      const sk = random32BytesHex();
+      const token = privateKeyToAccount(sk);
+      const hash = await relayClient.blockchain.createInviteSecret(
+        wallet,
+        token.address,
+      );
+
+      // wait for the transaction to be included in the blockchain
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash,
+      });
+
+      expect(receipt.status).to.equal("success");
       const acc2 = privateKeyToAccount(sk);
       await wallet.sendTransaction({
         account,
         to: acc2.address,
         value: BigInt(250000000000000000),
       });
-      console.log("transacted coins to acc2");
       client2Wallet = createWalletClient({
         account: acc2,
         chain: hardhat,
@@ -315,12 +333,18 @@ describe("user behaviour", () => {
         keyCardEnrolled: false,
         storeId,
       });
-      await relayClient.blockchain.redeemInviteSecret(sk, client2Wallet);
-      console.log("client2 redeemed invite");
+      const redeemHash = await relayClient.blockchain.redeemInviteSecret(
+        sk,
+        client2Wallet,
+      );
+      // wait for the transaction to be included in the blockchain
+      const redeemReceipt = await publicClient.waitForTransactionReceipt({
+        hash: redeemHash,
+      });
+
+      expect(redeemReceipt.status).to.equal("success");
       await relayClient2.enrollKeycard(client2Wallet);
-      console.log("client2 enrolled keyCard");
       await relayClient2.connect();
-      console.log("client2 connected");
     });
 
     test("client2 successfully updates manifest", async () => {
