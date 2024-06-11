@@ -21,7 +21,7 @@ const Navigation = () => {
   const { isAuthenticated } = useAuth();
   const { cartItems, cartId } = useStoreContext();
 
-  const profilePhoto = avatar ? avatar : "example-avatar.svg";
+  // const profilePhoto = avatar ? avatar : "example-avatar.svg";
   const activeCartItems = cartId && cartItems.get(cartId)?.items;
   const arr = activeCartItems ? Object.values(activeCartItems) : [];
   let len = 0;
@@ -53,7 +53,9 @@ const Navigation = () => {
               className="h-6"
             />
           ) : null}
-          <p className="ml-2">mass market</p>
+          <p className="ml-2">
+            <span className="text-primary-gray">Hey, </span> antimofm.eth
+          </p>
         </div>
         {loggedIn ? (
           <div className="flex gap-4">
@@ -70,7 +72,7 @@ const Navigation = () => {
 
             <Link href="/my-wallet">
               <Image
-                src={`/assets/${profilePhoto}`}
+                src={`/assets/MassLabsLogo.svg`}
                 width={24}
                 height={24}
                 alt="profile-avatar"
