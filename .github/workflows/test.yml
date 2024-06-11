@@ -123,8 +123,7 @@ jobs:
         working-directory: Tennessine/packages/client
 
       - name: build frontend
-        # TODO: enable linting
-        run: nix develop -c bash -c "pnpm build --no-lint"
+        run: nix develop -c bash -c "pnpm build"
         working-directory: Tennessine/packages/frontend
 
       - name: Upload frontend to Pinata
