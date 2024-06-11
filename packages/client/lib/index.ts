@@ -61,15 +61,14 @@ type UpdateStoreManifestOpts = {
   publishedTagId?: `0x${string}`;
   addERC20?: `0x${string}`;
   removeERC20?: `0x${string}`;
-}
+};
 
 type UpdateItemOpts = {
   price?: string;
-  metadata: any // TODO: actually should be an object...
-}
+  metadata: any; // TODO: actually should be an object...
+};
 
 export class RelayClient extends EventEmitter {
-
   connection!: WebSocket;
   private chain;
   blockchain: BlockchainClient;
@@ -205,8 +204,8 @@ export class RelayClient extends EventEmitter {
       event: {
         type_url: "type.googleapis.com/market.mass.StoreEvent",
         value: mmproto.StoreEvent.encode(event).finish(),
-      }
-    }
+      },
+    };
     return this.encodeAndSend(mmproto.EventWriteRequest, write);
   }
 
@@ -218,7 +217,7 @@ export class RelayClient extends EventEmitter {
       return (enqueueFn = (pushReq: mmproto.EventPushRequest) => {
         requestId = pushReq.requestId;
         for (const anyEvt of pushReq.events) {
-          let evt = mmproto.StoreEvent.decode(anyEvt.value!)
+          let evt = mmproto.StoreEvent.decode(anyEvt.value!);
           controller.enqueue(evt);
         }
       });
@@ -377,17 +376,21 @@ export class RelayClient extends EventEmitter {
       mmproto.GetBlobUploadURLRequest,
     )) as mmproto.GetBlobUploadURLResponse;
     if (uploadURLResp.error !== null) {
-      throw new Error(`Failed to get blob upload URL: ${uploadURLResp.error.message}`)
-      return
+      throw new Error(
+        `Failed to get blob upload URL: ${uploadURLResp.error.message}`,
+      );
+      return;
     }
     const uploadResp = await fetch(uploadURLResp.url, {
       method: "POST",
       body: blob,
     });
     if (uploadResp.status !== 201) {
-      console.log(uploadResp)
-      throw new Error(`unexpected status: ${uploadResp.statusText} (${uploadResp.status})`)
-      return
+      console.log(uploadResp);
+      throw new Error(
+        `unexpected status: ${uploadResp.statusText} (${uploadResp.status})`,
+      );
+      return;
     }
     return uploadResp.json();
   }
@@ -439,9 +442,9 @@ export class RelayClient extends EventEmitter {
 
     const types = [
       {
-          name: "event_id",
-          type: "bytes32",
-      }
+        name: "event_id",
+        type: "bytes32",
+      },
     ];
 
     let message = {
@@ -449,47 +452,49 @@ export class RelayClient extends EventEmitter {
     };
 
     if (update.domain !== undefined) {
-      const field = "domain"
+      const field = "domain";
       types.push({
         name: field,
         type: "string",
-      })
-      message[field] = update.domain
+      });
+      message[field] = update.domain;
     }
     if (update.publishedTagId !== undefined) {
       types.push({
         name: "published_tag_id",
         type: "bytes32",
-      })
-      message["publishedTagId"] = hexToBytes(update.publishedTagId)
+      });
+      message["publishedTagId"] = hexToBytes(update.publishedTagId);
     }
     if (update.addERC20 !== undefined) {
       types.push({
         name: "add_erc20_addr",
         type: "address",
-      })
-      message["addErc20Addr"] = hexToBytes(update.addERC20)
+      });
+      message["addErc20Addr"] = hexToBytes(update.addERC20);
     }
     if (update.removeERC20 !== undefined) {
       types.push({
         name: "remove_erc20_addr",
         type: "address",
-      })
-      message["removeErc20Addr"] = hexToBytes(update.removeERC20)
+      });
+      message["removeErc20Addr"] = hexToBytes(update.removeERC20);
     }
-    console.log("Update:")
-    console.log(update)
-    console.log(`Types:`)
-    console.log(types)
-    console.log(`Message:`)
-    console.log(message)
-    console.log("============")
+    console.log("Update:");
+    console.log(update);
+    console.log(`Types:`);
+    console.log(types);
+    console.log(`Message:`);
+    console.log(message);
+    console.log("============");
 
-    return this.#signAndSendStoreEvent({
-      UpdateStoreManifest: types
-    }, message);
+    return this.#signAndSendStoreEvent(
+      {
+        UpdateStoreManifest: types,
+      },
+      message,
+    );
   }
-
 
   async createItem(
     price: string,
@@ -499,7 +504,7 @@ export class RelayClient extends EventEmitter {
     const jsonString = JSON.stringify(metadata);
     const encoder = new TextEncoder();
     const utf8Encoded = encoder.encode(jsonString);
-    const iid = eventId()
+    const iid = eventId();
     const item = {
       eventId: iid,
       price: price,
@@ -525,10 +530,7 @@ export class RelayClient extends EventEmitter {
     return bytesToHex(iid);
   }
 
-  async updateItem(
-    itemId: `0x${string}`,
-    update: UpdateItemOpts,
-  ) {
+  async updateItem(itemId: `0x${string}`, update: UpdateItemOpts) {
     await this.connect();
 
     const message = {
@@ -544,24 +546,27 @@ export class RelayClient extends EventEmitter {
       {
         name: "item_id",
         type: "bytes32",
-      }
-    ]
+      },
+    ];
 
     if (update.price !== undefined) {
-      types.push({ name: "price", type: "string" })
-      message["price"] = update.price
+      types.push({ name: "price", type: "string" });
+      message["price"] = update.price;
     }
     if (update.metadata !== undefined) {
       const jsonString = JSON.stringify(update.metadata);
       const encoder = new TextEncoder();
       const utf8Encoded = encoder.encode(jsonString);
-      types.push({ name: "metadata", type: "bytes" })
-      message["metadata"] = utf8Encoded
+      types.push({ name: "metadata", type: "bytes" });
+      message["metadata"] = utf8Encoded;
     }
 
-    return this.#signAndSendStoreEvent({
-      UpdateItem: types
-    }, message);
+    return this.#signAndSendStoreEvent(
+      {
+        UpdateItem: types,
+      },
+      message,
+    );
   }
 
   async createTag(name: string) {
@@ -696,7 +701,7 @@ export class RelayClient extends EventEmitter {
       changeItems: {
         itemId: hexToBytes(itemId),
         quantity,
-      }
+      },
     };
 
     const types = {
@@ -712,7 +717,7 @@ export class RelayClient extends EventEmitter {
         {
           name: "change_items",
           type: "change_items",
-        }
+        },
       ],
       change_items: [
         {
@@ -723,7 +728,7 @@ export class RelayClient extends EventEmitter {
           name: "quantity",
           type: "int32",
         },
-      ]
+      ],
     };
 
     return this.#signAndSendStoreEvent(types, order);

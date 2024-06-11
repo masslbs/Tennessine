@@ -56,9 +56,7 @@ export const buildState = (
           `Adding erc20 ${bytesToHex(um.addErc20Addr)} to payment options`,
         );
         setErc20Addr(bytesToHex(um.addErc20Addr));
-      } else if (
-        um.removeErc20Addr
-      ) {
+      } else if (um.removeErc20Addr) {
         console.log(
           `Removing erc20 ${bytesToHex(um.removeErc20Addr)} from payment options`,
         );
@@ -66,7 +64,9 @@ export const buildState = (
       }
 
       if (um.publishedTagId) {
-        console.log(`Resetting published tag id to: ${bytesToHex(um.publishedTagId)}`);
+        console.log(
+          `Resetting published tag id to: ${bytesToHex(um.publishedTagId)}`,
+        );
         setPublishedTagId(bytesToHex(um.publishedTagId));
       }
     } else if (e.createItem) {
@@ -79,7 +79,7 @@ export const buildState = (
       };
       productsDispatch({ type: ADD_PRODUCT, payload: { itemId: id, item } });
     } else if (e.updateItem) {
-      const ui = e.updateItem
+      const ui = e.updateItem;
       const id = bytesToHex(ui.itemId!);
       if (ui.metadata) {
         const _meta = parseMetadata(ui.metadata);
@@ -104,7 +104,7 @@ export const buildState = (
       const tag = { id, text: e.createTag.name! };
       tagsDisaptch({ type: ADD_TAG, payload: { tag } });
     } else if (e.updateTag) {
-      const ut = e.updateTag
+      const ut = e.updateTag;
       const tagId = bytesToHex(ut.tagId!);
       if (ut.addItemId) {
         const itemId = bytesToHex(ut.addItemId!);
@@ -127,7 +127,7 @@ export const buildState = (
         });
       }
       if (ut.rename || ut.deleted) {
-        throw new Error(`not yet handling tag renames or deltes`)
+        throw new Error(`not yet handling tag renames or deltes`);
       }
     } else if (e.changeStock) {
       const evt = e.changeStock;
@@ -169,12 +169,12 @@ export const buildState = (
         },
       });
     } else if (e.updateOrder) {
-      const uo = e.updateOrder
-      const eventId = uo.eventId
+      const uo = e.updateOrder;
+      const eventId = uo.eventId;
       const _orderId = bytesToHex(uo.orderId!);
 
       if (uo.changeItems) {
-        const ci = uo.changeItems
+        const ci = uo.changeItems;
         const itemId = bytesToHex(ci.itemId!);
         const quantity = ci.quantity!;
         if (quantity === 0) {
@@ -190,7 +190,7 @@ export const buildState = (
         }
       }
       if (uo.itemsFinalized) {
-        console.log(uo.itemsFinalized)
+        console.log(uo.itemsFinalized);
         const {
           erc20Addr,
           orderHash,
@@ -226,7 +226,6 @@ export const buildState = (
           status: IStatus.Failed,
         },
       });
-
     } else if (e.newKeyCard) {
       const userWalletAddr = bytesToHex(e.newKeyCard.userWalletAddr!);
       const cardPublicKey = bytesToHex(e.newKeyCard.cardPublicKey!);
@@ -242,8 +241,8 @@ export const buildState = (
         });
       }
     } else {
-      console.log(e)
-      throw new Error(`Unhandled event type: ${e.union}`)
+      console.log(e);
+      throw new Error(`Unhandled event type: ${e.union}`);
     }
   });
   return { _products: products, _allTags: allTags };

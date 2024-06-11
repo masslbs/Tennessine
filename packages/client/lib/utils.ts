@@ -45,22 +45,22 @@ export function formatMessageForSigning(
   > = {};
   const convert = (value) => {
     if (Array.isArray(value)) {
-      return formatArray(value)
+      return formatArray(value);
     } else if (typeof value === "string") {
-      return value
+      return value;
     } else if (typeof value === "number") {
-      return BigInt(value)
+      return BigInt(value);
     } else if (value instanceof Uint8Array) {
-      return bytesToHex(value)
+      return bytesToHex(value);
     } else if (typeof value === "object") {
-      return formatMessageForSigning(value)
+      return formatMessageForSigning(value);
     } else {
-      console.warn(value)
-      throw new Error(`unhandled type in signing conversion`)
+      console.warn(value);
+      throw new Error(`unhandled type in signing conversion`);
     }
-  }
+  };
   for (const [key, value] of Object.entries(obj)) {
-    snakeCase[camelToSnake(key)] = convert(value)
+    snakeCase[camelToSnake(key)] = convert(value);
   }
   return snakeCase;
 }

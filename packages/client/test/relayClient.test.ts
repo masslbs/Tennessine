@@ -173,10 +173,14 @@ describe("user behaviour", () => {
   });
 
   test("update store manifest", async () => {
-    await relayClient.updateStoreManifest({domain: "socks.mass.market"});
-    await relayClient.updateStoreManifest({publishedTagId: bytesToHex(randomBytes(32)) });
-    await relayClient.updateStoreManifest({addERC20: abi.addresses.Eddies});
-    await relayClient.updateStoreManifest({removeERC20: abi.addresses.Eddies});
+    await relayClient.updateStoreManifest({ domain: "socks.mass.market" });
+    await relayClient.updateStoreManifest({
+      publishedTagId: bytesToHex(randomBytes(32)),
+    });
+    await relayClient.updateStoreManifest({ addERC20: abi.addresses.Eddies });
+    await relayClient.updateStoreManifest({
+      removeERC20: abi.addresses.Eddies,
+    });
   });
 
   test("blob upload", async () => {
@@ -205,18 +209,17 @@ describe("user behaviour", () => {
     });
 
     test("update item - price", async () => {
-      await relayClient.updateItem(
-        itemId,
-        { price: "20.99"},
-      );
+      await relayClient.updateItem(itemId, { price: "20.99" });
       expect(itemId).not.toBeNull();
     });
 
     test("update item - metadata", async () => {
-      await relayClient.updateItem(
-        itemId,
-        { metadata: {name: "new name", image: "https://http.cat/images/200.jpg" }},
-      );
+      await relayClient.updateItem(itemId, {
+        metadata: {
+          name: "new name",
+          image: "https://http.cat/images/200.jpg",
+        },
+      });
       expect(itemId).not.toBeNull();
     });
 
@@ -266,7 +269,7 @@ describe("user behaviour", () => {
 
       test("erc20 checkout", { timeout: 10000 }, async () => {
         await relayClient.updateStoreManifest({
-          addERC20: abi.addresses.Eddies
+          addERC20: abi.addresses.Eddies,
         });
         await relayClient.changeOrder(orderId, itemId, 1);
 
@@ -325,7 +328,7 @@ describe("user behaviour", () => {
         const stream = relayClient2.createEventStream();
         // @ts-expect-error FIXME
         for await (const evt of stream) {
-          return 1
+          return 1;
         }
       };
       const evtLength = await getStream();

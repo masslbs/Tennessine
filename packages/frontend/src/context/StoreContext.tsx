@@ -417,7 +417,8 @@ export const StoreContextProvider = (
   const updateOrder = async (itemId?: ItemId, saleQty: number = 0) => {
     const order_id = !orderId ? await createOrder() : orderId;
     try {
-      const activeOrderItems = (orderId && orderItems.get(orderId)?.items) || {};
+      const activeOrderItems =
+        (orderId && orderItems.get(orderId)?.items) || {};
 
       if (!itemId) {
         //Clear order and set every item in order to quantity 0
