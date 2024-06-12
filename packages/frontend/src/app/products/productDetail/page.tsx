@@ -15,7 +15,7 @@ import { ItemState } from "@/context/types";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 
 const ProductDetail = () => {
-  const { products, updateCart, cartItems, cartId, addProductToTag, allTags } =
+  const { products, updateOrder, orderItems, orderId, addProductToTag, allTags } =
     useStoreContext();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -79,11 +79,11 @@ const ProductDetail = () => {
 
   useEffect(() => {
     const itemsInCurrentCart: ItemState | null =
-      (cartId && cartItems.get(cartId)?.items) || null;
+      (orderId && orderItems.get(orderId)?.items) || null;
     if (itemId && itemsInCurrentCart?.[itemId]) {
       setAddedToCart(true);
     }
-  }, [cartItems, item]);
+  }, [orderItems, item]);
 
   useEffect(() => {
     if (itemId) {
@@ -91,7 +91,7 @@ const ProductDetail = () => {
       _item && setItem(_item);
       _item && setAvailable(_item?.stockQty || 0);
       const qty =
-        _item && cartId ? cartItems.get(cartId)?.items?.[itemId] || 0 : 0;
+        _item && orderId ? orderItems.get(orderId)?.items?.[itemId] || 0 : 0;
       setQuantity(qty);
     }
   }, [itemId]);
@@ -178,7 +178,7 @@ const ProductDetail = () => {
         <Button
           disabled={!quantity}
           onClick={async () => {
-            const res = await updateCart(item.id, quantity);
+            const res = await updateOrder(item.id, quantity);
             if (res?.error) {
               setShowErrorMessage(res.error);
             } else {
@@ -206,7 +206,7 @@ const ProductDetail = () => {
       return (
         <Button
           onClick={async () => {
-            const res = await updateCart(item.id, quantity);
+            const res = await updateOrder(item.id, quantity);
             if (res?.error) {
               setShowErrorMessage(res.error);
             } else {

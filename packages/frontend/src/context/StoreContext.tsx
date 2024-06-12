@@ -11,14 +11,14 @@ import React, {
 } from "react";
 import { bytesToHex, hexToBytes } from "viem";
 
-import { IProduct, TagId, ItemId, OrderId, IStatus, IRelay } from "@/types";
+import { IProduct, TagId, ItemId, IStatus, IRelay } from "@/types";
 import { useMyContext } from "./MyContext";
 import {
   StoreContent,
-  ItemField,
   ProductsMap,
   TagsMap,
   OrdersMap,
+  OrderId,
 } from "@/context/types";
 import {
   productReducer,
@@ -239,7 +239,7 @@ export const StoreContextProvider = (
       const _order = _orderItems.get(_orderId) as OrderState;
       if (_order && _order.status !== IStatus.Failed) {
         const sig = _order.signature as `0x${string}`;
-        const retrievedAdd = await relayClient!.recoverSignedAddress(
+        const retrievedAdd = relayClient!.recoverSignedAddress(
           _orderId,
           sig,
         );
@@ -300,7 +300,6 @@ export const StoreContextProvider = (
         updatedProduct.price = priceAsNum.toFixed(2);
         await relayClient!.updateItem(
           itemId,
-          ItemField.ITEM_FIELD_PRICE,
           updatedProduct.price,
         );
         setProducts({
@@ -325,7 +324,6 @@ export const StoreContextProvider = (
         };
         await relayClient!.updateItem(
           itemId,
-          ItemField.ITEM_FIELD_METADATA,
           metadata,
         );
         setProducts({

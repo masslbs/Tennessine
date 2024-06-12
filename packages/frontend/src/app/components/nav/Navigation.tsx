@@ -19,10 +19,10 @@ const Navigation = () => {
 
   const { avatar } = useMyContext();
   const { isAuthenticated } = useAuth();
-  const { cartItems, cartId } = useStoreContext();
+  const { orderItems, orderId } = useStoreContext();
 
   const profilePhoto = avatar ? avatar : "example-avatar.svg";
-  const activeCartItems = cartId && cartItems.get(cartId)?.items;
+  const activeCartItems = orderId && orderItems.get(orderId)?.items;
   const arr = activeCartItems ? Object.values(activeCartItems) : [];
   let len = 0;
   for (const val of arr) {

@@ -97,7 +97,7 @@ export type IRelayClient = EventEmitter & {
     cardId: OrderId,
     erc20: `0x${string}` | null,
   ) => Promise<{ requestId: Uint8Array; orderFinalizedId: Uint8Array }>;
-  createEventStream: () => Promise<{ events: mmproto.IEvent[] }>[];
+  createEventStream: () => Promise<{ events: mmproto.IStoreEvent[] }>[];
   recoverSignedAddress: (
     orderId: `0x${string}`,
     signature: `0x${string}`,
@@ -169,7 +169,5 @@ export type StoreContent = {
 };
 
 export type ProductsMap = Map<ItemId, IProduct>;
-
 export type TagsMap = Map<TagId, ITag>;
-
 export type OrdersMap = Map<OrderId, OrderState>;

@@ -7,7 +7,7 @@ import { hexToBytes } from "viem";
 
 import testVectorsData from "@massmarket/frontend/test/testVectors.json" assert { type: "json" };
 
-import { market } from "@massmarket/client/lib/protobuf/compiled";
+import { market, google } from "@massmarket/client/lib/protobuf/compiled";
 import mmproto = market.mass;
 
 type VectorEvent = {
@@ -49,7 +49,7 @@ export type TestVectors = {
     // items assigned to the published tag
     published_items: string[];
     // cart_id -> item_id -> quantity
-    open_carts: { [key: string]: { [key: string]: number } };
+    open_orders: { [key: string]: { [key: string]: number } };
     // item_id -> quantity
     inventory: { [key: string]: number };
   };
@@ -79,7 +79,7 @@ export class MockClient extends EventEmitter {
       );
       const pushReq = new mmproto.EventPushRequest({
         requestId: sequentialReqId(),
-        events: [decodedEvent],
+        events: [decodedEvent as google.protobuf.IAny],
       });
       this.emit("event", pushReq);
     }
