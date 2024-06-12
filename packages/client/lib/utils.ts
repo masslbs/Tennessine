@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Mass Labs
+//
+// SPDX-License-Identifier: MIT
+
 import { Buffer } from "buffer";
 import { bytesToHex, toBytes } from "viem";
 

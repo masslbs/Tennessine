@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2024 Mass Labs
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
+
 import {
   ADD_PRODUCT,
   UPDATE_METADATA,
@@ -35,7 +36,7 @@ import mmproto = market.mass;
 export const buildState = (
   products: Map<ItemId, IProduct>,
   allTags: Map<TagId, ITag>,
-  events: mmproto.IStoreEvent[],
+  events: mmproto.IShopEvent[],
   productsDispatch: Dispatch<updateProductAction | productAction>,
   tagsDisaptch: Dispatch<allTagsAction>,
   setOrderItems: Dispatch<allOrderActions>,
@@ -46,11 +47,11 @@ export const buildState = (
   walletAddress?: `0x${string}` | null,
 ) => {
   events.map((e) => {
-    if (e.storeManifest) {
-      const sm = e.storeManifest;
+    if (e.shopManifest) {
+      const sm = e.shopManifest;
       setPublishedTagId(bytesToHex(sm.publishedTagId!));
-    } else if (e.updateStoreManifest) {
-      const um = e.updateStoreManifest;
+    } else if (e.updateShopManifest) {
+      const um = e.updateShopManifest;
       if (um.addErc20Addr) {
         console.log(
           `Adding erc20 ${bytesToHex(um.addErc20Addr)} to payment options`,
@@ -233,8 +234,7 @@ export const buildState = (
         });
       }
     } else {
-      console.log(e);
-      throw new Error(`Unhandled event type: ${e}`);
+      throw new Error(`Unhandled event type: ${e.union}`);
     }
   });
   return { _products: products, _allTags: allTags };

@@ -40,11 +40,11 @@ const relayEndpoint =
   (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v2";
 
 let relayClient: RelayClient;
-const storeId = random32BytesHex();
+const shopId = random32BytesHex();
 
 beforeEach(async () => {
   relayClient = new RelayClient({
-    storeId,
+    shopId,
     relayEndpoint,
     keyCardWallet: privateKeyToAccount(random32BytesHex()),
     chain: hardhat,
@@ -72,8 +72,8 @@ describe("RelayClient", async () => {
     });
   });
 
-  test("should create a store", async () => {
-    const transactionHash = await relayClient.blockchain.createStore(wallet);
+  test("should create a shop", async () => {
+    const transactionHash = await relayClient.blockchain.createShop(wallet);
     // wait for the transaction to be included in the blockchain
     const receipt = await publicClient.waitForTransactionReceipt({
       hash: transactionHash,
@@ -117,7 +117,7 @@ describe("RelayClient", async () => {
       keyCardWallet: privateKeyToAccount(sk),
       chain: hardhat,
       keyCardEnrolled: false,
-      storeId,
+      shopId,
     });
 
     const hash2 = await relayClient.blockchain.redeemInviteSecret(
@@ -132,28 +132,28 @@ describe("RelayClient", async () => {
 
     //
     const PERMRootHash = await publicClient.readContract({
-      address: abi.addresses.StoreReg as Address,
-      abi: abi.StoreReg,
+      address: abi.addresses.ShopReg as Address,
+      abi: abi.ShopReg,
       functionName: "PERM_updateRootHash",
     });
     const PERMRemoveUser = await publicClient.readContract({
-      address: abi.addresses.StoreReg as Address,
-      abi: abi.StoreReg,
+      address: abi.addresses.ShopReg as Address,
+      abi: abi.ShopReg,
       functionName: "PERM_removeUser",
     });
     // verify access level
     const canUpdateRootHash = await publicClient.readContract({
-      address: abi.addresses.StoreReg as Address,
-      abi: abi.StoreReg,
+      address: abi.addresses.ShopReg as Address,
+      abi: abi.ShopReg,
       functionName: "hasPermission",
-      args: [storeId, acc2.address, PERMRootHash],
+      args: [shopId, acc2.address, PERMRootHash],
     });
     expect(canUpdateRootHash).toBe(true);
     const isAdmin = await publicClient.readContract({
-      address: abi.addresses.StoreReg as Address,
-      abi: abi.StoreReg,
+      address: abi.addresses.ShopReg as Address,
+      abi: abi.ShopReg,
       functionName: "hasPermission",
-      args: [storeId, acc2.address, PERMRemoveUser],
+      args: [shopId, acc2.address, PERMRemoveUser],
     });
     expect(isAdmin).toBe(false);
 
@@ -171,9 +171,9 @@ describe("user behaviour", () => {
     expect(authenticated.error).toBeNull();
   });
 
-  test("write store manifest", async () => {
+  test("write shop manifest", async () => {
     const publishedTagId = null;
-    let r = await relayClient.writeStoreManifest(publishedTagId);
+    let r = await relayClient.writeShopManifest(publishedTagId);
     // This is a hack to please browser and node world
     // Find out why one return number and the other class Long
     if (r.eventSequenceNo !== 2 && r.eventSequenceNo.low !== 2) {
@@ -181,15 +181,15 @@ describe("user behaviour", () => {
     }
   });
 
-  test("update store manifest", async () => {
-    await relayClient.updateStoreManifest({ domain: "socks.mass.market" });
-    await relayClient.updateStoreManifest({
+  test("update shop manifest", async () => {
+    await relayClient.updateShopManifest({ domain: "socks.mass.market" });
+    await relayClient.updateShopManifest({
       publishedTagId: random32BytesHex(),
     });
-    await relayClient.updateStoreManifest({
+    await relayClient.updateShopManifest({
       addERC20: abi.addresses.Eddies as Address,
     });
-    await relayClient.updateStoreManifest({
+    await relayClient.updateShopManifest({
       removeERC20: abi.addresses.Eddies as Address,
     });
   });
@@ -279,7 +279,7 @@ describe("user behaviour", () => {
       });
 
       test("erc20 checkout", { timeout: 10000 }, async () => {
-        await relayClient.updateStoreManifest({
+        await relayClient.updateShopManifest({
           addERC20: abi.addresses.Eddies as Address,
         });
         await relayClient.changeOrder(orderId, itemId, 1);
@@ -327,7 +327,7 @@ describe("user behaviour", () => {
         keyCardWallet: privateKeyToAccount(sk),
         chain: hardhat,
         keyCardEnrolled: false,
-        storeId,
+        shopId,
       });
       const redeemHash = await relayClient.blockchain.redeemInviteSecret(
         sk,
@@ -344,7 +344,7 @@ describe("user behaviour", () => {
     });
 
     test("client2 successfully updates manifest", async () => {
-      await relayClient2.updateStoreManifest({
+      await relayClient2.updateShopManifest({
         domain: "test2-test",
       });
       console.log("client2 updated manifest");

@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2024 Mass Labs
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
+
 import { FinalizedOrderState } from "../context/types";
 export const SET_ORDER = "SET_ORDER";
 export type EventId = `0x${string}`;

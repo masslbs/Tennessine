@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2024 Mass Labs
 //
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 import { EventEmitter } from "events";
 import { hexToBytes } from "viem";
@@ -38,7 +38,7 @@ export type TestVectors = {
   events: VectorEvent[];
   reduced: {
     manifest: {
-      store_token_id: string;
+      shop_token_id: string;
       domain: string;
       published_tag: { [key: string]: { text: string } };
     };
@@ -74,7 +74,7 @@ export class MockClient extends EventEmitter {
   async connect() {
     for (let index = 0; index < this.vectors.events.length; index++) {
       const evt = this.vectors.events[index];
-      const decodedEvent = mmproto.StoreEvent.decode(
+      const decodedEvent = mmproto.ShopEvent.decode(
         hexToBytes(("0x" + evt.encoded) as `0x${string}`),
       );
       const pushReq = new mmproto.EventPushRequest({

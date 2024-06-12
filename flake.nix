@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2024 Mass Labs
 #
 # SPDX-License-Identifier: Unlicense
+
 {
   description = "massmarket-typescript";
   inputs = {
@@ -8,7 +9,7 @@
     flake-parts.url = "github:hercules-ci/flake-parts/ac5d0b2d4d51a53a1cd4a4a10d22f4a12c3fe652";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
-    contracts.url = "github:masslbs/contracts";
+    contracts.url = "github:masslbs/contracts/rename";
     contracts.inputs.nixpkgs.follows = "nixpkgs";
     schema = {
       url = "github:masslbs/network-schema/wip/v2";

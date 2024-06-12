@@ -53,10 +53,10 @@ export type ClientArgs = {
   keyCardWallet: PrivateKeyAccount;
   chain: Chain;
   keyCardEnrolled: boolean;
-  storeId: `0x${string}` | undefined;
+  shopId: `0x${string}` | undefined;
 };
 
-type UpdateStoreManifestOpts = {
+type UpdateShopManifestOpts = {
   domain?: string;
   publishedTagId?: `0x${string}`;
   addERC20?: `0x${string}`;
@@ -83,10 +83,10 @@ export class RelayClient extends EventEmitter {
     keyCardWallet,
     chain = hardhat,
     keyCardEnrolled,
-    storeId,
+    shopId,
   }: ClientArgs) {
     super();
-    this.blockchain = new BlockchainClient(storeId);
+    this.blockchain = new BlockchainClient(shopId);
     this.keyCardWallet = keyCardWallet;
     this.endpoint = relayEndpoint;
     this.useTLS = relayEndpoint.startsWith("wss");
@@ -95,7 +95,7 @@ export class RelayClient extends EventEmitter {
       name: "MassMarket",
       version: "1",
       chainId: this.chain.id,
-      verifyingContract: abi.addresses.StoreReg as Address,
+      verifyingContract: abi.addresses.ShopReg as Address,
     };
     this.keyCardEnrolled = keyCardEnrolled;
   }
@@ -181,7 +181,7 @@ export class RelayClient extends EventEmitter {
   }
 
   // TODO: there are a lot of assumptions baked in here that should be commented
-  async #signAndSendStoreEvent(types: TypedData, message: NetworkMessage) {
+  async #signAndSendShopEvent(types: TypedData, message: NetworkMessage) {
     const sig = await this.#signTypedDataMessage(types, message);
     let key = convertFirstCharToLowerCase(Object.keys(types)[0]);
     const event = {
@@ -190,8 +190,8 @@ export class RelayClient extends EventEmitter {
     };
     const write = {
       event: {
-        type_url: "type.googleapis.com/market.mass.StoreEvent",
-        value: mmproto.StoreEvent.encode(event).finish(),
+        type_url: "type.googleapis.com/market.mass.ShopEvent",
+        value: mmproto.ShopEvent.encode(event).finish(),
       },
     };
     return this.encodeAndSend(mmproto.EventWriteRequest, write);
@@ -205,7 +205,7 @@ export class RelayClient extends EventEmitter {
       return (enqueueFn = (pushReq: mmproto.EventPushRequest) => {
         requestId = pushReq.requestId;
         for (const anyEvt of pushReq.events) {
-          let evt = mmproto.StoreEvent.decode(anyEvt.value!);
+          let evt = mmproto.ShopEvent.decode(anyEvt.value!);
           controller.enqueue(evt);
         }
       });
@@ -342,7 +342,7 @@ export class RelayClient extends EventEmitter {
     const body = JSON.stringify({
       key_card: Buffer.from(publicKey).toString("base64"),
       signature: hexToBase64(signature),
-      store_token_id: hexToBase64(this.blockchain.storeId),
+      shop_token_id: hexToBase64(this.blockchain.shopId),
     });
     const endpointURL = new URL(this.endpoint);
     endpointURL.protocol = this.useTLS ? "https" : "http";
@@ -381,7 +381,7 @@ export class RelayClient extends EventEmitter {
     return uploadResp.json();
   }
 
-  async writeStoreManifest(
+  async writeShopManifest(
     publishedTagId: `0x${string}` | null = null,
   ): Promise<mmproto.EventWriteResponse> {
     await this.connect();
@@ -389,21 +389,21 @@ export class RelayClient extends EventEmitter {
     if (publishedTagId) {
       pId = hexToBytes(publishedTagId);
     }
-    const storeManifest = {
+    const shopManifest = {
       eventId: eventId(),
-      storeTokenId: hexToBytes(this.blockchain.storeId),
+      shopTokenId: hexToBytes(this.blockchain.shopId),
       domain: "socks.mass.market",
       publishedTagId: pId,
     };
 
     const types = {
-      StoreManifest: [
+      ShopManifest: [
         {
           name: "event_id",
           type: "bytes32",
         },
         {
-          name: "store_token_id",
+          name: "shop_token_id",
           type: "bytes32",
         },
         {
@@ -417,13 +417,13 @@ export class RelayClient extends EventEmitter {
       ],
     };
 
-    return this.#signAndSendStoreEvent(
+    return this.#signAndSendShopEvent(
       types,
-      storeManifest,
+      shopManifest,
     ) as Promise<mmproto.EventWriteResponse>;
   }
 
-  async updateStoreManifest(update: UpdateStoreManifestOpts) {
+  async updateShopManifest(update: UpdateShopManifestOpts) {
     await this.connect();
 
     const types = [
@@ -474,9 +474,9 @@ export class RelayClient extends EventEmitter {
     console.log(message);
     console.log("============");
 
-    return this.#signAndSendStoreEvent(
+    return this.#signAndSendShopEvent(
       {
-        UpdateStoreManifest: types,
+        UpdateShopManifest: types,
       },
       message,
     );
@@ -512,7 +512,7 @@ export class RelayClient extends EventEmitter {
         },
       ],
     };
-    await this.#signAndSendStoreEvent(types, item);
+    await this.#signAndSendShopEvent(types, item);
     return bytesToHex(iid);
   }
 
@@ -547,7 +547,7 @@ export class RelayClient extends EventEmitter {
       message["metadata"] = utf8Encoded;
     }
 
-    return this.#signAndSendStoreEvent(
+    return this.#signAndSendShopEvent(
       {
         UpdateItem: types,
       },
@@ -575,7 +575,7 @@ export class RelayClient extends EventEmitter {
         },
       ],
     };
-    await this.#signAndSendStoreEvent(types, tag);
+    await this.#signAndSendShopEvent(types, tag);
     return bytesToHex(tagId);
   }
 
@@ -603,7 +603,7 @@ export class RelayClient extends EventEmitter {
         },
       ],
     };
-    return this.#signAndSendStoreEvent(types, tag);
+    return this.#signAndSendShopEvent(types, tag);
   }
 
   async removeFromTag(tagId: `0x${string}`, itemId: `0x${string}`) {
@@ -630,7 +630,7 @@ export class RelayClient extends EventEmitter {
         },
       ],
     };
-    return this.#signAndSendStoreEvent(types, tag);
+    return this.#signAndSendShopEvent(types, tag);
   }
 
   async abandonOrder(orderId: `0x${string}`) {
@@ -651,7 +651,7 @@ export class RelayClient extends EventEmitter {
       ],
     };
 
-    return await this.#signAndSendStoreEvent(types, order);
+    return await this.#signAndSendShopEvent(types, order);
   }
 
   async createOrder() {
@@ -670,7 +670,7 @@ export class RelayClient extends EventEmitter {
       ],
     };
 
-    await this.#signAndSendStoreEvent(types, order);
+    await this.#signAndSendShopEvent(types, order);
     return bytesToHex(reqId);
   }
 
@@ -717,7 +717,7 @@ export class RelayClient extends EventEmitter {
       ],
     };
 
-    return this.#signAndSendStoreEvent(types, order);
+    return this.#signAndSendShopEvent(types, order);
   }
 
   // null erc20Addr means vanilla ethererum is used
@@ -764,6 +764,6 @@ export class RelayClient extends EventEmitter {
         },
       ],
     };
-    return this.#signAndSendStoreEvent(types, stock);
+    return this.#signAndSendShopEvent(types, stock);
   }
 }

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Mass Labs
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { Level } from "level";
 import { ProductsMap, TagsMap, OrdersMap } from "@/context/types";
 

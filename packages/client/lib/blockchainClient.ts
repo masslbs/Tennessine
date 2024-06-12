@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Mass Labs
+//
+// SPDX-License-Identifier: MIT
+
 import {
   bytesToHex,
   hexToBytes,
@@ -21,24 +25,24 @@ export type WalletClientWithAccount = WalletClient<
 };
 
 export class BlockchainClient {
-  constructor(public storeId: `0x${string}` = bytesToHex(eventId())) {}
+  constructor(public shopId: `0x${string}` = bytesToHex(eventId())) {}
 
-  createStore(wallet: WalletClientWithAccount) {
+  createShop(wallet: WalletClientWithAccount) {
     return wallet.writeContract({
-      address: abi.addresses.StoreReg as Address,
-      abi: abi.StoreReg,
+      address: abi.addresses.ShopReg as Address,
+      abi: abi.ShopReg,
       functionName: "mint",
-      args: [BigInt(this.storeId), wallet.account.address],
+      args: [BigInt(this.shopId), wallet.account.address],
     });
   }
 
   createInviteSecret(wallet: WalletClientWithAccount, token: `0x${string}`) {
     // Save the public key onchain
     return wallet.writeContract({
-      address: abi.addresses.StoreReg as Address,
-      abi: abi.StoreReg,
+      address: abi.addresses.ShopReg as Address,
+      abi: abi.ShopReg,
       functionName: "publishInviteVerifier",
-      args: [BigInt(this.storeId), token],
+      args: [BigInt(this.shopId), token],
     });
   }
 
@@ -56,10 +60,10 @@ export class BlockchainClient {
     const r = bytesToHex(sigBytes.slice(0, 32));
     const s = bytesToHex(sigBytes.slice(32, 64));
     return wallet.writeContract({
-      address: abi.addresses.StoreReg as Address,
-      abi: abi.StoreReg,
+      address: abi.addresses.ShopReg as Address,
+      abi: abi.ShopReg,
       functionName: "redeemInvite",
-      args: [BigInt(this.storeId), v, r, s, wallet.account.address],
+      args: [BigInt(this.shopId), v, r, s, wallet.account.address],
     });
   }
 }
