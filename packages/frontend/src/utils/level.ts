@@ -1,9 +1,9 @@
 import { Level } from "level";
-import { ProductsMap, TagsMap, CartsMap } from "@/context/types";
+import { ProductsMap, TagsMap, OrdersMap } from "@/context/types";
 
 const setMapData = (
   key: string,
-  value: CartsMap | TagsMap | ProductsMap,
+  value: OrdersMap | TagsMap | ProductsMap,
   db: Level<string, string> | null,
 ) => {
   if (!db) return;
@@ -21,7 +21,7 @@ const setItem = (
 };
 
 const getParsedMapData = async (
-  key: "products" | "tags" | "cartItems",
+  key: "products" | "tags" | "orderItems",
   db: Level<string, string>,
 ) => {
   try {

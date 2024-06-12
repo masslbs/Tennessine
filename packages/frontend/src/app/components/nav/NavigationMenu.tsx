@@ -28,7 +28,7 @@ const NavigationMenu = ({
   onClose: () => void;
   isOpen: boolean;
 }) => {
-  const { invalidateCart } = useStoreContext();
+  const { invalidateOrder } = useStoreContext();
   const router = useRouter();
 
   const renderItems = () => {
@@ -83,7 +83,7 @@ const NavigationMenu = ({
               type="button"
               className="flex justify-center bg-gradient-to-r from-button-gradient-start to-button-gradient-end w-full text-white px-4 py-4 rounded-md"
               onClick={() => {
-                invalidateCart("New sale started.");
+                invalidateOrder("New sale started.");
                 router.push("/products");
                 onClose();
               }}

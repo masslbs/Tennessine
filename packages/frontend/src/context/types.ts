@@ -44,13 +44,16 @@ export type OrderState = {
 export type IRelayWriteResponse = {
   // TODO: should be mmproto.EventWriteResponse but can't import anymore somehow
 };
-
+type blockchain = {
+  createStore: (wallet: WalletClientWithAccount) => Promise<`0x${string}`>;
+};
 // TODO: should move this to client package and use it in tests to make sure it's in sync
 export type IRelayClient = EventEmitter & {
   wallet: WalletClientWithAccount;
   chain: Chain;
   keyCard: PrivateKeyAccount;
   endpoint: string;
+  blockchain: blockchain;
   getRandomStoreId: () => `0x${string}`;
   writeStoreManifest: (pId?: TagId) => Promise<IRelayWriteResponse>;
   updateManifest: (
@@ -60,10 +63,7 @@ export type IRelayClient = EventEmitter & {
   createInviteSecret: (
     wallet: WalletClientWithAccount,
   ) => Promise<`0x${string}`>;
-  createStore: (
-    storeId: `0x${string}`,
-    wallet: WalletClientWithAccount,
-  ) => Promise<`0x${string}`>;
+
   redeemInviteSecret: (
     secret: `0x${string}`,
     wallet: WalletClientWithAccount,
@@ -97,7 +97,7 @@ export type IRelayClient = EventEmitter & {
     cardId: OrderId,
     erc20: `0x${string}` | null,
   ) => Promise<{ requestId: Uint8Array; orderFinalizedId: Uint8Array }>;
-  createEventStream: () => Promise<{ events: mmproto.IEvent[] }>[];
+  createEventStream: () => Promise<{ events: mmproto.IStoreEvent[] }>[];
   recoverSignedAddress: (
     orderId: `0x${string}`,
     signature: `0x${string}`,
@@ -169,7 +169,5 @@ export type StoreContent = {
 };
 
 export type ProductsMap = Map<ItemId, IProduct>;
-
 export type TagsMap = Map<TagId, ITag>;
-
 export type OrdersMap = Map<OrderId, OrderState>;

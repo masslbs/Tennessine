@@ -35,7 +35,7 @@ import mmproto = market.mass;
 export const buildState = (
   products: Map<ItemId, IProduct>,
   allTags: Map<TagId, ITag>,
-  events: mmproto.IEvent[],
+  events: mmproto.IStoreEvent[],
   productsDispatch: Dispatch<updateProductAction | productAction>,
   tagsDisaptch: Dispatch<allTagsAction>,
   setOrderItems: Dispatch<allOrderActions>,
@@ -48,7 +48,7 @@ export const buildState = (
   events.map((e) => {
     if (e.storeManifest) {
       const sm = e.storeManifest;
-      setPublishedTagId(bytesToHex(sm.publishedTagId));
+      setPublishedTagId(bytesToHex(sm.publishedTagId!));
     } else if (e.updateStoreManifest) {
       const um = e.updateStoreManifest;
       if (um.addErc20Addr) {
@@ -126,7 +126,7 @@ export const buildState = (
           },
         });
       }
-      if (ut.rename || ut.deleted) {
+      if (ut.rename || ut.delete) {
         throw new Error(`not yet handling tag renames or deltes`);
       }
     } else if (e.changeStock) {
@@ -192,18 +192,18 @@ export const buildState = (
       if (uo.itemsFinalized) {
         console.log(uo.itemsFinalized);
         const {
-          erc20Addr,
+          currencyAddr,
           orderHash,
-          purchaseAddr,
+          payeeAddr,
           salesTax,
           total,
           totalInCrypto,
           subTotal,
         } = uo.itemsFinalized;
         const orderObj = {
-          erc20Addr: erc20Addr ? bytesToHex(erc20Addr) : null,
-          orderId: bytesToHex(orderHash),
-          //purchaseAddress: bytesToHex(purchaseAddr!),
+          erc20Addr: currencyAddr ? bytesToHex(currencyAddr) : null,
+          orderId: bytesToHex(orderHash!),
+          purchaseAddress: bytesToHex(payeeAddr!),
           salesTax: salesTax || null,
           total: total || null,
           subTotal: subTotal || null,
@@ -218,14 +218,6 @@ export const buildState = (
           },
         });
       }
-    } else if (e.orderAbandoned) {
-      setOrderItems({
-        type: UPDATE_ORDER_STATUS,
-        payload: {
-          orderId: bytesToHex(e.orderAbandoned.orderId!),
-          status: IStatus.Failed,
-        },
-      });
     } else if (e.newKeyCard) {
       const userWalletAddr = bytesToHex(e.newKeyCard.userWalletAddr!);
       const cardPublicKey = bytesToHex(e.newKeyCard.cardPublicKey!);
@@ -242,7 +234,7 @@ export const buildState = (
       }
     } else {
       console.log(e);
-      throw new Error(`Unhandled event type: ${e.union}`);
+      throw new Error(`Unhandled event type: ${e}`);
     }
   });
   return { _products: products, _allTags: allTags };

@@ -11,14 +11,14 @@ import React, {
 } from "react";
 import { bytesToHex, hexToBytes } from "viem";
 
-import { IProduct, TagId, ItemId, OrderId, IStatus, IRelay } from "@/types";
+import { IProduct, TagId, ItemId, IStatus, IRelay } from "@/types";
 import { useMyContext } from "./MyContext";
 import {
   StoreContent,
-  ItemField,
   ProductsMap,
   TagsMap,
   OrdersMap,
+  OrderId,
 } from "@/context/types";
 import {
   productReducer,
@@ -239,10 +239,7 @@ export const StoreContextProvider = (
       const _order = _orderItems.get(_orderId) as OrderState;
       if (_order && _order.status !== IStatus.Failed) {
         const sig = _order.signature as `0x${string}`;
-        const retrievedAdd = await relayClient!.recoverSignedAddress(
-          _orderId,
-          sig,
-        );
+        const retrievedAdd = relayClient!.recoverSignedAddress(_orderId, sig);
         if (addresses.includes(retrievedAdd.toLowerCase())) {
           console.log("inside inclue", _orderId);
           setOrderId(_orderId);
@@ -298,11 +295,7 @@ export const StoreContextProvider = (
       if (fields.price) {
         const priceAsNum = Number(updatedProduct.price);
         updatedProduct.price = priceAsNum.toFixed(2);
-        await relayClient!.updateItem(
-          itemId,
-          ItemField.ITEM_FIELD_PRICE,
-          updatedProduct.price,
-        );
+        await relayClient!.updateItem(itemId, updatedProduct.price);
         setProducts({
           type: UPDATE_PRICE,
           payload: {
@@ -323,11 +316,7 @@ export const StoreContextProvider = (
           description: "updating product",
           image: path.url,
         };
-        await relayClient!.updateItem(
-          itemId,
-          ItemField.ITEM_FIELD_METADATA,
-          metadata,
-        );
+        await relayClient!.updateItem(itemId, metadata);
         setProducts({
           type: UPDATE_METADATA,
           payload: {

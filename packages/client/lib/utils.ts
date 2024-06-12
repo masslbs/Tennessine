@@ -1,6 +1,16 @@
 import { Buffer } from "buffer";
 import { bytesToHex, toBytes } from "viem";
 
+export type NetworkMessage = {
+  [k: string]:
+    | Uint8Array
+    | string
+    | number
+    | Uint8Array[]
+    | number[]
+    | NetworkMessage;
+};
+
 export function requestId() {
   return randomBytes(16);
 }
@@ -40,14 +50,9 @@ function formatArray(array: Uint8Array[] | number[]) {
 }
 
 // TODO: there are a lot of assumptions baked in here that should be commented
-export function formatMessageForSigning(
-  obj: Record<string, Uint8Array | string | number | Uint8Array[] | number[]>,
-) {
-  const snakeCase: Record<
-    string,
-    string | `0x${string}`[] | BigInt | BigInt[]
-  > = {};
-  const convert = (value) => {
+export function formatMessageForSigning(obj: NetworkMessage) {
+  const snakeCase: any = {};
+  const convert = (value: any) => {
     if (Array.isArray(value)) {
       return formatArray(value);
     } else if (typeof value === "string") {
