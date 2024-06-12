@@ -19,9 +19,9 @@ function Transactions() {
     null,
   );
   const [searchPhrase, setSearchPhrase] = useState<string>("");
-  const [transactions, setTransactions] = useState<[OrderId, OrderState][] | []>(
-    [],
-  );
+  const [transactions, setTransactions] = useState<
+    [OrderId, OrderState][] | []
+  >([]);
   useEffect(() => {
     const carts = Array.from([...orderItems.entries()]);
     setTransactions(carts);

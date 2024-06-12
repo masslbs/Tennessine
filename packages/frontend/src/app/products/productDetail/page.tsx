@@ -15,8 +15,14 @@ import { ItemState } from "@/context/types";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 
 const ProductDetail = () => {
-  const { products, updateOrder, orderItems, orderId, addProductToTag, allTags } =
-    useStoreContext();
+  const {
+    products,
+    updateOrder,
+    orderItems,
+    orderId,
+    addProductToTag,
+    allTags,
+  } = useStoreContext();
   const router = useRouter();
   const searchParams = useSearchParams();
   const itemId = searchParams.get("itemId") as ItemId;
