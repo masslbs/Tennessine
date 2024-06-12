@@ -9,7 +9,7 @@ import {
 } from "viem";
 
 import * as abi from "@massmarket/contracts";
-import { eventId, randomBytes } from "./utils";
+import { eventId } from "./utils";
 import { privateKeyToAccount } from "viem/accounts";
 
 export type WalletClientWithAccount = WalletClient<
@@ -23,31 +23,23 @@ export type WalletClientWithAccount = WalletClient<
 export class BlockchainClient {
   constructor(public storeId: `0x${string}` = bytesToHex(eventId())) {}
 
-  async createStore(wallet: WalletClientWithAccount) {
-    const hash = await wallet.writeContract({
+  createStore(wallet: WalletClientWithAccount) {
+    return wallet.writeContract({
       address: abi.addresses.StoreReg as Address,
       abi: abi.StoreReg,
       functionName: "mint",
       args: [BigInt(this.storeId), wallet.account.address],
     });
-
-    return hash;
-    // return wallet.waitForTransactionReceipt({
-    //   hash,
-    // });
   }
 
-  async createInviteSecret(wallet: WalletClientWithAccount) {
-    const privateKey = bytesToHex(randomBytes(32)) as `0x${string}`;
-    const token = privateKeyToAccount(privateKey);
+  createInviteSecret(wallet: WalletClientWithAccount, token: `0x${string}`) {
     // Save the public key onchain
-    await wallet.writeContract({
+    return wallet.writeContract({
       address: abi.addresses.StoreReg as Address,
       abi: abi.StoreReg,
       functionName: "publishInviteVerifier",
-      args: [BigInt(this.storeId), token.address],
+      args: [BigInt(this.storeId), token],
     });
-    return privateKey;
   }
 
   async redeemInviteSecret(

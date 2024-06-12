@@ -25,6 +25,10 @@ export function randomBytes(n: number) {
   return b;
 }
 
+export function random32BytesHex() {
+  return bytesToHex(randomBytes(32));
+}
+
 export function convertFirstCharToLowerCase(str: string) {
   return str.charAt(0).toLowerCase() + str.slice(1);
 }
@@ -68,14 +72,6 @@ export function formatMessageForSigning(obj: NetworkMessage) {
     snakeCase[camelToSnake(key)] = convert(value);
   }
   return snakeCase;
-}
-
-export function getRandomStoreId() {
-  return bytesToHex(randomBytes(32));
-}
-
-export function generatePk() {
-  return bytesToHex(randomBytes(32));
 }
 
 export function hexToBase64(hex: string) {
