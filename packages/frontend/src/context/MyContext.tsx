@@ -176,9 +176,7 @@ export const MyContextProvider = (
         }
       })();
     }
-    console.log(
-      `relay client set ${user.relayEndpoint} with shop: ${shopId}`,
-    );
+    console.log(`relay client set ${user.relayEndpoint} with shop: ${shopId}`);
   }, [keyCardEnrolled]);
 
   const value = {
