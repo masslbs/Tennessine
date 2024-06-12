@@ -14,7 +14,7 @@ import { hardhat } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 import { describe, beforeEach, afterEach, expect, test } from "vitest";
 
-import { RelayClient, ManifestField } from "../lib";
+import { RelayClient } from "../lib";
 import { random32BytesHex } from "../lib/utils";
 import { market } from "../lib/protobuf/compiled";
 import mmproto = market.mass;
@@ -184,7 +184,7 @@ describe("user behaviour", () => {
   test("update store manifest", async () => {
     await relayClient.updateStoreManifest({ domain: "socks.mass.market" });
     await relayClient.updateStoreManifest({
-      publishedTagId: bytesToHex(randomBytes(32)),
+      publishedTagId: random32BytesHex(),
     });
     await relayClient.updateStoreManifest({
       addERC20: abi.addresses.Eddies as Address,
