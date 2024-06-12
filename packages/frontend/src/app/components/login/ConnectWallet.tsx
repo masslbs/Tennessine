@@ -107,13 +107,13 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
         });
         if (transaction.status == "success") {
           const PERMRootHash = await publicClient.readContract({
-            address: abi.addresses.StoreReg as `0x${string}`,
-            abi: abi.StoreReg,
+            address: abi.addresses.ShopReg as `0x${string}`,
+            abi: abi.ShopReg,
             functionName: "PERM_updateRootHash",
           });
           const hasAccess = await publicClient.readContract({
-            address: abi.addresses.StoreReg as `0x${string}`,
-            abi: abi.StoreReg,
+            address: abi.addresses.ShopReg as `0x${string}`,
+            abi: abi.ShopReg,
             functionName: "hasPermission",
             args: [storeId, walletAddress, PERMRootHash],
           });

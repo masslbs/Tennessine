@@ -234,7 +234,7 @@ export const buildState = (
         });
       }
     } else {
-      throw new Error(`Unhandled event type: ${e.union}`);
+      throw new Error(`Unhandled event type: ${e}`);
     }
   });
   return { _products: products, _allTags: allTags };

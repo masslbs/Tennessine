@@ -68,11 +68,11 @@ export const MyContextProvider = (
     console.warn("not a browser session");
     return;
   }
-  const storeId =
-    localStorage.getItem("storeId") || process.env.NEXT_PUBLIC_STORE_ID;
+  const shopId =
+    localStorage.getItem("shopId") || process.env.NEXT_PUBLIC_STORE_ID;
 
-  if (!storeId) {
-    throw Error("missing store ID");
+  if (!shopId) {
+    throw Error("missing shop ID");
   }
   const savedKC = localStorage.getItem("keyCard") as `0x${string}`;
 
@@ -157,7 +157,7 @@ export const MyContextProvider = (
         process.env.NEXT_PUBLIC_RELAY_ENDPOINT ||
         "wss://relay-beta.mass.market/v1",
       keyCardWallet: privateKeyToAccount(privateKey),
-      storeId: storeId as `0x${string}`,
+      shopId: shopId as `0x${string}`,
       chain: usedChain,
       keyCardEnrolled: !!keyCardEnrolled,
     };
@@ -177,7 +177,7 @@ export const MyContextProvider = (
       })();
     }
     console.log(
-      `relay client set ${user.relayEndpoint} with store: ${storeId}`,
+      `relay client set ${user.relayEndpoint} with shop: ${shopId}`,
     );
   }, [keyCardEnrolled]);
 
