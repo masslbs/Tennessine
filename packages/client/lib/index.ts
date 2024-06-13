@@ -62,6 +62,9 @@ type UpdateShopManifestOpts = {
   publishedTagId?: `0x${string}`;
   addERC20?: `0x${string}`;
   removeERC20?: `0x${string}`;
+  name?: string;
+  description?: string;
+  profilePictureUrl?: string;
 };
 
 type UpdateItemOpts = {
@@ -355,6 +358,9 @@ export class RelayClient extends EventEmitter {
   }
 
   async writeShopManifest(
+    name: string,
+    description: string,
+    profilePictureUrl: string,
     publishedTagId: `0x${string}` | null = null,
   ): Promise<mmproto.EventWriteResponse> {
     await this.connect();
@@ -367,6 +373,9 @@ export class RelayClient extends EventEmitter {
       shopTokenId: hexToBytes(this.blockchain.shopId),
       domain: "socks.mass.market",
       publishedTagId: pId,
+      name,
+      description,
+      profilePictureUrl,
     };
 
     const types = {
@@ -387,6 +396,18 @@ export class RelayClient extends EventEmitter {
           name: "published_tag_id",
           type: "bytes32",
         },
+        {
+          name: "name",
+          type: "string",
+        },
+        {
+          name: "description",
+          type: "string",
+        },
+        {
+          name: "profile_picture_url",
+          type: "string",
+        },
       ],
     };
 
@@ -403,6 +424,18 @@ export class RelayClient extends EventEmitter {
       {
         name: "event_id",
         type: "bytes32",
+      },
+      {
+        name: "name",
+        type: "string",
+      },
+      {
+        name: "description",
+        type: "string",
+      },
+      {
+        name: "profile_picture_url",
+        type: "string",
       },
     ];
 

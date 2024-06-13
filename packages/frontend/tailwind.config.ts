@@ -26,6 +26,8 @@ const config: Config = {
         "button-gradient-end": "#5A89E3",
         "primary-button": "#0D3481",
         "remove-button": "#F04F62",
+        "primary-gray": "#777777",
+        "tags-blue": "#5794F7",
       },
 
       fontFamily: {

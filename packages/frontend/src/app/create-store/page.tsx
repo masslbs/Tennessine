@@ -6,12 +6,12 @@
 
 import React, { useState, ChangeEvent, useEffect, useRef } from "react";
 import AvatarUpload from "@/app/common/components/AvatarUpload";
-import Button from "@/app/common/components/Button";
 import { useMyContext } from "@/context/MyContext";
 import { useAuth } from "@/context/AuthContext";
 import * as abi from "@massmarket/contracts";
 import { IStatus } from "@/types";
 import { useRouter } from "next/navigation";
+import SecondaryButton from "@/app/common/components/SecondaryButton";
 
 const StoreCreation = () => {
   const {
@@ -109,19 +109,27 @@ const StoreCreation = () => {
 
   return (
     <main className="pt-under-nav bg-gray-100 h-screen p-4">
-      <h2 className="pt-4">Create new shop</h2>
+      <div className="flex">
+        <h2 className="pt-4">Create new shop</h2>
+        <div className="ml-auto">
+          <SecondaryButton onClick={createStore}>save</SecondaryButton>
+        </div>
+      </div>
       <section className="mt-4 flex flex-col gap-4">
         <div className="flex gap-4">
-          <AvatarUpload img={avatar} setImgSrc={setAvatar} />
+          <form>
+            <label htmlFor="pfp">pfp</label>
+            <AvatarUpload img={avatar} setImgSrc={setAvatar} />
+          </form>
           <form
             className="flex flex-col grow"
             onSubmit={(e) => e.preventDefault()}
           >
-            <label htmlFor="fname">Store Name</label>
+            <label htmlFor="storeName">Store Name</label>
             <input
-              className="border-2 border-solid mt-1 p-2 rounded"
-              id="fname"
-              name="fname"
+              className="border-2 border-solid mt-1 p-2 rounded-2xl"
+              id="storeName"
+              name="storeName"
               value={storeName}
               onChange={(e) => handleStoreName(e)}
             />
@@ -131,7 +139,7 @@ const StoreCreation = () => {
         <form className="flex flex-col" onSubmit={(e) => e.preventDefault()}>
           <label htmlFor="fname">URL</label>
           <input
-            className="border-2 border-solid mt-1 p-2 rounded"
+            className="border-2 border-solid mt-1 p-2 rounded-2xl"
             id="fname"
             name="fname"
             value={storeURL}
@@ -141,7 +149,7 @@ const StoreCreation = () => {
         <form className="flex flex-col" onSubmit={(e) => e.preventDefault()}>
           <label htmlFor="fname">Description</label>
           <input
-            className="border-2 border-solid mt-1 p-2 rounded"
+            className="border-2 border-solid mt-1 p-2 rounded-2xl"
             id="fname"
             name="fname"
             value={description}
@@ -151,7 +159,7 @@ const StoreCreation = () => {
         <form className="flex flex-col" onSubmit={(e) => e.preventDefault()}>
           <label htmlFor="fname">Base Currency</label>
           <input
-            className="border-2 border-solid mt-1 p-2 rounded"
+            className="border-2 border-solid mt-1 p-2 rounded-2xl"
             id="fname"
             name="fname"
             value={currency}
@@ -159,9 +167,6 @@ const StoreCreation = () => {
           />
         </form>
       </section>
-      <div className="mt-8">
-        <Button onClick={createStore}>create store</Button>
-      </div>
     </main>
   );
 };

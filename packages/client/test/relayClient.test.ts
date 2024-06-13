@@ -173,7 +173,15 @@ describe("user behaviour", () => {
 
   test("write shop manifest", async () => {
     const publishedTagId = null;
-    let r = await relayClient.writeShopManifest(publishedTagId);
+    const name = "test shop";
+    const description = "creating test shop";
+    const profilePictureUrl = "/test";
+    let r = await relayClient.writeShopManifest(
+      name,
+      description,
+      profilePictureUrl,
+      publishedTagId,
+    );
     // This is a hack to please browser and node world
     // Find out why one return number and the other class Long
     if (r.eventSequenceNo !== 2 && r.eventSequenceNo.low !== 2) {

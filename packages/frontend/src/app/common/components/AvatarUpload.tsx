@@ -39,7 +39,7 @@ const AvatarUpload = ({
 
   return (
     <section>
-      <div className="flex justify-center mt-6">
+      <div className="flex justify-center">
         <button onClick={triggerFileInput}>
           <Image
             src="/assets/upload-button.svg"
