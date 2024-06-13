@@ -15,10 +15,10 @@ import {
   type Chain,
 } from "viem";
 
+import { EventEmitter } from "events";
 import { PrivateKeyAccount } from "viem/accounts";
 import { hardhat } from "viem/chains";
 import type { TypedData } from "abitype";
-import { EventEmitter } from "events";
 import { market } from "./protobuf/compiled";
 import mmproto = market.mass;
 import {
@@ -30,6 +30,7 @@ import {
 } from "./protobuf/constants";
 
 import { BlockchainClient } from "./blockchainClient";
+import { ReadableEventStream } from "./stream";
 import {
   formatMessageForSigning,
   requestId,
@@ -77,6 +78,7 @@ export class RelayClient extends EventEmitter {
   private useTLS: boolean;
   private DOMAIN_SEPARATOR;
   keyCardEnrolled: boolean;
+  private eventStream;
 
   constructor({
     relayEndpoint,
@@ -98,6 +100,11 @@ export class RelayClient extends EventEmitter {
       verifyingContract: abi.addresses.ShopReg as Address,
     };
     this.keyCardEnrolled = keyCardEnrolled;
+    this.eventStream = new ReadableEventStream(this);
+  }
+
+  createEventStream() {
+    return this.eventStream.stream;
   }
 
   #handlePingRequest(ping: mmproto.PingRequest) {
@@ -162,7 +169,7 @@ export class RelayClient extends EventEmitter {
         break;
       case mmproto.EventPushRequest:
         // TODO: add signature verification
-        this.emit("event", message as mmproto.EventPushRequest);
+        this.eventStream.enqueue(message as mmproto.EventPushRequest);
         break;
       default:
         this.emit(bytesToHex(message.requestId), message);
@@ -195,40 +202,6 @@ export class RelayClient extends EventEmitter {
       },
     };
     return this.encodeAndSend(mmproto.EventWriteRequest, write);
-  }
-
-  createEventStream() {
-    let requestId: Uint8Array | null = null;
-    const parentInstance = this;
-    let enqueueFn: any;
-    const enqueueWrapperFn = (controller: any) => {
-      return (enqueueFn = (pushReq: mmproto.EventPushRequest) => {
-        requestId = pushReq.requestId;
-        for (const anyEvt of pushReq.events) {
-          let evt = mmproto.ShopEvent.decode(anyEvt.value!);
-          controller.enqueue(evt);
-        }
-      });
-    };
-    return new ReadableStream(
-      {
-        start(controller) {
-          parentInstance.on("event", enqueueWrapperFn(controller));
-        },
-        pull() {
-          if (requestId) {
-            parentInstance.encodeAndSend(mmproto.EventPushResponse, {
-              requestId,
-            });
-            requestId = null;
-          }
-        },
-        cancel() {
-          parentInstance.removeListener("event", enqueueFn);
-        },
-      },
-      { highWaterMark: 0 },
-    );
   }
 
   async #authenticate() {
@@ -466,13 +439,6 @@ export class RelayClient extends EventEmitter {
       });
       message["removeErc20Addr"] = hexToBytes(update.removeERC20);
     }
-    console.log("Update:");
-    console.log(update);
-    console.log(`Types:`);
-    console.log(types);
-    console.log(`Message:`);
-    console.log(message);
-    console.log("============");
 
     return this.#signAndSendShopEvent(
       {
