@@ -21,6 +21,7 @@ const AvatarUpload = ({
 
   const handleUpload = (e: ChangeEvent<HTMLInputElement>) => {
     try {
+      e.preventDefault();
       const fileInput = e.target;
       if (fileInput.files && fileInput.files[0]) {
         const reader = new FileReader();

@@ -23,10 +23,10 @@ const StoreCreation = () => {
   } = useMyContext();
   const router = useRouter();
 
-  const [storeName, setStoreName] = useState<string>("ethDubai");
-  const [storeURL, setStoreURL] = useState<string>("ethdubai.mass.market");
-  const [currency, setCurrency] = useState<string>("ETH");
-  const [description, setDescription] = useState<string>("Creating store...");
+  const [storeName, setStoreName] = useState<string>("");
+  const [storeURL, setStoreURL] = useState<string>("");
+  const [currency, setCurrency] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
   const [avatar, setAvatar] = useState<string | null>(null);
   const enrollKeycard = useRef(false);
   const { isAuthenticated } = useAuth();
@@ -95,8 +95,7 @@ const StoreCreation = () => {
   useEffect(() => {
     if (relayClient && isAuthenticated === IStatus.Complete) {
       (async () => {
-        //FIXME: create and pass published store ID
-        await relayClient.writeShopManifest();
+        await relayClient.writeShopManifest(storeName, description, "/testing");
         console.log("store manifested.");
         const publishedTagId = await relayClient.createTag("visible");
         if (publishedTagId) {
@@ -108,7 +107,7 @@ const StoreCreation = () => {
   }, [isAuthenticated, relayClient]);
 
   return (
-    <main className="pt-under-nav bg-gray-100 h-screen p-4">
+    <main className="pt-under-nav h-screen p-4">
       <div className="flex">
         <h2 className="pt-4">Create new shop</h2>
         <div className="ml-auto">
@@ -117,10 +116,10 @@ const StoreCreation = () => {
       </div>
       <section className="mt-4 flex flex-col gap-4">
         <div className="flex gap-4">
-          <form>
-            <label htmlFor="pfp">pfp</label>
+          <div>
+            <p>pfp</p>
             <AvatarUpload img={avatar} setImgSrc={setAvatar} />
-          </form>
+          </div>
           <form
             className="flex flex-col grow"
             onSubmit={(e) => e.preventDefault()}
@@ -132,6 +131,7 @@ const StoreCreation = () => {
               name="storeName"
               value={storeName}
               onChange={(e) => handleStoreName(e)}
+              placeholder="Type a name"
             />
           </form>
         </div>
@@ -154,6 +154,7 @@ const StoreCreation = () => {
             name="fname"
             value={description}
             onChange={(e) => handleDesription(e)}
+            placeholder="Type a description"
           />
         </form>
         <form className="flex flex-col" onSubmit={(e) => e.preventDefault()}>

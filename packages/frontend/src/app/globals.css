@@ -36,15 +36,9 @@
 body {
   overflow: visible;
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
-
+  background-color: #eaedee;
   h2 {
-    font-size: 24px;
+    font-size: 25px;
   }
   h3 {
     font-size: 22px;
