@@ -14,23 +14,21 @@ import {
   type Account,
   type Chain,
 } from "viem";
-
 import { EventEmitter } from "events";
 import { PrivateKeyAccount } from "viem/accounts";
 import { hardhat } from "viem/chains";
 import type { TypedData } from "abitype";
-import { market } from "./protobuf/compiled";
-import mmproto = market.mass;
+import pb from "./protobuf/compiled.js";
+import mmproto = pb.market.mass;
 import {
   PBObject,
   PBMessage,
   PBInstance,
   MESSAGE_TYPES,
   MESSAGE_PREFIXES,
-} from "./protobuf/constants";
-
-import { BlockchainClient } from "./blockchainClient";
-import { ReadableEventStream } from "./stream";
+} from "./protobuf/constants.js";
+import { BlockchainClient } from "./blockchainClient.js";
+import { ReadableEventStream } from "./stream.js";
 import {
   formatMessageForSigning,
   requestId,
@@ -38,7 +36,7 @@ import {
   hexToBase64,
   convertFirstCharToLowerCase,
   type NetworkMessage,
-} from "./utils";
+} from "./utils.js";
 import * as abi from "@massmarket/contracts";
 
 export type WalletClientWithAccount = WalletClient<

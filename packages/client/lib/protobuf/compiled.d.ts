@@ -1,7 +1,3 @@
-// SPDX-FileCopyrightText: 2024 Mass Labs
-//
-// SPDX-License-Identifier: MIT
-
 import * as $protobuf from "protobufjs";
 import Long = require("long");
 /** Namespace market. */

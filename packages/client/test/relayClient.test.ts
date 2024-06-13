@@ -16,8 +16,8 @@ import { describe, beforeEach, afterEach, expect, test } from "vitest";
 
 import { RelayClient } from "../lib";
 import { random32BytesHex } from "../lib/utils";
-import { market } from "../lib/protobuf/compiled";
-import mmproto = market.mass;
+import pb from "../lib/protobuf/compiled";
+import mmproto = pb.market.mass;
 
 import * as abi from "@massmarket/contracts";
 

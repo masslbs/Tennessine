@@ -8,8 +8,8 @@ import { type PrivateKeyAccount } from "viem/accounts";
 import { EventEmitter } from "stream";
 
 import { WalletClientWithAccount } from "@massmarket/client";
-import { market } from "@massmarket/client/lib/protobuf/compiled";
-import mmproto = market.mass;
+import pb from "@massmarket/client/lib/protobuf/compiled";
+import mmproto = pb.market.mass;
 
 import { IProduct, ITag, IStatus, IRelay } from "@/types";
 import { Level } from "level";

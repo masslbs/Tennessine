@@ -1,5 +1,6 @@
 {
-  "extends": ["../../tsconfig.json"],
+  "extends": ["@massmarket/tsconfig/base.json"],
+  "include": ["./index.ts", "./abi/*.json", "./deploymentAddresses.json"],
   "compilerOptions": {
     "outDir": "./dist/"
   }

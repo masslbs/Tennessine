@@ -1,1 +1,2 @@
 *.yaml
+packages/client/wrapper.js
