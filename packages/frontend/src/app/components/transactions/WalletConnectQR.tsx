@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Mass Labs
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import React, { useState, useEffect } from "react";
 import { SignClient } from "@walletconnect/sign-client";
 import { WalletConnectModal } from "@walletconnect/modal";

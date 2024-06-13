@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2024 Mass Labs
 //
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 import { EventEmitter } from "events";
 import { hexToBytes } from "viem";
 
-import testVectorsData from "@massmarket/client/test/testVectors.json" assert { type: "json" };
+import testVectorsData from "@massmarket/frontend/test/testVectors.json" assert { type: "json" };
 
-import { market } from "@massmarket/client/lib/protobuf/compiled";
+import { market, google } from "@massmarket/client/lib/protobuf/compiled";
 import mmproto = market.mass;
 
 type VectorEvent = {
@@ -38,7 +38,7 @@ export type TestVectors = {
   events: VectorEvent[];
   reduced: {
     manifest: {
-      store_token_id: string;
+      shop_token_id: string;
       domain: string;
       published_tag: { [key: string]: { text: string } };
     };
@@ -49,7 +49,7 @@ export type TestVectors = {
     // items assigned to the published tag
     published_items: string[];
     // cart_id -> item_id -> quantity
-    open_carts: { [key: string]: { [key: string]: number } };
+    open_orders: { [key: string]: { [key: string]: number } };
     // item_id -> quantity
     inventory: { [key: string]: number };
   };
@@ -74,12 +74,12 @@ export class MockClient extends EventEmitter {
   async connect() {
     for (let index = 0; index < this.vectors.events.length; index++) {
       const evt = this.vectors.events[index];
-      const decodedEvent = mmproto.Event.decode(
+      const decodedEvent = mmproto.ShopEvent.decode(
         hexToBytes(("0x" + evt.encoded) as `0x${string}`),
       );
       const pushReq = new mmproto.EventPushRequest({
         requestId: sequentialReqId(),
-        events: [decodedEvent],
+        events: [decodedEvent as google.protobuf.IAny],
       });
       this.emit("event", pushReq);
     }

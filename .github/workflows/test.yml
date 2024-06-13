@@ -70,23 +70,17 @@ jobs:
           repository: masslbs/relay
           ssh-key: ${{ secrets.SSH_CHECKOUT_RELAY }}
           ref: ${{ steps.extract_branch.outputs.branch }}
+          fallback-branch: network-v2
           path: relay
 
       - name: Compile relay
         run: nix build '.#relay'
         working-directory: relay
 
-      - name: git clone contracts
-        uses: ./Tennessine/.github/actions/checkout
-        with:
-          repository: masslbs/contracts
-          ref: ${{ steps.extract_branch.outputs.branch }}
-          path: contracts
-
       - name: deploy contracts and update ABI
         run: |
           nix develop -c deploy-market
-        working-directory: contracts
+        working-directory: relay
 
       - name: prepare env file for relay
         run: |
@@ -130,8 +124,7 @@ jobs:
         working-directory: Tennessine/packages/client
 
       - name: build frontend
-        # TODO: enable linting
-        run: nix develop -c bash -c "pnpm build --no-lint"
+        run: nix develop -c bash -c "pnpm build"
         working-directory: Tennessine/packages/frontend
 
       - name: Upload frontend to Pinata

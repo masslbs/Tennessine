@@ -22,7 +22,7 @@ function QRScan({
   purchaseAddress: string;
 }) {
   console.log("for testing send payment to:", imgSrc);
-  const { cartId, cartItems, setCartId } = useStoreContext();
+  const { orderId, orderItems, setOrderId } = useStoreContext();
   const [src, setQr] = useState<string | null>(null);
 
   const copyToClipboard = () => {
@@ -35,14 +35,14 @@ function QRScan({
 
   useEffect(() => {
     if (
-      cartItems &&
-      cartId &&
-      cartItems.get(cartId)?.status === IStatus.Complete
+      orderItems &&
+      orderId &&
+      orderItems.get(orderId)?.status === IStatus.Complete
     ) {
       // setStatusScreen(true);
-      setCartId(null);
+      setOrderId(null);
     }
-  }, [cartItems]);
+  }, [orderItems]);
 
   return (
     <main className="text-center flex flex-col ">

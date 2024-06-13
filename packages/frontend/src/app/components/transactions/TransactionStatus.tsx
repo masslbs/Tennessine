@@ -29,7 +29,7 @@ const TransactionStatus = ({
   purchaseAddress: string;
   totalDollar: string;
 }) => {
-  const { invalidateCart, erc20Addr } = useStoreContext();
+  const { invalidateOrder, erc20Addr } = useStoreContext();
   const [showStatusScreen, setStatusScreen] = useState<boolean>(false);
   const [status, setStatus] = useState<IStatus>(IStatus.Complete);
   const [symbol, setSymbol] = useState("ETH");
@@ -54,7 +54,7 @@ const TransactionStatus = ({
     // but not paid.
     setStatus(IStatus.Failed);
     setStatusScreen(true);
-    invalidateCart("Exited committed cart without payment");
+    invalidateOrder("Exited committed cart without payment");
   };
 
   if (!imgSrc) {
