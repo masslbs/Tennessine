@@ -17,7 +17,6 @@ import {
 } from "@massmarket/client";
 import { hardhat, sepolia, mainnet, type Chain } from "viem/chains";
 import { http, createPublicClient, hexToBytes, bytesToHex } from "viem";
-import { IRelayClient, ClientContext } from "@/context/types";
 import { useAuth } from "@/context/AuthContext";
 import * as abi from "@massmarket/contracts";
 import { IStatus } from "../types";
@@ -48,7 +47,7 @@ export const MyContextProvider = (
   const [walletAddress, setWalletAddress] = useState<`0x${string}` | null>(
     null,
   );
-  const [relayClient, setRelayClient] = useState<IRelayClient | null>(null);
+  const [relayClient, setRelayClient] = useState<RelayClient | null>(null);
   const [balance, setBalance] = useState<string | null>(null);
   const [avatar, setAvatar] = useState<string | null>(null);
   const [ensName, setEnsName] = useState<string | null>(null);
