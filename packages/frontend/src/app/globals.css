@@ -24,13 +24,13 @@
 
 @layer base {
   html {
-    font-family: "protoMono", system-ui, sans-serif;
+    font-family: "JetBrainsMono", system-ui, sans-serif;
   }
 }
 
 @font-face {
-  font-family: "protoMono";
-  src: url("../../public/fonts/ProtoMono-Light.woff2");
+  font-family: "JetBrainsMono";
+  src: url("../../public/fonts/JetBrainsMono-VariableFont_wght.ttf");
 }
 
 body {
@@ -50,6 +50,6 @@ body {
     font-size: 18px;
   }
   h6 {
-    font-size: 16px;
+    font-size: 15px;
   }
 }

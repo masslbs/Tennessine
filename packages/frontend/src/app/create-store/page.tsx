@@ -109,15 +109,17 @@ const StoreCreation = () => {
   return (
     <main className="pt-under-nav h-screen p-4">
       <div className="flex">
-        <h2 className="pt-4">Create new shop</h2>
+        <h2>Create new shop</h2>
         <div className="ml-auto">
-          <SecondaryButton onClick={createStore}>save</SecondaryButton>
+          <SecondaryButton onClick={createStore}>
+            <h6>save</h6>
+          </SecondaryButton>
         </div>
       </div>
-      <section className="mt-4 flex flex-col gap-4">
+      <section className="mt-8 flex flex-col gap-4">
         <div className="flex gap-4">
           <div>
-            <p>pfp</p>
+            <p>PFP</p>
             <AvatarUpload img={avatar} setImgSrc={setAvatar} />
           </div>
           <form

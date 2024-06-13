@@ -31,7 +31,7 @@ const config: Config = {
       },
 
       fontFamily: {
-        proto: ["protoMono", "sans-serif"],
+        proto: ["JetBrainsMono", "sans-serif"],
       },
     },
   },
