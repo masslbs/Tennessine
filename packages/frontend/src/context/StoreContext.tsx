@@ -209,7 +209,7 @@ export const StoreContextProvider = (
           buildState(
             products,
             allTags,
-            evt.events,
+            evt,
             setProducts,
             setAllTags,
             setOrderItems,

@@ -49,7 +49,7 @@ const StoreCreation = () => {
         try {
           const storeId =
             localStorage.getItem("storeId") || process.env.NEXT_PUBLIC_STORE_ID;
-          const hash = await relayClient.blockchain.createStore(clientWallet);
+          const hash = await relayClient.blockchain.createShop(clientWallet);
           const transaction =
             publicClient &&
             (await publicClient.waitForTransactionReceipt({
@@ -96,8 +96,12 @@ const StoreCreation = () => {
     if (relayClient && isAuthenticated === IStatus.Complete) {
       (async () => {
         //FIXME: create and pass published store ID
-        await relayClient.writeStoreManifest();
+        await relayClient.writeShopManifest();
         console.log("store manifested.");
+        const publishedTagId = await relayClient.createTag("visible");
+        if (publishedTagId) {
+          await relayClient!.updateShopManifest({ publishedTagId });
+        }
         router.push("/products");
       })();
     }
