@@ -52,10 +52,6 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
   }, [walletStatus]);
 
   useEffect(() => {
-    enrollKeycard.current = false;
-  }, [clientWallet]);
-
-  useEffect(() => {
     if (relayClient) {
       if (enrollKeycard.current) return;
       if (keyCardToEnroll && clientWallet) {
