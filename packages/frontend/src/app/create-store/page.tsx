@@ -98,7 +98,7 @@ const StoreCreation = () => {
         //FIXME: create and pass published store ID
         await relayClient.writeShopManifest();
         console.log("store manifested.");
-        const publishedTagId = await relayClient.createTag(":visible");
+        const publishedTagId = await relayClient.createTag("visible");
         if (publishedTagId) {
           await relayClient!.updateShopManifest({ publishedTagId });
         }
