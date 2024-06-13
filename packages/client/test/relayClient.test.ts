@@ -175,7 +175,7 @@ describe("user behaviour", () => {
     const publishedTagId = null;
     const name = "test shop";
     const description = "creating test shop";
-    const profilePictureUrl = "/test";
+    const profilePictureUrl = "https://http.cat/images/200.jpg";
     let r = await relayClient.writeShopManifest(
       name,
       description,
