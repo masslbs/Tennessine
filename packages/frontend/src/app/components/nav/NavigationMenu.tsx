@@ -65,7 +65,11 @@ const NavigationMenu = ({
           <div>
             <h2 onClick={logout}>Log out</h2>
           </div>
-          <div className="absolute bottom-0 left-0 right-0 mb-20 mx-5">
+          <div>{renderItems()}</div>
+          <div>
+            <h2 onClick={logout}>Log out</h2>
+          </div>
+          {/* <div className="absolute bottom-0 left-0 right-0 mb-20 mx-5">
             <button
               type="button"
               className="flex justify-center bg-gradient-to-r from-button-gradient-start to-button-gradient-end w-full text-white px-4 py-4 rounded-md"
@@ -77,7 +81,7 @@ const NavigationMenu = ({
             >
               New Sale
             </button>
-          </div>
+          </div> */}
         </div>
       </main>
     </FullModal>
