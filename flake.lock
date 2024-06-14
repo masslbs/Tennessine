@@ -6,20 +6,23 @@
         "flake-parts": "flake-parts",
         "forge-std": "forge-std",
         "foundry": "foundry",
-        "nixpkgs": ["nixpkgs"],
+        "nixpkgs": [
+          "nixpkgs"
+        ],
         "permit2": "permit2",
         "solady": "solady"
       },
       "locked": {
-        "lastModified": 1717502262,
-        "narHash": "sha256-mfJmZ0kKtb/T6O9WuYZqIcJySCXhuxCqbSiQvPEdc/o=",
+        "lastModified": 1718269246,
+        "narHash": "sha256-Cbz+W+TXjWmOC1ugNElh3tma2zqFFpzVtyu6N/6YYhw=",
         "owner": "masslbs",
         "repo": "contracts",
-        "rev": "c2efd6ad09570392e4d30595f0e0120384dbadfb",
+        "rev": "377aba24796e029945696350db581ec1f65da657",
         "type": "github"
       },
       "original": {
         "owner": "masslbs",
+        "ref": "main",
         "repo": "contracts",
         "type": "github"
       }
@@ -111,11 +114,11 @@
     "forge-std": {
       "flake": false,
       "locked": {
-        "lastModified": 1715903882,
-        "narHash": "sha256-Uqr0ZwCnQL9ShWxIgG/ci/5ukGyuqt2n+C0GFKlJiho=",
+        "lastModified": 1717836446,
+        "narHash": "sha256-hBByo2OoIYh3nUkCBDJRPFKvaMkjAO+Wkq6belAW0T0=",
         "owner": "foundry-rs",
         "repo": "forge-std",
-        "rev": "52715a217dc51d0de15877878ab8213f6cbbbab5",
+        "rev": "6e05729b76f1ae0d437e74951aef1ca987788ab3",
         "type": "github"
       },
       "original": {
@@ -130,23 +133,26 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1714727549,
-        "narHash": "sha256-CWXRTxxcgMfQubJugpeg3yVWIfm70MYTtgaKWKgD60U=",
+        "lastModified": 1717405880,
+        "narHash": "sha256-qcXXOnRSl0sGKm7JknntBU4su8/342YKZvjklHsIl+Q=",
         "owner": "shazow",
         "repo": "foundry.nix",
-        "rev": "47cf189ec395eda4b3e0623179d1075c8027ca97",
+        "rev": "708c0df1e36b5185a727a3c517a5100e46392792",
         "type": "github"
       },
       "original": {
         "owner": "shazow",
+        "ref": "monthly",
         "repo": "foundry.nix",
-        "rev": "47cf189ec395eda4b3e0623179d1075c8027ca97",
         "type": "github"
       }
     },
     "gitignore": {
       "inputs": {
-        "nixpkgs": ["pre-commit-hooks", "nixpkgs"]
+        "nixpkgs": [
+          "pre-commit-hooks",
+          "nixpkgs"
+        ]
       },
       "locked": {
         "lastModified": 1709087332,
@@ -224,11 +230,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1717399147,
-        "narHash": "sha256-eCWaE/q1VItpFAxxLVt171MdtDcjEnwi6QB/yuF73JU=",
+        "lastModified": 1718149104,
+        "narHash": "sha256-Ds1QpobBX2yoUDx9ZruqVGJ/uQPgcXoYuobBguyKEh8=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "4a4ecb0ab415c9fccfb005567a215e6a9564cdf5",
+        "rev": "e913ae340076bbb73d9f4d3d065c2bca7caafb16",
         "type": "github"
       },
       "original": {
@@ -258,15 +264,17 @@
       "inputs": {
         "flake-compat": "flake-compat",
         "gitignore": "gitignore",
-        "nixpkgs": ["nixpkgs"],
+        "nixpkgs": [
+          "nixpkgs"
+        ],
         "nixpkgs-stable": "nixpkgs-stable"
       },
       "locked": {
-        "lastModified": 1716213921,
-        "narHash": "sha256-xrsYFST8ij4QWaV6HEokCUNIZLjjLP1bYC60K8XiBVA=",
+        "lastModified": 1717664902,
+        "narHash": "sha256-7XfBuLULizXjXfBYy/VV+SpYMHreNRHk9nKMsm1bgb4=",
         "owner": "cachix",
         "repo": "pre-commit-hooks.nix",
-        "rev": "0e8fcc54b842ad8428c9e705cb5994eaf05c26a0",
+        "rev": "cc4d466cb1254af050ff7bdf47f6d404a7c646d1",
         "type": "github"
       },
       "original": {
@@ -287,16 +295,16 @@
     "schema": {
       "flake": false,
       "locked": {
-        "lastModified": 1717519045,
-        "narHash": "sha256-EwPhdBnDdDggFryPczb+RIwTvWhGdS+GttLBjVo0W7U=",
+        "lastModified": 1718263869,
+        "narHash": "sha256-DouotD7r7xm6rO6ZKKymDNywLKpdnipq5eTYnzRD/v8=",
         "owner": "masslbs",
         "repo": "network-schema",
-        "rev": "2df596c6b0e474c9505e2457b7f33bc911fdf289",
+        "rev": "ab901ccb68aec0af4acbfbd2c8a468d365b618e2",
         "type": "github"
       },
       "original": {
         "owner": "masslbs",
-        "ref": "payments-v2-intergration",
+        "ref": "wip/v2",
         "repo": "network-schema",
         "type": "github"
       }
@@ -304,11 +312,11 @@
     "solady": {
       "flake": false,
       "locked": {
-        "lastModified": 1717493279,
-        "narHash": "sha256-mFKKe6CrYOT69H7LypN/MrMfQLuA9rv3sNSMABQx0us=",
+        "lastModified": 1718241347,
+        "narHash": "sha256-W+wC1kDI9VeLkpn2JnE4N3DpB8RMsQxdE16aWvf0z/A=",
         "owner": "Vectorized",
         "repo": "solady",
-        "rev": "54eb8737224ba015e5591c4c8e97c78cdf8f0e0f",
+        "rev": "678c9163550810b08f0ffb09624c9f7532392303",
         "type": "github"
       },
       "original": {

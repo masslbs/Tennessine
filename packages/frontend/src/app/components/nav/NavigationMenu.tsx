@@ -5,20 +5,18 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import Link from "next/link";
 import FullModal from "@/app/common/components/FullModal";
 import { useStoreContext } from "@/context/StoreContext";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import { IStatus } from "@/types";
 
 const _menuOptions = [
-  // { title: "home", img: "home.svg", href: "/" },
-  { title: "products", img: "products.svg", href: "/products" },
-  { title: "transactions", img: "transactions.svg", href: "/transactions" },
-  { title: "earnings", img: "earnings.svg", href: "/earnings" },
-  { title: "store settings", img: "store-settings.svg", href: "/store" },
-  { title: "create store", img: "create-store.png", href: "/create-store" },
-  { title: "profile", img: "profile.svg", href: "/account" },
+  { title: "Sales dashboard", img: "earnings.svg", href: "/earnings" },
+  { title: "Shop settings", img: "store-settings.svg", href: "/store" },
+  { title: "My profile", img: "profile.svg", href: "/account" },
+  { title: "New shop", img: "create-store.png", href: "/create-store" },
 ];
 
 const NavigationMenu = ({
@@ -28,28 +26,28 @@ const NavigationMenu = ({
   onClose: () => void;
   isOpen: boolean;
 }) => {
-  const { invalidateCart } = useStoreContext();
-  const router = useRouter();
+  const { db, invalidateOrder } = useStoreContext();
+  const { setIsAuthenticated } = useAuth();
 
+  const router = useRouter();
+  const logout = () => {
+    db.clear();
+    setIsAuthenticated(IStatus.Pending);
+    localStorage.clear();
+    router.push("/");
+  };
   const renderItems = () => {
     return _menuOptions.map((opt, i) => {
       return (
         <section
           data-testid={`menu-button-${opt.title}`}
           key={i}
-          className="m-4 pb-4"
+          // className="m-4 pb-4"
           onClick={onClose}
         >
           <div className="flex">
-            <Image
-              src={`/assets/${opt.img}`}
-              width={24}
-              height={24}
-              alt={`${opt.title}-icon`}
-              unoptimized={true}
-            />
             <Link href={opt.href} key={opt.title}>
-              <h1 className="ml-4">{opt.title}</h1>
+              <h2>{opt.title}</h2>
             </Link>
           </div>
         </section>
@@ -59,31 +57,20 @@ const NavigationMenu = ({
   return (
     <FullModal isOpen={isOpen} onClose={onClose} showAvatar={true}>
       <main>
-        <div className="flex flex-col justify-between mx-4">
+        <div className="flex flex-col justify-between mx-4 mt-4">
+          <div className="mb-4">
+            <h2>Long shop name</h2>
+          </div>
+          <div>{renderItems()}</div>
           <div>
-            <section className="flex mt-4 mb-10">
-              <div className="mr-4">
-                <Image
-                  src="/assets/ethDubai.png"
-                  width={56}
-                  height={56}
-                  alt="ethDubai-icon"
-                  unoptimized={true} // TODO: pre-scale images
-                />
-              </div>
-              <div>
-                <h1 className="text-2xl">EthDubai</h1>
-                <p className="text-sm text-gray-500">EthDubai.Mass.Market</p>
-              </div>
-            </section>
-            {renderItems()}
+            <h2 onClick={logout}>Log out</h2>
           </div>
           <div className="absolute bottom-0 left-0 right-0 mb-20 mx-5">
             <button
               type="button"
               className="flex justify-center bg-gradient-to-r from-button-gradient-start to-button-gradient-end w-full text-white px-4 py-4 rounded-md"
               onClick={() => {
-                invalidateCart("New sale started.");
+                invalidateOrder("New sale started.");
                 router.push("/products");
                 onClose();
               }}

@@ -1,16 +1,16 @@
 {
   "name": "@massmarket/client",
-  "main": "lib/index.ts",
   "dependencies": {
-    "@massmarket/client": "link:",
     "@massmarket/contracts": "workspace:*",
     "abitype": "^1.0.1",
+    "buffer": "^6.0.3",
     "isows": "^1.0.3",
     "long": "^5.2.3",
     "protobufjs": "^7.2.6",
     "viem": "^2.8.18"
   },
   "devDependencies": {
+    "@massmarket/tsconfig": "workspace:*",
     "@types/node": "^20.11.19",
     "@types/tape": "^5.6.4",
     "@types/ws": "^8.5.10",
@@ -32,9 +32,20 @@
   "scripts": {
     "test": "vitest",
     "test:chromium": "vitest --browser=chromium",
-    "pbjs-build": "pbjs -t static-module -w es6 -r market.mass -o ./lib/protobuf/compiled.js $NETWORK_SCHEMA_PATH/schema.proto",
+    "pbjs-build": "pnpm exec pbjs -t static-module -w ./wrapper.js  -r market.mass -o ./lib/protobuf/compiled.js $NETWORK_SCHEMA_PATH/*.proto --dependency protobufjs/minimal.js",
     "pbts-build": "pbts -r market.mass -o ./lib/protobuf/compiled.d.ts ./lib/protobuf/compiled.js",
     "pb-build": "pnpm pbjs-build && pnpm pbts-build",
-    "lint": "eslint --ext .ts . && pnpm tsc"
+    "lint": "eslint --ext .ts ."
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/lib/index.d.ts",
+      "default": "./dist/lib/index.js"
+    },
+    "./lib/protobuf/compiled": {
+      "types": "./lib/protobuf/compiled.d.ts",
+      "default": "./lib/protobuf/compiled.js"
+    }
   }
 }

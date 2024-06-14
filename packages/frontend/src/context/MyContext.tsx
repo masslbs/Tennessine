@@ -10,17 +10,13 @@ import {
   useEnsAvatar,
   useWalletClient,
 } from "wagmi";
-import {
-  RelayClient,
-  ClientArgs,
-  WalletClientWithAccount,
-} from "@massmarket/client";
+import { RelayClient, WalletClientWithAccount } from "@massmarket/client";
 import { hardhat, sepolia, mainnet, type Chain } from "viem/chains";
 import { http, createPublicClient, hexToBytes, bytesToHex } from "viem";
-import { IRelayClient, ClientContext } from "@/context/types";
 import { useAuth } from "@/context/AuthContext";
 import * as abi from "@massmarket/contracts";
 import { IStatus } from "../types";
+import { type ClientContext } from "./types";
 import { privateKeyToAccount } from "viem/accounts";
 
 export const MyContext = createContext<ClientContext>({
@@ -48,7 +44,7 @@ export const MyContextProvider = (
   const [walletAddress, setWalletAddress] = useState<`0x${string}` | null>(
     null,
   );
-  const [relayClient, setRelayClient] = useState<IRelayClient | null>(null);
+  const [relayClient, setRelayClient] = useState<RelayClient | null>(null);
   const [balance, setBalance] = useState<string | null>(null);
   const [avatar, setAvatar] = useState<string | null>(null);
   const [ensName, setEnsName] = useState<string | null>(null);
@@ -68,11 +64,11 @@ export const MyContextProvider = (
     console.warn("not a browser session");
     return;
   }
-  const storeId =
-    localStorage.getItem("storeId") || process.env.NEXT_PUBLIC_STORE_ID;
+  const shopId =
+    localStorage.getItem("shopId") || process.env.NEXT_PUBLIC_STORE_ID;
 
-  if (!storeId) {
-    throw Error("missing store ID");
+  if (!shopId) {
+    throw Error("missing shop ID");
   }
   const savedKC = localStorage.getItem("keyCard") as `0x${string}`;
 
@@ -152,17 +148,16 @@ export const MyContextProvider = (
       keyCard = hexToBytes(savedKC);
     }
     const privateKey = inviteSecret ? inviteSecret : bytesToHex(keyCard);
-    const user: ClientArgs = {
+    const user = {
       relayEndpoint:
         process.env.NEXT_PUBLIC_RELAY_ENDPOINT ||
         "wss://relay-beta.mass.market/v1",
       keyCardWallet: privateKeyToAccount(privateKey),
-      storeId: storeId as `0x${string}`,
+      shopId: shopId as `0x${string}`,
       chain: usedChain,
       keyCardEnrolled: !!keyCardEnrolled,
     };
     const _relayClient = new RelayClient(user);
-    // @ts-expect-error FIXME
     setRelayClient(_relayClient);
     if (keyCardEnrolled) {
       (async () => {
@@ -176,9 +171,7 @@ export const MyContextProvider = (
         }
       })();
     }
-    console.log(
-      `relay client set ${user.relayEndpoint} with store: ${storeId}`,
-    );
+    console.log(`relay client set ${user.relayEndpoint} with shop: ${shopId}`);
   }, [keyCardEnrolled]);
 
   const value = {

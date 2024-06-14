@@ -151,7 +151,7 @@
     "name": "addPermission",
     "inputs": [
       {
-        "name": "storeId",
+        "name": "shopId",
         "type": "uint256",
         "internalType": "uint256"
       },
@@ -174,7 +174,7 @@
     "name": "addRelay",
     "inputs": [
       {
-        "name": "storeId",
+        "name": "shopId",
         "type": "uint256",
         "internalType": "uint256"
       },
@@ -271,7 +271,7 @@
     "name": "getAllRelays",
     "inputs": [
       {
-        "name": "storeId",
+        "name": "shopId",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -309,7 +309,7 @@
     "name": "getRelayCount",
     "inputs": [
       {
-        "name": "storeId",
+        "name": "shopId",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -410,7 +410,7 @@
     "name": "mint",
     "inputs": [
       {
-        "name": "storeId",
+        "name": "shopId",
         "type": "uint256",
         "internalType": "uint256"
       },
@@ -441,7 +441,7 @@
     "name": "nonce",
     "inputs": [
       {
-        "name": "storeid",
+        "name": "shopid",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -516,7 +516,7 @@
     "name": "publishInviteVerifier",
     "inputs": [
       {
-        "name": "storeId",
+        "name": "shopId",
         "type": "uint256",
         "internalType": "uint256"
       },
@@ -534,7 +534,7 @@
     "name": "redeemInvite",
     "inputs": [
       {
-        "name": "storeId",
+        "name": "shopId",
         "type": "uint256",
         "internalType": "uint256"
       },
@@ -567,7 +567,7 @@
     "name": "registerUser",
     "inputs": [
       {
-        "name": "storeId",
+        "name": "shopId",
         "type": "uint256",
         "internalType": "uint256"
       },
@@ -603,7 +603,7 @@
     "name": "relays",
     "inputs": [
       {
-        "name": "storeid",
+        "name": "shopid",
         "type": "uint256",
         "internalType": "uint256"
       },
@@ -627,7 +627,7 @@
     "name": "removePermission",
     "inputs": [
       {
-        "name": "storeId",
+        "name": "shopId",
         "type": "uint256",
         "internalType": "uint256"
       },
@@ -650,7 +650,7 @@
     "name": "removeRelay",
     "inputs": [
       {
-        "name": "storeId",
+        "name": "shopId",
         "type": "uint256",
         "internalType": "uint256"
       },
@@ -668,7 +668,7 @@
     "name": "removeUser",
     "inputs": [
       {
-        "name": "storeId",
+        "name": "shopId",
         "type": "uint256",
         "internalType": "uint256"
       },
@@ -686,7 +686,7 @@
     "name": "replaceRelay",
     "inputs": [
       {
-        "name": "storeId",
+        "name": "shopId",
         "type": "uint256",
         "internalType": "uint256"
       },
@@ -709,7 +709,7 @@
     "name": "rootHashes",
     "inputs": [
       {
-        "name": "storeid",
+        "name": "shopid",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -871,7 +871,7 @@
     "name": "updateRootHash",
     "inputs": [
       {
-        "name": "storeId",
+        "name": "shopId",
         "type": "uint256",
         "internalType": "uint256"
       },
@@ -944,7 +944,7 @@
     "name": "PermissionAdded",
     "inputs": [
       {
-        "name": "storeId",
+        "name": "shopId",
         "type": "uint256",
         "indexed": true,
         "internalType": "uint256"
@@ -969,7 +969,7 @@
     "name": "PermissionRemoved",
     "inputs": [
       {
-        "name": "storeId",
+        "name": "shopId",
         "type": "uint256",
         "indexed": true,
         "internalType": "uint256"
@@ -1019,7 +1019,7 @@
     "name": "UserAdded",
     "inputs": [
       {
-        "name": "storeId",
+        "name": "shopId",
         "type": "uint256",
         "indexed": true,
         "internalType": "uint256"
@@ -1044,7 +1044,7 @@
     "name": "UserRemoved",
     "inputs": [
       {
-        "name": "storeId",
+        "name": "shopId",
         "type": "uint256",
         "indexed": true,
         "internalType": "uint256"

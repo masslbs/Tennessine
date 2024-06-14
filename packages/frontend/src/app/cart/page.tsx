@@ -17,14 +17,14 @@ import { ItemState } from "@/context/types";
 
 const Cart = () => {
   const {
-    cartItems,
-    updateCart,
+    orderItems,
+    updateOrder,
     products,
-    commitCart,
-    cartId,
-    finalizedCarts,
+    commitOrder,
+    orderId,
+    finalizedOrders,
   } = useStoreContext();
-  const cartIdsArr = Array.from([...cartItems.keys()]);
+  const cartIdsArr = Array.from([...orderItems.keys()]);
   const router = useRouter();
   const [openCheckoutFlow, setOpenModal] = useState<boolean>(false);
   const [imgSrc, setSrc] = useState<null | string>(null);
@@ -45,18 +45,18 @@ const Cart = () => {
   let totalPrice: number = 0;
 
   useEffect(() => {
-    if (cartId) {
-      const items = cartItems.get(cartId)?.items || null;
+    if (orderId) {
+      const items = orderItems.get(orderId)?.items || null;
       setActiveCartItems(items);
     }
-  }, [cartId, cartItems]);
+  }, [orderId, orderItems]);
 
   const noItems =
-    !cartId || !activeCartItems || !Object.keys(activeCartItems).length;
+    !orderId || !activeCartItems || !Object.keys(activeCartItems).length;
 
   useEffect((): void => {
-    if (finalizedCarts && checkoutReqId) {
-      const currentCart = finalizedCarts.get(checkoutReqId);
+    if (finalizedOrders && checkoutReqId) {
+      const currentCart = finalizedOrders.get(checkoutReqId);
       if (!currentCart) return;
       const { totalInCrypto, erc20Addr, purchaseAddress, total } = currentCart;
       setCryptoTotal(totalInCrypto);
@@ -70,17 +70,17 @@ const Cart = () => {
         setSrc(`ethereum:${purchaseAddress}?value=${totalInCrypto}`);
       }
     }
-  }, [finalizedCarts, checkoutReqId]);
+  }, [finalizedOrders, checkoutReqId]);
 
   const checkout = async (isERC20Checkout: boolean) => {
     setErc20Checkout(isERC20Checkout);
-    const res = await commitCart(isERC20Checkout);
+    const res = await commitOrder(isERC20Checkout);
     if (res.error) {
       setShowPaymentOptions(false);
       setOpenModal(false);
       setShowErrorMessage(res.error);
-    } else if (res.cartFinalizedId) {
-      setCheckoutRequestId(res.cartFinalizedId);
+    } else if (res.orderFinalizedId) {
+      setCheckoutRequestId(res.orderFinalizedId);
       setOpenModal(true);
       setShowPaymentOptions(false);
     }
@@ -123,7 +123,7 @@ const Cart = () => {
               height={24}
               alt="item-thumbnail"
               unoptimized={true}
-              onClick={() => updateCart(item.id, 0)}
+              onClick={() => updateOrder(item.id, 0)}
             />
           </div>
         </div>
@@ -166,7 +166,7 @@ const Cart = () => {
             <div className="flex justify-around	mt-4 mb-8">
               <button
                 disabled={!cartIdsArr.length}
-                onClick={() => updateCart()}
+                onClick={() => updateOrder()}
                 className="py-2 px-4 text-pink-600 border-solid border-2 rounded-md disabled:bg-gray-200 disabled:text-gray-500 mr-2 w-full"
               >
                 Clear Cart

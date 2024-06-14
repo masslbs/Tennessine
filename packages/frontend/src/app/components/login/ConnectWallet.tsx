@@ -52,10 +52,6 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
   }, [walletStatus]);
 
   useEffect(() => {
-    enrollKeycard.current = false;
-  }, [clientWallet]);
-
-  useEffect(() => {
     if (relayClient) {
       if (enrollKeycard.current) return;
       if (keyCardToEnroll && clientWallet) {
@@ -98,6 +94,7 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
       (async () => {
         setPending(true);
 
+        // @ts-expect-error TODO fix client api type spec
         const hash = await relayClient.redeemInviteSecret(
           inviteSecret,
           clientWallet,
@@ -107,13 +104,13 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
         });
         if (transaction.status == "success") {
           const PERMRootHash = await publicClient.readContract({
-            address: abi.addresses.StoreReg as `0x${string}`,
-            abi: abi.StoreReg,
+            address: abi.addresses.ShopReg as `0x${string}`,
+            abi: abi.ShopReg,
             functionName: "PERM_updateRootHash",
           });
           const hasAccess = await publicClient.readContract({
-            address: abi.addresses.StoreReg as `0x${string}`,
-            abi: abi.StoreReg,
+            address: abi.addresses.ShopReg as `0x${string}`,
+            abi: abi.ShopReg,
             functionName: "hasPermission",
             args: [storeId, walletAddress, PERMRootHash],
           });

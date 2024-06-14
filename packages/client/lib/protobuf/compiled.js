@@ -1,22 +1,22 @@
 /*eslint-disable block-scoped-var, id-length, no-control-regex, no-magic-numbers, no-prototype-builtins, no-redeclare, no-shadow, no-var, sort-vars*/
-import * as $protobuf from "protobufjs/minimal";
+import $protobuf from "protobufjs/minimal.js";
 
 // Common aliases
-const $Reader = $protobuf.Reader,
+var $Reader = $protobuf.Reader,
   $Writer = $protobuf.Writer,
   $util = $protobuf.util;
 
 // Exported root namespace
-const $root =
+var $root =
   $protobuf.roots["market.mass"] || ($protobuf.roots["market.mass"] = {});
 
-export const market = ($root.market = (() => {
+$root.market = (function () {
   /**
    * Namespace market.
    * @exports market
    * @namespace
    */
-  const market = {};
+  var market = {};
 
   market.mass = (function () {
     /**
@@ -24,6310 +24,7 @@ export const market = ($root.market = (() => {
      * @memberof market
      * @namespace
      */
-    const mass = {};
-
-    mass.StoreManifest = (function () {
-      /**
-       * Properties of a StoreManifest.
-       * @memberof market.mass
-       * @interface IStoreManifest
-       * @property {Uint8Array|null} [eventId] StoreManifest eventId
-       * @property {Uint8Array|null} [storeTokenId] StoreManifest storeTokenId
-       * @property {string|null} [domain] StoreManifest domain
-       * @property {Uint8Array|null} [publishedTagId] StoreManifest publishedTagId
-       */
-
-      /**
-       * Constructs a new StoreManifest.
-       * @memberof market.mass
-       * @classdesc Represents a StoreManifest.
-       * @implements IStoreManifest
-       * @constructor
-       * @param {market.mass.IStoreManifest=} [properties] Properties to set
-       */
-      function StoreManifest(properties) {
-        if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-            if (properties[keys[i]] != null)
-              this[keys[i]] = properties[keys[i]];
-      }
-
-      /**
-       * StoreManifest eventId.
-       * @member {Uint8Array} eventId
-       * @memberof market.mass.StoreManifest
-       * @instance
-       */
-      StoreManifest.prototype.eventId = $util.newBuffer([]);
-
-      /**
-       * StoreManifest storeTokenId.
-       * @member {Uint8Array} storeTokenId
-       * @memberof market.mass.StoreManifest
-       * @instance
-       */
-      StoreManifest.prototype.storeTokenId = $util.newBuffer([]);
-
-      /**
-       * StoreManifest domain.
-       * @member {string} domain
-       * @memberof market.mass.StoreManifest
-       * @instance
-       */
-      StoreManifest.prototype.domain = "";
-
-      /**
-       * StoreManifest publishedTagId.
-       * @member {Uint8Array} publishedTagId
-       * @memberof market.mass.StoreManifest
-       * @instance
-       */
-      StoreManifest.prototype.publishedTagId = $util.newBuffer([]);
-
-      /**
-       * Creates a new StoreManifest instance using the specified properties.
-       * @function create
-       * @memberof market.mass.StoreManifest
-       * @static
-       * @param {market.mass.IStoreManifest=} [properties] Properties to set
-       * @returns {market.mass.StoreManifest} StoreManifest instance
-       */
-      StoreManifest.create = function create(properties) {
-        return new StoreManifest(properties);
-      };
-
-      /**
-       * Encodes the specified StoreManifest message. Does not implicitly {@link market.mass.StoreManifest.verify|verify} messages.
-       * @function encode
-       * @memberof market.mass.StoreManifest
-       * @static
-       * @param {market.mass.IStoreManifest} message StoreManifest message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      StoreManifest.encode = function encode(message, writer) {
-        if (!writer) writer = $Writer.create();
-        if (
-          message.eventId != null &&
-          Object.hasOwnProperty.call(message, "eventId")
-        )
-          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.eventId);
-        if (
-          message.storeTokenId != null &&
-          Object.hasOwnProperty.call(message, "storeTokenId")
-        )
-          writer.uint32(/* id 2, wireType 2 =*/ 18).bytes(message.storeTokenId);
-        if (
-          message.domain != null &&
-          Object.hasOwnProperty.call(message, "domain")
-        )
-          writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.domain);
-        if (
-          message.publishedTagId != null &&
-          Object.hasOwnProperty.call(message, "publishedTagId")
-        )
-          writer
-            .uint32(/* id 4, wireType 2 =*/ 34)
-            .bytes(message.publishedTagId);
-        return writer;
-      };
-
-      /**
-       * Encodes the specified StoreManifest message, length delimited. Does not implicitly {@link market.mass.StoreManifest.verify|verify} messages.
-       * @function encodeDelimited
-       * @memberof market.mass.StoreManifest
-       * @static
-       * @param {market.mass.IStoreManifest} message StoreManifest message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      StoreManifest.encodeDelimited = function encodeDelimited(
-        message,
-        writer,
-      ) {
-        return this.encode(message, writer).ldelim();
-      };
-
-      /**
-       * Decodes a StoreManifest message from the specified reader or buffer.
-       * @function decode
-       * @memberof market.mass.StoreManifest
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @param {number} [length] Message length if known beforehand
-       * @returns {market.mass.StoreManifest} StoreManifest
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      StoreManifest.decode = function decode(reader, length) {
-        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
-          message = new $root.market.mass.StoreManifest();
-        while (reader.pos < end) {
-          let tag = reader.uint32();
-          switch (tag >>> 3) {
-            case 1: {
-              message.eventId = reader.bytes();
-              break;
-            }
-            case 2: {
-              message.storeTokenId = reader.bytes();
-              break;
-            }
-            case 3: {
-              message.domain = reader.string();
-              break;
-            }
-            case 4: {
-              message.publishedTagId = reader.bytes();
-              break;
-            }
-            default:
-              reader.skipType(tag & 7);
-              break;
-          }
-        }
-        return message;
-      };
-
-      /**
-       * Decodes a StoreManifest message from the specified reader or buffer, length delimited.
-       * @function decodeDelimited
-       * @memberof market.mass.StoreManifest
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @returns {market.mass.StoreManifest} StoreManifest
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      StoreManifest.decodeDelimited = function decodeDelimited(reader) {
-        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
-        return this.decode(reader, reader.uint32());
-      };
-
-      /**
-       * Verifies a StoreManifest message.
-       * @function verify
-       * @memberof market.mass.StoreManifest
-       * @static
-       * @param {Object.<string,*>} message Plain object to verify
-       * @returns {string|null} `null` if valid, otherwise the reason why it is not
-       */
-      StoreManifest.verify = function verify(message) {
-        if (typeof message !== "object" || message === null)
-          return "object expected";
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          if (
-            !(
-              (message.eventId && typeof message.eventId.length === "number") ||
-              $util.isString(message.eventId)
-            )
-          )
-            return "eventId: buffer expected";
-        if (
-          message.storeTokenId != null &&
-          message.hasOwnProperty("storeTokenId")
-        )
-          if (
-            !(
-              (message.storeTokenId &&
-                typeof message.storeTokenId.length === "number") ||
-              $util.isString(message.storeTokenId)
-            )
-          )
-            return "storeTokenId: buffer expected";
-        if (message.domain != null && message.hasOwnProperty("domain"))
-          if (!$util.isString(message.domain)) return "domain: string expected";
-        if (
-          message.publishedTagId != null &&
-          message.hasOwnProperty("publishedTagId")
-        )
-          if (
-            !(
-              (message.publishedTagId &&
-                typeof message.publishedTagId.length === "number") ||
-              $util.isString(message.publishedTagId)
-            )
-          )
-            return "publishedTagId: buffer expected";
-        return null;
-      };
-
-      /**
-       * Creates a StoreManifest message from a plain object. Also converts values to their respective internal types.
-       * @function fromObject
-       * @memberof market.mass.StoreManifest
-       * @static
-       * @param {Object.<string,*>} object Plain object
-       * @returns {market.mass.StoreManifest} StoreManifest
-       */
-      StoreManifest.fromObject = function fromObject(object) {
-        if (object instanceof $root.market.mass.StoreManifest) return object;
-        let message = new $root.market.mass.StoreManifest();
-        if (object.eventId != null)
-          if (typeof object.eventId === "string")
-            $util.base64.decode(
-              object.eventId,
-              (message.eventId = $util.newBuffer(
-                $util.base64.length(object.eventId),
-              )),
-              0,
-            );
-          else if (object.eventId.length >= 0) message.eventId = object.eventId;
-        if (object.storeTokenId != null)
-          if (typeof object.storeTokenId === "string")
-            $util.base64.decode(
-              object.storeTokenId,
-              (message.storeTokenId = $util.newBuffer(
-                $util.base64.length(object.storeTokenId),
-              )),
-              0,
-            );
-          else if (object.storeTokenId.length >= 0)
-            message.storeTokenId = object.storeTokenId;
-        if (object.domain != null) message.domain = String(object.domain);
-        if (object.publishedTagId != null)
-          if (typeof object.publishedTagId === "string")
-            $util.base64.decode(
-              object.publishedTagId,
-              (message.publishedTagId = $util.newBuffer(
-                $util.base64.length(object.publishedTagId),
-              )),
-              0,
-            );
-          else if (object.publishedTagId.length >= 0)
-            message.publishedTagId = object.publishedTagId;
-        return message;
-      };
-
-      /**
-       * Creates a plain object from a StoreManifest message. Also converts values to other types if specified.
-       * @function toObject
-       * @memberof market.mass.StoreManifest
-       * @static
-       * @param {market.mass.StoreManifest} message StoreManifest
-       * @param {$protobuf.IConversionOptions} [options] Conversion options
-       * @returns {Object.<string,*>} Plain object
-       */
-      StoreManifest.toObject = function toObject(message, options) {
-        if (!options) options = {};
-        let object = {};
-        if (options.defaults) {
-          if (options.bytes === String) object.eventId = "";
-          else {
-            object.eventId = [];
-            if (options.bytes !== Array)
-              object.eventId = $util.newBuffer(object.eventId);
-          }
-          if (options.bytes === String) object.storeTokenId = "";
-          else {
-            object.storeTokenId = [];
-            if (options.bytes !== Array)
-              object.storeTokenId = $util.newBuffer(object.storeTokenId);
-          }
-          object.domain = "";
-          if (options.bytes === String) object.publishedTagId = "";
-          else {
-            object.publishedTagId = [];
-            if (options.bytes !== Array)
-              object.publishedTagId = $util.newBuffer(object.publishedTagId);
-          }
-        }
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          object.eventId =
-            options.bytes === String
-              ? $util.base64.encode(message.eventId, 0, message.eventId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.eventId)
-                : message.eventId;
-        if (
-          message.storeTokenId != null &&
-          message.hasOwnProperty("storeTokenId")
-        )
-          object.storeTokenId =
-            options.bytes === String
-              ? $util.base64.encode(
-                  message.storeTokenId,
-                  0,
-                  message.storeTokenId.length,
-                )
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.storeTokenId)
-                : message.storeTokenId;
-        if (message.domain != null && message.hasOwnProperty("domain"))
-          object.domain = message.domain;
-        if (
-          message.publishedTagId != null &&
-          message.hasOwnProperty("publishedTagId")
-        )
-          object.publishedTagId =
-            options.bytes === String
-              ? $util.base64.encode(
-                  message.publishedTagId,
-                  0,
-                  message.publishedTagId.length,
-                )
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.publishedTagId)
-                : message.publishedTagId;
-        return object;
-      };
-
-      /**
-       * Converts this StoreManifest to JSON.
-       * @function toJSON
-       * @memberof market.mass.StoreManifest
-       * @instance
-       * @returns {Object.<string,*>} JSON object
-       */
-      StoreManifest.prototype.toJSON = function toJSON() {
-        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-      };
-
-      /**
-       * Gets the default type url for StoreManifest
-       * @function getTypeUrl
-       * @memberof market.mass.StoreManifest
-       * @static
-       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-       * @returns {string} The default type url
-       */
-      StoreManifest.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-        if (typeUrlPrefix === undefined) {
-          typeUrlPrefix = "type.googleapis.com";
-        }
-        return typeUrlPrefix + "/market.mass.StoreManifest";
-      };
-
-      return StoreManifest;
-    })();
-
-    mass.UpdateManifest = (function () {
-      /**
-       * Properties of an UpdateManifest.
-       * @memberof market.mass
-       * @interface IUpdateManifest
-       * @property {Uint8Array|null} [eventId] UpdateManifest eventId
-       * @property {market.mass.UpdateManifest.ManifestField|null} [field] UpdateManifest field
-       * @property {string|null} [string] UpdateManifest string
-       * @property {Uint8Array|null} [tagId] UpdateManifest tagId
-       * @property {Uint8Array|null} [erc20Addr] UpdateManifest erc20Addr
-       */
-
-      /**
-       * Constructs a new UpdateManifest.
-       * @memberof market.mass
-       * @classdesc Represents an UpdateManifest.
-       * @implements IUpdateManifest
-       * @constructor
-       * @param {market.mass.IUpdateManifest=} [properties] Properties to set
-       */
-      function UpdateManifest(properties) {
-        if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-            if (properties[keys[i]] != null)
-              this[keys[i]] = properties[keys[i]];
-      }
-
-      /**
-       * UpdateManifest eventId.
-       * @member {Uint8Array} eventId
-       * @memberof market.mass.UpdateManifest
-       * @instance
-       */
-      UpdateManifest.prototype.eventId = $util.newBuffer([]);
-
-      /**
-       * UpdateManifest field.
-       * @member {market.mass.UpdateManifest.ManifestField} field
-       * @memberof market.mass.UpdateManifest
-       * @instance
-       */
-      UpdateManifest.prototype.field = 0;
-
-      /**
-       * UpdateManifest string.
-       * @member {string|null|undefined} string
-       * @memberof market.mass.UpdateManifest
-       * @instance
-       */
-      UpdateManifest.prototype.string = null;
-
-      /**
-       * UpdateManifest tagId.
-       * @member {Uint8Array|null|undefined} tagId
-       * @memberof market.mass.UpdateManifest
-       * @instance
-       */
-      UpdateManifest.prototype.tagId = null;
-
-      /**
-       * UpdateManifest erc20Addr.
-       * @member {Uint8Array|null|undefined} erc20Addr
-       * @memberof market.mass.UpdateManifest
-       * @instance
-       */
-      UpdateManifest.prototype.erc20Addr = null;
-
-      // OneOf field names bound to virtual getters and setters
-      let $oneOfFields;
-
-      /**
-       * UpdateManifest value.
-       * @member {"string"|"tagId"|"erc20Addr"|undefined} value
-       * @memberof market.mass.UpdateManifest
-       * @instance
-       */
-      Object.defineProperty(UpdateManifest.prototype, "value", {
-        get: $util.oneOfGetter(
-          ($oneOfFields = ["string", "tagId", "erc20Addr"]),
-        ),
-        set: $util.oneOfSetter($oneOfFields),
-      });
-
-      /**
-       * Creates a new UpdateManifest instance using the specified properties.
-       * @function create
-       * @memberof market.mass.UpdateManifest
-       * @static
-       * @param {market.mass.IUpdateManifest=} [properties] Properties to set
-       * @returns {market.mass.UpdateManifest} UpdateManifest instance
-       */
-      UpdateManifest.create = function create(properties) {
-        return new UpdateManifest(properties);
-      };
-
-      /**
-       * Encodes the specified UpdateManifest message. Does not implicitly {@link market.mass.UpdateManifest.verify|verify} messages.
-       * @function encode
-       * @memberof market.mass.UpdateManifest
-       * @static
-       * @param {market.mass.IUpdateManifest} message UpdateManifest message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      UpdateManifest.encode = function encode(message, writer) {
-        if (!writer) writer = $Writer.create();
-        if (
-          message.eventId != null &&
-          Object.hasOwnProperty.call(message, "eventId")
-        )
-          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.eventId);
-        if (
-          message.field != null &&
-          Object.hasOwnProperty.call(message, "field")
-        )
-          writer.uint32(/* id 2, wireType 0 =*/ 16).int32(message.field);
-        if (
-          message.string != null &&
-          Object.hasOwnProperty.call(message, "string")
-        )
-          writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.string);
-        if (
-          message.tagId != null &&
-          Object.hasOwnProperty.call(message, "tagId")
-        )
-          writer.uint32(/* id 4, wireType 2 =*/ 34).bytes(message.tagId);
-        if (
-          message.erc20Addr != null &&
-          Object.hasOwnProperty.call(message, "erc20Addr")
-        )
-          writer.uint32(/* id 5, wireType 2 =*/ 42).bytes(message.erc20Addr);
-        return writer;
-      };
-
-      /**
-       * Encodes the specified UpdateManifest message, length delimited. Does not implicitly {@link market.mass.UpdateManifest.verify|verify} messages.
-       * @function encodeDelimited
-       * @memberof market.mass.UpdateManifest
-       * @static
-       * @param {market.mass.IUpdateManifest} message UpdateManifest message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      UpdateManifest.encodeDelimited = function encodeDelimited(
-        message,
-        writer,
-      ) {
-        return this.encode(message, writer).ldelim();
-      };
-
-      /**
-       * Decodes an UpdateManifest message from the specified reader or buffer.
-       * @function decode
-       * @memberof market.mass.UpdateManifest
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @param {number} [length] Message length if known beforehand
-       * @returns {market.mass.UpdateManifest} UpdateManifest
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      UpdateManifest.decode = function decode(reader, length) {
-        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
-          message = new $root.market.mass.UpdateManifest();
-        while (reader.pos < end) {
-          let tag = reader.uint32();
-          switch (tag >>> 3) {
-            case 1: {
-              message.eventId = reader.bytes();
-              break;
-            }
-            case 2: {
-              message.field = reader.int32();
-              break;
-            }
-            case 3: {
-              message.string = reader.string();
-              break;
-            }
-            case 4: {
-              message.tagId = reader.bytes();
-              break;
-            }
-            case 5: {
-              message.erc20Addr = reader.bytes();
-              break;
-            }
-            default:
-              reader.skipType(tag & 7);
-              break;
-          }
-        }
-        return message;
-      };
-
-      /**
-       * Decodes an UpdateManifest message from the specified reader or buffer, length delimited.
-       * @function decodeDelimited
-       * @memberof market.mass.UpdateManifest
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @returns {market.mass.UpdateManifest} UpdateManifest
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      UpdateManifest.decodeDelimited = function decodeDelimited(reader) {
-        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
-        return this.decode(reader, reader.uint32());
-      };
-
-      /**
-       * Verifies an UpdateManifest message.
-       * @function verify
-       * @memberof market.mass.UpdateManifest
-       * @static
-       * @param {Object.<string,*>} message Plain object to verify
-       * @returns {string|null} `null` if valid, otherwise the reason why it is not
-       */
-      UpdateManifest.verify = function verify(message) {
-        if (typeof message !== "object" || message === null)
-          return "object expected";
-        let properties = {};
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          if (
-            !(
-              (message.eventId && typeof message.eventId.length === "number") ||
-              $util.isString(message.eventId)
-            )
-          )
-            return "eventId: buffer expected";
-        if (message.field != null && message.hasOwnProperty("field"))
-          switch (message.field) {
-            default:
-              return "field: enum value expected";
-            case 0:
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-              break;
-          }
-        if (message.string != null && message.hasOwnProperty("string")) {
-          properties.value = 1;
-          if (!$util.isString(message.string)) return "string: string expected";
-        }
-        if (message.tagId != null && message.hasOwnProperty("tagId")) {
-          if (properties.value === 1) return "value: multiple values";
-          properties.value = 1;
-          if (
-            !(
-              (message.tagId && typeof message.tagId.length === "number") ||
-              $util.isString(message.tagId)
-            )
-          )
-            return "tagId: buffer expected";
-        }
-        if (message.erc20Addr != null && message.hasOwnProperty("erc20Addr")) {
-          if (properties.value === 1) return "value: multiple values";
-          properties.value = 1;
-          if (
-            !(
-              (message.erc20Addr &&
-                typeof message.erc20Addr.length === "number") ||
-              $util.isString(message.erc20Addr)
-            )
-          )
-            return "erc20Addr: buffer expected";
-        }
-        return null;
-      };
-
-      /**
-       * Creates an UpdateManifest message from a plain object. Also converts values to their respective internal types.
-       * @function fromObject
-       * @memberof market.mass.UpdateManifest
-       * @static
-       * @param {Object.<string,*>} object Plain object
-       * @returns {market.mass.UpdateManifest} UpdateManifest
-       */
-      UpdateManifest.fromObject = function fromObject(object) {
-        if (object instanceof $root.market.mass.UpdateManifest) return object;
-        let message = new $root.market.mass.UpdateManifest();
-        if (object.eventId != null)
-          if (typeof object.eventId === "string")
-            $util.base64.decode(
-              object.eventId,
-              (message.eventId = $util.newBuffer(
-                $util.base64.length(object.eventId),
-              )),
-              0,
-            );
-          else if (object.eventId.length >= 0) message.eventId = object.eventId;
-        switch (object.field) {
-          default:
-            if (typeof object.field === "number") {
-              message.field = object.field;
-              break;
-            }
-            break;
-          case "MANIFEST_FIELD_UNSPECIFIED":
-          case 0:
-            message.field = 0;
-            break;
-          case "MANIFEST_FIELD_DOMAIN":
-          case 1:
-            message.field = 1;
-            break;
-          case "MANIFEST_FIELD_PUBLISHED_TAG":
-          case 2:
-            message.field = 2;
-            break;
-          case "MANIFEST_FIELD_ADD_ERC20":
-          case 3:
-            message.field = 3;
-            break;
-          case "MANIFEST_FIELD_REMOVE_ERC20":
-          case 4:
-            message.field = 4;
-            break;
-        }
-        if (object.string != null) message.string = String(object.string);
-        if (object.tagId != null)
-          if (typeof object.tagId === "string")
-            $util.base64.decode(
-              object.tagId,
-              (message.tagId = $util.newBuffer(
-                $util.base64.length(object.tagId),
-              )),
-              0,
-            );
-          else if (object.tagId.length >= 0) message.tagId = object.tagId;
-        if (object.erc20Addr != null)
-          if (typeof object.erc20Addr === "string")
-            $util.base64.decode(
-              object.erc20Addr,
-              (message.erc20Addr = $util.newBuffer(
-                $util.base64.length(object.erc20Addr),
-              )),
-              0,
-            );
-          else if (object.erc20Addr.length >= 0)
-            message.erc20Addr = object.erc20Addr;
-        return message;
-      };
-
-      /**
-       * Creates a plain object from an UpdateManifest message. Also converts values to other types if specified.
-       * @function toObject
-       * @memberof market.mass.UpdateManifest
-       * @static
-       * @param {market.mass.UpdateManifest} message UpdateManifest
-       * @param {$protobuf.IConversionOptions} [options] Conversion options
-       * @returns {Object.<string,*>} Plain object
-       */
-      UpdateManifest.toObject = function toObject(message, options) {
-        if (!options) options = {};
-        let object = {};
-        if (options.defaults) {
-          if (options.bytes === String) object.eventId = "";
-          else {
-            object.eventId = [];
-            if (options.bytes !== Array)
-              object.eventId = $util.newBuffer(object.eventId);
-          }
-          object.field =
-            options.enums === String ? "MANIFEST_FIELD_UNSPECIFIED" : 0;
-        }
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          object.eventId =
-            options.bytes === String
-              ? $util.base64.encode(message.eventId, 0, message.eventId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.eventId)
-                : message.eventId;
-        if (message.field != null && message.hasOwnProperty("field"))
-          object.field =
-            options.enums === String
-              ? $root.market.mass.UpdateManifest.ManifestField[
-                  message.field
-                ] === undefined
-                ? message.field
-                : $root.market.mass.UpdateManifest.ManifestField[message.field]
-              : message.field;
-        if (message.string != null && message.hasOwnProperty("string")) {
-          object.string = message.string;
-          if (options.oneofs) object.value = "string";
-        }
-        if (message.tagId != null && message.hasOwnProperty("tagId")) {
-          object.tagId =
-            options.bytes === String
-              ? $util.base64.encode(message.tagId, 0, message.tagId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.tagId)
-                : message.tagId;
-          if (options.oneofs) object.value = "tagId";
-        }
-        if (message.erc20Addr != null && message.hasOwnProperty("erc20Addr")) {
-          object.erc20Addr =
-            options.bytes === String
-              ? $util.base64.encode(
-                  message.erc20Addr,
-                  0,
-                  message.erc20Addr.length,
-                )
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.erc20Addr)
-                : message.erc20Addr;
-          if (options.oneofs) object.value = "erc20Addr";
-        }
-        return object;
-      };
-
-      /**
-       * Converts this UpdateManifest to JSON.
-       * @function toJSON
-       * @memberof market.mass.UpdateManifest
-       * @instance
-       * @returns {Object.<string,*>} JSON object
-       */
-      UpdateManifest.prototype.toJSON = function toJSON() {
-        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-      };
-
-      /**
-       * Gets the default type url for UpdateManifest
-       * @function getTypeUrl
-       * @memberof market.mass.UpdateManifest
-       * @static
-       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-       * @returns {string} The default type url
-       */
-      UpdateManifest.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-        if (typeUrlPrefix === undefined) {
-          typeUrlPrefix = "type.googleapis.com";
-        }
-        return typeUrlPrefix + "/market.mass.UpdateManifest";
-      };
-
-      /**
-       * ManifestField enum.
-       * @name market.mass.UpdateManifest.ManifestField
-       * @enum {number}
-       * @property {number} MANIFEST_FIELD_UNSPECIFIED=0 MANIFEST_FIELD_UNSPECIFIED value
-       * @property {number} MANIFEST_FIELD_DOMAIN=1 MANIFEST_FIELD_DOMAIN value
-       * @property {number} MANIFEST_FIELD_PUBLISHED_TAG=2 MANIFEST_FIELD_PUBLISHED_TAG value
-       * @property {number} MANIFEST_FIELD_ADD_ERC20=3 MANIFEST_FIELD_ADD_ERC20 value
-       * @property {number} MANIFEST_FIELD_REMOVE_ERC20=4 MANIFEST_FIELD_REMOVE_ERC20 value
-       */
-      UpdateManifest.ManifestField = (function () {
-        const valuesById = {},
-          values = Object.create(valuesById);
-        values[(valuesById[0] = "MANIFEST_FIELD_UNSPECIFIED")] = 0;
-        values[(valuesById[1] = "MANIFEST_FIELD_DOMAIN")] = 1;
-        values[(valuesById[2] = "MANIFEST_FIELD_PUBLISHED_TAG")] = 2;
-        values[(valuesById[3] = "MANIFEST_FIELD_ADD_ERC20")] = 3;
-        values[(valuesById[4] = "MANIFEST_FIELD_REMOVE_ERC20")] = 4;
-        return values;
-      })();
-
-      return UpdateManifest;
-    })();
-
-    mass.CreateItem = (function () {
-      /**
-       * Properties of a CreateItem.
-       * @memberof market.mass
-       * @interface ICreateItem
-       * @property {Uint8Array|null} [eventId] CreateItem eventId
-       * @property {string|null} [price] CreateItem price
-       * @property {Uint8Array|null} [metadata] CreateItem metadata
-       */
-
-      /**
-       * Constructs a new CreateItem.
-       * @memberof market.mass
-       * @classdesc Represents a CreateItem.
-       * @implements ICreateItem
-       * @constructor
-       * @param {market.mass.ICreateItem=} [properties] Properties to set
-       */
-      function CreateItem(properties) {
-        if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-            if (properties[keys[i]] != null)
-              this[keys[i]] = properties[keys[i]];
-      }
-
-      /**
-       * CreateItem eventId.
-       * @member {Uint8Array} eventId
-       * @memberof market.mass.CreateItem
-       * @instance
-       */
-      CreateItem.prototype.eventId = $util.newBuffer([]);
-
-      /**
-       * CreateItem price.
-       * @member {string} price
-       * @memberof market.mass.CreateItem
-       * @instance
-       */
-      CreateItem.prototype.price = "";
-
-      /**
-       * CreateItem metadata.
-       * @member {Uint8Array} metadata
-       * @memberof market.mass.CreateItem
-       * @instance
-       */
-      CreateItem.prototype.metadata = $util.newBuffer([]);
-
-      /**
-       * Creates a new CreateItem instance using the specified properties.
-       * @function create
-       * @memberof market.mass.CreateItem
-       * @static
-       * @param {market.mass.ICreateItem=} [properties] Properties to set
-       * @returns {market.mass.CreateItem} CreateItem instance
-       */
-      CreateItem.create = function create(properties) {
-        return new CreateItem(properties);
-      };
-
-      /**
-       * Encodes the specified CreateItem message. Does not implicitly {@link market.mass.CreateItem.verify|verify} messages.
-       * @function encode
-       * @memberof market.mass.CreateItem
-       * @static
-       * @param {market.mass.ICreateItem} message CreateItem message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      CreateItem.encode = function encode(message, writer) {
-        if (!writer) writer = $Writer.create();
-        if (
-          message.eventId != null &&
-          Object.hasOwnProperty.call(message, "eventId")
-        )
-          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.eventId);
-        if (
-          message.price != null &&
-          Object.hasOwnProperty.call(message, "price")
-        )
-          writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.price);
-        if (
-          message.metadata != null &&
-          Object.hasOwnProperty.call(message, "metadata")
-        )
-          writer.uint32(/* id 3, wireType 2 =*/ 26).bytes(message.metadata);
-        return writer;
-      };
-
-      /**
-       * Encodes the specified CreateItem message, length delimited. Does not implicitly {@link market.mass.CreateItem.verify|verify} messages.
-       * @function encodeDelimited
-       * @memberof market.mass.CreateItem
-       * @static
-       * @param {market.mass.ICreateItem} message CreateItem message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      CreateItem.encodeDelimited = function encodeDelimited(message, writer) {
-        return this.encode(message, writer).ldelim();
-      };
-
-      /**
-       * Decodes a CreateItem message from the specified reader or buffer.
-       * @function decode
-       * @memberof market.mass.CreateItem
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @param {number} [length] Message length if known beforehand
-       * @returns {market.mass.CreateItem} CreateItem
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      CreateItem.decode = function decode(reader, length) {
-        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
-          message = new $root.market.mass.CreateItem();
-        while (reader.pos < end) {
-          let tag = reader.uint32();
-          switch (tag >>> 3) {
-            case 1: {
-              message.eventId = reader.bytes();
-              break;
-            }
-            case 2: {
-              message.price = reader.string();
-              break;
-            }
-            case 3: {
-              message.metadata = reader.bytes();
-              break;
-            }
-            default:
-              reader.skipType(tag & 7);
-              break;
-          }
-        }
-        return message;
-      };
-
-      /**
-       * Decodes a CreateItem message from the specified reader or buffer, length delimited.
-       * @function decodeDelimited
-       * @memberof market.mass.CreateItem
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @returns {market.mass.CreateItem} CreateItem
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      CreateItem.decodeDelimited = function decodeDelimited(reader) {
-        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
-        return this.decode(reader, reader.uint32());
-      };
-
-      /**
-       * Verifies a CreateItem message.
-       * @function verify
-       * @memberof market.mass.CreateItem
-       * @static
-       * @param {Object.<string,*>} message Plain object to verify
-       * @returns {string|null} `null` if valid, otherwise the reason why it is not
-       */
-      CreateItem.verify = function verify(message) {
-        if (typeof message !== "object" || message === null)
-          return "object expected";
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          if (
-            !(
-              (message.eventId && typeof message.eventId.length === "number") ||
-              $util.isString(message.eventId)
-            )
-          )
-            return "eventId: buffer expected";
-        if (message.price != null && message.hasOwnProperty("price"))
-          if (!$util.isString(message.price)) return "price: string expected";
-        if (message.metadata != null && message.hasOwnProperty("metadata"))
-          if (
-            !(
-              (message.metadata &&
-                typeof message.metadata.length === "number") ||
-              $util.isString(message.metadata)
-            )
-          )
-            return "metadata: buffer expected";
-        return null;
-      };
-
-      /**
-       * Creates a CreateItem message from a plain object. Also converts values to their respective internal types.
-       * @function fromObject
-       * @memberof market.mass.CreateItem
-       * @static
-       * @param {Object.<string,*>} object Plain object
-       * @returns {market.mass.CreateItem} CreateItem
-       */
-      CreateItem.fromObject = function fromObject(object) {
-        if (object instanceof $root.market.mass.CreateItem) return object;
-        let message = new $root.market.mass.CreateItem();
-        if (object.eventId != null)
-          if (typeof object.eventId === "string")
-            $util.base64.decode(
-              object.eventId,
-              (message.eventId = $util.newBuffer(
-                $util.base64.length(object.eventId),
-              )),
-              0,
-            );
-          else if (object.eventId.length >= 0) message.eventId = object.eventId;
-        if (object.price != null) message.price = String(object.price);
-        if (object.metadata != null)
-          if (typeof object.metadata === "string")
-            $util.base64.decode(
-              object.metadata,
-              (message.metadata = $util.newBuffer(
-                $util.base64.length(object.metadata),
-              )),
-              0,
-            );
-          else if (object.metadata.length >= 0)
-            message.metadata = object.metadata;
-        return message;
-      };
-
-      /**
-       * Creates a plain object from a CreateItem message. Also converts values to other types if specified.
-       * @function toObject
-       * @memberof market.mass.CreateItem
-       * @static
-       * @param {market.mass.CreateItem} message CreateItem
-       * @param {$protobuf.IConversionOptions} [options] Conversion options
-       * @returns {Object.<string,*>} Plain object
-       */
-      CreateItem.toObject = function toObject(message, options) {
-        if (!options) options = {};
-        let object = {};
-        if (options.defaults) {
-          if (options.bytes === String) object.eventId = "";
-          else {
-            object.eventId = [];
-            if (options.bytes !== Array)
-              object.eventId = $util.newBuffer(object.eventId);
-          }
-          object.price = "";
-          if (options.bytes === String) object.metadata = "";
-          else {
-            object.metadata = [];
-            if (options.bytes !== Array)
-              object.metadata = $util.newBuffer(object.metadata);
-          }
-        }
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          object.eventId =
-            options.bytes === String
-              ? $util.base64.encode(message.eventId, 0, message.eventId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.eventId)
-                : message.eventId;
-        if (message.price != null && message.hasOwnProperty("price"))
-          object.price = message.price;
-        if (message.metadata != null && message.hasOwnProperty("metadata"))
-          object.metadata =
-            options.bytes === String
-              ? $util.base64.encode(
-                  message.metadata,
-                  0,
-                  message.metadata.length,
-                )
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.metadata)
-                : message.metadata;
-        return object;
-      };
-
-      /**
-       * Converts this CreateItem to JSON.
-       * @function toJSON
-       * @memberof market.mass.CreateItem
-       * @instance
-       * @returns {Object.<string,*>} JSON object
-       */
-      CreateItem.prototype.toJSON = function toJSON() {
-        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-      };
-
-      /**
-       * Gets the default type url for CreateItem
-       * @function getTypeUrl
-       * @memberof market.mass.CreateItem
-       * @static
-       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-       * @returns {string} The default type url
-       */
-      CreateItem.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-        if (typeUrlPrefix === undefined) {
-          typeUrlPrefix = "type.googleapis.com";
-        }
-        return typeUrlPrefix + "/market.mass.CreateItem";
-      };
-
-      return CreateItem;
-    })();
-
-    mass.UpdateItem = (function () {
-      /**
-       * Properties of an UpdateItem.
-       * @memberof market.mass
-       * @interface IUpdateItem
-       * @property {Uint8Array|null} [eventId] UpdateItem eventId
-       * @property {Uint8Array|null} [itemId] UpdateItem itemId
-       * @property {market.mass.UpdateItem.ItemField|null} [field] UpdateItem field
-       * @property {string|null} [price] UpdateItem price
-       * @property {Uint8Array|null} [metadata] UpdateItem metadata
-       */
-
-      /**
-       * Constructs a new UpdateItem.
-       * @memberof market.mass
-       * @classdesc Represents an UpdateItem.
-       * @implements IUpdateItem
-       * @constructor
-       * @param {market.mass.IUpdateItem=} [properties] Properties to set
-       */
-      function UpdateItem(properties) {
-        if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-            if (properties[keys[i]] != null)
-              this[keys[i]] = properties[keys[i]];
-      }
-
-      /**
-       * UpdateItem eventId.
-       * @member {Uint8Array} eventId
-       * @memberof market.mass.UpdateItem
-       * @instance
-       */
-      UpdateItem.prototype.eventId = $util.newBuffer([]);
-
-      /**
-       * UpdateItem itemId.
-       * @member {Uint8Array} itemId
-       * @memberof market.mass.UpdateItem
-       * @instance
-       */
-      UpdateItem.prototype.itemId = $util.newBuffer([]);
-
-      /**
-       * UpdateItem field.
-       * @member {market.mass.UpdateItem.ItemField} field
-       * @memberof market.mass.UpdateItem
-       * @instance
-       */
-      UpdateItem.prototype.field = 0;
-
-      /**
-       * UpdateItem price.
-       * @member {string|null|undefined} price
-       * @memberof market.mass.UpdateItem
-       * @instance
-       */
-      UpdateItem.prototype.price = null;
-
-      /**
-       * UpdateItem metadata.
-       * @member {Uint8Array|null|undefined} metadata
-       * @memberof market.mass.UpdateItem
-       * @instance
-       */
-      UpdateItem.prototype.metadata = null;
-
-      // OneOf field names bound to virtual getters and setters
-      let $oneOfFields;
-
-      /**
-       * UpdateItem value.
-       * @member {"price"|"metadata"|undefined} value
-       * @memberof market.mass.UpdateItem
-       * @instance
-       */
-      Object.defineProperty(UpdateItem.prototype, "value", {
-        get: $util.oneOfGetter(($oneOfFields = ["price", "metadata"])),
-        set: $util.oneOfSetter($oneOfFields),
-      });
-
-      /**
-       * Creates a new UpdateItem instance using the specified properties.
-       * @function create
-       * @memberof market.mass.UpdateItem
-       * @static
-       * @param {market.mass.IUpdateItem=} [properties] Properties to set
-       * @returns {market.mass.UpdateItem} UpdateItem instance
-       */
-      UpdateItem.create = function create(properties) {
-        return new UpdateItem(properties);
-      };
-
-      /**
-       * Encodes the specified UpdateItem message. Does not implicitly {@link market.mass.UpdateItem.verify|verify} messages.
-       * @function encode
-       * @memberof market.mass.UpdateItem
-       * @static
-       * @param {market.mass.IUpdateItem} message UpdateItem message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      UpdateItem.encode = function encode(message, writer) {
-        if (!writer) writer = $Writer.create();
-        if (
-          message.eventId != null &&
-          Object.hasOwnProperty.call(message, "eventId")
-        )
-          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.eventId);
-        if (
-          message.itemId != null &&
-          Object.hasOwnProperty.call(message, "itemId")
-        )
-          writer.uint32(/* id 2, wireType 2 =*/ 18).bytes(message.itemId);
-        if (
-          message.field != null &&
-          Object.hasOwnProperty.call(message, "field")
-        )
-          writer.uint32(/* id 3, wireType 0 =*/ 24).int32(message.field);
-        if (
-          message.price != null &&
-          Object.hasOwnProperty.call(message, "price")
-        )
-          writer.uint32(/* id 4, wireType 2 =*/ 34).string(message.price);
-        if (
-          message.metadata != null &&
-          Object.hasOwnProperty.call(message, "metadata")
-        )
-          writer.uint32(/* id 5, wireType 2 =*/ 42).bytes(message.metadata);
-        return writer;
-      };
-
-      /**
-       * Encodes the specified UpdateItem message, length delimited. Does not implicitly {@link market.mass.UpdateItem.verify|verify} messages.
-       * @function encodeDelimited
-       * @memberof market.mass.UpdateItem
-       * @static
-       * @param {market.mass.IUpdateItem} message UpdateItem message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      UpdateItem.encodeDelimited = function encodeDelimited(message, writer) {
-        return this.encode(message, writer).ldelim();
-      };
-
-      /**
-       * Decodes an UpdateItem message from the specified reader or buffer.
-       * @function decode
-       * @memberof market.mass.UpdateItem
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @param {number} [length] Message length if known beforehand
-       * @returns {market.mass.UpdateItem} UpdateItem
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      UpdateItem.decode = function decode(reader, length) {
-        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
-          message = new $root.market.mass.UpdateItem();
-        while (reader.pos < end) {
-          let tag = reader.uint32();
-          switch (tag >>> 3) {
-            case 1: {
-              message.eventId = reader.bytes();
-              break;
-            }
-            case 2: {
-              message.itemId = reader.bytes();
-              break;
-            }
-            case 3: {
-              message.field = reader.int32();
-              break;
-            }
-            case 4: {
-              message.price = reader.string();
-              break;
-            }
-            case 5: {
-              message.metadata = reader.bytes();
-              break;
-            }
-            default:
-              reader.skipType(tag & 7);
-              break;
-          }
-        }
-        return message;
-      };
-
-      /**
-       * Decodes an UpdateItem message from the specified reader or buffer, length delimited.
-       * @function decodeDelimited
-       * @memberof market.mass.UpdateItem
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @returns {market.mass.UpdateItem} UpdateItem
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      UpdateItem.decodeDelimited = function decodeDelimited(reader) {
-        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
-        return this.decode(reader, reader.uint32());
-      };
-
-      /**
-       * Verifies an UpdateItem message.
-       * @function verify
-       * @memberof market.mass.UpdateItem
-       * @static
-       * @param {Object.<string,*>} message Plain object to verify
-       * @returns {string|null} `null` if valid, otherwise the reason why it is not
-       */
-      UpdateItem.verify = function verify(message) {
-        if (typeof message !== "object" || message === null)
-          return "object expected";
-        let properties = {};
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          if (
-            !(
-              (message.eventId && typeof message.eventId.length === "number") ||
-              $util.isString(message.eventId)
-            )
-          )
-            return "eventId: buffer expected";
-        if (message.itemId != null && message.hasOwnProperty("itemId"))
-          if (
-            !(
-              (message.itemId && typeof message.itemId.length === "number") ||
-              $util.isString(message.itemId)
-            )
-          )
-            return "itemId: buffer expected";
-        if (message.field != null && message.hasOwnProperty("field"))
-          switch (message.field) {
-            default:
-              return "field: enum value expected";
-            case 0:
-            case 1:
-            case 2:
-              break;
-          }
-        if (message.price != null && message.hasOwnProperty("price")) {
-          properties.value = 1;
-          if (!$util.isString(message.price)) return "price: string expected";
-        }
-        if (message.metadata != null && message.hasOwnProperty("metadata")) {
-          if (properties.value === 1) return "value: multiple values";
-          properties.value = 1;
-          if (
-            !(
-              (message.metadata &&
-                typeof message.metadata.length === "number") ||
-              $util.isString(message.metadata)
-            )
-          )
-            return "metadata: buffer expected";
-        }
-        return null;
-      };
-
-      /**
-       * Creates an UpdateItem message from a plain object. Also converts values to their respective internal types.
-       * @function fromObject
-       * @memberof market.mass.UpdateItem
-       * @static
-       * @param {Object.<string,*>} object Plain object
-       * @returns {market.mass.UpdateItem} UpdateItem
-       */
-      UpdateItem.fromObject = function fromObject(object) {
-        if (object instanceof $root.market.mass.UpdateItem) return object;
-        let message = new $root.market.mass.UpdateItem();
-        if (object.eventId != null)
-          if (typeof object.eventId === "string")
-            $util.base64.decode(
-              object.eventId,
-              (message.eventId = $util.newBuffer(
-                $util.base64.length(object.eventId),
-              )),
-              0,
-            );
-          else if (object.eventId.length >= 0) message.eventId = object.eventId;
-        if (object.itemId != null)
-          if (typeof object.itemId === "string")
-            $util.base64.decode(
-              object.itemId,
-              (message.itemId = $util.newBuffer(
-                $util.base64.length(object.itemId),
-              )),
-              0,
-            );
-          else if (object.itemId.length >= 0) message.itemId = object.itemId;
-        switch (object.field) {
-          default:
-            if (typeof object.field === "number") {
-              message.field = object.field;
-              break;
-            }
-            break;
-          case "ITEM_FIELD_UNSPECIFIED":
-          case 0:
-            message.field = 0;
-            break;
-          case "ITEM_FIELD_PRICE":
-          case 1:
-            message.field = 1;
-            break;
-          case "ITEM_FIELD_METADATA":
-          case 2:
-            message.field = 2;
-            break;
-        }
-        if (object.price != null) message.price = String(object.price);
-        if (object.metadata != null)
-          if (typeof object.metadata === "string")
-            $util.base64.decode(
-              object.metadata,
-              (message.metadata = $util.newBuffer(
-                $util.base64.length(object.metadata),
-              )),
-              0,
-            );
-          else if (object.metadata.length >= 0)
-            message.metadata = object.metadata;
-        return message;
-      };
-
-      /**
-       * Creates a plain object from an UpdateItem message. Also converts values to other types if specified.
-       * @function toObject
-       * @memberof market.mass.UpdateItem
-       * @static
-       * @param {market.mass.UpdateItem} message UpdateItem
-       * @param {$protobuf.IConversionOptions} [options] Conversion options
-       * @returns {Object.<string,*>} Plain object
-       */
-      UpdateItem.toObject = function toObject(message, options) {
-        if (!options) options = {};
-        let object = {};
-        if (options.defaults) {
-          if (options.bytes === String) object.eventId = "";
-          else {
-            object.eventId = [];
-            if (options.bytes !== Array)
-              object.eventId = $util.newBuffer(object.eventId);
-          }
-          if (options.bytes === String) object.itemId = "";
-          else {
-            object.itemId = [];
-            if (options.bytes !== Array)
-              object.itemId = $util.newBuffer(object.itemId);
-          }
-          object.field =
-            options.enums === String ? "ITEM_FIELD_UNSPECIFIED" : 0;
-        }
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          object.eventId =
-            options.bytes === String
-              ? $util.base64.encode(message.eventId, 0, message.eventId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.eventId)
-                : message.eventId;
-        if (message.itemId != null && message.hasOwnProperty("itemId"))
-          object.itemId =
-            options.bytes === String
-              ? $util.base64.encode(message.itemId, 0, message.itemId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.itemId)
-                : message.itemId;
-        if (message.field != null && message.hasOwnProperty("field"))
-          object.field =
-            options.enums === String
-              ? $root.market.mass.UpdateItem.ItemField[message.field] ===
-                undefined
-                ? message.field
-                : $root.market.mass.UpdateItem.ItemField[message.field]
-              : message.field;
-        if (message.price != null && message.hasOwnProperty("price")) {
-          object.price = message.price;
-          if (options.oneofs) object.value = "price";
-        }
-        if (message.metadata != null && message.hasOwnProperty("metadata")) {
-          object.metadata =
-            options.bytes === String
-              ? $util.base64.encode(
-                  message.metadata,
-                  0,
-                  message.metadata.length,
-                )
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.metadata)
-                : message.metadata;
-          if (options.oneofs) object.value = "metadata";
-        }
-        return object;
-      };
-
-      /**
-       * Converts this UpdateItem to JSON.
-       * @function toJSON
-       * @memberof market.mass.UpdateItem
-       * @instance
-       * @returns {Object.<string,*>} JSON object
-       */
-      UpdateItem.prototype.toJSON = function toJSON() {
-        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-      };
-
-      /**
-       * Gets the default type url for UpdateItem
-       * @function getTypeUrl
-       * @memberof market.mass.UpdateItem
-       * @static
-       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-       * @returns {string} The default type url
-       */
-      UpdateItem.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-        if (typeUrlPrefix === undefined) {
-          typeUrlPrefix = "type.googleapis.com";
-        }
-        return typeUrlPrefix + "/market.mass.UpdateItem";
-      };
-
-      /**
-       * ItemField enum.
-       * @name market.mass.UpdateItem.ItemField
-       * @enum {number}
-       * @property {number} ITEM_FIELD_UNSPECIFIED=0 ITEM_FIELD_UNSPECIFIED value
-       * @property {number} ITEM_FIELD_PRICE=1 ITEM_FIELD_PRICE value
-       * @property {number} ITEM_FIELD_METADATA=2 ITEM_FIELD_METADATA value
-       */
-      UpdateItem.ItemField = (function () {
-        const valuesById = {},
-          values = Object.create(valuesById);
-        values[(valuesById[0] = "ITEM_FIELD_UNSPECIFIED")] = 0;
-        values[(valuesById[1] = "ITEM_FIELD_PRICE")] = 1;
-        values[(valuesById[2] = "ITEM_FIELD_METADATA")] = 2;
-        return values;
-      })();
-
-      return UpdateItem;
-    })();
-
-    mass.CreateTag = (function () {
-      /**
-       * Properties of a CreateTag.
-       * @memberof market.mass
-       * @interface ICreateTag
-       * @property {Uint8Array|null} [eventId] CreateTag eventId
-       * @property {string|null} [name] CreateTag name
-       */
-
-      /**
-       * Constructs a new CreateTag.
-       * @memberof market.mass
-       * @classdesc Represents a CreateTag.
-       * @implements ICreateTag
-       * @constructor
-       * @param {market.mass.ICreateTag=} [properties] Properties to set
-       */
-      function CreateTag(properties) {
-        if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-            if (properties[keys[i]] != null)
-              this[keys[i]] = properties[keys[i]];
-      }
-
-      /**
-       * CreateTag eventId.
-       * @member {Uint8Array} eventId
-       * @memberof market.mass.CreateTag
-       * @instance
-       */
-      CreateTag.prototype.eventId = $util.newBuffer([]);
-
-      /**
-       * CreateTag name.
-       * @member {string} name
-       * @memberof market.mass.CreateTag
-       * @instance
-       */
-      CreateTag.prototype.name = "";
-
-      /**
-       * Creates a new CreateTag instance using the specified properties.
-       * @function create
-       * @memberof market.mass.CreateTag
-       * @static
-       * @param {market.mass.ICreateTag=} [properties] Properties to set
-       * @returns {market.mass.CreateTag} CreateTag instance
-       */
-      CreateTag.create = function create(properties) {
-        return new CreateTag(properties);
-      };
-
-      /**
-       * Encodes the specified CreateTag message. Does not implicitly {@link market.mass.CreateTag.verify|verify} messages.
-       * @function encode
-       * @memberof market.mass.CreateTag
-       * @static
-       * @param {market.mass.ICreateTag} message CreateTag message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      CreateTag.encode = function encode(message, writer) {
-        if (!writer) writer = $Writer.create();
-        if (
-          message.eventId != null &&
-          Object.hasOwnProperty.call(message, "eventId")
-        )
-          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.eventId);
-        if (message.name != null && Object.hasOwnProperty.call(message, "name"))
-          writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.name);
-        return writer;
-      };
-
-      /**
-       * Encodes the specified CreateTag message, length delimited. Does not implicitly {@link market.mass.CreateTag.verify|verify} messages.
-       * @function encodeDelimited
-       * @memberof market.mass.CreateTag
-       * @static
-       * @param {market.mass.ICreateTag} message CreateTag message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      CreateTag.encodeDelimited = function encodeDelimited(message, writer) {
-        return this.encode(message, writer).ldelim();
-      };
-
-      /**
-       * Decodes a CreateTag message from the specified reader or buffer.
-       * @function decode
-       * @memberof market.mass.CreateTag
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @param {number} [length] Message length if known beforehand
-       * @returns {market.mass.CreateTag} CreateTag
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      CreateTag.decode = function decode(reader, length) {
-        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
-          message = new $root.market.mass.CreateTag();
-        while (reader.pos < end) {
-          let tag = reader.uint32();
-          switch (tag >>> 3) {
-            case 1: {
-              message.eventId = reader.bytes();
-              break;
-            }
-            case 2: {
-              message.name = reader.string();
-              break;
-            }
-            default:
-              reader.skipType(tag & 7);
-              break;
-          }
-        }
-        return message;
-      };
-
-      /**
-       * Decodes a CreateTag message from the specified reader or buffer, length delimited.
-       * @function decodeDelimited
-       * @memberof market.mass.CreateTag
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @returns {market.mass.CreateTag} CreateTag
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      CreateTag.decodeDelimited = function decodeDelimited(reader) {
-        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
-        return this.decode(reader, reader.uint32());
-      };
-
-      /**
-       * Verifies a CreateTag message.
-       * @function verify
-       * @memberof market.mass.CreateTag
-       * @static
-       * @param {Object.<string,*>} message Plain object to verify
-       * @returns {string|null} `null` if valid, otherwise the reason why it is not
-       */
-      CreateTag.verify = function verify(message) {
-        if (typeof message !== "object" || message === null)
-          return "object expected";
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          if (
-            !(
-              (message.eventId && typeof message.eventId.length === "number") ||
-              $util.isString(message.eventId)
-            )
-          )
-            return "eventId: buffer expected";
-        if (message.name != null && message.hasOwnProperty("name"))
-          if (!$util.isString(message.name)) return "name: string expected";
-        return null;
-      };
-
-      /**
-       * Creates a CreateTag message from a plain object. Also converts values to their respective internal types.
-       * @function fromObject
-       * @memberof market.mass.CreateTag
-       * @static
-       * @param {Object.<string,*>} object Plain object
-       * @returns {market.mass.CreateTag} CreateTag
-       */
-      CreateTag.fromObject = function fromObject(object) {
-        if (object instanceof $root.market.mass.CreateTag) return object;
-        let message = new $root.market.mass.CreateTag();
-        if (object.eventId != null)
-          if (typeof object.eventId === "string")
-            $util.base64.decode(
-              object.eventId,
-              (message.eventId = $util.newBuffer(
-                $util.base64.length(object.eventId),
-              )),
-              0,
-            );
-          else if (object.eventId.length >= 0) message.eventId = object.eventId;
-        if (object.name != null) message.name = String(object.name);
-        return message;
-      };
-
-      /**
-       * Creates a plain object from a CreateTag message. Also converts values to other types if specified.
-       * @function toObject
-       * @memberof market.mass.CreateTag
-       * @static
-       * @param {market.mass.CreateTag} message CreateTag
-       * @param {$protobuf.IConversionOptions} [options] Conversion options
-       * @returns {Object.<string,*>} Plain object
-       */
-      CreateTag.toObject = function toObject(message, options) {
-        if (!options) options = {};
-        let object = {};
-        if (options.defaults) {
-          if (options.bytes === String) object.eventId = "";
-          else {
-            object.eventId = [];
-            if (options.bytes !== Array)
-              object.eventId = $util.newBuffer(object.eventId);
-          }
-          object.name = "";
-        }
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          object.eventId =
-            options.bytes === String
-              ? $util.base64.encode(message.eventId, 0, message.eventId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.eventId)
-                : message.eventId;
-        if (message.name != null && message.hasOwnProperty("name"))
-          object.name = message.name;
-        return object;
-      };
-
-      /**
-       * Converts this CreateTag to JSON.
-       * @function toJSON
-       * @memberof market.mass.CreateTag
-       * @instance
-       * @returns {Object.<string,*>} JSON object
-       */
-      CreateTag.prototype.toJSON = function toJSON() {
-        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-      };
-
-      /**
-       * Gets the default type url for CreateTag
-       * @function getTypeUrl
-       * @memberof market.mass.CreateTag
-       * @static
-       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-       * @returns {string} The default type url
-       */
-      CreateTag.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-        if (typeUrlPrefix === undefined) {
-          typeUrlPrefix = "type.googleapis.com";
-        }
-        return typeUrlPrefix + "/market.mass.CreateTag";
-      };
-
-      return CreateTag;
-    })();
-
-    mass.AddToTag = (function () {
-      /**
-       * Properties of an AddToTag.
-       * @memberof market.mass
-       * @interface IAddToTag
-       * @property {Uint8Array|null} [eventId] AddToTag eventId
-       * @property {Uint8Array|null} [tagId] AddToTag tagId
-       * @property {Uint8Array|null} [itemId] AddToTag itemId
-       */
-
-      /**
-       * Constructs a new AddToTag.
-       * @memberof market.mass
-       * @classdesc Represents an AddToTag.
-       * @implements IAddToTag
-       * @constructor
-       * @param {market.mass.IAddToTag=} [properties] Properties to set
-       */
-      function AddToTag(properties) {
-        if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-            if (properties[keys[i]] != null)
-              this[keys[i]] = properties[keys[i]];
-      }
-
-      /**
-       * AddToTag eventId.
-       * @member {Uint8Array} eventId
-       * @memberof market.mass.AddToTag
-       * @instance
-       */
-      AddToTag.prototype.eventId = $util.newBuffer([]);
-
-      /**
-       * AddToTag tagId.
-       * @member {Uint8Array} tagId
-       * @memberof market.mass.AddToTag
-       * @instance
-       */
-      AddToTag.prototype.tagId = $util.newBuffer([]);
-
-      /**
-       * AddToTag itemId.
-       * @member {Uint8Array} itemId
-       * @memberof market.mass.AddToTag
-       * @instance
-       */
-      AddToTag.prototype.itemId = $util.newBuffer([]);
-
-      /**
-       * Creates a new AddToTag instance using the specified properties.
-       * @function create
-       * @memberof market.mass.AddToTag
-       * @static
-       * @param {market.mass.IAddToTag=} [properties] Properties to set
-       * @returns {market.mass.AddToTag} AddToTag instance
-       */
-      AddToTag.create = function create(properties) {
-        return new AddToTag(properties);
-      };
-
-      /**
-       * Encodes the specified AddToTag message. Does not implicitly {@link market.mass.AddToTag.verify|verify} messages.
-       * @function encode
-       * @memberof market.mass.AddToTag
-       * @static
-       * @param {market.mass.IAddToTag} message AddToTag message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      AddToTag.encode = function encode(message, writer) {
-        if (!writer) writer = $Writer.create();
-        if (
-          message.eventId != null &&
-          Object.hasOwnProperty.call(message, "eventId")
-        )
-          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.eventId);
-        if (
-          message.tagId != null &&
-          Object.hasOwnProperty.call(message, "tagId")
-        )
-          writer.uint32(/* id 2, wireType 2 =*/ 18).bytes(message.tagId);
-        if (
-          message.itemId != null &&
-          Object.hasOwnProperty.call(message, "itemId")
-        )
-          writer.uint32(/* id 3, wireType 2 =*/ 26).bytes(message.itemId);
-        return writer;
-      };
-
-      /**
-       * Encodes the specified AddToTag message, length delimited. Does not implicitly {@link market.mass.AddToTag.verify|verify} messages.
-       * @function encodeDelimited
-       * @memberof market.mass.AddToTag
-       * @static
-       * @param {market.mass.IAddToTag} message AddToTag message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      AddToTag.encodeDelimited = function encodeDelimited(message, writer) {
-        return this.encode(message, writer).ldelim();
-      };
-
-      /**
-       * Decodes an AddToTag message from the specified reader or buffer.
-       * @function decode
-       * @memberof market.mass.AddToTag
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @param {number} [length] Message length if known beforehand
-       * @returns {market.mass.AddToTag} AddToTag
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      AddToTag.decode = function decode(reader, length) {
-        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
-          message = new $root.market.mass.AddToTag();
-        while (reader.pos < end) {
-          let tag = reader.uint32();
-          switch (tag >>> 3) {
-            case 1: {
-              message.eventId = reader.bytes();
-              break;
-            }
-            case 2: {
-              message.tagId = reader.bytes();
-              break;
-            }
-            case 3: {
-              message.itemId = reader.bytes();
-              break;
-            }
-            default:
-              reader.skipType(tag & 7);
-              break;
-          }
-        }
-        return message;
-      };
-
-      /**
-       * Decodes an AddToTag message from the specified reader or buffer, length delimited.
-       * @function decodeDelimited
-       * @memberof market.mass.AddToTag
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @returns {market.mass.AddToTag} AddToTag
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      AddToTag.decodeDelimited = function decodeDelimited(reader) {
-        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
-        return this.decode(reader, reader.uint32());
-      };
-
-      /**
-       * Verifies an AddToTag message.
-       * @function verify
-       * @memberof market.mass.AddToTag
-       * @static
-       * @param {Object.<string,*>} message Plain object to verify
-       * @returns {string|null} `null` if valid, otherwise the reason why it is not
-       */
-      AddToTag.verify = function verify(message) {
-        if (typeof message !== "object" || message === null)
-          return "object expected";
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          if (
-            !(
-              (message.eventId && typeof message.eventId.length === "number") ||
-              $util.isString(message.eventId)
-            )
-          )
-            return "eventId: buffer expected";
-        if (message.tagId != null && message.hasOwnProperty("tagId"))
-          if (
-            !(
-              (message.tagId && typeof message.tagId.length === "number") ||
-              $util.isString(message.tagId)
-            )
-          )
-            return "tagId: buffer expected";
-        if (message.itemId != null && message.hasOwnProperty("itemId"))
-          if (
-            !(
-              (message.itemId && typeof message.itemId.length === "number") ||
-              $util.isString(message.itemId)
-            )
-          )
-            return "itemId: buffer expected";
-        return null;
-      };
-
-      /**
-       * Creates an AddToTag message from a plain object. Also converts values to their respective internal types.
-       * @function fromObject
-       * @memberof market.mass.AddToTag
-       * @static
-       * @param {Object.<string,*>} object Plain object
-       * @returns {market.mass.AddToTag} AddToTag
-       */
-      AddToTag.fromObject = function fromObject(object) {
-        if (object instanceof $root.market.mass.AddToTag) return object;
-        let message = new $root.market.mass.AddToTag();
-        if (object.eventId != null)
-          if (typeof object.eventId === "string")
-            $util.base64.decode(
-              object.eventId,
-              (message.eventId = $util.newBuffer(
-                $util.base64.length(object.eventId),
-              )),
-              0,
-            );
-          else if (object.eventId.length >= 0) message.eventId = object.eventId;
-        if (object.tagId != null)
-          if (typeof object.tagId === "string")
-            $util.base64.decode(
-              object.tagId,
-              (message.tagId = $util.newBuffer(
-                $util.base64.length(object.tagId),
-              )),
-              0,
-            );
-          else if (object.tagId.length >= 0) message.tagId = object.tagId;
-        if (object.itemId != null)
-          if (typeof object.itemId === "string")
-            $util.base64.decode(
-              object.itemId,
-              (message.itemId = $util.newBuffer(
-                $util.base64.length(object.itemId),
-              )),
-              0,
-            );
-          else if (object.itemId.length >= 0) message.itemId = object.itemId;
-        return message;
-      };
-
-      /**
-       * Creates a plain object from an AddToTag message. Also converts values to other types if specified.
-       * @function toObject
-       * @memberof market.mass.AddToTag
-       * @static
-       * @param {market.mass.AddToTag} message AddToTag
-       * @param {$protobuf.IConversionOptions} [options] Conversion options
-       * @returns {Object.<string,*>} Plain object
-       */
-      AddToTag.toObject = function toObject(message, options) {
-        if (!options) options = {};
-        let object = {};
-        if (options.defaults) {
-          if (options.bytes === String) object.eventId = "";
-          else {
-            object.eventId = [];
-            if (options.bytes !== Array)
-              object.eventId = $util.newBuffer(object.eventId);
-          }
-          if (options.bytes === String) object.tagId = "";
-          else {
-            object.tagId = [];
-            if (options.bytes !== Array)
-              object.tagId = $util.newBuffer(object.tagId);
-          }
-          if (options.bytes === String) object.itemId = "";
-          else {
-            object.itemId = [];
-            if (options.bytes !== Array)
-              object.itemId = $util.newBuffer(object.itemId);
-          }
-        }
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          object.eventId =
-            options.bytes === String
-              ? $util.base64.encode(message.eventId, 0, message.eventId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.eventId)
-                : message.eventId;
-        if (message.tagId != null && message.hasOwnProperty("tagId"))
-          object.tagId =
-            options.bytes === String
-              ? $util.base64.encode(message.tagId, 0, message.tagId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.tagId)
-                : message.tagId;
-        if (message.itemId != null && message.hasOwnProperty("itemId"))
-          object.itemId =
-            options.bytes === String
-              ? $util.base64.encode(message.itemId, 0, message.itemId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.itemId)
-                : message.itemId;
-        return object;
-      };
-
-      /**
-       * Converts this AddToTag to JSON.
-       * @function toJSON
-       * @memberof market.mass.AddToTag
-       * @instance
-       * @returns {Object.<string,*>} JSON object
-       */
-      AddToTag.prototype.toJSON = function toJSON() {
-        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-      };
-
-      /**
-       * Gets the default type url for AddToTag
-       * @function getTypeUrl
-       * @memberof market.mass.AddToTag
-       * @static
-       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-       * @returns {string} The default type url
-       */
-      AddToTag.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-        if (typeUrlPrefix === undefined) {
-          typeUrlPrefix = "type.googleapis.com";
-        }
-        return typeUrlPrefix + "/market.mass.AddToTag";
-      };
-
-      return AddToTag;
-    })();
-
-    mass.RemoveFromTag = (function () {
-      /**
-       * Properties of a RemoveFromTag.
-       * @memberof market.mass
-       * @interface IRemoveFromTag
-       * @property {Uint8Array|null} [eventId] RemoveFromTag eventId
-       * @property {Uint8Array|null} [tagId] RemoveFromTag tagId
-       * @property {Uint8Array|null} [itemId] RemoveFromTag itemId
-       */
-
-      /**
-       * Constructs a new RemoveFromTag.
-       * @memberof market.mass
-       * @classdesc Represents a RemoveFromTag.
-       * @implements IRemoveFromTag
-       * @constructor
-       * @param {market.mass.IRemoveFromTag=} [properties] Properties to set
-       */
-      function RemoveFromTag(properties) {
-        if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-            if (properties[keys[i]] != null)
-              this[keys[i]] = properties[keys[i]];
-      }
-
-      /**
-       * RemoveFromTag eventId.
-       * @member {Uint8Array} eventId
-       * @memberof market.mass.RemoveFromTag
-       * @instance
-       */
-      RemoveFromTag.prototype.eventId = $util.newBuffer([]);
-
-      /**
-       * RemoveFromTag tagId.
-       * @member {Uint8Array} tagId
-       * @memberof market.mass.RemoveFromTag
-       * @instance
-       */
-      RemoveFromTag.prototype.tagId = $util.newBuffer([]);
-
-      /**
-       * RemoveFromTag itemId.
-       * @member {Uint8Array} itemId
-       * @memberof market.mass.RemoveFromTag
-       * @instance
-       */
-      RemoveFromTag.prototype.itemId = $util.newBuffer([]);
-
-      /**
-       * Creates a new RemoveFromTag instance using the specified properties.
-       * @function create
-       * @memberof market.mass.RemoveFromTag
-       * @static
-       * @param {market.mass.IRemoveFromTag=} [properties] Properties to set
-       * @returns {market.mass.RemoveFromTag} RemoveFromTag instance
-       */
-      RemoveFromTag.create = function create(properties) {
-        return new RemoveFromTag(properties);
-      };
-
-      /**
-       * Encodes the specified RemoveFromTag message. Does not implicitly {@link market.mass.RemoveFromTag.verify|verify} messages.
-       * @function encode
-       * @memberof market.mass.RemoveFromTag
-       * @static
-       * @param {market.mass.IRemoveFromTag} message RemoveFromTag message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      RemoveFromTag.encode = function encode(message, writer) {
-        if (!writer) writer = $Writer.create();
-        if (
-          message.eventId != null &&
-          Object.hasOwnProperty.call(message, "eventId")
-        )
-          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.eventId);
-        if (
-          message.tagId != null &&
-          Object.hasOwnProperty.call(message, "tagId")
-        )
-          writer.uint32(/* id 2, wireType 2 =*/ 18).bytes(message.tagId);
-        if (
-          message.itemId != null &&
-          Object.hasOwnProperty.call(message, "itemId")
-        )
-          writer.uint32(/* id 3, wireType 2 =*/ 26).bytes(message.itemId);
-        return writer;
-      };
-
-      /**
-       * Encodes the specified RemoveFromTag message, length delimited. Does not implicitly {@link market.mass.RemoveFromTag.verify|verify} messages.
-       * @function encodeDelimited
-       * @memberof market.mass.RemoveFromTag
-       * @static
-       * @param {market.mass.IRemoveFromTag} message RemoveFromTag message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      RemoveFromTag.encodeDelimited = function encodeDelimited(
-        message,
-        writer,
-      ) {
-        return this.encode(message, writer).ldelim();
-      };
-
-      /**
-       * Decodes a RemoveFromTag message from the specified reader or buffer.
-       * @function decode
-       * @memberof market.mass.RemoveFromTag
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @param {number} [length] Message length if known beforehand
-       * @returns {market.mass.RemoveFromTag} RemoveFromTag
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      RemoveFromTag.decode = function decode(reader, length) {
-        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
-          message = new $root.market.mass.RemoveFromTag();
-        while (reader.pos < end) {
-          let tag = reader.uint32();
-          switch (tag >>> 3) {
-            case 1: {
-              message.eventId = reader.bytes();
-              break;
-            }
-            case 2: {
-              message.tagId = reader.bytes();
-              break;
-            }
-            case 3: {
-              message.itemId = reader.bytes();
-              break;
-            }
-            default:
-              reader.skipType(tag & 7);
-              break;
-          }
-        }
-        return message;
-      };
-
-      /**
-       * Decodes a RemoveFromTag message from the specified reader or buffer, length delimited.
-       * @function decodeDelimited
-       * @memberof market.mass.RemoveFromTag
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @returns {market.mass.RemoveFromTag} RemoveFromTag
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      RemoveFromTag.decodeDelimited = function decodeDelimited(reader) {
-        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
-        return this.decode(reader, reader.uint32());
-      };
-
-      /**
-       * Verifies a RemoveFromTag message.
-       * @function verify
-       * @memberof market.mass.RemoveFromTag
-       * @static
-       * @param {Object.<string,*>} message Plain object to verify
-       * @returns {string|null} `null` if valid, otherwise the reason why it is not
-       */
-      RemoveFromTag.verify = function verify(message) {
-        if (typeof message !== "object" || message === null)
-          return "object expected";
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          if (
-            !(
-              (message.eventId && typeof message.eventId.length === "number") ||
-              $util.isString(message.eventId)
-            )
-          )
-            return "eventId: buffer expected";
-        if (message.tagId != null && message.hasOwnProperty("tagId"))
-          if (
-            !(
-              (message.tagId && typeof message.tagId.length === "number") ||
-              $util.isString(message.tagId)
-            )
-          )
-            return "tagId: buffer expected";
-        if (message.itemId != null && message.hasOwnProperty("itemId"))
-          if (
-            !(
-              (message.itemId && typeof message.itemId.length === "number") ||
-              $util.isString(message.itemId)
-            )
-          )
-            return "itemId: buffer expected";
-        return null;
-      };
-
-      /**
-       * Creates a RemoveFromTag message from a plain object. Also converts values to their respective internal types.
-       * @function fromObject
-       * @memberof market.mass.RemoveFromTag
-       * @static
-       * @param {Object.<string,*>} object Plain object
-       * @returns {market.mass.RemoveFromTag} RemoveFromTag
-       */
-      RemoveFromTag.fromObject = function fromObject(object) {
-        if (object instanceof $root.market.mass.RemoveFromTag) return object;
-        let message = new $root.market.mass.RemoveFromTag();
-        if (object.eventId != null)
-          if (typeof object.eventId === "string")
-            $util.base64.decode(
-              object.eventId,
-              (message.eventId = $util.newBuffer(
-                $util.base64.length(object.eventId),
-              )),
-              0,
-            );
-          else if (object.eventId.length >= 0) message.eventId = object.eventId;
-        if (object.tagId != null)
-          if (typeof object.tagId === "string")
-            $util.base64.decode(
-              object.tagId,
-              (message.tagId = $util.newBuffer(
-                $util.base64.length(object.tagId),
-              )),
-              0,
-            );
-          else if (object.tagId.length >= 0) message.tagId = object.tagId;
-        if (object.itemId != null)
-          if (typeof object.itemId === "string")
-            $util.base64.decode(
-              object.itemId,
-              (message.itemId = $util.newBuffer(
-                $util.base64.length(object.itemId),
-              )),
-              0,
-            );
-          else if (object.itemId.length >= 0) message.itemId = object.itemId;
-        return message;
-      };
-
-      /**
-       * Creates a plain object from a RemoveFromTag message. Also converts values to other types if specified.
-       * @function toObject
-       * @memberof market.mass.RemoveFromTag
-       * @static
-       * @param {market.mass.RemoveFromTag} message RemoveFromTag
-       * @param {$protobuf.IConversionOptions} [options] Conversion options
-       * @returns {Object.<string,*>} Plain object
-       */
-      RemoveFromTag.toObject = function toObject(message, options) {
-        if (!options) options = {};
-        let object = {};
-        if (options.defaults) {
-          if (options.bytes === String) object.eventId = "";
-          else {
-            object.eventId = [];
-            if (options.bytes !== Array)
-              object.eventId = $util.newBuffer(object.eventId);
-          }
-          if (options.bytes === String) object.tagId = "";
-          else {
-            object.tagId = [];
-            if (options.bytes !== Array)
-              object.tagId = $util.newBuffer(object.tagId);
-          }
-          if (options.bytes === String) object.itemId = "";
-          else {
-            object.itemId = [];
-            if (options.bytes !== Array)
-              object.itemId = $util.newBuffer(object.itemId);
-          }
-        }
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          object.eventId =
-            options.bytes === String
-              ? $util.base64.encode(message.eventId, 0, message.eventId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.eventId)
-                : message.eventId;
-        if (message.tagId != null && message.hasOwnProperty("tagId"))
-          object.tagId =
-            options.bytes === String
-              ? $util.base64.encode(message.tagId, 0, message.tagId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.tagId)
-                : message.tagId;
-        if (message.itemId != null && message.hasOwnProperty("itemId"))
-          object.itemId =
-            options.bytes === String
-              ? $util.base64.encode(message.itemId, 0, message.itemId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.itemId)
-                : message.itemId;
-        return object;
-      };
-
-      /**
-       * Converts this RemoveFromTag to JSON.
-       * @function toJSON
-       * @memberof market.mass.RemoveFromTag
-       * @instance
-       * @returns {Object.<string,*>} JSON object
-       */
-      RemoveFromTag.prototype.toJSON = function toJSON() {
-        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-      };
-
-      /**
-       * Gets the default type url for RemoveFromTag
-       * @function getTypeUrl
-       * @memberof market.mass.RemoveFromTag
-       * @static
-       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-       * @returns {string} The default type url
-       */
-      RemoveFromTag.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-        if (typeUrlPrefix === undefined) {
-          typeUrlPrefix = "type.googleapis.com";
-        }
-        return typeUrlPrefix + "/market.mass.RemoveFromTag";
-      };
-
-      return RemoveFromTag;
-    })();
-
-    mass.RenameTag = (function () {
-      /**
-       * Properties of a RenameTag.
-       * @memberof market.mass
-       * @interface IRenameTag
-       * @property {Uint8Array|null} [eventId] RenameTag eventId
-       * @property {Uint8Array|null} [tagId] RenameTag tagId
-       * @property {string|null} [name] RenameTag name
-       */
-
-      /**
-       * Constructs a new RenameTag.
-       * @memberof market.mass
-       * @classdesc Represents a RenameTag.
-       * @implements IRenameTag
-       * @constructor
-       * @param {market.mass.IRenameTag=} [properties] Properties to set
-       */
-      function RenameTag(properties) {
-        if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-            if (properties[keys[i]] != null)
-              this[keys[i]] = properties[keys[i]];
-      }
-
-      /**
-       * RenameTag eventId.
-       * @member {Uint8Array} eventId
-       * @memberof market.mass.RenameTag
-       * @instance
-       */
-      RenameTag.prototype.eventId = $util.newBuffer([]);
-
-      /**
-       * RenameTag tagId.
-       * @member {Uint8Array} tagId
-       * @memberof market.mass.RenameTag
-       * @instance
-       */
-      RenameTag.prototype.tagId = $util.newBuffer([]);
-
-      /**
-       * RenameTag name.
-       * @member {string} name
-       * @memberof market.mass.RenameTag
-       * @instance
-       */
-      RenameTag.prototype.name = "";
-
-      /**
-       * Creates a new RenameTag instance using the specified properties.
-       * @function create
-       * @memberof market.mass.RenameTag
-       * @static
-       * @param {market.mass.IRenameTag=} [properties] Properties to set
-       * @returns {market.mass.RenameTag} RenameTag instance
-       */
-      RenameTag.create = function create(properties) {
-        return new RenameTag(properties);
-      };
-
-      /**
-       * Encodes the specified RenameTag message. Does not implicitly {@link market.mass.RenameTag.verify|verify} messages.
-       * @function encode
-       * @memberof market.mass.RenameTag
-       * @static
-       * @param {market.mass.IRenameTag} message RenameTag message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      RenameTag.encode = function encode(message, writer) {
-        if (!writer) writer = $Writer.create();
-        if (
-          message.eventId != null &&
-          Object.hasOwnProperty.call(message, "eventId")
-        )
-          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.eventId);
-        if (
-          message.tagId != null &&
-          Object.hasOwnProperty.call(message, "tagId")
-        )
-          writer.uint32(/* id 2, wireType 2 =*/ 18).bytes(message.tagId);
-        if (message.name != null && Object.hasOwnProperty.call(message, "name"))
-          writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.name);
-        return writer;
-      };
-
-      /**
-       * Encodes the specified RenameTag message, length delimited. Does not implicitly {@link market.mass.RenameTag.verify|verify} messages.
-       * @function encodeDelimited
-       * @memberof market.mass.RenameTag
-       * @static
-       * @param {market.mass.IRenameTag} message RenameTag message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      RenameTag.encodeDelimited = function encodeDelimited(message, writer) {
-        return this.encode(message, writer).ldelim();
-      };
-
-      /**
-       * Decodes a RenameTag message from the specified reader or buffer.
-       * @function decode
-       * @memberof market.mass.RenameTag
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @param {number} [length] Message length if known beforehand
-       * @returns {market.mass.RenameTag} RenameTag
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      RenameTag.decode = function decode(reader, length) {
-        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
-          message = new $root.market.mass.RenameTag();
-        while (reader.pos < end) {
-          let tag = reader.uint32();
-          switch (tag >>> 3) {
-            case 1: {
-              message.eventId = reader.bytes();
-              break;
-            }
-            case 2: {
-              message.tagId = reader.bytes();
-              break;
-            }
-            case 3: {
-              message.name = reader.string();
-              break;
-            }
-            default:
-              reader.skipType(tag & 7);
-              break;
-          }
-        }
-        return message;
-      };
-
-      /**
-       * Decodes a RenameTag message from the specified reader or buffer, length delimited.
-       * @function decodeDelimited
-       * @memberof market.mass.RenameTag
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @returns {market.mass.RenameTag} RenameTag
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      RenameTag.decodeDelimited = function decodeDelimited(reader) {
-        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
-        return this.decode(reader, reader.uint32());
-      };
-
-      /**
-       * Verifies a RenameTag message.
-       * @function verify
-       * @memberof market.mass.RenameTag
-       * @static
-       * @param {Object.<string,*>} message Plain object to verify
-       * @returns {string|null} `null` if valid, otherwise the reason why it is not
-       */
-      RenameTag.verify = function verify(message) {
-        if (typeof message !== "object" || message === null)
-          return "object expected";
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          if (
-            !(
-              (message.eventId && typeof message.eventId.length === "number") ||
-              $util.isString(message.eventId)
-            )
-          )
-            return "eventId: buffer expected";
-        if (message.tagId != null && message.hasOwnProperty("tagId"))
-          if (
-            !(
-              (message.tagId && typeof message.tagId.length === "number") ||
-              $util.isString(message.tagId)
-            )
-          )
-            return "tagId: buffer expected";
-        if (message.name != null && message.hasOwnProperty("name"))
-          if (!$util.isString(message.name)) return "name: string expected";
-        return null;
-      };
-
-      /**
-       * Creates a RenameTag message from a plain object. Also converts values to their respective internal types.
-       * @function fromObject
-       * @memberof market.mass.RenameTag
-       * @static
-       * @param {Object.<string,*>} object Plain object
-       * @returns {market.mass.RenameTag} RenameTag
-       */
-      RenameTag.fromObject = function fromObject(object) {
-        if (object instanceof $root.market.mass.RenameTag) return object;
-        let message = new $root.market.mass.RenameTag();
-        if (object.eventId != null)
-          if (typeof object.eventId === "string")
-            $util.base64.decode(
-              object.eventId,
-              (message.eventId = $util.newBuffer(
-                $util.base64.length(object.eventId),
-              )),
-              0,
-            );
-          else if (object.eventId.length >= 0) message.eventId = object.eventId;
-        if (object.tagId != null)
-          if (typeof object.tagId === "string")
-            $util.base64.decode(
-              object.tagId,
-              (message.tagId = $util.newBuffer(
-                $util.base64.length(object.tagId),
-              )),
-              0,
-            );
-          else if (object.tagId.length >= 0) message.tagId = object.tagId;
-        if (object.name != null) message.name = String(object.name);
-        return message;
-      };
-
-      /**
-       * Creates a plain object from a RenameTag message. Also converts values to other types if specified.
-       * @function toObject
-       * @memberof market.mass.RenameTag
-       * @static
-       * @param {market.mass.RenameTag} message RenameTag
-       * @param {$protobuf.IConversionOptions} [options] Conversion options
-       * @returns {Object.<string,*>} Plain object
-       */
-      RenameTag.toObject = function toObject(message, options) {
-        if (!options) options = {};
-        let object = {};
-        if (options.defaults) {
-          if (options.bytes === String) object.eventId = "";
-          else {
-            object.eventId = [];
-            if (options.bytes !== Array)
-              object.eventId = $util.newBuffer(object.eventId);
-          }
-          if (options.bytes === String) object.tagId = "";
-          else {
-            object.tagId = [];
-            if (options.bytes !== Array)
-              object.tagId = $util.newBuffer(object.tagId);
-          }
-          object.name = "";
-        }
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          object.eventId =
-            options.bytes === String
-              ? $util.base64.encode(message.eventId, 0, message.eventId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.eventId)
-                : message.eventId;
-        if (message.tagId != null && message.hasOwnProperty("tagId"))
-          object.tagId =
-            options.bytes === String
-              ? $util.base64.encode(message.tagId, 0, message.tagId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.tagId)
-                : message.tagId;
-        if (message.name != null && message.hasOwnProperty("name"))
-          object.name = message.name;
-        return object;
-      };
-
-      /**
-       * Converts this RenameTag to JSON.
-       * @function toJSON
-       * @memberof market.mass.RenameTag
-       * @instance
-       * @returns {Object.<string,*>} JSON object
-       */
-      RenameTag.prototype.toJSON = function toJSON() {
-        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-      };
-
-      /**
-       * Gets the default type url for RenameTag
-       * @function getTypeUrl
-       * @memberof market.mass.RenameTag
-       * @static
-       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-       * @returns {string} The default type url
-       */
-      RenameTag.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-        if (typeUrlPrefix === undefined) {
-          typeUrlPrefix = "type.googleapis.com";
-        }
-        return typeUrlPrefix + "/market.mass.RenameTag";
-      };
-
-      return RenameTag;
-    })();
-
-    mass.DeleteTag = (function () {
-      /**
-       * Properties of a DeleteTag.
-       * @memberof market.mass
-       * @interface IDeleteTag
-       * @property {Uint8Array|null} [eventId] DeleteTag eventId
-       * @property {Uint8Array|null} [tagId] DeleteTag tagId
-       */
-
-      /**
-       * Constructs a new DeleteTag.
-       * @memberof market.mass
-       * @classdesc Represents a DeleteTag.
-       * @implements IDeleteTag
-       * @constructor
-       * @param {market.mass.IDeleteTag=} [properties] Properties to set
-       */
-      function DeleteTag(properties) {
-        if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-            if (properties[keys[i]] != null)
-              this[keys[i]] = properties[keys[i]];
-      }
-
-      /**
-       * DeleteTag eventId.
-       * @member {Uint8Array} eventId
-       * @memberof market.mass.DeleteTag
-       * @instance
-       */
-      DeleteTag.prototype.eventId = $util.newBuffer([]);
-
-      /**
-       * DeleteTag tagId.
-       * @member {Uint8Array} tagId
-       * @memberof market.mass.DeleteTag
-       * @instance
-       */
-      DeleteTag.prototype.tagId = $util.newBuffer([]);
-
-      /**
-       * Creates a new DeleteTag instance using the specified properties.
-       * @function create
-       * @memberof market.mass.DeleteTag
-       * @static
-       * @param {market.mass.IDeleteTag=} [properties] Properties to set
-       * @returns {market.mass.DeleteTag} DeleteTag instance
-       */
-      DeleteTag.create = function create(properties) {
-        return new DeleteTag(properties);
-      };
-
-      /**
-       * Encodes the specified DeleteTag message. Does not implicitly {@link market.mass.DeleteTag.verify|verify} messages.
-       * @function encode
-       * @memberof market.mass.DeleteTag
-       * @static
-       * @param {market.mass.IDeleteTag} message DeleteTag message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      DeleteTag.encode = function encode(message, writer) {
-        if (!writer) writer = $Writer.create();
-        if (
-          message.eventId != null &&
-          Object.hasOwnProperty.call(message, "eventId")
-        )
-          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.eventId);
-        if (
-          message.tagId != null &&
-          Object.hasOwnProperty.call(message, "tagId")
-        )
-          writer.uint32(/* id 2, wireType 2 =*/ 18).bytes(message.tagId);
-        return writer;
-      };
-
-      /**
-       * Encodes the specified DeleteTag message, length delimited. Does not implicitly {@link market.mass.DeleteTag.verify|verify} messages.
-       * @function encodeDelimited
-       * @memberof market.mass.DeleteTag
-       * @static
-       * @param {market.mass.IDeleteTag} message DeleteTag message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      DeleteTag.encodeDelimited = function encodeDelimited(message, writer) {
-        return this.encode(message, writer).ldelim();
-      };
-
-      /**
-       * Decodes a DeleteTag message from the specified reader or buffer.
-       * @function decode
-       * @memberof market.mass.DeleteTag
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @param {number} [length] Message length if known beforehand
-       * @returns {market.mass.DeleteTag} DeleteTag
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      DeleteTag.decode = function decode(reader, length) {
-        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
-          message = new $root.market.mass.DeleteTag();
-        while (reader.pos < end) {
-          let tag = reader.uint32();
-          switch (tag >>> 3) {
-            case 1: {
-              message.eventId = reader.bytes();
-              break;
-            }
-            case 2: {
-              message.tagId = reader.bytes();
-              break;
-            }
-            default:
-              reader.skipType(tag & 7);
-              break;
-          }
-        }
-        return message;
-      };
-
-      /**
-       * Decodes a DeleteTag message from the specified reader or buffer, length delimited.
-       * @function decodeDelimited
-       * @memberof market.mass.DeleteTag
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @returns {market.mass.DeleteTag} DeleteTag
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      DeleteTag.decodeDelimited = function decodeDelimited(reader) {
-        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
-        return this.decode(reader, reader.uint32());
-      };
-
-      /**
-       * Verifies a DeleteTag message.
-       * @function verify
-       * @memberof market.mass.DeleteTag
-       * @static
-       * @param {Object.<string,*>} message Plain object to verify
-       * @returns {string|null} `null` if valid, otherwise the reason why it is not
-       */
-      DeleteTag.verify = function verify(message) {
-        if (typeof message !== "object" || message === null)
-          return "object expected";
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          if (
-            !(
-              (message.eventId && typeof message.eventId.length === "number") ||
-              $util.isString(message.eventId)
-            )
-          )
-            return "eventId: buffer expected";
-        if (message.tagId != null && message.hasOwnProperty("tagId"))
-          if (
-            !(
-              (message.tagId && typeof message.tagId.length === "number") ||
-              $util.isString(message.tagId)
-            )
-          )
-            return "tagId: buffer expected";
-        return null;
-      };
-
-      /**
-       * Creates a DeleteTag message from a plain object. Also converts values to their respective internal types.
-       * @function fromObject
-       * @memberof market.mass.DeleteTag
-       * @static
-       * @param {Object.<string,*>} object Plain object
-       * @returns {market.mass.DeleteTag} DeleteTag
-       */
-      DeleteTag.fromObject = function fromObject(object) {
-        if (object instanceof $root.market.mass.DeleteTag) return object;
-        let message = new $root.market.mass.DeleteTag();
-        if (object.eventId != null)
-          if (typeof object.eventId === "string")
-            $util.base64.decode(
-              object.eventId,
-              (message.eventId = $util.newBuffer(
-                $util.base64.length(object.eventId),
-              )),
-              0,
-            );
-          else if (object.eventId.length >= 0) message.eventId = object.eventId;
-        if (object.tagId != null)
-          if (typeof object.tagId === "string")
-            $util.base64.decode(
-              object.tagId,
-              (message.tagId = $util.newBuffer(
-                $util.base64.length(object.tagId),
-              )),
-              0,
-            );
-          else if (object.tagId.length >= 0) message.tagId = object.tagId;
-        return message;
-      };
-
-      /**
-       * Creates a plain object from a DeleteTag message. Also converts values to other types if specified.
-       * @function toObject
-       * @memberof market.mass.DeleteTag
-       * @static
-       * @param {market.mass.DeleteTag} message DeleteTag
-       * @param {$protobuf.IConversionOptions} [options] Conversion options
-       * @returns {Object.<string,*>} Plain object
-       */
-      DeleteTag.toObject = function toObject(message, options) {
-        if (!options) options = {};
-        let object = {};
-        if (options.defaults) {
-          if (options.bytes === String) object.eventId = "";
-          else {
-            object.eventId = [];
-            if (options.bytes !== Array)
-              object.eventId = $util.newBuffer(object.eventId);
-          }
-          if (options.bytes === String) object.tagId = "";
-          else {
-            object.tagId = [];
-            if (options.bytes !== Array)
-              object.tagId = $util.newBuffer(object.tagId);
-          }
-        }
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          object.eventId =
-            options.bytes === String
-              ? $util.base64.encode(message.eventId, 0, message.eventId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.eventId)
-                : message.eventId;
-        if (message.tagId != null && message.hasOwnProperty("tagId"))
-          object.tagId =
-            options.bytes === String
-              ? $util.base64.encode(message.tagId, 0, message.tagId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.tagId)
-                : message.tagId;
-        return object;
-      };
-
-      /**
-       * Converts this DeleteTag to JSON.
-       * @function toJSON
-       * @memberof market.mass.DeleteTag
-       * @instance
-       * @returns {Object.<string,*>} JSON object
-       */
-      DeleteTag.prototype.toJSON = function toJSON() {
-        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-      };
-
-      /**
-       * Gets the default type url for DeleteTag
-       * @function getTypeUrl
-       * @memberof market.mass.DeleteTag
-       * @static
-       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-       * @returns {string} The default type url
-       */
-      DeleteTag.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-        if (typeUrlPrefix === undefined) {
-          typeUrlPrefix = "type.googleapis.com";
-        }
-        return typeUrlPrefix + "/market.mass.DeleteTag";
-      };
-
-      return DeleteTag;
-    })();
-
-    mass.ChangeStock = (function () {
-      /**
-       * Properties of a ChangeStock.
-       * @memberof market.mass
-       * @interface IChangeStock
-       * @property {Uint8Array|null} [eventId] ChangeStock eventId
-       * @property {Array.<Uint8Array>|null} [itemIds] ChangeStock itemIds
-       * @property {Array.<number>|null} [diffs] ChangeStock diffs
-       * @property {Uint8Array|null} [cartId] ChangeStock cartId
-       * @property {Uint8Array|null} [txHash] ChangeStock txHash
-       */
-
-      /**
-       * Constructs a new ChangeStock.
-       * @memberof market.mass
-       * @classdesc Represents a ChangeStock.
-       * @implements IChangeStock
-       * @constructor
-       * @param {market.mass.IChangeStock=} [properties] Properties to set
-       */
-      function ChangeStock(properties) {
-        this.itemIds = [];
-        this.diffs = [];
-        if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-            if (properties[keys[i]] != null)
-              this[keys[i]] = properties[keys[i]];
-      }
-
-      /**
-       * ChangeStock eventId.
-       * @member {Uint8Array} eventId
-       * @memberof market.mass.ChangeStock
-       * @instance
-       */
-      ChangeStock.prototype.eventId = $util.newBuffer([]);
-
-      /**
-       * ChangeStock itemIds.
-       * @member {Array.<Uint8Array>} itemIds
-       * @memberof market.mass.ChangeStock
-       * @instance
-       */
-      ChangeStock.prototype.itemIds = $util.emptyArray;
-
-      /**
-       * ChangeStock diffs.
-       * @member {Array.<number>} diffs
-       * @memberof market.mass.ChangeStock
-       * @instance
-       */
-      ChangeStock.prototype.diffs = $util.emptyArray;
-
-      /**
-       * ChangeStock cartId.
-       * @member {Uint8Array} cartId
-       * @memberof market.mass.ChangeStock
-       * @instance
-       */
-      ChangeStock.prototype.cartId = $util.newBuffer([]);
-
-      /**
-       * ChangeStock txHash.
-       * @member {Uint8Array} txHash
-       * @memberof market.mass.ChangeStock
-       * @instance
-       */
-      ChangeStock.prototype.txHash = $util.newBuffer([]);
-
-      /**
-       * Creates a new ChangeStock instance using the specified properties.
-       * @function create
-       * @memberof market.mass.ChangeStock
-       * @static
-       * @param {market.mass.IChangeStock=} [properties] Properties to set
-       * @returns {market.mass.ChangeStock} ChangeStock instance
-       */
-      ChangeStock.create = function create(properties) {
-        return new ChangeStock(properties);
-      };
-
-      /**
-       * Encodes the specified ChangeStock message. Does not implicitly {@link market.mass.ChangeStock.verify|verify} messages.
-       * @function encode
-       * @memberof market.mass.ChangeStock
-       * @static
-       * @param {market.mass.IChangeStock} message ChangeStock message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      ChangeStock.encode = function encode(message, writer) {
-        if (!writer) writer = $Writer.create();
-        if (
-          message.eventId != null &&
-          Object.hasOwnProperty.call(message, "eventId")
-        )
-          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.eventId);
-        if (message.itemIds != null && message.itemIds.length)
-          for (let i = 0; i < message.itemIds.length; ++i)
-            writer.uint32(/* id 2, wireType 2 =*/ 18).bytes(message.itemIds[i]);
-        if (message.diffs != null && message.diffs.length) {
-          writer.uint32(/* id 3, wireType 2 =*/ 26).fork();
-          for (let i = 0; i < message.diffs.length; ++i)
-            writer.sint32(message.diffs[i]);
-          writer.ldelim();
-        }
-        if (
-          message.cartId != null &&
-          Object.hasOwnProperty.call(message, "cartId")
-        )
-          writer.uint32(/* id 4, wireType 2 =*/ 34).bytes(message.cartId);
-        if (
-          message.txHash != null &&
-          Object.hasOwnProperty.call(message, "txHash")
-        )
-          writer.uint32(/* id 5, wireType 2 =*/ 42).bytes(message.txHash);
-        return writer;
-      };
-
-      /**
-       * Encodes the specified ChangeStock message, length delimited. Does not implicitly {@link market.mass.ChangeStock.verify|verify} messages.
-       * @function encodeDelimited
-       * @memberof market.mass.ChangeStock
-       * @static
-       * @param {market.mass.IChangeStock} message ChangeStock message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      ChangeStock.encodeDelimited = function encodeDelimited(message, writer) {
-        return this.encode(message, writer).ldelim();
-      };
-
-      /**
-       * Decodes a ChangeStock message from the specified reader or buffer.
-       * @function decode
-       * @memberof market.mass.ChangeStock
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @param {number} [length] Message length if known beforehand
-       * @returns {market.mass.ChangeStock} ChangeStock
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      ChangeStock.decode = function decode(reader, length) {
-        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
-          message = new $root.market.mass.ChangeStock();
-        while (reader.pos < end) {
-          let tag = reader.uint32();
-          switch (tag >>> 3) {
-            case 1: {
-              message.eventId = reader.bytes();
-              break;
-            }
-            case 2: {
-              if (!(message.itemIds && message.itemIds.length))
-                message.itemIds = [];
-              message.itemIds.push(reader.bytes());
-              break;
-            }
-            case 3: {
-              if (!(message.diffs && message.diffs.length)) message.diffs = [];
-              if ((tag & 7) === 2) {
-                let end2 = reader.uint32() + reader.pos;
-                while (reader.pos < end2) message.diffs.push(reader.sint32());
-              } else message.diffs.push(reader.sint32());
-              break;
-            }
-            case 4: {
-              message.cartId = reader.bytes();
-              break;
-            }
-            case 5: {
-              message.txHash = reader.bytes();
-              break;
-            }
-            default:
-              reader.skipType(tag & 7);
-              break;
-          }
-        }
-        return message;
-      };
-
-      /**
-       * Decodes a ChangeStock message from the specified reader or buffer, length delimited.
-       * @function decodeDelimited
-       * @memberof market.mass.ChangeStock
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @returns {market.mass.ChangeStock} ChangeStock
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      ChangeStock.decodeDelimited = function decodeDelimited(reader) {
-        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
-        return this.decode(reader, reader.uint32());
-      };
-
-      /**
-       * Verifies a ChangeStock message.
-       * @function verify
-       * @memberof market.mass.ChangeStock
-       * @static
-       * @param {Object.<string,*>} message Plain object to verify
-       * @returns {string|null} `null` if valid, otherwise the reason why it is not
-       */
-      ChangeStock.verify = function verify(message) {
-        if (typeof message !== "object" || message === null)
-          return "object expected";
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          if (
-            !(
-              (message.eventId && typeof message.eventId.length === "number") ||
-              $util.isString(message.eventId)
-            )
-          )
-            return "eventId: buffer expected";
-        if (message.itemIds != null && message.hasOwnProperty("itemIds")) {
-          if (!Array.isArray(message.itemIds)) return "itemIds: array expected";
-          for (let i = 0; i < message.itemIds.length; ++i)
-            if (
-              !(
-                (message.itemIds[i] &&
-                  typeof message.itemIds[i].length === "number") ||
-                $util.isString(message.itemIds[i])
-              )
-            )
-              return "itemIds: buffer[] expected";
-        }
-        if (message.diffs != null && message.hasOwnProperty("diffs")) {
-          if (!Array.isArray(message.diffs)) return "diffs: array expected";
-          for (let i = 0; i < message.diffs.length; ++i)
-            if (!$util.isInteger(message.diffs[i]))
-              return "diffs: integer[] expected";
-        }
-        if (message.cartId != null && message.hasOwnProperty("cartId"))
-          if (
-            !(
-              (message.cartId && typeof message.cartId.length === "number") ||
-              $util.isString(message.cartId)
-            )
-          )
-            return "cartId: buffer expected";
-        if (message.txHash != null && message.hasOwnProperty("txHash"))
-          if (
-            !(
-              (message.txHash && typeof message.txHash.length === "number") ||
-              $util.isString(message.txHash)
-            )
-          )
-            return "txHash: buffer expected";
-        return null;
-      };
-
-      /**
-       * Creates a ChangeStock message from a plain object. Also converts values to their respective internal types.
-       * @function fromObject
-       * @memberof market.mass.ChangeStock
-       * @static
-       * @param {Object.<string,*>} object Plain object
-       * @returns {market.mass.ChangeStock} ChangeStock
-       */
-      ChangeStock.fromObject = function fromObject(object) {
-        if (object instanceof $root.market.mass.ChangeStock) return object;
-        let message = new $root.market.mass.ChangeStock();
-        if (object.eventId != null)
-          if (typeof object.eventId === "string")
-            $util.base64.decode(
-              object.eventId,
-              (message.eventId = $util.newBuffer(
-                $util.base64.length(object.eventId),
-              )),
-              0,
-            );
-          else if (object.eventId.length >= 0) message.eventId = object.eventId;
-        if (object.itemIds) {
-          if (!Array.isArray(object.itemIds))
-            throw TypeError(".market.mass.ChangeStock.itemIds: array expected");
-          message.itemIds = [];
-          for (let i = 0; i < object.itemIds.length; ++i)
-            if (typeof object.itemIds[i] === "string")
-              $util.base64.decode(
-                object.itemIds[i],
-                (message.itemIds[i] = $util.newBuffer(
-                  $util.base64.length(object.itemIds[i]),
-                )),
-                0,
-              );
-            else if (object.itemIds[i].length >= 0)
-              message.itemIds[i] = object.itemIds[i];
-        }
-        if (object.diffs) {
-          if (!Array.isArray(object.diffs))
-            throw TypeError(".market.mass.ChangeStock.diffs: array expected");
-          message.diffs = [];
-          for (let i = 0; i < object.diffs.length; ++i)
-            message.diffs[i] = object.diffs[i] | 0;
-        }
-        if (object.cartId != null)
-          if (typeof object.cartId === "string")
-            $util.base64.decode(
-              object.cartId,
-              (message.cartId = $util.newBuffer(
-                $util.base64.length(object.cartId),
-              )),
-              0,
-            );
-          else if (object.cartId.length >= 0) message.cartId = object.cartId;
-        if (object.txHash != null)
-          if (typeof object.txHash === "string")
-            $util.base64.decode(
-              object.txHash,
-              (message.txHash = $util.newBuffer(
-                $util.base64.length(object.txHash),
-              )),
-              0,
-            );
-          else if (object.txHash.length >= 0) message.txHash = object.txHash;
-        return message;
-      };
-
-      /**
-       * Creates a plain object from a ChangeStock message. Also converts values to other types if specified.
-       * @function toObject
-       * @memberof market.mass.ChangeStock
-       * @static
-       * @param {market.mass.ChangeStock} message ChangeStock
-       * @param {$protobuf.IConversionOptions} [options] Conversion options
-       * @returns {Object.<string,*>} Plain object
-       */
-      ChangeStock.toObject = function toObject(message, options) {
-        if (!options) options = {};
-        let object = {};
-        if (options.arrays || options.defaults) {
-          object.itemIds = [];
-          object.diffs = [];
-        }
-        if (options.defaults) {
-          if (options.bytes === String) object.eventId = "";
-          else {
-            object.eventId = [];
-            if (options.bytes !== Array)
-              object.eventId = $util.newBuffer(object.eventId);
-          }
-          if (options.bytes === String) object.cartId = "";
-          else {
-            object.cartId = [];
-            if (options.bytes !== Array)
-              object.cartId = $util.newBuffer(object.cartId);
-          }
-          if (options.bytes === String) object.txHash = "";
-          else {
-            object.txHash = [];
-            if (options.bytes !== Array)
-              object.txHash = $util.newBuffer(object.txHash);
-          }
-        }
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          object.eventId =
-            options.bytes === String
-              ? $util.base64.encode(message.eventId, 0, message.eventId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.eventId)
-                : message.eventId;
-        if (message.itemIds && message.itemIds.length) {
-          object.itemIds = [];
-          for (let j = 0; j < message.itemIds.length; ++j)
-            object.itemIds[j] =
-              options.bytes === String
-                ? $util.base64.encode(
-                    message.itemIds[j],
-                    0,
-                    message.itemIds[j].length,
-                  )
-                : options.bytes === Array
-                  ? Array.prototype.slice.call(message.itemIds[j])
-                  : message.itemIds[j];
-        }
-        if (message.diffs && message.diffs.length) {
-          object.diffs = [];
-          for (let j = 0; j < message.diffs.length; ++j)
-            object.diffs[j] = message.diffs[j];
-        }
-        if (message.cartId != null && message.hasOwnProperty("cartId"))
-          object.cartId =
-            options.bytes === String
-              ? $util.base64.encode(message.cartId, 0, message.cartId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.cartId)
-                : message.cartId;
-        if (message.txHash != null && message.hasOwnProperty("txHash"))
-          object.txHash =
-            options.bytes === String
-              ? $util.base64.encode(message.txHash, 0, message.txHash.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.txHash)
-                : message.txHash;
-        return object;
-      };
-
-      /**
-       * Converts this ChangeStock to JSON.
-       * @function toJSON
-       * @memberof market.mass.ChangeStock
-       * @instance
-       * @returns {Object.<string,*>} JSON object
-       */
-      ChangeStock.prototype.toJSON = function toJSON() {
-        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-      };
-
-      /**
-       * Gets the default type url for ChangeStock
-       * @function getTypeUrl
-       * @memberof market.mass.ChangeStock
-       * @static
-       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-       * @returns {string} The default type url
-       */
-      ChangeStock.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-        if (typeUrlPrefix === undefined) {
-          typeUrlPrefix = "type.googleapis.com";
-        }
-        return typeUrlPrefix + "/market.mass.ChangeStock";
-      };
-
-      return ChangeStock;
-    })();
-
-    mass.NewKeyCard = (function () {
-      /**
-       * Properties of a NewKeyCard.
-       * @memberof market.mass
-       * @interface INewKeyCard
-       * @property {Uint8Array|null} [eventId] NewKeyCard eventId
-       * @property {Uint8Array|null} [userWalletAddr] NewKeyCard userWalletAddr
-       * @property {Uint8Array|null} [cardPublicKey] NewKeyCard cardPublicKey
-       */
-
-      /**
-       * Constructs a new NewKeyCard.
-       * @memberof market.mass
-       * @classdesc Represents a NewKeyCard.
-       * @implements INewKeyCard
-       * @constructor
-       * @param {market.mass.INewKeyCard=} [properties] Properties to set
-       */
-      function NewKeyCard(properties) {
-        if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-            if (properties[keys[i]] != null)
-              this[keys[i]] = properties[keys[i]];
-      }
-
-      /**
-       * NewKeyCard eventId.
-       * @member {Uint8Array} eventId
-       * @memberof market.mass.NewKeyCard
-       * @instance
-       */
-      NewKeyCard.prototype.eventId = $util.newBuffer([]);
-
-      /**
-       * NewKeyCard userWalletAddr.
-       * @member {Uint8Array} userWalletAddr
-       * @memberof market.mass.NewKeyCard
-       * @instance
-       */
-      NewKeyCard.prototype.userWalletAddr = $util.newBuffer([]);
-
-      /**
-       * NewKeyCard cardPublicKey.
-       * @member {Uint8Array} cardPublicKey
-       * @memberof market.mass.NewKeyCard
-       * @instance
-       */
-      NewKeyCard.prototype.cardPublicKey = $util.newBuffer([]);
-
-      /**
-       * Creates a new NewKeyCard instance using the specified properties.
-       * @function create
-       * @memberof market.mass.NewKeyCard
-       * @static
-       * @param {market.mass.INewKeyCard=} [properties] Properties to set
-       * @returns {market.mass.NewKeyCard} NewKeyCard instance
-       */
-      NewKeyCard.create = function create(properties) {
-        return new NewKeyCard(properties);
-      };
-
-      /**
-       * Encodes the specified NewKeyCard message. Does not implicitly {@link market.mass.NewKeyCard.verify|verify} messages.
-       * @function encode
-       * @memberof market.mass.NewKeyCard
-       * @static
-       * @param {market.mass.INewKeyCard} message NewKeyCard message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      NewKeyCard.encode = function encode(message, writer) {
-        if (!writer) writer = $Writer.create();
-        if (
-          message.eventId != null &&
-          Object.hasOwnProperty.call(message, "eventId")
-        )
-          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.eventId);
-        if (
-          message.userWalletAddr != null &&
-          Object.hasOwnProperty.call(message, "userWalletAddr")
-        )
-          writer
-            .uint32(/* id 2, wireType 2 =*/ 18)
-            .bytes(message.userWalletAddr);
-        if (
-          message.cardPublicKey != null &&
-          Object.hasOwnProperty.call(message, "cardPublicKey")
-        )
-          writer
-            .uint32(/* id 3, wireType 2 =*/ 26)
-            .bytes(message.cardPublicKey);
-        return writer;
-      };
-
-      /**
-       * Encodes the specified NewKeyCard message, length delimited. Does not implicitly {@link market.mass.NewKeyCard.verify|verify} messages.
-       * @function encodeDelimited
-       * @memberof market.mass.NewKeyCard
-       * @static
-       * @param {market.mass.INewKeyCard} message NewKeyCard message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      NewKeyCard.encodeDelimited = function encodeDelimited(message, writer) {
-        return this.encode(message, writer).ldelim();
-      };
-
-      /**
-       * Decodes a NewKeyCard message from the specified reader or buffer.
-       * @function decode
-       * @memberof market.mass.NewKeyCard
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @param {number} [length] Message length if known beforehand
-       * @returns {market.mass.NewKeyCard} NewKeyCard
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      NewKeyCard.decode = function decode(reader, length) {
-        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
-          message = new $root.market.mass.NewKeyCard();
-        while (reader.pos < end) {
-          let tag = reader.uint32();
-          switch (tag >>> 3) {
-            case 1: {
-              message.eventId = reader.bytes();
-              break;
-            }
-            case 2: {
-              message.userWalletAddr = reader.bytes();
-              break;
-            }
-            case 3: {
-              message.cardPublicKey = reader.bytes();
-              break;
-            }
-            default:
-              reader.skipType(tag & 7);
-              break;
-          }
-        }
-        return message;
-      };
-
-      /**
-       * Decodes a NewKeyCard message from the specified reader or buffer, length delimited.
-       * @function decodeDelimited
-       * @memberof market.mass.NewKeyCard
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @returns {market.mass.NewKeyCard} NewKeyCard
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      NewKeyCard.decodeDelimited = function decodeDelimited(reader) {
-        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
-        return this.decode(reader, reader.uint32());
-      };
-
-      /**
-       * Verifies a NewKeyCard message.
-       * @function verify
-       * @memberof market.mass.NewKeyCard
-       * @static
-       * @param {Object.<string,*>} message Plain object to verify
-       * @returns {string|null} `null` if valid, otherwise the reason why it is not
-       */
-      NewKeyCard.verify = function verify(message) {
-        if (typeof message !== "object" || message === null)
-          return "object expected";
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          if (
-            !(
-              (message.eventId && typeof message.eventId.length === "number") ||
-              $util.isString(message.eventId)
-            )
-          )
-            return "eventId: buffer expected";
-        if (
-          message.userWalletAddr != null &&
-          message.hasOwnProperty("userWalletAddr")
-        )
-          if (
-            !(
-              (message.userWalletAddr &&
-                typeof message.userWalletAddr.length === "number") ||
-              $util.isString(message.userWalletAddr)
-            )
-          )
-            return "userWalletAddr: buffer expected";
-        if (
-          message.cardPublicKey != null &&
-          message.hasOwnProperty("cardPublicKey")
-        )
-          if (
-            !(
-              (message.cardPublicKey &&
-                typeof message.cardPublicKey.length === "number") ||
-              $util.isString(message.cardPublicKey)
-            )
-          )
-            return "cardPublicKey: buffer expected";
-        return null;
-      };
-
-      /**
-       * Creates a NewKeyCard message from a plain object. Also converts values to their respective internal types.
-       * @function fromObject
-       * @memberof market.mass.NewKeyCard
-       * @static
-       * @param {Object.<string,*>} object Plain object
-       * @returns {market.mass.NewKeyCard} NewKeyCard
-       */
-      NewKeyCard.fromObject = function fromObject(object) {
-        if (object instanceof $root.market.mass.NewKeyCard) return object;
-        let message = new $root.market.mass.NewKeyCard();
-        if (object.eventId != null)
-          if (typeof object.eventId === "string")
-            $util.base64.decode(
-              object.eventId,
-              (message.eventId = $util.newBuffer(
-                $util.base64.length(object.eventId),
-              )),
-              0,
-            );
-          else if (object.eventId.length >= 0) message.eventId = object.eventId;
-        if (object.userWalletAddr != null)
-          if (typeof object.userWalletAddr === "string")
-            $util.base64.decode(
-              object.userWalletAddr,
-              (message.userWalletAddr = $util.newBuffer(
-                $util.base64.length(object.userWalletAddr),
-              )),
-              0,
-            );
-          else if (object.userWalletAddr.length >= 0)
-            message.userWalletAddr = object.userWalletAddr;
-        if (object.cardPublicKey != null)
-          if (typeof object.cardPublicKey === "string")
-            $util.base64.decode(
-              object.cardPublicKey,
-              (message.cardPublicKey = $util.newBuffer(
-                $util.base64.length(object.cardPublicKey),
-              )),
-              0,
-            );
-          else if (object.cardPublicKey.length >= 0)
-            message.cardPublicKey = object.cardPublicKey;
-        return message;
-      };
-
-      /**
-       * Creates a plain object from a NewKeyCard message. Also converts values to other types if specified.
-       * @function toObject
-       * @memberof market.mass.NewKeyCard
-       * @static
-       * @param {market.mass.NewKeyCard} message NewKeyCard
-       * @param {$protobuf.IConversionOptions} [options] Conversion options
-       * @returns {Object.<string,*>} Plain object
-       */
-      NewKeyCard.toObject = function toObject(message, options) {
-        if (!options) options = {};
-        let object = {};
-        if (options.defaults) {
-          if (options.bytes === String) object.eventId = "";
-          else {
-            object.eventId = [];
-            if (options.bytes !== Array)
-              object.eventId = $util.newBuffer(object.eventId);
-          }
-          if (options.bytes === String) object.userWalletAddr = "";
-          else {
-            object.userWalletAddr = [];
-            if (options.bytes !== Array)
-              object.userWalletAddr = $util.newBuffer(object.userWalletAddr);
-          }
-          if (options.bytes === String) object.cardPublicKey = "";
-          else {
-            object.cardPublicKey = [];
-            if (options.bytes !== Array)
-              object.cardPublicKey = $util.newBuffer(object.cardPublicKey);
-          }
-        }
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          object.eventId =
-            options.bytes === String
-              ? $util.base64.encode(message.eventId, 0, message.eventId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.eventId)
-                : message.eventId;
-        if (
-          message.userWalletAddr != null &&
-          message.hasOwnProperty("userWalletAddr")
-        )
-          object.userWalletAddr =
-            options.bytes === String
-              ? $util.base64.encode(
-                  message.userWalletAddr,
-                  0,
-                  message.userWalletAddr.length,
-                )
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.userWalletAddr)
-                : message.userWalletAddr;
-        if (
-          message.cardPublicKey != null &&
-          message.hasOwnProperty("cardPublicKey")
-        )
-          object.cardPublicKey =
-            options.bytes === String
-              ? $util.base64.encode(
-                  message.cardPublicKey,
-                  0,
-                  message.cardPublicKey.length,
-                )
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.cardPublicKey)
-                : message.cardPublicKey;
-        return object;
-      };
-
-      /**
-       * Converts this NewKeyCard to JSON.
-       * @function toJSON
-       * @memberof market.mass.NewKeyCard
-       * @instance
-       * @returns {Object.<string,*>} JSON object
-       */
-      NewKeyCard.prototype.toJSON = function toJSON() {
-        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-      };
-
-      /**
-       * Gets the default type url for NewKeyCard
-       * @function getTypeUrl
-       * @memberof market.mass.NewKeyCard
-       * @static
-       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-       * @returns {string} The default type url
-       */
-      NewKeyCard.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-        if (typeUrlPrefix === undefined) {
-          typeUrlPrefix = "type.googleapis.com";
-        }
-        return typeUrlPrefix + "/market.mass.NewKeyCard";
-      };
-
-      return NewKeyCard;
-    })();
-
-    mass.CreateCart = (function () {
-      /**
-       * Properties of a CreateCart.
-       * @memberof market.mass
-       * @interface ICreateCart
-       * @property {Uint8Array|null} [eventId] CreateCart eventId
-       */
-
-      /**
-       * Constructs a new CreateCart.
-       * @memberof market.mass
-       * @classdesc Represents a CreateCart.
-       * @implements ICreateCart
-       * @constructor
-       * @param {market.mass.ICreateCart=} [properties] Properties to set
-       */
-      function CreateCart(properties) {
-        if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-            if (properties[keys[i]] != null)
-              this[keys[i]] = properties[keys[i]];
-      }
-
-      /**
-       * CreateCart eventId.
-       * @member {Uint8Array} eventId
-       * @memberof market.mass.CreateCart
-       * @instance
-       */
-      CreateCart.prototype.eventId = $util.newBuffer([]);
-
-      /**
-       * Creates a new CreateCart instance using the specified properties.
-       * @function create
-       * @memberof market.mass.CreateCart
-       * @static
-       * @param {market.mass.ICreateCart=} [properties] Properties to set
-       * @returns {market.mass.CreateCart} CreateCart instance
-       */
-      CreateCart.create = function create(properties) {
-        return new CreateCart(properties);
-      };
-
-      /**
-       * Encodes the specified CreateCart message. Does not implicitly {@link market.mass.CreateCart.verify|verify} messages.
-       * @function encode
-       * @memberof market.mass.CreateCart
-       * @static
-       * @param {market.mass.ICreateCart} message CreateCart message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      CreateCart.encode = function encode(message, writer) {
-        if (!writer) writer = $Writer.create();
-        if (
-          message.eventId != null &&
-          Object.hasOwnProperty.call(message, "eventId")
-        )
-          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.eventId);
-        return writer;
-      };
-
-      /**
-       * Encodes the specified CreateCart message, length delimited. Does not implicitly {@link market.mass.CreateCart.verify|verify} messages.
-       * @function encodeDelimited
-       * @memberof market.mass.CreateCart
-       * @static
-       * @param {market.mass.ICreateCart} message CreateCart message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      CreateCart.encodeDelimited = function encodeDelimited(message, writer) {
-        return this.encode(message, writer).ldelim();
-      };
-
-      /**
-       * Decodes a CreateCart message from the specified reader or buffer.
-       * @function decode
-       * @memberof market.mass.CreateCart
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @param {number} [length] Message length if known beforehand
-       * @returns {market.mass.CreateCart} CreateCart
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      CreateCart.decode = function decode(reader, length) {
-        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
-          message = new $root.market.mass.CreateCart();
-        while (reader.pos < end) {
-          let tag = reader.uint32();
-          switch (tag >>> 3) {
-            case 1: {
-              message.eventId = reader.bytes();
-              break;
-            }
-            default:
-              reader.skipType(tag & 7);
-              break;
-          }
-        }
-        return message;
-      };
-
-      /**
-       * Decodes a CreateCart message from the specified reader or buffer, length delimited.
-       * @function decodeDelimited
-       * @memberof market.mass.CreateCart
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @returns {market.mass.CreateCart} CreateCart
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      CreateCart.decodeDelimited = function decodeDelimited(reader) {
-        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
-        return this.decode(reader, reader.uint32());
-      };
-
-      /**
-       * Verifies a CreateCart message.
-       * @function verify
-       * @memberof market.mass.CreateCart
-       * @static
-       * @param {Object.<string,*>} message Plain object to verify
-       * @returns {string|null} `null` if valid, otherwise the reason why it is not
-       */
-      CreateCart.verify = function verify(message) {
-        if (typeof message !== "object" || message === null)
-          return "object expected";
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          if (
-            !(
-              (message.eventId && typeof message.eventId.length === "number") ||
-              $util.isString(message.eventId)
-            )
-          )
-            return "eventId: buffer expected";
-        return null;
-      };
-
-      /**
-       * Creates a CreateCart message from a plain object. Also converts values to their respective internal types.
-       * @function fromObject
-       * @memberof market.mass.CreateCart
-       * @static
-       * @param {Object.<string,*>} object Plain object
-       * @returns {market.mass.CreateCart} CreateCart
-       */
-      CreateCart.fromObject = function fromObject(object) {
-        if (object instanceof $root.market.mass.CreateCart) return object;
-        let message = new $root.market.mass.CreateCart();
-        if (object.eventId != null)
-          if (typeof object.eventId === "string")
-            $util.base64.decode(
-              object.eventId,
-              (message.eventId = $util.newBuffer(
-                $util.base64.length(object.eventId),
-              )),
-              0,
-            );
-          else if (object.eventId.length >= 0) message.eventId = object.eventId;
-        return message;
-      };
-
-      /**
-       * Creates a plain object from a CreateCart message. Also converts values to other types if specified.
-       * @function toObject
-       * @memberof market.mass.CreateCart
-       * @static
-       * @param {market.mass.CreateCart} message CreateCart
-       * @param {$protobuf.IConversionOptions} [options] Conversion options
-       * @returns {Object.<string,*>} Plain object
-       */
-      CreateCart.toObject = function toObject(message, options) {
-        if (!options) options = {};
-        let object = {};
-        if (options.defaults)
-          if (options.bytes === String) object.eventId = "";
-          else {
-            object.eventId = [];
-            if (options.bytes !== Array)
-              object.eventId = $util.newBuffer(object.eventId);
-          }
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          object.eventId =
-            options.bytes === String
-              ? $util.base64.encode(message.eventId, 0, message.eventId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.eventId)
-                : message.eventId;
-        return object;
-      };
-
-      /**
-       * Converts this CreateCart to JSON.
-       * @function toJSON
-       * @memberof market.mass.CreateCart
-       * @instance
-       * @returns {Object.<string,*>} JSON object
-       */
-      CreateCart.prototype.toJSON = function toJSON() {
-        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-      };
-
-      /**
-       * Gets the default type url for CreateCart
-       * @function getTypeUrl
-       * @memberof market.mass.CreateCart
-       * @static
-       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-       * @returns {string} The default type url
-       */
-      CreateCart.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-        if (typeUrlPrefix === undefined) {
-          typeUrlPrefix = "type.googleapis.com";
-        }
-        return typeUrlPrefix + "/market.mass.CreateCart";
-      };
-
-      return CreateCart;
-    })();
-
-    mass.ChangeCart = (function () {
-      /**
-       * Properties of a ChangeCart.
-       * @memberof market.mass
-       * @interface IChangeCart
-       * @property {Uint8Array|null} [eventId] ChangeCart eventId
-       * @property {Uint8Array|null} [cartId] ChangeCart cartId
-       * @property {Uint8Array|null} [itemId] ChangeCart itemId
-       * @property {number|null} [quantity] ChangeCart quantity
-       */
-
-      /**
-       * Constructs a new ChangeCart.
-       * @memberof market.mass
-       * @classdesc Represents a ChangeCart.
-       * @implements IChangeCart
-       * @constructor
-       * @param {market.mass.IChangeCart=} [properties] Properties to set
-       */
-      function ChangeCart(properties) {
-        if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-            if (properties[keys[i]] != null)
-              this[keys[i]] = properties[keys[i]];
-      }
-
-      /**
-       * ChangeCart eventId.
-       * @member {Uint8Array} eventId
-       * @memberof market.mass.ChangeCart
-       * @instance
-       */
-      ChangeCart.prototype.eventId = $util.newBuffer([]);
-
-      /**
-       * ChangeCart cartId.
-       * @member {Uint8Array} cartId
-       * @memberof market.mass.ChangeCart
-       * @instance
-       */
-      ChangeCart.prototype.cartId = $util.newBuffer([]);
-
-      /**
-       * ChangeCart itemId.
-       * @member {Uint8Array} itemId
-       * @memberof market.mass.ChangeCart
-       * @instance
-       */
-      ChangeCart.prototype.itemId = $util.newBuffer([]);
-
-      /**
-       * ChangeCart quantity.
-       * @member {number} quantity
-       * @memberof market.mass.ChangeCart
-       * @instance
-       */
-      ChangeCart.prototype.quantity = 0;
-
-      /**
-       * Creates a new ChangeCart instance using the specified properties.
-       * @function create
-       * @memberof market.mass.ChangeCart
-       * @static
-       * @param {market.mass.IChangeCart=} [properties] Properties to set
-       * @returns {market.mass.ChangeCart} ChangeCart instance
-       */
-      ChangeCart.create = function create(properties) {
-        return new ChangeCart(properties);
-      };
-
-      /**
-       * Encodes the specified ChangeCart message. Does not implicitly {@link market.mass.ChangeCart.verify|verify} messages.
-       * @function encode
-       * @memberof market.mass.ChangeCart
-       * @static
-       * @param {market.mass.IChangeCart} message ChangeCart message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      ChangeCart.encode = function encode(message, writer) {
-        if (!writer) writer = $Writer.create();
-        if (
-          message.eventId != null &&
-          Object.hasOwnProperty.call(message, "eventId")
-        )
-          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.eventId);
-        if (
-          message.cartId != null &&
-          Object.hasOwnProperty.call(message, "cartId")
-        )
-          writer.uint32(/* id 2, wireType 2 =*/ 18).bytes(message.cartId);
-        if (
-          message.itemId != null &&
-          Object.hasOwnProperty.call(message, "itemId")
-        )
-          writer.uint32(/* id 3, wireType 2 =*/ 26).bytes(message.itemId);
-        if (
-          message.quantity != null &&
-          Object.hasOwnProperty.call(message, "quantity")
-        )
-          writer.uint32(/* id 4, wireType 0 =*/ 32).sint32(message.quantity);
-        return writer;
-      };
-
-      /**
-       * Encodes the specified ChangeCart message, length delimited. Does not implicitly {@link market.mass.ChangeCart.verify|verify} messages.
-       * @function encodeDelimited
-       * @memberof market.mass.ChangeCart
-       * @static
-       * @param {market.mass.IChangeCart} message ChangeCart message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      ChangeCart.encodeDelimited = function encodeDelimited(message, writer) {
-        return this.encode(message, writer).ldelim();
-      };
-
-      /**
-       * Decodes a ChangeCart message from the specified reader or buffer.
-       * @function decode
-       * @memberof market.mass.ChangeCart
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @param {number} [length] Message length if known beforehand
-       * @returns {market.mass.ChangeCart} ChangeCart
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      ChangeCart.decode = function decode(reader, length) {
-        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
-          message = new $root.market.mass.ChangeCart();
-        while (reader.pos < end) {
-          let tag = reader.uint32();
-          switch (tag >>> 3) {
-            case 1: {
-              message.eventId = reader.bytes();
-              break;
-            }
-            case 2: {
-              message.cartId = reader.bytes();
-              break;
-            }
-            case 3: {
-              message.itemId = reader.bytes();
-              break;
-            }
-            case 4: {
-              message.quantity = reader.sint32();
-              break;
-            }
-            default:
-              reader.skipType(tag & 7);
-              break;
-          }
-        }
-        return message;
-      };
-
-      /**
-       * Decodes a ChangeCart message from the specified reader or buffer, length delimited.
-       * @function decodeDelimited
-       * @memberof market.mass.ChangeCart
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @returns {market.mass.ChangeCart} ChangeCart
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      ChangeCart.decodeDelimited = function decodeDelimited(reader) {
-        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
-        return this.decode(reader, reader.uint32());
-      };
-
-      /**
-       * Verifies a ChangeCart message.
-       * @function verify
-       * @memberof market.mass.ChangeCart
-       * @static
-       * @param {Object.<string,*>} message Plain object to verify
-       * @returns {string|null} `null` if valid, otherwise the reason why it is not
-       */
-      ChangeCart.verify = function verify(message) {
-        if (typeof message !== "object" || message === null)
-          return "object expected";
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          if (
-            !(
-              (message.eventId && typeof message.eventId.length === "number") ||
-              $util.isString(message.eventId)
-            )
-          )
-            return "eventId: buffer expected";
-        if (message.cartId != null && message.hasOwnProperty("cartId"))
-          if (
-            !(
-              (message.cartId && typeof message.cartId.length === "number") ||
-              $util.isString(message.cartId)
-            )
-          )
-            return "cartId: buffer expected";
-        if (message.itemId != null && message.hasOwnProperty("itemId"))
-          if (
-            !(
-              (message.itemId && typeof message.itemId.length === "number") ||
-              $util.isString(message.itemId)
-            )
-          )
-            return "itemId: buffer expected";
-        if (message.quantity != null && message.hasOwnProperty("quantity"))
-          if (!$util.isInteger(message.quantity))
-            return "quantity: integer expected";
-        return null;
-      };
-
-      /**
-       * Creates a ChangeCart message from a plain object. Also converts values to their respective internal types.
-       * @function fromObject
-       * @memberof market.mass.ChangeCart
-       * @static
-       * @param {Object.<string,*>} object Plain object
-       * @returns {market.mass.ChangeCart} ChangeCart
-       */
-      ChangeCart.fromObject = function fromObject(object) {
-        if (object instanceof $root.market.mass.ChangeCart) return object;
-        let message = new $root.market.mass.ChangeCart();
-        if (object.eventId != null)
-          if (typeof object.eventId === "string")
-            $util.base64.decode(
-              object.eventId,
-              (message.eventId = $util.newBuffer(
-                $util.base64.length(object.eventId),
-              )),
-              0,
-            );
-          else if (object.eventId.length >= 0) message.eventId = object.eventId;
-        if (object.cartId != null)
-          if (typeof object.cartId === "string")
-            $util.base64.decode(
-              object.cartId,
-              (message.cartId = $util.newBuffer(
-                $util.base64.length(object.cartId),
-              )),
-              0,
-            );
-          else if (object.cartId.length >= 0) message.cartId = object.cartId;
-        if (object.itemId != null)
-          if (typeof object.itemId === "string")
-            $util.base64.decode(
-              object.itemId,
-              (message.itemId = $util.newBuffer(
-                $util.base64.length(object.itemId),
-              )),
-              0,
-            );
-          else if (object.itemId.length >= 0) message.itemId = object.itemId;
-        if (object.quantity != null) message.quantity = object.quantity | 0;
-        return message;
-      };
-
-      /**
-       * Creates a plain object from a ChangeCart message. Also converts values to other types if specified.
-       * @function toObject
-       * @memberof market.mass.ChangeCart
-       * @static
-       * @param {market.mass.ChangeCart} message ChangeCart
-       * @param {$protobuf.IConversionOptions} [options] Conversion options
-       * @returns {Object.<string,*>} Plain object
-       */
-      ChangeCart.toObject = function toObject(message, options) {
-        if (!options) options = {};
-        let object = {};
-        if (options.defaults) {
-          if (options.bytes === String) object.eventId = "";
-          else {
-            object.eventId = [];
-            if (options.bytes !== Array)
-              object.eventId = $util.newBuffer(object.eventId);
-          }
-          if (options.bytes === String) object.cartId = "";
-          else {
-            object.cartId = [];
-            if (options.bytes !== Array)
-              object.cartId = $util.newBuffer(object.cartId);
-          }
-          if (options.bytes === String) object.itemId = "";
-          else {
-            object.itemId = [];
-            if (options.bytes !== Array)
-              object.itemId = $util.newBuffer(object.itemId);
-          }
-          object.quantity = 0;
-        }
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          object.eventId =
-            options.bytes === String
-              ? $util.base64.encode(message.eventId, 0, message.eventId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.eventId)
-                : message.eventId;
-        if (message.cartId != null && message.hasOwnProperty("cartId"))
-          object.cartId =
-            options.bytes === String
-              ? $util.base64.encode(message.cartId, 0, message.cartId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.cartId)
-                : message.cartId;
-        if (message.itemId != null && message.hasOwnProperty("itemId"))
-          object.itemId =
-            options.bytes === String
-              ? $util.base64.encode(message.itemId, 0, message.itemId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.itemId)
-                : message.itemId;
-        if (message.quantity != null && message.hasOwnProperty("quantity"))
-          object.quantity = message.quantity;
-        return object;
-      };
-
-      /**
-       * Converts this ChangeCart to JSON.
-       * @function toJSON
-       * @memberof market.mass.ChangeCart
-       * @instance
-       * @returns {Object.<string,*>} JSON object
-       */
-      ChangeCart.prototype.toJSON = function toJSON() {
-        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-      };
-
-      /**
-       * Gets the default type url for ChangeCart
-       * @function getTypeUrl
-       * @memberof market.mass.ChangeCart
-       * @static
-       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-       * @returns {string} The default type url
-       */
-      ChangeCart.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-        if (typeUrlPrefix === undefined) {
-          typeUrlPrefix = "type.googleapis.com";
-        }
-        return typeUrlPrefix + "/market.mass.ChangeCart";
-      };
-
-      return ChangeCart;
-    })();
-
-    mass.CartFinalized = (function () {
-      /**
-       * Properties of a CartFinalized.
-       * @memberof market.mass
-       * @interface ICartFinalized
-       * @property {Uint8Array|null} [eventId] CartFinalized eventId
-       * @property {Uint8Array|null} [cartId] CartFinalized cartId
-       * @property {Uint8Array|null} [purchaseAddr] CartFinalized purchaseAddr
-       * @property {Uint8Array|null} [erc20Addr] CartFinalized erc20Addr
-       * @property {string|null} [subTotal] CartFinalized subTotal
-       * @property {string|null} [salesTax] CartFinalized salesTax
-       * @property {string|null} [total] CartFinalized total
-       * @property {string|null} [totalInCrypto] CartFinalized totalInCrypto
-       * @property {Uint8Array|null} [paymentId] CartFinalized paymentId
-       * @property {string|null} [paymentTtl] CartFinalized paymentTtl
-       */
-
-      /**
-       * Constructs a new CartFinalized.
-       * @memberof market.mass
-       * @classdesc Represents a CartFinalized.
-       * @implements ICartFinalized
-       * @constructor
-       * @param {market.mass.ICartFinalized=} [properties] Properties to set
-       */
-      function CartFinalized(properties) {
-        if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-            if (properties[keys[i]] != null)
-              this[keys[i]] = properties[keys[i]];
-      }
-
-      /**
-       * CartFinalized eventId.
-       * @member {Uint8Array} eventId
-       * @memberof market.mass.CartFinalized
-       * @instance
-       */
-      CartFinalized.prototype.eventId = $util.newBuffer([]);
-
-      /**
-       * CartFinalized cartId.
-       * @member {Uint8Array} cartId
-       * @memberof market.mass.CartFinalized
-       * @instance
-       */
-      CartFinalized.prototype.cartId = $util.newBuffer([]);
-
-      /**
-       * CartFinalized purchaseAddr.
-       * @member {Uint8Array} purchaseAddr
-       * @memberof market.mass.CartFinalized
-       * @instance
-       */
-      CartFinalized.prototype.purchaseAddr = $util.newBuffer([]);
-
-      /**
-       * CartFinalized erc20Addr.
-       * @member {Uint8Array} erc20Addr
-       * @memberof market.mass.CartFinalized
-       * @instance
-       */
-      CartFinalized.prototype.erc20Addr = $util.newBuffer([]);
-
-      /**
-       * CartFinalized subTotal.
-       * @member {string} subTotal
-       * @memberof market.mass.CartFinalized
-       * @instance
-       */
-      CartFinalized.prototype.subTotal = "";
-
-      /**
-       * CartFinalized salesTax.
-       * @member {string} salesTax
-       * @memberof market.mass.CartFinalized
-       * @instance
-       */
-      CartFinalized.prototype.salesTax = "";
-
-      /**
-       * CartFinalized total.
-       * @member {string} total
-       * @memberof market.mass.CartFinalized
-       * @instance
-       */
-      CartFinalized.prototype.total = "";
-
-      /**
-       * CartFinalized totalInCrypto.
-       * @member {string} totalInCrypto
-       * @memberof market.mass.CartFinalized
-       * @instance
-       */
-      CartFinalized.prototype.totalInCrypto = "";
-
-      /**
-       * CartFinalized paymentId.
-       * @member {Uint8Array} paymentId
-       * @memberof market.mass.CartFinalized
-       * @instance
-       */
-      CartFinalized.prototype.paymentId = $util.newBuffer([]);
-
-      /**
-       * CartFinalized paymentTtl.
-       * @member {string} paymentTtl
-       * @memberof market.mass.CartFinalized
-       * @instance
-       */
-      CartFinalized.prototype.paymentTtl = "";
-
-      /**
-       * Creates a new CartFinalized instance using the specified properties.
-       * @function create
-       * @memberof market.mass.CartFinalized
-       * @static
-       * @param {market.mass.ICartFinalized=} [properties] Properties to set
-       * @returns {market.mass.CartFinalized} CartFinalized instance
-       */
-      CartFinalized.create = function create(properties) {
-        return new CartFinalized(properties);
-      };
-
-      /**
-       * Encodes the specified CartFinalized message. Does not implicitly {@link market.mass.CartFinalized.verify|verify} messages.
-       * @function encode
-       * @memberof market.mass.CartFinalized
-       * @static
-       * @param {market.mass.ICartFinalized} message CartFinalized message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      CartFinalized.encode = function encode(message, writer) {
-        if (!writer) writer = $Writer.create();
-        if (
-          message.eventId != null &&
-          Object.hasOwnProperty.call(message, "eventId")
-        )
-          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.eventId);
-        if (
-          message.cartId != null &&
-          Object.hasOwnProperty.call(message, "cartId")
-        )
-          writer.uint32(/* id 2, wireType 2 =*/ 18).bytes(message.cartId);
-        if (
-          message.purchaseAddr != null &&
-          Object.hasOwnProperty.call(message, "purchaseAddr")
-        )
-          writer.uint32(/* id 3, wireType 2 =*/ 26).bytes(message.purchaseAddr);
-        if (
-          message.subTotal != null &&
-          Object.hasOwnProperty.call(message, "subTotal")
-        )
-          writer.uint32(/* id 4, wireType 2 =*/ 34).string(message.subTotal);
-        if (
-          message.salesTax != null &&
-          Object.hasOwnProperty.call(message, "salesTax")
-        )
-          writer.uint32(/* id 5, wireType 2 =*/ 42).string(message.salesTax);
-        if (
-          message.total != null &&
-          Object.hasOwnProperty.call(message, "total")
-        )
-          writer.uint32(/* id 6, wireType 2 =*/ 50).string(message.total);
-        if (
-          message.totalInCrypto != null &&
-          Object.hasOwnProperty.call(message, "totalInCrypto")
-        )
-          writer
-            .uint32(/* id 7, wireType 2 =*/ 58)
-            .string(message.totalInCrypto);
-        if (
-          message.erc20Addr != null &&
-          Object.hasOwnProperty.call(message, "erc20Addr")
-        )
-          writer.uint32(/* id 8, wireType 2 =*/ 66).bytes(message.erc20Addr);
-        if (
-          message.paymentId != null &&
-          Object.hasOwnProperty.call(message, "paymentId")
-        )
-          writer.uint32(/* id 9, wireType 2 =*/ 74).bytes(message.paymentId);
-        if (
-          message.paymentTtl != null &&
-          Object.hasOwnProperty.call(message, "paymentTtl")
-        )
-          writer.uint32(/* id 10, wireType 2 =*/ 82).string(message.paymentTtl);
-        return writer;
-      };
-
-      /**
-       * Encodes the specified CartFinalized message, length delimited. Does not implicitly {@link market.mass.CartFinalized.verify|verify} messages.
-       * @function encodeDelimited
-       * @memberof market.mass.CartFinalized
-       * @static
-       * @param {market.mass.ICartFinalized} message CartFinalized message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      CartFinalized.encodeDelimited = function encodeDelimited(
-        message,
-        writer,
-      ) {
-        return this.encode(message, writer).ldelim();
-      };
-
-      /**
-       * Decodes a CartFinalized message from the specified reader or buffer.
-       * @function decode
-       * @memberof market.mass.CartFinalized
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @param {number} [length] Message length if known beforehand
-       * @returns {market.mass.CartFinalized} CartFinalized
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      CartFinalized.decode = function decode(reader, length) {
-        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
-          message = new $root.market.mass.CartFinalized();
-        while (reader.pos < end) {
-          let tag = reader.uint32();
-          switch (tag >>> 3) {
-            case 1: {
-              message.eventId = reader.bytes();
-              break;
-            }
-            case 2: {
-              message.cartId = reader.bytes();
-              break;
-            }
-            case 3: {
-              message.purchaseAddr = reader.bytes();
-              break;
-            }
-            case 8: {
-              message.erc20Addr = reader.bytes();
-              break;
-            }
-            case 4: {
-              message.subTotal = reader.string();
-              break;
-            }
-            case 5: {
-              message.salesTax = reader.string();
-              break;
-            }
-            case 6: {
-              message.total = reader.string();
-              break;
-            }
-            case 7: {
-              message.totalInCrypto = reader.string();
-              break;
-            }
-            case 9: {
-              message.paymentId = reader.bytes();
-              break;
-            }
-            case 10: {
-              message.paymentTtl = reader.string();
-              break;
-            }
-            default:
-              reader.skipType(tag & 7);
-              break;
-          }
-        }
-        return message;
-      };
-
-      /**
-       * Decodes a CartFinalized message from the specified reader or buffer, length delimited.
-       * @function decodeDelimited
-       * @memberof market.mass.CartFinalized
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @returns {market.mass.CartFinalized} CartFinalized
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      CartFinalized.decodeDelimited = function decodeDelimited(reader) {
-        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
-        return this.decode(reader, reader.uint32());
-      };
-
-      /**
-       * Verifies a CartFinalized message.
-       * @function verify
-       * @memberof market.mass.CartFinalized
-       * @static
-       * @param {Object.<string,*>} message Plain object to verify
-       * @returns {string|null} `null` if valid, otherwise the reason why it is not
-       */
-      CartFinalized.verify = function verify(message) {
-        if (typeof message !== "object" || message === null)
-          return "object expected";
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          if (
-            !(
-              (message.eventId && typeof message.eventId.length === "number") ||
-              $util.isString(message.eventId)
-            )
-          )
-            return "eventId: buffer expected";
-        if (message.cartId != null && message.hasOwnProperty("cartId"))
-          if (
-            !(
-              (message.cartId && typeof message.cartId.length === "number") ||
-              $util.isString(message.cartId)
-            )
-          )
-            return "cartId: buffer expected";
-        if (
-          message.purchaseAddr != null &&
-          message.hasOwnProperty("purchaseAddr")
-        )
-          if (
-            !(
-              (message.purchaseAddr &&
-                typeof message.purchaseAddr.length === "number") ||
-              $util.isString(message.purchaseAddr)
-            )
-          )
-            return "purchaseAddr: buffer expected";
-        if (message.erc20Addr != null && message.hasOwnProperty("erc20Addr"))
-          if (
-            !(
-              (message.erc20Addr &&
-                typeof message.erc20Addr.length === "number") ||
-              $util.isString(message.erc20Addr)
-            )
-          )
-            return "erc20Addr: buffer expected";
-        if (message.subTotal != null && message.hasOwnProperty("subTotal"))
-          if (!$util.isString(message.subTotal))
-            return "subTotal: string expected";
-        if (message.salesTax != null && message.hasOwnProperty("salesTax"))
-          if (!$util.isString(message.salesTax))
-            return "salesTax: string expected";
-        if (message.total != null && message.hasOwnProperty("total"))
-          if (!$util.isString(message.total)) return "total: string expected";
-        if (
-          message.totalInCrypto != null &&
-          message.hasOwnProperty("totalInCrypto")
-        )
-          if (!$util.isString(message.totalInCrypto))
-            return "totalInCrypto: string expected";
-        if (message.paymentId != null && message.hasOwnProperty("paymentId"))
-          if (
-            !(
-              (message.paymentId &&
-                typeof message.paymentId.length === "number") ||
-              $util.isString(message.paymentId)
-            )
-          )
-            return "paymentId: buffer expected";
-        if (message.paymentTtl != null && message.hasOwnProperty("paymentTtl"))
-          if (!$util.isString(message.paymentTtl))
-            return "paymentTtl: string expected";
-        return null;
-      };
-
-      /**
-       * Creates a CartFinalized message from a plain object. Also converts values to their respective internal types.
-       * @function fromObject
-       * @memberof market.mass.CartFinalized
-       * @static
-       * @param {Object.<string,*>} object Plain object
-       * @returns {market.mass.CartFinalized} CartFinalized
-       */
-      CartFinalized.fromObject = function fromObject(object) {
-        if (object instanceof $root.market.mass.CartFinalized) return object;
-        let message = new $root.market.mass.CartFinalized();
-        if (object.eventId != null)
-          if (typeof object.eventId === "string")
-            $util.base64.decode(
-              object.eventId,
-              (message.eventId = $util.newBuffer(
-                $util.base64.length(object.eventId),
-              )),
-              0,
-            );
-          else if (object.eventId.length >= 0) message.eventId = object.eventId;
-        if (object.cartId != null)
-          if (typeof object.cartId === "string")
-            $util.base64.decode(
-              object.cartId,
-              (message.cartId = $util.newBuffer(
-                $util.base64.length(object.cartId),
-              )),
-              0,
-            );
-          else if (object.cartId.length >= 0) message.cartId = object.cartId;
-        if (object.purchaseAddr != null)
-          if (typeof object.purchaseAddr === "string")
-            $util.base64.decode(
-              object.purchaseAddr,
-              (message.purchaseAddr = $util.newBuffer(
-                $util.base64.length(object.purchaseAddr),
-              )),
-              0,
-            );
-          else if (object.purchaseAddr.length >= 0)
-            message.purchaseAddr = object.purchaseAddr;
-        if (object.erc20Addr != null)
-          if (typeof object.erc20Addr === "string")
-            $util.base64.decode(
-              object.erc20Addr,
-              (message.erc20Addr = $util.newBuffer(
-                $util.base64.length(object.erc20Addr),
-              )),
-              0,
-            );
-          else if (object.erc20Addr.length >= 0)
-            message.erc20Addr = object.erc20Addr;
-        if (object.subTotal != null) message.subTotal = String(object.subTotal);
-        if (object.salesTax != null) message.salesTax = String(object.salesTax);
-        if (object.total != null) message.total = String(object.total);
-        if (object.totalInCrypto != null)
-          message.totalInCrypto = String(object.totalInCrypto);
-        if (object.paymentId != null)
-          if (typeof object.paymentId === "string")
-            $util.base64.decode(
-              object.paymentId,
-              (message.paymentId = $util.newBuffer(
-                $util.base64.length(object.paymentId),
-              )),
-              0,
-            );
-          else if (object.paymentId.length >= 0)
-            message.paymentId = object.paymentId;
-        if (object.paymentTtl != null)
-          message.paymentTtl = String(object.paymentTtl);
-        return message;
-      };
-
-      /**
-       * Creates a plain object from a CartFinalized message. Also converts values to other types if specified.
-       * @function toObject
-       * @memberof market.mass.CartFinalized
-       * @static
-       * @param {market.mass.CartFinalized} message CartFinalized
-       * @param {$protobuf.IConversionOptions} [options] Conversion options
-       * @returns {Object.<string,*>} Plain object
-       */
-      CartFinalized.toObject = function toObject(message, options) {
-        if (!options) options = {};
-        let object = {};
-        if (options.defaults) {
-          if (options.bytes === String) object.eventId = "";
-          else {
-            object.eventId = [];
-            if (options.bytes !== Array)
-              object.eventId = $util.newBuffer(object.eventId);
-          }
-          if (options.bytes === String) object.cartId = "";
-          else {
-            object.cartId = [];
-            if (options.bytes !== Array)
-              object.cartId = $util.newBuffer(object.cartId);
-          }
-          if (options.bytes === String) object.purchaseAddr = "";
-          else {
-            object.purchaseAddr = [];
-            if (options.bytes !== Array)
-              object.purchaseAddr = $util.newBuffer(object.purchaseAddr);
-          }
-          object.subTotal = "";
-          object.salesTax = "";
-          object.total = "";
-          object.totalInCrypto = "";
-          if (options.bytes === String) object.erc20Addr = "";
-          else {
-            object.erc20Addr = [];
-            if (options.bytes !== Array)
-              object.erc20Addr = $util.newBuffer(object.erc20Addr);
-          }
-          if (options.bytes === String) object.paymentId = "";
-          else {
-            object.paymentId = [];
-            if (options.bytes !== Array)
-              object.paymentId = $util.newBuffer(object.paymentId);
-          }
-          object.paymentTtl = "";
-        }
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          object.eventId =
-            options.bytes === String
-              ? $util.base64.encode(message.eventId, 0, message.eventId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.eventId)
-                : message.eventId;
-        if (message.cartId != null && message.hasOwnProperty("cartId"))
-          object.cartId =
-            options.bytes === String
-              ? $util.base64.encode(message.cartId, 0, message.cartId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.cartId)
-                : message.cartId;
-        if (
-          message.purchaseAddr != null &&
-          message.hasOwnProperty("purchaseAddr")
-        )
-          object.purchaseAddr =
-            options.bytes === String
-              ? $util.base64.encode(
-                  message.purchaseAddr,
-                  0,
-                  message.purchaseAddr.length,
-                )
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.purchaseAddr)
-                : message.purchaseAddr;
-        if (message.subTotal != null && message.hasOwnProperty("subTotal"))
-          object.subTotal = message.subTotal;
-        if (message.salesTax != null && message.hasOwnProperty("salesTax"))
-          object.salesTax = message.salesTax;
-        if (message.total != null && message.hasOwnProperty("total"))
-          object.total = message.total;
-        if (
-          message.totalInCrypto != null &&
-          message.hasOwnProperty("totalInCrypto")
-        )
-          object.totalInCrypto = message.totalInCrypto;
-        if (message.erc20Addr != null && message.hasOwnProperty("erc20Addr"))
-          object.erc20Addr =
-            options.bytes === String
-              ? $util.base64.encode(
-                  message.erc20Addr,
-                  0,
-                  message.erc20Addr.length,
-                )
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.erc20Addr)
-                : message.erc20Addr;
-        if (message.paymentId != null && message.hasOwnProperty("paymentId"))
-          object.paymentId =
-            options.bytes === String
-              ? $util.base64.encode(
-                  message.paymentId,
-                  0,
-                  message.paymentId.length,
-                )
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.paymentId)
-                : message.paymentId;
-        if (message.paymentTtl != null && message.hasOwnProperty("paymentTtl"))
-          object.paymentTtl = message.paymentTtl;
-        return object;
-      };
-
-      /**
-       * Converts this CartFinalized to JSON.
-       * @function toJSON
-       * @memberof market.mass.CartFinalized
-       * @instance
-       * @returns {Object.<string,*>} JSON object
-       */
-      CartFinalized.prototype.toJSON = function toJSON() {
-        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-      };
-
-      /**
-       * Gets the default type url for CartFinalized
-       * @function getTypeUrl
-       * @memberof market.mass.CartFinalized
-       * @static
-       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-       * @returns {string} The default type url
-       */
-      CartFinalized.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-        if (typeUrlPrefix === undefined) {
-          typeUrlPrefix = "type.googleapis.com";
-        }
-        return typeUrlPrefix + "/market.mass.CartFinalized";
-      };
-
-      return CartFinalized;
-    })();
-
-    mass.CartAbandoned = (function () {
-      /**
-       * Properties of a CartAbandoned.
-       * @memberof market.mass
-       * @interface ICartAbandoned
-       * @property {Uint8Array|null} [eventId] CartAbandoned eventId
-       * @property {Uint8Array|null} [cartId] CartAbandoned cartId
-       */
-
-      /**
-       * Constructs a new CartAbandoned.
-       * @memberof market.mass
-       * @classdesc Represents a CartAbandoned.
-       * @implements ICartAbandoned
-       * @constructor
-       * @param {market.mass.ICartAbandoned=} [properties] Properties to set
-       */
-      function CartAbandoned(properties) {
-        if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-            if (properties[keys[i]] != null)
-              this[keys[i]] = properties[keys[i]];
-      }
-
-      /**
-       * CartAbandoned eventId.
-       * @member {Uint8Array} eventId
-       * @memberof market.mass.CartAbandoned
-       * @instance
-       */
-      CartAbandoned.prototype.eventId = $util.newBuffer([]);
-
-      /**
-       * CartAbandoned cartId.
-       * @member {Uint8Array} cartId
-       * @memberof market.mass.CartAbandoned
-       * @instance
-       */
-      CartAbandoned.prototype.cartId = $util.newBuffer([]);
-
-      /**
-       * Creates a new CartAbandoned instance using the specified properties.
-       * @function create
-       * @memberof market.mass.CartAbandoned
-       * @static
-       * @param {market.mass.ICartAbandoned=} [properties] Properties to set
-       * @returns {market.mass.CartAbandoned} CartAbandoned instance
-       */
-      CartAbandoned.create = function create(properties) {
-        return new CartAbandoned(properties);
-      };
-
-      /**
-       * Encodes the specified CartAbandoned message. Does not implicitly {@link market.mass.CartAbandoned.verify|verify} messages.
-       * @function encode
-       * @memberof market.mass.CartAbandoned
-       * @static
-       * @param {market.mass.ICartAbandoned} message CartAbandoned message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      CartAbandoned.encode = function encode(message, writer) {
-        if (!writer) writer = $Writer.create();
-        if (
-          message.eventId != null &&
-          Object.hasOwnProperty.call(message, "eventId")
-        )
-          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.eventId);
-        if (
-          message.cartId != null &&
-          Object.hasOwnProperty.call(message, "cartId")
-        )
-          writer.uint32(/* id 2, wireType 2 =*/ 18).bytes(message.cartId);
-        return writer;
-      };
-
-      /**
-       * Encodes the specified CartAbandoned message, length delimited. Does not implicitly {@link market.mass.CartAbandoned.verify|verify} messages.
-       * @function encodeDelimited
-       * @memberof market.mass.CartAbandoned
-       * @static
-       * @param {market.mass.ICartAbandoned} message CartAbandoned message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      CartAbandoned.encodeDelimited = function encodeDelimited(
-        message,
-        writer,
-      ) {
-        return this.encode(message, writer).ldelim();
-      };
-
-      /**
-       * Decodes a CartAbandoned message from the specified reader or buffer.
-       * @function decode
-       * @memberof market.mass.CartAbandoned
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @param {number} [length] Message length if known beforehand
-       * @returns {market.mass.CartAbandoned} CartAbandoned
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      CartAbandoned.decode = function decode(reader, length) {
-        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
-          message = new $root.market.mass.CartAbandoned();
-        while (reader.pos < end) {
-          let tag = reader.uint32();
-          switch (tag >>> 3) {
-            case 1: {
-              message.eventId = reader.bytes();
-              break;
-            }
-            case 2: {
-              message.cartId = reader.bytes();
-              break;
-            }
-            default:
-              reader.skipType(tag & 7);
-              break;
-          }
-        }
-        return message;
-      };
-
-      /**
-       * Decodes a CartAbandoned message from the specified reader or buffer, length delimited.
-       * @function decodeDelimited
-       * @memberof market.mass.CartAbandoned
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @returns {market.mass.CartAbandoned} CartAbandoned
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      CartAbandoned.decodeDelimited = function decodeDelimited(reader) {
-        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
-        return this.decode(reader, reader.uint32());
-      };
-
-      /**
-       * Verifies a CartAbandoned message.
-       * @function verify
-       * @memberof market.mass.CartAbandoned
-       * @static
-       * @param {Object.<string,*>} message Plain object to verify
-       * @returns {string|null} `null` if valid, otherwise the reason why it is not
-       */
-      CartAbandoned.verify = function verify(message) {
-        if (typeof message !== "object" || message === null)
-          return "object expected";
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          if (
-            !(
-              (message.eventId && typeof message.eventId.length === "number") ||
-              $util.isString(message.eventId)
-            )
-          )
-            return "eventId: buffer expected";
-        if (message.cartId != null && message.hasOwnProperty("cartId"))
-          if (
-            !(
-              (message.cartId && typeof message.cartId.length === "number") ||
-              $util.isString(message.cartId)
-            )
-          )
-            return "cartId: buffer expected";
-        return null;
-      };
-
-      /**
-       * Creates a CartAbandoned message from a plain object. Also converts values to their respective internal types.
-       * @function fromObject
-       * @memberof market.mass.CartAbandoned
-       * @static
-       * @param {Object.<string,*>} object Plain object
-       * @returns {market.mass.CartAbandoned} CartAbandoned
-       */
-      CartAbandoned.fromObject = function fromObject(object) {
-        if (object instanceof $root.market.mass.CartAbandoned) return object;
-        let message = new $root.market.mass.CartAbandoned();
-        if (object.eventId != null)
-          if (typeof object.eventId === "string")
-            $util.base64.decode(
-              object.eventId,
-              (message.eventId = $util.newBuffer(
-                $util.base64.length(object.eventId),
-              )),
-              0,
-            );
-          else if (object.eventId.length >= 0) message.eventId = object.eventId;
-        if (object.cartId != null)
-          if (typeof object.cartId === "string")
-            $util.base64.decode(
-              object.cartId,
-              (message.cartId = $util.newBuffer(
-                $util.base64.length(object.cartId),
-              )),
-              0,
-            );
-          else if (object.cartId.length >= 0) message.cartId = object.cartId;
-        return message;
-      };
-
-      /**
-       * Creates a plain object from a CartAbandoned message. Also converts values to other types if specified.
-       * @function toObject
-       * @memberof market.mass.CartAbandoned
-       * @static
-       * @param {market.mass.CartAbandoned} message CartAbandoned
-       * @param {$protobuf.IConversionOptions} [options] Conversion options
-       * @returns {Object.<string,*>} Plain object
-       */
-      CartAbandoned.toObject = function toObject(message, options) {
-        if (!options) options = {};
-        let object = {};
-        if (options.defaults) {
-          if (options.bytes === String) object.eventId = "";
-          else {
-            object.eventId = [];
-            if (options.bytes !== Array)
-              object.eventId = $util.newBuffer(object.eventId);
-          }
-          if (options.bytes === String) object.cartId = "";
-          else {
-            object.cartId = [];
-            if (options.bytes !== Array)
-              object.cartId = $util.newBuffer(object.cartId);
-          }
-        }
-        if (message.eventId != null && message.hasOwnProperty("eventId"))
-          object.eventId =
-            options.bytes === String
-              ? $util.base64.encode(message.eventId, 0, message.eventId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.eventId)
-                : message.eventId;
-        if (message.cartId != null && message.hasOwnProperty("cartId"))
-          object.cartId =
-            options.bytes === String
-              ? $util.base64.encode(message.cartId, 0, message.cartId.length)
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.cartId)
-                : message.cartId;
-        return object;
-      };
-
-      /**
-       * Converts this CartAbandoned to JSON.
-       * @function toJSON
-       * @memberof market.mass.CartAbandoned
-       * @instance
-       * @returns {Object.<string,*>} JSON object
-       */
-      CartAbandoned.prototype.toJSON = function toJSON() {
-        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-      };
-
-      /**
-       * Gets the default type url for CartAbandoned
-       * @function getTypeUrl
-       * @memberof market.mass.CartAbandoned
-       * @static
-       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-       * @returns {string} The default type url
-       */
-      CartAbandoned.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-        if (typeUrlPrefix === undefined) {
-          typeUrlPrefix = "type.googleapis.com";
-        }
-        return typeUrlPrefix + "/market.mass.CartAbandoned";
-      };
-
-      return CartAbandoned;
-    })();
-
-    mass.Event = (function () {
-      /**
-       * Properties of an Event.
-       * @memberof market.mass
-       * @interface IEvent
-       * @property {Uint8Array|null} [signature] Event signature
-       * @property {market.mass.IStoreManifest|null} [storeManifest] Event storeManifest
-       * @property {market.mass.IUpdateManifest|null} [updateManifest] Event updateManifest
-       * @property {market.mass.ICreateItem|null} [createItem] Event createItem
-       * @property {market.mass.IUpdateItem|null} [updateItem] Event updateItem
-       * @property {market.mass.ICreateTag|null} [createTag] Event createTag
-       * @property {market.mass.IAddToTag|null} [addToTag] Event addToTag
-       * @property {market.mass.IRemoveFromTag|null} [removeFromTag] Event removeFromTag
-       * @property {market.mass.IRenameTag|null} [renameTag] Event renameTag
-       * @property {market.mass.IDeleteTag|null} [deleteTag] Event deleteTag
-       * @property {market.mass.ICreateCart|null} [createCart] Event createCart
-       * @property {market.mass.IChangeCart|null} [changeCart] Event changeCart
-       * @property {market.mass.ICartFinalized|null} [cartFinalized] Event cartFinalized
-       * @property {market.mass.ICartAbandoned|null} [cartAbandoned] Event cartAbandoned
-       * @property {market.mass.IChangeStock|null} [changeStock] Event changeStock
-       * @property {market.mass.INewKeyCard|null} [newKeyCard] Event newKeyCard
-       */
-
-      /**
-       * Constructs a new Event.
-       * @memberof market.mass
-       * @classdesc Represents an Event.
-       * @implements IEvent
-       * @constructor
-       * @param {market.mass.IEvent=} [properties] Properties to set
-       */
-      function Event(properties) {
-        if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-            if (properties[keys[i]] != null)
-              this[keys[i]] = properties[keys[i]];
-      }
-
-      /**
-       * Event signature.
-       * @member {Uint8Array} signature
-       * @memberof market.mass.Event
-       * @instance
-       */
-      Event.prototype.signature = $util.newBuffer([]);
-
-      /**
-       * Event storeManifest.
-       * @member {market.mass.IStoreManifest|null|undefined} storeManifest
-       * @memberof market.mass.Event
-       * @instance
-       */
-      Event.prototype.storeManifest = null;
-
-      /**
-       * Event updateManifest.
-       * @member {market.mass.IUpdateManifest|null|undefined} updateManifest
-       * @memberof market.mass.Event
-       * @instance
-       */
-      Event.prototype.updateManifest = null;
-
-      /**
-       * Event createItem.
-       * @member {market.mass.ICreateItem|null|undefined} createItem
-       * @memberof market.mass.Event
-       * @instance
-       */
-      Event.prototype.createItem = null;
-
-      /**
-       * Event updateItem.
-       * @member {market.mass.IUpdateItem|null|undefined} updateItem
-       * @memberof market.mass.Event
-       * @instance
-       */
-      Event.prototype.updateItem = null;
-
-      /**
-       * Event createTag.
-       * @member {market.mass.ICreateTag|null|undefined} createTag
-       * @memberof market.mass.Event
-       * @instance
-       */
-      Event.prototype.createTag = null;
-
-      /**
-       * Event addToTag.
-       * @member {market.mass.IAddToTag|null|undefined} addToTag
-       * @memberof market.mass.Event
-       * @instance
-       */
-      Event.prototype.addToTag = null;
-
-      /**
-       * Event removeFromTag.
-       * @member {market.mass.IRemoveFromTag|null|undefined} removeFromTag
-       * @memberof market.mass.Event
-       * @instance
-       */
-      Event.prototype.removeFromTag = null;
-
-      /**
-       * Event renameTag.
-       * @member {market.mass.IRenameTag|null|undefined} renameTag
-       * @memberof market.mass.Event
-       * @instance
-       */
-      Event.prototype.renameTag = null;
-
-      /**
-       * Event deleteTag.
-       * @member {market.mass.IDeleteTag|null|undefined} deleteTag
-       * @memberof market.mass.Event
-       * @instance
-       */
-      Event.prototype.deleteTag = null;
-
-      /**
-       * Event createCart.
-       * @member {market.mass.ICreateCart|null|undefined} createCart
-       * @memberof market.mass.Event
-       * @instance
-       */
-      Event.prototype.createCart = null;
-
-      /**
-       * Event changeCart.
-       * @member {market.mass.IChangeCart|null|undefined} changeCart
-       * @memberof market.mass.Event
-       * @instance
-       */
-      Event.prototype.changeCart = null;
-
-      /**
-       * Event cartFinalized.
-       * @member {market.mass.ICartFinalized|null|undefined} cartFinalized
-       * @memberof market.mass.Event
-       * @instance
-       */
-      Event.prototype.cartFinalized = null;
-
-      /**
-       * Event cartAbandoned.
-       * @member {market.mass.ICartAbandoned|null|undefined} cartAbandoned
-       * @memberof market.mass.Event
-       * @instance
-       */
-      Event.prototype.cartAbandoned = null;
-
-      /**
-       * Event changeStock.
-       * @member {market.mass.IChangeStock|null|undefined} changeStock
-       * @memberof market.mass.Event
-       * @instance
-       */
-      Event.prototype.changeStock = null;
-
-      /**
-       * Event newKeyCard.
-       * @member {market.mass.INewKeyCard|null|undefined} newKeyCard
-       * @memberof market.mass.Event
-       * @instance
-       */
-      Event.prototype.newKeyCard = null;
-
-      // OneOf field names bound to virtual getters and setters
-      let $oneOfFields;
-
-      /**
-       * Event union.
-       * @member {"storeManifest"|"updateManifest"|"createItem"|"updateItem"|"createTag"|"addToTag"|"removeFromTag"|"renameTag"|"deleteTag"|"createCart"|"changeCart"|"cartFinalized"|"cartAbandoned"|"changeStock"|"newKeyCard"|undefined} union
-       * @memberof market.mass.Event
-       * @instance
-       */
-      Object.defineProperty(Event.prototype, "union", {
-        get: $util.oneOfGetter(
-          ($oneOfFields = [
-            "storeManifest",
-            "updateManifest",
-            "createItem",
-            "updateItem",
-            "createTag",
-            "addToTag",
-            "removeFromTag",
-            "renameTag",
-            "deleteTag",
-            "createCart",
-            "changeCart",
-            "cartFinalized",
-            "cartAbandoned",
-            "changeStock",
-            "newKeyCard",
-          ]),
-        ),
-        set: $util.oneOfSetter($oneOfFields),
-      });
-
-      /**
-       * Creates a new Event instance using the specified properties.
-       * @function create
-       * @memberof market.mass.Event
-       * @static
-       * @param {market.mass.IEvent=} [properties] Properties to set
-       * @returns {market.mass.Event} Event instance
-       */
-      Event.create = function create(properties) {
-        return new Event(properties);
-      };
-
-      /**
-       * Encodes the specified Event message. Does not implicitly {@link market.mass.Event.verify|verify} messages.
-       * @function encode
-       * @memberof market.mass.Event
-       * @static
-       * @param {market.mass.IEvent} message Event message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      Event.encode = function encode(message, writer) {
-        if (!writer) writer = $Writer.create();
-        if (
-          message.signature != null &&
-          Object.hasOwnProperty.call(message, "signature")
-        )
-          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.signature);
-        if (
-          message.storeManifest != null &&
-          Object.hasOwnProperty.call(message, "storeManifest")
-        )
-          $root.market.mass.StoreManifest.encode(
-            message.storeManifest,
-            writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
-          ).ldelim();
-        if (
-          message.updateManifest != null &&
-          Object.hasOwnProperty.call(message, "updateManifest")
-        )
-          $root.market.mass.UpdateManifest.encode(
-            message.updateManifest,
-            writer.uint32(/* id 3, wireType 2 =*/ 26).fork(),
-          ).ldelim();
-        if (
-          message.createItem != null &&
-          Object.hasOwnProperty.call(message, "createItem")
-        )
-          $root.market.mass.CreateItem.encode(
-            message.createItem,
-            writer.uint32(/* id 4, wireType 2 =*/ 34).fork(),
-          ).ldelim();
-        if (
-          message.updateItem != null &&
-          Object.hasOwnProperty.call(message, "updateItem")
-        )
-          $root.market.mass.UpdateItem.encode(
-            message.updateItem,
-            writer.uint32(/* id 5, wireType 2 =*/ 42).fork(),
-          ).ldelim();
-        if (
-          message.createTag != null &&
-          Object.hasOwnProperty.call(message, "createTag")
-        )
-          $root.market.mass.CreateTag.encode(
-            message.createTag,
-            writer.uint32(/* id 6, wireType 2 =*/ 50).fork(),
-          ).ldelim();
-        if (
-          message.addToTag != null &&
-          Object.hasOwnProperty.call(message, "addToTag")
-        )
-          $root.market.mass.AddToTag.encode(
-            message.addToTag,
-            writer.uint32(/* id 7, wireType 2 =*/ 58).fork(),
-          ).ldelim();
-        if (
-          message.removeFromTag != null &&
-          Object.hasOwnProperty.call(message, "removeFromTag")
-        )
-          $root.market.mass.RemoveFromTag.encode(
-            message.removeFromTag,
-            writer.uint32(/* id 8, wireType 2 =*/ 66).fork(),
-          ).ldelim();
-        if (
-          message.renameTag != null &&
-          Object.hasOwnProperty.call(message, "renameTag")
-        )
-          $root.market.mass.RenameTag.encode(
-            message.renameTag,
-            writer.uint32(/* id 9, wireType 2 =*/ 74).fork(),
-          ).ldelim();
-        if (
-          message.deleteTag != null &&
-          Object.hasOwnProperty.call(message, "deleteTag")
-        )
-          $root.market.mass.DeleteTag.encode(
-            message.deleteTag,
-            writer.uint32(/* id 10, wireType 2 =*/ 82).fork(),
-          ).ldelim();
-        if (
-          message.createCart != null &&
-          Object.hasOwnProperty.call(message, "createCart")
-        )
-          $root.market.mass.CreateCart.encode(
-            message.createCart,
-            writer.uint32(/* id 11, wireType 2 =*/ 90).fork(),
-          ).ldelim();
-        if (
-          message.changeCart != null &&
-          Object.hasOwnProperty.call(message, "changeCart")
-        )
-          $root.market.mass.ChangeCart.encode(
-            message.changeCart,
-            writer.uint32(/* id 12, wireType 2 =*/ 98).fork(),
-          ).ldelim();
-        if (
-          message.changeStock != null &&
-          Object.hasOwnProperty.call(message, "changeStock")
-        )
-          $root.market.mass.ChangeStock.encode(
-            message.changeStock,
-            writer.uint32(/* id 13, wireType 2 =*/ 106).fork(),
-          ).ldelim();
-        if (
-          message.newKeyCard != null &&
-          Object.hasOwnProperty.call(message, "newKeyCard")
-        )
-          $root.market.mass.NewKeyCard.encode(
-            message.newKeyCard,
-            writer.uint32(/* id 14, wireType 2 =*/ 114).fork(),
-          ).ldelim();
-        if (
-          message.cartFinalized != null &&
-          Object.hasOwnProperty.call(message, "cartFinalized")
-        )
-          $root.market.mass.CartFinalized.encode(
-            message.cartFinalized,
-            writer.uint32(/* id 15, wireType 2 =*/ 122).fork(),
-          ).ldelim();
-        if (
-          message.cartAbandoned != null &&
-          Object.hasOwnProperty.call(message, "cartAbandoned")
-        )
-          $root.market.mass.CartAbandoned.encode(
-            message.cartAbandoned,
-            writer.uint32(/* id 16, wireType 2 =*/ 130).fork(),
-          ).ldelim();
-        return writer;
-      };
-
-      /**
-       * Encodes the specified Event message, length delimited. Does not implicitly {@link market.mass.Event.verify|verify} messages.
-       * @function encodeDelimited
-       * @memberof market.mass.Event
-       * @static
-       * @param {market.mass.IEvent} message Event message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      Event.encodeDelimited = function encodeDelimited(message, writer) {
-        return this.encode(message, writer).ldelim();
-      };
-
-      /**
-       * Decodes an Event message from the specified reader or buffer.
-       * @function decode
-       * @memberof market.mass.Event
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @param {number} [length] Message length if known beforehand
-       * @returns {market.mass.Event} Event
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      Event.decode = function decode(reader, length) {
-        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
-          message = new $root.market.mass.Event();
-        while (reader.pos < end) {
-          let tag = reader.uint32();
-          switch (tag >>> 3) {
-            case 1: {
-              message.signature = reader.bytes();
-              break;
-            }
-            case 2: {
-              message.storeManifest = $root.market.mass.StoreManifest.decode(
-                reader,
-                reader.uint32(),
-              );
-              break;
-            }
-            case 3: {
-              message.updateManifest = $root.market.mass.UpdateManifest.decode(
-                reader,
-                reader.uint32(),
-              );
-              break;
-            }
-            case 4: {
-              message.createItem = $root.market.mass.CreateItem.decode(
-                reader,
-                reader.uint32(),
-              );
-              break;
-            }
-            case 5: {
-              message.updateItem = $root.market.mass.UpdateItem.decode(
-                reader,
-                reader.uint32(),
-              );
-              break;
-            }
-            case 6: {
-              message.createTag = $root.market.mass.CreateTag.decode(
-                reader,
-                reader.uint32(),
-              );
-              break;
-            }
-            case 7: {
-              message.addToTag = $root.market.mass.AddToTag.decode(
-                reader,
-                reader.uint32(),
-              );
-              break;
-            }
-            case 8: {
-              message.removeFromTag = $root.market.mass.RemoveFromTag.decode(
-                reader,
-                reader.uint32(),
-              );
-              break;
-            }
-            case 9: {
-              message.renameTag = $root.market.mass.RenameTag.decode(
-                reader,
-                reader.uint32(),
-              );
-              break;
-            }
-            case 10: {
-              message.deleteTag = $root.market.mass.DeleteTag.decode(
-                reader,
-                reader.uint32(),
-              );
-              break;
-            }
-            case 11: {
-              message.createCart = $root.market.mass.CreateCart.decode(
-                reader,
-                reader.uint32(),
-              );
-              break;
-            }
-            case 12: {
-              message.changeCart = $root.market.mass.ChangeCart.decode(
-                reader,
-                reader.uint32(),
-              );
-              break;
-            }
-            case 15: {
-              message.cartFinalized = $root.market.mass.CartFinalized.decode(
-                reader,
-                reader.uint32(),
-              );
-              break;
-            }
-            case 16: {
-              message.cartAbandoned = $root.market.mass.CartAbandoned.decode(
-                reader,
-                reader.uint32(),
-              );
-              break;
-            }
-            case 13: {
-              message.changeStock = $root.market.mass.ChangeStock.decode(
-                reader,
-                reader.uint32(),
-              );
-              break;
-            }
-            case 14: {
-              message.newKeyCard = $root.market.mass.NewKeyCard.decode(
-                reader,
-                reader.uint32(),
-              );
-              break;
-            }
-            default:
-              reader.skipType(tag & 7);
-              break;
-          }
-        }
-        return message;
-      };
-
-      /**
-       * Decodes an Event message from the specified reader or buffer, length delimited.
-       * @function decodeDelimited
-       * @memberof market.mass.Event
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @returns {market.mass.Event} Event
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      Event.decodeDelimited = function decodeDelimited(reader) {
-        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
-        return this.decode(reader, reader.uint32());
-      };
-
-      /**
-       * Verifies an Event message.
-       * @function verify
-       * @memberof market.mass.Event
-       * @static
-       * @param {Object.<string,*>} message Plain object to verify
-       * @returns {string|null} `null` if valid, otherwise the reason why it is not
-       */
-      Event.verify = function verify(message) {
-        if (typeof message !== "object" || message === null)
-          return "object expected";
-        let properties = {};
-        if (message.signature != null && message.hasOwnProperty("signature"))
-          if (
-            !(
-              (message.signature &&
-                typeof message.signature.length === "number") ||
-              $util.isString(message.signature)
-            )
-          )
-            return "signature: buffer expected";
-        if (
-          message.storeManifest != null &&
-          message.hasOwnProperty("storeManifest")
-        ) {
-          properties.union = 1;
-          {
-            let error = $root.market.mass.StoreManifest.verify(
-              message.storeManifest,
-            );
-            if (error) return "storeManifest." + error;
-          }
-        }
-        if (
-          message.updateManifest != null &&
-          message.hasOwnProperty("updateManifest")
-        ) {
-          if (properties.union === 1) return "union: multiple values";
-          properties.union = 1;
-          {
-            let error = $root.market.mass.UpdateManifest.verify(
-              message.updateManifest,
-            );
-            if (error) return "updateManifest." + error;
-          }
-        }
-        if (
-          message.createItem != null &&
-          message.hasOwnProperty("createItem")
-        ) {
-          if (properties.union === 1) return "union: multiple values";
-          properties.union = 1;
-          {
-            let error = $root.market.mass.CreateItem.verify(message.createItem);
-            if (error) return "createItem." + error;
-          }
-        }
-        if (
-          message.updateItem != null &&
-          message.hasOwnProperty("updateItem")
-        ) {
-          if (properties.union === 1) return "union: multiple values";
-          properties.union = 1;
-          {
-            let error = $root.market.mass.UpdateItem.verify(message.updateItem);
-            if (error) return "updateItem." + error;
-          }
-        }
-        if (message.createTag != null && message.hasOwnProperty("createTag")) {
-          if (properties.union === 1) return "union: multiple values";
-          properties.union = 1;
-          {
-            let error = $root.market.mass.CreateTag.verify(message.createTag);
-            if (error) return "createTag." + error;
-          }
-        }
-        if (message.addToTag != null && message.hasOwnProperty("addToTag")) {
-          if (properties.union === 1) return "union: multiple values";
-          properties.union = 1;
-          {
-            let error = $root.market.mass.AddToTag.verify(message.addToTag);
-            if (error) return "addToTag." + error;
-          }
-        }
-        if (
-          message.removeFromTag != null &&
-          message.hasOwnProperty("removeFromTag")
-        ) {
-          if (properties.union === 1) return "union: multiple values";
-          properties.union = 1;
-          {
-            let error = $root.market.mass.RemoveFromTag.verify(
-              message.removeFromTag,
-            );
-            if (error) return "removeFromTag." + error;
-          }
-        }
-        if (message.renameTag != null && message.hasOwnProperty("renameTag")) {
-          if (properties.union === 1) return "union: multiple values";
-          properties.union = 1;
-          {
-            let error = $root.market.mass.RenameTag.verify(message.renameTag);
-            if (error) return "renameTag." + error;
-          }
-        }
-        if (message.deleteTag != null && message.hasOwnProperty("deleteTag")) {
-          if (properties.union === 1) return "union: multiple values";
-          properties.union = 1;
-          {
-            let error = $root.market.mass.DeleteTag.verify(message.deleteTag);
-            if (error) return "deleteTag." + error;
-          }
-        }
-        if (
-          message.createCart != null &&
-          message.hasOwnProperty("createCart")
-        ) {
-          if (properties.union === 1) return "union: multiple values";
-          properties.union = 1;
-          {
-            let error = $root.market.mass.CreateCart.verify(message.createCart);
-            if (error) return "createCart." + error;
-          }
-        }
-        if (
-          message.changeCart != null &&
-          message.hasOwnProperty("changeCart")
-        ) {
-          if (properties.union === 1) return "union: multiple values";
-          properties.union = 1;
-          {
-            let error = $root.market.mass.ChangeCart.verify(message.changeCart);
-            if (error) return "changeCart." + error;
-          }
-        }
-        if (
-          message.cartFinalized != null &&
-          message.hasOwnProperty("cartFinalized")
-        ) {
-          if (properties.union === 1) return "union: multiple values";
-          properties.union = 1;
-          {
-            let error = $root.market.mass.CartFinalized.verify(
-              message.cartFinalized,
-            );
-            if (error) return "cartFinalized." + error;
-          }
-        }
-        if (
-          message.cartAbandoned != null &&
-          message.hasOwnProperty("cartAbandoned")
-        ) {
-          if (properties.union === 1) return "union: multiple values";
-          properties.union = 1;
-          {
-            let error = $root.market.mass.CartAbandoned.verify(
-              message.cartAbandoned,
-            );
-            if (error) return "cartAbandoned." + error;
-          }
-        }
-        if (
-          message.changeStock != null &&
-          message.hasOwnProperty("changeStock")
-        ) {
-          if (properties.union === 1) return "union: multiple values";
-          properties.union = 1;
-          {
-            let error = $root.market.mass.ChangeStock.verify(
-              message.changeStock,
-            );
-            if (error) return "changeStock." + error;
-          }
-        }
-        if (
-          message.newKeyCard != null &&
-          message.hasOwnProperty("newKeyCard")
-        ) {
-          if (properties.union === 1) return "union: multiple values";
-          properties.union = 1;
-          {
-            let error = $root.market.mass.NewKeyCard.verify(message.newKeyCard);
-            if (error) return "newKeyCard." + error;
-          }
-        }
-        return null;
-      };
-
-      /**
-       * Creates an Event message from a plain object. Also converts values to their respective internal types.
-       * @function fromObject
-       * @memberof market.mass.Event
-       * @static
-       * @param {Object.<string,*>} object Plain object
-       * @returns {market.mass.Event} Event
-       */
-      Event.fromObject = function fromObject(object) {
-        if (object instanceof $root.market.mass.Event) return object;
-        let message = new $root.market.mass.Event();
-        if (object.signature != null)
-          if (typeof object.signature === "string")
-            $util.base64.decode(
-              object.signature,
-              (message.signature = $util.newBuffer(
-                $util.base64.length(object.signature),
-              )),
-              0,
-            );
-          else if (object.signature.length >= 0)
-            message.signature = object.signature;
-        if (object.storeManifest != null) {
-          if (typeof object.storeManifest !== "object")
-            throw TypeError(
-              ".market.mass.Event.storeManifest: object expected",
-            );
-          message.storeManifest = $root.market.mass.StoreManifest.fromObject(
-            object.storeManifest,
-          );
-        }
-        if (object.updateManifest != null) {
-          if (typeof object.updateManifest !== "object")
-            throw TypeError(
-              ".market.mass.Event.updateManifest: object expected",
-            );
-          message.updateManifest = $root.market.mass.UpdateManifest.fromObject(
-            object.updateManifest,
-          );
-        }
-        if (object.createItem != null) {
-          if (typeof object.createItem !== "object")
-            throw TypeError(".market.mass.Event.createItem: object expected");
-          message.createItem = $root.market.mass.CreateItem.fromObject(
-            object.createItem,
-          );
-        }
-        if (object.updateItem != null) {
-          if (typeof object.updateItem !== "object")
-            throw TypeError(".market.mass.Event.updateItem: object expected");
-          message.updateItem = $root.market.mass.UpdateItem.fromObject(
-            object.updateItem,
-          );
-        }
-        if (object.createTag != null) {
-          if (typeof object.createTag !== "object")
-            throw TypeError(".market.mass.Event.createTag: object expected");
-          message.createTag = $root.market.mass.CreateTag.fromObject(
-            object.createTag,
-          );
-        }
-        if (object.addToTag != null) {
-          if (typeof object.addToTag !== "object")
-            throw TypeError(".market.mass.Event.addToTag: object expected");
-          message.addToTag = $root.market.mass.AddToTag.fromObject(
-            object.addToTag,
-          );
-        }
-        if (object.removeFromTag != null) {
-          if (typeof object.removeFromTag !== "object")
-            throw TypeError(
-              ".market.mass.Event.removeFromTag: object expected",
-            );
-          message.removeFromTag = $root.market.mass.RemoveFromTag.fromObject(
-            object.removeFromTag,
-          );
-        }
-        if (object.renameTag != null) {
-          if (typeof object.renameTag !== "object")
-            throw TypeError(".market.mass.Event.renameTag: object expected");
-          message.renameTag = $root.market.mass.RenameTag.fromObject(
-            object.renameTag,
-          );
-        }
-        if (object.deleteTag != null) {
-          if (typeof object.deleteTag !== "object")
-            throw TypeError(".market.mass.Event.deleteTag: object expected");
-          message.deleteTag = $root.market.mass.DeleteTag.fromObject(
-            object.deleteTag,
-          );
-        }
-        if (object.createCart != null) {
-          if (typeof object.createCart !== "object")
-            throw TypeError(".market.mass.Event.createCart: object expected");
-          message.createCart = $root.market.mass.CreateCart.fromObject(
-            object.createCart,
-          );
-        }
-        if (object.changeCart != null) {
-          if (typeof object.changeCart !== "object")
-            throw TypeError(".market.mass.Event.changeCart: object expected");
-          message.changeCart = $root.market.mass.ChangeCart.fromObject(
-            object.changeCart,
-          );
-        }
-        if (object.cartFinalized != null) {
-          if (typeof object.cartFinalized !== "object")
-            throw TypeError(
-              ".market.mass.Event.cartFinalized: object expected",
-            );
-          message.cartFinalized = $root.market.mass.CartFinalized.fromObject(
-            object.cartFinalized,
-          );
-        }
-        if (object.cartAbandoned != null) {
-          if (typeof object.cartAbandoned !== "object")
-            throw TypeError(
-              ".market.mass.Event.cartAbandoned: object expected",
-            );
-          message.cartAbandoned = $root.market.mass.CartAbandoned.fromObject(
-            object.cartAbandoned,
-          );
-        }
-        if (object.changeStock != null) {
-          if (typeof object.changeStock !== "object")
-            throw TypeError(".market.mass.Event.changeStock: object expected");
-          message.changeStock = $root.market.mass.ChangeStock.fromObject(
-            object.changeStock,
-          );
-        }
-        if (object.newKeyCard != null) {
-          if (typeof object.newKeyCard !== "object")
-            throw TypeError(".market.mass.Event.newKeyCard: object expected");
-          message.newKeyCard = $root.market.mass.NewKeyCard.fromObject(
-            object.newKeyCard,
-          );
-        }
-        return message;
-      };
-
-      /**
-       * Creates a plain object from an Event message. Also converts values to other types if specified.
-       * @function toObject
-       * @memberof market.mass.Event
-       * @static
-       * @param {market.mass.Event} message Event
-       * @param {$protobuf.IConversionOptions} [options] Conversion options
-       * @returns {Object.<string,*>} Plain object
-       */
-      Event.toObject = function toObject(message, options) {
-        if (!options) options = {};
-        let object = {};
-        if (options.defaults)
-          if (options.bytes === String) object.signature = "";
-          else {
-            object.signature = [];
-            if (options.bytes !== Array)
-              object.signature = $util.newBuffer(object.signature);
-          }
-        if (message.signature != null && message.hasOwnProperty("signature"))
-          object.signature =
-            options.bytes === String
-              ? $util.base64.encode(
-                  message.signature,
-                  0,
-                  message.signature.length,
-                )
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.signature)
-                : message.signature;
-        if (
-          message.storeManifest != null &&
-          message.hasOwnProperty("storeManifest")
-        ) {
-          object.storeManifest = $root.market.mass.StoreManifest.toObject(
-            message.storeManifest,
-            options,
-          );
-          if (options.oneofs) object.union = "storeManifest";
-        }
-        if (
-          message.updateManifest != null &&
-          message.hasOwnProperty("updateManifest")
-        ) {
-          object.updateManifest = $root.market.mass.UpdateManifest.toObject(
-            message.updateManifest,
-            options,
-          );
-          if (options.oneofs) object.union = "updateManifest";
-        }
-        if (
-          message.createItem != null &&
-          message.hasOwnProperty("createItem")
-        ) {
-          object.createItem = $root.market.mass.CreateItem.toObject(
-            message.createItem,
-            options,
-          );
-          if (options.oneofs) object.union = "createItem";
-        }
-        if (
-          message.updateItem != null &&
-          message.hasOwnProperty("updateItem")
-        ) {
-          object.updateItem = $root.market.mass.UpdateItem.toObject(
-            message.updateItem,
-            options,
-          );
-          if (options.oneofs) object.union = "updateItem";
-        }
-        if (message.createTag != null && message.hasOwnProperty("createTag")) {
-          object.createTag = $root.market.mass.CreateTag.toObject(
-            message.createTag,
-            options,
-          );
-          if (options.oneofs) object.union = "createTag";
-        }
-        if (message.addToTag != null && message.hasOwnProperty("addToTag")) {
-          object.addToTag = $root.market.mass.AddToTag.toObject(
-            message.addToTag,
-            options,
-          );
-          if (options.oneofs) object.union = "addToTag";
-        }
-        if (
-          message.removeFromTag != null &&
-          message.hasOwnProperty("removeFromTag")
-        ) {
-          object.removeFromTag = $root.market.mass.RemoveFromTag.toObject(
-            message.removeFromTag,
-            options,
-          );
-          if (options.oneofs) object.union = "removeFromTag";
-        }
-        if (message.renameTag != null && message.hasOwnProperty("renameTag")) {
-          object.renameTag = $root.market.mass.RenameTag.toObject(
-            message.renameTag,
-            options,
-          );
-          if (options.oneofs) object.union = "renameTag";
-        }
-        if (message.deleteTag != null && message.hasOwnProperty("deleteTag")) {
-          object.deleteTag = $root.market.mass.DeleteTag.toObject(
-            message.deleteTag,
-            options,
-          );
-          if (options.oneofs) object.union = "deleteTag";
-        }
-        if (
-          message.createCart != null &&
-          message.hasOwnProperty("createCart")
-        ) {
-          object.createCart = $root.market.mass.CreateCart.toObject(
-            message.createCart,
-            options,
-          );
-          if (options.oneofs) object.union = "createCart";
-        }
-        if (
-          message.changeCart != null &&
-          message.hasOwnProperty("changeCart")
-        ) {
-          object.changeCart = $root.market.mass.ChangeCart.toObject(
-            message.changeCart,
-            options,
-          );
-          if (options.oneofs) object.union = "changeCart";
-        }
-        if (
-          message.changeStock != null &&
-          message.hasOwnProperty("changeStock")
-        ) {
-          object.changeStock = $root.market.mass.ChangeStock.toObject(
-            message.changeStock,
-            options,
-          );
-          if (options.oneofs) object.union = "changeStock";
-        }
-        if (
-          message.newKeyCard != null &&
-          message.hasOwnProperty("newKeyCard")
-        ) {
-          object.newKeyCard = $root.market.mass.NewKeyCard.toObject(
-            message.newKeyCard,
-            options,
-          );
-          if (options.oneofs) object.union = "newKeyCard";
-        }
-        if (
-          message.cartFinalized != null &&
-          message.hasOwnProperty("cartFinalized")
-        ) {
-          object.cartFinalized = $root.market.mass.CartFinalized.toObject(
-            message.cartFinalized,
-            options,
-          );
-          if (options.oneofs) object.union = "cartFinalized";
-        }
-        if (
-          message.cartAbandoned != null &&
-          message.hasOwnProperty("cartAbandoned")
-        ) {
-          object.cartAbandoned = $root.market.mass.CartAbandoned.toObject(
-            message.cartAbandoned,
-            options,
-          );
-          if (options.oneofs) object.union = "cartAbandoned";
-        }
-        return object;
-      };
-
-      /**
-       * Converts this Event to JSON.
-       * @function toJSON
-       * @memberof market.mass.Event
-       * @instance
-       * @returns {Object.<string,*>} JSON object
-       */
-      Event.prototype.toJSON = function toJSON() {
-        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-      };
-
-      /**
-       * Gets the default type url for Event
-       * @function getTypeUrl
-       * @memberof market.mass.Event
-       * @static
-       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-       * @returns {string} The default type url
-       */
-      Event.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-        if (typeUrlPrefix === undefined) {
-          typeUrlPrefix = "type.googleapis.com";
-        }
-        return typeUrlPrefix + "/market.mass.Event";
-      };
-
-      return Event;
-    })();
+    var mass = {};
 
     mass.AuthenticateRequest = (function () {
       /**
@@ -6348,7 +45,7 @@ export const market = ($root.market = (() => {
        */
       function AuthenticateRequest(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -6434,10 +131,10 @@ export const market = ($root.market = (() => {
        */
       AuthenticateRequest.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.AuthenticateRequest();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -6513,7 +210,7 @@ export const market = ($root.market = (() => {
       AuthenticateRequest.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.AuthenticateRequest)
           return object;
-        let message = new $root.market.mass.AuthenticateRequest();
+        var message = new $root.market.mass.AuthenticateRequest();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -6550,7 +247,7 @@ export const market = ($root.market = (() => {
        */
       AuthenticateRequest.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.requestId = "";
           else {
@@ -6639,7 +336,7 @@ export const market = ($root.market = (() => {
        */
       function AuthenticateResponse(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -6741,10 +438,10 @@ export const market = ($root.market = (() => {
        */
       AuthenticateResponse.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.AuthenticateResponse();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -6805,7 +502,7 @@ export const market = ($root.market = (() => {
           )
             return "requestId: buffer expected";
         if (message.error != null && message.hasOwnProperty("error")) {
-          let error = $root.market.mass.Error.verify(message.error);
+          var error = $root.market.mass.Error.verify(message.error);
           if (error) return "error." + error;
         }
         if (message.challenge != null && message.hasOwnProperty("challenge"))
@@ -6831,7 +528,7 @@ export const market = ($root.market = (() => {
       AuthenticateResponse.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.AuthenticateResponse)
           return object;
-        let message = new $root.market.mass.AuthenticateResponse();
+        var message = new $root.market.mass.AuthenticateResponse();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -6875,7 +572,7 @@ export const market = ($root.market = (() => {
        */
       AuthenticateResponse.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.requestId = "";
           else {
@@ -6969,7 +666,7 @@ export const market = ($root.market = (() => {
        */
       function ChallengeSolvedRequest(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -7055,10 +752,10 @@ export const market = ($root.market = (() => {
        */
       ChallengeSolvedRequest.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.ChallengeSolvedRequest();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -7136,7 +833,7 @@ export const market = ($root.market = (() => {
       ChallengeSolvedRequest.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.ChallengeSolvedRequest)
           return object;
-        let message = new $root.market.mass.ChallengeSolvedRequest();
+        var message = new $root.market.mass.ChallengeSolvedRequest();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -7173,7 +870,7 @@ export const market = ($root.market = (() => {
        */
       ChallengeSolvedRequest.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.requestId = "";
           else {
@@ -7261,7 +958,7 @@ export const market = ($root.market = (() => {
        */
       function ChallengeSolvedResponse(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -7350,10 +1047,10 @@ export const market = ($root.market = (() => {
        */
       ChallengeSolvedResponse.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.ChallengeSolvedResponse();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -7412,7 +1109,7 @@ export const market = ($root.market = (() => {
           )
             return "requestId: buffer expected";
         if (message.error != null && message.hasOwnProperty("error")) {
-          let error = $root.market.mass.Error.verify(message.error);
+          var error = $root.market.mass.Error.verify(message.error);
           if (error) return "error." + error;
         }
         return null;
@@ -7429,7 +1126,7 @@ export const market = ($root.market = (() => {
       ChallengeSolvedResponse.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.ChallengeSolvedResponse)
           return object;
-        let message = new $root.market.mass.ChallengeSolvedResponse();
+        var message = new $root.market.mass.ChallengeSolvedResponse();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -7462,7 +1159,7 @@ export const market = ($root.market = (() => {
        */
       ChallengeSolvedResponse.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.requestId = "";
           else {
@@ -7520,158 +1217,116 @@ export const market = ($root.market = (() => {
       return ChallengeSolvedResponse;
     })();
 
-    mass.CommitCartRequest = (function () {
+    mass.Error = (function () {
       /**
-       * Properties of a CommitCartRequest.
+       * Properties of an Error.
        * @memberof market.mass
-       * @interface ICommitCartRequest
-       * @property {Uint8Array|null} [requestId] CommitCartRequest requestId
-       * @property {Uint8Array|null} [cartId] CommitCartRequest cartId
-       * @property {Uint8Array|null} [erc20Addr] CommitCartRequest erc20Addr
-       * @property {Uint8Array|null} [escrowAddr] CommitCartRequest escrowAddr
+       * @interface IError
+       * @property {market.mass.ErrorCodes|null} [code] Error code
+       * @property {string|null} [message] Error message
        */
 
       /**
-       * Constructs a new CommitCartRequest.
+       * Constructs a new Error.
        * @memberof market.mass
-       * @classdesc Represents a CommitCartRequest.
-       * @implements ICommitCartRequest
+       * @classdesc Represents an Error.
+       * @implements IError
        * @constructor
-       * @param {market.mass.ICommitCartRequest=} [properties] Properties to set
+       * @param {market.mass.IError=} [properties] Properties to set
        */
-      function CommitCartRequest(properties) {
+      function Error(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
 
       /**
-       * CommitCartRequest requestId.
-       * @member {Uint8Array} requestId
-       * @memberof market.mass.CommitCartRequest
+       * Error code.
+       * @member {market.mass.ErrorCodes} code
+       * @memberof market.mass.Error
        * @instance
        */
-      CommitCartRequest.prototype.requestId = $util.newBuffer([]);
+      Error.prototype.code = 0;
 
       /**
-       * CommitCartRequest cartId.
-       * @member {Uint8Array} cartId
-       * @memberof market.mass.CommitCartRequest
+       * Error message.
+       * @member {string} message
+       * @memberof market.mass.Error
        * @instance
        */
-      CommitCartRequest.prototype.cartId = $util.newBuffer([]);
+      Error.prototype.message = "";
 
       /**
-       * CommitCartRequest erc20Addr.
-       * @member {Uint8Array} erc20Addr
-       * @memberof market.mass.CommitCartRequest
-       * @instance
-       */
-      CommitCartRequest.prototype.erc20Addr = $util.newBuffer([]);
-
-      /**
-       * CommitCartRequest escrowAddr.
-       * @member {Uint8Array} escrowAddr
-       * @memberof market.mass.CommitCartRequest
-       * @instance
-       */
-      CommitCartRequest.prototype.escrowAddr = $util.newBuffer([]);
-
-      /**
-       * Creates a new CommitCartRequest instance using the specified properties.
+       * Creates a new Error instance using the specified properties.
        * @function create
-       * @memberof market.mass.CommitCartRequest
+       * @memberof market.mass.Error
        * @static
-       * @param {market.mass.ICommitCartRequest=} [properties] Properties to set
-       * @returns {market.mass.CommitCartRequest} CommitCartRequest instance
+       * @param {market.mass.IError=} [properties] Properties to set
+       * @returns {market.mass.Error} Error instance
        */
-      CommitCartRequest.create = function create(properties) {
-        return new CommitCartRequest(properties);
+      Error.create = function create(properties) {
+        return new Error(properties);
       };
 
       /**
-       * Encodes the specified CommitCartRequest message. Does not implicitly {@link market.mass.CommitCartRequest.verify|verify} messages.
+       * Encodes the specified Error message. Does not implicitly {@link market.mass.Error.verify|verify} messages.
        * @function encode
-       * @memberof market.mass.CommitCartRequest
+       * @memberof market.mass.Error
        * @static
-       * @param {market.mass.ICommitCartRequest} message CommitCartRequest message or plain object to encode
+       * @param {market.mass.IError} message Error message or plain object to encode
        * @param {$protobuf.Writer} [writer] Writer to encode to
        * @returns {$protobuf.Writer} Writer
        */
-      CommitCartRequest.encode = function encode(message, writer) {
+      Error.encode = function encode(message, writer) {
         if (!writer) writer = $Writer.create();
+        if (message.code != null && Object.hasOwnProperty.call(message, "code"))
+          writer.uint32(/* id 1, wireType 0 =*/ 8).int32(message.code);
         if (
-          message.requestId != null &&
-          Object.hasOwnProperty.call(message, "requestId")
+          message.message != null &&
+          Object.hasOwnProperty.call(message, "message")
         )
-          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.requestId);
-        if (
-          message.cartId != null &&
-          Object.hasOwnProperty.call(message, "cartId")
-        )
-          writer.uint32(/* id 2, wireType 2 =*/ 18).bytes(message.cartId);
-        if (
-          message.erc20Addr != null &&
-          Object.hasOwnProperty.call(message, "erc20Addr")
-        )
-          writer.uint32(/* id 3, wireType 2 =*/ 26).bytes(message.erc20Addr);
-        if (
-          message.escrowAddr != null &&
-          Object.hasOwnProperty.call(message, "escrowAddr")
-        )
-          writer.uint32(/* id 4, wireType 2 =*/ 34).bytes(message.escrowAddr);
+          writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.message);
         return writer;
       };
 
       /**
-       * Encodes the specified CommitCartRequest message, length delimited. Does not implicitly {@link market.mass.CommitCartRequest.verify|verify} messages.
+       * Encodes the specified Error message, length delimited. Does not implicitly {@link market.mass.Error.verify|verify} messages.
        * @function encodeDelimited
-       * @memberof market.mass.CommitCartRequest
+       * @memberof market.mass.Error
        * @static
-       * @param {market.mass.ICommitCartRequest} message CommitCartRequest message or plain object to encode
+       * @param {market.mass.IError} message Error message or plain object to encode
        * @param {$protobuf.Writer} [writer] Writer to encode to
        * @returns {$protobuf.Writer} Writer
        */
-      CommitCartRequest.encodeDelimited = function encodeDelimited(
-        message,
-        writer,
-      ) {
+      Error.encodeDelimited = function encodeDelimited(message, writer) {
         return this.encode(message, writer).ldelim();
       };
 
       /**
-       * Decodes a CommitCartRequest message from the specified reader or buffer.
+       * Decodes an Error message from the specified reader or buffer.
        * @function decode
-       * @memberof market.mass.CommitCartRequest
+       * @memberof market.mass.Error
        * @static
        * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
        * @param {number} [length] Message length if known beforehand
-       * @returns {market.mass.CommitCartRequest} CommitCartRequest
+       * @returns {market.mass.Error} Error
        * @throws {Error} If the payload is not a reader or valid buffer
        * @throws {$protobuf.util.ProtocolError} If required fields are missing
        */
-      CommitCartRequest.decode = function decode(reader, length) {
+      Error.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
-          message = new $root.market.mass.CommitCartRequest();
+        var end = length === undefined ? reader.len : reader.pos + length,
+          message = new $root.market.mass.Error();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
-              message.requestId = reader.bytes();
+              message.code = reader.int32();
               break;
             }
             case 2: {
-              message.cartId = reader.bytes();
-              break;
-            }
-            case 3: {
-              message.erc20Addr = reader.bytes();
-              break;
-            }
-            case 4: {
-              message.escrowAddr = reader.bytes();
+              message.message = reader.string();
               break;
             }
             default:
@@ -7683,29 +1338,6344 @@ export const market = ($root.market = (() => {
       };
 
       /**
-       * Decodes a CommitCartRequest message from the specified reader or buffer, length delimited.
+       * Decodes an Error message from the specified reader or buffer, length delimited.
        * @function decodeDelimited
-       * @memberof market.mass.CommitCartRequest
+       * @memberof market.mass.Error
        * @static
        * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @returns {market.mass.CommitCartRequest} CommitCartRequest
+       * @returns {market.mass.Error} Error
        * @throws {Error} If the payload is not a reader or valid buffer
        * @throws {$protobuf.util.ProtocolError} If required fields are missing
        */
-      CommitCartRequest.decodeDelimited = function decodeDelimited(reader) {
+      Error.decodeDelimited = function decodeDelimited(reader) {
         if (!(reader instanceof $Reader)) reader = new $Reader(reader);
         return this.decode(reader, reader.uint32());
       };
 
       /**
-       * Verifies a CommitCartRequest message.
+       * Verifies an Error message.
        * @function verify
-       * @memberof market.mass.CommitCartRequest
+       * @memberof market.mass.Error
        * @static
        * @param {Object.<string,*>} message Plain object to verify
        * @returns {string|null} `null` if valid, otherwise the reason why it is not
        */
-      CommitCartRequest.verify = function verify(message) {
+      Error.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+          return "object expected";
+        if (message.code != null && message.hasOwnProperty("code"))
+          switch (message.code) {
+            default:
+              return "code: enum value expected";
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+            case 8:
+            case 9:
+            case 10:
+              break;
+          }
+        if (message.message != null && message.hasOwnProperty("message"))
+          if (!$util.isString(message.message))
+            return "message: string expected";
+        return null;
+      };
+
+      /**
+       * Creates an Error message from a plain object. Also converts values to their respective internal types.
+       * @function fromObject
+       * @memberof market.mass.Error
+       * @static
+       * @param {Object.<string,*>} object Plain object
+       * @returns {market.mass.Error} Error
+       */
+      Error.fromObject = function fromObject(object) {
+        if (object instanceof $root.market.mass.Error) return object;
+        var message = new $root.market.mass.Error();
+        switch (object.code) {
+          default:
+            if (typeof object.code === "number") {
+              message.code = object.code;
+              break;
+            }
+            break;
+          case "ERROR_CODES_UNSPECIFIED":
+          case 0:
+            message.code = 0;
+            break;
+          case "ERROR_CODES_NOT_FOUND":
+          case 1:
+            message.code = 1;
+            break;
+          case "ERROR_CODES_INVALID":
+          case 2:
+            message.code = 2;
+            break;
+          case "ERROR_CODES_NOT_AUTHENTICATED":
+          case 3:
+            message.code = 3;
+            break;
+          case "ERROR_CODES_ALREADY_AUTHENTICATED":
+          case 4:
+            message.code = 4;
+            break;
+          case "ERROR_CODES_ALREADY_CONNECTED":
+          case 5:
+            message.code = 5;
+            break;
+          case "ERROR_CODES_TOO_MANY_CONCURRENT_REQUESTS":
+          case 6:
+            message.code = 6;
+            break;
+          case "ERROR_CODES_UNLINKED_KEYCARD":
+          case 7:
+            message.code = 7;
+            break;
+          case "ERROR_CODES_MINUMUM_VERSION_NOT_REACHED":
+          case 8:
+            message.code = 8;
+            break;
+          case "ERROR_CODES_OUT_OF_STOCK":
+          case 9:
+            message.code = 9;
+            break;
+          case "ERROR_CODES_SIMULATED":
+          case 10:
+            message.code = 10;
+            break;
+        }
+        if (object.message != null) message.message = String(object.message);
+        return message;
+      };
+
+      /**
+       * Creates a plain object from an Error message. Also converts values to other types if specified.
+       * @function toObject
+       * @memberof market.mass.Error
+       * @static
+       * @param {market.mass.Error} message Error
+       * @param {$protobuf.IConversionOptions} [options] Conversion options
+       * @returns {Object.<string,*>} Plain object
+       */
+      Error.toObject = function toObject(message, options) {
+        if (!options) options = {};
+        var object = {};
+        if (options.defaults) {
+          object.code =
+            options.enums === String ? "ERROR_CODES_UNSPECIFIED" : 0;
+          object.message = "";
+        }
+        if (message.code != null && message.hasOwnProperty("code"))
+          object.code =
+            options.enums === String
+              ? $root.market.mass.ErrorCodes[message.code] === undefined
+                ? message.code
+                : $root.market.mass.ErrorCodes[message.code]
+              : message.code;
+        if (message.message != null && message.hasOwnProperty("message"))
+          object.message = message.message;
+        return object;
+      };
+
+      /**
+       * Converts this Error to JSON.
+       * @function toJSON
+       * @memberof market.mass.Error
+       * @instance
+       * @returns {Object.<string,*>} JSON object
+       */
+      Error.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+      };
+
+      /**
+       * Gets the default type url for Error
+       * @function getTypeUrl
+       * @memberof market.mass.Error
+       * @static
+       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+       * @returns {string} The default type url
+       */
+      Error.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        if (typeUrlPrefix === undefined) {
+          typeUrlPrefix = "type.googleapis.com";
+        }
+        return typeUrlPrefix + "/market.mass.Error";
+      };
+
+      return Error;
+    })();
+
+    /**
+     * ErrorCodes enum.
+     * @name market.mass.ErrorCodes
+     * @enum {number}
+     * @property {number} ERROR_CODES_UNSPECIFIED=0 ERROR_CODES_UNSPECIFIED value
+     * @property {number} ERROR_CODES_NOT_FOUND=1 ERROR_CODES_NOT_FOUND value
+     * @property {number} ERROR_CODES_INVALID=2 ERROR_CODES_INVALID value
+     * @property {number} ERROR_CODES_NOT_AUTHENTICATED=3 ERROR_CODES_NOT_AUTHENTICATED value
+     * @property {number} ERROR_CODES_ALREADY_AUTHENTICATED=4 ERROR_CODES_ALREADY_AUTHENTICATED value
+     * @property {number} ERROR_CODES_ALREADY_CONNECTED=5 ERROR_CODES_ALREADY_CONNECTED value
+     * @property {number} ERROR_CODES_TOO_MANY_CONCURRENT_REQUESTS=6 ERROR_CODES_TOO_MANY_CONCURRENT_REQUESTS value
+     * @property {number} ERROR_CODES_UNLINKED_KEYCARD=7 ERROR_CODES_UNLINKED_KEYCARD value
+     * @property {number} ERROR_CODES_MINUMUM_VERSION_NOT_REACHED=8 ERROR_CODES_MINUMUM_VERSION_NOT_REACHED value
+     * @property {number} ERROR_CODES_OUT_OF_STOCK=9 ERROR_CODES_OUT_OF_STOCK value
+     * @property {number} ERROR_CODES_SIMULATED=10 ERROR_CODES_SIMULATED value
+     */
+    mass.ErrorCodes = (function () {
+      var valuesById = {},
+        values = Object.create(valuesById);
+      values[(valuesById[0] = "ERROR_CODES_UNSPECIFIED")] = 0;
+      values[(valuesById[1] = "ERROR_CODES_NOT_FOUND")] = 1;
+      values[(valuesById[2] = "ERROR_CODES_INVALID")] = 2;
+      values[(valuesById[3] = "ERROR_CODES_NOT_AUTHENTICATED")] = 3;
+      values[(valuesById[4] = "ERROR_CODES_ALREADY_AUTHENTICATED")] = 4;
+      values[(valuesById[5] = "ERROR_CODES_ALREADY_CONNECTED")] = 5;
+      values[(valuesById[6] = "ERROR_CODES_TOO_MANY_CONCURRENT_REQUESTS")] = 6;
+      values[(valuesById[7] = "ERROR_CODES_UNLINKED_KEYCARD")] = 7;
+      values[(valuesById[8] = "ERROR_CODES_MINUMUM_VERSION_NOT_REACHED")] = 8;
+      values[(valuesById[9] = "ERROR_CODES_OUT_OF_STOCK")] = 9;
+      values[(valuesById[10] = "ERROR_CODES_SIMULATED")] = 10;
+      return values;
+    })();
+
+    mass.ShopManifest = (function () {
+      /**
+       * Properties of a ShopManifest.
+       * @memberof market.mass
+       * @interface IShopManifest
+       * @property {Uint8Array|null} [eventId] ShopManifest eventId
+       * @property {Uint8Array|null} [shopTokenId] ShopManifest shopTokenId
+       * @property {string|null} [domain] ShopManifest domain
+       * @property {Uint8Array|null} [publishedTagId] ShopManifest publishedTagId
+       * @property {string|null} [name] ShopManifest name
+       * @property {string|null} [description] ShopManifest description
+       * @property {string|null} [profilePictureUrl] ShopManifest profilePictureUrl
+       */
+
+      /**
+       * Constructs a new ShopManifest.
+       * @memberof market.mass
+       * @classdesc Represents a ShopManifest.
+       * @implements IShopManifest
+       * @constructor
+       * @param {market.mass.IShopManifest=} [properties] Properties to set
+       */
+      function ShopManifest(properties) {
+        if (properties)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+            if (properties[keys[i]] != null)
+              this[keys[i]] = properties[keys[i]];
+      }
+
+      /**
+       * ShopManifest eventId.
+       * @member {Uint8Array} eventId
+       * @memberof market.mass.ShopManifest
+       * @instance
+       */
+      ShopManifest.prototype.eventId = $util.newBuffer([]);
+
+      /**
+       * ShopManifest shopTokenId.
+       * @member {Uint8Array} shopTokenId
+       * @memberof market.mass.ShopManifest
+       * @instance
+       */
+      ShopManifest.prototype.shopTokenId = $util.newBuffer([]);
+
+      /**
+       * ShopManifest domain.
+       * @member {string} domain
+       * @memberof market.mass.ShopManifest
+       * @instance
+       */
+      ShopManifest.prototype.domain = "";
+
+      /**
+       * ShopManifest publishedTagId.
+       * @member {Uint8Array} publishedTagId
+       * @memberof market.mass.ShopManifest
+       * @instance
+       */
+      ShopManifest.prototype.publishedTagId = $util.newBuffer([]);
+
+      /**
+       * ShopManifest name.
+       * @member {string} name
+       * @memberof market.mass.ShopManifest
+       * @instance
+       */
+      ShopManifest.prototype.name = "";
+
+      /**
+       * ShopManifest description.
+       * @member {string} description
+       * @memberof market.mass.ShopManifest
+       * @instance
+       */
+      ShopManifest.prototype.description = "";
+
+      /**
+       * ShopManifest profilePictureUrl.
+       * @member {string} profilePictureUrl
+       * @memberof market.mass.ShopManifest
+       * @instance
+       */
+      ShopManifest.prototype.profilePictureUrl = "";
+
+      /**
+       * Creates a new ShopManifest instance using the specified properties.
+       * @function create
+       * @memberof market.mass.ShopManifest
+       * @static
+       * @param {market.mass.IShopManifest=} [properties] Properties to set
+       * @returns {market.mass.ShopManifest} ShopManifest instance
+       */
+      ShopManifest.create = function create(properties) {
+        return new ShopManifest(properties);
+      };
+
+      /**
+       * Encodes the specified ShopManifest message. Does not implicitly {@link market.mass.ShopManifest.verify|verify} messages.
+       * @function encode
+       * @memberof market.mass.ShopManifest
+       * @static
+       * @param {market.mass.IShopManifest} message ShopManifest message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      ShopManifest.encode = function encode(message, writer) {
+        if (!writer) writer = $Writer.create();
+        if (
+          message.eventId != null &&
+          Object.hasOwnProperty.call(message, "eventId")
+        )
+          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.eventId);
+        if (
+          message.shopTokenId != null &&
+          Object.hasOwnProperty.call(message, "shopTokenId")
+        )
+          writer.uint32(/* id 2, wireType 2 =*/ 18).bytes(message.shopTokenId);
+        if (
+          message.domain != null &&
+          Object.hasOwnProperty.call(message, "domain")
+        )
+          writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.domain);
+        if (
+          message.publishedTagId != null &&
+          Object.hasOwnProperty.call(message, "publishedTagId")
+        )
+          writer
+            .uint32(/* id 4, wireType 2 =*/ 34)
+            .bytes(message.publishedTagId);
+        if (message.name != null && Object.hasOwnProperty.call(message, "name"))
+          writer.uint32(/* id 5, wireType 2 =*/ 42).string(message.name);
+        if (
+          message.description != null &&
+          Object.hasOwnProperty.call(message, "description")
+        )
+          writer.uint32(/* id 6, wireType 2 =*/ 50).string(message.description);
+        if (
+          message.profilePictureUrl != null &&
+          Object.hasOwnProperty.call(message, "profilePictureUrl")
+        )
+          writer
+            .uint32(/* id 7, wireType 2 =*/ 58)
+            .string(message.profilePictureUrl);
+        return writer;
+      };
+
+      /**
+       * Encodes the specified ShopManifest message, length delimited. Does not implicitly {@link market.mass.ShopManifest.verify|verify} messages.
+       * @function encodeDelimited
+       * @memberof market.mass.ShopManifest
+       * @static
+       * @param {market.mass.IShopManifest} message ShopManifest message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      ShopManifest.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+      };
+
+      /**
+       * Decodes a ShopManifest message from the specified reader or buffer.
+       * @function decode
+       * @memberof market.mass.ShopManifest
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @param {number} [length] Message length if known beforehand
+       * @returns {market.mass.ShopManifest} ShopManifest
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      ShopManifest.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length,
+          message = new $root.market.mass.ShopManifest();
+        while (reader.pos < end) {
+          var tag = reader.uint32();
+          switch (tag >>> 3) {
+            case 1: {
+              message.eventId = reader.bytes();
+              break;
+            }
+            case 2: {
+              message.shopTokenId = reader.bytes();
+              break;
+            }
+            case 3: {
+              message.domain = reader.string();
+              break;
+            }
+            case 4: {
+              message.publishedTagId = reader.bytes();
+              break;
+            }
+            case 5: {
+              message.name = reader.string();
+              break;
+            }
+            case 6: {
+              message.description = reader.string();
+              break;
+            }
+            case 7: {
+              message.profilePictureUrl = reader.string();
+              break;
+            }
+            default:
+              reader.skipType(tag & 7);
+              break;
+          }
+        }
+        return message;
+      };
+
+      /**
+       * Decodes a ShopManifest message from the specified reader or buffer, length delimited.
+       * @function decodeDelimited
+       * @memberof market.mass.ShopManifest
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @returns {market.mass.ShopManifest} ShopManifest
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      ShopManifest.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+      };
+
+      /**
+       * Verifies a ShopManifest message.
+       * @function verify
+       * @memberof market.mass.ShopManifest
+       * @static
+       * @param {Object.<string,*>} message Plain object to verify
+       * @returns {string|null} `null` if valid, otherwise the reason why it is not
+       */
+      ShopManifest.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+          return "object expected";
+        if (message.eventId != null && message.hasOwnProperty("eventId"))
+          if (
+            !(
+              (message.eventId && typeof message.eventId.length === "number") ||
+              $util.isString(message.eventId)
+            )
+          )
+            return "eventId: buffer expected";
+        if (
+          message.shopTokenId != null &&
+          message.hasOwnProperty("shopTokenId")
+        )
+          if (
+            !(
+              (message.shopTokenId &&
+                typeof message.shopTokenId.length === "number") ||
+              $util.isString(message.shopTokenId)
+            )
+          )
+            return "shopTokenId: buffer expected";
+        if (message.domain != null && message.hasOwnProperty("domain"))
+          if (!$util.isString(message.domain)) return "domain: string expected";
+        if (
+          message.publishedTagId != null &&
+          message.hasOwnProperty("publishedTagId")
+        )
+          if (
+            !(
+              (message.publishedTagId &&
+                typeof message.publishedTagId.length === "number") ||
+              $util.isString(message.publishedTagId)
+            )
+          )
+            return "publishedTagId: buffer expected";
+        if (message.name != null && message.hasOwnProperty("name"))
+          if (!$util.isString(message.name)) return "name: string expected";
+        if (
+          message.description != null &&
+          message.hasOwnProperty("description")
+        )
+          if (!$util.isString(message.description))
+            return "description: string expected";
+        if (
+          message.profilePictureUrl != null &&
+          message.hasOwnProperty("profilePictureUrl")
+        )
+          if (!$util.isString(message.profilePictureUrl))
+            return "profilePictureUrl: string expected";
+        return null;
+      };
+
+      /**
+       * Creates a ShopManifest message from a plain object. Also converts values to their respective internal types.
+       * @function fromObject
+       * @memberof market.mass.ShopManifest
+       * @static
+       * @param {Object.<string,*>} object Plain object
+       * @returns {market.mass.ShopManifest} ShopManifest
+       */
+      ShopManifest.fromObject = function fromObject(object) {
+        if (object instanceof $root.market.mass.ShopManifest) return object;
+        var message = new $root.market.mass.ShopManifest();
+        if (object.eventId != null)
+          if (typeof object.eventId === "string")
+            $util.base64.decode(
+              object.eventId,
+              (message.eventId = $util.newBuffer(
+                $util.base64.length(object.eventId),
+              )),
+              0,
+            );
+          else if (object.eventId.length >= 0) message.eventId = object.eventId;
+        if (object.shopTokenId != null)
+          if (typeof object.shopTokenId === "string")
+            $util.base64.decode(
+              object.shopTokenId,
+              (message.shopTokenId = $util.newBuffer(
+                $util.base64.length(object.shopTokenId),
+              )),
+              0,
+            );
+          else if (object.shopTokenId.length >= 0)
+            message.shopTokenId = object.shopTokenId;
+        if (object.domain != null) message.domain = String(object.domain);
+        if (object.publishedTagId != null)
+          if (typeof object.publishedTagId === "string")
+            $util.base64.decode(
+              object.publishedTagId,
+              (message.publishedTagId = $util.newBuffer(
+                $util.base64.length(object.publishedTagId),
+              )),
+              0,
+            );
+          else if (object.publishedTagId.length >= 0)
+            message.publishedTagId = object.publishedTagId;
+        if (object.name != null) message.name = String(object.name);
+        if (object.description != null)
+          message.description = String(object.description);
+        if (object.profilePictureUrl != null)
+          message.profilePictureUrl = String(object.profilePictureUrl);
+        return message;
+      };
+
+      /**
+       * Creates a plain object from a ShopManifest message. Also converts values to other types if specified.
+       * @function toObject
+       * @memberof market.mass.ShopManifest
+       * @static
+       * @param {market.mass.ShopManifest} message ShopManifest
+       * @param {$protobuf.IConversionOptions} [options] Conversion options
+       * @returns {Object.<string,*>} Plain object
+       */
+      ShopManifest.toObject = function toObject(message, options) {
+        if (!options) options = {};
+        var object = {};
+        if (options.defaults) {
+          if (options.bytes === String) object.eventId = "";
+          else {
+            object.eventId = [];
+            if (options.bytes !== Array)
+              object.eventId = $util.newBuffer(object.eventId);
+          }
+          if (options.bytes === String) object.shopTokenId = "";
+          else {
+            object.shopTokenId = [];
+            if (options.bytes !== Array)
+              object.shopTokenId = $util.newBuffer(object.shopTokenId);
+          }
+          object.domain = "";
+          if (options.bytes === String) object.publishedTagId = "";
+          else {
+            object.publishedTagId = [];
+            if (options.bytes !== Array)
+              object.publishedTagId = $util.newBuffer(object.publishedTagId);
+          }
+          object.name = "";
+          object.description = "";
+          object.profilePictureUrl = "";
+        }
+        if (message.eventId != null && message.hasOwnProperty("eventId"))
+          object.eventId =
+            options.bytes === String
+              ? $util.base64.encode(message.eventId, 0, message.eventId.length)
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.eventId)
+                : message.eventId;
+        if (
+          message.shopTokenId != null &&
+          message.hasOwnProperty("shopTokenId")
+        )
+          object.shopTokenId =
+            options.bytes === String
+              ? $util.base64.encode(
+                  message.shopTokenId,
+                  0,
+                  message.shopTokenId.length,
+                )
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.shopTokenId)
+                : message.shopTokenId;
+        if (message.domain != null && message.hasOwnProperty("domain"))
+          object.domain = message.domain;
+        if (
+          message.publishedTagId != null &&
+          message.hasOwnProperty("publishedTagId")
+        )
+          object.publishedTagId =
+            options.bytes === String
+              ? $util.base64.encode(
+                  message.publishedTagId,
+                  0,
+                  message.publishedTagId.length,
+                )
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.publishedTagId)
+                : message.publishedTagId;
+        if (message.name != null && message.hasOwnProperty("name"))
+          object.name = message.name;
+        if (
+          message.description != null &&
+          message.hasOwnProperty("description")
+        )
+          object.description = message.description;
+        if (
+          message.profilePictureUrl != null &&
+          message.hasOwnProperty("profilePictureUrl")
+        )
+          object.profilePictureUrl = message.profilePictureUrl;
+        return object;
+      };
+
+      /**
+       * Converts this ShopManifest to JSON.
+       * @function toJSON
+       * @memberof market.mass.ShopManifest
+       * @instance
+       * @returns {Object.<string,*>} JSON object
+       */
+      ShopManifest.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+      };
+
+      /**
+       * Gets the default type url for ShopManifest
+       * @function getTypeUrl
+       * @memberof market.mass.ShopManifest
+       * @static
+       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+       * @returns {string} The default type url
+       */
+      ShopManifest.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        if (typeUrlPrefix === undefined) {
+          typeUrlPrefix = "type.googleapis.com";
+        }
+        return typeUrlPrefix + "/market.mass.ShopManifest";
+      };
+
+      return ShopManifest;
+    })();
+
+    mass.UpdateShopManifest = (function () {
+      /**
+       * Properties of an UpdateShopManifest.
+       * @memberof market.mass
+       * @interface IUpdateShopManifest
+       * @property {Uint8Array|null} [eventId] UpdateShopManifest eventId
+       * @property {string|null} [domain] UpdateShopManifest domain
+       * @property {Uint8Array|null} [publishedTagId] UpdateShopManifest publishedTagId
+       * @property {Uint8Array|null} [addErc20Addr] UpdateShopManifest addErc20Addr
+       * @property {Uint8Array|null} [removeErc20Addr] UpdateShopManifest removeErc20Addr
+       * @property {string|null} [name] UpdateShopManifest name
+       * @property {string|null} [description] UpdateShopManifest description
+       * @property {string|null} [profilePictureUrl] UpdateShopManifest profilePictureUrl
+       */
+
+      /**
+       * Constructs a new UpdateShopManifest.
+       * @memberof market.mass
+       * @classdesc Represents an UpdateShopManifest.
+       * @implements IUpdateShopManifest
+       * @constructor
+       * @param {market.mass.IUpdateShopManifest=} [properties] Properties to set
+       */
+      function UpdateShopManifest(properties) {
+        if (properties)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+            if (properties[keys[i]] != null)
+              this[keys[i]] = properties[keys[i]];
+      }
+
+      /**
+       * UpdateShopManifest eventId.
+       * @member {Uint8Array} eventId
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      UpdateShopManifest.prototype.eventId = $util.newBuffer([]);
+
+      /**
+       * UpdateShopManifest domain.
+       * @member {string|null|undefined} domain
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      UpdateShopManifest.prototype.domain = null;
+
+      /**
+       * UpdateShopManifest publishedTagId.
+       * @member {Uint8Array|null|undefined} publishedTagId
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      UpdateShopManifest.prototype.publishedTagId = null;
+
+      /**
+       * UpdateShopManifest addErc20Addr.
+       * @member {Uint8Array|null|undefined} addErc20Addr
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      UpdateShopManifest.prototype.addErc20Addr = null;
+
+      /**
+       * UpdateShopManifest removeErc20Addr.
+       * @member {Uint8Array|null|undefined} removeErc20Addr
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      UpdateShopManifest.prototype.removeErc20Addr = null;
+
+      /**
+       * UpdateShopManifest name.
+       * @member {string|null|undefined} name
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      UpdateShopManifest.prototype.name = null;
+
+      /**
+       * UpdateShopManifest description.
+       * @member {string|null|undefined} description
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      UpdateShopManifest.prototype.description = null;
+
+      /**
+       * UpdateShopManifest profilePictureUrl.
+       * @member {string|null|undefined} profilePictureUrl
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      UpdateShopManifest.prototype.profilePictureUrl = null;
+
+      // OneOf field names bound to virtual getters and setters
+      var $oneOfFields;
+
+      /**
+       * UpdateShopManifest _domain.
+       * @member {"domain"|undefined} _domain
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      Object.defineProperty(UpdateShopManifest.prototype, "_domain", {
+        get: $util.oneOfGetter(($oneOfFields = ["domain"])),
+        set: $util.oneOfSetter($oneOfFields),
+      });
+
+      /**
+       * UpdateShopManifest _publishedTagId.
+       * @member {"publishedTagId"|undefined} _publishedTagId
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      Object.defineProperty(UpdateShopManifest.prototype, "_publishedTagId", {
+        get: $util.oneOfGetter(($oneOfFields = ["publishedTagId"])),
+        set: $util.oneOfSetter($oneOfFields),
+      });
+
+      /**
+       * UpdateShopManifest _addErc20Addr.
+       * @member {"addErc20Addr"|undefined} _addErc20Addr
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      Object.defineProperty(UpdateShopManifest.prototype, "_addErc20Addr", {
+        get: $util.oneOfGetter(($oneOfFields = ["addErc20Addr"])),
+        set: $util.oneOfSetter($oneOfFields),
+      });
+
+      /**
+       * UpdateShopManifest _removeErc20Addr.
+       * @member {"removeErc20Addr"|undefined} _removeErc20Addr
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      Object.defineProperty(UpdateShopManifest.prototype, "_removeErc20Addr", {
+        get: $util.oneOfGetter(($oneOfFields = ["removeErc20Addr"])),
+        set: $util.oneOfSetter($oneOfFields),
+      });
+
+      /**
+       * UpdateShopManifest _name.
+       * @member {"name"|undefined} _name
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      Object.defineProperty(UpdateShopManifest.prototype, "_name", {
+        get: $util.oneOfGetter(($oneOfFields = ["name"])),
+        set: $util.oneOfSetter($oneOfFields),
+      });
+
+      /**
+       * UpdateShopManifest _description.
+       * @member {"description"|undefined} _description
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      Object.defineProperty(UpdateShopManifest.prototype, "_description", {
+        get: $util.oneOfGetter(($oneOfFields = ["description"])),
+        set: $util.oneOfSetter($oneOfFields),
+      });
+
+      /**
+       * UpdateShopManifest _profilePictureUrl.
+       * @member {"profilePictureUrl"|undefined} _profilePictureUrl
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      Object.defineProperty(
+        UpdateShopManifest.prototype,
+        "_profilePictureUrl",
+        {
+          get: $util.oneOfGetter(($oneOfFields = ["profilePictureUrl"])),
+          set: $util.oneOfSetter($oneOfFields),
+        },
+      );
+
+      /**
+       * Creates a new UpdateShopManifest instance using the specified properties.
+       * @function create
+       * @memberof market.mass.UpdateShopManifest
+       * @static
+       * @param {market.mass.IUpdateShopManifest=} [properties] Properties to set
+       * @returns {market.mass.UpdateShopManifest} UpdateShopManifest instance
+       */
+      UpdateShopManifest.create = function create(properties) {
+        return new UpdateShopManifest(properties);
+      };
+
+      /**
+       * Encodes the specified UpdateShopManifest message. Does not implicitly {@link market.mass.UpdateShopManifest.verify|verify} messages.
+       * @function encode
+       * @memberof market.mass.UpdateShopManifest
+       * @static
+       * @param {market.mass.IUpdateShopManifest} message UpdateShopManifest message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      UpdateShopManifest.encode = function encode(message, writer) {
+        if (!writer) writer = $Writer.create();
+        if (
+          message.eventId != null &&
+          Object.hasOwnProperty.call(message, "eventId")
+        )
+          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.eventId);
+        if (
+          message.domain != null &&
+          Object.hasOwnProperty.call(message, "domain")
+        )
+          writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.domain);
+        if (
+          message.publishedTagId != null &&
+          Object.hasOwnProperty.call(message, "publishedTagId")
+        )
+          writer
+            .uint32(/* id 3, wireType 2 =*/ 26)
+            .bytes(message.publishedTagId);
+        if (
+          message.addErc20Addr != null &&
+          Object.hasOwnProperty.call(message, "addErc20Addr")
+        )
+          writer.uint32(/* id 4, wireType 2 =*/ 34).bytes(message.addErc20Addr);
+        if (
+          message.removeErc20Addr != null &&
+          Object.hasOwnProperty.call(message, "removeErc20Addr")
+        )
+          writer
+            .uint32(/* id 5, wireType 2 =*/ 42)
+            .bytes(message.removeErc20Addr);
+        if (message.name != null && Object.hasOwnProperty.call(message, "name"))
+          writer.uint32(/* id 6, wireType 2 =*/ 50).string(message.name);
+        if (
+          message.description != null &&
+          Object.hasOwnProperty.call(message, "description")
+        )
+          writer.uint32(/* id 7, wireType 2 =*/ 58).string(message.description);
+        if (
+          message.profilePictureUrl != null &&
+          Object.hasOwnProperty.call(message, "profilePictureUrl")
+        )
+          writer
+            .uint32(/* id 8, wireType 2 =*/ 66)
+            .string(message.profilePictureUrl);
+        return writer;
+      };
+
+      /**
+       * Encodes the specified UpdateShopManifest message, length delimited. Does not implicitly {@link market.mass.UpdateShopManifest.verify|verify} messages.
+       * @function encodeDelimited
+       * @memberof market.mass.UpdateShopManifest
+       * @static
+       * @param {market.mass.IUpdateShopManifest} message UpdateShopManifest message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      UpdateShopManifest.encodeDelimited = function encodeDelimited(
+        message,
+        writer,
+      ) {
+        return this.encode(message, writer).ldelim();
+      };
+
+      /**
+       * Decodes an UpdateShopManifest message from the specified reader or buffer.
+       * @function decode
+       * @memberof market.mass.UpdateShopManifest
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @param {number} [length] Message length if known beforehand
+       * @returns {market.mass.UpdateShopManifest} UpdateShopManifest
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      UpdateShopManifest.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length,
+          message = new $root.market.mass.UpdateShopManifest();
+        while (reader.pos < end) {
+          var tag = reader.uint32();
+          switch (tag >>> 3) {
+            case 1: {
+              message.eventId = reader.bytes();
+              break;
+            }
+            case 2: {
+              message.domain = reader.string();
+              break;
+            }
+            case 3: {
+              message.publishedTagId = reader.bytes();
+              break;
+            }
+            case 4: {
+              message.addErc20Addr = reader.bytes();
+              break;
+            }
+            case 5: {
+              message.removeErc20Addr = reader.bytes();
+              break;
+            }
+            case 6: {
+              message.name = reader.string();
+              break;
+            }
+            case 7: {
+              message.description = reader.string();
+              break;
+            }
+            case 8: {
+              message.profilePictureUrl = reader.string();
+              break;
+            }
+            default:
+              reader.skipType(tag & 7);
+              break;
+          }
+        }
+        return message;
+      };
+
+      /**
+       * Decodes an UpdateShopManifest message from the specified reader or buffer, length delimited.
+       * @function decodeDelimited
+       * @memberof market.mass.UpdateShopManifest
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @returns {market.mass.UpdateShopManifest} UpdateShopManifest
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      UpdateShopManifest.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+      };
+
+      /**
+       * Verifies an UpdateShopManifest message.
+       * @function verify
+       * @memberof market.mass.UpdateShopManifest
+       * @static
+       * @param {Object.<string,*>} message Plain object to verify
+       * @returns {string|null} `null` if valid, otherwise the reason why it is not
+       */
+      UpdateShopManifest.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+          return "object expected";
+        var properties = {};
+        if (message.eventId != null && message.hasOwnProperty("eventId"))
+          if (
+            !(
+              (message.eventId && typeof message.eventId.length === "number") ||
+              $util.isString(message.eventId)
+            )
+          )
+            return "eventId: buffer expected";
+        if (message.domain != null && message.hasOwnProperty("domain")) {
+          properties._domain = 1;
+          if (!$util.isString(message.domain)) return "domain: string expected";
+        }
+        if (
+          message.publishedTagId != null &&
+          message.hasOwnProperty("publishedTagId")
+        ) {
+          properties._publishedTagId = 1;
+          if (
+            !(
+              (message.publishedTagId &&
+                typeof message.publishedTagId.length === "number") ||
+              $util.isString(message.publishedTagId)
+            )
+          )
+            return "publishedTagId: buffer expected";
+        }
+        if (
+          message.addErc20Addr != null &&
+          message.hasOwnProperty("addErc20Addr")
+        ) {
+          properties._addErc20Addr = 1;
+          if (
+            !(
+              (message.addErc20Addr &&
+                typeof message.addErc20Addr.length === "number") ||
+              $util.isString(message.addErc20Addr)
+            )
+          )
+            return "addErc20Addr: buffer expected";
+        }
+        if (
+          message.removeErc20Addr != null &&
+          message.hasOwnProperty("removeErc20Addr")
+        ) {
+          properties._removeErc20Addr = 1;
+          if (
+            !(
+              (message.removeErc20Addr &&
+                typeof message.removeErc20Addr.length === "number") ||
+              $util.isString(message.removeErc20Addr)
+            )
+          )
+            return "removeErc20Addr: buffer expected";
+        }
+        if (message.name != null && message.hasOwnProperty("name")) {
+          properties._name = 1;
+          if (!$util.isString(message.name)) return "name: string expected";
+        }
+        if (
+          message.description != null &&
+          message.hasOwnProperty("description")
+        ) {
+          properties._description = 1;
+          if (!$util.isString(message.description))
+            return "description: string expected";
+        }
+        if (
+          message.profilePictureUrl != null &&
+          message.hasOwnProperty("profilePictureUrl")
+        ) {
+          properties._profilePictureUrl = 1;
+          if (!$util.isString(message.profilePictureUrl))
+            return "profilePictureUrl: string expected";
+        }
+        return null;
+      };
+
+      /**
+       * Creates an UpdateShopManifest message from a plain object. Also converts values to their respective internal types.
+       * @function fromObject
+       * @memberof market.mass.UpdateShopManifest
+       * @static
+       * @param {Object.<string,*>} object Plain object
+       * @returns {market.mass.UpdateShopManifest} UpdateShopManifest
+       */
+      UpdateShopManifest.fromObject = function fromObject(object) {
+        if (object instanceof $root.market.mass.UpdateShopManifest)
+          return object;
+        var message = new $root.market.mass.UpdateShopManifest();
+        if (object.eventId != null)
+          if (typeof object.eventId === "string")
+            $util.base64.decode(
+              object.eventId,
+              (message.eventId = $util.newBuffer(
+                $util.base64.length(object.eventId),
+              )),
+              0,
+            );
+          else if (object.eventId.length >= 0) message.eventId = object.eventId;
+        if (object.domain != null) message.domain = String(object.domain);
+        if (object.publishedTagId != null)
+          if (typeof object.publishedTagId === "string")
+            $util.base64.decode(
+              object.publishedTagId,
+              (message.publishedTagId = $util.newBuffer(
+                $util.base64.length(object.publishedTagId),
+              )),
+              0,
+            );
+          else if (object.publishedTagId.length >= 0)
+            message.publishedTagId = object.publishedTagId;
+        if (object.addErc20Addr != null)
+          if (typeof object.addErc20Addr === "string")
+            $util.base64.decode(
+              object.addErc20Addr,
+              (message.addErc20Addr = $util.newBuffer(
+                $util.base64.length(object.addErc20Addr),
+              )),
+              0,
+            );
+          else if (object.addErc20Addr.length >= 0)
+            message.addErc20Addr = object.addErc20Addr;
+        if (object.removeErc20Addr != null)
+          if (typeof object.removeErc20Addr === "string")
+            $util.base64.decode(
+              object.removeErc20Addr,
+              (message.removeErc20Addr = $util.newBuffer(
+                $util.base64.length(object.removeErc20Addr),
+              )),
+              0,
+            );
+          else if (object.removeErc20Addr.length >= 0)
+            message.removeErc20Addr = object.removeErc20Addr;
+        if (object.name != null) message.name = String(object.name);
+        if (object.description != null)
+          message.description = String(object.description);
+        if (object.profilePictureUrl != null)
+          message.profilePictureUrl = String(object.profilePictureUrl);
+        return message;
+      };
+
+      /**
+       * Creates a plain object from an UpdateShopManifest message. Also converts values to other types if specified.
+       * @function toObject
+       * @memberof market.mass.UpdateShopManifest
+       * @static
+       * @param {market.mass.UpdateShopManifest} message UpdateShopManifest
+       * @param {$protobuf.IConversionOptions} [options] Conversion options
+       * @returns {Object.<string,*>} Plain object
+       */
+      UpdateShopManifest.toObject = function toObject(message, options) {
+        if (!options) options = {};
+        var object = {};
+        if (options.defaults)
+          if (options.bytes === String) object.eventId = "";
+          else {
+            object.eventId = [];
+            if (options.bytes !== Array)
+              object.eventId = $util.newBuffer(object.eventId);
+          }
+        if (message.eventId != null && message.hasOwnProperty("eventId"))
+          object.eventId =
+            options.bytes === String
+              ? $util.base64.encode(message.eventId, 0, message.eventId.length)
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.eventId)
+                : message.eventId;
+        if (message.domain != null && message.hasOwnProperty("domain")) {
+          object.domain = message.domain;
+          if (options.oneofs) object._domain = "domain";
+        }
+        if (
+          message.publishedTagId != null &&
+          message.hasOwnProperty("publishedTagId")
+        ) {
+          object.publishedTagId =
+            options.bytes === String
+              ? $util.base64.encode(
+                  message.publishedTagId,
+                  0,
+                  message.publishedTagId.length,
+                )
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.publishedTagId)
+                : message.publishedTagId;
+          if (options.oneofs) object._publishedTagId = "publishedTagId";
+        }
+        if (
+          message.addErc20Addr != null &&
+          message.hasOwnProperty("addErc20Addr")
+        ) {
+          object.addErc20Addr =
+            options.bytes === String
+              ? $util.base64.encode(
+                  message.addErc20Addr,
+                  0,
+                  message.addErc20Addr.length,
+                )
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.addErc20Addr)
+                : message.addErc20Addr;
+          if (options.oneofs) object._addErc20Addr = "addErc20Addr";
+        }
+        if (
+          message.removeErc20Addr != null &&
+          message.hasOwnProperty("removeErc20Addr")
+        ) {
+          object.removeErc20Addr =
+            options.bytes === String
+              ? $util.base64.encode(
+                  message.removeErc20Addr,
+                  0,
+                  message.removeErc20Addr.length,
+                )
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.removeErc20Addr)
+                : message.removeErc20Addr;
+          if (options.oneofs) object._removeErc20Addr = "removeErc20Addr";
+        }
+        if (message.name != null && message.hasOwnProperty("name")) {
+          object.name = message.name;
+          if (options.oneofs) object._name = "name";
+        }
+        if (
+          message.description != null &&
+          message.hasOwnProperty("description")
+        ) {
+          object.description = message.description;
+          if (options.oneofs) object._description = "description";
+        }
+        if (
+          message.profilePictureUrl != null &&
+          message.hasOwnProperty("profilePictureUrl")
+        ) {
+          object.profilePictureUrl = message.profilePictureUrl;
+          if (options.oneofs) object._profilePictureUrl = "profilePictureUrl";
+        }
+        return object;
+      };
+
+      /**
+       * Converts this UpdateShopManifest to JSON.
+       * @function toJSON
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       * @returns {Object.<string,*>} JSON object
+       */
+      UpdateShopManifest.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+      };
+
+      /**
+       * Gets the default type url for UpdateShopManifest
+       * @function getTypeUrl
+       * @memberof market.mass.UpdateShopManifest
+       * @static
+       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+       * @returns {string} The default type url
+       */
+      UpdateShopManifest.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        if (typeUrlPrefix === undefined) {
+          typeUrlPrefix = "type.googleapis.com";
+        }
+        return typeUrlPrefix + "/market.mass.UpdateShopManifest";
+      };
+
+      return UpdateShopManifest;
+    })();
+
+    mass.CreateItem = (function () {
+      /**
+       * Properties of a CreateItem.
+       * @memberof market.mass
+       * @interface ICreateItem
+       * @property {Uint8Array|null} [eventId] CreateItem eventId
+       * @property {string|null} [price] CreateItem price
+       * @property {Uint8Array|null} [metadata] CreateItem metadata
+       */
+
+      /**
+       * Constructs a new CreateItem.
+       * @memberof market.mass
+       * @classdesc Represents a CreateItem.
+       * @implements ICreateItem
+       * @constructor
+       * @param {market.mass.ICreateItem=} [properties] Properties to set
+       */
+      function CreateItem(properties) {
+        if (properties)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+            if (properties[keys[i]] != null)
+              this[keys[i]] = properties[keys[i]];
+      }
+
+      /**
+       * CreateItem eventId.
+       * @member {Uint8Array} eventId
+       * @memberof market.mass.CreateItem
+       * @instance
+       */
+      CreateItem.prototype.eventId = $util.newBuffer([]);
+
+      /**
+       * CreateItem price.
+       * @member {string} price
+       * @memberof market.mass.CreateItem
+       * @instance
+       */
+      CreateItem.prototype.price = "";
+
+      /**
+       * CreateItem metadata.
+       * @member {Uint8Array} metadata
+       * @memberof market.mass.CreateItem
+       * @instance
+       */
+      CreateItem.prototype.metadata = $util.newBuffer([]);
+
+      /**
+       * Creates a new CreateItem instance using the specified properties.
+       * @function create
+       * @memberof market.mass.CreateItem
+       * @static
+       * @param {market.mass.ICreateItem=} [properties] Properties to set
+       * @returns {market.mass.CreateItem} CreateItem instance
+       */
+      CreateItem.create = function create(properties) {
+        return new CreateItem(properties);
+      };
+
+      /**
+       * Encodes the specified CreateItem message. Does not implicitly {@link market.mass.CreateItem.verify|verify} messages.
+       * @function encode
+       * @memberof market.mass.CreateItem
+       * @static
+       * @param {market.mass.ICreateItem} message CreateItem message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      CreateItem.encode = function encode(message, writer) {
+        if (!writer) writer = $Writer.create();
+        if (
+          message.eventId != null &&
+          Object.hasOwnProperty.call(message, "eventId")
+        )
+          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.eventId);
+        if (
+          message.price != null &&
+          Object.hasOwnProperty.call(message, "price")
+        )
+          writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.price);
+        if (
+          message.metadata != null &&
+          Object.hasOwnProperty.call(message, "metadata")
+        )
+          writer.uint32(/* id 3, wireType 2 =*/ 26).bytes(message.metadata);
+        return writer;
+      };
+
+      /**
+       * Encodes the specified CreateItem message, length delimited. Does not implicitly {@link market.mass.CreateItem.verify|verify} messages.
+       * @function encodeDelimited
+       * @memberof market.mass.CreateItem
+       * @static
+       * @param {market.mass.ICreateItem} message CreateItem message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      CreateItem.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+      };
+
+      /**
+       * Decodes a CreateItem message from the specified reader or buffer.
+       * @function decode
+       * @memberof market.mass.CreateItem
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @param {number} [length] Message length if known beforehand
+       * @returns {market.mass.CreateItem} CreateItem
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      CreateItem.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length,
+          message = new $root.market.mass.CreateItem();
+        while (reader.pos < end) {
+          var tag = reader.uint32();
+          switch (tag >>> 3) {
+            case 1: {
+              message.eventId = reader.bytes();
+              break;
+            }
+            case 2: {
+              message.price = reader.string();
+              break;
+            }
+            case 3: {
+              message.metadata = reader.bytes();
+              break;
+            }
+            default:
+              reader.skipType(tag & 7);
+              break;
+          }
+        }
+        return message;
+      };
+
+      /**
+       * Decodes a CreateItem message from the specified reader or buffer, length delimited.
+       * @function decodeDelimited
+       * @memberof market.mass.CreateItem
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @returns {market.mass.CreateItem} CreateItem
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      CreateItem.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+      };
+
+      /**
+       * Verifies a CreateItem message.
+       * @function verify
+       * @memberof market.mass.CreateItem
+       * @static
+       * @param {Object.<string,*>} message Plain object to verify
+       * @returns {string|null} `null` if valid, otherwise the reason why it is not
+       */
+      CreateItem.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+          return "object expected";
+        if (message.eventId != null && message.hasOwnProperty("eventId"))
+          if (
+            !(
+              (message.eventId && typeof message.eventId.length === "number") ||
+              $util.isString(message.eventId)
+            )
+          )
+            return "eventId: buffer expected";
+        if (message.price != null && message.hasOwnProperty("price"))
+          if (!$util.isString(message.price)) return "price: string expected";
+        if (message.metadata != null && message.hasOwnProperty("metadata"))
+          if (
+            !(
+              (message.metadata &&
+                typeof message.metadata.length === "number") ||
+              $util.isString(message.metadata)
+            )
+          )
+            return "metadata: buffer expected";
+        return null;
+      };
+
+      /**
+       * Creates a CreateItem message from a plain object. Also converts values to their respective internal types.
+       * @function fromObject
+       * @memberof market.mass.CreateItem
+       * @static
+       * @param {Object.<string,*>} object Plain object
+       * @returns {market.mass.CreateItem} CreateItem
+       */
+      CreateItem.fromObject = function fromObject(object) {
+        if (object instanceof $root.market.mass.CreateItem) return object;
+        var message = new $root.market.mass.CreateItem();
+        if (object.eventId != null)
+          if (typeof object.eventId === "string")
+            $util.base64.decode(
+              object.eventId,
+              (message.eventId = $util.newBuffer(
+                $util.base64.length(object.eventId),
+              )),
+              0,
+            );
+          else if (object.eventId.length >= 0) message.eventId = object.eventId;
+        if (object.price != null) message.price = String(object.price);
+        if (object.metadata != null)
+          if (typeof object.metadata === "string")
+            $util.base64.decode(
+              object.metadata,
+              (message.metadata = $util.newBuffer(
+                $util.base64.length(object.metadata),
+              )),
+              0,
+            );
+          else if (object.metadata.length >= 0)
+            message.metadata = object.metadata;
+        return message;
+      };
+
+      /**
+       * Creates a plain object from a CreateItem message. Also converts values to other types if specified.
+       * @function toObject
+       * @memberof market.mass.CreateItem
+       * @static
+       * @param {market.mass.CreateItem} message CreateItem
+       * @param {$protobuf.IConversionOptions} [options] Conversion options
+       * @returns {Object.<string,*>} Plain object
+       */
+      CreateItem.toObject = function toObject(message, options) {
+        if (!options) options = {};
+        var object = {};
+        if (options.defaults) {
+          if (options.bytes === String) object.eventId = "";
+          else {
+            object.eventId = [];
+            if (options.bytes !== Array)
+              object.eventId = $util.newBuffer(object.eventId);
+          }
+          object.price = "";
+          if (options.bytes === String) object.metadata = "";
+          else {
+            object.metadata = [];
+            if (options.bytes !== Array)
+              object.metadata = $util.newBuffer(object.metadata);
+          }
+        }
+        if (message.eventId != null && message.hasOwnProperty("eventId"))
+          object.eventId =
+            options.bytes === String
+              ? $util.base64.encode(message.eventId, 0, message.eventId.length)
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.eventId)
+                : message.eventId;
+        if (message.price != null && message.hasOwnProperty("price"))
+          object.price = message.price;
+        if (message.metadata != null && message.hasOwnProperty("metadata"))
+          object.metadata =
+            options.bytes === String
+              ? $util.base64.encode(
+                  message.metadata,
+                  0,
+                  message.metadata.length,
+                )
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.metadata)
+                : message.metadata;
+        return object;
+      };
+
+      /**
+       * Converts this CreateItem to JSON.
+       * @function toJSON
+       * @memberof market.mass.CreateItem
+       * @instance
+       * @returns {Object.<string,*>} JSON object
+       */
+      CreateItem.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+      };
+
+      /**
+       * Gets the default type url for CreateItem
+       * @function getTypeUrl
+       * @memberof market.mass.CreateItem
+       * @static
+       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+       * @returns {string} The default type url
+       */
+      CreateItem.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        if (typeUrlPrefix === undefined) {
+          typeUrlPrefix = "type.googleapis.com";
+        }
+        return typeUrlPrefix + "/market.mass.CreateItem";
+      };
+
+      return CreateItem;
+    })();
+
+    mass.UpdateItem = (function () {
+      /**
+       * Properties of an UpdateItem.
+       * @memberof market.mass
+       * @interface IUpdateItem
+       * @property {Uint8Array|null} [eventId] UpdateItem eventId
+       * @property {Uint8Array|null} [itemId] UpdateItem itemId
+       * @property {string|null} [price] UpdateItem price
+       * @property {Uint8Array|null} [metadata] UpdateItem metadata
+       */
+
+      /**
+       * Constructs a new UpdateItem.
+       * @memberof market.mass
+       * @classdesc Represents an UpdateItem.
+       * @implements IUpdateItem
+       * @constructor
+       * @param {market.mass.IUpdateItem=} [properties] Properties to set
+       */
+      function UpdateItem(properties) {
+        if (properties)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+            if (properties[keys[i]] != null)
+              this[keys[i]] = properties[keys[i]];
+      }
+
+      /**
+       * UpdateItem eventId.
+       * @member {Uint8Array} eventId
+       * @memberof market.mass.UpdateItem
+       * @instance
+       */
+      UpdateItem.prototype.eventId = $util.newBuffer([]);
+
+      /**
+       * UpdateItem itemId.
+       * @member {Uint8Array} itemId
+       * @memberof market.mass.UpdateItem
+       * @instance
+       */
+      UpdateItem.prototype.itemId = $util.newBuffer([]);
+
+      /**
+       * UpdateItem price.
+       * @member {string|null|undefined} price
+       * @memberof market.mass.UpdateItem
+       * @instance
+       */
+      UpdateItem.prototype.price = null;
+
+      /**
+       * UpdateItem metadata.
+       * @member {Uint8Array|null|undefined} metadata
+       * @memberof market.mass.UpdateItem
+       * @instance
+       */
+      UpdateItem.prototype.metadata = null;
+
+      // OneOf field names bound to virtual getters and setters
+      var $oneOfFields;
+
+      /**
+       * UpdateItem _price.
+       * @member {"price"|undefined} _price
+       * @memberof market.mass.UpdateItem
+       * @instance
+       */
+      Object.defineProperty(UpdateItem.prototype, "_price", {
+        get: $util.oneOfGetter(($oneOfFields = ["price"])),
+        set: $util.oneOfSetter($oneOfFields),
+      });
+
+      /**
+       * UpdateItem _metadata.
+       * @member {"metadata"|undefined} _metadata
+       * @memberof market.mass.UpdateItem
+       * @instance
+       */
+      Object.defineProperty(UpdateItem.prototype, "_metadata", {
+        get: $util.oneOfGetter(($oneOfFields = ["metadata"])),
+        set: $util.oneOfSetter($oneOfFields),
+      });
+
+      /**
+       * Creates a new UpdateItem instance using the specified properties.
+       * @function create
+       * @memberof market.mass.UpdateItem
+       * @static
+       * @param {market.mass.IUpdateItem=} [properties] Properties to set
+       * @returns {market.mass.UpdateItem} UpdateItem instance
+       */
+      UpdateItem.create = function create(properties) {
+        return new UpdateItem(properties);
+      };
+
+      /**
+       * Encodes the specified UpdateItem message. Does not implicitly {@link market.mass.UpdateItem.verify|verify} messages.
+       * @function encode
+       * @memberof market.mass.UpdateItem
+       * @static
+       * @param {market.mass.IUpdateItem} message UpdateItem message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      UpdateItem.encode = function encode(message, writer) {
+        if (!writer) writer = $Writer.create();
+        if (
+          message.eventId != null &&
+          Object.hasOwnProperty.call(message, "eventId")
+        )
+          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.eventId);
+        if (
+          message.itemId != null &&
+          Object.hasOwnProperty.call(message, "itemId")
+        )
+          writer.uint32(/* id 2, wireType 2 =*/ 18).bytes(message.itemId);
+        if (
+          message.price != null &&
+          Object.hasOwnProperty.call(message, "price")
+        )
+          writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.price);
+        if (
+          message.metadata != null &&
+          Object.hasOwnProperty.call(message, "metadata")
+        )
+          writer.uint32(/* id 4, wireType 2 =*/ 34).bytes(message.metadata);
+        return writer;
+      };
+
+      /**
+       * Encodes the specified UpdateItem message, length delimited. Does not implicitly {@link market.mass.UpdateItem.verify|verify} messages.
+       * @function encodeDelimited
+       * @memberof market.mass.UpdateItem
+       * @static
+       * @param {market.mass.IUpdateItem} message UpdateItem message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      UpdateItem.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+      };
+
+      /**
+       * Decodes an UpdateItem message from the specified reader or buffer.
+       * @function decode
+       * @memberof market.mass.UpdateItem
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @param {number} [length] Message length if known beforehand
+       * @returns {market.mass.UpdateItem} UpdateItem
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      UpdateItem.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length,
+          message = new $root.market.mass.UpdateItem();
+        while (reader.pos < end) {
+          var tag = reader.uint32();
+          switch (tag >>> 3) {
+            case 1: {
+              message.eventId = reader.bytes();
+              break;
+            }
+            case 2: {
+              message.itemId = reader.bytes();
+              break;
+            }
+            case 3: {
+              message.price = reader.string();
+              break;
+            }
+            case 4: {
+              message.metadata = reader.bytes();
+              break;
+            }
+            default:
+              reader.skipType(tag & 7);
+              break;
+          }
+        }
+        return message;
+      };
+
+      /**
+       * Decodes an UpdateItem message from the specified reader or buffer, length delimited.
+       * @function decodeDelimited
+       * @memberof market.mass.UpdateItem
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @returns {market.mass.UpdateItem} UpdateItem
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      UpdateItem.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+      };
+
+      /**
+       * Verifies an UpdateItem message.
+       * @function verify
+       * @memberof market.mass.UpdateItem
+       * @static
+       * @param {Object.<string,*>} message Plain object to verify
+       * @returns {string|null} `null` if valid, otherwise the reason why it is not
+       */
+      UpdateItem.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+          return "object expected";
+        var properties = {};
+        if (message.eventId != null && message.hasOwnProperty("eventId"))
+          if (
+            !(
+              (message.eventId && typeof message.eventId.length === "number") ||
+              $util.isString(message.eventId)
+            )
+          )
+            return "eventId: buffer expected";
+        if (message.itemId != null && message.hasOwnProperty("itemId"))
+          if (
+            !(
+              (message.itemId && typeof message.itemId.length === "number") ||
+              $util.isString(message.itemId)
+            )
+          )
+            return "itemId: buffer expected";
+        if (message.price != null && message.hasOwnProperty("price")) {
+          properties._price = 1;
+          if (!$util.isString(message.price)) return "price: string expected";
+        }
+        if (message.metadata != null && message.hasOwnProperty("metadata")) {
+          properties._metadata = 1;
+          if (
+            !(
+              (message.metadata &&
+                typeof message.metadata.length === "number") ||
+              $util.isString(message.metadata)
+            )
+          )
+            return "metadata: buffer expected";
+        }
+        return null;
+      };
+
+      /**
+       * Creates an UpdateItem message from a plain object. Also converts values to their respective internal types.
+       * @function fromObject
+       * @memberof market.mass.UpdateItem
+       * @static
+       * @param {Object.<string,*>} object Plain object
+       * @returns {market.mass.UpdateItem} UpdateItem
+       */
+      UpdateItem.fromObject = function fromObject(object) {
+        if (object instanceof $root.market.mass.UpdateItem) return object;
+        var message = new $root.market.mass.UpdateItem();
+        if (object.eventId != null)
+          if (typeof object.eventId === "string")
+            $util.base64.decode(
+              object.eventId,
+              (message.eventId = $util.newBuffer(
+                $util.base64.length(object.eventId),
+              )),
+              0,
+            );
+          else if (object.eventId.length >= 0) message.eventId = object.eventId;
+        if (object.itemId != null)
+          if (typeof object.itemId === "string")
+            $util.base64.decode(
+              object.itemId,
+              (message.itemId = $util.newBuffer(
+                $util.base64.length(object.itemId),
+              )),
+              0,
+            );
+          else if (object.itemId.length >= 0) message.itemId = object.itemId;
+        if (object.price != null) message.price = String(object.price);
+        if (object.metadata != null)
+          if (typeof object.metadata === "string")
+            $util.base64.decode(
+              object.metadata,
+              (message.metadata = $util.newBuffer(
+                $util.base64.length(object.metadata),
+              )),
+              0,
+            );
+          else if (object.metadata.length >= 0)
+            message.metadata = object.metadata;
+        return message;
+      };
+
+      /**
+       * Creates a plain object from an UpdateItem message. Also converts values to other types if specified.
+       * @function toObject
+       * @memberof market.mass.UpdateItem
+       * @static
+       * @param {market.mass.UpdateItem} message UpdateItem
+       * @param {$protobuf.IConversionOptions} [options] Conversion options
+       * @returns {Object.<string,*>} Plain object
+       */
+      UpdateItem.toObject = function toObject(message, options) {
+        if (!options) options = {};
+        var object = {};
+        if (options.defaults) {
+          if (options.bytes === String) object.eventId = "";
+          else {
+            object.eventId = [];
+            if (options.bytes !== Array)
+              object.eventId = $util.newBuffer(object.eventId);
+          }
+          if (options.bytes === String) object.itemId = "";
+          else {
+            object.itemId = [];
+            if (options.bytes !== Array)
+              object.itemId = $util.newBuffer(object.itemId);
+          }
+        }
+        if (message.eventId != null && message.hasOwnProperty("eventId"))
+          object.eventId =
+            options.bytes === String
+              ? $util.base64.encode(message.eventId, 0, message.eventId.length)
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.eventId)
+                : message.eventId;
+        if (message.itemId != null && message.hasOwnProperty("itemId"))
+          object.itemId =
+            options.bytes === String
+              ? $util.base64.encode(message.itemId, 0, message.itemId.length)
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.itemId)
+                : message.itemId;
+        if (message.price != null && message.hasOwnProperty("price")) {
+          object.price = message.price;
+          if (options.oneofs) object._price = "price";
+        }
+        if (message.metadata != null && message.hasOwnProperty("metadata")) {
+          object.metadata =
+            options.bytes === String
+              ? $util.base64.encode(
+                  message.metadata,
+                  0,
+                  message.metadata.length,
+                )
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.metadata)
+                : message.metadata;
+          if (options.oneofs) object._metadata = "metadata";
+        }
+        return object;
+      };
+
+      /**
+       * Converts this UpdateItem to JSON.
+       * @function toJSON
+       * @memberof market.mass.UpdateItem
+       * @instance
+       * @returns {Object.<string,*>} JSON object
+       */
+      UpdateItem.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+      };
+
+      /**
+       * Gets the default type url for UpdateItem
+       * @function getTypeUrl
+       * @memberof market.mass.UpdateItem
+       * @static
+       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+       * @returns {string} The default type url
+       */
+      UpdateItem.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        if (typeUrlPrefix === undefined) {
+          typeUrlPrefix = "type.googleapis.com";
+        }
+        return typeUrlPrefix + "/market.mass.UpdateItem";
+      };
+
+      return UpdateItem;
+    })();
+
+    mass.CreateTag = (function () {
+      /**
+       * Properties of a CreateTag.
+       * @memberof market.mass
+       * @interface ICreateTag
+       * @property {Uint8Array|null} [eventId] CreateTag eventId
+       * @property {string|null} [name] CreateTag name
+       */
+
+      /**
+       * Constructs a new CreateTag.
+       * @memberof market.mass
+       * @classdesc Represents a CreateTag.
+       * @implements ICreateTag
+       * @constructor
+       * @param {market.mass.ICreateTag=} [properties] Properties to set
+       */
+      function CreateTag(properties) {
+        if (properties)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+            if (properties[keys[i]] != null)
+              this[keys[i]] = properties[keys[i]];
+      }
+
+      /**
+       * CreateTag eventId.
+       * @member {Uint8Array} eventId
+       * @memberof market.mass.CreateTag
+       * @instance
+       */
+      CreateTag.prototype.eventId = $util.newBuffer([]);
+
+      /**
+       * CreateTag name.
+       * @member {string} name
+       * @memberof market.mass.CreateTag
+       * @instance
+       */
+      CreateTag.prototype.name = "";
+
+      /**
+       * Creates a new CreateTag instance using the specified properties.
+       * @function create
+       * @memberof market.mass.CreateTag
+       * @static
+       * @param {market.mass.ICreateTag=} [properties] Properties to set
+       * @returns {market.mass.CreateTag} CreateTag instance
+       */
+      CreateTag.create = function create(properties) {
+        return new CreateTag(properties);
+      };
+
+      /**
+       * Encodes the specified CreateTag message. Does not implicitly {@link market.mass.CreateTag.verify|verify} messages.
+       * @function encode
+       * @memberof market.mass.CreateTag
+       * @static
+       * @param {market.mass.ICreateTag} message CreateTag message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      CreateTag.encode = function encode(message, writer) {
+        if (!writer) writer = $Writer.create();
+        if (
+          message.eventId != null &&
+          Object.hasOwnProperty.call(message, "eventId")
+        )
+          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.eventId);
+        if (message.name != null && Object.hasOwnProperty.call(message, "name"))
+          writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.name);
+        return writer;
+      };
+
+      /**
+       * Encodes the specified CreateTag message, length delimited. Does not implicitly {@link market.mass.CreateTag.verify|verify} messages.
+       * @function encodeDelimited
+       * @memberof market.mass.CreateTag
+       * @static
+       * @param {market.mass.ICreateTag} message CreateTag message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      CreateTag.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+      };
+
+      /**
+       * Decodes a CreateTag message from the specified reader or buffer.
+       * @function decode
+       * @memberof market.mass.CreateTag
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @param {number} [length] Message length if known beforehand
+       * @returns {market.mass.CreateTag} CreateTag
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      CreateTag.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length,
+          message = new $root.market.mass.CreateTag();
+        while (reader.pos < end) {
+          var tag = reader.uint32();
+          switch (tag >>> 3) {
+            case 1: {
+              message.eventId = reader.bytes();
+              break;
+            }
+            case 2: {
+              message.name = reader.string();
+              break;
+            }
+            default:
+              reader.skipType(tag & 7);
+              break;
+          }
+        }
+        return message;
+      };
+
+      /**
+       * Decodes a CreateTag message from the specified reader or buffer, length delimited.
+       * @function decodeDelimited
+       * @memberof market.mass.CreateTag
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @returns {market.mass.CreateTag} CreateTag
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      CreateTag.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+      };
+
+      /**
+       * Verifies a CreateTag message.
+       * @function verify
+       * @memberof market.mass.CreateTag
+       * @static
+       * @param {Object.<string,*>} message Plain object to verify
+       * @returns {string|null} `null` if valid, otherwise the reason why it is not
+       */
+      CreateTag.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+          return "object expected";
+        if (message.eventId != null && message.hasOwnProperty("eventId"))
+          if (
+            !(
+              (message.eventId && typeof message.eventId.length === "number") ||
+              $util.isString(message.eventId)
+            )
+          )
+            return "eventId: buffer expected";
+        if (message.name != null && message.hasOwnProperty("name"))
+          if (!$util.isString(message.name)) return "name: string expected";
+        return null;
+      };
+
+      /**
+       * Creates a CreateTag message from a plain object. Also converts values to their respective internal types.
+       * @function fromObject
+       * @memberof market.mass.CreateTag
+       * @static
+       * @param {Object.<string,*>} object Plain object
+       * @returns {market.mass.CreateTag} CreateTag
+       */
+      CreateTag.fromObject = function fromObject(object) {
+        if (object instanceof $root.market.mass.CreateTag) return object;
+        var message = new $root.market.mass.CreateTag();
+        if (object.eventId != null)
+          if (typeof object.eventId === "string")
+            $util.base64.decode(
+              object.eventId,
+              (message.eventId = $util.newBuffer(
+                $util.base64.length(object.eventId),
+              )),
+              0,
+            );
+          else if (object.eventId.length >= 0) message.eventId = object.eventId;
+        if (object.name != null) message.name = String(object.name);
+        return message;
+      };
+
+      /**
+       * Creates a plain object from a CreateTag message. Also converts values to other types if specified.
+       * @function toObject
+       * @memberof market.mass.CreateTag
+       * @static
+       * @param {market.mass.CreateTag} message CreateTag
+       * @param {$protobuf.IConversionOptions} [options] Conversion options
+       * @returns {Object.<string,*>} Plain object
+       */
+      CreateTag.toObject = function toObject(message, options) {
+        if (!options) options = {};
+        var object = {};
+        if (options.defaults) {
+          if (options.bytes === String) object.eventId = "";
+          else {
+            object.eventId = [];
+            if (options.bytes !== Array)
+              object.eventId = $util.newBuffer(object.eventId);
+          }
+          object.name = "";
+        }
+        if (message.eventId != null && message.hasOwnProperty("eventId"))
+          object.eventId =
+            options.bytes === String
+              ? $util.base64.encode(message.eventId, 0, message.eventId.length)
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.eventId)
+                : message.eventId;
+        if (message.name != null && message.hasOwnProperty("name"))
+          object.name = message.name;
+        return object;
+      };
+
+      /**
+       * Converts this CreateTag to JSON.
+       * @function toJSON
+       * @memberof market.mass.CreateTag
+       * @instance
+       * @returns {Object.<string,*>} JSON object
+       */
+      CreateTag.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+      };
+
+      /**
+       * Gets the default type url for CreateTag
+       * @function getTypeUrl
+       * @memberof market.mass.CreateTag
+       * @static
+       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+       * @returns {string} The default type url
+       */
+      CreateTag.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        if (typeUrlPrefix === undefined) {
+          typeUrlPrefix = "type.googleapis.com";
+        }
+        return typeUrlPrefix + "/market.mass.CreateTag";
+      };
+
+      return CreateTag;
+    })();
+
+    mass.UpdateTag = (function () {
+      /**
+       * Properties of an UpdateTag.
+       * @memberof market.mass
+       * @interface IUpdateTag
+       * @property {Uint8Array|null} [eventId] UpdateTag eventId
+       * @property {Uint8Array|null} [tagId] UpdateTag tagId
+       * @property {Uint8Array|null} [addItemId] UpdateTag addItemId
+       * @property {Uint8Array|null} [removeItemId] UpdateTag removeItemId
+       * @property {boolean|null} ["delete"] UpdateTag delete
+       * @property {string|null} [rename] UpdateTag rename
+       */
+
+      /**
+       * Constructs a new UpdateTag.
+       * @memberof market.mass
+       * @classdesc Represents an UpdateTag.
+       * @implements IUpdateTag
+       * @constructor
+       * @param {market.mass.IUpdateTag=} [properties] Properties to set
+       */
+      function UpdateTag(properties) {
+        if (properties)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+            if (properties[keys[i]] != null)
+              this[keys[i]] = properties[keys[i]];
+      }
+
+      /**
+       * UpdateTag eventId.
+       * @member {Uint8Array} eventId
+       * @memberof market.mass.UpdateTag
+       * @instance
+       */
+      UpdateTag.prototype.eventId = $util.newBuffer([]);
+
+      /**
+       * UpdateTag tagId.
+       * @member {Uint8Array} tagId
+       * @memberof market.mass.UpdateTag
+       * @instance
+       */
+      UpdateTag.prototype.tagId = $util.newBuffer([]);
+
+      /**
+       * UpdateTag addItemId.
+       * @member {Uint8Array|null|undefined} addItemId
+       * @memberof market.mass.UpdateTag
+       * @instance
+       */
+      UpdateTag.prototype.addItemId = null;
+
+      /**
+       * UpdateTag removeItemId.
+       * @member {Uint8Array|null|undefined} removeItemId
+       * @memberof market.mass.UpdateTag
+       * @instance
+       */
+      UpdateTag.prototype.removeItemId = null;
+
+      /**
+       * UpdateTag delete.
+       * @member {boolean|null|undefined} delete
+       * @memberof market.mass.UpdateTag
+       * @instance
+       */
+      UpdateTag.prototype["delete"] = null;
+
+      /**
+       * UpdateTag rename.
+       * @member {string|null|undefined} rename
+       * @memberof market.mass.UpdateTag
+       * @instance
+       */
+      UpdateTag.prototype.rename = null;
+
+      // OneOf field names bound to virtual getters and setters
+      var $oneOfFields;
+
+      /**
+       * UpdateTag _addItemId.
+       * @member {"addItemId"|undefined} _addItemId
+       * @memberof market.mass.UpdateTag
+       * @instance
+       */
+      Object.defineProperty(UpdateTag.prototype, "_addItemId", {
+        get: $util.oneOfGetter(($oneOfFields = ["addItemId"])),
+        set: $util.oneOfSetter($oneOfFields),
+      });
+
+      /**
+       * UpdateTag _removeItemId.
+       * @member {"removeItemId"|undefined} _removeItemId
+       * @memberof market.mass.UpdateTag
+       * @instance
+       */
+      Object.defineProperty(UpdateTag.prototype, "_removeItemId", {
+        get: $util.oneOfGetter(($oneOfFields = ["removeItemId"])),
+        set: $util.oneOfSetter($oneOfFields),
+      });
+
+      /**
+       * UpdateTag _delete.
+       * @member {"delete"|undefined} _delete
+       * @memberof market.mass.UpdateTag
+       * @instance
+       */
+      Object.defineProperty(UpdateTag.prototype, "_delete", {
+        get: $util.oneOfGetter(($oneOfFields = ["delete"])),
+        set: $util.oneOfSetter($oneOfFields),
+      });
+
+      /**
+       * UpdateTag _rename.
+       * @member {"rename"|undefined} _rename
+       * @memberof market.mass.UpdateTag
+       * @instance
+       */
+      Object.defineProperty(UpdateTag.prototype, "_rename", {
+        get: $util.oneOfGetter(($oneOfFields = ["rename"])),
+        set: $util.oneOfSetter($oneOfFields),
+      });
+
+      /**
+       * Creates a new UpdateTag instance using the specified properties.
+       * @function create
+       * @memberof market.mass.UpdateTag
+       * @static
+       * @param {market.mass.IUpdateTag=} [properties] Properties to set
+       * @returns {market.mass.UpdateTag} UpdateTag instance
+       */
+      UpdateTag.create = function create(properties) {
+        return new UpdateTag(properties);
+      };
+
+      /**
+       * Encodes the specified UpdateTag message. Does not implicitly {@link market.mass.UpdateTag.verify|verify} messages.
+       * @function encode
+       * @memberof market.mass.UpdateTag
+       * @static
+       * @param {market.mass.IUpdateTag} message UpdateTag message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      UpdateTag.encode = function encode(message, writer) {
+        if (!writer) writer = $Writer.create();
+        if (
+          message.eventId != null &&
+          Object.hasOwnProperty.call(message, "eventId")
+        )
+          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.eventId);
+        if (
+          message.tagId != null &&
+          Object.hasOwnProperty.call(message, "tagId")
+        )
+          writer.uint32(/* id 2, wireType 2 =*/ 18).bytes(message.tagId);
+        if (
+          message.addItemId != null &&
+          Object.hasOwnProperty.call(message, "addItemId")
+        )
+          writer.uint32(/* id 3, wireType 2 =*/ 26).bytes(message.addItemId);
+        if (
+          message.removeItemId != null &&
+          Object.hasOwnProperty.call(message, "removeItemId")
+        )
+          writer.uint32(/* id 4, wireType 2 =*/ 34).bytes(message.removeItemId);
+        if (
+          message["delete"] != null &&
+          Object.hasOwnProperty.call(message, "delete")
+        )
+          writer.uint32(/* id 5, wireType 0 =*/ 40).bool(message["delete"]);
+        if (
+          message.rename != null &&
+          Object.hasOwnProperty.call(message, "rename")
+        )
+          writer.uint32(/* id 6, wireType 2 =*/ 50).string(message.rename);
+        return writer;
+      };
+
+      /**
+       * Encodes the specified UpdateTag message, length delimited. Does not implicitly {@link market.mass.UpdateTag.verify|verify} messages.
+       * @function encodeDelimited
+       * @memberof market.mass.UpdateTag
+       * @static
+       * @param {market.mass.IUpdateTag} message UpdateTag message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      UpdateTag.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+      };
+
+      /**
+       * Decodes an UpdateTag message from the specified reader or buffer.
+       * @function decode
+       * @memberof market.mass.UpdateTag
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @param {number} [length] Message length if known beforehand
+       * @returns {market.mass.UpdateTag} UpdateTag
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      UpdateTag.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length,
+          message = new $root.market.mass.UpdateTag();
+        while (reader.pos < end) {
+          var tag = reader.uint32();
+          switch (tag >>> 3) {
+            case 1: {
+              message.eventId = reader.bytes();
+              break;
+            }
+            case 2: {
+              message.tagId = reader.bytes();
+              break;
+            }
+            case 3: {
+              message.addItemId = reader.bytes();
+              break;
+            }
+            case 4: {
+              message.removeItemId = reader.bytes();
+              break;
+            }
+            case 5: {
+              message["delete"] = reader.bool();
+              break;
+            }
+            case 6: {
+              message.rename = reader.string();
+              break;
+            }
+            default:
+              reader.skipType(tag & 7);
+              break;
+          }
+        }
+        return message;
+      };
+
+      /**
+       * Decodes an UpdateTag message from the specified reader or buffer, length delimited.
+       * @function decodeDelimited
+       * @memberof market.mass.UpdateTag
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @returns {market.mass.UpdateTag} UpdateTag
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      UpdateTag.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+      };
+
+      /**
+       * Verifies an UpdateTag message.
+       * @function verify
+       * @memberof market.mass.UpdateTag
+       * @static
+       * @param {Object.<string,*>} message Plain object to verify
+       * @returns {string|null} `null` if valid, otherwise the reason why it is not
+       */
+      UpdateTag.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+          return "object expected";
+        var properties = {};
+        if (message.eventId != null && message.hasOwnProperty("eventId"))
+          if (
+            !(
+              (message.eventId && typeof message.eventId.length === "number") ||
+              $util.isString(message.eventId)
+            )
+          )
+            return "eventId: buffer expected";
+        if (message.tagId != null && message.hasOwnProperty("tagId"))
+          if (
+            !(
+              (message.tagId && typeof message.tagId.length === "number") ||
+              $util.isString(message.tagId)
+            )
+          )
+            return "tagId: buffer expected";
+        if (message.addItemId != null && message.hasOwnProperty("addItemId")) {
+          properties._addItemId = 1;
+          if (
+            !(
+              (message.addItemId &&
+                typeof message.addItemId.length === "number") ||
+              $util.isString(message.addItemId)
+            )
+          )
+            return "addItemId: buffer expected";
+        }
+        if (
+          message.removeItemId != null &&
+          message.hasOwnProperty("removeItemId")
+        ) {
+          properties._removeItemId = 1;
+          if (
+            !(
+              (message.removeItemId &&
+                typeof message.removeItemId.length === "number") ||
+              $util.isString(message.removeItemId)
+            )
+          )
+            return "removeItemId: buffer expected";
+        }
+        if (message["delete"] != null && message.hasOwnProperty("delete")) {
+          properties._delete = 1;
+          if (typeof message["delete"] !== "boolean")
+            return "delete: boolean expected";
+        }
+        if (message.rename != null && message.hasOwnProperty("rename")) {
+          properties._rename = 1;
+          if (!$util.isString(message.rename)) return "rename: string expected";
+        }
+        return null;
+      };
+
+      /**
+       * Creates an UpdateTag message from a plain object. Also converts values to their respective internal types.
+       * @function fromObject
+       * @memberof market.mass.UpdateTag
+       * @static
+       * @param {Object.<string,*>} object Plain object
+       * @returns {market.mass.UpdateTag} UpdateTag
+       */
+      UpdateTag.fromObject = function fromObject(object) {
+        if (object instanceof $root.market.mass.UpdateTag) return object;
+        var message = new $root.market.mass.UpdateTag();
+        if (object.eventId != null)
+          if (typeof object.eventId === "string")
+            $util.base64.decode(
+              object.eventId,
+              (message.eventId = $util.newBuffer(
+                $util.base64.length(object.eventId),
+              )),
+              0,
+            );
+          else if (object.eventId.length >= 0) message.eventId = object.eventId;
+        if (object.tagId != null)
+          if (typeof object.tagId === "string")
+            $util.base64.decode(
+              object.tagId,
+              (message.tagId = $util.newBuffer(
+                $util.base64.length(object.tagId),
+              )),
+              0,
+            );
+          else if (object.tagId.length >= 0) message.tagId = object.tagId;
+        if (object.addItemId != null)
+          if (typeof object.addItemId === "string")
+            $util.base64.decode(
+              object.addItemId,
+              (message.addItemId = $util.newBuffer(
+                $util.base64.length(object.addItemId),
+              )),
+              0,
+            );
+          else if (object.addItemId.length >= 0)
+            message.addItemId = object.addItemId;
+        if (object.removeItemId != null)
+          if (typeof object.removeItemId === "string")
+            $util.base64.decode(
+              object.removeItemId,
+              (message.removeItemId = $util.newBuffer(
+                $util.base64.length(object.removeItemId),
+              )),
+              0,
+            );
+          else if (object.removeItemId.length >= 0)
+            message.removeItemId = object.removeItemId;
+        if (object["delete"] != null)
+          message["delete"] = Boolean(object["delete"]);
+        if (object.rename != null) message.rename = String(object.rename);
+        return message;
+      };
+
+      /**
+       * Creates a plain object from an UpdateTag message. Also converts values to other types if specified.
+       * @function toObject
+       * @memberof market.mass.UpdateTag
+       * @static
+       * @param {market.mass.UpdateTag} message UpdateTag
+       * @param {$protobuf.IConversionOptions} [options] Conversion options
+       * @returns {Object.<string,*>} Plain object
+       */
+      UpdateTag.toObject = function toObject(message, options) {
+        if (!options) options = {};
+        var object = {};
+        if (options.defaults) {
+          if (options.bytes === String) object.eventId = "";
+          else {
+            object.eventId = [];
+            if (options.bytes !== Array)
+              object.eventId = $util.newBuffer(object.eventId);
+          }
+          if (options.bytes === String) object.tagId = "";
+          else {
+            object.tagId = [];
+            if (options.bytes !== Array)
+              object.tagId = $util.newBuffer(object.tagId);
+          }
+        }
+        if (message.eventId != null && message.hasOwnProperty("eventId"))
+          object.eventId =
+            options.bytes === String
+              ? $util.base64.encode(message.eventId, 0, message.eventId.length)
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.eventId)
+                : message.eventId;
+        if (message.tagId != null && message.hasOwnProperty("tagId"))
+          object.tagId =
+            options.bytes === String
+              ? $util.base64.encode(message.tagId, 0, message.tagId.length)
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.tagId)
+                : message.tagId;
+        if (message.addItemId != null && message.hasOwnProperty("addItemId")) {
+          object.addItemId =
+            options.bytes === String
+              ? $util.base64.encode(
+                  message.addItemId,
+                  0,
+                  message.addItemId.length,
+                )
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.addItemId)
+                : message.addItemId;
+          if (options.oneofs) object._addItemId = "addItemId";
+        }
+        if (
+          message.removeItemId != null &&
+          message.hasOwnProperty("removeItemId")
+        ) {
+          object.removeItemId =
+            options.bytes === String
+              ? $util.base64.encode(
+                  message.removeItemId,
+                  0,
+                  message.removeItemId.length,
+                )
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.removeItemId)
+                : message.removeItemId;
+          if (options.oneofs) object._removeItemId = "removeItemId";
+        }
+        if (message["delete"] != null && message.hasOwnProperty("delete")) {
+          object["delete"] = message["delete"];
+          if (options.oneofs) object._delete = "delete";
+        }
+        if (message.rename != null && message.hasOwnProperty("rename")) {
+          object.rename = message.rename;
+          if (options.oneofs) object._rename = "rename";
+        }
+        return object;
+      };
+
+      /**
+       * Converts this UpdateTag to JSON.
+       * @function toJSON
+       * @memberof market.mass.UpdateTag
+       * @instance
+       * @returns {Object.<string,*>} JSON object
+       */
+      UpdateTag.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+      };
+
+      /**
+       * Gets the default type url for UpdateTag
+       * @function getTypeUrl
+       * @memberof market.mass.UpdateTag
+       * @static
+       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+       * @returns {string} The default type url
+       */
+      UpdateTag.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        if (typeUrlPrefix === undefined) {
+          typeUrlPrefix = "type.googleapis.com";
+        }
+        return typeUrlPrefix + "/market.mass.UpdateTag";
+      };
+
+      return UpdateTag;
+    })();
+
+    mass.ChangeStock = (function () {
+      /**
+       * Properties of a ChangeStock.
+       * @memberof market.mass
+       * @interface IChangeStock
+       * @property {Uint8Array|null} [eventId] ChangeStock eventId
+       * @property {Array.<Uint8Array>|null} [itemIds] ChangeStock itemIds
+       * @property {Array.<number>|null} [diffs] ChangeStock diffs
+       * @property {Uint8Array|null} [orderId] ChangeStock orderId
+       * @property {Uint8Array|null} [txHash] ChangeStock txHash
+       */
+
+      /**
+       * Constructs a new ChangeStock.
+       * @memberof market.mass
+       * @classdesc Represents a ChangeStock.
+       * @implements IChangeStock
+       * @constructor
+       * @param {market.mass.IChangeStock=} [properties] Properties to set
+       */
+      function ChangeStock(properties) {
+        this.itemIds = [];
+        this.diffs = [];
+        if (properties)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+            if (properties[keys[i]] != null)
+              this[keys[i]] = properties[keys[i]];
+      }
+
+      /**
+       * ChangeStock eventId.
+       * @member {Uint8Array} eventId
+       * @memberof market.mass.ChangeStock
+       * @instance
+       */
+      ChangeStock.prototype.eventId = $util.newBuffer([]);
+
+      /**
+       * ChangeStock itemIds.
+       * @member {Array.<Uint8Array>} itemIds
+       * @memberof market.mass.ChangeStock
+       * @instance
+       */
+      ChangeStock.prototype.itemIds = $util.emptyArray;
+
+      /**
+       * ChangeStock diffs.
+       * @member {Array.<number>} diffs
+       * @memberof market.mass.ChangeStock
+       * @instance
+       */
+      ChangeStock.prototype.diffs = $util.emptyArray;
+
+      /**
+       * ChangeStock orderId.
+       * @member {Uint8Array} orderId
+       * @memberof market.mass.ChangeStock
+       * @instance
+       */
+      ChangeStock.prototype.orderId = $util.newBuffer([]);
+
+      /**
+       * ChangeStock txHash.
+       * @member {Uint8Array} txHash
+       * @memberof market.mass.ChangeStock
+       * @instance
+       */
+      ChangeStock.prototype.txHash = $util.newBuffer([]);
+
+      /**
+       * Creates a new ChangeStock instance using the specified properties.
+       * @function create
+       * @memberof market.mass.ChangeStock
+       * @static
+       * @param {market.mass.IChangeStock=} [properties] Properties to set
+       * @returns {market.mass.ChangeStock} ChangeStock instance
+       */
+      ChangeStock.create = function create(properties) {
+        return new ChangeStock(properties);
+      };
+
+      /**
+       * Encodes the specified ChangeStock message. Does not implicitly {@link market.mass.ChangeStock.verify|verify} messages.
+       * @function encode
+       * @memberof market.mass.ChangeStock
+       * @static
+       * @param {market.mass.IChangeStock} message ChangeStock message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      ChangeStock.encode = function encode(message, writer) {
+        if (!writer) writer = $Writer.create();
+        if (
+          message.eventId != null &&
+          Object.hasOwnProperty.call(message, "eventId")
+        )
+          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.eventId);
+        if (message.itemIds != null && message.itemIds.length)
+          for (var i = 0; i < message.itemIds.length; ++i)
+            writer.uint32(/* id 2, wireType 2 =*/ 18).bytes(message.itemIds[i]);
+        if (message.diffs != null && message.diffs.length) {
+          writer.uint32(/* id 3, wireType 2 =*/ 26).fork();
+          for (var i = 0; i < message.diffs.length; ++i)
+            writer.sint32(message.diffs[i]);
+          writer.ldelim();
+        }
+        if (
+          message.orderId != null &&
+          Object.hasOwnProperty.call(message, "orderId")
+        )
+          writer.uint32(/* id 4, wireType 2 =*/ 34).bytes(message.orderId);
+        if (
+          message.txHash != null &&
+          Object.hasOwnProperty.call(message, "txHash")
+        )
+          writer.uint32(/* id 5, wireType 2 =*/ 42).bytes(message.txHash);
+        return writer;
+      };
+
+      /**
+       * Encodes the specified ChangeStock message, length delimited. Does not implicitly {@link market.mass.ChangeStock.verify|verify} messages.
+       * @function encodeDelimited
+       * @memberof market.mass.ChangeStock
+       * @static
+       * @param {market.mass.IChangeStock} message ChangeStock message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      ChangeStock.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+      };
+
+      /**
+       * Decodes a ChangeStock message from the specified reader or buffer.
+       * @function decode
+       * @memberof market.mass.ChangeStock
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @param {number} [length] Message length if known beforehand
+       * @returns {market.mass.ChangeStock} ChangeStock
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      ChangeStock.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length,
+          message = new $root.market.mass.ChangeStock();
+        while (reader.pos < end) {
+          var tag = reader.uint32();
+          switch (tag >>> 3) {
+            case 1: {
+              message.eventId = reader.bytes();
+              break;
+            }
+            case 2: {
+              if (!(message.itemIds && message.itemIds.length))
+                message.itemIds = [];
+              message.itemIds.push(reader.bytes());
+              break;
+            }
+            case 3: {
+              if (!(message.diffs && message.diffs.length)) message.diffs = [];
+              if ((tag & 7) === 2) {
+                var end2 = reader.uint32() + reader.pos;
+                while (reader.pos < end2) message.diffs.push(reader.sint32());
+              } else message.diffs.push(reader.sint32());
+              break;
+            }
+            case 4: {
+              message.orderId = reader.bytes();
+              break;
+            }
+            case 5: {
+              message.txHash = reader.bytes();
+              break;
+            }
+            default:
+              reader.skipType(tag & 7);
+              break;
+          }
+        }
+        return message;
+      };
+
+      /**
+       * Decodes a ChangeStock message from the specified reader or buffer, length delimited.
+       * @function decodeDelimited
+       * @memberof market.mass.ChangeStock
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @returns {market.mass.ChangeStock} ChangeStock
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      ChangeStock.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+      };
+
+      /**
+       * Verifies a ChangeStock message.
+       * @function verify
+       * @memberof market.mass.ChangeStock
+       * @static
+       * @param {Object.<string,*>} message Plain object to verify
+       * @returns {string|null} `null` if valid, otherwise the reason why it is not
+       */
+      ChangeStock.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+          return "object expected";
+        if (message.eventId != null && message.hasOwnProperty("eventId"))
+          if (
+            !(
+              (message.eventId && typeof message.eventId.length === "number") ||
+              $util.isString(message.eventId)
+            )
+          )
+            return "eventId: buffer expected";
+        if (message.itemIds != null && message.hasOwnProperty("itemIds")) {
+          if (!Array.isArray(message.itemIds)) return "itemIds: array expected";
+          for (var i = 0; i < message.itemIds.length; ++i)
+            if (
+              !(
+                (message.itemIds[i] &&
+                  typeof message.itemIds[i].length === "number") ||
+                $util.isString(message.itemIds[i])
+              )
+            )
+              return "itemIds: buffer[] expected";
+        }
+        if (message.diffs != null && message.hasOwnProperty("diffs")) {
+          if (!Array.isArray(message.diffs)) return "diffs: array expected";
+          for (var i = 0; i < message.diffs.length; ++i)
+            if (!$util.isInteger(message.diffs[i]))
+              return "diffs: integer[] expected";
+        }
+        if (message.orderId != null && message.hasOwnProperty("orderId"))
+          if (
+            !(
+              (message.orderId && typeof message.orderId.length === "number") ||
+              $util.isString(message.orderId)
+            )
+          )
+            return "orderId: buffer expected";
+        if (message.txHash != null && message.hasOwnProperty("txHash"))
+          if (
+            !(
+              (message.txHash && typeof message.txHash.length === "number") ||
+              $util.isString(message.txHash)
+            )
+          )
+            return "txHash: buffer expected";
+        return null;
+      };
+
+      /**
+       * Creates a ChangeStock message from a plain object. Also converts values to their respective internal types.
+       * @function fromObject
+       * @memberof market.mass.ChangeStock
+       * @static
+       * @param {Object.<string,*>} object Plain object
+       * @returns {market.mass.ChangeStock} ChangeStock
+       */
+      ChangeStock.fromObject = function fromObject(object) {
+        if (object instanceof $root.market.mass.ChangeStock) return object;
+        var message = new $root.market.mass.ChangeStock();
+        if (object.eventId != null)
+          if (typeof object.eventId === "string")
+            $util.base64.decode(
+              object.eventId,
+              (message.eventId = $util.newBuffer(
+                $util.base64.length(object.eventId),
+              )),
+              0,
+            );
+          else if (object.eventId.length >= 0) message.eventId = object.eventId;
+        if (object.itemIds) {
+          if (!Array.isArray(object.itemIds))
+            throw TypeError(".market.mass.ChangeStock.itemIds: array expected");
+          message.itemIds = [];
+          for (var i = 0; i < object.itemIds.length; ++i)
+            if (typeof object.itemIds[i] === "string")
+              $util.base64.decode(
+                object.itemIds[i],
+                (message.itemIds[i] = $util.newBuffer(
+                  $util.base64.length(object.itemIds[i]),
+                )),
+                0,
+              );
+            else if (object.itemIds[i].length >= 0)
+              message.itemIds[i] = object.itemIds[i];
+        }
+        if (object.diffs) {
+          if (!Array.isArray(object.diffs))
+            throw TypeError(".market.mass.ChangeStock.diffs: array expected");
+          message.diffs = [];
+          for (var i = 0; i < object.diffs.length; ++i)
+            message.diffs[i] = object.diffs[i] | 0;
+        }
+        if (object.orderId != null)
+          if (typeof object.orderId === "string")
+            $util.base64.decode(
+              object.orderId,
+              (message.orderId = $util.newBuffer(
+                $util.base64.length(object.orderId),
+              )),
+              0,
+            );
+          else if (object.orderId.length >= 0) message.orderId = object.orderId;
+        if (object.txHash != null)
+          if (typeof object.txHash === "string")
+            $util.base64.decode(
+              object.txHash,
+              (message.txHash = $util.newBuffer(
+                $util.base64.length(object.txHash),
+              )),
+              0,
+            );
+          else if (object.txHash.length >= 0) message.txHash = object.txHash;
+        return message;
+      };
+
+      /**
+       * Creates a plain object from a ChangeStock message. Also converts values to other types if specified.
+       * @function toObject
+       * @memberof market.mass.ChangeStock
+       * @static
+       * @param {market.mass.ChangeStock} message ChangeStock
+       * @param {$protobuf.IConversionOptions} [options] Conversion options
+       * @returns {Object.<string,*>} Plain object
+       */
+      ChangeStock.toObject = function toObject(message, options) {
+        if (!options) options = {};
+        var object = {};
+        if (options.arrays || options.defaults) {
+          object.itemIds = [];
+          object.diffs = [];
+        }
+        if (options.defaults) {
+          if (options.bytes === String) object.eventId = "";
+          else {
+            object.eventId = [];
+            if (options.bytes !== Array)
+              object.eventId = $util.newBuffer(object.eventId);
+          }
+          if (options.bytes === String) object.orderId = "";
+          else {
+            object.orderId = [];
+            if (options.bytes !== Array)
+              object.orderId = $util.newBuffer(object.orderId);
+          }
+          if (options.bytes === String) object.txHash = "";
+          else {
+            object.txHash = [];
+            if (options.bytes !== Array)
+              object.txHash = $util.newBuffer(object.txHash);
+          }
+        }
+        if (message.eventId != null && message.hasOwnProperty("eventId"))
+          object.eventId =
+            options.bytes === String
+              ? $util.base64.encode(message.eventId, 0, message.eventId.length)
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.eventId)
+                : message.eventId;
+        if (message.itemIds && message.itemIds.length) {
+          object.itemIds = [];
+          for (var j = 0; j < message.itemIds.length; ++j)
+            object.itemIds[j] =
+              options.bytes === String
+                ? $util.base64.encode(
+                    message.itemIds[j],
+                    0,
+                    message.itemIds[j].length,
+                  )
+                : options.bytes === Array
+                  ? Array.prototype.slice.call(message.itemIds[j])
+                  : message.itemIds[j];
+        }
+        if (message.diffs && message.diffs.length) {
+          object.diffs = [];
+          for (var j = 0; j < message.diffs.length; ++j)
+            object.diffs[j] = message.diffs[j];
+        }
+        if (message.orderId != null && message.hasOwnProperty("orderId"))
+          object.orderId =
+            options.bytes === String
+              ? $util.base64.encode(message.orderId, 0, message.orderId.length)
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.orderId)
+                : message.orderId;
+        if (message.txHash != null && message.hasOwnProperty("txHash"))
+          object.txHash =
+            options.bytes === String
+              ? $util.base64.encode(message.txHash, 0, message.txHash.length)
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.txHash)
+                : message.txHash;
+        return object;
+      };
+
+      /**
+       * Converts this ChangeStock to JSON.
+       * @function toJSON
+       * @memberof market.mass.ChangeStock
+       * @instance
+       * @returns {Object.<string,*>} JSON object
+       */
+      ChangeStock.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+      };
+
+      /**
+       * Gets the default type url for ChangeStock
+       * @function getTypeUrl
+       * @memberof market.mass.ChangeStock
+       * @static
+       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+       * @returns {string} The default type url
+       */
+      ChangeStock.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        if (typeUrlPrefix === undefined) {
+          typeUrlPrefix = "type.googleapis.com";
+        }
+        return typeUrlPrefix + "/market.mass.ChangeStock";
+      };
+
+      return ChangeStock;
+    })();
+
+    mass.NewKeyCard = (function () {
+      /**
+       * Properties of a NewKeyCard.
+       * @memberof market.mass
+       * @interface INewKeyCard
+       * @property {Uint8Array|null} [eventId] NewKeyCard eventId
+       * @property {Uint8Array|null} [userWalletAddr] NewKeyCard userWalletAddr
+       * @property {Uint8Array|null} [cardPublicKey] NewKeyCard cardPublicKey
+       * @property {boolean|null} [isGuest] NewKeyCard isGuest
+       */
+
+      /**
+       * Constructs a new NewKeyCard.
+       * @memberof market.mass
+       * @classdesc Represents a NewKeyCard.
+       * @implements INewKeyCard
+       * @constructor
+       * @param {market.mass.INewKeyCard=} [properties] Properties to set
+       */
+      function NewKeyCard(properties) {
+        if (properties)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+            if (properties[keys[i]] != null)
+              this[keys[i]] = properties[keys[i]];
+      }
+
+      /**
+       * NewKeyCard eventId.
+       * @member {Uint8Array} eventId
+       * @memberof market.mass.NewKeyCard
+       * @instance
+       */
+      NewKeyCard.prototype.eventId = $util.newBuffer([]);
+
+      /**
+       * NewKeyCard userWalletAddr.
+       * @member {Uint8Array} userWalletAddr
+       * @memberof market.mass.NewKeyCard
+       * @instance
+       */
+      NewKeyCard.prototype.userWalletAddr = $util.newBuffer([]);
+
+      /**
+       * NewKeyCard cardPublicKey.
+       * @member {Uint8Array} cardPublicKey
+       * @memberof market.mass.NewKeyCard
+       * @instance
+       */
+      NewKeyCard.prototype.cardPublicKey = $util.newBuffer([]);
+
+      /**
+       * NewKeyCard isGuest.
+       * @member {boolean} isGuest
+       * @memberof market.mass.NewKeyCard
+       * @instance
+       */
+      NewKeyCard.prototype.isGuest = false;
+
+      /**
+       * Creates a new NewKeyCard instance using the specified properties.
+       * @function create
+       * @memberof market.mass.NewKeyCard
+       * @static
+       * @param {market.mass.INewKeyCard=} [properties] Properties to set
+       * @returns {market.mass.NewKeyCard} NewKeyCard instance
+       */
+      NewKeyCard.create = function create(properties) {
+        return new NewKeyCard(properties);
+      };
+
+      /**
+       * Encodes the specified NewKeyCard message. Does not implicitly {@link market.mass.NewKeyCard.verify|verify} messages.
+       * @function encode
+       * @memberof market.mass.NewKeyCard
+       * @static
+       * @param {market.mass.INewKeyCard} message NewKeyCard message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      NewKeyCard.encode = function encode(message, writer) {
+        if (!writer) writer = $Writer.create();
+        if (
+          message.eventId != null &&
+          Object.hasOwnProperty.call(message, "eventId")
+        )
+          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.eventId);
+        if (
+          message.userWalletAddr != null &&
+          Object.hasOwnProperty.call(message, "userWalletAddr")
+        )
+          writer
+            .uint32(/* id 2, wireType 2 =*/ 18)
+            .bytes(message.userWalletAddr);
+        if (
+          message.cardPublicKey != null &&
+          Object.hasOwnProperty.call(message, "cardPublicKey")
+        )
+          writer
+            .uint32(/* id 3, wireType 2 =*/ 26)
+            .bytes(message.cardPublicKey);
+        if (
+          message.isGuest != null &&
+          Object.hasOwnProperty.call(message, "isGuest")
+        )
+          writer.uint32(/* id 4, wireType 0 =*/ 32).bool(message.isGuest);
+        return writer;
+      };
+
+      /**
+       * Encodes the specified NewKeyCard message, length delimited. Does not implicitly {@link market.mass.NewKeyCard.verify|verify} messages.
+       * @function encodeDelimited
+       * @memberof market.mass.NewKeyCard
+       * @static
+       * @param {market.mass.INewKeyCard} message NewKeyCard message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      NewKeyCard.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+      };
+
+      /**
+       * Decodes a NewKeyCard message from the specified reader or buffer.
+       * @function decode
+       * @memberof market.mass.NewKeyCard
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @param {number} [length] Message length if known beforehand
+       * @returns {market.mass.NewKeyCard} NewKeyCard
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      NewKeyCard.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length,
+          message = new $root.market.mass.NewKeyCard();
+        while (reader.pos < end) {
+          var tag = reader.uint32();
+          switch (tag >>> 3) {
+            case 1: {
+              message.eventId = reader.bytes();
+              break;
+            }
+            case 2: {
+              message.userWalletAddr = reader.bytes();
+              break;
+            }
+            case 3: {
+              message.cardPublicKey = reader.bytes();
+              break;
+            }
+            case 4: {
+              message.isGuest = reader.bool();
+              break;
+            }
+            default:
+              reader.skipType(tag & 7);
+              break;
+          }
+        }
+        return message;
+      };
+
+      /**
+       * Decodes a NewKeyCard message from the specified reader or buffer, length delimited.
+       * @function decodeDelimited
+       * @memberof market.mass.NewKeyCard
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @returns {market.mass.NewKeyCard} NewKeyCard
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      NewKeyCard.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+      };
+
+      /**
+       * Verifies a NewKeyCard message.
+       * @function verify
+       * @memberof market.mass.NewKeyCard
+       * @static
+       * @param {Object.<string,*>} message Plain object to verify
+       * @returns {string|null} `null` if valid, otherwise the reason why it is not
+       */
+      NewKeyCard.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+          return "object expected";
+        if (message.eventId != null && message.hasOwnProperty("eventId"))
+          if (
+            !(
+              (message.eventId && typeof message.eventId.length === "number") ||
+              $util.isString(message.eventId)
+            )
+          )
+            return "eventId: buffer expected";
+        if (
+          message.userWalletAddr != null &&
+          message.hasOwnProperty("userWalletAddr")
+        )
+          if (
+            !(
+              (message.userWalletAddr &&
+                typeof message.userWalletAddr.length === "number") ||
+              $util.isString(message.userWalletAddr)
+            )
+          )
+            return "userWalletAddr: buffer expected";
+        if (
+          message.cardPublicKey != null &&
+          message.hasOwnProperty("cardPublicKey")
+        )
+          if (
+            !(
+              (message.cardPublicKey &&
+                typeof message.cardPublicKey.length === "number") ||
+              $util.isString(message.cardPublicKey)
+            )
+          )
+            return "cardPublicKey: buffer expected";
+        if (message.isGuest != null && message.hasOwnProperty("isGuest"))
+          if (typeof message.isGuest !== "boolean")
+            return "isGuest: boolean expected";
+        return null;
+      };
+
+      /**
+       * Creates a NewKeyCard message from a plain object. Also converts values to their respective internal types.
+       * @function fromObject
+       * @memberof market.mass.NewKeyCard
+       * @static
+       * @param {Object.<string,*>} object Plain object
+       * @returns {market.mass.NewKeyCard} NewKeyCard
+       */
+      NewKeyCard.fromObject = function fromObject(object) {
+        if (object instanceof $root.market.mass.NewKeyCard) return object;
+        var message = new $root.market.mass.NewKeyCard();
+        if (object.eventId != null)
+          if (typeof object.eventId === "string")
+            $util.base64.decode(
+              object.eventId,
+              (message.eventId = $util.newBuffer(
+                $util.base64.length(object.eventId),
+              )),
+              0,
+            );
+          else if (object.eventId.length >= 0) message.eventId = object.eventId;
+        if (object.userWalletAddr != null)
+          if (typeof object.userWalletAddr === "string")
+            $util.base64.decode(
+              object.userWalletAddr,
+              (message.userWalletAddr = $util.newBuffer(
+                $util.base64.length(object.userWalletAddr),
+              )),
+              0,
+            );
+          else if (object.userWalletAddr.length >= 0)
+            message.userWalletAddr = object.userWalletAddr;
+        if (object.cardPublicKey != null)
+          if (typeof object.cardPublicKey === "string")
+            $util.base64.decode(
+              object.cardPublicKey,
+              (message.cardPublicKey = $util.newBuffer(
+                $util.base64.length(object.cardPublicKey),
+              )),
+              0,
+            );
+          else if (object.cardPublicKey.length >= 0)
+            message.cardPublicKey = object.cardPublicKey;
+        if (object.isGuest != null) message.isGuest = Boolean(object.isGuest);
+        return message;
+      };
+
+      /**
+       * Creates a plain object from a NewKeyCard message. Also converts values to other types if specified.
+       * @function toObject
+       * @memberof market.mass.NewKeyCard
+       * @static
+       * @param {market.mass.NewKeyCard} message NewKeyCard
+       * @param {$protobuf.IConversionOptions} [options] Conversion options
+       * @returns {Object.<string,*>} Plain object
+       */
+      NewKeyCard.toObject = function toObject(message, options) {
+        if (!options) options = {};
+        var object = {};
+        if (options.defaults) {
+          if (options.bytes === String) object.eventId = "";
+          else {
+            object.eventId = [];
+            if (options.bytes !== Array)
+              object.eventId = $util.newBuffer(object.eventId);
+          }
+          if (options.bytes === String) object.userWalletAddr = "";
+          else {
+            object.userWalletAddr = [];
+            if (options.bytes !== Array)
+              object.userWalletAddr = $util.newBuffer(object.userWalletAddr);
+          }
+          if (options.bytes === String) object.cardPublicKey = "";
+          else {
+            object.cardPublicKey = [];
+            if (options.bytes !== Array)
+              object.cardPublicKey = $util.newBuffer(object.cardPublicKey);
+          }
+          object.isGuest = false;
+        }
+        if (message.eventId != null && message.hasOwnProperty("eventId"))
+          object.eventId =
+            options.bytes === String
+              ? $util.base64.encode(message.eventId, 0, message.eventId.length)
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.eventId)
+                : message.eventId;
+        if (
+          message.userWalletAddr != null &&
+          message.hasOwnProperty("userWalletAddr")
+        )
+          object.userWalletAddr =
+            options.bytes === String
+              ? $util.base64.encode(
+                  message.userWalletAddr,
+                  0,
+                  message.userWalletAddr.length,
+                )
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.userWalletAddr)
+                : message.userWalletAddr;
+        if (
+          message.cardPublicKey != null &&
+          message.hasOwnProperty("cardPublicKey")
+        )
+          object.cardPublicKey =
+            options.bytes === String
+              ? $util.base64.encode(
+                  message.cardPublicKey,
+                  0,
+                  message.cardPublicKey.length,
+                )
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.cardPublicKey)
+                : message.cardPublicKey;
+        if (message.isGuest != null && message.hasOwnProperty("isGuest"))
+          object.isGuest = message.isGuest;
+        return object;
+      };
+
+      /**
+       * Converts this NewKeyCard to JSON.
+       * @function toJSON
+       * @memberof market.mass.NewKeyCard
+       * @instance
+       * @returns {Object.<string,*>} JSON object
+       */
+      NewKeyCard.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+      };
+
+      /**
+       * Gets the default type url for NewKeyCard
+       * @function getTypeUrl
+       * @memberof market.mass.NewKeyCard
+       * @static
+       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+       * @returns {string} The default type url
+       */
+      NewKeyCard.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        if (typeUrlPrefix === undefined) {
+          typeUrlPrefix = "type.googleapis.com";
+        }
+        return typeUrlPrefix + "/market.mass.NewKeyCard";
+      };
+
+      return NewKeyCard;
+    })();
+
+    mass.CreateOrder = (function () {
+      /**
+       * Properties of a CreateOrder.
+       * @memberof market.mass
+       * @interface ICreateOrder
+       * @property {Uint8Array|null} [eventId] CreateOrder eventId
+       */
+
+      /**
+       * Constructs a new CreateOrder.
+       * @memberof market.mass
+       * @classdesc Represents a CreateOrder.
+       * @implements ICreateOrder
+       * @constructor
+       * @param {market.mass.ICreateOrder=} [properties] Properties to set
+       */
+      function CreateOrder(properties) {
+        if (properties)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+            if (properties[keys[i]] != null)
+              this[keys[i]] = properties[keys[i]];
+      }
+
+      /**
+       * CreateOrder eventId.
+       * @member {Uint8Array} eventId
+       * @memberof market.mass.CreateOrder
+       * @instance
+       */
+      CreateOrder.prototype.eventId = $util.newBuffer([]);
+
+      /**
+       * Creates a new CreateOrder instance using the specified properties.
+       * @function create
+       * @memberof market.mass.CreateOrder
+       * @static
+       * @param {market.mass.ICreateOrder=} [properties] Properties to set
+       * @returns {market.mass.CreateOrder} CreateOrder instance
+       */
+      CreateOrder.create = function create(properties) {
+        return new CreateOrder(properties);
+      };
+
+      /**
+       * Encodes the specified CreateOrder message. Does not implicitly {@link market.mass.CreateOrder.verify|verify} messages.
+       * @function encode
+       * @memberof market.mass.CreateOrder
+       * @static
+       * @param {market.mass.ICreateOrder} message CreateOrder message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      CreateOrder.encode = function encode(message, writer) {
+        if (!writer) writer = $Writer.create();
+        if (
+          message.eventId != null &&
+          Object.hasOwnProperty.call(message, "eventId")
+        )
+          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.eventId);
+        return writer;
+      };
+
+      /**
+       * Encodes the specified CreateOrder message, length delimited. Does not implicitly {@link market.mass.CreateOrder.verify|verify} messages.
+       * @function encodeDelimited
+       * @memberof market.mass.CreateOrder
+       * @static
+       * @param {market.mass.ICreateOrder} message CreateOrder message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      CreateOrder.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+      };
+
+      /**
+       * Decodes a CreateOrder message from the specified reader or buffer.
+       * @function decode
+       * @memberof market.mass.CreateOrder
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @param {number} [length] Message length if known beforehand
+       * @returns {market.mass.CreateOrder} CreateOrder
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      CreateOrder.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length,
+          message = new $root.market.mass.CreateOrder();
+        while (reader.pos < end) {
+          var tag = reader.uint32();
+          switch (tag >>> 3) {
+            case 1: {
+              message.eventId = reader.bytes();
+              break;
+            }
+            default:
+              reader.skipType(tag & 7);
+              break;
+          }
+        }
+        return message;
+      };
+
+      /**
+       * Decodes a CreateOrder message from the specified reader or buffer, length delimited.
+       * @function decodeDelimited
+       * @memberof market.mass.CreateOrder
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @returns {market.mass.CreateOrder} CreateOrder
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      CreateOrder.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+      };
+
+      /**
+       * Verifies a CreateOrder message.
+       * @function verify
+       * @memberof market.mass.CreateOrder
+       * @static
+       * @param {Object.<string,*>} message Plain object to verify
+       * @returns {string|null} `null` if valid, otherwise the reason why it is not
+       */
+      CreateOrder.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+          return "object expected";
+        if (message.eventId != null && message.hasOwnProperty("eventId"))
+          if (
+            !(
+              (message.eventId && typeof message.eventId.length === "number") ||
+              $util.isString(message.eventId)
+            )
+          )
+            return "eventId: buffer expected";
+        return null;
+      };
+
+      /**
+       * Creates a CreateOrder message from a plain object. Also converts values to their respective internal types.
+       * @function fromObject
+       * @memberof market.mass.CreateOrder
+       * @static
+       * @param {Object.<string,*>} object Plain object
+       * @returns {market.mass.CreateOrder} CreateOrder
+       */
+      CreateOrder.fromObject = function fromObject(object) {
+        if (object instanceof $root.market.mass.CreateOrder) return object;
+        var message = new $root.market.mass.CreateOrder();
+        if (object.eventId != null)
+          if (typeof object.eventId === "string")
+            $util.base64.decode(
+              object.eventId,
+              (message.eventId = $util.newBuffer(
+                $util.base64.length(object.eventId),
+              )),
+              0,
+            );
+          else if (object.eventId.length >= 0) message.eventId = object.eventId;
+        return message;
+      };
+
+      /**
+       * Creates a plain object from a CreateOrder message. Also converts values to other types if specified.
+       * @function toObject
+       * @memberof market.mass.CreateOrder
+       * @static
+       * @param {market.mass.CreateOrder} message CreateOrder
+       * @param {$protobuf.IConversionOptions} [options] Conversion options
+       * @returns {Object.<string,*>} Plain object
+       */
+      CreateOrder.toObject = function toObject(message, options) {
+        if (!options) options = {};
+        var object = {};
+        if (options.defaults)
+          if (options.bytes === String) object.eventId = "";
+          else {
+            object.eventId = [];
+            if (options.bytes !== Array)
+              object.eventId = $util.newBuffer(object.eventId);
+          }
+        if (message.eventId != null && message.hasOwnProperty("eventId"))
+          object.eventId =
+            options.bytes === String
+              ? $util.base64.encode(message.eventId, 0, message.eventId.length)
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.eventId)
+                : message.eventId;
+        return object;
+      };
+
+      /**
+       * Converts this CreateOrder to JSON.
+       * @function toJSON
+       * @memberof market.mass.CreateOrder
+       * @instance
+       * @returns {Object.<string,*>} JSON object
+       */
+      CreateOrder.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+      };
+
+      /**
+       * Gets the default type url for CreateOrder
+       * @function getTypeUrl
+       * @memberof market.mass.CreateOrder
+       * @static
+       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+       * @returns {string} The default type url
+       */
+      CreateOrder.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        if (typeUrlPrefix === undefined) {
+          typeUrlPrefix = "type.googleapis.com";
+        }
+        return typeUrlPrefix + "/market.mass.CreateOrder";
+      };
+
+      return CreateOrder;
+    })();
+
+    mass.UpdateOrder = (function () {
+      /**
+       * Properties of an UpdateOrder.
+       * @memberof market.mass
+       * @interface IUpdateOrder
+       * @property {Uint8Array|null} [eventId] UpdateOrder eventId
+       * @property {Uint8Array|null} [orderId] UpdateOrder orderId
+       * @property {market.mass.UpdateOrder.IChangeItems|null} [changeItems] UpdateOrder changeItems
+       * @property {market.mass.UpdateOrder.IItemsFinalized|null} [itemsFinalized] UpdateOrder itemsFinalized
+       * @property {market.mass.UpdateOrder.IOrderCanceled|null} [orderCanceled] UpdateOrder orderCanceled
+       */
+
+      /**
+       * Constructs a new UpdateOrder.
+       * @memberof market.mass
+       * @classdesc Represents an UpdateOrder.
+       * @implements IUpdateOrder
+       * @constructor
+       * @param {market.mass.IUpdateOrder=} [properties] Properties to set
+       */
+      function UpdateOrder(properties) {
+        if (properties)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+            if (properties[keys[i]] != null)
+              this[keys[i]] = properties[keys[i]];
+      }
+
+      /**
+       * UpdateOrder eventId.
+       * @member {Uint8Array} eventId
+       * @memberof market.mass.UpdateOrder
+       * @instance
+       */
+      UpdateOrder.prototype.eventId = $util.newBuffer([]);
+
+      /**
+       * UpdateOrder orderId.
+       * @member {Uint8Array} orderId
+       * @memberof market.mass.UpdateOrder
+       * @instance
+       */
+      UpdateOrder.prototype.orderId = $util.newBuffer([]);
+
+      /**
+       * UpdateOrder changeItems.
+       * @member {market.mass.UpdateOrder.IChangeItems|null|undefined} changeItems
+       * @memberof market.mass.UpdateOrder
+       * @instance
+       */
+      UpdateOrder.prototype.changeItems = null;
+
+      /**
+       * UpdateOrder itemsFinalized.
+       * @member {market.mass.UpdateOrder.IItemsFinalized|null|undefined} itemsFinalized
+       * @memberof market.mass.UpdateOrder
+       * @instance
+       */
+      UpdateOrder.prototype.itemsFinalized = null;
+
+      /**
+       * UpdateOrder orderCanceled.
+       * @member {market.mass.UpdateOrder.IOrderCanceled|null|undefined} orderCanceled
+       * @memberof market.mass.UpdateOrder
+       * @instance
+       */
+      UpdateOrder.prototype.orderCanceled = null;
+
+      // OneOf field names bound to virtual getters and setters
+      var $oneOfFields;
+
+      /**
+       * UpdateOrder action.
+       * @member {"changeItems"|"itemsFinalized"|"orderCanceled"|undefined} action
+       * @memberof market.mass.UpdateOrder
+       * @instance
+       */
+      Object.defineProperty(UpdateOrder.prototype, "action", {
+        get: $util.oneOfGetter(
+          ($oneOfFields = ["changeItems", "itemsFinalized", "orderCanceled"]),
+        ),
+        set: $util.oneOfSetter($oneOfFields),
+      });
+
+      /**
+       * Creates a new UpdateOrder instance using the specified properties.
+       * @function create
+       * @memberof market.mass.UpdateOrder
+       * @static
+       * @param {market.mass.IUpdateOrder=} [properties] Properties to set
+       * @returns {market.mass.UpdateOrder} UpdateOrder instance
+       */
+      UpdateOrder.create = function create(properties) {
+        return new UpdateOrder(properties);
+      };
+
+      /**
+       * Encodes the specified UpdateOrder message. Does not implicitly {@link market.mass.UpdateOrder.verify|verify} messages.
+       * @function encode
+       * @memberof market.mass.UpdateOrder
+       * @static
+       * @param {market.mass.IUpdateOrder} message UpdateOrder message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      UpdateOrder.encode = function encode(message, writer) {
+        if (!writer) writer = $Writer.create();
+        if (
+          message.eventId != null &&
+          Object.hasOwnProperty.call(message, "eventId")
+        )
+          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.eventId);
+        if (
+          message.orderId != null &&
+          Object.hasOwnProperty.call(message, "orderId")
+        )
+          writer.uint32(/* id 2, wireType 2 =*/ 18).bytes(message.orderId);
+        if (
+          message.changeItems != null &&
+          Object.hasOwnProperty.call(message, "changeItems")
+        )
+          $root.market.mass.UpdateOrder.ChangeItems.encode(
+            message.changeItems,
+            writer.uint32(/* id 3, wireType 2 =*/ 26).fork(),
+          ).ldelim();
+        if (
+          message.itemsFinalized != null &&
+          Object.hasOwnProperty.call(message, "itemsFinalized")
+        )
+          $root.market.mass.UpdateOrder.ItemsFinalized.encode(
+            message.itemsFinalized,
+            writer.uint32(/* id 4, wireType 2 =*/ 34).fork(),
+          ).ldelim();
+        if (
+          message.orderCanceled != null &&
+          Object.hasOwnProperty.call(message, "orderCanceled")
+        )
+          $root.market.mass.UpdateOrder.OrderCanceled.encode(
+            message.orderCanceled,
+            writer.uint32(/* id 5, wireType 2 =*/ 42).fork(),
+          ).ldelim();
+        return writer;
+      };
+
+      /**
+       * Encodes the specified UpdateOrder message, length delimited. Does not implicitly {@link market.mass.UpdateOrder.verify|verify} messages.
+       * @function encodeDelimited
+       * @memberof market.mass.UpdateOrder
+       * @static
+       * @param {market.mass.IUpdateOrder} message UpdateOrder message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      UpdateOrder.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+      };
+
+      /**
+       * Decodes an UpdateOrder message from the specified reader or buffer.
+       * @function decode
+       * @memberof market.mass.UpdateOrder
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @param {number} [length] Message length if known beforehand
+       * @returns {market.mass.UpdateOrder} UpdateOrder
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      UpdateOrder.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length,
+          message = new $root.market.mass.UpdateOrder();
+        while (reader.pos < end) {
+          var tag = reader.uint32();
+          switch (tag >>> 3) {
+            case 1: {
+              message.eventId = reader.bytes();
+              break;
+            }
+            case 2: {
+              message.orderId = reader.bytes();
+              break;
+            }
+            case 3: {
+              message.changeItems =
+                $root.market.mass.UpdateOrder.ChangeItems.decode(
+                  reader,
+                  reader.uint32(),
+                );
+              break;
+            }
+            case 4: {
+              message.itemsFinalized =
+                $root.market.mass.UpdateOrder.ItemsFinalized.decode(
+                  reader,
+                  reader.uint32(),
+                );
+              break;
+            }
+            case 5: {
+              message.orderCanceled =
+                $root.market.mass.UpdateOrder.OrderCanceled.decode(
+                  reader,
+                  reader.uint32(),
+                );
+              break;
+            }
+            default:
+              reader.skipType(tag & 7);
+              break;
+          }
+        }
+        return message;
+      };
+
+      /**
+       * Decodes an UpdateOrder message from the specified reader or buffer, length delimited.
+       * @function decodeDelimited
+       * @memberof market.mass.UpdateOrder
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @returns {market.mass.UpdateOrder} UpdateOrder
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      UpdateOrder.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+      };
+
+      /**
+       * Verifies an UpdateOrder message.
+       * @function verify
+       * @memberof market.mass.UpdateOrder
+       * @static
+       * @param {Object.<string,*>} message Plain object to verify
+       * @returns {string|null} `null` if valid, otherwise the reason why it is not
+       */
+      UpdateOrder.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+          return "object expected";
+        var properties = {};
+        if (message.eventId != null && message.hasOwnProperty("eventId"))
+          if (
+            !(
+              (message.eventId && typeof message.eventId.length === "number") ||
+              $util.isString(message.eventId)
+            )
+          )
+            return "eventId: buffer expected";
+        if (message.orderId != null && message.hasOwnProperty("orderId"))
+          if (
+            !(
+              (message.orderId && typeof message.orderId.length === "number") ||
+              $util.isString(message.orderId)
+            )
+          )
+            return "orderId: buffer expected";
+        if (
+          message.changeItems != null &&
+          message.hasOwnProperty("changeItems")
+        ) {
+          properties.action = 1;
+          {
+            var error = $root.market.mass.UpdateOrder.ChangeItems.verify(
+              message.changeItems,
+            );
+            if (error) return "changeItems." + error;
+          }
+        }
+        if (
+          message.itemsFinalized != null &&
+          message.hasOwnProperty("itemsFinalized")
+        ) {
+          if (properties.action === 1) return "action: multiple values";
+          properties.action = 1;
+          {
+            var error = $root.market.mass.UpdateOrder.ItemsFinalized.verify(
+              message.itemsFinalized,
+            );
+            if (error) return "itemsFinalized." + error;
+          }
+        }
+        if (
+          message.orderCanceled != null &&
+          message.hasOwnProperty("orderCanceled")
+        ) {
+          if (properties.action === 1) return "action: multiple values";
+          properties.action = 1;
+          {
+            var error = $root.market.mass.UpdateOrder.OrderCanceled.verify(
+              message.orderCanceled,
+            );
+            if (error) return "orderCanceled." + error;
+          }
+        }
+        return null;
+      };
+
+      /**
+       * Creates an UpdateOrder message from a plain object. Also converts values to their respective internal types.
+       * @function fromObject
+       * @memberof market.mass.UpdateOrder
+       * @static
+       * @param {Object.<string,*>} object Plain object
+       * @returns {market.mass.UpdateOrder} UpdateOrder
+       */
+      UpdateOrder.fromObject = function fromObject(object) {
+        if (object instanceof $root.market.mass.UpdateOrder) return object;
+        var message = new $root.market.mass.UpdateOrder();
+        if (object.eventId != null)
+          if (typeof object.eventId === "string")
+            $util.base64.decode(
+              object.eventId,
+              (message.eventId = $util.newBuffer(
+                $util.base64.length(object.eventId),
+              )),
+              0,
+            );
+          else if (object.eventId.length >= 0) message.eventId = object.eventId;
+        if (object.orderId != null)
+          if (typeof object.orderId === "string")
+            $util.base64.decode(
+              object.orderId,
+              (message.orderId = $util.newBuffer(
+                $util.base64.length(object.orderId),
+              )),
+              0,
+            );
+          else if (object.orderId.length >= 0) message.orderId = object.orderId;
+        if (object.changeItems != null) {
+          if (typeof object.changeItems !== "object")
+            throw TypeError(
+              ".market.mass.UpdateOrder.changeItems: object expected",
+            );
+          message.changeItems =
+            $root.market.mass.UpdateOrder.ChangeItems.fromObject(
+              object.changeItems,
+            );
+        }
+        if (object.itemsFinalized != null) {
+          if (typeof object.itemsFinalized !== "object")
+            throw TypeError(
+              ".market.mass.UpdateOrder.itemsFinalized: object expected",
+            );
+          message.itemsFinalized =
+            $root.market.mass.UpdateOrder.ItemsFinalized.fromObject(
+              object.itemsFinalized,
+            );
+        }
+        if (object.orderCanceled != null) {
+          if (typeof object.orderCanceled !== "object")
+            throw TypeError(
+              ".market.mass.UpdateOrder.orderCanceled: object expected",
+            );
+          message.orderCanceled =
+            $root.market.mass.UpdateOrder.OrderCanceled.fromObject(
+              object.orderCanceled,
+            );
+        }
+        return message;
+      };
+
+      /**
+       * Creates a plain object from an UpdateOrder message. Also converts values to other types if specified.
+       * @function toObject
+       * @memberof market.mass.UpdateOrder
+       * @static
+       * @param {market.mass.UpdateOrder} message UpdateOrder
+       * @param {$protobuf.IConversionOptions} [options] Conversion options
+       * @returns {Object.<string,*>} Plain object
+       */
+      UpdateOrder.toObject = function toObject(message, options) {
+        if (!options) options = {};
+        var object = {};
+        if (options.defaults) {
+          if (options.bytes === String) object.eventId = "";
+          else {
+            object.eventId = [];
+            if (options.bytes !== Array)
+              object.eventId = $util.newBuffer(object.eventId);
+          }
+          if (options.bytes === String) object.orderId = "";
+          else {
+            object.orderId = [];
+            if (options.bytes !== Array)
+              object.orderId = $util.newBuffer(object.orderId);
+          }
+        }
+        if (message.eventId != null && message.hasOwnProperty("eventId"))
+          object.eventId =
+            options.bytes === String
+              ? $util.base64.encode(message.eventId, 0, message.eventId.length)
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.eventId)
+                : message.eventId;
+        if (message.orderId != null && message.hasOwnProperty("orderId"))
+          object.orderId =
+            options.bytes === String
+              ? $util.base64.encode(message.orderId, 0, message.orderId.length)
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.orderId)
+                : message.orderId;
+        if (
+          message.changeItems != null &&
+          message.hasOwnProperty("changeItems")
+        ) {
+          object.changeItems =
+            $root.market.mass.UpdateOrder.ChangeItems.toObject(
+              message.changeItems,
+              options,
+            );
+          if (options.oneofs) object.action = "changeItems";
+        }
+        if (
+          message.itemsFinalized != null &&
+          message.hasOwnProperty("itemsFinalized")
+        ) {
+          object.itemsFinalized =
+            $root.market.mass.UpdateOrder.ItemsFinalized.toObject(
+              message.itemsFinalized,
+              options,
+            );
+          if (options.oneofs) object.action = "itemsFinalized";
+        }
+        if (
+          message.orderCanceled != null &&
+          message.hasOwnProperty("orderCanceled")
+        ) {
+          object.orderCanceled =
+            $root.market.mass.UpdateOrder.OrderCanceled.toObject(
+              message.orderCanceled,
+              options,
+            );
+          if (options.oneofs) object.action = "orderCanceled";
+        }
+        return object;
+      };
+
+      /**
+       * Converts this UpdateOrder to JSON.
+       * @function toJSON
+       * @memberof market.mass.UpdateOrder
+       * @instance
+       * @returns {Object.<string,*>} JSON object
+       */
+      UpdateOrder.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+      };
+
+      /**
+       * Gets the default type url for UpdateOrder
+       * @function getTypeUrl
+       * @memberof market.mass.UpdateOrder
+       * @static
+       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+       * @returns {string} The default type url
+       */
+      UpdateOrder.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        if (typeUrlPrefix === undefined) {
+          typeUrlPrefix = "type.googleapis.com";
+        }
+        return typeUrlPrefix + "/market.mass.UpdateOrder";
+      };
+
+      UpdateOrder.ChangeItems = (function () {
+        /**
+         * Properties of a ChangeItems.
+         * @memberof market.mass.UpdateOrder
+         * @interface IChangeItems
+         * @property {Uint8Array|null} [itemId] ChangeItems itemId
+         * @property {number|null} [quantity] ChangeItems quantity
+         */
+
+        /**
+         * Constructs a new ChangeItems.
+         * @memberof market.mass.UpdateOrder
+         * @classdesc Represents a ChangeItems.
+         * @implements IChangeItems
+         * @constructor
+         * @param {market.mass.UpdateOrder.IChangeItems=} [properties] Properties to set
+         */
+        function ChangeItems(properties) {
+          if (properties)
+            for (
+              var keys = Object.keys(properties), i = 0;
+              i < keys.length;
+              ++i
+            )
+              if (properties[keys[i]] != null)
+                this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * ChangeItems itemId.
+         * @member {Uint8Array} itemId
+         * @memberof market.mass.UpdateOrder.ChangeItems
+         * @instance
+         */
+        ChangeItems.prototype.itemId = $util.newBuffer([]);
+
+        /**
+         * ChangeItems quantity.
+         * @member {number} quantity
+         * @memberof market.mass.UpdateOrder.ChangeItems
+         * @instance
+         */
+        ChangeItems.prototype.quantity = 0;
+
+        /**
+         * Creates a new ChangeItems instance using the specified properties.
+         * @function create
+         * @memberof market.mass.UpdateOrder.ChangeItems
+         * @static
+         * @param {market.mass.UpdateOrder.IChangeItems=} [properties] Properties to set
+         * @returns {market.mass.UpdateOrder.ChangeItems} ChangeItems instance
+         */
+        ChangeItems.create = function create(properties) {
+          return new ChangeItems(properties);
+        };
+
+        /**
+         * Encodes the specified ChangeItems message. Does not implicitly {@link market.mass.UpdateOrder.ChangeItems.verify|verify} messages.
+         * @function encode
+         * @memberof market.mass.UpdateOrder.ChangeItems
+         * @static
+         * @param {market.mass.UpdateOrder.IChangeItems} message ChangeItems message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        ChangeItems.encode = function encode(message, writer) {
+          if (!writer) writer = $Writer.create();
+          if (
+            message.itemId != null &&
+            Object.hasOwnProperty.call(message, "itemId")
+          )
+            writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.itemId);
+          if (
+            message.quantity != null &&
+            Object.hasOwnProperty.call(message, "quantity")
+          )
+            writer.uint32(/* id 2, wireType 0 =*/ 16).sint32(message.quantity);
+          return writer;
+        };
+
+        /**
+         * Encodes the specified ChangeItems message, length delimited. Does not implicitly {@link market.mass.UpdateOrder.ChangeItems.verify|verify} messages.
+         * @function encodeDelimited
+         * @memberof market.mass.UpdateOrder.ChangeItems
+         * @static
+         * @param {market.mass.UpdateOrder.IChangeItems} message ChangeItems message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        ChangeItems.encodeDelimited = function encodeDelimited(
+          message,
+          writer,
+        ) {
+          return this.encode(message, writer).ldelim();
+        };
+
+        /**
+         * Decodes a ChangeItems message from the specified reader or buffer.
+         * @function decode
+         * @memberof market.mass.UpdateOrder.ChangeItems
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {market.mass.UpdateOrder.ChangeItems} ChangeItems
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        ChangeItems.decode = function decode(reader, length) {
+          if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+          var end = length === undefined ? reader.len : reader.pos + length,
+            message = new $root.market.mass.UpdateOrder.ChangeItems();
+          while (reader.pos < end) {
+            var tag = reader.uint32();
+            switch (tag >>> 3) {
+              case 1: {
+                message.itemId = reader.bytes();
+                break;
+              }
+              case 2: {
+                message.quantity = reader.sint32();
+                break;
+              }
+              default:
+                reader.skipType(tag & 7);
+                break;
+            }
+          }
+          return message;
+        };
+
+        /**
+         * Decodes a ChangeItems message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof market.mass.UpdateOrder.ChangeItems
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @returns {market.mass.UpdateOrder.ChangeItems} ChangeItems
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        ChangeItems.decodeDelimited = function decodeDelimited(reader) {
+          if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+          return this.decode(reader, reader.uint32());
+        };
+
+        /**
+         * Verifies a ChangeItems message.
+         * @function verify
+         * @memberof market.mass.UpdateOrder.ChangeItems
+         * @static
+         * @param {Object.<string,*>} message Plain object to verify
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
+         */
+        ChangeItems.verify = function verify(message) {
+          if (typeof message !== "object" || message === null)
+            return "object expected";
+          if (message.itemId != null && message.hasOwnProperty("itemId"))
+            if (
+              !(
+                (message.itemId && typeof message.itemId.length === "number") ||
+                $util.isString(message.itemId)
+              )
+            )
+              return "itemId: buffer expected";
+          if (message.quantity != null && message.hasOwnProperty("quantity"))
+            if (!$util.isInteger(message.quantity))
+              return "quantity: integer expected";
+          return null;
+        };
+
+        /**
+         * Creates a ChangeItems message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof market.mass.UpdateOrder.ChangeItems
+         * @static
+         * @param {Object.<string,*>} object Plain object
+         * @returns {market.mass.UpdateOrder.ChangeItems} ChangeItems
+         */
+        ChangeItems.fromObject = function fromObject(object) {
+          if (object instanceof $root.market.mass.UpdateOrder.ChangeItems)
+            return object;
+          var message = new $root.market.mass.UpdateOrder.ChangeItems();
+          if (object.itemId != null)
+            if (typeof object.itemId === "string")
+              $util.base64.decode(
+                object.itemId,
+                (message.itemId = $util.newBuffer(
+                  $util.base64.length(object.itemId),
+                )),
+                0,
+              );
+            else if (object.itemId.length >= 0) message.itemId = object.itemId;
+          if (object.quantity != null) message.quantity = object.quantity | 0;
+          return message;
+        };
+
+        /**
+         * Creates a plain object from a ChangeItems message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof market.mass.UpdateOrder.ChangeItems
+         * @static
+         * @param {market.mass.UpdateOrder.ChangeItems} message ChangeItems
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
+         * @returns {Object.<string,*>} Plain object
+         */
+        ChangeItems.toObject = function toObject(message, options) {
+          if (!options) options = {};
+          var object = {};
+          if (options.defaults) {
+            if (options.bytes === String) object.itemId = "";
+            else {
+              object.itemId = [];
+              if (options.bytes !== Array)
+                object.itemId = $util.newBuffer(object.itemId);
+            }
+            object.quantity = 0;
+          }
+          if (message.itemId != null && message.hasOwnProperty("itemId"))
+            object.itemId =
+              options.bytes === String
+                ? $util.base64.encode(message.itemId, 0, message.itemId.length)
+                : options.bytes === Array
+                  ? Array.prototype.slice.call(message.itemId)
+                  : message.itemId;
+          if (message.quantity != null && message.hasOwnProperty("quantity"))
+            object.quantity = message.quantity;
+          return object;
+        };
+
+        /**
+         * Converts this ChangeItems to JSON.
+         * @function toJSON
+         * @memberof market.mass.UpdateOrder.ChangeItems
+         * @instance
+         * @returns {Object.<string,*>} JSON object
+         */
+        ChangeItems.prototype.toJSON = function toJSON() {
+          return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+        };
+
+        /**
+         * Gets the default type url for ChangeItems
+         * @function getTypeUrl
+         * @memberof market.mass.UpdateOrder.ChangeItems
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        ChangeItems.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+          if (typeUrlPrefix === undefined) {
+            typeUrlPrefix = "type.googleapis.com";
+          }
+          return typeUrlPrefix + "/market.mass.UpdateOrder.ChangeItems";
+        };
+
+        return ChangeItems;
+      })();
+
+      UpdateOrder.ItemsFinalized = (function () {
+        /**
+         * Properties of an ItemsFinalized.
+         * @memberof market.mass.UpdateOrder
+         * @interface IItemsFinalized
+         * @property {Uint8Array|null} [paymentId] ItemsFinalized paymentId
+         * @property {string|null} [subTotal] ItemsFinalized subTotal
+         * @property {string|null} [salesTax] ItemsFinalized salesTax
+         * @property {string|null} [total] ItemsFinalized total
+         * @property {string|null} [ttl] ItemsFinalized ttl
+         * @property {Uint8Array|null} [orderHash] ItemsFinalized orderHash
+         * @property {Uint8Array|null} [currencyAddr] ItemsFinalized currencyAddr
+         * @property {string|null} [totalInCrypto] ItemsFinalized totalInCrypto
+         * @property {Uint8Array|null} [payeeAddr] ItemsFinalized payeeAddr
+         * @property {boolean|null} [isPaymentEndpoint] ItemsFinalized isPaymentEndpoint
+         * @property {Uint8Array|null} [shopSignature] ItemsFinalized shopSignature
+         */
+
+        /**
+         * Constructs a new ItemsFinalized.
+         * @memberof market.mass.UpdateOrder
+         * @classdesc Represents an ItemsFinalized.
+         * @implements IItemsFinalized
+         * @constructor
+         * @param {market.mass.UpdateOrder.IItemsFinalized=} [properties] Properties to set
+         */
+        function ItemsFinalized(properties) {
+          if (properties)
+            for (
+              var keys = Object.keys(properties), i = 0;
+              i < keys.length;
+              ++i
+            )
+              if (properties[keys[i]] != null)
+                this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * ItemsFinalized paymentId.
+         * @member {Uint8Array} paymentId
+         * @memberof market.mass.UpdateOrder.ItemsFinalized
+         * @instance
+         */
+        ItemsFinalized.prototype.paymentId = $util.newBuffer([]);
+
+        /**
+         * ItemsFinalized subTotal.
+         * @member {string} subTotal
+         * @memberof market.mass.UpdateOrder.ItemsFinalized
+         * @instance
+         */
+        ItemsFinalized.prototype.subTotal = "";
+
+        /**
+         * ItemsFinalized salesTax.
+         * @member {string} salesTax
+         * @memberof market.mass.UpdateOrder.ItemsFinalized
+         * @instance
+         */
+        ItemsFinalized.prototype.salesTax = "";
+
+        /**
+         * ItemsFinalized total.
+         * @member {string} total
+         * @memberof market.mass.UpdateOrder.ItemsFinalized
+         * @instance
+         */
+        ItemsFinalized.prototype.total = "";
+
+        /**
+         * ItemsFinalized ttl.
+         * @member {string} ttl
+         * @memberof market.mass.UpdateOrder.ItemsFinalized
+         * @instance
+         */
+        ItemsFinalized.prototype.ttl = "";
+
+        /**
+         * ItemsFinalized orderHash.
+         * @member {Uint8Array} orderHash
+         * @memberof market.mass.UpdateOrder.ItemsFinalized
+         * @instance
+         */
+        ItemsFinalized.prototype.orderHash = $util.newBuffer([]);
+
+        /**
+         * ItemsFinalized currencyAddr.
+         * @member {Uint8Array} currencyAddr
+         * @memberof market.mass.UpdateOrder.ItemsFinalized
+         * @instance
+         */
+        ItemsFinalized.prototype.currencyAddr = $util.newBuffer([]);
+
+        /**
+         * ItemsFinalized totalInCrypto.
+         * @member {string} totalInCrypto
+         * @memberof market.mass.UpdateOrder.ItemsFinalized
+         * @instance
+         */
+        ItemsFinalized.prototype.totalInCrypto = "";
+
+        /**
+         * ItemsFinalized payeeAddr.
+         * @member {Uint8Array} payeeAddr
+         * @memberof market.mass.UpdateOrder.ItemsFinalized
+         * @instance
+         */
+        ItemsFinalized.prototype.payeeAddr = $util.newBuffer([]);
+
+        /**
+         * ItemsFinalized isPaymentEndpoint.
+         * @member {boolean} isPaymentEndpoint
+         * @memberof market.mass.UpdateOrder.ItemsFinalized
+         * @instance
+         */
+        ItemsFinalized.prototype.isPaymentEndpoint = false;
+
+        /**
+         * ItemsFinalized shopSignature.
+         * @member {Uint8Array} shopSignature
+         * @memberof market.mass.UpdateOrder.ItemsFinalized
+         * @instance
+         */
+        ItemsFinalized.prototype.shopSignature = $util.newBuffer([]);
+
+        /**
+         * Creates a new ItemsFinalized instance using the specified properties.
+         * @function create
+         * @memberof market.mass.UpdateOrder.ItemsFinalized
+         * @static
+         * @param {market.mass.UpdateOrder.IItemsFinalized=} [properties] Properties to set
+         * @returns {market.mass.UpdateOrder.ItemsFinalized} ItemsFinalized instance
+         */
+        ItemsFinalized.create = function create(properties) {
+          return new ItemsFinalized(properties);
+        };
+
+        /**
+         * Encodes the specified ItemsFinalized message. Does not implicitly {@link market.mass.UpdateOrder.ItemsFinalized.verify|verify} messages.
+         * @function encode
+         * @memberof market.mass.UpdateOrder.ItemsFinalized
+         * @static
+         * @param {market.mass.UpdateOrder.IItemsFinalized} message ItemsFinalized message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        ItemsFinalized.encode = function encode(message, writer) {
+          if (!writer) writer = $Writer.create();
+          if (
+            message.paymentId != null &&
+            Object.hasOwnProperty.call(message, "paymentId")
+          )
+            writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.paymentId);
+          if (
+            message.subTotal != null &&
+            Object.hasOwnProperty.call(message, "subTotal")
+          )
+            writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.subTotal);
+          if (
+            message.salesTax != null &&
+            Object.hasOwnProperty.call(message, "salesTax")
+          )
+            writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.salesTax);
+          if (
+            message.total != null &&
+            Object.hasOwnProperty.call(message, "total")
+          )
+            writer.uint32(/* id 4, wireType 2 =*/ 34).string(message.total);
+          if (message.ttl != null && Object.hasOwnProperty.call(message, "ttl"))
+            writer.uint32(/* id 5, wireType 2 =*/ 42).string(message.ttl);
+          if (
+            message.orderHash != null &&
+            Object.hasOwnProperty.call(message, "orderHash")
+          )
+            writer.uint32(/* id 6, wireType 2 =*/ 50).bytes(message.orderHash);
+          if (
+            message.currencyAddr != null &&
+            Object.hasOwnProperty.call(message, "currencyAddr")
+          )
+            writer
+              .uint32(/* id 7, wireType 2 =*/ 58)
+              .bytes(message.currencyAddr);
+          if (
+            message.totalInCrypto != null &&
+            Object.hasOwnProperty.call(message, "totalInCrypto")
+          )
+            writer
+              .uint32(/* id 8, wireType 2 =*/ 66)
+              .string(message.totalInCrypto);
+          if (
+            message.payeeAddr != null &&
+            Object.hasOwnProperty.call(message, "payeeAddr")
+          )
+            writer.uint32(/* id 9, wireType 2 =*/ 74).bytes(message.payeeAddr);
+          if (
+            message.isPaymentEndpoint != null &&
+            Object.hasOwnProperty.call(message, "isPaymentEndpoint")
+          )
+            writer
+              .uint32(/* id 10, wireType 0 =*/ 80)
+              .bool(message.isPaymentEndpoint);
+          if (
+            message.shopSignature != null &&
+            Object.hasOwnProperty.call(message, "shopSignature")
+          )
+            writer
+              .uint32(/* id 11, wireType 2 =*/ 90)
+              .bytes(message.shopSignature);
+          return writer;
+        };
+
+        /**
+         * Encodes the specified ItemsFinalized message, length delimited. Does not implicitly {@link market.mass.UpdateOrder.ItemsFinalized.verify|verify} messages.
+         * @function encodeDelimited
+         * @memberof market.mass.UpdateOrder.ItemsFinalized
+         * @static
+         * @param {market.mass.UpdateOrder.IItemsFinalized} message ItemsFinalized message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        ItemsFinalized.encodeDelimited = function encodeDelimited(
+          message,
+          writer,
+        ) {
+          return this.encode(message, writer).ldelim();
+        };
+
+        /**
+         * Decodes an ItemsFinalized message from the specified reader or buffer.
+         * @function decode
+         * @memberof market.mass.UpdateOrder.ItemsFinalized
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {market.mass.UpdateOrder.ItemsFinalized} ItemsFinalized
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        ItemsFinalized.decode = function decode(reader, length) {
+          if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+          var end = length === undefined ? reader.len : reader.pos + length,
+            message = new $root.market.mass.UpdateOrder.ItemsFinalized();
+          while (reader.pos < end) {
+            var tag = reader.uint32();
+            switch (tag >>> 3) {
+              case 1: {
+                message.paymentId = reader.bytes();
+                break;
+              }
+              case 2: {
+                message.subTotal = reader.string();
+                break;
+              }
+              case 3: {
+                message.salesTax = reader.string();
+                break;
+              }
+              case 4: {
+                message.total = reader.string();
+                break;
+              }
+              case 5: {
+                message.ttl = reader.string();
+                break;
+              }
+              case 6: {
+                message.orderHash = reader.bytes();
+                break;
+              }
+              case 7: {
+                message.currencyAddr = reader.bytes();
+                break;
+              }
+              case 8: {
+                message.totalInCrypto = reader.string();
+                break;
+              }
+              case 9: {
+                message.payeeAddr = reader.bytes();
+                break;
+              }
+              case 10: {
+                message.isPaymentEndpoint = reader.bool();
+                break;
+              }
+              case 11: {
+                message.shopSignature = reader.bytes();
+                break;
+              }
+              default:
+                reader.skipType(tag & 7);
+                break;
+            }
+          }
+          return message;
+        };
+
+        /**
+         * Decodes an ItemsFinalized message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof market.mass.UpdateOrder.ItemsFinalized
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @returns {market.mass.UpdateOrder.ItemsFinalized} ItemsFinalized
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        ItemsFinalized.decodeDelimited = function decodeDelimited(reader) {
+          if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+          return this.decode(reader, reader.uint32());
+        };
+
+        /**
+         * Verifies an ItemsFinalized message.
+         * @function verify
+         * @memberof market.mass.UpdateOrder.ItemsFinalized
+         * @static
+         * @param {Object.<string,*>} message Plain object to verify
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
+         */
+        ItemsFinalized.verify = function verify(message) {
+          if (typeof message !== "object" || message === null)
+            return "object expected";
+          if (message.paymentId != null && message.hasOwnProperty("paymentId"))
+            if (
+              !(
+                (message.paymentId &&
+                  typeof message.paymentId.length === "number") ||
+                $util.isString(message.paymentId)
+              )
+            )
+              return "paymentId: buffer expected";
+          if (message.subTotal != null && message.hasOwnProperty("subTotal"))
+            if (!$util.isString(message.subTotal))
+              return "subTotal: string expected";
+          if (message.salesTax != null && message.hasOwnProperty("salesTax"))
+            if (!$util.isString(message.salesTax))
+              return "salesTax: string expected";
+          if (message.total != null && message.hasOwnProperty("total"))
+            if (!$util.isString(message.total)) return "total: string expected";
+          if (message.ttl != null && message.hasOwnProperty("ttl"))
+            if (!$util.isString(message.ttl)) return "ttl: string expected";
+          if (message.orderHash != null && message.hasOwnProperty("orderHash"))
+            if (
+              !(
+                (message.orderHash &&
+                  typeof message.orderHash.length === "number") ||
+                $util.isString(message.orderHash)
+              )
+            )
+              return "orderHash: buffer expected";
+          if (
+            message.currencyAddr != null &&
+            message.hasOwnProperty("currencyAddr")
+          )
+            if (
+              !(
+                (message.currencyAddr &&
+                  typeof message.currencyAddr.length === "number") ||
+                $util.isString(message.currencyAddr)
+              )
+            )
+              return "currencyAddr: buffer expected";
+          if (
+            message.totalInCrypto != null &&
+            message.hasOwnProperty("totalInCrypto")
+          )
+            if (!$util.isString(message.totalInCrypto))
+              return "totalInCrypto: string expected";
+          if (message.payeeAddr != null && message.hasOwnProperty("payeeAddr"))
+            if (
+              !(
+                (message.payeeAddr &&
+                  typeof message.payeeAddr.length === "number") ||
+                $util.isString(message.payeeAddr)
+              )
+            )
+              return "payeeAddr: buffer expected";
+          if (
+            message.isPaymentEndpoint != null &&
+            message.hasOwnProperty("isPaymentEndpoint")
+          )
+            if (typeof message.isPaymentEndpoint !== "boolean")
+              return "isPaymentEndpoint: boolean expected";
+          if (
+            message.shopSignature != null &&
+            message.hasOwnProperty("shopSignature")
+          )
+            if (
+              !(
+                (message.shopSignature &&
+                  typeof message.shopSignature.length === "number") ||
+                $util.isString(message.shopSignature)
+              )
+            )
+              return "shopSignature: buffer expected";
+          return null;
+        };
+
+        /**
+         * Creates an ItemsFinalized message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof market.mass.UpdateOrder.ItemsFinalized
+         * @static
+         * @param {Object.<string,*>} object Plain object
+         * @returns {market.mass.UpdateOrder.ItemsFinalized} ItemsFinalized
+         */
+        ItemsFinalized.fromObject = function fromObject(object) {
+          if (object instanceof $root.market.mass.UpdateOrder.ItemsFinalized)
+            return object;
+          var message = new $root.market.mass.UpdateOrder.ItemsFinalized();
+          if (object.paymentId != null)
+            if (typeof object.paymentId === "string")
+              $util.base64.decode(
+                object.paymentId,
+                (message.paymentId = $util.newBuffer(
+                  $util.base64.length(object.paymentId),
+                )),
+                0,
+              );
+            else if (object.paymentId.length >= 0)
+              message.paymentId = object.paymentId;
+          if (object.subTotal != null)
+            message.subTotal = String(object.subTotal);
+          if (object.salesTax != null)
+            message.salesTax = String(object.salesTax);
+          if (object.total != null) message.total = String(object.total);
+          if (object.ttl != null) message.ttl = String(object.ttl);
+          if (object.orderHash != null)
+            if (typeof object.orderHash === "string")
+              $util.base64.decode(
+                object.orderHash,
+                (message.orderHash = $util.newBuffer(
+                  $util.base64.length(object.orderHash),
+                )),
+                0,
+              );
+            else if (object.orderHash.length >= 0)
+              message.orderHash = object.orderHash;
+          if (object.currencyAddr != null)
+            if (typeof object.currencyAddr === "string")
+              $util.base64.decode(
+                object.currencyAddr,
+                (message.currencyAddr = $util.newBuffer(
+                  $util.base64.length(object.currencyAddr),
+                )),
+                0,
+              );
+            else if (object.currencyAddr.length >= 0)
+              message.currencyAddr = object.currencyAddr;
+          if (object.totalInCrypto != null)
+            message.totalInCrypto = String(object.totalInCrypto);
+          if (object.payeeAddr != null)
+            if (typeof object.payeeAddr === "string")
+              $util.base64.decode(
+                object.payeeAddr,
+                (message.payeeAddr = $util.newBuffer(
+                  $util.base64.length(object.payeeAddr),
+                )),
+                0,
+              );
+            else if (object.payeeAddr.length >= 0)
+              message.payeeAddr = object.payeeAddr;
+          if (object.isPaymentEndpoint != null)
+            message.isPaymentEndpoint = Boolean(object.isPaymentEndpoint);
+          if (object.shopSignature != null)
+            if (typeof object.shopSignature === "string")
+              $util.base64.decode(
+                object.shopSignature,
+                (message.shopSignature = $util.newBuffer(
+                  $util.base64.length(object.shopSignature),
+                )),
+                0,
+              );
+            else if (object.shopSignature.length >= 0)
+              message.shopSignature = object.shopSignature;
+          return message;
+        };
+
+        /**
+         * Creates a plain object from an ItemsFinalized message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof market.mass.UpdateOrder.ItemsFinalized
+         * @static
+         * @param {market.mass.UpdateOrder.ItemsFinalized} message ItemsFinalized
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
+         * @returns {Object.<string,*>} Plain object
+         */
+        ItemsFinalized.toObject = function toObject(message, options) {
+          if (!options) options = {};
+          var object = {};
+          if (options.defaults) {
+            if (options.bytes === String) object.paymentId = "";
+            else {
+              object.paymentId = [];
+              if (options.bytes !== Array)
+                object.paymentId = $util.newBuffer(object.paymentId);
+            }
+            object.subTotal = "";
+            object.salesTax = "";
+            object.total = "";
+            object.ttl = "";
+            if (options.bytes === String) object.orderHash = "";
+            else {
+              object.orderHash = [];
+              if (options.bytes !== Array)
+                object.orderHash = $util.newBuffer(object.orderHash);
+            }
+            if (options.bytes === String) object.currencyAddr = "";
+            else {
+              object.currencyAddr = [];
+              if (options.bytes !== Array)
+                object.currencyAddr = $util.newBuffer(object.currencyAddr);
+            }
+            object.totalInCrypto = "";
+            if (options.bytes === String) object.payeeAddr = "";
+            else {
+              object.payeeAddr = [];
+              if (options.bytes !== Array)
+                object.payeeAddr = $util.newBuffer(object.payeeAddr);
+            }
+            object.isPaymentEndpoint = false;
+            if (options.bytes === String) object.shopSignature = "";
+            else {
+              object.shopSignature = [];
+              if (options.bytes !== Array)
+                object.shopSignature = $util.newBuffer(object.shopSignature);
+            }
+          }
+          if (message.paymentId != null && message.hasOwnProperty("paymentId"))
+            object.paymentId =
+              options.bytes === String
+                ? $util.base64.encode(
+                    message.paymentId,
+                    0,
+                    message.paymentId.length,
+                  )
+                : options.bytes === Array
+                  ? Array.prototype.slice.call(message.paymentId)
+                  : message.paymentId;
+          if (message.subTotal != null && message.hasOwnProperty("subTotal"))
+            object.subTotal = message.subTotal;
+          if (message.salesTax != null && message.hasOwnProperty("salesTax"))
+            object.salesTax = message.salesTax;
+          if (message.total != null && message.hasOwnProperty("total"))
+            object.total = message.total;
+          if (message.ttl != null && message.hasOwnProperty("ttl"))
+            object.ttl = message.ttl;
+          if (message.orderHash != null && message.hasOwnProperty("orderHash"))
+            object.orderHash =
+              options.bytes === String
+                ? $util.base64.encode(
+                    message.orderHash,
+                    0,
+                    message.orderHash.length,
+                  )
+                : options.bytes === Array
+                  ? Array.prototype.slice.call(message.orderHash)
+                  : message.orderHash;
+          if (
+            message.currencyAddr != null &&
+            message.hasOwnProperty("currencyAddr")
+          )
+            object.currencyAddr =
+              options.bytes === String
+                ? $util.base64.encode(
+                    message.currencyAddr,
+                    0,
+                    message.currencyAddr.length,
+                  )
+                : options.bytes === Array
+                  ? Array.prototype.slice.call(message.currencyAddr)
+                  : message.currencyAddr;
+          if (
+            message.totalInCrypto != null &&
+            message.hasOwnProperty("totalInCrypto")
+          )
+            object.totalInCrypto = message.totalInCrypto;
+          if (message.payeeAddr != null && message.hasOwnProperty("payeeAddr"))
+            object.payeeAddr =
+              options.bytes === String
+                ? $util.base64.encode(
+                    message.payeeAddr,
+                    0,
+                    message.payeeAddr.length,
+                  )
+                : options.bytes === Array
+                  ? Array.prototype.slice.call(message.payeeAddr)
+                  : message.payeeAddr;
+          if (
+            message.isPaymentEndpoint != null &&
+            message.hasOwnProperty("isPaymentEndpoint")
+          )
+            object.isPaymentEndpoint = message.isPaymentEndpoint;
+          if (
+            message.shopSignature != null &&
+            message.hasOwnProperty("shopSignature")
+          )
+            object.shopSignature =
+              options.bytes === String
+                ? $util.base64.encode(
+                    message.shopSignature,
+                    0,
+                    message.shopSignature.length,
+                  )
+                : options.bytes === Array
+                  ? Array.prototype.slice.call(message.shopSignature)
+                  : message.shopSignature;
+          return object;
+        };
+
+        /**
+         * Converts this ItemsFinalized to JSON.
+         * @function toJSON
+         * @memberof market.mass.UpdateOrder.ItemsFinalized
+         * @instance
+         * @returns {Object.<string,*>} JSON object
+         */
+        ItemsFinalized.prototype.toJSON = function toJSON() {
+          return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+        };
+
+        /**
+         * Gets the default type url for ItemsFinalized
+         * @function getTypeUrl
+         * @memberof market.mass.UpdateOrder.ItemsFinalized
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        ItemsFinalized.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+          if (typeUrlPrefix === undefined) {
+            typeUrlPrefix = "type.googleapis.com";
+          }
+          return typeUrlPrefix + "/market.mass.UpdateOrder.ItemsFinalized";
+        };
+
+        return ItemsFinalized;
+      })();
+
+      UpdateOrder.OrderCanceled = (function () {
+        /**
+         * Properties of an OrderCanceled.
+         * @memberof market.mass.UpdateOrder
+         * @interface IOrderCanceled
+         * @property {number|Long|null} [timestamp] OrderCanceled timestamp
+         */
+
+        /**
+         * Constructs a new OrderCanceled.
+         * @memberof market.mass.UpdateOrder
+         * @classdesc Represents an OrderCanceled.
+         * @implements IOrderCanceled
+         * @constructor
+         * @param {market.mass.UpdateOrder.IOrderCanceled=} [properties] Properties to set
+         */
+        function OrderCanceled(properties) {
+          if (properties)
+            for (
+              var keys = Object.keys(properties), i = 0;
+              i < keys.length;
+              ++i
+            )
+              if (properties[keys[i]] != null)
+                this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * OrderCanceled timestamp.
+         * @member {number|Long} timestamp
+         * @memberof market.mass.UpdateOrder.OrderCanceled
+         * @instance
+         */
+        OrderCanceled.prototype.timestamp = $util.Long
+          ? $util.Long.fromBits(0, 0, true)
+          : 0;
+
+        /**
+         * Creates a new OrderCanceled instance using the specified properties.
+         * @function create
+         * @memberof market.mass.UpdateOrder.OrderCanceled
+         * @static
+         * @param {market.mass.UpdateOrder.IOrderCanceled=} [properties] Properties to set
+         * @returns {market.mass.UpdateOrder.OrderCanceled} OrderCanceled instance
+         */
+        OrderCanceled.create = function create(properties) {
+          return new OrderCanceled(properties);
+        };
+
+        /**
+         * Encodes the specified OrderCanceled message. Does not implicitly {@link market.mass.UpdateOrder.OrderCanceled.verify|verify} messages.
+         * @function encode
+         * @memberof market.mass.UpdateOrder.OrderCanceled
+         * @static
+         * @param {market.mass.UpdateOrder.IOrderCanceled} message OrderCanceled message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        OrderCanceled.encode = function encode(message, writer) {
+          if (!writer) writer = $Writer.create();
+          if (
+            message.timestamp != null &&
+            Object.hasOwnProperty.call(message, "timestamp")
+          )
+            writer.uint32(/* id 1, wireType 0 =*/ 8).uint64(message.timestamp);
+          return writer;
+        };
+
+        /**
+         * Encodes the specified OrderCanceled message, length delimited. Does not implicitly {@link market.mass.UpdateOrder.OrderCanceled.verify|verify} messages.
+         * @function encodeDelimited
+         * @memberof market.mass.UpdateOrder.OrderCanceled
+         * @static
+         * @param {market.mass.UpdateOrder.IOrderCanceled} message OrderCanceled message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        OrderCanceled.encodeDelimited = function encodeDelimited(
+          message,
+          writer,
+        ) {
+          return this.encode(message, writer).ldelim();
+        };
+
+        /**
+         * Decodes an OrderCanceled message from the specified reader or buffer.
+         * @function decode
+         * @memberof market.mass.UpdateOrder.OrderCanceled
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {market.mass.UpdateOrder.OrderCanceled} OrderCanceled
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        OrderCanceled.decode = function decode(reader, length) {
+          if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+          var end = length === undefined ? reader.len : reader.pos + length,
+            message = new $root.market.mass.UpdateOrder.OrderCanceled();
+          while (reader.pos < end) {
+            var tag = reader.uint32();
+            switch (tag >>> 3) {
+              case 1: {
+                message.timestamp = reader.uint64();
+                break;
+              }
+              default:
+                reader.skipType(tag & 7);
+                break;
+            }
+          }
+          return message;
+        };
+
+        /**
+         * Decodes an OrderCanceled message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof market.mass.UpdateOrder.OrderCanceled
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @returns {market.mass.UpdateOrder.OrderCanceled} OrderCanceled
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        OrderCanceled.decodeDelimited = function decodeDelimited(reader) {
+          if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+          return this.decode(reader, reader.uint32());
+        };
+
+        /**
+         * Verifies an OrderCanceled message.
+         * @function verify
+         * @memberof market.mass.UpdateOrder.OrderCanceled
+         * @static
+         * @param {Object.<string,*>} message Plain object to verify
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
+         */
+        OrderCanceled.verify = function verify(message) {
+          if (typeof message !== "object" || message === null)
+            return "object expected";
+          if (message.timestamp != null && message.hasOwnProperty("timestamp"))
+            if (
+              !$util.isInteger(message.timestamp) &&
+              !(
+                message.timestamp &&
+                $util.isInteger(message.timestamp.low) &&
+                $util.isInteger(message.timestamp.high)
+              )
+            )
+              return "timestamp: integer|Long expected";
+          return null;
+        };
+
+        /**
+         * Creates an OrderCanceled message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof market.mass.UpdateOrder.OrderCanceled
+         * @static
+         * @param {Object.<string,*>} object Plain object
+         * @returns {market.mass.UpdateOrder.OrderCanceled} OrderCanceled
+         */
+        OrderCanceled.fromObject = function fromObject(object) {
+          if (object instanceof $root.market.mass.UpdateOrder.OrderCanceled)
+            return object;
+          var message = new $root.market.mass.UpdateOrder.OrderCanceled();
+          if (object.timestamp != null)
+            if ($util.Long)
+              (message.timestamp = $util.Long.fromValue(
+                object.timestamp,
+              )).unsigned = true;
+            else if (typeof object.timestamp === "string")
+              message.timestamp = parseInt(object.timestamp, 10);
+            else if (typeof object.timestamp === "number")
+              message.timestamp = object.timestamp;
+            else if (typeof object.timestamp === "object")
+              message.timestamp = new $util.LongBits(
+                object.timestamp.low >>> 0,
+                object.timestamp.high >>> 0,
+              ).toNumber(true);
+          return message;
+        };
+
+        /**
+         * Creates a plain object from an OrderCanceled message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof market.mass.UpdateOrder.OrderCanceled
+         * @static
+         * @param {market.mass.UpdateOrder.OrderCanceled} message OrderCanceled
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
+         * @returns {Object.<string,*>} Plain object
+         */
+        OrderCanceled.toObject = function toObject(message, options) {
+          if (!options) options = {};
+          var object = {};
+          if (options.defaults)
+            if ($util.Long) {
+              var long = new $util.Long(0, 0, true);
+              object.timestamp =
+                options.longs === String
+                  ? long.toString()
+                  : options.longs === Number
+                    ? long.toNumber()
+                    : long;
+            } else object.timestamp = options.longs === String ? "0" : 0;
+          if (message.timestamp != null && message.hasOwnProperty("timestamp"))
+            if (typeof message.timestamp === "number")
+              object.timestamp =
+                options.longs === String
+                  ? String(message.timestamp)
+                  : message.timestamp;
+            else
+              object.timestamp =
+                options.longs === String
+                  ? $util.Long.prototype.toString.call(message.timestamp)
+                  : options.longs === Number
+                    ? new $util.LongBits(
+                        message.timestamp.low >>> 0,
+                        message.timestamp.high >>> 0,
+                      ).toNumber(true)
+                    : message.timestamp;
+          return object;
+        };
+
+        /**
+         * Converts this OrderCanceled to JSON.
+         * @function toJSON
+         * @memberof market.mass.UpdateOrder.OrderCanceled
+         * @instance
+         * @returns {Object.<string,*>} JSON object
+         */
+        OrderCanceled.prototype.toJSON = function toJSON() {
+          return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+        };
+
+        /**
+         * Gets the default type url for OrderCanceled
+         * @function getTypeUrl
+         * @memberof market.mass.UpdateOrder.OrderCanceled
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        OrderCanceled.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+          if (typeUrlPrefix === undefined) {
+            typeUrlPrefix = "type.googleapis.com";
+          }
+          return typeUrlPrefix + "/market.mass.UpdateOrder.OrderCanceled";
+        };
+
+        return OrderCanceled;
+      })();
+
+      return UpdateOrder;
+    })();
+
+    mass.ShopEvent = (function () {
+      /**
+       * Properties of a ShopEvent.
+       * @memberof market.mass
+       * @interface IShopEvent
+       * @property {Uint8Array|null} [signature] ShopEvent signature
+       * @property {market.mass.IShopManifest|null} [shopManifest] ShopEvent shopManifest
+       * @property {market.mass.IUpdateShopManifest|null} [updateShopManifest] ShopEvent updateShopManifest
+       * @property {market.mass.ICreateItem|null} [createItem] ShopEvent createItem
+       * @property {market.mass.IUpdateItem|null} [updateItem] ShopEvent updateItem
+       * @property {market.mass.ICreateTag|null} [createTag] ShopEvent createTag
+       * @property {market.mass.IUpdateTag|null} [updateTag] ShopEvent updateTag
+       * @property {market.mass.ICreateOrder|null} [createOrder] ShopEvent createOrder
+       * @property {market.mass.IUpdateOrder|null} [updateOrder] ShopEvent updateOrder
+       * @property {market.mass.IChangeStock|null} [changeStock] ShopEvent changeStock
+       * @property {market.mass.INewKeyCard|null} [newKeyCard] ShopEvent newKeyCard
+       */
+
+      /**
+       * Constructs a new ShopEvent.
+       * @memberof market.mass
+       * @classdesc Represents a ShopEvent.
+       * @implements IShopEvent
+       * @constructor
+       * @param {market.mass.IShopEvent=} [properties] Properties to set
+       */
+      function ShopEvent(properties) {
+        if (properties)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+            if (properties[keys[i]] != null)
+              this[keys[i]] = properties[keys[i]];
+      }
+
+      /**
+       * ShopEvent signature.
+       * @member {Uint8Array} signature
+       * @memberof market.mass.ShopEvent
+       * @instance
+       */
+      ShopEvent.prototype.signature = $util.newBuffer([]);
+
+      /**
+       * ShopEvent shopManifest.
+       * @member {market.mass.IShopManifest|null|undefined} shopManifest
+       * @memberof market.mass.ShopEvent
+       * @instance
+       */
+      ShopEvent.prototype.shopManifest = null;
+
+      /**
+       * ShopEvent updateShopManifest.
+       * @member {market.mass.IUpdateShopManifest|null|undefined} updateShopManifest
+       * @memberof market.mass.ShopEvent
+       * @instance
+       */
+      ShopEvent.prototype.updateShopManifest = null;
+
+      /**
+       * ShopEvent createItem.
+       * @member {market.mass.ICreateItem|null|undefined} createItem
+       * @memberof market.mass.ShopEvent
+       * @instance
+       */
+      ShopEvent.prototype.createItem = null;
+
+      /**
+       * ShopEvent updateItem.
+       * @member {market.mass.IUpdateItem|null|undefined} updateItem
+       * @memberof market.mass.ShopEvent
+       * @instance
+       */
+      ShopEvent.prototype.updateItem = null;
+
+      /**
+       * ShopEvent createTag.
+       * @member {market.mass.ICreateTag|null|undefined} createTag
+       * @memberof market.mass.ShopEvent
+       * @instance
+       */
+      ShopEvent.prototype.createTag = null;
+
+      /**
+       * ShopEvent updateTag.
+       * @member {market.mass.IUpdateTag|null|undefined} updateTag
+       * @memberof market.mass.ShopEvent
+       * @instance
+       */
+      ShopEvent.prototype.updateTag = null;
+
+      /**
+       * ShopEvent createOrder.
+       * @member {market.mass.ICreateOrder|null|undefined} createOrder
+       * @memberof market.mass.ShopEvent
+       * @instance
+       */
+      ShopEvent.prototype.createOrder = null;
+
+      /**
+       * ShopEvent updateOrder.
+       * @member {market.mass.IUpdateOrder|null|undefined} updateOrder
+       * @memberof market.mass.ShopEvent
+       * @instance
+       */
+      ShopEvent.prototype.updateOrder = null;
+
+      /**
+       * ShopEvent changeStock.
+       * @member {market.mass.IChangeStock|null|undefined} changeStock
+       * @memberof market.mass.ShopEvent
+       * @instance
+       */
+      ShopEvent.prototype.changeStock = null;
+
+      /**
+       * ShopEvent newKeyCard.
+       * @member {market.mass.INewKeyCard|null|undefined} newKeyCard
+       * @memberof market.mass.ShopEvent
+       * @instance
+       */
+      ShopEvent.prototype.newKeyCard = null;
+
+      // OneOf field names bound to virtual getters and setters
+      var $oneOfFields;
+
+      /**
+       * ShopEvent union.
+       * @member {"shopManifest"|"updateShopManifest"|"createItem"|"updateItem"|"createTag"|"updateTag"|"createOrder"|"updateOrder"|"changeStock"|"newKeyCard"|undefined} union
+       * @memberof market.mass.ShopEvent
+       * @instance
+       */
+      Object.defineProperty(ShopEvent.prototype, "union", {
+        get: $util.oneOfGetter(
+          ($oneOfFields = [
+            "shopManifest",
+            "updateShopManifest",
+            "createItem",
+            "updateItem",
+            "createTag",
+            "updateTag",
+            "createOrder",
+            "updateOrder",
+            "changeStock",
+            "newKeyCard",
+          ]),
+        ),
+        set: $util.oneOfSetter($oneOfFields),
+      });
+
+      /**
+       * Creates a new ShopEvent instance using the specified properties.
+       * @function create
+       * @memberof market.mass.ShopEvent
+       * @static
+       * @param {market.mass.IShopEvent=} [properties] Properties to set
+       * @returns {market.mass.ShopEvent} ShopEvent instance
+       */
+      ShopEvent.create = function create(properties) {
+        return new ShopEvent(properties);
+      };
+
+      /**
+       * Encodes the specified ShopEvent message. Does not implicitly {@link market.mass.ShopEvent.verify|verify} messages.
+       * @function encode
+       * @memberof market.mass.ShopEvent
+       * @static
+       * @param {market.mass.IShopEvent} message ShopEvent message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      ShopEvent.encode = function encode(message, writer) {
+        if (!writer) writer = $Writer.create();
+        if (
+          message.signature != null &&
+          Object.hasOwnProperty.call(message, "signature")
+        )
+          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.signature);
+        if (
+          message.shopManifest != null &&
+          Object.hasOwnProperty.call(message, "shopManifest")
+        )
+          $root.market.mass.ShopManifest.encode(
+            message.shopManifest,
+            writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
+          ).ldelim();
+        if (
+          message.updateShopManifest != null &&
+          Object.hasOwnProperty.call(message, "updateShopManifest")
+        )
+          $root.market.mass.UpdateShopManifest.encode(
+            message.updateShopManifest,
+            writer.uint32(/* id 3, wireType 2 =*/ 26).fork(),
+          ).ldelim();
+        if (
+          message.createItem != null &&
+          Object.hasOwnProperty.call(message, "createItem")
+        )
+          $root.market.mass.CreateItem.encode(
+            message.createItem,
+            writer.uint32(/* id 4, wireType 2 =*/ 34).fork(),
+          ).ldelim();
+        if (
+          message.updateItem != null &&
+          Object.hasOwnProperty.call(message, "updateItem")
+        )
+          $root.market.mass.UpdateItem.encode(
+            message.updateItem,
+            writer.uint32(/* id 5, wireType 2 =*/ 42).fork(),
+          ).ldelim();
+        if (
+          message.createTag != null &&
+          Object.hasOwnProperty.call(message, "createTag")
+        )
+          $root.market.mass.CreateTag.encode(
+            message.createTag,
+            writer.uint32(/* id 6, wireType 2 =*/ 50).fork(),
+          ).ldelim();
+        if (
+          message.updateTag != null &&
+          Object.hasOwnProperty.call(message, "updateTag")
+        )
+          $root.market.mass.UpdateTag.encode(
+            message.updateTag,
+            writer.uint32(/* id 7, wireType 2 =*/ 58).fork(),
+          ).ldelim();
+        if (
+          message.createOrder != null &&
+          Object.hasOwnProperty.call(message, "createOrder")
+        )
+          $root.market.mass.CreateOrder.encode(
+            message.createOrder,
+            writer.uint32(/* id 8, wireType 2 =*/ 66).fork(),
+          ).ldelim();
+        if (
+          message.updateOrder != null &&
+          Object.hasOwnProperty.call(message, "updateOrder")
+        )
+          $root.market.mass.UpdateOrder.encode(
+            message.updateOrder,
+            writer.uint32(/* id 9, wireType 2 =*/ 74).fork(),
+          ).ldelim();
+        if (
+          message.changeStock != null &&
+          Object.hasOwnProperty.call(message, "changeStock")
+        )
+          $root.market.mass.ChangeStock.encode(
+            message.changeStock,
+            writer.uint32(/* id 12, wireType 2 =*/ 98).fork(),
+          ).ldelim();
+        if (
+          message.newKeyCard != null &&
+          Object.hasOwnProperty.call(message, "newKeyCard")
+        )
+          $root.market.mass.NewKeyCard.encode(
+            message.newKeyCard,
+            writer.uint32(/* id 13, wireType 2 =*/ 106).fork(),
+          ).ldelim();
+        return writer;
+      };
+
+      /**
+       * Encodes the specified ShopEvent message, length delimited. Does not implicitly {@link market.mass.ShopEvent.verify|verify} messages.
+       * @function encodeDelimited
+       * @memberof market.mass.ShopEvent
+       * @static
+       * @param {market.mass.IShopEvent} message ShopEvent message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      ShopEvent.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+      };
+
+      /**
+       * Decodes a ShopEvent message from the specified reader or buffer.
+       * @function decode
+       * @memberof market.mass.ShopEvent
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @param {number} [length] Message length if known beforehand
+       * @returns {market.mass.ShopEvent} ShopEvent
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      ShopEvent.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length,
+          message = new $root.market.mass.ShopEvent();
+        while (reader.pos < end) {
+          var tag = reader.uint32();
+          switch (tag >>> 3) {
+            case 1: {
+              message.signature = reader.bytes();
+              break;
+            }
+            case 2: {
+              message.shopManifest = $root.market.mass.ShopManifest.decode(
+                reader,
+                reader.uint32(),
+              );
+              break;
+            }
+            case 3: {
+              message.updateShopManifest =
+                $root.market.mass.UpdateShopManifest.decode(
+                  reader,
+                  reader.uint32(),
+                );
+              break;
+            }
+            case 4: {
+              message.createItem = $root.market.mass.CreateItem.decode(
+                reader,
+                reader.uint32(),
+              );
+              break;
+            }
+            case 5: {
+              message.updateItem = $root.market.mass.UpdateItem.decode(
+                reader,
+                reader.uint32(),
+              );
+              break;
+            }
+            case 6: {
+              message.createTag = $root.market.mass.CreateTag.decode(
+                reader,
+                reader.uint32(),
+              );
+              break;
+            }
+            case 7: {
+              message.updateTag = $root.market.mass.UpdateTag.decode(
+                reader,
+                reader.uint32(),
+              );
+              break;
+            }
+            case 8: {
+              message.createOrder = $root.market.mass.CreateOrder.decode(
+                reader,
+                reader.uint32(),
+              );
+              break;
+            }
+            case 9: {
+              message.updateOrder = $root.market.mass.UpdateOrder.decode(
+                reader,
+                reader.uint32(),
+              );
+              break;
+            }
+            case 12: {
+              message.changeStock = $root.market.mass.ChangeStock.decode(
+                reader,
+                reader.uint32(),
+              );
+              break;
+            }
+            case 13: {
+              message.newKeyCard = $root.market.mass.NewKeyCard.decode(
+                reader,
+                reader.uint32(),
+              );
+              break;
+            }
+            default:
+              reader.skipType(tag & 7);
+              break;
+          }
+        }
+        return message;
+      };
+
+      /**
+       * Decodes a ShopEvent message from the specified reader or buffer, length delimited.
+       * @function decodeDelimited
+       * @memberof market.mass.ShopEvent
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @returns {market.mass.ShopEvent} ShopEvent
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      ShopEvent.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+      };
+
+      /**
+       * Verifies a ShopEvent message.
+       * @function verify
+       * @memberof market.mass.ShopEvent
+       * @static
+       * @param {Object.<string,*>} message Plain object to verify
+       * @returns {string|null} `null` if valid, otherwise the reason why it is not
+       */
+      ShopEvent.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+          return "object expected";
+        var properties = {};
+        if (message.signature != null && message.hasOwnProperty("signature"))
+          if (
+            !(
+              (message.signature &&
+                typeof message.signature.length === "number") ||
+              $util.isString(message.signature)
+            )
+          )
+            return "signature: buffer expected";
+        if (
+          message.shopManifest != null &&
+          message.hasOwnProperty("shopManifest")
+        ) {
+          properties.union = 1;
+          {
+            var error = $root.market.mass.ShopManifest.verify(
+              message.shopManifest,
+            );
+            if (error) return "shopManifest." + error;
+          }
+        }
+        if (
+          message.updateShopManifest != null &&
+          message.hasOwnProperty("updateShopManifest")
+        ) {
+          if (properties.union === 1) return "union: multiple values";
+          properties.union = 1;
+          {
+            var error = $root.market.mass.UpdateShopManifest.verify(
+              message.updateShopManifest,
+            );
+            if (error) return "updateShopManifest." + error;
+          }
+        }
+        if (
+          message.createItem != null &&
+          message.hasOwnProperty("createItem")
+        ) {
+          if (properties.union === 1) return "union: multiple values";
+          properties.union = 1;
+          {
+            var error = $root.market.mass.CreateItem.verify(message.createItem);
+            if (error) return "createItem." + error;
+          }
+        }
+        if (
+          message.updateItem != null &&
+          message.hasOwnProperty("updateItem")
+        ) {
+          if (properties.union === 1) return "union: multiple values";
+          properties.union = 1;
+          {
+            var error = $root.market.mass.UpdateItem.verify(message.updateItem);
+            if (error) return "updateItem." + error;
+          }
+        }
+        if (message.createTag != null && message.hasOwnProperty("createTag")) {
+          if (properties.union === 1) return "union: multiple values";
+          properties.union = 1;
+          {
+            var error = $root.market.mass.CreateTag.verify(message.createTag);
+            if (error) return "createTag." + error;
+          }
+        }
+        if (message.updateTag != null && message.hasOwnProperty("updateTag")) {
+          if (properties.union === 1) return "union: multiple values";
+          properties.union = 1;
+          {
+            var error = $root.market.mass.UpdateTag.verify(message.updateTag);
+            if (error) return "updateTag." + error;
+          }
+        }
+        if (
+          message.createOrder != null &&
+          message.hasOwnProperty("createOrder")
+        ) {
+          if (properties.union === 1) return "union: multiple values";
+          properties.union = 1;
+          {
+            var error = $root.market.mass.CreateOrder.verify(
+              message.createOrder,
+            );
+            if (error) return "createOrder." + error;
+          }
+        }
+        if (
+          message.updateOrder != null &&
+          message.hasOwnProperty("updateOrder")
+        ) {
+          if (properties.union === 1) return "union: multiple values";
+          properties.union = 1;
+          {
+            var error = $root.market.mass.UpdateOrder.verify(
+              message.updateOrder,
+            );
+            if (error) return "updateOrder." + error;
+          }
+        }
+        if (
+          message.changeStock != null &&
+          message.hasOwnProperty("changeStock")
+        ) {
+          if (properties.union === 1) return "union: multiple values";
+          properties.union = 1;
+          {
+            var error = $root.market.mass.ChangeStock.verify(
+              message.changeStock,
+            );
+            if (error) return "changeStock." + error;
+          }
+        }
+        if (
+          message.newKeyCard != null &&
+          message.hasOwnProperty("newKeyCard")
+        ) {
+          if (properties.union === 1) return "union: multiple values";
+          properties.union = 1;
+          {
+            var error = $root.market.mass.NewKeyCard.verify(message.newKeyCard);
+            if (error) return "newKeyCard." + error;
+          }
+        }
+        return null;
+      };
+
+      /**
+       * Creates a ShopEvent message from a plain object. Also converts values to their respective internal types.
+       * @function fromObject
+       * @memberof market.mass.ShopEvent
+       * @static
+       * @param {Object.<string,*>} object Plain object
+       * @returns {market.mass.ShopEvent} ShopEvent
+       */
+      ShopEvent.fromObject = function fromObject(object) {
+        if (object instanceof $root.market.mass.ShopEvent) return object;
+        var message = new $root.market.mass.ShopEvent();
+        if (object.signature != null)
+          if (typeof object.signature === "string")
+            $util.base64.decode(
+              object.signature,
+              (message.signature = $util.newBuffer(
+                $util.base64.length(object.signature),
+              )),
+              0,
+            );
+          else if (object.signature.length >= 0)
+            message.signature = object.signature;
+        if (object.shopManifest != null) {
+          if (typeof object.shopManifest !== "object")
+            throw TypeError(
+              ".market.mass.ShopEvent.shopManifest: object expected",
+            );
+          message.shopManifest = $root.market.mass.ShopManifest.fromObject(
+            object.shopManifest,
+          );
+        }
+        if (object.updateShopManifest != null) {
+          if (typeof object.updateShopManifest !== "object")
+            throw TypeError(
+              ".market.mass.ShopEvent.updateShopManifest: object expected",
+            );
+          message.updateShopManifest =
+            $root.market.mass.UpdateShopManifest.fromObject(
+              object.updateShopManifest,
+            );
+        }
+        if (object.createItem != null) {
+          if (typeof object.createItem !== "object")
+            throw TypeError(
+              ".market.mass.ShopEvent.createItem: object expected",
+            );
+          message.createItem = $root.market.mass.CreateItem.fromObject(
+            object.createItem,
+          );
+        }
+        if (object.updateItem != null) {
+          if (typeof object.updateItem !== "object")
+            throw TypeError(
+              ".market.mass.ShopEvent.updateItem: object expected",
+            );
+          message.updateItem = $root.market.mass.UpdateItem.fromObject(
+            object.updateItem,
+          );
+        }
+        if (object.createTag != null) {
+          if (typeof object.createTag !== "object")
+            throw TypeError(
+              ".market.mass.ShopEvent.createTag: object expected",
+            );
+          message.createTag = $root.market.mass.CreateTag.fromObject(
+            object.createTag,
+          );
+        }
+        if (object.updateTag != null) {
+          if (typeof object.updateTag !== "object")
+            throw TypeError(
+              ".market.mass.ShopEvent.updateTag: object expected",
+            );
+          message.updateTag = $root.market.mass.UpdateTag.fromObject(
+            object.updateTag,
+          );
+        }
+        if (object.createOrder != null) {
+          if (typeof object.createOrder !== "object")
+            throw TypeError(
+              ".market.mass.ShopEvent.createOrder: object expected",
+            );
+          message.createOrder = $root.market.mass.CreateOrder.fromObject(
+            object.createOrder,
+          );
+        }
+        if (object.updateOrder != null) {
+          if (typeof object.updateOrder !== "object")
+            throw TypeError(
+              ".market.mass.ShopEvent.updateOrder: object expected",
+            );
+          message.updateOrder = $root.market.mass.UpdateOrder.fromObject(
+            object.updateOrder,
+          );
+        }
+        if (object.changeStock != null) {
+          if (typeof object.changeStock !== "object")
+            throw TypeError(
+              ".market.mass.ShopEvent.changeStock: object expected",
+            );
+          message.changeStock = $root.market.mass.ChangeStock.fromObject(
+            object.changeStock,
+          );
+        }
+        if (object.newKeyCard != null) {
+          if (typeof object.newKeyCard !== "object")
+            throw TypeError(
+              ".market.mass.ShopEvent.newKeyCard: object expected",
+            );
+          message.newKeyCard = $root.market.mass.NewKeyCard.fromObject(
+            object.newKeyCard,
+          );
+        }
+        return message;
+      };
+
+      /**
+       * Creates a plain object from a ShopEvent message. Also converts values to other types if specified.
+       * @function toObject
+       * @memberof market.mass.ShopEvent
+       * @static
+       * @param {market.mass.ShopEvent} message ShopEvent
+       * @param {$protobuf.IConversionOptions} [options] Conversion options
+       * @returns {Object.<string,*>} Plain object
+       */
+      ShopEvent.toObject = function toObject(message, options) {
+        if (!options) options = {};
+        var object = {};
+        if (options.defaults)
+          if (options.bytes === String) object.signature = "";
+          else {
+            object.signature = [];
+            if (options.bytes !== Array)
+              object.signature = $util.newBuffer(object.signature);
+          }
+        if (message.signature != null && message.hasOwnProperty("signature"))
+          object.signature =
+            options.bytes === String
+              ? $util.base64.encode(
+                  message.signature,
+                  0,
+                  message.signature.length,
+                )
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.signature)
+                : message.signature;
+        if (
+          message.shopManifest != null &&
+          message.hasOwnProperty("shopManifest")
+        ) {
+          object.shopManifest = $root.market.mass.ShopManifest.toObject(
+            message.shopManifest,
+            options,
+          );
+          if (options.oneofs) object.union = "shopManifest";
+        }
+        if (
+          message.updateShopManifest != null &&
+          message.hasOwnProperty("updateShopManifest")
+        ) {
+          object.updateShopManifest =
+            $root.market.mass.UpdateShopManifest.toObject(
+              message.updateShopManifest,
+              options,
+            );
+          if (options.oneofs) object.union = "updateShopManifest";
+        }
+        if (
+          message.createItem != null &&
+          message.hasOwnProperty("createItem")
+        ) {
+          object.createItem = $root.market.mass.CreateItem.toObject(
+            message.createItem,
+            options,
+          );
+          if (options.oneofs) object.union = "createItem";
+        }
+        if (
+          message.updateItem != null &&
+          message.hasOwnProperty("updateItem")
+        ) {
+          object.updateItem = $root.market.mass.UpdateItem.toObject(
+            message.updateItem,
+            options,
+          );
+          if (options.oneofs) object.union = "updateItem";
+        }
+        if (message.createTag != null && message.hasOwnProperty("createTag")) {
+          object.createTag = $root.market.mass.CreateTag.toObject(
+            message.createTag,
+            options,
+          );
+          if (options.oneofs) object.union = "createTag";
+        }
+        if (message.updateTag != null && message.hasOwnProperty("updateTag")) {
+          object.updateTag = $root.market.mass.UpdateTag.toObject(
+            message.updateTag,
+            options,
+          );
+          if (options.oneofs) object.union = "updateTag";
+        }
+        if (
+          message.createOrder != null &&
+          message.hasOwnProperty("createOrder")
+        ) {
+          object.createOrder = $root.market.mass.CreateOrder.toObject(
+            message.createOrder,
+            options,
+          );
+          if (options.oneofs) object.union = "createOrder";
+        }
+        if (
+          message.updateOrder != null &&
+          message.hasOwnProperty("updateOrder")
+        ) {
+          object.updateOrder = $root.market.mass.UpdateOrder.toObject(
+            message.updateOrder,
+            options,
+          );
+          if (options.oneofs) object.union = "updateOrder";
+        }
+        if (
+          message.changeStock != null &&
+          message.hasOwnProperty("changeStock")
+        ) {
+          object.changeStock = $root.market.mass.ChangeStock.toObject(
+            message.changeStock,
+            options,
+          );
+          if (options.oneofs) object.union = "changeStock";
+        }
+        if (
+          message.newKeyCard != null &&
+          message.hasOwnProperty("newKeyCard")
+        ) {
+          object.newKeyCard = $root.market.mass.NewKeyCard.toObject(
+            message.newKeyCard,
+            options,
+          );
+          if (options.oneofs) object.union = "newKeyCard";
+        }
+        return object;
+      };
+
+      /**
+       * Converts this ShopEvent to JSON.
+       * @function toJSON
+       * @memberof market.mass.ShopEvent
+       * @instance
+       * @returns {Object.<string,*>} JSON object
+       */
+      ShopEvent.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+      };
+
+      /**
+       * Gets the default type url for ShopEvent
+       * @function getTypeUrl
+       * @memberof market.mass.ShopEvent
+       * @static
+       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+       * @returns {string} The default type url
+       */
+      ShopEvent.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        if (typeUrlPrefix === undefined) {
+          typeUrlPrefix = "type.googleapis.com";
+        }
+        return typeUrlPrefix + "/market.mass.ShopEvent";
+      };
+
+      return ShopEvent;
+    })();
+
+    mass.CommitItemsToOrderRequest = (function () {
+      /**
+       * Properties of a CommitItemsToOrderRequest.
+       * @memberof market.mass
+       * @interface ICommitItemsToOrderRequest
+       * @property {Uint8Array|null} [requestId] CommitItemsToOrderRequest requestId
+       * @property {Uint8Array|null} [orderId] CommitItemsToOrderRequest orderId
+       * @property {Uint8Array|null} [erc20Addr] CommitItemsToOrderRequest erc20Addr
+       * @property {number|Long|null} [chainId] CommitItemsToOrderRequest chainId
+       */
+
+      /**
+       * Constructs a new CommitItemsToOrderRequest.
+       * @memberof market.mass
+       * @classdesc Represents a CommitItemsToOrderRequest.
+       * @implements ICommitItemsToOrderRequest
+       * @constructor
+       * @param {market.mass.ICommitItemsToOrderRequest=} [properties] Properties to set
+       */
+      function CommitItemsToOrderRequest(properties) {
+        if (properties)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+            if (properties[keys[i]] != null)
+              this[keys[i]] = properties[keys[i]];
+      }
+
+      /**
+       * CommitItemsToOrderRequest requestId.
+       * @member {Uint8Array} requestId
+       * @memberof market.mass.CommitItemsToOrderRequest
+       * @instance
+       */
+      CommitItemsToOrderRequest.prototype.requestId = $util.newBuffer([]);
+
+      /**
+       * CommitItemsToOrderRequest orderId.
+       * @member {Uint8Array} orderId
+       * @memberof market.mass.CommitItemsToOrderRequest
+       * @instance
+       */
+      CommitItemsToOrderRequest.prototype.orderId = $util.newBuffer([]);
+
+      /**
+       * CommitItemsToOrderRequest erc20Addr.
+       * @member {Uint8Array} erc20Addr
+       * @memberof market.mass.CommitItemsToOrderRequest
+       * @instance
+       */
+      CommitItemsToOrderRequest.prototype.erc20Addr = $util.newBuffer([]);
+
+      /**
+       * CommitItemsToOrderRequest chainId.
+       * @member {number|Long} chainId
+       * @memberof market.mass.CommitItemsToOrderRequest
+       * @instance
+       */
+      CommitItemsToOrderRequest.prototype.chainId = $util.Long
+        ? $util.Long.fromBits(0, 0, true)
+        : 0;
+
+      /**
+       * Creates a new CommitItemsToOrderRequest instance using the specified properties.
+       * @function create
+       * @memberof market.mass.CommitItemsToOrderRequest
+       * @static
+       * @param {market.mass.ICommitItemsToOrderRequest=} [properties] Properties to set
+       * @returns {market.mass.CommitItemsToOrderRequest} CommitItemsToOrderRequest instance
+       */
+      CommitItemsToOrderRequest.create = function create(properties) {
+        return new CommitItemsToOrderRequest(properties);
+      };
+
+      /**
+       * Encodes the specified CommitItemsToOrderRequest message. Does not implicitly {@link market.mass.CommitItemsToOrderRequest.verify|verify} messages.
+       * @function encode
+       * @memberof market.mass.CommitItemsToOrderRequest
+       * @static
+       * @param {market.mass.ICommitItemsToOrderRequest} message CommitItemsToOrderRequest message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      CommitItemsToOrderRequest.encode = function encode(message, writer) {
+        if (!writer) writer = $Writer.create();
+        if (
+          message.requestId != null &&
+          Object.hasOwnProperty.call(message, "requestId")
+        )
+          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.requestId);
+        if (
+          message.orderId != null &&
+          Object.hasOwnProperty.call(message, "orderId")
+        )
+          writer.uint32(/* id 2, wireType 2 =*/ 18).bytes(message.orderId);
+        if (
+          message.erc20Addr != null &&
+          Object.hasOwnProperty.call(message, "erc20Addr")
+        )
+          writer.uint32(/* id 3, wireType 2 =*/ 26).bytes(message.erc20Addr);
+        if (
+          message.chainId != null &&
+          Object.hasOwnProperty.call(message, "chainId")
+        )
+          writer.uint32(/* id 4, wireType 0 =*/ 32).uint64(message.chainId);
+        return writer;
+      };
+
+      /**
+       * Encodes the specified CommitItemsToOrderRequest message, length delimited. Does not implicitly {@link market.mass.CommitItemsToOrderRequest.verify|verify} messages.
+       * @function encodeDelimited
+       * @memberof market.mass.CommitItemsToOrderRequest
+       * @static
+       * @param {market.mass.ICommitItemsToOrderRequest} message CommitItemsToOrderRequest message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      CommitItemsToOrderRequest.encodeDelimited = function encodeDelimited(
+        message,
+        writer,
+      ) {
+        return this.encode(message, writer).ldelim();
+      };
+
+      /**
+       * Decodes a CommitItemsToOrderRequest message from the specified reader or buffer.
+       * @function decode
+       * @memberof market.mass.CommitItemsToOrderRequest
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @param {number} [length] Message length if known beforehand
+       * @returns {market.mass.CommitItemsToOrderRequest} CommitItemsToOrderRequest
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      CommitItemsToOrderRequest.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length,
+          message = new $root.market.mass.CommitItemsToOrderRequest();
+        while (reader.pos < end) {
+          var tag = reader.uint32();
+          switch (tag >>> 3) {
+            case 1: {
+              message.requestId = reader.bytes();
+              break;
+            }
+            case 2: {
+              message.orderId = reader.bytes();
+              break;
+            }
+            case 3: {
+              message.erc20Addr = reader.bytes();
+              break;
+            }
+            case 4: {
+              message.chainId = reader.uint64();
+              break;
+            }
+            default:
+              reader.skipType(tag & 7);
+              break;
+          }
+        }
+        return message;
+      };
+
+      /**
+       * Decodes a CommitItemsToOrderRequest message from the specified reader or buffer, length delimited.
+       * @function decodeDelimited
+       * @memberof market.mass.CommitItemsToOrderRequest
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @returns {market.mass.CommitItemsToOrderRequest} CommitItemsToOrderRequest
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      CommitItemsToOrderRequest.decodeDelimited = function decodeDelimited(
+        reader,
+      ) {
+        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+      };
+
+      /**
+       * Verifies a CommitItemsToOrderRequest message.
+       * @function verify
+       * @memberof market.mass.CommitItemsToOrderRequest
+       * @static
+       * @param {Object.<string,*>} message Plain object to verify
+       * @returns {string|null} `null` if valid, otherwise the reason why it is not
+       */
+      CommitItemsToOrderRequest.verify = function verify(message) {
         if (typeof message !== "object" || message === null)
           return "object expected";
         if (message.requestId != null && message.hasOwnProperty("requestId"))
@@ -7717,14 +7687,14 @@ export const market = ($root.market = (() => {
             )
           )
             return "requestId: buffer expected";
-        if (message.cartId != null && message.hasOwnProperty("cartId"))
+        if (message.orderId != null && message.hasOwnProperty("orderId"))
           if (
             !(
-              (message.cartId && typeof message.cartId.length === "number") ||
-              $util.isString(message.cartId)
+              (message.orderId && typeof message.orderId.length === "number") ||
+              $util.isString(message.orderId)
             )
           )
-            return "cartId: buffer expected";
+            return "orderId: buffer expected";
         if (message.erc20Addr != null && message.hasOwnProperty("erc20Addr"))
           if (
             !(
@@ -7734,30 +7704,31 @@ export const market = ($root.market = (() => {
             )
           )
             return "erc20Addr: buffer expected";
-        if (message.escrowAddr != null && message.hasOwnProperty("escrowAddr"))
+        if (message.chainId != null && message.hasOwnProperty("chainId"))
           if (
+            !$util.isInteger(message.chainId) &&
             !(
-              (message.escrowAddr &&
-                typeof message.escrowAddr.length === "number") ||
-              $util.isString(message.escrowAddr)
+              message.chainId &&
+              $util.isInteger(message.chainId.low) &&
+              $util.isInteger(message.chainId.high)
             )
           )
-            return "escrowAddr: buffer expected";
+            return "chainId: integer|Long expected";
         return null;
       };
 
       /**
-       * Creates a CommitCartRequest message from a plain object. Also converts values to their respective internal types.
+       * Creates a CommitItemsToOrderRequest message from a plain object. Also converts values to their respective internal types.
        * @function fromObject
-       * @memberof market.mass.CommitCartRequest
+       * @memberof market.mass.CommitItemsToOrderRequest
        * @static
        * @param {Object.<string,*>} object Plain object
-       * @returns {market.mass.CommitCartRequest} CommitCartRequest
+       * @returns {market.mass.CommitItemsToOrderRequest} CommitItemsToOrderRequest
        */
-      CommitCartRequest.fromObject = function fromObject(object) {
-        if (object instanceof $root.market.mass.CommitCartRequest)
+      CommitItemsToOrderRequest.fromObject = function fromObject(object) {
+        if (object instanceof $root.market.mass.CommitItemsToOrderRequest)
           return object;
-        let message = new $root.market.mass.CommitCartRequest();
+        var message = new $root.market.mass.CommitItemsToOrderRequest();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -7769,16 +7740,16 @@ export const market = ($root.market = (() => {
             );
           else if (object.requestId.length >= 0)
             message.requestId = object.requestId;
-        if (object.cartId != null)
-          if (typeof object.cartId === "string")
+        if (object.orderId != null)
+          if (typeof object.orderId === "string")
             $util.base64.decode(
-              object.cartId,
-              (message.cartId = $util.newBuffer(
-                $util.base64.length(object.cartId),
+              object.orderId,
+              (message.orderId = $util.newBuffer(
+                $util.base64.length(object.orderId),
               )),
               0,
             );
-          else if (object.cartId.length >= 0) message.cartId = object.cartId;
+          else if (object.orderId.length >= 0) message.orderId = object.orderId;
         if (object.erc20Addr != null)
           if (typeof object.erc20Addr === "string")
             $util.base64.decode(
@@ -7790,32 +7761,34 @@ export const market = ($root.market = (() => {
             );
           else if (object.erc20Addr.length >= 0)
             message.erc20Addr = object.erc20Addr;
-        if (object.escrowAddr != null)
-          if (typeof object.escrowAddr === "string")
-            $util.base64.decode(
-              object.escrowAddr,
-              (message.escrowAddr = $util.newBuffer(
-                $util.base64.length(object.escrowAddr),
-              )),
-              0,
-            );
-          else if (object.escrowAddr.length >= 0)
-            message.escrowAddr = object.escrowAddr;
+        if (object.chainId != null)
+          if ($util.Long)
+            (message.chainId = $util.Long.fromValue(object.chainId)).unsigned =
+              true;
+          else if (typeof object.chainId === "string")
+            message.chainId = parseInt(object.chainId, 10);
+          else if (typeof object.chainId === "number")
+            message.chainId = object.chainId;
+          else if (typeof object.chainId === "object")
+            message.chainId = new $util.LongBits(
+              object.chainId.low >>> 0,
+              object.chainId.high >>> 0,
+            ).toNumber(true);
         return message;
       };
 
       /**
-       * Creates a plain object from a CommitCartRequest message. Also converts values to other types if specified.
+       * Creates a plain object from a CommitItemsToOrderRequest message. Also converts values to other types if specified.
        * @function toObject
-       * @memberof market.mass.CommitCartRequest
+       * @memberof market.mass.CommitItemsToOrderRequest
        * @static
-       * @param {market.mass.CommitCartRequest} message CommitCartRequest
+       * @param {market.mass.CommitItemsToOrderRequest} message CommitItemsToOrderRequest
        * @param {$protobuf.IConversionOptions} [options] Conversion options
        * @returns {Object.<string,*>} Plain object
        */
-      CommitCartRequest.toObject = function toObject(message, options) {
+      CommitItemsToOrderRequest.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.requestId = "";
           else {
@@ -7823,11 +7796,11 @@ export const market = ($root.market = (() => {
             if (options.bytes !== Array)
               object.requestId = $util.newBuffer(object.requestId);
           }
-          if (options.bytes === String) object.cartId = "";
+          if (options.bytes === String) object.orderId = "";
           else {
-            object.cartId = [];
+            object.orderId = [];
             if (options.bytes !== Array)
-              object.cartId = $util.newBuffer(object.cartId);
+              object.orderId = $util.newBuffer(object.orderId);
           }
           if (options.bytes === String) object.erc20Addr = "";
           else {
@@ -7835,12 +7808,15 @@ export const market = ($root.market = (() => {
             if (options.bytes !== Array)
               object.erc20Addr = $util.newBuffer(object.erc20Addr);
           }
-          if (options.bytes === String) object.escrowAddr = "";
-          else {
-            object.escrowAddr = [];
-            if (options.bytes !== Array)
-              object.escrowAddr = $util.newBuffer(object.escrowAddr);
-          }
+          if ($util.Long) {
+            var long = new $util.Long(0, 0, true);
+            object.chainId =
+              options.longs === String
+                ? long.toString()
+                : options.longs === Number
+                  ? long.toNumber()
+                  : long;
+          } else object.chainId = options.longs === String ? "0" : 0;
         }
         if (message.requestId != null && message.hasOwnProperty("requestId"))
           object.requestId =
@@ -7853,13 +7829,13 @@ export const market = ($root.market = (() => {
               : options.bytes === Array
                 ? Array.prototype.slice.call(message.requestId)
                 : message.requestId;
-        if (message.cartId != null && message.hasOwnProperty("cartId"))
-          object.cartId =
+        if (message.orderId != null && message.hasOwnProperty("orderId"))
+          object.orderId =
             options.bytes === String
-              ? $util.base64.encode(message.cartId, 0, message.cartId.length)
+              ? $util.base64.encode(message.orderId, 0, message.orderId.length)
               : options.bytes === Array
-                ? Array.prototype.slice.call(message.cartId)
-                : message.cartId;
+                ? Array.prototype.slice.call(message.orderId)
+                : message.orderId;
         if (message.erc20Addr != null && message.hasOwnProperty("erc20Addr"))
           object.erc20Addr =
             options.bytes === String
@@ -7871,120 +7847,129 @@ export const market = ($root.market = (() => {
               : options.bytes === Array
                 ? Array.prototype.slice.call(message.erc20Addr)
                 : message.erc20Addr;
-        if (message.escrowAddr != null && message.hasOwnProperty("escrowAddr"))
-          object.escrowAddr =
-            options.bytes === String
-              ? $util.base64.encode(
-                  message.escrowAddr,
-                  0,
-                  message.escrowAddr.length,
-                )
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.escrowAddr)
-                : message.escrowAddr;
+        if (message.chainId != null && message.hasOwnProperty("chainId"))
+          if (typeof message.chainId === "number")
+            object.chainId =
+              options.longs === String
+                ? String(message.chainId)
+                : message.chainId;
+          else
+            object.chainId =
+              options.longs === String
+                ? $util.Long.prototype.toString.call(message.chainId)
+                : options.longs === Number
+                  ? new $util.LongBits(
+                      message.chainId.low >>> 0,
+                      message.chainId.high >>> 0,
+                    ).toNumber(true)
+                  : message.chainId;
         return object;
       };
 
       /**
-       * Converts this CommitCartRequest to JSON.
+       * Converts this CommitItemsToOrderRequest to JSON.
        * @function toJSON
-       * @memberof market.mass.CommitCartRequest
+       * @memberof market.mass.CommitItemsToOrderRequest
        * @instance
        * @returns {Object.<string,*>} JSON object
        */
-      CommitCartRequest.prototype.toJSON = function toJSON() {
+      CommitItemsToOrderRequest.prototype.toJSON = function toJSON() {
         return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
       };
 
       /**
-       * Gets the default type url for CommitCartRequest
+       * Gets the default type url for CommitItemsToOrderRequest
        * @function getTypeUrl
-       * @memberof market.mass.CommitCartRequest
+       * @memberof market.mass.CommitItemsToOrderRequest
        * @static
        * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
        * @returns {string} The default type url
        */
-      CommitCartRequest.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      CommitItemsToOrderRequest.getTypeUrl = function getTypeUrl(
+        typeUrlPrefix,
+      ) {
         if (typeUrlPrefix === undefined) {
           typeUrlPrefix = "type.googleapis.com";
         }
-        return typeUrlPrefix + "/market.mass.CommitCartRequest";
+        return typeUrlPrefix + "/market.mass.CommitItemsToOrderRequest";
       };
 
-      return CommitCartRequest;
+      return CommitItemsToOrderRequest;
     })();
 
-    mass.CommitCartResponse = (function () {
+    mass.CommitItemsToOrderResponse = (function () {
       /**
-       * Properties of a CommitCartResponse.
+       * Properties of a CommitItemsToOrderResponse.
        * @memberof market.mass
-       * @interface ICommitCartResponse
-       * @property {Uint8Array|null} [requestId] CommitCartResponse requestId
-       * @property {market.mass.IError|null} [error] CommitCartResponse error
-       * @property {Uint8Array|null} [cartFinalizedId] CommitCartResponse cartFinalizedId
+       * @interface ICommitItemsToOrderResponse
+       * @property {Uint8Array|null} [requestId] CommitItemsToOrderResponse requestId
+       * @property {market.mass.IError|null} [error] CommitItemsToOrderResponse error
+       * @property {Uint8Array|null} [orderFinalizedId] CommitItemsToOrderResponse orderFinalizedId
        */
 
       /**
-       * Constructs a new CommitCartResponse.
+       * Constructs a new CommitItemsToOrderResponse.
        * @memberof market.mass
-       * @classdesc Represents a CommitCartResponse.
-       * @implements ICommitCartResponse
+       * @classdesc Represents a CommitItemsToOrderResponse.
+       * @implements ICommitItemsToOrderResponse
        * @constructor
-       * @param {market.mass.ICommitCartResponse=} [properties] Properties to set
+       * @param {market.mass.ICommitItemsToOrderResponse=} [properties] Properties to set
        */
-      function CommitCartResponse(properties) {
+      function CommitItemsToOrderResponse(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
 
       /**
-       * CommitCartResponse requestId.
+       * CommitItemsToOrderResponse requestId.
        * @member {Uint8Array} requestId
-       * @memberof market.mass.CommitCartResponse
+       * @memberof market.mass.CommitItemsToOrderResponse
        * @instance
        */
-      CommitCartResponse.prototype.requestId = $util.newBuffer([]);
+      CommitItemsToOrderResponse.prototype.requestId = $util.newBuffer([]);
 
       /**
-       * CommitCartResponse error.
+       * CommitItemsToOrderResponse error.
        * @member {market.mass.IError|null|undefined} error
-       * @memberof market.mass.CommitCartResponse
+       * @memberof market.mass.CommitItemsToOrderResponse
        * @instance
        */
-      CommitCartResponse.prototype.error = null;
+      CommitItemsToOrderResponse.prototype.error = null;
 
       /**
-       * CommitCartResponse cartFinalizedId.
-       * @member {Uint8Array} cartFinalizedId
-       * @memberof market.mass.CommitCartResponse
+       * CommitItemsToOrderResponse orderFinalizedId.
+       * @member {Uint8Array} orderFinalizedId
+       * @memberof market.mass.CommitItemsToOrderResponse
        * @instance
        */
-      CommitCartResponse.prototype.cartFinalizedId = $util.newBuffer([]);
+      CommitItemsToOrderResponse.prototype.orderFinalizedId = $util.newBuffer(
+        [],
+      );
 
       /**
-       * Creates a new CommitCartResponse instance using the specified properties.
+       * Creates a new CommitItemsToOrderResponse instance using the specified properties.
        * @function create
-       * @memberof market.mass.CommitCartResponse
+       * @memberof market.mass.CommitItemsToOrderResponse
        * @static
-       * @param {market.mass.ICommitCartResponse=} [properties] Properties to set
-       * @returns {market.mass.CommitCartResponse} CommitCartResponse instance
+       * @param {market.mass.ICommitItemsToOrderResponse=} [properties] Properties to set
+       * @returns {market.mass.CommitItemsToOrderResponse} CommitItemsToOrderResponse instance
        */
-      CommitCartResponse.create = function create(properties) {
-        return new CommitCartResponse(properties);
+      CommitItemsToOrderResponse.create = function create(properties) {
+        return new CommitItemsToOrderResponse(properties);
       };
 
       /**
-       * Encodes the specified CommitCartResponse message. Does not implicitly {@link market.mass.CommitCartResponse.verify|verify} messages.
+       * Encodes the specified CommitItemsToOrderResponse message. Does not implicitly {@link market.mass.CommitItemsToOrderResponse.verify|verify} messages.
        * @function encode
-       * @memberof market.mass.CommitCartResponse
+       * @memberof market.mass.CommitItemsToOrderResponse
        * @static
-       * @param {market.mass.ICommitCartResponse} message CommitCartResponse message or plain object to encode
+       * @param {market.mass.ICommitItemsToOrderResponse} message CommitItemsToOrderResponse message or plain object to encode
        * @param {$protobuf.Writer} [writer] Writer to encode to
        * @returns {$protobuf.Writer} Writer
        */
-      CommitCartResponse.encode = function encode(message, writer) {
+      CommitItemsToOrderResponse.encode = function encode(message, writer) {
         if (!writer) writer = $Writer.create();
         if (
           message.requestId != null &&
@@ -8000,25 +7985,25 @@ export const market = ($root.market = (() => {
             writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
           ).ldelim();
         if (
-          message.cartFinalizedId != null &&
-          Object.hasOwnProperty.call(message, "cartFinalizedId")
+          message.orderFinalizedId != null &&
+          Object.hasOwnProperty.call(message, "orderFinalizedId")
         )
           writer
             .uint32(/* id 3, wireType 2 =*/ 26)
-            .bytes(message.cartFinalizedId);
+            .bytes(message.orderFinalizedId);
         return writer;
       };
 
       /**
-       * Encodes the specified CommitCartResponse message, length delimited. Does not implicitly {@link market.mass.CommitCartResponse.verify|verify} messages.
+       * Encodes the specified CommitItemsToOrderResponse message, length delimited. Does not implicitly {@link market.mass.CommitItemsToOrderResponse.verify|verify} messages.
        * @function encodeDelimited
-       * @memberof market.mass.CommitCartResponse
+       * @memberof market.mass.CommitItemsToOrderResponse
        * @static
-       * @param {market.mass.ICommitCartResponse} message CommitCartResponse message or plain object to encode
+       * @param {market.mass.ICommitItemsToOrderResponse} message CommitItemsToOrderResponse message or plain object to encode
        * @param {$protobuf.Writer} [writer] Writer to encode to
        * @returns {$protobuf.Writer} Writer
        */
-      CommitCartResponse.encodeDelimited = function encodeDelimited(
+      CommitItemsToOrderResponse.encodeDelimited = function encodeDelimited(
         message,
         writer,
       ) {
@@ -8026,22 +8011,22 @@ export const market = ($root.market = (() => {
       };
 
       /**
-       * Decodes a CommitCartResponse message from the specified reader or buffer.
+       * Decodes a CommitItemsToOrderResponse message from the specified reader or buffer.
        * @function decode
-       * @memberof market.mass.CommitCartResponse
+       * @memberof market.mass.CommitItemsToOrderResponse
        * @static
        * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
        * @param {number} [length] Message length if known beforehand
-       * @returns {market.mass.CommitCartResponse} CommitCartResponse
+       * @returns {market.mass.CommitItemsToOrderResponse} CommitItemsToOrderResponse
        * @throws {Error} If the payload is not a reader or valid buffer
        * @throws {$protobuf.util.ProtocolError} If required fields are missing
        */
-      CommitCartResponse.decode = function decode(reader, length) {
+      CommitItemsToOrderResponse.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
-          message = new $root.market.mass.CommitCartResponse();
+        var end = length === undefined ? reader.len : reader.pos + length,
+          message = new $root.market.mass.CommitItemsToOrderResponse();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -8055,7 +8040,7 @@ export const market = ($root.market = (() => {
               break;
             }
             case 3: {
-              message.cartFinalizedId = reader.bytes();
+              message.orderFinalizedId = reader.bytes();
               break;
             }
             default:
@@ -8067,29 +8052,31 @@ export const market = ($root.market = (() => {
       };
 
       /**
-       * Decodes a CommitCartResponse message from the specified reader or buffer, length delimited.
+       * Decodes a CommitItemsToOrderResponse message from the specified reader or buffer, length delimited.
        * @function decodeDelimited
-       * @memberof market.mass.CommitCartResponse
+       * @memberof market.mass.CommitItemsToOrderResponse
        * @static
        * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @returns {market.mass.CommitCartResponse} CommitCartResponse
+       * @returns {market.mass.CommitItemsToOrderResponse} CommitItemsToOrderResponse
        * @throws {Error} If the payload is not a reader or valid buffer
        * @throws {$protobuf.util.ProtocolError} If required fields are missing
        */
-      CommitCartResponse.decodeDelimited = function decodeDelimited(reader) {
+      CommitItemsToOrderResponse.decodeDelimited = function decodeDelimited(
+        reader,
+      ) {
         if (!(reader instanceof $Reader)) reader = new $Reader(reader);
         return this.decode(reader, reader.uint32());
       };
 
       /**
-       * Verifies a CommitCartResponse message.
+       * Verifies a CommitItemsToOrderResponse message.
        * @function verify
-       * @memberof market.mass.CommitCartResponse
+       * @memberof market.mass.CommitItemsToOrderResponse
        * @static
        * @param {Object.<string,*>} message Plain object to verify
        * @returns {string|null} `null` if valid, otherwise the reason why it is not
        */
-      CommitCartResponse.verify = function verify(message) {
+      CommitItemsToOrderResponse.verify = function verify(message) {
         if (typeof message !== "object" || message === null)
           return "object expected";
         if (message.requestId != null && message.hasOwnProperty("requestId"))
@@ -8102,36 +8089,36 @@ export const market = ($root.market = (() => {
           )
             return "requestId: buffer expected";
         if (message.error != null && message.hasOwnProperty("error")) {
-          let error = $root.market.mass.Error.verify(message.error);
+          var error = $root.market.mass.Error.verify(message.error);
           if (error) return "error." + error;
         }
         if (
-          message.cartFinalizedId != null &&
-          message.hasOwnProperty("cartFinalizedId")
+          message.orderFinalizedId != null &&
+          message.hasOwnProperty("orderFinalizedId")
         )
           if (
             !(
-              (message.cartFinalizedId &&
-                typeof message.cartFinalizedId.length === "number") ||
-              $util.isString(message.cartFinalizedId)
+              (message.orderFinalizedId &&
+                typeof message.orderFinalizedId.length === "number") ||
+              $util.isString(message.orderFinalizedId)
             )
           )
-            return "cartFinalizedId: buffer expected";
+            return "orderFinalizedId: buffer expected";
         return null;
       };
 
       /**
-       * Creates a CommitCartResponse message from a plain object. Also converts values to their respective internal types.
+       * Creates a CommitItemsToOrderResponse message from a plain object. Also converts values to their respective internal types.
        * @function fromObject
-       * @memberof market.mass.CommitCartResponse
+       * @memberof market.mass.CommitItemsToOrderResponse
        * @static
        * @param {Object.<string,*>} object Plain object
-       * @returns {market.mass.CommitCartResponse} CommitCartResponse
+       * @returns {market.mass.CommitItemsToOrderResponse} CommitItemsToOrderResponse
        */
-      CommitCartResponse.fromObject = function fromObject(object) {
-        if (object instanceof $root.market.mass.CommitCartResponse)
+      CommitItemsToOrderResponse.fromObject = function fromObject(object) {
+        if (object instanceof $root.market.mass.CommitItemsToOrderResponse)
           return object;
-        let message = new $root.market.mass.CommitCartResponse();
+        var message = new $root.market.mass.CommitItemsToOrderResponse();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -8146,36 +8133,39 @@ export const market = ($root.market = (() => {
         if (object.error != null) {
           if (typeof object.error !== "object")
             throw TypeError(
-              ".market.mass.CommitCartResponse.error: object expected",
+              ".market.mass.CommitItemsToOrderResponse.error: object expected",
             );
           message.error = $root.market.mass.Error.fromObject(object.error);
         }
-        if (object.cartFinalizedId != null)
-          if (typeof object.cartFinalizedId === "string")
+        if (object.orderFinalizedId != null)
+          if (typeof object.orderFinalizedId === "string")
             $util.base64.decode(
-              object.cartFinalizedId,
-              (message.cartFinalizedId = $util.newBuffer(
-                $util.base64.length(object.cartFinalizedId),
+              object.orderFinalizedId,
+              (message.orderFinalizedId = $util.newBuffer(
+                $util.base64.length(object.orderFinalizedId),
               )),
               0,
             );
-          else if (object.cartFinalizedId.length >= 0)
-            message.cartFinalizedId = object.cartFinalizedId;
+          else if (object.orderFinalizedId.length >= 0)
+            message.orderFinalizedId = object.orderFinalizedId;
         return message;
       };
 
       /**
-       * Creates a plain object from a CommitCartResponse message. Also converts values to other types if specified.
+       * Creates a plain object from a CommitItemsToOrderResponse message. Also converts values to other types if specified.
        * @function toObject
-       * @memberof market.mass.CommitCartResponse
+       * @memberof market.mass.CommitItemsToOrderResponse
        * @static
-       * @param {market.mass.CommitCartResponse} message CommitCartResponse
+       * @param {market.mass.CommitItemsToOrderResponse} message CommitItemsToOrderResponse
        * @param {$protobuf.IConversionOptions} [options] Conversion options
        * @returns {Object.<string,*>} Plain object
        */
-      CommitCartResponse.toObject = function toObject(message, options) {
+      CommitItemsToOrderResponse.toObject = function toObject(
+        message,
+        options,
+      ) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.requestId = "";
           else {
@@ -8184,11 +8174,13 @@ export const market = ($root.market = (() => {
               object.requestId = $util.newBuffer(object.requestId);
           }
           object.error = null;
-          if (options.bytes === String) object.cartFinalizedId = "";
+          if (options.bytes === String) object.orderFinalizedId = "";
           else {
-            object.cartFinalizedId = [];
+            object.orderFinalizedId = [];
             if (options.bytes !== Array)
-              object.cartFinalizedId = $util.newBuffer(object.cartFinalizedId);
+              object.orderFinalizedId = $util.newBuffer(
+                object.orderFinalizedId,
+              );
           }
         }
         if (message.requestId != null && message.hasOwnProperty("requestId"))
@@ -8208,49 +8200,51 @@ export const market = ($root.market = (() => {
             options,
           );
         if (
-          message.cartFinalizedId != null &&
-          message.hasOwnProperty("cartFinalizedId")
+          message.orderFinalizedId != null &&
+          message.hasOwnProperty("orderFinalizedId")
         )
-          object.cartFinalizedId =
+          object.orderFinalizedId =
             options.bytes === String
               ? $util.base64.encode(
-                  message.cartFinalizedId,
+                  message.orderFinalizedId,
                   0,
-                  message.cartFinalizedId.length,
+                  message.orderFinalizedId.length,
                 )
               : options.bytes === Array
-                ? Array.prototype.slice.call(message.cartFinalizedId)
-                : message.cartFinalizedId;
+                ? Array.prototype.slice.call(message.orderFinalizedId)
+                : message.orderFinalizedId;
         return object;
       };
 
       /**
-       * Converts this CommitCartResponse to JSON.
+       * Converts this CommitItemsToOrderResponse to JSON.
        * @function toJSON
-       * @memberof market.mass.CommitCartResponse
+       * @memberof market.mass.CommitItemsToOrderResponse
        * @instance
        * @returns {Object.<string,*>} JSON object
        */
-      CommitCartResponse.prototype.toJSON = function toJSON() {
+      CommitItemsToOrderResponse.prototype.toJSON = function toJSON() {
         return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
       };
 
       /**
-       * Gets the default type url for CommitCartResponse
+       * Gets the default type url for CommitItemsToOrderResponse
        * @function getTypeUrl
-       * @memberof market.mass.CommitCartResponse
+       * @memberof market.mass.CommitItemsToOrderResponse
        * @static
        * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
        * @returns {string} The default type url
        */
-      CommitCartResponse.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      CommitItemsToOrderResponse.getTypeUrl = function getTypeUrl(
+        typeUrlPrefix,
+      ) {
         if (typeUrlPrefix === undefined) {
           typeUrlPrefix = "type.googleapis.com";
         }
-        return typeUrlPrefix + "/market.mass.CommitCartResponse";
+        return typeUrlPrefix + "/market.mass.CommitItemsToOrderResponse";
       };
 
-      return CommitCartResponse;
+      return CommitItemsToOrderResponse;
     })();
 
     mass.GetBlobUploadURLRequest = (function () {
@@ -8271,7 +8265,7 @@ export const market = ($root.market = (() => {
        */
       function GetBlobUploadURLRequest(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -8344,10 +8338,10 @@ export const market = ($root.market = (() => {
        */
       GetBlobUploadURLRequest.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.GetBlobUploadURLRequest();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -8412,7 +8406,7 @@ export const market = ($root.market = (() => {
       GetBlobUploadURLRequest.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.GetBlobUploadURLRequest)
           return object;
-        let message = new $root.market.mass.GetBlobUploadURLRequest();
+        var message = new $root.market.mass.GetBlobUploadURLRequest();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -8438,7 +8432,7 @@ export const market = ($root.market = (() => {
        */
       GetBlobUploadURLRequest.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults)
           if (options.bytes === String) object.requestId = "";
           else {
@@ -8509,7 +8503,7 @@ export const market = ($root.market = (() => {
        */
       function GetBlobUploadURLResponse(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -8608,10 +8602,10 @@ export const market = ($root.market = (() => {
        */
       GetBlobUploadURLResponse.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.GetBlobUploadURLResponse();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -8674,7 +8668,7 @@ export const market = ($root.market = (() => {
           )
             return "requestId: buffer expected";
         if (message.error != null && message.hasOwnProperty("error")) {
-          let error = $root.market.mass.Error.verify(message.error);
+          var error = $root.market.mass.Error.verify(message.error);
           if (error) return "error." + error;
         }
         if (message.url != null && message.hasOwnProperty("url"))
@@ -8693,7 +8687,7 @@ export const market = ($root.market = (() => {
       GetBlobUploadURLResponse.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.GetBlobUploadURLResponse)
           return object;
-        let message = new $root.market.mass.GetBlobUploadURLResponse();
+        var message = new $root.market.mass.GetBlobUploadURLResponse();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -8727,7 +8721,7 @@ export const market = ($root.market = (() => {
        */
       GetBlobUploadURLResponse.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.requestId = "";
           else {
@@ -8794,7 +8788,7 @@ export const market = ($root.market = (() => {
        * @memberof market.mass
        * @interface IEventWriteRequest
        * @property {Uint8Array|null} [requestId] EventWriteRequest requestId
-       * @property {market.mass.IEvent|null} [event] EventWriteRequest event
+       * @property {google.protobuf.IAny|null} [event] EventWriteRequest event
        */
 
       /**
@@ -8807,7 +8801,7 @@ export const market = ($root.market = (() => {
        */
       function EventWriteRequest(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -8822,7 +8816,7 @@ export const market = ($root.market = (() => {
 
       /**
        * EventWriteRequest event.
-       * @member {market.mass.IEvent|null|undefined} event
+       * @member {google.protobuf.IAny|null|undefined} event
        * @memberof market.mass.EventWriteRequest
        * @instance
        */
@@ -8860,7 +8854,7 @@ export const market = ($root.market = (() => {
           message.event != null &&
           Object.hasOwnProperty.call(message, "event")
         )
-          $root.market.mass.Event.encode(
+          $root.google.protobuf.Any.encode(
             message.event,
             writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
           ).ldelim();
@@ -8896,17 +8890,17 @@ export const market = ($root.market = (() => {
        */
       EventWriteRequest.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.EventWriteRequest();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
               break;
             }
             case 2: {
-              message.event = $root.market.mass.Event.decode(
+              message.event = $root.google.protobuf.Any.decode(
                 reader,
                 reader.uint32(),
               );
@@ -8956,7 +8950,7 @@ export const market = ($root.market = (() => {
           )
             return "requestId: buffer expected";
         if (message.event != null && message.hasOwnProperty("event")) {
-          let error = $root.market.mass.Event.verify(message.event);
+          var error = $root.google.protobuf.Any.verify(message.event);
           if (error) return "event." + error;
         }
         return null;
@@ -8973,7 +8967,7 @@ export const market = ($root.market = (() => {
       EventWriteRequest.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.EventWriteRequest)
           return object;
-        let message = new $root.market.mass.EventWriteRequest();
+        var message = new $root.market.mass.EventWriteRequest();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -8990,7 +8984,7 @@ export const market = ($root.market = (() => {
             throw TypeError(
               ".market.mass.EventWriteRequest.event: object expected",
             );
-          message.event = $root.market.mass.Event.fromObject(object.event);
+          message.event = $root.google.protobuf.Any.fromObject(object.event);
         }
         return message;
       };
@@ -9006,7 +9000,7 @@ export const market = ($root.market = (() => {
        */
       EventWriteRequest.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.requestId = "";
           else {
@@ -9028,7 +9022,7 @@ export const market = ($root.market = (() => {
                 ? Array.prototype.slice.call(message.requestId)
                 : message.requestId;
         if (message.event != null && message.hasOwnProperty("event"))
-          object.event = $root.market.mass.Event.toObject(
+          object.event = $root.google.protobuf.Any.toObject(
             message.event,
             options,
           );
@@ -9071,7 +9065,7 @@ export const market = ($root.market = (() => {
        * @interface IEventWriteResponse
        * @property {Uint8Array|null} [requestId] EventWriteResponse requestId
        * @property {market.mass.IError|null} [error] EventWriteResponse error
-       * @property {Uint8Array|null} [newStoreHash] EventWriteResponse newStoreHash
+       * @property {Uint8Array|null} [newShopHash] EventWriteResponse newShopHash
        * @property {number|Long|null} [eventSequenceNo] EventWriteResponse eventSequenceNo
        */
 
@@ -9085,7 +9079,7 @@ export const market = ($root.market = (() => {
        */
       function EventWriteResponse(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -9107,12 +9101,12 @@ export const market = ($root.market = (() => {
       EventWriteResponse.prototype.error = null;
 
       /**
-       * EventWriteResponse newStoreHash.
-       * @member {Uint8Array} newStoreHash
+       * EventWriteResponse newShopHash.
+       * @member {Uint8Array} newShopHash
        * @memberof market.mass.EventWriteResponse
        * @instance
        */
-      EventWriteResponse.prototype.newStoreHash = $util.newBuffer([]);
+      EventWriteResponse.prototype.newShopHash = $util.newBuffer([]);
 
       /**
        * EventWriteResponse eventSequenceNo.
@@ -9161,10 +9155,10 @@ export const market = ($root.market = (() => {
             writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
           ).ldelim();
         if (
-          message.newStoreHash != null &&
-          Object.hasOwnProperty.call(message, "newStoreHash")
+          message.newShopHash != null &&
+          Object.hasOwnProperty.call(message, "newShopHash")
         )
-          writer.uint32(/* id 3, wireType 2 =*/ 26).bytes(message.newStoreHash);
+          writer.uint32(/* id 3, wireType 2 =*/ 26).bytes(message.newShopHash);
         if (
           message.eventSequenceNo != null &&
           Object.hasOwnProperty.call(message, "eventSequenceNo")
@@ -9204,10 +9198,10 @@ export const market = ($root.market = (() => {
        */
       EventWriteResponse.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.EventWriteResponse();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -9221,7 +9215,7 @@ export const market = ($root.market = (() => {
               break;
             }
             case 3: {
-              message.newStoreHash = reader.bytes();
+              message.newShopHash = reader.bytes();
               break;
             }
             case 4: {
@@ -9272,21 +9266,21 @@ export const market = ($root.market = (() => {
           )
             return "requestId: buffer expected";
         if (message.error != null && message.hasOwnProperty("error")) {
-          let error = $root.market.mass.Error.verify(message.error);
+          var error = $root.market.mass.Error.verify(message.error);
           if (error) return "error." + error;
         }
         if (
-          message.newStoreHash != null &&
-          message.hasOwnProperty("newStoreHash")
+          message.newShopHash != null &&
+          message.hasOwnProperty("newShopHash")
         )
           if (
             !(
-              (message.newStoreHash &&
-                typeof message.newStoreHash.length === "number") ||
-              $util.isString(message.newStoreHash)
+              (message.newShopHash &&
+                typeof message.newShopHash.length === "number") ||
+              $util.isString(message.newShopHash)
             )
           )
-            return "newStoreHash: buffer expected";
+            return "newShopHash: buffer expected";
         if (
           message.eventSequenceNo != null &&
           message.hasOwnProperty("eventSequenceNo")
@@ -9314,7 +9308,7 @@ export const market = ($root.market = (() => {
       EventWriteResponse.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.EventWriteResponse)
           return object;
-        let message = new $root.market.mass.EventWriteResponse();
+        var message = new $root.market.mass.EventWriteResponse();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -9333,17 +9327,17 @@ export const market = ($root.market = (() => {
             );
           message.error = $root.market.mass.Error.fromObject(object.error);
         }
-        if (object.newStoreHash != null)
-          if (typeof object.newStoreHash === "string")
+        if (object.newShopHash != null)
+          if (typeof object.newShopHash === "string")
             $util.base64.decode(
-              object.newStoreHash,
-              (message.newStoreHash = $util.newBuffer(
-                $util.base64.length(object.newStoreHash),
+              object.newShopHash,
+              (message.newShopHash = $util.newBuffer(
+                $util.base64.length(object.newShopHash),
               )),
               0,
             );
-          else if (object.newStoreHash.length >= 0)
-            message.newStoreHash = object.newStoreHash;
+          else if (object.newShopHash.length >= 0)
+            message.newShopHash = object.newShopHash;
         if (object.eventSequenceNo != null)
           if ($util.Long)
             (message.eventSequenceNo = $util.Long.fromValue(
@@ -9372,7 +9366,7 @@ export const market = ($root.market = (() => {
        */
       EventWriteResponse.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.requestId = "";
           else {
@@ -9381,14 +9375,14 @@ export const market = ($root.market = (() => {
               object.requestId = $util.newBuffer(object.requestId);
           }
           object.error = null;
-          if (options.bytes === String) object.newStoreHash = "";
+          if (options.bytes === String) object.newShopHash = "";
           else {
-            object.newStoreHash = [];
+            object.newShopHash = [];
             if (options.bytes !== Array)
-              object.newStoreHash = $util.newBuffer(object.newStoreHash);
+              object.newShopHash = $util.newBuffer(object.newShopHash);
           }
           if ($util.Long) {
-            let long = new $util.Long(0, 0, true);
+            var long = new $util.Long(0, 0, true);
             object.eventSequenceNo =
               options.longs === String
                 ? long.toString()
@@ -9414,19 +9408,19 @@ export const market = ($root.market = (() => {
             options,
           );
         if (
-          message.newStoreHash != null &&
-          message.hasOwnProperty("newStoreHash")
+          message.newShopHash != null &&
+          message.hasOwnProperty("newShopHash")
         )
-          object.newStoreHash =
+          object.newShopHash =
             options.bytes === String
               ? $util.base64.encode(
-                  message.newStoreHash,
+                  message.newShopHash,
                   0,
-                  message.newStoreHash.length,
+                  message.newShopHash.length,
                 )
               : options.bytes === Array
-                ? Array.prototype.slice.call(message.newStoreHash)
-                : message.newStoreHash;
+                ? Array.prototype.slice.call(message.newShopHash)
+                : message.newShopHash;
         if (
           message.eventSequenceNo != null &&
           message.hasOwnProperty("eventSequenceNo")
@@ -9478,6 +9472,571 @@ export const market = ($root.market = (() => {
       return EventWriteResponse;
     })();
 
+    mass.EventPushRequest = (function () {
+      /**
+       * Properties of an EventPushRequest.
+       * @memberof market.mass
+       * @interface IEventPushRequest
+       * @property {Uint8Array|null} [requestId] EventPushRequest requestId
+       * @property {Array.<google.protobuf.IAny>|null} [events] EventPushRequest events
+       */
+
+      /**
+       * Constructs a new EventPushRequest.
+       * @memberof market.mass
+       * @classdesc Represents an EventPushRequest.
+       * @implements IEventPushRequest
+       * @constructor
+       * @param {market.mass.IEventPushRequest=} [properties] Properties to set
+       */
+      function EventPushRequest(properties) {
+        this.events = [];
+        if (properties)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+            if (properties[keys[i]] != null)
+              this[keys[i]] = properties[keys[i]];
+      }
+
+      /**
+       * EventPushRequest requestId.
+       * @member {Uint8Array} requestId
+       * @memberof market.mass.EventPushRequest
+       * @instance
+       */
+      EventPushRequest.prototype.requestId = $util.newBuffer([]);
+
+      /**
+       * EventPushRequest events.
+       * @member {Array.<google.protobuf.IAny>} events
+       * @memberof market.mass.EventPushRequest
+       * @instance
+       */
+      EventPushRequest.prototype.events = $util.emptyArray;
+
+      /**
+       * Creates a new EventPushRequest instance using the specified properties.
+       * @function create
+       * @memberof market.mass.EventPushRequest
+       * @static
+       * @param {market.mass.IEventPushRequest=} [properties] Properties to set
+       * @returns {market.mass.EventPushRequest} EventPushRequest instance
+       */
+      EventPushRequest.create = function create(properties) {
+        return new EventPushRequest(properties);
+      };
+
+      /**
+       * Encodes the specified EventPushRequest message. Does not implicitly {@link market.mass.EventPushRequest.verify|verify} messages.
+       * @function encode
+       * @memberof market.mass.EventPushRequest
+       * @static
+       * @param {market.mass.IEventPushRequest} message EventPushRequest message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      EventPushRequest.encode = function encode(message, writer) {
+        if (!writer) writer = $Writer.create();
+        if (
+          message.requestId != null &&
+          Object.hasOwnProperty.call(message, "requestId")
+        )
+          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.requestId);
+        if (message.events != null && message.events.length)
+          for (var i = 0; i < message.events.length; ++i)
+            $root.google.protobuf.Any.encode(
+              message.events[i],
+              writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
+            ).ldelim();
+        return writer;
+      };
+
+      /**
+       * Encodes the specified EventPushRequest message, length delimited. Does not implicitly {@link market.mass.EventPushRequest.verify|verify} messages.
+       * @function encodeDelimited
+       * @memberof market.mass.EventPushRequest
+       * @static
+       * @param {market.mass.IEventPushRequest} message EventPushRequest message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      EventPushRequest.encodeDelimited = function encodeDelimited(
+        message,
+        writer,
+      ) {
+        return this.encode(message, writer).ldelim();
+      };
+
+      /**
+       * Decodes an EventPushRequest message from the specified reader or buffer.
+       * @function decode
+       * @memberof market.mass.EventPushRequest
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @param {number} [length] Message length if known beforehand
+       * @returns {market.mass.EventPushRequest} EventPushRequest
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      EventPushRequest.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length,
+          message = new $root.market.mass.EventPushRequest();
+        while (reader.pos < end) {
+          var tag = reader.uint32();
+          switch (tag >>> 3) {
+            case 1: {
+              message.requestId = reader.bytes();
+              break;
+            }
+            case 2: {
+              if (!(message.events && message.events.length))
+                message.events = [];
+              message.events.push(
+                $root.google.protobuf.Any.decode(reader, reader.uint32()),
+              );
+              break;
+            }
+            default:
+              reader.skipType(tag & 7);
+              break;
+          }
+        }
+        return message;
+      };
+
+      /**
+       * Decodes an EventPushRequest message from the specified reader or buffer, length delimited.
+       * @function decodeDelimited
+       * @memberof market.mass.EventPushRequest
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @returns {market.mass.EventPushRequest} EventPushRequest
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      EventPushRequest.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+      };
+
+      /**
+       * Verifies an EventPushRequest message.
+       * @function verify
+       * @memberof market.mass.EventPushRequest
+       * @static
+       * @param {Object.<string,*>} message Plain object to verify
+       * @returns {string|null} `null` if valid, otherwise the reason why it is not
+       */
+      EventPushRequest.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+          return "object expected";
+        if (message.requestId != null && message.hasOwnProperty("requestId"))
+          if (
+            !(
+              (message.requestId &&
+                typeof message.requestId.length === "number") ||
+              $util.isString(message.requestId)
+            )
+          )
+            return "requestId: buffer expected";
+        if (message.events != null && message.hasOwnProperty("events")) {
+          if (!Array.isArray(message.events)) return "events: array expected";
+          for (var i = 0; i < message.events.length; ++i) {
+            var error = $root.google.protobuf.Any.verify(message.events[i]);
+            if (error) return "events." + error;
+          }
+        }
+        return null;
+      };
+
+      /**
+       * Creates an EventPushRequest message from a plain object. Also converts values to their respective internal types.
+       * @function fromObject
+       * @memberof market.mass.EventPushRequest
+       * @static
+       * @param {Object.<string,*>} object Plain object
+       * @returns {market.mass.EventPushRequest} EventPushRequest
+       */
+      EventPushRequest.fromObject = function fromObject(object) {
+        if (object instanceof $root.market.mass.EventPushRequest) return object;
+        var message = new $root.market.mass.EventPushRequest();
+        if (object.requestId != null)
+          if (typeof object.requestId === "string")
+            $util.base64.decode(
+              object.requestId,
+              (message.requestId = $util.newBuffer(
+                $util.base64.length(object.requestId),
+              )),
+              0,
+            );
+          else if (object.requestId.length >= 0)
+            message.requestId = object.requestId;
+        if (object.events) {
+          if (!Array.isArray(object.events))
+            throw TypeError(
+              ".market.mass.EventPushRequest.events: array expected",
+            );
+          message.events = [];
+          for (var i = 0; i < object.events.length; ++i) {
+            if (typeof object.events[i] !== "object")
+              throw TypeError(
+                ".market.mass.EventPushRequest.events: object expected",
+              );
+            message.events[i] = $root.google.protobuf.Any.fromObject(
+              object.events[i],
+            );
+          }
+        }
+        return message;
+      };
+
+      /**
+       * Creates a plain object from an EventPushRequest message. Also converts values to other types if specified.
+       * @function toObject
+       * @memberof market.mass.EventPushRequest
+       * @static
+       * @param {market.mass.EventPushRequest} message EventPushRequest
+       * @param {$protobuf.IConversionOptions} [options] Conversion options
+       * @returns {Object.<string,*>} Plain object
+       */
+      EventPushRequest.toObject = function toObject(message, options) {
+        if (!options) options = {};
+        var object = {};
+        if (options.arrays || options.defaults) object.events = [];
+        if (options.defaults)
+          if (options.bytes === String) object.requestId = "";
+          else {
+            object.requestId = [];
+            if (options.bytes !== Array)
+              object.requestId = $util.newBuffer(object.requestId);
+          }
+        if (message.requestId != null && message.hasOwnProperty("requestId"))
+          object.requestId =
+            options.bytes === String
+              ? $util.base64.encode(
+                  message.requestId,
+                  0,
+                  message.requestId.length,
+                )
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.requestId)
+                : message.requestId;
+        if (message.events && message.events.length) {
+          object.events = [];
+          for (var j = 0; j < message.events.length; ++j)
+            object.events[j] = $root.google.protobuf.Any.toObject(
+              message.events[j],
+              options,
+            );
+        }
+        return object;
+      };
+
+      /**
+       * Converts this EventPushRequest to JSON.
+       * @function toJSON
+       * @memberof market.mass.EventPushRequest
+       * @instance
+       * @returns {Object.<string,*>} JSON object
+       */
+      EventPushRequest.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+      };
+
+      /**
+       * Gets the default type url for EventPushRequest
+       * @function getTypeUrl
+       * @memberof market.mass.EventPushRequest
+       * @static
+       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+       * @returns {string} The default type url
+       */
+      EventPushRequest.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        if (typeUrlPrefix === undefined) {
+          typeUrlPrefix = "type.googleapis.com";
+        }
+        return typeUrlPrefix + "/market.mass.EventPushRequest";
+      };
+
+      return EventPushRequest;
+    })();
+
+    mass.EventPushResponse = (function () {
+      /**
+       * Properties of an EventPushResponse.
+       * @memberof market.mass
+       * @interface IEventPushResponse
+       * @property {Uint8Array|null} [requestId] EventPushResponse requestId
+       * @property {market.mass.IError|null} [error] EventPushResponse error
+       */
+
+      /**
+       * Constructs a new EventPushResponse.
+       * @memberof market.mass
+       * @classdesc Represents an EventPushResponse.
+       * @implements IEventPushResponse
+       * @constructor
+       * @param {market.mass.IEventPushResponse=} [properties] Properties to set
+       */
+      function EventPushResponse(properties) {
+        if (properties)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+            if (properties[keys[i]] != null)
+              this[keys[i]] = properties[keys[i]];
+      }
+
+      /**
+       * EventPushResponse requestId.
+       * @member {Uint8Array} requestId
+       * @memberof market.mass.EventPushResponse
+       * @instance
+       */
+      EventPushResponse.prototype.requestId = $util.newBuffer([]);
+
+      /**
+       * EventPushResponse error.
+       * @member {market.mass.IError|null|undefined} error
+       * @memberof market.mass.EventPushResponse
+       * @instance
+       */
+      EventPushResponse.prototype.error = null;
+
+      /**
+       * Creates a new EventPushResponse instance using the specified properties.
+       * @function create
+       * @memberof market.mass.EventPushResponse
+       * @static
+       * @param {market.mass.IEventPushResponse=} [properties] Properties to set
+       * @returns {market.mass.EventPushResponse} EventPushResponse instance
+       */
+      EventPushResponse.create = function create(properties) {
+        return new EventPushResponse(properties);
+      };
+
+      /**
+       * Encodes the specified EventPushResponse message. Does not implicitly {@link market.mass.EventPushResponse.verify|verify} messages.
+       * @function encode
+       * @memberof market.mass.EventPushResponse
+       * @static
+       * @param {market.mass.IEventPushResponse} message EventPushResponse message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      EventPushResponse.encode = function encode(message, writer) {
+        if (!writer) writer = $Writer.create();
+        if (
+          message.requestId != null &&
+          Object.hasOwnProperty.call(message, "requestId")
+        )
+          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.requestId);
+        if (
+          message.error != null &&
+          Object.hasOwnProperty.call(message, "error")
+        )
+          $root.market.mass.Error.encode(
+            message.error,
+            writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
+          ).ldelim();
+        return writer;
+      };
+
+      /**
+       * Encodes the specified EventPushResponse message, length delimited. Does not implicitly {@link market.mass.EventPushResponse.verify|verify} messages.
+       * @function encodeDelimited
+       * @memberof market.mass.EventPushResponse
+       * @static
+       * @param {market.mass.IEventPushResponse} message EventPushResponse message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      EventPushResponse.encodeDelimited = function encodeDelimited(
+        message,
+        writer,
+      ) {
+        return this.encode(message, writer).ldelim();
+      };
+
+      /**
+       * Decodes an EventPushResponse message from the specified reader or buffer.
+       * @function decode
+       * @memberof market.mass.EventPushResponse
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @param {number} [length] Message length if known beforehand
+       * @returns {market.mass.EventPushResponse} EventPushResponse
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      EventPushResponse.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length,
+          message = new $root.market.mass.EventPushResponse();
+        while (reader.pos < end) {
+          var tag = reader.uint32();
+          switch (tag >>> 3) {
+            case 1: {
+              message.requestId = reader.bytes();
+              break;
+            }
+            case 2: {
+              message.error = $root.market.mass.Error.decode(
+                reader,
+                reader.uint32(),
+              );
+              break;
+            }
+            default:
+              reader.skipType(tag & 7);
+              break;
+          }
+        }
+        return message;
+      };
+
+      /**
+       * Decodes an EventPushResponse message from the specified reader or buffer, length delimited.
+       * @function decodeDelimited
+       * @memberof market.mass.EventPushResponse
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @returns {market.mass.EventPushResponse} EventPushResponse
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      EventPushResponse.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+      };
+
+      /**
+       * Verifies an EventPushResponse message.
+       * @function verify
+       * @memberof market.mass.EventPushResponse
+       * @static
+       * @param {Object.<string,*>} message Plain object to verify
+       * @returns {string|null} `null` if valid, otherwise the reason why it is not
+       */
+      EventPushResponse.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+          return "object expected";
+        if (message.requestId != null && message.hasOwnProperty("requestId"))
+          if (
+            !(
+              (message.requestId &&
+                typeof message.requestId.length === "number") ||
+              $util.isString(message.requestId)
+            )
+          )
+            return "requestId: buffer expected";
+        if (message.error != null && message.hasOwnProperty("error")) {
+          var error = $root.market.mass.Error.verify(message.error);
+          if (error) return "error." + error;
+        }
+        return null;
+      };
+
+      /**
+       * Creates an EventPushResponse message from a plain object. Also converts values to their respective internal types.
+       * @function fromObject
+       * @memberof market.mass.EventPushResponse
+       * @static
+       * @param {Object.<string,*>} object Plain object
+       * @returns {market.mass.EventPushResponse} EventPushResponse
+       */
+      EventPushResponse.fromObject = function fromObject(object) {
+        if (object instanceof $root.market.mass.EventPushResponse)
+          return object;
+        var message = new $root.market.mass.EventPushResponse();
+        if (object.requestId != null)
+          if (typeof object.requestId === "string")
+            $util.base64.decode(
+              object.requestId,
+              (message.requestId = $util.newBuffer(
+                $util.base64.length(object.requestId),
+              )),
+              0,
+            );
+          else if (object.requestId.length >= 0)
+            message.requestId = object.requestId;
+        if (object.error != null) {
+          if (typeof object.error !== "object")
+            throw TypeError(
+              ".market.mass.EventPushResponse.error: object expected",
+            );
+          message.error = $root.market.mass.Error.fromObject(object.error);
+        }
+        return message;
+      };
+
+      /**
+       * Creates a plain object from an EventPushResponse message. Also converts values to other types if specified.
+       * @function toObject
+       * @memberof market.mass.EventPushResponse
+       * @static
+       * @param {market.mass.EventPushResponse} message EventPushResponse
+       * @param {$protobuf.IConversionOptions} [options] Conversion options
+       * @returns {Object.<string,*>} Plain object
+       */
+      EventPushResponse.toObject = function toObject(message, options) {
+        if (!options) options = {};
+        var object = {};
+        if (options.defaults) {
+          if (options.bytes === String) object.requestId = "";
+          else {
+            object.requestId = [];
+            if (options.bytes !== Array)
+              object.requestId = $util.newBuffer(object.requestId);
+          }
+          object.error = null;
+        }
+        if (message.requestId != null && message.hasOwnProperty("requestId"))
+          object.requestId =
+            options.bytes === String
+              ? $util.base64.encode(
+                  message.requestId,
+                  0,
+                  message.requestId.length,
+                )
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.requestId)
+                : message.requestId;
+        if (message.error != null && message.hasOwnProperty("error"))
+          object.error = $root.market.mass.Error.toObject(
+            message.error,
+            options,
+          );
+        return object;
+      };
+
+      /**
+       * Converts this EventPushResponse to JSON.
+       * @function toJSON
+       * @memberof market.mass.EventPushResponse
+       * @instance
+       * @returns {Object.<string,*>} JSON object
+       */
+      EventPushResponse.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+      };
+
+      /**
+       * Gets the default type url for EventPushResponse
+       * @function getTypeUrl
+       * @memberof market.mass.EventPushResponse
+       * @static
+       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+       * @returns {string} The default type url
+       */
+      EventPushResponse.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        if (typeUrlPrefix === undefined) {
+          typeUrlPrefix = "type.googleapis.com";
+        }
+        return typeUrlPrefix + "/market.mass.EventPushResponse";
+      };
+
+      return EventPushResponse;
+    })();
+
     mass.SyncStatusRequest = (function () {
       /**
        * Properties of a SyncStatusRequest.
@@ -9497,7 +10056,7 @@ export const market = ($root.market = (() => {
        */
       function SyncStatusRequest(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -9587,10 +10146,10 @@ export const market = ($root.market = (() => {
        */
       SyncStatusRequest.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.SyncStatusRequest();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -9670,7 +10229,7 @@ export const market = ($root.market = (() => {
       SyncStatusRequest.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.SyncStatusRequest)
           return object;
-        let message = new $root.market.mass.SyncStatusRequest();
+        var message = new $root.market.mass.SyncStatusRequest();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -9710,7 +10269,7 @@ export const market = ($root.market = (() => {
        */
       SyncStatusRequest.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.requestId = "";
           else {
@@ -9719,7 +10278,7 @@ export const market = ($root.market = (() => {
               object.requestId = $util.newBuffer(object.requestId);
           }
           if ($util.Long) {
-            let long = new $util.Long(0, 0, true);
+            var long = new $util.Long(0, 0, true);
             object.unpushedEvents =
               options.longs === String
                 ? long.toString()
@@ -9809,7 +10368,7 @@ export const market = ($root.market = (() => {
        */
       function SyncStatusResponse(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -9898,10 +10457,10 @@ export const market = ($root.market = (() => {
        */
       SyncStatusResponse.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.SyncStatusResponse();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -9958,7 +10517,7 @@ export const market = ($root.market = (() => {
           )
             return "requestId: buffer expected";
         if (message.error != null && message.hasOwnProperty("error")) {
-          let error = $root.market.mass.Error.verify(message.error);
+          var error = $root.market.mass.Error.verify(message.error);
           if (error) return "error." + error;
         }
         return null;
@@ -9975,7 +10534,7 @@ export const market = ($root.market = (() => {
       SyncStatusResponse.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.SyncStatusResponse)
           return object;
-        let message = new $root.market.mass.SyncStatusResponse();
+        var message = new $root.market.mass.SyncStatusResponse();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -10008,7 +10567,7 @@ export const market = ($root.market = (() => {
        */
       SyncStatusResponse.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.requestId = "";
           else {
@@ -10066,571 +10625,6 @@ export const market = ($root.market = (() => {
       return SyncStatusResponse;
     })();
 
-    mass.EventPushRequest = (function () {
-      /**
-       * Properties of an EventPushRequest.
-       * @memberof market.mass
-       * @interface IEventPushRequest
-       * @property {Uint8Array|null} [requestId] EventPushRequest requestId
-       * @property {Array.<market.mass.IEvent>|null} [events] EventPushRequest events
-       */
-
-      /**
-       * Constructs a new EventPushRequest.
-       * @memberof market.mass
-       * @classdesc Represents an EventPushRequest.
-       * @implements IEventPushRequest
-       * @constructor
-       * @param {market.mass.IEventPushRequest=} [properties] Properties to set
-       */
-      function EventPushRequest(properties) {
-        this.events = [];
-        if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-            if (properties[keys[i]] != null)
-              this[keys[i]] = properties[keys[i]];
-      }
-
-      /**
-       * EventPushRequest requestId.
-       * @member {Uint8Array} requestId
-       * @memberof market.mass.EventPushRequest
-       * @instance
-       */
-      EventPushRequest.prototype.requestId = $util.newBuffer([]);
-
-      /**
-       * EventPushRequest events.
-       * @member {Array.<market.mass.IEvent>} events
-       * @memberof market.mass.EventPushRequest
-       * @instance
-       */
-      EventPushRequest.prototype.events = $util.emptyArray;
-
-      /**
-       * Creates a new EventPushRequest instance using the specified properties.
-       * @function create
-       * @memberof market.mass.EventPushRequest
-       * @static
-       * @param {market.mass.IEventPushRequest=} [properties] Properties to set
-       * @returns {market.mass.EventPushRequest} EventPushRequest instance
-       */
-      EventPushRequest.create = function create(properties) {
-        return new EventPushRequest(properties);
-      };
-
-      /**
-       * Encodes the specified EventPushRequest message. Does not implicitly {@link market.mass.EventPushRequest.verify|verify} messages.
-       * @function encode
-       * @memberof market.mass.EventPushRequest
-       * @static
-       * @param {market.mass.IEventPushRequest} message EventPushRequest message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      EventPushRequest.encode = function encode(message, writer) {
-        if (!writer) writer = $Writer.create();
-        if (
-          message.requestId != null &&
-          Object.hasOwnProperty.call(message, "requestId")
-        )
-          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.requestId);
-        if (message.events != null && message.events.length)
-          for (let i = 0; i < message.events.length; ++i)
-            $root.market.mass.Event.encode(
-              message.events[i],
-              writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
-            ).ldelim();
-        return writer;
-      };
-
-      /**
-       * Encodes the specified EventPushRequest message, length delimited. Does not implicitly {@link market.mass.EventPushRequest.verify|verify} messages.
-       * @function encodeDelimited
-       * @memberof market.mass.EventPushRequest
-       * @static
-       * @param {market.mass.IEventPushRequest} message EventPushRequest message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      EventPushRequest.encodeDelimited = function encodeDelimited(
-        message,
-        writer,
-      ) {
-        return this.encode(message, writer).ldelim();
-      };
-
-      /**
-       * Decodes an EventPushRequest message from the specified reader or buffer.
-       * @function decode
-       * @memberof market.mass.EventPushRequest
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @param {number} [length] Message length if known beforehand
-       * @returns {market.mass.EventPushRequest} EventPushRequest
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      EventPushRequest.decode = function decode(reader, length) {
-        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
-          message = new $root.market.mass.EventPushRequest();
-        while (reader.pos < end) {
-          let tag = reader.uint32();
-          switch (tag >>> 3) {
-            case 1: {
-              message.requestId = reader.bytes();
-              break;
-            }
-            case 2: {
-              if (!(message.events && message.events.length))
-                message.events = [];
-              message.events.push(
-                $root.market.mass.Event.decode(reader, reader.uint32()),
-              );
-              break;
-            }
-            default:
-              reader.skipType(tag & 7);
-              break;
-          }
-        }
-        return message;
-      };
-
-      /**
-       * Decodes an EventPushRequest message from the specified reader or buffer, length delimited.
-       * @function decodeDelimited
-       * @memberof market.mass.EventPushRequest
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @returns {market.mass.EventPushRequest} EventPushRequest
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      EventPushRequest.decodeDelimited = function decodeDelimited(reader) {
-        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
-        return this.decode(reader, reader.uint32());
-      };
-
-      /**
-       * Verifies an EventPushRequest message.
-       * @function verify
-       * @memberof market.mass.EventPushRequest
-       * @static
-       * @param {Object.<string,*>} message Plain object to verify
-       * @returns {string|null} `null` if valid, otherwise the reason why it is not
-       */
-      EventPushRequest.verify = function verify(message) {
-        if (typeof message !== "object" || message === null)
-          return "object expected";
-        if (message.requestId != null && message.hasOwnProperty("requestId"))
-          if (
-            !(
-              (message.requestId &&
-                typeof message.requestId.length === "number") ||
-              $util.isString(message.requestId)
-            )
-          )
-            return "requestId: buffer expected";
-        if (message.events != null && message.hasOwnProperty("events")) {
-          if (!Array.isArray(message.events)) return "events: array expected";
-          for (let i = 0; i < message.events.length; ++i) {
-            let error = $root.market.mass.Event.verify(message.events[i]);
-            if (error) return "events." + error;
-          }
-        }
-        return null;
-      };
-
-      /**
-       * Creates an EventPushRequest message from a plain object. Also converts values to their respective internal types.
-       * @function fromObject
-       * @memberof market.mass.EventPushRequest
-       * @static
-       * @param {Object.<string,*>} object Plain object
-       * @returns {market.mass.EventPushRequest} EventPushRequest
-       */
-      EventPushRequest.fromObject = function fromObject(object) {
-        if (object instanceof $root.market.mass.EventPushRequest) return object;
-        let message = new $root.market.mass.EventPushRequest();
-        if (object.requestId != null)
-          if (typeof object.requestId === "string")
-            $util.base64.decode(
-              object.requestId,
-              (message.requestId = $util.newBuffer(
-                $util.base64.length(object.requestId),
-              )),
-              0,
-            );
-          else if (object.requestId.length >= 0)
-            message.requestId = object.requestId;
-        if (object.events) {
-          if (!Array.isArray(object.events))
-            throw TypeError(
-              ".market.mass.EventPushRequest.events: array expected",
-            );
-          message.events = [];
-          for (let i = 0; i < object.events.length; ++i) {
-            if (typeof object.events[i] !== "object")
-              throw TypeError(
-                ".market.mass.EventPushRequest.events: object expected",
-              );
-            message.events[i] = $root.market.mass.Event.fromObject(
-              object.events[i],
-            );
-          }
-        }
-        return message;
-      };
-
-      /**
-       * Creates a plain object from an EventPushRequest message. Also converts values to other types if specified.
-       * @function toObject
-       * @memberof market.mass.EventPushRequest
-       * @static
-       * @param {market.mass.EventPushRequest} message EventPushRequest
-       * @param {$protobuf.IConversionOptions} [options] Conversion options
-       * @returns {Object.<string,*>} Plain object
-       */
-      EventPushRequest.toObject = function toObject(message, options) {
-        if (!options) options = {};
-        let object = {};
-        if (options.arrays || options.defaults) object.events = [];
-        if (options.defaults)
-          if (options.bytes === String) object.requestId = "";
-          else {
-            object.requestId = [];
-            if (options.bytes !== Array)
-              object.requestId = $util.newBuffer(object.requestId);
-          }
-        if (message.requestId != null && message.hasOwnProperty("requestId"))
-          object.requestId =
-            options.bytes === String
-              ? $util.base64.encode(
-                  message.requestId,
-                  0,
-                  message.requestId.length,
-                )
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.requestId)
-                : message.requestId;
-        if (message.events && message.events.length) {
-          object.events = [];
-          for (let j = 0; j < message.events.length; ++j)
-            object.events[j] = $root.market.mass.Event.toObject(
-              message.events[j],
-              options,
-            );
-        }
-        return object;
-      };
-
-      /**
-       * Converts this EventPushRequest to JSON.
-       * @function toJSON
-       * @memberof market.mass.EventPushRequest
-       * @instance
-       * @returns {Object.<string,*>} JSON object
-       */
-      EventPushRequest.prototype.toJSON = function toJSON() {
-        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-      };
-
-      /**
-       * Gets the default type url for EventPushRequest
-       * @function getTypeUrl
-       * @memberof market.mass.EventPushRequest
-       * @static
-       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-       * @returns {string} The default type url
-       */
-      EventPushRequest.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-        if (typeUrlPrefix === undefined) {
-          typeUrlPrefix = "type.googleapis.com";
-        }
-        return typeUrlPrefix + "/market.mass.EventPushRequest";
-      };
-
-      return EventPushRequest;
-    })();
-
-    mass.EventPushResponse = (function () {
-      /**
-       * Properties of an EventPushResponse.
-       * @memberof market.mass
-       * @interface IEventPushResponse
-       * @property {Uint8Array|null} [requestId] EventPushResponse requestId
-       * @property {market.mass.IError|null} [error] EventPushResponse error
-       */
-
-      /**
-       * Constructs a new EventPushResponse.
-       * @memberof market.mass
-       * @classdesc Represents an EventPushResponse.
-       * @implements IEventPushResponse
-       * @constructor
-       * @param {market.mass.IEventPushResponse=} [properties] Properties to set
-       */
-      function EventPushResponse(properties) {
-        if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-            if (properties[keys[i]] != null)
-              this[keys[i]] = properties[keys[i]];
-      }
-
-      /**
-       * EventPushResponse requestId.
-       * @member {Uint8Array} requestId
-       * @memberof market.mass.EventPushResponse
-       * @instance
-       */
-      EventPushResponse.prototype.requestId = $util.newBuffer([]);
-
-      /**
-       * EventPushResponse error.
-       * @member {market.mass.IError|null|undefined} error
-       * @memberof market.mass.EventPushResponse
-       * @instance
-       */
-      EventPushResponse.prototype.error = null;
-
-      /**
-       * Creates a new EventPushResponse instance using the specified properties.
-       * @function create
-       * @memberof market.mass.EventPushResponse
-       * @static
-       * @param {market.mass.IEventPushResponse=} [properties] Properties to set
-       * @returns {market.mass.EventPushResponse} EventPushResponse instance
-       */
-      EventPushResponse.create = function create(properties) {
-        return new EventPushResponse(properties);
-      };
-
-      /**
-       * Encodes the specified EventPushResponse message. Does not implicitly {@link market.mass.EventPushResponse.verify|verify} messages.
-       * @function encode
-       * @memberof market.mass.EventPushResponse
-       * @static
-       * @param {market.mass.IEventPushResponse} message EventPushResponse message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      EventPushResponse.encode = function encode(message, writer) {
-        if (!writer) writer = $Writer.create();
-        if (
-          message.requestId != null &&
-          Object.hasOwnProperty.call(message, "requestId")
-        )
-          writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.requestId);
-        if (
-          message.error != null &&
-          Object.hasOwnProperty.call(message, "error")
-        )
-          $root.market.mass.Error.encode(
-            message.error,
-            writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
-          ).ldelim();
-        return writer;
-      };
-
-      /**
-       * Encodes the specified EventPushResponse message, length delimited. Does not implicitly {@link market.mass.EventPushResponse.verify|verify} messages.
-       * @function encodeDelimited
-       * @memberof market.mass.EventPushResponse
-       * @static
-       * @param {market.mass.IEventPushResponse} message EventPushResponse message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      EventPushResponse.encodeDelimited = function encodeDelimited(
-        message,
-        writer,
-      ) {
-        return this.encode(message, writer).ldelim();
-      };
-
-      /**
-       * Decodes an EventPushResponse message from the specified reader or buffer.
-       * @function decode
-       * @memberof market.mass.EventPushResponse
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @param {number} [length] Message length if known beforehand
-       * @returns {market.mass.EventPushResponse} EventPushResponse
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      EventPushResponse.decode = function decode(reader, length) {
-        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
-          message = new $root.market.mass.EventPushResponse();
-        while (reader.pos < end) {
-          let tag = reader.uint32();
-          switch (tag >>> 3) {
-            case 1: {
-              message.requestId = reader.bytes();
-              break;
-            }
-            case 2: {
-              message.error = $root.market.mass.Error.decode(
-                reader,
-                reader.uint32(),
-              );
-              break;
-            }
-            default:
-              reader.skipType(tag & 7);
-              break;
-          }
-        }
-        return message;
-      };
-
-      /**
-       * Decodes an EventPushResponse message from the specified reader or buffer, length delimited.
-       * @function decodeDelimited
-       * @memberof market.mass.EventPushResponse
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @returns {market.mass.EventPushResponse} EventPushResponse
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      EventPushResponse.decodeDelimited = function decodeDelimited(reader) {
-        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
-        return this.decode(reader, reader.uint32());
-      };
-
-      /**
-       * Verifies an EventPushResponse message.
-       * @function verify
-       * @memberof market.mass.EventPushResponse
-       * @static
-       * @param {Object.<string,*>} message Plain object to verify
-       * @returns {string|null} `null` if valid, otherwise the reason why it is not
-       */
-      EventPushResponse.verify = function verify(message) {
-        if (typeof message !== "object" || message === null)
-          return "object expected";
-        if (message.requestId != null && message.hasOwnProperty("requestId"))
-          if (
-            !(
-              (message.requestId &&
-                typeof message.requestId.length === "number") ||
-              $util.isString(message.requestId)
-            )
-          )
-            return "requestId: buffer expected";
-        if (message.error != null && message.hasOwnProperty("error")) {
-          let error = $root.market.mass.Error.verify(message.error);
-          if (error) return "error." + error;
-        }
-        return null;
-      };
-
-      /**
-       * Creates an EventPushResponse message from a plain object. Also converts values to their respective internal types.
-       * @function fromObject
-       * @memberof market.mass.EventPushResponse
-       * @static
-       * @param {Object.<string,*>} object Plain object
-       * @returns {market.mass.EventPushResponse} EventPushResponse
-       */
-      EventPushResponse.fromObject = function fromObject(object) {
-        if (object instanceof $root.market.mass.EventPushResponse)
-          return object;
-        let message = new $root.market.mass.EventPushResponse();
-        if (object.requestId != null)
-          if (typeof object.requestId === "string")
-            $util.base64.decode(
-              object.requestId,
-              (message.requestId = $util.newBuffer(
-                $util.base64.length(object.requestId),
-              )),
-              0,
-            );
-          else if (object.requestId.length >= 0)
-            message.requestId = object.requestId;
-        if (object.error != null) {
-          if (typeof object.error !== "object")
-            throw TypeError(
-              ".market.mass.EventPushResponse.error: object expected",
-            );
-          message.error = $root.market.mass.Error.fromObject(object.error);
-        }
-        return message;
-      };
-
-      /**
-       * Creates a plain object from an EventPushResponse message. Also converts values to other types if specified.
-       * @function toObject
-       * @memberof market.mass.EventPushResponse
-       * @static
-       * @param {market.mass.EventPushResponse} message EventPushResponse
-       * @param {$protobuf.IConversionOptions} [options] Conversion options
-       * @returns {Object.<string,*>} Plain object
-       */
-      EventPushResponse.toObject = function toObject(message, options) {
-        if (!options) options = {};
-        let object = {};
-        if (options.defaults) {
-          if (options.bytes === String) object.requestId = "";
-          else {
-            object.requestId = [];
-            if (options.bytes !== Array)
-              object.requestId = $util.newBuffer(object.requestId);
-          }
-          object.error = null;
-        }
-        if (message.requestId != null && message.hasOwnProperty("requestId"))
-          object.requestId =
-            options.bytes === String
-              ? $util.base64.encode(
-                  message.requestId,
-                  0,
-                  message.requestId.length,
-                )
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.requestId)
-                : message.requestId;
-        if (message.error != null && message.hasOwnProperty("error"))
-          object.error = $root.market.mass.Error.toObject(
-            message.error,
-            options,
-          );
-        return object;
-      };
-
-      /**
-       * Converts this EventPushResponse to JSON.
-       * @function toJSON
-       * @memberof market.mass.EventPushResponse
-       * @instance
-       * @returns {Object.<string,*>} JSON object
-       */
-      EventPushResponse.prototype.toJSON = function toJSON() {
-        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-      };
-
-      /**
-       * Gets the default type url for EventPushResponse
-       * @function getTypeUrl
-       * @memberof market.mass.EventPushResponse
-       * @static
-       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-       * @returns {string} The default type url
-       */
-      EventPushResponse.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-        if (typeUrlPrefix === undefined) {
-          typeUrlPrefix = "type.googleapis.com";
-        }
-        return typeUrlPrefix + "/market.mass.EventPushResponse";
-      };
-
-      return EventPushResponse;
-    })();
-
     mass.PingRequest = (function () {
       /**
        * Properties of a PingRequest.
@@ -10649,7 +10643,7 @@ export const market = ($root.market = (() => {
        */
       function PingRequest(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -10719,10 +10713,10 @@ export const market = ($root.market = (() => {
        */
       PingRequest.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.PingRequest();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -10784,7 +10778,7 @@ export const market = ($root.market = (() => {
        */
       PingRequest.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.PingRequest) return object;
-        let message = new $root.market.mass.PingRequest();
+        var message = new $root.market.mass.PingRequest();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -10810,7 +10804,7 @@ export const market = ($root.market = (() => {
        */
       PingRequest.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults)
           if (options.bytes === String) object.requestId = "";
           else {
@@ -10880,7 +10874,7 @@ export const market = ($root.market = (() => {
        */
       function PingResponse(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -10966,10 +10960,10 @@ export const market = ($root.market = (() => {
        */
       PingResponse.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.PingResponse();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -11026,7 +11020,7 @@ export const market = ($root.market = (() => {
           )
             return "requestId: buffer expected";
         if (message.error != null && message.hasOwnProperty("error")) {
-          let error = $root.market.mass.Error.verify(message.error);
+          var error = $root.market.mass.Error.verify(message.error);
           if (error) return "error." + error;
         }
         return null;
@@ -11042,7 +11036,7 @@ export const market = ($root.market = (() => {
        */
       PingResponse.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.PingResponse) return object;
-        let message = new $root.market.mass.PingResponse();
+        var message = new $root.market.mass.PingResponse();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -11073,7 +11067,7 @@ export const market = ($root.market = (() => {
        */
       PingResponse.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.requestId = "";
           else {
@@ -11131,116 +11125,141 @@ export const market = ($root.market = (() => {
       return PingResponse;
     })();
 
-    mass.Error = (function () {
+    return mass;
+  })();
+
+  return market;
+})();
+
+$root.google = (function () {
+  /**
+   * Namespace google.
+   * @exports google
+   * @namespace
+   */
+  var google = {};
+
+  google.protobuf = (function () {
+    /**
+     * Namespace protobuf.
+     * @memberof google
+     * @namespace
+     */
+    var protobuf = {};
+
+    protobuf.Any = (function () {
       /**
-       * Properties of an Error.
-       * @memberof market.mass
-       * @interface IError
-       * @property {string|null} [code] Error code
-       * @property {string|null} [message] Error message
+       * Properties of an Any.
+       * @memberof google.protobuf
+       * @interface IAny
+       * @property {string|null} [type_url] Any type_url
+       * @property {Uint8Array|null} [value] Any value
        */
 
       /**
-       * Constructs a new Error.
-       * @memberof market.mass
-       * @classdesc Represents an Error.
-       * @implements IError
+       * Constructs a new Any.
+       * @memberof google.protobuf
+       * @classdesc Represents an Any.
+       * @implements IAny
        * @constructor
-       * @param {market.mass.IError=} [properties] Properties to set
+       * @param {google.protobuf.IAny=} [properties] Properties to set
        */
-      function Error(properties) {
+      function Any(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
 
       /**
-       * Error code.
-       * @member {string} code
-       * @memberof market.mass.Error
+       * Any type_url.
+       * @member {string} type_url
+       * @memberof google.protobuf.Any
        * @instance
        */
-      Error.prototype.code = "";
+      Any.prototype.type_url = "";
 
       /**
-       * Error message.
-       * @member {string} message
-       * @memberof market.mass.Error
+       * Any value.
+       * @member {Uint8Array} value
+       * @memberof google.protobuf.Any
        * @instance
        */
-      Error.prototype.message = "";
+      Any.prototype.value = $util.newBuffer([]);
 
       /**
-       * Creates a new Error instance using the specified properties.
+       * Creates a new Any instance using the specified properties.
        * @function create
-       * @memberof market.mass.Error
+       * @memberof google.protobuf.Any
        * @static
-       * @param {market.mass.IError=} [properties] Properties to set
-       * @returns {market.mass.Error} Error instance
+       * @param {google.protobuf.IAny=} [properties] Properties to set
+       * @returns {google.protobuf.Any} Any instance
        */
-      Error.create = function create(properties) {
-        return new Error(properties);
+      Any.create = function create(properties) {
+        return new Any(properties);
       };
 
       /**
-       * Encodes the specified Error message. Does not implicitly {@link market.mass.Error.verify|verify} messages.
+       * Encodes the specified Any message. Does not implicitly {@link google.protobuf.Any.verify|verify} messages.
        * @function encode
-       * @memberof market.mass.Error
+       * @memberof google.protobuf.Any
        * @static
-       * @param {market.mass.IError} message Error message or plain object to encode
+       * @param {google.protobuf.IAny} message Any message or plain object to encode
        * @param {$protobuf.Writer} [writer] Writer to encode to
        * @returns {$protobuf.Writer} Writer
        */
-      Error.encode = function encode(message, writer) {
+      Any.encode = function encode(message, writer) {
         if (!writer) writer = $Writer.create();
-        if (message.code != null && Object.hasOwnProperty.call(message, "code"))
-          writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.code);
         if (
-          message.message != null &&
-          Object.hasOwnProperty.call(message, "message")
+          message.type_url != null &&
+          Object.hasOwnProperty.call(message, "type_url")
         )
-          writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.message);
+          writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.type_url);
+        if (
+          message.value != null &&
+          Object.hasOwnProperty.call(message, "value")
+        )
+          writer.uint32(/* id 2, wireType 2 =*/ 18).bytes(message.value);
         return writer;
       };
 
       /**
-       * Encodes the specified Error message, length delimited. Does not implicitly {@link market.mass.Error.verify|verify} messages.
+       * Encodes the specified Any message, length delimited. Does not implicitly {@link google.protobuf.Any.verify|verify} messages.
        * @function encodeDelimited
-       * @memberof market.mass.Error
+       * @memberof google.protobuf.Any
        * @static
-       * @param {market.mass.IError} message Error message or plain object to encode
+       * @param {google.protobuf.IAny} message Any message or plain object to encode
        * @param {$protobuf.Writer} [writer] Writer to encode to
        * @returns {$protobuf.Writer} Writer
        */
-      Error.encodeDelimited = function encodeDelimited(message, writer) {
+      Any.encodeDelimited = function encodeDelimited(message, writer) {
         return this.encode(message, writer).ldelim();
       };
 
       /**
-       * Decodes an Error message from the specified reader or buffer.
+       * Decodes an Any message from the specified reader or buffer.
        * @function decode
-       * @memberof market.mass.Error
+       * @memberof google.protobuf.Any
        * @static
        * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
        * @param {number} [length] Message length if known beforehand
-       * @returns {market.mass.Error} Error
+       * @returns {google.protobuf.Any} Any
        * @throws {Error} If the payload is not a reader or valid buffer
        * @throws {$protobuf.util.ProtocolError} If required fields are missing
        */
-      Error.decode = function decode(reader, length) {
+      Any.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
-          message = new $root.market.mass.Error();
+        var end = length === undefined ? reader.len : reader.pos + length,
+          message = new $root.google.protobuf.Any();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
-              message.code = reader.string();
+              message.type_url = reader.string();
               break;
             }
             case 2: {
-              message.message = reader.string();
+              message.value = reader.bytes();
               break;
             }
             default:
@@ -11252,111 +11271,136 @@ export const market = ($root.market = (() => {
       };
 
       /**
-       * Decodes an Error message from the specified reader or buffer, length delimited.
+       * Decodes an Any message from the specified reader or buffer, length delimited.
        * @function decodeDelimited
-       * @memberof market.mass.Error
+       * @memberof google.protobuf.Any
        * @static
        * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @returns {market.mass.Error} Error
+       * @returns {google.protobuf.Any} Any
        * @throws {Error} If the payload is not a reader or valid buffer
        * @throws {$protobuf.util.ProtocolError} If required fields are missing
        */
-      Error.decodeDelimited = function decodeDelimited(reader) {
+      Any.decodeDelimited = function decodeDelimited(reader) {
         if (!(reader instanceof $Reader)) reader = new $Reader(reader);
         return this.decode(reader, reader.uint32());
       };
 
       /**
-       * Verifies an Error message.
+       * Verifies an Any message.
        * @function verify
-       * @memberof market.mass.Error
+       * @memberof google.protobuf.Any
        * @static
        * @param {Object.<string,*>} message Plain object to verify
        * @returns {string|null} `null` if valid, otherwise the reason why it is not
        */
-      Error.verify = function verify(message) {
+      Any.verify = function verify(message) {
         if (typeof message !== "object" || message === null)
           return "object expected";
-        if (message.code != null && message.hasOwnProperty("code"))
-          if (!$util.isString(message.code)) return "code: string expected";
-        if (message.message != null && message.hasOwnProperty("message"))
-          if (!$util.isString(message.message))
-            return "message: string expected";
+        if (message.type_url != null && message.hasOwnProperty("type_url"))
+          if (!$util.isString(message.type_url))
+            return "type_url: string expected";
+        if (message.value != null && message.hasOwnProperty("value"))
+          if (
+            !(
+              (message.value && typeof message.value.length === "number") ||
+              $util.isString(message.value)
+            )
+          )
+            return "value: buffer expected";
         return null;
       };
 
       /**
-       * Creates an Error message from a plain object. Also converts values to their respective internal types.
+       * Creates an Any message from a plain object. Also converts values to their respective internal types.
        * @function fromObject
-       * @memberof market.mass.Error
+       * @memberof google.protobuf.Any
        * @static
        * @param {Object.<string,*>} object Plain object
-       * @returns {market.mass.Error} Error
+       * @returns {google.protobuf.Any} Any
        */
-      Error.fromObject = function fromObject(object) {
-        if (object instanceof $root.market.mass.Error) return object;
-        let message = new $root.market.mass.Error();
-        if (object.code != null) message.code = String(object.code);
-        if (object.message != null) message.message = String(object.message);
+      Any.fromObject = function fromObject(object) {
+        if (object instanceof $root.google.protobuf.Any) return object;
+        var message = new $root.google.protobuf.Any();
+        if (object.type_url != null) message.type_url = String(object.type_url);
+        if (object.value != null)
+          if (typeof object.value === "string")
+            $util.base64.decode(
+              object.value,
+              (message.value = $util.newBuffer(
+                $util.base64.length(object.value),
+              )),
+              0,
+            );
+          else if (object.value.length >= 0) message.value = object.value;
         return message;
       };
 
       /**
-       * Creates a plain object from an Error message. Also converts values to other types if specified.
+       * Creates a plain object from an Any message. Also converts values to other types if specified.
        * @function toObject
-       * @memberof market.mass.Error
+       * @memberof google.protobuf.Any
        * @static
-       * @param {market.mass.Error} message Error
+       * @param {google.protobuf.Any} message Any
        * @param {$protobuf.IConversionOptions} [options] Conversion options
        * @returns {Object.<string,*>} Plain object
        */
-      Error.toObject = function toObject(message, options) {
+      Any.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
-          object.code = "";
-          object.message = "";
+          object.type_url = "";
+          if (options.bytes === String) object.value = "";
+          else {
+            object.value = [];
+            if (options.bytes !== Array)
+              object.value = $util.newBuffer(object.value);
+          }
         }
-        if (message.code != null && message.hasOwnProperty("code"))
-          object.code = message.code;
-        if (message.message != null && message.hasOwnProperty("message"))
-          object.message = message.message;
+        if (message.type_url != null && message.hasOwnProperty("type_url"))
+          object.type_url = message.type_url;
+        if (message.value != null && message.hasOwnProperty("value"))
+          object.value =
+            options.bytes === String
+              ? $util.base64.encode(message.value, 0, message.value.length)
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.value)
+                : message.value;
         return object;
       };
 
       /**
-       * Converts this Error to JSON.
+       * Converts this Any to JSON.
        * @function toJSON
-       * @memberof market.mass.Error
+       * @memberof google.protobuf.Any
        * @instance
        * @returns {Object.<string,*>} JSON object
        */
-      Error.prototype.toJSON = function toJSON() {
+      Any.prototype.toJSON = function toJSON() {
         return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
       };
 
       /**
-       * Gets the default type url for Error
+       * Gets the default type url for Any
        * @function getTypeUrl
-       * @memberof market.mass.Error
+       * @memberof google.protobuf.Any
        * @static
        * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
        * @returns {string} The default type url
        */
-      Error.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      Any.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
         if (typeUrlPrefix === undefined) {
           typeUrlPrefix = "type.googleapis.com";
         }
-        return typeUrlPrefix + "/market.mass.Error";
+        return typeUrlPrefix + "/google.protobuf.Any";
       };
 
-      return Error;
+      return Any;
     })();
 
-    return mass;
+    return protobuf;
   })();
 
-  return market;
-})());
+  return google;
+})();
 
-export { $root as default };
+export default $root;

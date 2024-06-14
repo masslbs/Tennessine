@@ -17,12 +17,12 @@ import { IStatus } from "@/types";
 const Navigation = () => {
   const [menuOpened, setMenuOpened] = useState<boolean>(false);
 
-  const { avatar } = useMyContext();
+  const { avatar, name } = useMyContext();
   const { isAuthenticated } = useAuth();
-  const { cartItems, cartId } = useStoreContext();
+  const { orderItems, orderId } = useStoreContext();
 
   const profilePhoto = avatar ? avatar : "example-avatar.svg";
-  const activeCartItems = cartId && cartItems.get(cartId)?.items;
+  const activeCartItems = orderId && orderItems.get(orderId)?.items;
   const arr = activeCartItems ? Object.values(activeCartItems) : [];
   let len = 0;
   for (const val of arr) {
@@ -41,7 +41,7 @@ const Navigation = () => {
       }}
     />
   ) : (
-    <div className={`absolute bg-white left-0 top-0 right-0`}>
+    <div className={`absolute left-0 top-0 right-0`}>
       <div className="w-full border border-gray-200 p-4 text-base flex justify-between">
         <div className="flex items-center" onClick={menuSwitch}>
           {loggedIn ? (
@@ -53,7 +53,10 @@ const Navigation = () => {
               className="h-6"
             />
           ) : null}
-          <p className="ml-2">mass market</p>
+          <p className="ml-2">
+            <span className="text-primary-gray">Hey, </span>
+            {name || "antimofm.eth"}
+          </p>
         </div>
         {loggedIn ? (
           <div className="flex gap-4">
@@ -70,7 +73,7 @@ const Navigation = () => {
 
             <Link href="/my-wallet">
               <Image
-                src={`/assets/${profilePhoto}`}
+                src={`/assets/MassLabsLogo.svg`}
                 width={24}
                 height={24}
                 alt="profile-avatar"

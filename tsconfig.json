@@ -1,14 +1,14 @@
 {
-  "compilerOptions": {
-    "resolveJsonModule": true,
-    "target": "esNext",
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "outDir": "./dist/",
-    "skipLibCheck": true,
-    "allowJs": true
-  }
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/client"
+    },
+    {
+      "path": "./packages/contracts"
+    },
+    {
+      "path": "./packages/frontend"
+    }
+  ]
 }

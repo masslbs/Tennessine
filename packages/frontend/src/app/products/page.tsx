@@ -8,13 +8,14 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Sort from "../common/components/Sort";
 import Search from "../common/components/Search";
-import { SortOption, IProduct } from "@/types";
+import { SortOption, IProduct, TagId } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import Link from "next/link";
 import withAuth from "../components/withAuth";
 import SuccessMessage from "../common/components/SuccessMessage";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createQueryString } from "@/app/utils";
+import SecondaryButton from "../common/components/SecondaryButton";
 
 const Products = () => {
   const searchParams = useSearchParams();
@@ -27,6 +28,8 @@ const Products = () => {
   const { products, publishedTagId, allTags } = useStoreContext();
   const [arrToRender, setArrToRender] = useState<IProduct[] | null>(null);
   const [resultCount, setResultCount] = useState<number>(products.size);
+  const [showTags, setShowTags] = useState<boolean>(false);
+  const [tagIdToFilter, setTagIdToFilter] = useState<null | TagId>(null);
 
   const findRemoveTagId = () => {
     for (const [key, value] of allTags.entries()) {
@@ -50,12 +53,15 @@ const Products = () => {
         item.tagIds.includes(removeTagId)
       ) {
         return false;
+      } else if (tagIdToFilter && item.tagIds?.includes(tagIdToFilter)) {
+        return false;
       }
       return true;
     });
+
     arrayToRender.length && setArrToRender(arrayToRender);
     setResultCount(arrayToRender.length);
-  }, [sortOption, products]);
+  }, [sortOption, products, tagIdToFilter]);
 
   const viewProductDetails = (item: IProduct) => {
     router.push(
@@ -167,7 +173,7 @@ const Products = () => {
             setSearchPhrase={setSearchPhrase}
             searchPhrase={searchPhrase}
           />
-          <div className="flex gap-2 py-4 text-sm">
+          {/* <div className="flex gap-2 py-4 text-sm">
             <Image
               src="/assets/products.svg"
               width={19}
@@ -188,7 +194,40 @@ const Products = () => {
                 alt="down-icon"
               />
             </div>
+          </div> */}
+          <div className="flex gap-2 py-4 text-sm">
+            <SecondaryButton onClick={() => setSortOpened(true)}>
+              Filters
+            </SecondaryButton>
+            <SecondaryButton
+              onClick={() => {
+                setShowTags(!showTags);
+              }}
+            >
+              <div className="items-center flex gap-3">
+                Tags
+                <Image
+                  src="/assets/tags.svg"
+                  width={20}
+                  height={12}
+                  alt="tags"
+                />
+              </div>
+            </SecondaryButton>
           </div>
+          {showTags ? (
+            <div className="inline-flex gap-3">
+              <button className="bg-primary-blue text-white text-sm rounded p-2">
+                Stickers
+              </button>
+              <button className="bg-primary-blue text-white text-sm rounded p-2">
+                EthCC Exclusives
+              </button>
+              <button className="bg-primary-blue text-white  text-sm rounded p-2">
+                Offers
+              </button>
+            </div>
+          ) : null}
           <section className="flex flex-col gap-4 mt-4">
             {renderProducts()}
           </section>
