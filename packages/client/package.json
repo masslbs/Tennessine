@@ -44,8 +44,8 @@
       "default": "./dist/lib/index.js"
     },
     "./lib/protobuf/compiled": {
-      "default": "./lib/protobuf/compiled.js",
-      "types": "./lib/protobuf/compiled.d.ts"
+      "types": "./lib/protobuf/compiled.d.ts",
+      "default": "./lib/protobuf/compiled.js"
     }
   }
 }

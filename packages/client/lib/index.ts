@@ -36,7 +36,6 @@ import {
   eventId,
   hexToBase64,
   convertFirstCharToLowerCase,
-  camelToSnake,
   snakeToCamel,
   type NetworkMessage,
 } from "./utils.js";
@@ -48,29 +47,6 @@ export type WalletClientWithAccount = WalletClient<
   Account
 > & {
   account: Account;
-};
-
-export type ClientArgs = {
-  relayEndpoint: string;
-  keyCardWallet: PrivateKeyAccount;
-  chain: Chain;
-  keyCardEnrolled: boolean;
-  shopId: `0x${string}` | undefined;
-};
-
-type UpdateShopManifestOpts = {
-  domain?: string;
-  publishedTagId?: `0x${string}`;
-  addErc20Addr?: `0x${string}`;
-  removeErc20Addr?: `0x${string}`;
-  name?: string;
-  description?: string;
-  profilePictureUrl?: string;
-};
-
-type UpdateItemOpts = {
-  price?: string;
-  metadata?: any; // TODO: actually should be an object...
 };
 
 export class RelayClient extends EventEmitter {
@@ -90,7 +66,13 @@ export class RelayClient extends EventEmitter {
     chain = hardhat,
     keyCardEnrolled,
     shopId,
-  }: ClientArgs) {
+  }: {
+    relayEndpoint: string;
+    keyCardWallet: PrivateKeyAccount;
+    chain: Chain;
+    keyCardEnrolled: boolean;
+    shopId: `0x${string}` | undefined;
+  }) {
     super();
     this.blockchain = new BlockchainClient(shopId);
     this.keyCardWallet = keyCardWallet;
@@ -419,7 +401,15 @@ export class RelayClient extends EventEmitter {
     ) as Promise<mmproto.EventWriteResponse>;
   }
 
-  async updateShopManifest(update: UpdateShopManifestOpts) {
+  async updateShopManifest(update: {
+    domain?: string;
+    publishedTagId?: `0x${string}`;
+    addErc20Addr?: `0x${string}`;
+    removeErc20Addr?: `0x${string}`;
+    name?: string;
+    description?: string;
+    profilePictureUrl?: string;
+  }) {
     await this.connect();
 
     const types = [
@@ -521,7 +511,13 @@ export class RelayClient extends EventEmitter {
     return bytesToHex(iid);
   }
 
-  async updateItem(itemId: `0x${string}`, update: UpdateItemOpts) {
+  async updateItem(
+    itemId: `0x${string}`,
+    update: {
+      price?: string;
+      metadata?: any; // TODO: actually should be an object...
+    },
+  ) {
     await this.connect();
 
     const message = {

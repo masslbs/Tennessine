@@ -5,7 +5,6 @@
 import { Dispatch, SetStateAction } from "react";
 import { type PublicClient } from "viem";
 
-import { WalletClientWithAccount } from "@massmarket/client";
 import { IProduct, ITag, IStatus, IRelay } from "@/types";
 import { Level } from "level";
 import { RelayClient, WalletClientWithAccount } from "@massmarket/client";

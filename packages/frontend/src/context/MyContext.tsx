@@ -12,7 +12,6 @@ import {
 } from "wagmi";
 import {
   RelayClient,
-  ClientArgs,
   WalletClientWithAccount,
 } from "@massmarket/client";
 import { hardhat, sepolia, mainnet, type Chain } from "viem/chains";
@@ -152,7 +151,7 @@ export const MyContextProvider = (
       keyCard = hexToBytes(savedKC);
     }
     const privateKey = inviteSecret ? inviteSecret : bytesToHex(keyCard);
-    const user: ClientArgs = {
+    const user = {
       relayEndpoint:
         process.env.NEXT_PUBLIC_RELAY_ENDPOINT ||
         "wss://relay-beta.mass.market/v1",
