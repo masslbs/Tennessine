@@ -94,6 +94,7 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
       (async () => {
         setPending(true);
 
+        // @ts-expect-error TODO fix client api type spec
         const hash = await relayClient.redeemInviteSecret(
           inviteSecret,
           clientWallet,

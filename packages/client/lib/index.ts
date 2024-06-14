@@ -729,7 +729,7 @@ export class RelayClient extends EventEmitter {
   // null erc20Addr means vanilla ethererum is used
   async commitOrder(
     orderId: `0x${string}`,
-    erc20Addr?: `0x${string}`,
+    erc20Addr?: `0x${string}` | null,
   ): Promise<mmproto.CommitItemsToOrderResponse> {
     let erc20AddrBytes: Uint8Array | null = null;
     if (erc20Addr) {

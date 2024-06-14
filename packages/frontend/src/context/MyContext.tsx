@@ -20,6 +20,7 @@ import { http, createPublicClient, hexToBytes, bytesToHex } from "viem";
 import { useAuth } from "@/context/AuthContext";
 import * as abi from "@massmarket/contracts";
 import { IStatus } from "../types";
+import { type ClientContext } from "./types";
 import { privateKeyToAccount } from "viem/accounts";
 
 export const MyContext = createContext<ClientContext>({
@@ -161,7 +162,6 @@ export const MyContextProvider = (
       keyCardEnrolled: !!keyCardEnrolled,
     };
     const _relayClient = new RelayClient(user);
-    // @ts-expect-error FIXME
     setRelayClient(_relayClient);
     if (keyCardEnrolled) {
       (async () => {

@@ -5,8 +5,8 @@
 import { Dispatch, SetStateAction } from "react";
 import { type PublicClient } from "viem";
 
-import { market } from "@massmarket/client/lib/protobuf/compiled";
-import mmproto = market.mass;
+//import { market } from "@massmarket/client/lib/protobuf/compiled";
+//import mmproto = market.mass;
 
 import { IProduct, ITag, IStatus, IRelay } from "@/types";
 import { Level } from "level";
