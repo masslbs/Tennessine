@@ -217,13 +217,13 @@ const Products = () => {
           </div>
           {showTags ? (
             <div className="inline-flex gap-3">
-              <button className="bg-tags-blue text-white text-sm rounded p-2">
+              <button className="bg-primary-blue text-white text-sm rounded p-2">
                 Stickers
               </button>
-              <button className="bg-tags-blue text-white text-sm rounded p-2">
+              <button className="bg-primary-blue text-white text-sm rounded p-2">
                 EthCC Exclusives
               </button>
-              <button className="bg-tags-blue text-white  text-sm rounded p-2">
+              <button className="bg-primary-blue text-white  text-sm rounded p-2">
                 Offers
               </button>
             </div>

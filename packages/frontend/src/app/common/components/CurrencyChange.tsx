@@ -4,11 +4,7 @@
 
 "use client";
 
-import React, { Dispatch, SetStateAction, useState, ChangeEvent } from "react";
-import HalfModal from "./HalfModal";
-import Button from "./PrimaryButton";
-
-import { SortOption } from "@/types";
+import React from "react";
 
 const CurrencyChange = () => {
   return (

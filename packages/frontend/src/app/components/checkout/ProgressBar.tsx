@@ -1,41 +1,41 @@
 "use client";
 import React from "react";
 
-const ProgressBar = ({ currentStep }: { currentStep: number }) => {
-  const active = "bg-primary-button border-2	border-gray-400";
-  const round = "border rounded-full w-4 h-4";
+const ProgressBar = ({
+  currentStep,
+  allSteps,
+}: {
+  currentStep: number;
+  allSteps: string[];
+}) => {
+  const active = "bg-primary-blue border-0 border-gray-400 w-[10px] h-[10px]";
+  const round = "border rounded-full mx-3";
   const line = "h-0.5 bg-gray-400 flex-1";
-
+  const inactive = "w-[5px] h-[5px] bg-primary-gray";
   return (
     <main>
       <div className="flex items-center	self-stretch mt-10 w-full mb-2">
-        <div
-          className={`${round} ${currentStep === 1 ? active : "bg-gray-400"}`}
-        />
-        <div className={line} />
-        <div
-          className={`${round} ${currentStep === 2 ? active : "bg-gray-400"}`}
-        />
-        <div className={line} />
-        <div
-          className={`${round} ${currentStep === 3 ? active : "bg-gray-400"}`}
-        />
-        <div className={line} />
-        <div
-          className={`${round} ${currentStep === 4 ? active : "bg-gray-400"}`}
-        />
+        {allSteps.map((step, i) => {
+          return i === allSteps.length - 1 ? (
+            <div>
+              <div
+                className={`${round} ${currentStep === i ? active : inactive}`}
+              />
+            </div>
+          ) : (
+            <div className="flex items-center	self-stretch w-full">
+              <div
+                className={`${round} ${currentStep === i ? active : inactive}`}
+              />
+              <div className={line} />
+            </div>
+          );
+        })}
       </div>
-      <div className="flex text-xs justify-between">
-        <p className={`${currentStep === 1 ? "" : "opacity-0 w-5"} `}>
-          Review Cart
+      <div>
+        <p className="text-center text-primary-blue mt-10">
+          {allSteps[currentStep]}
         </p>
-        <p className={`${currentStep === 2 ? "" : "opacity-0 w-5"} `}>
-          Shipping Details
-        </p>
-        <p className={`${currentStep === 3 ? "" : "opacity-0 w-5"} `}>
-          Checkout
-        </p>
-        <p className={`${currentStep === 4 ? "" : "opacity-0 w-5"}`}>Success</p>
       </div>
     </main>
   );

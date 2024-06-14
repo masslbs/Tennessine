@@ -17,7 +17,7 @@ import { IStatus } from "@/types";
 const Navigation = () => {
   const [menuOpened, setMenuOpened] = useState<boolean>(false);
 
-  const { avatar } = useMyContext();
+  const { avatar, name } = useMyContext();
   const { isAuthenticated } = useAuth();
   const { orderItems, orderId } = useStoreContext();
 
@@ -54,7 +54,8 @@ const Navigation = () => {
             />
           ) : null}
           <p className="ml-2">
-            <span className="text-primary-gray">Hey, </span> antimofm.eth
+            <span className="text-primary-gray">Hey, </span>
+            {name || "antimofm.eth"}
           </p>
         </div>
         {loggedIn ? (

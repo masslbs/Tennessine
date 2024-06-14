@@ -24,10 +24,10 @@ const config: Config = {
       colors: {
         "button-gradient-start": "#57229F",
         "button-gradient-end": "#5A89E3",
-        "primary-button": "#FCD062",
+        "primary-button": "#000",
         "remove-button": "#F04F62",
         "primary-gray": "#777777",
-        "tags-blue": "#5794F7",
+        "primary-blue": "#5794F7",
       },
 
       fontFamily: {

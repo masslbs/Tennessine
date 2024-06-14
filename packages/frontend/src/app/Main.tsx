@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Button from "@/app/common/components/PrimaryButton";
+import Button from "@/app/common/components/Button";
 
 const Main = () => {
   return (

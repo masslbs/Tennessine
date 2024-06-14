@@ -8,6 +8,7 @@ import { WalletConnectModal } from "@walletconnect/modal";
 import { sepolia, mainnet } from "viem/chains";
 import { SignClient as ISignClient } from "@walletconnect/sign-client/dist/types/client";
 import { SessionTypes } from "@walletconnect/types";
+import Button from "@/app/common/components/Button";
 
 function WalletConnectQR({
   purchaseAddress,
@@ -117,19 +118,21 @@ function WalletConnectQR({
   }, [signClient]);
 
   return (
-    <div className="App">
-      <h1>Sign v2 Standalone</h1>
-      {account.length ? (
+    <div>
+      {/* {account.length ? (
         <>
           <p>{account}</p>
           <button onClick={handleSend}>Send Transaction</button>
           <button onClick={handleDisconnect}>Disconnect</button>
         </>
       ) : (
-        <button onClick={handleConnect} disabled={!signClient}>
+        <Button onClick={handleConnect} disabled={!signClient}>
           Connect
-        </button>
-      )}
+        </Button>
+      )} */}
+      <Button onClick={handleConnect} disabled={!signClient}>
+        Connect Wallet
+      </Button>
     </div>
   );
 }
