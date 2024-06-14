@@ -1,7 +1,3 @@
-// SPDX-FileCopyrightText: 2024 Mass Labs
-//
-// SPDX-License-Identifier: MIT
-
 import * as $protobuf from "protobufjs";
 import Long = require("long");
 /** Namespace market. */
@@ -633,6 +629,15 @@ export namespace market {
 
       /** ShopManifest publishedTagId */
       publishedTagId?: Uint8Array | null;
+
+      /** ShopManifest name */
+      name?: string | null;
+
+      /** ShopManifest description */
+      description?: string | null;
+
+      /** ShopManifest profilePictureUrl */
+      profilePictureUrl?: string | null;
     }
 
     /** Represents a ShopManifest. */
@@ -654,6 +659,15 @@ export namespace market {
 
       /** ShopManifest publishedTagId. */
       public publishedTagId: Uint8Array;
+
+      /** ShopManifest name. */
+      public name: string;
+
+      /** ShopManifest description. */
+      public description: string;
+
+      /** ShopManifest profilePictureUrl. */
+      public profilePictureUrl: string;
 
       /**
        * Creates a new ShopManifest instance using the specified properties.
@@ -767,6 +781,15 @@ export namespace market {
 
       /** UpdateShopManifest removeErc20Addr */
       removeErc20Addr?: Uint8Array | null;
+
+      /** UpdateShopManifest name */
+      name?: string | null;
+
+      /** UpdateShopManifest description */
+      description?: string | null;
+
+      /** UpdateShopManifest profilePictureUrl */
+      profilePictureUrl?: string | null;
     }
 
     /** Represents an UpdateShopManifest. */
@@ -792,6 +815,15 @@ export namespace market {
       /** UpdateShopManifest removeErc20Addr. */
       public removeErc20Addr?: Uint8Array | null;
 
+      /** UpdateShopManifest name. */
+      public name?: string | null;
+
+      /** UpdateShopManifest description. */
+      public description?: string | null;
+
+      /** UpdateShopManifest profilePictureUrl. */
+      public profilePictureUrl?: string | null;
+
       /** UpdateShopManifest _domain. */
       public _domain?: "domain";
 
@@ -803,6 +835,15 @@ export namespace market {
 
       /** UpdateShopManifest _removeErc20Addr. */
       public _removeErc20Addr?: "removeErc20Addr";
+
+      /** UpdateShopManifest _name. */
+      public _name?: "name";
+
+      /** UpdateShopManifest _description. */
+      public _description?: "description";
+
+      /** UpdateShopManifest _profilePictureUrl. */
+      public _profilePictureUrl?: "profilePictureUrl";
 
       /**
        * Creates a new UpdateShopManifest instance using the specified properties.

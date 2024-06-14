@@ -192,14 +192,16 @@ describe("user behaviour", () => {
   test("update shop manifest", async () => {
     await relayClient.updateShopManifest({ domain: "socks.mass.market" });
     await relayClient.updateShopManifest({
-      publishedTagId: random32BytesHex(),
+       publishedTagId: random32BytesHex(),
     });
+    await relayClient.updateShopManifest({ name: "socks.mass.market", description: "foo" });
+
     await relayClient.updateShopManifest({
-      addERC20: abi.addresses.Eddies as Address,
+       addErc20Addr: abi.addresses.Eddies as Address,
     });
-    await relayClient.updateShopManifest({
-      removeERC20: abi.addresses.Eddies as Address,
-    });
+     await relayClient.updateShopManifest({
+       removeErc20Addr: abi.addresses.Eddies as Address,
+     });
   });
 
   test("blob upload", async () => {
@@ -288,7 +290,7 @@ describe("user behaviour", () => {
 
       test("erc20 checkout", { timeout: 10000 }, async () => {
         await relayClient.updateShopManifest({
-          addERC20: abi.addresses.Eddies as Address,
+          addErc20Addr: abi.addresses.Eddies as Address,
         });
         await relayClient.changeOrder(orderId, itemId, 1);
 

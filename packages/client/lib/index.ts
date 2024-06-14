@@ -37,6 +37,8 @@ import {
   eventId,
   hexToBase64,
   convertFirstCharToLowerCase,
+  camelToSnake,
+  snakeToCamel,
   type NetworkMessage,
 } from "./utils";
 import * as abi from "@massmarket/contracts";
@@ -60,8 +62,8 @@ export type ClientArgs = {
 type UpdateShopManifestOpts = {
   domain?: string;
   publishedTagId?: `0x${string}`;
-  addERC20?: `0x${string}`;
-  removeERC20?: `0x${string}`;
+  addERC20Addr?: `0x${string}`;
+  removeERC20Addr?: `0x${string}`;
   name?: string;
   description?: string;
   profilePictureUrl?: string;
@@ -232,7 +234,8 @@ export class RelayClient extends EventEmitter {
     ) {
       this.connection = new WebSocket(this.endpoint + "/sessions");
       this.connection.addEventListener("error", (error: Event) => {
-        console.error(`WebSocket error: ${error}`);
+        console.error("WebSocket error!");
+        console.error(error);
       });
       this.connection.addEventListener(
         "message",
@@ -425,6 +428,9 @@ export class RelayClient extends EventEmitter {
         name: "event_id",
         type: "bytes32",
       },
+    ];
+
+    const optional_types = [
       {
         name: "name",
         type: "string",
@@ -437,42 +443,44 @@ export class RelayClient extends EventEmitter {
         name: "profile_picture_url",
         type: "string",
       },
-    ];
+      {
+        name: "domain",
+        type: "string",
+      },
+      {
+        name: "published_tag_id",
+        type: "bytes32",
+      },
+      {
+        name: "add_erc20_addr",
+        type: "address",
+      },
+      {
+        name: "remove_erc20_addr",
+        type: "address",
+      }
+    ]
 
     let message = {
       eventId: eventId(),
     } as { [key: string]: any };
 
-    if (update.domain !== undefined) {
-      const field = "domain";
-      types.push({
-        name: field,
-        type: "string",
-      });
-      message[field] = update.domain;
-    }
-    if (update.publishedTagId !== undefined) {
-      types.push({
-        name: "published_tag_id",
-        type: "bytes32",
-      });
-      message["publishedTagId"] = hexToBytes(update.publishedTagId);
-    }
-    if (update.addERC20 !== undefined) {
-      types.push({
-        name: "add_erc20_addr",
-        type: "address",
-      });
-      message["addErc20Addr"] = hexToBytes(update.addERC20);
-    }
-    if (update.removeERC20 !== undefined) {
-      types.push({
-        name: "remove_erc20_addr",
-        type: "address",
-      });
-      message["removeErc20Addr"] = hexToBytes(update.removeERC20);
-    }
+    for (const opt_type of optional_types) {
+      const {name, type} = opt_type
+      const obj_name = snakeToCamel(name)
+      const v = update[obj_name]
+      console.log(`DEBUG: ${obj_name}: ${v}`)
 
+      if (v !== undefined) {
+        types.push(opt_type);
+        if (type == "address" || type == "bytes32") {
+          message[obj_name] = hexToBytes(v);
+        } else {
+          message[obj_name] = v;
+        }
+
+      }
+    }
     return this.#signAndSendShopEvent(
       {
         UpdateShopManifest: types,
