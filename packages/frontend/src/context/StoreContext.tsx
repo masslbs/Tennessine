@@ -240,7 +240,10 @@ export const StoreContextProvider = (
       const _order = _orderItems.get(_orderId) as OrderState;
       if (_order && _order.status !== IStatus.Failed) {
         const sig = _order.signature as `0x${string}`;
-        const retrievedAdd = await relayClient!.recoverSignedAddress(_orderId, sig);
+        const retrievedAdd = await relayClient!.recoverSignedAddress(
+          _orderId,
+          sig,
+        );
         if (addresses.includes(retrievedAdd.toLowerCase())) {
           console.log("inside inclue", _orderId);
           setOrderId(_orderId);
@@ -299,7 +302,7 @@ export const StoreContextProvider = (
       if (fields.price) {
         const priceAsNum = Number(updatedProduct.price);
         updatedProduct.price = priceAsNum.toFixed(2);
-        await relayClient!.updateItem(itemId, {price: updatedProduct.price});
+        await relayClient!.updateItem(itemId, { price: updatedProduct.price });
         setProducts({
           type: UPDATE_PRICE,
           payload: {
@@ -312,8 +315,8 @@ export const StoreContextProvider = (
         const hasEmbeddedImage =
           updatedProduct.metadata.image.includes("data:image");
         const path = hasEmbeddedImage
-          // @ts-expect-error FIXME
-          ? await relayClient!.uploadBlob(updatedProduct.blob as Blob)
+          ? // @ts-expect-error FIXME
+            await relayClient!.uploadBlob(updatedProduct.blob as Blob)
           : { url: updatedProduct.metadata.image };
 
         const metadata = {
@@ -321,7 +324,7 @@ export const StoreContextProvider = (
           description: "updating product",
           image: path.url,
         };
-        await relayClient!.updateItem(itemId, {metadata});
+        await relayClient!.updateItem(itemId, { metadata });
         setProducts({
           type: UPDATE_METADATA,
           payload: {
