@@ -54,6 +54,7 @@ const CheckoutFlow = () => {
     const res = await commitOrder(isERC20Checkout);
     if (res.error) {
       console.log("there was an error");
+      setShowErrorMessage(res.error);
     } else if (res.orderFinalizedId) {
       setCheckoutRequestId(res.orderFinalizedId);
     }

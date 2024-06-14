@@ -56,14 +56,14 @@ const ShippingDetails = ({ checkout }: { checkout: () => void }) => {
 
         <label htmlFor="price">Country</label>
         <input
-          className="border-2 border-solid mt-1 p-3 rounded-2xl	"
+          className="border-2 border-solid mt-1 p-3 rounded-2xl"
           id="country"
           name="country"
           onChange={(e) => setCountry(e.target.value)}
         />
         <label htmlFor="price">Phone Number</label>
         <input
-          className="border-2 border-solid mt-1 p-3 rounded-2xl	"
+          className="border-2 border-solid mt-1 p-3 rounded-2xl"
           id="phone"
           name="phone"
           onChange={(e) => setNumber(e.target.value)}

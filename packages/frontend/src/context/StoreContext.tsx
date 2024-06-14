@@ -258,14 +258,13 @@ export const StoreContextProvider = (
   ) => {
     try {
       // @ts-expect-error FIXME
-      // const path = await relayClient!.uploadBlob(product.blob as Blob);
+      const path = await relayClient!.uploadBlob(product.blob as Blob);
       const metadata = {
         // ????
         title: product.metadata.title,
         name: product.metadata.title,
         description: "adding product",
-        image:
-          "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.polygon.com%2Fanimation-cartoons%2F2020%2F5%2F26%2F21270987%2Fkikis-delivery-service-best-studio-ghibli-movies-hayao-miyazaki&psig=AOvVaw2_QNSF5GMtaLuwjG6awxJ_&ust=1718470993950000&source=images&cd=vfe&opi=89978449&ved=2ahUKEwisp726yduGAxUDLzQIHezoBkwQjRx6BAgAEBY",
+        image: path.url as string,
       };
       const priceAsNum = Number(product.price);
       product.price = priceAsNum.toFixed(2);

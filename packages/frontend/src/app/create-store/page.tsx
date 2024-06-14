@@ -27,7 +27,7 @@ const StoreCreation = () => {
   const [storeURL, setStoreURL] = useState<string>("");
   const [currency, setCurrency] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-  const [avatar, setAvatar] = useState<string | null>(null);
+  const [avatar, setAvatar] = useState<string>("");
   const enrollKeycard = useRef(false);
   const { isAuthenticated } = useAuth();
 
@@ -95,7 +95,7 @@ const StoreCreation = () => {
   useEffect(() => {
     if (relayClient && isAuthenticated === IStatus.Complete) {
       (async () => {
-        await relayClient.writeShopManifest(storeName, description, "");
+        await relayClient.writeShopManifest(storeName, description, avatar);
         console.log("store manifested.");
         const publishedTagId = await relayClient.createTag("visible");
         if (publishedTagId) {

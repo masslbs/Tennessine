@@ -42,7 +42,6 @@ const NewCart = ({ next }: { next: () => void }) => {
         quantity += Number(selectedQuantity);
         const qtyPrice = Number(item.price) * Number(selectedQuantity);
         totalPrice += qtyPrice;
-        console.log("after addition", { totalPrice });
       }
     });
     return totalPrice;
@@ -54,7 +53,6 @@ const NewCart = ({ next }: { next: () => void }) => {
       const itemId = id as ItemId;
       const item = products.get(itemId);
       if (!item || !item.metadata.image) return;
-      console.log({ item });
       return (
         <div
           key={item.metadata.title}
