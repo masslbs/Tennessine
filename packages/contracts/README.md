@@ -11,4 +11,3 @@ The address where the contracts are deployed are is in
 - [deploymentAddresses](./deploymentAddresses.json)
 
 The ABIs are popuated when entering the nix development shell `nix develop`
-
