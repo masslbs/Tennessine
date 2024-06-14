@@ -6,12 +6,12 @@
 
 import React, { useState, ChangeEvent, useEffect, useRef } from "react";
 import AvatarUpload from "@/app/common/components/AvatarUpload";
-import Button from "@/app/common/components/Button";
 import { useMyContext } from "@/context/MyContext";
 import { useAuth } from "@/context/AuthContext";
 import * as abi from "@massmarket/contracts";
 import { IStatus } from "@/types";
 import { useRouter } from "next/navigation";
+import SecondaryButton from "@/app/common/components/SecondaryButton";
 
 const StoreCreation = () => {
   const {
@@ -23,10 +23,10 @@ const StoreCreation = () => {
   } = useMyContext();
   const router = useRouter();
 
-  const [storeName, setStoreName] = useState<string>("ethDubai");
-  const [storeURL, setStoreURL] = useState<string>("ethdubai.mass.market");
-  const [currency, setCurrency] = useState<string>("ETH");
-  const [description, setDescription] = useState<string>("Creating store...");
+  const [storeName, setStoreName] = useState<string>("");
+  const [storeURL, setStoreURL] = useState<string>("");
+  const [currency, setCurrency] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
   const [avatar, setAvatar] = useState<string | null>(null);
   const enrollKeycard = useRef(false);
   const { isAuthenticated } = useAuth();
@@ -49,7 +49,7 @@ const StoreCreation = () => {
         try {
           const storeId =
             localStorage.getItem("storeId") || process.env.NEXT_PUBLIC_STORE_ID;
-          const hash = await relayClient.blockchain.createStore(clientWallet);
+          const hash = await relayClient.blockchain.createShop(clientWallet);
           const transaction =
             publicClient &&
             (await publicClient.waitForTransactionReceipt({
@@ -95,31 +95,45 @@ const StoreCreation = () => {
   useEffect(() => {
     if (relayClient && isAuthenticated === IStatus.Complete) {
       (async () => {
-        //FIXME: create and pass published store ID
-        await relayClient.writeStoreManifest();
+        await relayClient.writeShopManifest(storeName, description, "/testing");
         console.log("store manifested.");
+        const publishedTagId = await relayClient.createTag("visible");
+        if (publishedTagId) {
+          await relayClient!.updateShopManifest({ publishedTagId });
+        }
         router.push("/products");
       })();
     }
   }, [isAuthenticated, relayClient]);
 
   return (
-    <main className="pt-under-nav bg-gray-100 h-screen p-4">
-      <h2 className="pt-4">Create new shop</h2>
-      <section className="mt-4 flex flex-col gap-4">
+    <main className="pt-under-nav h-screen p-4">
+      <div className="flex">
+        <h2>Create new shop</h2>
+        <div className="ml-auto">
+          <SecondaryButton onClick={createStore}>
+            <h6>save</h6>
+          </SecondaryButton>
+        </div>
+      </div>
+      <section className="mt-8 flex flex-col gap-4">
         <div className="flex gap-4">
-          <AvatarUpload img={avatar} setImgSrc={setAvatar} />
+          <div>
+            <p>PFP</p>
+            <AvatarUpload img={avatar} setImgSrc={setAvatar} />
+          </div>
           <form
             className="flex flex-col grow"
             onSubmit={(e) => e.preventDefault()}
           >
-            <label htmlFor="fname">Store Name</label>
+            <label htmlFor="storeName">Store Name</label>
             <input
-              className="border-2 border-solid mt-1 p-2 rounded"
-              id="fname"
-              name="fname"
+              className="border-2 border-solid mt-1 p-2 rounded-2xl"
+              id="storeName"
+              name="storeName"
               value={storeName}
               onChange={(e) => handleStoreName(e)}
+              placeholder="Type a name"
             />
           </form>
         </div>
@@ -127,7 +141,7 @@ const StoreCreation = () => {
         <form className="flex flex-col" onSubmit={(e) => e.preventDefault()}>
           <label htmlFor="fname">URL</label>
           <input
-            className="border-2 border-solid mt-1 p-2 rounded"
+            className="border-2 border-solid mt-1 p-2 rounded-2xl"
             id="fname"
             name="fname"
             value={storeURL}
@@ -137,17 +151,18 @@ const StoreCreation = () => {
         <form className="flex flex-col" onSubmit={(e) => e.preventDefault()}>
           <label htmlFor="fname">Description</label>
           <input
-            className="border-2 border-solid mt-1 p-2 rounded"
+            className="border-2 border-solid mt-1 p-2 rounded-2xl"
             id="fname"
             name="fname"
             value={description}
             onChange={(e) => handleDesription(e)}
+            placeholder="Type a description"
           />
         </form>
         <form className="flex flex-col" onSubmit={(e) => e.preventDefault()}>
           <label htmlFor="fname">Base Currency</label>
           <input
-            className="border-2 border-solid mt-1 p-2 rounded"
+            className="border-2 border-solid mt-1 p-2 rounded-2xl"
             id="fname"
             name="fname"
             value={currency}
@@ -155,9 +170,6 @@ const StoreCreation = () => {
           />
         </form>
       </section>
-      <div className="mt-8">
-        <Button onClick={createStore}>create store</Button>
-      </div>
     </main>
   );
 };

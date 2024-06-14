@@ -173,7 +173,15 @@ describe("user behaviour", () => {
 
   test("write shop manifest", async () => {
     const publishedTagId = null;
-    let r = await relayClient.writeShopManifest(publishedTagId);
+    const name = "test shop";
+    const description = "creating test shop";
+    const profilePictureUrl = "https://http.cat/images/200.jpg";
+    let r = await relayClient.writeShopManifest(
+      name,
+      description,
+      profilePictureUrl,
+      publishedTagId,
+    );
     // This is a hack to please browser and node world
     // Find out why one return number and the other class Long
     if (r.eventSequenceNo !== 2 && r.eventSequenceNo.low !== 2) {
@@ -187,10 +195,15 @@ describe("user behaviour", () => {
       publishedTagId: random32BytesHex(),
     });
     await relayClient.updateShopManifest({
-      addERC20: abi.addresses.Eddies as Address,
+      name: "socks.mass.market",
+      description: "foo",
+    });
+
+    await relayClient.updateShopManifest({
+      addErc20Addr: abi.addresses.Eddies as Address,
     });
     await relayClient.updateShopManifest({
-      removeERC20: abi.addresses.Eddies as Address,
+      removeErc20Addr: abi.addresses.Eddies as Address,
     });
   });
 
@@ -280,7 +293,7 @@ describe("user behaviour", () => {
 
       test("erc20 checkout", { timeout: 10000 }, async () => {
         await relayClient.updateShopManifest({
-          addERC20: abi.addresses.Eddies as Address,
+          addErc20Addr: abi.addresses.Eddies as Address,
         });
         await relayClient.changeOrder(orderId, itemId, 1);
 

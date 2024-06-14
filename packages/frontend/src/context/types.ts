@@ -3,18 +3,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { Dispatch, SetStateAction } from "react";
-import { type Chain, type PublicClient } from "viem";
-import { type PrivateKeyAccount } from "viem/accounts";
-import { EventEmitter } from "stream";
+import { type PublicClient } from "viem";
 
-import { WalletClientWithAccount } from "@massmarket/client";
-import { market } from "@massmarket/client/lib/protobuf/compiled";
-import mmproto = market.mass;
+//import { market } from "@massmarket/client/lib/protobuf/compiled";
+//import mmproto = market.mass;
 
 import { IProduct, ITag, IStatus, IRelay } from "@/types";
 import { Level } from "level";
+import { RelayClient, WalletClientWithAccount } from "@massmarket/client";
 
-type metadata = { title: string; description: string; image: string };
 export type ItemId = `0x${string}`;
 export type TagId = `0x${string}`;
 export type OrderId = `0x${string}`;
@@ -44,65 +41,6 @@ export type OrderState = {
 export type IRelayWriteResponse = {
   // TODO: should be mmproto.EventWriteResponse but can't import anymore somehow
 };
-type blockchain = {
-  createStore: (wallet: WalletClientWithAccount) => Promise<`0x${string}`>;
-};
-// TODO: should move this to client package and use it in tests to make sure it's in sync
-export type IRelayClient = EventEmitter & {
-  wallet: WalletClientWithAccount;
-  chain: Chain;
-  keyCard: PrivateKeyAccount;
-  endpoint: string;
-  blockchain: blockchain;
-  getRandomStoreId: () => `0x${string}`;
-  writeStoreManifest: (pId?: TagId) => Promise<IRelayWriteResponse>;
-  updateManifest: (
-    field: number,
-    value: string,
-  ) => Promise<IRelayWriteResponse>;
-  createInviteSecret: (
-    wallet: WalletClientWithAccount,
-  ) => Promise<`0x${string}`>;
-
-  redeemInviteSecret: (
-    secret: `0x${string}`,
-    wallet: WalletClientWithAccount,
-  ) => Promise<`0x${string}`>;
-  enrollKeycard: (
-    wallet: WalletClientWithAccount,
-  ) => Promise<{ ok?: boolean; error?: string }>;
-  login: () => Promise<`0x${string}`>;
-  createItem: (price: string, metadata: metadata) => Promise<ItemId>;
-  updateItem: (
-    itemId: ItemId,
-    value: string | { title: string; description: string; image: string },
-  ) => Promise<`0x${string}`>;
-  addItemToTag: (tagId: TagId, itemId: ItemId) => Promise<IRelayWriteResponse>;
-  removeFromTag: (tagId: TagId, itemId: ItemId) => Promise<IRelayWriteResponse>;
-  uploadBlob: (blob: Blob) => Promise<{ url: string }>;
-  addListener: (event: string, callback: (e: Event) => void) => void;
-  createTag: (name: string) => Promise<TagId>;
-  changeOrder: (
-    cardId: OrderId,
-    itemId: ItemId,
-    saleQty: number,
-  ) => Promise<IRelayWriteResponse>;
-  createOrder: () => Promise<`0x${string}`>;
-  changeStock: (
-    itemId: ItemId[],
-    diffs: number[],
-  ) => Promise<IRelayWriteResponse>;
-  abandonOrder: (cardId: OrderId) => Promise<void>;
-  commitOrder: (
-    cardId: OrderId,
-    erc20: `0x${string}` | null,
-  ) => Promise<{ requestId: Uint8Array; orderFinalizedId: Uint8Array }>;
-  createEventStream: () => Promise<{ events: mmproto.IShopEvent[] }>[];
-  recoverSignedAddress: (
-    orderId: `0x${string}`,
-    signature: `0x${string}`,
-  ) => `0x${string}`;
-};
 
 export type ClientContext = {
   keyCardEnrolled: `0x${string}` | null;
@@ -111,7 +49,7 @@ export type ClientContext = {
   balance: string | null;
   avatar: string | null;
   name: string | null;
-  relayClient: IRelayClient | null;
+  relayClient: RelayClient | null;
   publicClient: PublicClient | null;
   inviteSecret: `0x${string}` | null;
   setKeyCardEnrolled: Dispatch<SetStateAction<`0x${string}` | null>>;

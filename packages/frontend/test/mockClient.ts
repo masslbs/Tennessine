@@ -88,8 +88,10 @@ export class MockClient extends EventEmitter {
     const parentInstance = this;
     let enqueueFn: any;
     const enqueueWrapperFn = (controller: any) => {
-      return (enqueueFn = (event: any) => {
-        controller.enqueue(event);
+      return (enqueueFn = (events: any) => {
+        for (const event of events) {
+          controller.enqueue(event);
+        }
       });
     };
 

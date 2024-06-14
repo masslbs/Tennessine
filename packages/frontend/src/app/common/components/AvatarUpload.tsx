@@ -21,6 +21,7 @@ const AvatarUpload = ({
 
   const handleUpload = (e: ChangeEvent<HTMLInputElement>) => {
     try {
+      e.preventDefault();
       const fileInput = e.target;
       if (fileInput.files && fileInput.files[0]) {
         const reader = new FileReader();
@@ -39,7 +40,7 @@ const AvatarUpload = ({
 
   return (
     <section>
-      <div className="flex justify-center mt-6">
+      <div className="flex justify-center">
         <button onClick={triggerFileInput}>
           <Image
             src="/assets/upload-button.svg"
