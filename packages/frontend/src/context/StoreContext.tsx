@@ -205,11 +205,12 @@ export const StoreContextProvider = (
     try {
       const stream = relayClient && relayClient.createEventStream();
       if (stream) {
+        // @ts-expect-error FIXME
         for await (const evt of stream) {
           buildState(
             products,
             allTags,
-            evt.events,
+            evt,
             setProducts,
             setAllTags,
             setOrderItems,
@@ -239,7 +240,10 @@ export const StoreContextProvider = (
       const _order = _orderItems.get(_orderId) as OrderState;
       if (_order && _order.status !== IStatus.Failed) {
         const sig = _order.signature as `0x${string}`;
-        const retrievedAdd = relayClient!.recoverSignedAddress(_orderId, sig);
+        const retrievedAdd = await relayClient!.recoverSignedAddress(
+          _orderId,
+          sig,
+        );
         if (addresses.includes(retrievedAdd.toLowerCase())) {
           console.log("inside inclue", _orderId);
           setOrderId(_orderId);
@@ -253,11 +257,14 @@ export const StoreContextProvider = (
     selectedTagIds: TagId[] | [],
   ) => {
     try {
+      // @ts-expect-error FIXME
       const path = await relayClient!.uploadBlob(product.blob as Blob);
       const metadata = {
+        // ????
         title: product.metadata.title,
+        name: product.metadata.title,
         description: "adding product",
-        image: path.url,
+        image: path.url as string,
       };
       const priceAsNum = Number(product.price);
       product.price = priceAsNum.toFixed(2);
@@ -295,7 +302,7 @@ export const StoreContextProvider = (
       if (fields.price) {
         const priceAsNum = Number(updatedProduct.price);
         updatedProduct.price = priceAsNum.toFixed(2);
-        await relayClient!.updateItem(itemId, updatedProduct.price);
+        await relayClient!.updateItem(itemId, { price: updatedProduct.price });
         setProducts({
           type: UPDATE_PRICE,
           payload: {
@@ -308,7 +315,8 @@ export const StoreContextProvider = (
         const hasEmbeddedImage =
           updatedProduct.metadata.image.includes("data:image");
         const path = hasEmbeddedImage
-          ? await relayClient!.uploadBlob(updatedProduct.blob as Blob)
+          ? // @ts-expect-error FIXME
+            await relayClient!.uploadBlob(updatedProduct.blob as Blob)
           : { url: updatedProduct.metadata.image };
 
         const metadata = {
@@ -316,7 +324,7 @@ export const StoreContextProvider = (
           description: "updating product",
           image: path.url,
         };
-        await relayClient!.updateItem(itemId, metadata);
+        await relayClient!.updateItem(itemId, { metadata });
         setProducts({
           type: UPDATE_METADATA,
           payload: {

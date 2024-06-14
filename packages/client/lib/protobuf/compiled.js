@@ -1553,6 +1553,9 @@ $root.market = (function () {
        * @property {Uint8Array|null} [shopTokenId] ShopManifest shopTokenId
        * @property {string|null} [domain] ShopManifest domain
        * @property {Uint8Array|null} [publishedTagId] ShopManifest publishedTagId
+       * @property {string|null} [name] ShopManifest name
+       * @property {string|null} [description] ShopManifest description
+       * @property {string|null} [profilePictureUrl] ShopManifest profilePictureUrl
        */
 
       /**
@@ -1603,6 +1606,30 @@ $root.market = (function () {
       ShopManifest.prototype.publishedTagId = $util.newBuffer([]);
 
       /**
+       * ShopManifest name.
+       * @member {string} name
+       * @memberof market.mass.ShopManifest
+       * @instance
+       */
+      ShopManifest.prototype.name = "";
+
+      /**
+       * ShopManifest description.
+       * @member {string} description
+       * @memberof market.mass.ShopManifest
+       * @instance
+       */
+      ShopManifest.prototype.description = "";
+
+      /**
+       * ShopManifest profilePictureUrl.
+       * @member {string} profilePictureUrl
+       * @memberof market.mass.ShopManifest
+       * @instance
+       */
+      ShopManifest.prototype.profilePictureUrl = "";
+
+      /**
        * Creates a new ShopManifest instance using the specified properties.
        * @function create
        * @memberof market.mass.ShopManifest
@@ -1647,6 +1674,20 @@ $root.market = (function () {
           writer
             .uint32(/* id 4, wireType 2 =*/ 34)
             .bytes(message.publishedTagId);
+        if (message.name != null && Object.hasOwnProperty.call(message, "name"))
+          writer.uint32(/* id 5, wireType 2 =*/ 42).string(message.name);
+        if (
+          message.description != null &&
+          Object.hasOwnProperty.call(message, "description")
+        )
+          writer.uint32(/* id 6, wireType 2 =*/ 50).string(message.description);
+        if (
+          message.profilePictureUrl != null &&
+          Object.hasOwnProperty.call(message, "profilePictureUrl")
+        )
+          writer
+            .uint32(/* id 7, wireType 2 =*/ 58)
+            .string(message.profilePictureUrl);
         return writer;
       };
 
@@ -1695,6 +1736,18 @@ $root.market = (function () {
             }
             case 4: {
               message.publishedTagId = reader.bytes();
+              break;
+            }
+            case 5: {
+              message.name = reader.string();
+              break;
+            }
+            case 6: {
+              message.description = reader.string();
+              break;
+            }
+            case 7: {
+              message.profilePictureUrl = reader.string();
               break;
             }
             default:
@@ -1765,6 +1818,20 @@ $root.market = (function () {
             )
           )
             return "publishedTagId: buffer expected";
+        if (message.name != null && message.hasOwnProperty("name"))
+          if (!$util.isString(message.name)) return "name: string expected";
+        if (
+          message.description != null &&
+          message.hasOwnProperty("description")
+        )
+          if (!$util.isString(message.description))
+            return "description: string expected";
+        if (
+          message.profilePictureUrl != null &&
+          message.hasOwnProperty("profilePictureUrl")
+        )
+          if (!$util.isString(message.profilePictureUrl))
+            return "profilePictureUrl: string expected";
         return null;
       };
 
@@ -1812,6 +1879,11 @@ $root.market = (function () {
             );
           else if (object.publishedTagId.length >= 0)
             message.publishedTagId = object.publishedTagId;
+        if (object.name != null) message.name = String(object.name);
+        if (object.description != null)
+          message.description = String(object.description);
+        if (object.profilePictureUrl != null)
+          message.profilePictureUrl = String(object.profilePictureUrl);
         return message;
       };
 
@@ -1847,6 +1919,9 @@ $root.market = (function () {
             if (options.bytes !== Array)
               object.publishedTagId = $util.newBuffer(object.publishedTagId);
           }
+          object.name = "";
+          object.description = "";
+          object.profilePictureUrl = "";
         }
         if (message.eventId != null && message.hasOwnProperty("eventId"))
           object.eventId =
@@ -1885,6 +1960,18 @@ $root.market = (function () {
               : options.bytes === Array
                 ? Array.prototype.slice.call(message.publishedTagId)
                 : message.publishedTagId;
+        if (message.name != null && message.hasOwnProperty("name"))
+          object.name = message.name;
+        if (
+          message.description != null &&
+          message.hasOwnProperty("description")
+        )
+          object.description = message.description;
+        if (
+          message.profilePictureUrl != null &&
+          message.hasOwnProperty("profilePictureUrl")
+        )
+          object.profilePictureUrl = message.profilePictureUrl;
         return object;
       };
 
@@ -1927,6 +2014,9 @@ $root.market = (function () {
        * @property {Uint8Array|null} [publishedTagId] UpdateShopManifest publishedTagId
        * @property {Uint8Array|null} [addErc20Addr] UpdateShopManifest addErc20Addr
        * @property {Uint8Array|null} [removeErc20Addr] UpdateShopManifest removeErc20Addr
+       * @property {string|null} [name] UpdateShopManifest name
+       * @property {string|null} [description] UpdateShopManifest description
+       * @property {string|null} [profilePictureUrl] UpdateShopManifest profilePictureUrl
        */
 
       /**
@@ -1984,6 +2074,30 @@ $root.market = (function () {
        */
       UpdateShopManifest.prototype.removeErc20Addr = null;
 
+      /**
+       * UpdateShopManifest name.
+       * @member {string|null|undefined} name
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      UpdateShopManifest.prototype.name = null;
+
+      /**
+       * UpdateShopManifest description.
+       * @member {string|null|undefined} description
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      UpdateShopManifest.prototype.description = null;
+
+      /**
+       * UpdateShopManifest profilePictureUrl.
+       * @member {string|null|undefined} profilePictureUrl
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      UpdateShopManifest.prototype.profilePictureUrl = null;
+
       // OneOf field names bound to virtual getters and setters
       var $oneOfFields;
 
@@ -2030,6 +2144,43 @@ $root.market = (function () {
         get: $util.oneOfGetter(($oneOfFields = ["removeErc20Addr"])),
         set: $util.oneOfSetter($oneOfFields),
       });
+
+      /**
+       * UpdateShopManifest _name.
+       * @member {"name"|undefined} _name
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      Object.defineProperty(UpdateShopManifest.prototype, "_name", {
+        get: $util.oneOfGetter(($oneOfFields = ["name"])),
+        set: $util.oneOfSetter($oneOfFields),
+      });
+
+      /**
+       * UpdateShopManifest _description.
+       * @member {"description"|undefined} _description
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      Object.defineProperty(UpdateShopManifest.prototype, "_description", {
+        get: $util.oneOfGetter(($oneOfFields = ["description"])),
+        set: $util.oneOfSetter($oneOfFields),
+      });
+
+      /**
+       * UpdateShopManifest _profilePictureUrl.
+       * @member {"profilePictureUrl"|undefined} _profilePictureUrl
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      Object.defineProperty(
+        UpdateShopManifest.prototype,
+        "_profilePictureUrl",
+        {
+          get: $util.oneOfGetter(($oneOfFields = ["profilePictureUrl"])),
+          set: $util.oneOfSetter($oneOfFields),
+        },
+      );
 
       /**
        * Creates a new UpdateShopManifest instance using the specified properties.
@@ -2083,6 +2234,20 @@ $root.market = (function () {
           writer
             .uint32(/* id 5, wireType 2 =*/ 42)
             .bytes(message.removeErc20Addr);
+        if (message.name != null && Object.hasOwnProperty.call(message, "name"))
+          writer.uint32(/* id 6, wireType 2 =*/ 50).string(message.name);
+        if (
+          message.description != null &&
+          Object.hasOwnProperty.call(message, "description")
+        )
+          writer.uint32(/* id 7, wireType 2 =*/ 58).string(message.description);
+        if (
+          message.profilePictureUrl != null &&
+          Object.hasOwnProperty.call(message, "profilePictureUrl")
+        )
+          writer
+            .uint32(/* id 8, wireType 2 =*/ 66)
+            .string(message.profilePictureUrl);
         return writer;
       };
 
@@ -2138,6 +2303,18 @@ $root.market = (function () {
             }
             case 5: {
               message.removeErc20Addr = reader.bytes();
+              break;
+            }
+            case 6: {
+              message.name = reader.string();
+              break;
+            }
+            case 7: {
+              message.description = reader.string();
+              break;
+            }
+            case 8: {
+              message.profilePictureUrl = reader.string();
               break;
             }
             default:
@@ -2229,6 +2406,26 @@ $root.market = (function () {
           )
             return "removeErc20Addr: buffer expected";
         }
+        if (message.name != null && message.hasOwnProperty("name")) {
+          properties._name = 1;
+          if (!$util.isString(message.name)) return "name: string expected";
+        }
+        if (
+          message.description != null &&
+          message.hasOwnProperty("description")
+        ) {
+          properties._description = 1;
+          if (!$util.isString(message.description))
+            return "description: string expected";
+        }
+        if (
+          message.profilePictureUrl != null &&
+          message.hasOwnProperty("profilePictureUrl")
+        ) {
+          properties._profilePictureUrl = 1;
+          if (!$util.isString(message.profilePictureUrl))
+            return "profilePictureUrl: string expected";
+        }
         return null;
       };
 
@@ -2288,6 +2485,11 @@ $root.market = (function () {
             );
           else if (object.removeErc20Addr.length >= 0)
             message.removeErc20Addr = object.removeErc20Addr;
+        if (object.name != null) message.name = String(object.name);
+        if (object.description != null)
+          message.description = String(object.description);
+        if (object.profilePictureUrl != null)
+          message.profilePictureUrl = String(object.profilePictureUrl);
         return message;
       };
 
@@ -2368,6 +2570,24 @@ $root.market = (function () {
                 ? Array.prototype.slice.call(message.removeErc20Addr)
                 : message.removeErc20Addr;
           if (options.oneofs) object._removeErc20Addr = "removeErc20Addr";
+        }
+        if (message.name != null && message.hasOwnProperty("name")) {
+          object.name = message.name;
+          if (options.oneofs) object._name = "name";
+        }
+        if (
+          message.description != null &&
+          message.hasOwnProperty("description")
+        ) {
+          object.description = message.description;
+          if (options.oneofs) object._description = "description";
+        }
+        if (
+          message.profilePictureUrl != null &&
+          message.hasOwnProperty("profilePictureUrl")
+        ) {
+          object.profilePictureUrl = message.profilePictureUrl;
+          if (options.oneofs) object._profilePictureUrl = "profilePictureUrl";
         }
         return object;
       };

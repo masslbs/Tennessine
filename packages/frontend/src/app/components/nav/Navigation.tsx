@@ -41,7 +41,7 @@ const Navigation = () => {
       }}
     />
   ) : (
-    <div className={`absolute bg-white left-0 top-0 right-0`}>
+    <div className={`absolute left-0 top-0 right-0`}>
       <div className="w-full border border-gray-200 p-4 text-base flex justify-between">
         <div className="flex items-center" onClick={menuSwitch}>
           {loggedIn ? (
