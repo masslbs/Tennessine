@@ -6,16 +6,16 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import Sort from "../common/components/Sort";
-import Search from "../common/components/Search";
-import { SortOption, IProduct, TagId } from "@/types";
+import Sort from "@/app/common/components/Sort";
+import Search from "@/app/common/components/Search";
+import { SortOption, IProduct, TagId, ITag } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import Link from "next/link";
-import withAuth from "../components/withAuth";
-import SuccessMessage from "../common/components/SuccessMessage";
+import withAuth from "@/app/components/withAuth";
+import SuccessMessage from "@/app/common/components/SuccessMessage";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createQueryString } from "@/app/utils";
-import SecondaryButton from "../common/components/SecondaryButton";
+import SecondaryButton from "@/app/common/components/SecondaryButton";
 
 const Products = () => {
   const searchParams = useSearchParams();
@@ -53,7 +53,7 @@ const Products = () => {
         item.tagIds.includes(removeTagId)
       ) {
         return false;
-      } else if (tagIdToFilter && item.tagIds?.includes(tagIdToFilter)) {
+      } else if (tagIdToFilter && !item.tagIds?.includes(tagIdToFilter)) {
         return false;
       }
       return true;
@@ -101,7 +101,27 @@ const Products = () => {
         return arr;
     }
   };
+  const renderFilterTags = () => {
+    if (!allTags || !showTags) return null;
+    const tags = Array.from([...allTags.keys()]);
+    if (!tags?.length) return null;
 
+    return (
+      <div className="inline-flex gap-3">
+        {tags.map((t: TagId) => {
+          const tag = allTags.get(t) as ITag;
+          return (
+            <button
+              onClick={() => setTagIdToFilter(t)}
+              className="bg-primary-blue text-white text-sm rounded p-2"
+            >
+              {tag.text}
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
   const renderProducts = () => {
     if (!arrToRender?.length) return null;
     return arrToRender.map((item) => {
@@ -215,19 +235,7 @@ const Products = () => {
               </div>
             </SecondaryButton>
           </div>
-          {showTags ? (
-            <div className="inline-flex gap-3">
-              <button className="bg-primary-blue text-white text-sm rounded p-2">
-                Stickers
-              </button>
-              <button className="bg-primary-blue text-white text-sm rounded p-2">
-                EthCC Exclusives
-              </button>
-              <button className="bg-primary-blue text-white  text-sm rounded p-2">
-                Offers
-              </button>
-            </div>
-          ) : null}
+          {renderFilterTags()}
           <section className="flex flex-col gap-4 mt-4">
             {renderProducts()}
           </section>
