@@ -458,18 +458,18 @@ export class RelayClient extends EventEmitter {
       {
         name: "remove_erc20_addr",
         type: "address",
-      }
-    ]
+      },
+    ];
 
     let message = {
       eventId: eventId(),
     } as { [key: string]: any };
 
     for (const opt_type of optional_types) {
-      const {name, type} = opt_type
-      const obj_name = snakeToCamel(name)
-      const v = update[obj_name]
-      console.log(`DEBUG: ${obj_name}: ${v}`)
+      const { name, type } = opt_type;
+      const obj_name = snakeToCamel(name);
+      const v = update[obj_name];
+      console.log(`DEBUG: ${obj_name}: ${v}`);
 
       if (v !== undefined) {
         types.push(opt_type);
@@ -478,7 +478,6 @@ export class RelayClient extends EventEmitter {
         } else {
           message[obj_name] = v;
         }
-
       }
     }
     return this.#signAndSendShopEvent(

@@ -233,7 +233,7 @@ export const buildState = (
       });
     }
   } else {
-    console.error(event)
+    console.error(event);
     throw new Error(`Unhandled event type! ${Array.isArray(event)}`);
   }
   return { _products: products, _allTags: allTags };

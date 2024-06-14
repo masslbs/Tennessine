@@ -192,16 +192,19 @@ describe("user behaviour", () => {
   test("update shop manifest", async () => {
     await relayClient.updateShopManifest({ domain: "socks.mass.market" });
     await relayClient.updateShopManifest({
-       publishedTagId: random32BytesHex(),
+      publishedTagId: random32BytesHex(),
     });
-    await relayClient.updateShopManifest({ name: "socks.mass.market", description: "foo" });
+    await relayClient.updateShopManifest({
+      name: "socks.mass.market",
+      description: "foo",
+    });
 
     await relayClient.updateShopManifest({
-       addErc20Addr: abi.addresses.Eddies as Address,
+      addErc20Addr: abi.addresses.Eddies as Address,
     });
-     await relayClient.updateShopManifest({
-       removeErc20Addr: abi.addresses.Eddies as Address,
-     });
+    await relayClient.updateShopManifest({
+      removeErc20Addr: abi.addresses.Eddies as Address,
+    });
   });
 
   test("blob upload", async () => {
