@@ -14,7 +14,7 @@ const config: Config = {
   theme: {
     extend: {
       padding: {
-        "under-nav": "58px",
+        "under-nav": "80px",
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
@@ -31,7 +31,7 @@ const config: Config = {
       },
 
       fontFamily: {
-        proto: ["protoMono", "sans-serif"],
+        proto: ["JetBrainsMono", "sans-serif"],
       },
     },
   },

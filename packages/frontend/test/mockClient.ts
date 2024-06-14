@@ -5,7 +5,7 @@
 import { EventEmitter } from "events";
 import { hexToBytes } from "viem";
 
-import testVectorsData from "@massmarket/frontend/test/testVectors.json" assert { type: "json" };
+import testVectorsData from "./testVectors.json" with { type: "json" };
 
 import { market, google } from "@massmarket/client/lib/protobuf/compiled";
 import mmproto = market.mass;
@@ -88,8 +88,10 @@ export class MockClient extends EventEmitter {
     const parentInstance = this;
     let enqueueFn: any;
     const enqueueWrapperFn = (controller: any) => {
-      return (enqueueFn = (event: any) => {
-        controller.enqueue(event);
+      return (enqueueFn = (events: any) => {
+        for (const event of events) {
+          controller.enqueue(event);
+        }
       });
     };
 

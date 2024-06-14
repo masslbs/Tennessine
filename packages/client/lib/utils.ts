@@ -41,7 +41,7 @@ export function snakeToCamel(str: string) {
   return str.replace(/_([a-z])/g, (match, letter) => `${letter.toUpperCase()}`);
 }
 
-function camelToSnake(str: string) {
+export function camelToSnake(str: string) {
   return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 }
 

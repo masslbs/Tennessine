@@ -14,31 +14,31 @@ import {
   type Account,
   type Chain,
 } from "viem";
-
 import { EventEmitter } from "events";
 import { PrivateKeyAccount } from "viem/accounts";
 import { hardhat } from "viem/chains";
 import type { TypedData } from "abitype";
-import { market } from "./protobuf/compiled";
-import mmproto = market.mass;
+import pb from "./protobuf/compiled.js";
+/* eslint no-undef: "off" */
+import mmproto = pb.market.mass;
 import {
   PBObject,
   PBMessage,
   PBInstance,
   MESSAGE_TYPES,
   MESSAGE_PREFIXES,
-} from "./protobuf/constants";
-
-import { BlockchainClient } from "./blockchainClient";
-import { ReadableEventStream } from "./stream";
+} from "./protobuf/constants.js";
+import { BlockchainClient } from "./blockchainClient.js";
+import { ReadableEventStream } from "./stream.js";
 import {
   formatMessageForSigning,
   requestId,
   eventId,
   hexToBase64,
   convertFirstCharToLowerCase,
+  snakeToCamel,
   type NetworkMessage,
-} from "./utils";
+} from "./utils.js";
 import * as abi from "@massmarket/contracts";
 
 export type WalletClientWithAccount = WalletClient<
@@ -47,26 +47,6 @@ export type WalletClientWithAccount = WalletClient<
   Account
 > & {
   account: Account;
-};
-
-export type ClientArgs = {
-  relayEndpoint: string;
-  keyCardWallet: PrivateKeyAccount;
-  chain: Chain;
-  keyCardEnrolled: boolean;
-  shopId: `0x${string}` | undefined;
-};
-
-type UpdateShopManifestOpts = {
-  domain?: string;
-  publishedTagId?: `0x${string}`;
-  addERC20?: `0x${string}`;
-  removeERC20?: `0x${string}`;
-};
-
-type UpdateItemOpts = {
-  price?: string;
-  metadata?: any; // TODO: actually should be an object...
 };
 
 export class RelayClient extends EventEmitter {
@@ -86,7 +66,13 @@ export class RelayClient extends EventEmitter {
     chain = hardhat,
     keyCardEnrolled,
     shopId,
-  }: ClientArgs) {
+  }: {
+    relayEndpoint: string;
+    keyCardWallet: PrivateKeyAccount;
+    chain: Chain;
+    keyCardEnrolled: boolean;
+    shopId: `0x${string}` | undefined;
+  }) {
     super();
     this.blockchain = new BlockchainClient(shopId);
     this.keyCardWallet = keyCardWallet;
@@ -229,7 +215,8 @@ export class RelayClient extends EventEmitter {
     ) {
       this.connection = new WebSocket(this.endpoint + "/sessions");
       this.connection.addEventListener("error", (error: Event) => {
-        console.error(`WebSocket error: ${error}`);
+        console.error("WebSocket error!");
+        console.error(error);
       });
       this.connection.addEventListener(
         "message",
@@ -355,6 +342,9 @@ export class RelayClient extends EventEmitter {
   }
 
   async writeShopManifest(
+    name: string,
+    description: string,
+    profilePictureUrl: string,
     publishedTagId: `0x${string}` | null = null,
   ): Promise<mmproto.EventWriteResponse> {
     await this.connect();
@@ -367,6 +357,9 @@ export class RelayClient extends EventEmitter {
       shopTokenId: hexToBytes(this.blockchain.shopId),
       domain: "socks.mass.market",
       publishedTagId: pId,
+      name,
+      description,
+      profilePictureUrl,
     };
 
     const types = {
@@ -387,6 +380,18 @@ export class RelayClient extends EventEmitter {
           name: "published_tag_id",
           type: "bytes32",
         },
+        {
+          name: "name",
+          type: "string",
+        },
+        {
+          name: "description",
+          type: "string",
+        },
+        {
+          name: "profile_picture_url",
+          type: "string",
+        },
       ],
     };
 
@@ -396,7 +401,15 @@ export class RelayClient extends EventEmitter {
     ) as Promise<mmproto.EventWriteResponse>;
   }
 
-  async updateShopManifest(update: UpdateShopManifestOpts) {
+  async updateShopManifest(update: {
+    domain?: string;
+    publishedTagId?: `0x${string}`;
+    addErc20Addr?: `0x${string}`;
+    removeErc20Addr?: `0x${string}`;
+    name?: string;
+    description?: string;
+    profilePictureUrl?: string;
+  }) {
     await this.connect();
 
     const types = [
@@ -406,40 +419,56 @@ export class RelayClient extends EventEmitter {
       },
     ];
 
+    const optional_types = [
+      {
+        name: "name",
+        type: "string",
+      },
+      {
+        name: "description",
+        type: "string",
+      },
+      {
+        name: "profile_picture_url",
+        type: "string",
+      },
+      {
+        name: "domain",
+        type: "string",
+      },
+      {
+        name: "published_tag_id",
+        type: "bytes32",
+      },
+      {
+        name: "add_erc20_addr",
+        type: "address",
+      },
+      {
+        name: "remove_erc20_addr",
+        type: "address",
+      },
+    ];
+
     let message = {
       eventId: eventId(),
     } as { [key: string]: any };
 
-    if (update.domain !== undefined) {
-      const field = "domain";
-      types.push({
-        name: field,
-        type: "string",
-      });
-      message[field] = update.domain;
-    }
-    if (update.publishedTagId !== undefined) {
-      types.push({
-        name: "published_tag_id",
-        type: "bytes32",
-      });
-      message["publishedTagId"] = hexToBytes(update.publishedTagId);
-    }
-    if (update.addERC20 !== undefined) {
-      types.push({
-        name: "add_erc20_addr",
-        type: "address",
-      });
-      message["addErc20Addr"] = hexToBytes(update.addERC20);
-    }
-    if (update.removeERC20 !== undefined) {
-      types.push({
-        name: "remove_erc20_addr",
-        type: "address",
-      });
-      message["removeErc20Addr"] = hexToBytes(update.removeERC20);
-    }
+    for (const opt_type of optional_types) {
+      const { name, type } = opt_type;
+      const obj_name = snakeToCamel(name);
+      // @ts-ignore
+      const v = update[obj_name];
 
+      if (v !== undefined) {
+        types.push(opt_type);
+        if (type == "address" || type == "bytes32") {
+          message[obj_name] = hexToBytes(v);
+        } else {
+          message[obj_name] = v;
+        }
+      }
+    }
     return this.#signAndSendShopEvent(
       {
         UpdateShopManifest: types,
@@ -482,7 +511,13 @@ export class RelayClient extends EventEmitter {
     return bytesToHex(iid);
   }
 
-  async updateItem(itemId: `0x${string}`, update: UpdateItemOpts) {
+  async updateItem(
+    itemId: `0x${string}`,
+    update: {
+      price?: string;
+      metadata?: any; // TODO: actually should be an object...
+    },
+  ) {
     await this.connect();
 
     const message = {
@@ -689,7 +724,7 @@ export class RelayClient extends EventEmitter {
   // null erc20Addr means vanilla ethererum is used
   async commitOrder(
     orderId: `0x${string}`,
-    erc20Addr?: `0x${string}`,
+    erc20Addr?: `0x${string}` | null,
   ): Promise<mmproto.CommitItemsToOrderResponse> {
     let erc20AddrBytes: Uint8Array | null = null;
     if (erc20Addr) {

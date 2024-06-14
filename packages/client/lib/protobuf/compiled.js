@@ -1,26 +1,22 @@
-// SPDX-FileCopyrightText: 2024 Mass Labs
-//
-// SPDX-License-Identifier: MIT
-
 /*eslint-disable block-scoped-var, id-length, no-control-regex, no-magic-numbers, no-prototype-builtins, no-redeclare, no-shadow, no-var, sort-vars*/
-import * as $protobuf from "protobufjs/minimal";
+import $protobuf from "protobufjs/minimal.js";
 
 // Common aliases
-const $Reader = $protobuf.Reader,
+var $Reader = $protobuf.Reader,
   $Writer = $protobuf.Writer,
   $util = $protobuf.util;
 
 // Exported root namespace
-const $root =
+var $root =
   $protobuf.roots["market.mass"] || ($protobuf.roots["market.mass"] = {});
 
-export const market = ($root.market = (() => {
+$root.market = (function () {
   /**
    * Namespace market.
    * @exports market
    * @namespace
    */
-  const market = {};
+  var market = {};
 
   market.mass = (function () {
     /**
@@ -28,7 +24,7 @@ export const market = ($root.market = (() => {
      * @memberof market
      * @namespace
      */
-    const mass = {};
+    var mass = {};
 
     mass.AuthenticateRequest = (function () {
       /**
@@ -49,7 +45,7 @@ export const market = ($root.market = (() => {
        */
       function AuthenticateRequest(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -135,10 +131,10 @@ export const market = ($root.market = (() => {
        */
       AuthenticateRequest.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.AuthenticateRequest();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -214,7 +210,7 @@ export const market = ($root.market = (() => {
       AuthenticateRequest.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.AuthenticateRequest)
           return object;
-        let message = new $root.market.mass.AuthenticateRequest();
+        var message = new $root.market.mass.AuthenticateRequest();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -251,7 +247,7 @@ export const market = ($root.market = (() => {
        */
       AuthenticateRequest.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.requestId = "";
           else {
@@ -340,7 +336,7 @@ export const market = ($root.market = (() => {
        */
       function AuthenticateResponse(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -442,10 +438,10 @@ export const market = ($root.market = (() => {
        */
       AuthenticateResponse.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.AuthenticateResponse();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -506,7 +502,7 @@ export const market = ($root.market = (() => {
           )
             return "requestId: buffer expected";
         if (message.error != null && message.hasOwnProperty("error")) {
-          let error = $root.market.mass.Error.verify(message.error);
+          var error = $root.market.mass.Error.verify(message.error);
           if (error) return "error." + error;
         }
         if (message.challenge != null && message.hasOwnProperty("challenge"))
@@ -532,7 +528,7 @@ export const market = ($root.market = (() => {
       AuthenticateResponse.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.AuthenticateResponse)
           return object;
-        let message = new $root.market.mass.AuthenticateResponse();
+        var message = new $root.market.mass.AuthenticateResponse();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -576,7 +572,7 @@ export const market = ($root.market = (() => {
        */
       AuthenticateResponse.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.requestId = "";
           else {
@@ -670,7 +666,7 @@ export const market = ($root.market = (() => {
        */
       function ChallengeSolvedRequest(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -756,10 +752,10 @@ export const market = ($root.market = (() => {
        */
       ChallengeSolvedRequest.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.ChallengeSolvedRequest();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -837,7 +833,7 @@ export const market = ($root.market = (() => {
       ChallengeSolvedRequest.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.ChallengeSolvedRequest)
           return object;
-        let message = new $root.market.mass.ChallengeSolvedRequest();
+        var message = new $root.market.mass.ChallengeSolvedRequest();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -874,7 +870,7 @@ export const market = ($root.market = (() => {
        */
       ChallengeSolvedRequest.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.requestId = "";
           else {
@@ -962,7 +958,7 @@ export const market = ($root.market = (() => {
        */
       function ChallengeSolvedResponse(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -1051,10 +1047,10 @@ export const market = ($root.market = (() => {
        */
       ChallengeSolvedResponse.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.ChallengeSolvedResponse();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -1113,7 +1109,7 @@ export const market = ($root.market = (() => {
           )
             return "requestId: buffer expected";
         if (message.error != null && message.hasOwnProperty("error")) {
-          let error = $root.market.mass.Error.verify(message.error);
+          var error = $root.market.mass.Error.verify(message.error);
           if (error) return "error." + error;
         }
         return null;
@@ -1130,7 +1126,7 @@ export const market = ($root.market = (() => {
       ChallengeSolvedResponse.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.ChallengeSolvedResponse)
           return object;
-        let message = new $root.market.mass.ChallengeSolvedResponse();
+        var message = new $root.market.mass.ChallengeSolvedResponse();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -1163,7 +1159,7 @@ export const market = ($root.market = (() => {
        */
       ChallengeSolvedResponse.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.requestId = "";
           else {
@@ -1240,7 +1236,7 @@ export const market = ($root.market = (() => {
        */
       function Error(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -1320,10 +1316,10 @@ export const market = ($root.market = (() => {
        */
       Error.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.Error();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.code = reader.int32();
@@ -1400,7 +1396,7 @@ export const market = ($root.market = (() => {
        */
       Error.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.Error) return object;
-        let message = new $root.market.mass.Error();
+        var message = new $root.market.mass.Error();
         switch (object.code) {
           default:
             if (typeof object.code === "number") {
@@ -1468,7 +1464,7 @@ export const market = ($root.market = (() => {
        */
       Error.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           object.code =
             options.enums === String ? "ERROR_CODES_UNSPECIFIED" : 0;
@@ -1532,7 +1528,7 @@ export const market = ($root.market = (() => {
      * @property {number} ERROR_CODES_SIMULATED=10 ERROR_CODES_SIMULATED value
      */
     mass.ErrorCodes = (function () {
-      const valuesById = {},
+      var valuesById = {},
         values = Object.create(valuesById);
       values[(valuesById[0] = "ERROR_CODES_UNSPECIFIED")] = 0;
       values[(valuesById[1] = "ERROR_CODES_NOT_FOUND")] = 1;
@@ -1557,6 +1553,9 @@ export const market = ($root.market = (() => {
        * @property {Uint8Array|null} [shopTokenId] ShopManifest shopTokenId
        * @property {string|null} [domain] ShopManifest domain
        * @property {Uint8Array|null} [publishedTagId] ShopManifest publishedTagId
+       * @property {string|null} [name] ShopManifest name
+       * @property {string|null} [description] ShopManifest description
+       * @property {string|null} [profilePictureUrl] ShopManifest profilePictureUrl
        */
 
       /**
@@ -1569,7 +1568,7 @@ export const market = ($root.market = (() => {
        */
       function ShopManifest(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -1605,6 +1604,30 @@ export const market = ($root.market = (() => {
        * @instance
        */
       ShopManifest.prototype.publishedTagId = $util.newBuffer([]);
+
+      /**
+       * ShopManifest name.
+       * @member {string} name
+       * @memberof market.mass.ShopManifest
+       * @instance
+       */
+      ShopManifest.prototype.name = "";
+
+      /**
+       * ShopManifest description.
+       * @member {string} description
+       * @memberof market.mass.ShopManifest
+       * @instance
+       */
+      ShopManifest.prototype.description = "";
+
+      /**
+       * ShopManifest profilePictureUrl.
+       * @member {string} profilePictureUrl
+       * @memberof market.mass.ShopManifest
+       * @instance
+       */
+      ShopManifest.prototype.profilePictureUrl = "";
 
       /**
        * Creates a new ShopManifest instance using the specified properties.
@@ -1651,6 +1674,20 @@ export const market = ($root.market = (() => {
           writer
             .uint32(/* id 4, wireType 2 =*/ 34)
             .bytes(message.publishedTagId);
+        if (message.name != null && Object.hasOwnProperty.call(message, "name"))
+          writer.uint32(/* id 5, wireType 2 =*/ 42).string(message.name);
+        if (
+          message.description != null &&
+          Object.hasOwnProperty.call(message, "description")
+        )
+          writer.uint32(/* id 6, wireType 2 =*/ 50).string(message.description);
+        if (
+          message.profilePictureUrl != null &&
+          Object.hasOwnProperty.call(message, "profilePictureUrl")
+        )
+          writer
+            .uint32(/* id 7, wireType 2 =*/ 58)
+            .string(message.profilePictureUrl);
         return writer;
       };
 
@@ -1680,10 +1717,10 @@ export const market = ($root.market = (() => {
        */
       ShopManifest.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.ShopManifest();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.eventId = reader.bytes();
@@ -1699,6 +1736,18 @@ export const market = ($root.market = (() => {
             }
             case 4: {
               message.publishedTagId = reader.bytes();
+              break;
+            }
+            case 5: {
+              message.name = reader.string();
+              break;
+            }
+            case 6: {
+              message.description = reader.string();
+              break;
+            }
+            case 7: {
+              message.profilePictureUrl = reader.string();
               break;
             }
             default:
@@ -1769,6 +1818,20 @@ export const market = ($root.market = (() => {
             )
           )
             return "publishedTagId: buffer expected";
+        if (message.name != null && message.hasOwnProperty("name"))
+          if (!$util.isString(message.name)) return "name: string expected";
+        if (
+          message.description != null &&
+          message.hasOwnProperty("description")
+        )
+          if (!$util.isString(message.description))
+            return "description: string expected";
+        if (
+          message.profilePictureUrl != null &&
+          message.hasOwnProperty("profilePictureUrl")
+        )
+          if (!$util.isString(message.profilePictureUrl))
+            return "profilePictureUrl: string expected";
         return null;
       };
 
@@ -1782,7 +1845,7 @@ export const market = ($root.market = (() => {
        */
       ShopManifest.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.ShopManifest) return object;
-        let message = new $root.market.mass.ShopManifest();
+        var message = new $root.market.mass.ShopManifest();
         if (object.eventId != null)
           if (typeof object.eventId === "string")
             $util.base64.decode(
@@ -1816,6 +1879,11 @@ export const market = ($root.market = (() => {
             );
           else if (object.publishedTagId.length >= 0)
             message.publishedTagId = object.publishedTagId;
+        if (object.name != null) message.name = String(object.name);
+        if (object.description != null)
+          message.description = String(object.description);
+        if (object.profilePictureUrl != null)
+          message.profilePictureUrl = String(object.profilePictureUrl);
         return message;
       };
 
@@ -1830,7 +1898,7 @@ export const market = ($root.market = (() => {
        */
       ShopManifest.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.eventId = "";
           else {
@@ -1851,6 +1919,9 @@ export const market = ($root.market = (() => {
             if (options.bytes !== Array)
               object.publishedTagId = $util.newBuffer(object.publishedTagId);
           }
+          object.name = "";
+          object.description = "";
+          object.profilePictureUrl = "";
         }
         if (message.eventId != null && message.hasOwnProperty("eventId"))
           object.eventId =
@@ -1889,6 +1960,18 @@ export const market = ($root.market = (() => {
               : options.bytes === Array
                 ? Array.prototype.slice.call(message.publishedTagId)
                 : message.publishedTagId;
+        if (message.name != null && message.hasOwnProperty("name"))
+          object.name = message.name;
+        if (
+          message.description != null &&
+          message.hasOwnProperty("description")
+        )
+          object.description = message.description;
+        if (
+          message.profilePictureUrl != null &&
+          message.hasOwnProperty("profilePictureUrl")
+        )
+          object.profilePictureUrl = message.profilePictureUrl;
         return object;
       };
 
@@ -1931,6 +2014,9 @@ export const market = ($root.market = (() => {
        * @property {Uint8Array|null} [publishedTagId] UpdateShopManifest publishedTagId
        * @property {Uint8Array|null} [addErc20Addr] UpdateShopManifest addErc20Addr
        * @property {Uint8Array|null} [removeErc20Addr] UpdateShopManifest removeErc20Addr
+       * @property {string|null} [name] UpdateShopManifest name
+       * @property {string|null} [description] UpdateShopManifest description
+       * @property {string|null} [profilePictureUrl] UpdateShopManifest profilePictureUrl
        */
 
       /**
@@ -1943,7 +2029,7 @@ export const market = ($root.market = (() => {
        */
       function UpdateShopManifest(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -1988,8 +2074,32 @@ export const market = ($root.market = (() => {
        */
       UpdateShopManifest.prototype.removeErc20Addr = null;
 
+      /**
+       * UpdateShopManifest name.
+       * @member {string|null|undefined} name
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      UpdateShopManifest.prototype.name = null;
+
+      /**
+       * UpdateShopManifest description.
+       * @member {string|null|undefined} description
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      UpdateShopManifest.prototype.description = null;
+
+      /**
+       * UpdateShopManifest profilePictureUrl.
+       * @member {string|null|undefined} profilePictureUrl
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      UpdateShopManifest.prototype.profilePictureUrl = null;
+
       // OneOf field names bound to virtual getters and setters
-      let $oneOfFields;
+      var $oneOfFields;
 
       /**
        * UpdateShopManifest _domain.
@@ -2034,6 +2144,43 @@ export const market = ($root.market = (() => {
         get: $util.oneOfGetter(($oneOfFields = ["removeErc20Addr"])),
         set: $util.oneOfSetter($oneOfFields),
       });
+
+      /**
+       * UpdateShopManifest _name.
+       * @member {"name"|undefined} _name
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      Object.defineProperty(UpdateShopManifest.prototype, "_name", {
+        get: $util.oneOfGetter(($oneOfFields = ["name"])),
+        set: $util.oneOfSetter($oneOfFields),
+      });
+
+      /**
+       * UpdateShopManifest _description.
+       * @member {"description"|undefined} _description
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      Object.defineProperty(UpdateShopManifest.prototype, "_description", {
+        get: $util.oneOfGetter(($oneOfFields = ["description"])),
+        set: $util.oneOfSetter($oneOfFields),
+      });
+
+      /**
+       * UpdateShopManifest _profilePictureUrl.
+       * @member {"profilePictureUrl"|undefined} _profilePictureUrl
+       * @memberof market.mass.UpdateShopManifest
+       * @instance
+       */
+      Object.defineProperty(
+        UpdateShopManifest.prototype,
+        "_profilePictureUrl",
+        {
+          get: $util.oneOfGetter(($oneOfFields = ["profilePictureUrl"])),
+          set: $util.oneOfSetter($oneOfFields),
+        },
+      );
 
       /**
        * Creates a new UpdateShopManifest instance using the specified properties.
@@ -2087,6 +2234,20 @@ export const market = ($root.market = (() => {
           writer
             .uint32(/* id 5, wireType 2 =*/ 42)
             .bytes(message.removeErc20Addr);
+        if (message.name != null && Object.hasOwnProperty.call(message, "name"))
+          writer.uint32(/* id 6, wireType 2 =*/ 50).string(message.name);
+        if (
+          message.description != null &&
+          Object.hasOwnProperty.call(message, "description")
+        )
+          writer.uint32(/* id 7, wireType 2 =*/ 58).string(message.description);
+        if (
+          message.profilePictureUrl != null &&
+          Object.hasOwnProperty.call(message, "profilePictureUrl")
+        )
+          writer
+            .uint32(/* id 8, wireType 2 =*/ 66)
+            .string(message.profilePictureUrl);
         return writer;
       };
 
@@ -2119,10 +2280,10 @@ export const market = ($root.market = (() => {
        */
       UpdateShopManifest.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.UpdateShopManifest();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.eventId = reader.bytes();
@@ -2142,6 +2303,18 @@ export const market = ($root.market = (() => {
             }
             case 5: {
               message.removeErc20Addr = reader.bytes();
+              break;
+            }
+            case 6: {
+              message.name = reader.string();
+              break;
+            }
+            case 7: {
+              message.description = reader.string();
+              break;
+            }
+            case 8: {
+              message.profilePictureUrl = reader.string();
               break;
             }
             default:
@@ -2178,7 +2351,7 @@ export const market = ($root.market = (() => {
       UpdateShopManifest.verify = function verify(message) {
         if (typeof message !== "object" || message === null)
           return "object expected";
-        let properties = {};
+        var properties = {};
         if (message.eventId != null && message.hasOwnProperty("eventId"))
           if (
             !(
@@ -2233,6 +2406,26 @@ export const market = ($root.market = (() => {
           )
             return "removeErc20Addr: buffer expected";
         }
+        if (message.name != null && message.hasOwnProperty("name")) {
+          properties._name = 1;
+          if (!$util.isString(message.name)) return "name: string expected";
+        }
+        if (
+          message.description != null &&
+          message.hasOwnProperty("description")
+        ) {
+          properties._description = 1;
+          if (!$util.isString(message.description))
+            return "description: string expected";
+        }
+        if (
+          message.profilePictureUrl != null &&
+          message.hasOwnProperty("profilePictureUrl")
+        ) {
+          properties._profilePictureUrl = 1;
+          if (!$util.isString(message.profilePictureUrl))
+            return "profilePictureUrl: string expected";
+        }
         return null;
       };
 
@@ -2247,7 +2440,7 @@ export const market = ($root.market = (() => {
       UpdateShopManifest.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.UpdateShopManifest)
           return object;
-        let message = new $root.market.mass.UpdateShopManifest();
+        var message = new $root.market.mass.UpdateShopManifest();
         if (object.eventId != null)
           if (typeof object.eventId === "string")
             $util.base64.decode(
@@ -2292,6 +2485,11 @@ export const market = ($root.market = (() => {
             );
           else if (object.removeErc20Addr.length >= 0)
             message.removeErc20Addr = object.removeErc20Addr;
+        if (object.name != null) message.name = String(object.name);
+        if (object.description != null)
+          message.description = String(object.description);
+        if (object.profilePictureUrl != null)
+          message.profilePictureUrl = String(object.profilePictureUrl);
         return message;
       };
 
@@ -2306,7 +2504,7 @@ export const market = ($root.market = (() => {
        */
       UpdateShopManifest.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults)
           if (options.bytes === String) object.eventId = "";
           else {
@@ -2373,6 +2571,24 @@ export const market = ($root.market = (() => {
                 : message.removeErc20Addr;
           if (options.oneofs) object._removeErc20Addr = "removeErc20Addr";
         }
+        if (message.name != null && message.hasOwnProperty("name")) {
+          object.name = message.name;
+          if (options.oneofs) object._name = "name";
+        }
+        if (
+          message.description != null &&
+          message.hasOwnProperty("description")
+        ) {
+          object.description = message.description;
+          if (options.oneofs) object._description = "description";
+        }
+        if (
+          message.profilePictureUrl != null &&
+          message.hasOwnProperty("profilePictureUrl")
+        ) {
+          object.profilePictureUrl = message.profilePictureUrl;
+          if (options.oneofs) object._profilePictureUrl = "profilePictureUrl";
+        }
         return object;
       };
 
@@ -2425,7 +2641,7 @@ export const market = ($root.market = (() => {
        */
       function CreateItem(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -2521,10 +2737,10 @@ export const market = ($root.market = (() => {
        */
       CreateItem.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.CreateItem();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.eventId = reader.bytes();
@@ -2604,7 +2820,7 @@ export const market = ($root.market = (() => {
        */
       CreateItem.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.CreateItem) return object;
-        let message = new $root.market.mass.CreateItem();
+        var message = new $root.market.mass.CreateItem();
         if (object.eventId != null)
           if (typeof object.eventId === "string")
             $util.base64.decode(
@@ -2641,7 +2857,7 @@ export const market = ($root.market = (() => {
        */
       CreateItem.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.eventId = "";
           else {
@@ -2730,7 +2946,7 @@ export const market = ($root.market = (() => {
        */
       function UpdateItem(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -2768,7 +2984,7 @@ export const market = ($root.market = (() => {
       UpdateItem.prototype.metadata = null;
 
       // OneOf field names bound to virtual getters and setters
-      let $oneOfFields;
+      var $oneOfFields;
 
       /**
        * UpdateItem _price.
@@ -2864,10 +3080,10 @@ export const market = ($root.market = (() => {
        */
       UpdateItem.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.UpdateItem();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.eventId = reader.bytes();
@@ -2919,7 +3135,7 @@ export const market = ($root.market = (() => {
       UpdateItem.verify = function verify(message) {
         if (typeof message !== "object" || message === null)
           return "object expected";
-        let properties = {};
+        var properties = {};
         if (message.eventId != null && message.hasOwnProperty("eventId"))
           if (
             !(
@@ -2964,7 +3180,7 @@ export const market = ($root.market = (() => {
        */
       UpdateItem.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.UpdateItem) return object;
-        let message = new $root.market.mass.UpdateItem();
+        var message = new $root.market.mass.UpdateItem();
         if (object.eventId != null)
           if (typeof object.eventId === "string")
             $util.base64.decode(
@@ -3011,7 +3227,7 @@ export const market = ($root.market = (() => {
        */
       UpdateItem.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.eventId = "";
           else {
@@ -3108,7 +3324,7 @@ export const market = ($root.market = (() => {
        */
       function CreateTag(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -3188,10 +3404,10 @@ export const market = ($root.market = (() => {
        */
       CreateTag.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.CreateTag();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.eventId = reader.bytes();
@@ -3258,7 +3474,7 @@ export const market = ($root.market = (() => {
        */
       CreateTag.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.CreateTag) return object;
-        let message = new $root.market.mass.CreateTag();
+        var message = new $root.market.mass.CreateTag();
         if (object.eventId != null)
           if (typeof object.eventId === "string")
             $util.base64.decode(
@@ -3284,7 +3500,7 @@ export const market = ($root.market = (() => {
        */
       CreateTag.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.eventId = "";
           else {
@@ -3358,7 +3574,7 @@ export const market = ($root.market = (() => {
        */
       function UpdateTag(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -3412,7 +3628,7 @@ export const market = ($root.market = (() => {
       UpdateTag.prototype.rename = null;
 
       // OneOf field names bound to virtual getters and setters
-      let $oneOfFields;
+      var $oneOfFields;
 
       /**
        * UpdateTag _addItemId.
@@ -3540,10 +3756,10 @@ export const market = ($root.market = (() => {
        */
       UpdateTag.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.UpdateTag();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.eventId = reader.bytes();
@@ -3603,7 +3819,7 @@ export const market = ($root.market = (() => {
       UpdateTag.verify = function verify(message) {
         if (typeof message !== "object" || message === null)
           return "object expected";
-        let properties = {};
+        var properties = {};
         if (message.eventId != null && message.hasOwnProperty("eventId"))
           if (
             !(
@@ -3667,7 +3883,7 @@ export const market = ($root.market = (() => {
        */
       UpdateTag.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.UpdateTag) return object;
-        let message = new $root.market.mass.UpdateTag();
+        var message = new $root.market.mass.UpdateTag();
         if (object.eventId != null)
           if (typeof object.eventId === "string")
             $util.base64.decode(
@@ -3727,7 +3943,7 @@ export const market = ($root.market = (() => {
        */
       UpdateTag.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.eventId = "";
           else {
@@ -3849,7 +4065,7 @@ export const market = ($root.market = (() => {
         this.itemIds = [];
         this.diffs = [];
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -3923,11 +4139,11 @@ export const market = ($root.market = (() => {
         )
           writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.eventId);
         if (message.itemIds != null && message.itemIds.length)
-          for (let i = 0; i < message.itemIds.length; ++i)
+          for (var i = 0; i < message.itemIds.length; ++i)
             writer.uint32(/* id 2, wireType 2 =*/ 18).bytes(message.itemIds[i]);
         if (message.diffs != null && message.diffs.length) {
           writer.uint32(/* id 3, wireType 2 =*/ 26).fork();
-          for (let i = 0; i < message.diffs.length; ++i)
+          for (var i = 0; i < message.diffs.length; ++i)
             writer.sint32(message.diffs[i]);
           writer.ldelim();
         }
@@ -3970,10 +4186,10 @@ export const market = ($root.market = (() => {
        */
       ChangeStock.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.ChangeStock();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.eventId = reader.bytes();
@@ -3988,7 +4204,7 @@ export const market = ($root.market = (() => {
             case 3: {
               if (!(message.diffs && message.diffs.length)) message.diffs = [];
               if ((tag & 7) === 2) {
-                let end2 = reader.uint32() + reader.pos;
+                var end2 = reader.uint32() + reader.pos;
                 while (reader.pos < end2) message.diffs.push(reader.sint32());
               } else message.diffs.push(reader.sint32());
               break;
@@ -4045,7 +4261,7 @@ export const market = ($root.market = (() => {
             return "eventId: buffer expected";
         if (message.itemIds != null && message.hasOwnProperty("itemIds")) {
           if (!Array.isArray(message.itemIds)) return "itemIds: array expected";
-          for (let i = 0; i < message.itemIds.length; ++i)
+          for (var i = 0; i < message.itemIds.length; ++i)
             if (
               !(
                 (message.itemIds[i] &&
@@ -4057,7 +4273,7 @@ export const market = ($root.market = (() => {
         }
         if (message.diffs != null && message.hasOwnProperty("diffs")) {
           if (!Array.isArray(message.diffs)) return "diffs: array expected";
-          for (let i = 0; i < message.diffs.length; ++i)
+          for (var i = 0; i < message.diffs.length; ++i)
             if (!$util.isInteger(message.diffs[i]))
               return "diffs: integer[] expected";
         }
@@ -4090,7 +4306,7 @@ export const market = ($root.market = (() => {
        */
       ChangeStock.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.ChangeStock) return object;
-        let message = new $root.market.mass.ChangeStock();
+        var message = new $root.market.mass.ChangeStock();
         if (object.eventId != null)
           if (typeof object.eventId === "string")
             $util.base64.decode(
@@ -4105,7 +4321,7 @@ export const market = ($root.market = (() => {
           if (!Array.isArray(object.itemIds))
             throw TypeError(".market.mass.ChangeStock.itemIds: array expected");
           message.itemIds = [];
-          for (let i = 0; i < object.itemIds.length; ++i)
+          for (var i = 0; i < object.itemIds.length; ++i)
             if (typeof object.itemIds[i] === "string")
               $util.base64.decode(
                 object.itemIds[i],
@@ -4121,7 +4337,7 @@ export const market = ($root.market = (() => {
           if (!Array.isArray(object.diffs))
             throw TypeError(".market.mass.ChangeStock.diffs: array expected");
           message.diffs = [];
-          for (let i = 0; i < object.diffs.length; ++i)
+          for (var i = 0; i < object.diffs.length; ++i)
             message.diffs[i] = object.diffs[i] | 0;
         }
         if (object.orderId != null)
@@ -4158,7 +4374,7 @@ export const market = ($root.market = (() => {
        */
       ChangeStock.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.arrays || options.defaults) {
           object.itemIds = [];
           object.diffs = [];
@@ -4192,7 +4408,7 @@ export const market = ($root.market = (() => {
                 : message.eventId;
         if (message.itemIds && message.itemIds.length) {
           object.itemIds = [];
-          for (let j = 0; j < message.itemIds.length; ++j)
+          for (var j = 0; j < message.itemIds.length; ++j)
             object.itemIds[j] =
               options.bytes === String
                 ? $util.base64.encode(
@@ -4206,7 +4422,7 @@ export const market = ($root.market = (() => {
         }
         if (message.diffs && message.diffs.length) {
           object.diffs = [];
-          for (let j = 0; j < message.diffs.length; ++j)
+          for (var j = 0; j < message.diffs.length; ++j)
             object.diffs[j] = message.diffs[j];
         }
         if (message.orderId != null && message.hasOwnProperty("orderId"))
@@ -4276,7 +4492,7 @@ export const market = ($root.market = (() => {
        */
       function NewKeyCard(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -4389,10 +4605,10 @@ export const market = ($root.market = (() => {
        */
       NewKeyCard.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.NewKeyCard();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.eventId = reader.bytes();
@@ -4492,7 +4708,7 @@ export const market = ($root.market = (() => {
        */
       NewKeyCard.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.NewKeyCard) return object;
-        let message = new $root.market.mass.NewKeyCard();
+        var message = new $root.market.mass.NewKeyCard();
         if (object.eventId != null)
           if (typeof object.eventId === "string")
             $util.base64.decode(
@@ -4540,7 +4756,7 @@ export const market = ($root.market = (() => {
        */
       NewKeyCard.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.eventId = "";
           else {
@@ -4649,7 +4865,7 @@ export const market = ($root.market = (() => {
        */
       function CreateOrder(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -4719,10 +4935,10 @@ export const market = ($root.market = (() => {
        */
       CreateOrder.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.CreateOrder();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.eventId = reader.bytes();
@@ -4783,7 +4999,7 @@ export const market = ($root.market = (() => {
        */
       CreateOrder.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.CreateOrder) return object;
-        let message = new $root.market.mass.CreateOrder();
+        var message = new $root.market.mass.CreateOrder();
         if (object.eventId != null)
           if (typeof object.eventId === "string")
             $util.base64.decode(
@@ -4808,7 +5024,7 @@ export const market = ($root.market = (() => {
        */
       CreateOrder.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults)
           if (options.bytes === String) object.eventId = "";
           else {
@@ -4877,7 +5093,7 @@ export const market = ($root.market = (() => {
        */
       function UpdateOrder(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -4923,7 +5139,7 @@ export const market = ($root.market = (() => {
       UpdateOrder.prototype.orderCanceled = null;
 
       // OneOf field names bound to virtual getters and setters
-      let $oneOfFields;
+      var $oneOfFields;
 
       /**
        * UpdateOrder action.
@@ -5024,10 +5240,10 @@ export const market = ($root.market = (() => {
        */
       UpdateOrder.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.UpdateOrder();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.eventId = reader.bytes();
@@ -5095,7 +5311,7 @@ export const market = ($root.market = (() => {
       UpdateOrder.verify = function verify(message) {
         if (typeof message !== "object" || message === null)
           return "object expected";
-        let properties = {};
+        var properties = {};
         if (message.eventId != null && message.hasOwnProperty("eventId"))
           if (
             !(
@@ -5118,7 +5334,7 @@ export const market = ($root.market = (() => {
         ) {
           properties.action = 1;
           {
-            let error = $root.market.mass.UpdateOrder.ChangeItems.verify(
+            var error = $root.market.mass.UpdateOrder.ChangeItems.verify(
               message.changeItems,
             );
             if (error) return "changeItems." + error;
@@ -5131,7 +5347,7 @@ export const market = ($root.market = (() => {
           if (properties.action === 1) return "action: multiple values";
           properties.action = 1;
           {
-            let error = $root.market.mass.UpdateOrder.ItemsFinalized.verify(
+            var error = $root.market.mass.UpdateOrder.ItemsFinalized.verify(
               message.itemsFinalized,
             );
             if (error) return "itemsFinalized." + error;
@@ -5144,7 +5360,7 @@ export const market = ($root.market = (() => {
           if (properties.action === 1) return "action: multiple values";
           properties.action = 1;
           {
-            let error = $root.market.mass.UpdateOrder.OrderCanceled.verify(
+            var error = $root.market.mass.UpdateOrder.OrderCanceled.verify(
               message.orderCanceled,
             );
             if (error) return "orderCanceled." + error;
@@ -5163,7 +5379,7 @@ export const market = ($root.market = (() => {
        */
       UpdateOrder.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.UpdateOrder) return object;
-        let message = new $root.market.mass.UpdateOrder();
+        var message = new $root.market.mass.UpdateOrder();
         if (object.eventId != null)
           if (typeof object.eventId === "string")
             $util.base64.decode(
@@ -5228,7 +5444,7 @@ export const market = ($root.market = (() => {
        */
       UpdateOrder.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.eventId = "";
           else {
@@ -5339,7 +5555,7 @@ export const market = ($root.market = (() => {
         function ChangeItems(properties) {
           if (properties)
             for (
-              let keys = Object.keys(properties), i = 0;
+              var keys = Object.keys(properties), i = 0;
               i < keys.length;
               ++i
             )
@@ -5428,10 +5644,10 @@ export const market = ($root.market = (() => {
          */
         ChangeItems.decode = function decode(reader, length) {
           if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-          let end = length === undefined ? reader.len : reader.pos + length,
+          var end = length === undefined ? reader.len : reader.pos + length,
             message = new $root.market.mass.UpdateOrder.ChangeItems();
           while (reader.pos < end) {
-            let tag = reader.uint32();
+            var tag = reader.uint32();
             switch (tag >>> 3) {
               case 1: {
                 message.itemId = reader.bytes();
@@ -5500,7 +5716,7 @@ export const market = ($root.market = (() => {
         ChangeItems.fromObject = function fromObject(object) {
           if (object instanceof $root.market.mass.UpdateOrder.ChangeItems)
             return object;
-          let message = new $root.market.mass.UpdateOrder.ChangeItems();
+          var message = new $root.market.mass.UpdateOrder.ChangeItems();
           if (object.itemId != null)
             if (typeof object.itemId === "string")
               $util.base64.decode(
@@ -5526,7 +5742,7 @@ export const market = ($root.market = (() => {
          */
         ChangeItems.toObject = function toObject(message, options) {
           if (!options) options = {};
-          let object = {};
+          var object = {};
           if (options.defaults) {
             if (options.bytes === String) object.itemId = "";
             else {
@@ -5606,7 +5822,7 @@ export const market = ($root.market = (() => {
         function ItemsFinalized(properties) {
           if (properties)
             for (
-              let keys = Object.keys(properties), i = 0;
+              var keys = Object.keys(properties), i = 0;
               i < keys.length;
               ++i
             )
@@ -5817,10 +6033,10 @@ export const market = ($root.market = (() => {
          */
         ItemsFinalized.decode = function decode(reader, length) {
           if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-          let end = length === undefined ? reader.len : reader.pos + length,
+          var end = length === undefined ? reader.len : reader.pos + length,
             message = new $root.market.mass.UpdateOrder.ItemsFinalized();
           while (reader.pos < end) {
-            let tag = reader.uint32();
+            var tag = reader.uint32();
             switch (tag >>> 3) {
               case 1: {
                 message.paymentId = reader.bytes();
@@ -5987,7 +6203,7 @@ export const market = ($root.market = (() => {
         ItemsFinalized.fromObject = function fromObject(object) {
           if (object instanceof $root.market.mass.UpdateOrder.ItemsFinalized)
             return object;
-          let message = new $root.market.mass.UpdateOrder.ItemsFinalized();
+          var message = new $root.market.mass.UpdateOrder.ItemsFinalized();
           if (object.paymentId != null)
             if (typeof object.paymentId === "string")
               $util.base64.decode(
@@ -6067,7 +6283,7 @@ export const market = ($root.market = (() => {
          */
         ItemsFinalized.toObject = function toObject(message, options) {
           if (!options) options = {};
-          let object = {};
+          var object = {};
           if (options.defaults) {
             if (options.bytes === String) object.paymentId = "";
             else {
@@ -6236,7 +6452,7 @@ export const market = ($root.market = (() => {
         function OrderCanceled(properties) {
           if (properties)
             for (
-              let keys = Object.keys(properties), i = 0;
+              var keys = Object.keys(properties), i = 0;
               i < keys.length;
               ++i
             )
@@ -6314,10 +6530,10 @@ export const market = ($root.market = (() => {
          */
         OrderCanceled.decode = function decode(reader, length) {
           if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-          let end = length === undefined ? reader.len : reader.pos + length,
+          var end = length === undefined ? reader.len : reader.pos + length,
             message = new $root.market.mass.UpdateOrder.OrderCanceled();
           while (reader.pos < end) {
-            let tag = reader.uint32();
+            var tag = reader.uint32();
             switch (tag >>> 3) {
               case 1: {
                 message.timestamp = reader.uint64();
@@ -6381,7 +6597,7 @@ export const market = ($root.market = (() => {
         OrderCanceled.fromObject = function fromObject(object) {
           if (object instanceof $root.market.mass.UpdateOrder.OrderCanceled)
             return object;
-          let message = new $root.market.mass.UpdateOrder.OrderCanceled();
+          var message = new $root.market.mass.UpdateOrder.OrderCanceled();
           if (object.timestamp != null)
             if ($util.Long)
               (message.timestamp = $util.Long.fromValue(
@@ -6410,10 +6626,10 @@ export const market = ($root.market = (() => {
          */
         OrderCanceled.toObject = function toObject(message, options) {
           if (!options) options = {};
-          let object = {};
+          var object = {};
           if (options.defaults)
             if ($util.Long) {
-              let long = new $util.Long(0, 0, true);
+              var long = new $util.Long(0, 0, true);
               object.timestamp =
                 options.longs === String
                   ? long.toString()
@@ -6500,7 +6716,7 @@ export const market = ($root.market = (() => {
        */
       function ShopEvent(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -6594,7 +6810,7 @@ export const market = ($root.market = (() => {
       ShopEvent.prototype.newKeyCard = null;
 
       // OneOf field names bound to virtual getters and setters
-      let $oneOfFields;
+      var $oneOfFields;
 
       /**
        * ShopEvent union.
@@ -6757,10 +6973,10 @@ export const market = ($root.market = (() => {
        */
       ShopEvent.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.ShopEvent();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.signature = reader.bytes();
@@ -6871,7 +7087,7 @@ export const market = ($root.market = (() => {
       ShopEvent.verify = function verify(message) {
         if (typeof message !== "object" || message === null)
           return "object expected";
-        let properties = {};
+        var properties = {};
         if (message.signature != null && message.hasOwnProperty("signature"))
           if (
             !(
@@ -6887,7 +7103,7 @@ export const market = ($root.market = (() => {
         ) {
           properties.union = 1;
           {
-            let error = $root.market.mass.ShopManifest.verify(
+            var error = $root.market.mass.ShopManifest.verify(
               message.shopManifest,
             );
             if (error) return "shopManifest." + error;
@@ -6900,7 +7116,7 @@ export const market = ($root.market = (() => {
           if (properties.union === 1) return "union: multiple values";
           properties.union = 1;
           {
-            let error = $root.market.mass.UpdateShopManifest.verify(
+            var error = $root.market.mass.UpdateShopManifest.verify(
               message.updateShopManifest,
             );
             if (error) return "updateShopManifest." + error;
@@ -6913,7 +7129,7 @@ export const market = ($root.market = (() => {
           if (properties.union === 1) return "union: multiple values";
           properties.union = 1;
           {
-            let error = $root.market.mass.CreateItem.verify(message.createItem);
+            var error = $root.market.mass.CreateItem.verify(message.createItem);
             if (error) return "createItem." + error;
           }
         }
@@ -6924,7 +7140,7 @@ export const market = ($root.market = (() => {
           if (properties.union === 1) return "union: multiple values";
           properties.union = 1;
           {
-            let error = $root.market.mass.UpdateItem.verify(message.updateItem);
+            var error = $root.market.mass.UpdateItem.verify(message.updateItem);
             if (error) return "updateItem." + error;
           }
         }
@@ -6932,7 +7148,7 @@ export const market = ($root.market = (() => {
           if (properties.union === 1) return "union: multiple values";
           properties.union = 1;
           {
-            let error = $root.market.mass.CreateTag.verify(message.createTag);
+            var error = $root.market.mass.CreateTag.verify(message.createTag);
             if (error) return "createTag." + error;
           }
         }
@@ -6940,7 +7156,7 @@ export const market = ($root.market = (() => {
           if (properties.union === 1) return "union: multiple values";
           properties.union = 1;
           {
-            let error = $root.market.mass.UpdateTag.verify(message.updateTag);
+            var error = $root.market.mass.UpdateTag.verify(message.updateTag);
             if (error) return "updateTag." + error;
           }
         }
@@ -6951,7 +7167,7 @@ export const market = ($root.market = (() => {
           if (properties.union === 1) return "union: multiple values";
           properties.union = 1;
           {
-            let error = $root.market.mass.CreateOrder.verify(
+            var error = $root.market.mass.CreateOrder.verify(
               message.createOrder,
             );
             if (error) return "createOrder." + error;
@@ -6964,7 +7180,7 @@ export const market = ($root.market = (() => {
           if (properties.union === 1) return "union: multiple values";
           properties.union = 1;
           {
-            let error = $root.market.mass.UpdateOrder.verify(
+            var error = $root.market.mass.UpdateOrder.verify(
               message.updateOrder,
             );
             if (error) return "updateOrder." + error;
@@ -6977,7 +7193,7 @@ export const market = ($root.market = (() => {
           if (properties.union === 1) return "union: multiple values";
           properties.union = 1;
           {
-            let error = $root.market.mass.ChangeStock.verify(
+            var error = $root.market.mass.ChangeStock.verify(
               message.changeStock,
             );
             if (error) return "changeStock." + error;
@@ -6990,7 +7206,7 @@ export const market = ($root.market = (() => {
           if (properties.union === 1) return "union: multiple values";
           properties.union = 1;
           {
-            let error = $root.market.mass.NewKeyCard.verify(message.newKeyCard);
+            var error = $root.market.mass.NewKeyCard.verify(message.newKeyCard);
             if (error) return "newKeyCard." + error;
           }
         }
@@ -7007,7 +7223,7 @@ export const market = ($root.market = (() => {
        */
       ShopEvent.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.ShopEvent) return object;
-        let message = new $root.market.mass.ShopEvent();
+        var message = new $root.market.mass.ShopEvent();
         if (object.signature != null)
           if (typeof object.signature === "string")
             $util.base64.decode(
@@ -7124,7 +7340,7 @@ export const market = ($root.market = (() => {
        */
       ShopEvent.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults)
           if (options.bytes === String) object.signature = "";
           else {
@@ -7291,7 +7507,7 @@ export const market = ($root.market = (() => {
        */
       function CommitItemsToOrderRequest(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -7405,10 +7621,10 @@ export const market = ($root.market = (() => {
        */
       CommitItemsToOrderRequest.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.CommitItemsToOrderRequest();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -7512,7 +7728,7 @@ export const market = ($root.market = (() => {
       CommitItemsToOrderRequest.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.CommitItemsToOrderRequest)
           return object;
-        let message = new $root.market.mass.CommitItemsToOrderRequest();
+        var message = new $root.market.mass.CommitItemsToOrderRequest();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -7572,7 +7788,7 @@ export const market = ($root.market = (() => {
        */
       CommitItemsToOrderRequest.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.requestId = "";
           else {
@@ -7593,7 +7809,7 @@ export const market = ($root.market = (() => {
               object.erc20Addr = $util.newBuffer(object.erc20Addr);
           }
           if ($util.Long) {
-            let long = new $util.Long(0, 0, true);
+            var long = new $util.Long(0, 0, true);
             object.chainId =
               options.longs === String
                 ? long.toString()
@@ -7701,7 +7917,7 @@ export const market = ($root.market = (() => {
        */
       function CommitItemsToOrderResponse(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -7807,10 +8023,10 @@ export const market = ($root.market = (() => {
        */
       CommitItemsToOrderResponse.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.CommitItemsToOrderResponse();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -7873,7 +8089,7 @@ export const market = ($root.market = (() => {
           )
             return "requestId: buffer expected";
         if (message.error != null && message.hasOwnProperty("error")) {
-          let error = $root.market.mass.Error.verify(message.error);
+          var error = $root.market.mass.Error.verify(message.error);
           if (error) return "error." + error;
         }
         if (
@@ -7902,7 +8118,7 @@ export const market = ($root.market = (() => {
       CommitItemsToOrderResponse.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.CommitItemsToOrderResponse)
           return object;
-        let message = new $root.market.mass.CommitItemsToOrderResponse();
+        var message = new $root.market.mass.CommitItemsToOrderResponse();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -7949,7 +8165,7 @@ export const market = ($root.market = (() => {
         options,
       ) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.requestId = "";
           else {
@@ -8049,7 +8265,7 @@ export const market = ($root.market = (() => {
        */
       function GetBlobUploadURLRequest(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -8122,10 +8338,10 @@ export const market = ($root.market = (() => {
        */
       GetBlobUploadURLRequest.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.GetBlobUploadURLRequest();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -8190,7 +8406,7 @@ export const market = ($root.market = (() => {
       GetBlobUploadURLRequest.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.GetBlobUploadURLRequest)
           return object;
-        let message = new $root.market.mass.GetBlobUploadURLRequest();
+        var message = new $root.market.mass.GetBlobUploadURLRequest();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -8216,7 +8432,7 @@ export const market = ($root.market = (() => {
        */
       GetBlobUploadURLRequest.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults)
           if (options.bytes === String) object.requestId = "";
           else {
@@ -8287,7 +8503,7 @@ export const market = ($root.market = (() => {
        */
       function GetBlobUploadURLResponse(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -8386,10 +8602,10 @@ export const market = ($root.market = (() => {
        */
       GetBlobUploadURLResponse.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.GetBlobUploadURLResponse();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -8452,7 +8668,7 @@ export const market = ($root.market = (() => {
           )
             return "requestId: buffer expected";
         if (message.error != null && message.hasOwnProperty("error")) {
-          let error = $root.market.mass.Error.verify(message.error);
+          var error = $root.market.mass.Error.verify(message.error);
           if (error) return "error." + error;
         }
         if (message.url != null && message.hasOwnProperty("url"))
@@ -8471,7 +8687,7 @@ export const market = ($root.market = (() => {
       GetBlobUploadURLResponse.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.GetBlobUploadURLResponse)
           return object;
-        let message = new $root.market.mass.GetBlobUploadURLResponse();
+        var message = new $root.market.mass.GetBlobUploadURLResponse();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -8505,7 +8721,7 @@ export const market = ($root.market = (() => {
        */
       GetBlobUploadURLResponse.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.requestId = "";
           else {
@@ -8585,7 +8801,7 @@ export const market = ($root.market = (() => {
        */
       function EventWriteRequest(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -8674,10 +8890,10 @@ export const market = ($root.market = (() => {
        */
       EventWriteRequest.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.EventWriteRequest();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -8734,7 +8950,7 @@ export const market = ($root.market = (() => {
           )
             return "requestId: buffer expected";
         if (message.event != null && message.hasOwnProperty("event")) {
-          let error = $root.google.protobuf.Any.verify(message.event);
+          var error = $root.google.protobuf.Any.verify(message.event);
           if (error) return "event." + error;
         }
         return null;
@@ -8751,7 +8967,7 @@ export const market = ($root.market = (() => {
       EventWriteRequest.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.EventWriteRequest)
           return object;
-        let message = new $root.market.mass.EventWriteRequest();
+        var message = new $root.market.mass.EventWriteRequest();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -8784,7 +9000,7 @@ export const market = ($root.market = (() => {
        */
       EventWriteRequest.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.requestId = "";
           else {
@@ -8863,7 +9079,7 @@ export const market = ($root.market = (() => {
        */
       function EventWriteResponse(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -8982,10 +9198,10 @@ export const market = ($root.market = (() => {
        */
       EventWriteResponse.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.EventWriteResponse();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -9050,7 +9266,7 @@ export const market = ($root.market = (() => {
           )
             return "requestId: buffer expected";
         if (message.error != null && message.hasOwnProperty("error")) {
-          let error = $root.market.mass.Error.verify(message.error);
+          var error = $root.market.mass.Error.verify(message.error);
           if (error) return "error." + error;
         }
         if (
@@ -9092,7 +9308,7 @@ export const market = ($root.market = (() => {
       EventWriteResponse.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.EventWriteResponse)
           return object;
-        let message = new $root.market.mass.EventWriteResponse();
+        var message = new $root.market.mass.EventWriteResponse();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -9150,7 +9366,7 @@ export const market = ($root.market = (() => {
        */
       EventWriteResponse.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.requestId = "";
           else {
@@ -9166,7 +9382,7 @@ export const market = ($root.market = (() => {
               object.newShopHash = $util.newBuffer(object.newShopHash);
           }
           if ($util.Long) {
-            let long = new $util.Long(0, 0, true);
+            var long = new $util.Long(0, 0, true);
             object.eventSequenceNo =
               options.longs === String
                 ? long.toString()
@@ -9276,7 +9492,7 @@ export const market = ($root.market = (() => {
       function EventPushRequest(properties) {
         this.events = [];
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -9326,7 +9542,7 @@ export const market = ($root.market = (() => {
         )
           writer.uint32(/* id 1, wireType 2 =*/ 10).bytes(message.requestId);
         if (message.events != null && message.events.length)
-          for (let i = 0; i < message.events.length; ++i)
+          for (var i = 0; i < message.events.length; ++i)
             $root.google.protobuf.Any.encode(
               message.events[i],
               writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
@@ -9363,10 +9579,10 @@ export const market = ($root.market = (() => {
        */
       EventPushRequest.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.EventPushRequest();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -9425,8 +9641,8 @@ export const market = ($root.market = (() => {
             return "requestId: buffer expected";
         if (message.events != null && message.hasOwnProperty("events")) {
           if (!Array.isArray(message.events)) return "events: array expected";
-          for (let i = 0; i < message.events.length; ++i) {
-            let error = $root.google.protobuf.Any.verify(message.events[i]);
+          for (var i = 0; i < message.events.length; ++i) {
+            var error = $root.google.protobuf.Any.verify(message.events[i]);
             if (error) return "events." + error;
           }
         }
@@ -9443,7 +9659,7 @@ export const market = ($root.market = (() => {
        */
       EventPushRequest.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.EventPushRequest) return object;
-        let message = new $root.market.mass.EventPushRequest();
+        var message = new $root.market.mass.EventPushRequest();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -9461,7 +9677,7 @@ export const market = ($root.market = (() => {
               ".market.mass.EventPushRequest.events: array expected",
             );
           message.events = [];
-          for (let i = 0; i < object.events.length; ++i) {
+          for (var i = 0; i < object.events.length; ++i) {
             if (typeof object.events[i] !== "object")
               throw TypeError(
                 ".market.mass.EventPushRequest.events: object expected",
@@ -9485,7 +9701,7 @@ export const market = ($root.market = (() => {
        */
       EventPushRequest.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.arrays || options.defaults) object.events = [];
         if (options.defaults)
           if (options.bytes === String) object.requestId = "";
@@ -9507,7 +9723,7 @@ export const market = ($root.market = (() => {
                 : message.requestId;
         if (message.events && message.events.length) {
           object.events = [];
-          for (let j = 0; j < message.events.length; ++j)
+          for (var j = 0; j < message.events.length; ++j)
             object.events[j] = $root.google.protobuf.Any.toObject(
               message.events[j],
               options,
@@ -9564,7 +9780,7 @@ export const market = ($root.market = (() => {
        */
       function EventPushResponse(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -9653,10 +9869,10 @@ export const market = ($root.market = (() => {
        */
       EventPushResponse.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.EventPushResponse();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -9713,7 +9929,7 @@ export const market = ($root.market = (() => {
           )
             return "requestId: buffer expected";
         if (message.error != null && message.hasOwnProperty("error")) {
-          let error = $root.market.mass.Error.verify(message.error);
+          var error = $root.market.mass.Error.verify(message.error);
           if (error) return "error." + error;
         }
         return null;
@@ -9730,7 +9946,7 @@ export const market = ($root.market = (() => {
       EventPushResponse.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.EventPushResponse)
           return object;
-        let message = new $root.market.mass.EventPushResponse();
+        var message = new $root.market.mass.EventPushResponse();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -9763,7 +9979,7 @@ export const market = ($root.market = (() => {
        */
       EventPushResponse.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.requestId = "";
           else {
@@ -9840,7 +10056,7 @@ export const market = ($root.market = (() => {
        */
       function SyncStatusRequest(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -9930,10 +10146,10 @@ export const market = ($root.market = (() => {
        */
       SyncStatusRequest.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.SyncStatusRequest();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -10013,7 +10229,7 @@ export const market = ($root.market = (() => {
       SyncStatusRequest.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.SyncStatusRequest)
           return object;
-        let message = new $root.market.mass.SyncStatusRequest();
+        var message = new $root.market.mass.SyncStatusRequest();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -10053,7 +10269,7 @@ export const market = ($root.market = (() => {
        */
       SyncStatusRequest.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.requestId = "";
           else {
@@ -10062,7 +10278,7 @@ export const market = ($root.market = (() => {
               object.requestId = $util.newBuffer(object.requestId);
           }
           if ($util.Long) {
-            let long = new $util.Long(0, 0, true);
+            var long = new $util.Long(0, 0, true);
             object.unpushedEvents =
               options.longs === String
                 ? long.toString()
@@ -10152,7 +10368,7 @@ export const market = ($root.market = (() => {
        */
       function SyncStatusResponse(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -10241,10 +10457,10 @@ export const market = ($root.market = (() => {
        */
       SyncStatusResponse.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.SyncStatusResponse();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -10301,7 +10517,7 @@ export const market = ($root.market = (() => {
           )
             return "requestId: buffer expected";
         if (message.error != null && message.hasOwnProperty("error")) {
-          let error = $root.market.mass.Error.verify(message.error);
+          var error = $root.market.mass.Error.verify(message.error);
           if (error) return "error." + error;
         }
         return null;
@@ -10318,7 +10534,7 @@ export const market = ($root.market = (() => {
       SyncStatusResponse.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.SyncStatusResponse)
           return object;
-        let message = new $root.market.mass.SyncStatusResponse();
+        var message = new $root.market.mass.SyncStatusResponse();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -10351,7 +10567,7 @@ export const market = ($root.market = (() => {
        */
       SyncStatusResponse.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.requestId = "";
           else {
@@ -10427,7 +10643,7 @@ export const market = ($root.market = (() => {
        */
       function PingRequest(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -10497,10 +10713,10 @@ export const market = ($root.market = (() => {
        */
       PingRequest.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.PingRequest();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -10562,7 +10778,7 @@ export const market = ($root.market = (() => {
        */
       PingRequest.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.PingRequest) return object;
-        let message = new $root.market.mass.PingRequest();
+        var message = new $root.market.mass.PingRequest();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -10588,7 +10804,7 @@ export const market = ($root.market = (() => {
        */
       PingRequest.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults)
           if (options.bytes === String) object.requestId = "";
           else {
@@ -10658,7 +10874,7 @@ export const market = ($root.market = (() => {
        */
       function PingResponse(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -10744,10 +10960,10 @@ export const market = ($root.market = (() => {
        */
       PingResponse.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.market.mass.PingResponse();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.requestId = reader.bytes();
@@ -10804,7 +11020,7 @@ export const market = ($root.market = (() => {
           )
             return "requestId: buffer expected";
         if (message.error != null && message.hasOwnProperty("error")) {
-          let error = $root.market.mass.Error.verify(message.error);
+          var error = $root.market.mass.Error.verify(message.error);
           if (error) return "error." + error;
         }
         return null;
@@ -10820,7 +11036,7 @@ export const market = ($root.market = (() => {
        */
       PingResponse.fromObject = function fromObject(object) {
         if (object instanceof $root.market.mass.PingResponse) return object;
-        let message = new $root.market.mass.PingResponse();
+        var message = new $root.market.mass.PingResponse();
         if (object.requestId != null)
           if (typeof object.requestId === "string")
             $util.base64.decode(
@@ -10851,7 +11067,7 @@ export const market = ($root.market = (() => {
        */
       PingResponse.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           if (options.bytes === String) object.requestId = "";
           else {
@@ -10913,15 +11129,15 @@ export const market = ($root.market = (() => {
   })();
 
   return market;
-})());
+})();
 
-export const google = ($root.google = (() => {
+$root.google = (function () {
   /**
    * Namespace google.
    * @exports google
    * @namespace
    */
-  const google = {};
+  var google = {};
 
   google.protobuf = (function () {
     /**
@@ -10929,7 +11145,7 @@ export const google = ($root.google = (() => {
      * @memberof google
      * @namespace
      */
-    const protobuf = {};
+    var protobuf = {};
 
     protobuf.Any = (function () {
       /**
@@ -10950,7 +11166,7 @@ export const google = ($root.google = (() => {
        */
       function Any(properties) {
         if (properties)
-          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
               this[keys[i]] = properties[keys[i]];
       }
@@ -11033,10 +11249,10 @@ export const google = ($root.google = (() => {
        */
       Any.decode = function decode(reader, length) {
         if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        let end = length === undefined ? reader.len : reader.pos + length,
+        var end = length === undefined ? reader.len : reader.pos + length,
           message = new $root.google.protobuf.Any();
         while (reader.pos < end) {
-          let tag = reader.uint32();
+          var tag = reader.uint32();
           switch (tag >>> 3) {
             case 1: {
               message.type_url = reader.string();
@@ -11104,7 +11320,7 @@ export const google = ($root.google = (() => {
        */
       Any.fromObject = function fromObject(object) {
         if (object instanceof $root.google.protobuf.Any) return object;
-        let message = new $root.google.protobuf.Any();
+        var message = new $root.google.protobuf.Any();
         if (object.type_url != null) message.type_url = String(object.type_url);
         if (object.value != null)
           if (typeof object.value === "string")
@@ -11130,7 +11346,7 @@ export const google = ($root.google = (() => {
        */
       Any.toObject = function toObject(message, options) {
         if (!options) options = {};
-        let object = {};
+        var object = {};
         if (options.defaults) {
           object.type_url = "";
           if (options.bytes === String) object.value = "";
@@ -11185,6 +11401,6 @@ export const google = ($root.google = (() => {
   })();
 
   return google;
-})());
+})();
 
-export { $root as default };
+export default $root;

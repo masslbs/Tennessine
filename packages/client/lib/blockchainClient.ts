@@ -13,7 +13,7 @@ import {
 } from "viem";
 
 import * as abi from "@massmarket/contracts";
-import { eventId } from "./utils";
+import { eventId } from "./utils.js";
 import { privateKeyToAccount } from "viem/accounts";
 
 export type WalletClientWithAccount = WalletClient<

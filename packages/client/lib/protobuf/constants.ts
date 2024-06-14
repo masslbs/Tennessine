@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import * as pb from "./compiled";
+import pb from "./compiled.js";
 import mmproto = pb.market.mass;
 
 export type PBObject =

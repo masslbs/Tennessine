@@ -30,8 +30,8 @@ import {
 } from "@/reducers/finalizedOrderReducers";
 import { ADD_KC_PUBKEY, pubKeyAction } from "@/reducers/KCPubKeysReducers";
 import { Dispatch } from "react";
-import { market } from "@massmarket/client/lib/protobuf/compiled";
-import mmproto = market.mass;
+import pb from "@massmarket/client/lib/protobuf/compiled";
+import mmproto = pb.market.mass;
 
 export const buildState = (
   products: Map<ItemId, IProduct>,
@@ -233,7 +233,8 @@ export const buildState = (
       });
     }
   } else {
-    throw new Error(`Unhandled event type: ${event}`);
+    console.error(event);
+    throw new Error(`Unhandled event type! ${Array.isArray(event)}`);
   }
   return { _products: products, _allTags: allTags };
 };
