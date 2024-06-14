@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import Image from "next/image";
-import React, { useState, useEffect, SetStateAction, Dispatch } from "react";
+import React, { useState, useEffect } from "react";
 import QRCode from "qrcode";
 import { useStoreContext } from "@/context/StoreContext";
 import { IStatus } from "@/types";
@@ -71,6 +71,7 @@ function QRScan({
           <h2>
             Send <span className="text-black">{amount}</span>
           </h2>
+          <p>{totalDollar}</p>
           <p>to this address:</p>
           <div className="flex text-center justify-center border-2 p-2 rounded-xl shadow-xl">
             <p>{purchaseAddress.slice(0, 20)}...</p>

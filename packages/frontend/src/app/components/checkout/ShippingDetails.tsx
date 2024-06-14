@@ -3,14 +3,13 @@ import React, { useState } from "react";
 import Button from "@/app/common/components/Button";
 
 const ShippingDetails = ({ checkout }: { checkout: () => void }) => {
-  const [step, setStep] = useState(0);
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
   const [name, setName] = useState("");
   const [zip, setZip] = useState("");
   const [country, setCountry] = useState("");
   const [number, setNumber] = useState("");
-
+  console.log({ city, name, address, zip, country, number });
   return (
     <div className="mt-4 flex flex-col gap-4">
       <form

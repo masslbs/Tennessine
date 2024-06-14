@@ -26,7 +26,9 @@ const NavigationMenu = ({
   onClose: () => void;
   isOpen: boolean;
 }) => {
-  const { db, invalidateOrder } = useStoreContext();
+  // const { db, invalidateOrder } = useStoreContext();
+  const { db } = useStoreContext();
+
   const { setIsAuthenticated } = useAuth();
 
   const router = useRouter();

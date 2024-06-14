@@ -27,7 +27,7 @@ const Products = () => {
   const [showSuccessMsg, setMsg] = useState<boolean>(success !== null);
   const { products, publishedTagId, allTags } = useStoreContext();
   const [arrToRender, setArrToRender] = useState<IProduct[] | null>(null);
-  const [resultCount, setResultCount] = useState<number>(products.size);
+  // const [resultCount, setResultCount] = useState<number>(products.size);
   const [showTags, setShowTags] = useState<boolean>(false);
   const [tagIdToFilter, setTagIdToFilter] = useState<null | TagId>(null);
 
@@ -60,7 +60,7 @@ const Products = () => {
     });
 
     arrayToRender.length && setArrToRender(arrayToRender);
-    setResultCount(arrayToRender.length);
+    // setResultCount(arrayToRender.length);
   }, [sortOption, products, tagIdToFilter]);
 
   const viewProductDetails = (item: IProduct) => {
