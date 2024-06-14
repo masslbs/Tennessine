@@ -19,6 +19,7 @@ import { PrivateKeyAccount } from "viem/accounts";
 import { hardhat } from "viem/chains";
 import type { TypedData } from "abitype";
 import pb from "./protobuf/compiled.js";
+/* eslint no-undef: "off" */
 import mmproto = pb.market.mass;
 import {
   PBObject,

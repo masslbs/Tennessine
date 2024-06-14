@@ -17,6 +17,7 @@ import { describe, beforeEach, afterEach, expect, test } from "vitest";
 import { RelayClient } from "../lib";
 import { random32BytesHex } from "../lib/utils";
 import pb from "../lib/protobuf/compiled";
+/* eslint no-undef: "off" */
 import mmproto = pb.market.mass;
 
 import * as abi from "@massmarket/contracts";

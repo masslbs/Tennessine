@@ -1,4 +1,5 @@
 import pb from "./protobuf/compiled.js";
+/* eslint no-undef: "off" */
 import mmproto = pb.market.mass;
 import { RelayClient } from "./";
 
