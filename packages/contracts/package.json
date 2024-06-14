@@ -3,14 +3,11 @@
   "version": "1.0.0",
   "description": "the abis and deployment address for the smart contracts",
   "main": "./dist/index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "keywords": [],
   "author": "",
   "devDependencies": {
     "@massmarket/tsconfig": "workspace:*"
   },
   "type": "module",
-  "license": "ISC"
+  "license": "MIT"
 }
