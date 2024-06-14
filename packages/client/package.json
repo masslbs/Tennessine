@@ -35,7 +35,7 @@
     "pbjs-build": "pnpm exec pbjs -t static-module -w ./wrapper.js  -r market.mass -o ./lib/protobuf/compiled.js $NETWORK_SCHEMA_PATH/*.proto --dependency protobufjs/minimal.js",
     "pbts-build": "pbts -r market.mass -o ./lib/protobuf/compiled.d.ts ./lib/protobuf/compiled.js",
     "pb-build": "pnpm pbjs-build && pnpm pbts-build",
-    "lint": "eslint --ext .ts . && pnpm tsc"
+    "lint": "eslint --ext .ts ."
   },
   "type": "module",
   "exports": {

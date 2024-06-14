@@ -118,8 +118,6 @@ importers:
         specifier: workspace:*
         version: link:../tsconfig
 
-  packages/eslint-config: {}
-
   packages/frontend:
     dependencies:
       '@ethereumjs/util':
