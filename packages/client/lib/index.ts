@@ -62,8 +62,8 @@ export type ClientArgs = {
 type UpdateShopManifestOpts = {
   domain?: string;
   publishedTagId?: `0x${string}`;
-  addERC20Addr?: `0x${string}`;
-  removeERC20Addr?: `0x${string}`;
+  addErc20Addr?: `0x${string}`;
+  removeErc20Addr?: `0x${string}`;
   name?: string;
   description?: string;
   profilePictureUrl?: string;
@@ -468,8 +468,8 @@ export class RelayClient extends EventEmitter {
     for (const opt_type of optional_types) {
       const { name, type } = opt_type;
       const obj_name = snakeToCamel(name);
+      // @ts-ignore
       const v = update[obj_name];
-      console.log(`DEBUG: ${obj_name}: ${v}`);
 
       if (v !== undefined) {
         types.push(opt_type);
