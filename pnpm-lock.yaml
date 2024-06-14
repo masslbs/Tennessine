@@ -35,9 +35,6 @@ importers:
 
   packages/client:
     dependencies:
-      '@massmarket/client':
-        specifier: 'link:'
-        version: 'link:'
       '@massmarket/contracts':
         specifier: workspace:*
         version: link:../contracts

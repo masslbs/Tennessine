@@ -2,7 +2,6 @@
   "name": "@massmarket/contracts",
   "version": "1.0.0",
   "description": "the abis and deployment address for the smart contracts",
-  "main": "./dist/index.js",
   "keywords": [],
   "author": "",
   "devDependencies": {

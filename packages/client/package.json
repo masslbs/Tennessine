@@ -1,7 +1,6 @@
 {
   "name": "@massmarket/client",
   "dependencies": {
-    "@massmarket/client": "link:",
     "@massmarket/contracts": "workspace:*",
     "abitype": "^1.0.1",
     "buffer": "^6.0.3",
