@@ -294,11 +294,11 @@
     "schema": {
       "flake": false,
       "locked": {
-        "lastModified": 1718190745,
-        "narHash": "sha256-hEZJgBgBz9+20m566GSXhYLUmICVo6+O1zAYxtse/m4=",
+        "lastModified": 1718263869,
+        "narHash": "sha256-DouotD7r7xm6rO6ZKKymDNywLKpdnipq5eTYnzRD/v8=",
         "owner": "masslbs",
         "repo": "network-schema",
-        "rev": "e01b832f8fc10dbcd91d87288052157c02b7488f",
+        "rev": "ab901ccb68aec0af4acbfbd2c8a468d365b618e2",
         "type": "github"
       },
       "original": {
@@ -311,11 +311,11 @@
     "solady": {
       "flake": false,
       "locked": {
-        "lastModified": 1717740645,
-        "narHash": "sha256-EcHZb25oUArIKg2k8IxmzmGbeYqfJPjZgJ51qthAqyg=",
+        "lastModified": 1718241347,
+        "narHash": "sha256-W+wC1kDI9VeLkpn2JnE4N3DpB8RMsQxdE16aWvf0z/A=",
         "owner": "Vectorized",
         "repo": "solady",
-        "rev": "29d61c504425519c6deddc3e12c2e039ad43e8e3",
+        "rev": "678c9163550810b08f0ffb09624c9f7532392303",
         "type": "github"
       },
       "original": {
