@@ -18,16 +18,13 @@ import { EventEmitter } from "events";
 import { PrivateKeyAccount } from "viem/accounts";
 import { hardhat } from "viem/chains";
 import type { TypedData } from "abitype";
-import pb from "./protobuf/compiled.js";
-/* eslint no-undef: "off" */
-import mmproto = pb.market.mass;
-import {
+import schema, {
   PBObject,
   PBMessage,
   PBInstance,
   MESSAGE_TYPES,
   MESSAGE_PREFIXES,
-} from "./protobuf/constants.js";
+} from "@massmarket/schema";
 import { BlockchainClient } from "./blockchainClient.js";
 import { ReadableEventStream } from "./stream.js";
 import {
@@ -93,8 +90,8 @@ export class RelayClient extends EventEmitter {
     return this.eventStream.stream;
   }
 
-  #handlePingRequest(ping: mmproto.PingRequest) {
-    const pr = mmproto.PingResponse.encode({
+  #handlePingRequest(ping: schema.PingRequest) {
+    const pr = schema.PingResponse.encode({
       requestId: ping.requestId,
     }).finish();
 
@@ -150,12 +147,12 @@ export class RelayClient extends EventEmitter {
       `[recv] reqId=${bytesToHex(message.requestId)} typeCode=${prefix}`,
     );
     switch (pbMessage) {
-      case mmproto.PingRequest:
+      case schema.PingRequest:
         this.#handlePingRequest(message);
         break;
-      case mmproto.EventPushRequest:
+      case schema.EventPushRequest:
         // TODO: add signature verification
-        this.eventStream.enqueue(message as mmproto.EventPushRequest);
+        this.eventStream.enqueue(message as schema.EventPushRequest);
         break;
       default:
         this.emit(bytesToHex(message.requestId), message);
@@ -184,29 +181,29 @@ export class RelayClient extends EventEmitter {
     const write = {
       event: {
         type_url: "type.googleapis.com/market.mass.ShopEvent",
-        value: mmproto.ShopEvent.encode(event).finish(),
+        value: schema.ShopEvent.encode(event).finish(),
       },
     };
-    return this.encodeAndSend(mmproto.EventWriteRequest, write);
+    return this.encodeAndSend(schema.EventWriteRequest, write);
   }
 
   async #authenticate() {
-    const response = (await this.encodeAndSend(mmproto.AuthenticateRequest, {
+    const response = (await this.encodeAndSend(schema.AuthenticateRequest, {
       publicKey: toBytes(this.keyCardWallet.publicKey).slice(1),
-    })) as mmproto.AuthenticateResponse;
+    })) as schema.AuthenticateResponse;
     const types = {
       Challenge: [{ name: "challenge", type: "string" }],
     };
     const sig = await this.#signTypedDataMessage(types, {
       challenge: bytesToHex(response.challenge).slice(2),
     });
-    return this.encodeAndSend(mmproto.ChallengeSolvedRequest, {
+    return this.encodeAndSend(schema.ChallengeSolvedRequest, {
       signature: toBytes(sig),
     });
   }
 
   async connect(): Promise<
-    void | Event | mmproto.ChallengeSolvedResponse | string
+    void | Event | schema.ChallengeSolvedResponse | string
   > {
     if (
       !this.connection ||
@@ -225,7 +222,7 @@ export class RelayClient extends EventEmitter {
     }
     return new Promise((resolve, reject) => {
       if (this.connection.readyState === WebSocket.OPEN) {
-        resolve();
+        resolve("already open");
       } else {
         this.connection.addEventListener("open", async () => {
           console.log("ws open");
@@ -321,8 +318,8 @@ export class RelayClient extends EventEmitter {
   async uploadBlob(blob: FormData) {
     await this.connect();
     const uploadURLResp = (await this.encodeAndSend(
-      mmproto.GetBlobUploadURLRequest,
-    )) as mmproto.GetBlobUploadURLResponse;
+      schema.GetBlobUploadURLRequest,
+    )) as schema.GetBlobUploadURLResponse;
     if (uploadURLResp.error !== null) {
       throw new Error(
         `Failed to get blob upload URL: ${uploadURLResp.error!.message}`,
@@ -346,7 +343,7 @@ export class RelayClient extends EventEmitter {
     description: string,
     profilePictureUrl: string,
     publishedTagId: `0x${string}` | null = null,
-  ): Promise<mmproto.EventWriteResponse> {
+  ): Promise<schema.EventWriteResponse> {
     await this.connect();
     let pId = eventId();
     if (publishedTagId) {
@@ -398,7 +395,7 @@ export class RelayClient extends EventEmitter {
     return this.#signAndSendShopEvent(
       types,
       shopManifest,
-    ) as Promise<mmproto.EventWriteResponse>;
+    ) as Promise<schema.EventWriteResponse>;
   }
 
   async updateShopManifest(update: {
@@ -725,7 +722,7 @@ export class RelayClient extends EventEmitter {
   async commitOrder(
     orderId: `0x${string}`,
     erc20Addr?: `0x${string}` | null,
-  ): Promise<mmproto.CommitItemsToOrderResponse> {
+  ): Promise<schema.CommitItemsToOrderResponse> {
     let erc20AddrBytes: Uint8Array | null = null;
     if (erc20Addr) {
       erc20AddrBytes = hexToBytes(erc20Addr);
@@ -734,11 +731,11 @@ export class RelayClient extends EventEmitter {
       }
     }
     await this.connect();
-    return this.encodeAndSend(mmproto.CommitItemsToOrderRequest, {
+    return this.encodeAndSend(schema.CommitItemsToOrderRequest, {
       orderId: hexToBytes(orderId),
       erc20Addr: erc20AddrBytes,
       chainId: this.chain.id,
-    }) as Promise<mmproto.CommitItemsToOrderResponse>;
+    }) as Promise<schema.CommitItemsToOrderResponse>;
   }
 
   async changeStock(itemIds: `0x${string}`[], diffs: number[]) {

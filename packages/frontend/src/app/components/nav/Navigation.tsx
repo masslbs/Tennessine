@@ -26,7 +26,7 @@ const _menuOptions = [
 const Navigation = () => {
   const [menuOpened, setMenuOpened] = useState<boolean>(false);
 
-  const { avatar, name } = useMyContext();
+  const { name } = useMyContext();
   const { isAuthenticated, setIsAuthenticated } = useAuth();
   const { db } = useStoreContext();
   const searchParams = useSearchParams();
