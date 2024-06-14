@@ -10,11 +10,7 @@ import {
   useEnsAvatar,
   useWalletClient,
 } from "wagmi";
-import {
-  RelayClient,
-  ClientArgs,
-  WalletClientWithAccount,
-} from "@massmarket/client";
+import { RelayClient, WalletClientWithAccount } from "@massmarket/client";
 import { hardhat, sepolia, mainnet, type Chain } from "viem/chains";
 import { http, createPublicClient, hexToBytes, bytesToHex } from "viem";
 import { useAuth } from "@/context/AuthContext";
@@ -152,7 +148,7 @@ export const MyContextProvider = (
       keyCard = hexToBytes(savedKC);
     }
     const privateKey = inviteSecret ? inviteSecret : bytesToHex(keyCard);
-    const user: ClientArgs = {
+    const user = {
       relayEndpoint:
         process.env.NEXT_PUBLIC_RELAY_ENDPOINT ||
         "wss://relay-beta.mass.market/v1",

@@ -14,33 +14,31 @@ import {
   type Account,
   type Chain,
 } from "viem";
-
 import { EventEmitter } from "events";
 import { PrivateKeyAccount } from "viem/accounts";
 import { hardhat } from "viem/chains";
 import type { TypedData } from "abitype";
-import { market } from "./protobuf/compiled";
-import mmproto = market.mass;
+import pb from "./protobuf/compiled.js";
+/* eslint no-undef: "off" */
+import mmproto = pb.market.mass;
 import {
   PBObject,
   PBMessage,
   PBInstance,
   MESSAGE_TYPES,
   MESSAGE_PREFIXES,
-} from "./protobuf/constants";
-
-import { BlockchainClient } from "./blockchainClient";
-import { ReadableEventStream } from "./stream";
+} from "./protobuf/constants.js";
+import { BlockchainClient } from "./blockchainClient.js";
+import { ReadableEventStream } from "./stream.js";
 import {
   formatMessageForSigning,
   requestId,
   eventId,
   hexToBase64,
   convertFirstCharToLowerCase,
-  camelToSnake,
   snakeToCamel,
   type NetworkMessage,
-} from "./utils";
+} from "./utils.js";
 import * as abi from "@massmarket/contracts";
 
 export type WalletClientWithAccount = WalletClient<
@@ -49,29 +47,6 @@ export type WalletClientWithAccount = WalletClient<
   Account
 > & {
   account: Account;
-};
-
-export type ClientArgs = {
-  relayEndpoint: string;
-  keyCardWallet: PrivateKeyAccount;
-  chain: Chain;
-  keyCardEnrolled: boolean;
-  shopId: `0x${string}` | undefined;
-};
-
-type UpdateShopManifestOpts = {
-  domain?: string;
-  publishedTagId?: `0x${string}`;
-  addErc20Addr?: `0x${string}`;
-  removeErc20Addr?: `0x${string}`;
-  name?: string;
-  description?: string;
-  profilePictureUrl?: string;
-};
-
-type UpdateItemOpts = {
-  price?: string;
-  metadata?: any; // TODO: actually should be an object...
 };
 
 export class RelayClient extends EventEmitter {
@@ -91,7 +66,13 @@ export class RelayClient extends EventEmitter {
     chain = hardhat,
     keyCardEnrolled,
     shopId,
-  }: ClientArgs) {
+  }: {
+    relayEndpoint: string;
+    keyCardWallet: PrivateKeyAccount;
+    chain: Chain;
+    keyCardEnrolled: boolean;
+    shopId: `0x${string}` | undefined;
+  }) {
     super();
     this.blockchain = new BlockchainClient(shopId);
     this.keyCardWallet = keyCardWallet;
@@ -420,7 +401,15 @@ export class RelayClient extends EventEmitter {
     ) as Promise<mmproto.EventWriteResponse>;
   }
 
-  async updateShopManifest(update: UpdateShopManifestOpts) {
+  async updateShopManifest(update: {
+    domain?: string;
+    publishedTagId?: `0x${string}`;
+    addErc20Addr?: `0x${string}`;
+    removeErc20Addr?: `0x${string}`;
+    name?: string;
+    description?: string;
+    profilePictureUrl?: string;
+  }) {
     await this.connect();
 
     const types = [
@@ -522,7 +511,13 @@ export class RelayClient extends EventEmitter {
     return bytesToHex(iid);
   }
 
-  async updateItem(itemId: `0x${string}`, update: UpdateItemOpts) {
+  async updateItem(
+    itemId: `0x${string}`,
+    update: {
+      price?: string;
+      metadata?: any; // TODO: actually should be an object...
+    },
+  ) {
     await this.connect();
 
     const message = {

@@ -1,6 +1,7 @@
-import { market } from "./protobuf/compiled";
+import pb from "./protobuf/compiled.js";
+/* eslint no-undef: "off" */
+import mmproto = pb.market.mass;
 import { RelayClient } from "./";
-import mmproto = market.mass;
 
 /**
  * This class is a Simple wrapper around a ReadableStream that expose the controller
