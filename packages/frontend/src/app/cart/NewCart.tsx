@@ -31,7 +31,7 @@ const NewCart = ({ next }: { next: () => void }) => {
 
   const calculateTotal = () => {
     if (noItems) return null;
-    let quantity: number = 0;
+    // let quantity: number = 0;
     let totalPrice: number = 0;
     Object.keys(activeCartItems).map((id) => {
       const itemId = id as ItemId;
@@ -39,7 +39,7 @@ const NewCart = ({ next }: { next: () => void }) => {
       if (!item) return;
       const selectedQuantity = activeCartItems[itemId] || 0;
       if (selectedQuantity && item.price) {
-        quantity += Number(selectedQuantity);
+        // quantity += Number(selectedQuantity);
         const qtyPrice = Number(item.price) * Number(selectedQuantity);
         totalPrice += qtyPrice;
       }

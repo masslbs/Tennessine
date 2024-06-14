@@ -17,11 +17,11 @@ import { IStatus } from "@/types";
 const Navigation = () => {
   const [menuOpened, setMenuOpened] = useState<boolean>(false);
 
-  const { avatar, name } = useMyContext();
+  const { name } = useMyContext();
   const { isAuthenticated } = useAuth();
   const { orderItems, orderId } = useStoreContext();
 
-  const profilePhoto = avatar ? avatar : "example-avatar.svg";
+  // const profilePhoto = avatar ? avatar : "example-avatar.svg";
   const activeCartItems = orderId && orderItems.get(orderId)?.items;
   const arr = activeCartItems ? Object.values(activeCartItems) : [];
   let len = 0;

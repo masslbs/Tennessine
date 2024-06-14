@@ -2,7 +2,6 @@
 import ProgressBar from "@/app/components/checkout/ProgressBar";
 import React, { useEffect, useState } from "react";
 import { useStoreContext } from "@/context/StoreContext";
-import { ItemState } from "@/context/types";
 import NewCart from "@/app/cart/NewCart";
 import CurrencyChange from "@/app/common/components/CurrencyChange";
 import CurrencyButton from "@/app/common/components/CurrencyButton";
@@ -12,8 +11,7 @@ import Image from "next/image";
 import PaymentOptions from "@/app/components/checkout/PaymentOptions";
 
 const CheckoutFlow = () => {
-  const { orderItems, products, orderId, commitOrder, finalizedOrders } =
-    useStoreContext();
+  const { commitOrder, finalizedOrders } = useStoreContext();
 
   const [step, setStep] = useState(0);
 
@@ -35,7 +33,8 @@ const CheckoutFlow = () => {
       if (!currentCart) return;
       const { totalInCrypto, erc20Addr, purchaseAddress, total } = currentCart;
       setCryptoTotal(totalInCrypto);
-
+      //FIXME
+      setErc20Checkout(false);
       setPurchaseAdd(purchaseAddress);
       setTotalDollar(total);
       if (erc20Checkout) {
@@ -107,6 +106,8 @@ const CheckoutFlow = () => {
 
   return (
     <main className="pt-under-nav h-screen bg-gray-100 px-5">
+      {/* FIXME: need banner design for errors */}
+      {showErrorMessage && showErrorMessage}
       <CurrencyButton
         toggle={() => setShowCurrencyOptions(!showCurrencyOptions)}
       />

@@ -26,6 +26,13 @@ function WalletConnectQR({
     projectId: "6c432edcd930e0fa2c87a8d940ae5b91",
     chains: [`eip155:${usedChain}`],
   });
+
+  useEffect(() => {
+    if (account.length) {
+      handleSend();
+    }
+  }, [account.length]);
+
   async function createClient() {
     try {
       const signClient = await SignClient.init({
@@ -66,21 +73,21 @@ function WalletConnectQR({
     }
   }
 
-  async function handleDisconnect() {
-    try {
-      signClient &&
-        session &&
-        (await signClient.disconnect({
-          topic: session.topic,
-          // @ts-expect-error FIXME
-          message: "User disconnected",
-          code: 6000,
-        }));
-      reset();
-    } catch (e) {
-      console.log(e);
-    }
-  }
+  // async function handleDisconnect() {
+  //   try {
+  //     signClient &&
+  //       session &&
+  //       (await signClient.disconnect({
+  //         topic: session.topic,
+  //         // @ts-expect-error FIXME
+  //         message: "User disconnected",
+  //         code: 6000,
+  //       }));
+  //     reset();
+  //   } catch (e) {
+  //     console.log(e);
+  //   }
+  // }
 
   async function handleSend() {
     if (!account.length) throw Error("No account found");
@@ -106,10 +113,10 @@ function WalletConnectQR({
     }
   }
 
-  const reset = () => {
-    setAccount([]);
-    setSession(null);
-  };
+  // const reset = () => {
+  //   setAccount([]);
+  //   setSession(null);
+  // };
 
   useEffect(() => {
     if (!signClient) {
@@ -119,17 +126,6 @@ function WalletConnectQR({
 
   return (
     <div>
-      {/* {account.length ? (
-        <>
-          <p>{account}</p>
-          <button onClick={handleSend}>Send Transaction</button>
-          <button onClick={handleDisconnect}>Disconnect</button>
-        </>
-      ) : (
-        <Button onClick={handleConnect} disabled={!signClient}>
-          Connect
-        </Button>
-      )} */}
       <Button onClick={handleConnect} disabled={!signClient}>
         Connect Wallet
       </Button>
