@@ -10,20 +10,26 @@ import { IStatus } from "@/types";
 
 function QRScan({
   imgSrc,
-  // setStatusScreen,
-  // totalToRender,
   totalDollar,
   purchaseAddress,
+  showModal,
+  cryptoTotal,
+  goBack,
 }: {
   imgSrc: string | null;
-  // setStatusScreen: Dispatch<SetStateAction<boolean>>;
-  // totalToRender: string | null;
   totalDollar: string;
   purchaseAddress: string;
+  showModal: string | null;
+  cryptoTotal: string;
+  goBack: () => void;
 }) {
   console.log("for testing send payment to:", imgSrc);
   const { orderId, orderItems, setOrderId } = useStoreContext();
   const [src, setQr] = useState<string | null>(null);
+  const amount = (Number(cryptoTotal) / 10 ** 18).toFixed(2);
+  //FIXME: render erc20
+  // const erc20Amount = Number(cryptoTotal) / Math.pow(10, decimals);
+  // const header = `${erc20Checkout ? erc20Amount : amount.toFixed(2)} ${symbol}`;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(purchaseAddress!);
@@ -39,36 +45,47 @@ function QRScan({
       orderId &&
       orderItems.get(orderId)?.status === IStatus.Complete
     ) {
-      // setStatusScreen(true);
       setOrderId(null);
     }
   }, [orderItems]);
 
   return (
-    <main className="text-center flex flex-col ">
-      <div className="flex flex-col ">
-        <h3 className="pt-10 text-gray-400">Total</h3>
-        {/* <p className="text-4xl text-blue-700 mt-4">{totalToRender}</p> */}
-        <p className="text-4xl text-blue-700 mt-8">Scan to Pay</p>
-      </div>
-      <div className="flex justify-center mt-4">
-        {src && <Image src={src} width={215} height={215} alt="QR-code" />}
-      </div>
-      <div>
-        <p>{totalDollar} USD</p>
-        <div className="flex text-center justify-center">
-          <button className="mr-4" onClick={copyToClipboard}>
-            <Image
-              src="/assets/copy-icon.svg"
-              width={24}
-              height={24}
-              alt="copy-icon"
-            />
+    <div
+      id="QR-modal"
+      className="text-center h-full flex items-center justify-center"
+    >
+      {showModal === "QR" ? (
+        <div className="flex flex-col items-center gap-8">
+          <button className="text-primary-gray" onClick={goBack}>
+            go back
           </button>
-          <p>{purchaseAddress.slice(0, 20)}...</p>
+          <div className="border-2 rounded-3xl p-2 shadow-xl">
+            {src && <Image src={src} width={215} height={215} alt="QR-code" />}
+          </div>
+          <p className="text-primary-gray">scan to pay</p>
+          <h2>{amount}</h2>
         </div>
-      </div>
-    </main>
+      ) : (
+        <div className="flex flex-col gap-5 text-primary-gray">
+          <button onClick={goBack}>go back</button>
+          <h2>
+            Send <span className="text-black">{amount}</span>
+          </h2>
+          <p>to this address:</p>
+          <div className="flex text-center justify-center border-2 p-2 rounded-xl shadow-xl">
+            <p>{purchaseAddress.slice(0, 20)}...</p>
+            <button className="mr-4" onClick={copyToClipboard}>
+              <Image
+                src="/assets/copy-icon.svg"
+                width={24}
+                height={24}
+                alt="copy-icon"
+              />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

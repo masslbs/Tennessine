@@ -2,9 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
+import Chevron from "./Chevron";
 
-const CurrencyButton = ({ toggle }) => {
-  const [closed, setClosed] = useState<boolean>(true);
+const CurrencyButton = ({ toggle }: { toggle: () => void }) => {
+  const [open, setOpen] = useState<boolean>(false);
   return (
     <div className="flex gap-2 py-4 text-sm">
       <div
@@ -12,7 +13,7 @@ const CurrencyButton = ({ toggle }) => {
         className="flex border gap-1 rounded-xl py-2 px-4 bg-primary-gray ml-auto"
         onClick={() => {
           toggle();
-          setClosed(!closed);
+          setOpen(!open);
         }}
       >
         <Image
@@ -22,21 +23,7 @@ const CurrencyButton = ({ toggle }) => {
           alt="eth-icon"
         />
         <p className="flex items-center text-white px-1">USDC</p>
-        {closed ? (
-          <Image
-            src="/assets/chevron-down.svg"
-            width={13}
-            height={13}
-            alt="down-icon"
-          />
-        ) : (
-          <Image
-            src="/assets/chevron-up.svg"
-            width={13}
-            height={13}
-            alt="up-icon"
-          />
-        )}
+        <Chevron open={open} />
       </div>
     </div>
   );

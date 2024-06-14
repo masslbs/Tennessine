@@ -9,23 +9,25 @@ import { useStoreContext } from "@/context/StoreContext";
 import Button from "@/app/common/components/Button";
 import { ItemId } from "@/types";
 import { ItemState } from "@/context/types";
+import { useRouter } from "next/navigation";
 
-const NewCart = ({ next }: { next }) => {
-  const { cartItems, products, cartId } = useStoreContext();
-
+const NewCart = ({ next }: { next: () => void }) => {
+  const { orderItems, products, orderId, updateOrder } = useStoreContext();
   const [activeCartItems, setActiveCartItems] = useState<ItemState | null>(
     null,
   );
 
+  const router = useRouter();
+
   useEffect(() => {
-    if (cartId) {
-      const items = cartItems.get(cartId)?.items || null;
+    if (orderId) {
+      const items = orderItems.get(orderId)?.items || null;
       setActiveCartItems(items);
     }
-  }, [cartId, cartItems]);
+  }, [orderId, orderItems]);
 
   const noItems =
-    !cartId || !activeCartItems || !Object.keys(activeCartItems).length;
+    !orderId || !activeCartItems || !Object.keys(activeCartItems).length;
 
   const calculateTotal = () => {
     if (noItems) return null;
@@ -52,36 +54,49 @@ const NewCart = ({ next }: { next }) => {
       const itemId = id as ItemId;
       const item = products.get(itemId);
       if (!item || !item.metadata.image) return;
-
+      console.log({ item });
       return (
-        <div key={item.metadata.title} className="flex my-4">
-          <div className="flex justify-center mr-3">
-            <input type="checkbox" checked />
+        <div
+          key={item.metadata.title}
+          className="flex flex-col items-center gap-3 min-w-24 min-h-30"
+        >
+          <p className="text-xs text-primary-gray">{item.metadata.title}</p>
+          <div className="border-2 p-3 rounded-xl bg-white">
+            <Image
+              src={item.metadata.image}
+              width={85}
+              height={60}
+              alt="item-thumbnail"
+              unoptimized={true}
+              onError={(e) => {
+                (e.target as HTMLImageElement).onerror = null;
+                (e.target as HTMLImageElement).src = "/assets/no-image.png";
+              }}
+            />
+            <h4>{item.price}</h4>
           </div>
-          <Image
-            src={item.metadata.image}
-            width={58}
-            height={58}
-            alt="item-thumbnail"
-            unoptimized={true}
-          />
-          <div className="flex flex-col ml-4 mr-auto">
-            <p>{item.metadata.title}</p>
-            <p className="text-xs">{item.metadata.description}</p>
-          </div>
+          <input type="checkbox" checked />
         </div>
       );
     });
   };
 
   return (
-    <div>
-      <h2 className="text-center my-4">{calculateTotal()} ETH</h2>
+    <div className="text-center">
+      <h2 className="my-4">{calculateTotal()} ETH</h2>
       <Button onClick={next}>Proceed</Button>
-      <section className="mt-10">
-        <p>Deselect all items</p>
+      <section className="mt-10 flex gap-3 overflow-x-auto no-scrollbar">
         {renderItems()}
       </section>
+      <button
+        className="text-red-400 mt-6"
+        onClick={() => {
+          updateOrder();
+          router.push("/products");
+        }}
+      >
+        Deselect all
+      </button>
     </div>
   );
 };
