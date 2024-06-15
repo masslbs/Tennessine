@@ -9,6 +9,7 @@ import ShippingDetails from "@/app/components/checkout/ShippingDetails";
 import Image from "next/image";
 
 import PaymentOptions from "@/app/components/checkout/PaymentOptions";
+import ModalHeader from "@/app/common/components/ModalHeader";
 
 const CheckoutFlow = () => {
   const { commitOrder, finalizedOrders } = useStoreContext();
@@ -105,23 +106,31 @@ const CheckoutFlow = () => {
   };
 
   return (
-    <main className="pt-under-nav h-screen bg-gray-100 px-5">
+    <main className="pt-under-nav h-screen bg-gray-100 ">
       {/* FIXME: need banner design for errors */}
       {showErrorMessage && showErrorMessage}
-      <CurrencyButton
+      <ModalHeader />
+      {/* <CurrencyButton
         toggle={() => setShowCurrencyOptions(!showCurrencyOptions)}
-      />
-      {showCurrencyOptions ? (
-        <CurrencyChange />
-      ) : (
-        <div>
-          <ProgressBar
-            allSteps={["Review Cart", "Shipping Details", "Payment", "Success"]}
-            currentStep={step}
-          />
-          {renderContent()}
-        </div>
-      )}
+      /> */}
+      <div className="px-5">
+        {showCurrencyOptions ? (
+          <CurrencyChange />
+        ) : (
+          <div>
+            <ProgressBar
+              allSteps={[
+                "Review Cart",
+                "Shipping Details",
+                "Payment",
+                "Success",
+              ]}
+              currentStep={step}
+            />
+            {renderContent()}
+          </div>
+        )}
+      </div>
     </main>
   );
 };

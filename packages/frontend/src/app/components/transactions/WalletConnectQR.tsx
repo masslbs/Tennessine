@@ -113,10 +113,10 @@ function WalletConnectQR({
     }
   }
 
-  const reset = () => {
-    setAccount([]);
-    setSession(null);
-  };
+  // const reset = () => {
+  //   setAccount([]);
+  //   setSession(null);
+  // };
 
   useEffect(() => {
     if (!signClient) {

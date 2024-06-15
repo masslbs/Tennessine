@@ -60,7 +60,6 @@ const Products = () => {
       }
       return true;
     });
-
     arrayToRender.length && setArrToRender(arrayToRender);
     setResultCount(arrayToRender.length);
   }, [sortOption, products, tagIdToFilter]);
@@ -114,6 +113,7 @@ const Products = () => {
           const tag = allTags.get(t) as ITag;
           return (
             <button
+              key={t}
               onClick={() => setTagIdToFilter(t)}
               className="bg-primary-blue text-white text-sm rounded p-2"
             >
@@ -156,6 +156,7 @@ const Products = () => {
             <div className="flex justify-center">
               <Image
                 src={metadata.image || "/assets/no-image.png"}
+                // src={"/assets/example-item.jpeg" || "/assets/no-image.png"}
                 width={85}
                 height={60}
                 alt="product-thumb"
@@ -189,11 +190,6 @@ const Products = () => {
           <div className="flex pb-4">
             <h2 className="grow flex">Long shop name</h2>
             <CartButton />
-            {/* <Link
-              href={`/products/edit?${createQueryString("itemId", "new", searchParams)}`}
-            >
-              Add +
-            </Link> */}
           </div>
           <Search
             setSearchPhrase={setSearchPhrase}

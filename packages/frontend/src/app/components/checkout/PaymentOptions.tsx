@@ -87,6 +87,7 @@ const PaymentOptions = ({
         </SecondaryButton>
         <button onClick={next}>see next</button>
       </div>
+      <button onClick={next}>see next</button>
     </div>
   );
 };
