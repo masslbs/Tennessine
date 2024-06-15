@@ -33,7 +33,7 @@ const ProgressBar = ({
         })}
       </div>
       <div>
-        <p className="text-center text-primary-blue mt-10">
+        <p className="text-center text-primary-blue mt-8">
           {allSteps[currentStep]}
         </p>
       </div>
