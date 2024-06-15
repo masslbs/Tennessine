@@ -10,7 +10,6 @@ import NavigationMenu from "./NavigationMenu";
 import Button from "../../common/components/Button";
 import Link from "next/link";
 import { useMyContext } from "@/context/MyContext";
-import { useStoreContext } from "@/context/StoreContext";
 import { useAuth } from "@/context/AuthContext";
 import { IStatus } from "@/types";
 
@@ -19,15 +18,9 @@ const Navigation = () => {
 
   const { avatar, name } = useMyContext();
   const { isAuthenticated } = useAuth();
-  const { orderItems, orderId } = useStoreContext();
 
   // const profilePhoto = avatar ? avatar : "example-avatar.svg";
-  const activeCartItems = orderId && orderItems.get(orderId)?.items;
-  const arr = activeCartItems ? Object.values(activeCartItems) : [];
-  let len = 0;
-  for (const val of arr) {
-    len += val;
-  }
+
   const loggedIn = isAuthenticated === IStatus.Complete;
   const menuSwitch = () => {
     setMenuOpened(!menuOpened);
@@ -53,24 +46,10 @@ const Navigation = () => {
               className="h-6"
             />
           ) : null}
-          <p className="ml-2">
-            <span className="text-primary-gray">Hey, </span>
-            {name || "antimofm.eth"}
-          </p>
+          <p className="ml-2">{name || "antimofm.eth"}</p>
         </div>
         {loggedIn ? (
           <div className="flex gap-4">
-            <Link href="/cart" className="flex gap-2">
-              <Image
-                src={"/assets/Ecommerce.png"}
-                width={24}
-                height={24}
-                alt="ecommerce"
-                unoptimized={true}
-              />
-              <p>{len}</p>
-            </Link>
-
             <Link href="/my-wallet">
               <Image
                 src={`/assets/MassLabsLogo.svg`}

@@ -221,14 +221,22 @@ const AddProductView = () => {
       <div
         className={`bg-gray-100 rounded-lg w-full h-full min-w-full relative pb-10`}
       >
-        <div id="header" className="flex relative m-4">
-          <button onClick={onBack} className="text-blue-600">
+        <div id="header" className="flex relative m-4 gap-2">
+          <Image
+            src={"/assets/back-button.svg"}
+            width={12}
+            height={12}
+            alt="back-button"
+            unoptimized={true}
+            style={{ maxHeight: "64px", maxWidth: "64px" }}
+          />
+          <button onClick={onBack} className="text-primary-gray">
             back
           </button>
           <div className="flex justify-center w-full">
             <header className="pl-6">{hed}</header>
           </div>
-          <button onClick={onPublish} className="text-blue-600">
+          <button onClick={onPublish} className="text-primary-gray">
             {editView ? "update" : "publish"}
           </button>
         </div>
