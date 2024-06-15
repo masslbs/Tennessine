@@ -16,6 +16,7 @@ import SuccessMessage from "@/app/common/components/SuccessMessage";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createQueryString } from "@/app/utils";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
+import CartButton from "@/app/components/checkout/CartButton";
 
 const Products = () => {
   const searchParams = useSearchParams();
@@ -186,12 +187,13 @@ const Products = () => {
       <section className="bg-gray-100 pb-6">
         <section className="m-4">
           <div className="flex pb-4">
-            <p className="grow flex justify-center pl-10">EthDubai</p>
-            <Link
+            <h2 className="grow flex">Long shop name</h2>
+            <CartButton />
+            {/* <Link
               href={`/products/edit?${createQueryString("itemId", "new", searchParams)}`}
             >
               Add +
-            </Link>
+            </Link> */}
           </div>
           <Search
             setSearchPhrase={setSearchPhrase}
@@ -200,7 +202,16 @@ const Products = () => {
 
           <div className="flex gap-2 py-4 text-sm">
             <SecondaryButton onClick={() => setSortOpened(true)}>
-              Filters
+              <div className="items-center flex gap-3">
+                Filters
+                <Image
+                  src="/assets/filters.png"
+                  width={12}
+                  height={12}
+                  alt="filter"
+                  unoptimized={true}
+                />
+              </div>
             </SecondaryButton>
             <SecondaryButton
               onClick={() => {
@@ -218,13 +229,9 @@ const Products = () => {
               </div>
             </SecondaryButton>
           </div>
+          {renderFilterTags()}
+
           <div className="flex gap-2 py-4 text-sm">
-            <Image
-              src="/assets/products.svg"
-              width={19}
-              height={19}
-              alt="box-icon"
-            />
             <p className="flex items-center">{resultCount} items</p>
             <div className="flex ml-auto gap-2">
               <p
@@ -245,7 +252,6 @@ const Products = () => {
               </p>
             </div>
           </div>
-          {renderFilterTags()}
           <section className="product-list-container flex flex-col gap-4 mt-4">
             <div className="flex flex-wrap justify-around">
               {renderProducts()}
