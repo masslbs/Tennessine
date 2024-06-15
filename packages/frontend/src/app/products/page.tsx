@@ -27,9 +27,10 @@ const Products = () => {
   const [showSuccessMsg, setMsg] = useState<boolean>(success !== null);
   const { products, publishedTagId, allTags } = useStoreContext();
   const [arrToRender, setArrToRender] = useState<IProduct[] | null>(null);
-  // const [resultCount, setResultCount] = useState<number>(products.size);
+  const [resultCount, setResultCount] = useState<number>(products.size);
   const [showTags, setShowTags] = useState<boolean>(false);
   const [tagIdToFilter, setTagIdToFilter] = useState<null | TagId>(null);
+  const [gridView, setGridView] = useState<boolean>(true);
 
   const findRemoveTagId = () => {
     for (const [key, value] of allTags.entries()) {
@@ -60,7 +61,7 @@ const Products = () => {
     });
 
     arrayToRender.length && setArrToRender(arrayToRender);
-    // setResultCount(arrayToRender.length);
+    setResultCount(arrayToRender.length);
   }, [sortOption, products, tagIdToFilter]);
 
   const viewProductDetails = (item: IProduct) => {
@@ -141,29 +142,32 @@ const Products = () => {
         <div
           onClick={() => viewProductDetails(item)}
           key={item.id}
-          className={`flex ${!visible ? "opacity-50" : ""}`}
+          className={`flex flex-col text-center mb-3 ${!visible ? "opacity-50" : ""} `}
         >
-          <div className="border p-1 rounded bg-white">
-            <Image
-              src={metadata.image || "/assets/no-image.png"}
-              width={64}
-              height={64}
-              alt="product-thumb"
-              unoptimized={true}
-              style={{ maxHeight: "64px", maxWidth: "64px" }}
-              onError={(e) => {
-                (e.target as HTMLImageElement).onerror = null;
-                (e.target as HTMLImageElement).src = "/assets/no-image.png";
-              }}
-            />
-          </div>
+          <p className="text-xs" data-testid={`product-title`}>
+            {metadata.title}
+          </p>
+
           <div
-            className="flex flex-col ml-4"
+            className="product-box gap-2 flex flex-col text-center border-2 p-3 rounded-xl bg-white"
             data-testid={`product-${metadata.title}`}
           >
-            <p data-testid={`product-title`}>{metadata.title}</p>
-            <p className="text-sm">{item.price}</p>
-            <p className="text-sm text-gray-400">{item.stockQty} Available</p>
+            <div className="flex justify-center">
+              <Image
+                src={metadata.image || "/assets/no-image.png"}
+                width={85}
+                height={60}
+                alt="product-thumb"
+                unoptimized={true}
+                style={{ maxHeight: "60px", maxWidth: "85px" }}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).onerror = null;
+                  (e.target as HTMLImageElement).src = "/assets/no-image.png";
+                }}
+              />
+            </div>
+            <h4>{item.price}</h4>
+            <p className="text-sm text-gray-400">{item.stockQty} left</p>
           </div>
         </div>
       );
@@ -193,28 +197,7 @@ const Products = () => {
             setSearchPhrase={setSearchPhrase}
             searchPhrase={searchPhrase}
           />
-          {/* <div className="flex gap-2 py-4 text-sm">
-            <Image
-              src="/assets/products.svg"
-              width={19}
-              height={19}
-              alt="box-icon"
-            />
-            <p className="flex items-center">{resultCount} results</p>
-            <div
-              id="sortOption-button"
-              className="flex border rounded-3xl	 py-2 px-4 bg-gray-200 ml-auto"
-              onClick={() => setSortOpened(true)}
-            >
-              <p className="flex items-center">{sortOption}</p>
-              <Image
-                src="/assets/chevron-down.svg"
-                width={19}
-                height={19}
-                alt="down-icon"
-              />
-            </div>
-          </div> */}
+
           <div className="flex gap-2 py-4 text-sm">
             <SecondaryButton onClick={() => setSortOpened(true)}>
               Filters
@@ -235,9 +218,38 @@ const Products = () => {
               </div>
             </SecondaryButton>
           </div>
+          <div className="flex gap-2 py-4 text-sm">
+            <Image
+              src="/assets/products.svg"
+              width={19}
+              height={19}
+              alt="box-icon"
+            />
+            <p className="flex items-center">{resultCount} items</p>
+            <div className="flex ml-auto gap-2">
+              <p
+                className={` p-2 ${gridView ? "border bg-black rounded-3xl text-white" : ""}`}
+                onClick={() => {
+                  setGridView(true);
+                }}
+              >
+                Grid
+              </p>
+              <p
+                className={`p-2 ${!gridView ? "border bg-black rounded-3xl text-white" : ""}`}
+                onClick={() => {
+                  setGridView(false);
+                }}
+              >
+                List
+              </p>
+            </div>
+          </div>
           {renderFilterTags()}
-          <section className="flex flex-col gap-4 mt-4">
-            {renderProducts()}
+          <section className="product-list-container flex flex-col gap-4 mt-4">
+            <div className="flex flex-wrap justify-around">
+              {renderProducts()}
+            </div>
           </section>
         </section>
       </section>
