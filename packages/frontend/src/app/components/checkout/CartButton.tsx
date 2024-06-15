@@ -16,7 +16,7 @@ const CartButton = () => {
     <button>
       <div className="flex gap-3 border rounded-3xl bg-[#AED3FF] shadow-[0_5px_30px_3px_#AED3FF] px-2 py-1">
         <p className="text-sm">{len}</p>
-        <Link href="/cart">
+        <Link href="/checkout">
           <Image
             src="/assets/cart.svg"
             alt="see-more-icon"
