@@ -7,8 +7,9 @@ import { hexToBytes } from "viem";
 
 import testVectorsData from "./testVectors.json" with { type: "json" };
 
-import { market, google } from "@massmarket/client/lib/protobuf/compiled";
-import mmproto = market.mass;
+import pb from "@massmarket/client/lib/protobuf/compiled";
+/* eslint no-undef: "off" */
+import mmproto = pb.market.mass;
 
 type VectorEvent = {
   type: string;
@@ -77,11 +78,7 @@ export class MockClient extends EventEmitter {
       const decodedEvent = mmproto.ShopEvent.decode(
         hexToBytes(("0x" + evt.encoded) as `0x${string}`),
       );
-      const pushReq = new mmproto.EventPushRequest({
-        requestId: sequentialReqId(),
-        events: [decodedEvent as google.protobuf.IAny],
-      });
-      this.emit("event", pushReq);
+      this.emit("event", decodedEvent);
     }
   }
   createEventStream() {

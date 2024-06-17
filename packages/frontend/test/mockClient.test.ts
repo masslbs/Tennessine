@@ -54,11 +54,11 @@ describe("mockclient", async () => {
   }
 
   client.on("event", (e) => {
-    events.push(e.request);
+    events.push(e);
     buildState(
       products,
       allTags,
-      e.events,
+      e,
       productsDispatch,
       tagsDisaptch,
       setOrderItems,
