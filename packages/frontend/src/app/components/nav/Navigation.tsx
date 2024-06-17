@@ -10,10 +10,11 @@ import { useMyContext } from "@/context/MyContext";
 import { useAuth } from "@/context/AuthContext";
 import { IStatus } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import FullModal from "@/app/common/components/FullModal";
 import Link from "next/link";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
+import { createQueryString } from "@/app/utils";
 
 const _menuOptions = [
   { title: "Sales dashboard", img: "earnings.svg", href: "/earnings" },
@@ -28,6 +29,7 @@ const Navigation = () => {
   const { avatar, name } = useMyContext();
   const { isAuthenticated, setIsAuthenticated } = useAuth();
   const { db } = useStoreContext();
+  const searchParams = useSearchParams();
 
   // const profilePhoto = avatar ? avatar : "example-avatar.svg";
   const router = useRouter();
@@ -91,7 +93,14 @@ const Navigation = () => {
                   />
                 </div>
               </SecondaryButton>
-              <SecondaryButton>Add Product +</SecondaryButton>
+              <SecondaryButton>
+                <Link
+                  href={`/products/edit?${createQueryString("itemId", "new", searchParams)}`}
+                  onClick={menuSwitch}
+                >
+                  Add Product +
+                </Link>
+              </SecondaryButton>
               <SecondaryButton>
                 <div className="flex items-center gap-1">
                   Settings

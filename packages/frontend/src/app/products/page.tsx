@@ -190,11 +190,6 @@ const Products = () => {
           <div className="flex pb-4">
             <h2 className="grow flex">Long shop name</h2>
             <CartButton />
-            <Link
-              href={`/products/edit?${createQueryString("itemId", "new", searchParams)}`}
-            >
-              Add +
-            </Link>
           </div>
           <Search
             setSearchPhrase={setSearchPhrase}
