@@ -7,7 +7,7 @@ import { hexToBytes } from "viem";
 
 import testVectorsData from "./testVectors.json" with { type: "json" };
 
-import schema, { google } from "@massmarket/schema";
+import schema from "@massmarket/schema";
 
 type VectorEvent = {
   type: string;
@@ -74,21 +74,15 @@ export class MockClient extends EventEmitter {
       const decodedEvent = schema.ShopEvent.decode(
         hexToBytes(("0x" + evt.encoded) as `0x${string}`),
       );
-      const pushReq = new schema.EventPushRequest({
-        requestId: sequentialReqId(),
-        events: [decodedEvent as google.protobuf.IAny],
-      });
-      this.emit("event", pushReq);
+      this.emit("event", decodedEvent);
     }
   }
   createEventStream() {
     const parentInstance = this;
     let enqueueFn: any;
     const enqueueWrapperFn = (controller: any) => {
-      return (enqueueFn = (events: any) => {
-        for (const event of events) {
-          controller.enqueue(event);
-        }
+      return (enqueueFn = (event: any) => {
+            controller.enqueue(event);
       });
     };
 
