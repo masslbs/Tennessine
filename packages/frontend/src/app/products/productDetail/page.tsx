@@ -228,13 +228,7 @@ const ProductDetail = () => {
   return (
     <main className="pt-under-nav h-screen bg-gray-100">
       {showConfirmModal && confirmDelete}
-      <ModalHeader
-        headerText="Products"
-        goBack={() => {
-          router.back();
-        }}
-        rightIcon={rightIcon}
-      />
+      <ModalHeader />
       <section className="h-[45rem] flex flex-col">
         <ErrorMessage
           errorMessage={showErrorMessage}
@@ -247,13 +241,14 @@ const ProductDetail = () => {
           <div className="flex">
             {item.metadata.image && (
               <Image
+                // src="/assets/example-item.jpeg"
                 src={item.metadata.image}
                 alt="product-detail-image"
-                width={98}
-                height={98}
+                width={136}
+                height={136}
                 className="border rounded-lg"
                 unoptimized={true}
-                style={{ maxHeight: "98px", maxWidth: "98px" }}
+                style={{ maxHeight: "136px", maxWidth: "136px" }}
               />
             )}
             <p className="text-xl flex items-center pl-4">
