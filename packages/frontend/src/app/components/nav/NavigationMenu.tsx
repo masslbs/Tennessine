@@ -57,7 +57,7 @@ const NavigationMenu = ({
     });
   };
   return (
-    <FullModal isOpen={isOpen} onClose={onClose} showAvatar={true}>
+    <FullModal isOpen={isOpen} onClose={onClose}>
       <main>
         <div className="flex flex-col justify-between mx-4 mt-4">
           <div className="mb-4">
@@ -67,10 +67,7 @@ const NavigationMenu = ({
           <div>
             <h2 onClick={logout}>Log out</h2>
           </div>
-          <div>{renderItems()}</div>
-          <div>
-            <h2 onClick={logout}>Log out</h2>
-          </div>
+
           {/* <div className="absolute bottom-0 left-0 right-0 mb-20 mx-5">
             <button
               type="button"

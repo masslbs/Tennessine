@@ -13,6 +13,13 @@ import { useStoreContext } from "@/context/StoreContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ItemState } from "@/context/types";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
+import Chevron from "@/app/common/components/Chevron";
+import {
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+} from "@nextui-org/dropdown";
 
 const ProductDetail = () => {
   const {
@@ -37,6 +44,7 @@ const ProductDetail = () => {
   );
   const [showErrorMessage, setShowErrorMessage] = useState<null | string>(null);
   const [available, setAvailable] = useState<number>(0);
+  const dropdownOpts = Array.from({ length: available }, (_, index) => index);
 
   const flyoutRef = createRef<HTMLDivElement>();
 
@@ -102,17 +110,6 @@ const ProductDetail = () => {
     }
   }, [itemId]);
 
-  const increment = () => {
-    setQuantity(quantity + 1);
-    setAvailable(available - 1);
-
-    setButton("Update");
-  };
-  const decrement = () => {
-    setQuantity(quantity - 1);
-    setAvailable(available + 1);
-    setButton("Update");
-  };
   const openConfirmModal = () => {
     setShowActions(false);
     setShowConfirmModal(true);
@@ -192,14 +189,14 @@ const ProductDetail = () => {
             }
           }}
         >
-          Add to cart
+          {(Number(item.price) * quantity).toFixed(2)}
         </Button>
       );
     } else if (buttonState === "Review") {
       return <Button onClick={() => router.push("/cart")}>Review Sale</Button>;
     } else if (buttonState === "Success") {
       return (
-        <button className="flex justify-center bg-green-600 w-full text-white px-4 py-4 rounded-md">
+        <button className="flex justify-center bg-green-600 w-full text-white px-4 rounded-md">
           <Image
             src="/assets/checkmark.svg"
             alt="checkmark-icon"
@@ -251,9 +248,14 @@ const ProductDetail = () => {
                 style={{ maxHeight: "136px", maxWidth: "136px" }}
               />
             )}
-            <p className="text-xl flex items-center pl-4">
-              {item.metadata.title}
-            </p>
+            <div className="flex flex-col">
+              <h2 className="text-xl flex items-center pl-4">
+                {item.metadata.title}
+              </h2>
+              <p className=" text-xs flex items-center pl-4">
+                {item.metadata.description}
+              </p>
+            </div>
           </div>
           <section className="flex gap-4 flex-col">
             <div>
@@ -272,56 +274,40 @@ const ProductDetail = () => {
                 <p>{available}</p>
               </div>
             </div>
-            <div className="flex justify-between">
-              <h5 className="font-sans text-gray-700 my-4">Quantity</h5>
-              <div
-                id="qty-button"
-                className="flex bg-white px-4 h-12 rounded gap-3 border"
-              >
-                {quantity === 0 ? (
-                  <button onClick={decrement} disabled={true}>
-                    <Image
-                      src={`/assets/minus-disabled.svg`}
-                      width={24}
-                      height={24}
-                      alt="minus-icon"
-                    />
-                  </button>
-                ) : (
-                  <button onClick={decrement}>
-                    <Image
-                      src={`/assets/minus-active.svg`}
-                      width={24}
-                      height={24}
-                      alt="minus-icon"
-                    />
-                  </button>
-                )}
-                <p className="flex items-center">{quantity}</p>
-                {available === 0 ? (
-                  <button onClick={increment} disabled={true}>
-                    <Image
-                      src={`/assets/plus-disabled.svg`}
-                      width={24}
-                      height={24}
-                      alt="add-icon"
-                    />
-                  </button>
-                ) : (
-                  <button onClick={increment}>
-                    <Image
-                      src={`/assets/plus-active.svg`}
-                      width={24}
-                      height={24}
-                      alt="add-icon"
-                    />
-                  </button>
-                )}
+            <section className="flex gap-2">
+              <div>
+                <h5 className="text-xs text-primary-gray mb-2">Quantity</h5>
+                <Dropdown>
+                  <DropdownTrigger>
+                    <Button>
+                      <div className="flex gap-2 p-4 border-2 rounded-xl text-2xl">
+                        {quantity}
+                        <Chevron hex="black" />
+                      </div>
+                    </Button>
+                  </DropdownTrigger>
+                  <DropdownMenu className="bg-white">
+                    {dropdownOpts.map((a) => {
+                      return (
+                        <DropdownItem key={a} onClick={() => setQuantity(a)}>
+                          {a}
+                        </DropdownItem>
+                      );
+                    })}
+                  </DropdownMenu>
+                </Dropdown>
               </div>
-            </div>
+              <div>
+                <h5 className="text-xs text-primary-gray mb-2">
+                  Add to basket
+                </h5>
+                <div>{getCtaButton()}</div>
+              </div>
+            </section>
           </section>
         </div>
-        <div className="mt-auto bg-white p-4 pb-8 rounded-2xl border border-gray-200">
+
+        {/* <div className="mt-auto bg-white p-4 pb-8 rounded-2xl border border-gray-200">
           <div className="flex my-5">
             <div className="flex flex-col mr-auto">
               <p>total</p>
@@ -330,7 +316,7 @@ const ProductDetail = () => {
             <p>{(Number(item.price) * quantity).toFixed(2)} USDC</p>
           </div>
           <div>{getCtaButton()}</div>
-        </div>
+        </div> */}
       </section>
     </main>
   );

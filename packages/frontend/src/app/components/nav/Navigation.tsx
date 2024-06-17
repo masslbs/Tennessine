@@ -8,7 +8,6 @@ import React, { useState } from "react";
 import Image from "next/image";
 import NavigationMenu from "./NavigationMenu";
 import Button from "../../common/components/Button";
-import Link from "next/link";
 import { useMyContext } from "@/context/MyContext";
 import { useAuth } from "@/context/AuthContext";
 import { IStatus } from "@/types";
@@ -36,28 +35,34 @@ const Navigation = () => {
   ) : (
     <div className={`absolute left-0 top-0 right-0`}>
       <div className="w-full border border-gray-200 p-4 text-base flex justify-between">
-        <div className="flex items-center" onClick={menuSwitch}>
+        <div
+          className="flex items-center text-primary-gray"
+          onClick={menuSwitch}
+        >
           {loggedIn ? (
-            <Image
-              src="/assets/Menu.svg"
-              width={24}
-              height={24}
-              alt="hamburger-icon"
-              className="h-6"
-            />
+            <div className="flex gap-2">
+              <Image
+                src="/assets/back-button.svg"
+                width={12}
+                height={12}
+                alt="hamburger-icon"
+                className="h-6"
+              />
+              <p>back</p>
+            </div>
           ) : null}
-          <p className="ml-2">{name || "antimofm.eth"}</p>
+          <p className="ml-5">{name || "antimofm.eth"}</p>
         </div>
         {loggedIn ? (
           <div className="flex gap-4">
-            <Link href="/my-wallet">
+            <button onClick={menuSwitch}>
               <Image
                 src={`/assets/MassLabsLogo.svg`}
                 width={24}
                 height={24}
                 alt="profile-avatar"
               />
-            </Link>
+            </button>
           </div>
         ) : (
           <Button
