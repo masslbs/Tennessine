@@ -26,9 +26,9 @@ const _menuOptions = [
 const Navigation = () => {
   const [menuOpened, setMenuOpened] = useState<boolean>(false);
 
-  const { avatar, name } = useMyContext();
+  const { name } = useMyContext();
   const { isAuthenticated, setIsAuthenticated } = useAuth();
-  const { db } = useStoreContext();
+  const { db, orderItems, orderId } = useStoreContext();
   const searchParams = useSearchParams();
 
   // const profilePhoto = avatar ? avatar : "example-avatar.svg";
@@ -39,6 +39,14 @@ const Navigation = () => {
     localStorage.clear();
     router.push("/");
   };
+
+  // const profilePhoto = avatar ? avatar : "example-avatar.svg";
+  // const activeCartItems = orderId && orderItems.get(orderId)?.items;
+  // const arr = activeCartItems ? Object.values(activeCartItems) : [];
+  // let len = 0;
+  // for (const val of arr) {
+  //   len += val;
+  // }
   const loggedIn = isAuthenticated === IStatus.Complete;
   const menuSwitch = () => {
     setMenuOpened(!menuOpened);
