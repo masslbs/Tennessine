@@ -9,8 +9,8 @@ import Image from "next/image";
 const AvatarUpload = ({
   setImgSrc,
 }: {
-  img: string | null;
-  setImgSrc: Dispatch<SetStateAction<string | null>>;
+  img: string;
+  setImgSrc: Dispatch<SetStateAction<string>>;
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const triggerFileInput = () => {

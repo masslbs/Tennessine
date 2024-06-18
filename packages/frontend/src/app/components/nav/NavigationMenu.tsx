@@ -26,7 +26,9 @@ const NavigationMenu = ({
   onClose: () => void;
   isOpen: boolean;
 }) => {
+  // const { db, invalidateOrder } = useStoreContext();
   const { db } = useStoreContext();
+
   const { setIsAuthenticated } = useAuth();
 
   const router = useRouter();
@@ -60,6 +62,10 @@ const NavigationMenu = ({
         <div className="flex flex-col justify-between mx-4 mt-4">
           <div className="mb-4">
             <h2>Long shop name</h2>
+          </div>
+          <div>{renderItems()}</div>
+          <div>
+            <h2 onClick={logout}>Log out</h2>
           </div>
           <div>{renderItems()}</div>
           <div>

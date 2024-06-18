@@ -8,6 +8,7 @@ import { WalletConnectModal } from "@walletconnect/modal";
 import { sepolia, mainnet } from "viem/chains";
 import { SignClient as ISignClient } from "@walletconnect/sign-client/dist/types/client";
 import { SessionTypes } from "@walletconnect/types";
+import Button from "@/app/common/components/Button";
 
 function WalletConnectQR({
   purchaseAddress,
@@ -25,6 +26,13 @@ function WalletConnectQR({
     projectId: "6c432edcd930e0fa2c87a8d940ae5b91",
     chains: [`eip155:${usedChain}`],
   });
+
+  useEffect(() => {
+    if (account.length) {
+      handleSend();
+    }
+  }, [account.length]);
+
   async function createClient() {
     try {
       const signClient = await SignClient.init({
@@ -65,21 +73,21 @@ function WalletConnectQR({
     }
   }
 
-  async function handleDisconnect() {
-    try {
-      signClient &&
-        session &&
-        (await signClient.disconnect({
-          topic: session.topic,
-          // @ts-expect-error FIXME
-          message: "User disconnected",
-          code: 6000,
-        }));
-      reset();
-    } catch (e) {
-      console.log(e);
-    }
-  }
+  // async function handleDisconnect() {
+  //   try {
+  //     signClient &&
+  //       session &&
+  //       (await signClient.disconnect({
+  //         topic: session.topic,
+  //         // @ts-expect-error FIXME
+  //         message: "User disconnected",
+  //         code: 6000,
+  //       }));
+  //     reset();
+  //   } catch (e) {
+  //     console.log(e);
+  //   }
+  // }
 
   async function handleSend() {
     if (!account.length) throw Error("No account found");
@@ -105,10 +113,10 @@ function WalletConnectQR({
     }
   }
 
-  const reset = () => {
-    setAccount([]);
-    setSession(null);
-  };
+  // const reset = () => {
+  //   setAccount([]);
+  //   setSession(null);
+  // };
 
   useEffect(() => {
     if (!signClient) {
@@ -117,19 +125,10 @@ function WalletConnectQR({
   }, [signClient]);
 
   return (
-    <div className="App">
-      <h1>Sign v2 Standalone</h1>
-      {account.length ? (
-        <>
-          <p>{account}</p>
-          <button onClick={handleSend}>Send Transaction</button>
-          <button onClick={handleDisconnect}>Disconnect</button>
-        </>
-      ) : (
-        <button onClick={handleConnect} disabled={!signClient}>
-          Connect
-        </button>
-      )}
+    <div>
+      <Button onClick={handleConnect} disabled={!signClient}>
+        Connect Wallet
+      </Button>
     </div>
   );
 }

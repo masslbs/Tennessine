@@ -17,11 +17,11 @@ import { IStatus } from "@/types";
 const Navigation = () => {
   const [menuOpened, setMenuOpened] = useState<boolean>(false);
 
-  const { avatar } = useMyContext();
+  const { name } = useMyContext();
   const { isAuthenticated } = useAuth();
   const { orderItems, orderId } = useStoreContext();
 
-  const profilePhoto = avatar ? avatar : "example-avatar.svg";
+  // const profilePhoto = avatar ? avatar : "example-avatar.svg";
   const activeCartItems = orderId && orderItems.get(orderId)?.items;
   const arr = activeCartItems ? Object.values(activeCartItems) : [];
   let len = 0;
@@ -53,7 +53,10 @@ const Navigation = () => {
               className="h-6"
             />
           ) : null}
-          <p className="ml-2">mass market</p>
+          <p className="ml-2">
+            <span className="text-primary-gray">Hey, </span>
+            {name || "antimofm.eth"}
+          </p>
         </div>
         {loggedIn ? (
           <div className="flex gap-4">
@@ -70,7 +73,7 @@ const Navigation = () => {
 
             <Link href="/my-wallet">
               <Image
-                src={`/assets/${profilePhoto}`}
+                src={`/assets/MassLabsLogo.svg`}
                 width={24}
                 height={24}
                 alt="profile-avatar"
