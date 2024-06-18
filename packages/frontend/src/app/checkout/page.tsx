@@ -3,8 +3,8 @@ import ProgressBar from "@/app/components/checkout/ProgressBar";
 import React, { useEffect, useState } from "react";
 import { useStoreContext } from "@/context/StoreContext";
 import NewCart from "@/app/cart/NewCart";
-import CurrencyChange from "@/app/common/components/CurrencyChange";
-import CurrencyButton from "@/app/common/components/CurrencyButton";
+// import CurrencyChange from "@/app/common/components/CurrencyChange";
+// import CurrencyButton from "@/app/common/components/CurrencyButton";
 import ShippingDetails from "@/app/components/checkout/ShippingDetails";
 import Image from "next/image";
 
@@ -25,8 +25,8 @@ const CheckoutFlow = () => {
   const [cryptoTotal, setCryptoTotal] = useState<string | null>(null);
   const [purchaseAdd, setPurchaseAdd] = useState<string | null>(null);
   const [totalDollar, setTotalDollar] = useState<string | null>(null);
-  const [showCurrencyOptions, setShowCurrencyOptions] =
-    useState<boolean>(false);
+  // const [showCurrencyOptions, setShowCurrencyOptions] =
+  //   useState<boolean>(false);
 
   useEffect((): void => {
     if (finalizedOrders && checkoutReqId) {
@@ -114,22 +114,13 @@ const CheckoutFlow = () => {
         toggle={() => setShowCurrencyOptions(!showCurrencyOptions)}
       /> */}
       <div className="px-5">
-        {showCurrencyOptions ? (
-          <CurrencyChange />
-        ) : (
-          <div>
-            <ProgressBar
-              allSteps={[
-                "Review Cart",
-                "Shipping Details",
-                "Payment",
-                "Success",
-              ]}
-              currentStep={step}
-            />
-            {renderContent()}
-          </div>
-        )}
+        <div>
+          <ProgressBar
+            allSteps={["Review Cart", "Shipping Details", "Payment", "Success"]}
+            currentStep={step}
+          />
+          {renderContent()}
+        </div>
       </div>
     </main>
   );

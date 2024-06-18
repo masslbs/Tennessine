@@ -28,7 +28,7 @@ const Navigation = () => {
 
   const { name } = useMyContext();
   const { isAuthenticated, setIsAuthenticated } = useAuth();
-  const { db, orderItems, orderId } = useStoreContext();
+  const { db } = useStoreContext();
   const searchParams = useSearchParams();
 
   // const profilePhoto = avatar ? avatar : "example-avatar.svg";

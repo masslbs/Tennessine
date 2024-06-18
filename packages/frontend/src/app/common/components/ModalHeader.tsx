@@ -10,14 +10,36 @@ import CartButton from "@/app/components/checkout/CartButton";
 import { useRouter } from "next/navigation";
 
 export type Header = {
-  headerText: string;
-  goBack: () => void;
+  headerText?: string;
+  goBack?: () => void;
   rightIcon?: ReactNode;
 };
 
-const ModalHeader = () => {
+const ModalHeader = ({ goBack, headerText, rightIcon }: Header) => {
   const router = useRouter();
-
+  if (headerText) {
+    return (
+      <div className="py-4 mx-4">
+        <div id="container" className="flex relative">
+          <Image
+            id="overlay"
+            src="/assets/left-arrow.svg"
+            width={24}
+            height={24}
+            alt="left-arrow-icon"
+            onClick={goBack}
+            className="absolute margin-auto top-0 bottom-0 left-0 right-0"
+          />
+          <div className="flex justify-center w-full">
+            <h1 className={`${rightIcon ? "pl-6" : ""}`}>{headerText}</h1>
+          </div>
+          {rightIcon && (
+            <div className="w-10 flex justify-end">{rightIcon}</div>
+          )}
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="mx-4">
       <div className="flex">

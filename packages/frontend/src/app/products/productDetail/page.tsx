@@ -3,11 +3,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 "use client";
-import React, { useState, useEffect, createRef } from "react";
+import React, { useState, useEffect } from "react";
 import ModalHeader from "@/app/common/components/ModalHeader";
 import Image from "next/image";
 import Button from "@/app/common/components/Button";
-import SeeProductActions from "@/app/components/products/SeeProductActions";
+// import SeeProductActions from "@/app/components/products/SeeProductActions";
 import { IProduct, ItemId } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -34,7 +34,7 @@ const ProductDetail = () => {
   const searchParams = useSearchParams();
   const itemId = searchParams.get("itemId") as ItemId;
   const [quantity, setQuantity] = useState<number>(0);
-  const [showActions, setShowActions] = useState<boolean>(false);
+  // const [showActions, setShowActions] = useState<boolean>(false);
   const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
   const [item, setItem] = useState<IProduct | null>(null);
 
@@ -46,16 +46,16 @@ const ProductDetail = () => {
   const [available, setAvailable] = useState<number>(0);
   const dropdownOpts = Array.from({ length: available }, (_, index) => index);
 
-  const flyoutRef = createRef<HTMLDivElement>();
+  // const flyoutRef = createRef<HTMLDivElement>();
 
-  const handleFlyout = (event: MouseEvent) => {
-    if (
-      flyoutRef.current &&
-      !flyoutRef.current.contains(event.target as Node)
-    ) {
-      setShowActions(false);
-    }
-  };
+  // const handleFlyout = (event: MouseEvent) => {
+  //   if (
+  //     flyoutRef.current &&
+  //     !flyoutRef.current.contains(event.target as Node)
+  //   ) {
+  //     setShowActions(false);
+  //   }
+  // };
 
   const findRemoveTagId = () => {
     for (const [key, value] of allTags.entries()) {
@@ -80,16 +80,16 @@ const ProductDetail = () => {
     }
   };
 
-  useEffect(() => {
-    document.addEventListener("mousedown", (event: MouseEvent) =>
-      handleFlyout(event),
-    );
-    return () => {
-      document.removeEventListener("mousedown", (event: MouseEvent) =>
-        handleFlyout(event),
-      );
-    };
-  }, [flyoutRef]);
+  // useEffect(() => {
+  //   document.addEventListener("mousedown", (event: MouseEvent) =>
+  //     handleFlyout(event),
+  //   );
+  //   return () => {
+  //     document.removeEventListener("mousedown", (event: MouseEvent) =>
+  //       handleFlyout(event),
+  //     );
+  //   };
+  // }, [flyoutRef]);
 
   useEffect(() => {
     const itemsInCurrentCart: ItemState | null =
@@ -109,34 +109,6 @@ const ProductDetail = () => {
       setQuantity(qty);
     }
   }, [itemId]);
-
-  const openConfirmModal = () => {
-    setShowActions(false);
-    setShowConfirmModal(true);
-  };
-
-  const rightIcon = showActions ? (
-    <div ref={flyoutRef}>
-      <SeeProductActions
-        showConfirmModal={openConfirmModal}
-        isOpen={showActions}
-        itemId={itemId}
-      />
-    </div>
-  ) : (
-    <button
-      onClick={() => {
-        setShowActions(true);
-      }}
-    >
-      <Image
-        src="/assets/see-more-icon.svg"
-        alt="see-more-icon"
-        width={24}
-        height={24}
-      />
-    </button>
-  );
 
   const confirmDelete = (
     <div
