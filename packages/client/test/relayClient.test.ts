@@ -16,9 +16,7 @@ import { describe, beforeEach, afterEach, expect, test } from "vitest";
 
 import { RelayClient } from "../lib";
 import { random32BytesHex } from "../lib/utils";
-import pb from "../lib/protobuf/compiled";
-/* eslint no-undef: "off" */
-import mmproto = pb.market.mass;
+import schema from "@massmarket/schema";
 
 import * as abi from "@massmarket/contracts";
 
@@ -168,7 +166,7 @@ describe("user behaviour", () => {
     const response = await relayClient.enrollKeycard(wallet);
     expect(response.status).toBe(201);
     const authenticated =
-      (await relayClient.connect()) as mmproto.ChallengeSolvedResponse;
+      (await relayClient.connect()) as schema.ChallengeSolvedResponse;
     expect(authenticated.error).toBeNull();
   });
 
