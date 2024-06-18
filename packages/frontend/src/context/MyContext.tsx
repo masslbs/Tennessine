@@ -2,7 +2,13 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useRef,
+  useEffect,
+  useState,
+} from "react";
 import {
   useAccount,
   useEnsName,
@@ -17,7 +23,7 @@ import { useAuth } from "@/context/AuthContext";
 import * as abi from "@massmarket/contracts";
 import { IStatus } from "../types";
 import { type ClientContext } from "./types";
-import { privateKeyToAccount } from "viem/accounts";
+import { privateKeyToAccount, Address } from "viem/accounts";
 
 export const MyContext = createContext<ClientContext>({
   walletAddress: null,
@@ -60,6 +66,11 @@ export const MyContextProvider = (
   const [keyCardEnrolled, setKeyCardEnrolled] = useState<null | `0x${string}`>(
     null,
   );
+  const [storeIds, setStoreIds] = useState<null | Map<`0x${string}`, boolean>>(
+    null,
+  );
+  const storeIdsVerified = useRef(false);
+
   if (typeof window == "undefined") {
     console.warn("not a browser session");
     return;
@@ -101,6 +112,45 @@ export const MyContextProvider = (
   const { data } = useBalance({
     address: address as `0x${string}`,
   });
+
+  const getStores = async () => {
+    const stores = new Map();
+
+    const logs = await publicClient.getLogs({
+      address: abi.addresses.ShopReg as Address,
+    });
+
+    const _stores = logs[0].topics;
+    await Promise.all(
+      _stores.map(async (id) => {
+        try {
+          const ownerAdd = (await publicClient.readContract({
+            address: abi.addresses.ShopReg as Address,
+            abi: abi.ShopReg,
+            functionName: "ownerOf",
+            args: [BigInt(id)],
+          })) as `0x${string}`;
+          if (ownerAdd?.toLowerCase() === walletAddress!.toLowerCase()) {
+            stores.set(id, 1);
+          }
+        } catch (error) {
+          console.log("store not found", id);
+        }
+      }),
+    );
+
+    return stores;
+  };
+
+  useEffect(() => {
+    (async () => {
+      if (publicClient && walletAddress && !storeIdsVerified.current) {
+        storeIdsVerified.current = true;
+        const _storeIds = await getStores();
+        setStoreIds(_storeIds);
+      }
+    })();
+  }, [walletAddress, publicClient]);
 
   const getTokenInformation = async (erc20Addr: `0x${string}`) => {
     const name = (await publicClient.readContract({
@@ -189,6 +239,7 @@ export const MyContextProvider = (
     setWallet,
     getTokenInformation,
     setKeyCardEnrolled,
+    storeIds,
   };
 
   return (
