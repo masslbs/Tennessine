@@ -6,15 +6,16 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import Sort from "../common/components/Sort";
-import Search from "../common/components/Search";
-import { SortOption, IProduct } from "@/types";
+import Sort from "@/app/common/components/Sort";
+import Search from "@/app/common/components/Search";
+import { SortOption, IProduct, TagId, ITag } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
-import Link from "next/link";
-import withAuth from "../components/withAuth";
-import SuccessMessage from "../common/components/SuccessMessage";
+import withAuth from "@/app/components/withAuth";
+import SuccessMessage from "@/app/common/components/SuccessMessage";
 import { useSearchParams, useRouter } from "next/navigation";
 import { createQueryString } from "@/app/utils";
+import SecondaryButton from "@/app/common/components/SecondaryButton";
+import CartButton from "@/app/components/checkout/CartButton";
 
 const Products = () => {
   const searchParams = useSearchParams();
@@ -27,6 +28,9 @@ const Products = () => {
   const { products, publishedTagId, allTags } = useStoreContext();
   const [arrToRender, setArrToRender] = useState<IProduct[] | null>(null);
   const [resultCount, setResultCount] = useState<number>(products.size);
+  const [showTags, setShowTags] = useState<boolean>(false);
+  const [tagIdToFilter, setTagIdToFilter] = useState<null | TagId>(null);
+  const [gridView, setGridView] = useState<boolean>(true);
 
   const findRemoveTagId = () => {
     for (const [key, value] of allTags.entries()) {
@@ -50,12 +54,14 @@ const Products = () => {
         item.tagIds.includes(removeTagId)
       ) {
         return false;
+      } else if (tagIdToFilter && !item.tagIds?.includes(tagIdToFilter)) {
+        return false;
       }
       return true;
     });
     arrayToRender.length && setArrToRender(arrayToRender);
     setResultCount(arrayToRender.length);
-  }, [sortOption, products]);
+  }, [sortOption, products, tagIdToFilter]);
 
   const viewProductDetails = (item: IProduct) => {
     router.push(
@@ -95,7 +101,28 @@ const Products = () => {
         return arr;
     }
   };
+  const renderFilterTags = () => {
+    if (!allTags || !showTags) return null;
+    const tags = Array.from([...allTags.keys()]);
+    if (!tags?.length) return null;
 
+    return (
+      <div className="inline-flex gap-3">
+        {tags.map((t: TagId) => {
+          const tag = allTags.get(t) as ITag;
+          return (
+            <button
+              key={t}
+              onClick={() => setTagIdToFilter(t)}
+              className="bg-primary-blue text-white text-sm rounded p-2"
+            >
+              {tag.text}
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
   const renderProducts = () => {
     if (!arrToRender?.length) return null;
     return arrToRender.map((item) => {
@@ -115,29 +142,33 @@ const Products = () => {
         <div
           onClick={() => viewProductDetails(item)}
           key={item.id}
-          className={`flex ${!visible ? "opacity-50" : ""}`}
+          className={`flex flex-col text-center mb-3 ${!visible ? "opacity-50" : ""} `}
         >
-          <div className="border p-1 rounded bg-white">
-            <Image
-              src={metadata.image || "/assets/no-image.png"}
-              width={64}
-              height={64}
-              alt="product-thumb"
-              unoptimized={true}
-              style={{ maxHeight: "64px", maxWidth: "64px" }}
-              onError={(e) => {
-                (e.target as HTMLImageElement).onerror = null;
-                (e.target as HTMLImageElement).src = "/assets/no-image.png";
-              }}
-            />
-          </div>
+          <p className="text-xs" data-testid={`product-title`}>
+            {metadata.title}
+          </p>
+
           <div
-            className="flex flex-col ml-4"
+            className="product-box gap-2 flex flex-col text-center border-2 p-3 rounded-xl bg-white"
             data-testid={`product-${metadata.title}`}
           >
-            <p data-testid={`product-title`}>{metadata.title}</p>
-            <p className="text-sm">{item.price}</p>
-            <p className="text-sm text-gray-400">{item.stockQty} Available</p>
+            <div className="flex justify-center">
+              <Image
+                src={metadata.image || "/assets/no-image.png"}
+                // src={"/assets/example-item.jpeg" || "/assets/no-image.png"}
+                width={85}
+                height={60}
+                alt="product-thumb"
+                unoptimized={true}
+                style={{ maxHeight: "60px", maxWidth: "85px" }}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).onerror = null;
+                  (e.target as HTMLImageElement).src = "/assets/no-image.png";
+                }}
+              />
+            </div>
+            <h4>{item.price}</h4>
+            <p className="text-sm text-gray-400">{item.stockQty} left</p>
           </div>
         </div>
       );
@@ -156,41 +187,70 @@ const Products = () => {
       <section className="bg-gray-100 pb-6">
         <section className="m-4">
           <div className="flex pb-4">
-            <p className="grow flex justify-center pl-10">EthDubai</p>
-            <Link
-              href={`/products/edit?${createQueryString("itemId", "new", searchParams)}`}
-            >
-              Add +
-            </Link>
+            <h2 className="grow flex">Long shop name</h2>
+            <CartButton />
           </div>
           <Search
             setSearchPhrase={setSearchPhrase}
             searchPhrase={searchPhrase}
           />
+
           <div className="flex gap-2 py-4 text-sm">
-            <Image
-              src="/assets/products.svg"
-              width={19}
-              height={19}
-              alt="box-icon"
-            />
-            <p className="flex items-center">{resultCount} results</p>
-            <div
-              id="sortOption-button"
-              className="flex border rounded-3xl	 py-2 px-4 bg-gray-200 ml-auto"
-              onClick={() => setSortOpened(true)}
+            <SecondaryButton onClick={() => setSortOpened(true)}>
+              <div className="items-center flex gap-3">
+                Filters
+                <Image
+                  src="/assets/filters.png"
+                  width={12}
+                  height={12}
+                  alt="filter"
+                  unoptimized={true}
+                />
+              </div>
+            </SecondaryButton>
+            <SecondaryButton
+              onClick={() => {
+                setShowTags(!showTags);
+              }}
             >
-              <p className="flex items-center">{sortOption}</p>
-              <Image
-                src="/assets/chevron-down.svg"
-                width={19}
-                height={19}
-                alt="down-icon"
-              />
+              <div className="items-center flex gap-3">
+                Tags
+                <Image
+                  src="/assets/tags.svg"
+                  width={20}
+                  height={12}
+                  alt="tags"
+                />
+              </div>
+            </SecondaryButton>
+          </div>
+          {renderFilterTags()}
+
+          <div className="flex gap-2 py-4 text-sm">
+            <p className="flex items-center">{resultCount} items</p>
+            <div className="flex ml-auto gap-2">
+              <p
+                className={` p-2 ${gridView ? "border bg-black rounded-3xl text-white" : ""}`}
+                onClick={() => {
+                  setGridView(true);
+                }}
+              >
+                Grid
+              </p>
+              <p
+                className={`p-2 ${!gridView ? "border bg-black rounded-3xl text-white" : ""}`}
+                onClick={() => {
+                  setGridView(false);
+                }}
+              >
+                List
+              </p>
             </div>
           </div>
-          <section className="flex flex-col gap-4 mt-4">
-            {renderProducts()}
+          <section className="product-list-container flex flex-col gap-4 mt-4">
+            <div className="flex flex-wrap justify-around">
+              {renderProducts()}
+            </div>
           </section>
         </section>
       </section>
