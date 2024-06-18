@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { Level } from "level";
-import { ProductsMap, TagsMap, OrdersMap } from "@/context/types";
+import { ProductsMap, TagsMap, OrdersMap, storeState } from "@/context/types";
 
 const setMapData = (
   key: string,
@@ -17,7 +17,7 @@ const setMapData = (
 
 const setItem = (
   key: string,
-  value: string,
+  value: string | storeState,
   db: Level<string, string> | null,
 ) => {
   if (!db) return;

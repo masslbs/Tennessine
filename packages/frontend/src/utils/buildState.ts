@@ -28,6 +28,7 @@ import {
   SET_ORDER,
   finalizedOrderActions,
 } from "@/reducers/finalizedOrderReducers";
+import { SET_STORE_DATA, updateStoreDataAction } from "@/reducers/storeReducer";
 import { ADD_KC_PUBKEY, pubKeyAction } from "@/reducers/KCPubKeysReducers";
 import { Dispatch } from "react";
 import schema from "@massmarket/schema";
@@ -43,11 +44,16 @@ export const buildState = (
   setPublishedTagId: Dispatch<TagId>,
   setFinalizedOrders: Dispatch<finalizedOrderActions>,
   setPubKeys: Dispatch<pubKeyAction>,
+  setStoreData: Dispatch<updateStoreDataAction>,
   walletAddress?: `0x${string}` | null,
 ) => {
   if (event.shopManifest) {
     const sm = event.shopManifest;
     setPublishedTagId(bytesToHex(sm.publishedTagId!));
+    setStoreData({
+      type: SET_STORE_DATA,
+      payload: { name: sm.name!, profilePictureUrl: sm.profilePictureUrl! },
+    });
   } else if (event.updateShopManifest) {
     const um = event.updateShopManifest;
     if (um.addErc20Addr) {

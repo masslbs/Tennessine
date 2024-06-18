@@ -30,6 +30,7 @@ import { IProduct, ITag, ItemId, TagId } from "@/types";
 import { createQueryString } from "@/app/utils";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import VisibilitySlider from "@/app/components/products/VisibilitySlider";
+import SecondaryButton from "@/app/common/components/SecondaryButton";
 
 const AddProductView = () => {
   const router = useRouter();
@@ -219,18 +220,23 @@ const AddProductView = () => {
   return (
     <div className="h-screen inset-0 flex items-end justify-center z-40 text-sm bg-gray-100">
       <div
-        className={`bg-gray-100 rounded-lg w-full h-full min-w-full relative pb-10`}
+        className={`bg-gray-100 rounded-2xl w-full h-full min-w-full relative pb-10`}
       >
-        <div id="header" className="flex relative m-4">
-          <button onClick={onBack} className="text-blue-600">
+        <div id="header" className="flex relative m-4 gap-2">
+          <Image
+            src={"/assets/back-button.svg"}
+            width={12}
+            height={12}
+            alt="back-button"
+            unoptimized={true}
+            style={{ maxHeight: "64px", maxWidth: "64px" }}
+          />
+          <button onClick={onBack} className="text-primary-gray">
             back
           </button>
           <div className="flex justify-center w-full">
-            <header className="pl-6">{hed}</header>
+            <header className="pr-6">{hed}</header>
           </div>
-          <button onClick={onPublish} className="text-blue-600">
-            {editView ? "update" : "publish"}
-          </button>
         </div>
         {error && (
           <ErrorMessage
@@ -241,7 +247,22 @@ const AddProductView = () => {
           />
         )}
         <section id="content" className="m-4">
-          <h5 className="font-sans mt-6">Product Information</h5>
+          <div className="flex">
+            <div className="flex gap-3 items-center">
+              <Image
+                src={"/assets/chevron-right.svg"}
+                width={9}
+                height={15}
+                alt="chevron-right"
+              />
+              <h2>{hed}</h2>
+            </div>
+            <div className="ml-auto">
+              <SecondaryButton onClick={onPublish}>
+                {editView ? "update" : "publish"}
+              </SecondaryButton>
+            </div>
+          </div>
           <section className="mt-6 flex flex-col gap-4">
             <form
               className="flex flex-col"
@@ -249,53 +270,21 @@ const AddProductView = () => {
                 e.preventDefault();
               }}
             >
-              <label htmlFor="title">product title</label>
+              <label htmlFor="title">Title</label>
               <input
                 value={title}
-                className="border-2 border-solid mt-1 p-3 rounded-lg"
+                className="border-2 border-solid mt-1 p-3 rounded-2xl"
                 id="title"
                 name="title"
                 onChange={(e) => handleTitleChange(e)}
               />
             </form>
-            <div className="flex justify-between">
-              <form
-                className="flex flex-col w-40"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                }}
-              >
-                <label htmlFor="price">price</label>
-                <input
-                  value={price}
-                  className="border-2 border-solid mt-1 p-3 rounded-lg"
-                  id="price"
-                  name="price"
-                  onChange={(e) => handlePriceChange(e)}
-                />
-              </form>
-              <form
-                className="flex flex-col w-40"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                }}
-              >
-                <label htmlFor="units">units</label>
-                <input
-                  value={stockQty}
-                  className="border-2 border-solid mt-1 p-3 rounded-lg"
-                  id="units"
-                  name="units"
-                  onChange={(e) => handleStockChange(e)}
-                />
-              </form>
-            </div>
             <div className="flex flex-col">
-              <p className="mb-2">display image</p>
+              <p className="mb-2">Product pics</p>
               {img ? (
-                <div className="p-4 bg-white border-2 border-solid rounded-lg">
+                <div className="p-4 bg-white border-2 border-solid rounded-2xl">
                   <div className="relative w-fit p-2 mb-2">
-                    <div className="p-4 border-2 w-fit rounded-lg">
+                    <div className="p-4 border-2 w-fit rounded-2xl">
                       <Image
                         src={img}
                         width={50}
@@ -321,21 +310,62 @@ const AddProductView = () => {
                   </div>
                 </div>
               ) : (
-                <div className="border-2 border-solid rounded-lg bg-white">
+                <div className="border-2 border-solid rounded-2xl bg-primary-gray">
                   <button
                     onClick={triggerFileInput}
-                    className="p-3 text-left text-blue-700"
+                    className="p-5 w-full text-white"
                   >
-                    Upload image
+                    <div className="flex flex-col items-center gap-2">
+                      <Image
+                        src={"/assets/upload-image.svg"}
+                        width={20}
+                        height={20}
+                        alt="back-button"
+                        unoptimized={true}
+                        style={{ maxHeight: "64px", maxWidth: "64px" }}
+                      />
+                      <p>Upload image</p>
+                      <p className="text-gray-400 text-xs ">
+                        {"upload JPG or PNG <10MB"}
+                      </p>
+                    </div>
                   </button>
-                  <div className="border-t border-gray-300 border-0 mx-3">
-                    <p className="text-gray-400 text-xs py-3">
-                      {"upload JPG or PNG <10MB"}
-                    </p>
-                  </div>
                 </div>
               )}
             </div>
+            <div className="flex justify-between">
+              <form
+                className="flex flex-col w-40"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                }}
+              >
+                <label htmlFor="price">price</label>
+                <input
+                  value={price}
+                  className="border-2 border-solid mt-1 p-3 rounded-2xl"
+                  id="price"
+                  name="price"
+                  onChange={(e) => handlePriceChange(e)}
+                />
+              </form>
+              <form
+                className="flex flex-col w-40"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                }}
+              >
+                <label htmlFor="units">units</label>
+                <input
+                  value={stockQty}
+                  className="border-2 border-solid mt-1 p-3 rounded-2xl"
+                  id="units"
+                  name="units"
+                  onChange={(e) => handleStockChange(e)}
+                />
+              </form>
+            </div>
+
             <div className="hidden">
               <input
                 type="file"
@@ -348,12 +378,6 @@ const AddProductView = () => {
             <section id="tags">
               <div className="flex mb-4">
                 <p>Tags</p>
-                {/* <Image
-                  src="/assets/info-icon.svg"
-                  alt="info-icon"
-                  width={13}
-                  height={13}
-                /> */}
               </div>
               <ProductsTags
                 selectedTags={selectedTags}

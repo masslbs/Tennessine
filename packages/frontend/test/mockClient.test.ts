@@ -18,9 +18,11 @@ import {
   finalizedOrderReducer,
 } from "../src/reducers/finalizedOrderReducers";
 import { pubKeyReducer, pubKeyAction } from "../src/reducers/KCPubKeysReducers";
+import { storeReducer, updateStoreDataAction } from "@/reducers/storeReducer";
 
 describe("mockclient", async () => {
   const client = new MockClient();
+  let storeData = { name: "", profilePictureUrl: "" };
   let products = new Map();
   let allTags = new Map();
   let orderItems = new Map();
@@ -52,6 +54,9 @@ describe("mockclient", async () => {
   function setPubKeys(action: pubKeyAction) {
     pubKeys = pubKeyReducer(pubKeys, action);
   }
+  function setStoreData(action: updateStoreDataAction) {
+    storeData = storeReducer(storeData, action);
+  }
 
   client.on("event", (e) => {
     events.push(e.request);
@@ -66,6 +71,7 @@ describe("mockclient", async () => {
       setPublishedTagId,
       setFinalizedOrders,
       setPubKeys,
+      setStoreData,
     );
   });
 

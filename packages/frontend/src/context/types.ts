@@ -28,6 +28,8 @@ export type UpdateItemProps = {
   value: number | { title: string; description: string; image: string };
 };
 
+export type storeState = { name: string; profilePictureUrl: string };
+
 export type ItemState = { [key: ItemId]: number };
 export type OrderState = {
   items: ItemState;
@@ -67,6 +69,7 @@ export type StoreContent = {
   publishedTagId: TagId | null;
   finalizedOrders: Map<EventId, FinalizedOrderState>;
   db: Level<string, string>;
+  storeData: storeState;
   addProduct: (
     p: IProduct,
     keysArr: ItemId[] | [],

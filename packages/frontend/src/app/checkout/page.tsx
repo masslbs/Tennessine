@@ -3,12 +3,13 @@ import ProgressBar from "@/app/components/checkout/ProgressBar";
 import React, { useEffect, useState } from "react";
 import { useStoreContext } from "@/context/StoreContext";
 import NewCart from "@/app/cart/NewCart";
-import CurrencyChange from "@/app/common/components/CurrencyChange";
-import CurrencyButton from "@/app/common/components/CurrencyButton";
+// import CurrencyChange from "@/app/common/components/CurrencyChange";
+// import CurrencyButton from "@/app/common/components/CurrencyButton";
 import ShippingDetails from "@/app/components/checkout/ShippingDetails";
 import Image from "next/image";
 
 import PaymentOptions from "@/app/components/checkout/PaymentOptions";
+import ModalHeader from "@/app/common/components/ModalHeader";
 
 const CheckoutFlow = () => {
   const { commitOrder, finalizedOrders } = useStoreContext();
@@ -24,8 +25,8 @@ const CheckoutFlow = () => {
   const [cryptoTotal, setCryptoTotal] = useState<string | null>(null);
   const [purchaseAdd, setPurchaseAdd] = useState<string | null>(null);
   const [totalDollar, setTotalDollar] = useState<string | null>(null);
-  const [showCurrencyOptions, setShowCurrencyOptions] =
-    useState<boolean>(false);
+  // const [showCurrencyOptions, setShowCurrencyOptions] =
+  //   useState<boolean>(false);
 
   useEffect((): void => {
     if (finalizedOrders && checkoutReqId) {
@@ -105,15 +106,14 @@ const CheckoutFlow = () => {
   };
 
   return (
-    <main className="pt-under-nav h-screen bg-gray-100 px-5">
+    <main className="pt-under-nav h-screen bg-gray-100 ">
       {/* FIXME: need banner design for errors */}
       {showErrorMessage && showErrorMessage}
-      <CurrencyButton
+      <ModalHeader />
+      {/* <CurrencyButton
         toggle={() => setShowCurrencyOptions(!showCurrencyOptions)}
-      />
-      {showCurrencyOptions ? (
-        <CurrencyChange />
-      ) : (
+      /> */}
+      <div className="px-5">
         <div>
           <ProgressBar
             allSteps={["Review Cart", "Shipping Details", "Payment", "Success"]}
@@ -121,7 +121,7 @@ const CheckoutFlow = () => {
           />
           {renderContent()}
         </div>
-      )}
+      </div>
     </main>
   );
 };
