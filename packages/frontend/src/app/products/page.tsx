@@ -62,7 +62,7 @@ const Products = () => {
     });
     arrayToRender.length && setArrToRender(arrayToRender);
     setResultCount(arrayToRender.length);
-  }, [sortOption, products, tagIdToFilter]);
+  }, [sortOption, products]);
 
   const viewProductDetails = (item: IProduct) => {
     router.push(
