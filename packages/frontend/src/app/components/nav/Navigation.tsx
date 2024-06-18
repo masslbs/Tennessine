@@ -28,7 +28,7 @@ const Navigation = () => {
 
   const { name } = useMyContext();
   const { isAuthenticated, setIsAuthenticated } = useAuth();
-  const { db } = useStoreContext();
+  const { db, storeData } = useStoreContext();
   const searchParams = useSearchParams();
 
   // const profilePhoto = avatar ? avatar : "example-avatar.svg";
@@ -88,7 +88,7 @@ const Navigation = () => {
         </div>
         <div className="flex flex-col justify-between mx-4 mt-4">
           <div className="mb-4">
-            <h2>Long shop name</h2>
+            <h2>{storeData.name}</h2>
             <div className="flex text-xs gap-1">
               <SecondaryButton>
                 <div className="flex items-center gap-1">

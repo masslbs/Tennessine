@@ -25,7 +25,7 @@ const Products = () => {
   const [sortOption, setCheck] = useState<SortOption>(SortOption.default);
   const [searchPhrase, setSearchPhrase] = useState<string>("");
   const [showSuccessMsg, setMsg] = useState<boolean>(success !== null);
-  const { products, publishedTagId, allTags } = useStoreContext();
+  const { products, publishedTagId, allTags, storeData } = useStoreContext();
   const [arrToRender, setArrToRender] = useState<IProduct[] | null>(null);
   const [resultCount, setResultCount] = useState<number>(products.size);
   const [showTags, setShowTags] = useState<boolean>(false);
@@ -187,7 +187,7 @@ const Products = () => {
       <section className="bg-gray-100 pb-6">
         <section className="m-4">
           <div className="flex pb-4">
-            <h2 className="grow flex">Long shop name</h2>
+            <h2 className="grow flex">{storeData.name}</h2>
             <CartButton />
           </div>
           <Search

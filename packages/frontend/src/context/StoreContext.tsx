@@ -48,6 +48,7 @@ import { dummyRelays } from "./dummyData";
 import { pubKeyReducer } from "@/reducers/KCPubKeysReducers";
 import { setMapData, getParsedMapData, setItem, getItem } from "@/utils/level";
 import { Address } from "@ethereumjs/util";
+import { storeReducer, SET_STORE_DATA } from "@/reducers/storeReducer";
 
 // @ts-expect-error FIXME
 export const StoreContext = createContext<StoreContent>(initialStoreContext);
@@ -65,6 +66,10 @@ export const StoreContextProvider = (
     finalizedOrderReducer,
     new Map(),
   );
+  const [storeData, setStoreData] = useReducer(storeReducer, {
+    name: "",
+    profilePictureUrl: "",
+  });
   const [pubKeys, setPubKeys] = useReducer(pubKeyReducer, []);
   const [db, setDb] = useState(null);
   const [relays, setRelays] = useState<IRelay[]>(dummyRelays);
@@ -113,6 +118,7 @@ export const StoreContextProvider = (
         const orderIdLocal = await getItem("orderId", db);
         const erc20AddrLocal = await getItem("erc20Addr", db);
         const publishedTagIdLocal = await getItem("publishedTagId", db);
+        const storeDataLocal = await getItem("storeData", db);
 
         if (productsLocal?.size) {
           setProducts({
@@ -143,6 +149,15 @@ export const StoreContextProvider = (
         }
         if (publishedTagIdLocal) {
           setPublishedTagId(publishedTagIdLocal as TagId);
+        }
+        if (storeDataLocal) {
+          setStoreData({
+            type: SET_STORE_DATA,
+            payload: {
+              name: storeDataLocal.name!,
+              profilePictureUrl: storeDataLocal.profilePictureUrl!,
+            },
+          });
         }
       }
     })();
@@ -187,6 +202,14 @@ export const StoreContextProvider = (
 
   useEffect(() => {
     try {
+      storeData.name.length && setItem("storeData", storeData, db);
+    } catch (error) {
+      console.log(error);
+    }
+  }, [storeData]);
+
+  useEffect(() => {
+    try {
       erc20Addr && setItem("erc20Addr", erc20Addr, db);
     } catch (error) {
       console.log(error);
@@ -218,6 +241,7 @@ export const StoreContextProvider = (
             setPublishedTagId,
             setFinalizedOrders,
             setPubKeys,
+            setStoreData,
             walletAddress,
           );
         }
@@ -524,6 +548,7 @@ export const StoreContextProvider = (
     finalizedOrders,
     relays,
     db,
+    storeData,
     addProduct,
     updateProduct,
     createState,
