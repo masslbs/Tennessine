@@ -61,7 +61,7 @@ const Products = () => {
     });
     arrayToRender.length && setArrToRender(arrayToRender);
     setResultCount(arrayToRender.length);
-  }, [sortOption, products]);
+  }, [sortOption, products, tagIdToFilter]);
 
   const viewProductDetails = (item: IProduct) => {
     router.push(
@@ -112,6 +112,7 @@ const Products = () => {
           const tag = allTags.get(t) as ITag;
           return (
             <button
+              key={t}
               onClick={() => setTagIdToFilter(t)}
               className="bg-primary-blue text-white text-sm rounded p-2"
             >
