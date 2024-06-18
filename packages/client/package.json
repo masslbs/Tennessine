@@ -8,8 +8,8 @@
     "viem": "^2.8.18"
   },
   "devDependencies": {
-    "@massmarket/tsconfig": "workspace:*",
     "@massmarket/schema": "workspace:*",
+    "@massmarket/tsconfig": "workspace:*",
     "@types/node": "^20.11.19",
     "@types/tape": "^5.6.4",
     "@types/ws": "^8.5.10",
@@ -22,6 +22,7 @@
     "memfs": "^4.7.7",
     "playwright": "1.40.0",
     "prettier": "^3.2.5",
+    "vite": "^5.3.1",
     "vite-plugin-node-polyfills": "^0.21.0",
     "vitest": "^1.3.1"
   },
