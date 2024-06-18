@@ -1,6 +1,4 @@
-import pb from "./protobuf/compiled.js";
-/* eslint no-undef: "off" */
-import mmproto = pb.market.mass;
+import schema from "@massmarket/schema";
 import { RelayClient } from "./";
 
 /**
@@ -8,9 +6,9 @@ import { RelayClient } from "./";
  * so that a third party can enqueue events into the stream.
  */
 export class ReadableEventStream {
-  public stream;
+  public stream: ReadableStream<schema.ShopEvent>;
   public requestId: Uint8Array | null = null;
-  private controller!: ReadableStreamDefaultController<mmproto.ShopEvent>;
+  private controller!: ReadableStreamDefaultController<schema.ShopEvent>;
 
   constructor(public client: RelayClient) {
     const self = this;
@@ -22,7 +20,7 @@ export class ReadableEventStream {
         pull() {
           if (self.requestId) {
             // Send a response to the relay to indicate that we have processed the events
-            self.client.encodeAndSend(mmproto.EventPushResponse, {
+            self.client.encodeAndSend(schema.EventPushResponse, {
               requestId: self.requestId,
             });
             self.requestId = null;
@@ -33,10 +31,10 @@ export class ReadableEventStream {
     );
   }
 
-  enqueue(pushReq: mmproto.EventPushRequest) {
+  enqueue(pushReq: schema.EventPushRequest) {
     this.requestId = pushReq.requestId;
     for (const anyEvt of pushReq.events) {
-      let evt = mmproto.ShopEvent.decode(anyEvt.value!);
+      let evt = schema.ShopEvent.decode(anyEvt.value!);
       this.controller.enqueue(evt);
     }
   }

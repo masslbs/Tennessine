@@ -30,13 +30,12 @@ import {
 } from "@/reducers/finalizedOrderReducers";
 import { ADD_KC_PUBKEY, pubKeyAction } from "@/reducers/KCPubKeysReducers";
 import { Dispatch } from "react";
-import pb from "@massmarket/client/lib/protobuf/compiled";
-import mmproto = pb.market.mass;
+import schema from "@massmarket/schema";
 
 export const buildState = (
   products: Map<ItemId, IProduct>,
   allTags: Map<TagId, ITag>,
-  event: mmproto.IShopEvent,
+  event: schema.IShopEvent,
   productsDispatch: Dispatch<updateProductAction | productAction>,
   tagsDisaptch: Dispatch<allTagsAction>,
   setOrderItems: Dispatch<allOrderActions>,
@@ -148,7 +147,7 @@ export const buildState = (
       });
     }
     evt.itemIds?.length &&
-      evt.itemIds.map((id, i) => {
+      evt.itemIds.map((id: any, i: any) => {
         const itemId = bytesToHex(id);
         productsDispatch({
           type: UPDATE_STOCKQTY,
