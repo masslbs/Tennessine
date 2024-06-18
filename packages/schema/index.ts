@@ -2,10 +2,11 @@
 //
 // SPDX-License-Identifier: MIT
 
-import pb, { google } from "./compiled.js";
+import pb from "./compiled.js";
 import schema = pb.market.mass;
+import google = pb.google;
 
-export default schema;
+export default pb.market.mass;
 export { google };
 
 export type PBObject =
