@@ -6,7 +6,7 @@ import pb from "./compiled.js";
 import schema = pb.market.mass;
 import google = pb.google;
 
-export default pb.market.mass;
+export default schema;
 export { google };
 
 export type PBObject =

@@ -29,7 +29,8 @@
   "scripts": {
     "test": "vitest",
     "test:chromium": "vitest --browser=chromium",
-    "lint": "eslint --ext .ts ."
+    "lint": "eslint --ext .ts .",
+    "build": "tsc -b"
   },
   "type": "module",
   "exports": {

@@ -147,7 +147,7 @@ export const buildState = (
       });
     }
     evt.itemIds?.length &&
-      evt.itemIds.map((id: any, i: any) => {
+      evt.itemIds.map((id: Uint8Array, i: number) => {
         const itemId = bytesToHex(id);
         productsDispatch({
           type: UPDATE_STOCKQTY,
