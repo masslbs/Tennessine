@@ -317,7 +317,7 @@ const AddProductView = () => {
                   >
                     <div className="flex flex-col items-center gap-2">
                       <Image
-                        src={"/assets/upload-image-icon.svg"}
+                        src={"/assets/upload-image.svg"}
                         width={20}
                         height={20}
                         alt="back-button"
