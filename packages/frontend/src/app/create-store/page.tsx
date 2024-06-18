@@ -107,7 +107,7 @@ const StoreCreation = () => {
   }, [isAuthenticated, relayClient]);
 
   return (
-    <main className="pt-under-nav h-screen p-4">
+    <main className="pt-under-nav h-screen p-4 mt-5">
       <div className="flex">
         <h2>Create new shop</h2>
         <div className="ml-auto">

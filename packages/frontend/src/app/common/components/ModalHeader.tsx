@@ -6,6 +6,8 @@
 
 import React, { ReactNode } from "react";
 import Image from "next/image";
+import CartButton from "@/app/components/checkout/CartButton";
+import { useRouter } from "next/navigation";
 
 export type Header = {
   headerText: string;
@@ -13,23 +15,23 @@ export type Header = {
   rightIcon?: ReactNode;
 };
 
-const ModalHeader = ({ goBack, headerText, rightIcon }: Header) => {
+const ModalHeader = () => {
+  const router = useRouter();
+
   return (
-    <div className="py-4 mx-4">
-      <div id="container" className="flex relative">
+    <div className="mx-4">
+      <div className="flex">
         <Image
-          id="overlay"
-          src="/assets/left-arrow.svg"
+          src="/assets/chevron-left.svg"
           width={24}
           height={24}
           alt="left-arrow-icon"
-          onClick={goBack}
-          className="absolute margin-auto top-0 bottom-0 left-0 right-0"
+          onClick={() => router.back()}
         />
-        <div className="flex justify-center w-full">
-          <h1 className={`${rightIcon ? "pl-6" : ""}`}>{headerText}</h1>
+        <h2 className="ml-2 text-primary-gray">back</h2>
+        <div className="w-10 flex justify-end ml-auto">
+          <CartButton />
         </div>
-        {rightIcon && <div className="w-10 flex justify-end">{rightIcon}</div>}
       </div>
     </div>
   );

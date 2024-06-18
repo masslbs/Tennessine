@@ -235,7 +235,7 @@ const AddProductView = () => {
             back
           </button>
           <div className="flex justify-center w-full">
-            <header className="pl-6">{hed}</header>
+            <header className="pr-6">{hed}</header>
           </div>
         </div>
         {error && (
