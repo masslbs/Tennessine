@@ -8,5 +8,11 @@
     "@massmarket/tsconfig": "workspace:*"
   },
   "type": "module",
-  "license": "MIT"
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  }
 }
