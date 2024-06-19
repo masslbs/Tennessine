@@ -315,7 +315,7 @@ export class RelayClient extends EventEmitter {
     return response;
   }
 
-  async uploadBlob(blob: FormData) {
+  async uploadBlob(blob: FormData | string) {
     await this.connect();
     const uploadURLResp = (await this.encodeAndSend(
       schema.GetBlobUploadURLRequest,

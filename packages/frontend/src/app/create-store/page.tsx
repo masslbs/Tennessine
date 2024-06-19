@@ -27,7 +27,7 @@ const StoreCreation = () => {
   const [storeURL, setStoreURL] = useState<string>("");
   const [currency, setCurrency] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-  const [avatar, setAvatar] = useState<string>("");
+  const [avatar, setAvatar] = useState<FormData | null>(null);
   const enrollKeycard = useRef(false);
   const { isAuthenticated } = useAuth();
 
@@ -101,6 +101,31 @@ const StoreCreation = () => {
         if (publishedTagId) {
           await relayClient!.updateShopManifest({ publishedTagId });
         }
+        const path = await relayClient!.uploadBlob(avatar as FormData);
+        // console.log({ avatar, path });
+        const metadata = {
+          title: "metadata",
+          type: "object",
+          properties: {
+            name: {
+              type: "string",
+              description: storeName,
+            },
+            description: {
+              type: "string",
+              description,
+            },
+            image: {
+              type: "string",
+              description: path.url,
+            },
+          },
+        };
+        const { url } = await relayClient.uploadBlob(JSON.stringify(metadata));
+        if (clientWallet && url) {
+          relayClient.blockchain.setShopTokenId(clientWallet, url);
+        }
+
         router.push("/products");
       })();
     }
@@ -120,7 +145,7 @@ const StoreCreation = () => {
         <div className="flex gap-4">
           <div>
             <p>PFP</p>
-            <AvatarUpload img={avatar} setImgSrc={setAvatar} />
+            <AvatarUpload setImgBlob={setAvatar} />
           </div>
           <form
             className="flex flex-col grow"

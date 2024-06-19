@@ -18,7 +18,13 @@ import {
 } from "wagmi";
 import { RelayClient, WalletClientWithAccount } from "@massmarket/client";
 import { hardhat, sepolia, mainnet, type Chain } from "viem/chains";
-import { http, createPublicClient, hexToBytes, bytesToHex } from "viem";
+import {
+  http,
+  createPublicClient,
+  hexToBytes,
+  bytesToHex,
+  parseAbiItem,
+} from "viem";
 import { useAuth } from "@/context/AuthContext";
 import * as abi from "@massmarket/contracts";
 import { IStatus } from "../types";
@@ -118,8 +124,10 @@ export const MyContextProvider = (
 
     const logs = await publicClient.getLogs({
       address: abi.addresses.ShopReg as Address,
+      event: parseAbiItem(
+        "event Transfer(address indexed from, address indexed to, uint256 value)",
+      ),
     });
-
     const _stores = logs[0].topics;
     await Promise.all(
       _stores.map(async (id) => {

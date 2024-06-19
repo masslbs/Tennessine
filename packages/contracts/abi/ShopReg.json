@@ -425,6 +425,24 @@
   },
   {
     "type": "function",
+    "name": "setTokenURI",
+    "inputs": [
+      {
+        "name": "shopId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "tokenURI",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "name",
     "inputs": [],
     "outputs": [
