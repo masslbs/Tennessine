@@ -3,19 +3,9 @@
 // SPDX-License-Identifier: MIT
 
 import { WebSocket } from "isows";
-import {
-  bytesToHex,
-  hexToBytes,
-  toBytes,
-  Address,
-  type WalletClient,
-  type Transport,
-  type Account,
-  type Chain,
-} from "viem";
+import { bytesToHex, hexToBytes, toBytes } from "viem";
 import { EventEmitter } from "events";
 import { PrivateKeyAccount } from "viem/accounts";
-import { hardhat } from "viem/chains";
 import schema, {
   PBObject,
   PBMessage,
@@ -23,40 +13,32 @@ import schema, {
   MESSAGE_TYPES,
   MESSAGE_PREFIXES,
 } from "@massmarket/schema";
-import { BlockchainClient } from "./blockchainClient.js";
+import {
+  BlockchainClient,
+  WalletClientWithAccount,
+} from "./blockchainClient.js";
 import { ReadableEventStream } from "./stream.js";
 import { requestId, eventId, hexToBase64 } from "./utils.js";
-import * as abi from "@massmarket/contracts";
 
-export type WalletClientWithAccount = WalletClient<
-  Transport,
-  Chain,
-  Account
-> & {
-  account: Account;
-};
+export type { WalletClientWithAccount };
 
 export class RelayClient extends EventEmitter {
   connection!: WebSocket;
-  private chain;
   blockchain: BlockchainClient;
   private keyCardWallet;
   private endpoint;
-  private useTLS: boolean;
-  private DOMAIN_SEPARATOR;
-  keyCardEnrolled: boolean;
+  private useTLS;
+  keyCardEnrolled;
   private eventStream;
 
   constructor({
     relayEndpoint,
     keyCardWallet,
-    chain = hardhat,
     keyCardEnrolled,
     shopId,
   }: {
     relayEndpoint: string;
     keyCardWallet: PrivateKeyAccount;
-    chain: Chain;
     keyCardEnrolled: boolean;
     shopId: `0x${string}` | undefined;
   }) {
@@ -65,13 +47,6 @@ export class RelayClient extends EventEmitter {
     this.keyCardWallet = keyCardWallet;
     this.endpoint = relayEndpoint;
     this.useTLS = relayEndpoint.startsWith("wss");
-    this.chain = chain;
-    this.DOMAIN_SEPARATOR = {
-      name: "MassMarket",
-      version: "1",
-      chainId: this.chain.id,
-      verifyingContract: abi.addresses.ShopReg as Address,
-    };
     this.keyCardEnrolled = keyCardEnrolled;
     this.eventStream = new ReadableEventStream(this);
   }
@@ -282,7 +257,6 @@ export class RelayClient extends EventEmitter {
         resolve("already open");
       } else {
         this.connection.addEventListener("open", async () => {
-          console.log("ws open");
           if (this.keyCardEnrolled) {
             const res = await this.#authenticate();
             if (res) {

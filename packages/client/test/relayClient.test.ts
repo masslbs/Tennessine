@@ -17,8 +17,6 @@ import { describe, beforeEach, afterEach, expect, test } from "vitest";
 
 import { RelayClient } from "../lib";
 import { random32BytesHex, randomBytes } from "../lib/utils";
-import schema from "@massmarket/schema";
-
 import * as abi from "@massmarket/contracts";
 
 const account = privateKeyToAccount(
@@ -47,7 +45,6 @@ beforeEach(async () => {
     shopId,
     relayEndpoint,
     keyCardWallet: privateKeyToAccount(random32BytesHex()),
-    chain: hardhat,
     keyCardEnrolled: false,
   });
 });
@@ -115,7 +112,6 @@ describe("RelayClient", async () => {
     const relayClient2 = new RelayClient({
       relayEndpoint,
       keyCardWallet: privateKeyToAccount(sk),
-      chain: hardhat,
       keyCardEnrolled: false,
       shopId,
     });
@@ -393,7 +389,6 @@ describe("user behaviour", () => {
       relayClient2 = new RelayClient({
         relayEndpoint,
         keyCardWallet: privateKeyToAccount(sk),
-        chain: hardhat,
         keyCardEnrolled: false,
         shopId,
       });

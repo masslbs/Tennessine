@@ -7,7 +7,7 @@ import { RelayClient } from "./";
  * so that a third party can enqueue events into the stream.
  */
 export class ReadableEventStream {
-  public stream: ReadableStream<schema.ShopEvent>;
+  public stream;
   public requestId: Uint8Array | null = null;
   private controller!: ReadableStreamDefaultController<schema.ShopEvent>;
 
