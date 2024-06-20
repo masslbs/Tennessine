@@ -30,8 +30,6 @@ export type VectorItems = {
 
 export type TestVectors = {
   signatures: {
-    chain_id: number;
-    contract_address: string;
     signer_address: string;
   };
   events: VectorEvent[];

@@ -624,9 +624,6 @@ export namespace market {
       /** ShopManifest shopTokenId */
       shopTokenId?: Uint8Array | null;
 
-      /** ShopManifest domain */
-      domain?: string | null;
-
       /** ShopManifest publishedTagId */
       publishedTagId?: Uint8Array | null;
 
@@ -638,6 +635,9 @@ export namespace market {
 
       /** ShopManifest profilePictureUrl */
       profilePictureUrl?: string | null;
+
+      /** ShopManifest domain */
+      domain?: string | null;
     }
 
     /** Represents a ShopManifest. */
@@ -654,9 +654,6 @@ export namespace market {
       /** ShopManifest shopTokenId. */
       public shopTokenId: Uint8Array;
 
-      /** ShopManifest domain. */
-      public domain: string;
-
       /** ShopManifest publishedTagId. */
       public publishedTagId: Uint8Array;
 
@@ -668,6 +665,9 @@ export namespace market {
 
       /** ShopManifest profilePictureUrl. */
       public profilePictureUrl: string;
+
+      /** ShopManifest domain. */
+      public domain: string;
 
       /**
        * Creates a new ShopManifest instance using the specified properties.
@@ -770,18 +770,6 @@ export namespace market {
       /** UpdateShopManifest eventId */
       eventId?: Uint8Array | null;
 
-      /** UpdateShopManifest domain */
-      domain?: string | null;
-
-      /** UpdateShopManifest publishedTagId */
-      publishedTagId?: Uint8Array | null;
-
-      /** UpdateShopManifest addErc20Addr */
-      addErc20Addr?: Uint8Array | null;
-
-      /** UpdateShopManifest removeErc20Addr */
-      removeErc20Addr?: Uint8Array | null;
-
       /** UpdateShopManifest name */
       name?: string | null;
 
@@ -790,6 +778,27 @@ export namespace market {
 
       /** UpdateShopManifest profilePictureUrl */
       profilePictureUrl?: string | null;
+
+      /** UpdateShopManifest domain */
+      domain?: string | null;
+
+      /** UpdateShopManifest publishedTagId */
+      publishedTagId?: Uint8Array | null;
+
+      /** UpdateShopManifest addPayee */
+      addPayee?: market.mass.UpdateShopManifest.IPayee | null;
+
+      /** UpdateShopManifest removePayee */
+      removePayee?: market.mass.UpdateShopManifest.IPayee | null;
+
+      /** UpdateShopManifest addAcceptedCurrency */
+      addAcceptedCurrency?: market.mass.IShopCurrency | null;
+
+      /** UpdateShopManifest removeAcceptedCurrency */
+      removeAcceptedCurrency?: market.mass.IShopCurrency | null;
+
+      /** UpdateShopManifest setBaseCurrency */
+      setBaseCurrency?: market.mass.IShopCurrency | null;
     }
 
     /** Represents an UpdateShopManifest. */
@@ -803,18 +812,6 @@ export namespace market {
       /** UpdateShopManifest eventId. */
       public eventId: Uint8Array;
 
-      /** UpdateShopManifest domain. */
-      public domain?: string | null;
-
-      /** UpdateShopManifest publishedTagId. */
-      public publishedTagId?: Uint8Array | null;
-
-      /** UpdateShopManifest addErc20Addr. */
-      public addErc20Addr?: Uint8Array | null;
-
-      /** UpdateShopManifest removeErc20Addr. */
-      public removeErc20Addr?: Uint8Array | null;
-
       /** UpdateShopManifest name. */
       public name?: string | null;
 
@@ -824,17 +821,26 @@ export namespace market {
       /** UpdateShopManifest profilePictureUrl. */
       public profilePictureUrl?: string | null;
 
-      /** UpdateShopManifest _domain. */
-      public _domain?: "domain";
+      /** UpdateShopManifest domain. */
+      public domain?: string | null;
 
-      /** UpdateShopManifest _publishedTagId. */
-      public _publishedTagId?: "publishedTagId";
+      /** UpdateShopManifest publishedTagId. */
+      public publishedTagId?: Uint8Array | null;
 
-      /** UpdateShopManifest _addErc20Addr. */
-      public _addErc20Addr?: "addErc20Addr";
+      /** UpdateShopManifest addPayee. */
+      public addPayee?: market.mass.UpdateShopManifest.IPayee | null;
 
-      /** UpdateShopManifest _removeErc20Addr. */
-      public _removeErc20Addr?: "removeErc20Addr";
+      /** UpdateShopManifest removePayee. */
+      public removePayee?: market.mass.UpdateShopManifest.IPayee | null;
+
+      /** UpdateShopManifest addAcceptedCurrency. */
+      public addAcceptedCurrency?: market.mass.IShopCurrency | null;
+
+      /** UpdateShopManifest removeAcceptedCurrency. */
+      public removeAcceptedCurrency?: market.mass.IShopCurrency | null;
+
+      /** UpdateShopManifest setBaseCurrency. */
+      public setBaseCurrency?: market.mass.IShopCurrency | null;
 
       /** UpdateShopManifest _name. */
       public _name?: "name";
@@ -844,6 +850,27 @@ export namespace market {
 
       /** UpdateShopManifest _profilePictureUrl. */
       public _profilePictureUrl?: "profilePictureUrl";
+
+      /** UpdateShopManifest _domain. */
+      public _domain?: "domain";
+
+      /** UpdateShopManifest _publishedTagId. */
+      public _publishedTagId?: "publishedTagId";
+
+      /** UpdateShopManifest _addPayee. */
+      public _addPayee?: "addPayee";
+
+      /** UpdateShopManifest _removePayee. */
+      public _removePayee?: "removePayee";
+
+      /** UpdateShopManifest _addAcceptedCurrency. */
+      public _addAcceptedCurrency?: "addAcceptedCurrency";
+
+      /** UpdateShopManifest _removeAcceptedCurrency. */
+      public _removeAcceptedCurrency?: "removeAcceptedCurrency";
+
+      /** UpdateShopManifest _setBaseCurrency. */
+      public _setBaseCurrency?: "setBaseCurrency";
 
       /**
        * Creates a new UpdateShopManifest instance using the specified properties.
@@ -939,6 +966,139 @@ export namespace market {
        * @returns The default type url
        */
       public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
+    namespace UpdateShopManifest {
+      /** Properties of a Payee. */
+      interface IPayee {
+        /** Payee name */
+        name?: string | null;
+
+        /** Payee addr */
+        addr?: Uint8Array | null;
+
+        /** Payee chainId */
+        chainId?: number | Long | null;
+
+        /** Payee callAsContract */
+        callAsContract?: boolean | null;
+      }
+
+      /** Represents a Payee. */
+      class Payee implements IPayee {
+        /**
+         * Constructs a new Payee.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: market.mass.UpdateShopManifest.IPayee);
+
+        /** Payee name. */
+        public name: string;
+
+        /** Payee addr. */
+        public addr: Uint8Array;
+
+        /** Payee chainId. */
+        public chainId: number | Long;
+
+        /** Payee callAsContract. */
+        public callAsContract: boolean;
+
+        /**
+         * Creates a new Payee instance using the specified properties.
+         * @param [properties] Properties to set
+         * @returns Payee instance
+         */
+        public static create(
+          properties?: market.mass.UpdateShopManifest.IPayee,
+        ): market.mass.UpdateShopManifest.Payee;
+
+        /**
+         * Encodes the specified Payee message. Does not implicitly {@link market.mass.UpdateShopManifest.Payee.verify|verify} messages.
+         * @param message Payee message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(
+          message: market.mass.UpdateShopManifest.IPayee,
+          writer?: $protobuf.Writer,
+        ): $protobuf.Writer;
+
+        /**
+         * Encodes the specified Payee message, length delimited. Does not implicitly {@link market.mass.UpdateShopManifest.Payee.verify|verify} messages.
+         * @param message Payee message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encodeDelimited(
+          message: market.mass.UpdateShopManifest.IPayee,
+          writer?: $protobuf.Writer,
+        ): $protobuf.Writer;
+
+        /**
+         * Decodes a Payee message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns Payee
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(
+          reader: $protobuf.Reader | Uint8Array,
+          length?: number,
+        ): market.mass.UpdateShopManifest.Payee;
+
+        /**
+         * Decodes a Payee message from the specified reader or buffer, length delimited.
+         * @param reader Reader or buffer to decode from
+         * @returns Payee
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decodeDelimited(
+          reader: $protobuf.Reader | Uint8Array,
+        ): market.mass.UpdateShopManifest.Payee;
+
+        /**
+         * Verifies a Payee message.
+         * @param message Plain object to verify
+         * @returns `null` if valid, otherwise the reason why it is not
+         */
+        public static verify(message: { [k: string]: any }): string | null;
+
+        /**
+         * Creates a Payee message from a plain object. Also converts values to their respective internal types.
+         * @param object Plain object
+         * @returns Payee
+         */
+        public static fromObject(object: {
+          [k: string]: any;
+        }): market.mass.UpdateShopManifest.Payee;
+
+        /**
+         * Creates a plain object from a Payee message. Also converts values to other types if specified.
+         * @param message Payee
+         * @param [options] Conversion options
+         * @returns Plain object
+         */
+        public static toObject(
+          message: market.mass.UpdateShopManifest.Payee,
+          options?: $protobuf.IConversionOptions,
+        ): { [k: string]: any };
+
+        /**
+         * Converts this Payee to JSON.
+         * @returns JSON object
+         */
+        public toJSON(): { [k: string]: any };
+
+        /**
+         * Gets the default type url for Payee
+         * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns The default type url
+         */
+        public static getTypeUrl(typeUrlPrefix?: string): string;
+      }
     }
 
     /** Properties of a CreateItem. */
@@ -2142,7 +2302,7 @@ export namespace market {
         currencyAddr?: Uint8Array | null;
 
         /** ItemsFinalized totalInCrypto */
-        totalInCrypto?: string | null;
+        totalInCrypto?: Uint8Array | null;
 
         /** ItemsFinalized payeeAddr */
         payeeAddr?: Uint8Array | null;
@@ -2184,7 +2344,7 @@ export namespace market {
         public currencyAddr: Uint8Array;
 
         /** ItemsFinalized totalInCrypto. */
-        public totalInCrypto: string;
+        public totalInCrypto: Uint8Array;
 
         /** ItemsFinalized payeeAddr. */
         public payeeAddr: Uint8Array;
@@ -2407,9 +2567,6 @@ export namespace market {
 
     /** Properties of a ShopEvent. */
     interface IShopEvent {
-      /** ShopEvent signature */
-      signature?: Uint8Array | null;
-
       /** ShopEvent shopManifest */
       shopManifest?: market.mass.IShopManifest | null;
 
@@ -2448,9 +2605,6 @@ export namespace market {
        * @param [properties] Properties to set
        */
       constructor(properties?: market.mass.IShopEvent);
-
-      /** ShopEvent signature. */
-      public signature: Uint8Array;
 
       /** ShopEvent shopManifest. */
       public shopManifest?: market.mass.IShopManifest | null;
@@ -2591,6 +2745,125 @@ export namespace market {
       public static getTypeUrl(typeUrlPrefix?: string): string;
     }
 
+    /** Properties of a ShopCurrency. */
+    interface IShopCurrency {
+      /** ShopCurrency chainId */
+      chainId?: number | Long | null;
+
+      /** ShopCurrency tokenAddr */
+      tokenAddr?: Uint8Array | null;
+    }
+
+    /** Represents a ShopCurrency. */
+    class ShopCurrency implements IShopCurrency {
+      /**
+       * Constructs a new ShopCurrency.
+       * @param [properties] Properties to set
+       */
+      constructor(properties?: market.mass.IShopCurrency);
+
+      /** ShopCurrency chainId. */
+      public chainId: number | Long;
+
+      /** ShopCurrency tokenAddr. */
+      public tokenAddr: Uint8Array;
+
+      /**
+       * Creates a new ShopCurrency instance using the specified properties.
+       * @param [properties] Properties to set
+       * @returns ShopCurrency instance
+       */
+      public static create(
+        properties?: market.mass.IShopCurrency,
+      ): market.mass.ShopCurrency;
+
+      /**
+       * Encodes the specified ShopCurrency message. Does not implicitly {@link market.mass.ShopCurrency.verify|verify} messages.
+       * @param message ShopCurrency message or plain object to encode
+       * @param [writer] Writer to encode to
+       * @returns Writer
+       */
+      public static encode(
+        message: market.mass.IShopCurrency,
+        writer?: $protobuf.Writer,
+      ): $protobuf.Writer;
+
+      /**
+       * Encodes the specified ShopCurrency message, length delimited. Does not implicitly {@link market.mass.ShopCurrency.verify|verify} messages.
+       * @param message ShopCurrency message or plain object to encode
+       * @param [writer] Writer to encode to
+       * @returns Writer
+       */
+      public static encodeDelimited(
+        message: market.mass.IShopCurrency,
+        writer?: $protobuf.Writer,
+      ): $protobuf.Writer;
+
+      /**
+       * Decodes a ShopCurrency message from the specified reader or buffer.
+       * @param reader Reader or buffer to decode from
+       * @param [length] Message length if known beforehand
+       * @returns ShopCurrency
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      public static decode(
+        reader: $protobuf.Reader | Uint8Array,
+        length?: number,
+      ): market.mass.ShopCurrency;
+
+      /**
+       * Decodes a ShopCurrency message from the specified reader or buffer, length delimited.
+       * @param reader Reader or buffer to decode from
+       * @returns ShopCurrency
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      public static decodeDelimited(
+        reader: $protobuf.Reader | Uint8Array,
+      ): market.mass.ShopCurrency;
+
+      /**
+       * Verifies a ShopCurrency message.
+       * @param message Plain object to verify
+       * @returns `null` if valid, otherwise the reason why it is not
+       */
+      public static verify(message: { [k: string]: any }): string | null;
+
+      /**
+       * Creates a ShopCurrency message from a plain object. Also converts values to their respective internal types.
+       * @param object Plain object
+       * @returns ShopCurrency
+       */
+      public static fromObject(object: {
+        [k: string]: any;
+      }): market.mass.ShopCurrency;
+
+      /**
+       * Creates a plain object from a ShopCurrency message. Also converts values to other types if specified.
+       * @param message ShopCurrency
+       * @param [options] Conversion options
+       * @returns Plain object
+       */
+      public static toObject(
+        message: market.mass.ShopCurrency,
+        options?: $protobuf.IConversionOptions,
+      ): { [k: string]: any };
+
+      /**
+       * Converts this ShopCurrency to JSON.
+       * @returns JSON object
+       */
+      public toJSON(): { [k: string]: any };
+
+      /**
+       * Gets the default type url for ShopCurrency
+       * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+       * @returns The default type url
+       */
+      public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
     /** Properties of a CommitItemsToOrderRequest. */
     interface ICommitItemsToOrderRequest {
       /** CommitItemsToOrderRequest requestId */
@@ -2599,11 +2872,11 @@ export namespace market {
       /** CommitItemsToOrderRequest orderId */
       orderId?: Uint8Array | null;
 
-      /** CommitItemsToOrderRequest erc20Addr */
-      erc20Addr?: Uint8Array | null;
+      /** CommitItemsToOrderRequest currency */
+      currency?: market.mass.IShopCurrency | null;
 
-      /** CommitItemsToOrderRequest chainId */
-      chainId?: number | Long | null;
+      /** CommitItemsToOrderRequest payeeName */
+      payeeName?: string | null;
     }
 
     /** Represents a CommitItemsToOrderRequest. */
@@ -2620,11 +2893,11 @@ export namespace market {
       /** CommitItemsToOrderRequest orderId. */
       public orderId: Uint8Array;
 
-      /** CommitItemsToOrderRequest erc20Addr. */
-      public erc20Addr: Uint8Array;
+      /** CommitItemsToOrderRequest currency. */
+      public currency?: market.mass.IShopCurrency | null;
 
-      /** CommitItemsToOrderRequest chainId. */
-      public chainId: number | Long;
+      /** CommitItemsToOrderRequest payeeName. */
+      public payeeName: string;
 
       /**
        * Creates a new CommitItemsToOrderRequest instance using the specified properties.
@@ -3085,13 +3358,132 @@ export namespace market {
       public static getTypeUrl(typeUrlPrefix?: string): string;
     }
 
+    /** Properties of a SignedEvent. */
+    interface ISignedEvent {
+      /** SignedEvent event */
+      event?: google.protobuf.IAny | null;
+
+      /** SignedEvent signature */
+      signature?: Uint8Array | null;
+    }
+
+    /** Represents a SignedEvent. */
+    class SignedEvent implements ISignedEvent {
+      /**
+       * Constructs a new SignedEvent.
+       * @param [properties] Properties to set
+       */
+      constructor(properties?: market.mass.ISignedEvent);
+
+      /** SignedEvent event. */
+      public event?: google.protobuf.IAny | null;
+
+      /** SignedEvent signature. */
+      public signature: Uint8Array;
+
+      /**
+       * Creates a new SignedEvent instance using the specified properties.
+       * @param [properties] Properties to set
+       * @returns SignedEvent instance
+       */
+      public static create(
+        properties?: market.mass.ISignedEvent,
+      ): market.mass.SignedEvent;
+
+      /**
+       * Encodes the specified SignedEvent message. Does not implicitly {@link market.mass.SignedEvent.verify|verify} messages.
+       * @param message SignedEvent message or plain object to encode
+       * @param [writer] Writer to encode to
+       * @returns Writer
+       */
+      public static encode(
+        message: market.mass.ISignedEvent,
+        writer?: $protobuf.Writer,
+      ): $protobuf.Writer;
+
+      /**
+       * Encodes the specified SignedEvent message, length delimited. Does not implicitly {@link market.mass.SignedEvent.verify|verify} messages.
+       * @param message SignedEvent message or plain object to encode
+       * @param [writer] Writer to encode to
+       * @returns Writer
+       */
+      public static encodeDelimited(
+        message: market.mass.ISignedEvent,
+        writer?: $protobuf.Writer,
+      ): $protobuf.Writer;
+
+      /**
+       * Decodes a SignedEvent message from the specified reader or buffer.
+       * @param reader Reader or buffer to decode from
+       * @param [length] Message length if known beforehand
+       * @returns SignedEvent
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      public static decode(
+        reader: $protobuf.Reader | Uint8Array,
+        length?: number,
+      ): market.mass.SignedEvent;
+
+      /**
+       * Decodes a SignedEvent message from the specified reader or buffer, length delimited.
+       * @param reader Reader or buffer to decode from
+       * @returns SignedEvent
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      public static decodeDelimited(
+        reader: $protobuf.Reader | Uint8Array,
+      ): market.mass.SignedEvent;
+
+      /**
+       * Verifies a SignedEvent message.
+       * @param message Plain object to verify
+       * @returns `null` if valid, otherwise the reason why it is not
+       */
+      public static verify(message: { [k: string]: any }): string | null;
+
+      /**
+       * Creates a SignedEvent message from a plain object. Also converts values to their respective internal types.
+       * @param object Plain object
+       * @returns SignedEvent
+       */
+      public static fromObject(object: {
+        [k: string]: any;
+      }): market.mass.SignedEvent;
+
+      /**
+       * Creates a plain object from a SignedEvent message. Also converts values to other types if specified.
+       * @param message SignedEvent
+       * @param [options] Conversion options
+       * @returns Plain object
+       */
+      public static toObject(
+        message: market.mass.SignedEvent,
+        options?: $protobuf.IConversionOptions,
+      ): { [k: string]: any };
+
+      /**
+       * Converts this SignedEvent to JSON.
+       * @returns JSON object
+       */
+      public toJSON(): { [k: string]: any };
+
+      /**
+       * Gets the default type url for SignedEvent
+       * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+       * @returns The default type url
+       */
+      public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
     /** Properties of an EventWriteRequest. */
     interface IEventWriteRequest {
       /** EventWriteRequest requestId */
       requestId?: Uint8Array | null;
 
       /** EventWriteRequest event */
-      event?: google.protobuf.IAny | null;
+      event?: market.mass.ISignedEvent | null;
     }
 
     /** Represents an EventWriteRequest. */
@@ -3106,7 +3498,7 @@ export namespace market {
       public requestId: Uint8Array;
 
       /** EventWriteRequest event. */
-      public event?: google.protobuf.IAny | null;
+      public event?: market.mass.ISignedEvent | null;
 
       /**
        * Creates a new EventWriteRequest instance using the specified properties.
@@ -3341,7 +3733,7 @@ export namespace market {
       requestId?: Uint8Array | null;
 
       /** EventPushRequest events */
-      events?: google.protobuf.IAny[] | null;
+      events?: market.mass.ISignedEvent[] | null;
     }
 
     /** Represents an EventPushRequest. */
@@ -3356,7 +3748,7 @@ export namespace market {
       public requestId: Uint8Array;
 
       /** EventPushRequest events. */
-      public events: google.protobuf.IAny[];
+      public events: market.mass.ISignedEvent[];
 
       /**
        * Creates a new EventPushRequest instance using the specified properties.

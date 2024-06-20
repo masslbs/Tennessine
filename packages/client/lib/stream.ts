@@ -1,4 +1,5 @@
 import schema from "@massmarket/schema";
+import { recoverMessageAddress } from "viem";
 import { RelayClient } from "./";
 
 /**
@@ -6,7 +7,7 @@ import { RelayClient } from "./";
  * so that a third party can enqueue events into the stream.
  */
 export class ReadableEventStream {
-  public stream: ReadableStream<schema.ShopEvent>;
+  public stream;
   public requestId: Uint8Array | null = null;
   private controller!: ReadableStreamDefaultController<schema.ShopEvent>;
 
@@ -34,8 +35,13 @@ export class ReadableEventStream {
   enqueue(pushReq: schema.EventPushRequest) {
     this.requestId = pushReq.requestId;
     for (const anyEvt of pushReq.events) {
-      let evt = schema.ShopEvent.decode(anyEvt.value!);
-      this.controller.enqueue(evt);
+      const event = schema.ShopEvent.decode(anyEvt.event.value);
+      const signer = recoverMessageAddress({
+        message: event,
+        signature: anyEvt.signature,
+      });
+
+      this.controller.enqueue({ event, signer });
     }
   }
 }
