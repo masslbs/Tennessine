@@ -214,7 +214,10 @@
           "17296c1f9b02617dec0db6437790af4a95339e6005579df93f6a9f0eecb3409e",
           "02ebeb86c50c41c17f99cf2850498b372fc0c9776787f6a5820e4089c47632b7"
         ],
-        "diffs": [100, 123]
+        "diffs": [
+          100,
+          123
+        ]
       },
       "signature": "f19b652f3968fae7f7e06a1b257c0d2fcf197e226fd100bbc5fd8de755ae99f360d7726ef246a25cb8612b255ca69510f1cfe1eb009812636c023b117221d3eb1c",
       "hash": "58fc70fd0342647be15e7b9912e43190fd7acd0a9465b7c3eeaf1d37a10cbdfd",
@@ -296,7 +299,9 @@
         "item_ids": [
           "17296c1f9b02617dec0db6437790af4a95339e6005579df93f6a9f0eecb3409e"
         ],
-        "diffs": [-42],
+        "diffs": [
+          -42
+        ],
         "order_id": "c5d28af211a85f5e00ba006101b6de90f442f9aa3b03daad030415b7fdddd13e",
         "tx_hash": "32b36377007de4ab0fcc3eabb1ef3a7096c42004c14babc3638f81b9d0982625"
       },

@@ -245,21 +245,15 @@ export class RelayClient extends EventEmitter {
   }
 
   async #authenticate() {
-    const response = (await this.encodeAndSend(schema.AuthenticateRequest, {
+    const response = await this.encodeAndSend(schema.AuthenticateRequest, {
+      // slice(1) to remove 0x04 prefix
       publicKey: toBytes(this.keyCardWallet.publicKey).slice(1),
-    })) as schema.AuthenticateResponse;
-    const types = {
-      Challenge: [{ name: "challenge", type: "string" }],
-    };
-    const sig = await this.keyCardWallet.signTypedData({
-      types,
-      primaryType: "Challenge",
-      domain: this.DOMAIN_SEPARATOR,
+    });
+    const sig = await this.keyCardWallet.signMessage({
       message: {
-        challenge: bytesToHex(response.challenge).slice(2),
+        raw: response.challenge,
       },
     });
-
     return this.encodeAndSend(schema.ChallengeSolvedRequest, {
       signature: toBytes(sig),
     });
@@ -322,20 +316,8 @@ export class RelayClient extends EventEmitter {
 
   async enrollKeycard(wallet: WalletClientWithAccount) {
     const publicKey = toBytes(this.keyCardWallet.publicKey).slice(1);
-
-    const types = {
-      Enrollment: [{ name: "keyCard", type: "string" }],
-    };
-    const message = {
-      keyCard: Buffer.from(publicKey).toString("hex"),
-    };
-    // formatMessageForSigning(message); will turn keyCard into key_card
-    // const sig = await this.#signTypedDataMessage(types, message);
-    const signature = await wallet.signTypedData({
-      types,
-      domain: this.DOMAIN_SEPARATOR,
-      primaryType: "Enrollment",
-      message,
+    const signature = await wallet.signMessage({
+      message: { raw: publicKey },
     });
     const body = JSON.stringify({
       key_card: Buffer.from(publicKey).toString("base64"),
