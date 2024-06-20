@@ -9,7 +9,7 @@ import React, {
   useReducer,
   useEffect,
 } from "react";
-import { bytesToHex, hexToBytes } from "viem";
+import { bytesToHex } from "viem";
 
 import { IProduct, TagId, ItemId, IStatus, IRelay } from "@/types";
 import { useMyContext } from "./MyContext";
@@ -47,7 +47,6 @@ import { initialStoreContext } from "../context/initialLoadingState";
 import { dummyRelays } from "./dummyData";
 import { pubKeyReducer } from "@/reducers/KCPubKeysReducers";
 import { setMapData, getParsedMapData, setItem, getItem } from "@/utils/level";
-import { Address } from "@ethereumjs/util";
 import { storeReducer, SET_STORE_DATA } from "@/reducers/storeReducer";
 
 // @ts-expect-error FIXME
@@ -254,6 +253,7 @@ export const StoreContextProvider = (
     _orderItems: Map<OrderId, OrderState>,
     _pubKeys: `0x${string}`[],
   ) => {
+    console.log(_orderItems, _pubKeys);
     // const addresses = _pubKeys.map((k) => {
     //   return Address.fromPublicKey(hexToBytes(k)).toString();
     // });
