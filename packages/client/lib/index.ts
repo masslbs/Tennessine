@@ -129,20 +129,24 @@ export class RelayClient extends EventEmitter {
     });
     const signedEvent = {
       signature: hexToBytes(sig),
-      event: shopEventBytes,
+      event: {
+        type_url: "type.googleapis.com/market.mass.ShopEvent",
+        value: shopEventBytes,
+      },
     };
     const eventWriteRequest = {
       event: signedEvent,
     };
-    await this.encodeAndSend(schema.EventWriteRequest, eventWriteRequest);
+    return this.encodeAndSend(schema.EventWriteRequest, eventWriteRequest);
   }
 
   async shopManifest(manifest: schema.IShopManifest) {
     const id = (manifest.eventId = eventId());
+    manifest.shopTokenId = hexToBytes(this.blockchain.shopId);
     await this.sendShopEvent({
       shopManifest: manifest,
     });
-    return bytesToHex(id);
+    return id;
   }
 
   async updateShopManifest(update: schema.IUpdateShopManifest) {
@@ -150,7 +154,7 @@ export class RelayClient extends EventEmitter {
     await this.sendShopEvent({
       updateShopManifest: update,
     });
-    return bytesToHex(id);
+    return id;
   }
 
   async createItem(item: schema.ICreateItem) {
@@ -158,7 +162,7 @@ export class RelayClient extends EventEmitter {
     await this.sendShopEvent({
       createItem: item,
     });
-    return bytesToHex(id);
+    return id;
   }
 
   async updateItem(item: schema.IUpdateItem) {
@@ -174,7 +178,7 @@ export class RelayClient extends EventEmitter {
     await this.sendShopEvent({
       createTag: tag,
     });
-    return bytesToHex(id);
+    return id;
   }
 
   async updateTag(tag: schema.IUpdateTag) {
@@ -182,7 +186,7 @@ export class RelayClient extends EventEmitter {
     await this.sendShopEvent({
       updateTag: tag,
     });
-    return bytesToHex(id);
+    return id;
   }
 
   async createOrder() {
@@ -233,8 +237,7 @@ export class RelayClient extends EventEmitter {
         this.#handlePingRequest(message);
         break;
       case schema.EventPushRequest:
-        // TODO: add signature verification
-        this.eventStream.enqueue(message as schema.EventPushRequest);
+        this.eventStream.enqueue(message);
         break;
       default:
         this.emit(bytesToHex(message.requestId), message);
@@ -320,12 +323,20 @@ export class RelayClient extends EventEmitter {
   async enrollKeycard(wallet: WalletClientWithAccount) {
     const publicKey = toBytes(this.keyCardWallet.publicKey).slice(1);
 
+    const types = {
+      Enrollment: [{ name: "keyCard", type: "string" }],
+    };
+    const message = {
+      keyCard: Buffer.from(publicKey).toString("hex"),
+    };
     // formatMessageForSigning(message); will turn keyCard into key_card
     // const sig = await this.#signTypedDataMessage(types, message);
-    const signature = await wallet.signMessage({
-      message: { raw: publicKey },
+    const signature = await wallet.signTypedData({
+      types,
+      domain: this.DOMAIN_SEPARATOR,
+      primaryType: "Enrollment",
+      message,
     });
-
     const body = JSON.stringify({
       key_card: Buffer.from(publicKey).toString("base64"),
       signature: hexToBase64(signature),
@@ -370,21 +381,15 @@ export class RelayClient extends EventEmitter {
 
   // null erc20Addr means vanilla ethererum is used
   async commitOrder(
-    orderId: Uint8Array,
-    erc20Addr?: `0x${string}` | null,
+    order: schema.ICommitItemsToOrderRequest,
   ): Promise<schema.CommitItemsToOrderResponse> {
-    let erc20AddrBytes: Uint8Array | null = null;
-    if (erc20Addr) {
-      erc20AddrBytes = hexToBytes(erc20Addr);
-      if (erc20AddrBytes.length !== 20) {
-        return Promise.reject(new Error("erc20Addr must be 20 bytes"));
-      }
-    }
+    // if (order.currency) {
+    //   erc20AddrBytes = hexToBytes(erc20Addr);
+    //   if (erc20AddrBytes.length !== 20) {
+    //     return Promise.reject(new Error("erc20Addr must be 20 bytes"));
+    //   }
+    // }
     await this.connect();
-    return this.encodeAndSend(schema.CommitItemsToOrderRequest, {
-      orderId,
-      erc20Addr: erc20AddrBytes,
-      chainId: this.chain.id,
-    });
+    return this.encodeAndSend(schema.CommitItemsToOrderRequest, order);
   }
 }

@@ -34,8 +34,9 @@ export class ReadableEventStream {
   enqueue(pushReq: schema.EventPushRequest) {
     this.requestId = pushReq.requestId;
     for (const anyEvt of pushReq.events) {
-      let evt = schema.ShopEvent.decode(anyEvt.value!);
-      this.controller.enqueue(evt);
+      //TODO: need to return the public key
+      let event = schema.ShopEvent.decode(anyEvt.event.value);
+      this.controller.enqueue({ event, signature: anyEvt.signature });
     }
   }
 }

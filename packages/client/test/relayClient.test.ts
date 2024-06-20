@@ -5,6 +5,7 @@
 import { WebSocket } from "isows";
 import {
   bytesToHex,
+  hexToBytes,
   createWalletClient,
   createPublicClient,
   http,
@@ -15,7 +16,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { describe, beforeEach, afterEach, expect, test } from "vitest";
 
 import { RelayClient } from "../lib";
-import { random32BytesHex } from "../lib/utils";
+import { random32BytesHex, randomBytes } from "../lib/utils";
 import schema from "@massmarket/schema";
 
 import * as abi from "@massmarket/contracts";
@@ -170,221 +171,263 @@ describe("user behaviour", () => {
   });
 
   test("write shop manifest", async () => {
-    const publishedTagId = null;
+    const publishedTagId = randomBytes(32);
     const name = "test shop";
     const description = "creating test shop";
     const profilePictureUrl = "https://http.cat/images/200.jpg";
-    // let r = await relayClient.shopManifest({
-    //   name,
-    //   description,
-    //   profilePictureUrl,
-    //   publishedTagId,
-    // });
-    // expect(r).not.toBeNull();
+    let r = await relayClient.shopManifest({
+      name,
+      description,
+      profilePictureUrl,
+      publishedTagId,
+    });
+    expect(r).not.toBeNull();
   });
-  //
-  // test("update shop manifest", async () => {
-  //   await relayClient.updateShopManifest({ domain: "socks.mass.market" });
-  //   await relayClient.updateShopManifest({
-  //     publishedTagId: random32BytesHex(),
-  //   });
-  //   await relayClient.updateShopManifest({
-  //     name: "socks.mass.market",
-  //     description: "foo",
-  //   });
-  //
-  //   await relayClient.updateShopManifest({
-  //     addErc20Addr: abi.addresses.Eddies,
-  //   });
-  //   await relayClient.updateShopManifest({
-  //     removeErc20Addr: abi.addresses.Eddies,
-  //   });
-  // });
-  //
-  // test("blob upload", async () => {
-  //   const file = new File(["foo"], "foo.txt", {
-  //     type: "text/plain",
-  //   });
-  //   const formData = new FormData();
-  //   formData.append("file", file);
-  //   const result = await relayClient.uploadBlob(formData);
-  //   expect(result.ipfs_path).toBe(
-  //     "/ipfs/QmcJw6x4bQr7oFnVnF6i8SLcJvhXjaxWvj54FYXmZ4Ct6p",
-  //   );
-  // });
-  //
-  // describe("editing the listing", () => {
-  //   let itemId: `0x${string}`;
-  //   // create item
-  //   beforeEach(async () => {
-  //     const metadata = JSON.stringify({
-  //       name: "test",
-  //       description: "test",
-  //       image: "https://http.cat/images/200.jpg",
-  //     });
-  //     itemId = await relayClient.createItem({
-  //       price: "10.99",
-  //       metadata,
-  //     });
-  //     expect(itemId).not.toBeNull();
-  //   });
-  //
-  //   test("update item - price", async () => {
-  //     await relayClient.updateItem({ itemId, price: "20.99" });
-  //     expect(itemId).not.toBeNull();
-  //   });
-  //
-  //   test("update item - metadata", async () => {
-  //     await relayClient.updateItem({
-  //       itemId,
-  //       metadata: JSON.stringify({
-  //         name: "new name",
-  //         image: "https://http.cat/images/200.jpg",
-  //       }),
-  //     });
-  //     expect(itemId).not.toBeNull();
-  //   });
-  //
-  //   describe("tagging", () => {
-  //     let tagId: `0x${string}`;
-  //     beforeEach(async () => {
-  //       tagId = await relayClient.createTag({ name: "Testing New Tag" });
-  //       expect(tagId).not.toBeNull();
-  //     });
-  //     test("add item to tag", async () => {
-  //       await relayClient.updateTag({ tagId, addItemId: itemId });
-  //     });
-  //     test("remove item from tag", async () => {
-  //       await relayClient.updateTag({ tagId, removeItemId: itemId });
-  //     });
-  //   });
-  //
-  //   describe("checkout process", () => {
-  //     let orderId: Uint8Array;
-  //     beforeEach(async () => {
-  //       orderId = await relayClient.createOrder();
-  //       // increase stock
-  //       await relayClient.changeStock({
-  //         itemIds: [itemId],
-  //         diffs: [10],
-  //       });
-  //     });
-  //
-  //     test("single item checkout", { timeout: 10000 }, async () => {
-  //       await relayClient.updateOrder({
-  //         orderId,
-  //         changeItems: {
-  //           itemId,
-  //           quantity: 1,
-  //         },
-  //       });
-  //       const checkout = await relayClient.commitOrder(orderId);
-  //       expect(checkout).not.toBeNull();
-  //       expect(checkout.orderFinalizedId).not.toBeNull();
-  //
-  //       const getStream = async () => {
-  //         const stream = relayClient.createEventStream();
-  //         // @ts-expect-error FIXME
-  //         for await (const event of stream) {
-  //           if (event.updateOrder?.itemsFinalized) {
-  //             return bytesToHex(event.updateOrder.orderId);
-  //           }
-  //         }
-  //         return null;
-  //       };
-  //       const receivedId = await getStream();
-  //       expect(receivedId).toEqual(orderId);
-  //     });
-  //
-  //     test("erc20 checkout", { timeout: 10000 }, async () => {
-  //       await relayClient.updateShopManifest({
-  //         addErc20Addr: abi.addresses.Eddies as Address,
-  //       });
-  //       await relayClient.updateOrder({
-  //         orderId,
-  //         changeItems: {
-  //           itemId,
-  //           quantity: 1,
-  //         },
-  //       });
-  //
-  //       const checkout = await relayClient.commitOrder(
-  //         orderId,
-  //         abi.addresses.Eddies as Address,
-  //       );
-  //       expect(checkout).not.toBeNull();
-  //       expect(checkout.orderFinalizedId).not.toBeNull();
-  //     });
-  //   });
-  // });
-  //
-  // describe("invite another user", { retry: 3 }, async () => {
-  //   let client2Wallet;
-  //   let relayClient2: RelayClient;
-  //   beforeEach(async () => {
-  //     const sk = random32BytesHex();
-  //     const token = privateKeyToAccount(sk);
-  //     const hash = await relayClient.blockchain.createInviteSecret(
-  //       wallet,
-  //       token.address,
-  //     );
-  //
-  //     // wait for the transaction to be included in the blockchain
-  //     const receipt = await publicClient.waitForTransactionReceipt({
-  //       hash,
-  //     });
-  //
-  //     expect(receipt.status).to.equal("success");
-  //     const acc2 = privateKeyToAccount(sk);
-  //     await wallet.sendTransaction({
-  //       account,
-  //       to: acc2.address,
-  //       value: BigInt(250000000000000000),
-  //     });
-  //     client2Wallet = createWalletClient({
-  //       account: acc2,
-  //       chain: hardhat,
-  //       transport: http(),
-  //     });
-  //     relayClient2 = new RelayClient({
-  //       relayEndpoint,
-  //       keyCardWallet: privateKeyToAccount(sk),
-  //       chain: hardhat,
-  //       keyCardEnrolled: false,
-  //       shopId,
-  //     });
-  //     const redeemHash = await relayClient.blockchain.redeemInviteSecret(
-  //       sk,
-  //       client2Wallet,
-  //     );
-  //     // wait for the transaction to be included in the blockchain
-  //     const redeemReceipt = await publicClient.waitForTransactionReceipt({
-  //       hash: redeemHash,
-  //     });
-  //
-  //     expect(redeemReceipt.status).to.equal("success");
-  //     await relayClient2.enrollKeycard(client2Wallet);
-  //     await relayClient2.connect();
-  //   });
-  //
-  //   test("client2 successfully updates manifest", async () => {
-  //     await relayClient2.updateShopManifest({
-  //       domain: "test2-test",
-  //     });
-  //     console.log("client2 updated manifest");
-  //   });
-  //
-  //   test("client 2 receives events from createEventStream", async () => {
-  //     const getStream = async () => {
-  //       const stream = relayClient2.createEventStream();
-  //       // @ts-expect-error FIXME
-  //       for await (const evt of stream) {
-  //         return 1;
-  //       }
-  //     };
-  //     const evtLength = await getStream();
-  //     expect(evtLength).toBeGreaterThan(0);
-  //     await relayClient2.disconnect();
-  //   });
-  // });
+
+  test("update shop manifest", async () => {
+    await relayClient.updateShopManifest({ domain: "socks.mass.market" });
+    await relayClient.updateShopManifest({
+      publishedTagId: randomBytes(32),
+    });
+    await relayClient.updateShopManifest({
+      name: "socks.mass.market",
+      description: "foo",
+    });
+
+    await relayClient.updateShopManifest({
+      addAcceptedCurrency: {
+        tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
+        chainId: 44,
+      },
+    });
+    await relayClient.updateShopManifest({
+      removeAcceptedCurrency: {
+        tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
+        chainId: 44,
+      },
+    });
+  });
+
+  test("blob upload", async () => {
+    const file = new File(["foo"], "foo.txt", {
+      type: "text/plain",
+    });
+    const formData = new FormData();
+    formData.append("file", file);
+    const result = await relayClient.uploadBlob(formData);
+    expect(result.ipfs_path).toBe(
+      "/ipfs/QmcJw6x4bQr7oFnVnF6i8SLcJvhXjaxWvj54FYXmZ4Ct6p",
+    );
+  });
+
+  describe("editing the listing", () => {
+    let itemId: Uint8Array;
+    // create item
+    beforeEach(async () => {
+      const metadata = new TextEncoder().encode(
+        JSON.stringify({
+          name: "test",
+          description: "test",
+          image: "https://http.cat/images/200.jpg",
+        }),
+      );
+      itemId = await relayClient.createItem({
+        price: "10.99",
+        metadata,
+      });
+      expect(itemId).not.toBeNull();
+    });
+
+    test("update item - price", async () => {
+      await relayClient.updateItem({ itemId, price: "20.99" });
+      expect(itemId).not.toBeNull();
+    });
+
+    test("update item - metadata", async () => {
+      await relayClient.updateItem({
+        itemId,
+        metadata: new TextEncoder().encode(
+          JSON.stringify({
+            name: "new name",
+            image: "https://http.cat/images/200.jpg",
+          }),
+        ),
+      });
+      expect(itemId).not.toBeNull();
+    });
+
+    describe("tagging", () => {
+      let tagId: Uint8Array;
+      beforeEach(async () => {
+        tagId = await relayClient.createTag({ name: "Testing New Tag" });
+        expect(tagId).not.toBeNull();
+      });
+      test("add item to tag", async () => {
+        await relayClient.updateTag({ tagId, addItemId: itemId });
+      });
+      test("remove item from tag", async () => {
+        await relayClient.updateTag({ tagId, removeItemId: itemId });
+      });
+    });
+
+    describe("checkout process", () => {
+      let orderId: Uint8Array;
+      beforeEach(async () => {
+        orderId = await relayClient.createOrder();
+        // increase stock
+        await relayClient.changeStock({
+          itemIds: [itemId],
+          diffs: [10],
+        });
+      });
+
+      test("single item checkout", { timeout: 10000 }, async () => {
+        await relayClient.updateShopManifest({
+          addAcceptedCurrency: {
+            tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
+            chainId: 44,
+          },
+          addPayee: {
+            addr: hexToBytes(abi.addresses.Eddies as Address),
+            callAsContract: false,
+            chainId: 44,
+            name: "test",
+          },
+        });
+
+        await relayClient.updateOrder({
+          orderId,
+          changeItems: {
+            itemId,
+            quantity: 1,
+          },
+        });
+        const checkout = await relayClient.commitOrder({
+          orderId,
+          currency: {
+            tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
+            chainId: 44,
+          },
+          payeeName: "test",
+        });
+        expect(checkout).not.toBeNull();
+        expect(checkout.orderFinalizedId).not.toBeNull();
+
+        const getStream = async () => {
+          const stream = relayClient.createEventStream();
+          // @ts-expect-error FIXME
+          for await (const event of stream) {
+            if (event.event.updateOrder?.itemsFinalized) {
+              return bytesToHex(event.event.updateOrder.orderId);
+            }
+          }
+          return null;
+        };
+        const receivedId = await getStream();
+        expect(receivedId).toEqual(bytesToHex(orderId));
+      });
+
+      test("erc20 checkout", async () => {
+        await relayClient.updateShopManifest({
+          addAcceptedCurrency: {
+            tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
+            chainId: 2,
+          },
+          addPayee: {
+            addr: hexToBytes(abi.addresses.Eddies as Address),
+            callAsContract: false,
+            chainId: 2,
+            name: "test2",
+          },
+        });
+        await relayClient.updateOrder({
+          orderId,
+          changeItems: {
+            itemId,
+            quantity: 1,
+          },
+        });
+
+        const checkout = await relayClient.commitOrder({
+          orderId,
+          currency: {
+            tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
+            chainId: 2,
+          },
+          payeeName: "test2",
+        });
+        expect(checkout).not.toBeNull();
+        expect(checkout.orderFinalizedId).not.toBeNull();
+      });
+    });
+  });
+
+  describe("invite another user", { retry: 3 }, async () => {
+    let client2Wallet;
+    let relayClient2: RelayClient;
+    beforeEach(async () => {
+      const sk = random32BytesHex();
+      const token = privateKeyToAccount(sk);
+      const hash = await relayClient.blockchain.createInviteSecret(
+        wallet,
+        token.address,
+      );
+
+      // wait for the transaction to be included in the blockchain
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash,
+      });
+
+      expect(receipt.status).to.equal("success");
+      const acc2 = privateKeyToAccount(sk);
+      await wallet.sendTransaction({
+        account,
+        to: acc2.address,
+        value: BigInt(250000000000000000),
+      });
+      client2Wallet = createWalletClient({
+        account: acc2,
+        chain: hardhat,
+        transport: http(),
+      });
+      relayClient2 = new RelayClient({
+        relayEndpoint,
+        keyCardWallet: privateKeyToAccount(sk),
+        chain: hardhat,
+        keyCardEnrolled: false,
+        shopId,
+      });
+      const redeemHash = await relayClient.blockchain.redeemInviteSecret(
+        sk,
+        client2Wallet,
+      );
+      // wait for the transaction to be included in the blockchain
+      const redeemReceipt = await publicClient.waitForTransactionReceipt({
+        hash: redeemHash,
+      });
+
+      expect(redeemReceipt.status).to.equal("success");
+      await relayClient2.enrollKeycard(client2Wallet);
+      await relayClient2.connect();
+    });
+
+    test("client2 successfully updates manifest", async () => {
+      await relayClient2.updateShopManifest({
+        domain: "test2-test",
+      });
+    });
+
+    test("client 2 receives events from createEventStream", async () => {
+      const getStream = async () => {
+        const stream = relayClient2.createEventStream();
+        // @ts-expect-error FIXME
+        for await (const evt of stream) {
+          return 1;
+        }
+      };
+      const evtLength = await getStream();
+      expect(evtLength).toBeGreaterThan(0);
+      await relayClient2.disconnect();
+    });
+  });
 });
