@@ -1,4 +1,5 @@
 import schema from "@massmarket/schema";
+import { recoverMessageAddress } from "viem";
 import { RelayClient } from "./";
 
 /**
@@ -34,9 +35,13 @@ export class ReadableEventStream {
   enqueue(pushReq: schema.EventPushRequest) {
     this.requestId = pushReq.requestId;
     for (const anyEvt of pushReq.events) {
-      //TODO: need to return the public key
-      let event = schema.ShopEvent.decode(anyEvt.event.value);
-      this.controller.enqueue({ event, signature: anyEvt.signature });
+      const event = schema.ShopEvent.decode(anyEvt.event.value);
+      const signer = recoverMessageAddress({
+        message: event,
+        signature: anyEvt.signature,
+      });
+
+      this.controller.enqueue({ event, signer });
     }
   }
 }

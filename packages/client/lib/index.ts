@@ -383,12 +383,6 @@ export class RelayClient extends EventEmitter {
   async commitOrder(
     order: schema.ICommitItemsToOrderRequest,
   ): Promise<schema.CommitItemsToOrderResponse> {
-    // if (order.currency) {
-    //   erc20AddrBytes = hexToBytes(erc20Addr);
-    //   if (erc20AddrBytes.length !== 20) {
-    //     return Promise.reject(new Error("erc20Addr must be 20 bytes"));
-    //   }
-    // }
     await this.connect();
     return this.encodeAndSend(schema.CommitItemsToOrderRequest, order);
   }

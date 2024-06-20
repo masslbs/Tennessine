@@ -95,7 +95,11 @@ const StoreCreation = () => {
   useEffect(() => {
     if (relayClient && isAuthenticated === IStatus.Complete) {
       (async () => {
-        await relayClient.writeShopManifest(storeName, description, avatar);
+        await relayClient.shopManifest({
+          name: storeName,
+          description,
+          profilePictureUrl: avatar,
+        });
         console.log("store manifested.");
         const publishedTagId = await relayClient.createTag("visible");
         if (publishedTagId) {

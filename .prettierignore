@@ -1,3 +1,4 @@
 *.yaml
 *.lock
 packages/schema/wrapper.js
+testVectors.json
