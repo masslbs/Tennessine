@@ -8,7 +8,6 @@ import {
   hexToBytes,
   toBytes,
   Address,
-  recoverTypedDataAddress,
   type WalletClient,
   type Transport,
   type Account,
@@ -17,7 +16,6 @@ import {
 import { EventEmitter } from "events";
 import { PrivateKeyAccount } from "viem/accounts";
 import { hardhat } from "viem/chains";
-import type { TypedData } from "abitype";
 import schema, {
   PBObject,
   PBMessage,
@@ -27,15 +25,7 @@ import schema, {
 } from "@massmarket/schema";
 import { BlockchainClient } from "./blockchainClient.js";
 import { ReadableEventStream } from "./stream.js";
-import {
-  formatMessageForSigning,
-  requestId,
-  eventId,
-  hexToBase64,
-  convertFirstCharToLowerCase,
-  snakeToCamel,
-  type NetworkMessage,
-} from "./utils.js";
+import { requestId, eventId, hexToBase64 } from "./utils.js";
 import * as abi from "@massmarket/contracts";
 
 export type WalletClientWithAccount = WalletClient<
@@ -129,6 +119,98 @@ export class RelayClient extends EventEmitter {
     });
   }
 
+  async sendShopEvent(
+    shopEvent: schema.IShopEvent,
+  ): Promise<schema.EventWriteResponse> {
+    await this.connect();
+    const shopEventBytes = schema.ShopEvent.encode(shopEvent).finish();
+    const sig = await this.keyCardWallet.signMessage({
+      message: { raw: shopEventBytes },
+    });
+    const signedEvent = {
+      signature: hexToBytes(sig),
+      event: shopEventBytes,
+    };
+    const eventWriteRequest = {
+      event: signedEvent,
+    };
+    await this.encodeAndSend(schema.EventWriteRequest, eventWriteRequest);
+  }
+
+  async shopManifest(manifest: schema.IShopManifest) {
+    const id = (manifest.eventId = eventId());
+    await this.sendShopEvent({
+      shopManifest: manifest,
+    });
+    return bytesToHex(id);
+  }
+
+  async updateShopManifest(update: schema.IUpdateShopManifest) {
+    const id = (update.eventId = eventId());
+    await this.sendShopEvent({
+      updateShopManifest: update,
+    });
+    return bytesToHex(id);
+  }
+
+  async createItem(item: schema.ICreateItem) {
+    const id = (item.eventId = eventId());
+    await this.sendShopEvent({
+      createItem: item,
+    });
+    return bytesToHex(id);
+  }
+
+  async updateItem(item: schema.IUpdateItem) {
+    const id = (item.eventId = eventId());
+    await this.sendShopEvent({
+      updateItem: item,
+    });
+    return bytesToHex(id);
+  }
+
+  async createTag(tag: schema.ICreateTag) {
+    const id = (tag.eventId = eventId());
+    await this.sendShopEvent({
+      createTag: tag,
+    });
+    return bytesToHex(id);
+  }
+
+  async updateTag(tag: schema.IUpdateTag) {
+    const id = (tag.eventId = eventId());
+    await this.sendShopEvent({
+      updateTag: tag,
+    });
+    return bytesToHex(id);
+  }
+
+  async createOrder() {
+    const id = eventId();
+    await this.sendShopEvent({
+      createOrder: {
+        eventId: id,
+      },
+    });
+    return id;
+  }
+
+  async updateOrder(order: schema.IUpdateOrder) {
+    const id = (order.eventId = eventId());
+    await this.sendShopEvent({
+      updateOrder: order,
+    });
+    return id;
+  }
+
+  async changeStock(stock: schema.IChangeStock) {
+    const id = (stock.eventId = eventId());
+    await this.sendShopEvent({
+      changeStock: stock,
+    });
+    return id;
+  }
+
   async #decodeMessage(me: MessageEvent) {
     const _data =
       me.data instanceof Blob
@@ -159,34 +241,6 @@ export class RelayClient extends EventEmitter {
     }
   }
 
-  // TODO: there are a lot of assumptions baked in here that should be commented
-  // for eG why isnt this used in enrollKeycard
-  #signTypedDataMessage(types: TypedData, message: NetworkMessage) {
-    return this.keyCardWallet.signTypedData({
-      types,
-      primaryType: Object.keys(types)[0],
-      domain: this.DOMAIN_SEPARATOR,
-      message: formatMessageForSigning(message),
-    });
-  }
-
-  // TODO: there are a lot of assumptions baked in here that should be commented
-  async #signAndSendShopEvent(types: TypedData, message: NetworkMessage) {
-    const sig = await this.#signTypedDataMessage(types, message);
-    let key = convertFirstCharToLowerCase(Object.keys(types)[0]);
-    const event = {
-      signature: hexToBytes(sig),
-      [key]: message,
-    };
-    const write = {
-      event: {
-        type_url: "type.googleapis.com/market.mass.ShopEvent",
-        value: schema.ShopEvent.encode(event).finish(),
-      },
-    };
-    return this.encodeAndSend(schema.EventWriteRequest, write);
-  }
-
   async #authenticate() {
     const response = (await this.encodeAndSend(schema.AuthenticateRequest, {
       publicKey: toBytes(this.keyCardWallet.publicKey).slice(1),
@@ -194,9 +248,15 @@ export class RelayClient extends EventEmitter {
     const types = {
       Challenge: [{ name: "challenge", type: "string" }],
     };
-    const sig = await this.#signTypedDataMessage(types, {
-      challenge: bytesToHex(response.challenge).slice(2),
+    const sig = await this.keyCardWallet.signTypedData({
+      types,
+      primaryType: "Challenge",
+      domain: this.DOMAIN_SEPARATOR,
+      message: {
+        challenge: bytesToHex(response.challenge).slice(2),
+      },
     });
+
     return this.encodeAndSend(schema.ChallengeSolvedRequest, {
       signature: toBytes(sig),
     });
@@ -257,45 +317,15 @@ export class RelayClient extends EventEmitter {
     });
   }
 
-  // TODO: implement for other types
-  async recoverSignedAddress(orderId: `0x${string}`, signature: `0x${string}`) {
-    const types = {
-      CreateOrder: [
-        {
-          name: "event_id",
-          type: "bytes32",
-        },
-      ],
-    };
-    const address = await recoverTypedDataAddress({
-      domain: this.DOMAIN_SEPARATOR,
-      types,
-      primaryType: "CreateOrder",
-      message: {
-        event_id: orderId,
-      },
-      signature,
-    });
-    return address;
-  }
-
   async enrollKeycard(wallet: WalletClientWithAccount) {
     const publicKey = toBytes(this.keyCardWallet.publicKey).slice(1);
 
-    const types = {
-      Enrollment: [{ name: "keyCard", type: "string" }],
-    };
-    const message = {
-      keyCard: Buffer.from(publicKey).toString("hex"),
-    };
     // formatMessageForSigning(message); will turn keyCard into key_card
     // const sig = await this.#signTypedDataMessage(types, message);
-    const signature = await wallet.signTypedData({
-      types,
-      domain: this.DOMAIN_SEPARATOR,
-      primaryType: "Enrollment",
-      message,
+    const signature = await wallet.signMessage({
+      message: { raw: publicKey },
     });
+
     const body = JSON.stringify({
       key_card: Buffer.from(publicKey).toString("base64"),
       signature: hexToBase64(signature),
@@ -338,389 +368,9 @@ export class RelayClient extends EventEmitter {
     return uploadResp.json();
   }
 
-  async writeShopManifest(
-    name: string,
-    description: string,
-    profilePictureUrl: string,
-    publishedTagId: `0x${string}` | null = null,
-  ): Promise<schema.EventWriteResponse> {
-    await this.connect();
-    let pId = eventId();
-    if (publishedTagId) {
-      pId = hexToBytes(publishedTagId);
-    }
-    const shopManifest = {
-      eventId: eventId(),
-      shopTokenId: hexToBytes(this.blockchain.shopId),
-      domain: "socks.mass.market",
-      publishedTagId: pId,
-      name,
-      description,
-      profilePictureUrl,
-    };
-
-    const types = {
-      ShopManifest: [
-        {
-          name: "event_id",
-          type: "bytes32",
-        },
-        {
-          name: "shop_token_id",
-          type: "bytes32",
-        },
-        {
-          name: "domain",
-          type: "string",
-        },
-        {
-          name: "published_tag_id",
-          type: "bytes32",
-        },
-        {
-          name: "name",
-          type: "string",
-        },
-        {
-          name: "description",
-          type: "string",
-        },
-        {
-          name: "profile_picture_url",
-          type: "string",
-        },
-      ],
-    };
-
-    return this.#signAndSendShopEvent(
-      types,
-      shopManifest,
-    ) as Promise<schema.EventWriteResponse>;
-  }
-
-  async updateShopManifest(update: {
-    domain?: string;
-    publishedTagId?: `0x${string}`;
-    addErc20Addr?: `0x${string}`;
-    removeErc20Addr?: `0x${string}`;
-    name?: string;
-    description?: string;
-    profilePictureUrl?: string;
-  }) {
-    await this.connect();
-
-    const types = [
-      {
-        name: "event_id",
-        type: "bytes32",
-      },
-    ];
-
-    const optional_types = [
-      {
-        name: "name",
-        type: "string",
-      },
-      {
-        name: "description",
-        type: "string",
-      },
-      {
-        name: "profile_picture_url",
-        type: "string",
-      },
-      {
-        name: "domain",
-        type: "string",
-      },
-      {
-        name: "published_tag_id",
-        type: "bytes32",
-      },
-      {
-        name: "add_erc20_addr",
-        type: "address",
-      },
-      {
-        name: "remove_erc20_addr",
-        type: "address",
-      },
-    ];
-
-    let message = {
-      eventId: eventId(),
-    } as { [key: string]: any };
-
-    for (const opt_type of optional_types) {
-      const { name, type } = opt_type;
-      const obj_name = snakeToCamel(name);
-      // @ts-ignore
-      const v = update[obj_name];
-
-      if (v !== undefined) {
-        types.push(opt_type);
-        if (type == "address" || type == "bytes32") {
-          message[obj_name] = hexToBytes(v);
-        } else {
-          message[obj_name] = v;
-        }
-      }
-    }
-    return this.#signAndSendShopEvent(
-      {
-        UpdateShopManifest: types,
-      },
-      message,
-    );
-  }
-
-  async createItem(
-    price: string,
-    metadata: { name: string; description: string; image: string },
-  ) {
-    await this.connect();
-    const jsonString = JSON.stringify(metadata);
-    const encoder = new TextEncoder();
-    const utf8Encoded = encoder.encode(jsonString);
-    const iid = eventId();
-    const item = {
-      eventId: iid,
-      price: price,
-      metadata: utf8Encoded,
-    };
-    const types = {
-      CreateItem: [
-        {
-          name: "event_id",
-          type: "bytes32",
-        },
-        {
-          name: "price",
-          type: "string",
-        },
-        {
-          name: "metadata",
-          type: "bytes",
-        },
-      ],
-    };
-    await this.#signAndSendShopEvent(types, item);
-    return bytesToHex(iid);
-  }
-
-  async updateItem(
-    itemId: `0x${string}`,
-    update: {
-      price?: string;
-      metadata?: any; // TODO: actually should be an object...
-    },
-  ) {
-    await this.connect();
-
-    const message = {
-      eventId: eventId(),
-      itemId: hexToBytes(itemId),
-    } as Record<string, Uint8Array | string | number | Uint8Array[] | number[]>;
-
-    const types = [
-      {
-        name: "event_id",
-        type: "bytes32",
-      },
-      {
-        name: "item_id",
-        type: "bytes32",
-      },
-    ];
-
-    if (update.price !== undefined) {
-      types.push({ name: "price", type: "string" });
-      message["price"] = update.price;
-    }
-    if (update.metadata !== undefined) {
-      const jsonString = JSON.stringify(update.metadata);
-      const encoder = new TextEncoder();
-      const utf8Encoded = encoder.encode(jsonString);
-      types.push({ name: "metadata", type: "bytes" });
-      message["metadata"] = utf8Encoded;
-    }
-
-    return this.#signAndSendShopEvent(
-      {
-        UpdateItem: types,
-      },
-      message,
-    );
-  }
-
-  async createTag(name: string) {
-    await this.connect();
-    const tagId = eventId();
-    const tag = {
-      eventId: tagId,
-      name: name,
-    };
-
-    const types = {
-      CreateTag: [
-        {
-          name: "event_id",
-          type: "bytes32",
-        },
-        {
-          name: "name",
-          type: "string",
-        },
-      ],
-    };
-    await this.#signAndSendShopEvent(types, tag);
-    return bytesToHex(tagId);
-  }
-
-  async addItemToTag(tagId: `0x${string}`, itemId: `0x${string}`) {
-    await this.connect();
-    const tag = {
-      eventId: eventId(),
-      tagId: hexToBytes(tagId),
-      addItemId: hexToBytes(itemId),
-    };
-
-    const types = {
-      UpdateTag: [
-        {
-          name: "event_id",
-          type: "bytes32",
-        },
-        {
-          name: "tag_id",
-          type: "bytes32",
-        },
-        {
-          name: "add_item_id",
-          type: "bytes32",
-        },
-      ],
-    };
-    return this.#signAndSendShopEvent(types, tag);
-  }
-
-  async removeFromTag(tagId: `0x${string}`, itemId: `0x${string}`) {
-    await this.connect();
-    const tag = {
-      eventId: eventId(),
-      tagId: hexToBytes(tagId),
-      removeItemId: hexToBytes(itemId),
-    };
-
-    const types = {
-      UpdateTag: [
-        {
-          name: "event_id",
-          type: "bytes32",
-        },
-        {
-          name: "tag_id",
-          type: "bytes32",
-        },
-        {
-          name: "remove_item_id",
-          type: "bytes32",
-        },
-      ],
-    };
-    return this.#signAndSendShopEvent(types, tag);
-  }
-
-  async abandonOrder(orderId: `0x${string}`) {
-    await this.connect();
-
-    const order = {
-      eventId: eventId(),
-      orderId: hexToBytes(orderId),
-    };
-
-    const types = {
-      OrderAbandoned: [
-        {
-          name: "event_id",
-          type: "bytes32",
-        },
-        { name: "order_id", type: "bytes32" },
-      ],
-    };
-
-    return await this.#signAndSendShopEvent(types, order);
-  }
-
-  async createOrder() {
-    await this.connect();
-    const reqId = eventId();
-    const order = {
-      eventId: reqId,
-    };
-
-    const types = {
-      CreateOrder: [
-        {
-          name: "event_id",
-          type: "bytes32",
-        },
-      ],
-    };
-
-    await this.#signAndSendShopEvent(types, order);
-    return bytesToHex(reqId);
-  }
-
-  async changeOrder(
-    orderId: `0x${string}`,
-    itemId: `0x${string}`,
-    quantity: number,
-  ) {
-    await this.connect();
-
-    const order = {
-      eventId: eventId(),
-      orderId: hexToBytes(orderId),
-      changeItems: {
-        itemId: hexToBytes(itemId),
-        quantity,
-      },
-    };
-
-    const types = {
-      UpdateOrder: [
-        {
-          name: "event_id",
-          type: "bytes32",
-        },
-        {
-          name: "order_id",
-          type: "bytes32",
-        },
-        {
-          name: "change_items",
-          type: "change_items",
-        },
-      ],
-      change_items: [
-        {
-          name: "item_id",
-          type: "bytes32",
-        },
-        {
-          name: "quantity",
-          type: "int32",
-        },
-      ],
-    };
-
-    return this.#signAndSendShopEvent(types, order);
-  }
-
   // null erc20Addr means vanilla ethererum is used
   async commitOrder(
-    orderId: `0x${string}`,
+    orderId: Uint8Array,
     erc20Addr?: `0x${string}` | null,
   ): Promise<schema.CommitItemsToOrderResponse> {
     let erc20AddrBytes: Uint8Array | null = null;
@@ -732,36 +382,9 @@ export class RelayClient extends EventEmitter {
     }
     await this.connect();
     return this.encodeAndSend(schema.CommitItemsToOrderRequest, {
-      orderId: hexToBytes(orderId),
+      orderId,
       erc20Addr: erc20AddrBytes,
       chainId: this.chain.id,
-    }) as Promise<schema.CommitItemsToOrderResponse>;
-  }
-
-  async changeStock(itemIds: `0x${string}`[], diffs: number[]) {
-    await this.connect();
-    const stock = {
-      eventId: eventId(),
-      itemIds: itemIds.map((d) => hexToBytes(d)),
-      diffs: diffs,
-    };
-
-    const types = {
-      ChangeStock: [
-        {
-          name: "event_id",
-          type: "bytes32",
-        },
-        {
-          name: "item_ids",
-          type: "bytes32[]",
-        },
-        {
-          name: "diffs",
-          type: "int32[]",
-        },
-      ],
-    };
-    return this.#signAndSendShopEvent(types, stock);
+    });
   }
 }
