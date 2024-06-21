@@ -129,26 +129,13 @@ export const MyContextProvider = (
       ),
       fromBlock: "earliest",
       toBlock: "latest",
+      args: {
+        to: walletAddress,
+      },
     });
-    const _stores = logs[0].topics;
-    await Promise.all(
-      _stores.map(async (id) => {
-        try {
-          const ownerAdd = (await publicClient.readContract({
-            address: abi.addresses.ShopReg as Address,
-            abi: abi.ShopReg,
-            functionName: "ownerOf",
-            args: [BigInt(id)],
-          })) as `0x${string}`;
-          if (ownerAdd?.toLowerCase() === walletAddress!.toLowerCase()) {
-            stores.set(id, 1);
-          }
-        } catch (error) {
-          console.log("store not found", id);
-        }
-      }),
-    );
-
+    logs.map(async (l) => {
+      stores.set(l.topics?.[3], 1);
+    });
     return stores;
   };
 
