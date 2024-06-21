@@ -127,6 +127,8 @@ export const MyContextProvider = (
       event: parseAbiItem(
         "event Transfer(address indexed from, address indexed to, uint256 value)",
       ),
+      fromBlock: "earliest",
+      toBlock: "latest",
     });
     const _stores = logs[0].topics;
     await Promise.all(
