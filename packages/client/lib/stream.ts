@@ -10,6 +10,7 @@ export class ReadableEventStream {
   public stream;
   public requestId: Uint8Array | null = null;
   private controller!: ReadableStreamDefaultController<schema.ShopEvent>;
+  private closed = false;
 
   constructor(public client: RelayClient) {
     const self = this;
@@ -27,21 +28,25 @@ export class ReadableEventStream {
             self.requestId = null;
           }
         },
+        cancel() {
+          self.closed = true;
+        },
       },
       { highWaterMark: 0 },
     );
   }
 
-  enqueue(pushReq: schema.EventPushRequest) {
+  async enqueue(pushReq: schema.EventPushRequest) {
     this.requestId = pushReq.requestId;
     for (const anyEvt of pushReq.events) {
       const event = schema.ShopEvent.decode(anyEvt.event.value);
-      const signer = recoverMessageAddress({
-        message: event,
+      const signer = await recoverMessageAddress({
+        message: { raw: anyEvt.event.value },
         signature: anyEvt.signature,
       });
-
-      this.controller.enqueue({ event, signer });
+      if (!this.closed) {
+        this.controller.enqueue({ event, signer });
+      }
     }
   }
 }

@@ -422,7 +422,6 @@ describe("user behaviour", () => {
       };
       const evtLength = await getStream();
       expect(evtLength).toBeGreaterThan(0);
-      await relayClient2.disconnect();
     });
   });
 });

@@ -212,7 +212,7 @@ export class RelayClient extends EventEmitter {
         this.#handlePingRequest(message);
         break;
       case schema.EventPushRequest:
-        this.eventStream.enqueue(message);
+        await this.eventStream.enqueue(message);
         break;
       default:
         this.emit(bytesToHex(message.requestId), message);
