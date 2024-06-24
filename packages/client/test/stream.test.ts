@@ -50,7 +50,6 @@ describe("Stream", async () => {
     const client = new MockClient();
     const stream = new ReadableEventStream(client);
     stream.enqueue(pushEvent);
-    // @ts-expect-error waiting of upstream fix
     for await (const evt of stream.stream) {
       assert.deepEqual(
         evt.event.updateItem,
@@ -61,7 +60,6 @@ describe("Stream", async () => {
     }
 
     stream.enqueue(pushEvent);
-    // @ts-expect-error waiting of upstream fix
     for await (const _ of stream.stream) {
       // should not emit after close
       assert.fail();
