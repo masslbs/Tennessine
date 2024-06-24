@@ -15,8 +15,8 @@ import { hardhat } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 import { describe, beforeEach, afterEach, expect, test } from "vitest";
 
-import { RelayClient } from "../lib";
-import { random32BytesHex, randomBytes } from "../lib/utils";
+import { RelayClient } from "../src";
+import { random32BytesHex, randomBytes } from "../src/utils";
 import * as abi from "@massmarket/contracts";
 
 const account = privateKeyToAccount(
