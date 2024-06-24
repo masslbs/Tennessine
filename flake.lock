@@ -303,7 +303,7 @@
       },
       "original": {
         "owner": "masslbs",
-        "ref": "wip/v2",
+        "ref": "signatures-v2",
         "repo": "network-schema",
         "type": "github"
       }

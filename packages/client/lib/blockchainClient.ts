@@ -25,7 +25,7 @@ export type WalletClientWithAccount = WalletClient<
 };
 
 export class BlockchainClient {
-  constructor(public shopId: `0x${string}` = bytesToHex(eventId())) {}
+  constructor(public shopId = bytesToHex(eventId())) {}
 
   createShop(wallet: WalletClientWithAccount) {
     return wallet.writeContract({
@@ -45,7 +45,7 @@ export class BlockchainClient {
     });
   }
 
-  createInviteSecret(wallet: WalletClientWithAccount, token: `0x${string}`) {
+  createInviteSecret(wallet: WalletClientWithAccount, token: Address) {
     // Save the public key onchain
     return wallet.writeContract({
       address: abi.addresses.ShopReg as Address,
@@ -55,10 +55,7 @@ export class BlockchainClient {
     });
   }
 
-  async redeemInviteSecret(
-    secret: `0x${string}`,
-    wallet: WalletClientWithAccount,
-  ) {
+  async redeemInviteSecret(secret: Address, wallet: WalletClientWithAccount) {
     const message = "enrolling:" + wallet.account.address.toLowerCase();
     const tokenAccount = privateKeyToAccount(secret);
     const sig = await tokenAccount.signMessage({

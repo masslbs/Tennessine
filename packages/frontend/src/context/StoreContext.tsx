@@ -9,7 +9,7 @@ import React, {
   useReducer,
   useEffect,
 } from "react";
-import { bytesToHex, hexToBytes } from "viem";
+import { bytesToHex } from "viem";
 
 import { IProduct, TagId, ItemId, IStatus, IRelay } from "@/types";
 import { useMyContext } from "./MyContext";
@@ -47,7 +47,6 @@ import { initialStoreContext } from "../context/initialLoadingState";
 import { dummyRelays } from "./dummyData";
 import { pubKeyReducer } from "@/reducers/KCPubKeysReducers";
 import { setMapData, getParsedMapData, setItem, getItem } from "@/utils/level";
-import { Address } from "@ethereumjs/util";
 import { storeReducer, SET_STORE_DATA } from "@/reducers/storeReducer";
 
 // @ts-expect-error FIXME
@@ -228,7 +227,7 @@ export const StoreContextProvider = (
     try {
       const stream = relayClient && relayClient.createEventStream();
       if (stream) {
-        // @ts-expect-error FIXME
+        // @ts-expect-error waiting on upstream fix in TS definitions
         for await (const evt of stream) {
           buildState(
             products,
@@ -254,26 +253,27 @@ export const StoreContextProvider = (
     _orderItems: Map<OrderId, OrderState>,
     _pubKeys: `0x${string}`[],
   ) => {
-    const addresses = _pubKeys.map((k) => {
-      return Address.fromPublicKey(hexToBytes(k)).toString();
-    });
-    const keysArr: `0x${string}`[] = _orderItems.size
-      ? Array.from([..._orderItems.keys()])
-      : [];
-    for (const _orderId of keysArr) {
-      const _order = _orderItems.get(_orderId) as OrderState;
-      if (_order && _order.status !== IStatus.Failed) {
-        const sig = _order.signature as `0x${string}`;
-        const retrievedAdd = await relayClient!.recoverSignedAddress(
-          _orderId,
-          sig,
-        );
-        if (addresses.includes(retrievedAdd.toLowerCase())) {
-          console.log("inside inclue", _orderId);
-          setOrderId(_orderId);
-        }
-      }
-    }
+    console.log(_orderItems, _pubKeys);
+    // const addresses = _pubKeys.map((k) => {
+    //   return Address.fromPublicKey(hexToBytes(k)).toString();
+    // });
+    // const keysArr: `0x${string}`[] = _orderItems.size
+    //   ? Array.from([..._orderItems.keys()])
+    //   : [];
+    // for (const _orderId of keysArr) {
+    //   const _order = _orderItems.get(_orderId) as OrderState;
+    //   if (_order && _order.status !== IStatus.Failed) {
+    //     const sig = _order.signature as `0x${string}`;
+    //     const retrievedAdd = await relayClient!.recoverSignedAddress(
+    //       _orderId,
+    //       sig,
+    //     );
+    //     if (addresses.includes(retrievedAdd.toLowerCase())) {
+    //       console.log("inside inclue", _orderId);
+    //       setOrderId(_orderId);
+    //     }
+    //   }
+    // }
   };
 
   const addProduct = async (
@@ -292,7 +292,9 @@ export const StoreContextProvider = (
       };
       const priceAsNum = Number(product.price);
       product.price = priceAsNum.toFixed(2);
-      const iid = await relayClient!.createItem(product.price, metadata);
+      const iid = bytesToHex(
+        await relayClient!.createItem({ price: product.price, metadata }),
+      );
       product.id = iid;
       product.tagIds = selectedTagIds;
       product.metadata = metadata;
@@ -326,7 +328,7 @@ export const StoreContextProvider = (
       if (fields.price) {
         const priceAsNum = Number(updatedProduct.price);
         updatedProduct.price = priceAsNum.toFixed(2);
-        await relayClient!.updateItem(itemId, { price: updatedProduct.price });
+        await relayClient!.updateItem({ itemId, price: updatedProduct.price });
         setProducts({
           type: UPDATE_PRICE,
           payload: {
@@ -348,7 +350,7 @@ export const StoreContextProvider = (
           description: "updating product",
           image: path.url,
         };
-        await relayClient!.updateItem(itemId, { metadata });
+        await relayClient!.updateItem({ itemId, metadata });
         setProducts({
           type: UPDATE_METADATA,
           payload: {
@@ -388,7 +390,7 @@ export const StoreContextProvider = (
   const createTag = async (name: string) => {
     try {
       const _name = name.slice(1);
-      const id: TagId = await relayClient!.createTag(_name);
+      const id: TagId = bytesToHex(await relayClient!.createTag(_name));
       const tag = { id, text: _name, color: "special" }; // TODO: color: hex?
       setAllTags({ type: ADD_TAG, payload: { tag } });
       return { id, error: null };
@@ -401,7 +403,7 @@ export const StoreContextProvider = (
 
   const addProductToTag = async (tagId: TagId, itemId: ItemId) => {
     try {
-      await relayClient!.addItemToTag(tagId, itemId);
+      await relayClient!.updateTag({ tagId, addItemId: itemId });
       setProducts({
         type: ADD_PRODUCT_TAGS,
         payload: {
@@ -419,7 +421,7 @@ export const StoreContextProvider = (
 
   const removeProductFromTag = async (tagId: TagId, itemId: ItemId) => {
     try {
-      await relayClient!.removeFromTag(tagId, itemId);
+      await relayClient!.updateTag({ tagId, removeItemId: itemId });
       setProducts({
         type: REMOVE_PRODUCT_TAG,
         payload: {
@@ -445,12 +447,18 @@ export const StoreContextProvider = (
         //Clear order and set every item in order to quantity 0
         const itemIds = Object.keys(activeOrderItems);
         for (const itemId of itemIds) {
-          await relayClient!.changeOrder(order_id, itemId as ItemId, 0);
+          await relayClient!.updateOrder({
+            orderId: order_id,
+            changeItems: { itemId, quantity: 0 },
+          });
         }
         setOrderItems({ type: CLEAR_ORDER, payload: { orderId: order_id } });
       } else if (saleQty === 0) {
         //delete it from orderItems
-        await relayClient!.changeOrder(order_id, itemId, saleQty);
+        await relayClient!.updateOrder({
+          order: order_id,
+          changeItems: { itemId, quantity: saleQty },
+        });
         setOrderItems({
           type: REMOVE_ORDER_ITEM,
           payload: {
@@ -460,7 +468,10 @@ export const StoreContextProvider = (
         });
       } else {
         //update item sale qty
-        await relayClient!.changeOrder(order_id, itemId, saleQty);
+        await relayClient!.updateOrder({
+          orderId: order_id,
+          changeItems: { itemId, quantity: saleQty },
+        });
         // const difference = (activeOrderItems?.[itemId] || 0) - Number(saleQty);
         // updateUnitChnage(itemId, difference);
 
@@ -487,7 +498,7 @@ export const StoreContextProvider = (
       console.log(`Invalidating order: ${msg}`);
       if (!orderId) throw Error(`No ${orderId} found`);
       if (!relayClient) throw Error(`Disconnected from relayClient`);
-      await relayClient.abandonOrder(orderId);
+      await relayClient.updateOrder({ orderId, orderCancelled: {} });
       setOrderItems({
         type: UPDATE_ORDER_STATUS,
         payload: { orderId: orderId as OrderId, status: IStatus.Failed },
@@ -503,13 +514,13 @@ export const StoreContextProvider = (
   };
 
   const createOrder = async () => {
-    const orderId = await relayClient!.createOrder();
+    const orderId = bytesToHex(await relayClient!.createOrder());
     setOrderId(orderId);
     return orderId;
   };
 
   const changeStock = async (itemIds: ItemId[], diffs: number[]) => {
-    await relayClient!.changeStock(itemIds, diffs);
+    await relayClient!.changeStock({ itemIds, diffs });
   };
 
   const commitOrder = async (isERC20Checkout: boolean) => {
@@ -525,7 +536,10 @@ export const StoreContextProvider = (
       }
       if (!relayClient) throw Error(`Disconnected from relayClient`);
 
-      const checkout = await relayClient.commitOrder(orderId, erc20);
+      const checkout = await relayClient.commitOrder({
+        orderId,
+        currency: erc20,
+      });
       return {
         requestId: bytesToHex(checkout.requestId),
         orderFinalizedId: bytesToHex(checkout.orderFinalizedId),

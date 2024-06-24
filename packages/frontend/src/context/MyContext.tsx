@@ -16,7 +16,7 @@ import {
   useEnsAvatar,
   useWalletClient,
 } from "wagmi";
-import { RelayClient, WalletClientWithAccount } from "@massmarket/client";
+import { RelayClient, type WalletClientWithAccount } from "@massmarket/client";
 import { hardhat, sepolia, mainnet, type Chain } from "viem/chains";
 import {
   http,
