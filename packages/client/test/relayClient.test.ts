@@ -311,7 +311,6 @@ describe("user behaviour", () => {
 
         const getStream = async () => {
           const stream = relayClient.createEventStream();
-          // @ts-expect-error FIXME
           for await (const event of stream) {
             if (event.event.updateOrder?.itemsFinalized) {
               return bytesToHex(event.event.updateOrder.orderId);
@@ -415,7 +414,6 @@ describe("user behaviour", () => {
     test("client 2 receives events from createEventStream", async () => {
       const getStream = async () => {
         const stream = relayClient2.createEventStream();
-        // @ts-expect-error FIXME
         for await (const evt of stream) {
           return 1;
         }

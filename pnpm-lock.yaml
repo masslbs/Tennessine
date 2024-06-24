@@ -257,6 +257,9 @@ importers:
       '@massmarket/client':
         specifier: workspace:*
         version: link:../client
+      '@massmarket/schema':
+        specifier: workspace:*
+        version: link:../schema
       '@massmarket/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
