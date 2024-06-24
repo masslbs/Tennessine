@@ -425,24 +425,6 @@
   },
   {
     "type": "function",
-    "name": "setTokenURI",
-    "inputs": [
-      {
-        "name": "shopId",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "tokenURI",
-        "type": "string",
-        "internalType": "string"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
     "name": "name",
     "inputs": [],
     "outputs": [
@@ -809,6 +791,43 @@
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setTokenURI",
+    "inputs": [
+      {
+        "name": "shopId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "newTokenURI",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "shopURIs",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
