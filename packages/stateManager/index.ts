@@ -3,6 +3,7 @@ import { RelayClient } from "@massmarket/client";
 import schema from "@massmarket/schema";
 
 interface Item {
+  id: string;
   name: string;
   price: number;
   tags: string[];
@@ -17,26 +18,34 @@ interface KeyCards {
   publicKey: `0x${string}`;
 }
 
-type StoreObjectTypes = Item | Tag | KeyCards;
+type ShopObjectTypes = Item | Tag | KeyCards;
 
 // This is a an interface that is used to retrieve and store objects from a persistant layer
-type Store<T extends StoreObjectTypes> = {
+type Store<T extends ShopObjectTypes> = {
   put(key: string, value: T): Promise<void>;
   get(key: string): Promise<T>;
 };
 
 abstract class PublicObjectManager<
-  T extends StoreObjectTypes,
+  T extends ShopObjectTypes,
 > extends EventEmitter {
-  constructor(protected db: Store<T>) {
+  constructor(
+    protected db: Store<T>,
+    protected client: RelayClient,
+  ) {
     super();
   }
   abstract _processEvent(event: schema.ShopEvents): Promise<boolean>;
+  abstract create(obj: T): Promise<[any, any]>;
+  abstract update(obj: T): Promise<[any, any]>;
+  get(id: string): Promise<T> {
+    return this.db.get(id);
+  }
 }
 
 class ItemManager extends PublicObjectManager<Item> {
-  constructor(db: Store<Item>) {
-    super(db);
+  constructor(db: Store<Item>, client: RelayClient) {
+    super(db, client);
   }
   // Process the events; if the event modifies one the shops items this updates the store and emits an event
   // returns a bool to indicate whether the event was processed or not
@@ -51,6 +60,20 @@ class ItemManager extends PublicObjectManager<Item> {
     } else {
       return false;
     }
+  }
+  create(item: Item) {
+    return Promise.all([
+      this.db.put(item.id, item),
+      this.client.createItem(item),
+    ]);
+  }
+
+  update(item: Item) {
+    return Promise.all([
+      // need to get the item and merge it before storing
+      this.db.put(item.id, item),
+      this.client.createItem(item),
+    ]);
   }
 }
 

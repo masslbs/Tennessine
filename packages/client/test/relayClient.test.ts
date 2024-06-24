@@ -311,6 +311,7 @@ describe("user behaviour", () => {
 
         const getStream = async () => {
           const stream = relayClient.createEventStream();
+          // @ts-expect-error waiting on upstream fix in TS definitions
           for await (const event of stream) {
             if (event.event.updateOrder?.itemsFinalized) {
               return bytesToHex(event.event.updateOrder.orderId);
@@ -414,6 +415,7 @@ describe("user behaviour", () => {
     test("client 2 receives events from createEventStream", async () => {
       const getStream = async () => {
         const stream = relayClient2.createEventStream();
+        // @ts-expect-error waiting on upstream fix in TS definitions
         for await (const evt of stream) {
           return 1;
         }

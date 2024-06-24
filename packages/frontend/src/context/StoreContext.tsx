@@ -227,7 +227,7 @@ export const StoreContextProvider = (
     try {
       const stream = relayClient && relayClient.createEventStream();
       if (stream) {
-        // @ts-expect-error FIXME
+        // @ts-expect-error waiting on upstream fix in TS definitions
         for await (const evt of stream) {
           buildState(
             products,
