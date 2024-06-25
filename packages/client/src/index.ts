@@ -66,10 +66,8 @@ export class RelayClient extends EventEmitter {
     this.connection.send(typedPr);
   }
 
-  encodeAndSend(
-    encoder: PBMessage,
-    object: PBObject = {},
-  ): Promise<PBInstance> {
+  // like encodeAndSend but doesn't wait for a response; EventPushResponse uses this
+  encodeAndSendNoWait(encoder: PBMessage, object: PBObject = {}) {
     if (!object.requestId) {
       object.requestId = requestId();
     }
@@ -80,7 +78,15 @@ export class RelayClient extends EventEmitter {
     typed.set(payload, 1);
     console.log(`[send] reqId=${bytesToHex(id)} typeCode=${typed[0]}`);
     this.connection.send(typed);
+    return id;
+  }
 
+  // encode and send a message and then wait for a response
+  encodeAndSend(
+    encoder: PBMessage,
+    object: PBObject = {},
+  ): Promise<PBInstance> {
+    const id = this.encodeAndSendNoWait(encoder, object);
     return new Promise((resolve, reject) => {
       this.once(bytesToHex(id), (result) => {
         if (result.error) {

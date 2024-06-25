@@ -28,7 +28,7 @@
     "react-dom": "^18.2.0",
     "react-test-renderer": "^18.2.0",
     "viem": "^2.16.1",
-    "wagmi": "^2.5.6"
+    "wagmi": "^2.10.6"
   },
   "devDependencies": {
     "@massmarket/tsconfig": "workspace:*",
@@ -52,7 +52,6 @@
     "postcss": "^8.4.32",
     "tailwind-merge": "^2.2.0",
     "tailwindcss": "^3.3.6",
-    "typescript": "^5.3.3",
     "vitest": "^1.2.2"
   },
   "exports": {
