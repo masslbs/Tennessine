@@ -25,6 +25,9 @@ export class ReadableEventStream {
       start(controller) {
         self.controller = controller;
       },
+      // if pull returns a promise it will not be called again untill the promise is resolved regardless of the highwatermark
+      // here we are using a recursive pull that will never resolve so that we have full control over when it is being called
+      // and when to ask for the next chunk of data
       async pull(controller) {
         const pushReq = self.queue.shift();
         if (pushReq) {
@@ -49,6 +52,7 @@ export class ReadableEventStream {
     });
   }
 
+  // This method is meant to be used by the client to enqueue events into the stream
   enqueue(pushReq: schema.EventPushRequest) {
     this.queue.push(pushReq);
     this.resolve(null);
