@@ -19,6 +19,7 @@ import { RelayClient } from "../src";
 import { random32BytesHex, randomBytes } from "../src/utils";
 import * as abi from "@massmarket/contracts";
 
+// this key is from one of anvil's default keypairs
 const account = privateKeyToAccount(
   "0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6",
 );
