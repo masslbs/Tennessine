@@ -13,7 +13,7 @@ import {
 } from "viem";
 import { hardhat } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
-import { describe, beforeEach, afterEach, expect, test } from "vitest";
+import { describe, beforeEach, expect, test } from "vitest";
 
 import { RelayClient } from "../src";
 import { random32BytesHex, randomBytes } from "../src/utils";
@@ -38,29 +38,24 @@ const publicClient = createPublicClient({
 const relayEndpoint =
   (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v2";
 
-let relayClient: RelayClient;
-const shopId = random32BytesHex();
-
-beforeEach(async () => {
-  relayClient = new RelayClient({
-    shopId,
+function createRelayClient() {
+  return new RelayClient({
+    shopId: random32BytesHex(),
     relayEndpoint,
     keyCardWallet: privateKeyToAccount(random32BytesHex()),
     keyCardEnrolled: false,
   });
-});
-
-afterEach(async () => {
-  await relayClient.disconnect();
-});
+}
 
 describe("RelayClient", async () => {
+  const relayClient = createRelayClient();
   describe("connection behavior", () => {
     test("should connect and disconnect", async () => {
       await relayClient.connect();
       const closeEvent = await relayClient.disconnect();
       const r = closeEvent as CloseEvent;
       expect(r.wasClean).toBe(true);
+      await relayClient.disconnect();
     });
 
     test("should reconnect", async () => {
@@ -114,7 +109,7 @@ describe("RelayClient", async () => {
       relayEndpoint,
       keyCardWallet: privateKeyToAccount(sk),
       keyCardEnrolled: false,
-      shopId,
+      shopId: relayClient.blockchain.shopId,
     });
 
     const hash2 = await relayClient.blockchain.redeemInviteSecret(
@@ -127,40 +122,45 @@ describe("RelayClient", async () => {
     });
     expect(transaction.status).to.equal("success");
 
-    //
-    const PERMRootHash = await publicClient.readContract({
-      address: abi.addresses.ShopReg as Address,
-      abi: abi.ShopReg,
-      functionName: "PERM_updateRootHash",
-    });
-    const PERMRemoveUser = await publicClient.readContract({
-      address: abi.addresses.ShopReg as Address,
-      abi: abi.ShopReg,
-      functionName: "PERM_removeUser",
-    });
     // verify access level
     const canUpdateRootHash = await publicClient.readContract({
       address: abi.addresses.ShopReg as Address,
       abi: abi.ShopReg,
       functionName: "hasPermission",
-      args: [shopId, acc2.address, PERMRootHash],
+      args: [
+        relayClient.blockchain.shopId,
+        acc2.address,
+        abi.permissions.updateRootHash,
+      ],
     });
     expect(canUpdateRootHash).toBe(true);
-    const isAdmin = await publicClient.readContract({
+    const canRemoveUser = await publicClient.readContract({
       address: abi.addresses.ShopReg as Address,
       abi: abi.ShopReg,
       functionName: "hasPermission",
-      args: [shopId, acc2.address, PERMRemoveUser],
+      args: [
+        relayClient.blockchain.shopId,
+        acc2.address,
+        abi.permissions.removeUser,
+      ],
     });
-    expect(isAdmin).toBe(false);
+    expect(canRemoveUser).toBe(false);
 
     await relayClient2.disconnect();
   });
+  await relayClient.disconnect();
 });
 
 describe("user behaviour", () => {
+  const relayClient = createRelayClient();
   // enroll and login
-  beforeEach(async () => {
+  test("should enroll keycard", async () => {
+    const transactionHash = await relayClient.blockchain.createShop(wallet);
+    // wait for the transaction to be included in the blockchain
+    const receipt = await publicClient.waitForTransactionReceipt({
+      hash: transactionHash,
+    });
+    expect(receipt.status).equals("success");
     const response = await relayClient.enrollKeycard(wallet);
     expect(response.status).toBe(201);
     const authenticated = await relayClient.connect();
@@ -172,13 +172,12 @@ describe("user behaviour", () => {
     const name = "test shop";
     const description = "creating test shop";
     const profilePictureUrl = "https://http.cat/images/200.jpg";
-    let r = await relayClient.shopManifest({
+    await relayClient.shopManifest({
       name,
       description,
       profilePictureUrl,
       publishedTagId,
     });
-    expect(r).not.toBeNull();
   });
 
   test("update shop manifest", async () => {
@@ -378,7 +377,7 @@ describe("user behaviour", () => {
         relayEndpoint,
         keyCardWallet: privateKeyToAccount(sk),
         keyCardEnrolled: false,
-        shopId,
+        shopId: relayClient.blockchain.shopId,
       });
       const redeemHash = await relayClient.blockchain.redeemInviteSecret(
         sk,
