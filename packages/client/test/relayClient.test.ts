@@ -101,7 +101,7 @@ describe("RelayClient", async () => {
     await wallet.sendTransaction({
       account,
       to: acc2.address,
-      value: BigInt(250000000000000000),
+      value: BigInt("250000000000000000"),
     });
 
     const client2Wallet = createWalletClient({
@@ -194,13 +194,13 @@ describe("user behaviour", () => {
     await relayClient.updateShopManifest({
       addAcceptedCurrency: {
         tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
-        chainId: 44,
+        chainId: 31337,
       },
     });
     await relayClient.updateShopManifest({
       removeAcceptedCurrency: {
         tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
-        chainId: 44,
+        chainId: 31337,
       },
     });
   });
@@ -282,12 +282,12 @@ describe("user behaviour", () => {
         await relayClient.updateShopManifest({
           addAcceptedCurrency: {
             tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
-            chainId: 44,
+            chainId: 31337,
           },
           addPayee: {
             addr: hexToBytes(abi.addresses.Eddies as Address),
             callAsContract: false,
-            chainId: 44,
+            chainId: 31337,
             name: "test",
           },
         });
@@ -303,7 +303,7 @@ describe("user behaviour", () => {
           orderId,
           currency: {
             tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
-            chainId: 44,
+            chainId: 31337,
           },
           payeeName: "test",
         });
@@ -324,18 +324,6 @@ describe("user behaviour", () => {
       });
 
       test("erc20 checkout", async () => {
-        await relayClient.updateShopManifest({
-          addAcceptedCurrency: {
-            tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
-            chainId: 2,
-          },
-          addPayee: {
-            addr: hexToBytes(abi.addresses.Eddies as Address),
-            callAsContract: false,
-            chainId: 2,
-            name: "test2",
-          },
-        });
         await relayClient.updateOrder({
           orderId,
           changeItems: {
@@ -348,9 +336,9 @@ describe("user behaviour", () => {
           orderId,
           currency: {
             tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
-            chainId: 2,
+            chainId: 31337,
           },
-          payeeName: "test2",
+          payeeName: "test",
         });
         expect(checkout).not.toBeNull();
         expect(checkout.orderFinalizedId).not.toBeNull();
@@ -379,7 +367,7 @@ describe("user behaviour", () => {
       await wallet.sendTransaction({
         account,
         to: acc2.address,
-        value: BigInt(250000000000000000),
+        value: BigInt("250000000000000000"),
       });
       client2Wallet = createWalletClient({
         account: acc2,
