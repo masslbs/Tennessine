@@ -228,8 +228,7 @@ export const StoreContextProvider = (
 
   const createState = async () => {
     try {
-      if (relayClient && relayClient.eventStream.stream.locked) return;
-
+      if (relayClient && relayClient.locked) return;
       const stream = relayClient && relayClient.createEventStream();
       if (stream) {
         // @ts-expect-error waiting on upstream fix in TS definitions
@@ -237,7 +236,7 @@ export const StoreContextProvider = (
           buildState(
             products,
             allTags,
-            evt,
+            evt.event,
             setProducts,
             setAllTags,
             setOrderItems,

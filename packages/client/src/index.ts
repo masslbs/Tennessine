@@ -29,7 +29,8 @@ export class RelayClient extends EventEmitter {
   private endpoint;
   private useTLS;
   keyCardEnrolled;
-  public eventStream;
+  private eventStream;
+  public locked;
 
   constructor({
     relayEndpoint,
@@ -49,6 +50,7 @@ export class RelayClient extends EventEmitter {
     this.useTLS = relayEndpoint.startsWith("wss");
     this.keyCardEnrolled = keyCardEnrolled;
     this.eventStream = new ReadableEventStream(this);
+    this.locked = this.eventStream.stream.locked;
   }
 
   createEventStream() {
