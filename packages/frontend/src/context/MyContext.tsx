@@ -2,7 +2,13 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useRef,
+  useEffect,
+  useState,
+} from "react";
 import {
   useAccount,
   useEnsName,
@@ -12,12 +18,18 @@ import {
 } from "wagmi";
 import { RelayClient, type WalletClientWithAccount } from "@massmarket/client";
 import { hardhat, sepolia, mainnet, type Chain } from "viem/chains";
-import { http, createPublicClient, hexToBytes, bytesToHex } from "viem";
+import {
+  http,
+  createPublicClient,
+  hexToBytes,
+  bytesToHex,
+  parseAbiItem,
+} from "viem";
 import { useAuth } from "@/context/AuthContext";
 import * as abi from "@massmarket/contracts";
 import { IStatus } from "../types";
 import { type ClientContext } from "./types";
-import { privateKeyToAccount } from "viem/accounts";
+import { privateKeyToAccount, Address } from "viem/accounts";
 
 export const MyContext = createContext<ClientContext>({
   walletAddress: null,
@@ -60,6 +72,11 @@ export const MyContextProvider = (
   const [keyCardEnrolled, setKeyCardEnrolled] = useState<null | `0x${string}`>(
     null,
   );
+  const [storeIds, setStoreIds] = useState<null | Map<`0x${string}`, boolean>>(
+    null,
+  );
+  const storeIdsVerified = useRef(false);
+
   if (typeof window == "undefined") {
     console.warn("not a browser session");
     return;
@@ -101,6 +118,37 @@ export const MyContextProvider = (
   const { data } = useBalance({
     address: address as `0x${string}`,
   });
+
+  const getStores = async () => {
+    const stores = new Map();
+
+    const logs = await publicClient.getLogs({
+      address: abi.addresses.ShopReg as Address,
+      event: parseAbiItem(
+        "event Transfer(address indexed from, address indexed to, uint256 value)",
+      ),
+      fromBlock: "earliest",
+      toBlock: "latest",
+      args: {
+        to: walletAddress,
+      },
+    });
+    logs.map(async (l) => {
+      //@ts-expect-error FIXME
+      stores.set(l.topics?.[3], 1);
+    });
+    return stores;
+  };
+
+  useEffect(() => {
+    (async () => {
+      if (publicClient && walletAddress && !storeIdsVerified.current) {
+        storeIdsVerified.current = true;
+        const _storeIds = await getStores();
+        setStoreIds(_storeIds);
+      }
+    })();
+  }, [walletAddress, publicClient]);
 
   const getTokenInformation = async (erc20Addr: `0x${string}`) => {
     const name = (await publicClient.readContract({
@@ -189,6 +237,7 @@ export const MyContextProvider = (
     setWallet,
     getTokenInformation,
     setKeyCardEnrolled,
+    storeIds,
   };
 
   return (
