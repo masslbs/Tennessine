@@ -110,22 +110,9 @@ const StoreCreation = () => {
         }
         const path = await relayClient!.uploadBlob(avatar as FormData);
         const metadata = {
-          title: "metadata",
-          type: "object",
-          properties: {
-            name: {
-              type: "string",
-              description: storeName,
-            },
-            description: {
-              type: "string",
-              description,
-            },
-            image: {
-              type: "string",
-              description: path.url,
-            },
-          },
+          name: storeName,
+          description: description,
+          image: path.url,
         };
         const jsn = JSON.stringify(metadata);
         const blob = new Blob([jsn], { type: "application/json" });
@@ -135,7 +122,7 @@ const StoreCreation = () => {
 
         const { url } = await relayClient.uploadBlob(formData);
         if (clientWallet && url) {
-          relayClient.blockchain.setShopTokenId(clientWallet, url);
+          relayClient.blockchain.setShopsURI(clientWallet, url);
         }
 
         router.push("/products");

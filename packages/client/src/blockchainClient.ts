@@ -36,11 +36,11 @@ export class BlockchainClient {
     });
   }
 
-  setShopTokenId(wallet: WalletClientWithAccount, uri: string) {
+  setShopsURI(wallet: WalletClientWithAccount, uri: string) {
     return wallet.writeContract({
       address: abi.addresses.ShopReg as Address,
       abi: abi.ShopReg,
-      functionName: "setTokenURI",
+      functionName: "setShopsURI",
       args: [BigInt(this.shopId), uri],
     });
   }
