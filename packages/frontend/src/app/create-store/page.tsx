@@ -27,7 +27,7 @@ const StoreCreation = () => {
   const [storeURL, setStoreURL] = useState<string>("");
   const [currency, setCurrency] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-  const [avatar, setAvatar] = useState<string>("");
+  const [avatar, setAvatar] = useState<FormData | null>(null);
   const enrollKeycard = useRef(false);
   const { isAuthenticated } = useAuth();
 
@@ -95,16 +95,49 @@ const StoreCreation = () => {
   useEffect(() => {
     if (relayClient && isAuthenticated === IStatus.Complete) {
       (async () => {
+        const publishedTagId = new Uint8Array(32);
+        crypto.getRandomValues(publishedTagId);
         await relayClient.shopManifest({
           name: storeName,
           description,
-          profilePictureUrl: avatar,
+          profilePictureUrl: "https://http.cat/images/200.jpg",
+          publishedTagId,
         });
         console.log("store manifested.");
-        const publishedTagId = await relayClient.createTag("visible");
-        if (publishedTagId) {
-          await relayClient!.updateShopManifest({ publishedTagId });
+        const newPubId = await relayClient.createTag({ name: "visible" });
+        if (newPubId) {
+          await relayClient!.updateShopManifest({ publishedTagId: newPubId });
         }
+        const path = await relayClient!.uploadBlob(avatar as FormData);
+        const metadata = {
+          title: "metadata",
+          type: "object",
+          properties: {
+            name: {
+              type: "string",
+              description: storeName,
+            },
+            description: {
+              type: "string",
+              description,
+            },
+            image: {
+              type: "string",
+              description: path.url,
+            },
+          },
+        };
+        const jsn = JSON.stringify(metadata);
+        const blob = new Blob([jsn], { type: "application/json" });
+        const file = new File([blob], "file.json");
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const { url } = await relayClient.uploadBlob(formData);
+        if (clientWallet && url) {
+          relayClient.blockchain.setShopTokenId(clientWallet, url);
+        }
+
         router.push("/products");
       })();
     }
@@ -124,7 +157,7 @@ const StoreCreation = () => {
         <div className="flex gap-4">
           <div>
             <p>PFP</p>
-            <AvatarUpload img={avatar} setImgSrc={setAvatar} />
+            <AvatarUpload setImgBlob={setAvatar} />
           </div>
           <form
             className="flex flex-col grow"

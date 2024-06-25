@@ -36,6 +36,15 @@ export class BlockchainClient {
     });
   }
 
+  setShopTokenId(wallet: WalletClientWithAccount, uri: string) {
+    return wallet.writeContract({
+      address: abi.addresses.ShopReg as Address,
+      abi: abi.ShopReg,
+      functionName: "setTokenURI",
+      args: [BigInt(this.shopId), uri],
+    });
+  }
+
   createInviteSecret(wallet: WalletClientWithAccount, token: Address) {
     // Save the public key onchain
     return wallet.writeContract({

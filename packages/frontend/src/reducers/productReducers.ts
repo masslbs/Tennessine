@@ -148,7 +148,7 @@ export const UPLOAD_IMG = "UPLOAD_IMG";
 
 export const initialState = {
   id: "0x0" as ItemId,
-  metadata: { title: "", image: "", description: "" },
+  metadata: { name: "", image: "", description: "" },
   price: "0",
   stockQty: 0,
   blob: null,
@@ -162,7 +162,7 @@ type editUnit = {
 type editTitle = {
   type: "EDIT_TITLE";
   payload: {
-    title: string;
+    name: string;
   };
 };
 type editPrice = {
@@ -219,7 +219,7 @@ export const updateNewProductReducer = (
     case EDIT_IMG:
       return { ...state, image: action.payload.img };
     case EDIT_TITLE:
-      return { ...state, title: action.payload.title };
+      return { ...state, name: action.payload.name };
     default:
       return { ...state };
   }
