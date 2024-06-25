@@ -54,6 +54,7 @@ export class RelayClient extends EventEmitter {
   }
 
   createEventStream() {
+    this.locked = true;
     return this.eventStream.stream;
   }
 
