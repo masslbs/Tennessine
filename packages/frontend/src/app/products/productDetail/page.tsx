@@ -222,7 +222,7 @@ const ProductDetail = () => {
             )}
             <div className="flex flex-col">
               <h2 className="text-xl flex items-center pl-4">
-                {item.metadata.title}
+                {item.metadata.name}
               </h2>
               <p className=" text-xs flex items-center pl-4">
                 {item.metadata.description}

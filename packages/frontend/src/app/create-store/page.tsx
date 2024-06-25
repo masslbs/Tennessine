@@ -95,18 +95,20 @@ const StoreCreation = () => {
   useEffect(() => {
     if (relayClient && isAuthenticated === IStatus.Complete) {
       (async () => {
+        const publishedTagId = new Uint8Array(32);
+        crypto.getRandomValues(publishedTagId);
         await relayClient.shopManifest({
           name: storeName,
           description,
           profilePictureUrl: avatar,
+          publishedTagId,
         });
         console.log("store manifested.");
-        const publishedTagId = await relayClient.createTag("visible");
-        if (publishedTagId) {
-          await relayClient!.updateShopManifest({ publishedTagId });
+        const newPubId = await relayClient.createTag({ name: "visible" });
+        if (newPubId) {
+          await relayClient!.updateShopManifest({ publishedTagId: newPubId });
         }
         const path = await relayClient!.uploadBlob(avatar as FormData);
-        // console.log({ avatar, path });
         const metadata = {
           title: "metadata",
           type: "object",
@@ -125,7 +127,13 @@ const StoreCreation = () => {
             },
           },
         };
-        const { url } = await relayClient.uploadBlob(JSON.stringify(metadata));
+        const jsn = JSON.stringify(metadata);
+        const blob = new Blob([jsn], { type: "application/json" });
+        const file = new File([blob], "file.json");
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const { url } = await relayClient.uploadBlob(formData);
         if (clientWallet && url) {
           relayClient.blockchain.setShopTokenId(clientWallet, url);
         }
