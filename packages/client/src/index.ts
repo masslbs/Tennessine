@@ -29,7 +29,7 @@ export class RelayClient extends EventEmitter {
   private endpoint;
   private useTLS;
   keyCardEnrolled;
-  private eventStream;
+  public eventStream;
 
   constructor({
     relayEndpoint,

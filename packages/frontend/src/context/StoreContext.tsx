@@ -75,6 +75,10 @@ export const StoreContextProvider = (
   const { relayClient, walletAddress } = useMyContext();
 
   useEffect(() => {
+    createState();
+  }, [relayClient]);
+
+  useEffect(() => {
     if (walletAddress) {
       (async () => {
         const { Level } = await import("level");
@@ -160,7 +164,6 @@ export const StoreContextProvider = (
         }
       }
     })();
-    createState();
   }, [relayClient, db]);
 
   useEffect(() => {
@@ -225,6 +228,8 @@ export const StoreContextProvider = (
 
   const createState = async () => {
     try {
+      if (relayClient && relayClient.eventStream.stream.locked) return;
+
       const stream = relayClient && relayClient.createEventStream();
       if (stream) {
         // @ts-expect-error waiting on upstream fix in TS definitions
