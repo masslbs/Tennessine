@@ -16,7 +16,7 @@ export type IProduct = {
   saleQty?: number;
 };
 export type Metadata = {
-  title: string;
+  name: string;
   description: string;
   image: string;
 };

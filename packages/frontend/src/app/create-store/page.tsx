@@ -127,7 +127,13 @@ const StoreCreation = () => {
             },
           },
         };
-        const { url } = await relayClient.uploadBlob(JSON.stringify(metadata));
+        const jsn = JSON.stringify(metadata);
+        const blob = new Blob([jsn], { type: "application/json" });
+        const file = new File([blob], "file.json");
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const { url } = await relayClient.uploadBlob(formData);
         if (clientWallet && url) {
           relayClient.blockchain.setShopTokenId(clientWallet, url);
         }

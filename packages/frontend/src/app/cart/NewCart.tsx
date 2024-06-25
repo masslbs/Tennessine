@@ -55,10 +55,10 @@ const NewCart = ({ next }: { next: () => void }) => {
       if (!item || !item.metadata.image) return;
       return (
         <div
-          key={item.metadata.title}
+          key={item.metadata.name}
           className="flex flex-col items-center gap-3 min-w-24 min-h-30"
         >
-          <p className="text-xs text-primary-gray">{item.metadata.title}</p>
+          <p className="text-xs text-primary-gray">{item.metadata.name}</p>
           <div className="border-2 p-3 rounded-xl bg-white">
             <Image
               src={item.metadata.image}
