@@ -81,9 +81,9 @@ export const StoreContextProvider = (
     if (walletAddress) {
       (async () => {
         const { Level } = await import("level");
-        const storeId =
-          localStorage.getItem("storeId") || process.env.NEXT_PUBLIC_STORE_ID;
-        const dbName = `${storeId?.slice(0, 5)}${walletAddress?.slice(0, 5)}`;
+        const shopId =
+          localStorage.getItem("shopId") || process.env.NEXT_PUBLIC_STORE_ID;
+        const dbName = `${shopId?.slice(0, 5)}${walletAddress?.slice(0, 5)}`;
         console.log("using level db:", { dbName });
         const db = new Level(`./${dbName}`, {
           valueEncoding: "json",

@@ -75,8 +75,8 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
     }
   }, [relayClient, clientWallet]);
 
-  const storeId =
-    localStorage.getItem("storeId") || process.env.NEXT_PUBLIC_STORE_ID;
+  const shopId =
+    localStorage.getItem("shopId") || process.env.NEXT_PUBLIC_STORE_ID;
 
   const newClerk = inviteSecret?.length && walletAddress;
   const returningClerk = walletAddress && !inviteSecret?.length;
@@ -112,7 +112,7 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
             address: abi.addresses.ShopReg as `0x${string}`,
             abi: abi.ShopReg,
             functionName: "hasPermission",
-            args: [storeId, walletAddress, PERMRootHash],
+            args: [shopId, walletAddress, PERMRootHash],
           });
           console.log({ hasAccess });
           setAccess(true);

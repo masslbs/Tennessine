@@ -24,12 +24,14 @@ import {
   hexToBytes,
   bytesToHex,
   parseAbiItem,
+  createWalletClient,
 } from "viem";
 import { useAuth } from "@/context/AuthContext";
 import * as abi from "@massmarket/contracts";
 import { IStatus } from "../types";
 import { type ClientContext } from "./types";
 import { privateKeyToAccount, Address } from "viem/accounts";
+import { usePathname } from "next/navigation";
 
 export const MyContext = createContext<ClientContext>({
   walletAddress: null,
@@ -76,6 +78,7 @@ export const MyContextProvider = (
     null,
   );
   const storeIdsVerified = useRef(false);
+  const pathname = usePathname();
 
   if (typeof window == "undefined") {
     console.warn("not a browser session");
@@ -196,17 +199,40 @@ export const MyContextProvider = (
       keyCard = hexToBytes(savedKC);
     }
     const privateKey = inviteSecret ? inviteSecret : bytesToHex(keyCard);
+    const keyCardWallet = privateKeyToAccount(privateKey);
+
     const user = {
       relayEndpoint:
         process.env.NEXT_PUBLIC_RELAY_ENDPOINT ||
         "wss://relay-beta.mass.market/v1",
-      keyCardWallet: privateKeyToAccount(privateKey),
+      keyCardWallet,
       shopId: shopId as `0x${string}`,
       chain: usedChain,
       keyCardEnrolled: !!keyCardEnrolled,
     };
     const _relayClient = new RelayClient(user);
     setRelayClient(_relayClient);
+    if (!keyCardEnrolled && !pathname.includes("connect-wallet")) {
+      (async () => {
+        const guestWallet = createWalletClient({
+          account: privateKeyToAccount(
+            "0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6",
+          ),
+          chain: usedChain,
+          transport: http(),
+        });
+        const res = await _relayClient.enrollKeycard(guestWallet);
+        if (res.ok) {
+          setKeyCardEnrolled(privateKey);
+          privateKey && localStorage.setItem("keyCard", privateKey);
+          setIsAuthenticated(IStatus.Complete);
+        } else {
+          setIsAuthenticated(IStatus.Failed);
+          localStorage.removeItem("keyCard");
+        }
+        localStorage.removeItem("keyCardToEnroll");
+      })();
+    }
     if (keyCardEnrolled) {
       (async () => {
         console.log("connecting to client...");
