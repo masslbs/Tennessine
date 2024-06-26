@@ -12,6 +12,7 @@ import * as abi from "@massmarket/contracts";
 import { IStatus } from "@/types";
 import { useRouter } from "next/navigation";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
+import { random32BytesHex } from "@massmarket/client/src/utils";
 
 const StoreCreation = () => {
   const {
@@ -19,10 +20,13 @@ const StoreCreation = () => {
     publicClient,
     walletAddress,
     clientWallet,
+    setShopId,
+    shopId,
     setKeyCardEnrolled,
   } = useMyContext();
   const router = useRouter();
 
+  // const [shopId, setShopId] = useState<`0x${string}` | null>(null);
   const [storeName, setStoreName] = useState<string>("");
   const [storeURL, setStoreURL] = useState<string>("");
   const [currency, setCurrency] = useState<string>("");
@@ -30,6 +34,7 @@ const StoreCreation = () => {
   const [avatar, setAvatar] = useState<FormData | null>(null);
   const enrollKeycard = useRef(false);
   const { isAuthenticated } = useAuth();
+  const randomShopIdHasBeenSet = useRef(false);
 
   const handleStoreName = (e: ChangeEvent<HTMLInputElement>) => {
     setStoreName(e.target.value);
@@ -43,12 +48,20 @@ const StoreCreation = () => {
   const handleCurrency = (e: ChangeEvent<HTMLInputElement>) => {
     setCurrency(e.target.value);
   };
-  const createStore = () => {
+
+  useEffect(() => {
+    if (!randomShopIdHasBeenSet.current && relayClient) {
+      randomShopIdHasBeenSet.current = true;
+      const randomShopId = random32BytesHex();
+      console.log(`enrolling shopId: ${randomShopId}`);
+      setShopId(randomShopId);
+    }
+  }, [relayClient]);
+
+  const createShop = () => {
     (async () => {
       if (relayClient && publicClient && clientWallet) {
         try {
-          const storeId =
-            localStorage.getItem("storeId") || process.env.NEXT_PUBLIC_STORE_ID;
           const hash = await relayClient.blockchain.createShop(clientWallet);
           const transaction =
             publicClient &&
@@ -57,6 +70,8 @@ const StoreCreation = () => {
             }));
           if (transaction.status == "success") {
             console.log("store created");
+            console.log({ shopId });
+            localStorage.setItem("shopId", shopId!);
             const PERMRootHash = await publicClient.readContract({
               address: abi.addresses.ShopReg as `0x${string}`,
               abi: abi.ShopReg,
@@ -66,7 +81,7 @@ const StoreCreation = () => {
               address: abi.addresses.ShopReg as `0x${string}`,
               abi: abi.ShopReg,
               functionName: "hasPermission",
-              args: [storeId, walletAddress, PERMRootHash],
+              args: [shopId, walletAddress, PERMRootHash],
             });
             if (_hasAccess && clientWallet) {
               if (enrollKeycard.current) return;
@@ -122,7 +137,7 @@ const StoreCreation = () => {
 
         const { url } = await relayClient.uploadBlob(formData);
         if (clientWallet && url) {
-          relayClient.blockchain.setShopsURI(clientWallet, url);
+          await relayClient.blockchain.setShopsURI(clientWallet, url);
         }
 
         router.push("/products");
@@ -135,7 +150,7 @@ const StoreCreation = () => {
       <div className="flex">
         <h2>Create new shop</h2>
         <div className="ml-auto">
-          <SecondaryButton onClick={createStore}>
+          <SecondaryButton onClick={createShop}>
             <h6>save</h6>
           </SecondaryButton>
         </div>

@@ -17,7 +17,7 @@ import { IStatus } from "@/types";
 
 const ConnectWallet = ({ close }: { close: () => void }) => {
   const { connectors, connect } = useConnect();
-  const { publicClient, clientWallet } = useMyContext();
+  const { publicClient, clientWallet, shopId } = useMyContext();
   const [pending, setPending] = useState<boolean>(false);
   const [hasAccess, setAccess] = useState<boolean>(false);
   const {
@@ -74,9 +74,6 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
       }
     }
   }, [relayClient, clientWallet]);
-
-  const shopId =
-    localStorage.getItem("shopId") || process.env.NEXT_PUBLIC_STORE_ID;
 
   const newClerk = inviteSecret?.length && walletAddress;
   const returningClerk = walletAddress && !inviteSecret?.length;
