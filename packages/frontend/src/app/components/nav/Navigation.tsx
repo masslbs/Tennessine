@@ -78,10 +78,15 @@ const Navigation = () => {
           <div className="flex gap-4">
             <button onClick={menuSwitch}>
               <Image
-                src={`/assets/MassLabsLogo.svg`}
-                width={24}
-                height={24}
+                src={
+                  storeData.profilePictureUrl
+                    ? storeData.profilePictureUrl
+                    : `/assets/MassLabsLogo.svg`
+                }
+                width={40}
+                height={40}
                 alt="profile-avatar"
+                unoptimized={true}
               />
             </button>
           </div>
@@ -168,9 +173,14 @@ const Navigation = () => {
           <div className="flex gap-4">
             <button onClick={menuSwitch}>
               <Image
-                src={`/assets/MassLabsLogo.svg`}
-                width={24}
-                height={24}
+                src={
+                  storeData.profilePictureUrl
+                    ? storeData.profilePictureUrl
+                    : `/assets/MassLabsLogo.svg`
+                }
+                unoptimized={true}
+                width={40}
+                height={40}
                 alt="profile-avatar"
               />
             </button>

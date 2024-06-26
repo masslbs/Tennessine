@@ -8,11 +8,13 @@ import { type PublicClient } from "viem";
 import { IProduct, ITag, IStatus, IRelay } from "@/types";
 import { Level } from "level";
 import { RelayClient, WalletClientWithAccount } from "@massmarket/client";
+import { updateStoreDataAction } from "@/reducers/storeReducer";
 
 export type ItemId = `0x${string}`;
 export type TagId = `0x${string}`;
 export type OrderId = `0x${string}`;
 export type EventId = `0x${string}`;
+export type ShopId = `0x${string}`;
 
 export type FinalizedOrderState = {
   erc20Addr: `0x${string}` | null;
@@ -51,6 +53,8 @@ export type ClientContext = {
   relayClient: RelayClient | null;
   publicClient: PublicClient | null;
   inviteSecret: `0x${string}` | null;
+  shopId: ShopId;
+  setShopId: Dispatch<SetStateAction<ShopId>>;
   setKeyCardEnrolled: Dispatch<SetStateAction<`0x${string}` | null>>;
   setInviteSecret: Dispatch<SetStateAction<`0x${string}` | null>>;
   setWallet: Dispatch<SetStateAction<WalletClientWithAccount | null>>;
@@ -104,6 +108,7 @@ export type StoreContent = {
   setErc20Addr: (erc20: `0x${string}`) => void;
   setPublishedTagId: (id: TagId) => void;
   setOrderId: (orderId: OrderId | null) => void;
+  setStoreData: Dispatch<updateStoreDataAction>;
 };
 
 export type ProductsMap = Map<ItemId, IProduct>;

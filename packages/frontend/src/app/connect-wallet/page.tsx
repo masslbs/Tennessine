@@ -5,15 +5,15 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import SignUp from "./components/login/SignUp";
-import Button from "./common/components/Button";
-import { Account } from "../wagmi/components/Account";
+import SignUp from "@/app/components/login/SignUp";
+import Button from "@/app/common/components/Button";
+import { Account } from "../../wagmi/components/Account";
 import { useMyContext } from "@/context/MyContext";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { IStatus } from "../types";
-import ConnectWallet from "./components/login/ConnectWallet";
+import { IStatus } from "@/types";
+import ConnectWallet from "@/app/components/login/ConnectWallet";
 
 function Homepage() {
   const [openSignupModal, setOpenSignupModal] = useState<boolean>(false);

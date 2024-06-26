@@ -72,7 +72,8 @@ export const StoreContextProvider = (
   const [pubKeys, setPubKeys] = useReducer(pubKeyReducer, []);
   const [db, setDb] = useState(null);
   const [relays, setRelays] = useState<IRelay[]>(dummyRelays);
-  const { relayClient, walletAddress } = useMyContext();
+  const { relayClient, walletAddress, shopId } = useMyContext();
+  console.log({ walletAddress });
   useEffect(() => {
     createState();
   }, [relayClient]);
@@ -81,8 +82,7 @@ export const StoreContextProvider = (
     if (walletAddress) {
       (async () => {
         const { Level } = await import("level");
-        const shopId =
-          localStorage.getItem("shopId") || process.env.NEXT_PUBLIC_STORE_ID;
+
         const dbName = `${shopId?.slice(0, 5)}${walletAddress?.slice(0, 5)}`;
         console.log("using level db:", { dbName });
         const db = new Level(`./${dbName}`, {
@@ -98,7 +98,7 @@ export const StoreContextProvider = (
         }
       })();
     }
-  }, [walletAddress]);
+  }, [walletAddress, shopId]);
 
   useEffect(() => {
     //FIXME: to fix once we intergrate multiple relays
@@ -392,7 +392,9 @@ export const StoreContextProvider = (
   const createTag = async (name: string) => {
     try {
       const _name = name.slice(1);
-      const id: TagId = bytesToHex(await relayClient!.createTag(_name));
+      const id: TagId = bytesToHex(
+        await relayClient!.createTag({ name: _name }),
+      );
       const tag = { id, text: _name, color: "special" }; // TODO: color: hex?
       setAllTags({ type: ADD_TAG, payload: { tag } });
       return { id, error: null };
@@ -577,6 +579,7 @@ export const StoreContextProvider = (
     setErc20Addr,
     setPublishedTagId,
     setOrderId,
+    setStoreData,
   };
 
   return (

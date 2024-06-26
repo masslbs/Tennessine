@@ -29,12 +29,13 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import * as abi from "@massmarket/contracts";
 import { IStatus } from "../types";
-import { type ClientContext } from "./types";
+import { type ClientContext, ShopId } from "./types";
 import { privateKeyToAccount, Address } from "viem/accounts";
 import { usePathname } from "next/navigation";
 
 export const MyContext = createContext<ClientContext>({
   walletAddress: null,
+  shopId: "0x",
   balance: null,
   avatar: null,
   name: null,
@@ -43,6 +44,7 @@ export const MyContext = createContext<ClientContext>({
   inviteSecret: null,
   clientWallet: null,
   keyCardEnrolled: null,
+  setShopId: () => {},
   setKeyCardEnrolled: () => {},
   setInviteSecret: () => {},
   setWallet: () => {},
@@ -74,9 +76,12 @@ export const MyContextProvider = (
   const [keyCardEnrolled, setKeyCardEnrolled] = useState<null | `0x${string}`>(
     null,
   );
-  const [storeIds, setStoreIds] = useState<null | Map<`0x${string}`, boolean>>(
-    null,
+  const [storeIds, setStoreIds] = useState<null | Map<ShopId, boolean>>(null);
+  const [shopId, setShopId] = useState<ShopId>(
+    (localStorage.getItem("shopId") as ShopId) ||
+      (process.env.NEXT_PUBLIC_STORE_ID as ShopId),
   );
+
   const storeIdsVerified = useRef(false);
   const pathname = usePathname();
 
@@ -84,8 +89,6 @@ export const MyContextProvider = (
     console.warn("not a browser session");
     return;
   }
-  const shopId =
-    localStorage.getItem("shopId") || process.env.NEXT_PUBLIC_STORE_ID;
 
   if (!shopId) {
     throw Error("missing shop ID");
@@ -212,7 +215,11 @@ export const MyContextProvider = (
     };
     const _relayClient = new RelayClient(user);
     setRelayClient(_relayClient);
-    if (!keyCardEnrolled && !pathname.includes("connect-wallet")) {
+    if (
+      !keyCardEnrolled &&
+      !pathname.includes("connect-wallet") &&
+      !pathname.includes("create-store")
+    ) {
       (async () => {
         const guestWallet = createWalletClient({
           account: privateKeyToAccount(
@@ -246,7 +253,7 @@ export const MyContextProvider = (
       })();
     }
     console.log(`relay client set ${user.relayEndpoint} with shop: ${shopId}`);
-  }, [keyCardEnrolled]);
+  }, [keyCardEnrolled, shopId]);
 
   const value = {
     name,
@@ -264,6 +271,8 @@ export const MyContextProvider = (
     getTokenInformation,
     setKeyCardEnrolled,
     storeIds,
+    shopId,
+    setShopId,
   };
 
   return (
