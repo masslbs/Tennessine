@@ -42,7 +42,7 @@ const AddProductView = () => {
   const [img, setImg] = useState<string>(productInView?.metadata?.image || "");
   const [price, setPrice] = useState<string>(productInView?.price || "");
   const [title, setTitle] = useState<string>(
-    productInView?.metadata?.title || "",
+    productInView?.metadata?.name || "",
   );
   const [stockQty, setStockQty] = useState(productInView?.stockQty || "0");
   const [editedPrice, setEditedPrice] = useState(false);
@@ -183,7 +183,7 @@ const AddProductView = () => {
     setTitle(e.target.value);
     updateNewProduct({
       type: EDIT_TITLE,
-      payload: { title: e.target.value },
+      payload: { name: e.target.value },
     });
   };
 

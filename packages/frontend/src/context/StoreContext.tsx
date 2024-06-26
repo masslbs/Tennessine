@@ -73,6 +73,9 @@ export const StoreContextProvider = (
   const [db, setDb] = useState(null);
   const [relays, setRelays] = useState<IRelay[]>(dummyRelays);
   const { relayClient, walletAddress } = useMyContext();
+  useEffect(() => {
+    createState();
+  }, [relayClient]);
 
   useEffect(() => {
     if (walletAddress) {
@@ -160,7 +163,6 @@ export const StoreContextProvider = (
         }
       }
     })();
-    createState();
   }, [relayClient, db]);
 
   useEffect(() => {
@@ -232,7 +234,7 @@ export const StoreContextProvider = (
           buildState(
             products,
             allTags,
-            evt,
+            evt.event,
             setProducts,
             setAllTags,
             setOrderItems,
@@ -281,19 +283,20 @@ export const StoreContextProvider = (
     selectedTagIds: TagId[] | [],
   ) => {
     try {
-      // @ts-expect-error FIXME
-      const path = await relayClient!.uploadBlob(product.blob as Blob);
+      const path = await relayClient!.uploadBlob(product.blob as FormData);
+      console.log({ path });
       const metadata = {
-        // ????
-        title: product.metadata.title,
-        name: product.metadata.title,
+        name: product.metadata.name,
         description: "adding product",
         image: path.url as string,
       };
       const priceAsNum = Number(product.price);
       product.price = priceAsNum.toFixed(2);
       const iid = bytesToHex(
-        await relayClient!.createItem({ price: product.price, metadata }),
+        await relayClient!.createItem({
+          price: product.price,
+          metadata: new TextEncoder().encode(JSON.stringify(metadata)),
+        }),
       );
       product.id = iid;
       product.tagIds = selectedTagIds;
@@ -341,12 +344,11 @@ export const StoreContextProvider = (
         const hasEmbeddedImage =
           updatedProduct.metadata.image.includes("data:image");
         const path = hasEmbeddedImage
-          ? // @ts-expect-error FIXME
-            await relayClient!.uploadBlob(updatedProduct.blob as Blob)
+          ? await relayClient!.uploadBlob(updatedProduct.blob as FormData)
           : { url: updatedProduct.metadata.image };
 
         const metadata = {
-          title: updatedProduct.metadata.title,
+          name: updatedProduct.metadata.name,
           description: "updating product",
           image: path.url,
         };

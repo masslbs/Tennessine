@@ -129,9 +129,7 @@ const Products = () => {
       const { metadata } = item;
       if (!metadata) return null;
       if (searchPhrase?.length) {
-        if (
-          !metadata.title.toLowerCase().includes(searchPhrase.toLowerCase())
-        ) {
+        if (!metadata.name.toLowerCase().includes(searchPhrase.toLowerCase())) {
           return;
         }
       }
@@ -144,13 +142,13 @@ const Products = () => {
           key={item.id}
           className={`flex flex-col text-center mb-3 ${!visible ? "opacity-50" : ""} `}
         >
-          <p className="text-xs" data-testid={`product-title`}>
-            {metadata.title}
+          <p className="text-xs" data-testid={`product-name`}>
+            {metadata.name}
           </p>
 
           <div
             className="product-box gap-2 flex flex-col text-center border-2 p-3 rounded-xl bg-white"
-            data-testid={`product-${metadata.title}`}
+            data-testid={`product-${metadata.name}`}
           >
             <div className="flex justify-center">
               <Image
