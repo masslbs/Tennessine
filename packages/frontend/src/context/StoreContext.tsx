@@ -344,7 +344,7 @@ export const StoreContextProvider = (
         const hasEmbeddedImage =
           updatedProduct.metadata.image.includes("data:image");
         const path = hasEmbeddedImage
-          ? await relayClient!.uploadBlob(updatedProduct.blob as Blob)
+          ? await relayClient!.uploadBlob(updatedProduct.blob as FormData)
           : { url: updatedProduct.metadata.image };
 
         const metadata = {

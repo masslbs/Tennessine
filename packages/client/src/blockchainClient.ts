@@ -40,7 +40,7 @@ export class BlockchainClient {
     return wallet.writeContract({
       address: abi.addresses.ShopReg as Address,
       abi: abi.ShopReg,
-      functionName: "setShopsURI",
+      functionName: "setTokenURI",
       args: [BigInt(this.shopId), uri],
     });
   }
