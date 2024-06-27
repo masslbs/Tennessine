@@ -20,7 +20,7 @@ function Homepage() {
   const [openConnectModal, setOpenConnectModal] = useState<boolean>(false);
 
   const { setInviteSecret } = useMyContext();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, hasAllAccess } = useAuth();
   const searchParams = useSearchParams();
   const inviteSecret = searchParams!.get("inviteSecret") as `0x${string}`;
   const router = useRouter();
@@ -28,6 +28,7 @@ function Homepage() {
   useEffect(() => {
     if (
       isAuthenticated === IStatus.Complete &&
+      !hasAllAccess &&
       !openSignupModal &&
       !openConnectModal
     ) {

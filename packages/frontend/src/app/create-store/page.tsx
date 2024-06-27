@@ -8,8 +8,6 @@ import React, { useState, ChangeEvent, useEffect, useRef } from "react";
 import AvatarUpload from "@/app/common/components/AvatarUpload";
 import { useMyContext } from "@/context/MyContext";
 import { useAuth } from "@/context/AuthContext";
-import * as abi from "@massmarket/contracts";
-import { IStatus } from "@/types";
 import { useRouter } from "next/navigation";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
 import { random32BytesHex } from "@massmarket/client/src/utils";
@@ -18,18 +16,19 @@ import { useChains } from "wagmi";
 import { hexToBytes } from "viem";
 import { SET_STORE_DATA } from "@/reducers/storeReducer";
 import { useStoreContext } from "@/context/StoreContext";
+import { IStatus } from "@/types";
 
 const StoreCreation = () => {
   const {
     relayClient,
     publicClient,
-    walletAddress,
     clientWallet,
     shopId,
     setShopId,
-    setKeyCardEnrolled,
+    reenrollKC,
   } = useMyContext();
   const { setStoreData } = useStoreContext();
+  const { isAuthenticated, setIsAuthenticated } = useAuth();
   const router = useRouter();
 
   const [storeName, setStoreName] = useState<string>("");
@@ -40,8 +39,6 @@ const StoreCreation = () => {
   const [chainId, setAcceptedChain] = useState<number>(0);
   const chains = useChains();
 
-  const enrollKeycard = useRef(false);
-  const { isAuthenticated } = useAuth();
   const randomShopIdHasBeenSet = useRef(false);
 
   const handleStoreName = (e: ChangeEvent<HTMLInputElement>) => {
@@ -67,9 +64,19 @@ const StoreCreation = () => {
     }
   }, [relayClient]);
 
+  useEffect(() => {
+    if (relayClient && isAuthenticated === IStatus.Complete) {
+      (async () => {
+        console.log({ relayClient });
+        await storeManifestFn();
+      })();
+    }
+  }, [isAuthenticated, relayClient]);
+
   const createShop = () => {
     (async () => {
       if (relayClient && publicClient && clientWallet) {
+        console.log("inside of createshop", relayClient);
         try {
           const hash = await relayClient.blockchain.createShop(clientWallet);
           const transaction =
@@ -78,35 +85,10 @@ const StoreCreation = () => {
               hash,
             }));
           if (transaction.status == "success") {
-            console.log(`shopId: ${shopId} created`);
+            console.log(`CREATED shopId: ${shopId}`);
             localStorage.setItem("shopId", shopId!);
-            const PERMRootHash = await publicClient.readContract({
-              address: abi.addresses.ShopReg as `0x${string}`,
-              abi: abi.ShopReg,
-              functionName: "PERM_updateRootHash",
-            });
-            const _hasAccess = await publicClient.readContract({
-              address: abi.addresses.ShopReg as `0x${string}`,
-              abi: abi.ShopReg,
-              functionName: "hasPermission",
-              args: [shopId, walletAddress, PERMRootHash],
-            });
-            if (_hasAccess && clientWallet) {
-              if (enrollKeycard.current) return;
-              enrollKeycard.current = true;
-              const res = await relayClient.enrollKeycard(clientWallet);
-              if (res.ok) {
-                const keyCardToEnroll = localStorage.getItem(
-                  "keyCardToEnroll",
-                ) as `0x${string}`;
-                localStorage.setItem("keyCard", keyCardToEnroll);
-                localStorage.removeItem("keyCardToEnroll");
-                console.log(`keycard enrolled:${keyCardToEnroll}`);
-                setKeyCardEnrolled(keyCardToEnroll);
-              } else {
-                console.error("failed to enroll keycard");
-              }
-            }
+            setIsAuthenticated(IStatus.Pending);
+            // reenrollKC();
           }
         } catch (err) {
           console.log("error creating store", err);
@@ -115,56 +97,56 @@ const StoreCreation = () => {
     })();
   };
 
-  useEffect(() => {
-    if (relayClient && isAuthenticated === IStatus.Complete) {
-      (async () => {
-        const publishedTagId = new Uint8Array(32);
-        crypto.getRandomValues(publishedTagId);
-        await relayClient.shopManifest({
-          name: storeName,
-          description,
-          profilePictureUrl: "https://http.cat/images/200.jpg",
-          publishedTagId,
-        });
-        console.log("store manifested.");
-        const newPubId = await relayClient.createTag({ name: "visible" });
-        const path = await relayClient!.uploadBlob(avatar as FormData);
+  const storeManifestFn = async () => {
+    const publishedTagId = new Uint8Array(32);
+    crypto.getRandomValues(publishedTagId);
+    console.log("inside of storemanifest ", relayClient);
+    await relayClient!.shopManifest({
+      name: storeName,
+      description,
+      profilePictureUrl: "https://http.cat/images/200.jpg",
+      publishedTagId,
+    });
+    console.log(`MANIFESTED shopId: ${shopId}`);
 
-        if (newPubId && path.url) {
-          await relayClient!.updateShopManifest({
-            publishedTagId: newPubId,
-            setBaseCurrency: {
-              tokenAddr: hexToBytes(tokenAddr),
-              chainId,
-            },
-            profilePictureUrl: path.url,
-          });
-        }
+    const newPubId = await relayClient!.createTag({ name: "visible" });
+    const path = await relayClient!.uploadBlob(avatar as FormData);
 
-        setStoreData({
-          type: SET_STORE_DATA,
-          payload: { name: storeName!, profilePictureUrl: path.url! },
-        });
-        const metadata = {
-          name: storeName,
-          description: description,
-          image: path.url,
-        };
-        const jsn = JSON.stringify(metadata);
-        const blob = new Blob([jsn], { type: "application/json" });
-        const file = new File([blob], "file.json");
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const { url } = await relayClient.uploadBlob(formData);
-        if (clientWallet && url) {
-          await relayClient.blockchain.setShopsURI(clientWallet, url);
-        }
-
-        router.push("/products");
-      })();
+    if (newPubId && path.url) {
+      await relayClient!.updateShopManifest({
+        publishedTagId: newPubId,
+        setBaseCurrency: {
+          tokenAddr: hexToBytes(tokenAddr),
+          chainId,
+        },
+        profilePictureUrl: path.url,
+      });
     }
-  }, [isAuthenticated, relayClient]);
+
+    setStoreData({
+      type: SET_STORE_DATA,
+      payload: { name: storeName!, profilePictureUrl: path.url! },
+    });
+    const metadata = {
+      name: storeName,
+      description: description,
+      image: path.url,
+    };
+
+    const jsn = JSON.stringify(metadata);
+    const blob = new Blob([jsn], { type: "application/json" });
+    const file = new File([blob], "file.json");
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const { url } = await relayClient!.uploadBlob(formData);
+    if (clientWallet && url) {
+      await relayClient!.blockchain.setShopsURI(clientWallet, url);
+    }
+
+    router.push("/products");
+  };
+
   const allRequiredFieldsComplete = true;
   return (
     <main className="pt-under-nav h-screen p-4 mt-5">

@@ -17,17 +17,12 @@ import { IStatus } from "@/types";
 
 const ConnectWallet = ({ close }: { close: () => void }) => {
   const { connectors, connect } = useConnect();
-  const { publicClient, clientWallet, shopId } = useMyContext();
+  const { checkPermissions, clientWallet, shopId } = useMyContext();
   const [pending, setPending] = useState<boolean>(false);
   const [hasAccess, setAccess] = useState<boolean>(false);
-  const {
-    walletAddress,
-    inviteSecret,
-    relayClient,
-    setWallet,
-    setKeyCardEnrolled,
-  } = useMyContext();
-  const { isAuthenticated, setIsAuthenticated } = useAuth();
+  const { walletAddress, inviteSecret, relayClient, setWallet, setKcEnrolled } =
+    useMyContext();
+  const { isAuthenticated, setHasAllAccess } = useAuth();
   const enrollKeycard = useRef(false);
   const redeemSecret = useRef(false);
   const { data: _wallet, status: walletStatus } = useWalletClient();
@@ -57,16 +52,20 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
       if (keyCardToEnroll && clientWallet) {
         enrollKeycard.current = true;
         relayClient.once("keycard enroll", async () => {
-          const res = await relayClient.enrollKeycard(clientWallet);
+          const permissions = await checkPermissions();
+          console.log({ permissions });
+          const res = await relayClient.enrollKeycard(
+            clientWallet,
+            permissions,
+          );
           if (res.ok) {
-            setKeyCardEnrolled(keyCardToEnroll);
+            setHasAllAccess(true);
+            setKcEnrolled(true);
             keyCardToEnroll && localStorage.setItem("keyCard", keyCardToEnroll);
-            setIsAuthenticated(IStatus.Complete);
             setConnectionStatus(IStatus.Complete);
           } else {
             enrollKeycard.current = false;
             setConnectionStatus(IStatus.Failed);
-            setIsAuthenticated(IStatus.Failed);
             localStorage.removeItem("keyCard");
           }
           localStorage.removeItem("keyCardToEnroll");
@@ -78,45 +77,33 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
   const newClerk = inviteSecret?.length && walletAddress;
   const returningClerk = walletAddress && !inviteSecret?.length;
 
-  useEffect(() => {
-    if (
-      newClerk &&
-      !pending &&
-      publicClient &&
-      relayClient &&
-      !redeemSecret.current &&
-      clientWallet
-    ) {
-      redeemSecret.current = true;
-      (async () => {
-        setPending(true);
+  // useEffect(() => {
+  //   if (
+  //     newClerk &&
+  //     !pending &&
+  //     publicClient &&
+  //     relayClient &&
+  //     !redeemSecret.current &&
+  //     clientWallet
+  //   ) {
+  //     redeemSecret.current = true;
+  //     (async () => {
+  //       setPending(true);
 
-        // @ts-expect-error TODO fix client api type spec
-        const hash = await relayClient.redeemInviteSecret(
-          inviteSecret,
-          clientWallet,
-        );
-        const transaction = await publicClient.waitForTransactionReceipt({
-          hash,
-        });
-        if (transaction.status == "success") {
-          const PERMRootHash = await publicClient.readContract({
-            address: abi.addresses.ShopReg as `0x${string}`,
-            abi: abi.ShopReg,
-            functionName: "PERM_updateRootHash",
-          });
-          const hasAccess = await publicClient.readContract({
-            address: abi.addresses.ShopReg as `0x${string}`,
-            abi: abi.ShopReg,
-            functionName: "hasPermission",
-            args: [shopId, walletAddress, PERMRootHash],
-          });
-          console.log({ hasAccess });
-          setAccess(true);
-        }
-      })();
-    }
-  }, [relayClient]);
+  //       // @ts-expect-error TODO fix client api type spec
+  //       const hash = await relayClient.redeemInviteSecret(
+  //         inviteSecret,
+  //         clientWallet,
+  //       );
+  //       const transaction = await publicClient.waitForTransactionReceipt({
+  //         hash,
+  //       });
+  //       if (transaction.status == "success") {
+
+  //       }
+  //     })();
+  //   }
+  // }, [relayClient]);
 
   useEffect(() => {
     if (

@@ -46,7 +46,6 @@ beforeEach(async () => {
     shopId,
     relayEndpoint,
     keyCardWallet: privateKeyToAccount(random32BytesHex()),
-    keyCardEnrolled: false,
   });
 });
 
@@ -113,7 +112,6 @@ describe("RelayClient", async () => {
     const relayClient2 = new RelayClient({
       relayEndpoint,
       keyCardWallet: privateKeyToAccount(sk),
-      keyCardEnrolled: false,
       shopId,
     });
 
@@ -161,7 +159,7 @@ describe("RelayClient", async () => {
 describe("user behaviour", () => {
   // enroll and login
   beforeEach(async () => {
-    const response = await relayClient.enrollKeycard(wallet);
+    const response = await relayClient.enrollKeycard(wallet, true);
     expect(response.status).toBe(201);
     const authenticated = await relayClient.connect();
     expect(authenticated.error).toBeNull();
@@ -389,7 +387,6 @@ describe("user behaviour", () => {
       relayClient2 = new RelayClient({
         relayEndpoint,
         keyCardWallet: privateKeyToAccount(sk),
-        keyCardEnrolled: false,
         shopId,
       });
       const redeemHash = await relayClient.blockchain.redeemInviteSecret(
@@ -402,7 +399,7 @@ describe("user behaviour", () => {
       });
 
       expect(redeemReceipt.status).to.equal("success");
-      await relayClient2.enrollKeycard(client2Wallet);
+      await relayClient2.enrollKeycard(client2Wallet, true);
       await relayClient2.connect();
     });
 

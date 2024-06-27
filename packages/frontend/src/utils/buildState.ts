@@ -47,6 +47,7 @@ export const buildState = (
   setStoreData: Dispatch<updateStoreDataAction>,
   walletAddress?: `0x${string}` | null,
 ) => {
+  console.log({ event });
   if (event.shopManifest) {
     const sm = event.shopManifest;
     setPublishedTagId(bytesToHex(sm.publishedTagId!));

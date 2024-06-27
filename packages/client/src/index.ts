@@ -28,18 +28,15 @@ export class RelayClient extends EventEmitter {
   private keyCardWallet;
   private endpoint;
   private useTLS;
-  keyCardEnrolled;
   private eventStream;
 
   constructor({
     relayEndpoint,
     keyCardWallet,
-    keyCardEnrolled,
     shopId,
   }: {
     relayEndpoint: string;
     keyCardWallet: PrivateKeyAccount;
-    keyCardEnrolled: boolean;
     shopId: `0x${string}` | undefined;
   }) {
     super();
@@ -47,7 +44,6 @@ export class RelayClient extends EventEmitter {
     this.keyCardWallet = keyCardWallet;
     this.endpoint = relayEndpoint;
     this.useTLS = relayEndpoint.startsWith("wss");
-    this.keyCardEnrolled = keyCardEnrolled;
     this.eventStream = new ReadableEventStream(this);
   }
 
@@ -263,17 +259,13 @@ export class RelayClient extends EventEmitter {
         resolve("already open");
       } else {
         this.connection.addEventListener("open", async () => {
-          if (this.keyCardEnrolled) {
-            const res = await this.#authenticate();
-            if (res) {
-              console.log("authentication success");
-              resolve(res);
-            } else {
-              console.log("authentication failed");
-              reject(res);
-            }
+          const res = await this.#authenticate();
+          if (res) {
+            console.log("authentication success");
+            resolve(res);
           } else {
-            resolve("ws connected without authentication");
+            console.log("authentication failed");
+            reject(res);
           }
         });
       }
@@ -294,7 +286,10 @@ export class RelayClient extends EventEmitter {
     });
   }
 
-  async enrollKeycard(wallet: WalletClientWithAccount) {
+  async enrollKeycard(
+    wallet: WalletClientWithAccount,
+    hasAllAccess: boolean = false,
+  ) {
     const publicKey = toBytes(this.keyCardWallet.publicKey).slice(1);
     const signature = await wallet.signMessage({
       message: { raw: publicKey },
@@ -306,15 +301,15 @@ export class RelayClient extends EventEmitter {
     });
     const endpointURL = new URL(this.endpoint);
     endpointURL.protocol = this.useTLS ? "https" : "http";
-    endpointURL.pathname += "/enroll_key_card";
+    endpointURL.pathname += `/enroll_key_card`;
+    endpointURL.search = `guest=${hasAllAccess ? 1 : 0}`;
+
     console.log(`posting to ${endpointURL.href}`);
     const response = await fetch(endpointURL.href, {
       method: "POST",
       body,
     });
-    if (response.ok) {
-      this.keyCardEnrolled = true;
-    }
+
     return response;
   }
 

@@ -44,7 +44,6 @@ export type IRelayWriteResponse = {
 };
 
 export type ClientContext = {
-  keyCardEnrolled: `0x${string}` | null;
   walletAddress: `0x${string}` | null;
   clientWallet: WalletClientWithAccount | null;
   balance: string | null;
@@ -55,7 +54,7 @@ export type ClientContext = {
   inviteSecret: `0x${string}` | null;
   shopId: ShopId;
   setShopId: Dispatch<SetStateAction<ShopId>>;
-  setKeyCardEnrolled: Dispatch<SetStateAction<`0x${string}` | null>>;
+  setKcEnrolled: Dispatch<SetStateAction<boolean | null>>;
   setInviteSecret: Dispatch<SetStateAction<`0x${string}` | null>>;
   setWallet: Dispatch<SetStateAction<WalletClientWithAccount | null>>;
   getTokenInformation: (

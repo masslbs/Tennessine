@@ -22,10 +22,10 @@ function SuccessFailModal({
     : "Sorry, access to the ETHDubai store is denied with your connected wallet.";
   const button = authenticated ? (
     <Link
-      href="/products"
+      href="/merchants"
       className="flex justify-center text-white px-6 py-4 rounded-md bg-gradient-to-r from-button-gradient-start to-button-gradient-end"
     >
-      View Store
+      Go to Merchant Dashboard
     </Link>
   ) : (
     <Button onClick={tryAgain}>Try again</Button>
@@ -44,15 +44,7 @@ function SuccessFailModal({
         </Link>
       </div>
       <section className="mx-4 my-6 text-center">
-        <div className="flex justify-center mt-40">
-          <Image
-            src="/assets/ethDubai.png"
-            width={100}
-            height={100}
-            alt="ethDubai"
-            unoptimized
-          />
-        </div>
+        <div className="flex justify-center mt-40"></div>
         <h3 className="mt-8">{hed}</h3>
         <h5 className="font-sans pl-5 pr-5">{sub}</h5>
       </section>
