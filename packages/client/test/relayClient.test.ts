@@ -154,7 +154,6 @@ describe("user behaviour", () => {
     const closeEvent = await relayClient.disconnect();
     const r = closeEvent as CloseEvent;
     expect(r.wasClean).toBe(true);
-    await relayClient.disconnect();
   });
 
   test("should reconnect", async () => {
