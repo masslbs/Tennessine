@@ -73,7 +73,7 @@ export const StoreContextProvider = (
   const [db, setDb] = useState(null);
   const [relays, setRelays] = useState<IRelay[]>(dummyRelays);
   const { relayClient, walletAddress, shopId } = useMyContext();
-  console.log({ walletAddress });
+
   useEffect(() => {
     createState();
   }, [relayClient]);

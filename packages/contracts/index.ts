@@ -12,3 +12,14 @@ import ShopReg from "./abi/ShopReg.json" with { type: "json" };
 export { ShopReg };
 import ERC20 from "./abi/ERC20.json" with { type: "json" };
 export { ERC20 };
+export const permissions = {
+  addPermission: 0,
+  removePermission: 1,
+  updateRootHash: 2,
+  addRelay: 3,
+  removeRelay: 4,
+  replaceRelay: 5,
+  registerUser: 6,
+  removeUser: 7,
+  publishInviteVerifier: 8,
+};

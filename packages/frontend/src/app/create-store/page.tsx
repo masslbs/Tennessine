@@ -158,7 +158,7 @@ const StoreCreation = () => {
 
         const { url } = await relayClient.uploadBlob(formData);
         if (clientWallet && url) {
-          await relayClient.blockchain.setShopsURI(clientWallet, url);
+          relayClient.blockchain.setShopMetadataURI(clientWallet, url);
         }
 
         router.push("/products");

@@ -36,7 +36,7 @@ export class BlockchainClient {
     });
   }
 
-  setShopsURI(wallet: WalletClientWithAccount, uri: string) {
+  setShopMetadataURI(wallet: WalletClientWithAccount, uri: string) {
     return wallet.writeContract({
       address: abi.addresses.ShopReg as Address,
       abi: abi.ShopReg,
