@@ -38,6 +38,7 @@ const StoreCreation = () => {
   const [avatar, setAvatar] = useState<FormData | null>(null);
   const [tokenAddr, setTokenAddr] = useState<`0x${string}`>("0x");
   const [chainId, setAcceptedChain] = useState<number>(0);
+  const [errorMsg, setErrorMsg] = useState<string>("");
   const chains = useChains();
 
   const enrollKeycard = useRef(false);
@@ -54,8 +55,14 @@ const StoreCreation = () => {
     setDescription(e.target.value);
   };
   const handleCurrency = (e: ChangeEvent<HTMLInputElement>) => {
-    //FIXME: check that value is hex
-    setTokenAddr(e.target.value);
+    const { value } = e.target;
+    const isHex = Boolean(value.match(/^0x[0-9a-f]+$/i));
+    if (!isHex) {
+      setErrorMsg("Token Address must be a valid hex value");
+      return;
+    }
+    const addr = value as `0x${string}`;
+    setTokenAddr(addr);
   };
 
   useEffect(() => {
@@ -168,6 +175,7 @@ const StoreCreation = () => {
   const allRequiredFieldsComplete = true;
   return (
     <main className="pt-under-nav h-screen p-4 mt-5">
+      {errorMsg.length ? <p>{errorMsg}</p> : null}
       <div className="flex">
         <h2>Create new shop</h2>
         <div className="ml-auto">
