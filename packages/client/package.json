@@ -37,6 +37,7 @@
     ".": {
       "types": "./dist/src/index.d.ts",
       "default": "./dist/src/index.js"
-    }
+    },
+    "./src/*": "./src/*.ts"
   }
 }

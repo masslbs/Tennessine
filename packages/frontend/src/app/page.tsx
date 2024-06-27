@@ -72,7 +72,7 @@ function Homepage() {
     <main className="min-h-screen overflow-hidden flex flex-col">
       <Account />
 
-      <section className="bg-[url('/assets/Home-BG.png')] grow flex items-center justify-center">
+      <section className=" grow flex items-center justify-center">
         <div className="text-center flex flex-col items-center">
           <h1 className="text-4xl">EthDubai</h1>
           <p className="text-gray-500">Powered by mass market</p>

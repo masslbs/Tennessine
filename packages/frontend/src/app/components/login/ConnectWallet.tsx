@@ -17,7 +17,7 @@ import { IStatus } from "@/types";
 
 const ConnectWallet = ({ close }: { close: () => void }) => {
   const { connectors, connect } = useConnect();
-  const { publicClient, clientWallet } = useMyContext();
+  const { publicClient, clientWallet, shopId } = useMyContext();
   const [pending, setPending] = useState<boolean>(false);
   const [hasAccess, setAccess] = useState<boolean>(false);
   const {
@@ -75,9 +75,6 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
     }
   }, [relayClient, clientWallet]);
 
-  const storeId =
-    localStorage.getItem("storeId") || process.env.NEXT_PUBLIC_STORE_ID;
-
   const newClerk = inviteSecret?.length && walletAddress;
   const returningClerk = walletAddress && !inviteSecret?.length;
 
@@ -112,7 +109,7 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
             address: abi.addresses.ShopReg as `0x${string}`,
             abi: abi.ShopReg,
             functionName: "hasPermission",
-            args: [storeId, walletAddress, PERMRootHash],
+            args: [shopId, walletAddress, PERMRootHash],
           });
           console.log({ hasAccess });
           setAccess(true);
@@ -154,13 +151,6 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
     <section className="bg-gray-100 h-screen absolute top-0	right-0	left-0">
       <div className="h-fit w-full border border-gray-200 p-4 text-base flex justify-between">
         <div className="flex">
-          <Image
-            src="/assets/wallet.svg"
-            width={24}
-            height={24}
-            alt="hamburger-icon"
-            className="h-6"
-          />
           <p className="ml-2">Connect Wallet</p>
         </div>
         <Image
