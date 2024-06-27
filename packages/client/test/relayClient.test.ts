@@ -43,7 +43,6 @@ function createRelayClient() {
     shopId: random32BytesHex(),
     relayEndpoint,
     keyCardWallet: privateKeyToAccount(random32BytesHex()),
-    keyCardEnrolled: false,
   });
 }
 
@@ -108,7 +107,6 @@ describe("RelayClient", async () => {
     const relayClient2 = new RelayClient({
       relayEndpoint,
       keyCardWallet: privateKeyToAccount(sk),
-      keyCardEnrolled: false,
       shopId: relayClient.blockchain.shopId,
     });
 
@@ -388,7 +386,6 @@ describe("user behaviour", () => {
       relayClient2 = new RelayClient({
         relayEndpoint,
         keyCardWallet: privateKeyToAccount(sk),
-        keyCardEnrolled: false,
         shopId: relayClient.blockchain.shopId,
       });
       const redeemHash = await relayClient.blockchain.redeemInviteSecret(
