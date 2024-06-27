@@ -21,18 +21,20 @@ import { hardhat, sepolia, mainnet, type Chain } from "viem/chains";
 import {
   http,
   createPublicClient,
-  hexToBytes,
-  bytesToHex,
   parseAbiItem,
+  // createWalletClient,
 } from "viem";
 import { useAuth } from "@/context/AuthContext";
 import * as abi from "@massmarket/contracts";
 import { IStatus } from "../types";
-import { type ClientContext } from "./types";
+import { type ClientContext, ShopId } from "./types";
 import { privateKeyToAccount, Address } from "viem/accounts";
+// import { usePathname } from "next/navigation";
+import { random32BytesHex } from "@massmarket/client/utils";
 
 export const MyContext = createContext<ClientContext>({
   walletAddress: null,
+  shopId: "0x",
   balance: null,
   avatar: null,
   name: null,
@@ -41,6 +43,7 @@ export const MyContext = createContext<ClientContext>({
   inviteSecret: null,
   clientWallet: null,
   keyCardEnrolled: null,
+  setShopId: () => {},
   setKeyCardEnrolled: () => {},
   setInviteSecret: () => {},
   setWallet: () => {},
@@ -53,6 +56,10 @@ export const MyContext = createContext<ClientContext>({
 export const MyContextProvider = (
   props: React.HTMLAttributes<HTMLDivElement>,
 ) => {
+  if (typeof window == "undefined") {
+    console.warn("not a browser session");
+    return;
+  }
   const [walletAddress, setWalletAddress] = useState<`0x${string}` | null>(
     null,
   );
@@ -72,17 +79,14 @@ export const MyContextProvider = (
   const [keyCardEnrolled, setKeyCardEnrolled] = useState<null | `0x${string}`>(
     null,
   );
-  const [storeIds, setStoreIds] = useState<null | Map<`0x${string}`, boolean>>(
-    null,
+  const [storeIds, setStoreIds] = useState<null | Map<ShopId, boolean>>(null);
+  const [shopId, setShopId] = useState<ShopId>(
+    (localStorage.getItem("shopId") as ShopId) ||
+      (process.env.NEXT_PUBLIC_STORE_ID as ShopId),
   );
-  const storeIdsVerified = useRef(false);
 
-  if (typeof window == "undefined") {
-    console.warn("not a browser session");
-    return;
-  }
-  const shopId =
-    localStorage.getItem("shopId") || process.env.NEXT_PUBLIC_STORE_ID;
+  const storeIdsVerified = useRef(false);
+  // const pathname = usePathname();
 
   if (!shopId) {
     throw Error("missing shop ID");
@@ -188,25 +192,51 @@ export const MyContextProvider = (
   }, [isConnected, clientWallet, data, ensAvatar, name]);
 
   useEffect(() => {
-    let keyCard = new Uint8Array(32);
-    crypto.getRandomValues(keyCard);
+    let keyCard = random32BytesHex();
     if (!keyCardEnrolled && !savedKC) {
-      localStorage.setItem("keyCardToEnroll", bytesToHex(keyCard));
+      localStorage.setItem("keyCardToEnroll", keyCard);
     } else {
-      keyCard = hexToBytes(savedKC);
+      keyCard = savedKC;
     }
-    const privateKey = inviteSecret ? inviteSecret : bytesToHex(keyCard);
+    const privateKey = inviteSecret ? inviteSecret : keyCard;
+    const keyCardWallet = privateKeyToAccount(privateKey);
+
     const user = {
       relayEndpoint:
         process.env.NEXT_PUBLIC_RELAY_ENDPOINT ||
         "wss://relay-beta.mass.market/v1",
-      keyCardWallet: privateKeyToAccount(privateKey),
+      keyCardWallet,
       shopId: shopId as `0x${string}`,
       chain: usedChain,
       keyCardEnrolled: !!keyCardEnrolled,
     };
     const _relayClient = new RelayClient(user);
     setRelayClient(_relayClient);
+    // if (
+    //   !keyCardEnrolled &&
+    //   !pathname.includes("connect-wallet") &&
+    //   !pathname.includes("create-store")
+    // ) {
+    //   (async () => {
+    //     const guestWallet = createWalletClient({
+    //       account: privateKeyToAccount(
+    //         "0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6",
+    //       ),
+    //       chain: usedChain,
+    //       transport: http(),
+    //     });
+    //     const res = await _relayClient.enrollKeycard(guestWallet);
+    //     if (res.ok) {
+    //       setKeyCardEnrolled(privateKey);
+    //       privateKey && localStorage.setItem("keyCard", privateKey);
+    //       setIsAuthenticated(IStatus.Complete);
+    //     } else {
+    //       setIsAuthenticated(IStatus.Failed);
+    //       localStorage.removeItem("keyCard");
+    //     }
+    //     localStorage.removeItem("keyCardToEnroll");
+    //   })();
+    // }
     if (keyCardEnrolled) {
       (async () => {
         console.log("connecting to client...");
@@ -220,7 +250,7 @@ export const MyContextProvider = (
       })();
     }
     console.log(`relay client set ${user.relayEndpoint} with shop: ${shopId}`);
-  }, [keyCardEnrolled]);
+  }, [keyCardEnrolled, shopId]);
 
   const value = {
     name,
@@ -238,6 +268,8 @@ export const MyContextProvider = (
     getTokenInformation,
     setKeyCardEnrolled,
     storeIds,
+    shopId,
+    setShopId,
   };
 
   return (
