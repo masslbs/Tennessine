@@ -57,7 +57,7 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
       if (keyCardToEnroll && clientWallet) {
         enrollKeycard.current = true;
         relayClient.once("keycard enroll", async () => {
-          const res = await relayClient.enrollKeycard(clientWallet);
+          const res = await relayClient.enrollKeycard(clientWallet, false);
           if (res.ok) {
             setKeyCardEnrolled(keyCardToEnroll);
             keyCardToEnroll && localStorage.setItem("keyCard", keyCardToEnroll);

@@ -30,7 +30,7 @@ import { IStatus } from "../types";
 import { type ClientContext, ShopId } from "./types";
 import { privateKeyToAccount, Address } from "viem/accounts";
 // import { usePathname } from "next/navigation";
-import { random32BytesHex } from "@massmarket/client/src/utils";
+import { random32BytesHex } from "@massmarket/client/utils";
 
 export const MyContext = createContext<ClientContext>({
   walletAddress: null,

@@ -161,7 +161,7 @@ describe("user behaviour", () => {
       hash: transactionHash,
     });
     expect(receipt.status).equals("success");
-    const response = await relayClient.enrollKeycard(wallet);
+    const response = await relayClient.enrollKeycard(wallet, false);
     expect(response.status).toBe(201);
     const authenticated = await relayClient.connect();
     expect(authenticated.error).toBeNull();
@@ -389,7 +389,7 @@ describe("user behaviour", () => {
       });
 
       expect(redeemReceipt.status).to.equal("success");
-      await relayClient2.enrollKeycard(client2Wallet);
+      await relayClient2.enrollKeycard(client2Wallet, false);
       await relayClient2.connect();
     });
 
