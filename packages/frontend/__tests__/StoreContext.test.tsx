@@ -66,6 +66,8 @@ describe("StoreContext", () => {
         value={{
           isConnected: IStatus.Complete,
           setIsConnected: () => {},
+          hasUpdateRootHashPerm: false,
+          setUpdateRootHashPerm: () => {},
         }}
       >
         {/* @ts-expect-error FIXME */}
