@@ -237,10 +237,14 @@ export const MyContextProvider = (
     //     localStorage.removeItem("keyCardToEnroll");
     //   })();
     // }
+    console.log(`relay client set ${user.relayEndpoint} with shop: ${shopId}`);
+  }, [shopId]);
+
+  useEffect(() => {
     if (keyCardEnrolled) {
       (async () => {
         console.log("connecting to client...");
-        const authenticated = await _relayClient.connect();
+        const authenticated = await relayClient!.connect();
         console.log({ authenticated });
         if (authenticated) {
           setIsAuthenticated(IStatus.Complete);
@@ -249,8 +253,7 @@ export const MyContextProvider = (
         }
       })();
     }
-    console.log(`relay client set ${user.relayEndpoint} with shop: ${shopId}`);
-  }, [keyCardEnrolled, shopId]);
+  }, [keyCardEnrolled]);
 
   const value = {
     name,
