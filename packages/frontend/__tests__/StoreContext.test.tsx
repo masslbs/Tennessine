@@ -64,8 +64,8 @@ describe("StoreContext", () => {
     return (
       <AuthContext.Provider
         value={{
-          isAuthenticated: IStatus.Complete,
-          setIsAuthenticated: () => {},
+          isConnected: IStatus.Complete,
+          setIsConnected: () => {},
         }}
       >
         {/* @ts-expect-error FIXME */}

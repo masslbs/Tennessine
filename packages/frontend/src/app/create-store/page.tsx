@@ -8,7 +8,6 @@ import React, { useState, useEffect, useRef } from "react";
 import AvatarUpload from "@/app/common/components/AvatarUpload";
 import { useMyContext } from "@/context/MyContext";
 import { useAuth } from "@/context/AuthContext";
-import * as abi from "@massmarket/contracts";
 import { IStatus } from "@/types";
 import { useRouter } from "next/navigation";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
@@ -18,16 +17,20 @@ import { useChains } from "wagmi";
 import { hexToBytes } from "viem";
 import { SET_STORE_DATA } from "@/reducers/storeReducer";
 import { useStoreContext } from "@/context/StoreContext";
+import { RelayClient } from "@massmarket/client";
+import { privateKeyToAccount } from "viem/accounts";
+import { hardhat } from "viem/chains";
 
 const StoreCreation = () => {
   const {
-    relayClient,
     publicClient,
-    walletAddress,
     clientWallet,
     shopId,
     setShopId,
     setKeyCardEnrolled,
+    checkPermissions,
+    setRelayClient,
+    relayClient,
   } = useMyContext();
   const { setStoreData } = useStoreContext();
   const router = useRouter();
@@ -40,9 +43,10 @@ const StoreCreation = () => {
   const [chainId, setAcceptedChain] = useState<number>(0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const chains = useChains();
+  const [isStoreCreated, setStoreCreated] = useState<boolean>(false);
 
   const enrollKeycard = useRef(false);
-  const { isAuthenticated } = useAuth();
+  const { isConnected, setIsConnected } = useAuth();
   const randomShopIdHasBeenSet = useRef(false);
 
   const checkRequiredFields = () => {
@@ -70,55 +74,58 @@ const StoreCreation = () => {
   };
 
   useEffect(() => {
-    if (!randomShopIdHasBeenSet.current && relayClient) {
+    if (!randomShopIdHasBeenSet.current) {
+      localStorage.removeItem("keyCard");
+
       randomShopIdHasBeenSet.current = true;
       const randomShopId = random32BytesHex();
+      setIsConnected(IStatus.Pending);
+      setKeyCardEnrolled(false);
       console.log(`enrolling shopId: ${randomShopId}`);
       setShopId(randomShopId);
     }
-  }, [relayClient]);
+  }, []);
 
   const createShop = () => {
     (async () => {
       checkRequiredFields();
+      const keyCard = random32BytesHex();
+      const keyCardWallet = privateKeyToAccount(keyCard);
 
-      if (relayClient && publicClient && clientWallet) {
+      const user = {
+        relayEndpoint:
+          process.env.NEXT_PUBLIC_RELAY_ENDPOINT ||
+          "wss://relay-beta.mass.market/v1",
+        keyCardWallet,
+        shopId: shopId as `0x${string}`,
+        chain: hardhat,
+      };
+
+      const _relayClient = new RelayClient(user);
+      if (_relayClient && publicClient && clientWallet) {
         try {
-          const hash = await relayClient.blockchain.createShop(clientWallet);
+          const hash = await _relayClient.blockchain.createShop(clientWallet);
           const transaction =
             publicClient &&
             (await publicClient.waitForTransactionReceipt({
               hash,
             }));
           if (transaction.status == "success") {
-            console.log(`shopId: ${shopId} created`);
+            console.log(`CREATED shopId: ${_relayClient.blockchain.shopId}`);
             localStorage.setItem("shopId", shopId!);
-            const PERMRootHash = await publicClient.readContract({
-              address: abi.addresses.ShopReg as `0x${string}`,
-              abi: abi.ShopReg,
-              functionName: "PERM_updateRootHash",
-            });
-            const _hasAccess = (await publicClient.readContract({
-              address: abi.addresses.ShopReg as `0x${string}`,
-              abi: abi.ShopReg,
-              functionName: "hasPermission",
-              args: [shopId, walletAddress, PERMRootHash],
-            })) as boolean;
-            if (_hasAccess && clientWallet) {
+            const hasAccess = await checkPermissions();
+
+            if (hasAccess && clientWallet) {
               if (enrollKeycard.current) return;
               enrollKeycard.current = true;
-              const res = await relayClient.enrollKeycard(
-                clientWallet,
-                !_hasAccess,
-              );
+              const res = await _relayClient.enrollKeycard(clientWallet, false);
               if (res.ok) {
-                const keyCardToEnroll = localStorage.getItem(
-                  "keyCardToEnroll",
-                ) as `0x${string}`;
-                localStorage.setItem("keyCard", keyCardToEnroll);
+                setRelayClient(_relayClient);
+                localStorage.setItem("keyCard", keyCard);
                 localStorage.removeItem("keyCardToEnroll");
-                console.log(`keycard enrolled:${keyCardToEnroll}`);
-                setKeyCardEnrolled(keyCardToEnroll);
+                console.log(`keycard enrolled:${keyCard}`);
+                setKeyCardEnrolled(true);
+                setStoreCreated(true);
               } else {
                 console.error("failed to enroll keycard");
               }
@@ -132,7 +139,7 @@ const StoreCreation = () => {
   };
 
   useEffect(() => {
-    if (relayClient && isAuthenticated === IStatus.Complete) {
+    if (relayClient && isStoreCreated && isConnected == IStatus.Complete) {
       (async () => {
         const publishedTagId = new Uint8Array(32);
         crypto.getRandomValues(publishedTagId);
@@ -142,7 +149,7 @@ const StoreCreation = () => {
           profilePictureUrl: "https://http.cat/images/200.jpg",
           publishedTagId,
         });
-        console.log("store manifested.");
+        console.log(`MANIFESTED shopId:${relayClient.blockchain.shopId}`);
         const newPubId = await relayClient.createTag({ name: "visible" });
         const path = await relayClient!.uploadBlob(avatar as FormData);
 
@@ -180,7 +187,7 @@ const StoreCreation = () => {
         router.push("/products");
       })();
     }
-  }, [isAuthenticated, relayClient]);
+  }, [isConnected, isStoreCreated]);
 
   return (
     <main className="pt-under-nav h-screen p-4 mt-5">

@@ -44,7 +44,7 @@ export type IRelayWriteResponse = {
 };
 
 export type ClientContext = {
-  keyCardEnrolled: `0x${string}` | null;
+  keyCardEnrolled: boolean;
   walletAddress: `0x${string}` | null;
   clientWallet: WalletClientWithAccount | null;
   balance: string | null;
@@ -55,12 +55,14 @@ export type ClientContext = {
   inviteSecret: `0x${string}` | null;
   shopId: ShopId;
   setShopId: Dispatch<SetStateAction<ShopId>>;
-  setKeyCardEnrolled: Dispatch<SetStateAction<`0x${string}` | null>>;
+  setKeyCardEnrolled: Dispatch<SetStateAction<boolean>>;
   setInviteSecret: Dispatch<SetStateAction<`0x${string}` | null>>;
   setWallet: Dispatch<SetStateAction<WalletClientWithAccount | null>>;
   getTokenInformation: (
     d: `0x${string}`,
   ) => Promise<{ name: string; symbol: string; decimals: number }>;
+  checkPermissions: () => Promise<boolean>;
+  setRelayClient: Dispatch<SetStateAction<RelayClient | null>>;
 };
 
 export type StoreContent = {

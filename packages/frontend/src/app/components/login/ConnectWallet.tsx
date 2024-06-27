@@ -26,8 +26,9 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
     relayClient,
     setWallet,
     setKeyCardEnrolled,
+    checkPermissions,
   } = useMyContext();
-  const { isAuthenticated, setIsAuthenticated } = useAuth();
+  const { isConnected, setIsConnected } = useAuth();
   const enrollKeycard = useRef(false);
   const redeemSecret = useRef(false);
   const { data: _wallet, status: walletStatus } = useWalletClient();
@@ -57,16 +58,16 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
       if (keyCardToEnroll && clientWallet) {
         enrollKeycard.current = true;
         relayClient.once("keycard enroll", async () => {
-          const res = await relayClient.enrollKeycard(clientWallet, false);
+          const res = await relayClient.enrollKeycard(clientWallet, !hasAccess);
           if (res.ok) {
-            setKeyCardEnrolled(keyCardToEnroll);
+            setKeyCardEnrolled(true);
             keyCardToEnroll && localStorage.setItem("keyCard", keyCardToEnroll);
-            setIsAuthenticated(IStatus.Complete);
+            setIsConnected(IStatus.Complete);
             setConnectionStatus(IStatus.Complete);
           } else {
             enrollKeycard.current = false;
             setConnectionStatus(IStatus.Failed);
-            setIsAuthenticated(IStatus.Failed);
+            setIsConnected(IStatus.Failed);
             localStorage.removeItem("keyCard");
           }
           localStorage.removeItem("keyCardToEnroll");
@@ -100,19 +101,9 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
           hash,
         });
         if (transaction.status == "success") {
-          const PERMRootHash = await publicClient.readContract({
-            address: abi.addresses.ShopReg as `0x${string}`,
-            abi: abi.ShopReg,
-            functionName: "PERM_updateRootHash",
-          });
-          const hasAccess = await publicClient.readContract({
-            address: abi.addresses.ShopReg as `0x${string}`,
-            abi: abi.ShopReg,
-            functionName: "hasPermission",
-            args: [shopId, walletAddress, PERMRootHash],
-          });
+          const hasAccess = await checkPermissions();
           console.log({ hasAccess });
-          setAccess(true);
+          setAccess(hasAccess);
         }
       })();
     }
@@ -122,7 +113,7 @@ const ConnectWallet = ({ close }: { close: () => void }) => {
     if (
       (returningClerk || (newClerk && hasAccess)) &&
       relayClient &&
-      isAuthenticated === IStatus.Pending
+      isConnected === IStatus.Pending
     ) {
       (async () => {
         keyCardToEnroll && relayClient.emit("keycard enroll");

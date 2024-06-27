@@ -27,7 +27,7 @@ const Navigation = () => {
   const [menuOpened, setMenuOpened] = useState<boolean>(false);
 
   const { name } = useMyContext();
-  const { isAuthenticated, setIsAuthenticated } = useAuth();
+  const { isConnected, setIsConnected } = useAuth();
   const { db, storeData } = useStoreContext();
   const searchParams = useSearchParams();
 
@@ -35,7 +35,7 @@ const Navigation = () => {
   const router = useRouter();
   const logout = () => {
     db.clear();
-    setIsAuthenticated(IStatus.Pending);
+    setIsConnected(IStatus.Pending);
     localStorage.clear();
     router.push("/");
   };
@@ -47,7 +47,7 @@ const Navigation = () => {
   // for (const val of arr) {
   //   len += val;
   // }
-  const loggedIn = isAuthenticated === IStatus.Complete;
+  const loggedIn = isConnected === IStatus.Complete;
   const menuSwitch = () => {
     setMenuOpened(!menuOpened);
   };

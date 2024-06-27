@@ -14,16 +14,16 @@ import SuccessFailModal from "@/app/components/login/SuccessFailModal";
 
 const SignUp = ({ backToLanding }: { backToLanding: () => void }) => {
   const [openConnectModal, setOpenConnectModal] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const { isConnected } = useAuth();
 
   const [connectionStatus, setConnectionStatus] = useState<IStatus>(
     IStatus.Pending,
   );
   useEffect(() => {
-    if (isAuthenticated === IStatus.Complete) {
+    if (isConnected === IStatus.Complete) {
       setConnectionStatus(IStatus.Complete);
     }
-  }, [isAuthenticated]);
+  }, [isConnected]);
 
   if (connectionStatus == IStatus.Complete) {
     return <SuccessFailModal success={true} />;

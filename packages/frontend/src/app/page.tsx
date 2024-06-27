@@ -20,27 +20,27 @@ function Homepage() {
   const [openConnectModal, setOpenConnectModal] = useState<boolean>(false);
 
   const { setInviteSecret } = useMyContext();
-  const { isAuthenticated } = useAuth();
+  const { isConnected } = useAuth();
   const searchParams = useSearchParams();
   const inviteSecret = searchParams!.get("inviteSecret") as `0x${string}`;
   const router = useRouter();
 
   useEffect(() => {
     if (
-      isAuthenticated === IStatus.Complete &&
+      isConnected === IStatus.Complete &&
       !openSignupModal &&
       !openConnectModal
     ) {
       router.push("/products");
     }
-  }, [isAuthenticated]);
+  }, [isConnected]);
 
   if (inviteSecret) {
     setInviteSecret(inviteSecret);
   }
 
   const connectAction =
-    isAuthenticated === IStatus.Complete
+    isConnected === IStatus.Complete
       ? () => router.push("/products")
       : inviteSecret
         ? () => setOpenSignupModal(true)
