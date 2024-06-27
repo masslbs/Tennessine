@@ -173,7 +173,7 @@ export const buildState = (
       });
   } else if (event.createOrder) {
     const orderId = bytesToHex(event.createOrder.eventId!);
-    const signature = bytesToHex(event.signature!);
+    const signature = "0x0";
     setOrderItems({
       type: SET_ORDER_SIG,
       payload: {
