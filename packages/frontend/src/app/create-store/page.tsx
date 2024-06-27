@@ -12,7 +12,7 @@ import * as abi from "@massmarket/contracts";
 import { IStatus } from "@/types";
 import { useRouter } from "next/navigation";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
-import { random32BytesHex } from "@massmarket/client/src/utils";
+import { random32BytesHex } from "@massmarket/client/utils";
 import Image from "next/image";
 import { useChains } from "wagmi";
 import { hexToBytes } from "viem";

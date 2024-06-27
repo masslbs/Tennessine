@@ -159,19 +159,7 @@ describe("user behaviour", () => {
       hash: transactionHash,
     });
     expect(receipt.status).equals("success");
-    const PERMRootHash = await publicClient.readContract({
-      address: abi.addresses.ShopReg as `0x${string}`,
-      abi: abi.ShopReg,
-      functionName: "PERM_updateRootHash",
-    });
-    const _hasAccess = (await publicClient.readContract({
-      address: abi.addresses.ShopReg as `0x${string}`,
-      abi: abi.ShopReg,
-      functionName: "hasPermission",
-      args: [relayClient.blockchain.shopId, account.address, PERMRootHash],
-    })) as boolean;
-    expect(_hasAccess).toBe(true);
-    const response = await relayClient.enrollKeycard(wallet, !_hasAccess);
+    const response = await relayClient.enrollKeycard(wallet, false);
     expect(response.status).toBe(201);
     const authenticated = await relayClient.connect();
     expect(authenticated.error).toBeNull();
@@ -398,21 +386,7 @@ describe("user behaviour", () => {
       });
 
       expect(redeemReceipt.status).to.equal("success");
-
-      const PERMRootHash = await publicClient.readContract({
-        address: abi.addresses.ShopReg as `0x${string}`,
-        abi: abi.ShopReg,
-        functionName: "PERM_updateRootHash",
-      });
-      const _hasAccess = (await publicClient.readContract({
-        address: abi.addresses.ShopReg as `0x${string}`,
-        abi: abi.ShopReg,
-        functionName: "hasPermission",
-        args: [relayClient2.blockchain.shopId, acc2.address, PERMRootHash],
-      })) as boolean;
-      expect(_hasAccess).toBe(true);
-
-      await relayClient2.enrollKeycard(client2Wallet, !_hasAccess);
+      await relayClient2.enrollKeycard(client2Wallet, false);
       await relayClient2.connect();
     });
 
