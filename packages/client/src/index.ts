@@ -294,7 +294,10 @@ export class RelayClient extends EventEmitter {
     });
   }
 
-  async enrollKeycard(wallet: WalletClientWithAccount) {
+  async enrollKeycard(
+    wallet: WalletClientWithAccount,
+    isGuest: boolean = true,
+  ) {
     const publicKey = toBytes(this.keyCardWallet.publicKey).slice(1);
     const signature = await wallet.signMessage({
       message: { raw: publicKey },
@@ -306,7 +309,8 @@ export class RelayClient extends EventEmitter {
     });
     const endpointURL = new URL(this.endpoint);
     endpointURL.protocol = this.useTLS ? "https" : "http";
-    endpointURL.pathname += "/enroll_key_card";
+    endpointURL.pathname += `/enroll_key_card`;
+    endpointURL.search = `guest=${isGuest ? 1 : 0}`;
     console.log(`posting to ${endpointURL.href}`);
     const response = await fetch(endpointURL.href, {
       method: "POST",

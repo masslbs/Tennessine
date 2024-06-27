@@ -98,16 +98,19 @@ const StoreCreation = () => {
               abi: abi.ShopReg,
               functionName: "PERM_updateRootHash",
             });
-            const _hasAccess = await publicClient.readContract({
+            const _hasAccess = (await publicClient.readContract({
               address: abi.addresses.ShopReg as `0x${string}`,
               abi: abi.ShopReg,
               functionName: "hasPermission",
               args: [shopId, walletAddress, PERMRootHash],
-            });
+            })) as boolean;
             if (_hasAccess && clientWallet) {
               if (enrollKeycard.current) return;
               enrollKeycard.current = true;
-              const res = await relayClient.enrollKeycard(clientWallet);
+              const res = await relayClient.enrollKeycard(
+                clientWallet,
+                !_hasAccess,
+              );
               if (res.ok) {
                 const keyCardToEnroll = localStorage.getItem(
                   "keyCardToEnroll",
