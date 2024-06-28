@@ -6,13 +6,12 @@
 
 import React, { useEffect, useState } from "react";
 import Button from "@/app/common/components/Button";
-import { Account } from "../../wagmi/components/Account";
 import { useMyContext } from "@/context/MyContext";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { IStatus } from "@/types";
-import ConnectWallet from "@/app/components/login/ConnectWallet";
+import MerchantConnectWallet from "@/app/components/login/MerchantConnectWallet";
 
 function MerchantHomepage() {
   const [openConnectModal, setOpenConnectModal] = useState<boolean>(false);
@@ -48,7 +47,7 @@ function MerchantHomepage() {
 
   if (openConnectModal) {
     return (
-      <ConnectWallet
+      <MerchantConnectWallet
         close={() => {
           setOpenConnectModal(false);
         }}
@@ -58,8 +57,6 @@ function MerchantHomepage() {
 
   return (
     <main className="min-h-screen overflow-hidden flex flex-col">
-      <Account />
-
       <section className=" grow flex items-center justify-center">
         <div className="text-center flex flex-col items-center">
           <h1 className="text-4xl">Welcome</h1>

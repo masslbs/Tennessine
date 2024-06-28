@@ -2,13 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import React, {
-  createContext,
-  useContext,
-  useRef,
-  useEffect,
-  useState,
-} from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import {
   useAccount,
   useEnsName,
@@ -80,23 +74,22 @@ export const MyContextProvider = (
   const name = useEnsName({ address })?.data || null;
   const ensAvatar = useEnsAvatar({ name: ensName! })?.data;
   const { data: _wallet, status: walletStatus } = useWalletClient();
-  const { setIsConnected, setIsMerchantView, setUpdateRootHashPerm } =
-    useAuth();
+  const {
+    setIsConnected,
+    setIsMerchantView,
+    setUpdateRootHashPerm,
+    isMerchantView,
+  } = useAuth();
   const [keyCardEnrolled, setKeyCardEnrolled] = useState<boolean>(false);
-  const [storeIds, setStoreIds] = useState<null | Map<ShopId, boolean>>(null);
   const [shopId, setShopId] = useState<ShopId>(
     (localStorage.getItem("shopId") as ShopId) ||
       (process.env.NEXT_PUBLIC_STORE_ID as ShopId),
   );
 
-  const storeIdsVerified = useRef(false);
-
   const pathname = usePathname();
-  const isDemoStore = ![`/merchants/`, `/create-store/`].includes(pathname);
-  if (isDemoStore) {
-    console.log("redirecting to demo store");
-    setIsMerchantView(true);
-  }
+  const isDemoStore =
+    ![`/merchants/`, `/create-store/`].includes(pathname) && !isMerchantView;
+
   if (!shopId) {
     throw Error("missing shop ID");
   }
@@ -131,37 +124,6 @@ export const MyContextProvider = (
   const { data } = useBalance({
     address: address as `0x${string}`,
   });
-
-  const getStores = async () => {
-    const stores = new Map();
-
-    const logs = await publicClient.getLogs({
-      address: abi.addresses.ShopReg as Address,
-      event: parseAbiItem(
-        "event Transfer(address indexed from, address indexed to, uint256 value)",
-      ),
-      fromBlock: "earliest",
-      toBlock: "latest",
-      args: {
-        to: walletAddress,
-      },
-    });
-    logs.map(async (l) => {
-      //@ts-expect-error FIXME
-      stores.set(l.topics?.[3], 1);
-    });
-    return stores;
-  };
-
-  useEffect(() => {
-    (async () => {
-      if (publicClient && walletAddress && !storeIdsVerified.current) {
-        storeIdsVerified.current = true;
-        const _storeIds = await getStores();
-        setStoreIds(_storeIds);
-      }
-    })();
-  }, [walletAddress, publicClient]);
 
   const getTokenInformation = async (erc20Addr: `0x${string}`) => {
     const name = (await publicClient.readContract({
@@ -274,6 +236,23 @@ export const MyContextProvider = (
     return hasAccess;
   };
 
+  const createNewRelayClient = () => {
+    const keyCard = random32BytesHex();
+    const keyCardWallet = privateKeyToAccount(keyCard);
+    localStorage.setItem("keyCardToEnroll", keyCard);
+
+    const user = {
+      relayEndpoint:
+        process.env.NEXT_PUBLIC_RELAY_ENDPOINT ||
+        "wss://relay-beta.mass.market/v1",
+      keyCardWallet,
+      shopId: shopId as `0x${string}`,
+      chain: hardhat,
+    };
+
+    return new RelayClient(user);
+  };
+
   const value = {
     name,
     walletAddress,
@@ -289,11 +268,11 @@ export const MyContextProvider = (
     setWallet,
     getTokenInformation,
     setKeyCardEnrolled,
-    storeIds,
     shopId,
     setShopId,
     checkPermissions,
     setRelayClient,
+    createNewRelayClient,
   };
 
   return (
