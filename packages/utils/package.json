@@ -1,7 +1,7 @@
 {
-  "name": "@massmarket/blockchain",
+  "name": "@massmarket/utils",
   "version": "1.0.0",
-  "description": "Blockchain client",
+  "description": "Utils",
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -16,9 +16,7 @@
     }
   },
   "dependencies": {
-    "@massmarket/contracts": "workspace:*",
-    "@massmarket/utils": "workspace:*",
-    "viem": "^2.16.3",
-    "vitest": "^1.6.0"
+    "buffer": "^6.0.3",
+    "viem": "^2.16.3"
   }
 }

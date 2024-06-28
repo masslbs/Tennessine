@@ -13,18 +13,14 @@ import schema, {
   MESSAGE_TYPES,
   MESSAGE_PREFIXES,
 } from "@massmarket/schema";
-import {
-  BlockchainClient,
-  WalletClientWithAccount,
-} from "./blockchainClient.js";
+import { WalletClientWithAccount } from "@massmarket/blockchain";
 import { ReadableEventStream } from "./stream.js";
-import { requestId, eventId, hexToBase64 } from "./utils.js";
+import { requestId, eventId, hexToBase64 } from "@massmarket/utils";
 
 export type { WalletClientWithAccount };
 
 export class RelayClient extends EventEmitter {
   connection!: WebSocket;
-  blockchain: BlockchainClient;
   private keyCardWallet;
   private endpoint;
   private useTLS;
@@ -33,14 +29,11 @@ export class RelayClient extends EventEmitter {
   constructor({
     relayEndpoint,
     keyCardWallet,
-    shopId,
   }: {
     relayEndpoint: string;
     keyCardWallet: PrivateKeyAccount;
-    shopId: `0x${string}` | undefined;
   }) {
     super();
-    this.blockchain = new BlockchainClient(shopId);
     this.keyCardWallet = keyCardWallet;
     this.endpoint = relayEndpoint;
     this.useTLS = relayEndpoint.startsWith("wss");
@@ -117,9 +110,9 @@ export class RelayClient extends EventEmitter {
     return this.encodeAndSend(schema.EventWriteRequest, eventWriteRequest);
   }
 
-  async shopManifest(manifest: schema.IShopManifest) {
+  async shopManifest(manifest: schema.IShopManifest, shopId: `0x${string}`) {
     const id = (manifest.eventId = eventId());
-    manifest.shopTokenId = hexToBytes(this.blockchain.shopId);
+    manifest.shopTokenId = hexToBytes(shopId);
     await this.sendShopEvent({
       shopManifest: manifest,
     });
@@ -289,6 +282,7 @@ export class RelayClient extends EventEmitter {
   async enrollKeycard(
     wallet: WalletClientWithAccount,
     isGuest: boolean = true,
+    shopId: `0x${string}`,
   ) {
     const publicKey = toBytes(this.keyCardWallet.publicKey).slice(1);
     const signature = await wallet.signMessage({
@@ -297,7 +291,7 @@ export class RelayClient extends EventEmitter {
     const body = JSON.stringify({
       key_card: Buffer.from(publicKey).toString("base64"),
       signature: hexToBase64(signature),
-      shop_token_id: hexToBase64(this.blockchain.shopId),
+      shop_token_id: hexToBase64(shopId),
     });
     const endpointURL = new URL(this.endpoint);
     endpointURL.protocol = this.useTLS ? "https" : "http";

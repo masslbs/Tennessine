@@ -16,8 +16,9 @@ import { privateKeyToAccount } from "viem/accounts";
 import { describe, beforeEach, expect, test } from "vitest";
 
 import { RelayClient } from "../src";
-import { random32BytesHex, randomBytes } from "../src/utils";
+import { random32BytesHex, randomBytes } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
+import { BlockchainClient } from "@massmarket/blockchain";
 
 // this key is from one of anvil's default keypairs
 const account = privateKeyToAccount(
@@ -35,22 +36,25 @@ const publicClient = createPublicClient({
   transport: http(),
 });
 
+const shopId = random32BytesHex();
+let blockchain: BlockchainClient;
 const relayEndpoint =
   (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v2";
 
 function createRelayClient() {
   return new RelayClient({
-    shopId: random32BytesHex(),
     relayEndpoint,
     keyCardWallet: privateKeyToAccount(random32BytesHex()),
   });
 }
-
+beforeEach(async () => {
+  blockchain = new BlockchainClient(shopId);
+});
 describe("RelayClient", async () => {
   const relayClient = createRelayClient();
 
   test("should create a shop", async () => {
-    const transactionHash = await relayClient.blockchain.createShop(wallet);
+    const transactionHash = await blockchain.createShop(wallet);
     // wait for the transaction to be included in the blockchain
     const receipt = await publicClient.waitForTransactionReceipt({
       hash: transactionHash,
@@ -65,16 +69,12 @@ describe("RelayClient", async () => {
     // if we knew that before hand, we could just call registerUser(acc2.address, Clerk)
     const sk = random32BytesHex();
     const token = privateKeyToAccount(sk);
-    const hash = await relayClient.blockchain.createInviteSecret(
-      wallet,
-      token.address,
-    );
+    const hash = await blockchain.createInviteSecret(wallet, token.address);
 
     // wait for the transaction to be included in the blockchain
     const receipt = await publicClient.waitForTransactionReceipt({
       hash,
     });
-
     expect(receipt.status).to.equal("success");
     const acc2 = privateKeyToAccount(sk);
     await wallet.sendTransaction({
@@ -92,13 +92,9 @@ describe("RelayClient", async () => {
     const relayClient2 = new RelayClient({
       relayEndpoint,
       keyCardWallet: privateKeyToAccount(sk),
-      shopId: relayClient.blockchain.shopId,
     });
 
-    const hash2 = await relayClient.blockchain.redeemInviteSecret(
-      sk,
-      client2Wallet,
-    );
+    const hash2 = await blockchain.redeemInviteSecret(sk, client2Wallet);
     // wait for the transaction to be included in the blockchain
     const transaction = await publicClient.waitForTransactionReceipt({
       hash: hash2,
@@ -110,22 +106,14 @@ describe("RelayClient", async () => {
       address: abi.addresses.ShopReg as Address,
       abi: abi.ShopReg,
       functionName: "hasPermission",
-      args: [
-        relayClient.blockchain.shopId,
-        acc2.address,
-        abi.permissions.updateRootHash,
-      ],
+      args: [blockchain.shopId, acc2.address, abi.permissions.updateRootHash],
     });
     expect(canUpdateRootHash).toBe(true);
     const canRemoveUser = await publicClient.readContract({
       address: abi.addresses.ShopReg as Address,
       abi: abi.ShopReg,
       functionName: "hasPermission",
-      args: [
-        relayClient.blockchain.shopId,
-        acc2.address,
-        abi.permissions.removeUser,
-      ],
+      args: [blockchain.shopId, acc2.address, abi.permissions.removeUser],
     });
     expect(canRemoveUser).toBe(false);
 
@@ -138,13 +126,7 @@ describe("user behaviour", () => {
   const relayClient = createRelayClient();
   // enroll and login
   test("should enroll keycard", async () => {
-    const transactionHash = await relayClient.blockchain.createShop(wallet);
-    // wait for the transaction to be included in the blockchain
-    const receipt = await publicClient.waitForTransactionReceipt({
-      hash: transactionHash,
-    });
-    expect(receipt.status).equals("success");
-    const response = await relayClient.enrollKeycard(wallet, false);
+    const response = await relayClient.enrollKeycard(wallet, false, shopId);
     expect(response.status).toBe(201);
   });
 
@@ -167,12 +149,15 @@ describe("user behaviour", () => {
     const name = "test shop";
     const description = "creating test shop";
     const profilePictureUrl = "https://http.cat/images/200.jpg";
-    await relayClient.shopManifest({
-      name,
-      description,
-      profilePictureUrl,
-      publishedTagId,
-    });
+    await relayClient.shopManifest(
+      {
+        name,
+        description,
+        profilePictureUrl,
+        publishedTagId,
+      },
+      shopId,
+    );
   });
 
   test("update shop manifest", async () => {
@@ -346,10 +331,7 @@ describe("user behaviour", () => {
     beforeEach(async () => {
       const sk = random32BytesHex();
       const token = privateKeyToAccount(sk);
-      const hash = await relayClient.blockchain.createInviteSecret(
-        wallet,
-        token.address,
-      );
+      const hash = await blockchain.createInviteSecret(wallet, token.address);
 
       // wait for the transaction to be included in the blockchain
       const receipt = await publicClient.waitForTransactionReceipt({
@@ -371,19 +353,15 @@ describe("user behaviour", () => {
       relayClient2 = new RelayClient({
         relayEndpoint,
         keyCardWallet: privateKeyToAccount(sk),
-        shopId: relayClient.blockchain.shopId,
       });
-      const redeemHash = await relayClient.blockchain.redeemInviteSecret(
-        sk,
-        client2Wallet,
-      );
+      const redeemHash = await blockchain.redeemInviteSecret(sk, client2Wallet);
       // wait for the transaction to be included in the blockchain
       const redeemReceipt = await publicClient.waitForTransactionReceipt({
         hash: redeemHash,
       });
 
       expect(redeemReceipt.status).to.equal("success");
-      await relayClient2.enrollKeycard(client2Wallet, false);
+      await relayClient2.enrollKeycard(client2Wallet, false, shopId);
       await relayClient2.connect();
     });
 

@@ -119,6 +119,10 @@ jobs:
         run: nix develop -c bash -c "pnpm exec vitest --watch=false"
         working-directory: Tennessine/packages/client
 
+      - name: Run node tests on blockchain
+        run: nix develop -c bash -c "pnpm exec vitest --watch=false"
+        working-directory: Tennessine/packages/blockchain
+
       - name: Run node tests on mmr
         run: nix develop -c bash -c "pnpm exec vitest --watch=false"
         working-directory: Tennessine/packages/mmr

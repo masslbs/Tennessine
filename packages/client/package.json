@@ -2,6 +2,8 @@
   "name": "@massmarket/client",
   "dependencies": {
     "@massmarket/contracts": "workspace:*",
+    "@massmarket/blockchain": "workspace:*",
+    "@massmarket/utils": "workspace:*",
     "abitype": "^1.0.1",
     "buffer": "^6.0.3",
     "isows": "^1.0.3",
