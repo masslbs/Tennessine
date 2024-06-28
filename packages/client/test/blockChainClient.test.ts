@@ -1,5 +1,5 @@
 import { describe, beforeEach, expect, test } from "vitest";
-import { BlockchainClient } from "../src/blockchainClient";
+import { BlockchainClient } from "@massmarket/blockchain";
 import { random32BytesHex } from "../src/utils";
 import {
   createWalletClient,
