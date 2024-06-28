@@ -43,27 +43,11 @@ function createRelayClient() {
     shopId: random32BytesHex(),
     relayEndpoint,
     keyCardWallet: privateKeyToAccount(random32BytesHex()),
-    keyCardEnrolled: false,
   });
 }
 
 describe("RelayClient", async () => {
   const relayClient = createRelayClient();
-  describe("connection behavior", () => {
-    test("should connect and disconnect", async () => {
-      await relayClient.connect();
-      const closeEvent = await relayClient.disconnect();
-      const r = closeEvent as CloseEvent;
-      expect(r.wasClean).toBe(true);
-      await relayClient.disconnect();
-    });
-
-    test("should reconnect", async () => {
-      await relayClient.disconnect();
-      await relayClient.connect();
-      expect(relayClient.connection.readyState).toBe(WebSocket.OPEN);
-    });
-  });
 
   test("should create a shop", async () => {
     const transactionHash = await relayClient.blockchain.createShop(wallet);
@@ -108,7 +92,6 @@ describe("RelayClient", async () => {
     const relayClient2 = new RelayClient({
       relayEndpoint,
       keyCardWallet: privateKeyToAccount(sk),
-      keyCardEnrolled: false,
       shopId: relayClient.blockchain.shopId,
     });
 
@@ -163,8 +146,20 @@ describe("user behaviour", () => {
     expect(receipt.status).equals("success");
     const response = await relayClient.enrollKeycard(wallet, false);
     expect(response.status).toBe(201);
+  });
+
+  test("should connect and disconnect", async () => {
     const authenticated = await relayClient.connect();
     expect(authenticated.error).toBeNull();
+    const closeEvent = await relayClient.disconnect();
+    const r = closeEvent as CloseEvent;
+    expect(r.wasClean).toBe(true);
+  });
+
+  test("should reconnect", async () => {
+    await relayClient.disconnect();
+    await relayClient.connect();
+    expect(relayClient.connection.readyState).toBe(WebSocket.OPEN);
   });
 
   test("write shop manifest", async () => {
@@ -376,7 +371,6 @@ describe("user behaviour", () => {
       relayClient2 = new RelayClient({
         relayEndpoint,
         keyCardWallet: privateKeyToAccount(sk),
-        keyCardEnrolled: false,
         shopId: relayClient.blockchain.shopId,
       });
       const redeemHash = await relayClient.blockchain.redeemInviteSecret(
