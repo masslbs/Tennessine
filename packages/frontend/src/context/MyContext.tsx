@@ -29,7 +29,7 @@ import * as abi from "@massmarket/contracts";
 import { IStatus } from "../types";
 import { type ClientContext, ShopId } from "./types";
 import { privateKeyToAccount, Address } from "viem/accounts";
-// import { usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { random32BytesHex } from "@massmarket/client/utils";
 
 export const MyContext = createContext<ClientContext>({
@@ -80,7 +80,8 @@ export const MyContextProvider = (
   const name = useEnsName({ address })?.data || null;
   const ensAvatar = useEnsAvatar({ name: ensName! })?.data;
   const { data: _wallet, status: walletStatus } = useWalletClient();
-  const { setIsConnected, setUpdateRootHashPerm } = useAuth();
+  const { setIsConnected, setIsMerchantView, setUpdateRootHashPerm } =
+    useAuth();
   const [keyCardEnrolled, setKeyCardEnrolled] = useState<boolean>(false);
   const [storeIds, setStoreIds] = useState<null | Map<ShopId, boolean>>(null);
   const [shopId, setShopId] = useState<ShopId>(
@@ -89,10 +90,13 @@ export const MyContextProvider = (
   );
 
   const storeIdsVerified = useRef(false);
-  const isDemoStore = true;
 
-  // const pathname = usePathname();
-
+  const pathname = usePathname();
+  const isDemoStore = ![`/merchants/`, `/create-store/`].includes(pathname);
+  if (isDemoStore) {
+    console.log("redirecting to demo store");
+    setIsMerchantView(true);
+  }
   if (!shopId) {
     throw Error("missing shop ID");
   }
@@ -209,27 +213,19 @@ export const MyContextProvider = (
         process.env.NEXT_PUBLIC_RELAY_ENDPOINT ||
         "wss://relay-beta.mass.market/v1",
       keyCardWallet,
-      shopId: shopId as `0x${string}`,
       chain: usedChain,
     };
     const _relayClient = new RelayClient(user);
     setRelayClient(_relayClient);
-
-    if (isDemoStore) {
-      setUpdateRootHashPerm(false);
-    }
-
-    if (!savedKC && isDemoStore && !keyCardEnrolled) {
-      (async () => {
+    (async () => {
+      if (!savedKC && isDemoStore && !keyCardEnrolled) {
         console.log("enrolling KC with guest wallet...");
         const guestWallet = createWalletClient({
-          account: privateKeyToAccount(
-            "0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6",
-          ),
+          account: privateKeyToAccount(random32BytesHex()),
           chain: usedChain,
           transport: http(),
         });
-        const res = await _relayClient.enrollKeycard(guestWallet, true);
+        const res = await _relayClient.enrollKeycard(guestWallet, true, shopId);
         if (res.ok) {
           setKeyCardEnrolled(true);
           privateKey && localStorage.setItem("keyCard", privateKey);
@@ -239,11 +235,17 @@ export const MyContextProvider = (
           localStorage.removeItem("keyCard");
         }
         localStorage.removeItem("keyCardToEnroll");
-      })();
-    } else if (savedKC && isDemoStore) {
-      console.log(`connecting to client with KC : ${savedKC}`);
-      setKeyCardEnrolled(true);
-    }
+      } else if (savedKC) {
+        console.log(`connecting to client with KC : ${savedKC}`);
+        const hasAccess = await checkPermissions();
+        if (hasAccess) {
+          setUpdateRootHashPerm(true);
+          setIsMerchantView(true);
+        }
+        setKeyCardEnrolled(true);
+      }
+    })();
+
     console.log(`relay client set ${user.relayEndpoint} with shop: ${shopId}`);
   }, []);
 

@@ -47,8 +47,11 @@ const StoreCreation = () => {
   const [isStoreCreated, setStoreCreated] = useState<boolean>(false);
 
   const enrollKeycard = useRef(false);
-  const { isConnected, setIsConnected } = useAuth();
+  const { isConnected, setIsConnected, setIsMerchantView } = useAuth();
   const randomShopIdHasBeenSet = useRef(false);
+  useEffect(() => {
+    setIsMerchantView(true);
+  }, []);
 
   const checkRequiredFields = () => {
     const isHex = Boolean(tokenAddr.match(/^0x[0-9a-f]+$/i));

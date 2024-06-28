@@ -11,12 +11,16 @@ export type IAuthContext = {
   setIsConnected: Dispatch<SetStateAction<IStatus>>;
   hasUpdateRootHashPerm: boolean;
   setUpdateRootHashPerm: Dispatch<SetStateAction<boolean>>;
+  isMerchantView: boolean;
+  setIsMerchantView: Dispatch<SetStateAction<boolean>>;
 };
 export const AuthContext = createContext<IAuthContext>({
   isConnected: IStatus.Pending,
   setIsConnected: () => {},
   hasUpdateRootHashPerm: false,
   setUpdateRootHashPerm: () => {},
+  isMerchantView: false,
+  setIsMerchantView: () => {},
 });
 
 type Props = {
@@ -27,6 +31,7 @@ export const AuthProvider = (props: Props) => {
   const [isConnected, setIsConnected] = useState<IStatus>(IStatus.Pending);
   const [hasUpdateRootHashPerm, setUpdateRootHashPerm] =
     useState<boolean>(false);
+  const [isMerchantView, setIsMerchantView] = useState<boolean>(false);
   return (
     <AuthContext.Provider
       value={{
@@ -34,6 +39,8 @@ export const AuthProvider = (props: Props) => {
         setIsConnected,
         hasUpdateRootHashPerm,
         setUpdateRootHashPerm,
+        isMerchantView,
+        setIsMerchantView,
       }}
     >
       {props.children}
