@@ -20,6 +20,7 @@ import { useStoreContext } from "@/context/StoreContext";
 import { RelayClient } from "@massmarket/client";
 import { privateKeyToAccount } from "viem/accounts";
 import { hardhat } from "viem/chains";
+import { BlockchainClient } from "@massmarket/client/blockchainClient";
 
 const StoreCreation = () => {
   const {
@@ -86,56 +87,60 @@ const StoreCreation = () => {
     }
   }, []);
 
-  const createShop = () => {
-    (async () => {
-      checkRequiredFields();
-      const keyCard = random32BytesHex();
-      const keyCardWallet = privateKeyToAccount(keyCard);
+  const createShop = async () => {
+    checkRequiredFields();
+    const keyCard = random32BytesHex();
+    const keyCardWallet = privateKeyToAccount(keyCard);
 
-      const user = {
-        relayEndpoint:
-          process.env.NEXT_PUBLIC_RELAY_ENDPOINT ||
-          "wss://relay-beta.mass.market/v1",
-        keyCardWallet,
-        shopId: shopId as `0x${string}`,
-        chain: hardhat,
-      };
+    const user = {
+      relayEndpoint:
+        process.env.NEXT_PUBLIC_RELAY_ENDPOINT ||
+        "wss://relay-beta.mass.market/v1",
+      keyCardWallet,
+      shopId: shopId as `0x${string}`,
+      chain: hardhat,
+    };
 
-      const _relayClient = new RelayClient(user);
-      if (_relayClient && publicClient && clientWallet) {
-        try {
-          const hash = await _relayClient.blockchain.createShop(clientWallet);
-          const transaction =
-            publicClient &&
-            (await publicClient.waitForTransactionReceipt({
-              hash,
-            }));
-          if (transaction.status == "success") {
-            console.log(`CREATED shopId: ${_relayClient.blockchain.shopId}`);
-            localStorage.setItem("shopId", shopId!);
-            const hasAccess = await checkPermissions();
+    const _relayClient = new RelayClient(user);
 
-            if (hasAccess && clientWallet) {
-              if (enrollKeycard.current) return;
-              enrollKeycard.current = true;
-              const res = await _relayClient.enrollKeycard(clientWallet, false);
-              if (res.ok) {
-                setRelayClient(_relayClient);
-                localStorage.setItem("keyCard", keyCard);
-                localStorage.removeItem("keyCardToEnroll");
-                console.log(`keycard enrolled:${keyCard}`);
-                setKeyCardEnrolled(true);
-                setStoreCreated(true);
-              } else {
-                console.error("failed to enroll keycard");
-              }
+    if (_relayClient && publicClient && clientWallet) {
+      try {
+        const blockchainClient = new BlockchainClient(shopId);
+        const hash = await blockchainClient.createShop(clientWallet);
+        const transaction =
+          publicClient &&
+          (await publicClient.waitForTransactionReceipt({
+            hash,
+          }));
+        if (transaction!.status == "success") {
+          console.log(`CREATED shopId: ${shopId}`);
+          localStorage.setItem("shopId", shopId!);
+          const hasAccess = await checkPermissions();
+
+          if (hasAccess && clientWallet) {
+            if (enrollKeycard.current) return;
+            enrollKeycard.current = true;
+            const res = await _relayClient.enrollKeycard(
+              clientWallet,
+              false,
+              shopId,
+            );
+            if (res.ok) {
+              setRelayClient(_relayClient);
+              localStorage.setItem("keyCard", keyCard);
+              localStorage.removeItem("keyCardToEnroll");
+              console.log(`keycard enrolled:${keyCard}`);
+              setKeyCardEnrolled(true);
+              setStoreCreated(true);
+            } else {
+              console.error("failed to enroll keycard");
             }
           }
-        } catch (err) {
-          console.log("error creating store", err);
         }
+      } catch (err) {
+        console.log("error creating store", err);
       }
-    })();
+    }
   };
 
   useEffect(() => {
@@ -143,13 +148,16 @@ const StoreCreation = () => {
       (async () => {
         const publishedTagId = new Uint8Array(32);
         crypto.getRandomValues(publishedTagId);
-        await relayClient.shopManifest({
-          name: storeName,
-          description,
-          profilePictureUrl: "https://http.cat/images/200.jpg",
-          publishedTagId,
-        });
-        console.log(`MANIFESTED shopId:${relayClient.blockchain.shopId}`);
+        await relayClient.shopManifest(
+          {
+            name: storeName,
+            description,
+            profilePictureUrl: "https://http.cat/images/200.jpg",
+            publishedTagId,
+          },
+          shopId,
+        );
+        console.log(`MANIFESTED shopId:${shopId}`);
         const newPubId = await relayClient.createTag({ name: "visible" });
         const path = await relayClient!.uploadBlob(avatar as FormData);
 
@@ -181,7 +189,8 @@ const StoreCreation = () => {
 
         const { url } = await relayClient.uploadBlob(formData);
         if (clientWallet && url) {
-          await relayClient.blockchain.setShopMetadataURI(clientWallet, url);
+          const blockchainClient = new BlockchainClient(shopId);
+          await blockchainClient.setShopMetadataURI(clientWallet, url);
         }
 
         router.push("/products");
