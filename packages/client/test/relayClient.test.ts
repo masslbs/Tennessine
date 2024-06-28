@@ -18,7 +18,10 @@ import { describe, beforeEach, expect, test } from "vitest";
 import { RelayClient } from "../src";
 import { random32BytesHex, randomBytes } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
-import { BlockchainClient } from "@massmarket/blockchain";
+import {
+  BlockchainClient,
+  WalletClientWithAccount,
+} from "@massmarket/blockchain";
 
 // this key is from one of anvil's default keypairs
 const account = privateKeyToAccount(
@@ -29,7 +32,7 @@ const wallet = createWalletClient({
   account,
   chain: hardhat,
   transport: http(),
-});
+}) as WalletClientWithAccount;
 
 const publicClient = createPublicClient({
   chain: hardhat,
@@ -87,7 +90,7 @@ describe("RelayClient", async () => {
       account: acc2,
       chain: hardhat,
       transport: http(),
-    });
+    }) as WalletClientWithAccount;
 
     const relayClient2 = new RelayClient({
       relayEndpoint,
