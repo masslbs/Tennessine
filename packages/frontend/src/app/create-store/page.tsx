@@ -8,7 +8,6 @@ import React, { useState, useEffect, useRef } from "react";
 import AvatarUpload from "@/app/common/components/AvatarUpload";
 import { useMyContext } from "@/context/MyContext";
 import { useAuth } from "@/context/AuthContext";
-// import * as abi from "@massmarket/contracts";
 import { IStatus } from "@/types";
 import { useRouter } from "next/navigation";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
@@ -18,18 +17,24 @@ import { useChains } from "wagmi";
 import { hexToBytes } from "viem";
 import { SET_STORE_DATA } from "@/reducers/storeReducer";
 import { useStoreContext } from "@/context/StoreContext";
+import { BlockchainClient } from "@massmarket/blockchain";
 
 const StoreCreation = () => {
   const {
-    relayClient,
-    // publicClient,
-    // walletAddress,
-    // clientWallet,
-    // shopId,
+    publicClient,
+    clientWallet,
+    shopId,
     setShopId,
-    // setKeyCardEnrolled,
+    setKeyCardEnrolled,
+    checkPermissions,
+    setRelayClient,
+    relayClient,
+    createNewRelayClient,
   } = useMyContext();
+
   const { setStoreData } = useStoreContext();
+  const { isConnected, setIsConnected, setIsMerchantView } = useAuth();
+  const chains = useChains();
   const router = useRouter();
 
   const [storeName, setStoreName] = useState<string>("");
@@ -39,11 +44,18 @@ const StoreCreation = () => {
   const [tokenAddr, setTokenAddr] = useState<string>("0x");
   const [chainId, setAcceptedChain] = useState<number>(0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const chains = useChains();
+  const [isStoreCreated, setStoreCreated] = useState<boolean>(false);
 
-  // const enrollKeycard = useRef(false);
-  const { isAuthenticated } = useAuth();
+  const enrollKeycard = useRef(false);
   const randomShopIdHasBeenSet = useRef(false);
+
+  const keyCardToEnroll = localStorage.getItem(
+    "keyCardToEnroll",
+  ) as `0x${string}`;
+
+  useEffect(() => {
+    setIsMerchantView(true);
+  }, []);
 
   const checkRequiredFields = () => {
     const isHex = Boolean(tokenAddr.match(/^0x[0-9a-f]+$/i));
@@ -70,25 +82,77 @@ const StoreCreation = () => {
   };
 
   useEffect(() => {
-    if (!randomShopIdHasBeenSet.current && relayClient) {
+    if (!randomShopIdHasBeenSet.current) {
+      localStorage.removeItem("keyCard");
+
       randomShopIdHasBeenSet.current = true;
       const randomShopId = random32BytesHex();
+      setIsConnected(IStatus.Pending);
+      setKeyCardEnrolled(false);
       console.log(`enrolling shopId: ${randomShopId}`);
       setShopId(randomShopId);
     }
-  }, [relayClient]);
+  }, []);
 
-  const createShop = () => {
+  const createShop = async () => {
     checkRequiredFields();
+    const _relayClient = createNewRelayClient();
+
+    if (_relayClient && publicClient && clientWallet) {
+      try {
+        const blockchainClient = new BlockchainClient(shopId);
+        const hash = await blockchainClient.createShop(clientWallet);
+        const transaction =
+          publicClient &&
+          (await publicClient.waitForTransactionReceipt({
+            hash,
+          }));
+        if (transaction!.status == "success") {
+          console.log(`CREATED shopId: ${shopId}`);
+          localStorage.setItem("shopId", shopId!);
+          const hasAccess = await checkPermissions();
+
+          if (hasAccess && clientWallet) {
+            if (enrollKeycard.current) return;
+            enrollKeycard.current = true;
+            const res = await _relayClient.enrollKeycard(
+              clientWallet,
+              false,
+              shopId,
+            );
+            if (res.ok) {
+              setRelayClient(_relayClient);
+              localStorage.setItem("keyCard", keyCardToEnroll);
+              console.log(`keycard enrolled:${keyCardToEnroll}`);
+              setKeyCardEnrolled(true);
+              setStoreCreated(true);
+            } else {
+              console.error("failed to enroll keycard");
+            }
+            localStorage.removeItem("keyCardToEnroll");
+          }
+        }
+      } catch (err) {
+        console.log("error creating store", err);
+      }
+    }
   };
 
   useEffect(() => {
-    if (relayClient && isAuthenticated === IStatus.Complete) {
+    if (relayClient && isStoreCreated && isConnected == IStatus.Complete) {
       (async () => {
         const publishedTagId = new Uint8Array(32);
         crypto.getRandomValues(publishedTagId);
-
-        console.log("store manifested.");
+        await relayClient.shopManifest(
+          {
+            name: storeName,
+            description,
+            profilePictureUrl: "https://http.cat/images/200.jpg",
+            publishedTagId,
+          },
+          shopId,
+        );
+        console.log(`MANIFESTED shopId:${shopId}`);
         const newPubId = await relayClient.createTag({ name: "visible" });
         const path = await relayClient!.uploadBlob(avatar as FormData);
 
@@ -118,10 +182,16 @@ const StoreCreation = () => {
         const formData = new FormData();
         formData.append("file", file);
 
+        const { url } = await relayClient.uploadBlob(formData);
+        if (clientWallet && url) {
+          const blockchainClient = new BlockchainClient(shopId);
+          await blockchainClient.setShopMetadataURI(clientWallet, url);
+        }
+
         router.push("/products");
       })();
     }
-  }, [isAuthenticated, relayClient]);
+  }, [isConnected, isStoreCreated]);
 
   return (
     <main className="pt-under-nav h-screen p-4 mt-5">

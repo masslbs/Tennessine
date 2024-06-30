@@ -27,7 +27,7 @@ const Navigation = () => {
   const [menuOpened, setMenuOpened] = useState<boolean>(false);
 
   const { name } = useMyContext();
-  const { isAuthenticated, setIsAuthenticated } = useAuth();
+  const { setIsConnected } = useAuth();
   const { db, storeData } = useStoreContext();
   const searchParams = useSearchParams();
 
@@ -35,19 +35,11 @@ const Navigation = () => {
   const router = useRouter();
   const logout = () => {
     db.clear();
-    setIsAuthenticated(IStatus.Pending);
+    setIsConnected(IStatus.Pending);
     localStorage.clear();
     router.push("/");
   };
 
-  // const profilePhoto = avatar ? avatar : "example-avatar.svg";
-  // const activeCartItems = orderId && orderItems.get(orderId)?.items;
-  // const arr = activeCartItems ? Object.values(activeCartItems) : [];
-  // let len = 0;
-  // for (const val of arr) {
-  //   len += val;
-  // }
-  const loggedIn = isAuthenticated === IStatus.Complete;
   const menuSwitch = () => {
     setMenuOpened(!menuOpened);
   };
@@ -155,37 +147,33 @@ const Navigation = () => {
           className="flex items-center text-primary-gray"
           onClick={menuSwitch}
         >
-          {loggedIn ? (
-            <div className="flex gap-2">
-              <Image
-                src="/assets/back-button.svg"
-                width={12}
-                height={12}
-                alt="hamburger-icon"
-                className="h-6"
-              />
-              <p>back</p>
-            </div>
-          ) : null}
+          <div className="flex gap-2">
+            <Image
+              src="/assets/back-button.svg"
+              width={12}
+              height={12}
+              alt="hamburger-icon"
+              className="h-6"
+            />
+            <p>back</p>
+          </div>
           <p className="ml-5">{name || "antimofm.eth"}</p>
         </div>
-        {loggedIn ? (
-          <div className="flex gap-4">
-            <button onClick={menuSwitch}>
-              <Image
-                src={
-                  storeData.profilePictureUrl
-                    ? storeData.profilePictureUrl
-                    : `/assets/MassLabsLogo.svg`
-                }
-                width={40}
-                height={40}
-                alt="profile-avatar"
-                unoptimized={true}
-              />
-            </button>
-          </div>
-        ) : null}
+        <div className="flex gap-4">
+          <button onClick={menuSwitch}>
+            <Image
+              src={
+                storeData.profilePictureUrl
+                  ? storeData.profilePictureUrl
+                  : `/assets/MassLabsLogo.svg`
+              }
+              width={40}
+              height={40}
+              alt="profile-avatar"
+              unoptimized={true}
+            />
+          </button>
+        </div>
       </div>
     </div>
   );
