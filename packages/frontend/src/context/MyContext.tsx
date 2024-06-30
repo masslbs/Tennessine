@@ -30,7 +30,7 @@ import { IStatus } from "../types";
 import { type ClientContext, ShopId } from "./types";
 import { privateKeyToAccount, Address } from "viem/accounts";
 // import { usePathname } from "next/navigation";
-import { random32BytesHex } from "@massmarket/client/utils";
+import { random32BytesHex } from "@massmarket/utils";
 
 export const MyContext = createContext<ClientContext>({
   walletAddress: null,
@@ -206,7 +206,6 @@ export const MyContextProvider = (
         process.env.NEXT_PUBLIC_RELAY_ENDPOINT ||
         "wss://relay-beta.mass.market/v1",
       keyCardWallet,
-      shopId: shopId as `0x${string}`,
       chain: usedChain,
       keyCardEnrolled: !!keyCardEnrolled,
     };
