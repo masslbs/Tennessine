@@ -45,6 +45,7 @@ const Permissions = ({ close }: { close: () => void }) => {
   //FIXME make this button pending for await
   const generateInvitationLink = async () => {
     if (clientWallet) {
+      // @ts-expect-error TODO fix client api type spec
       const sk = await relayClient!.createInviteSecret(clientWallet);
       setInviteLink(sk);
     } else {

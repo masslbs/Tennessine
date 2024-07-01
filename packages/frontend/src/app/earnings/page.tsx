@@ -9,12 +9,12 @@ import Image from "next/image";
 import withAuth from "../components/withAuth";
 import { useStoreContext } from "@/context/StoreContext";
 import { IStatus, ItemId } from "@/types";
-import { CartState } from "@/context/types";
+import { OrderState } from "@/context/types";
 
 function Page() {
   const [totalEarnings, setTotalEarnings] = useState<number>(255.4);
   const [currency, setCurrency] = useState<string>("");
-  const { cartItems, products } = useStoreContext();
+  const { orderItems, products } = useStoreContext();
 
   //FIXME: for when we integrate store settings
   useEffect(() => {
@@ -22,9 +22,9 @@ function Page() {
   }, []);
 
   useEffect(() => {
-    const carts = Array.from([...cartItems.values()]);
+    const carts = Array.from([...orderItems.values()]);
     let _totalEarnings = 0;
-    carts.map((cartState: CartState) => {
+    carts.map((cartState: OrderState) => {
       if (cartState.status === IStatus.Complete) {
         const items: [string, number][] = Object.entries(cartState.items);
         items.map((i: [string, number]) => {
@@ -34,7 +34,7 @@ function Page() {
       }
     });
     setTotalEarnings(_totalEarnings);
-  }, [cartItems]);
+  }, [orderItems]);
 
   return (
     <main className="bg-gray-100 p-4 pt-under-nav h-screen">

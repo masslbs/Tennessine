@@ -7,7 +7,7 @@ export const dummyProducts: IProduct[] = [
   {
     id: "0x1",
     metadata: {
-      title: "Dubai Camel Sticker",
+      name: "Dubai Camel Sticker",
       image: "/assets/camel.png",
       description: "N/A",
     },
@@ -17,7 +17,7 @@ export const dummyProducts: IProduct[] = [
   {
     id: "0x2",
     metadata: {
-      title: "Money Printer Sticker",
+      name: "Money Printer Sticker",
       image: "/assets/printer.png",
       description: "N/A",
     },

@@ -66,7 +66,10 @@ const FullModal: React.FC<FullModalProps> = ({
     </div>
   );
   return (
-    <div className="fixed inset-0 flex items-end justify-center z-40">
+    <div
+      id="full-modal"
+      className="fixed inset-0 flex items-end justify-center z-40"
+    >
       <div
         className="fixed inset-0 bg-black opacity-50"
         onClick={onClose}
@@ -76,7 +79,7 @@ const FullModal: React.FC<FullModalProps> = ({
         className={`bg-${modalBgColor} rounded-lg w-full h-full min-w-md relative overflow-scroll`}
       >
         {onClose && hed}
-        <div>{children}</div>
+        {children}
       </div>
     </div>
   );

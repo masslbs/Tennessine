@@ -80,12 +80,12 @@ export function TransactionBlock({
     const product = products.get(itemId) as IProduct;
     if (!product) return null;
     if (searchPhrase?.length) {
-      const phraseIsInTitle = product.metadata.title.includes(searchPhrase);
+      const phraseIsInTitle = product.metadata.name.includes(searchPhrase);
       if (!phraseIsInTitle) setIncludeBlock(false);
     }
 
     return (
-      <div key={product.metadata.title} className="border rounded p-1">
+      <div key={product.metadata.name} className="border rounded p-1">
         {product.metadata.image && (
           <Image
             src={product.metadata.image}

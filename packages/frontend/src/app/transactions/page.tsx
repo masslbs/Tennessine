@@ -7,25 +7,25 @@ import React, { useEffect, useState } from "react";
 import TransactionBlock from "@/app/components/transactions/TransactionBlock";
 import TransactionDetails from "@/app/components/transactions/TransactionDetails";
 import Search from "../common/components/Search";
-import { CartId, IStatus } from "@/types";
+import { OrderId, IStatus } from "@/types";
 import withAuth from "../components/withAuth";
 import { useStoreContext } from "@/context/StoreContext";
-import { CartState, ItemState } from "@/context/types";
+import { OrderState, ItemState } from "@/context/types";
 
 function Transactions() {
-  const { cartItems } = useStoreContext();
+  const { orderItems } = useStoreContext();
   const [selectedOrder, setSelectedOrder] = useState<ItemState | null>(null);
   const [selectedTxHash, setSelectedTxHash] = useState<`0x${string}` | null>(
     null,
   );
   const [searchPhrase, setSearchPhrase] = useState<string>("");
-  const [transactions, setTransactions] = useState<[CartId, CartState][] | []>(
-    [],
-  );
+  const [transactions, setTransactions] = useState<
+    [OrderId, OrderState][] | []
+  >([]);
   useEffect(() => {
-    const carts = Array.from([...cartItems.entries()]);
+    const carts = Array.from([...orderItems.entries()]);
     setTransactions(carts);
-  }, [cartItems]);
+  }, [orderItems]);
 
   const handleTransactionsClick = (
     order: ItemState,
