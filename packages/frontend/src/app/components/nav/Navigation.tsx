@@ -31,8 +31,8 @@ const Navigation = () => {
   const [menuOpened, setMenuOpened] = useState<boolean>(false);
 
   const { name } = useMyContext();
-  const { setIsConnected } = useAuth();
-  const { db, storeData } = useStoreContext();
+  const { setIsConnected, isMerchantView } = useAuth();
+  const { db, storeData, invalidateOrder } = useStoreContext();
   const searchParams = useSearchParams();
 
   // const profilePhoto = avatar ? avatar : "example-avatar.svg";
@@ -45,6 +45,7 @@ const Navigation = () => {
   };
 
   const menuSwitch = () => {
+    if (!isMerchantView) return;
     setMenuOpened(!menuOpened);
   };
 
@@ -125,22 +126,13 @@ const Navigation = () => {
           </div>
           <div>{renderItems()}</div>
           <div>
+            <button onClick={() => invalidateOrder("new sale started")}>
+              <h2>New Sale</h2>
+            </button>
+          </div>
+          <div>
             <h2 onClick={logout}>Log out</h2>
           </div>
-
-          {/* <div className="absolute bottom-0 left-0 right-0 mb-20 mx-5">
-          <button
-            type="button"
-            className="flex justify-center bg-gradient-to-r from-button-gradient-start to-button-gradient-end w-full text-white px-4 py-4 rounded-md"
-            onClick={() => {
-              invalidateOrder("New sale started.");
-              router.push("/products");
-              onClose();
-            }}
-          >
-            New Sale
-          </button>
-        </div> */}
         </div>
       </main>
     </FullModal>

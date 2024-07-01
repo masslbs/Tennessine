@@ -9,7 +9,7 @@ import ShippingDetails from "@/app/components/checkout/ShippingDetails";
 import Image from "next/image";
 
 import PaymentOptions from "@/app/components/checkout/PaymentOptions";
-import ModalHeader from "@/app/common/components/ModalHeader";
+// import ModalHeader from "@/app/common/components/ModalHeader";
 
 const CheckoutFlow = () => {
   const { commitOrder, finalizedOrders } = useStoreContext();
@@ -28,8 +28,8 @@ const CheckoutFlow = () => {
   // const [showCurrencyOptions, setShowCurrencyOptions] =
   //   useState<boolean>(false);
 
-  useEffect((): void => {
-    if (finalizedOrders && checkoutReqId) {
+  useEffect(() => {
+    if (finalizedOrders.size && checkoutReqId) {
       const currentCart = finalizedOrders.get(checkoutReqId);
       if (!currentCart) return;
       const { totalInCrypto, erc20Addr, purchaseAddress, total } = currentCart;
@@ -74,9 +74,6 @@ const CheckoutFlow = () => {
     ) {
       return (
         <PaymentOptions
-          next={() => {
-            setStep(3);
-          }}
           imgSrc={imgSrc}
           totalDollar={totalDollar}
           purchaseAddress={purchaseAdd}
@@ -87,7 +84,7 @@ const CheckoutFlow = () => {
       return (
         <div className="text-center">
           <h2>Thank you</h2>
-          <div className="flex-col items-center gap-2">
+          <div className="flex-col items-center gap-2 flex">
             <p>Tx hash:</p>
             <div className="bg-white w-fit p-2 border-2 rounded-xl shadow-lg flex gap-2">
               <p>0xb5c8 ... 9838</p>
@@ -109,7 +106,7 @@ const CheckoutFlow = () => {
     <main className="pt-under-nav h-screen bg-gray-100 ">
       {/* FIXME: need banner design for errors */}
       {showErrorMessage && showErrorMessage}
-      <ModalHeader />
+      {/* <ModalHeader /> */}
       {/* <CurrencyButton
         toggle={() => setShowCurrencyOptions(!showCurrencyOptions)}
       /> */}

@@ -14,7 +14,6 @@ export const REMOVE_PRODUCT_TAG = "REMOVE_PRODUCT_TAG";
 export const SET_PRODUCTS = "SET_PRODUCTS";
 export const UPDATE_STOCKQTY = "UPDATE_STOCKQTY";
 export const CLEAR_PRODUCTS = "CLEAR_PRODUCTS";
-
 export type productAction =
   | {
       type: "ADD_PRODUCT" | "UPDATE_PRODUCT";
@@ -152,6 +151,7 @@ export const EDIT_IMG = "EDIT_IMG";
 export const EDIT_PRICE = "EDIT_PRICE";
 export const EDIT_UNIT = "EDIT_UNIT";
 export const UPLOAD_IMG = "UPLOAD_IMG";
+export const EDIT_DESC = "EDIT_DESC";
 
 export const initialState = {
   id: "0x0" as ItemId,
@@ -190,18 +190,30 @@ type uploadImg = {
     blob: Blob | FormData | null;
   };
 };
+type editDescription = {
+  type: "EDIT_DESC";
+  payload: {
+    description: string;
+  };
+};
 export type newProductActions =
   | uploadImg
   | editImg
   | editPrice
   | editTitle
-  | editUnit;
+  | editUnit
+  | editDescription;
 export const newProductReducer = (
   state: IProduct,
   action: newProductActions,
 ): IProduct => {
   switch (action.type) {
     case EDIT_TITLE:
+    case EDIT_DESC:
+      return {
+        ...state,
+        metadata: updateNewProductReducer(state.metadata, action),
+      };
     case EDIT_IMG:
       return {
         ...state,
@@ -220,13 +232,15 @@ export const newProductReducer = (
 
 export const updateNewProductReducer = (
   state: Metadata,
-  action: editImg | editTitle,
+  action: editImg | editTitle | editDescription,
 ) => {
   switch (action.type) {
     case EDIT_IMG:
       return { ...state, image: action.payload.img };
     case EDIT_TITLE:
       return { ...state, name: action.payload.name };
+    case EDIT_DESC:
+      return { ...state, description: action.payload.description };
     default:
       return { ...state };
   }

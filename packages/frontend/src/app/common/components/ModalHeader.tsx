@@ -51,9 +51,6 @@ const ModalHeader = ({ goBack, headerText, rightIcon }: Header) => {
           onClick={() => router.back()}
         />
         <h2 className="ml-2 text-primary-gray">back</h2>
-        <div className="w-10 flex justify-end ml-auto">
-          <CartButton />
-        </div>
       </div>
     </div>
   );

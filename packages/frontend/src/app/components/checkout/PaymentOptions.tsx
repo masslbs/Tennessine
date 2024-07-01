@@ -7,13 +7,11 @@ import QRScan from "@/app/components/transactions/QRScan";
 import WalletConnectQR from "../transactions/WalletConnectQR";
 
 const PaymentOptions = ({
-  next,
   imgSrc,
   totalDollar,
   purchaseAddress,
   cryptoTotal,
 }: {
-  next: () => void;
   imgSrc: string;
   totalDollar: string;
   purchaseAddress: string;
@@ -85,7 +83,6 @@ const PaymentOptions = ({
             />
           </div>
         </SecondaryButton>
-        <button onClick={next}>see next</button>
       </div>
     </div>
   );
