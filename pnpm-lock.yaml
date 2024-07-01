@@ -114,6 +114,9 @@ importers:
       '@ethereumjs/util':
         specifier: ^9.0.3
         version: 9.0.3
+      '@massmarket/blockchain':
+        specifier: workspace:*
+        version: link:../blockchain
       '@massmarket/client':
         specifier: workspace:*
         version: link:../client
