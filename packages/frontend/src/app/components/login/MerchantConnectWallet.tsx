@@ -95,7 +95,7 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
           if (!_relayClient) return;
           const res = await _relayClient.enrollKeycard(
             clientWallet,
-            true,
+            false,
             shopId,
           );
           if (res.ok) {

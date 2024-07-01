@@ -9,7 +9,7 @@ import React, {
   useReducer,
   useEffect,
 } from "react";
-import { bytesToHex } from "viem";
+import { bytesToHex, hexToBytes } from "viem";
 
 import { IProduct, TagId, ItemId, IStatus, IRelay } from "@/types";
 import { useMyContext } from "./MyContext";
@@ -30,8 +30,14 @@ import {
   UPDATE_PRICE,
   UPDATE_METADATA,
   UPDATE_STOCKQTY,
+  CLEAR_PRODUCTS,
 } from "@/reducers/productReducers";
-import { allTagsReducer, ADD_TAG, SET_ALL_TAGS } from "@/reducers/tagReducers";
+import {
+  allTagsReducer,
+  ADD_TAG,
+  SET_ALL_TAGS,
+  CLEAR_ALL_TAGS,
+} from "@/reducers/tagReducers";
 import { buildState } from "@/utils/buildState";
 import {
   CLEAR_ORDER,
@@ -41,6 +47,7 @@ import {
   SET_ALL_ORDER_ITEMS,
   orderReducer,
   OrderState,
+  CLEAR_ALL_ORDERS,
 } from "@/reducers/orderReducers";
 import { finalizedOrderReducer } from "@/reducers/finalizedOrderReducers";
 import { initialStoreContext } from "../context/initialLoadingState";
@@ -48,6 +55,7 @@ import { dummyRelays } from "./dummyData";
 import { pubKeyReducer } from "@/reducers/KCPubKeysReducers";
 import { setMapData, getParsedMapData, setItem, getItem } from "@/utils/level";
 import { storeReducer, SET_STORE_DATA } from "@/reducers/storeReducer";
+import { useChainId } from "wagmi";
 
 // @ts-expect-error FIXME
 export const StoreContext = createContext<StoreContent>(initialStoreContext);
@@ -68,11 +76,13 @@ export const StoreContextProvider = (
   const [storeData, setStoreData] = useReducer(storeReducer, {
     name: "",
     profilePictureUrl: "",
+    baseCurrencyAddr: null,
   });
   const [pubKeys, setPubKeys] = useReducer(pubKeyReducer, []);
   const [db, setDb] = useState(null);
   const [relays, setRelays] = useState<IRelay[]>(dummyRelays);
   const { relayClient, walletAddress, shopId } = useMyContext();
+  const chainId = useChainId();
 
   useEffect(() => {
     createState();
@@ -118,7 +128,6 @@ export const StoreContextProvider = (
         )) as OrdersMap;
 
         const orderIdLocal = await getItem("orderId", db);
-        const erc20AddrLocal = await getItem("erc20Addr", db);
         const publishedTagIdLocal = await getItem("publishedTagId", db);
         const storeDataLocal = await getItem("storeData", db);
 
@@ -126,9 +135,12 @@ export const StoreContextProvider = (
           setProducts({
             type: SET_PRODUCTS,
             payload: {
-              itemId: productsLocal.keys().next().value,
               allProducts: productsLocal,
             },
+          });
+        } else {
+          setProducts({
+            type: CLEAR_PRODUCTS,
           });
         }
         if (tagsLocal?.size) {
@@ -136,21 +148,32 @@ export const StoreContextProvider = (
             type: SET_ALL_TAGS,
             payload: { allTags: tagsLocal },
           });
+        } else {
+          setAllTags({
+            type: CLEAR_ALL_TAGS,
+          });
         }
         if (orderItemsLocal?.size) {
           setOrderItems({
             type: SET_ALL_ORDER_ITEMS,
             payload: { allOrderItems: orderItemsLocal },
           });
+        } else {
+          setOrderItems({
+            type: CLEAR_ALL_ORDERS,
+          });
         }
+
         if (orderIdLocal) {
           setOrderId(orderIdLocal as OrderId);
+        } else {
+          setOrderId(null);
         }
-        if (erc20AddrLocal && erc20AddrLocal !== null) {
-          setErc20Addr(erc20AddrLocal as `0x${string}`);
-        }
+
         if (publishedTagIdLocal) {
           setPublishedTagId(publishedTagIdLocal as TagId);
+        } else {
+          setPublishedTagId(null);
         }
         if (storeDataLocal) {
           setStoreData({
@@ -158,6 +181,7 @@ export const StoreContextProvider = (
             payload: {
               name: storeDataLocal.name!,
               profilePictureUrl: storeDataLocal.profilePictureUrl!,
+              baseCurrencyAddr: storeDataLocal.baseCurrencyAddr,
             },
           });
         }
@@ -238,7 +262,6 @@ export const StoreContextProvider = (
             setProducts,
             setAllTags,
             setOrderItems,
-            setErc20Addr,
             setPublishedTagId,
             setFinalizedOrders,
             setPubKeys,
@@ -287,33 +310,32 @@ export const StoreContextProvider = (
       console.log({ path });
       const metadata = {
         name: product.metadata.name,
-        description: "adding product",
+        description: product.metadata.description,
         image: path.url as string,
       };
+
       const priceAsNum = Number(product.price);
       product.price = priceAsNum.toFixed(2);
-      const iid = bytesToHex(
-        await relayClient!.createItem({
-          price: product.price,
-          metadata: new TextEncoder().encode(JSON.stringify(metadata)),
-        }),
-      );
-      product.id = iid;
+      const iid = await relayClient!.createItem({
+        price: product.price,
+        metadata: new TextEncoder().encode(JSON.stringify(metadata)),
+      });
+      const productId = bytesToHex(iid);
+      product.id = productId;
       product.tagIds = selectedTagIds;
       product.metadata = metadata;
-      iid &&
+      productId &&
         setProducts({
           type: ADD_PRODUCT,
-          payload: { itemId: product.id, item: product },
+          payload: { itemId: productId, item: product },
         });
-
       changeStock([iid], [product.stockQty || 0]);
 
       selectedTagIds &&
         selectedTagIds.map((id) => {
-          addProductToTag(id, iid);
+          addProductToTag(id, productId);
         });
-      return { id: iid, error: null };
+      return { id: productId, error: null };
     } catch (error) {
       console.error({ error });
       const errMsg = error as { message: string };
@@ -365,7 +387,7 @@ export const StoreContextProvider = (
         //calculate unit difference
         const previousUnit = products.get(itemId)?.stockQty || 0;
         const diff = Number(updatedProduct.stockQty) - Number(previousUnit);
-        changeStock([itemId], [diff]);
+        changeStock([hexToBytes(itemId)], [diff]);
         setProducts({
           type: UPDATE_STOCKQTY,
           payload: {
@@ -449,19 +471,19 @@ export const StoreContextProvider = (
 
       if (!itemId) {
         //Clear order and set every item in order to quantity 0
-        const itemIds = Object.keys(activeOrderItems);
-        for (const itemId of itemIds) {
+        const itemIds = Object.keys(activeOrderItems) as ItemId[];
+        for (const id of itemIds) {
           await relayClient!.updateOrder({
-            orderId: order_id,
-            changeItems: { itemId, quantity: 0 },
+            orderId: hexToBytes(order_id),
+            changeItems: { itemId: hexToBytes(id), quantity: 0 },
           });
         }
         setOrderItems({ type: CLEAR_ORDER, payload: { orderId: order_id } });
       } else if (saleQty === 0) {
         //delete it from orderItems
         await relayClient!.updateOrder({
-          order: order_id,
-          changeItems: { itemId, quantity: saleQty },
+          order: hexToBytes(order_id),
+          changeItems: { itemId: hexToBytes(itemId), quantity: saleQty },
         });
         setOrderItems({
           type: REMOVE_ORDER_ITEM,
@@ -473,8 +495,8 @@ export const StoreContextProvider = (
       } else {
         //update item sale qty
         await relayClient!.updateOrder({
-          orderId: order_id,
-          changeItems: { itemId, quantity: saleQty },
+          orderId: hexToBytes(order_id),
+          changeItems: { itemId: hexToBytes(itemId), quantity: saleQty },
         });
         // const difference = (activeOrderItems?.[itemId] || 0) - Number(saleQty);
         // updateUnitChnage(itemId, difference);
@@ -502,10 +524,16 @@ export const StoreContextProvider = (
       console.log(`Invalidating order: ${msg}`);
       if (!orderId) throw Error(`No ${orderId} found`);
       if (!relayClient) throw Error(`Disconnected from relayClient`);
-      await relayClient.updateOrder({ orderId, orderCancelled: {} });
+      // await relayClient.updateOrder({
+      //   orderId: hexToBytes(orderId),
+      //   orderCancelled: { timestamp: Date.now() },
+      // });
       setOrderItems({
         type: UPDATE_ORDER_STATUS,
         payload: { orderId: orderId as OrderId, status: IStatus.Failed },
+      });
+      setOrderItems({
+        type: CLEAR_ALL_ORDERS,
       });
       await createOrder();
     } catch (error) {
@@ -519,30 +547,26 @@ export const StoreContextProvider = (
 
   const createOrder = async () => {
     const orderId = bytesToHex(await relayClient!.createOrder());
+    console.log(`new orderId set to ${orderId}`);
     setOrderId(orderId);
     return orderId;
   };
 
-  const changeStock = async (itemIds: ItemId[], diffs: number[]) => {
+  const changeStock = async (itemIds: Uint8Array[], diffs: number[]) => {
     await relayClient!.changeStock({ itemIds, diffs });
   };
 
-  const commitOrder = async (isERC20Checkout: boolean) => {
+  const commitOrder = async () => {
     try {
-      const erc20 = erc20Addr && isERC20Checkout ? erc20Addr : null;
-      if (isERC20Checkout && !erc20Addr) {
-        return { error: "no erc20 address found." };
-      } else if (!orderId) {
-        return { error: "no order set" };
-      }
-      if (erc20) {
-        console.log("committing order with erc20");
-      }
       if (!relayClient) throw Error(`Disconnected from relayClient`);
-
+      if (!storeData.baseCurrencyAddr) throw Error(`No base currency found.`);
       const checkout = await relayClient.commitOrder({
-        orderId,
-        currency: erc20,
+        orderId: hexToBytes(orderId as OrderId),
+        currency: {
+          tokenAddr: hexToBytes(storeData.baseCurrencyAddr!),
+          chainId,
+        },
+        payeeName: "default",
       });
       return {
         requestId: bytesToHex(checkout.requestId),

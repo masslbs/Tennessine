@@ -243,7 +243,7 @@ export const MyContextProvider = (
         "wss://relay-beta.mass.market/v1",
       keyCardWallet,
       shopId: shopId as `0x${string}`,
-      chain: hardhat,
+      chain: usedChain,
     };
 
     return new RelayClient(user);
