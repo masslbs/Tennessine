@@ -18,6 +18,7 @@ import { describe, beforeEach, expect, test } from "vitest";
 import { RelayClient } from "../src";
 import { random32BytesHex, randomBytes } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
+import { randomAddress } from "@massmarket/utils";
 import {
   BlockchainClient,
   WalletClientWithAccount,
@@ -261,13 +262,15 @@ describe("user behaviour", () => {
       });
 
       test("single item checkout", { timeout: 10000 }, async () => {
+        const payee = hexToBytes(randomAddress());
+        const currency = hexToBytes(abi.addresses.Eddies as Address);
         await relayClient.updateShopManifest({
           addAcceptedCurrency: {
-            tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
+            tokenAddr: currency,
             chainId: 31337,
           },
           addPayee: {
-            addr: hexToBytes(abi.addresses.Eddies as Address),
+            addr: payee,
             callAsContract: false,
             chainId: 31337,
             name: "test",
@@ -284,7 +287,7 @@ describe("user behaviour", () => {
         const checkout = await relayClient.commitOrder({
           orderId,
           currency: {
-            tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
+            tokenAddr: currency,
             chainId: 31337,
           },
           payeeName: "test",
@@ -303,27 +306,6 @@ describe("user behaviour", () => {
         };
         const receivedId = await getStream();
         expect(receivedId).toEqual(bytesToHex(orderId));
-      });
-
-      test("erc20 checkout", async () => {
-        await relayClient.updateOrder({
-          orderId,
-          changeItems: {
-            itemId,
-            quantity: 1,
-          },
-        });
-
-        const checkout = await relayClient.commitOrder({
-          orderId,
-          currency: {
-            tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
-            chainId: 31337,
-          },
-          payeeName: "test",
-        });
-        expect(checkout).not.toBeNull();
-        expect(checkout.orderFinalizedId).not.toBeNull();
       });
     });
   });
