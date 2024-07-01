@@ -165,9 +165,7 @@ const AddProductView = () => {
       if (res.error) {
         setError(res.error);
       } else {
-        router.push(
-          `/products?${createQueryString("success", "true", searchParams)}`,
-        );
+        router.push(`/products`);
       }
     }
   };

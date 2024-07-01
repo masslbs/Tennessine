@@ -30,8 +30,14 @@ import {
   UPDATE_PRICE,
   UPDATE_METADATA,
   UPDATE_STOCKQTY,
+  CLEAR_PRODUCTS,
 } from "@/reducers/productReducers";
-import { allTagsReducer, ADD_TAG, SET_ALL_TAGS } from "@/reducers/tagReducers";
+import {
+  allTagsReducer,
+  ADD_TAG,
+  SET_ALL_TAGS,
+  CLEAR_ALL_TAGS,
+} from "@/reducers/tagReducers";
 import { buildState } from "@/utils/buildState";
 import {
   CLEAR_ORDER,
@@ -126,15 +132,22 @@ export const StoreContextProvider = (
           setProducts({
             type: SET_PRODUCTS,
             payload: {
-              itemId: productsLocal.keys().next().value,
               allProducts: productsLocal,
             },
+          });
+        } else {
+          setProducts({
+            type: CLEAR_PRODUCTS,
           });
         }
         if (tagsLocal?.size) {
           setAllTags({
             type: SET_ALL_TAGS,
             payload: { allTags: tagsLocal },
+          });
+        } else {
+          setAllTags({
+            type: CLEAR_ALL_TAGS,
           });
         }
         if (orderItemsLocal?.size) {
@@ -145,12 +158,18 @@ export const StoreContextProvider = (
         }
         if (orderIdLocal) {
           setOrderId(orderIdLocal as OrderId);
+        } else {
+          setOrderId(null);
         }
-        if (erc20AddrLocal && erc20AddrLocal !== null) {
+        if (erc20AddrLocal) {
           setErc20Addr(erc20AddrLocal as `0x${string}`);
+        } else {
+          setErc20Addr(null);
         }
         if (publishedTagIdLocal) {
           setPublishedTagId(publishedTagIdLocal as TagId);
+        } else {
+          setPublishedTagId(null);
         }
         if (storeDataLocal) {
           setStoreData({

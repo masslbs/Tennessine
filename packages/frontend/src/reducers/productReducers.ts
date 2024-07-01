@@ -6,7 +6,6 @@ import { IProduct, Metadata, ItemId, TagId } from "@/types";
 
 export const ADD_PRODUCT = "ADD_PRODUCT";
 // export const REMOVE_PRODUCT = "REMOVE_PRODUCT";
-export const SET_PRODUCTLIST = "SET_PRODUCTLIST";
 export const UPDATE_PRODUCT = "UPDATE_PRODUCT";
 export const UPDATE_METADATA = "UPDATE_METADATA";
 export const UPDATE_PRICE = "UPDATE_PRICE";
@@ -14,16 +13,20 @@ export const ADD_PRODUCT_TAGS = "ADD_PRODUCT_TAGS";
 export const REMOVE_PRODUCT_TAG = "REMOVE_PRODUCT_TAG";
 export const SET_PRODUCTS = "SET_PRODUCTS";
 export const UPDATE_STOCKQTY = "UPDATE_STOCKQTY";
+export const CLEAR_PRODUCTS = "CLEAR_PRODUCTS";
 
 export type productAction =
   | {
-      type: "ADD_PRODUCT" | "SET_PRODUCTLIST" | "UPDATE_PRODUCT";
+      type: "ADD_PRODUCT" | "UPDATE_PRODUCT";
 
       payload: { itemId: ItemId; item: IProduct };
     }
   | {
       type: "SET_PRODUCTS";
-      payload: { itemId: ItemId; allProducts: Map<ItemId, IProduct> };
+      payload: { allProducts: Map<ItemId, IProduct> };
+    }
+  | {
+      type: "CLEAR_PRODUCTS";
     };
 
 export type updateProductAction =
@@ -66,13 +69,14 @@ export const productReducer = (
   action: updateProductAction | productAction,
 ) => {
   const _state = new Map(state);
-  const itemId = action.payload.itemId;
-  const updateItem = _state.get(itemId) as IProduct;
 
   switch (action.type) {
+    case CLEAR_PRODUCTS:
+      _state.clear();
+      return _state;
     case ADD_PRODUCT:
     case UPDATE_PRODUCT:
-      _state.set(itemId, { ...action.payload.item });
+      _state.set(action.payload.itemId, { ...action.payload.item });
       return _state;
     case SET_PRODUCTS:
       return action.payload.allProducts;
@@ -81,7 +85,10 @@ export const productReducer = (
     case ADD_PRODUCT_TAGS:
     case REMOVE_PRODUCT_TAG:
     case UPDATE_STOCKQTY:
-      _state.set(itemId, productItemReducer(updateItem!, action));
+      _state.set(
+        action.payload.itemId,
+        productItemReducer(_state.get(action.payload.itemId)!, action),
+      );
       return _state;
     default:
       return state;

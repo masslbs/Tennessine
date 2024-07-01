@@ -49,10 +49,6 @@ const StoreCreation = () => {
   const enrollKeycard = useRef(false);
   const randomShopIdHasBeenSet = useRef(false);
 
-  const keyCardToEnroll = localStorage.getItem(
-    "keyCardToEnroll",
-  ) as `0x${string}`;
-
   useEffect(() => {
     setIsMerchantView(true);
   }, []);
@@ -121,6 +117,9 @@ const StoreCreation = () => {
               shopId,
             );
             if (res.ok) {
+              const keyCardToEnroll = localStorage.getItem(
+                "keyCardToEnroll",
+              ) as `0x${string}`;
               setRelayClient(_relayClient);
               localStorage.setItem("keyCard", keyCardToEnroll);
               console.log(`keycard enrolled:${keyCardToEnroll}`);
