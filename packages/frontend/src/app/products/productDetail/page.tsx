@@ -4,7 +4,7 @@
 
 "use client";
 import React, { useState, useEffect } from "react";
-import ModalHeader from "@/app/common/components/ModalHeader";
+// import ModalHeader from "@/app/common/components/ModalHeader";
 import Image from "next/image";
 import Button from "@/app/common/components/Button";
 // import SeeProductActions from "@/app/components/products/SeeProductActions";

@@ -155,7 +155,6 @@ const Products = () => {
               <div className="flex justify-center">
                 <Image
                   src={metadata.image || "/assets/no-image.png"}
-                  // src={"/assets/example-item.jpeg" || "/assets/no-image.png"}
                   width={85}
                   height={60}
                   alt="product-thumb"

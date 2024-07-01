@@ -6,7 +6,6 @@
 
 import React, { ReactNode } from "react";
 import Image from "next/image";
-import CartButton from "@/app/components/checkout/CartButton";
 import { useRouter } from "next/navigation";
 
 export type Header = {

@@ -128,7 +128,6 @@ export const StoreContextProvider = (
         )) as OrdersMap;
 
         const orderIdLocal = await getItem("orderId", db);
-        const erc20AddrLocal = await getItem("erc20Addr", db);
         const publishedTagIdLocal = await getItem("publishedTagId", db);
         const storeDataLocal = await getItem("storeData", db);
 
@@ -170,11 +169,7 @@ export const StoreContextProvider = (
         } else {
           setOrderId(null);
         }
-        if (erc20AddrLocal) {
-          setErc20Addr(erc20AddrLocal as `0x${string}`);
-        } else {
-          setErc20Addr(null);
-        }
+
         if (publishedTagIdLocal) {
           setPublishedTagId(publishedTagIdLocal as TagId);
         } else {

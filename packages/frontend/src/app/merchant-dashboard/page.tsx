@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useMerchantContext } from "@/context/MerchantContext";
+// import { useMerchantContext } from "@/context/MerchantContext";
 import { useStoreContext } from "@/context/StoreContext";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
 import Image from "next/image";
@@ -12,7 +12,7 @@ import { OrderId } from "@/types";
 import { OrderState } from "@/context/types";
 
 const MerchantDashboard = () => {
-  const { storeIds } = useMerchantContext();
+  //   const { storeIds } = useMerchantContext();
   const { storeData, orderItems } = useStoreContext();
   const searchParams = useSearchParams();
   const [transactions, setTransactions] = useState<
@@ -34,9 +34,9 @@ const MerchantDashboard = () => {
         return (
           <div key={cartId}>
             <div className="bg-white border-2 rounded-xl p-3 flex justify-between">
-              <p>antimofm.eth</p>
+              <p>Name</p>
               <p>{transactionHash}</p>
-              <p>975</p>
+              <p>Price</p>
             </div>
           </div>
         );
