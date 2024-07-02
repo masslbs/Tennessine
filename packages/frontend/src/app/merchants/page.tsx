@@ -59,12 +59,10 @@ function MerchantHomepage() {
     <main className="min-h-screen overflow-hidden flex flex-col">
       <section className=" grow flex items-center justify-center">
         <div className="text-center flex flex-col items-center">
-          <h1 className="text-4xl">Welcome</h1>
-          <p className="text-gray-500">Powered by mass market</p>
+          <h1 className="text-4xl">Mass Market</h1>
         </div>
       </section>
       <section className="bg-gray-300 p-8 mt-auto">
-        <p className="text-center font-sans mb-4 text-lg">{welcomeCopy}</p>
         <div>
           <Button
             onClick={connectAction}

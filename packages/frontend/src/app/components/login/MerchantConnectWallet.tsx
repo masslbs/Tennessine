@@ -67,12 +67,13 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
       event: parseAbiItem(
         "event Transfer(address indexed from, address indexed to, uint256 value)",
       ),
-      fromBlock: "earliest",
-      toBlock: "latest",
+      // fromBlock: "earliest",
+      // toBlock: "latest",
       args: {
         to: walletAddress,
       },
     });
+    console.log({ logs });
     logs.map(async (l) => {
       //@ts-expect-error FIXME
       stores.set(l.topics?.[3], 1);
