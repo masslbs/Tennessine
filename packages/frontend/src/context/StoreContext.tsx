@@ -575,8 +575,7 @@ export const StoreContextProvider = (
       const checkout = await relayClient.commitOrder({
         orderId: hexToBytes(orderId as OrderId),
         currency: {
-          // tokenAddr: hexToBytes(storeData.baseCurrencyAddr!),
-          tokenAddr: hexToBytes("0x0000000000000000000000000000000000000000"),
+          tokenAddr: hexToBytes(storeData.baseCurrencyAddr!),
           chainId,
         },
         payeeName: "default",
