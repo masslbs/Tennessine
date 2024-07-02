@@ -17,20 +17,16 @@ function MerchantHomepage() {
   const [openConnectModal, setOpenConnectModal] = useState<boolean>(false);
 
   const { setInviteSecret } = useMyContext();
-  const { isConnected, setIsMerchantView } = useAuth();
+  const { isConnected, isMerchantView } = useAuth();
   const searchParams = useSearchParams();
   const inviteSecret = searchParams!.get("inviteSecret") as `0x${string}`;
   const router = useRouter();
 
   useEffect(() => {
-    setIsMerchantView(true);
-  }, []);
-
-  useEffect(() => {
-    if (isConnected === IStatus.Complete) {
+    if (isConnected === IStatus.Complete && isMerchantView) {
       router.push("/merchant-dashboard");
     }
-  }, [isConnected]);
+  }, [isConnected, isMerchantView]);
 
   if (inviteSecret) {
     setInviteSecret(inviteSecret);

@@ -50,10 +50,6 @@ const StoreCreation = () => {
   const enrollKeycard = useRef(false);
   const randomShopIdHasBeenSet = useRef(false);
 
-  useEffect(() => {
-    setIsMerchantView(true);
-  }, []);
-
   const checkRequiredFields = () => {
     const isTokenAddrHex = Boolean(tokenAddr.match(/^0x[0-9a-f]+$/i));
     const isPayeeAddHex = Boolean(payeeAddr.match(/^0x[0-9a-f]+$/i));
@@ -125,6 +121,7 @@ const StoreCreation = () => {
               const keyCardToEnroll = localStorage.getItem(
                 "keyCardToEnroll",
               ) as `0x${string}`;
+              setIsMerchantView(true);
               setRelayClient(_relayClient);
               localStorage.setItem("keyCard", keyCardToEnroll);
               console.log(`keycard enrolled:${keyCardToEnroll}`);
