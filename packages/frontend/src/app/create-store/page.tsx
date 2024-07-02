@@ -14,7 +14,7 @@ import SecondaryButton from "@/app/common/components/SecondaryButton";
 import { random32BytesHex } from "@massmarket/utils";
 import Image from "next/image";
 import { useChains } from "wagmi";
-import { hexToBytes } from "viem";
+import { bytesToHex, hexToBytes } from "viem";
 import { SET_STORE_DATA } from "@/reducers/storeReducer";
 import { useStoreContext } from "@/context/StoreContext";
 import { BlockchainClient } from "@massmarket/blockchain";
@@ -32,7 +32,7 @@ const StoreCreation = () => {
     createNewRelayClient,
   } = useMyContext();
 
-  const { setStoreData } = useStoreContext();
+  const { setStoreData, setPublishedTagId } = useStoreContext();
   const { isConnected, setIsConnected, setIsMerchantView } = useAuth();
   const chains = useChains();
   const router = useRouter();
@@ -156,6 +156,7 @@ const StoreCreation = () => {
           },
           shopId,
         );
+        setPublishedTagId(bytesToHex(publishedTagId));
         const newPubId = await relayClient.createTag({ name: "visible" });
         const path = await relayClient!.uploadBlob(avatar as FormData);
 
