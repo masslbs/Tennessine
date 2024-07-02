@@ -22,6 +22,12 @@ const CheckoutFlow = () => {
   const [cryptoTotal, setCryptoTotal] = useState<string | null>(null);
   const [purchaseAdd, setPurchaseAdd] = useState<string | null>(null);
   const [totalDollar, setTotalDollar] = useState<string | null>(null);
+  const [city, setCity] = useState("");
+  const [address, setAddress] = useState("");
+  const [name, setName] = useState("");
+  const [zip, setZip] = useState("");
+  const [country, setCountry] = useState("");
+  const [number, setNumber] = useState("");
 
   useEffect(() => {
     if (
@@ -62,7 +68,17 @@ const CheckoutFlow = () => {
     if (step === 0) {
       return <NewCart next={() => setStep(1)} />;
     } else if (step === 1) {
-      return <ShippingDetails checkout={checkout} />;
+      return (
+        <ShippingDetails
+          checkout={checkout}
+          setCity={setCity}
+          setName={setName}
+          setAddress={setAddress}
+          setZip={setZip}
+          setCountry={setCountry}
+          setNumber={setNumber}
+        />
+      );
     } else if (
       step === 2 &&
       imgSrc &&
@@ -76,6 +92,12 @@ const CheckoutFlow = () => {
           totalDollar={totalDollar}
           purchaseAddress={purchaseAdd}
           cryptoTotal={cryptoTotal}
+          city={city}
+          name={name}
+          address={address}
+          zip={zip}
+          country={country}
+          number={number}
         />
       );
     } else {
