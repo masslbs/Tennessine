@@ -307,7 +307,6 @@ export const StoreContextProvider = (
   ) => {
     try {
       const path = await relayClient!.uploadBlob(product.blob as FormData);
-      console.log({ path });
       const metadata = {
         name: product.metadata.name,
         description: product.metadata.description,
@@ -576,7 +575,8 @@ export const StoreContextProvider = (
       const checkout = await relayClient.commitOrder({
         orderId: hexToBytes(orderId as OrderId),
         currency: {
-          tokenAddr: hexToBytes(storeData.baseCurrencyAddr!),
+          // tokenAddr: hexToBytes(storeData.baseCurrencyAddr!),
+          tokenAddr: hexToBytes("0x0000000000000000000000000000000000000000"),
           chainId,
         },
         payeeName: "default",
