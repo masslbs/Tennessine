@@ -3,16 +3,14 @@ import ProgressBar from "@/app/components/checkout/ProgressBar";
 import React, { useEffect, useState } from "react";
 import { useStoreContext } from "@/context/StoreContext";
 import NewCart from "@/app/cart/NewCart";
-// import CurrencyChange from "@/app/common/components/CurrencyChange";
-// import CurrencyButton from "@/app/common/components/CurrencyButton";
 import ShippingDetails from "@/app/components/checkout/ShippingDetails";
 import Image from "next/image";
-
+import { IStatus } from "@/types";
 import PaymentOptions from "@/app/components/checkout/PaymentOptions";
-// import ModalHeader from "@/app/common/components/ModalHeader";
 
 const CheckoutFlow = () => {
-  const { commitOrder, finalizedOrders } = useStoreContext();
+  const { commitOrder, finalizedOrders, orderItems, orderId, setOrderId } =
+    useStoreContext();
 
   const [step, setStep] = useState(0);
 
@@ -21,30 +19,30 @@ const CheckoutFlow = () => {
     null,
   );
   const [showErrorMessage, setShowErrorMessage] = useState<null | string>(null);
-  const [erc20Checkout, setErc20Checkout] = useState<boolean>(false);
   const [cryptoTotal, setCryptoTotal] = useState<string | null>(null);
   const [purchaseAdd, setPurchaseAdd] = useState<string | null>(null);
   const [totalDollar, setTotalDollar] = useState<string | null>(null);
-  // const [showCurrencyOptions, setShowCurrencyOptions] =
-  //   useState<boolean>(false);
+
+  useEffect(() => {
+    if (
+      orderItems &&
+      orderId &&
+      orderItems.get(orderId)?.status === IStatus.Complete
+    ) {
+      setOrderId(null);
+      setStep(3);
+    }
+  }, [orderItems]);
 
   useEffect(() => {
     if (finalizedOrders.size && checkoutReqId) {
       const currentCart = finalizedOrders.get(checkoutReqId);
       if (!currentCart) return;
-      const { totalInCrypto, erc20Addr, purchaseAddress, total } = currentCart;
+      const { totalInCrypto, purchaseAddress, total } = currentCart;
       setCryptoTotal(totalInCrypto);
-      //FIXME
-      setErc20Checkout(false);
       setPurchaseAdd(purchaseAddress);
       setTotalDollar(total);
-      if (erc20Checkout) {
-        setSrc(
-          `ethereum:${erc20Addr}/transfer?address=${purchaseAddress}&uint256=${totalInCrypto}`,
-        );
-      } else {
-        setSrc(`ethereum:${purchaseAddress}?value=${totalInCrypto}`);
-      }
+      setSrc(`ethereum:${purchaseAddress}?value=${totalInCrypto}`);
       setStep(2);
     }
   }, [finalizedOrders, checkoutReqId]);

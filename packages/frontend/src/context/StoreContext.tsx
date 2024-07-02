@@ -307,7 +307,6 @@ export const StoreContextProvider = (
   ) => {
     try {
       const path = await relayClient!.uploadBlob(product.blob as FormData);
-      console.log({ path });
       const metadata = {
         name: product.metadata.name,
         description: product.metadata.description,
@@ -350,14 +349,18 @@ export const StoreContextProvider = (
     selectedTagIds: TagId[] | [],
   ) => {
     try {
+      const itemIdBytes = hexToBytes(itemId);
       if (fields.price) {
         const priceAsNum = Number(updatedProduct.price);
         updatedProduct.price = priceAsNum.toFixed(2);
-        await relayClient!.updateItem({ itemId, price: updatedProduct.price });
+        await relayClient!.updateItem({
+          itemId: itemIdBytes,
+          price: updatedProduct.price,
+        });
         setProducts({
           type: UPDATE_PRICE,
           payload: {
-            itemId: itemId,
+            itemId,
             price: updatedProduct.price,
           },
         });
@@ -371,14 +374,17 @@ export const StoreContextProvider = (
 
         const metadata = {
           name: updatedProduct.metadata.name,
-          description: "updating product",
+          description: updatedProduct.metadata.description,
           image: path.url,
         };
-        await relayClient!.updateItem({ itemId, metadata });
+        await relayClient!.updateItem({
+          itemId: itemIdBytes,
+          metadata: new TextEncoder().encode(JSON.stringify(metadata)),
+        });
         setProducts({
           type: UPDATE_METADATA,
           payload: {
-            itemId: itemId,
+            itemId,
             metadata: metadata,
           },
         });
@@ -387,7 +393,7 @@ export const StoreContextProvider = (
         //calculate unit difference
         const previousUnit = products.get(itemId)?.stockQty || 0;
         const diff = Number(updatedProduct.stockQty) - Number(previousUnit);
-        changeStock([hexToBytes(itemId)], [diff]);
+        changeStock([itemIdBytes], [diff]);
         setProducts({
           type: UPDATE_STOCKQTY,
           payload: {
@@ -429,7 +435,10 @@ export const StoreContextProvider = (
 
   const addProductToTag = async (tagId: TagId, itemId: ItemId) => {
     try {
-      await relayClient!.updateTag({ tagId, addItemId: itemId });
+      await relayClient!.updateTag({
+        tagId: hexToBytes(tagId),
+        addItemId: hexToBytes(itemId),
+      });
       setProducts({
         type: ADD_PRODUCT_TAGS,
         payload: {
@@ -447,7 +456,10 @@ export const StoreContextProvider = (
 
   const removeProductFromTag = async (tagId: TagId, itemId: ItemId) => {
     try {
-      await relayClient!.updateTag({ tagId, removeItemId: itemId });
+      await relayClient!.updateTag({
+        tagId: hexToBytes(tagId),
+        removeItemId: hexToBytes(itemId),
+      });
       setProducts({
         type: REMOVE_PRODUCT_TAG,
         payload: {
