@@ -222,11 +222,10 @@ export const buildState = (
         subTotal: subTotal || null,
         totalInCrypto: bytesToHex(totalInCrypto) || null,
       };
-
       setFinalizedOrders({
         type: SET_ORDER,
         payload: {
-          eventId: bytesToHex(eventId!),
+          orderId: bytesToHex(eventId!),
           order: orderObj,
         },
       });
