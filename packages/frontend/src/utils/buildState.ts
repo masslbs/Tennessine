@@ -220,7 +220,7 @@ export const buildState = (
         salesTax: salesTax || null,
         total: total || null,
         subTotal: subTotal || null,
-        totalInCrypto: totalInCrypto || null,
+        totalInCrypto: bytesToHex(totalInCrypto) || null,
       };
 
       setFinalizedOrders({

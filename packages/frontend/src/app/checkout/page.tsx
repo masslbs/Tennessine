@@ -9,14 +9,8 @@ import { IStatus } from "@/types";
 import PaymentOptions from "@/app/components/checkout/PaymentOptions";
 
 const CheckoutFlow = () => {
-  const {
-    commitOrder,
-    finalizedOrders,
-    orderItems,
-    orderId,
-    setOrderId,
-    storeData,
-  } = useStoreContext();
+  const { commitOrder, finalizedOrders, orderItems, orderId, setOrderId } =
+    useStoreContext();
 
   const [step, setStep] = useState(0);
 

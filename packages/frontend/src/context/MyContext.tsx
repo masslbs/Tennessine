@@ -193,7 +193,7 @@ export const MyContextProvider = (
           localStorage.removeItem("keyCard");
         }
         localStorage.removeItem("keyCardToEnroll");
-      } else if (savedKC) {
+      } else if (savedKC && walletAddress) {
         console.log(`connecting to client with KC : ${savedKC}`);
         const hasAccess = await checkPermissions();
         if (hasAccess) {
@@ -205,7 +205,7 @@ export const MyContextProvider = (
     })();
 
     console.log(`relay client set ${user.relayEndpoint} with shop: ${shopId}`);
-  }, []);
+  }, [walletAddress]);
 
   useEffect(() => {
     if (keyCardEnrolled) {
@@ -223,13 +223,15 @@ export const MyContextProvider = (
   }, [keyCardEnrolled]);
 
   const checkPermissions = async () => {
-    const hasAccess = (await publicClient.readContract({
-      address: abi.addresses.ShopReg as `0x${string}`,
-      abi: abi.ShopReg,
-      functionName: "hasPermission",
-      args: [shopId, walletAddress, abi.permissions.updateRootHash],
-    })) as boolean;
-    return hasAccess;
+    if (walletAddress) {
+      const hasAccess = (await publicClient.readContract({
+        address: abi.addresses.ShopReg as `0x${string}`,
+        abi: abi.ShopReg,
+        functionName: "hasPermission",
+        args: [shopId, walletAddress, abi.permissions.updateRootHash],
+      })) as boolean;
+      return hasAccess;
+    } else return false;
   };
 
   const createNewRelayClient = () => {
