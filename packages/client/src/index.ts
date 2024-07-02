@@ -285,8 +285,24 @@ export class RelayClient extends EventEmitter {
     shopId: `0x${string}`,
   ) {
     const publicKey = toBytes(this.keyCardWallet.publicKey).slice(1);
-    const signature = await wallet.signMessage({
-      message: { raw: publicKey },
+    const types = {
+      Enrollment: [{ name: "keyCard", type: "string" }],
+    };
+    const message = {
+      keyCard: Buffer.from(publicKey).toString("hex"),
+    };
+    // formatMessageForSigning(message); will turn keyCard into key_card
+    // const sig = await this.#signTypedDataMessage(types, message);
+    const signature = await wallet.signTypedData({
+      types,
+      domain: {
+        name: "MassMarket",
+        version: "1",
+        chainId: 0,
+        verifyingContract: "0x0000000000000000000000000000000000000000",
+      },
+      primaryType: "Enrollment",
+      message,
     });
     const body = JSON.stringify({
       key_card: Buffer.from(publicKey).toString("base64"),
@@ -302,7 +318,6 @@ export class RelayClient extends EventEmitter {
       method: "POST",
       body,
     });
-
     return response;
   }
 
