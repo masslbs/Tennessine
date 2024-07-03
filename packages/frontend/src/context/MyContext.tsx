@@ -113,10 +113,16 @@ export const MyContextProvider = (
       throw new Error(`unhandled chain name ${chainName}`);
   }
 
-  const publicClient = createPublicClient({
-    chain: usedChain,
-    transport: http(),
-  });
+  const publicClient =
+    chainName === "sepolia"
+      ? createPublicClient({
+          chain: usedChain,
+          transport: http("https://rpc2.sepolia.org"),
+        })
+      : createPublicClient({
+          chain: usedChain,
+          transport: http(),
+        });
   const { data } = useBalance({
     address: address as `0x${string}`,
   });
