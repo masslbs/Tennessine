@@ -4,8 +4,8 @@
 
 import { WebSocket } from "isows";
 import {
-  bytesToHex,
   hexToBytes,
+  toHex,
   createWalletClient,
   createPublicClient,
   http,
@@ -264,6 +264,33 @@ describe("user behaviour", () => {
       test("single item checkout", { timeout: 10000 }, async () => {
         const payee = hexToBytes(randomAddress());
         const currency = hexToBytes(abi.addresses.Eddies as Address);
+
+        const txHash = await wallet.writeContract({
+          address: abi.addresses.Eddies as Address,
+          abi: abi.Eddies,
+          functionName: "mint",
+          args: [account.address, 9999999],
+        });
+
+        const transferComplete = publicClient
+          .waitForTransactionReceipt({
+            hash: txHash,
+          })
+          .then(() => {
+            return wallet.writeContract({
+              address: abi.addresses.Eddies as Address,
+              abi: abi.Eddies,
+              functionName: "approve",
+              args: [account.address, 9999999],
+            });
+          })
+          .then((hash) => {
+            console.log(hash);
+            return publicClient.waitForTransactionReceipt({
+              hash,
+            });
+          });
+
         await relayClient.updateShopManifest({
           addAcceptedCurrency: {
             tokenAddr: currency,
@@ -295,17 +322,45 @@ describe("user behaviour", () => {
         expect(checkout).not.toBeNull();
         expect(checkout.orderFinalizedId).not.toBeNull();
 
-        const getStream = async () => {
-          const stream = relayClient.createEventStream();
-          for await (const event of stream) {
-            if (event.event.updateOrder?.itemsFinalized) {
-              return bytesToHex(event.event.updateOrder.orderId);
-            }
+        // iterate through the event stream
+        const stream = relayClient.createEventStream();
+        for await (const { event } of stream) {
+          console.log(event);
+          if (event.updateOrder?.itemsFinalized) {
+            const order = event.updateOrder.itemsFinalized;
+            const args = [
+              31337, // chainid
+              order.ttl,
+              toHex(order.orderHash),
+              toHex(order.currencyAddr),
+              toHex(order.totalInCrypto),
+              toHex(order.payeeAddr),
+              false, // is paymentendpoint?
+              shopId,
+              toHex(order.shopSignature),
+            ];
+
+            const paymentId = (await publicClient.readContract({
+              address: abi.addresses.Payments as Address,
+              abi: abi.PaymentsByAddress,
+              functionName: "getPaymentId",
+              args: [args],
+            })) as bigint;
+            expect(toHex(order.paymentId)).toEqual(toHex(paymentId));
+            console.log(order.totalInCrypto), await transferComplete;
+            // call the pay function
+            // const txHash = await wallet.writeContract({
+            //   address: abi.addresses.Payments as Address,
+            //   abi: abi.PaymentsByAddress,
+            //   functionName: "payTokenPreApproved",
+            //   args: [args],
+            // });
+            // console.log(txHash);
+
+            return;
+          } else if (event.changeStock) {
           }
-          return null;
-        };
-        const receivedId = await getStream();
-        expect(receivedId).toEqual(bytesToHex(orderId));
+        }
       });
     });
   });
