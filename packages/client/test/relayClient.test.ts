@@ -269,23 +269,23 @@ describe("user behaviour", () => {
           address: abi.addresses.Eddies as Address,
           abi: abi.Eddies,
           functionName: "mint",
-          args: [account.address, 9999999],
+          args: [account.address, 999999999999],
         });
 
-        const transferComplete = publicClient
+        const mintComplete = publicClient
           .waitForTransactionReceipt({
             hash: txHash,
           })
           .then(() => {
+            // allow the payment contract to transfer on behalf of the test user
             return wallet.writeContract({
               address: abi.addresses.Eddies as Address,
               abi: abi.Eddies,
               functionName: "approve",
-              args: [account.address, 9999999],
+              args: [abi.addresses.Payments, 9999999999],
             });
           })
           .then((hash) => {
-            console.log(hash);
             return publicClient.waitForTransactionReceipt({
               hash,
             });
@@ -325,7 +325,6 @@ describe("user behaviour", () => {
         // iterate through the event stream
         const stream = relayClient.createEventStream();
         for await (const { event } of stream) {
-          console.log(event);
           if (event.updateOrder?.itemsFinalized) {
             const order = event.updateOrder.itemsFinalized;
             const args = [
@@ -347,18 +346,18 @@ describe("user behaviour", () => {
               args: [args],
             })) as bigint;
             expect(toHex(order.paymentId)).toEqual(toHex(paymentId));
-            console.log(order.totalInCrypto), await transferComplete;
+            // need to wait for the minting of eddies to be done before sending them
+            await mintComplete;
             // call the pay function
-            // const txHash = await wallet.writeContract({
-            //   address: abi.addresses.Payments as Address,
-            //   abi: abi.PaymentsByAddress,
-            //   functionName: "payTokenPreApproved",
-            //   args: [args],
-            // });
-            // console.log(txHash);
-
-            return;
+            wallet.writeContract({
+              address: abi.addresses.Payments as Address,
+              abi: abi.PaymentsByAddress,
+              functionName: "payTokenPreApproved",
+              args: [args],
+            });
           } else if (event.changeStock) {
+            expect(toHex(event.changeStock.itemIds[0])).toEqual(toHex(itemId));
+            return;
           }
         }
       });
