@@ -17,6 +17,7 @@ import { Address } from "viem/accounts";
 import { ShopId } from "@/context/types";
 import { useMerchantContext } from "@/context/MerchantContext";
 import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 const MerchantConnectWallet = ({ close }: { close: () => void }) => {
   const { connectors, connect } = useConnect();
@@ -35,21 +36,35 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
   const { setStoreIds } = useMerchantContext();
   const storeIdsVerified = useRef(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const shopId = searchParams!.get("shopId") as `0x${string}`;
 
   if (typeof window == "undefined") {
     console.warn("not a browser session");
     return;
   }
+  useEffect(() => {
+    if (shopId) {
+      localStorage.setItem("shopId", shopId);
+      setShopId(shopId);
+    }
+  });
 
   useEffect(() => {
     (async () => {
       if (publicClient && walletAddress && !storeIdsVerified.current) {
         storeIdsVerified.current = true;
-        const _storeIds = await getShops();
-        console.log({ _storeIds });
-        setStoreIds(_storeIds);
-        const _shopIds = Array.from([..._storeIds.keys()]);
-        await enroll(_shopIds[_shopIds.length - 1]);
+        let usedShopId;
+        if (shopId) {
+          usedShopId = shopId;
+        } else {
+          const _storeIds = await getShops();
+          console.log({ _storeIds });
+          setStoreIds(_storeIds);
+          const _shopIds = Array.from([..._storeIds.keys()]);
+          usedShopId = _shopIds[_shopIds.length - 1];
+        }
+        await enroll(usedShopId);
       }
     })();
   }, [walletAddress, publicClient]);
@@ -62,7 +77,7 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
       event: parseAbiItem(
         "event Transfer(address indexed from, address indexed to, uint256 value)",
       ),
-      fromBlock: block - BigInt(50),
+      fromBlock: block - BigInt(20000),
       toBlock: "latest",
       args: {
         to: walletAddress,
@@ -77,6 +92,7 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
   };
 
   const enroll = async (shopId: ShopId) => {
+    console.log(`enrolling with shopId: ${shopId}`);
     if (shopId) {
       if (
         clientWallet &&

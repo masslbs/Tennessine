@@ -20,6 +20,7 @@ import { type ClientContext, ShopId } from "./types";
 import { privateKeyToAccount } from "viem/accounts";
 import { usePathname } from "next/navigation";
 import { random32BytesHex } from "@massmarket/utils";
+import { useSearchParams } from "next/navigation";
 
 export const MyContext = createContext<ClientContext>({
   walletAddress: null,
@@ -77,6 +78,11 @@ export const MyContextProvider = (
     isConnected,
   } = useAuth();
   const [keyCardEnrolled, setKeyCardEnrolled] = useState<boolean>(false);
+  const searchParams = useSearchParams();
+  const _shopId = searchParams!.get("shopId") as `0x${string}`;
+  if (_shopId) {
+    localStorage.setItem("shopId", _shopId);
+  }
   const [shopId, setShopId] = useState<ShopId>(
     (localStorage.getItem("shopId") as ShopId) ||
       (process.env.NEXT_PUBLIC_STORE_ID as ShopId),
@@ -110,10 +116,16 @@ export const MyContextProvider = (
       throw new Error(`unhandled chain name ${chainName}`);
   }
 
-  const publicClient = createPublicClient({
-    chain: usedChain,
-    transport: http(),
-  });
+  const publicClient =
+    chainName === "sepolia"
+      ? createPublicClient({
+          chain: usedChain,
+          transport: http("https://rpc2.sepolia.org"),
+        })
+      : createPublicClient({
+          chain: usedChain,
+          transport: http(),
+        });
   const { data } = useBalance({
     address: address as `0x${string}`,
   });

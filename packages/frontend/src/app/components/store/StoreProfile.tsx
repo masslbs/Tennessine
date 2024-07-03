@@ -4,27 +4,30 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import ModalHeader from "../../common/components/ModalHeader";
-import PhotoUpload from "../../common/components/PhotoUpload";
-import Button from "../../common/components/Button";
+// import PhotoUpload from "../../common/components/PhotoUpload";
+// import Button from "../../common/components/Button";
+import { useStoreContext } from "@/context/StoreContext";
+import { useMyContext } from "@/context/MyContext";
+import Image from "next/image";
 
 const StoreProfile = ({ close }: { close: () => void }) => {
-  const [storeName, setStoreName] = useState<string>("ethDubai");
-  const [storeURL, setStoreURL] = useState<string>("ethdubai.mass.market");
-  const [avatar, setAvatar] = useState<string | null>(null);
+  // const [storeName, setStoreName] = useState<string>("ethDubai");
+  // const [storeURL, setStoreURL] = useState<string>("ethdubai.mass.market");
+  // const [avatar, setAvatar] = useState<string | null>(null);
+  const { storeData } = useStoreContext();
+  const { shopId } = useMyContext();
 
-  //FIXME: once we set up ts client for saving store name and url.
-  useEffect(() => {
-    setStoreName("ethDubai");
-    setStoreURL("ethdubai.mass.market");
-  }, []);
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(shopId!);
+  };
 
   return (
     <section className="pt-under-nav h-screen">
       <ModalHeader headerText="Store Profile" goBack={close} />
       <section className="flex flex-col h-5/6">
-        <PhotoUpload img={avatar} setImgSrc={setAvatar} />
+        {/* <PhotoUpload img={avatar} setImgSrc={setAvatar} /> */}
         <div className="m-4">
           <p className="font-sans">General</p>
           <section className="text-sm flex flex-col gap-4">
@@ -37,39 +40,46 @@ const StoreProfile = ({ close }: { close: () => void }) => {
                 >
                   <label htmlFor="fname">Store Name</label>
                   <input
-                    //   placeholder={firstName}
                     className="border-2 border-solid mt-1 p-2 rounded"
                     id="fname"
                     name="fname"
-                    value={storeName}
+                    value={storeData.name}
                   />
                 </form>
               </section>
-              {/* <p>Store Name</p> */}
-            </div>
-            <div>
-              <section>
+              <section className="mt-4 flex">
                 <form
                   className="flex flex-col"
                   onSubmit={(e) => e.preventDefault()}
                 >
-                  <label htmlFor="fname">Store URL</label>
-                  <input
-                    className="border-2 border-solid mt-1 p-2 rounded"
-                    id="fname"
-                    name="fname"
-                    value={storeURL}
-                  />
+                  <label htmlFor="storeId">Store ID</label>
+                  <div className="flex gap-2">
+                    <input
+                      className="border-2 border-solid mt-1 p-2 rounded"
+                      id="fname"
+                      name="fname"
+                      value={shopId}
+                    />
+                    <button className="mr-4" onClick={copyToClipboard}>
+                      <Image
+                        src="/assets/copy-icon.svg"
+                        width={14}
+                        height={14}
+                        alt="copy-icon"
+                      />
+                    </button>
+                  </div>
                 </form>
               </section>
             </div>
+            <div></div>
           </section>
         </div>
-        <div className="mt-auto mx-4">
+        {/* <div className="mt-auto mx-4">
           <Button disabled={true} onClick={() => null}>
             Update
           </Button>
-        </div>
+        </div> */}
       </section>
     </section>
   );

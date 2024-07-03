@@ -103,6 +103,7 @@ const StoreCreation = () => {
           publicClient &&
           (await publicClient.waitForTransactionReceipt({
             hash,
+            retryCount: 10,
           }));
         if (transaction!.status == "success") {
           console.log(`CREATED shopId: ${shopId}`);
