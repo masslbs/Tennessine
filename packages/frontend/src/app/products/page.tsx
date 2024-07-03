@@ -139,17 +139,21 @@ const Products = () => {
         publishedTagId && item.tagIds && item.tagIds.includes(publishedTagId);
 
       return (
-        <div key={item.id}>
+        <div key={item.id} className="mt-4 mx-4 last: mr-0">
           <div
             onClick={() => viewProductDetails(item)}
-            className={`flex flex-col text-center mb-3 ${!visible ? "opacity-50" : ""} `}
+            className={`flex flex-col text-center ${!visible ? "opacity-50" : ""} max-w-24 min-w-24`}
           >
-            <p className="text-xs" data-testid={`product-name`}>
-              {metadata.name}
-            </p>
-
+            <div className="h-12 flex justify-center text-center">
+              <p
+                className="text-xs text-center text-ellipsis overflow-hidden self-end"
+                data-testid={`product-name`}
+              >
+                {metadata.name}
+              </p>
+            </div>
             <div
-              className="mt-2 product-box gap-2 flex flex-col text-center border-2 p-3 rounded-xl bg-white"
+              className="product-box gap-2 flex flex-col text-center border-2 p-3 rounded-xl bg-white"
               data-testid={`product-${metadata.name}`}
             >
               <div className="flex justify-center">
@@ -166,7 +170,7 @@ const Products = () => {
                   }}
                 />
               </div>
-              <h4>{Number(item.price).toFixed(0)}</h4>
+              <h4>{Number(item.price)}</h4>
               <p className="text-sm text-gray-400">{item.stockQty} left</p>
             </div>
           </div>
@@ -259,9 +263,7 @@ const Products = () => {
             </div>
           </div>
           <section className="product-list-container flex flex-col gap-4 mt-4">
-            <div className="flex flex-wrap justify-around">
-              {renderProducts()}
-            </div>
+            <div className="flex flex-wrap">{renderProducts()}</div>
           </section>
         </section>
       </section>

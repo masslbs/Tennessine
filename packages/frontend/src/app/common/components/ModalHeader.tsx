@@ -22,7 +22,7 @@ const ModalHeader = ({ goBack, headerText, rightIcon }: Header) => {
         <div id="container" className="flex relative">
           <Image
             id="overlay"
-            src="/assets/left-arrow.svg"
+            src="/assets/back-button.svg"
             width={24}
             height={24}
             alt="left-arrow-icon"

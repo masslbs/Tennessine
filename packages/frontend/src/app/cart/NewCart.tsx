@@ -3,22 +3,25 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useStoreContext } from "@/context/StoreContext";
 import Button from "@/app/common/components/Button";
 import { ItemId } from "@/types";
 import { ItemState } from "@/context/types";
 import { useRouter } from "next/navigation";
+import { useMyContext } from "@/context/MyContext";
 
 const NewCart = ({ next }: { next: () => void }) => {
   const { orderItems, products, orderId, updateOrder } = useStoreContext();
   const [activeCartItems, setActiveCartItems] = useState<ItemState | null>(
     null,
   );
-
+  const [baseCurrSymbol, setBaseCurrSymbol] = useState<string | null>(null);
   const router = useRouter();
-
+  const { storeData } = useStoreContext();
+  const { getTokenInformation } = useMyContext();
+  const symbolSet = useRef(false);
   useEffect(() => {
     if (orderId) {
       const items = orderItems.get(orderId)?.items || null;
@@ -28,6 +31,18 @@ const NewCart = ({ next }: { next: () => void }) => {
 
   const noItems =
     !orderId || !activeCartItems || !Object.keys(activeCartItems).length;
+
+  useEffect(() => {
+    (async () => {
+      if (storeData?.baseCurrencyAddr && !symbolSet.current) {
+        symbolSet.current = true;
+        const { symbol } = await getTokenInformation(
+          storeData?.baseCurrencyAddr,
+        );
+        setBaseCurrSymbol(symbol);
+      }
+    })();
+  }, []);
 
   const calculateTotal = () => {
     if (noItems) return null;
@@ -56,9 +71,13 @@ const NewCart = ({ next }: { next: () => void }) => {
       return (
         <div
           key={item.metadata.name}
-          className="flex flex-col items-center gap-3 min-w-24 min-h-30"
+          className="flex flex-col items-center gap-3 min-w-24 min-h-30 max-w-24"
         >
-          <p className="text-xs text-primary-gray">{item.metadata.name}</p>
+          <div className="h-12 flex justify-center text-center">
+            <p className="text-xs text-primary-gray text-center text-ellipsis overflow-hidden self-end">
+              {item.metadata.name}
+            </p>
+          </div>
           <div className="border-2 p-3 rounded-xl bg-white">
             <Image
               src={item.metadata.image}
@@ -81,7 +100,9 @@ const NewCart = ({ next }: { next: () => void }) => {
 
   return (
     <div className="text-center">
-      <h2 className="my-4">{calculateTotal()} ETH</h2>
+      <h2 className="my-4">
+        {calculateTotal()} {baseCurrSymbol}
+      </h2>
       <Button onClick={next}>Proceed</Button>
       <section className="mt-10 flex gap-3 overflow-x-auto no-scrollbar">
         {renderItems()}

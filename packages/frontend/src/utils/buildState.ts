@@ -33,6 +33,7 @@ import {
   updateStoreDataAction,
   UPDATE_STORE_PIC,
   UPDATE_BASE_CURRENCY,
+  UPDATE_STORE_NAME,
 } from "@/reducers/storeReducer";
 import { ADD_KC_PUBKEY, pubKeyAction } from "@/reducers/KCPubKeysReducers";
 import { Dispatch } from "react";
@@ -80,6 +81,12 @@ export const buildState = (
       setStoreData({
         type: UPDATE_BASE_CURRENCY,
         payload: { baseCurrencyAddr: bytesToHex(um.setBaseCurrency.tokenAddr) },
+      });
+    }
+    if (um.name) {
+      setStoreData({
+        type: UPDATE_STORE_NAME,
+        payload: { name: um.name! },
       });
     }
   } else if (event.createItem) {
@@ -143,6 +150,7 @@ export const buildState = (
       throw new Error(`not yet handling tag renames or deltes`);
     }
   } else if (event.changeStock) {
+    console.log({ event });
     const evt = event.changeStock;
     if (evt.orderId && evt.orderId.byteLength && evt.txHash) {
       setOrderItems({
@@ -204,29 +212,11 @@ export const buildState = (
     }
     if (uo.itemsFinalized) {
       console.log(uo.itemsFinalized);
-      const {
-        currencyAddr,
-        orderHash,
-        payeeAddr,
-        salesTax,
-        total,
-        totalInCrypto,
-        subTotal,
-      } = uo.itemsFinalized;
-      const orderObj = {
-        erc20Addr: currencyAddr ? bytesToHex(currencyAddr) : null,
-        orderId: bytesToHex(orderHash!),
-        purchaseAddress: bytesToHex(payeeAddr!),
-        salesTax: salesTax || null,
-        total: total || null,
-        subTotal: subTotal || null,
-        totalInCrypto: bytesToHex(totalInCrypto) || null,
-      };
       setFinalizedOrders({
         type: SET_ORDER,
         payload: {
           orderId: bytesToHex(eventId!),
-          order: orderObj,
+          order: uo.itemsFinalized,
         },
       });
     }

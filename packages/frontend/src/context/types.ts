@@ -17,13 +17,13 @@ export type EventId = `0x${string}`;
 export type ShopId = `0x${string}`;
 
 export type FinalizedOrderState = {
-  erc20Addr: `0x${string}` | null;
-  orderId: OrderId;
-  purchaseAddress: `0x${string}`;
-  salesTax: string | null;
-  total: string | null;
-  totalInCrypto: string | null;
-  subTotal: string | null;
+  orderHash: Uint8Array;
+  currencyAddr: Uint8Array;
+  totalInCrypto: Uint8Array;
+  ttl: string;
+  payeeAddr: Uint8Array;
+  shopSignature: Uint8Array;
+  total: string;
 };
 export type UpdateItemProps = {
   itemId: ItemId;

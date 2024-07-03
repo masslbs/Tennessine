@@ -126,7 +126,13 @@ const Navigation = () => {
           </div>
           <div>{renderItems()}</div>
           <div>
-            <button onClick={() => invalidateOrder("new sale started")}>
+            <button
+              onClick={() => {
+                invalidateOrder("new sale started");
+                router.push("/");
+                menuSwitch();
+              }}
+            >
               <h2>New Sale</h2>
             </button>
           </div>

@@ -11,23 +11,27 @@ const PaymentOptions = ({
   totalDollar,
   purchaseAddress,
   cryptoTotal,
+  symbol,
   name,
   address,
   city,
   zip,
   country,
   number,
+  erc20Amount,
 }: {
   imgSrc: string;
   totalDollar: string;
   purchaseAddress: string;
-  cryptoTotal: string;
+  cryptoTotal: number;
+  symbol: string | null;
   name: string;
   address: string;
   city: string;
   zip: string;
   country: string;
   number: string;
+  erc20Amount: number | null;
 }) => {
   const [showPaymentOptions, setShowPaymentOptions] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<"QR" | "Address" | null>(null);
@@ -39,7 +43,8 @@ const PaymentOptions = ({
           imgSrc={imgSrc}
           totalDollar={totalDollar}
           purchaseAddress={purchaseAddress}
-          cryptoTotal={cryptoTotal}
+          erc20Amount={erc20Amount}
+          symbol={symbol}
           showModal={showModal}
           goBack={() => setShowModal(null)}
         />
@@ -62,7 +67,7 @@ const PaymentOptions = ({
       </div>
       <WalletConnectQR
         purchaseAddress={purchaseAddress}
-        displayedTotal={cryptoTotal}
+        cryptoTotal={cryptoTotal}
       />
       <div className="text-primary-gray mt-10 flex justify-center text-center">
         <p className="flex items-center">or</p>

@@ -154,8 +154,9 @@ const StoreCreation = () => {
           },
           shopId,
         );
-        setPublishedTagId(bytesToHex(publishedTagId));
+        console.log(`Shop Manifested with shopId:${shopId}`);
         const newPubId = await relayClient.createTag({ name: "visible" });
+        setPublishedTagId(bytesToHex(newPubId));
         const path = await relayClient!.uploadBlob(avatar as FormData);
 
         if (newPubId && path.url) {
@@ -175,7 +176,7 @@ const StoreCreation = () => {
               chainId,
               name: "default",
             },
-            profilePictureUrl: "/",
+            profilePictureUrl: path.url,
           });
           console.log(`UPDATED Manifest shopId:${shopId}`);
         }

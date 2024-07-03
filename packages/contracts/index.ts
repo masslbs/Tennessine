@@ -12,6 +12,9 @@ import ShopReg from "./abi/ShopReg.json" with { type: "json" };
 export { ShopReg };
 import ERC20 from "./abi/ERC20.json" with { type: "json" };
 export { ERC20 };
+import PaymentsByAddress from "./abi/PaymentsByAddress.json" with { type: "json" };
+export { PaymentsByAddress };
+
 export const permissions = {
   addPermission: 0,
   removePermission: 1,
