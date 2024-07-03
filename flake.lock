@@ -13,16 +13,17 @@
         "solady": "solady"
       },
       "locked": {
-        "lastModified": 1719236669,
-        "narHash": "sha256-ngX+0H2jFaGavuFzdvoFTUR9C4dYPDbJ6E3X04aQh68=",
+        "lastModified": 1719565636,
+        "narHash": "sha256-gqyslAyKo6BmUauNYfFCNULWRtH6aJL0tpiAUCCi0MY=",
         "owner": "masslbs",
         "repo": "contracts",
-        "rev": "0d9625366fb6e24fb5f3b70b43d981764a26e3a2",
+        "rev": "090421365ddcb7fbb1d1649e67f2ec7716a74ada",
         "type": "github"
       },
       "original": {
         "owner": "masslbs",
         "repo": "contracts",
+        "rev": "090421365ddcb7fbb1d1649e67f2ec7716a74ada",
         "type": "github"
       }
     },
@@ -229,11 +230,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1719082008,
-        "narHash": "sha256-jHJSUH619zBQ6WdC21fFAlDxHErKVDJ5fpN0Hgx4sjs=",
+        "lastModified": 1719931832,
+        "narHash": "sha256-0LD+KePCKKEb4CcPsTBOwf019wDtZJanjoKm1S8q3Do=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "9693852a2070b398ee123a329e68f0dab5526681",
+        "rev": "0aeab749216e4c073cece5d34bc01b79e717c3e0",
         "type": "github"
       },
       "original": {
