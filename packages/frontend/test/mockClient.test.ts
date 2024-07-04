@@ -59,7 +59,7 @@ describe("mockclient", async () => {
     storeData = storeReducer(storeData, action);
   }
   function setAcceptedCurrencies(action: AcceptedCurrencyActions) {
-    acceptedCurrencies = acceptedCurrencyReducer([], action);
+    acceptedCurrencies = acceptedCurrencyReducer(new Map(), action);
     console.log({ acceptedCurrencies });
   }
 

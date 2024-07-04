@@ -47,6 +47,8 @@ export type OrderState = {
   txHash?: `0x${string}`;
 };
 
+export type CurrenciesState = Map<TokenAddr, null | string>;
+
 export type IRelayWriteResponse = {
   // TODO: should be mmproto.EventWriteResponse but can't import anymore somehow
 };
@@ -120,8 +122,10 @@ export type StoreContent = {
   setPublishedTagId: (id: TagId) => void;
   setOrderId: (orderId: OrderId | null) => void;
   setStoreData: Dispatch<updateStoreDataAction>;
-  acceptedCurrencies: TokenAddr[];
+  acceptedCurrencies: Map<TokenAddr, null | string>;
   setAcceptedCurrencies: Dispatch<AcceptedCurrencyActions>;
+  selectedCurrency: TokenAddr;
+  setSelectedCurrency: Dispatch<TokenAddr>;
 };
 
 export type ProductsMap = Map<ItemId, IProduct>;

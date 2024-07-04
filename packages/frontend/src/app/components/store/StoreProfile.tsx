@@ -11,7 +11,11 @@ import { useStoreContext } from "@/context/StoreContext";
 import { useMyContext } from "@/context/MyContext";
 import Image from "next/image";
 import AvatarUpload from "@/app/common/components/AvatarUpload";
-import { UPDATE_STORE_NAME, UPDATE_STORE_PIC } from "@/reducers/storeReducer";
+import {
+  UPDATE_STORE_NAME,
+  UPDATE_STORE_PIC,
+  UPDATE_BASE_CURRENCY,
+} from "@/reducers/storeReducer";
 import { ADD_ACCEPTED_CURR } from "@/reducers/acceptedCurrencyReducers";
 import { TokenAddr } from "@/reducers/acceptedCurrencyReducers";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
@@ -23,17 +27,16 @@ const StoreProfile = ({ close }: { close: () => void }) => {
     useStoreContext();
   const { relayClient } = useMyContext();
   const [storeName, setStoreName] = useState<string>(storeData?.name);
-  const [baseCurrencyAddr, setStoreBase] = useState<null | TokenAddr>(null);
+  const [baseCurrencyAddr, setStoreBase] = useState<TokenAddr | "">("");
   const [avatar, setAvatar] = useState<FormData | null>(null);
-  const [currencies, setCurrencies] = useState(acceptedCurrencies);
-  const [addTokenAddr, setAddTokenAddr] = useState<"" | TokenAddr>("");
+  const [addTokenAddr, setAddTokenAddr] = useState<TokenAddr | "">("");
   const { shopId } = useMyContext();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const chainName = process.env.NEXT_PUBLIC_CHAIN_NAME!;
 
   useEffect(() => {
     setStoreName(storeData?.name);
-    setStoreBase(storeData?.baseCurrencyAddr);
-    setCurrencies(acceptedCurrencies);
+    setStoreBase(storeData?.baseCurrencyAddr || "");
   }, [acceptedCurrencies]);
 
   const copyToClipboard = () => {
@@ -41,6 +44,8 @@ const StoreProfile = ({ close }: { close: () => void }) => {
   };
 
   const updateStoreInfo = async () => {
+    if (!baseCurrencyAddr)
+      throw Error("Missing base currency address for store.");
     let path;
     if (avatar) {
       path = await relayClient!.uploadBlob(avatar as FormData);
@@ -53,23 +58,35 @@ const StoreProfile = ({ close }: { close: () => void }) => {
       type: UPDATE_STORE_NAME,
       payload: { name: storeName },
     });
+    setStoreData({
+      type: UPDATE_BASE_CURRENCY,
+      payload: { baseCurrencyAddr },
+    });
 
     avatar
       ? await relayClient!.updateShopManifest({
           name: storeName,
           profilePictureUrl: path.url,
+          setBaseCurrency: {
+            tokenAddr: hexToBytes(baseCurrencyAddr as `0x${string}`),
+            chainId: chainName === "sepolia" ? sepolia.id : hardhat.id,
+          },
         })
       : await relayClient!.updateShopManifest({
           name: storeName,
+          setBaseCurrency: {
+            tokenAddr: hexToBytes(baseCurrencyAddr as `0x${string}`),
+            chainId: chainName === "sepolia" ? sepolia.id : hardhat.id,
+          },
         });
     close();
   };
   const renderAcceptedCurrencies = () => {
+    const currencies = Array.from([...acceptedCurrencies.keys()]);
     return currencies.map((a, i) => <p key={i}>{a}</p>);
   };
   const addAcceptedCurrencyFn = async () => {
     if (!addTokenAddr.length) return;
-    const chainName = process.env.NEXT_PUBLIC_CHAIN_NAME!;
     try {
       await relayClient!.updateShopManifest({
         addAcceptedCurrency: {
@@ -89,6 +106,7 @@ const StoreProfile = ({ close }: { close: () => void }) => {
       error.message && setErrorMsg(error.message);
     }
   };
+
   return (
     <section className="pt-under-nav h-screen">
       <ModalHeader headerText="Store Profile" goBack={close} />
@@ -150,7 +168,6 @@ const StoreProfile = ({ close }: { close: () => void }) => {
                       className="border-2 border-solid mt-1 p-2 rounded"
                       id="storeName"
                       name="storeName"
-                      //@ts-expect-error FIXME
                       value={baseCurrencyAddr}
                       //@ts-expect-error FIXME
                       onChange={(e) => setStoreBase(e.target.value)}

@@ -21,6 +21,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { usePathname } from "next/navigation";
 import { random32BytesHex } from "@massmarket/utils";
 import { useSearchParams } from "next/navigation";
+import { zeroAddress } from "@massmarket/contracts";
 
 export const MyContext = createContext<ClientContext>({
   walletAddress: null,
@@ -130,21 +131,24 @@ export const MyContextProvider = (
     address: address as `0x${string}`,
   });
 
-  const getTokenInformation = async (erc20Addr: `0x${string}`) => {
+  const getTokenInformation = async (address: `0x${string}`) => {
+    if (address === zeroAddress) {
+      return { name: "Ethereum", symbol: "ETH", decimals: 18 };
+    }
     const name = (await publicClient.readContract({
-      address: erc20Addr,
+      address: address,
       abi: abi.ERC20,
       functionName: "name",
       args: [],
     })) as string;
     const symbol = (await publicClient.readContract({
-      address: erc20Addr,
+      address: address,
       abi: abi.ERC20,
       functionName: "symbol",
       args: [],
     })) as string;
     const decimals = (await publicClient.readContract({
-      address: erc20Addr,
+      address: address,
       abi: abi.ERC20,
       functionName: "decimals",
       args: [],

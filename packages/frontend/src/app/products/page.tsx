@@ -156,7 +156,7 @@ const Products = () => {
               className="product-box gap-2 flex flex-col text-center border-2 p-3 rounded-xl bg-white"
               data-testid={`product-${metadata.name}`}
             >
-              <div className="flex justify-center">
+              <div className="flex justify-center min-h-16 ">
                 <Image
                   src={metadata.image || "/assets/no-image.png"}
                   width={85}

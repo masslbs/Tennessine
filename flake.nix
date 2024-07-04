@@ -63,6 +63,7 @@
                 typescript
                 nodejs_latest
                 nodePackages.pnpm
+                nodePackages.typescript-language-server
                 playwright-driver.browsers
                 contracts.packages.${system}.default
                 reuse

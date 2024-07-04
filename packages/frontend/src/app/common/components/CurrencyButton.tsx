@@ -7,7 +7,7 @@ import Chevron from "./Chevron";
 const CurrencyButton = ({ toggle }: { toggle: () => void }) => {
   const [open, setOpen] = useState<boolean>(false);
   return (
-    <div className="flex gap-2 py-4 text-sm">
+    <div className="flex gap-2 text-sm max-h-20">
       <div
         id="sortOption-button"
         className="flex border gap-1 rounded-xl py-2 px-4 bg-primary-gray ml-auto"

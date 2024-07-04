@@ -414,6 +414,7 @@ const AddProductView = () => {
               selectedTags={selectedTags}
               selectedTagsDispatch={selectedTagsDispatch}
               itemId={editView ? itemId : null}
+              editView={editView}
             />
           </section>
         </section>

@@ -4,30 +4,33 @@
 
 "use client";
 
+import { useStoreContext } from "@/context/StoreContext";
 import React from "react";
 
-const CurrencyChange = () => {
+const CurrencyChange = ({ open }: { open: boolean }) => {
+  if (!open) return null;
+  const { acceptedCurrencies, selectedCurrency, setSelectedCurrency } =
+    useStoreContext();
+  const currencies = Array.from([...acceptedCurrencies.keys()]);
+  const renderCurrencies = () => {
+    return currencies.map((a, i) => (
+      <button onClick={() => setSelectedCurrency(a)} key={i}>
+        <p
+          className={`${a === selectedCurrency ? "bg-black text-white" : "bg-primary-gray"} w-fit px-2 py-1 rounded-lg`}
+        >
+          {acceptedCurrencies.get(a)}
+        </p>
+      </button>
+    ));
+  };
+
   return (
-    <section>
+    <section className="bg-gray-300 p-4 border rounded-xl">
       <p>Choose any ERC20 token to preview and pay.</p>
-      <section className="bg-gray-300 ">
-        <div className="mb-10">
-          <p>choose chain</p>
-          <div className="flex gap-2">
-            <p className="bg-primary-gray w-fit px-2 py-1 rounded-lg">
-              Ethereum
-            </p>
-            <p className="bg-primary-gray w-fit px-2 py-1 rounded-lg">
-              Arbitrum
-            </p>
-            <p className="bg-primary-gray w-fit px-2 py-1 rounded-lg">Base</p>
-          </div>
-        </div>
-        <div>
+      <section>
+        <div className="mt-6">
           <p>choose currency</p>
-        </div>
-        <div>
-          <p>your tokens</p>
+          <div className="flex gap-2">{renderCurrencies()}</div>
         </div>
       </section>
     </section>

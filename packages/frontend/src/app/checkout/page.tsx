@@ -11,6 +11,9 @@ import { useMyContext } from "@/context/MyContext";
 import * as abi from "@massmarket/contracts";
 import { bytesToHex, bytesToNumber } from "viem";
 import { sepolia, mainnet, hardhat } from "viem/chains";
+import CurrencyButton from "@/app/common/components/CurrencyButton";
+import CurrencyChange from "@/app/common/components/CurrencyChange";
+import { zeroAddress } from "@massmarket/contracts";
 
 const CheckoutFlow = () => {
   const { commitOrder, finalizedOrders, orderItems, orderId, setOrderId } =
@@ -24,7 +27,7 @@ const CheckoutFlow = () => {
   );
   const [showErrorMessage, setShowErrorMessage] = useState<null | string>(null);
   const [cryptoTotal, setCryptoTotal] = useState<number | null>(null);
-  const [purchaseAddress, setPurchaseAdd] = useState<string | null>(null);
+  const [purchaseAddress, setPurchaseAddr] = useState<string | null>(null);
   const [totalDollar, setTotalDollar] = useState<string | null>(null);
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
@@ -37,6 +40,11 @@ const CheckoutFlow = () => {
   );
   const [erc20Amount, setErc20Amount] = useState<null | number>(null);
   const [symbol, setSymbol] = useState<null | string>(null);
+  const [openCurrencySelection, setOpen] = useState(false);
+
+  const currencyToggle = () => {
+    setOpen(!openCurrencySelection);
+  };
   const chainName = process.env.NEXT_PUBLIC_CHAIN_NAME!;
   const usedChainId: number =
     chainName === "sepolia"
@@ -77,11 +85,12 @@ const CheckoutFlow = () => {
       } = currentCart;
 
       (async () => {
+        const currencyAddrHex = bytesToHex(currencyAddr);
         const arg = [
           usedChainId,
           ttl,
           bytesToHex(orderHash),
-          bytesToHex(currencyAddr),
+          currencyAddrHex,
           bytesToHex(totalInCrypto),
           bytesToHex(payeeAddr),
           false,
@@ -100,19 +109,19 @@ const CheckoutFlow = () => {
           functionName: "getPaymentAddress",
           args: [arg, ownerAdd],
         });
-        const { decimals, symbol } = await getTokenInformation(
-          bytesToHex(currencyAddr),
-        );
+        const { decimals, symbol } = await getTokenInformation(currencyAddrHex);
         setSymbol(symbol);
-        const _erc20Amount =
-          bytesToNumber(totalInCrypto) / Math.pow(10, decimals);
-        setErc20Amount(_erc20Amount);
         if (purchaseAdd) {
-          setPurchaseAdd(purchaseAdd as `0x${string}`);
-          setSrc(
-            `ethereum:${bytesToHex(currencyAddr)}/transfer?address=${purchaseAdd}&uint256=${_erc20Amount}`,
-          );
-          setCryptoTotal(bytesToNumber(totalInCrypto));
+          const amount = bytesToNumber(totalInCrypto);
+          const _erc20Amount = amount / Math.pow(10, decimals);
+          const payLink =
+            currencyAddrHex === zeroAddress
+              ? `ethereum:${purchaseAdd}?value=${amount}`
+              : `ethereum:${currencyAddrHex}/transfer?address=${purchaseAdd}&uint256=${amount}`;
+          setPurchaseAddr(purchaseAdd as `0x${string}`);
+          setSrc(payLink);
+          setCryptoTotal(amount);
+          setErc20Amount(_erc20Amount);
           setTotalDollar(total);
           setStep(2);
         }
@@ -134,7 +143,14 @@ const CheckoutFlow = () => {
   const renderContent = () => {
     console.log({ step, imgSrc, totalDollar, purchaseAddress, cryptoTotal });
     if (step === 0) {
-      return <NewCart next={() => setStep(1)} />;
+      return (
+        <NewCart
+          next={() => {
+            setStep(1);
+            currencyToggle();
+          }}
+        />
+      );
     } else if (step === 1) {
       return (
         <ShippingDetails
@@ -198,10 +214,11 @@ const CheckoutFlow = () => {
     <main className="pt-under-nav h-screen bg-gray-100 ">
       {/* FIXME: need banner design for errors */}
       {showErrorMessage && showErrorMessage}
-      {/* <ModalHeader /> */}
-      {/* <CurrencyButton
-        toggle={() => setShowCurrencyOptions(!showCurrencyOptions)}
-      /> */}
+      <div className="px-4">
+        <CurrencyButton toggle={currencyToggle} />
+        <CurrencyChange open={openCurrencySelection} />
+      </div>
+
       <div className="px-5">
         <div>
           <ProgressBar
