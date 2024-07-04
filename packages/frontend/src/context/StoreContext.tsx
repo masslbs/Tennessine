@@ -49,6 +49,7 @@ import {
   OrderState,
   CLEAR_ALL_ORDERS,
 } from "@/reducers/orderReducers";
+import { acceptedCurrencyReducer } from "@/reducers/acceptedCurrencyReducers";
 import { finalizedOrderReducer } from "@/reducers/finalizedOrderReducers";
 import { initialStoreContext } from "../context/initialLoadingState";
 import { dummyRelays } from "./dummyData";
@@ -78,6 +79,10 @@ export const StoreContextProvider = (
     profilePictureUrl: "",
     baseCurrencyAddr: null,
   });
+  const [acceptedCurrencies, setAcceptedCurrencies] = useReducer(
+    acceptedCurrencyReducer,
+    [],
+  );
   const [pubKeys, setPubKeys] = useReducer(pubKeyReducer, []);
   const [db, setDb] = useState(null);
   const [relays, setRelays] = useState<IRelay[]>(dummyRelays);
@@ -273,6 +278,7 @@ export const StoreContextProvider = (
             setFinalizedOrders,
             setPubKeys,
             setStoreData,
+            setAcceptedCurrencies,
             walletAddress,
           );
         }
@@ -623,6 +629,7 @@ export const StoreContextProvider = (
     setPublishedTagId,
     setOrderId,
     setStoreData,
+    acceptedCurrencies,
   };
 
   return (

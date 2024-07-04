@@ -12,18 +12,29 @@ import { useMyContext } from "@/context/MyContext";
 import Image from "next/image";
 import AvatarUpload from "@/app/common/components/AvatarUpload";
 import { UPDATE_STORE_NAME, UPDATE_STORE_PIC } from "@/reducers/storeReducer";
+import { ADD_ACCEPTED_CURR } from "@/reducers/acceptedCurrencyReducers";
+import { TokenAddr } from "@/reducers/acceptedCurrencyReducers";
+import SecondaryButton from "@/app/common/components/SecondaryButton";
+import { hexToBytes } from "viem";
+import { sepolia, hardhat } from "viem/chains";
 
 const StoreProfile = ({ close }: { close: () => void }) => {
-  const { storeData, setStoreData } = useStoreContext();
+  const { storeData, setStoreData, acceptedCurrencies, setAcceptedCurrencies } =
+    useStoreContext();
   const { relayClient } = useMyContext();
   const [storeName, setStoreName] = useState<string>(storeData?.name);
-  // const [storeURL, setStoreURL] = useState<string>("ethdubai.mass.market");
+  const [baseCurrencyAddr, setStoreBase] = useState<null | TokenAddr>(null);
   const [avatar, setAvatar] = useState<FormData | null>(null);
+  const [currencies, setCurrencies] = useState(acceptedCurrencies);
+  const [addTokenAddr, setAddTokenAddr] = useState<"" | TokenAddr>("");
   const { shopId } = useMyContext();
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     setStoreName(storeData?.name);
-  }, []);
+    setStoreBase(storeData?.baseCurrencyAddr);
+    setCurrencies(acceptedCurrencies);
+  }, [acceptedCurrencies]);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(shopId!);
@@ -53,10 +64,35 @@ const StoreProfile = ({ close }: { close: () => void }) => {
         });
     close();
   };
-
+  const renderAcceptedCurrencies = () => {
+    return currencies.map((a, i) => <p key={i}>{a}</p>);
+  };
+  const addAcceptedCurrencyFn = async () => {
+    if (!addTokenAddr.length) return;
+    const chainName = process.env.NEXT_PUBLIC_CHAIN_NAME!;
+    try {
+      await relayClient!.updateShopManifest({
+        addAcceptedCurrency: {
+          tokenAddr: hexToBytes(addTokenAddr as `0x${string}`),
+          chainId: chainName === "sepolia" ? sepolia.id : hardhat.id,
+        },
+      });
+      setAcceptedCurrencies({
+        type: ADD_ACCEPTED_CURR,
+        payload: { tokenAddr: addTokenAddr as TokenAddr },
+      });
+      console.log("tokenAddr added to accepted currencies");
+    } catch (error) {
+      console.log({ error });
+      setAddTokenAddr("");
+      //@ts-expect-error FIXME
+      error.message && setErrorMsg(error.message);
+    }
+  };
   return (
     <section className="pt-under-nav h-screen">
       <ModalHeader headerText="Store Profile" goBack={close} />
+      <h1 className="text-red-500">{errorMsg}</h1>
       <section className="flex flex-col h-5/6">
         <AvatarUpload setImgBlob={setAvatar} />
         <div className="m-4">
@@ -100,6 +136,64 @@ const StoreProfile = ({ close }: { close: () => void }) => {
                         alt="copy-icon"
                       />
                     </button>
+                  </div>
+                </form>
+              </section>
+              <section className="mt-4">
+                <form
+                  className="flex flex-col"
+                  onSubmit={(e) => e.preventDefault()}
+                >
+                  <label htmlFor="storeName">Base Currency</label>
+                  <div className="flex gap-2">
+                    <input
+                      className="border-2 border-solid mt-1 p-2 rounded"
+                      id="storeName"
+                      name="storeName"
+                      //@ts-expect-error FIXME
+                      value={baseCurrencyAddr}
+                      //@ts-expect-error FIXME
+                      onChange={(e) => setStoreBase(e.target.value)}
+                    />
+                    <button className="mr-4" onClick={copyToClipboard}>
+                      <Image
+                        src="/assets/copy-icon.svg"
+                        width={14}
+                        height={14}
+                        alt="copy-icon"
+                      />
+                    </button>
+                  </div>
+                </form>
+              </section>
+              <section className="mt-4">
+                <p>Accepted currencies:</p>
+                {renderAcceptedCurrencies()}
+              </section>
+              <section className="mt-4">
+                <form
+                  className="flex flex-col"
+                  onSubmit={(e) => e.preventDefault()}
+                >
+                  <label htmlFor="addTokenAddr">Add Token Address</label>
+                  <p>
+                    Note: for now it will add with the chainID from env file...
+                  </p>
+                  <div className="flex gap-2">
+                    <input
+                      className="border-2 border-solid mt-1 p-2 rounded"
+                      id="addTokenAddr"
+                      name="addTokenAddr"
+                      value={addTokenAddr}
+                      //@ts-expect-error FIXME
+                      onChange={(e) => setAddTokenAddr(e.target.value)}
+                    />
+                    <SecondaryButton
+                      className="mr-4"
+                      onClick={addAcceptedCurrencyFn}
+                    >
+                      Add
+                    </SecondaryButton>
                   </div>
                 </form>
               </section>

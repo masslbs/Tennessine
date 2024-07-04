@@ -19,6 +19,10 @@ import {
 } from "../src/reducers/finalizedOrderReducers";
 import { pubKeyReducer, pubKeyAction } from "../src/reducers/KCPubKeysReducers";
 import { storeReducer, updateStoreDataAction } from "@/reducers/storeReducer";
+import {
+  acceptedCurrencyReducer,
+  AcceptedCurrencyActions,
+} from "@/reducers/acceptedCurrencyReducers";
 
 describe("mockclient", async () => {
   const client = new MockClient();
@@ -27,6 +31,7 @@ describe("mockclient", async () => {
   let allTags = new Map();
   let orderItems = new Map();
   let publishedTagId = null;
+  let acceptedCurrencies;
   const events = [];
   let finalizedOrders = new Map();
   let pubKeys: `0x${string}`[] = [];
@@ -53,6 +58,10 @@ describe("mockclient", async () => {
     //@ts-expect-error FIXME
     storeData = storeReducer(storeData, action);
   }
+  function setAcceptedCurrencies(action: AcceptedCurrencyActions) {
+    acceptedCurrencies = acceptedCurrencyReducer([], action);
+    console.log({ acceptedCurrencies });
+  }
 
   client.on("event", (e) => {
     events.push(e.request);
@@ -67,6 +76,7 @@ describe("mockclient", async () => {
       setFinalizedOrders,
       setPubKeys,
       setStoreData,
+      setAcceptedCurrencies,
     );
   });
 

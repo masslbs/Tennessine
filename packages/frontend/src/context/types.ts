@@ -9,6 +9,10 @@ import { IProduct, ITag, IStatus, IRelay } from "@/types";
 import { Level } from "level";
 import { RelayClient, WalletClientWithAccount } from "@massmarket/client";
 import { updateStoreDataAction } from "@/reducers/storeReducer";
+import {
+  TokenAddr,
+  AcceptedCurrencyActions,
+} from "@/reducers/acceptedCurrencyReducers";
 
 export type ItemId = `0x${string}`;
 export type TagId = `0x${string}`;
@@ -116,6 +120,8 @@ export type StoreContent = {
   setPublishedTagId: (id: TagId) => void;
   setOrderId: (orderId: OrderId | null) => void;
   setStoreData: Dispatch<updateStoreDataAction>;
+  acceptedCurrencies: TokenAddr[];
+  setAcceptedCurrencies: Dispatch<AcceptedCurrencyActions>;
 };
 
 export type ProductsMap = Map<ItemId, IProduct>;
