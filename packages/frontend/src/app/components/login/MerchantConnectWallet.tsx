@@ -17,6 +17,7 @@ import { Address } from "viem/accounts";
 import { ShopId } from "@/context/types";
 import { useMerchantContext } from "@/context/MerchantContext";
 import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 const MerchantConnectWallet = ({ close }: { close: () => void }) => {
   const { connectors, connect } = useConnect();
@@ -33,25 +34,26 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
   const enrollKeycard = useRef(false);
 
   const { setStoreIds } = useMerchantContext();
-  const keyCardToEnroll = localStorage.getItem(
-    "keyCardToEnroll",
-  ) as `0x${string}`;
   const storeIdsVerified = useRef(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const shopId = searchParams!.get("shopId") as `0x${string}`;
 
   if (typeof window == "undefined") {
     console.warn("not a browser session");
     return;
   }
   useEffect(() => {
-    setIsMerchantView(true);
-  }, []);
+    if (shopId) {
+      localStorage.setItem("shopId", shopId);
+      setShopId(shopId);
+    }
+  });
 
   useEffect(() => {
     (async () => {
       if (publicClient && walletAddress && !storeIdsVerified.current) {
         storeIdsVerified.current = true;
-        const shopId = localStorage.getItem("shopId") as `0x${string}`;
         let usedShopId;
         if (shopId) {
           usedShopId = shopId;
@@ -62,7 +64,6 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
           const _shopIds = Array.from([..._storeIds.keys()]);
           usedShopId = _shopIds[_shopIds.length - 1];
         }
-
         await enroll(usedShopId);
       }
     })();
@@ -70,13 +71,14 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
 
   const getShops = async () => {
     const stores = new Map();
+    const block = await publicClient!.getBlockNumber();
     const logs = await publicClient!.getLogs({
       address: abi.addresses.ShopReg as Address,
       event: parseAbiItem(
         "event Transfer(address indexed from, address indexed to, uint256 value)",
       ),
-      // fromBlock: "earliest",
-      // toBlock: "latest",
+      fromBlock: block - BigInt(20000),
+      toBlock: "latest",
       args: {
         to: walletAddress,
       },
@@ -90,9 +92,9 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
   };
 
   const enroll = async (shopId: ShopId) => {
+    console.log(`enrolling with shopId: ${shopId}`);
     if (shopId) {
       if (
-        keyCardToEnroll &&
         clientWallet &&
         isConnected === IStatus.Pending &&
         !enrollKeycard.current
@@ -102,13 +104,17 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
         (async () => {
           const _relayClient = createNewRelayClient();
           if (!_relayClient) return;
+          const keyCardToEnroll = localStorage.getItem(
+            "keyCardToEnroll",
+          ) as `0x${string}`;
           const res = await _relayClient.enrollKeycard(
             clientWallet,
             false,
             shopId,
           );
           if (res.ok) {
-            console.log(`Keycard enrolled`);
+            console.log(`Keycard enrolled: ${keyCardToEnroll}`);
+            setIsMerchantView(true);
             setRelayClient(_relayClient);
             setKeyCardEnrolled(true);
             keyCardToEnroll && localStorage.setItem("keyCard", keyCardToEnroll);

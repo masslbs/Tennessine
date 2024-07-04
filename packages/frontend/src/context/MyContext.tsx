@@ -20,6 +20,7 @@ import { type ClientContext, ShopId } from "./types";
 import { privateKeyToAccount } from "viem/accounts";
 import { usePathname } from "next/navigation";
 import { random32BytesHex } from "@massmarket/utils";
+import { useSearchParams } from "next/navigation";
 
 export const MyContext = createContext<ClientContext>({
   walletAddress: null,
@@ -66,7 +67,7 @@ export const MyContextProvider = (
     null,
   );
   const [inviteSecret, setInviteSecret] = useState<`0x${string}` | null>(null);
-  const { address, isConnected } = useAccount();
+  const { address } = useAccount();
   const name = useEnsName({ address })?.data || null;
   const ensAvatar = useEnsAvatar({ name: ensName! })?.data;
   const { data: _wallet, status: walletStatus } = useWalletClient();
@@ -74,26 +75,28 @@ export const MyContextProvider = (
     setIsConnected,
     setIsMerchantView,
     setUpdateRootHashPerm,
-    isMerchantView,
+    isConnected,
   } = useAuth();
   const [keyCardEnrolled, setKeyCardEnrolled] = useState<boolean>(false);
+  const searchParams = useSearchParams();
+  const _shopId = searchParams!.get("shopId") as `0x${string}`;
+  if (_shopId) {
+    localStorage.setItem("shopId", _shopId);
+  }
   const [shopId, setShopId] = useState<ShopId>(
     (localStorage.getItem("shopId") as ShopId) ||
       (process.env.NEXT_PUBLIC_STORE_ID as ShopId),
   );
-
   const pathname = usePathname();
-  const isDemoStore =
-    ![`/merchants/`, `/create-store/`].includes(pathname) && !isMerchantView;
-
+  const isMerchantPath = [`/merchants/`, `/create-store/`].includes(pathname);
   if (!shopId) {
     throw Error("missing shop ID");
   }
   const savedKC = localStorage.getItem("keyCard") as `0x${string}`;
 
   useEffect(() => {
-    if (savedKC) {
-      setKeyCardEnrolled(true);
+    if (savedKC && isMerchantPath) {
+      localStorage.removeItem("keyCard");
     }
   }, []);
 
@@ -161,9 +164,10 @@ export const MyContextProvider = (
       ensAvatar && setAvatar(ensAvatar);
       ensName && setEnsName(name);
     }
-  }, [isConnected, clientWallet, data, ensAvatar, name]);
+  }, [clientWallet, data, ensAvatar, name]);
 
   useEffect(() => {
+    if (isMerchantPath) return;
     let keyCard = random32BytesHex();
     if (!keyCardEnrolled && !savedKC) {
       localStorage.setItem("keyCardToEnroll", keyCard);
@@ -182,7 +186,7 @@ export const MyContextProvider = (
     const _relayClient = new RelayClient(user);
     setRelayClient(_relayClient);
     (async () => {
-      if (!savedKC && isDemoStore && !keyCardEnrolled) {
+      if (!savedKC && !keyCardEnrolled) {
         console.log("enrolling KC with guest wallet...");
         const guestWallet = createWalletClient({
           account: privateKeyToAccount(random32BytesHex()),
@@ -199,7 +203,7 @@ export const MyContextProvider = (
           localStorage.removeItem("keyCard");
         }
         localStorage.removeItem("keyCardToEnroll");
-      } else if (savedKC && walletAddress) {
+      } else if (savedKC && walletAddress && isConnected === IStatus.Pending) {
         console.log(`connecting to client with KC : ${savedKC}`);
         const hasAccess = await checkPermissions();
         if (hasAccess) {

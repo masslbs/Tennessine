@@ -50,10 +50,6 @@ const StoreCreation = () => {
   const enrollKeycard = useRef(false);
   const randomShopIdHasBeenSet = useRef(false);
 
-  useEffect(() => {
-    setIsMerchantView(true);
-  }, []);
-
   const checkRequiredFields = () => {
     const isTokenAddrHex = Boolean(tokenAddr.match(/^0x[0-9a-f]+$/i));
     const isPayeeAddHex = Boolean(payeeAddr.match(/^0x[0-9a-f]+$/i));
@@ -126,6 +122,7 @@ const StoreCreation = () => {
               const keyCardToEnroll = localStorage.getItem(
                 "keyCardToEnroll",
               ) as `0x${string}`;
+              setIsMerchantView(true);
               setRelayClient(_relayClient);
               localStorage.setItem("keyCard", keyCardToEnroll);
               console.log(`keycard enrolled:${keyCardToEnroll}`);
@@ -157,8 +154,9 @@ const StoreCreation = () => {
           },
           shopId,
         );
-        setPublishedTagId(bytesToHex(publishedTagId));
+        console.log(`Shop Manifested with shopId:${shopId}`);
         const newPubId = await relayClient.createTag({ name: "visible" });
+        setPublishedTagId(bytesToHex(newPubId));
         const path = await relayClient!.uploadBlob(avatar as FormData);
 
         if (newPubId && path.url) {
@@ -178,7 +176,7 @@ const StoreCreation = () => {
               chainId,
               name: "default",
             },
-            profilePictureUrl: "/",
+            profilePictureUrl: path.url,
           });
           console.log(`UPDATED Manifest shopId:${shopId}`);
         }

@@ -18,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <title>Mass Market @ ETHDubai</title>
+        <title>Mass Market</title>
       </head>
       <body className="min-h-screen">
         <Providers>

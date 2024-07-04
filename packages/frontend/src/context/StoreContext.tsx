@@ -55,7 +55,7 @@ import { dummyRelays } from "./dummyData";
 import { pubKeyReducer } from "@/reducers/KCPubKeysReducers";
 import { setMapData, getParsedMapData, setItem, getItem } from "@/utils/level";
 import { storeReducer, SET_STORE_DATA } from "@/reducers/storeReducer";
-import { useChainId } from "wagmi";
+import { hardhat, sepolia, mainnet } from "viem/chains";
 
 // @ts-expect-error FIXME
 export const StoreContext = createContext<StoreContent>(initialStoreContext);
@@ -82,7 +82,14 @@ export const StoreContextProvider = (
   const [db, setDb] = useState(null);
   const [relays, setRelays] = useState<IRelay[]>(dummyRelays);
   const { relayClient, walletAddress, shopId } = useMyContext();
-  const chainId = useChainId();
+
+  const chainName = process.env.NEXT_PUBLIC_CHAIN_NAME!;
+  const usedChainId: number =
+    chainName === "sepolia"
+      ? sepolia.id
+      : chainName === "hardhat"
+        ? hardhat.id
+        : mainnet.id;
 
   useEffect(() => {
     createState();
@@ -576,7 +583,7 @@ export const StoreContextProvider = (
         orderId: hexToBytes(orderId as OrderId),
         currency: {
           tokenAddr: hexToBytes(storeData.baseCurrencyAddr!),
-          chainId,
+          chainId: usedChainId,
         },
         payeeName: "default",
       });

@@ -8,7 +8,7 @@ import SecondaryButton from "@/app/common/components/SecondaryButton";
 import Image from "next/image";
 import { createQueryString } from "@/app/utils";
 import { useSearchParams } from "next/navigation";
-import { OrderId } from "@/types";
+import { IStatus, OrderId } from "@/types";
 import { OrderState } from "@/context/types";
 
 const MerchantDashboard = () => {
@@ -28,15 +28,22 @@ const MerchantDashboard = () => {
     return transactions?.length ? (
       transactions.map((entry) => {
         const cartId = entry[0];
-        const allItemsObj = entry[1];
-        const transactionHash = allItemsObj?.txHash || null;
-        if (!allItemsObj?.items) return null;
+        const value = entry[1];
+        const transactionHash = value?.txHash || null;
+        if (!value?.items) return null;
+        const len = Object.keys(value.items).length;
+        const status =
+          value.status === IStatus.Complete
+            ? "green"
+            : value.status === IStatus.Failed
+              ? "red"
+              : "yellow";
         return (
           <div key={cartId}>
             <div className="bg-white border-2 rounded-xl p-3 flex justify-between">
-              <p>Name</p>
-              <p>{transactionHash}</p>
-              <p>Price</p>
+              <p className={`text-${status}-500`}>{value.status}</p>
+              <p>{transactionHash?.slice(0, 10)}...</p>
+              <p>{len} item(s)</p>
             </div>
           </div>
         );

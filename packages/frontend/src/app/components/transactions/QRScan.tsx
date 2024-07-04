@@ -5,49 +5,32 @@
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import QRCode from "qrcode";
-import { useStoreContext } from "@/context/StoreContext";
-import { IStatus } from "@/types";
 
 function QRScan({
   imgSrc,
   totalDollar,
   purchaseAddress,
   showModal,
-  cryptoTotal,
+  erc20Amount,
+  symbol,
   goBack,
 }: {
   imgSrc: string | null;
   totalDollar: string;
   purchaseAddress: string;
   showModal: string | null;
-  cryptoTotal: string;
+  erc20Amount: number | null;
+  symbol: string | null;
   goBack: () => void;
 }) {
   console.log("for testing send payment to:", imgSrc);
-  const { orderId, orderItems, setOrderId } = useStoreContext();
   const [src, setQr] = useState<string | null>(null);
-  const amount = (Number(cryptoTotal) / 10 ** 18).toFixed(2);
-  //FIXME: render erc20
-  // const erc20Amount = Number(cryptoTotal) / Math.pow(10, decimals);
-  // const header = `${erc20Checkout ? erc20Amount : amount.toFixed(2)} ${symbol}`;
-
   const copyToClipboard = () => {
     navigator.clipboard.writeText(purchaseAddress!);
   };
-
   useEffect(() => {
     imgSrc && QRCode.toDataURL(imgSrc).then(setQr);
   }, [imgSrc]);
-
-  useEffect(() => {
-    if (
-      orderItems &&
-      orderId &&
-      orderItems.get(orderId)?.status === IStatus.Complete
-    ) {
-      setOrderId(null);
-    }
-  }, [orderItems]);
 
   return (
     <div
@@ -63,13 +46,15 @@ function QRScan({
             {src && <Image src={src} width={215} height={215} alt="QR-code" />}
           </div>
           <p className="text-primary-gray">scan to pay</p>
-          <h2>{amount}</h2>
+          <h2>
+            {erc20Amount} {symbol}
+          </h2>
         </div>
       ) : (
         <div className="flex flex-col gap-5 text-primary-gray">
           <button onClick={goBack}>go back</button>
           <h2>
-            Send <span className="text-black">{amount}</span>
+            Send <span className="text-black">{erc20Amount}</span>
           </h2>
           <p>{totalDollar}</p>
           <p>to this address:</p>
