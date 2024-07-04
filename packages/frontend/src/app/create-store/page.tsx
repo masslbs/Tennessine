@@ -14,7 +14,7 @@ import SecondaryButton from "@/app/common/components/SecondaryButton";
 import { random32BytesHex } from "@massmarket/utils";
 import Image from "next/image";
 import { useChains } from "wagmi";
-import { hexToBytes } from "viem";
+import { bytesToHex, hexToBytes } from "viem";
 import { SET_STORE_DATA } from "@/reducers/storeReducer";
 import { useStoreContext } from "@/context/StoreContext";
 import { BlockchainClient } from "@massmarket/blockchain";
@@ -32,7 +32,7 @@ const StoreCreation = () => {
     createNewRelayClient,
   } = useMyContext();
 
-  const { setStoreData } = useStoreContext();
+  const { setStoreData, setPublishedTagId } = useStoreContext();
   const { isConnected, setIsConnected, setIsMerchantView } = useAuth();
   const chains = useChains();
   const router = useRouter();
@@ -41,26 +41,25 @@ const StoreCreation = () => {
   // const [storeURL, setStoreURL] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [avatar, setAvatar] = useState<FormData | null>(null);
-  const [tokenAddr, setTokenAddr] = useState<string>("0x");
+  const [tokenAddr, setTokenAddr] = useState<string>("");
   const [chainId, setAcceptedChain] = useState<number>(0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isStoreCreated, setStoreCreated] = useState<boolean>(false);
+  const [payeeAddr, setPayeeAddr] = useState<string>("");
 
   const enrollKeycard = useRef(false);
   const randomShopIdHasBeenSet = useRef(false);
-
-  const keyCardToEnroll = localStorage.getItem(
-    "keyCardToEnroll",
-  ) as `0x${string}`;
 
   useEffect(() => {
     setIsMerchantView(true);
   }, []);
 
   const checkRequiredFields = () => {
-    const isHex = Boolean(tokenAddr.match(/^0x[0-9a-f]+$/i));
+    const isTokenAddrHex = Boolean(tokenAddr.match(/^0x[0-9a-f]+$/i));
+    const isPayeeAddHex = Boolean(payeeAddr.match(/^0x[0-9a-f]+$/i));
+
     let error = null;
-    if (!isHex) {
+    if (!isTokenAddrHex) {
       error = "Token address must be a valid hex value";
     } else if (!storeName.length) {
       error = "Store name is required";
@@ -72,6 +71,8 @@ const StoreCreation = () => {
       error = "Token Address is required";
     } else if (!chainId) {
       error = "Select a chainID";
+    } else if (!isPayeeAddHex) {
+      error = "Payee Address must be a valid hex value";
     }
     if (error) {
       setErrorMsg(error);
@@ -106,6 +107,7 @@ const StoreCreation = () => {
           publicClient &&
           (await publicClient.waitForTransactionReceipt({
             hash,
+            retryCount: 10,
           }));
         if (transaction!.status == "success") {
           console.log(`CREATED shopId: ${shopId}`);
@@ -121,6 +123,9 @@ const StoreCreation = () => {
               shopId,
             );
             if (res.ok) {
+              const keyCardToEnroll = localStorage.getItem(
+                "keyCardToEnroll",
+              ) as `0x${string}`;
               setRelayClient(_relayClient);
               localStorage.setItem("keyCard", keyCardToEnroll);
               console.log(`keycard enrolled:${keyCardToEnroll}`);
@@ -152,7 +157,7 @@ const StoreCreation = () => {
           },
           shopId,
         );
-        console.log(`MANIFESTED shopId:${shopId}`);
+        setPublishedTagId(bytesToHex(publishedTagId));
         const newPubId = await relayClient.createTag({ name: "visible" });
         const path = await relayClient!.uploadBlob(avatar as FormData);
 
@@ -163,13 +168,28 @@ const StoreCreation = () => {
               tokenAddr: hexToBytes(tokenAddr as `0x${string}`),
               chainId,
             },
-            profilePictureUrl: path.url,
+            addAcceptedCurrency: {
+              tokenAddr: hexToBytes(tokenAddr as `0x${string}`),
+              chainId,
+            },
+            addPayee: {
+              addr: hexToBytes(payeeAddr as `0x${string}`),
+              callAsContract: false,
+              chainId,
+              name: "default",
+            },
+            profilePictureUrl: "/",
           });
+          console.log(`UPDATED Manifest shopId:${shopId}`);
         }
 
         setStoreData({
           type: SET_STORE_DATA,
-          payload: { name: storeName!, profilePictureUrl: path.url! },
+          payload: {
+            name: storeName!,
+            profilePictureUrl: path.url!,
+            baseCurrencyAddr: tokenAddr as `0x${string}`,
+          },
         });
         const metadata = {
           name: storeName,
@@ -269,7 +289,7 @@ const StoreCreation = () => {
               e.preventDefault();
             }}
           >
-            <label htmlFor="tokenAddr">Base Currency</label>
+            <label htmlFor="tokenAddr as `0x${string}`">Base Currency</label>
 
             <Image
               src="/assets/search.svg"
@@ -288,6 +308,20 @@ const StoreCreation = () => {
             />
           </form>
         </div>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+          }}
+        >
+          <label htmlFor="payee">Payment Address</label>
+          <input
+            className="border-2 border-solid mt-1 p-2 rounded-2xl w-full"
+            id="payee"
+            name="payee"
+            value={payeeAddr}
+            onChange={(e) => setPayeeAddr(e.target.value)}
+          />
+        </form>
       </section>
     </main>
   );

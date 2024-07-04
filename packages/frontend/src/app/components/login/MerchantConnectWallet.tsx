@@ -51,11 +51,19 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
     (async () => {
       if (publicClient && walletAddress && !storeIdsVerified.current) {
         storeIdsVerified.current = true;
-        const _storeIds = await getShops();
-        console.log({ _storeIds });
-        setStoreIds(_storeIds);
-        const _shopIds = Array.from([..._storeIds.keys()]);
-        await enroll(_shopIds[0]);
+        const shopId = localStorage.getItem("shopId") as `0x${string}`;
+        let usedShopId;
+        if (shopId) {
+          usedShopId = shopId;
+        } else {
+          const _storeIds = await getShops();
+          console.log({ _storeIds });
+          setStoreIds(_storeIds);
+          const _shopIds = Array.from([..._storeIds.keys()]);
+          usedShopId = _shopIds[_shopIds.length - 1];
+        }
+
+        await enroll(usedShopId);
       }
     })();
   }, [walletAddress, publicClient]);
@@ -67,12 +75,13 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
       event: parseAbiItem(
         "event Transfer(address indexed from, address indexed to, uint256 value)",
       ),
-      fromBlock: "earliest",
-      toBlock: "latest",
+      // fromBlock: "earliest",
+      // toBlock: "latest",
       args: {
         to: walletAddress,
       },
     });
+    console.log({ logs });
     logs.map(async (l) => {
       //@ts-expect-error FIXME
       stores.set(l.topics?.[3], 1);
@@ -95,7 +104,7 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
           if (!_relayClient) return;
           const res = await _relayClient.enrollKeycard(
             clientWallet,
-            true,
+            false,
             shopId,
           );
           if (res.ok) {

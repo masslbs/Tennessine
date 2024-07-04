@@ -17,7 +17,11 @@ import SecondaryButton from "@/app/common/components/SecondaryButton";
 import { createQueryString } from "@/app/utils";
 
 const _menuOptions = [
-  { title: "Sales dashboard", img: "earnings.svg", href: "/earnings" },
+  {
+    title: "Sales dashboard",
+    img: "earnings.svg",
+    href: "/merchant-dashboard",
+  },
   { title: "Shop settings", img: "store-settings.svg", href: "/store" },
   { title: "My profile", img: "profile.svg", href: "/account" },
   { title: "New shop", img: "create-store.png", href: "/create-store" },
@@ -27,8 +31,8 @@ const Navigation = () => {
   const [menuOpened, setMenuOpened] = useState<boolean>(false);
 
   const { name } = useMyContext();
-  const { setIsConnected } = useAuth();
-  const { db, storeData } = useStoreContext();
+  const { setIsConnected, isMerchantView } = useAuth();
+  const { db, storeData, invalidateOrder } = useStoreContext();
   const searchParams = useSearchParams();
 
   // const profilePhoto = avatar ? avatar : "example-avatar.svg";
@@ -41,6 +45,7 @@ const Navigation = () => {
   };
 
   const menuSwitch = () => {
+    if (!isMerchantView) return;
     setMenuOpened(!menuOpened);
   };
 
@@ -66,7 +71,7 @@ const Navigation = () => {
     <FullModal isOpen={menuOpened}>
       <main>
         <div className="w-full border border-gray-200 p-4 text-base flex justify-between">
-          <p>{name || "antimofm.eth"}</p>
+          <p>{name}</p>
           <div className="flex gap-4">
             <button onClick={menuSwitch}>
               <Image
@@ -87,8 +92,8 @@ const Navigation = () => {
           <div className="mb-4">
             <h2>{storeData.name}</h2>
             <div className="flex text-xs gap-1">
-              <SecondaryButton>
-                <div className="flex items-center gap-1">
+              <SecondaryButton onClick={menuSwitch}>
+                <Link className="flex items-center gap-1" href="/products">
                   Go to Shop
                   <Image
                     src="/assets/forward-button.svg"
@@ -96,9 +101,9 @@ const Navigation = () => {
                     height={12}
                     alt="forward-icon"
                   />
-                </div>
+                </Link>
               </SecondaryButton>
-              <SecondaryButton>
+              <SecondaryButton onClick={menuSwitch}>
                 <Link
                   href={`/products/edit?${createQueryString("itemId", "new", searchParams)}`}
                   onClick={menuSwitch}
@@ -106,7 +111,7 @@ const Navigation = () => {
                   Add Product +
                 </Link>
               </SecondaryButton>
-              <SecondaryButton>
+              <SecondaryButton onClick={menuSwitch}>
                 <div className="flex items-center gap-1">
                   Settings
                   <Image
@@ -121,22 +126,13 @@ const Navigation = () => {
           </div>
           <div>{renderItems()}</div>
           <div>
+            <button onClick={() => invalidateOrder("new sale started")}>
+              <h2>New Sale</h2>
+            </button>
+          </div>
+          <div>
             <h2 onClick={logout}>Log out</h2>
           </div>
-
-          {/* <div className="absolute bottom-0 left-0 right-0 mb-20 mx-5">
-          <button
-            type="button"
-            className="flex justify-center bg-gradient-to-r from-button-gradient-start to-button-gradient-end w-full text-white px-4 py-4 rounded-md"
-            onClick={() => {
-              invalidateOrder("New sale started.");
-              router.push("/products");
-              onClose();
-            }}
-          >
-            New Sale
-          </button>
-        </div> */}
         </div>
       </main>
     </FullModal>
@@ -157,7 +153,7 @@ const Navigation = () => {
             />
             <p>back</p>
           </div>
-          <p className="ml-5">{name || "antimofm.eth"}</p>
+          <p className="ml-5">{name}</p>
         </div>
         <div className="flex gap-4">
           <button onClick={menuSwitch}>

@@ -30,7 +30,11 @@ export type UpdateItemProps = {
   value: number | { title: string; description: string; image: string };
 };
 
-export type storeState = { name: string; profilePictureUrl: string };
+export type storeState = {
+  name: string;
+  profilePictureUrl: string;
+  baseCurrencyAddr: `0x${string}` | null;
+};
 
 export type ItemState = { [key: ItemId]: number };
 export type OrderState = {
