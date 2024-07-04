@@ -9,8 +9,8 @@ import { IStatus } from "@/types";
 import PaymentOptions from "@/app/components/checkout/PaymentOptions";
 import { useMyContext } from "@/context/MyContext";
 import * as abi from "@massmarket/contracts";
-import { useChainId } from "wagmi";
 import { bytesToHex, bytesToNumber } from "viem";
+import { sepolia, mainnet, hardhat } from "viem/chains";
 
 const CheckoutFlow = () => {
   const { commitOrder, finalizedOrders, orderItems, orderId, setOrderId } =
@@ -37,7 +37,14 @@ const CheckoutFlow = () => {
   );
   const [erc20Amount, setErc20Amount] = useState<null | number>(null);
   const [symbol, setSymbol] = useState<null | string>(null);
-  const chainId = useChainId();
+  const chainName = process.env.NEXT_PUBLIC_CHAIN_NAME!;
+  const usedChainId: number =
+    chainName === "sepolia"
+      ? sepolia.id
+      : chainName === "hardhat"
+        ? hardhat.id
+        : mainnet.id;
+
   const copyToClipboard = () => {
     navigator.clipboard.writeText(purchaseAddress!);
   };
@@ -71,7 +78,7 @@ const CheckoutFlow = () => {
 
       (async () => {
         const arg = [
-          chainId,
+          usedChainId,
           ttl,
           bytesToHex(orderHash),
           bytesToHex(currencyAddr),
