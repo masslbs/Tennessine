@@ -294,16 +294,16 @@
     "schema": {
       "flake": false,
       "locked": {
-        "lastModified": 1718800744,
-        "narHash": "sha256-Qf0xHSCqdAvzTgSpgPSkOQJNb4wY0GaRv5k3EItyy70=",
+        "lastModified": 1719389550,
+        "narHash": "sha256-Z6t/tucYsCfw7Clg/+OWPs1yf1K1tbOLVUjfIZl5L2o=",
         "owner": "masslbs",
         "repo": "network-schema",
-        "rev": "1b551f131531fcce1ffcac07c24b0f444181544f",
+        "rev": "299cb953e256dafe68099c35a4da628896b7f232",
         "type": "github"
       },
       "original": {
         "owner": "masslbs",
-        "ref": "signatures-v2",
+        "ref": "wip/v2",
         "repo": "network-schema",
         "type": "github"
       }
