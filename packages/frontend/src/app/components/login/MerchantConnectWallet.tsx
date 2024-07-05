@@ -102,6 +102,7 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
       ) {
         enrollKeycard.current = true;
         setShopId(shopId);
+        localStorage.setItem("shopId", shopId);
         (async () => {
           const _relayClient = createNewRelayClient();
           if (!_relayClient) return;
@@ -118,7 +119,8 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
             setIsMerchantView(true);
             setRelayClient(_relayClient);
             setKeyCardEnrolled(true);
-            keyCardToEnroll && localStorage.setItem("keyCard", keyCardToEnroll);
+            keyCardToEnroll &&
+              localStorage.setItem("merchantKeyCard", keyCardToEnroll);
             setIsConnected(IStatus.Complete);
           } else {
             enrollKeycard.current = false;
