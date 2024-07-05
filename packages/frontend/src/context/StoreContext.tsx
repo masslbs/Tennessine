@@ -13,39 +13,24 @@ import { bytesToHex, hexToBytes } from "viem";
 
 import { IProduct, TagId, ItemId, IStatus, IRelay } from "@/types";
 import { useMyContext } from "./MyContext";
-import {
-  StoreContent,
-  ProductsMap,
-  TagsMap,
-  OrdersMap,
-  OrderId,
-  CurrenciesState,
-} from "@/context/types";
+import { StoreContent, OrderId } from "@/context/types";
 import {
   productReducer,
   ADD_PRODUCT,
   UPDATE_PRODUCT,
   ADD_PRODUCT_TAGS,
   REMOVE_PRODUCT_TAG,
-  SET_PRODUCTS,
   UPDATE_PRICE,
   UPDATE_METADATA,
   UPDATE_STOCKQTY,
-  CLEAR_PRODUCTS,
 } from "@/reducers/productReducers";
-import {
-  allTagsReducer,
-  ADD_TAG,
-  SET_ALL_TAGS,
-  CLEAR_ALL_TAGS,
-} from "@/reducers/tagReducers";
+import { allTagsReducer, ADD_TAG } from "@/reducers/tagReducers";
 import { buildState } from "@/utils/buildState";
 import {
   CLEAR_ORDER,
   REMOVE_ORDER_ITEM,
   UPDATE_ORDER_ITEM,
   UPDATE_ORDER_STATUS,
-  SET_ALL_ORDER_ITEMS,
   orderReducer,
   OrderState,
   CLEAR_ALL_ORDERS,
@@ -53,14 +38,13 @@ import {
 import {
   acceptedCurrencyReducer,
   UPDATE_SYMBOL,
-  SET_ALL_CURRENCIES,
 } from "@/reducers/acceptedCurrencyReducers";
 import { finalizedOrderReducer } from "@/reducers/finalizedOrderReducers";
 import { initialStoreContext } from "../context/initialLoadingState";
 import { dummyRelays } from "./dummyData";
 import { pubKeyReducer } from "@/reducers/KCPubKeysReducers";
-import { setMapData, getParsedMapData, setItem, getItem } from "@/utils/level";
-import { storeReducer, SET_STORE_DATA } from "@/reducers/storeReducer";
+import { setMapData, setItem } from "@/utils/level";
+import { storeReducer } from "@/reducers/storeReducer";
 import { hardhat, sepolia, mainnet } from "viem/chains";
 
 // @ts-expect-error FIXME
@@ -140,7 +124,9 @@ export const StoreContextProvider = (
       }
     })();
   }, [shopId]);
-
+  useEffect(() => {
+    setRelays(dummyRelays);
+  }, []);
   // useEffect(() => {
   //   //FIXME: to fix once we intergrate multiple relays
   //   setRelays(dummyRelays);
