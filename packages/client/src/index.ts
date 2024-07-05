@@ -207,7 +207,7 @@ export class RelayClient extends EventEmitter {
         this.#handlePingRequest(message);
         break;
       case schema.EventPushRequest:
-        await this.eventStream.enqueue(message);
+        this.eventStream.enqueue(message);
         break;
       default:
         this.emit(bytesToHex(message.requestId), message);
@@ -291,7 +291,7 @@ export class RelayClient extends EventEmitter {
     const message = {
       keyCard: Buffer.from(publicKey).toString("hex"),
     };
-    // formatMessageForSigning(message); will turn keyCard into key_card
+    // formatMessgning(message); will turn keyCard into key_card
     // const sig = await this.#signTypedDataMessage(types, message);
     const signature = await wallet.signTypedData({
       types,
