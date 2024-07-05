@@ -21,7 +21,7 @@ const CheckoutFlow = () => {
   const { publicClient, shopId, getTokenInformation } = useMyContext();
   const [step, setStep] = useState(0);
 
-  const [imgSrc, setSrc] = useState<null | string>(null);
+  const [paymentLink, setPaymentLink] = useState<null | string>(null);
   const [checkoutReqId, setCheckoutRequestId] = useState<`0x${string}` | null>(
     null,
   );
@@ -119,7 +119,7 @@ const CheckoutFlow = () => {
               ? `ethereum:${purchaseAdd}?value=${amount}`
               : `ethereum:${currencyAddrHex}/transfer?address=${purchaseAdd}&uint256=${amount}`;
           setPurchaseAddr(purchaseAdd as `0x${string}`);
-          setSrc(payLink);
+          setPaymentLink(payLink);
           setCryptoTotal(amount);
           setErc20Amount(_erc20Amount);
           setTotalDollar(total);
@@ -141,7 +141,7 @@ const CheckoutFlow = () => {
   };
 
   const renderContent = () => {
-    console.log({ step, imgSrc, totalDollar, purchaseAddress, cryptoTotal });
+    console.log({ step, paymentLink, totalDollar, purchaseAddress, cryptoTotal });
     if (step === 0) {
       return (
         <NewCart
@@ -165,14 +165,14 @@ const CheckoutFlow = () => {
       );
     } else if (
       step === 2 &&
-      imgSrc &&
+      paymentLink &&
       totalDollar &&
       purchaseAddress &&
       cryptoTotal
     ) {
       return (
         <PaymentOptions
-          imgSrc={imgSrc}
+          paymentURL={paymentLink}
           totalDollar={totalDollar}
           purchaseAddress={purchaseAddress}
           cryptoTotal={cryptoTotal}

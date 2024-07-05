@@ -7,7 +7,7 @@ import QRScan from "@/app/components/transactions/QRScan";
 import WalletConnectQR from "../transactions/WalletConnectQR";
 
 const PaymentOptions = ({
-  imgSrc,
+  paymentURL,
   totalDollar,
   purchaseAddress,
   cryptoTotal,
@@ -20,7 +20,7 @@ const PaymentOptions = ({
   number,
   erc20Amount,
 }: {
-  imgSrc: string;
+  paymentURL: string;
   totalDollar: string;
   purchaseAddress: string;
   cryptoTotal: number;
@@ -40,7 +40,7 @@ const PaymentOptions = ({
     <div>
       <FullModal isOpen={Boolean(showModal)}>
         <QRScan
-          imgSrc={imgSrc}
+          imgSrc={paymentURL}
           totalDollar={totalDollar}
           purchaseAddress={purchaseAddress}
           erc20Amount={erc20Amount}
@@ -103,6 +103,10 @@ const PaymentOptions = ({
             />
           </div>
         </SecondaryButton>
+        <div className="flex gap-2">
+          <h6>Open in wallet</h6>
+          <a href={paymentURL}>Link</a>
+        </div>
       </div>
     </div>
   );
