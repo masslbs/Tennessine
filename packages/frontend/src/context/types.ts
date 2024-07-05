@@ -111,7 +111,7 @@ export type StoreContent = {
     itemId?: ItemId,
     saleQty?: number,
   ) => Promise<{ error: string | null }>;
-  commitOrder: (erc20: boolean) => Promise<{
+  commitOrder: () => Promise<{
     orderFinalizedId?: OrderId;
     requestId?: `0x${string}`;
     error: string | null;
