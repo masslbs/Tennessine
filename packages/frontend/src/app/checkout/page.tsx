@@ -141,7 +141,13 @@ const CheckoutFlow = () => {
   };
 
   const renderContent = () => {
-    console.log({ step, paymentLink, totalDollar, purchaseAddress, cryptoTotal });
+    console.log({
+      step,
+      paymentLink,
+      totalDollar,
+      purchaseAddress,
+      cryptoTotal,
+    });
     if (step === 0) {
       return (
         <NewCart
