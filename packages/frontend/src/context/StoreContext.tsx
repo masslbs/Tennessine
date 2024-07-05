@@ -102,6 +102,7 @@ export const StoreContextProvider = (
       : chainName === "hardhat"
         ? hardhat.id
         : mainnet.id;
+
   useEffect(() => {
     createState();
   }, [relayClient]);
@@ -122,26 +123,23 @@ export const StoreContextProvider = (
   }, [acceptedCurrencies]);
 
   useEffect(() => {
-    if (walletAddress) {
-      (async () => {
-        const { Level } = await import("level");
-
-        const dbName = `${shopId?.slice(0, 5)}${walletAddress?.slice(0, 5)}`;
-        console.log("using level db:", { dbName });
-        const db = new Level(`./${dbName}`, {
-          valueEncoding: "json",
+    (async () => {
+      const { Level } = await import("level");
+      const dbName = `${shopId?.slice(0, 5)}${walletAddress?.slice(0, 5)}`;
+      console.log("using level db:", { dbName });
+      const db = new Level(`./${dbName}`, {
+        valueEncoding: "json",
+      });
+      // @ts-expect-error FIXME
+      setDb(db);
+      if (window && db) {
+        window.addEventListener("beforeunload", () => {
+          console.log("closing db connection");
+          db.close();
         });
-        // @ts-expect-error FIXME
-        setDb(db);
-        if (window && db) {
-          window.addEventListener("beforeunload", () => {
-            console.log("closing db connection");
-            db.close();
-          });
-        }
-      })();
-    }
-  }, [walletAddress, shopId]);
+      }
+    })();
+  }, [shopId]);
 
   useEffect(() => {
     //FIXME: to fix once we intergrate multiple relays

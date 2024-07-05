@@ -148,7 +148,7 @@ const Navigation = () => {
           className="flex items-center text-primary-gray"
           onClick={menuSwitch}
         >
-          <div className="flex gap-2">
+          <button onClick={() => router.back()} className="flex gap-2">
             <Image
               src="/assets/back-button.svg"
               width={12}
@@ -157,7 +157,7 @@ const Navigation = () => {
               className="h-6"
             />
             <p>back</p>
-          </div>
+          </button>
           <p className="ml-5">{name}</p>
         </div>
         <div className="flex gap-4">
