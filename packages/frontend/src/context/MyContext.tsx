@@ -83,6 +83,7 @@ export const MyContextProvider = (
   const _shopId = searchParams!.get("shopId") as `0x${string}`;
   if (_shopId) {
     localStorage.setItem("shopId", _shopId);
+    localStorage.removeItem("merchantKeyCard");
   }
   const [shopId, setShopId] = useState<ShopId>(
     (localStorage.getItem("shopId") as ShopId) ||
@@ -93,11 +94,14 @@ export const MyContextProvider = (
   if (!shopId) {
     throw Error("missing shop ID");
   }
-  const savedKC = localStorage.getItem("keyCard") as `0x${string}`;
-
+  const guestKeyCard = localStorage.getItem("guestKeyCard") as `0x${string}`;
+  const merchantKeyCard = localStorage.getItem(
+    "merchantKeyCard",
+  ) as `0x${string}`;
   useEffect(() => {
-    if (savedKC && isMerchantPath) {
-      localStorage.removeItem("keyCard");
+    if (isMerchantPath) {
+      localStorage.removeItem("merchantKeyCard");
+      localStorage.removeItem("guestKeyCard");
     }
   }, []);
 
@@ -168,15 +172,16 @@ export const MyContextProvider = (
       ensAvatar && setAvatar(ensAvatar);
       ensName && setEnsName(name);
     }
-  }, [clientWallet, data, ensAvatar, name]);
+  }, [clientWallet, data, ensAvatar, name, address]);
 
   useEffect(() => {
     if (isMerchantPath) return;
     let keyCard = random32BytesHex();
-    if (!keyCardEnrolled && !savedKC) {
+
+    if (!keyCardEnrolled && !guestKeyCard && !merchantKeyCard) {
       localStorage.setItem("keyCardToEnroll", keyCard);
     } else {
-      keyCard = savedKC;
+      keyCard = guestKeyCard || merchantKeyCard;
     }
     const privateKey = inviteSecret ? inviteSecret : keyCard;
     const keyCardWallet = privateKeyToAccount(privateKey);
@@ -190,7 +195,7 @@ export const MyContextProvider = (
     const _relayClient = new RelayClient(user);
     setRelayClient(_relayClient);
     (async () => {
-      if (!savedKC && !keyCardEnrolled) {
+      if (!guestKeyCard && !merchantKeyCard && !keyCardEnrolled) {
         console.log("enrolling KC with guest wallet...");
         const guestWallet = createWalletClient({
           account: privateKeyToAccount(random32BytesHex()),
@@ -200,15 +205,21 @@ export const MyContextProvider = (
         const res = await _relayClient.enrollKeycard(guestWallet, true, shopId);
         if (res.ok) {
           setKeyCardEnrolled(true);
-          privateKey && localStorage.setItem("keyCard", privateKey);
+          privateKey && localStorage.setItem("guestKeyCard", privateKey);
           setIsConnected(IStatus.Complete);
         } else {
           setIsConnected(IStatus.Failed);
-          localStorage.removeItem("keyCard");
+          localStorage.removeItem("shopId");
         }
         localStorage.removeItem("keyCardToEnroll");
-      } else if (savedKC && walletAddress && isConnected === IStatus.Pending) {
-        console.log(`connecting to client with KC : ${savedKC}`);
+      } else if (guestKeyCard && isConnected === IStatus.Pending) {
+        console.log(`connecting to client with guest KC : ${guestKeyCard}`);
+        setKeyCardEnrolled(true);
+      } else if (
+        merchantKeyCard &&
+        walletAddress &&
+        isConnected === IStatus.Pending
+      ) {
         const hasAccess = await checkPermissions();
         if (hasAccess) {
           setUpdateRootHashPerm(true);

@@ -80,7 +80,8 @@ const StoreCreation = () => {
 
   useEffect(() => {
     if (!randomShopIdHasBeenSet.current) {
-      localStorage.removeItem("keyCard");
+      localStorage.removeItem("merchantKeyCard");
+      localStorage.removeItem("guestKeyCard");
 
       randomShopIdHasBeenSet.current = true;
       const randomShopId = random32BytesHex();
@@ -124,7 +125,7 @@ const StoreCreation = () => {
               ) as `0x${string}`;
               setIsMerchantView(true);
               setRelayClient(_relayClient);
-              localStorage.setItem("keyCard", keyCardToEnroll);
+              localStorage.setItem("merchantKeyCard", keyCardToEnroll);
               console.log(`keycard enrolled:${keyCardToEnroll}`);
               setKeyCardEnrolled(true);
               setStoreCreated(true);

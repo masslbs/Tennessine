@@ -130,8 +130,7 @@ const CheckoutFlow = () => {
   }, [finalizedOrders, checkoutReqId]);
 
   const checkout = async () => {
-    const isERC20Checkout = false;
-    const res = await commitOrder(isERC20Checkout);
+    const res = await commitOrder();
     if (res.error) {
       console.log("there was an error");
       setShowErrorMessage(res.error);
@@ -141,13 +140,6 @@ const CheckoutFlow = () => {
   };
 
   const renderContent = () => {
-    console.log({
-      step,
-      paymentLink,
-      totalDollar,
-      purchaseAddress,
-      cryptoTotal,
-    });
     if (step === 0) {
       return (
         <NewCart
