@@ -35,6 +35,10 @@ import {
   UPDATE_BASE_CURRENCY,
   UPDATE_STORE_NAME,
 } from "@/reducers/storeReducer";
+import {
+  ADD_ACCEPTED_CURR,
+  AcceptedCurrencyActions,
+} from "@/reducers/acceptedCurrencyReducers";
 import { ADD_KC_PUBKEY, pubKeyAction } from "@/reducers/KCPubKeysReducers";
 import { Dispatch } from "react";
 import schema from "@massmarket/schema";
@@ -50,6 +54,7 @@ export const buildState = (
   setFinalizedOrders: Dispatch<finalizedOrderActions>,
   setPubKeys: Dispatch<pubKeyAction>,
   setStoreData: Dispatch<updateStoreDataAction>,
+  setAcceptedCurrencies: Dispatch<AcceptedCurrencyActions>,
   walletAddress?: `0x${string}` | null,
 ) => {
   if (event.shopManifest) {
@@ -81,6 +86,12 @@ export const buildState = (
       setStoreData({
         type: UPDATE_BASE_CURRENCY,
         payload: { baseCurrencyAddr: bytesToHex(um.setBaseCurrency.tokenAddr) },
+      });
+    }
+    if (um.addAcceptedCurrency) {
+      setAcceptedCurrencies({
+        type: ADD_ACCEPTED_CURR,
+        payload: { tokenAddr: bytesToHex(um.addAcceptedCurrency.tokenAddr) },
       });
     }
     if (um.name) {
@@ -150,7 +161,6 @@ export const buildState = (
       throw new Error(`not yet handling tag renames or deltes`);
     }
   } else if (event.changeStock) {
-    console.log({ event });
     const evt = event.changeStock;
     if (evt.orderId && evt.orderId.byteLength && evt.txHash) {
       setOrderItems({

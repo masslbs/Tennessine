@@ -9,6 +9,10 @@ import { IProduct, ITag, IStatus, IRelay } from "@/types";
 import { Level } from "level";
 import { RelayClient, WalletClientWithAccount } from "@massmarket/client";
 import { updateStoreDataAction } from "@/reducers/storeReducer";
+import {
+  TokenAddr,
+  AcceptedCurrencyActions,
+} from "@/reducers/acceptedCurrencyReducers";
 
 export type ItemId = `0x${string}`;
 export type TagId = `0x${string}`;
@@ -42,6 +46,8 @@ export type OrderState = {
   status?: IStatus;
   txHash?: `0x${string}`;
 };
+
+export type CurrenciesState = Map<TokenAddr, null | string>;
 
 export type IRelayWriteResponse = {
   // TODO: should be mmproto.EventWriteResponse but can't import anymore somehow
@@ -116,6 +122,10 @@ export type StoreContent = {
   setPublishedTagId: (id: TagId) => void;
   setOrderId: (orderId: OrderId | null) => void;
   setStoreData: Dispatch<updateStoreDataAction>;
+  acceptedCurrencies: Map<TokenAddr, null | string>;
+  setAcceptedCurrencies: Dispatch<AcceptedCurrencyActions>;
+  selectedCurrency: TokenAddr;
+  setSelectedCurrency: Dispatch<TokenAddr>;
 };
 
 export type ProductsMap = Map<ItemId, IProduct>;

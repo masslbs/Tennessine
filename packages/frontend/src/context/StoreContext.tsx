@@ -19,6 +19,7 @@ import {
   TagsMap,
   OrdersMap,
   OrderId,
+  CurrenciesState,
 } from "@/context/types";
 import {
   productReducer,
@@ -49,6 +50,11 @@ import {
   OrderState,
   CLEAR_ALL_ORDERS,
 } from "@/reducers/orderReducers";
+import {
+  acceptedCurrencyReducer,
+  UPDATE_SYMBOL,
+  SET_ALL_CURRENCIES,
+} from "@/reducers/acceptedCurrencyReducers";
 import { finalizedOrderReducer } from "@/reducers/finalizedOrderReducers";
 import { initialStoreContext } from "../context/initialLoadingState";
 import { dummyRelays } from "./dummyData";
@@ -78,10 +84,16 @@ export const StoreContextProvider = (
     profilePictureUrl: "",
     baseCurrencyAddr: null,
   });
+  const [acceptedCurrencies, setAcceptedCurrencies] = useReducer(
+    acceptedCurrencyReducer,
+    new Map(),
+  );
   const [pubKeys, setPubKeys] = useReducer(pubKeyReducer, []);
   const [db, setDb] = useState(null);
   const [relays, setRelays] = useState<IRelay[]>(dummyRelays);
-  const { relayClient, walletAddress, shopId } = useMyContext();
+  const [selectedCurrency, setSelectedCurrency] = useState(null);
+  const { relayClient, walletAddress, shopId, getTokenInformation } =
+    useMyContext();
 
   const chainName = process.env.NEXT_PUBLIC_CHAIN_NAME!;
   const usedChainId: number =
@@ -90,10 +102,24 @@ export const StoreContextProvider = (
       : chainName === "hardhat"
         ? hardhat.id
         : mainnet.id;
-
   useEffect(() => {
     createState();
   }, [relayClient]);
+
+  useEffect(() => {
+    (async () => {
+      const currencies = Array.from([...acceptedCurrencies.keys()]);
+      const _cur = currencies.filter((a) => !acceptedCurrencies.get(a));
+      _cur.map(async (address) => {
+        const { symbol } = await getTokenInformation(address);
+
+        setAcceptedCurrencies({
+          type: UPDATE_SYMBOL,
+          payload: { tokenAddr: address, symbol },
+        });
+      });
+    })();
+  }, [acceptedCurrencies]);
 
   useEffect(() => {
     if (walletAddress) {
@@ -133,7 +159,10 @@ export const StoreContextProvider = (
           "orderItems",
           db,
         )) as OrdersMap;
-
+        const acceptedCurrenciesLocal = (await getParsedMapData(
+          "acceptedCurrencies",
+          db,
+        )) as CurrenciesState;
         const orderIdLocal = await getItem("orderId", db);
         const publishedTagIdLocal = await getItem("publishedTagId", db);
         const storeDataLocal = await getItem("storeData", db);
@@ -148,6 +177,14 @@ export const StoreContextProvider = (
         } else {
           setProducts({
             type: CLEAR_PRODUCTS,
+          });
+        }
+        if (acceptedCurrenciesLocal?.size) {
+          setAcceptedCurrencies({
+            type: SET_ALL_CURRENCIES,
+            payload: {
+              currencies: acceptedCurrenciesLocal,
+            },
           });
         }
         if (tagsLocal?.size) {
@@ -207,6 +244,15 @@ export const StoreContextProvider = (
       console.log(error);
     }
   }, [products]);
+
+  useEffect(() => {
+    try {
+      acceptedCurrencies.size &&
+        setMapData("acceptedCurrencies", acceptedCurrencies, db);
+    } catch (error) {
+      console.log(error);
+    }
+  }, [acceptedCurrencies]);
 
   useEffect(() => {
     try {
@@ -273,6 +319,7 @@ export const StoreContextProvider = (
             setFinalizedOrders,
             setPubKeys,
             setStoreData,
+            setAcceptedCurrencies,
             walletAddress,
           );
         }
@@ -578,11 +625,11 @@ export const StoreContextProvider = (
   const commitOrder = async () => {
     try {
       if (!relayClient) throw Error(`Disconnected from relayClient`);
-      if (!storeData.baseCurrencyAddr) throw Error(`No base currency found.`);
+      if (!selectedCurrency) throw Error(`No currency selected.`);
       const checkout = await relayClient.commitOrder({
         orderId: hexToBytes(orderId as OrderId),
         currency: {
-          tokenAddr: hexToBytes(storeData.baseCurrencyAddr!),
+          tokenAddr: hexToBytes(selectedCurrency!),
           chainId: usedChainId,
         },
         payeeName: "default",
@@ -623,6 +670,9 @@ export const StoreContextProvider = (
     setPublishedTagId,
     setOrderId,
     setStoreData,
+    acceptedCurrencies,
+    selectedCurrency,
+    setSelectedCurrency,
   };
 
   return (

@@ -27,3 +27,4 @@ export const permissions = {
   removeUser: 7,
   publishInviteVerifier: 8,
 };
+export const zeroAddress = "0x0000000000000000000000000000000000000000";

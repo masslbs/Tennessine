@@ -45,7 +45,6 @@ const Navigation = () => {
   };
 
   const menuSwitch = () => {
-    if (!isMerchantView) return;
     setMenuOpened(!menuOpened);
   };
 
@@ -67,7 +66,7 @@ const Navigation = () => {
     });
   };
 
-  return menuOpened ? (
+  return menuOpened && isMerchantView ? (
     <FullModal isOpen={menuOpened}>
       <main>
         <div className="w-full border border-gray-200 p-4 text-base flex justify-between">

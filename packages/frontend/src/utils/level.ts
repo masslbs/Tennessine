@@ -3,11 +3,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { Level } from "level";
-import { ProductsMap, TagsMap, OrdersMap, storeState } from "@/context/types";
+import {
+  ProductsMap,
+  TagsMap,
+  OrdersMap,
+  storeState,
+  CurrenciesState,
+} from "@/context/types";
 
 const setMapData = (
   key: string,
-  value: OrdersMap | TagsMap | ProductsMap,
+  value: OrdersMap | TagsMap | ProductsMap | CurrenciesState,
   db: Level<string, string> | null,
 ) => {
   if (!db) return;
@@ -25,7 +31,7 @@ const setItem = (
 };
 
 const getParsedMapData = async (
-  key: "products" | "tags" | "orderItems",
+  key: "products" | "tags" | "orderItems" | "acceptedCurrencies",
   db: Level<string, string>,
 ) => {
   try {

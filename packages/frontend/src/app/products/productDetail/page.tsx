@@ -13,13 +13,7 @@ import { useStoreContext } from "@/context/StoreContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ItemState } from "@/context/types";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
-import Chevron from "@/app/common/components/Chevron";
-import {
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
-} from "@nextui-org/dropdown";
+import { useAuth } from "@/context/AuthContext";
 
 const ProductDetail = () => {
   const {
@@ -30,6 +24,7 @@ const ProductDetail = () => {
     addProductToTag,
     allTags,
   } = useStoreContext();
+  const { isMerchantView } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const itemId = searchParams.get("itemId") as ItemId;
@@ -44,7 +39,6 @@ const ProductDetail = () => {
   );
   const [showErrorMessage, setShowErrorMessage] = useState<null | string>(null);
   const [available, setAvailable] = useState<number>(0);
-  const dropdownOpts = Array.from({ length: available }, (_, index) => index);
 
   // const flyoutRef = createRef<HTMLDivElement>();
 
@@ -194,7 +188,6 @@ const ProductDetail = () => {
           <div className="flex">
             {item.metadata.image && (
               <Image
-                // src="/assets/example-item.jpeg"
                 src={item.metadata.image}
                 alt="product-detail-image"
                 width={136}
@@ -221,39 +214,29 @@ const ProductDetail = () => {
                 <p>{item.price} usdc</p>
               </div>
             </div>
-            <div>
-              <h5 className="font-sans  text-gray-700 my-4">
-                Inventory Details
-              </h5>
-              <div className="flex justify-between py-4 bg-white border rounded-lg p-4">
-                <p>Available</p>
-                <p>{available}</p>
-              </div>
-            </div>
-            <section className="flex gap-2">
+            {isMerchantView ? (
               <div>
+                <h5 className="font-sans  text-gray-700 my-4">
+                  Inventory Details
+                </h5>
+                <div className="flex justify-between py-4 bg-white border rounded-lg p-4">
+                  <p>Available</p>
+                  <p>{available}</p>
+                </div>
+              </div>
+            ) : null}
+            <section className="flex gap-6">
+              <div className="">
                 <h5 className="text-xs text-primary-gray mb-2">Quantity</h5>
-                <Dropdown>
-                  <DropdownTrigger>
-                    <Button>
-                      <div className="flex gap-2 p-4 border-2 rounded-xl text-2xl">
-                        {quantity}
-                        <Chevron hex="black" />
-                      </div>
-                    </Button>
-                  </DropdownTrigger>
-                  <DropdownMenu className="bg-white">
-                    {dropdownOpts.map((a) => {
-                      return (
-                        <DropdownItem key={a} onClick={() => setQuantity(a)}>
-                          {a}
-                        </DropdownItem>
-                      );
-                    })}
-                  </DropdownMenu>
-                </Dropdown>
+                <input
+                  className="border-2 border-solid mt-1 p-2 rounded w-14 h-16"
+                  id="quantity"
+                  name="quantity"
+                  value={quantity}
+                  onChange={(e) => setQuantity(Number(e.target.value))}
+                />
               </div>
-              <div>
+              <div className="">
                 <h5 className="text-xs text-primary-gray mb-2">
                   Add to basket
                 </h5>

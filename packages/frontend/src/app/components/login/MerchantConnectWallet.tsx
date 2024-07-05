@@ -38,6 +38,7 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const shopId = searchParams!.get("shopId") as `0x${string}`;
+  const chainName = process.env.NEXT_PUBLIC_CHAIN_NAME!;
 
   if (typeof window == "undefined") {
     console.warn("not a browser session");
@@ -77,7 +78,7 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
       event: parseAbiItem(
         "event Transfer(address indexed from, address indexed to, uint256 value)",
       ),
-      fromBlock: block - BigInt(20000),
+      fromBlock: chainName === "hardhat" ? "earliest" : block - BigInt(20000),
       toBlock: "latest",
       args: {
         to: walletAddress,

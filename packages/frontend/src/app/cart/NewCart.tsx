@@ -17,9 +17,10 @@ const NewCart = ({ next }: { next: () => void }) => {
   const [activeCartItems, setActiveCartItems] = useState<ItemState | null>(
     null,
   );
+  const [errorMsg, setErrorMsg] = useState("");
   const [baseCurrSymbol, setBaseCurrSymbol] = useState<string | null>(null);
   const router = useRouter();
-  const { storeData } = useStoreContext();
+  const { storeData, selectedCurrency } = useStoreContext();
   const { getTokenInformation } = useMyContext();
   const symbolSet = useRef(false);
   useEffect(() => {
@@ -43,6 +44,14 @@ const NewCart = ({ next }: { next: () => void }) => {
       }
     })();
   }, []);
+
+  const checkForErrors = () => {
+    if (!selectedCurrency) {
+      setErrorMsg("You must selected a currency first.");
+    } else {
+      setErrorMsg("");
+    }
+  };
 
   const calculateTotal = () => {
     if (noItems) return null;
@@ -100,10 +109,19 @@ const NewCart = ({ next }: { next: () => void }) => {
 
   return (
     <div className="text-center">
+      {errorMsg.length && <p className="text-red-500">{errorMsg}</p>}
       <h2 className="my-4">
         {calculateTotal()} {baseCurrSymbol}
       </h2>
-      <Button onClick={next}>Proceed</Button>
+      <Button
+        onClick={() => {
+          checkForErrors();
+          next();
+        }}
+        disabled={Boolean(!selectedCurrency)}
+      >
+        Proceed
+      </Button>
       <section className="mt-10 flex gap-3 overflow-x-auto no-scrollbar">
         {renderItems()}
       </section>

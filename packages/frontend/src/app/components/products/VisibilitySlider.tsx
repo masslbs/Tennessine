@@ -16,10 +16,12 @@ const VisibilitySlider = ({
   selectedTagsDispatch,
   itemId,
   selectedTags,
+  editView,
 }: {
   selectedTagsDispatch: (t: selectedTagsAction) => void;
   itemId: ItemId | null;
   selectedTags: Map<TagId, ITag>;
+  editView: boolean;
 }) => {
   const { publishedTagId, allTags, addProductToTag, removeProductFromTag } =
     useStoreContext();
@@ -31,6 +33,12 @@ const VisibilitySlider = ({
   useEffect(() => {
     setSelectedTags(selectedTags);
   }, [selectedTags]);
+
+  useEffect(() => {
+    if (!editView && publishedTagId) {
+      handleVisibility();
+    }
+  }, [editView, publishedTagId]);
 
   useEffect(() => {
     const isVisible =
