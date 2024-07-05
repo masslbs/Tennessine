@@ -35,6 +35,7 @@ describe("mockclient", async () => {
   const events = [];
   let finalizedOrders = new Map();
   let pubKeys: `0x${string}`[] = [];
+  let currencies = new Map();
   function productsDispatch(action: productAction | updateProductAction) {
     products = productReducer(products, action);
   }
@@ -59,7 +60,7 @@ describe("mockclient", async () => {
     storeData = storeReducer(storeData, action);
   }
   function setAcceptedCurrencies(action: AcceptedCurrencyActions) {
-    acceptedCurrencies = acceptedCurrencyReducer(new Map(), action);
+    acceptedCurrencies = acceptedCurrencyReducer(currencies, action);
     console.log({ acceptedCurrencies });
   }
 
