@@ -141,95 +141,95 @@ export const StoreContextProvider = (
     })();
   }, [shopId]);
 
-  useEffect(() => {
-    //FIXME: to fix once we intergrate multiple relays
-    setRelays(dummyRelays);
+  // useEffect(() => {
+  //   //FIXME: to fix once we intergrate multiple relays
+  //   setRelays(dummyRelays);
 
-    (async () => {
-      if (db) {
-        const productsLocal = (await getParsedMapData(
-          "products",
-          db,
-        )) as ProductsMap;
+  //   (async () => {
+  //     if (db) {
+  //       const productsLocal = (await getParsedMapData(
+  //         "products",
+  //         db,
+  //       )) as ProductsMap;
 
-        const tagsLocal = (await getParsedMapData("tags", db)) as TagsMap;
-        const orderItemsLocal = (await getParsedMapData(
-          "orderItems",
-          db,
-        )) as OrdersMap;
-        const acceptedCurrenciesLocal = (await getParsedMapData(
-          "acceptedCurrencies",
-          db,
-        )) as CurrenciesState;
-        const orderIdLocal = await getItem("orderId", db);
-        const publishedTagIdLocal = await getItem("publishedTagId", db);
-        const storeDataLocal = await getItem("storeData", db);
+  //       const tagsLocal = (await getParsedMapData("tags", db)) as TagsMap;
+  //       const orderItemsLocal = (await getParsedMapData(
+  //         "orderItems",
+  //         db,
+  //       )) as OrdersMap;
+  //       const acceptedCurrenciesLocal = (await getParsedMapData(
+  //         "acceptedCurrencies",
+  //         db,
+  //       )) as CurrenciesState;
+  //       const orderIdLocal = await getItem("orderId", db);
+  //       const publishedTagIdLocal = await getItem("publishedTagId", db);
+  //       const storeDataLocal = await getItem("storeData", db);
 
-        if (productsLocal?.size) {
-          setProducts({
-            type: SET_PRODUCTS,
-            payload: {
-              allProducts: productsLocal,
-            },
-          });
-        } else {
-          setProducts({
-            type: CLEAR_PRODUCTS,
-          });
-        }
-        if (acceptedCurrenciesLocal?.size) {
-          setAcceptedCurrencies({
-            type: SET_ALL_CURRENCIES,
-            payload: {
-              currencies: acceptedCurrenciesLocal,
-            },
-          });
-        }
-        if (tagsLocal?.size) {
-          setAllTags({
-            type: SET_ALL_TAGS,
-            payload: { allTags: tagsLocal },
-          });
-        } else {
-          setAllTags({
-            type: CLEAR_ALL_TAGS,
-          });
-        }
-        if (orderItemsLocal?.size) {
-          setOrderItems({
-            type: SET_ALL_ORDER_ITEMS,
-            payload: { allOrderItems: orderItemsLocal },
-          });
-        } else {
-          setOrderItems({
-            type: CLEAR_ALL_ORDERS,
-          });
-        }
+  //       if (productsLocal?.size) {
+  //         setProducts({
+  //           type: SET_PRODUCTS,
+  //           payload: {
+  //             allProducts: productsLocal,
+  //           },
+  //         });
+  //       } else {
+  //         setProducts({
+  //           type: CLEAR_PRODUCTS,
+  //         });
+  //       }
+  //       if (acceptedCurrenciesLocal?.size) {
+  //         setAcceptedCurrencies({
+  //           type: SET_ALL_CURRENCIES,
+  //           payload: {
+  //             currencies: acceptedCurrenciesLocal,
+  //           },
+  //         });
+  //       }
+  //       if (tagsLocal?.size) {
+  //         setAllTags({
+  //           type: SET_ALL_TAGS,
+  //           payload: { allTags: tagsLocal },
+  //         });
+  //       } else {
+  //         setAllTags({
+  //           type: CLEAR_ALL_TAGS,
+  //         });
+  //       }
+  //       if (orderItemsLocal?.size) {
+  //         setOrderItems({
+  //           type: SET_ALL_ORDER_ITEMS,
+  //           payload: { allOrderItems: orderItemsLocal },
+  //         });
+  //       } else {
+  //         setOrderItems({
+  //           type: CLEAR_ALL_ORDERS,
+  //         });
+  //       }
 
-        if (orderIdLocal) {
-          setOrderId(orderIdLocal as OrderId);
-        } else {
-          setOrderId(null);
-        }
+  //       if (orderIdLocal) {
+  //         setOrderId(orderIdLocal as OrderId);
+  //       } else {
+  //         setOrderId(null);
+  //       }
 
-        if (publishedTagIdLocal) {
-          setPublishedTagId(publishedTagIdLocal as TagId);
-        } else {
-          setPublishedTagId(null);
-        }
-        if (storeDataLocal) {
-          setStoreData({
-            type: SET_STORE_DATA,
-            payload: {
-              name: storeDataLocal.name!,
-              profilePictureUrl: storeDataLocal.profilePictureUrl!,
-              baseCurrencyAddr: storeDataLocal.baseCurrencyAddr,
-            },
-          });
-        }
-      }
-    })();
-  }, [relayClient, db]);
+  //       if (publishedTagIdLocal) {
+  //         setPublishedTagId(publishedTagIdLocal as TagId);
+  //       } else {
+  //         setPublishedTagId(null);
+  //       }
+  //       if (storeDataLocal) {
+  //         setStoreData({
+  //           type: SET_STORE_DATA,
+  //           payload: {
+  //             name: storeDataLocal.name!,
+  //             profilePictureUrl: storeDataLocal.profilePictureUrl!,
+  //             baseCurrencyAddr: storeDataLocal.baseCurrencyAddr,
+  //           },
+  //         });
+  //       }
+  //     }
+  //   })();
+  // }, [relayClient, db]);
 
   useEffect(() => {
     pubKeys.length && orderItems.size && verify(orderItems, pubKeys);
