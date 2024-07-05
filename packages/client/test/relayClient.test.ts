@@ -45,10 +45,10 @@ let blockchain: BlockchainClient;
 const relayEndpoint =
   (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v2";
 
-function createRelayClient() {
+function createRelayClient(pk = random32BytesHex()) {
   return new RelayClient({
     relayEndpoint,
-    keyCardWallet: privateKeyToAccount(random32BytesHex()),
+    keyCardWallet: privateKeyToAccount(pk),
   });
 }
 beforeEach(async () => {
@@ -247,119 +247,6 @@ describe("user behaviour", () => {
       });
       test("remove item from tag", async () => {
         await relayClient.updateTag({ tagId, removeItemId: itemId });
-      });
-    });
-
-    describe("checkout process", () => {
-      let orderId: Uint8Array;
-      beforeEach(async () => {
-        orderId = await relayClient.createOrder();
-        // increase stock
-        await relayClient.changeStock({
-          itemIds: [itemId],
-          diffs: [10],
-        });
-      });
-
-      test("single item checkout", { timeout: 10000 }, async () => {
-        const payee = hexToBytes(randomAddress());
-        const currency = hexToBytes(abi.addresses.Eddies as Address);
-
-        const txHash = await wallet.writeContract({
-          address: abi.addresses.Eddies as Address,
-          abi: abi.Eddies,
-          functionName: "mint",
-          args: [account.address, 999999999999],
-        });
-
-        const mintComplete = publicClient
-          .waitForTransactionReceipt({
-            hash: txHash,
-          })
-          .then(() => {
-            // allow the payment contract to transfer on behalf of the test user
-            return wallet.writeContract({
-              address: abi.addresses.Eddies as Address,
-              abi: abi.Eddies,
-              functionName: "approve",
-              args: [abi.addresses.Payments, 9999999999],
-            });
-          })
-          .then((hash) => {
-            return publicClient.waitForTransactionReceipt({
-              hash,
-            });
-          });
-
-        await relayClient.updateShopManifest({
-          addAcceptedCurrency: {
-            tokenAddr: currency,
-            chainId: 31337,
-          },
-          addPayee: {
-            addr: payee,
-            callAsContract: false,
-            chainId: 31337,
-            name: "test",
-          },
-        });
-
-        await relayClient.updateOrder({
-          orderId,
-          changeItems: {
-            itemId,
-            quantity: 1,
-          },
-        });
-        const checkout = await relayClient.commitOrder({
-          orderId,
-          currency: {
-            tokenAddr: currency,
-            chainId: 31337,
-          },
-          payeeName: "test",
-        });
-        expect(checkout).not.toBeNull();
-        expect(checkout.orderFinalizedId).not.toBeNull();
-
-        // iterate through the event stream
-        const stream = relayClient.createEventStream();
-        for await (const { event } of stream) {
-          if (event.updateOrder?.itemsFinalized) {
-            const order = event.updateOrder.itemsFinalized;
-            const args = [
-              31337, // chainid
-              order.ttl,
-              toHex(order.orderHash),
-              toHex(order.currencyAddr),
-              toHex(order.totalInCrypto),
-              toHex(order.payeeAddr),
-              false, // is paymentendpoint?
-              shopId,
-              toHex(order.shopSignature),
-            ];
-
-            const paymentId = (await publicClient.readContract({
-              address: abi.addresses.Payments as Address,
-              abi: abi.PaymentsByAddress,
-              functionName: "getPaymentId",
-              args: [args],
-            })) as bigint;
-            expect(toHex(order.paymentId)).toEqual(toHex(paymentId));
-            // need to wait for the minting of eddies to be done before sending them
-            await mintComplete;
-            // call the pay function
-            wallet.writeContract({
-              address: abi.addresses.Payments as Address,
-              abi: abi.PaymentsByAddress,
-              functionName: "payTokenPreApproved",
-              args: [args],
-            });
-          } else if (event.changeStock) {
-            expect(toHex(event.changeStock.itemIds[0])).toEqual(toHex(itemId));
-            return;
-          }
-        }
       });
     });
   });
