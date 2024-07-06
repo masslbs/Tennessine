@@ -72,4 +72,14 @@ export class BlockchainClient {
       args: [BigInt(this.shopId), v, r, s, wallet.account.address],
     });
   }
+
+  async addAdminToShop(wallet: WalletClientWithAccount, user: Address) {
+    // Save the public key onchain
+    return wallet.writeContract({
+      address: abi.addresses.ShopReg as Address,
+      abi: abi.ShopReg,
+      functionName: "registerUser",
+      args: [BigInt(this.shopId), user, "0x1ff"],
+    });
+  }
 }
