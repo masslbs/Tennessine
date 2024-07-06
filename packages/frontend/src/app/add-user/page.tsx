@@ -5,31 +5,14 @@
 "use client";
 
 import Button from "../common/components/Button";
-import React, { useState, useEffect, useRef } from "react";
-import AvatarUpload from "@/app/common/components/AvatarUpload";
+import React, { useState } from "react";
 import { useMyContext } from "@/context/MyContext";
-import { useAuth } from "@/context/AuthContext";
-import { IStatus } from "@/types";
-import { useRouter } from "next/navigation";
-import SecondaryButton from "@/app/common/components/SecondaryButton";
-import { random32BytesHex } from "@massmarket/utils";
-import Image from "next/image";
-import { useChains } from "wagmi";
-import { bytesToHex, hexToBytes } from "viem";
-import { SET_STORE_DATA } from "@/reducers/storeReducer";
-import { useStoreContext } from "@/context/StoreContext";
 import { BlockchainClient } from "@massmarket/blockchain";
 
-const StoreCreation = () => {
+const AddUser = () => {
   const { clientWallet, shopId } = useMyContext();
 
   const [addUserAddr, setAddUserAddr] = useState<string>("");
-
-  const { isConnected, setIsConnected, setIsMerchantView } = useAuth();
-  const chains = useChains();
-  const router = useRouter();
-
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const runAddUser = async () => {
     if (clientWallet && addUserAddr !== "") {
@@ -46,7 +29,6 @@ const StoreCreation = () => {
 
   return (
     <main className="pt-under-nav h-screen p-4 mt-5">
-      {errorMsg ? <p>{errorMsg}</p> : null}
       <div className="flex">
         <div className="m-4">
           <p className="font-sans">General</p>
@@ -78,4 +60,4 @@ const StoreCreation = () => {
   );
 };
 
-export default StoreCreation;
+export default AddUser;
