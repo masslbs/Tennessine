@@ -42,13 +42,22 @@ const StoreCreation = () => {
   const [description, setDescription] = useState<string>("");
   const [avatar, setAvatar] = useState<FormData | null>(null);
   const [tokenAddr, setTokenAddr] = useState<string>("");
-  const [chainId, setAcceptedChain] = useState<number>(0);
+  const [chainIds, setAcceptedChain] = useState<number[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isStoreCreated, setStoreCreated] = useState<boolean>(false);
   const [payeeAddr, setPayeeAddr] = useState<string>("");
 
   const enrollKeycard = useRef(false);
   const randomShopIdHasBeenSet = useRef(false);
+
+  const addChain = (id: number) => {
+    const arr = [...chainIds];
+    if (arr.includes(id)) {
+      setAcceptedChain(arr.filter((i) => i !== id));
+    } else {
+      setAcceptedChain([...arr, id]);
+    }
+  };
 
   const checkRequiredFields = () => {
     const isTokenAddrHex = Boolean(tokenAddr.match(/^0x[0-9a-f]+$/i));
@@ -65,7 +74,7 @@ const StoreCreation = () => {
       error = "Store mage is required";
     } else if (!tokenAddr.length) {
       error = "Token Address is required";
-    } else if (!chainId) {
+    } else if (!chainIds.length) {
       error = "Select a chainID";
     } else if (!isPayeeAddHex) {
       error = "Payee Address must be a valid hex value";
@@ -165,16 +174,16 @@ const StoreCreation = () => {
             publishedTagId: newPubId,
             setBaseCurrency: {
               tokenAddr: hexToBytes(tokenAddr as `0x${string}`),
-              chainId,
+              chainId: chainIds[0],
             },
             addAcceptedCurrency: {
               tokenAddr: hexToBytes(tokenAddr as `0x${string}`),
-              chainId,
+              chainId: chainIds[0],
             },
             addPayee: {
               addr: hexToBytes(payeeAddr as `0x${string}`),
               callAsContract: false,
-              chainId,
+              chainId: chainIds[0],
               name: "default",
             },
             profilePictureUrl: path.url,
@@ -272,10 +281,10 @@ const StoreCreation = () => {
             {chains.map((c) => (
               <SecondaryButton
                 onClick={() => {
-                  setAcceptedChain(c.id);
+                  addChain(c.id);
                 }}
                 key={c.id}
-                color={c.id === chainId ? "bg-black" : "bg-primary-gray"}
+                color={chainIds.includes(c.id) ? "bg-black" : "bg-primary-gray"}
               >
                 {c.name}
               </SecondaryButton>

@@ -185,64 +185,59 @@ const ProductDetail = () => {
           }}
         />
         <div className="m-4">
-          <div className="flex">
-            {item.metadata.image && (
-              <Image
-                src={item.metadata.image}
-                alt="product-detail-image"
-                width={136}
-                height={136}
-                className="border rounded-lg"
-                unoptimized={true}
-                style={{ maxHeight: "136px", maxWidth: "136px" }}
-              />
-            )}
-            <div className="flex flex-col">
-              <h2 className="text-xl flex items-center pl-4">
+          <h2 className="text-xxl text-center text-primary-gray font-barlow max-lg:hidden">
+            {item.metadata.name}
+          </h2>
+          <div className="flex mt-8 justify-center gap-4 lg:gap-8">
+            <div className="w-1/2 lg:w-1/6">
+              {item.metadata.image && (
+                <Image
+                  src={item.metadata.image}
+                  alt="product-detail-image"
+                  width={136}
+                  height={136}
+                  className="border rounded-lg"
+                  unoptimized={true}
+                  style={{ width: "100%" }}
+                />
+              )}
+            </div>
+            <div className="flex flex-col text-primary-gray font-barlow">
+              <h2 className="text-xxl flex items-center lg:hidden">
                 {item.metadata.name}
               </h2>
-              <p className=" text-xs flex items-center pl-4">
-                {item.metadata.description}
-              </p>
+              <div className="max-w-72">
+                <p className="text-base flex items-center ">
+                  {item.metadata.description}
+                </p>
+              </div>
             </div>
           </div>
-          <section className="flex gap-4 flex-col">
-            <div>
-              <h5 className="font-sans text-gray-700 my-4">Product Details</h5>
-              <div className="flex justify-between py-4 bg-white border rounded-lg p-4">
-                <p>Price</p>
-                <p>{item.price} usdc</p>
-              </div>
-            </div>
-            {isMerchantView ? (
+          <section className="flex gap-4 flex-col lg:items-center lg:ml-20 font-sans text-base">
+            <div className="flex flex-col lg:ml-32">
               <div>
-                <h5 className="font-sans  text-gray-700 my-4">
-                  Inventory Details
-                </h5>
-                <div className="flex justify-between py-4 bg-white border rounded-lg p-4">
-                  <p>Available</p>
-                  <p>{available}</p>
+                <h5 className="text-primary-gray">Variation</h5>
+              </div>
+              <div>
+                <h5 className="text-primary-gray">Size</h5>
+              </div>
+              <div className="flex gap-6">
+                <div className="">
+                  <h5 className=" text-primary-gray mb-2">Quantity</h5>
+                  <input
+                    className="border-2 border-solid mt-1 p-2 rounded w-14 h-16"
+                    id="quantity"
+                    name="quantity"
+                    value={quantity}
+                    onChange={(e) => setQuantity(Number(e.target.value))}
+                  />
+                </div>
+                <div className="">
+                  <h5 className=" text-primary-gray mb-2">Add to basket</h5>
+                  <div>{getCtaButton()}</div>
                 </div>
               </div>
-            ) : null}
-            <section className="flex gap-6">
-              <div className="">
-                <h5 className="text-xs text-primary-gray mb-2">Quantity</h5>
-                <input
-                  className="border-2 border-solid mt-1 p-2 rounded w-14 h-16"
-                  id="quantity"
-                  name="quantity"
-                  value={quantity}
-                  onChange={(e) => setQuantity(Number(e.target.value))}
-                />
-              </div>
-              <div className="">
-                <h5 className="text-xs text-primary-gray mb-2">
-                  Add to basket
-                </h5>
-                <div>{getCtaButton()}</div>
-              </div>
-            </section>
+            </div>
           </section>
         </div>
 

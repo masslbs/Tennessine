@@ -24,7 +24,7 @@
 
 @layer base {
   html {
-    font-family: "JetBrainsMono", system-ui, sans-serif;
+    font-family: "JetBrainsMono", "Barlow", system-ui, sans-serif;
   }
 }
 @layer utilities {
@@ -42,6 +42,11 @@
 @font-face {
   font-family: "JetBrainsMono";
   src: url("../../public/fonts/JetBrainsMono-VariableFont_wght.ttf");
+}
+
+@font-face {
+  font-family: "Barlow";
+  src: url("../../public/fonts/Barlow-Regular.ttf");
 }
 
 body {

@@ -32,6 +32,7 @@ const config: Config = {
 
       fontFamily: {
         proto: ["JetBrainsMono", "sans-serif"],
+        barlow: ["Barlow", "sans-serif"],
       },
     },
   },
