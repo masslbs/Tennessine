@@ -42,6 +42,7 @@
           hooks = {
             alejandra.enable = true;
             prettier.enable = true;
+            prettier.settings.write = true;
           };
         };
         devShells.default = with pkgs;
