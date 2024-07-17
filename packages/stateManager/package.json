@@ -1,5 +1,5 @@
 {
-  "name": "stateManager",
+  "name": "@massmarket/stateManager",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -11,9 +11,22 @@
   "license": "ISC",
   "dependencies": {
     "@massmarket/client": "workspace:*",
-    "@massmarket/tsconfig": "workspace:*",
     "@massmarket/schema": "workspace:*",
+    "@massmarket/tsconfig": "workspace:*",
+    "@massmarket/utils": "workspace:*",
     "abstract-level": "^2.0.0",
-    "level": "^8.0.1"
+    "events": "^3.3.0",
+    "level": "^8.0.1",
+    "level-ts": "^2.1.0",
+    "viem": "^2.16.3"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "devDependencies": {
+    "@types/events": "^3.0.3"
   }
 }

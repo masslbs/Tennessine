@@ -62,6 +62,7 @@ import { pubKeyReducer } from "@/reducers/KCPubKeysReducers";
 import { setMapData, getParsedMapData, setItem, getItem } from "@/utils/level";
 import { storeReducer, SET_STORE_DATA } from "@/reducers/storeReducer";
 import { hardhat, sepolia, mainnet } from "viem/chains";
+import { StateManager } from "@massmarket/stateManager";
 
 // @ts-expect-error FIXME
 export const StoreContext = createContext<StoreContent>(initialStoreContext);
@@ -302,25 +303,9 @@ export const StoreContextProvider = (
 
   const createState = async () => {
     try {
-      const stream = relayClient && relayClient.createEventStream();
-      if (stream) {
-        // @ts-expect-error waiting on upstream fix in TS definitions
-        for await (const evt of stream) {
-          buildState(
-            products,
-            allTags,
-            evt.event,
-            setProducts,
-            setAllTags,
-            setOrderItems,
-            setPublishedTagId,
-            setFinalizedOrders,
-            setPubKeys,
-            setStoreData,
-            setAcceptedCurrencies,
-            walletAddress,
-          );
-        }
+      if (relayClient) {
+        const stateManager = new StateManager(relayClient!, db!);
+        console.log(stateManager.items);
       }
     } catch (err) {
       console.error("error receiving events", err);
