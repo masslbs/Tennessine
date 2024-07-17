@@ -69,7 +69,10 @@ function WalletConnectQR({
         const sessionNamespace = await approval();
         if (sessionNamespace) {
           setSession(sessionNamespace);
-          setAccount(sessionNamespace.namespaces.eip155.accounts[0].slice(9));
+          const accountAddress = sessionNamespace.namespaces.eip155.accounts[0]
+            .slice(9) // split of 'ethereum:'  prefix
+            .split(":")[1];
+          setAccount(accountAddress);
         }
         walletConnectModal.closeModal();
       }
