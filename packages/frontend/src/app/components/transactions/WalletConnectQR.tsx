@@ -70,7 +70,7 @@ function WalletConnectQR({
         if (sessionNamespace) {
           setSession(sessionNamespace);
           const accountAddress = sessionNamespace.namespaces.eip155.accounts[0]
-            .slice(9)
+            .slice(9) // split of 'ethereum:'  prefix
             .split(":")[1];
           setAccount(accountAddress);
         }
