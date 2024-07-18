@@ -1,13 +1,16 @@
 import { EventEmitter } from "events";
 import { RelayClient } from "@massmarket/client";
 import schema from "@massmarket/schema";
-import { parseMetadata } from "@massmarket/utils";
 import { bytesToHex, hexToBytes } from "viem";
 
 interface Item {
   id?: `0x${string}`;
   price: string;
-  metadata: { name: string; description: string; image: string };
+  metadata: {
+    name: string;
+    description: string;
+    image: string;
+  };
 }
 
 interface Tag {
@@ -73,7 +76,7 @@ abstract class PublicObjectManager<
     super();
   }
   abstract _processEvent(event: schema.ShopEvents): Promise<boolean>;
-  abstract get(key: `0x${string}`): Promise<T>;
+  abstract get(key: string): Promise<T>;
   abstract getAll(): T[];
 }
 
@@ -86,7 +89,7 @@ class ListingManager extends PublicObjectManager<Item> {
   async _processEvent(event: schema.ShopEvents): Promise<boolean> {
     if (event.createItem) {
       const ci = event.createItem;
-      const metadata = parseMetadata(ci.metadata);
+      const metadata = JSON.parse(new TextDecoder().decode(ci.metadata));
       const id = bytesToHex(ci.eventId);
       const item = {
         price: ci.price,
@@ -99,7 +102,7 @@ class ListingManager extends PublicObjectManager<Item> {
       const id = bytesToHex(ui.itemId);
       const item = await this.db.get(id);
       if (ui.metadata) {
-        item.metadata = parseMetadata(ui.metadata);
+        item.metadata = JSON.parse(new TextDecoder().decode(ui.metadata));
       }
       if (ui.price) {
         item.price = ui.price;
@@ -211,7 +214,14 @@ class ShopDetailsManager extends PublicObjectManager<ShopDetail> {
     return this.db.iterator().all();
   }
 
-  get(key: string) {
+  get(
+    key:
+      | "name"
+      | "profilePictureUrl"
+      | "publishedTagId"
+      | "baseCurrencyAddr"
+      | "addAcceptedCurrency",
+  ) {
     return this.db.get(key);
   }
 }

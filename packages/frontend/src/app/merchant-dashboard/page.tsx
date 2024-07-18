@@ -57,7 +57,7 @@ const MerchantDashboard = () => {
 
   return (
     <main className="pt-under-nav h-screen">
-      <div className="flex flex-col justify-between mx-4 mt-4">
+      <div className="flex flex-col justify-between mx-2 mt-4">
         <div className="mb-4">
           <h2>{storeData.name}</h2>
           <div className="flex text-xs gap-1 pt-4">
