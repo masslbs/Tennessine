@@ -5,8 +5,7 @@
   description = "massmarket-typescript";
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
-    # TODO: why do we pin this here?
-    flake-parts.url = "github:hercules-ci/flake-parts/ac5d0b2d4d51a53a1cd4a4a10d22f4a12c3fe652";
+    flake-parts.url = "github:hercules-ci/flake-parts";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
     contracts.url = "github:masslbs/contracts";
