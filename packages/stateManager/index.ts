@@ -12,6 +12,7 @@ interface Item {
     image: string;
   };
   tags: `0x${string}`[];
+  quantity: number;
 }
 
 interface Tag {
@@ -95,6 +96,7 @@ class ListingManager extends PublicObjectManager<Item> {
         price: ci.price,
         metadata,
         tags: [],
+        quantity: 0,
       };
       await this.db.put(id, item);
       return true;
@@ -113,9 +115,11 @@ class ListingManager extends PublicObjectManager<Item> {
     } else if (event.changeStock) {
       const cs = event.changeStock;
       if (cs.itemIds) {
-        cs.itemIds.map(async (id: Uint8Array) => {
+        cs.itemIds.map(async (id: Uint8Array, i: number) => {
           const itemId = bytesToHex(id);
           const item = await this.db.get(itemId);
+          const diff = cs.diffs ? cs.diffs[i] : 0;
+          item.quantity = item.quantity + diff;
           await this.db.put(itemId, item);
         });
         // if the changeStock event is emitted from a payment(AKA has txHash), it has to also go through OrderStore
@@ -158,6 +162,7 @@ class ListingManager extends PublicObjectManager<Item> {
     itemId: `0x${string}`,
     price?: string,
     metadata?: { name: string; description: string; image: string },
+    quantity?: number,
   ) {
     const item = await this.db.get(itemId);
     if (price) {
@@ -170,6 +175,11 @@ class ListingManager extends PublicObjectManager<Item> {
         itemId: hexToBytes(itemId),
         metadata: new TextEncoder().encode(JSON.stringify(metadata)),
       });
+    }
+    if (quantity) {
+      const diff = quantity - item.quantity;
+      this.client.changeStock({ itemIds: [hexToBytes(itemId)], diffs: [diff] });
+      item.quantity = quantity;
     }
 
     await this.db.put(itemId, item);
