@@ -272,17 +272,22 @@ class OrderManager extends PublicObjectManager<Order> {
         const order = await this.db.get(orderId);
         const quantity = ci.quantity;
         if (quantity === 0) {
-          await this.db.delete(orderId);
+          delete order.items[itemId];
         } else {
           order.items[itemId] = quantity;
-          await this.db.put(orderId, order);
         }
+        await this.db.put(orderId, order);
       }
       if (uo.itemsFinalized) {
         const eventId = bytesToHex(uo.eventId);
         const order = await this.db.get(eventId);
         order.orderFinalized = uo.itemsFinalized;
         await this.db.put(eventId, order);
+      }
+      if (uo.orderCanceled) {
+        const order = await this.db.get(orderId);
+        order.status = Status.Failed;
+        await this.db.put(orderId, order);
       }
       return true;
     } else if (event.changeStock) {
