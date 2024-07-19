@@ -31,3 +31,7 @@ export function hexToBase64(hex: string) {
   const u8 = new Uint8Array(toBytes(hex));
   return Buffer.from(u8).toString("base64");
 }
+
+export const Uint8ArrayToParsedJSON = (metadata: Uint8Array) => {
+  return JSON.parse(new TextDecoder().decode(metadata));
+};

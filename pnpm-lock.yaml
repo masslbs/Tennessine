@@ -294,12 +294,19 @@ importers:
       '@massmarket/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
-      abstract-level:
-        specifier: ^2.0.0
-        version: 2.0.0
-      level:
-        specifier: ^8.0.1
-        version: 8.0.1
+      '@massmarket/utils':
+        specifier: workspace:*
+        version: link:../utils
+      events:
+        specifier: ^3.3.0
+        version: 3.3.0
+      viem:
+        specifier: ^2.16.3
+        version: 2.16.3(typescript@5.5.3)(zod@3.22.4)
+    devDependencies:
+      '@types/events':
+        specifier: ^3.0.3
+        version: 3.0.3
 
   packages/tsconfig: {}
 
@@ -5636,6 +5643,10 @@ packages:
   /@types/estree@1.0.5:
     resolution: {integrity: sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==}
 
+  /@types/events@3.0.3:
+    resolution: {integrity: sha512-trOc4AAUThEz9hapPtSd7wf5tiQKvTtu5b371UxXdTuqzIh0ArcRspRP0i0Viu+LXstIQ1z96t1nsPxT9ol01g==}
+    dev: true
+
   /@types/graceful-fs@4.1.9:
     resolution: {integrity: sha512-olP3sd1qOEe5dXTSaFvQG+02VdRXcdytWLAZsAq1PecU8uqQAhkrnbli7DagjtXKW/Bl7YJbUsa8MPcuc8LHEQ==}
     dependencies:
@@ -10753,7 +10764,7 @@ packages:
       whatwg-encoding: 2.0.0
       whatwg-mimetype: 3.0.0
       whatwg-url: 11.0.0
-      ws: 8.17.1
+      ws: 8.18.0
       xml-name-validator: 4.0.0
     transitivePeerDependencies:
       - bufferutil
@@ -15451,7 +15462,6 @@ packages:
         optional: true
       utf-8-validate:
         optional: true
-    dev: false
 
   /xml-name-validator@4.0.0:
     resolution: {integrity: sha512-ICP2e+jsHvAj2E2lIHxa5tjXRlKDJo4IdvPvCXbXQGdzSfmSpNVyIKMvoZHjDY9DP0zV17iI85o90vRFXNccRw==}

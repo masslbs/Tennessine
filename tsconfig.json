@@ -18,6 +18,9 @@
     },
     {
       "path": "./packages/frontend"
+    },
+    {
+      "path": "./packages/stateManager"
     }
   ]
 }
