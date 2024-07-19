@@ -48,14 +48,23 @@ interface Order {
 interface ShopManifest {
   name: string;
   description: string;
-  profilePictureUrl: string;
-  publishedTagId: string;
 }
 interface UpdateShopManifest {
-  baseCurrencyAddr?: string;
-  addAcceptedCurrency?: string;
-  addPayee?: string;
-  publishedTagId?: string;
+  setBaseCurrency?: {
+    tokenAddr: Uint8Array;
+    chainId: number;
+  };
+  addAcceptedCurrency?: {
+    tokenAddr: Uint8Array;
+    chainId: number;
+  };
+  addPayee?: {
+    addr: Uint8Array;
+    callAsContract: boolean;
+    chainId: number;
+    name: string;
+  };
+  publishedTagId?: Uint8Array;
   name?: string;
   description?: string;
   profilePictureUrl?: string;
@@ -256,11 +265,23 @@ class ShopDetailsManager extends PublicObjectManager<ShopFields> {
     return false;
   }
   async create(manifest: ShopManifest, shopId: `0x${string}`) {
-    await this.client.shopManifest(manifest, shopId);
+    //FIXME publishedTagId & profilePictureUrl are currently a required fields for ShopManifest
+    const sm = {
+      ...manifest,
+      publishedTagId: new Uint8Array(32),
+      profilePictureUrl: "https://http.cat/images/200.jpg",
+    };
+    await this.client.shopManifest(sm, shopId);
+    await this.db.put("name", manifest.name);
+    await this.db.put("description", manifest.description);
   }
 
   async update(manifest: UpdateShopManifest) {
     await this.client.updateShopManifest(manifest);
+    const entries = Object.entries(manifest);
+    entries.map(async ([key, value]) => {
+      await this.db.put(key, value);
+    });
   }
 
   getAll() {
@@ -332,12 +353,34 @@ class OrderManager extends PublicObjectManager<Order> {
   }
   async update(
     orderId: `0x${string}`,
-    changeItems: { itemId: `0x${string}`; quantity: number },
+    itemId: `0x${string}`,
+    quantity: number,
   ) {
-    await this.client.updateOrder({ orderId, changeItems });
+    await this.client.updateOrder({
+      orderId: hexToBytes(orderId),
+      changeItems: { itemId: hexToBytes(itemId), quantity },
+    });
   }
   async cancel(orderId: `0x${string}`, timestamp: number) {
-    await this.client.updateOrder({ orderId, orderCanceled: { timestamp } });
+    await this.client.updateOrder({
+      orderI: hexToBytes(orderId),
+      orderCanceled: { timestamp },
+    });
+  }
+  async commit(
+    orderId: `0x${string}`,
+    addr: `0x${string}`,
+    chainId: number,
+    payeeName: string,
+  ) {
+    await this.client.commitOrder({
+      orderId: hexToBytes(orderId),
+      currency: {
+        tokenAddr: hexToBytes(addr),
+        chainId,
+      },
+      payeeName,
+    });
   }
 }
 class TagManager extends PublicObjectManager<Tag> {
