@@ -92,10 +92,12 @@
       "type": "UpdateShopManifest",
       "object": {
         "event_id": "d69a82112a6e6980a7ff64a9c5bb7ccbe224b9668846f01e19a4429099ce5c06",
-        "add_accepted_currency": {
-          "chain_id": 1,
-          "token_addr": "0000000000000000000000000000000000000000"
-        }
+        "add_accepted_currencies": [
+          {
+            "chain_id": 1,
+            "token_addr": "0000000000000000000000000000000000000000"
+          }
+        ]
       },
       "signature": "8cea34b8edec684abc395d34af742d43d5cdc1ceebe3932495f177c958e53d446491ecef526fcffa4525395f8c75a09a092f2a7c632c6b22b8b766cfd2ead82a1b",
       "hash": "dfacf199ce741a4ecda1a7958ed01e630941a18b1cd0908e4c20e9bb81ca4f09",
@@ -105,10 +107,12 @@
       "type": "UpdateShopManifest",
       "object": {
         "event_id": "5b1a2a8b1f298a0c463f86652daf13179fd253f5b2db31fd089ce3b90a5a89d3",
-        "add_accepted_currency": {
-          "chain_id": 1,
-          "token_addr": "8793c96dcc8a27868b7cb2f6144f2706e6a9b6f6"
-        }
+        "add_accepted_currencies": [
+          {
+            "chain_id": 1,
+            "token_addr": "8793c96dcc8a27868b7cb2f6144f2706e6a9b6f6"
+          }
+        ]
       },
       "signature": "0a0cd0e357610ade72f796f09f831afb445aeb2ed29b992afafc0cd2587e10e30c6b26f80d8abebb611d2acedcc404e5630dfaf5664970dc6d2c9e271509dd001b",
       "hash": "d7178faeecf7a20ea7e7303c63829c88f38ae2cb890f7c179983f87ee4402a7a",
@@ -118,10 +122,12 @@
       "type": "UpdateShopManifest",
       "object": {
         "event_id": "16c9db3eca58a4e921c0c27ac7be661b475a95e743e5db0a05a50f7a7cd9364f",
-        "add_accepted_currency": {
-          "chain_id": 23,
-          "token_addr": "f23a62a45ca55cfd6f0b28368424d0bef17e6124"
-        }
+        "add_accepted_currencies": [
+          {
+            "chain_id": 23,
+            "token_addr": "f23a62a45ca55cfd6f0b28368424d0bef17e6124"
+          }
+        ]
       },
       "signature": "f2d6cb112a742145666378fa50125e8dd2c65c84e6cd60f3b348b0b5e35cab6727c3e02793d244a1a2c2511a7fa57a5baabaa8ba1f562a8c72df8603348184be1c",
       "hash": "44a515e06a50e54b3b64833773df094a72a49fa9a1034ebf1c15283716bc51ec",
@@ -131,10 +137,12 @@
       "type": "UpdateShopManifest",
       "object": {
         "event_id": "73eb17812867a696548be45e2ab8655eac02000d25ca216349f6d69e222bc10d",
-        "remove_accepted_currency": {
-          "chain_id": 1,
-          "token_addr": "8793c96dcc8a27868b7cb2f6144f2706e6a9b6f6"
-        }
+        "remove_accepted_currencies": [
+          {
+            "chain_id": 1,
+            "token_addr": "8793c96dcc8a27868b7cb2f6144f2706e6a9b6f6"
+          }
+        ]
       },
       "signature": "32a6c46c130aba008346935c45adf56fbf1a1675e93ecbf771511f84aa2b325e78c5acba24bc1b7fc741cb2d3f862b415347010175e23ae845d9c19df8e278891b",
       "hash": "c9bb836d12a42126b4bd544a29c8c3e959788f11d54c4014a5f9cc5d9916c8b9",
@@ -214,10 +222,7 @@
           "17296c1f9b02617dec0db6437790af4a95339e6005579df93f6a9f0eecb3409e",
           "02ebeb86c50c41c17f99cf2850498b372fc0c9776787f6a5820e4089c47632b7"
         ],
-        "diffs": [
-          100,
-          123
-        ]
+        "diffs": [100, 123]
       },
       "signature": "f19b652f3968fae7f7e06a1b257c0d2fcf197e226fd100bbc5fd8de755ae99f360d7726ef246a25cb8612b255ca69510f1cfe1eb009812636c023b117221d3eb1c",
       "hash": "58fc70fd0342647be15e7b9912e43190fd7acd0a9465b7c3eeaf1d37a10cbdfd",
@@ -299,9 +304,7 @@
         "item_ids": [
           "17296c1f9b02617dec0db6437790af4a95339e6005579df93f6a9f0eecb3409e"
         ],
-        "diffs": [
-          -42
-        ],
+        "diffs": [-42],
         "order_id": "c5d28af211a85f5e00ba006101b6de90f442f9aa3b03daad030415b7fdddd13e",
         "tx_hash": "32b36377007de4ab0fcc3eabb1ef3a7096c42004c14babc3638f81b9d0982625"
       },
