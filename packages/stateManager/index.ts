@@ -11,12 +11,12 @@ interface Item {
     description: string;
     image: string;
   };
+  tags: `0x${string}`[];
 }
 
 interface Tag {
   id?: `0x${string}`;
   name: string;
-  listings: `0x${string}`[];
 }
 
 interface KeyCards {
@@ -94,6 +94,7 @@ class ListingManager extends PublicObjectManager<Item> {
       const item = {
         price: ci.price,
         metadata,
+        tags: [],
       };
       await this.db.put(id, item);
       return true;
@@ -117,8 +118,28 @@ class ListingManager extends PublicObjectManager<Item> {
           const item = await this.db.get(itemId);
           await this.db.put(itemId, item);
         });
+        // if the changeStock event is emitted from a payment(AKA has txHash), it has to also go through OrderStore
+        if (cs.txHash) {
+          return false;
+        } else return true;
       }
-      //can't return true here yet because changeStock event has to go through orderStore as well.
+    } else if (event.updateTag) {
+      const ut = event.updateTag;
+      const tagId = bytesToHex(ut.tagId);
+
+      if (ut.addItemId) {
+        const itemId = bytesToHex(ut.addItemId);
+        const item = await this.db.get(itemId);
+        item.tags = [...item.tags, tagId];
+        await this.db.put(itemId, item);
+      }
+      if (ut.removeItemId) {
+        const itemId = bytesToHex(ut.removeItemId);
+        const item = await this.db.get(itemId);
+        item.tags = [...item.tags.filter((id: `0x${string}`) => id !== tagId)];
+        await this.db.put(itemId, item);
+      }
+      return true;
     }
     return false;
   }
@@ -286,34 +307,14 @@ class TagManager extends PublicObjectManager<Tag> {
       const ct = event.createTag;
       await this.db.put(bytesToHex(ct.eventId), {
         name: ct.name,
-        listings: [],
       });
-      return true;
-    } else if (event.updateTag) {
-      const ut = event.updateTag;
-      const tagId = bytesToHex(ut.tagId);
-
-      if (ut.addItemId) {
-        const itemId = bytesToHex(ut.addItemId);
-        const tag = await this.db.get(tagId);
-        tag.listings = [...tag.listings, itemId];
-        await this.db.put(tagId, tag);
-      }
-      if (ut.removeItemId) {
-        const itemId = bytesToHex(ut.removeItemId);
-        const tag = await this.db.get(tagId);
-        tag.listings = [
-          ...tag.listings.filter((pId: `0x${string}`) => pId !== itemId),
-        ];
-        await this.db.put(tagId, tag);
-      }
       return true;
     }
     return false;
   }
   async create(name: string) {
     const id = bytesToHex(await this.client.createTag({ name }));
-    await this.db.put(id, { name, listings: [] });
+    await this.db.put(id, { name });
   }
 
   getAll() {
