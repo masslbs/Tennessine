@@ -45,10 +45,25 @@ interface Order {
       }
     | false;
 }
+interface ShopManifest {
+  name: string;
+  description: string;
+  profilePictureUrl: string;
+  publishedTagId: string;
+}
+interface UpdateShopManifest {
+  baseCurrencyAddr?: string;
+  addAcceptedCurrency?: string;
+  addPayee?: string;
+  publishedTagId?: string;
+  name?: string;
+  description?: string;
+  profilePictureUrl?: string;
+}
 
-type ShopDetail = string;
+type ShopFields = string;
 
-type ShopObjectTypes = Item | Tag | KeyCards | Order | ShopDetail;
+type ShopObjectTypes = Item | Tag | KeyCards | Order | ShopFields;
 
 // This is an interface that is used to retrieve and store objects from a persistant layer
 type Store<T extends ShopObjectTypes> = {
@@ -194,8 +209,8 @@ class ListingManager extends PublicObjectManager<Item> {
   }
 }
 
-class ShopDetailsManager extends PublicObjectManager<ShopDetail> {
-  constructor(db: Store<ShopDetail>, client: RelayClient) {
+class ShopDetailsManager extends PublicObjectManager<ShopFields> {
+  constructor(db: Store<ShopFields>, client: RelayClient) {
     super(db, client);
   }
 
@@ -240,19 +255,19 @@ class ShopDetailsManager extends PublicObjectManager<ShopDetail> {
     }
     return false;
   }
+  async create(manifest: ShopManifest, shopId: `0x${string}`) {
+    await this.client.shopManifest(manifest, shopId);
+  }
+
+  async update(manifest: UpdateShopManifest) {
+    await this.client.updateShopManifest(manifest);
+  }
 
   getAll() {
     return this.db.iterator().all();
   }
 
-  get(
-    key:
-      | "name"
-      | "profilePictureUrl"
-      | "publishedTagId"
-      | "baseCurrencyAddr"
-      | "addAcceptedCurrency",
-  ) {
+  get(key: string) {
     return this.db.get(key);
   }
 }
@@ -311,6 +326,19 @@ class OrderManager extends PublicObjectManager<Order> {
   get(key: `0x${string}`) {
     return this.db.get(key);
   }
+
+  async create() {
+    return bytesToHex(await this.client.createOrder());
+  }
+  async update(
+    orderId: `0x${string}`,
+    changeItems: { itemId: `0x${string}`; quantity: number },
+  ) {
+    await this.client.updateOrder({ orderId, changeItems });
+  }
+  async cancel(orderId: `0x${string}`, timestamp: number) {
+    await this.client.updateOrder({ orderId, orderCanceled: { timestamp } });
+  }
 }
 class TagManager extends PublicObjectManager<Tag> {
   constructor(db: Store<Tag>, client: RelayClient) {
@@ -353,7 +381,7 @@ export class StateManager {
     public client: RelayClient,
     listingStore: Store<Item>,
     tagStore: Store<Tag>,
-    shopDetailStore: Store<ShopDetail>,
+    shopDetailStore: Store<ShopFields>,
     orderStore: Store<Order>,
   ) {
     this.items = new ListingManager(listingStore, client);
