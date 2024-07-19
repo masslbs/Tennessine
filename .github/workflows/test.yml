@@ -70,7 +70,6 @@ jobs:
           repository: masslbs/relay
           ssh-key: ${{ secrets.SSH_CHECKOUT_RELAY }}
           ref: ${{ steps.extract_branch.outputs.branch }}
-          fallback-branch: network-v2
           path: relay
 
       - name: Compile relay
