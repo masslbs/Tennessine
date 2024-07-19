@@ -107,6 +107,11 @@ export class RelayClient extends EventEmitter {
     const eventWriteRequest = {
       event: signedEvent,
     };
+    const pushReq = new schema.EventPushRequest({
+      requestId: requestId(),
+      events: [signedEvent],
+    });
+    this.eventStream.enqueue(pushReq);
     return this.encodeAndSend(schema.EventWriteRequest, eventWriteRequest);
   }
 
@@ -140,7 +145,7 @@ export class RelayClient extends EventEmitter {
     await this.sendShopEvent({
       updateItem: item,
     });
-    return bytesToHex(id);
+    return id;
   }
 
   async createTag(tag: schema.ICreateTag) {

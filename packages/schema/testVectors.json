@@ -247,10 +247,7 @@
           "0xfdb382dd2c60a5638b3c9a27ff38aedbd66600a7ab38cc2f1dec2197b6c9900a",
           "0x2dc2479de7e92ef9dd4deff6df3e0a7a87982a9ebd1974c5a429ff3df4bce0d9"
         ],
-        "diffs": [
-          100,
-          123
-        ]
+        "diffs": [100, 123]
       },
       "signature": "0x0cc9e411de051146d7d643b71bef10178c624df7ee52b722b410dd1df7f136187d394592dbb306e46f275a339b3f9f2c80757afabbf2c07efb4d29615587ab481c",
       "hash": "0x2832e8359c146aeedb1daca0daa9be4e75b9288c08eecce58ec7779fe082f7dd",
@@ -332,9 +329,7 @@
         "item_ids": [
           "0xfdb382dd2c60a5638b3c9a27ff38aedbd66600a7ab38cc2f1dec2197b6c9900a"
         ],
-        "diffs": [
-          -42
-        ],
+        "diffs": [-42],
         "order_id": "0x73c1a8d8cb38368a2e5a0733c3e5fb2d54ce6983b086153d36b4f9563cded6a1",
         "tx_hash": "0x3734157d6f90f8861cfb309caa1ad09d869fe6544f48afd07ff3c954efa8e558"
       },
@@ -523,20 +518,24 @@
       "0x2dc2479de7e92ef9dd4deff6df3e0a7a87982a9ebd1974c5a429ff3df4bce0d9": 123
     },
     "orders": {
-      "open": {
-        "0xc5d28af211a85f5e00ba006101b6de90f442f9aa3b03daad030415b7fdddd13e": {
-          "0xfdb382dd2c60a5638b3c9a27ff38aedbd66600a7ab38cc2f1dec2197b6c9900a": 23
+      "open": [
+        {
+          "order_id": "0xc5d28af211a85f5e00ba006101b6de90f442f9aa3b03daad030415b7fdddd13e",
+          "items": {
+            "0xfdb382dd2c60a5638b3c9a27ff38aedbd66600a7ab38cc2f1dec2197b6c9900a": 23
+          }
         }
-      },
-      "items_finalized": {
-        "0x1083a69be420c8a3786e07b7270de3ca2f5765f71fe35a6e80d4e951fc5e68d0": {
+      ],
+      "committed": [
+        {
+          "order_id": "0x1083a69be420c8a3786e07b7270de3ca2f5765f71fe35a6e80d4e951fc5e68d0",
           "payment_id": "0x8184b305accddb0854d81811fb06ee4f8b64835d4d0db58954776ee903e49774",
           "items": {
             "0xfdb382dd2c60a5638b3c9a27ff38aedbd66600a7ab38cc2f1dec2197b6c9900a": 4
           },
           "total": "176.40"
         }
-      },
+      ],
       "payed": [
         {
           "order_id": "0x73c1a8d8cb38368a2e5a0733c3e5fb2d54ce6983b086153d36b4f9563cded6a1",
@@ -544,7 +543,9 @@
         }
       ],
       "abandoned": [
-        "0xb1f2dccbe1b11e58354771fdc6c95677b3843cb80a869d19b6986804129566d7"
+        {
+          "order_id": "0xb1f2dccbe1b11e58354771fdc6c95677b3843cb80a869d19b6986804129566d7"
+        }
       ]
     }
   }
