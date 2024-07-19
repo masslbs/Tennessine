@@ -1,6 +1,7 @@
 import { recoverMessageAddress } from "viem";
 import schema from "@massmarket/schema";
 import { RelayClient } from "./";
+import { ReadableStream } from "web-streams-polyfill";
 
 /**
  * This class is a Simple wrapper around a ReadableStream that expose the controller

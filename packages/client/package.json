@@ -1,13 +1,14 @@
 {
   "name": "@massmarket/client",
   "dependencies": {
-    "@massmarket/contracts": "workspace:*",
     "@massmarket/blockchain": "workspace:*",
+    "@massmarket/contracts": "workspace:*",
     "@massmarket/utils": "workspace:*",
     "abitype": "^1.0.1",
     "buffer": "^6.0.3",
     "isows": "^1.0.3",
-    "viem": "^2.16.3"
+    "viem": "^2.16.3",
+    "web-streams-polyfill": "^4.0.0"
   },
   "devDependencies": {
     "@massmarket/schema": "workspace:*",
