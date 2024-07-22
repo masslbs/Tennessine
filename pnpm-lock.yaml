@@ -129,6 +129,9 @@ importers:
       '@massmarket/schema':
         specifier: workspace:*
         version: link:../schema
+      '@massmarket/stateManager':
+        specifier: workspace:*
+        version: link:../stateManager
       '@massmarket/utils':
         specifier: workspace:*
         version: link:../utils
@@ -171,6 +174,9 @@ importers:
       react-test-renderer:
         specifier: ^18.2.0
         version: 18.2.0(react@18.2.0)
+      stream.js:
+        specifier: ^1.0.1
+        version: 1.0.1
       viem:
         specifier: ^2.16.3
         version: 2.16.3(typescript@5.5.3)(zod@3.22.4)
@@ -13731,6 +13737,10 @@ packages:
 
   /stream-shift@1.0.3:
     resolution: {integrity: sha512-76ORR0DO1o1hlKwTbi/DM3EXWGf3ZJYO8cXX5RJwnul2DEg2oyoZyjLNoQM8WsvZiFKCRfC1O0J7iCvie3RZmQ==}
+    dev: false
+
+  /stream.js@1.0.1:
+    resolution: {integrity: sha512-iHUg7ZXjR4KoQnaoSG2CCjxfv3DMje2X3GSY/Cmzbl/IC/09HYhDeU55U62HeEC6yHHt0c78aljea99/lLghmw==}
     dev: false
 
   /streamsearch@1.1.0:

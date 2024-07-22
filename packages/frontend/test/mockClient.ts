@@ -8,6 +8,7 @@ import { hexToBytes } from "viem";
 import testVectorsData from "./testVectors.json" with { type: "json" };
 
 import schema, { google } from "@massmarket/schema";
+import { ReadableEventStream } from "@massmarket/client/stream";
 
 type VectorEvent = {
   type: string;
@@ -59,10 +60,13 @@ export type IncomingEvent = {
 
 export class MockClient extends EventEmitter {
   vectors: TestVectors;
+  private eventStream;
 
   constructor() {
     super();
     this.vectors = testVectorsData;
+    this.eventStream = new ReadableEventStream(this);
+
     console.log(
       `[vectors] events: ${JSON.stringify(this.vectors.events.length)}`,
     );
@@ -82,32 +86,7 @@ export class MockClient extends EventEmitter {
     }
   }
   createEventStream() {
-    const parentInstance = this;
-    let enqueueFn: any;
-    const enqueueWrapperFn = (controller: any) => {
-      return (enqueueFn = (events: any) => {
-        for (const event of events) {
-          controller.enqueue(event);
-        }
-      });
-    };
-
-    return new ReadableStream(
-      {
-        start(controller) {
-          try {
-            parentInstance.on("event", enqueueWrapperFn(controller));
-          } catch (error) {
-            console.log({ error });
-          }
-        },
-
-        cancel() {
-          parentInstance.removeListener("event", enqueueFn);
-        },
-      },
-      { highWaterMark: 0 },
-    );
+    return this.eventStream.stream;
   }
 }
 
