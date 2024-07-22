@@ -140,7 +140,7 @@ export class RelayClient extends EventEmitter {
     await this.sendShopEvent({
       updateItem: item,
     });
-    return bytesToHex(id);
+    return id;
   }
 
   async createTag(tag: schema.ICreateTag) {

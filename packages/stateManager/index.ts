@@ -2,7 +2,7 @@ import { EventEmitter } from "events";
 import { RelayClient } from "@massmarket/client";
 import schema from "@massmarket/schema";
 import { bytesToHex, hexToBytes } from "viem";
-import { Uint8ArrayToParsedJSON } from "@massmarket/utils";
+import { bufferToJSON } from "@massmarket/utils";
 interface Item {
   id: `0x${string}`;
   price: string;
@@ -111,17 +111,17 @@ class ListingManager extends PublicObjectManager<Item> {
       const item = {
         id,
         price: ci.price,
-        metadata: Uint8ArrayToParsedJSON(ci.metadata),
+        metadata: bufferToJSON(ci.metadata),
         tags: [],
         quantity: 0,
       };
-      await this.store.put(id, item);
+      return this.store.put(id, item);
     } else if (event.updateItem) {
       const ui = event.updateItem;
       const id = bytesToHex(ui.itemId);
       const item = await this.store.get(id);
       if (ui.metadata) {
-        item.metadata = Uint8ArrayToParsedJSON(ui.metadata);
+        item.metadata = bufferToJSON(ui.metadata);
       }
       if (ui.price) {
         item.price = ui.price;
@@ -135,7 +135,7 @@ class ListingManager extends PublicObjectManager<Item> {
           const item = await this.store.get(itemId);
           const diff = cs.diffs ? cs.diffs[i] : 0;
           item.quantity = item.quantity + diff;
-          await this.store.put(itemId, item);
+          return this.store.put(itemId, item);
         });
       }
     } else if (event.updateTag) {
@@ -146,14 +146,15 @@ class ListingManager extends PublicObjectManager<Item> {
       if (ut.addItemId) {
         const itemId = bytesToHex(ut.addItemId);
         const item = await this.store.get(itemId);
-        item.tags = [...item.tags, tagId];
-        await this.store.put(itemId, item);
+        item.tags.push(tagId);
+        return this.store.put(itemId, item);
       }
       if (ut.removeItemId) {
         const itemId = bytesToHex(ut.removeItemId);
         const item = await this.store.get(itemId);
+        // remove `tagId` from item.tags array
         item.tags = [...item.tags.filter((id: `0x${string}`) => id !== tagId)];
-        await this.store.put(itemId, item);
+        return this.store.put(itemId, item);
       }
     }
   }
@@ -165,7 +166,7 @@ class ListingManager extends PublicObjectManager<Item> {
         metadata: new TextEncoder().encode(JSON.stringify(item.metadata)),
       }),
     );
-    await this.store.put(id, item);
+    return this.store.put(id, item);
   }
   //update argument passed here will only contain the fields to update.
   async update(update: Partial<Item>) {
@@ -197,10 +198,11 @@ class ListingManager extends PublicObjectManager<Item> {
         });
         item.quantity = update.quantity;
       }
-      await this.store.put(update.id!, item);
+      return item;
     };
 
-    Promise.all([p1, p2]);
+    const [_, item] = await Promise.all([p1, p2()]);
+    return this.store.put(update.id!, item);
   }
 
   getIterator() {
@@ -231,7 +233,7 @@ class ShopManifest extends PublicObjectManager<
         publishedTagId: bytesToHex(sm.publishedTagId),
         description: sm.description,
       };
-      await this.store.put("shopManifest", manifest);
+      return this.store.put("shopManifest", manifest);
     } else if (event.updateShopManifest) {
       const um = event.updateShopManifest;
       const manifest = await this.store.get("shopManifest");
@@ -256,7 +258,7 @@ class ShopManifest extends PublicObjectManager<
           chainId: um.chainId,
         };
       }
-      await this.store.put("shopManifest", manifest);
+      return this.store.put("shopManifest", manifest);
     }
   }
   async create(manifest: IShopManifest, shopId: `0x${string}`) {
@@ -267,7 +269,7 @@ class ShopManifest extends PublicObjectManager<
       profilePictureUrl: "https://http.cat/images/200.jpg",
     };
     await this.client.shopManifest(sm, shopId);
-    await this.store.put("shopManifest", manifest);
+    return this.store.put("shopManifest", manifest);
   }
 
   async update(um: UpdateShopManifest) {
@@ -307,7 +309,7 @@ class ShopManifest extends PublicObjectManager<
       }
     }
     await this.client.updateShopManifest(update);
-    await this.store.put("shopManifest", manifest);
+    return this.store.put("shopManifest", manifest);
   }
 
   getIterator() {
@@ -338,7 +340,7 @@ class OrderManager extends PublicObjectManager<Order> {
         } else {
           order.items[itemId] = quantity;
         }
-        await this.store.put(orderId, order);
+        return this.store.put(orderId, order);
       }
       if (uo.itemsFinalized) {
         const eventId = bytesToHex(uo.eventId);
@@ -354,12 +356,12 @@ class OrderManager extends PublicObjectManager<Order> {
           total: uo.itemsFinalized.total,
         };
         order.orderFinalized = fo;
-        await this.store.put(eventId, order);
+        return this.store.put(eventId, order);
       }
       if (uo.orderCanceled) {
         const order = await this.store.get(orderId);
         order.status = Status.Failed;
-        await this.store.put(orderId, order);
+        return this.store.put(orderId, order);
       }
     } else if (event.changeStock) {
       const cs = event.changeStock;
@@ -368,7 +370,7 @@ class OrderManager extends PublicObjectManager<Order> {
         const order = await this.store.get(orderId);
         order.status = Status.Complete;
         order.txHash = bytesToHex(cs.txHash);
-        await this.store.put(orderId, order);
+        return this.store.put(orderId, order);
       }
     }
   }
@@ -424,7 +426,7 @@ class TagManager extends PublicObjectManager<Tag> {
     if (event.createTag) {
       const ct = event.createTag;
       const id = bytesToHex(ct.eventId);
-      await this.store.put(id, {
+      return this.store.put(id, {
         id,
         name: ct.name,
       });
@@ -432,7 +434,7 @@ class TagManager extends PublicObjectManager<Tag> {
   }
   async create(name: string) {
     const id = bytesToHex(await this.client.createTag({ name }));
-    await this.store.put(id, { id, name });
+    return this.store.put(id, { id, name });
   }
 
   getIterator() {
