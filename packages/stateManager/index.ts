@@ -79,7 +79,9 @@ type ShopObjectTypes =
 type Store<T extends ShopObjectTypes> = {
   put(key: string, value: T): Promise<void>;
   get(key: string): Promise<T>;
-  iterator(options: any): Iterator<string, ShopObjectTypes>;
+  iterator: {
+    (options?: any): Iterator<string, ShopObjectTypes>;
+  };
 };
 
 abstract class PublicObjectManager<
