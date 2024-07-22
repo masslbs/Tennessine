@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2024 Mass Labs
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
+
 import {
   ADD_PRODUCT,
   UPDATE_METADATA,
@@ -14,105 +15,130 @@ import {
 import { ADD_TAG, allTagsAction } from "@/reducers/tagReducers";
 import { bytesToHex } from "viem";
 import { parseMetadata } from "@/app/utils";
-import { ItemField } from "@/context/types";
 import { IProduct, IStatus, ITag, ItemId, TagId } from "@/types";
 import {
-  UPDATE_CART_ITEM,
-  REMOVE_CART_ITEM,
-  UPDATE_CART_STATUS,
-  UPDATE_CART_HASH,
-  SET_CART_SIG,
-  allCartActions,
-} from "@/reducers/cartReducers";
+  UPDATE_ORDER_ITEM,
+  REMOVE_ORDER_ITEM,
+  UPDATE_ORDER_STATUS,
+  UPDATE_ORDER_HASH,
+  SET_ORDER_SIG,
+  allOrderActions,
+} from "@/reducers/orderReducers";
 import {
-  SET_CART,
-  finalizedCartActions,
-} from "@/reducers/finalizedCartReducers";
+  SET_ORDER,
+  finalizedOrderActions,
+} from "@/reducers/finalizedOrderReducers";
+import {
+  SET_STORE_DATA,
+  updateStoreDataAction,
+  UPDATE_STORE_PIC,
+  UPDATE_BASE_CURRENCY,
+  UPDATE_STORE_NAME,
+} from "@/reducers/storeReducer";
+import {
+  ADD_ACCEPTED_CURR,
+  AcceptedCurrencyActions,
+} from "@/reducers/acceptedCurrencyReducers";
 import { ADD_KC_PUBKEY, pubKeyAction } from "@/reducers/KCPubKeysReducers";
 import { Dispatch } from "react";
-import { market } from "@massmarket/client/lib/protobuf/compiled";
-import mmproto = market.mass;
-
-const ManifestField = mmproto.UpdateManifest.ManifestField;
+import schema from "@massmarket/schema";
 
 export const buildState = (
   products: Map<ItemId, IProduct>,
   allTags: Map<TagId, ITag>,
-  events: mmproto.IEvent[],
+  event: schema.IShopEvent,
   productsDispatch: Dispatch<updateProductAction | productAction>,
   tagsDisaptch: Dispatch<allTagsAction>,
-  setCartItems: Dispatch<allCartActions>,
-  setErc20Addr: Dispatch<`0x${string}` | null>,
+  setOrderItems: Dispatch<allOrderActions>,
   setPublishedTagId: Dispatch<TagId>,
-  setFinalizedCarts: Dispatch<finalizedCartActions>,
+  setFinalizedOrders: Dispatch<finalizedOrderActions>,
   setPubKeys: Dispatch<pubKeyAction>,
+  setStoreData: Dispatch<updateStoreDataAction>,
+  setAcceptedCurrencies: Dispatch<AcceptedCurrencyActions>,
   walletAddress?: `0x${string}` | null,
 ) => {
-  events.map((e) => {
-    if (e.updateManifest) {
-      const um = e.updateManifest;
-      const f = um.field;
-      if (f == ManifestField.MANIFEST_FIELD_ADD_ERC20 && um.erc20Addr) {
-        console.log(
-          `Adding erc20 ${bytesToHex(um.erc20Addr)} to payment options`,
-        );
-        setErc20Addr(bytesToHex(um.erc20Addr));
-      } else if (
-        f === ManifestField.MANIFEST_FIELD_REMOVE_ERC20 &&
-        um.erc20Addr
-      ) {
-        console.log(
-          `Removing erc20 ${bytesToHex(um.erc20Addr)} from payment options`,
-        );
-        setErc20Addr(null);
-      }
-
-      if (f == ManifestField.MANIFEST_FIELD_PUBLISHED_TAG && um.tagId) {
-        console.log(`Resetting published tag id to: ${bytesToHex(um.tagId)}`);
-        setPublishedTagId(bytesToHex(um.tagId));
-      }
-    } else if (e.createItem) {
-      const _meta = parseMetadata(e.createItem.metadata!);
-      const id = bytesToHex(e.createItem.eventId!);
-      const item: IProduct = {
-        id,
-        price: e.createItem.price!,
-        metadata: _meta,
-      };
-      productsDispatch({ type: ADD_PRODUCT, payload: { itemId: id, item } });
-    } else if (e.updateItem) {
-      const id = bytesToHex(e.updateItem.itemId!);
-      if (
-        e.updateItem.field == ItemField.ITEM_FIELD_METADATA &&
-        e.updateItem.metadata
-      ) {
-        const _meta = parseMetadata(e.updateItem.metadata);
-        productsDispatch({
-          type: UPDATE_METADATA,
-          payload: {
-            itemId: id,
-            metadata: _meta,
-          },
-        });
-      } else if (
-        e.updateItem.field == ItemField.ITEM_FIELD_PRICE &&
-        e.updateItem.price
-      ) {
-        productsDispatch({
-          type: UPDATE_PRICE,
-          payload: {
-            itemId: id,
-            price: e.updateItem.price,
-          },
-        });
-      }
-    } else if (e.createTag) {
-      const id = bytesToHex(e.createTag.eventId!);
-      const tag = { id, text: e.createTag.name! };
-      tagsDisaptch({ type: ADD_TAG, payload: { tag } });
-    } else if (e.addToTag) {
-      const itemId = bytesToHex(e.addToTag.itemId!);
-      const tagId = bytesToHex(e.addToTag.tagId!);
+  if (event.shopManifest) {
+    const sm = event.shopManifest;
+    setPublishedTagId(bytesToHex(sm.publishedTagId!));
+    setStoreData({
+      type: SET_STORE_DATA,
+      payload: {
+        name: sm.name!,
+        profilePictureUrl: sm.profilePictureUrl!,
+        baseCurrencyAddr: null,
+      },
+    });
+  } else if (event.updateShopManifest) {
+    const um = event.updateShopManifest;
+    if (um.profilePictureUrl) {
+      setStoreData({
+        type: UPDATE_STORE_PIC,
+        payload: { profilePictureUrl: um.profilePictureUrl! },
+      });
+    }
+    if (um.publishedTagId) {
+      console.log(
+        `Resetting published tag id to: ${bytesToHex(um.publishedTagId)}`,
+      );
+      setPublishedTagId(bytesToHex(um.publishedTagId));
+    }
+    if (um.setBaseCurrency) {
+      setStoreData({
+        type: UPDATE_BASE_CURRENCY,
+        payload: { baseCurrencyAddr: bytesToHex(um.setBaseCurrency.tokenAddr) },
+      });
+    }
+    if (um.addAcceptedCurrency) {
+      setAcceptedCurrencies({
+        type: ADD_ACCEPTED_CURR,
+        payload: { tokenAddr: bytesToHex(um.addAcceptedCurrency.tokenAddr) },
+      });
+    }
+    if (um.name) {
+      setStoreData({
+        type: UPDATE_STORE_NAME,
+        payload: { name: um.name! },
+      });
+    }
+  } else if (event.createItem) {
+    const _meta = parseMetadata(event.createItem.metadata!);
+    const id = bytesToHex(event.createItem.eventId!);
+    const item: IProduct = {
+      id,
+      price: event.createItem.price!,
+      metadata: _meta,
+    };
+    productsDispatch({ type: ADD_PRODUCT, payload: { itemId: id, item } });
+  } else if (event.updateItem) {
+    const ui = event.updateItem;
+    const id = bytesToHex(ui.itemId!);
+    if (ui.metadata) {
+      const _meta = parseMetadata(ui.metadata);
+      productsDispatch({
+        type: UPDATE_METADATA,
+        payload: {
+          itemId: id,
+          metadata: _meta,
+        },
+      });
+    } else if (ui.price) {
+      productsDispatch({
+        type: UPDATE_PRICE,
+        payload: {
+          itemId: id,
+          price: ui.price,
+        },
+      });
+    }
+  } else if (event.createTag) {
+    const id = bytesToHex(event.createTag.eventId!);
+    const tag = { id, text: event.createTag.name! };
+    tagsDisaptch({ type: ADD_TAG, payload: { tag } });
+  } else if (event.updateTag) {
+    const ut = event.updateTag;
+    const tagId = bytesToHex(ut.tagId!);
+    if (ut.addItemId) {
+      const itemId = bytesToHex(ut.addItemId!);
       productsDispatch({
         type: ADD_PRODUCT_TAGS,
         payload: {
@@ -120,9 +146,9 @@ export const buildState = (
           tagId: tagId,
         },
       });
-    } else if (e.removeFromTag) {
-      const itemId = bytesToHex(e.removeFromTag.itemId!);
-      const tagId = bytesToHex(e.removeFromTag.tagId!);
+    }
+    if (ut.removeItemId) {
+      const itemId = bytesToHex(ut.removeItemId!);
       productsDispatch({
         type: REMOVE_PRODUCT_TAG,
         payload: {
@@ -130,111 +156,97 @@ export const buildState = (
           tagId: tagId,
         },
       });
-    } else if (e.changeStock) {
-      const evt = e.changeStock;
-      if (evt.cartId && evt.cartId.byteLength && evt.txHash) {
-        setCartItems({
-          type: UPDATE_CART_STATUS,
+    }
+    if (ut.rename || ut.delete) {
+      throw new Error(`not yet handling tag renames or deltes`);
+    }
+  } else if (event.changeStock) {
+    const evt = event.changeStock;
+    if (evt.orderId && evt.orderId.byteLength && evt.txHash) {
+      setOrderItems({
+        type: UPDATE_ORDER_STATUS,
+        payload: {
+          orderId: bytesToHex(evt.orderId),
+          status: IStatus.Complete,
+        },
+      });
+      setOrderItems({
+        type: UPDATE_ORDER_HASH,
+        payload: {
+          orderId: bytesToHex(evt.orderId),
+          txHash: bytesToHex(evt.txHash),
+        },
+      });
+    }
+    evt.itemIds?.length &&
+      evt.itemIds.map((id: Uint8Array, i: number) => {
+        const itemId = bytesToHex(id);
+        productsDispatch({
+          type: UPDATE_STOCKQTY,
           payload: {
-            cartId: bytesToHex(evt.cartId),
-            status: IStatus.Complete,
+            itemId: itemId,
+            unitDiff: evt.diffs ? evt.diffs[i] : 0,
           },
         });
-        setCartItems({
-          type: UPDATE_CART_HASH,
-          payload: {
-            cartId: bytesToHex(evt.cartId),
-            txHash: bytesToHex(evt.txHash),
-          },
-        });
-      }
-      evt.itemIds?.length &&
-        evt.itemIds.map((id, i) => {
-          const itemId = bytesToHex(id);
-          productsDispatch({
-            type: UPDATE_STOCKQTY,
-            payload: {
-              itemId: itemId,
-              unitDiff: evt.diffs ? evt.diffs[i] : 0,
-            },
-          });
-        });
-    } else if (e.changeCart) {
-      const itemId = bytesToHex(e.changeCart.itemId!);
-      const _cartId = bytesToHex(e.changeCart.cartId!);
-      const quantity = e.changeCart.quantity!;
+      });
+  } else if (event.createOrder) {
+    const orderId = bytesToHex(event.createOrder.eventId!);
+    const signature = "0x0";
+    setOrderItems({
+      type: SET_ORDER_SIG,
+      payload: {
+        orderId,
+        signature,
+      },
+    });
+  } else if (event.updateOrder) {
+    const uo = event.updateOrder;
+    const eventId = uo.eventId;
+    const _orderId = bytesToHex(uo.orderId!);
+
+    if (uo.changeItems) {
+      const ci = uo.changeItems;
+      const itemId = bytesToHex(ci.itemId!);
+      const quantity = ci.quantity!;
       if (quantity === 0) {
-        setCartItems({
-          type: REMOVE_CART_ITEM,
-          payload: { itemId: itemId, cartId: _cartId },
+        setOrderItems({
+          type: REMOVE_ORDER_ITEM,
+          payload: { itemId: itemId, orderId: _orderId },
         });
       } else {
-        setCartItems({
-          type: UPDATE_CART_ITEM,
-          payload: { itemId: itemId, saleQty: quantity, cartId: _cartId },
-        });
-      }
-    } else if (e.cartFinalized) {
-      const {
-        erc20Addr,
-        cartId,
-        purchaseAddr,
-        salesTax,
-        total,
-        totalInCrypto,
-        eventId,
-        subTotal,
-      } = e.cartFinalized;
-      const cartObj = {
-        erc20Addr: erc20Addr ? bytesToHex(erc20Addr) : null,
-        cartId: bytesToHex(cartId!),
-        purchaseAddress: bytesToHex(purchaseAddr!),
-        salesTax: salesTax || null,
-        total: total || null,
-        subTotal: subTotal || null,
-        totalInCrypto: totalInCrypto || null,
-      };
-
-      setFinalizedCarts({
-        type: SET_CART,
-        payload: {
-          eventId: bytesToHex(eventId!),
-          cart: cartObj,
-        },
-      });
-    } else if (e.cartAbandoned) {
-      setCartItems({
-        type: UPDATE_CART_STATUS,
-        payload: {
-          cartId: bytesToHex(e.cartAbandoned.cartId!),
-          status: IStatus.Failed,
-        },
-      });
-    } else if (e.createCart) {
-      const cartId = bytesToHex(e.createCart.eventId!);
-      const signature = bytesToHex(e.signature!);
-      setCartItems({
-        type: SET_CART_SIG,
-        payload: {
-          cartId,
-          signature,
-        },
-      });
-    } else if (e.newKeyCard) {
-      const userWalletAddr = bytesToHex(e.newKeyCard.userWalletAddr!);
-      const cardPublicKey = bytesToHex(e.newKeyCard.cardPublicKey!);
-      if (
-        walletAddress &&
-        walletAddress.toLowerCase() == userWalletAddr.toLowerCase()
-      ) {
-        setPubKeys({
-          type: ADD_KC_PUBKEY,
-          payload: {
-            cardPublicKey,
-          },
+        setOrderItems({
+          type: UPDATE_ORDER_ITEM,
+          payload: { itemId: itemId, saleQty: quantity, orderId: _orderId },
         });
       }
     }
-  });
+    if (uo.itemsFinalized) {
+      console.log(uo.itemsFinalized);
+      setFinalizedOrders({
+        type: SET_ORDER,
+        payload: {
+          orderId: bytesToHex(eventId!),
+          order: uo.itemsFinalized,
+        },
+      });
+    }
+  } else if (event.newKeyCard) {
+    const userWalletAddr = bytesToHex(event.newKeyCard.userWalletAddr!);
+    const cardPublicKey = bytesToHex(event.newKeyCard.cardPublicKey!);
+    if (
+      walletAddress &&
+      walletAddress.toLowerCase() == userWalletAddr.toLowerCase()
+    ) {
+      setPubKeys({
+        type: ADD_KC_PUBKEY,
+        payload: {
+          cardPublicKey,
+        },
+      });
+    }
+  } else {
+    console.error(event);
+    throw new Error(`Unhandled event type! ${Array.isArray(event)}`);
+  }
   return { _products: products, _allTags: allTags };
 };

@@ -2,13 +2,29 @@
 //
 // SPDX-License-Identifier: Unlicense
 
-import addresses from "./deploymentAddresses.json" assert { type: "json" };
+import addresses from "./deploymentAddresses.json" with { type: "json" };
 export { addresses };
-import Payments from "./abi/Payments.json" assert { type: "json" };
+import Payments from "./abi/Payments.json" with { type: "json" };
 export { Payments };
-import RelayReg from "./abi/RelayReg.json" assert { type: "json" };
+import PaymentsByAddress from "./abi/PaymentsByAddress.json" with { type: "json" };
+export { PaymentsByAddress };
+import RelayReg from "./abi/RelayReg.json" with { type: "json" };
 export { RelayReg };
-import StoreReg from "./abi/StoreReg.json" assert { type: "json" };
-export { StoreReg };
-import ERC20 from "./abi/ERC20.json" assert { type: "json" };
+import ShopReg from "./abi/ShopReg.json" with { type: "json" };
+export { ShopReg };
+import ERC20 from "./abi/ERC20.json" with { type: "json" };
 export { ERC20 };
+import Eddies from "./abi/Eddies.json" with { type: "json" };
+export { Eddies };
+export const permissions = {
+  addPermission: 0,
+  removePermission: 1,
+  updateRootHash: 2,
+  addRelay: 3,
+  removeRelay: 4,
+  replaceRelay: 5,
+  registerUser: 6,
+  removeUser: 7,
+  publishInviteVerifier: 8,
+};
+export const zeroAddress = "0x0000000000000000000000000000000000000000";

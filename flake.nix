@@ -4,14 +4,14 @@
 {
   description = "massmarket-typescript";
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    flake-parts.url = "github:hercules-ci/flake-parts/ac5d0b2d4d51a53a1cd4a4a10d22f4a12c3fe652";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    flake-parts.url = "github:hercules-ci/flake-parts";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
     contracts.url = "github:masslbs/contracts";
     contracts.inputs.nixpkgs.follows = "nixpkgs";
     schema = {
-      url = "github:masslbs/network-schema/payments-v2-intergration";
+      url = "github:masslbs/network-schema";
       flake = false;
     };
   };
@@ -42,6 +42,7 @@
           hooks = {
             alejandra.enable = true;
             prettier.enable = true;
+            prettier.settings.write = true;
           };
         };
         devShells.default = with pkgs;
@@ -50,10 +51,10 @@
               # these fail if 'nix develop' isnt run from the root of the project
               if [ -d ./packages ]; then
                 # todo; maybe linking would be better
-                cp ${schema}/testVectors.json ./packages/client/test/testVectors.json
+                cp ${schema}/testVectors.json ./packages/frontend/test/testVectors.json
                 cp $MASS_CONTRACTS_PATH/abi/*.json ./packages/contracts/abi/
                 cp $MASS_CONTRACTS_PATH/deploymentAddresses.json ./packages/contracts/
-                prettier -w ./packages/client/test/testVectors.json ./packages/contracts/deploymentAddresses.json
+                prettier -w ./packages/frontend/test/testVectors.json ./packages/contracts/deploymentAddresses.json
               fi
             '';
 
@@ -63,6 +64,7 @@
                 typescript
                 nodejs_latest
                 nodePackages.pnpm
+                nodePackages.typescript-language-server
                 playwright-driver.browsers
                 contracts.packages.${system}.default
                 reuse

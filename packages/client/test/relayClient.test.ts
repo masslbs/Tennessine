@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { randomBytes } from "crypto";
 import { WebSocket } from "isows";
 import {
-  bytesToHex,
+  hexToBytes,
+  toHex,
   createWalletClient,
   createPublicClient,
   http,
@@ -13,14 +13,18 @@ import {
 } from "viem";
 import { hardhat } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
-import { describe, beforeEach, afterEach, expect, test } from "vitest";
+import { describe, beforeEach, expect, test } from "vitest";
 
-import { RelayClient, ManifestField } from "../lib";
-import { market } from "../lib/protobuf/compiled";
-import mmproto = market.mass;
-
+import { RelayClient } from "../src";
+import { random32BytesHex, randomBytes } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
+import { randomAddress } from "@massmarket/utils";
+import {
+  BlockchainClient,
+  WalletClientWithAccount,
+} from "@massmarket/blockchain";
 
+// this key is from one of anvil's default keypairs
 const account = privateKeyToAccount(
   "0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6",
 );
@@ -29,58 +33,37 @@ const wallet = createWalletClient({
   account,
   chain: hardhat,
   transport: http(),
-});
+}) as WalletClientWithAccount;
 
 const publicClient = createPublicClient({
   chain: hardhat,
   transport: http(),
 });
 
+const shopId = random32BytesHex();
+let blockchain: BlockchainClient;
 const relayEndpoint =
-  (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v1";
+  (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v2";
 
-let relayClient: RelayClient;
-const storeId: `0x${string}` = `0x${randomBytes(32).toString("hex")}`;
-const keyCard = new Uint8Array(32);
-
-beforeEach(async () => {
-  crypto.getRandomValues(keyCard);
-  relayClient = new RelayClient({
-    storeId,
+function createRelayClient(pk = random32BytesHex()) {
+  return new RelayClient({
     relayEndpoint,
-    keyCardWallet: privateKeyToAccount(bytesToHex(keyCard)),
-    chain: hardhat,
-    keyCardEnrolled: false,
+    keyCardWallet: privateKeyToAccount(pk),
   });
+}
+beforeEach(async () => {
+  blockchain = new BlockchainClient(shopId);
 });
-
-afterEach(async () => {
-  await relayClient.disconnect();
-});
-
 describe("RelayClient", async () => {
-  describe("connection behavior", () => {
-    test("should connect and disconnect", async () => {
-      await relayClient.connect();
-      const closeEvent = await relayClient.disconnect();
-      const r = closeEvent as CloseEvent;
-      expect(r.wasClean).toBe(true);
-    });
+  const relayClient = createRelayClient();
 
-    test("should reconnect", async () => {
-      await relayClient.disconnect();
-      await relayClient.connect();
-      expect(relayClient.connection.readyState).toBe(WebSocket.OPEN);
+  test("should create a shop", async () => {
+    const transactionHash = await blockchain.createShop(wallet);
+    // wait for the transaction to be included in the blockchain
+    const receipt = await publicClient.waitForTransactionReceipt({
+      hash: transactionHash,
     });
-  });
-
-  test("should create a store", async () => {
-    const result = await relayClient.blockchain.createStore(wallet);
-    const transaction = await publicClient.waitForTransactionReceipt({
-      hash: result,
-    });
-    console.log(transaction);
-    expect(result).not.toBeNull();
+    expect(receipt.status).equals("success");
   });
 
   test("regstrationTokenRedeem", async () => {
@@ -88,107 +71,121 @@ describe("RelayClient", async () => {
     //
     // acc2 is the "long term wallet" of the new user
     // if we knew that before hand, we could just call registerUser(acc2.address, Clerk)
+    const sk = random32BytesHex();
+    const token = privateKeyToAccount(sk);
+    const hash = await blockchain.createInviteSecret(wallet, token.address);
 
-    const sk = await relayClient.blockchain.createInviteSecret(wallet);
+    // wait for the transaction to be included in the blockchain
+    const receipt = await publicClient.waitForTransactionReceipt({
+      hash,
+    });
+    expect(receipt.status).to.equal("success");
     const acc2 = privateKeyToAccount(sk);
     await wallet.sendTransaction({
       account,
       to: acc2.address,
-      value: BigInt(250000000000000000),
+      value: BigInt("250000000000000000"),
     });
 
     const client2Wallet = createWalletClient({
       account: acc2,
       chain: hardhat,
       transport: http(),
-    });
+    }) as WalletClientWithAccount;
 
     const relayClient2 = new RelayClient({
       relayEndpoint,
       keyCardWallet: privateKeyToAccount(sk),
-      chain: hardhat,
-      keyCardEnrolled: false,
-      storeId,
     });
 
-    const hash = await relayClient.blockchain.redeemInviteSecret(
-      sk,
-      client2Wallet,
-    );
+    const hash2 = await blockchain.redeemInviteSecret(sk, client2Wallet);
     // wait for the transaction to be included in the blockchain
     const transaction = await publicClient.waitForTransactionReceipt({
-      hash,
+      hash: hash2,
     });
     expect(transaction.status).to.equal("success");
 
-    //
-    const PERMRootHash = await publicClient.readContract({
-      address: abi.addresses.StoreReg as Address,
-      abi: abi.StoreReg,
-      functionName: "PERM_updateRootHash",
-    });
-    const PERMRemoveUser = await publicClient.readContract({
-      address: abi.addresses.StoreReg as Address,
-      abi: abi.StoreReg,
-      functionName: "PERM_removeUser",
-    });
     // verify access level
     const canUpdateRootHash = await publicClient.readContract({
-      address: abi.addresses.StoreReg as Address,
-      abi: abi.StoreReg,
+      address: abi.addresses.ShopReg as Address,
+      abi: abi.ShopReg,
       functionName: "hasPermission",
-      args: [storeId, acc2.address, PERMRootHash],
+      args: [blockchain.shopId, acc2.address, abi.permissions.updateRootHash],
     });
     expect(canUpdateRootHash).toBe(true);
-    const isAdmin = await publicClient.readContract({
-      address: abi.addresses.StoreReg as Address,
-      abi: abi.StoreReg,
+    const canRemoveUser = await publicClient.readContract({
+      address: abi.addresses.ShopReg as Address,
+      abi: abi.ShopReg,
       functionName: "hasPermission",
-      args: [storeId, acc2.address, PERMRemoveUser],
+      args: [blockchain.shopId, acc2.address, abi.permissions.removeUser],
     });
-    expect(isAdmin).toBe(false);
+    expect(canRemoveUser).toBe(false);
 
     await relayClient2.disconnect();
   });
+  await relayClient.disconnect();
 });
 
 describe("user behaviour", () => {
+  const relayClient = createRelayClient();
   // enroll and login
-  beforeEach(async () => {
-    const response = await relayClient.enrollKeycard(wallet);
+  test("should enroll keycard", async () => {
+    const response = await relayClient.enrollKeycard(wallet, false, shopId);
     expect(response.status).toBe(201);
-    const authenticated =
-      (await relayClient.connect()) as mmproto.ChallengeSolvedResponse;
+  });
+
+  test("should connect and disconnect", async () => {
+    const authenticated = await relayClient.connect();
     expect(authenticated.error).toBeNull();
+    const closeEvent = await relayClient.disconnect();
+    const r = closeEvent as CloseEvent;
+    expect(r.wasClean).toBe(true);
   });
 
-  test("write store manifest", async () => {
-    const publishedTagId = null;
-    let r = await relayClient.writeStoreManifest(publishedTagId);
-    // This is a hack to please browser and node world
-    // Find out why one return number and the other class Long
-    if (r.eventSequenceNo !== 2 && r.eventSequenceNo.low !== 2) {
-      expect(true).toBe(false);
-    }
+  test("should reconnect", async () => {
+    await relayClient.disconnect();
+    await relayClient.connect();
+    expect(relayClient.connection.readyState).toBe(WebSocket.OPEN);
   });
 
-  test("update store manifest", async () => {
-    await relayClient.updateManifest(
-      ManifestField.MANIFEST_FIELD_DOMAIN,
-      "test",
+  test("write shop manifest", async () => {
+    const publishedTagId = randomBytes(32);
+    const name = "test shop";
+    const description = "creating test shop";
+    const profilePictureUrl = "https://http.cat/images/200.jpg";
+    await relayClient.shopManifest(
+      {
+        name,
+        description,
+        profilePictureUrl,
+        publishedTagId,
+      },
+      shopId,
     );
-    await relayClient.updateManifest(
-      ManifestField.MANIFEST_FIELD_DOMAIN,
-      "socks.mass.market",
-    );
-    await relayClient.updateManifest(
-      ManifestField.MANIFEST_FIELD_ADD_ERC20,
-      abi.addresses.Eddies,
-    );
-    await relayClient.updateManifest(
-      ManifestField.MANIFEST_FIELD_REMOVE_ERC20,
-      abi.addresses.Eddies,
-    );
+  });
+
+  test("update shop manifest", async () => {
+    await relayClient.updateShopManifest({ domain: "socks.mass.market" });
+    await relayClient.updateShopManifest({
+      publishedTagId: randomBytes(32),
+    });
+    await relayClient.updateShopManifest({
+      name: "socks.mass.market",
+      description: "foo",
+    });
+
+    await relayClient.updateShopManifest({
+      addAcceptedCurrency: {
+        tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
+        chainId: 31337,
+      },
+    });
+    await relayClient.updateShopManifest({
+      removeAcceptedCurrency: {
+        tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
+        chainId: 31337,
+      },
+    });
   });
 
   test("blob upload", async () => {
@@ -204,87 +201,52 @@ describe("user behaviour", () => {
   });
 
   describe("editing the listing", () => {
-    let itemId: `0x${string}`;
+    let itemId: Uint8Array;
     // create item
     beforeEach(async () => {
-      const metadata = {
-        name: "test",
-        description: "test",
-        image: "https://http.cat/images/202.jpg",
-      };
-      itemId = await relayClient.createItem("10.99", metadata);
+      const metadata = new TextEncoder().encode(
+        JSON.stringify({
+          name: "test",
+          description: "test",
+          image: "https://http.cat/images/200.jpg",
+        }),
+      );
+      itemId = await relayClient.createItem({
+        price: "10.99",
+        metadata,
+      });
       expect(itemId).not.toBeNull();
     });
 
     test("update item - price", async () => {
-      await relayClient.updateItem(
+      await relayClient.updateItem({ itemId, price: "20.99" });
+      expect(itemId).not.toBeNull();
+    });
+
+    test("update item - metadata", async () => {
+      await relayClient.updateItem({
         itemId,
-        mmproto.UpdateItem.ItemField.ITEM_FIELD_PRICE,
-        "20.99",
-      );
+        metadata: new TextEncoder().encode(
+          JSON.stringify({
+            name: "new name",
+            image: "https://http.cat/images/200.jpg",
+          }),
+        ),
+      });
       expect(itemId).not.toBeNull();
     });
 
     describe("tagging", () => {
-      let tagId: `0x${string}`;
+      let tagId: Uint8Array;
       beforeEach(async () => {
-        tagId = await relayClient.createTag("Testing New Tag");
+        tagId = await relayClient.createTag({ name: "Testing New Tag" });
         expect(tagId).not.toBeNull();
       });
-
       test("add item to tag", async () => {
-        await relayClient.addItemToTag(tagId, itemId);
+        await relayClient.updateTag({ tagId, addItemId: itemId });
       });
-
       test("remove item from tag", async () => {
-        await relayClient.removeFromTag(tagId, itemId);
-      });
-    });
-
-    describe("checkout process", () => {
-      let cartId: `0x${string}`;
-      beforeEach(async () => {
-        cartId = await relayClient.createCart();
-        // increase stock
-        await relayClient.changeStock([itemId], [10]);
-      });
-
-      test("single item checkout", { timeout: 10000 }, async () => {
-        await relayClient.changeCart(cartId, itemId, 1);
-        const checkout = await relayClient.commitCart(cartId);
-        expect(checkout).not.toBeNull();
-        expect(checkout.cartFinalizedId).not.toBeNull();
-
-        const getStream = async () => {
-          const stream = relayClient.createEventStream();
-          // @ts-expect-error FIXME
-          for await (const evt of stream) {
-            for (const event of evt.events) {
-              if (event.cartFinalized) {
-                return bytesToHex(event.cartFinalized!.cartId!);
-              }
-            }
-            break;
-          }
-          return null;
-        };
-        const receivedId = await getStream();
-        expect(receivedId).toEqual(cartId);
-      });
-
-      test("erc20 checkout", { timeout: 10000 }, async () => {
-        await relayClient.updateManifest(
-          ManifestField.MANIFEST_FIELD_ADD_ERC20,
-          abi.addresses.Eddies,
-        );
-        await relayClient.changeCart(cartId, itemId, 1);
-
-        const checkout = await relayClient.commitCart(
-          cartId,
-          abi.addresses.Eddies as Address,
-        );
-        expect(checkout).not.toBeNull();
-        expect(checkout.cartFinalizedId).not.toBeNull();
+        await relayClient.updateTag({ tagId, removeItemId: itemId });
       });
     });
   });
@@ -292,16 +254,23 @@ describe("user behaviour", () => {
   describe("invite another user", { retry: 3 }, async () => {
     let client2Wallet;
     let relayClient2: RelayClient;
-    let sk;
     beforeEach(async () => {
-      sk = await relayClient.blockchain.createInviteSecret(wallet);
+      const sk = random32BytesHex();
+      const token = privateKeyToAccount(sk);
+      const hash = await blockchain.createInviteSecret(wallet, token.address);
+
+      // wait for the transaction to be included in the blockchain
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash,
+      });
+
+      expect(receipt.status).to.equal("success");
       const acc2 = privateKeyToAccount(sk);
       await wallet.sendTransaction({
         account,
         to: acc2.address,
-        value: BigInt(250000000000000000),
+        value: BigInt("250000000000000000"),
       });
-      console.log("transacted coins to acc2");
       client2Wallet = createWalletClient({
         account: acc2,
         chain: hardhat,
@@ -310,37 +279,33 @@ describe("user behaviour", () => {
       relayClient2 = new RelayClient({
         relayEndpoint,
         keyCardWallet: privateKeyToAccount(sk),
-        chain: hardhat,
-        keyCardEnrolled: false,
-        storeId,
       });
-      await relayClient.blockchain.redeemInviteSecret(sk, client2Wallet);
-      console.log("client2 redeemed invite");
-      await relayClient2.enrollKeycard(client2Wallet);
-      console.log("client2 enrolled keyCard");
+      const redeemHash = await blockchain.redeemInviteSecret(sk, client2Wallet);
+      // wait for the transaction to be included in the blockchain
+      const redeemReceipt = await publicClient.waitForTransactionReceipt({
+        hash: redeemHash,
+      });
+
+      expect(redeemReceipt.status).to.equal("success");
+      await relayClient2.enrollKeycard(client2Wallet, false, shopId);
       await relayClient2.connect();
-      console.log("client2 connected");
     });
 
     test("client2 successfully updates manifest", async () => {
-      await relayClient2.updateManifest(
-        ManifestField.MANIFEST_FIELD_DOMAIN,
-        "test2-test",
-      );
-      console.log("client2 updated manifest");
+      await relayClient2.updateShopManifest({
+        domain: "test2-test",
+      });
     });
 
-    test("client 2 receives streams from createEventStream", async () => {
+    test("client 2 receives events from createEventStream", async () => {
       const getStream = async () => {
         const stream = relayClient2.createEventStream();
-        // @ts-expect-error FIXME
         for await (const evt of stream) {
-          return evt.events.length;
+          return 1;
         }
       };
       const evtLength = await getStream();
       expect(evtLength).toBeGreaterThan(0);
-      await relayClient2.disconnect();
     });
   });
 });

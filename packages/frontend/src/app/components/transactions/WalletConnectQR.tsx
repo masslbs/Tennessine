@@ -1,26 +1,43 @@
+// SPDX-FileCopyrightText: 2024 Mass Labs
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import React, { useState, useEffect } from "react";
 import { SignClient } from "@walletconnect/sign-client";
 import { WalletConnectModal } from "@walletconnect/modal";
-import { sepolia, mainnet } from "viem/chains";
+import { sepolia, mainnet, hardhat } from "viem/chains";
 import { SignClient as ISignClient } from "@walletconnect/sign-client/dist/types/client";
 import { SessionTypes } from "@walletconnect/types";
+import Button from "@/app/common/components/Button";
 
 function WalletConnectQR({
   purchaseAddress,
-  displayedTotal,
+  cryptoTotal,
 }: {
   purchaseAddress: string;
-  displayedTotal: string;
+  cryptoTotal: number;
 }) {
   const [signClient, setSignClient] = useState<null | ISignClient>(null);
   const [session, setSession] = useState<SessionTypes.Struct | null>(null);
   const [account, setAccount] = useState<[] | string>([]);
   const chainName = process.env.NEXT_PUBLIC_CHAIN_NAME!;
-  const usedChain: number = chainName === "sepolia" ? sepolia.id : mainnet.id;
+  const usedChain: number =
+    chainName === "sepolia"
+      ? sepolia.id
+      : chainName === "hardhat"
+        ? hardhat.id
+        : mainnet.id;
   const walletConnectModal = new WalletConnectModal({
     projectId: "6c432edcd930e0fa2c87a8d940ae5b91",
     chains: [`eip155:${usedChain}`],
   });
+
+  useEffect(() => {
+    if (account.length) {
+      handleSend();
+    }
+  }, [account.length]);
+
   async function createClient() {
     try {
       const signClient = await SignClient.init({
@@ -52,7 +69,10 @@ function WalletConnectQR({
         const sessionNamespace = await approval();
         if (sessionNamespace) {
           setSession(sessionNamespace);
-          setAccount(sessionNamespace.namespaces.eip155.accounts[0].slice(9));
+          const accountAddress = sessionNamespace.namespaces.eip155.accounts[0]
+            .slice(9) // split of 'ethereum:'  prefix
+            .split(":")[1];
+          setAccount(accountAddress);
         }
         walletConnectModal.closeModal();
       }
@@ -61,21 +81,21 @@ function WalletConnectQR({
     }
   }
 
-  async function handleDisconnect() {
-    try {
-      signClient &&
-        session &&
-        (await signClient.disconnect({
-          topic: session.topic,
-          // @ts-expect-error FIXME
-          message: "User disconnected",
-          code: 6000,
-        }));
-      reset();
-    } catch (e) {
-      console.log(e);
-    }
-  }
+  // async function handleDisconnect() {
+  //   try {
+  //     signClient &&
+  //       session &&
+  //       (await signClient.disconnect({
+  //         topic: session.topic,
+  //         // @ts-expect-error FIXME
+  //         message: "User disconnected",
+  //         code: 6000,
+  //       }));
+  //     reset();
+  //   } catch (e) {
+  //     console.log(e);
+  //   }
+  // }
 
   async function handleSend() {
     if (!account.length) throw Error("No account found");
@@ -83,7 +103,7 @@ function WalletConnectQR({
       const tx = {
         from: account,
         to: purchaseAddress,
-        value: displayedTotal,
+        value: cryptoTotal,
       };
 
       signClient &&
@@ -101,10 +121,10 @@ function WalletConnectQR({
     }
   }
 
-  const reset = () => {
-    setAccount([]);
-    setSession(null);
-  };
+  // const reset = () => {
+  //   setAccount([]);
+  //   setSession(null);
+  // };
 
   useEffect(() => {
     if (!signClient) {
@@ -113,19 +133,10 @@ function WalletConnectQR({
   }, [signClient]);
 
   return (
-    <div className="App">
-      <h1>Sign v2 Standalone</h1>
-      {account.length ? (
-        <>
-          <p>{account}</p>
-          <button onClick={handleSend}>Send Transaction</button>
-          <button onClick={handleDisconnect}>Disconnect</button>
-        </>
-      ) : (
-        <button onClick={handleConnect} disabled={!signClient}>
-          Connect
-        </button>
-      )}
+    <div className="mt-2">
+      <Button onClick={handleConnect} disabled={!signClient}>
+        Connect Wallet
+      </Button>
     </div>
   );
 }

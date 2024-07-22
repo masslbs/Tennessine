@@ -3,15 +3,22 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 "use client";
-import React, { Dispatch, SetStateAction, useRef, ChangeEvent } from "react";
+import React, {
+  useState,
+  Dispatch,
+  SetStateAction,
+  useRef,
+  ChangeEvent,
+} from "react";
 import Image from "next/image";
 
 const AvatarUpload = ({
-  setImgSrc,
+  setImgBlob,
 }: {
-  img: string | null;
-  setImgSrc: Dispatch<SetStateAction<string | null>>;
+  setImgBlob: Dispatch<SetStateAction<FormData | null>>;
 }) => {
+  const [localImg, setLocalImg] = useState<null | string>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const triggerFileInput = () => {
     if (fileInputRef.current) {
@@ -21,13 +28,16 @@ const AvatarUpload = ({
 
   const handleUpload = (e: ChangeEvent<HTMLInputElement>) => {
     try {
+      e.preventDefault();
       const fileInput = e.target;
       if (fileInput.files && fileInput.files[0]) {
         const reader = new FileReader();
-
+        const blob = new FormData();
+        blob.append("file", fileInput.files[0]);
         reader.onload = function (e) {
           const img = e.target?.result;
-          typeof img == "string" && setImgSrc(img);
+          blob && setImgBlob(blob);
+          typeof img == "string" && setLocalImg(img);
         };
 
         reader.readAsDataURL(fileInput.files[0]);
@@ -39,10 +49,10 @@ const AvatarUpload = ({
 
   return (
     <section>
-      <div className="flex justify-center mt-6">
+      <div className="flex justify-center">
         <button onClick={triggerFileInput}>
           <Image
-            src="/assets/upload-button.svg"
+            src={localImg ? localImg : "/assets/upload-button.svg"}
             width={52}
             height={52}
             alt="upload"

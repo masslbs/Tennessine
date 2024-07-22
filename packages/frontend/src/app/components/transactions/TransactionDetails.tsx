@@ -83,7 +83,7 @@ const TransactionDetails = ({
   const renderProduct = (itemId: ItemId, quantity: number) => {
     const product = products.get(itemId) as IProduct;
     return (
-      <div key={product.metadata.title} className="flex gap-1">
+      <div key={product.metadata.name} className="flex gap-1">
         {product.metadata.image && (
           <div className="border p-1 rounded">
             <Image
@@ -96,7 +96,7 @@ const TransactionDetails = ({
           </div>
         )}
         <div className="flex flex-col ml-4">
-          <p>{product.metadata.title}</p>
+          <p>{product.metadata.name}</p>
           <p className="text-sm">{Number(product.price) * quantity} USDC</p>
           <p className="text-sm text-gray-400">QTY: {quantity}</p>
         </div>

@@ -1,9 +1,19 @@
+// SPDX-FileCopyrightText: 2024 Mass Labs
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import { Level } from "level";
-import { ProductsMap, TagsMap, CartsMap } from "@/context/types";
+import {
+  ProductsMap,
+  TagsMap,
+  OrdersMap,
+  storeState,
+  CurrenciesState,
+} from "@/context/types";
 
 const setMapData = (
   key: string,
-  value: CartsMap | TagsMap | ProductsMap,
+  value: OrdersMap | TagsMap | ProductsMap | CurrenciesState,
   db: Level<string, string> | null,
 ) => {
   if (!db) return;
@@ -13,7 +23,7 @@ const setMapData = (
 
 const setItem = (
   key: string,
-  value: string,
+  value: string | storeState,
   db: Level<string, string> | null,
 ) => {
   if (!db) return;
@@ -21,7 +31,7 @@ const setItem = (
 };
 
 const getParsedMapData = async (
-  key: "products" | "tags" | "cartItems",
+  key: "products" | "tags" | "orderItems" | "acceptedCurrencies",
   db: Level<string, string>,
 ) => {
   try {

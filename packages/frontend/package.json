@@ -13,7 +13,10 @@
     "@ethereumjs/util": "^9.0.3",
     "@massmarket/client": "workspace:*",
     "@massmarket/contracts": "workspace:*",
-    "@massmarket/frontend": "link:",
+    "@massmarket/schema": "workspace:*",
+    "@massmarket/utils": "workspace:*",
+    "@massmarket/blockchain": "workspace:*",
+    "@nextui-org/dropdown": "^2.1.26",
     "@tanstack/react-query": "^5.18.1",
     "@testing-library/user-event": "^14.5.2",
     "@types/qrcode": "^1.5.5",
@@ -26,9 +29,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-test-renderer": "^18.2.0",
-    "ts-node": "^10.9.2",
-    "viem": "^2.8.18",
-    "wagmi": "^2.5.6"
+    "viem": "^2.16.3",
+    "wagmi": "^2.10.6"
   },
   "devDependencies": {
     "@massmarket/tsconfig": "workspace:*",
@@ -52,7 +54,9 @@
     "postcss": "^8.4.32",
     "tailwind-merge": "^2.2.0",
     "tailwindcss": "^3.3.6",
-    "typescript": "^5.3.3",
     "vitest": "^1.2.2"
+  },
+  "exports": {
+    "default": "./dist/index.js"
   }
 }

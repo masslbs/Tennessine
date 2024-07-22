@@ -10,21 +10,22 @@ import {
   useEnsAvatar,
   useWalletClient,
 } from "wagmi";
-import {
-  RelayClient,
-  ClientArgs,
-  WalletClientWithAccount,
-} from "@massmarket/client";
+import { RelayClient, type WalletClientWithAccount } from "@massmarket/client";
 import { hardhat, sepolia, mainnet, type Chain } from "viem/chains";
-import { http, createPublicClient, hexToBytes, bytesToHex } from "viem";
-import { IRelayClient, ClientContext } from "@/context/types";
+import { http, createPublicClient, createWalletClient } from "viem";
 import { useAuth } from "@/context/AuthContext";
 import * as abi from "@massmarket/contracts";
 import { IStatus } from "../types";
+import { type ClientContext, ShopId } from "./types";
 import { privateKeyToAccount } from "viem/accounts";
+import { usePathname } from "next/navigation";
+import { random32BytesHex } from "@massmarket/utils";
+import { useSearchParams } from "next/navigation";
+import { zeroAddress } from "@massmarket/contracts";
 
 export const MyContext = createContext<ClientContext>({
   walletAddress: null,
+  shopId: "0x",
   balance: null,
   avatar: null,
   name: null,
@@ -32,10 +33,17 @@ export const MyContext = createContext<ClientContext>({
   publicClient: null,
   inviteSecret: null,
   clientWallet: null,
-  keyCardEnrolled: null,
+  keyCardEnrolled: false,
+  createNewRelayClient: () => null,
+  setShopId: () => {},
   setKeyCardEnrolled: () => {},
   setInviteSecret: () => {},
+  setRelayClient: () => {},
   setWallet: () => {},
+  checkPermissions: () =>
+    new Promise(() => {
+      return false;
+    }),
   getTokenInformation: () =>
     new Promise(() => {
       return { name: "", symbol: "", decimals: 0 };
@@ -45,10 +53,14 @@ export const MyContext = createContext<ClientContext>({
 export const MyContextProvider = (
   props: React.HTMLAttributes<HTMLDivElement>,
 ) => {
+  if (typeof window == "undefined") {
+    console.warn("not a browser session");
+    return;
+  }
   const [walletAddress, setWalletAddress] = useState<`0x${string}` | null>(
     null,
   );
-  const [relayClient, setRelayClient] = useState<IRelayClient | null>(null);
+  const [relayClient, setRelayClient] = useState<RelayClient | null>(null);
   const [balance, setBalance] = useState<string | null>(null);
   const [avatar, setAvatar] = useState<string | null>(null);
   const [ensName, setEnsName] = useState<string | null>(null);
@@ -56,29 +68,40 @@ export const MyContextProvider = (
     null,
   );
   const [inviteSecret, setInviteSecret] = useState<`0x${string}` | null>(null);
-  const { address, isConnected } = useAccount();
+  const { address } = useAccount();
   const name = useEnsName({ address })?.data || null;
   const ensAvatar = useEnsAvatar({ name: ensName! })?.data;
   const { data: _wallet, status: walletStatus } = useWalletClient();
-  const { setIsAuthenticated } = useAuth();
-  const [keyCardEnrolled, setKeyCardEnrolled] = useState<null | `0x${string}`>(
-    null,
+  const {
+    setIsConnected,
+    setIsMerchantView,
+    setUpdateRootHashPerm,
+    isConnected,
+  } = useAuth();
+  const [keyCardEnrolled, setKeyCardEnrolled] = useState<boolean>(false);
+  const searchParams = useSearchParams();
+  const _shopId = searchParams!.get("shopId") as `0x${string}`;
+  if (_shopId) {
+    localStorage.setItem("shopId", _shopId);
+    localStorage.removeItem("merchantKeyCard");
+  }
+  const [shopId, setShopId] = useState<ShopId>(
+    (localStorage.getItem("shopId") as ShopId) ||
+      (process.env.NEXT_PUBLIC_STORE_ID as ShopId),
   );
-  if (typeof window == "undefined") {
-    console.warn("not a browser session");
-    return;
+  const pathname = usePathname();
+  const isMerchantPath = [`/merchants/`, `/create-store/`].includes(pathname);
+  if (!shopId) {
+    throw Error("missing shop ID");
   }
-  const storeId =
-    localStorage.getItem("storeId") || process.env.NEXT_PUBLIC_STORE_ID;
-
-  if (!storeId) {
-    throw Error("missing store ID");
-  }
-  const savedKC = localStorage.getItem("keyCard") as `0x${string}`;
-
+  const guestKeyCard = localStorage.getItem("guestKeyCard") as `0x${string}`;
+  const merchantKeyCard = localStorage.getItem(
+    "merchantKeyCard",
+  ) as `0x${string}`;
   useEffect(() => {
-    if (savedKC) {
-      setKeyCardEnrolled(savedKC);
+    if (isMerchantPath) {
+      localStorage.removeItem("merchantKeyCard");
+      localStorage.removeItem("guestKeyCard");
     }
   }, []);
 
@@ -98,36 +121,44 @@ export const MyContextProvider = (
       throw new Error(`unhandled chain name ${chainName}`);
   }
 
-  const publicClient = createPublicClient({
-    chain: usedChain,
-    transport: http(),
-  });
+  const publicClient =
+    chainName === "sepolia"
+      ? createPublicClient({
+          chain: usedChain,
+          transport: http("https://rpc2.sepolia.org"),
+        })
+      : createPublicClient({
+          chain: usedChain,
+          transport: http(),
+        });
   const { data } = useBalance({
     address: address as `0x${string}`,
   });
 
-  const getTokenInformation = async (erc20Addr: `0x${string}`) => {
+  const getTokenInformation = async (address: `0x${string}`) => {
+    if (address === zeroAddress) {
+      return { name: "Ethereum", symbol: "ETH", decimals: 18 };
+    }
     const name = (await publicClient.readContract({
-      address: erc20Addr,
+      address: address,
       abi: abi.ERC20,
       functionName: "name",
       args: [],
     })) as string;
     const symbol = (await publicClient.readContract({
-      address: erc20Addr,
+      address: address,
       abi: abi.ERC20,
       functionName: "symbol",
       args: [],
     })) as string;
     const decimals = (await publicClient.readContract({
-      address: erc20Addr,
+      address: address,
       abi: abi.ERC20,
       functionName: "decimals",
       args: [],
     })) as number;
     return { name, symbol, decimals };
   };
-
   useEffect(() => {
     if (_wallet && walletStatus == "success") {
       setWallet(_wallet);
@@ -141,45 +172,109 @@ export const MyContextProvider = (
       ensAvatar && setAvatar(ensAvatar);
       ensName && setEnsName(name);
     }
-  }, [isConnected, clientWallet, data, ensAvatar, name]);
+  }, [clientWallet, data, ensAvatar, name, address]);
 
   useEffect(() => {
-    let keyCard = new Uint8Array(32);
-    crypto.getRandomValues(keyCard);
-    if (!keyCardEnrolled && !savedKC) {
-      localStorage.setItem("keyCardToEnroll", bytesToHex(keyCard));
+    if (isMerchantPath) return;
+    let keyCard = random32BytesHex();
+
+    if (!keyCardEnrolled && !guestKeyCard && !merchantKeyCard) {
+      localStorage.setItem("keyCardToEnroll", keyCard);
     } else {
-      keyCard = hexToBytes(savedKC);
+      keyCard = guestKeyCard || merchantKeyCard;
     }
-    const privateKey = inviteSecret ? inviteSecret : bytesToHex(keyCard);
-    const user: ClientArgs = {
+    const privateKey = inviteSecret ? inviteSecret : keyCard;
+    const keyCardWallet = privateKeyToAccount(privateKey);
+    const user = {
       relayEndpoint:
         process.env.NEXT_PUBLIC_RELAY_ENDPOINT ||
         "wss://relay-beta.mass.market/v1",
-      keyCardWallet: privateKeyToAccount(privateKey),
-      storeId: storeId as `0x${string}`,
+      keyCardWallet,
       chain: usedChain,
-      keyCardEnrolled: !!keyCardEnrolled,
     };
     const _relayClient = new RelayClient(user);
-    // @ts-expect-error FIXME
     setRelayClient(_relayClient);
+    (async () => {
+      if (!guestKeyCard && !merchantKeyCard && !keyCardEnrolled) {
+        console.log("enrolling KC with guest wallet...");
+        const guestWallet = createWalletClient({
+          account: privateKeyToAccount(random32BytesHex()),
+          chain: usedChain,
+          transport: http(),
+        });
+        const res = await _relayClient.enrollKeycard(guestWallet, true, shopId);
+        if (res.ok) {
+          setKeyCardEnrolled(true);
+          privateKey && localStorage.setItem("guestKeyCard", privateKey);
+          setIsConnected(IStatus.Complete);
+        } else {
+          setIsConnected(IStatus.Failed);
+          localStorage.removeItem("shopId");
+        }
+        localStorage.removeItem("keyCardToEnroll");
+      } else if (guestKeyCard && isConnected === IStatus.Pending) {
+        console.log(`connecting to client with guest KC : ${guestKeyCard}`);
+        setKeyCardEnrolled(true);
+      } else if (
+        merchantKeyCard &&
+        walletAddress &&
+        isConnected === IStatus.Pending
+      ) {
+        const hasAccess = await checkPermissions();
+        if (hasAccess) {
+          setUpdateRootHashPerm(true);
+          setIsMerchantView(true);
+        }
+        setKeyCardEnrolled(true);
+      }
+    })();
+
+    console.log(`relay client set ${user.relayEndpoint} with shop: ${shopId}`);
+  }, [walletAddress]);
+
+  useEffect(() => {
     if (keyCardEnrolled) {
       (async () => {
         console.log("connecting to client...");
-        const authenticated = await _relayClient.connect();
+        const authenticated = await relayClient!.connect();
         console.log({ authenticated });
         if (authenticated) {
-          setIsAuthenticated(IStatus.Complete);
+          setIsConnected(IStatus.Complete);
         } else {
-          setIsAuthenticated(IStatus.Failed);
+          setIsConnected(IStatus.Failed);
         }
       })();
     }
-    console.log(
-      `relay client set ${user.relayEndpoint} with store: ${storeId}`,
-    );
   }, [keyCardEnrolled]);
+
+  const checkPermissions = async () => {
+    if (walletAddress) {
+      const hasAccess = (await publicClient.readContract({
+        address: abi.addresses.ShopReg as `0x${string}`,
+        abi: abi.ShopReg,
+        functionName: "hasPermission",
+        args: [shopId, walletAddress, abi.permissions.updateRootHash],
+      })) as boolean;
+      return hasAccess;
+    } else return false;
+  };
+
+  const createNewRelayClient = () => {
+    const keyCard = random32BytesHex();
+    const keyCardWallet = privateKeyToAccount(keyCard);
+    localStorage.setItem("keyCardToEnroll", keyCard);
+
+    const user = {
+      relayEndpoint:
+        process.env.NEXT_PUBLIC_RELAY_ENDPOINT ||
+        "wss://relay-beta.mass.market/v1",
+      keyCardWallet,
+      shopId: shopId as `0x${string}`,
+      chain: usedChain,
+    };
+
+    return new RelayClient(user);
+  };
 
   const value = {
     name,
@@ -196,6 +291,11 @@ export const MyContextProvider = (
     setWallet,
     getTokenInformation,
     setKeyCardEnrolled,
+    shopId,
+    setShopId,
+    checkPermissions,
+    setRelayClient,
+    createNewRelayClient,
   };
 
   return (

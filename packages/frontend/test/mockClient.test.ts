@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2024 Mass Labs
 //
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 import { expect, test, vi, describe } from "vitest";
 
@@ -12,22 +12,28 @@ import {
   updateProductAction,
 } from "../src/reducers/productReducers";
 import { allTagsReducer, allTagsAction } from "../src/reducers/tagReducers";
-import { cartReducer, allCartActions } from "../src/reducers/cartReducers";
+import { orderReducer, allOrderActions } from "../src/reducers/orderReducers";
 import {
-  finalizedCartActions,
-  finalizedCartReducer,
-} from "../src/reducers/finalizedCartReducers";
+  finalizedOrderActions,
+  finalizedOrderReducer,
+} from "../src/reducers/finalizedOrderReducers";
 import { pubKeyReducer, pubKeyAction } from "../src/reducers/KCPubKeysReducers";
+import { storeReducer, updateStoreDataAction } from "@/reducers/storeReducer";
+import {
+  acceptedCurrencyReducer,
+  AcceptedCurrencyActions,
+} from "@/reducers/acceptedCurrencyReducers";
 
 describe("mockclient", async () => {
   const client = new MockClient();
+  let storeData = { name: "", profilePictureUrl: "", baseCurrencyAddr: null };
   let products = new Map();
   let allTags = new Map();
-  let cartItems = new Map();
-  let etErc20Addr: null | `0x${string}` = null;
+  let orderItems = new Map();
   let publishedTagId = null;
+  let acceptedCurrencies;
   const events = [];
-  let finalizedCarts = new Map();
+  let finalizedOrders = new Map();
   let pubKeys: `0x${string}`[] = [];
   function productsDispatch(action: productAction | updateProductAction) {
     products = productReducer(products, action);
@@ -35,22 +41,26 @@ describe("mockclient", async () => {
   function tagsDisaptch(action: allTagsAction) {
     allTags = allTagsReducer(allTags, action);
   }
-  function setCartItems(action: allCartActions) {
-    cartItems = cartReducer(cartItems, action);
-  }
-  function setErc20Addr(add: `0x${string}` | null) {
-    etErc20Addr = add;
-    console.log(`etErc20Addr set to: ${etErc20Addr}`);
+  function setOrderItems(action: allOrderActions) {
+    orderItems = orderReducer(orderItems, action);
   }
   function setPublishedTagId(id: `0x${string}` | null) {
     publishedTagId = id;
     console.log(`publishedTagId set to: ${publishedTagId}`);
   }
-  function setFinalizedCarts(action: finalizedCartActions) {
-    finalizedCarts = finalizedCartReducer(finalizedCarts, action);
+  function setFinalizedOrders(action: finalizedOrderActions) {
+    finalizedOrders = finalizedOrderReducer(finalizedOrders, action);
   }
   function setPubKeys(action: pubKeyAction) {
     pubKeys = pubKeyReducer(pubKeys, action);
+  }
+  function setStoreData(action: updateStoreDataAction) {
+    //@ts-expect-error FIXME
+    storeData = storeReducer(storeData, action);
+  }
+  function setAcceptedCurrencies(action: AcceptedCurrencyActions) {
+    acceptedCurrencies = acceptedCurrencyReducer(new Map(), action);
+    console.log({ acceptedCurrencies });
   }
 
   client.on("event", (e) => {
@@ -61,11 +71,12 @@ describe("mockclient", async () => {
       e.events,
       productsDispatch,
       tagsDisaptch,
-      setCartItems,
-      setErc20Addr,
+      setOrderItems,
       setPublishedTagId,
-      setFinalizedCarts,
+      setFinalizedOrders,
       setPubKeys,
+      setStoreData,
+      setAcceptedCurrencies,
     );
   });
 
@@ -131,16 +142,16 @@ describe("mockclient", async () => {
     );
   });
 
-  test("Create cart", () => {
-    const testDataCartObj = client.vectors.reduced.open_carts;
-    const testDataFirstCartId = Object.keys(testDataCartObj)[0];
-    const testDataFirstCartItemId = Object.keys(
-      testDataCartObj[testDataFirstCartId],
+  test("Create order", () => {
+    const testDataOrderObj = client.vectors.reduced.open_orders;
+    const testDataFirstOrderId = Object.keys(testDataOrderObj)[0];
+    const testDataFirstOrderItemId = Object.keys(
+      testDataOrderObj[testDataFirstOrderId],
     )[0];
-    const cartExists = cartItems.get(`0x${testDataFirstCartId}`);
-    expect(cartExists.items).toBeTruthy();
-    expect(cartExists.items[`0x${testDataFirstCartItemId}`]).toEqual(
-      testDataCartObj[testDataFirstCartId][testDataFirstCartItemId],
+    const orderExists = orderItems.get(`0x${testDataFirstOrderId}`);
+    expect(orderExists.items).toBeTruthy();
+    expect(orderExists.items[`0x${testDataFirstOrderItemId}`]).toEqual(
+      testDataOrderObj[testDataFirstOrderId][testDataFirstOrderItemId],
     );
   });
 
