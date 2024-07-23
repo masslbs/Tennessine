@@ -25,15 +25,16 @@ describe("mockclient", async () => {
     shopDetailStore,
     orderStore,
   );
-  client.on("events", (e) => {
-    events.push(e.request);
+  client.on("event", (e) => {
+    events.push(e.events);
   });
   await client.connect();
-  const itemIterator = stateManager.items.getIterator();
+
   await vi.waitUntil(async () => {
     return events.length == client.vectors.events.length;
   });
+  console.log("events", events);
+  const itemIterator = stateManager.items.getIterator();
+
   const test = itemIterator();
-  const tesdt = test.all();
-  console.log(tesdt);
 });
