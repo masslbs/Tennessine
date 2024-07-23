@@ -95,9 +95,11 @@ abstract class PublicObjectManager<
   }
   abstract _processEvent(event: schema.ShopEvents): Promise<void>;
   abstract get(key: string): Promise<T>;
-  abstract getIterator(): Store<T>["iterator"];
+  get iterator() {
+    return this.store.iterator;
+  }
 }
-
+//We should always make sure the network call is successful before updating the store with store.put
 class ListingManager extends PublicObjectManager<Item> {
   constructor(store: Store<Item>, client: RelayClient) {
     super(store, client);
@@ -205,10 +207,6 @@ class ListingManager extends PublicObjectManager<Item> {
     return this.store.put(update.id!, item);
   }
 
-  getIterator() {
-    return this.store.iterator;
-  }
-
   get(key: `0x${string}`) {
     return this.store.get(key);
   }
@@ -312,10 +310,6 @@ class ShopManifest extends PublicObjectManager<
     return this.store.put("shopManifest", manifest);
   }
 
-  getIterator() {
-    return this.store.iterator;
-  }
-
   get(key: string) {
     return this.store.get(key);
   }
@@ -373,9 +367,6 @@ class OrderManager extends PublicObjectManager<Order> {
         return this.store.put(orderId, order);
       }
     }
-  }
-  getIterator() {
-    return this.store.iterator;
   }
 
   get(key: `0x${string}`) {
@@ -435,10 +426,6 @@ class TagManager extends PublicObjectManager<Tag> {
   async create(name: string) {
     const id = bytesToHex(await this.client.createTag({ name }));
     return this.store.put(id, { id, name });
-  }
-
-  getIterator() {
-    return this.store.iterator;
   }
 
   get(key: `0x${string}`) {
