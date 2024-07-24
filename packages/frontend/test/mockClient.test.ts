@@ -68,7 +68,7 @@ describe("mockclient", async () => {
     buildState(
       products,
       allTags,
-      e.events,
+      e,
       productsDispatch,
       tagsDisaptch,
       setOrderItems,

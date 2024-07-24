@@ -74,21 +74,15 @@ export class MockClient extends EventEmitter {
       const decodedEvent = schema.ShopEvent.decode(
         hexToBytes(("0x" + evt.encoded) as `0x${string}`),
       );
-      const pushReq = new schema.EventPushRequest({
-        requestId: sequentialReqId(),
-        events: [decodedEvent as google.protobuf.IAny],
-      });
-      this.emit("event", pushReq);
+      this.emit("event", decodedEvent);
     }
   }
   createEventStream() {
     const parentInstance = this;
     let enqueueFn: any;
     const enqueueWrapperFn = (controller: any) => {
-      return (enqueueFn = (events: any) => {
-        for (const event of events) {
-          controller.enqueue(event);
-        }
+      return (enqueueFn = (event: any) => {
+        controller.enqueue(event);
       });
     };
 
