@@ -59,6 +59,18 @@ jobs:
         with:
           flake-lock-path: Tennessine/packages/client/flake.lock
 
+      - name: Build all packages
+        run: nix develop -c bash -c "pnpm i && tsc -b"
+        working-directory: Tennessine
+
+      - name: Check Formatting
+        run: nix develop -c bash -c "pnpm lint"
+        working-directory: Tennessine
+
+      - name: Check Linting
+        run: nix develop -c bash -c "pnpm lint"
+        working-directory: Tennessine/packages/client
+
       - name: Extract branch name for other checkouts
         shell: bash
         run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
@@ -102,18 +114,6 @@ jobs:
           curl http://localhost:5001/api/v0/version -X POST
           curl http://localhost:8545/ -X POST -H 'content-type: application/json' --data-raw '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":0}'
 
-      - name: Build all packages
-        run: nix develop -c bash -c "pnpm i && tsc -b"
-        working-directory: Tennessine
-
-      - name: Check Formatting
-        run: nix develop -c bash -c "pnpm lint"
-        working-directory: Tennessine
-
-      - name: Check Linting
-        run: nix develop -c bash -c "pnpm lint"
-        working-directory: Tennessine/packages/client
-
       - name: Run node tests on client
         run: nix develop -c bash -c "pnpm exec vitest --watch=false"
         working-directory: Tennessine/packages/client
@@ -129,6 +129,10 @@ jobs:
       - name: Run browser tests
         run: nix develop -c bash -c "pnpm exec vitest --browser --watch=false"
         working-directory: Tennessine/packages/client
+
+      - name: Run mockClient tests
+        run: nix develop -c bash -c "pnpm test ./test/mockClient.test.ts"
+        working-directory: Tennessine/packages/frontend
 
       - name: build frontend
         run: nix develop -c bash -c "pnpm build"
