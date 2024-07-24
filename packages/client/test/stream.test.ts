@@ -2,22 +2,15 @@ import { describe, assert, expect, test } from "vitest";
 import { ReadableEventStream } from "../src/stream";
 import { privateKeyToAccount } from "viem/accounts";
 import { hexToBytes } from "viem";
-import testVectorsData from "./testVectors.json" with { type: "json" };
 
-import schema, { PBObject, PBMessage, PBInstance } from "@massmarket/schema";
+import schema, {
+  testVectors,
+  PBObject,
+  PBMessage,
+  PBInstance,
+} from "@massmarket/schema";
+import { randomBytes } from "@massmarket/utils";
 
-let reqIdCounter: number = 1;
-function sequentialReqId() {
-  const reqIdSize = 16;
-  const bytes = new Uint8Array(16);
-  let bigint = BigInt(reqIdCounter);
-  for (let i = 0; i < reqIdSize; i++) {
-    bytes[reqIdSize - 1 - i] = Number(bigint & BigInt(0xff));
-    bigint >>= BigInt(reqIdSize);
-  }
-  reqIdCounter++;
-  return bytes;
-}
 const account = privateKeyToAccount(
   "0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6",
 );
@@ -79,7 +72,7 @@ describe("Stream", async () => {
     }
   });
 
-  test("Multiple Stream Creation", async () => {
+  test("Stream with lot's of events", async () => {
     const testCreateItem = {
       updateItem: {
         eventId: Buffer.from([1, 2, 3, 4]),
@@ -108,10 +101,10 @@ describe("Stream", async () => {
     }
   });
 
-  test("Multiple Stream Creation with test vectors", async () => {
+  test("Stream filled with test vectors", async () => {
     const events = [];
-    for (let index = 0; index < testVectorsData.events.length; index++) {
-      const evt = testVectorsData.events[index];
+    for (let index = 0; index < testVectors.events.length; index++) {
+      const evt = testVectors.events[index];
       events.push({
         signature: hexToBytes(("0x" + evt.signature) as `0x${string}`),
         event: {
@@ -122,20 +115,26 @@ describe("Stream", async () => {
     }
 
     const pushReq = new schema.EventPushRequest({
-      requestId: sequentialReqId(),
+      requestId: randomBytes(16),
       events,
     });
 
     const client = new MockClient();
     const stream = new ReadableEventStream(client);
     stream.enqueue(pushReq);
+    // TODO: we need a way to close the stream once all requests have been pushed
     let count = 0;
     for await (const evt of stream.stream) {
       count++;
+      // this might never happen if events are omitted by ReadableEventStream
+      // TODO: this might also exit to early if events would be duplicated...
       if (count === pushReq.events.length) break;
     }
-    expect(count).toEqual(testVectorsData.events.length);
+    expect(count).toEqual(testVectors.events.length);
   });
+
+  // TODO: should add version of the test above that creates random chunking of the test vectors
+  // and assert that they are all returned in order as individual events
 
   test("Stream Cancel ", () => {
     assert.doesNotThrow(async () => {

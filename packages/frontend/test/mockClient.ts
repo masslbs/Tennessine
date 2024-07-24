@@ -5,9 +5,7 @@
 import { EventEmitter } from "events";
 import { hexToBytes } from "viem";
 
-import testVectorsData from "./testVectors.json" with { type: "json" };
-
-import schema, { google } from "@massmarket/schema";
+import schema, { google, testVectors } from "@massmarket/schema";
 
 type VectorEvent = {
   type: string;
@@ -62,7 +60,7 @@ export class MockClient extends EventEmitter {
 
   constructor() {
     super();
-    this.vectors = testVectorsData;
+    this.vectors = testVectors;
     console.log(
       `[vectors] events: ${JSON.stringify(this.vectors.events.length)}`,
     );

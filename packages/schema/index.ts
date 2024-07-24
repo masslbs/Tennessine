@@ -9,6 +9,9 @@ import google = pb.google;
 export default schema;
 export { google };
 
+import testVectors from "./testVectors.json" with { type: "json" };
+export { testVectors };
+
 export type PBObject =
   | schema.IPingRequest
   | schema.IPingResponse
