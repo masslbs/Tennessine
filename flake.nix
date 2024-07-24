@@ -51,6 +51,7 @@
               # these fail if 'nix develop' isnt run from the root of the project
               if [ -d ./packages ]; then
                 # todo; maybe linking would be better
+                cp ${schema}/testVectors.json ./packages/client/test/testVectors.json
                 cp ${schema}/testVectors.json ./packages/frontend/test/testVectors.json
                 cp $MASS_CONTRACTS_PATH/abi/*.json ./packages/contracts/abi/
                 cp $MASS_CONTRACTS_PATH/deploymentAddresses.json ./packages/contracts/
