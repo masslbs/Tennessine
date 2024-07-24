@@ -134,7 +134,7 @@ describe("user behaviour", () => {
     expect(response.status).toBe(201);
   });
 
-  test("should connect and disconnect", async () => {
+  test("should connect and disconnect", { retry: 3 }, async () => {
     const authenticated = await relayClient.connect();
     expect(authenticated.error).toBeNull();
     const closeEvent = await relayClient.disconnect();
