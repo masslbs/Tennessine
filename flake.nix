@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2024 Mass Labs
 #
 # SPDX-License-Identifier: Unlicense
+
 {
   description = "massmarket-typescript";
   inputs = {

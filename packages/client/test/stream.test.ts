@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Mass Labs
+//
+// SPDX-License-Identifier: MIT
+
 import { describe, assert, expect, test } from "vitest";
 import { ReadableEventStream } from "../src/stream";
 import { privateKeyToAccount } from "viem/accounts";

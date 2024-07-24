@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Mass Labs
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import React, { useState } from "react";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
 import Chevron from "@/app/common/components/Chevron";

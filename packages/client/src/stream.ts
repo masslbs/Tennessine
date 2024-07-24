@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Mass Labs
+//
+// SPDX-License-Identifier: MIT
+
 import { recoverMessageAddress } from "viem";
 import schema from "@massmarket/schema";
 import { RelayClient } from "./";

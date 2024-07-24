@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Mass Labs
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 import React from "react";
 import Image from "next/image";
 import { useStoreContext } from "@/context/StoreContext";

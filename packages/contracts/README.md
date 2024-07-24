@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2024 Mass Labs
+
+SPDX-License-Identifier: Unlicense
+-->
+
 # Contracts
 
 This contains the generated ABIs for the contracts. The following ABIs are inculded

@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Mass Labs
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 export const UPDATE_STORE_NAME = "UPDATE_STORE_NAME";
 export const UPDATE_STORE_PIC = "UPDATE_STORE_PIC";
 export const SET_STORE_DATA = "SET_STORE_DATA";
