@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Mass Labs
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 export const ADD_ACCEPTED_CURR = "ADD_ACCEPTED_CURR";
 export const UPDATE_SYMBOL = "UPDATE_SYMBOL";
 export const SET_ALL_CURRENCIES = "SET_ALL_CURRENCIES";
