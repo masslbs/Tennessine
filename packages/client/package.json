@@ -7,12 +7,15 @@
     "abitype": "^1.0.1",
     "buffer": "^6.0.3",
     "isows": "^1.0.3",
+    "level": "^8.0.1",
     "viem": "^2.16.3",
     "web-streams-polyfill": "^4.0.0"
   },
   "devDependencies": {
     "@massmarket/schema": "workspace:*",
     "@massmarket/tsconfig": "workspace:*",
+    "@massmarket/stateManager": "workspace:*",
+    "@massmarket/frontend": "workspace:*",
     "@types/node": "^20.11.19",
     "@types/tape": "^5.6.4",
     "@types/ws": "^8.5.10",

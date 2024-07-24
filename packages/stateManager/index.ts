@@ -128,7 +128,7 @@ class ListingManager extends PublicObjectManager<Item> {
       if (ui.price) {
         item.price = ui.price;
       }
-      await this.store.put(id, item);
+      return this.store.put(id, item);
     } else if (event.changeStock) {
       const cs = event.changeStock;
       if (cs.itemIds) {
@@ -440,6 +440,7 @@ export class StateManager {
   readonly tags;
   readonly shopDetails;
   readonly orders;
+  eventCount;
 
   constructor(
     public client: RelayClient,
@@ -452,17 +453,23 @@ export class StateManager {
     this.tags = new TagManager(tagStore, client);
     this.shopDetails = new ShopManifest(shopDetailStore, client);
     this.orders = new OrderManager(orderStore, client);
+    this.eventCount = 0;
     this.#start();
   }
 
   async #start() {
     const storeObjects = [this.items, this.tags, this.shopDetails, this.orders];
     const stream = this.client.createEventStream();
+    console.log({ stream });
     //Each event will go through all the storeObjects and update the relevant stores.
     for await (const event of stream) {
-      for (const storeObject of storeObjects) {
-        await storeObject._processEvent(event.event);
-      }
+      this.eventCount++;
+      console.log("event.event", event.event, this.eventCount);
+
+      // for (const storeObject of storeObjects) {
+      //   storeObject._processEvent(event.event);
+      // }
     }
+    console.log("aborted");
   }
 }

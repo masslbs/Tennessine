@@ -34,11 +34,13 @@ export class ReadableEventStream {
         if (pushReq) {
           const requestId = pushReq.requestId;
           for (const anyEvt of pushReq.events) {
+            // console.log({ anyEvt });
             const event = schema.ShopEvent.decode(anyEvt.event.value);
             const signer = await recoverMessageAddress({
               message: { raw: anyEvt.event.value },
               signature: anyEvt.signature,
             });
+            console.log("inside pull", { event, signer });
 
             self.controller.enqueue({ event, signer });
           }
@@ -47,8 +49,11 @@ export class ReadableEventStream {
             requestId,
           });
         }
-        await self.nextPushReq;
-        return this.pull!(controller);
+        console.log("before nextPushReq");
+        // await self.nextPushReq;
+        console.log("after nextPushReq");
+
+        // return this.pull!(controller);
       },
     });
   }
