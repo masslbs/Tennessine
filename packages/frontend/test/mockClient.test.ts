@@ -30,7 +30,7 @@ describe("mockclient", async () => {
   let products = new Map();
   let allTags = new Map();
   let orderItems = new Map();
-  let publishedTagId = null;
+  let publishedTagId: `0x${string}` = "0x";
   let acceptedCurrencies;
   const events = [];
   let finalizedOrders = new Map();
@@ -44,7 +44,7 @@ describe("mockclient", async () => {
   function setOrderItems(action: allOrderActions) {
     orderItems = orderReducer(orderItems, action);
   }
-  function setPublishedTagId(id: `0x${string}` | null) {
+  function setPublishedTagId(id: `0x${string}`) {
     publishedTagId = id;
     console.log(`publishedTagId set to: ${publishedTagId}`);
   }
@@ -89,11 +89,9 @@ describe("mockclient", async () => {
 
   const testItemsMap = new Map(Object.entries(vectorItems));
   const testDataKeysArr = Array.from([...testItemsMap.keys()]);
-  const testTagsMap = new Map(
-    Object.entries(client.vectors.reduced.manifest.published_tag),
-  );
+  const testPublishedTag = client.vectors.reduced.manifest.published_tag;
   const productsMapKeysArr = Array.from([...products.keys()]);
-
+  const testTagsMap = new Map(Object.entries(client.vectors.reduced.tags));
   test("Correctly builds a map of all products", () => {
     //first item
     expect(products.size).toEqual(testItemsMap.size);
@@ -104,7 +102,6 @@ describe("mockclient", async () => {
     const productsData = products.get(productsMapKeysArr[0]).metadata;
     expect(productsData.title).toEqual(JSON.parse(testData).title);
     //second item
-
     const testData2 = testItemsMap.get(testDataKeysArr[1])?.metadata as string;
     const productsData2 = products.get(productsMapKeysArr[1]).metadata;
     expect(products.get(productsMapKeysArr[1]).price).toEqual(
@@ -113,27 +110,19 @@ describe("mockclient", async () => {
     expect(productsData2.image).toEqual(JSON.parse(testData2).image);
   });
 
-  test("Correctly builds a map of all tags", () => {
-    const allTagsKeysArr = Array.from([...allTags.keys()]);
-    const firstTagId = allTags.get(allTagsKeysArr[0]).id;
-    //chop off '0x'
-    const idToHex = firstTagId.slice(2);
-    expect(testTagsMap.size).toEqual(allTags.size);
-    expect(testTagsMap.get(idToHex)?.text).toEqual(
-      allTags.get(firstTagId).text,
-    );
+  test("Correctly stores published tag id", () => {
+    expect(publishedTagId).toEqual(testPublishedTag);
   });
 
   test("Add a product to tag", () => {
-    const firstItemTagIds = products.get(productsMapKeysArr[0]).tagIds;
-    //chop off '0x'
-    const idToHex = firstItemTagIds[0].slice(2);
-    expect(firstItemTagIds[0]).toContain(
+    const itemTagIds = products.get(productsMapKeysArr[0]).tagIds;
+    const firstTagId = itemTagIds[0];
+    expect(firstTagId).toContain(
       testItemsMap.get(testDataKeysArr[0])?.tag_id[0],
     );
-    const tag = allTags.get(firstItemTagIds[0]);
-    const testTag = testTagsMap.get(idToHex);
-    expect(tag.text).toEqual(testTag?.text);
+    const tag = allTags.get(firstTagId);
+    const testTag = testTagsMap.get(firstTagId);
+    expect(tag.text).toEqual(testTag?.name);
   });
 
   test("Remove product from tag", () => {
@@ -143,14 +132,14 @@ describe("mockclient", async () => {
   });
 
   test("Create order", () => {
-    const testDataOrderObj = client.vectors.reduced.open_orders;
+    const testDataOrderObj = client.vectors.reduced.orders.open;
     const testDataFirstOrderId = Object.keys(testDataOrderObj)[0];
     const testDataFirstOrderItemId = Object.keys(
       testDataOrderObj[testDataFirstOrderId],
     )[0];
-    const orderExists = orderItems.get(`0x${testDataFirstOrderId}`);
+    const orderExists = orderItems.get(testDataFirstOrderId);
     expect(orderExists.items).toBeTruthy();
-    expect(orderExists.items[`0x${testDataFirstOrderItemId}`]).toEqual(
+    expect(orderExists.items[testDataFirstOrderItemId]).toEqual(
       testDataOrderObj[testDataFirstOrderId][testDataFirstOrderItemId],
     );
   });

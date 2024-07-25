@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2024 Mass Labs
 #
 # SPDX-License-Identifier: Unlicense
-
 {
   description = "massmarket-typescript";
   inputs = {
@@ -54,7 +53,6 @@
                 cp ${schema}/testVectors.json ./packages/schema/testVectors.json
                 cp $MASS_CONTRACTS_PATH/abi/*.json ./packages/contracts/abi/
                 cp $MASS_CONTRACTS_PATH/deploymentAddresses.json ./packages/contracts/
-                prettier -w ./packages/schema/testVectors.json ./packages/contracts/deploymentAddresses.json
               fi
             '';
 

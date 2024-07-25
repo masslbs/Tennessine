@@ -2,3 +2,5 @@
 *.lock
 packages/schema/wrapper.js
 testVectors.json
+packages/schema/testVectors.json
+packages/contracts/deploymentAddresses.json
