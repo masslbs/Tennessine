@@ -110,10 +110,10 @@ describe("Stream", async () => {
     for (let index = 0; index < testVectors.events.length; index++) {
       const evt = testVectors.events[index];
       events.push({
-        signature: hexToBytes(("0x" + evt.signature) as `0x${string}`),
+        signature: hexToBytes(evt.signature as `0x${string}`),
         event: {
           type_url: "type.googleapis.com/market.mass.ShopEvent",
-          value: hexToBytes(("0x" + evt.encoded) as `0x${string}`),
+          value: hexToBytes(evt.encoded as `0x${string}`),
         },
       });
     }
