@@ -2,10 +2,13 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { WebSocket } from "isows";
-import { bytesToHex, hexToBytes, toBytes } from "viem";
 import { EventEmitter } from "events";
+
+import { WebSocket } from "isows";
+import { bytesToHex, hexToBytes, hexToBigInt, toBytes } from "viem";
 import { PrivateKeyAccount } from "viem/accounts";
+import { createSiweMessage } from "viem/siwe";
+
 import schema, {
   PBObject,
   PBMessage,
@@ -14,15 +17,21 @@ import schema, {
   MESSAGE_PREFIXES,
 } from "@massmarket/schema";
 import { WalletClientWithAccount } from "@massmarket/blockchain";
-import { ReadableEventStream } from "./stream.js";
 import { requestId, eventId, hexToBase64 } from "@massmarket/utils";
 
+import { ReadableEventStream } from "./stream.js";
+
 export type { WalletClientWithAccount };
+
+export type RelayEndpoint = {
+  url: URL; // the websocket URL to talk to
+  tokenId: `0x${string}`;
+};
 
 export class RelayClient extends EventEmitter {
   connection!: WebSocket;
   private keyCardWallet;
-  private endpoint;
+  private relayEndpoint: RelayEndpoint;
   private useTLS;
   private eventStream;
 
@@ -30,13 +39,13 @@ export class RelayClient extends EventEmitter {
     relayEndpoint,
     keyCardWallet,
   }: {
-    relayEndpoint: string;
+    relayEndpoint: RelayEndpoint;
     keyCardWallet: PrivateKeyAccount;
   }) {
     super();
     this.keyCardWallet = keyCardWallet;
-    this.endpoint = relayEndpoint;
-    this.useTLS = relayEndpoint.startsWith("wss");
+    this.relayEndpoint = relayEndpoint;
+    this.useTLS = relayEndpoint.url.protocol == "wss";
     this.eventStream = new ReadableEventStream(this);
   }
 
@@ -238,7 +247,7 @@ export class RelayClient extends EventEmitter {
       this.connection.readyState === WebSocket.CLOSING ||
       this.connection.readyState === WebSocket.CLOSED
     ) {
-      this.connection = new WebSocket(this.endpoint + "/sessions");
+      this.connection = new WebSocket(this.relayEndpoint.url + "/sessions");
       this.connection.addEventListener("error", (error: Event) => {
         console.error("WebSocket error!");
         console.error(error);
@@ -284,37 +293,38 @@ export class RelayClient extends EventEmitter {
     wallet: WalletClientWithAccount,
     isGuest: boolean = true,
     shopId: `0x${string}`,
+    location?: URL,
   ) {
     const publicKey = toBytes(this.keyCardWallet.publicKey).slice(1);
-    const types = {
-      Enrollment: [{ name: "keyCard", type: "string" }],
-    };
-    const message = {
-      keyCard: Buffer.from(publicKey).toString("hex"),
-    };
-    // formatMessgning(message); will turn keyCard into key_card
-    // const sig = await this.#signTypedDataMessage(types, message);
-    const signature = await wallet.signTypedData({
-      types,
-      domain: {
-        name: "MassMarket",
-        version: "1",
-        chainId: 0,
-        verifyingContract: "0x0000000000000000000000000000000000000000",
-      },
-      primaryType: "Enrollment",
-      message,
-    });
-    const body = JSON.stringify({
-      key_card: Buffer.from(publicKey).toString("base64"),
-      signature: hexToBase64(signature),
-      shop_token_id: hexToBase64(shopId),
-    });
-    const endpointURL = new URL(this.endpoint);
+
+    const endpointURL = new URL(this.relayEndpoint.url);
     endpointURL.protocol = this.useTLS ? "https" : "http";
     endpointURL.pathname += `/enroll_key_card`;
     endpointURL.search = `guest=${isGuest ? 1 : 0}`;
     console.log(`posting to ${endpointURL.href}`);
+    const signInURL: URL = location ?? endpointURL;
+
+    const message = createSiweMessage({
+      address: wallet.account.address,
+      chainId: 1, // not really used
+      domain: signInURL.host,
+      nonce: "00000000",
+      uri: signInURL.href,
+      version: "1",
+      resources: [
+        `mass-relayid:${hexToBigInt(this.relayEndpoint.tokenId)}`,
+        `mass-shopid:${hexToBigInt(shopId)}`,
+        `mass-keycard:${Buffer.from(publicKey).toString("hex")}`,
+      ],
+    });
+
+    const signature = await wallet.signMessage({
+      message: { raw: Buffer.from(message) },
+    });
+    const body = JSON.stringify({
+      message,
+      signature: hexToBase64(signature),
+    });
     const response = await fetch(endpointURL.href, {
       method: "POST",
       body,
@@ -352,4 +362,17 @@ export class RelayClient extends EventEmitter {
     await this.connect();
     return this.encodeAndSend(schema.CommitItemsToOrderRequest, order);
   }
+}
+
+// testing helper
+export async function discoverRelay(url: string): Promise<RelayEndpoint> {
+  const discoveryURL = url
+    .replace("ws", "http")
+    .replace("/v2", "/testing/discovery");
+  const testingResponse = await fetch(discoveryURL);
+  const testingData = await testingResponse.json();
+  return {
+    url: new URL(url),
+    tokenId: testingData.relay_token_id,
+  };
 }

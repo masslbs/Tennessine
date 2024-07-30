@@ -10,7 +10,11 @@ import {
   useEnsAvatar,
   useWalletClient,
 } from "wagmi";
-import { RelayClient, type WalletClientWithAccount } from "@massmarket/client";
+import {
+  RelayClient,
+  discoverRelay,
+  type WalletClientWithAccount,
+} from "@massmarket/client";
 import { hardhat, sepolia, mainnet, type Chain } from "viem/chains";
 import { http, createPublicClient, createWalletClient } from "viem";
 import { useAuth } from "@/context/AuthContext";
@@ -34,7 +38,10 @@ export const MyContext = createContext<ClientContext>({
   inviteSecret: null,
   clientWallet: null,
   keyCardEnrolled: false,
-  createNewRelayClient: () => null,
+  createNewRelayClient: () =>
+    new Promise(() => {
+      return null;
+    }),
   setShopId: () => {},
   setKeyCardEnrolled: () => {},
   setInviteSecret: () => {},
@@ -185,16 +192,24 @@ export const MyContextProvider = (
     }
     const privateKey = inviteSecret ? inviteSecret : keyCard;
     const keyCardWallet = privateKeyToAccount(privateKey);
-    const user = {
-      relayEndpoint:
-        process.env.NEXT_PUBLIC_RELAY_ENDPOINT ||
-        "wss://relay-beta.mass.market/v1",
-      keyCardWallet,
-      chain: usedChain,
-    };
-    const _relayClient = new RelayClient(user);
-    setRelayClient(_relayClient);
+    const relayUrl = process.env.NEXT_PUBLIC_RELAY_ENDPOINT!;
     (async () => {
+      const relayEndpoint = process.env.NEXT_PUBLIC_RELAY_TOKEN_ID
+        ? {
+            url: new URL(relayUrl),
+            tokenId: process.env.NEXT_PUBLIC_RELAY_TOKEN_ID as `0x${string}`,
+          }
+        : await discoverRelay(relayUrl);
+      const user = {
+        relayEndpoint,
+        keyCardWallet,
+        chain: usedChain,
+      };
+      console.log(
+        `relay client set ${user.relayEndpoint.url} with shop: ${shopId}`,
+      );
+      const _relayClient = new RelayClient(user);
+      setRelayClient(_relayClient);
       if (!guestKeyCard && !merchantKeyCard && !keyCardEnrolled) {
         console.log("enrolling KC with guest wallet...");
         const guestWallet = createWalletClient({
@@ -202,7 +217,12 @@ export const MyContextProvider = (
           chain: usedChain,
           transport: http(),
         });
-        const res = await _relayClient.enrollKeycard(guestWallet, true, shopId);
+        const res = await _relayClient.enrollKeycard(
+          guestWallet,
+          true,
+          shopId,
+          new URL(window.location.href),
+        );
         if (res.ok) {
           setKeyCardEnrolled(true);
           privateKey && localStorage.setItem("guestKeyCard", privateKey);
@@ -228,8 +248,6 @@ export const MyContextProvider = (
         setKeyCardEnrolled(true);
       }
     })();
-
-    console.log(`relay client set ${user.relayEndpoint} with shop: ${shopId}`);
   }, [walletAddress]);
 
   useEffect(() => {
@@ -259,15 +277,19 @@ export const MyContextProvider = (
     } else return false;
   };
 
-  const createNewRelayClient = () => {
+  const createNewRelayClient = async () => {
     const keyCard = random32BytesHex();
     const keyCardWallet = privateKeyToAccount(keyCard);
     localStorage.setItem("keyCardToEnroll", keyCard);
-
+    const relayUrl = process.env.NEXT_PUBLIC_RELAY_ENDPOINT!;
+    const relayEndpoint = process.env.NEXT_PUBLIC_RELAY_TOKEN_ID
+      ? {
+          url: new URL(relayUrl),
+          tokenId: process.env.NEXT_PUBLIC_RELAY_TOKEN_ID as `0x${string}`,
+        }
+      : await discoverRelay(relayUrl);
     const user = {
-      relayEndpoint:
-        process.env.NEXT_PUBLIC_RELAY_ENDPOINT ||
-        "wss://relay-beta.mass.market/v1",
+      relayEndpoint,
       keyCardWallet,
       shopId: shopId as `0x${string}`,
       chain: usedChain,

@@ -73,7 +73,7 @@ export type ClientContext = {
   ) => Promise<{ name: string; symbol: string; decimals: number }>;
   checkPermissions: () => Promise<boolean>;
   setRelayClient: Dispatch<SetStateAction<RelayClient | null>>;
-  createNewRelayClient: () => RelayClient | null;
+  createNewRelayClient: () => Promise<RelayClient | null>;
 };
 
 export type StoreContent = {
