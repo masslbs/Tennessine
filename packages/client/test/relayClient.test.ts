@@ -14,13 +14,14 @@ import { hardhat } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 import { describe, beforeEach, expect, test } from "vitest";
 
-import { RelayClient } from "../src";
 import { random32BytesHex, randomBytes } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 import {
   BlockchainClient,
   WalletClientWithAccount,
 } from "@massmarket/blockchain";
+
+import { RelayClient, discoverRelay } from "../src";
 
 // this key is from one of anvil's default keypairs
 const account = privateKeyToAccount(
@@ -40,8 +41,9 @@ const publicClient = createPublicClient({
 
 const shopId = random32BytesHex();
 let blockchain: BlockchainClient;
-const relayEndpoint =
+const relayURL =
   (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v2";
+const relayEndpoint = await discoverRelay(relayURL);
 
 function createRelayClient(pk = random32BytesHex()) {
   return new RelayClient({
@@ -129,7 +131,14 @@ describe("user behaviour", () => {
 
   // enroll and login
   test("should enroll keycard", async () => {
-    const response = await relayClient.enrollKeycard(wallet, false, shopId);
+    const windowLocation =
+      typeof window == "undefined" ? undefined : new URL(window.location.href);
+    const response = await relayClient.enrollKeycard(
+      wallet,
+      false,
+      shopId,
+      windowLocation,
+    );
     expect(response.status).toBe(201);
   });
 
@@ -289,7 +298,16 @@ describe("user behaviour", () => {
       });
 
       expect(redeemReceipt.status).to.equal("success");
-      await relayClient2.enrollKeycard(client2Wallet, false, shopId);
+      const windowLocation =
+        typeof window == "undefined"
+          ? undefined
+          : new URL(window.location.href);
+      await relayClient2.enrollKeycard(
+        client2Wallet,
+        false,
+        shopId,
+        windowLocation,
+      );
       await relayClient2.connect();
     });
 
@@ -338,7 +356,14 @@ describe("If there is a network error, state manager should not change the state
     const name = "test shop";
     const description = "creating test shop";
     const profilePictureUrl = "https://http.cat/images/200.jpg";
-    const response = await client.enrollKeycard(wallet, false, shopId);
+    const windowLocation =
+      typeof window == "undefined" ? undefined : new URL(window.location.href);
+    const response = await client.enrollKeycard(
+      wallet,
+      false,
+      shopId,
+      windowLocation,
+    );
     expect(response.status).toBe(201);
     await client.connect();
 

@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: MIT
 
+// TODO: this should be folded into the correct sub-test(..) in relayClient.test.ts
+
 import {
   hexToBytes,
   toHex,
@@ -10,13 +12,11 @@ import {
   http,
   type Address,
   type Account,
-  type WalletClient,
 } from "viem";
 import { hardhat } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 import { expect, test } from "vitest";
 
-import { RelayClient } from "../src";
 import { random32BytesHex, randomBytes } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 import { randomAddress } from "@massmarket/utils";
@@ -24,6 +24,7 @@ import {
   BlockchainClient,
   WalletClientWithAccount,
 } from "@massmarket/blockchain";
+import { RelayClient, discoverRelay } from "../src";
 
 // this key is from one of anvil's default keypairs
 const account = privateKeyToAccount(
@@ -42,8 +43,9 @@ const publicClient = createPublicClient({
 });
 
 let blockchain: BlockchainClient;
-const relayEndpoint =
+const relayURL =
   (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v2";
+const relayEndpoint = await discoverRelay(relayURL);
 
 function createRelayClient(pk = random32BytesHex()) {
   return new RelayClient({
@@ -68,10 +70,13 @@ test("create shop", { timeout: 10000 }, async () => {
 let relayClient: RelayClient;
 test("enroll keycard", { timeout: 10000 }, async () => {
   relayClient = createRelayClient();
+  const windowLocation =
+    typeof window == "undefined" ? undefined : new URL(window.location.href);
   const enrolledResponse = await relayClient.enrollKeycard(
     wallet,
     false,
     shopId,
+    windowLocation,
   );
   expect(enrolledResponse.status).toBe(201);
 });
@@ -166,10 +171,13 @@ test("create and enroll guest", { timeout: 10000 }, async () => {
 
   guestRelayClient = createRelayClient(sk);
   // enroll the guest client
+  const windowLocation =
+    typeof window == "undefined" ? undefined : new URL(window.location.href);
   const response = await guestRelayClient.enrollKeycard(
     guestWallet,
     true,
     shopId,
+    windowLocation,
   );
 
   expect(response.status).toBe(201);

@@ -104,7 +104,7 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
         setShopId(shopId);
         localStorage.setItem("shopId", shopId);
         (async () => {
-          const _relayClient = createNewRelayClient();
+          const _relayClient = await createNewRelayClient();
           if (!_relayClient) return;
           const keyCardToEnroll = localStorage.getItem(
             "keyCardToEnroll",
@@ -113,6 +113,7 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
             clientWallet,
             false,
             shopId,
+            new URL(window.location.href),
           );
           if (res.ok) {
             console.log(`Keycard enrolled: ${keyCardToEnroll}`);
