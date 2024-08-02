@@ -41,7 +41,7 @@ const StoreCreation = () => {
   // const [storeURL, setStoreURL] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [avatar, setAvatar] = useState<FormData | null>(null);
-  const [tokenAddr, setTokenAddr] = useState<string>("");
+  const [tokenAddr, setTokenAddr] = useState<string>(process.env.NEXT_PUBLIC_DEFAULT_ERC20 ?? "");
   const [chainId, setAcceptedChain] = useState<number>(0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isStoreCreated, setStoreCreated] = useState<boolean>(false);
@@ -138,8 +138,21 @@ const StoreCreation = () => {
       } catch (err) {
         console.log("error creating store", err);
       }
+    } else {
+      console.error("unable to create store. clients undefined:")
+      console.log({
+        _relayClient,
+        publicClient,
+        clientWallet,
+      })
     }
   };
+
+  useEffect(() => {
+    if (clientWallet?.account.address) {
+      setPayeeAddr(clientWallet?.account.address)
+    }
+  }, [clientWallet != null])
 
   useEffect(() => {
     if (relayClient && isStoreCreated && isConnected == IStatus.Complete) {
