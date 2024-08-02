@@ -56,10 +56,13 @@ interface ShopCurrencies {
   tokenAddr: `0x${string}`;
   chainId: number;
 }
+//This interface is used to type a manifest obj for create, and these fields are required.
 interface CreateShopManifest {
   name: string;
   description: string;
 }
+//This type is used to store and retrieve the manifest from db. All the fields are required in this case.
+//Since update fn can take in any number these properties we use Partial<ShopManifest> to type manifest update objects.
 type ShopManifest = CreateShopManifest & {
   tokenId: `0x${string}`;
   setBaseCurrency: ShopCurrencies | null;
@@ -140,7 +143,7 @@ class ListingManager extends PublicObjectManager<Item> {
             const item = await this.store.get(itemId);
             const diff = cs.diffs ? cs.diffs[i] : 0;
             item.quantity = item.quantity + diff;
-            await this.store.put(itemId, item);
+            return this.store.put(itemId, item);
           }),
         );
         this.emit("changeStock", { eventId: cs.eventId });
@@ -176,7 +179,7 @@ class ListingManager extends PublicObjectManager<Item> {
       price: item.price,
       metadata: convertToBuffer(item.metadata),
     });
-
+    // resolves after the `createItem` event has been fired in _processEvent, which happens after the relay accepts the update and has written to the database.
     return new Promise((resolve, reject) => {
       const remove = () => this.removeListener("createItem", onCreate);
       function onCreate(create: Item) {
@@ -190,7 +193,8 @@ class ListingManager extends PublicObjectManager<Item> {
   }
   //update argument passed here will only contain the fields to update.
   async update(update: Partial<Item>): Promise<Item> {
-    //ui object to be passed to the network with converted network data types
+    //ui object to be passed to the network with converted network data types.
+    //we are declaring the update object as type schema.IUpdateItem since we are changing values from hex to bytes and is no longer a interface Item
     const ui: schema.IUpdateItem = {
       itemId: hexToBytes(update.id!),
     };
@@ -201,7 +205,7 @@ class ListingManager extends PublicObjectManager<Item> {
       ui.metadata = convertToBuffer(update.metadata);
     }
     await this.client.updateItem(ui);
-
+    // resolves after the `updateItem` event has been fired, which happens after the relay accepts the update and has written to the database.
     return new Promise((resolve, reject) => {
       const remove = () => this.removeListener("updateItem", onUpdate);
       function onUpdate(item: Item) {
@@ -240,7 +244,7 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
   constructor(store: Store<ShopManifest>, client: RelayClient) {
     super(store, client);
   }
-  //Process all manifest events. Convert bytes to hex and save to shop store
+  //Process all manifest events. Convert bytes to hex, wait for database update, then emit event name
   async _processEvent(event: schema.ShopEvents): Promise<void> {
     if (event.shopManifest) {
       const sm = event.shopManifest;
@@ -317,6 +321,7 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
       },
       shopId,
     );
+    // resolves after the `createShopManifest` event has been fired above in _processEvent, which happens after the relay accepts the update and has written to the database.
     return new Promise((resolve, reject) => {
       const remove = () => this.removeListener("createShopManifest", onUpdate);
       function onUpdate(create: ShopManifest) {
@@ -331,7 +336,8 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
 
   async update(um: Partial<ShopManifest>): Promise<ShopManifest> {
     //Convert tokenAddr and publishedTagId to bytes before sending to client.
-    const updateShopManifest: schema.IUpdateShopManifest = { ...um };
+    //We have to explicitly declare the update object as type schema.IUpdateShopManifest since we are changing hex to bytes and is no longer a type ShopManifest
+    const updateShopManifest: schema.IUpdateShopManifest = um;
     for (const [key, _] of Object.entries(updateShopManifest)) {
       if (key === "addAcceptedCurrencies") {
         updateShopManifest[key] = updateShopManifest[key].map(
@@ -351,6 +357,7 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
         };
       }
     }
+    // resolves after the `updateShopManifest` event has been fired above in _processEvent, which happens after the relay accepts the update and has written to the database.
     await this.client.updateShopManifest(updateShopManifest);
     return new Promise((resolve, reject) => {
       const remove = () => this.removeListener("updateShopManifest", onUpdate);
@@ -372,7 +379,7 @@ class OrderManager extends PublicObjectManager<Order> {
   constructor(store: Store<Order>, client: RelayClient) {
     super(store, client);
   }
-  //Process all Order events. Convert bytes to hex and save to order store
+  //Process all Order events. Convert bytes to hex, waits for database update, then emits event
   async _processEvent(event: schema.ShopEvents): Promise<void> {
     if (event.createOrder) {
       const co = event.createOrder;
@@ -477,6 +484,7 @@ class OrderManager extends PublicObjectManager<Order> {
 
   async create(): Promise<Order> {
     const eventId = await this.client.createOrder();
+    // resolves after the `createOrder` event has been fired in processEvent, which happens after the relay accepts the update and has written to the database.
     return new Promise((resolve, reject) => {
       const remove = () => this.removeListener("createOrder", onCreate);
       function onCreate(create: Order) {
@@ -498,7 +506,7 @@ class OrderManager extends PublicObjectManager<Order> {
       orderId: hexToBytes(orderId),
       changeItems: { itemId: hexToBytes(itemId), quantity },
     });
-
+    // resolves after the `changeItems` event has been fired, which happens after the relay accepts the update and has written to the database.
     return new Promise((resolve, reject) => {
       const remove = () => this.removeListener("changeItems", onUpdate);
       function onUpdate(update: Order) {
@@ -512,11 +520,23 @@ class OrderManager extends PublicObjectManager<Order> {
   }
 
   async cancel(orderId: `0x${string}`, timestamp: number) {
-    return this.client.updateOrder({
+    await this.client.updateOrder({
       orderI: hexToBytes(orderId),
       orderCanceled: { timestamp },
     });
+
+    return new Promise((resolve, reject) => {
+      const remove = () => this.removeListener("orderCanceled", onUpdate);
+      function onUpdate(update: Order) {
+        if (update.id === orderId) {
+          resolve(update);
+          remove();
+        }
+      }
+      this.on("orderCanceled", onUpdate);
+    });
   }
+
   async commit(
     orderId: `0x${string}`,
     addr: `0x${string}`,
@@ -553,6 +573,7 @@ class TagManager extends PublicObjectManager<Tag> {
   }
   async create(name: string): Promise<Tag> {
     const eventId = await this.client.createTag({ name });
+    // resolves after the `createTag` event has been fired, which happens after the relay accepts the update and has written to the database.
     return new Promise((resolve, reject) => {
       const remove = () => this.removeListener("createTag", onCreate);
       function onCreate(create: Tag) {
@@ -577,6 +598,7 @@ class KeyCardManager extends PublicObjectManager<KeyCards> {
 
   async _processEvent(event: schema.ShopEvents): Promise<void> {
     if (event.newKeyCard) {
+      //storing WA and KC pair
       const kc = event.newKeyCard;
       const userWalletAddr = bytesToHex(kc.userWalletAddr!);
       const cardPublicKey = bytesToHex(kc.cardPublicKey!);
