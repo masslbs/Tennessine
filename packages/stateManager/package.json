@@ -18,9 +18,8 @@
     "@massmarket/tsconfig": "workspace:*",
     "@massmarket/utils": "workspace:*",
     "events": "^3.3.0",
-    "level": "^8.0.1",
-    "viem": "^2.16.3",
-    "vitest": "^2.0.4"
+    "memory-level": "^1.0.0",
+    "viem": "^2.16.3"
   },
   "exports": {
     ".": {
@@ -29,6 +28,7 @@
     }
   },
   "devDependencies": {
-    "@types/events": "^3.0.3"
+    "@types/events": "^3.0.3",
+    "vitest": "^2.0.4"
   }
 }

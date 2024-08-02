@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
-import { Level } from "level";
+import { MemoryLevel } from "memory-level";
 import { StateManager } from "@massmarket/stateManager";
 import { testVectors } from "@massmarket/schema";
 import { MockClient } from "./mockClient";
@@ -9,7 +9,7 @@ import {
   zeroAddress,
 } from "@massmarket/utils";
 
-const db = new Level(`./tmpDb`, {
+const db = new MemoryLevel({
   valueEncoding: "json",
 });
 db.clear();
@@ -72,7 +72,6 @@ describe("Fill state manager with test vectors", async () => {
     count++;
   });
   stateManager.orders.on("itemsFinalized", (g) => {
-    console.log({ count });
     count++;
   });
   stateManager.tags.on("createTag", (g) => {
@@ -84,7 +83,7 @@ describe("Fill state manager with test vectors", async () => {
   stateManager.orders.on("changeItems", (g) => {
     count++;
   });
-  stateManager.keycardStore.on("newKeyCard", (g) => {
+  stateManager.keycards.on("newKeyCard", (g) => {
     count++;
   });
 
@@ -252,6 +251,7 @@ describe("CRUD functions update stores", async () => {
     expect(item.quantity).toEqual(0);
   });
   test("ListingManager - update + changeStock", async () => {
+    db.clear();
     const { id } = await stateManager.items.create({
       price: "12.00",
       metadata: {
@@ -260,7 +260,7 @@ describe("CRUD functions update stores", async () => {
         image: "https://http.cat/images/201.jpg",
       },
     });
-    const res = await stateManager.items.update({
+    await stateManager.items.update({
       id,
       price: "25.00",
       metadata: {
@@ -282,15 +282,62 @@ describe("CRUD functions update stores", async () => {
     const o = await stateManager.items.create({
       price: "12.00",
       metadata: {
-        name: "Test Item 1",
+        name: "Test Item in Order Test",
         description: "Test description 1",
         image: "https://http.cat/images/201.jpg",
       },
     });
-    await stateManager.orders.update(id, o.id, 4);
+    await stateManager.orders.changeItems(id, o.id, 4);
     const uo = await stateManager.orders.get(id);
     expect(uo.items[o.id]).toEqual(4);
     //Since we just created this order, status should be pending.
     expect(uo.status).toEqual("PENDING");
+  });
+
+  test("OrderManager - cancel", async () => {
+    db.clear();
+    const { id } = await stateManager.orders.create();
+    const shippingInfo = {
+      name: "Paul Atreides",
+      address1: "100 Colomb Street",
+      city: "Arakkis",
+      postalCode: "SE10 9EZ",
+      country: "Dune",
+      phoneNumber: "0103330524",
+    };
+    await stateManager.orders.updateShippingDetails(id, shippingInfo);
+    const {
+      status,
+      shippingDetails: {
+        name,
+        address1,
+        city,
+        postalCode,
+        country,
+        phoneNumber,
+      },
+    } = await stateManager.orders.get(id);
+    expect(status).toEqual("PENDING");
+    expect(name).toEqual(shippingInfo.name);
+    expect(address1).toEqual(shippingInfo.address1);
+    expect(city).toEqual(shippingInfo.city);
+    expect(phoneNumber).toEqual(shippingInfo.phoneNumber);
+    expect(country).toEqual(shippingInfo.country);
+    expect(postalCode).toEqual(shippingInfo.postalCode);
+
+    //should be able to update partially
+    await stateManager.orders.updateShippingDetails(id, {
+      country: "Mexico",
+      phoneNumber: "1113334444",
+    });
+    const updated = await stateManager.orders.get(id);
+    expect(updated.shippingDetails.name).toEqual(shippingInfo.name);
+    expect(updated.shippingDetails.country).toEqual("Mexico");
+    expect(updated.shippingDetails.phoneNumber).toEqual("1113334444");
+
+    await stateManager.orders.cancel(id, 0);
+    const canceled = await stateManager.orders.get(id);
+    //New status should be fail
+    expect(canceled.status).toEqual("FAILED");
   });
 });
