@@ -13,7 +13,7 @@ import {
 } from "viem";
 import { hardhat } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
-import { describe, beforeEach, expect, test } from "vitest";
+import { describe, beforeEach, expect, test, vi } from "vitest";
 
 import { RelayClient } from "../src";
 import { random32BytesHex, randomBytes } from "@massmarket/utils";
@@ -23,6 +23,7 @@ import {
   BlockchainClient,
   WalletClientWithAccount,
 } from "@massmarket/blockchain";
+import { ReadableEventStream } from "../src/stream";
 
 // this key is from one of anvil's default keypairs
 const account = privateKeyToAccount(
@@ -128,6 +129,7 @@ describe("RelayClient", async () => {
 
 describe("user behaviour", () => {
   const relayClient = createRelayClient();
+
   // enroll and login
   test("should enroll keycard", async () => {
     const response = await relayClient.enrollKeycard(wallet, false, shopId);
@@ -163,7 +165,6 @@ describe("user behaviour", () => {
       shopId,
     );
   });
-
   test("update shop manifest", async () => {
     await relayClient.updateShopManifest({ domain: "socks.mass.market" });
     await relayClient.updateShopManifest({
@@ -300,7 +301,16 @@ describe("user behaviour", () => {
         domain: "test2-test",
       });
     });
-
+    test("client 1 receives events from createEventStream", async () => {
+      const getStream = async () => {
+        const stream = relayClient.createEventStream();
+        for await (const evt of stream) {
+          return 1;
+        }
+      };
+      const evtLength = await getStream();
+      expect(evtLength).toBeGreaterThan(0);
+    });
     test("client 2 receives events from createEventStream", async () => {
       const getStream = async () => {
         const stream = relayClient2.createEventStream();
