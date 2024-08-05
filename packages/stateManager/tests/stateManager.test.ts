@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test, vi, beforeEach } from "vitest";
 import { MemoryLevel } from "memory-level";
 import { StateManager } from "@massmarket/stateManager";
 import { testVectors } from "@massmarket/schema";
@@ -93,7 +93,6 @@ describe("Fill state manager with test vectors", async () => {
     return count == testVectors.events.length;
   });
   const vectorState = testVectors.reduced;
-
   test("ShopManifest - adds and updates shop manifest events", async () => {
     const shop = await stateManager.manifest.get();
     expect(shop.name).toEqual(vectorState.manifest.name);
@@ -178,9 +177,12 @@ describe("CRUD functions update stores", async () => {
     orderStore,
     keycardStore,
   );
-  let tokenId = null;
-  test("ShopManifest - create", async () => {
+
+  beforeEach(async () => {
     db.clear();
+  });
+
+  test("ShopManifest - create", async () => {
     const res = await stateManager.manifest.create(
       {
         name: "Test Shop",
@@ -194,7 +196,6 @@ describe("CRUD functions update stores", async () => {
   });
 
   test("ShopManifest - update", async () => {
-    db.clear();
     const cm = await stateManager.manifest.create(
       {
         name: "Test Shop",
@@ -263,7 +264,6 @@ describe("CRUD functions update stores", async () => {
     expect(item.quantity).toEqual(0);
   });
   test("ListingManager - update + changeStock", async () => {
-    db.clear();
     const { id } = await stateManager.items.create({
       price: "12.00",
       metadata: {
@@ -307,7 +307,6 @@ describe("CRUD functions update stores", async () => {
   });
 
   test("OrderManager - cancel", async () => {
-    db.clear();
     const { id } = await stateManager.orders.create();
     const shippingInfo = {
       name: "Paul Atreides",
