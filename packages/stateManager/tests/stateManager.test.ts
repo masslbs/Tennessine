@@ -8,7 +8,7 @@ import {
   random32BytesHex,
   zeroAddress,
 } from "@massmarket/utils";
-import schema from "@massmarket/schema";
+
 const db = new MemoryLevel({
   valueEncoding: "json",
 });

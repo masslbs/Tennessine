@@ -36,7 +36,7 @@ export const bufferToJSON = (metadata: Uint8Array) => {
   return JSON.parse(new TextDecoder().decode(metadata));
 };
 
-export const convertToBuffer = (data: any) => {
+export const stringifyToBuffer = (data: any) => {
   return new TextEncoder().encode(JSON.stringify(data));
 };
 

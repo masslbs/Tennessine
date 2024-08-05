@@ -2,7 +2,7 @@ import { EventEmitter } from "events";
 import { RelayClient } from "@massmarket/client";
 import schema from "@massmarket/schema";
 import { bytesToHex, hexToBytes } from "viem";
-import { bufferToJSON, convertToBuffer } from "@massmarket/utils";
+import { bufferToJSON, stringifyToBuffer } from "@massmarket/utils";
 interface Item {
   id: `0x${string}`;
   price: string;
@@ -199,7 +199,7 @@ class ListingManager extends PublicObjectManager<Item> {
   async create(item: Partial<Item>): Promise<Item> {
     const eventId = await this.client.createItem({
       price: item.price,
-      metadata: convertToBuffer(item.metadata),
+      metadata: stringifyToBuffer(item.metadata),
     });
     // resolves after the `createItem` event has been fired in _processEvent, which happens after the relay accepts the update and has written to the database.
     return eventListenAndResolve(
@@ -219,7 +219,7 @@ class ListingManager extends PublicObjectManager<Item> {
       ui.price = update.price;
     }
     if (update.metadata) {
-      ui.metadata = convertToBuffer(update.metadata);
+      ui.metadata = stringifyToBuffer(update.metadata);
     }
     const eventId = await this.client.updateItem(ui);
     // resolves after the `updateItem` event has been fired, which happens after the relay accepts the update and has written to the database.
