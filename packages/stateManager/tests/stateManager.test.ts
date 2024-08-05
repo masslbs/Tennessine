@@ -8,7 +8,7 @@ import {
   random32BytesHex,
   zeroAddress,
 } from "@massmarket/utils";
-
+import schema from "@massmarket/schema";
 const db = new MemoryLevel({
   valueEncoding: "json",
 });
@@ -104,6 +104,18 @@ describe("Fill state manager with test vectors", async () => {
     expect(shop.publishedTagId).toEqual(vectorState.manifest.published_tag);
     expect(shop.addAcceptedCurrencies!.length).toEqual(
       vectorState.manifest.accepted_currencies.length,
+    );
+    expect(shop.addAcceptedCurrencies[0].chainId).toEqual(
+      vectorState.manifest.accepted_currencies[0].chain,
+    );
+    expect(shop.addAcceptedCurrencies[0].tokenAddr).toEqual(
+      vectorState.manifest.accepted_currencies[0].addr,
+    );
+    expect(shop.setBaseCurrency!.chainId).toEqual(
+      vectorState.manifest.base_currency.chain,
+    );
+    expect(shop.setBaseCurrency!.tokenAddr).toEqual(
+      vectorState.manifest.base_currency.addr,
     );
   });
 

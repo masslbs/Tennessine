@@ -296,7 +296,7 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
         um.addAcceptedCurrencies.forEach((a: schema.IShopCurrency) => {
           currencies.push({
             tokenAddr: bytesToHex(a.tokenAddr),
-            chainId: a.chainId,
+            chainId: Number(a.chainId),
           });
         });
         manifest.addAcceptedCurrencies = currencies;
