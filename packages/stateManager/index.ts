@@ -287,7 +287,7 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
       }
       if (um.setBaseCurrency) {
         manifest.setBaseCurrency = {
-          chainId: Number(um.setBaseCurrency.toJSON().chainId),
+          chainId: Number(um.setBaseCurrency.chainId),
           tokenAddr: bytesToHex(um.setBaseCurrency.tokenAddr),
         };
       }
@@ -296,7 +296,7 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
         um.addAcceptedCurrencies.forEach((a: schema.IShopCurrency) => {
           currencies.push({
             tokenAddr: bytesToHex(a.tokenAddr),
-            chainId: Number(a.toJSON().chainId),
+            chainId: a.chainId,
           });
         });
         manifest.addAcceptedCurrencies = currencies;

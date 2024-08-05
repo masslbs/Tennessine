@@ -65,4 +65,8 @@ export class ReadableEventStream {
       this.resolve = resolve;
     });
   }
+  //This method is meant to be used to enqueue events created from the frontend
+  async outgoingEnqueue(event: schema.IShopEvent) {
+    this.controller.enqueue({ event });
+  }
 }

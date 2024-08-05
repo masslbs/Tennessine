@@ -175,16 +175,20 @@ describe("user behaviour", () => {
     });
 
     await relayClient.updateShopManifest({
-      addAcceptedCurrency: {
-        tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
-        chainId: 31337,
-      },
+      addAcceptedCurrencies: [
+        {
+          tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
+          chainId: 31337,
+        },
+      ],
     });
     await relayClient.updateShopManifest({
-      removeAcceptedCurrency: {
-        tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
-        chainId: 31337,
-      },
+      removeAcceptedCurrencies: [
+        {
+          tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
+          chainId: 31337,
+        },
+      ],
     });
   });
 

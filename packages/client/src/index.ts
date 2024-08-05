@@ -112,7 +112,7 @@ export class RelayClient extends EventEmitter {
       events: [signedEvent],
     });
     await this.encodeAndSend(schema.EventWriteRequest, eventWriteRequest);
-    this.eventStream.enqueue(pushReq);
+    this.eventStream.outgoingEnqueue(shopEvent);
   }
 
   async shopManifest(manifest: schema.IShopManifest, shopId: `0x${string}`) {

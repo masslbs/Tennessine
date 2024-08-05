@@ -131,11 +131,7 @@ export class MockClient implements RelayClient {
         value: shopEventBytes,
       },
     };
-    const pushReq = new schema.EventPushRequest({
-      requestId: requestId(),
-      events: [signedEvent],
-    });
-    this.eventStream.enqueue(pushReq);
+    this.eventStream.outgoingEnqueue(shopEvent);
     return new Promise((resolve) => {
       resolve;
     });
