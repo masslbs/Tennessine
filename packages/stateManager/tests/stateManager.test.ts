@@ -7,7 +7,16 @@ import {
   randomAddress,
   random32BytesHex,
   zeroAddress,
+  randomBytes,
 } from "@massmarket/utils";
+import { RelayClient } from "@massmarket/client";
+import { privateKeyToAccount } from "viem/accounts";
+import {
+  BlockchainClient,
+  WalletClientWithAccount,
+} from "@massmarket/blockchain";
+import { createWalletClient, createPublicClient, http } from "viem";
+import { hardhat } from "viem/chains";
 
 const db = new MemoryLevel({
   valueEncoding: "json",
@@ -120,7 +129,9 @@ describe("Fill state manager with test vectors", async () => {
 
   test("ListingManager - adds and updates item events", async () => {
     const listingIterator = stateManager.items.iterator;
+    let itemCount = 0;
     for await (const [id, item] of listingIterator) {
+      itemCount++;
       const vectorItem = vectorState.items[id];
       expect(item.price).toEqual(vectorItem.price);
       const parsed = JSON.parse(vectorItem.metadata);
@@ -128,14 +139,18 @@ describe("Fill state manager with test vectors", async () => {
       expect(item.metadata.image).toEqual(parsed.image);
       expect(item.quantity).toEqual(vectorItem.stock_qty);
     }
+    expect(itemCount).toEqual(Object.keys(vectorState.inventory).length);
   });
 
   test("TagManager - adds and updates tag events", async () => {
     const tagIterator = stateManager.tags.iterator;
     const { tags } = vectorState;
+    let tagCount = 0;
     for await (const [id, tag] of tagIterator) {
+      tagCount++;
       expect(tags[id].name).toEqual(tag.name);
     }
+    expect(tagCount).toEqual(Object.keys(vectorState.tags).length);
   });
 
   test("OrderManager - adds and updates order events", async () => {
@@ -350,5 +365,86 @@ describe("CRUD functions update stores", async () => {
     const canceled = await stateManager.orders.get(id);
     //New status should be fail
     expect(canceled.status).toEqual("FAILED");
+  });
+});
+
+describe("RelayClient - If there is a network error, state manager should not change the state.", async () => {
+  const relayEndpoint =
+    (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v2";
+
+  const client = new RelayClient({
+    relayEndpoint,
+    keyCardWallet: privateKeyToAccount(random32BytesHex()),
+  });
+  const stateManager = new StateManager(
+    client,
+    listingStore,
+    tagStore,
+    shopManifestStore,
+    orderStore,
+    keycardStore,
+  );
+  const shopId = random32BytesHex();
+
+  let blockchain = new BlockchainClient(shopId);
+  const account = privateKeyToAccount(
+    "0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6",
+  );
+  const wallet = createWalletClient({
+    account,
+    chain: hardhat,
+    transport: http(),
+  }) as WalletClientWithAccount;
+  const publicClient = createPublicClient({
+    chain: hardhat,
+    transport: http(),
+  });
+  test("Bad network calls should not change state data", async () => {
+    const transactionHash = await blockchain.createShop(wallet);
+    const receipt = await publicClient.waitForTransactionReceipt({
+      hash: transactionHash,
+    });
+    expect(receipt.status).equals("success");
+    const publishedTagId = randomBytes(32);
+    const name = "test shop";
+    const description = "creating test shop";
+    const profilePictureUrl = "https://http.cat/images/200.jpg";
+    const response = await client.enrollKeycard(wallet, false, shopId);
+    expect(response.status).toBe(201);
+    await client.connect();
+
+    await client.shopManifest(
+      {
+        name,
+        description,
+        profilePictureUrl,
+        publishedTagId,
+      },
+      shopId,
+    );
+
+    await expect(async () => {
+      await client.updateShopManifest({
+        addAcceptedCurrencies: [
+          {
+            chainId: 31337,
+            tokenAddr: "bad address",
+          },
+        ],
+      });
+    }).rejects.toThrowError();
+
+    const manifest = await stateManager.manifest.get();
+    expect(manifest.addAcceptedCurrencies.length).toEqual(0);
+
+    await expect(async () => {
+      await client.createItem({
+        price: "10.99",
+        metadata: "bad metadata",
+      });
+    }).rejects.toThrowError();
+
+    const keys = await listingStore.keys().all();
+    expect(keys.length).toEqual(0);
   });
 });

@@ -300,16 +300,19 @@ importers:
       events:
         specifier: ^3.3.0
         version: 3.3.0
-      memory-level:
-        specifier: ^1.0.0
-        version: 1.0.0
       viem:
         specifier: ^2.16.3
         version: 2.16.3(typescript@5.5.3)(zod@3.22.4)
     devDependencies:
+      '@massmarket/blockchain':
+        specifier: workspace:*
+        version: link:../blockchain
       '@types/events':
         specifier: ^3.0.3
         version: 3.0.3
+      memory-level:
+        specifier: ^1.0.0
+        version: 1.0.0
       vitest:
         specifier: ^2.0.4
         version: 2.0.4
@@ -6736,7 +6739,6 @@ packages:
       level-transcoder: 1.0.1
       module-error: 1.0.2
       queue-microtask: 1.2.3
-    dev: false
 
   /abstract-level@2.0.0:
     resolution: {integrity: sha512-8vjY8/cluwJhbYyE1JjPMTPslT8bpkFF/Oe24KiW3jUAwV9hleHilw3ipHPK5w2pyvOYDnmUSC7w1/aKLzgi/Q==}
@@ -7506,7 +7508,6 @@ packages:
   /catering@2.1.1:
     resolution: {integrity: sha512-K7Qy8O9p76sL3/3m7/zLKbRkyOlSZAgzEaLhyj2mXS8PsCud2Eo4hAb8aLtZqHh0QGqLcb9dlJSu6lHRVENm1w==}
     engines: {node: '>=6'}
-    dev: false
 
   /catharsis@0.9.0:
     resolution: {integrity: sha512-prMTQVpcns/tzFgFVkVp6ak6RykZyWb3gu8ckUpd6YkTlacOd3DXGJjIpD4Q6zJirizvaiAjSSHlOsA+6sNh2A==}
@@ -9306,7 +9307,7 @@ packages:
 
   /functional-red-black-tree@1.0.1:
     resolution: {integrity: sha512-dsKNQNdj6xA3T+QlADDA7mOSlX0qiMINjn0cgr+eGHGsbSHzTabcIogz2+p/iqP1Xs6EP/sS2SbqH+brGTbq0g==}
-    dev: false
+    dev: true
 
   /functions-have-names@1.2.3:
     resolution: {integrity: sha512-xckBUXyTIqT97tq2x2AMb+g163b5JFysYk0x4qxNFwbfQkmNZoiRHb6sPzI9/QV33WeuvVYBUIiD4NzNIyqaRQ==}
@@ -9865,7 +9866,6 @@ packages:
   /is-buffer@2.0.5:
     resolution: {integrity: sha512-i2R6zNFDwgEHJyQUtJEk0XFi1i0dPFn/oqjK3/vPCcDeJvW5NQ83V8QbicfF1SupOaB0h8ntgBC2YiE7dfyctQ==}
     engines: {node: '>=4'}
-    dev: false
 
   /is-callable@1.2.7:
     resolution: {integrity: sha512-1BC0BVFhS/p0qtw6enp8e+8OD0UrK0oFLztSjNzhcKA3WDuJxxAPXzPuPtKkjEY9UUoEWlX/8fgKeu2S8i9JTA==}
@@ -10994,7 +10994,6 @@ packages:
   /level-supports@4.0.1:
     resolution: {integrity: sha512-PbXpve8rKeNcZ9C1mUicC9auIYFyGpkV9/i6g76tLgANwWhtG2v7I4xNBUlkn3lE2/dZF3Pi0ygYGtLc4RXXdA==}
     engines: {node: '>=12'}
-    dev: false
 
   /level-supports@6.0.0:
     resolution: {integrity: sha512-UU226PsfiFWLRPmuqgB3eADtvZM8WYv+aCnAl93B/2Ca+vgn9+b7o2boA7yOY2ri7Kk5Wk4aHxl3eNimpYZnxw==}
@@ -11007,7 +11006,6 @@ packages:
     dependencies:
       buffer: 6.0.3
       module-error: 1.0.2
-    dev: false
 
   /level@8.0.1:
     resolution: {integrity: sha512-oPBGkheysuw7DmzFQYyFe8NAia5jFLAgEnkgWnK3OXAuJr8qFT+xBQIwokAZPME2bhPFzS8hlYcL16m8UZrtwQ==}
@@ -11366,7 +11364,7 @@ packages:
       abstract-level: 1.0.4
       functional-red-black-tree: 1.0.1
       module-error: 1.0.2
-    dev: false
+    dev: true
 
   /merge-stream@2.0.0:
     resolution: {integrity: sha512-abv/qOcuPfk3URPfDzmZU1LKmuw8kT+0nIHvKrKgFrwifol/doWcdA4ZqsWQ8ENrFKkd67Mfpo/LovbIUsbt3w==}
@@ -11729,7 +11727,6 @@ packages:
   /module-error@1.0.2:
     resolution: {integrity: sha512-0yuvsqSCv8LbaOKhnsQ/T5JhyFlCYLPXK3U2sgV10zoKQwzs/MyfuQUOZQ1V/6OCOJsK/TRgNVrPuPDqtdMFtA==}
     engines: {node: '>=10'}
-    dev: false
 
   /motion@10.16.2:
     resolution: {integrity: sha512-p+PurYqfUdcJZvtnmAqu5fJgV2kR0uLFQuBKtLeFVTrYEVllI99tiOTSefVNYuip9ELTEkepIIDftNdze76NAQ==}
