@@ -4,11 +4,28 @@ import schema from "@massmarket/schema";
 import { bytesToHex, hexToBytes } from "viem";
 import { bufferToJSON, stringifyToBuffer } from "@massmarket/utils";
 
+export type IRelayClient = Pick<
+  RelayClient,
+  | "encodeAndSendNoWait"
+  | "connect"
+  | "sendShopEvent"
+  | "createEventStream"
+  | "createItem"
+  | "updateItem"
+  | "createTag"
+  | "shopManifest"
+  | "updateShopManifest"
+  | "changeStock"
+  | "createOrder"
+  | "updateOrder"
+  | "commitOrder"
+>;
+
 /**
  * Define the Store Objects that are reified from the event stream
  */
 
-interface Item {
+export interface Item {
   id: `0x${string}`;
   price: string;
   metadata: {
@@ -20,12 +37,12 @@ interface Item {
   quantity: number;
 }
 
-interface Tag {
+export interface Tag {
   id: `0x${string}`;
   name: string;
 }
 
-type KeyCard = `0x${string}`;
+export type KeyCard = `0x${string}`;
 enum Status {
   Failed = "FAILED",
   Pending = "PENDING",
@@ -39,7 +56,7 @@ interface ShippingDetails {
   country: string;
   phoneNumber: string;
 }
-interface Order {
+export interface Order {
   id: `0x${string}`;
   items: { [key: `0x${string}`]: number };
   status: Status;
@@ -68,7 +85,7 @@ interface CreateShopManifest {
 }
 //This type is used to store and retrieve the manifest from db. All the fields are required in this case.
 //Since update fn can take in any number these properties we use Partial<ShopManifest> to type manifest update objects.
-type ShopManifest = CreateShopManifest & {
+export type ShopManifest = CreateShopManifest & {
   tokenId: `0x${string}`;
   setBaseCurrency: ShopCurrencies | null;
   addAcceptedCurrencies: ShopCurrencies[];
@@ -113,7 +130,7 @@ abstract class PublicObjectManager<
 > extends EventEmitter {
   constructor(
     protected store: Store<T>,
-    protected client: RelayClient,
+    protected client: IRelayClient,
   ) {
     super();
   }
@@ -125,7 +142,7 @@ abstract class PublicObjectManager<
 }
 //We should always make sure the network call is successful before updating the store with store.put
 class ListingManager extends PublicObjectManager<Item> {
-  constructor(store: Store<Item>, client: RelayClient) {
+  constructor(store: Store<Item>, client: IRelayClient) {
     super(store, client);
   }
   // Process all events for listings.
@@ -236,7 +253,7 @@ class ListingManager extends PublicObjectManager<Item> {
 }
 
 class ShopManifestManager extends PublicObjectManager<ShopManifest> {
-  constructor(store: Store<ShopManifest>, client: RelayClient) {
+  constructor(store: Store<ShopManifest>, client: IRelayClient) {
     super(store, client);
   }
   //Process all manifest events. Convert bytes to hex, wait for database update, then emit event name
@@ -350,7 +367,7 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
   }
 }
 class OrderManager extends PublicObjectManager<Order> {
-  constructor(store: Store<Order>, client: RelayClient) {
+  constructor(store: Store<Order>, client: IRelayClient) {
     super(store, client);
   }
   //Process all Order events. Convert bytes to hex, waits for database update, then emits event
@@ -513,7 +530,7 @@ class OrderManager extends PublicObjectManager<Order> {
   }
 }
 class TagManager extends PublicObjectManager<Tag> {
-  constructor(store: Store<Tag>, client: RelayClient) {
+  constructor(store: Store<Tag>, client: IRelayClient) {
     super(store, client);
   }
 
@@ -542,7 +559,7 @@ class TagManager extends PublicObjectManager<Tag> {
 }
 
 class KeyCardManager extends PublicObjectManager<KeyCard> {
-  constructor(store: Store<KeyCard>, client: RelayClient) {
+  constructor(store: Store<KeyCard>, client: IRelayClient) {
     super(store, client);
   }
 
@@ -572,7 +589,7 @@ export class StateManager {
   readonly keycards;
   eventStreamProcessing;
   constructor(
-    public client: RelayClient,
+    public client: IRelayClient,
     listingStore: Store<Item>,
     tagStore: Store<Tag>,
     shopManifestStore: Store<ShopManifest>,

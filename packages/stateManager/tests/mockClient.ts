@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { hexToBytes } from "viem";
-import { RelayClient } from "@massmarket/client";
 import schema, {
   type PBObject,
   type PBMessage,
@@ -12,30 +11,14 @@ import schema, {
 } from "@massmarket/schema";
 import { requestId, eventId } from "@massmarket/utils";
 import { ReadableEventStream } from "@massmarket/client/stream";
+import { IRelayClient } from "../";
 
 export type IncomingEvent = {
   request: schema.EventPushRequest;
   done: () => void;
 };
 
-interface IRelayClient extends RelayClient {}
-type IMockRelayClient = Pick<
-  IRelayClient,
-  | "encodeAndSendNoWait"
-  | "connect"
-  | "sendShopEvent"
-  | "createEventStream"
-  | "createItem"
-  | "updateItem"
-  | "createTag"
-  | "shopManifest"
-  | "updateShopManifest"
-  | "changeStock"
-  | "createOrder"
-  | "updateOrder"
->;
-
-export class MockClient implements IMockRelayClient {
+export class MockClient implements IRelayClient {
   vectors: TestVectors;
   private eventStream: ReadableEventStream;
 
@@ -149,6 +132,15 @@ export class MockClient implements IMockRelayClient {
     });
     return id;
   }
+
+  async commitOrder(order: schema.IUpdateOrder) {
+    const id = (order.eventId = eventId());
+    this.sendShopEvent({
+      updateOrder: order,
+    });
+    return id;
+  }
+
   createEventStream() {
     return this.eventStream.stream;
   }

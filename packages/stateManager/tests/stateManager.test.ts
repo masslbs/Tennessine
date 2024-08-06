@@ -1,6 +1,13 @@
 import { describe, expect, test, vi, beforeEach } from "vitest";
 import { MemoryLevel } from "memory-level";
-import { StateManager } from "@massmarket/stateManager";
+import {
+  StateManager,
+  type Item,
+  type Tag,
+  type ShopManifest,
+  type Order,
+  type KeyCard,
+} from "../";
 import { MockClient } from "./mockClient";
 import {
   randomAddress,
@@ -12,27 +19,29 @@ const db = new MemoryLevel({
   valueEncoding: "json",
 });
 db.clear();
-const listingStore = db.sublevel("listingStore", {
+const listingStore = db.sublevel<string, Item>("listingStore", {
   valueEncoding: "json",
 });
-const tagStore = db.sublevel("tagStore", {
+const tagStore = db.sublevel<string, Tag>("tagStore", {
   valueEncoding: "json",
 });
-const shopManifestStore = db.sublevel("shopManifestStore", {
-  valueEncoding: "json",
-});
-const orderStore = db.sublevel("orderStore", {
+const shopManifestStore = db.sublevel<string, ShopManifest>(
+  "shopManifestStore",
+  {
+    valueEncoding: "json",
+  },
+);
+const orderStore = db.sublevel<string, Order>("orderStore", {
   valueEncoding: "json",
 });
 
-const keycardStore = db.sublevel("keycardStore", {
+const keycardStore = db.sublevel<string, KeyCard>("keycardStore", {
   valueEncoding: "json",
 });
 
 describe("Fill state manager with test vectors", async () => {
   const client = new MockClient();
   const stateManager = new StateManager(
-    // @ts-expect-error FIXME looking for client to be RelayClient
     client,
     listingStore,
     tagStore,
@@ -172,7 +181,6 @@ describe("Fill state manager with test vectors", async () => {
 describe("CRUD functions update stores", async () => {
   const client = new MockClient();
   const stateManager = new StateManager(
-    // @ts-expect-error FIXME looking for client to be RelayClient
     client,
     listingStore,
     tagStore,
