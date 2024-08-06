@@ -411,12 +411,12 @@ class OrderManager extends PublicObjectManager<Order> {
         const sd = order.shippingDetails
           ? order.shippingDetails
           : {
-              name: null,
-              address1: null,
-              city: null,
-              postalCode: null,
-              country: null,
-              phoneNumber: null,
+              name: "",
+              address1: "",
+              city: "",
+              postalCode: "",
+              country: "",
+              phoneNumber: "",
             };
         if (update.name) {
           sd.name = update.name;
@@ -436,6 +436,7 @@ class OrderManager extends PublicObjectManager<Order> {
         if (update.phoneNumber) {
           sd.phoneNumber = update.phoneNumber;
         }
+        order.shippingDetails = sd;
         await this.store.put(orderId, order);
         this.emit("updateShippingDetails", order, uo.eventId);
         return;
