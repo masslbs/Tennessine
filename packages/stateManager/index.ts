@@ -3,11 +3,16 @@ import { RelayClient } from "@massmarket/client";
 import schema from "@massmarket/schema";
 import { bytesToHex, hexToBytes } from "viem";
 import { bufferToJSON, stringifyToBuffer } from "@massmarket/utils";
+
+/**
+ * Define the Store Objects that are reified from the event stream
+ */
+
 interface Item {
   id: `0x${string}`;
   price: string;
   metadata: {
-    name: string;
+    title: string;
     description: string;
     image: string;
   };
@@ -82,26 +87,24 @@ type ShopObjectTypes = Item | Tag | KeyCard | Order | ShopManifest;
 type Store<T extends ShopObjectTypes> = {
   put(key: string, value: T): Promise<void>;
   get(key: string): Promise<T>;
-  iterator(): AsyncIterator<T>;
+  iterator(): AsyncIterable<[string, T]>;
 };
+
+// Given an eventId wich refers to a network event; this returns a promise that resolve once that event
+// has been emitted as js event
 function eventListenAndResolve(
   eventId: Uint8Array,
-  selfRef:
-    | ListingManager
-    | ShopManifestManager
-    | TagManager
-    | KeyCardManager
-    | OrderManager,
+  em: EventEmitter,
   eventName: schema.IShopEvent.union,
 ): Promise<ShopObjectTypes> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _) => {
     function onUpdate(update: ShopObjectTypes, eId: Uint8Array) {
       if (bytesToHex(eId) === bytesToHex(eventId)) {
         resolve(update);
-        selfRef.removeListener(eventName, onUpdate);
+        em.removeListener(eventName, onUpdate);
       }
     }
-    selfRef.on(eventName, onUpdate);
+    em.on(eventName, onUpdate);
   });
 }
 
@@ -117,15 +120,13 @@ abstract class PublicObjectManager<
   abstract _processEvent(event: schema.ShopEvents): Promise<void>;
   abstract get(key?: string): Promise<T>;
   get iterator() {
-    return this.store.iterator();
+    return this.store.iterator.bind(this.store);
   }
 }
 //We should always make sure the network call is successful before updating the store with store.put
 class ListingManager extends PublicObjectManager<Item> {
-  self;
   constructor(store: Store<Item>, client: RelayClient) {
     super(store, client);
-    this.self = this;
   }
   // Process all events for listings.
   // Convert bytes to hex and save item object to listings store.
@@ -202,11 +203,7 @@ class ListingManager extends PublicObjectManager<Item> {
       metadata: stringifyToBuffer(item.metadata),
     });
     // resolves after the `createItem` event has been fired in _processEvent, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve(
-      eventId,
-      this.self,
-      "createItem",
-    ) as Promise<Item>;
+    return eventListenAndResolve(eventId, this, "createItem") as Promise<Item>;
   }
   //update argument passed here will only contain the fields to update.
   async update(update: Partial<Item>): Promise<Item> {
@@ -223,11 +220,7 @@ class ListingManager extends PublicObjectManager<Item> {
     }
     const eventId = await this.client.updateItem(ui);
     // resolves after the `updateItem` event has been fired, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve(
-      eventId,
-      this.self,
-      "updateItem",
-    ) as Promise<Item>;
+    return eventListenAndResolve(eventId, this, "updateItem") as Promise<Item>;
   }
 
   async changeStock(itemIds: `0x${string}`[], diffs: number[]) {
@@ -235,11 +228,7 @@ class ListingManager extends PublicObjectManager<Item> {
       itemIds: itemIds.map((id) => hexToBytes(id)),
       diffs,
     });
-    return eventListenAndResolve(
-      eventId,
-      this.self,
-      "changeStock",
-    ) as Promise<Item>;
+    return eventListenAndResolve(eventId, this, "changeStock") as Promise<Item>;
   }
   get(key: `0x${string}`) {
     return this.store.get(key);
@@ -247,10 +236,8 @@ class ListingManager extends PublicObjectManager<Item> {
 }
 
 class ShopManifestManager extends PublicObjectManager<ShopManifest> {
-  self;
   constructor(store: Store<ShopManifest>, client: RelayClient) {
     super(store, client);
-    this.self = this;
   }
   //Process all manifest events. Convert bytes to hex, wait for database update, then emit event name
   async _processEvent(event: schema.ShopEvents): Promise<void> {
@@ -332,7 +319,7 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
     // resolves after the `createShopManifest` event has been fired above in _processEvent, which happens after the relay accepts the update and has written to the database.
     return eventListenAndResolve(
       eventId,
-      this.self,
+      this,
       "createShopManifest",
     ) as Promise<ShopManifest>;
   }
@@ -364,7 +351,7 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
     const eventId = await this.client.updateShopManifest(updateShopManifest);
     return eventListenAndResolve(
       eventId,
-      this.self,
+      this,
       "updateShopManifest",
     ) as Promise<ShopManifest>;
   }
@@ -374,10 +361,8 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
   }
 }
 class OrderManager extends PublicObjectManager<Order> {
-  self;
   constructor(store: Store<Order>, client: RelayClient) {
     super(store, client);
-    this.self = this;
   }
   //Process all Order events. Convert bytes to hex, waits for database update, then emits event
   async _processEvent(event: schema.ShopEvents): Promise<void> {
@@ -487,7 +472,7 @@ class OrderManager extends PublicObjectManager<Order> {
     // resolves after the `createOrder` event has been fired in processEvent, which happens after the relay accepts the update and has written to the database.
     return eventListenAndResolve(
       eventId,
-      this.self,
+      this,
       "createOrder",
     ) as Promise<Order>;
   }
@@ -504,7 +489,7 @@ class OrderManager extends PublicObjectManager<Order> {
     // resolves after the `changeItems` event has been fired, which happens after the relay accepts the update and has written to the database.
     return eventListenAndResolve(
       eventId,
-      this.self,
+      this,
       "changeItems",
     ) as Promise<Order>;
   }
@@ -518,7 +503,7 @@ class OrderManager extends PublicObjectManager<Order> {
     });
     return eventListenAndResolve(
       eventId,
-      this.self,
+      this,
       "updateShippingDetails",
     ) as Promise<Order>;
   }
@@ -530,7 +515,7 @@ class OrderManager extends PublicObjectManager<Order> {
     });
     return eventListenAndResolve(
       eventId,
-      this.self,
+      this,
       "orderCanceled",
     ) as Promise<Order>;
   }
@@ -552,10 +537,8 @@ class OrderManager extends PublicObjectManager<Order> {
   }
 }
 class TagManager extends PublicObjectManager<Tag> {
-  self;
   constructor(store: Store<Tag>, client: RelayClient) {
     super(store, client);
-    this.self = this;
   }
 
   async _processEvent(event: schema.ShopEvents): Promise<void> {
@@ -574,11 +557,7 @@ class TagManager extends PublicObjectManager<Tag> {
   async create(name: string): Promise<Tag> {
     const eventId = await this.client.createTag({ name });
     // resolves after the `createTag` event has been fired, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve(
-      eventId,
-      this.self,
-      "createTag",
-    ) as Promise<Tag>;
+    return eventListenAndResolve(eventId, this, "createTag") as Promise<Tag>;
   }
 
   get(key: `0x${string}`) {
@@ -587,10 +566,8 @@ class TagManager extends PublicObjectManager<Tag> {
 }
 
 class KeyCardManager extends PublicObjectManager<KeyCard> {
-  self;
   constructor(store: Store<KeyCard>, client: RelayClient) {
     super(store, client);
-    this.self = this;
   }
 
   async _processEvent(event: schema.ShopEvents): Promise<void> {

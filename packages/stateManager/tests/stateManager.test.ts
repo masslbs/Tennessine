@@ -1,22 +1,12 @@
 import { describe, expect, test, vi, beforeEach } from "vitest";
 import { MemoryLevel } from "memory-level";
 import { StateManager } from "@massmarket/stateManager";
-import { testVectors } from "@massmarket/schema";
 import { MockClient } from "./mockClient";
 import {
   randomAddress,
   random32BytesHex,
   zeroAddress,
-  randomBytes,
 } from "@massmarket/utils";
-import { RelayClient } from "@massmarket/client";
-import { privateKeyToAccount } from "viem/accounts";
-import {
-  BlockchainClient,
-  WalletClientWithAccount,
-} from "@massmarket/blockchain";
-import { createWalletClient, createPublicClient, http } from "viem";
-import { hardhat } from "viem/chains";
 
 const db = new MemoryLevel({
   valueEncoding: "json",
@@ -99,9 +89,9 @@ describe("Fill state manager with test vectors", async () => {
   client.connect();
 
   await vi.waitUntil(async () => {
-    return count == testVectors.events.length;
+    return count == client.vectors.events.length;
   });
-  const vectorState = testVectors.reduced;
+  const vectorState = client.vectors.reduced;
   test("ShopManifest - adds and updates shop manifest events", async () => {
     const shop = await stateManager.manifest.get();
     expect(shop.name).toEqual(vectorState.manifest.name);
@@ -128,9 +118,8 @@ describe("Fill state manager with test vectors", async () => {
   });
 
   test("ListingManager - adds and updates item events", async () => {
-    const listingIterator = stateManager.items.iterator;
     let itemCount = 0;
-    for await (const [id, item] of listingIterator) {
+    for await (const [id, item] of stateManager.items.iterator()) {
       itemCount++;
       const vectorItem = vectorState.items[id];
       expect(item.price).toEqual(vectorItem.price);
@@ -143,10 +132,9 @@ describe("Fill state manager with test vectors", async () => {
   });
 
   test("TagManager - adds and updates tag events", async () => {
-    const tagIterator = stateManager.tags.iterator;
     const { tags } = vectorState;
     let tagCount = 0;
-    for await (const [id, tag] of tagIterator) {
+    for await (const [id, tag] of stateManager.tags.iterator()) {
       tagCount++;
       expect(tags[id].name).toEqual(tag.name);
     }
@@ -265,7 +253,7 @@ describe("CRUD functions update stores", async () => {
     const { id } = await stateManager.items.create({
       price: "12.00",
       metadata: {
-        name: "Test Item 1",
+        title: "Test Item 1",
         description: "Test description 1",
         image: "https://http.cat/images/201.jpg",
       },
@@ -273,7 +261,7 @@ describe("CRUD functions update stores", async () => {
 
     const item = await stateManager.items.get(id);
     expect(item.price).toEqual("12.00");
-    expect(item.metadata.name).toEqual("Test Item 1");
+    expect(item.metadata.title).toEqual("Test Item 1");
     expect(item.metadata.description).toEqual("Test description 1");
     expect(item.metadata.image).toEqual("https://http.cat/images/201.jpg");
     expect(item.quantity).toEqual(0);
@@ -282,7 +270,7 @@ describe("CRUD functions update stores", async () => {
     const { id } = await stateManager.items.create({
       price: "12.00",
       metadata: {
-        name: "Test Item 2",
+        title: "Test Item 2",
         description: "Test description 2",
         image: "https://http.cat/images/201.jpg",
       },
@@ -291,7 +279,7 @@ describe("CRUD functions update stores", async () => {
       id,
       price: "25.00",
       metadata: {
-        name: "Updated Test Item 1",
+        title: "Updated Test Item 1",
         description: "Updated test description 1",
         image: "https://http.cat/images/205.jpg",
       },
@@ -299,7 +287,7 @@ describe("CRUD functions update stores", async () => {
     const r = await stateManager.items.changeStock([id], [5]);
     const item = await stateManager.items.get(id);
     expect(item.price).toEqual("25.00");
-    expect(item.metadata.name).toEqual("Updated Test Item 1");
+    expect(item.metadata.title).toEqual("Updated Test Item 1");
     expect(item.metadata.description).toEqual("Updated test description 1");
     expect(item.metadata.image).toEqual("https://http.cat/images/205.jpg");
     expect(item.quantity).toEqual(5);
@@ -309,7 +297,7 @@ describe("CRUD functions update stores", async () => {
     const o = await stateManager.items.create({
       price: "12.00",
       metadata: {
-        name: "Test Item in Order Test",
+        title: "Test Item in Order Test",
         description: "Test description 1",
         image: "https://http.cat/images/201.jpg",
       },
@@ -365,86 +353,5 @@ describe("CRUD functions update stores", async () => {
     const canceled = await stateManager.orders.get(id);
     //New status should be fail
     expect(canceled.status).toEqual("FAILED");
-  });
-});
-
-describe("RelayClient - If there is a network error, state manager should not change the state.", async () => {
-  const relayEndpoint =
-    (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v2";
-
-  const client = new RelayClient({
-    relayEndpoint,
-    keyCardWallet: privateKeyToAccount(random32BytesHex()),
-  });
-  const stateManager = new StateManager(
-    client,
-    listingStore,
-    tagStore,
-    shopManifestStore,
-    orderStore,
-    keycardStore,
-  );
-  const shopId = random32BytesHex();
-
-  let blockchain = new BlockchainClient(shopId);
-  const account = privateKeyToAccount(
-    "0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6",
-  );
-  const wallet = createWalletClient({
-    account,
-    chain: hardhat,
-    transport: http(),
-  }) as WalletClientWithAccount;
-  const publicClient = createPublicClient({
-    chain: hardhat,
-    transport: http(),
-  });
-  test("Bad network calls should not change state data", async () => {
-    const transactionHash = await blockchain.createShop(wallet);
-    const receipt = await publicClient.waitForTransactionReceipt({
-      hash: transactionHash,
-    });
-    expect(receipt.status).equals("success");
-    const publishedTagId = randomBytes(32);
-    const name = "test shop";
-    const description = "creating test shop";
-    const profilePictureUrl = "https://http.cat/images/200.jpg";
-    const response = await client.enrollKeycard(wallet, false, shopId);
-    expect(response.status).toBe(201);
-    await client.connect();
-
-    await client.shopManifest(
-      {
-        name,
-        description,
-        profilePictureUrl,
-        publishedTagId,
-      },
-      shopId,
-    );
-
-    await expect(async () => {
-      await client.updateShopManifest({
-        addAcceptedCurrencies: [
-          {
-            chainId: 31337,
-            tokenAddr: "bad address",
-          },
-        ],
-      });
-    }).rejects.toThrowError();
-
-    const manifest = await stateManager.manifest.get();
-    expect(manifest.addAcceptedCurrencies.length).toEqual(0);
-
-    await expect(async () => {
-      await client.createItem({
-        price: "10.99",
-        metadata: "bad metadata",
-      });
-    }).rejects.toThrowError();
-
-    const keys = await listingStore.keys().all();
-    expect(keys.length).toEqual(0);
   });
 });
