@@ -32,18 +32,18 @@ enum Status {
   Complete = "COMPLETE",
 }
 interface ShippingDetails {
-  name: string | null;
-  address1: string | null;
-  city: string | null;
-  postalCode: string | null;
-  country: string | null;
-  phoneNumber: string | null;
+  name: string;
+  address1: string;
+  city: string;
+  postalCode: string;
+  country: string;
+  phoneNumber: string;
 }
 interface Order {
   id: `0x${string}`;
   items: { [key: `0x${string}`]: number };
   status: Status;
-  shippingDetails: ShippingDetails;
+  shippingDetails?: ShippingDetails;
   txHash?: string;
   orderFinalized?:
     | {
@@ -362,14 +362,6 @@ class OrderManager extends PublicObjectManager<Order> {
         id,
         items: {},
         status: Status.Pending,
-        shippingDetails: {
-          name: null,
-          address1: null,
-          city: null,
-          postalCode: null,
-          country: null,
-          phoneNumber: null,
-        },
       };
       await this.store.put(id, o);
       this.emit("create", o, co.eventId);
@@ -415,7 +407,17 @@ class OrderManager extends PublicObjectManager<Order> {
         return;
       } else if (uo.updateShippingDetails) {
         const update = uo.updateShippingDetails;
-        const sd = order.shippingDetails;
+        // shippingDetails may be null. If null, create an initial shipping details object to update.
+        const sd = order.shippingDetails
+          ? order.shippingDetails
+          : {
+              name: null,
+              address1: null,
+              city: null,
+              postalCode: null,
+              country: null,
+              phoneNumber: null,
+            };
         if (update.name) {
           sd.name = update.name;
         }

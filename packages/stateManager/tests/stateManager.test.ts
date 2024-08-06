@@ -320,24 +320,14 @@ describe("CRUD functions update stores", async () => {
       phoneNumber: "0103330524",
     };
     await stateManager.orders.updateShippingDetails(id, shippingInfo);
-    const {
-      status,
-      shippingDetails: {
-        name,
-        address1,
-        city,
-        postalCode,
-        country,
-        phoneNumber,
-      },
-    } = await stateManager.orders.get(id);
+    const { status, shippingDetails } = await stateManager.orders.get(id);
     expect(status).toEqual("PENDING");
-    expect(name).toEqual(shippingInfo.name);
-    expect(address1).toEqual(shippingInfo.address1);
-    expect(city).toEqual(shippingInfo.city);
-    expect(phoneNumber).toEqual(shippingInfo.phoneNumber);
-    expect(country).toEqual(shippingInfo.country);
-    expect(postalCode).toEqual(shippingInfo.postalCode);
+    expect(shippingDetails!.name).toEqual(shippingInfo.name);
+    expect(shippingDetails!.address1).toEqual(shippingInfo.address1);
+    expect(shippingDetails!.city).toEqual(shippingInfo.city);
+    expect(shippingDetails!.phoneNumber).toEqual(shippingInfo.phoneNumber);
+    expect(shippingDetails!.country).toEqual(shippingInfo.country);
+    expect(shippingDetails!.postalCode).toEqual(shippingInfo.postalCode);
 
     //should be able to update partially
     await stateManager.orders.updateShippingDetails(id, {
@@ -345,9 +335,9 @@ describe("CRUD functions update stores", async () => {
       phoneNumber: "1113334444",
     });
     const updated = await stateManager.orders.get(id);
-    expect(updated.shippingDetails.name).toEqual(shippingInfo.name);
-    expect(updated.shippingDetails.country).toEqual("Mexico");
-    expect(updated.shippingDetails.phoneNumber).toEqual("1113334444");
+    expect(updated!.shippingDetails!.name).toEqual(shippingInfo.name);
+    expect(updated!.shippingDetails!.country).toEqual("Mexico");
+    expect(updated!.shippingDetails!.phoneNumber).toEqual("1113334444");
 
     await stateManager.orders.cancel(id, 0);
     const canceled = await stateManager.orders.get(id);
