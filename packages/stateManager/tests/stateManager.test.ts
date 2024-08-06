@@ -43,46 +43,46 @@ describe("Fill state manager with test vectors", async () => {
 
   let count = 0;
 
-  stateManager.manifest.on("createShopManifest", (g) => {
+  stateManager.manifest.on("create", () => {
     count++;
   });
-  stateManager.manifest.on("updateShopManifest", (g) => {
+  stateManager.manifest.on("update", () => {
     count++;
   });
-  stateManager.items.on("createItem", (g) => {
+  stateManager.items.on("create", () => {
     count++;
   });
-  stateManager.items.on("updateItem", (g) => {
+  stateManager.items.on("update", () => {
     count++;
   });
-  stateManager.items.on("changeStock", (g) => {
+  stateManager.items.on("changeStock", () => {
     count++;
   });
-  stateManager.items.on("addItemId", (g) => {
+  stateManager.items.on("addItemId", () => {
     count++;
   });
-  stateManager.items.on("removeItemId", (g) => {
+  stateManager.items.on("removeItemId", () => {
     count++;
   });
-  stateManager.orders.on("createOrder", (g) => {
+  stateManager.orders.on("create", () => {
     count++;
   });
-  stateManager.orders.on("orderCanceled", (g) => {
+  stateManager.orders.on("orderCanceled", () => {
     count++;
   });
-  stateManager.orders.on("itemsFinalized", (g) => {
+  stateManager.orders.on("itemsFinalized", () => {
     count++;
   });
-  stateManager.tags.on("createTag", (g) => {
+  stateManager.tags.on("create", () => {
     count++;
   });
-  stateManager.orders.on("updateShippingDetails", (g) => {
+  stateManager.orders.on("updateShippingDetails", () => {
     count++;
   });
-  stateManager.orders.on("changeItems", (g) => {
+  stateManager.orders.on("changeItems", () => {
     count++;
   });
-  stateManager.keycards.on("newKeyCard", (g) => {
+  stateManager.keycards.on("newKeyCard", () => {
     count++;
   });
 

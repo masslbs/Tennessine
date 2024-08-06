@@ -92,13 +92,13 @@ type Store<T extends ShopObjectTypes> = {
 
 // Given an eventId wich refers to a network event; this returns a promise that resolve once that event
 // has been emitted as js event
-function eventListenAndResolve(
+function eventListenAndResolve<T = ShopObjectTypes>(
   eventId: Uint8Array,
   em: EventEmitter,
-  eventName: schema.IShopEvent.union,
-): Promise<ShopObjectTypes> {
+  eventName: string,
+): Promise<T> {
   return new Promise((resolve, _) => {
-    function onUpdate(update: ShopObjectTypes, eId: Uint8Array) {
+    function onUpdate(update: T, eId: Uint8Array) {
       if (bytesToHex(eId) === bytesToHex(eventId)) {
         resolve(update);
         em.removeListener(eventName, onUpdate);
@@ -142,7 +142,7 @@ class ListingManager extends PublicObjectManager<Item> {
         quantity: 0,
       };
       await this.store.put(id, item);
-      this.emit("createItem", item, ci.eventId);
+      this.emit("create", item, ci.eventId);
       return;
     } else if (event.updateItem) {
       const ui = event.updateItem;
@@ -155,7 +155,7 @@ class ListingManager extends PublicObjectManager<Item> {
         item.price = ui.price;
       }
       await this.store.put(id, item);
-      this.emit("updateItem", item, ui.eventId);
+      this.emit("update", item, ui.eventId);
       return;
     } else if (event.changeStock) {
       const cs = event.changeStock;
@@ -197,16 +197,16 @@ class ListingManager extends PublicObjectManager<Item> {
     }
   }
 
-  async create(item: Partial<Item>): Promise<Item> {
+  async create(item: Partial<Item>) {
     const eventId = await this.client.createItem({
       price: item.price,
       metadata: stringifyToBuffer(item.metadata),
     });
     // resolves after the `createItem` event has been fired in _processEvent, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve(eventId, this, "createItem") as Promise<Item>;
+    return eventListenAndResolve<Item>(eventId, this, "create");
   }
   //update argument passed here will only contain the fields to update.
-  async update(update: Partial<Item>): Promise<Item> {
+  async update(update: Partial<Item>) {
     //ui object to be passed to the network with converted network data types.
     //we are declaring the update object as type schema.IUpdateItem since we are changing values from hex to bytes and is no longer a interface Item
     const ui: schema.IUpdateItem = {
@@ -220,7 +220,7 @@ class ListingManager extends PublicObjectManager<Item> {
     }
     const eventId = await this.client.updateItem(ui);
     // resolves after the `updateItem` event has been fired, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve(eventId, this, "updateItem") as Promise<Item>;
+    return eventListenAndResolve<Item>(eventId, this, "update");
   }
 
   async changeStock(itemIds: `0x${string}`[], diffs: number[]) {
@@ -228,7 +228,7 @@ class ListingManager extends PublicObjectManager<Item> {
       itemIds: itemIds.map((id) => hexToBytes(id)),
       diffs,
     });
-    return eventListenAndResolve(eventId, this, "changeStock") as Promise<Item>;
+    return eventListenAndResolve<Item>(eventId, this, "changeStock");
   }
   get(key: `0x${string}`) {
     return this.store.get(key);
@@ -240,7 +240,7 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
     super(store, client);
   }
   //Process all manifest events. Convert bytes to hex, wait for database update, then emit event name
-  async _processEvent(event: schema.ShopEvents): Promise<void> {
+  async _processEvent(event: schema.ShopEvents) {
     if (event.shopManifest) {
       const sm = event.shopManifest;
       const manifest = {
@@ -254,7 +254,7 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
         addPayee: null,
       };
       await this.store.put("shopManifest", manifest);
-      this.emit("createShopManifest", manifest, sm.eventId);
+      this.emit("create", manifest, sm.eventId);
       return;
     } else if (event.updateShopManifest) {
       const um = event.updateShopManifest;
@@ -298,15 +298,12 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
         manifest.addAcceptedCurrencies = filtered;
       }
       await this.store.put("shopManifest", manifest);
-      this.emit("updateShopManifest", manifest, um.eventId);
+      this.emit("update", manifest, um.eventId);
 
       return;
     }
   }
-  async create(
-    manifest: CreateShopManifest,
-    shopId: `0x${string}`,
-  ): Promise<ShopManifest> {
+  async create(manifest: CreateShopManifest, shopId: `0x${string}`) {
     //FIXME publishedTagId & profilePictureUrl are currently a required fields for ShopManifest
     const eventId = await this.client.shopManifest(
       {
@@ -317,14 +314,10 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
       shopId,
     );
     // resolves after the `createShopManifest` event has been fired above in _processEvent, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve(
-      eventId,
-      this,
-      "createShopManifest",
-    ) as Promise<ShopManifest>;
+    return eventListenAndResolve<ShopManifest>(eventId, this, "create");
   }
 
-  async update(um: Partial<ShopManifest>): Promise<ShopManifest> {
+  async update(um: Partial<ShopManifest>) {
     //Convert tokenAddr and publishedTagId to bytes before sending to client.
     //We have to explicitly declare the update object as type schema.IUpdateShopManifest since we are changing hex to bytes and is no longer a type ShopManifest
     const updateShopManifest: schema.IUpdateShopManifest = um;
@@ -349,11 +342,7 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
     }
     // resolves after the `updateShopManifest` event has been fired above in _processEvent, which happens after the relay accepts the update and has written to the database.
     const eventId = await this.client.updateShopManifest(updateShopManifest);
-    return eventListenAndResolve(
-      eventId,
-      this,
-      "updateShopManifest",
-    ) as Promise<ShopManifest>;
+    return eventListenAndResolve<ShopManifest>(eventId, this, "update");
   }
 
   get() {
@@ -383,7 +372,7 @@ class OrderManager extends PublicObjectManager<Order> {
         },
       };
       await this.store.put(id, o);
-      this.emit("createOrder", o, co.eventId);
+      this.emit("create", o, co.eventId);
       return;
     } else if (event.updateOrder) {
       const uo: schema.IUpdateOrder = event.updateOrder;
@@ -467,57 +456,41 @@ class OrderManager extends PublicObjectManager<Order> {
     return this.store.get(key);
   }
 
-  async create(): Promise<Order> {
+  async create() {
     const eventId = await this.client.createOrder();
     // resolves after the `createOrder` event has been fired in processEvent, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve(
-      eventId,
-      this,
-      "createOrder",
-    ) as Promise<Order>;
+    return eventListenAndResolve<Order>(eventId, this, "create");
   }
 
   async changeItems(
     orderId: `0x${string}`,
     itemId: `0x${string}`,
     quantity: number,
-  ): Promise<Order> {
+  ) {
     const eventId = await this.client.updateOrder({
       orderId: hexToBytes(orderId),
       changeItems: { itemId: hexToBytes(itemId), quantity },
     });
     // resolves after the `changeItems` event has been fired, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve(
-      eventId,
-      this,
-      "changeItems",
-    ) as Promise<Order>;
+    return eventListenAndResolve<Order>(eventId, this, "changeItems");
   }
   async updateShippingDetails(
     orderId: `0x${string}`,
     update: Partial<ShippingDetails>,
-  ): Promise<Order> {
+  ) {
     const eventId = await this.client.updateOrder({
       orderId: hexToBytes(orderId),
       updateShippingDetails: update,
     });
-    return eventListenAndResolve(
-      eventId,
-      this,
-      "updateShippingDetails",
-    ) as Promise<Order>;
+    return eventListenAndResolve<Order>(eventId, this, "updateShippingDetails");
   }
 
-  async cancel(orderId: `0x${string}`, timestamp: number): Promise<Order> {
+  async cancel(orderId: `0x${string}`, timestamp: number) {
     const eventId = await this.client.updateOrder({
       orderId: hexToBytes(orderId),
       orderCanceled: { timestamp },
     });
-    return eventListenAndResolve(
-      eventId,
-      this,
-      "orderCanceled",
-    ) as Promise<Order>;
+    return eventListenAndResolve<Order>(eventId, this, "orderCanceled");
   }
 
   async commit(
@@ -550,14 +523,14 @@ class TagManager extends PublicObjectManager<Tag> {
         name: ct.name,
       };
       await this.store.put(id, tag);
-      this.emit("createTag", tag, ct.eventId);
+      this.emit("create", tag, ct.eventId);
       return;
     }
   }
-  async create(name: string): Promise<Tag> {
+  async create(name: string) {
     const eventId = await this.client.createTag({ name });
     // resolves after the `createTag` event has been fired, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve(eventId, this, "createTag") as Promise<Tag>;
+    return eventListenAndResolve<Tag>(eventId, this, "create");
   }
 
   get(key: `0x${string}`) {
