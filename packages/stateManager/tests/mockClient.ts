@@ -55,15 +55,6 @@ export class MockClient implements IRelayClient {
   }
 
   sendShopEvent(shopEvent: schema.IShopEvent) {
-    const shopEventBytes = schema.ShopEvent.encode(shopEvent).finish();
-    const signedEvent = {
-      //TODO:Grabbing first vector event signature for now since we don't have actual validation
-      signature: hexToBytes(this.vectors.events[0].signature as `0x${string}`),
-      event: {
-        type_url: "type.googleapis.com/market.mass.ShopEvent",
-        value: shopEventBytes,
-      },
-    };
     this.eventStream.outgoingEnqueue(shopEvent);
     return new Promise((resolve) => {
       resolve;

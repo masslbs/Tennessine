@@ -107,10 +107,6 @@ export class RelayClient extends EventEmitter {
     const eventWriteRequest = {
       event: signedEvent,
     };
-    const pushReq = new schema.EventPushRequest({
-      requestId: requestId(),
-      events: [signedEvent],
-    });
     await this.encodeAndSend(schema.EventWriteRequest, eventWriteRequest);
     this.eventStream.outgoingEnqueue(shopEvent);
   }
