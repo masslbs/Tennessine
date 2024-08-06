@@ -317,7 +317,7 @@ describe("CRUD functions update stores", async () => {
     expect(uo.status).toEqual("PENDING");
   });
 
-  test("OrderManager - cancel", async () => {
+  test("OrderManager - updateShippingDetails/cancel", async () => {
     const { id } = await stateManager.orders.create();
     const shippingInfo = {
       name: "Paul Atreides",
