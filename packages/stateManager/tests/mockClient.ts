@@ -4,96 +4,46 @@
 
 import { hexToBytes } from "viem";
 import { RelayClient } from "@massmarket/client";
-import schema, { testVectors } from "@massmarket/schema";
+import schema, {
+  type PBObject,
+  type PBMessage,
+  testVectors,
+  type TestVectors,
+} from "@massmarket/schema";
 import { requestId, eventId } from "@massmarket/utils";
 import { ReadableEventStream } from "@massmarket/client/stream";
-
-type VectorEvent = {
-  type: string;
-  // actually all combinations are known but depends on 'type', not sure how to map this.
-  // Might not be necessary to access these for these tests, tho.
-  object: any;
-  signature: string;
-  hash: string;
-  encoded: string;
-};
-
-export type VectorItems = {
-  [key: string]: {
-    price: string;
-    metadata: string;
-    tag_id: string[];
-    stock_qty: number;
-  };
-};
-
-export type VectorOrderDetails = {
-  payment_id: string;
-
-  // which items and how many of them
-  items: { [key: string]: number };
-
-  // decimal string of the total price to be payed
-  total: string;
-};
-
-export type TestVectors = {
-  signatures: {
-    signer_address: string;
-  };
-  events: VectorEvent[];
-  reduced: {
-    manifest: {
-      shop_token_id: string;
-      domain: string;
-      published_tag: string;
-    };
-    // keycard_id -> user_wallet
-    keycards: { [key: string]: string };
-
-    // item_id -> { price, metadata }
-    items: VectorItems;
-
-    // tag_id > { name }
-    tags: { [key: string]: { name: string } };
-
-    // items assigned to the published tag
-    published_items: string[];
-
-    // item_id -> quantity
-    inventory: { [key: string]: number };
-
-    orders: {
-      // order_id -> item_id -> quantity
-      open: { [key: string]: { [key: string]: number } };
-
-      // order_id -> order details
-      items_finalized: { [key: string]: VectorOrderDetails };
-
-      payed: {
-        order_id: string;
-        tx_hash: string;
-      }[];
-
-      // array of order_id
-      abandoned: string[];
-    };
-  };
-};
 
 export type IncomingEvent = {
   request: schema.EventPushRequest;
   done: () => void;
 };
-export class MockClient implements RelayClient {
+
+interface IRelayClient extends RelayClient {}
+type IMockRelayClient = Pick<
+  IRelayClient,
+  | "encodeAndSendNoWait"
+  | "connect"
+  | "sendShopEvent"
+  | "createEventStream"
+  | "createItem"
+  | "updateItem"
+  | "createTag"
+  | "shopManifest"
+  | "updateShopManifest"
+  | "changeStock"
+  | "createOrder"
+  | "updateOrder"
+>;
+
+export class MockClient implements IMockRelayClient {
   vectors: TestVectors;
-  private eventStream;
+  private eventStream: ReadableEventStream;
 
   constructor() {
     this.vectors = testVectors;
     this.eventStream = new ReadableEventStream(this);
   }
-  encodeAndSendNoWait(encoder, object) {
+  encodeAndSendNoWait(encoder: PBMessage, object: PBObject = {}) {
     return Promise.resolve(encoder.encode(object).finish());
   }
 

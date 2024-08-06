@@ -5,7 +5,6 @@
 import { WebSocket } from "isows";
 import {
   hexToBytes,
-  toHex,
   createWalletClient,
   createPublicClient,
   http,
@@ -13,17 +12,15 @@ import {
 } from "viem";
 import { hardhat } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
-import { describe, beforeEach, expect, test, vi } from "vitest";
+import { describe, beforeEach, expect, test } from "vitest";
 
 import { RelayClient } from "../src";
 import { random32BytesHex, randomBytes } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
-import { randomAddress } from "@massmarket/utils";
 import {
   BlockchainClient,
   WalletClientWithAccount,
 } from "@massmarket/blockchain";
-import { ReadableEventStream } from "../src/stream";
 
 // this key is from one of anvil's default keypairs
 const account = privateKeyToAccount(
@@ -323,3 +320,60 @@ describe("user behaviour", () => {
     });
   });
 });
+
+// describe("If there is a network error, state manager should not change the state.", async () => {
+//   const client = createRelayClient();
+
+//   const shopId = random32BytesHex();
+
+//   let blockchain = new BlockchainClient(shopId);
+
+//   test("Bad network calls should not change state data", async () => {
+//     const transactionHash = await blockchain.createShop(wallet);
+//     const receipt = await publicClient.waitForTransactionReceipt({
+//       hash: transactionHash,
+//     });
+//     expect(receipt.status).equals("success");
+//     const publishedTagId = randomBytes(32);
+//     const name = "test shop";
+//     const description = "creating test shop";
+//     const profilePictureUrl = "https://http.cat/images/200.jpg";
+//     const response = await client.enrollKeycard(wallet, false, shopId);
+//     expect(response.status).toBe(201);
+//     await client.connect();
+
+//     await client.shopManifest(
+//       {
+//         name,
+//         description,
+//         profilePictureUrl,
+//         publishedTagId,
+//       },
+//       shopId,
+//     );
+
+//     await expect(async () => {
+//       await client.updateShopManifest({
+//         addAcceptedCurrencies: [
+//           {
+//             chainId: 31337,
+//             tokenAddr: "bad address",
+//           },
+//         ],
+//       });
+//     }).rejects.toThrowError();
+
+//     const manifest = await stateManager.manifest.get();
+//     expect(manifest.addAcceptedCurrencies.length).toEqual(0);
+
+//     await expect(async () => {
+//       await client.createItem({
+//         price: "10.99",
+//         metadata: "bad metadata",
+//       });
+//     }).rejects.toThrowError();
+
+//     const keys = await listingStore.keys().all();
+//     expect(keys.length).toEqual(0);
+//   });
+// });
