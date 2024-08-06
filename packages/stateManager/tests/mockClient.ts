@@ -82,6 +82,13 @@ export class MockClient implements IRelayClient {
     });
     return id;
   }
+  async updateTag(tag: schema.IUpdateTag) {
+    const id = (tag.eventId = eventId());
+    this.sendShopEvent({
+      updateTag: tag,
+    });
+    return id;
+  }
   async shopManifest(manifest: schema.IShopManifest, shopId: `0x${string}`) {
     const id = (manifest.eventId = eventId());
     manifest.shopTokenId = hexToBytes(shopId);

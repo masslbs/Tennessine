@@ -274,6 +274,28 @@ describe("CRUD functions update stores", async () => {
     expect(item.metadata.image).toEqual("https://http.cat/images/201.jpg");
     expect(item.quantity).toEqual(0);
   });
+
+  test("ListingManager - add/remove item to/from tag", async () => {
+    const item = await stateManager.items.create({
+      price: "12.00",
+      metadata: {
+        title: "Test Item 1",
+        description: "Test description 1",
+        image: "https://http.cat/images/201.jpg",
+      },
+    });
+    const tag = await stateManager.tags.create("Test Create Tag");
+    expect(item.id).toBeTruthy();
+    expect(tag.id).toBeTruthy();
+    await stateManager.items.addItemToTag(tag.id, item.id);
+    const added = await stateManager.items.get(item.id);
+    expect(added.tags.length).toEqual(1);
+    expect(tag.id).toEqual(added.tags[0]);
+    await stateManager.items.removeItemFromTag(tag.id, item.id);
+    const removed = await stateManager.items.get(item.id);
+    expect(removed.tags.length).toEqual(0);
+  });
+
   test("ListingManager - update + changeStock", async () => {
     const { id } = await stateManager.items.create({
       price: "12.00",

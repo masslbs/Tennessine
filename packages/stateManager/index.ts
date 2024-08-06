@@ -19,6 +19,7 @@ export type IRelayClient = Pick<
   | "createOrder"
   | "updateOrder"
   | "commitOrder"
+  | "updateTag"
 >;
 
 /**
@@ -238,6 +239,22 @@ class ListingManager extends PublicObjectManager<Item> {
     const eventId = await this.client.updateItem(ui);
     // resolves after the `updateItem` event has been fired, which happens after the relay accepts the update and has written to the database.
     return eventListenAndResolve<Item>(eventId, this, "update");
+  }
+
+  async addItemToTag(tagId: `0x${string}`, itemId: `0x${string}`) {
+    const eventId = await this.client.updateTag({
+      tagId: hexToBytes(tagId),
+      addItemId: hexToBytes(itemId),
+    });
+    return eventListenAndResolve<Item>(eventId, this, "addItemId");
+  }
+
+  async removeItemFromTag(tagId: `0x${string}`, itemId: `0x${string}`) {
+    const eventId = await this.client.updateTag({
+      tagId: hexToBytes(tagId),
+      removeItemId: hexToBytes(itemId),
+    });
+    return eventListenAndResolve<Item>(eventId, this, "removeItemId");
   }
 
   async changeStock(itemIds: `0x${string}`[], diffs: number[]) {
