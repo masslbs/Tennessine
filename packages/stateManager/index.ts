@@ -519,6 +519,8 @@ class OrderManager extends PublicObjectManager<Order> {
     chainId: number,
     payeeName: string,
   ) {
+    //Currently, this is a network request only.
+    //This will trigger an updateOrder event from the relay, with a itemsFinalized property.
     return this.client.commitOrder({
       orderId: hexToBytes(orderId),
       currency: {

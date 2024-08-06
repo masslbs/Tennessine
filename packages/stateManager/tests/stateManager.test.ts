@@ -352,4 +352,29 @@ describe("CRUD functions update stores", async () => {
     //New status should be fail
     expect(canceled.status).toEqual("FAILED");
   });
+  test("OrderManager - calling commit should trigger an updateOrder event with itemsFinalized property", async () => {
+    const { id } = await stateManager.orders.create();
+    await stateManager.items.create({
+      price: "12.00",
+      metadata: {
+        title: "Test Item in Order Test",
+        description: "Test description 1",
+        image: "https://http.cat/images/201.jpg",
+      },
+    });
+    const order = await stateManager.orders.get(id);
+    //Before order is committed, it should not have an orderFinalized property
+    expect(order.orderFinalized).toBeFalsy();
+
+    await stateManager.orders.commit(id, zeroAddress, 1, "default");
+    let received = false;
+    stateManager.orders.on("itemsFinalized", (order) => {
+      received = true;
+    });
+    await vi.waitUntil(async () => {
+      return received;
+    });
+    const committed = await stateManager.orders.get(id);
+    expect(committed.orderFinalized).toBeTruthy();
+  });
 });
