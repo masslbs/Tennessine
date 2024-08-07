@@ -256,7 +256,6 @@ describe("CRUD functions update stores", async () => {
     expect(addAcceptedCurrencies!.length).toEqual(1);
     expect(addAcceptedCurrencies![0].chainId).toEqual(1);
     expect(addAcceptedCurrencies![0].tokenAddr).toEqual(zeroAddress);
-    expect(addAcceptedCurrencies![0].tokenAddr).toEqual(zeroAddress);
     expect(addPayee!.addr!).toEqual(
       "0x976ea74026e726554db657fa54763abd0c3a0aa9",
     );
