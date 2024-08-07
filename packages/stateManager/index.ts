@@ -84,21 +84,30 @@ interface CreateShopManifest {
   name: string;
   description: string;
 }
+interface Payee {
+  addr: `0x${string}`;
+  callAsContract: boolean;
+  chainId: number;
+  name: string;
+}
 //This type is used to store and retrieve the manifest from db. All the fields are required in this case.
-//Since update fn can take in any number these properties we use Partial<ShopManifest> to type manifest update objects.
 export type ShopManifest = CreateShopManifest & {
   tokenId: `0x${string}`;
   setBaseCurrency: ShopCurrencies | null;
-  addAcceptedCurrencies: ShopCurrencies[];
-  addPayee: {
-    addr: `0x${string}`;
-    callAsContract: boolean;
-    chainId: number;
-    name: string;
-  } | null;
+  acceptedCurrencies: ShopCurrencies[];
+  payee: Payee[];
   publishedTagId: `0x${string}`;
   profilePictureUrl: string;
 };
+
+//These UpdateShopManifest properties are only for updating the manifest and not properties on the store state.
+//payee in type ShopManifest stores the actual state, while these update properties are for the update client request.
+interface UpdateShopManifest {
+  removePayee?: Payee;
+  addPayee?: Payee;
+  addAcceptedCurrencies?: ShopCurrencies[];
+  removeAcceptedCurrencies?: ShopCurrencies[];
+}
 type ShopObjectTypes = Item | Tag | KeyCard | Order | ShopManifest;
 
 // This is an interface that is used to retrieve and store objects from a persistant layer
@@ -282,9 +291,9 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
         profilePictureUrl: sm.profilePictureUrl,
         publishedTagId: bytesToHex(sm.publishedTagId),
         description: sm.description,
-        addAcceptedCurrencies: [],
+        acceptedCurrencies: [],
         setBaseCurrency: null,
-        addPayee: null,
+        payee: [],
       };
       await this.store.put("shopManifest", manifest);
       this.emit("create", manifest, sm.eventId);
@@ -312,23 +321,34 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
         };
       }
       if (um.addAcceptedCurrencies) {
-        const currencies = [...manifest.addAcceptedCurrencies];
+        const currencies = [...manifest.acceptedCurrencies];
         um.addAcceptedCurrencies.forEach((a: schema.IShopCurrency) => {
           currencies.push({
             tokenAddr: bytesToHex(a.tokenAddr),
             chainId: Number(a.chainId),
           });
         });
-        manifest.addAcceptedCurrencies = currencies;
+        manifest.acceptedCurrencies = currencies;
       }
       if (um.removeAcceptedCurrencies) {
-        let filtered = [...manifest.addAcceptedCurrencies!];
+        let filtered = [...manifest.acceptedCurrencies!];
         for (const rm of um.removeAcceptedCurrencies) {
-          filtered = manifest.addAcceptedCurrencies!.filter(
+          filtered = manifest.acceptedCurrencies!.filter(
             (cur) => cur.tokenAddr !== bytesToHex(rm.tokenAddr),
           );
         }
-        manifest.addAcceptedCurrencies = filtered;
+        manifest.acceptedCurrencies = filtered;
+      }
+      if (um.addPayee) {
+        manifest.payee.push({
+          ...um.addPayee,
+          addr: bytesToHex(um.addPayee.addr),
+        });
+      }
+      if (um.removePayee) {
+        manifest.payee = manifest.payee.filter(
+          (p) => p.addr !== bytesToHex(um.removePayee.addr),
+        );
       }
       await this.store.put("shopManifest", manifest);
       this.emit("update", manifest, um.eventId);
@@ -350,12 +370,15 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
     return eventListenAndResolve<ShopManifest>(eventId, this, "create");
   }
 
-  async update(um: Partial<ShopManifest>) {
+  async update(um: Partial<ShopManifest> & UpdateShopManifest) {
     //Convert tokenAddr and publishedTagId to bytes before sending to client.
     //We have to explicitly declare the update object as type schema.IUpdateShopManifest since we are changing hex to bytes and is no longer a type ShopManifest
     const updateShopManifest: schema.IUpdateShopManifest = um;
     for (const [key, _] of Object.entries(updateShopManifest)) {
-      if (key === "addAcceptedCurrencies") {
+      if (
+        key === "addAcceptedCurrencies" ||
+        key === "removeAcceptedCurrencies"
+      ) {
         updateShopManifest[key] = updateShopManifest[key].map(
           (a: ShopCurrencies) => {
             return {
@@ -371,6 +394,10 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
           tokenAddr: hexToBytes(updateShopManifest[key].tokenAddr),
           chainId: updateShopManifest[key].chainId,
         };
+      } else if (key === "addPayee") {
+        updateShopManifest[key].addr = hexToBytes(updateShopManifest[key].addr);
+      } else if (key === "removePayee") {
+        updateShopManifest[key].addr = hexToBytes(updateShopManifest[key].addr);
       }
     }
     // resolves after the `updateShopManifest` event has been fired above in _processEvent, which happens after the relay accepts the update and has written to the database.
