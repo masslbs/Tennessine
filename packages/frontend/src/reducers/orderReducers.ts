@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { IStatus, OrderId, ItemId } from "@/types";
+import { Status, OrderId, ItemId } from "@/types";
 
 export const REMOVE_ORDER_ITEM = "REMOVE_ORDER_ITEM";
 export const CLEAR_ORDER = "CLEAR_ORDER";
@@ -39,7 +39,7 @@ type statusUpdate = {
   type: "UPDATE_ORDER_STATUS";
   payload: {
     orderId: OrderId;
-    status: IStatus;
+    status: Status;
   };
 };
 type hashUpdate = {
@@ -60,7 +60,7 @@ type sigUpdate = {
 type ItemState = { [key: ItemId]: number };
 export type OrderState = {
   items: ItemState;
-  status?: IStatus;
+  status?: Status;
   txHash?: `0x${string}`;
   signature?: `0x${string}`;
 };

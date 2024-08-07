@@ -8,7 +8,7 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import withAuth from "../components/withAuth";
 import { useStoreContext } from "@/context/StoreContext";
-import { IStatus, ItemId } from "@/types";
+import { Status, ItemId } from "@/types";
 import { OrderState } from "@/context/types";
 
 function Page() {
@@ -25,7 +25,7 @@ function Page() {
     const carts = Array.from([...orderItems.values()]);
     let _totalEarnings = 0;
     carts.map((cartState: OrderState) => {
-      if (cartState.status === IStatus.Complete) {
+      if (cartState.status === Status.Complete) {
         const items: [string, number][] = Object.entries(cartState.items);
         items.map((i: [string, number]) => {
           const itemId = i[0] as ItemId;

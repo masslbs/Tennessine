@@ -5,7 +5,7 @@
 import { Dispatch, SetStateAction } from "react";
 import { type PublicClient } from "viem";
 
-import { IProduct, ITag, IStatus, IRelay } from "@/types";
+import { Item, Tag, Status, Relay } from "@/types";
 import { Level } from "level";
 import { RelayClient, WalletClientWithAccount } from "@massmarket/client";
 import { updateStoreDataAction } from "@/reducers/storeReducer";
@@ -43,13 +43,13 @@ export type storeState = {
 export type ItemState = { [key: ItemId]: number };
 export type OrderState = {
   items: ItemState;
-  status?: IStatus;
+  status?: Status;
   txHash?: `0x${string}`;
 };
 
 export type CurrenciesState = Map<TokenAddr, null | string>;
 
-export type IRelayWriteResponse = {
+export type RelayWriteResponse = {
   // TODO: should be mmproto.EventWriteResponse but can't import anymore somehow
 };
 
@@ -77,9 +77,9 @@ export type ClientContext = {
 };
 
 export type StoreContent = {
-  relays: IRelay[];
-  products: Map<ItemId, IProduct>;
-  allTags: Map<TagId, ITag>;
+  relays: Relay[];
+  products: Map<ItemId, Item>;
+  allTags: Map<TagId, Tag>;
   orderItems: Map<OrderId, OrderState>;
   orderId: OrderId | null;
   erc20Addr: `0x${string}` | null;
@@ -88,13 +88,13 @@ export type StoreContent = {
   db: Level<string, string>;
   storeData: storeState;
   addProduct: (
-    p: IProduct,
+    p: Item,
     keysArr: ItemId[] | [],
   ) => Promise<{ id?: ItemId; error: null | string }>;
   updateProduct: (
     itemId: ItemId,
     updatedFields: { price: boolean; metadata: boolean },
-    newProduct: IProduct,
+    newProduct: Item,
     keysArr: ItemId[] | [],
   ) => Promise<{ error: string | null }>;
   createState: () => void;
@@ -128,6 +128,6 @@ export type StoreContent = {
   setSelectedCurrency: Dispatch<TokenAddr>;
 };
 
-export type ProductsMap = Map<ItemId, IProduct>;
-export type TagsMap = Map<TagId, ITag>;
+export type ProductsMap = Map<ItemId, Item>;
+export type TagsMap = Map<TagId, Tag>;
 export type OrdersMap = Map<OrderId, OrderState>;

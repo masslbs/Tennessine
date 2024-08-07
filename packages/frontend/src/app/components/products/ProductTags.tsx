@@ -14,8 +14,8 @@ import React, {
   SetStateAction,
 } from "react";
 import Image from "next/image";
-import Tag from "./Tag";
-import { ITag, TagId, ItemId } from "@/types";
+import TagSection from "./Tag";
+import { Tag, TagId, ItemId } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import {
   searchReducer,
@@ -33,7 +33,7 @@ const ProductsTags = ({
   itemId,
   setError,
 }: {
-  selectedTags: Map<TagId, ITag>;
+  selectedTags: Map<TagId, Tag>;
   selectedTagsDispatch: (t: selectedTagsAction) => void;
   itemId: ItemId | null;
   setError: Dispatch<SetStateAction<null | string>>;
@@ -43,9 +43,7 @@ const ProductsTags = ({
   const [isSearchState, setIsSearchState] = React.useState<boolean>(false);
   const [searchResults, searchDispatch] = useReducer(searchReducer, new Map());
   const [tagName, setTagName] = useState<string>("");
-  const [_selectedTags, setSelectedTags] = useState<Map<TagId, ITag>>(
-    new Map(),
-  );
+  const [_selectedTags, setSelectedTags] = useState<Map<TagId, Tag>>(new Map());
   if (!allTags) return null;
 
   useEffect(() => {
@@ -63,15 +61,19 @@ const ProductsTags = ({
       : null;
     if (!keysArr) return null;
     return keysArr.map((t) => {
-      const tag = allTags.get(t) as ITag;
+      const tag = allTags.get(t) as Tag;
       if (!tag) return null;
       return (
-        <Tag key={tag.id} tag={tag} removeFn={() => handleDeselectTag(tag)} />
+        <TagSection
+          key={tag.id}
+          tag={tag}
+          removeFn={() => handleDeselectTag(tag)}
+        />
       );
     });
   };
 
-  const handleSelectTag = async (t: ITag) => {
+  const handleSelectTag = async (t: Tag) => {
     selectedTagsDispatch({
       type: SELECT_TAG,
       payload: { selectedTag: t },
@@ -85,7 +87,7 @@ const ProductsTags = ({
     }
   };
 
-  const handleDeselectTag = async (t: ITag) => {
+  const handleDeselectTag = async (t: Tag) => {
     selectedTagsDispatch({
       type: DESELECT_TAG,
       payload: { selectedTag: t },
@@ -116,16 +118,16 @@ const ProductsTags = ({
         if (!searchTag) return;
         if (
           value &&
-          searchTag.text.toLowerCase().includes(value.toLowerCase())
+          searchTag.name.toLowerCase().includes(value.toLowerCase())
         ) {
           searchDispatch({
             type: TURN_ON_SEARCH_VIS,
-            payload: { tag: searchTag as ITag },
+            payload: { tag: searchTag as Tag },
           });
         } else {
           searchDispatch({
             type: TURN_OFF_SEARCH_VIS,
-            payload: { tag: searchTag as ITag },
+            payload: { tag: searchTag as Tag },
           });
         }
       }
@@ -148,10 +150,10 @@ const ProductsTags = ({
       //do not display already selected tags
       if (_selectedTags.get(t) || !allTags.get(t)) return;
       return (
-        <Tag
+        <TagSection
           key={t}
-          onClick={() => handleSelectTag(allTags.get(t) as ITag)}
-          tag={allTags.get(t) as ITag}
+          onClick={() => handleSelectTag(allTags.get(t) as Tag)}
+          tag={allTags.get(t) as Tag}
         />
       );
     });

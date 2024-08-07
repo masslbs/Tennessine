@@ -8,7 +8,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Sort from "@/app/common/components/Sort";
 import Search from "@/app/common/components/Search";
-import { SortOption, IProduct, TagId, ITag } from "@/types";
+import { SortOption, Item, TagId, Tag } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import withAuth from "@/app/components/withAuth";
 import SuccessMessage from "@/app/common/components/SuccessMessage";
@@ -28,7 +28,7 @@ const Products = () => {
   const [searchPhrase, setSearchPhrase] = useState<string>("");
   const [showSuccessMsg, setMsg] = useState<boolean>(success !== null);
   const { products, publishedTagId, allTags, storeData } = useStoreContext();
-  const [arrToRender, setArrToRender] = useState<IProduct[] | null>(null);
+  const [arrToRender, setArrToRender] = useState<Item[] | null>(null);
   const [resultCount, setResultCount] = useState<number>(products.size);
   const [showTags, setShowTags] = useState<boolean>(false);
   const [tagIdToFilter, setTagIdToFilter] = useState<null | TagId>(null);
@@ -36,7 +36,7 @@ const Products = () => {
   const { isMerchantView } = useAuth();
   const findRemoveTagId = () => {
     for (const [key, value] of allTags.entries()) {
-      if (value.text && value.text === "remove") {
+      if (value.name && value.name === "remove") {
         return key;
       }
     }
@@ -50,13 +50,9 @@ const Products = () => {
     const arrayToRender = sorted.filter((item) => {
       if (!item || !item.metadata?.image) {
         return false;
-      } else if (
-        removeTagId &&
-        item.tagIds &&
-        item.tagIds.includes(removeTagId)
-      ) {
+      } else if (removeTagId && item.tags && item.tags.includes(removeTagId)) {
         return false;
-      } else if (tagIdToFilter && !item.tagIds?.includes(tagIdToFilter)) {
+      } else if (tagIdToFilter && !item.tags?.includes(tagIdToFilter)) {
         return false;
       }
       return true;
@@ -65,7 +61,7 @@ const Products = () => {
     setResultCount(arrayToRender.length);
   }, [sortOption, products, tagIdToFilter]);
 
-  const viewProductDetails = (item: IProduct) => {
+  const viewProductDetails = (item: Item) => {
     router.push(
       `/products/productDetail?${createQueryString("itemId", item.id, searchParams)}`,
     );
@@ -87,18 +83,18 @@ const Products = () => {
           ? arr
           : arr.filter(
               (product) =>
-                !product?.tagIds || !product.tagIds.includes(publishedTagId),
+                !product?.tags || !product.tags.includes(publishedTagId),
             );
       case SortOption.available:
         return arr.filter(
           (product) =>
-            product.stockQty &&
+            product.quantity &&
             publishedTagId &&
-            product.tagIds &&
-            product.tagIds?.includes(publishedTagId),
+            product.tags &&
+            product.tags?.includes(publishedTagId),
         );
       case SortOption.unavailable:
-        return arr.filter((product) => !product.stockQty);
+        return arr.filter((product) => !product.quantity);
       default:
         return arr;
     }
@@ -111,14 +107,14 @@ const Products = () => {
     return (
       <div className="inline-flex gap-3">
         {tags.map((t: TagId) => {
-          const tag = allTags.get(t) as ITag;
+          const tag = allTags.get(t) as Tag;
           return (
             <button
               key={t}
               onClick={() => setTagIdToFilter(t)}
               className="bg-primary-blue text-white text-sm rounded p-2"
             >
-              {tag.text}
+              {tag.name}
             </button>
           );
         })}
@@ -131,12 +127,14 @@ const Products = () => {
       const { metadata } = item;
       if (!metadata) return null;
       if (searchPhrase?.length) {
-        if (!metadata.name.toLowerCase().includes(searchPhrase.toLowerCase())) {
+        if (
+          !metadata.title.toLowerCase().includes(searchPhrase.toLowerCase())
+        ) {
           return;
         }
       }
       const visible =
-        publishedTagId && item.tagIds && item.tagIds.includes(publishedTagId);
+        publishedTagId && item.tags && item.tags.includes(publishedTagId);
 
       return (
         <div key={item.id} className="mt-4 mx-4 last: mr-0">
@@ -149,12 +147,12 @@ const Products = () => {
                 className="text-xs text-center text-ellipsis overflow-hidden self-end"
                 data-testid={`product-name`}
               >
-                {metadata.name}
+                {metadata.title}
               </p>
             </div>
             <div
               className="product-box gap-2 flex flex-col text-center border-2 p-3 rounded-xl bg-white"
-              data-testid={`product-${metadata.name}`}
+              data-testid={`product-${metadata.title}`}
             >
               <div className="flex justify-center min-h-16 ">
                 <Image
@@ -171,7 +169,7 @@ const Products = () => {
                 />
               </div>
               <h4>{Number(item.price)}</h4>
-              <p className="text-sm text-gray-400">{item.stockQty} left</p>
+              <p className="text-sm text-gray-400">{item.quantity} left</p>
             </div>
           </div>
           {isMerchantView && (

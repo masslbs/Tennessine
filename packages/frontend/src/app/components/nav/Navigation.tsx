@@ -8,7 +8,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { useMyContext } from "@/context/MyContext";
 import { useAuth } from "@/context/AuthContext";
-import { IStatus } from "@/types";
+import { Status } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import FullModal from "@/app/common/components/FullModal";
@@ -39,7 +39,7 @@ const Navigation = () => {
   const router = useRouter();
   const logout = () => {
     db.clear();
-    setIsConnected(IStatus.Pending);
+    setIsConnected(Status.Pending);
     localStorage.clear();
     router.push("/");
   };

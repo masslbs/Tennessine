@@ -90,12 +90,12 @@ export type ShopManifest = CreateShopManifest & {
   tokenId: `0x${string}`;
   setBaseCurrency: ShopCurrencies | null;
   addAcceptedCurrencies: ShopCurrencies[];
-  addPayee: {
-    addr: `0x${string}`;
+  addPayee?: {
+    addr?: `0x${string}`;
     callAsContract: boolean;
     chainId: number;
     name: string;
-  } | null;
+  };
   publishedTagId: `0x${string}`;
   profilePictureUrl: string;
 };
@@ -284,7 +284,6 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
         description: sm.description,
         addAcceptedCurrencies: [],
         setBaseCurrency: null,
-        addPayee: null,
       };
       await this.store.put("shopManifest", manifest);
       this.emit("create", manifest, sm.eventId);
@@ -330,6 +329,29 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
         }
         manifest.addAcceptedCurrencies = filtered;
       }
+      if (um.addPayee) {
+        const p = um.addPayee;
+        const payeeInfo = manifest.addPayee
+          ? manifest.addPayee
+          : {
+              callAsContract: false,
+              chainId: 0,
+              name: "",
+            };
+        if (p.addr) {
+          payeeInfo.addr = bytesToHex(p.addr);
+        }
+        if (p.name) {
+          payeeInfo.name = p.name;
+        }
+        if (p.classAsContract) {
+          payeeInfo.callAsContract = p.callAsContract;
+        }
+        if (p.chainId) {
+          payeeInfo.chainId = p.chainId;
+        }
+        manifest.addPayee = payeeInfo;
+      }
       await this.store.put("shopManifest", manifest);
       this.emit("update", manifest, um.eventId);
 
@@ -371,6 +393,8 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
           tokenAddr: hexToBytes(updateShopManifest[key].tokenAddr),
           chainId: updateShopManifest[key].chainId,
         };
+      } else if (key === "addPayee") {
+        updateShopManifest[key].addr = hexToBytes(updateShopManifest[key].addr);
       }
     }
     // resolves after the `updateShopManifest` event has been fired above in _processEvent, which happens after the relay accepts the update and has written to the database.

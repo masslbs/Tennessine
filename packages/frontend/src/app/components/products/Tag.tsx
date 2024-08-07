@@ -6,20 +6,20 @@
 
 import React from "react";
 import Image from "next/image";
-import { ITag } from "@/types";
+import { Tag } from "@/types";
 
-const Tag = ({
+const TagSection = ({
   tag,
   removeFn,
   onClick,
 }: {
   onClick?: () => void;
-  tag: ITag;
+  tag: Tag;
   removeFn?: () => Promise<void>;
 }) => {
   const hex = tag.id.slice(-6).replace("0", "f");
   //FIXME: kind of a hacky way of removing items for now.
-  if (tag.text === "visible" || tag.text === "remove") {
+  if (tag.name === "visible" || tag.name === "remove") {
     return null;
   }
   return (
@@ -30,7 +30,7 @@ const Tag = ({
       onClick={onClick}
     >
       <Image src="/assets/2dots.svg" alt="2dots-icon" width={18} height={18} />
-      <p className="mr-1">{tag.text}</p>
+      <p className="mr-1">{tag.name}</p>
       {removeFn ? (
         <Image
           src="/assets/quit.svg"
@@ -44,4 +44,4 @@ const Tag = ({
   );
 };
 
-export default Tag;
+export default TagSection;

@@ -6,9 +6,9 @@
 
 import React from "react";
 import Image from "next/image";
-import { IRelay, RelayStatus } from "@/types";
+import { Relay, RelayStatus } from "@/types";
 
-const RelayBlock = ({ item, addable }: { item: IRelay; addable?: boolean }) => {
+const RelayBlock = ({ item, addable }: { item: Relay; addable?: boolean }) => {
   const icon = addable ? "plus.svg" : "remove.svg";
 
   return (

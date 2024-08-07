@@ -8,7 +8,7 @@ import React, { useState, useEffect, useRef } from "react";
 import AvatarUpload from "@/app/common/components/AvatarUpload";
 import { useMyContext } from "@/context/MyContext";
 import { useAuth } from "@/context/AuthContext";
-import { IStatus } from "@/types";
+import { Status } from "@/types";
 import { useRouter } from "next/navigation";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
 import { random32BytesHex } from "@massmarket/utils";
@@ -87,7 +87,7 @@ const StoreCreation = () => {
 
       randomShopIdHasBeenSet.current = true;
       const randomShopId = random32BytesHex();
-      setIsConnected(IStatus.Pending);
+      setIsConnected(Status.Pending);
       setKeyCardEnrolled(false);
       console.log(`enrolling shopId: ${randomShopId}`);
       setShopId(randomShopId);
@@ -158,7 +158,7 @@ const StoreCreation = () => {
   }, [clientWallet != null]);
 
   useEffect(() => {
-    if (relayClient && isStoreCreated && isConnected == IStatus.Complete) {
+    if (relayClient && isStoreCreated && isConnected == Status.Complete) {
       (async () => {
         const publishedTagId = new Uint8Array(32);
         crypto.getRandomValues(publishedTagId);

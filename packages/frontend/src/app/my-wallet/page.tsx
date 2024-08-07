@@ -11,7 +11,7 @@ import { useMyContext } from "../../context/MyContext";
 import { formatEthAdd } from "../utils";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { IStatus } from "@/types";
+import { Status } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 
 const MyWallet = () => {
@@ -36,7 +36,7 @@ const MyWallet = () => {
   };
   const logout = () => {
     db.clear();
-    setIsConnected(IStatus.Pending);
+    setIsConnected(Status.Pending);
     localStorage.clear();
     router.push("/");
   };

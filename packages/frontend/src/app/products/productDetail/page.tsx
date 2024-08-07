@@ -8,7 +8,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Button from "@/app/common/components/Button";
 // import SeeProductActions from "@/app/components/products/SeeProductActions";
-import { IProduct, ItemId } from "@/types";
+import { Item, ItemId } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ItemState } from "@/context/types";
@@ -31,7 +31,7 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState<number>(0);
   // const [showActions, setShowActions] = useState<boolean>(false);
   const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
-  const [item, setItem] = useState<IProduct | null>(null);
+  const [item, setItem] = useState<Item | null>(null);
 
   const [addedToCart, setAddedToCart] = useState<boolean>(false);
   const [buttonState, setButton] = useState<"Success" | "Review" | "Update">(
@@ -53,7 +53,7 @@ const ProductDetail = () => {
 
   const findRemoveTagId = () => {
     for (const [key, value] of allTags.entries()) {
-      if (value.text && value.text === "remove") {
+      if (value.name && value.name === "remove") {
         return key;
       }
     }
@@ -97,7 +97,7 @@ const ProductDetail = () => {
     if (itemId) {
       const _item = products.get(itemId);
       _item && setItem(_item);
-      _item && setAvailable(_item?.stockQty || 0);
+      _item && setAvailable(_item?.quantity || 0);
       const qty =
         _item && orderId ? orderItems.get(orderId)?.items?.[itemId] || 0 : 0;
       setQuantity(qty);
@@ -199,7 +199,7 @@ const ProductDetail = () => {
             )}
             <div className="flex flex-col">
               <h2 className="text-xl flex items-center pl-4">
-                {item.metadata.name}
+                {item.metadata.title}
               </h2>
               <p className=" text-xs flex items-center pl-4">
                 {item.metadata.description}

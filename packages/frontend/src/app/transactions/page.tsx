@@ -7,7 +7,7 @@ import React, { useEffect, useState } from "react";
 import TransactionBlock from "@/app/components/transactions/TransactionBlock";
 import TransactionDetails from "@/app/components/transactions/TransactionDetails";
 import Search from "../common/components/Search";
-import { OrderId, IStatus } from "@/types";
+import { OrderId, Status } from "@/types";
 import withAuth from "../components/withAuth";
 import { useStoreContext } from "@/context/StoreContext";
 import { OrderState, ItemState } from "@/context/types";
@@ -64,7 +64,7 @@ function Transactions() {
                       <TransactionBlock
                         order={allItemsObj.items}
                         onClick={handleTransactionsClick}
-                        orderStatus={allItemsObj.status || IStatus.Pending}
+                        orderStatus={allItemsObj.status || Status.Pending}
                         transactionHash={transactionHash}
                         searchPhrase={searchPhrase}
                       />

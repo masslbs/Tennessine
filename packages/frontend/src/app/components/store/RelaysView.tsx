@@ -9,7 +9,7 @@ import ModalHeader from "../../common/components/ModalHeader";
 import RelayBlock from "./RelayBlock";
 import Image from "next/image";
 
-import { IRelay } from "@/types";
+import { Relay } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 
 const RelaysView = ({ close }: { close: () => void }) => {
@@ -30,14 +30,14 @@ const RelaysView = ({ close }: { close: () => void }) => {
           />
         </div>
         <section data-testid="provisioned" className="border rounded px-4 pb-4">
-          {relays.map((r: IRelay) => {
+          {relays.map((r: Relay) => {
             return !r.provisioned ? <RelayBlock key={r.name} item={r} /> : null;
           })}
         </section>
         <section data-testid="available" className="mt-8">
           <h5 className="font-sans mb-4">Available</h5>
           <div className="border rounded px-4 pb-4">
-            {relays.map((r: IRelay) => {
+            {relays.map((r: Relay) => {
               return r.provisioned ? (
                 <RelayBlock key={r.name} item={r} addable={true} />
               ) : null;

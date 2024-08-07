@@ -231,6 +231,12 @@ describe("CRUD functions update stores", async () => {
         chainId: 1,
         tokenAddr: zeroAddress,
       },
+      addPayee: {
+        addr: "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+        callAsContract: false,
+        chainId: 1,
+        name: "default",
+      },
     });
     const {
       name,
@@ -239,6 +245,7 @@ describe("CRUD functions update stores", async () => {
       publishedTagId,
       setBaseCurrency,
       addAcceptedCurrencies,
+      addPayee,
     } = await stateManager.manifest.get();
     expect(name).toEqual("Update Test Shop");
     expect(description).toEqual("Testing updateShopManifest");
@@ -249,6 +256,12 @@ describe("CRUD functions update stores", async () => {
     expect(addAcceptedCurrencies!.length).toEqual(1);
     expect(addAcceptedCurrencies![0].chainId).toEqual(1);
     expect(addAcceptedCurrencies![0].tokenAddr).toEqual(zeroAddress);
+    expect(addAcceptedCurrencies![0].tokenAddr).toEqual(zeroAddress);
+    expect(addPayee!.addr!).toEqual(
+      "0x976ea74026e726554db657fa54763abd0c3a0aa9",
+    );
+    expect(addPayee!.chainId).toEqual(1);
+    expect(addPayee!.name).toEqual("default");
   });
 
   test("TagManager - create", async () => {

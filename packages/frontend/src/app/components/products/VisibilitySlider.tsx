@@ -10,7 +10,7 @@ import {
   SELECT_TAG,
   DESELECT_TAG,
 } from "@/reducers/tagReducers";
-import { TagId, ITag } from "@/types";
+import { TagId, Tag } from "@/types";
 
 const VisibilitySlider = ({
   selectedTagsDispatch,
@@ -20,15 +20,13 @@ const VisibilitySlider = ({
 }: {
   selectedTagsDispatch: (t: selectedTagsAction) => void;
   itemId: ItemId | null;
-  selectedTags: Map<TagId, ITag>;
+  selectedTags: Map<TagId, Tag>;
   editView: boolean;
 }) => {
   const { publishedTagId, allTags, addProductToTag, removeProductFromTag } =
     useStoreContext();
   const [selectedOption, setSelectedOption] = useState<number>(1);
-  const [_selectedTags, setSelectedTags] = useState<Map<TagId, ITag>>(
-    new Map(),
-  );
+  const [_selectedTags, setSelectedTags] = useState<Map<TagId, Tag>>(new Map());
 
   useEffect(() => {
     setSelectedTags(selectedTags);
@@ -52,7 +50,7 @@ const VisibilitySlider = ({
     if (publishedTagId) {
       selectedTagsDispatch({
         type: SELECT_TAG,
-        payload: { selectedTag: { id: publishedTagId, text: "visibility" } },
+        payload: { selectedTag: { id: publishedTagId, name: "visibility" } },
       });
       setSelectedOption(1);
       if (itemId) {
@@ -65,7 +63,7 @@ const VisibilitySlider = ({
     if (publishedTagId) {
       selectedTagsDispatch({
         type: DESELECT_TAG,
-        payload: { selectedTag: { id: publishedTagId, text: "visibility" } },
+        payload: { selectedTag: { id: publishedTagId, name: "visibility" } },
       });
       setSelectedOption(2);
       //if updating product

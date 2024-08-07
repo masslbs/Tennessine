@@ -5,7 +5,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { IStatus, ItemId, IProduct } from "@/types";
+import { Status, ItemId, Item } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { ItemState } from "@/context/types";
 import { useMyContext } from "@/context/MyContext";
@@ -19,7 +19,7 @@ export function TransactionBlock({
 }: {
   order: ItemState;
   onClick: (order: ItemState, hash: `0x${string}` | null) => void;
-  orderStatus: IStatus;
+  orderStatus: Status;
   transactionHash: `0x${string}` | null;
   searchPhrase: string;
 }) {
@@ -63,13 +63,13 @@ export function TransactionBlock({
   let status = "text-gray-500";
 
   switch (orderStatus) {
-    case IStatus.Failed:
+    case Status.Failed:
       status = "text-red-500";
       break;
-    case IStatus.Pending:
+    case Status.Pending:
       status = "text-gray-500";
       break;
-    case IStatus.Complete:
+    case Status.Complete:
       status = "text-green-500";
       break;
     default:
@@ -77,15 +77,15 @@ export function TransactionBlock({
   }
 
   const renderProduct = (itemId: ItemId) => {
-    const product = products.get(itemId) as IProduct;
+    const product = products.get(itemId) as Item;
     if (!product) return null;
     if (searchPhrase?.length) {
-      const phraseIsInTitle = product.metadata.name.includes(searchPhrase);
+      const phraseIsInTitle = product.metadata.title.includes(searchPhrase);
       if (!phraseIsInTitle) setIncludeBlock(false);
     }
 
     return (
-      <div key={product.metadata.name} className="border rounded p-1">
+      <div key={product.metadata.title} className="border rounded p-1">
         {product.metadata.image && (
           <Image
             src={product.metadata.image}
@@ -115,7 +115,7 @@ export function TransactionBlock({
         <div>
           <p className={`text-sm`}>
             status:
-            <span className={status}>{orderStatus || IStatus.Pending}</span>
+            <span className={status}>{orderStatus || Status.Pending}</span>
           </p>
           <p className="text-sm">Tx placed:{time}</p>
         </div>

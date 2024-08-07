@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { IProduct, Metadata, ItemId, TagId } from "@/types";
+import { Item, Metadata, ItemId, TagId } from "@/types";
 
 export const ADD_PRODUCT = "ADD_PRODUCT";
 // export const REMOVE_PRODUCT = "REMOVE_PRODUCT";
@@ -18,11 +18,11 @@ export type productAction =
   | {
       type: "ADD_PRODUCT" | "UPDATE_PRODUCT";
 
-      payload: { itemId: ItemId; item: IProduct };
+      payload: { itemId: ItemId; item: Item };
     }
   | {
       type: "SET_PRODUCTS";
-      payload: { allProducts: Map<ItemId, IProduct> };
+      payload: { allProducts: Map<ItemId, Item> };
     }
   | {
       type: "CLEAR_PRODUCTS";
@@ -64,7 +64,7 @@ export type updateStockyQty = {
 };
 
 export const productReducer = (
-  state: Map<ItemId, IProduct>,
+  state: Map<ItemId, Item>,
   action: updateProductAction | productAction,
 ) => {
   const _state = new Map(state);
@@ -109,7 +109,7 @@ const productTagReducer = (
 };
 
 const productItemReducer = (
-  state: IProduct,
+  state: Item,
   action:
     | productAction
     | updateProductAction
@@ -126,15 +126,15 @@ const productItemReducer = (
     case UPDATE_STOCKQTY:
       return {
         ...state,
-        stockQty:
-          Number(state?.stockQty ? state.stockQty : 0) +
+        quantity:
+          Number(state?.quantity ? state.quantity : 0) +
           Number(action.payload.unitDiff),
       };
     case REMOVE_PRODUCT_TAG:
     case ADD_PRODUCT_TAGS:
       return {
         ...state,
-        tagIds: productTagReducer(state.tagIds ? state.tagIds : [], action),
+        tagIds: productTagReducer(state.tags ? state.tags : [], action),
       };
     case UPDATE_PRICE:
       return {
@@ -155,9 +155,9 @@ export const EDIT_DESC = "EDIT_DESC";
 
 export const initialState = {
   id: "0x0" as ItemId,
-  metadata: { name: "", image: "", description: "" },
+  metadata: { title: "", image: "", description: "" },
   price: "0",
-  stockQty: 0,
+  quantity: 0,
   blob: null,
 };
 type editUnit = {
@@ -169,7 +169,7 @@ type editUnit = {
 type editTitle = {
   type: "EDIT_TITLE";
   payload: {
-    name: string;
+    title: string;
   };
 };
 type editPrice = {
@@ -204,9 +204,9 @@ export type newProductActions =
   | editUnit
   | editDescription;
 export const newProductReducer = (
-  state: IProduct,
+  state: Item,
   action: newProductActions,
-): IProduct => {
+): Item => {
   switch (action.type) {
     case EDIT_TITLE:
     case EDIT_DESC:
@@ -222,9 +222,9 @@ export const newProductReducer = (
     case EDIT_PRICE:
       return { ...state, price: action.payload.price };
     case EDIT_UNIT:
-      return { ...state, stockQty: action.payload.unit };
+      return { ...state, quantity: action.payload.unit };
     case UPLOAD_IMG:
-      return { ...state, blob: action.payload.blob };
+      return { ...state, blob: action.payload.blob! };
     default:
       return { ...state };
   }
@@ -238,7 +238,7 @@ export const updateNewProductReducer = (
     case EDIT_IMG:
       return { ...state, image: action.payload.img };
     case EDIT_TITLE:
-      return { ...state, name: action.payload.name };
+      return { ...state, title: action.payload.title };
     case EDIT_DESC:
       return { ...state, description: action.payload.description };
     default:
