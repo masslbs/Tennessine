@@ -7,38 +7,61 @@ import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useStoreContext } from "@/context/StoreContext";
 import Button from "@/app/common/components/Button";
-import { ItemId } from "@/types";
+import { ItemId, OrderId } from "@/types";
 import { ItemState } from "@/context/types";
 import { useRouter } from "next/navigation";
 import { useMyContext } from "@/context/MyContext";
 
-const NewCart = ({ next }: { next: () => void }) => {
-  const { orderItems, products, orderId, updateOrder } = useStoreContext();
-  const [activeCartItems, setActiveCartItems] = useState<ItemState | null>(
-    null,
-  );
+const NewCart = ({
+  next,
+  orderId,
+}: {
+  next: () => void;
+  orderId: OrderId | null;
+}) => {
+  const { stateManager, selectedCurrency } = useStoreContext();
+  const [cartItemIds, setItemIds] = useState<ItemState | null>(null);
+  const [cartItemsMap, setCartMap] = useState(new Map());
   const [errorMsg, setErrorMsg] = useState("");
-  const [baseCurrSymbol, setBaseCurrSymbol] = useState<string | null>(null);
+  const [currencySym, setBaseCurrSymbol] = useState<string | null>(null);
   const router = useRouter();
-  const { storeData, selectedCurrency } = useStoreContext();
   const { getTokenInformation } = useMyContext();
   const symbolSet = useRef(false);
-  useEffect(() => {
-    if (orderId) {
-      const items = orderItems.get(orderId)?.items || null;
-      setActiveCartItems(items);
-    }
-  }, [orderId, orderItems]);
 
-  const noItems =
-    !orderId || !activeCartItems || !Object.keys(activeCartItems).length;
+  const clearCart = async () => {
+    const ids = Object.keys(cartItemIds!);
+    for (const id of ids) {
+      await stateManager.orders.changeItems(orderId!, id as ItemId, 0);
+    }
+  };
 
   useEffect(() => {
     (async () => {
-      if (storeData?.baseCurrencyAddr && !symbolSet.current) {
+      if (orderId) {
+        const cartObjects = new Map();
+        const ci = (await stateManager.orders.get(orderId)).items;
+        await Promise.all(
+          Object.keys(ci).map(async (id) => {
+            const item = await stateManager.items.get(id as ItemId);
+            cartObjects.set(id, item);
+          }),
+        );
+        setCartMap(cartObjects);
+        setItemIds(ci);
+      }
+    })();
+  }, [orderId]);
+
+  const noItems = !orderId || !cartItemIds || !Object.keys(cartItemIds).length;
+
+  useEffect(() => {
+    (async () => {
+      const shopManifest = await stateManager.manifest.get();
+
+      if (shopManifest.setBaseCurrency && !symbolSet.current) {
         symbolSet.current = true;
         const { symbol } = await getTokenInformation(
-          storeData?.baseCurrencyAddr,
+          shopManifest.setBaseCurrency.tokenAddr,
         );
         setBaseCurrSymbol(symbol);
       }
@@ -55,36 +78,33 @@ const NewCart = ({ next }: { next: () => void }) => {
 
   const calculateTotal = () => {
     if (noItems) return null;
-    // let quantity: number = 0;
     let totalPrice: number = 0;
-    Object.keys(activeCartItems).map((id) => {
-      const itemId = id as ItemId;
-      const item = products.get(itemId);
-      if (!item) return;
-      const selectedQuantity = activeCartItems[itemId] || 0;
+    Array.from([...cartItemsMap.keys()]).map((id) => {
+      const selectedQuantity = cartItemIds[id as ItemId] || 0;
+      const item = cartItemsMap.get(id);
+      if (!item) return null;
       if (selectedQuantity && item.price) {
-        // quantity += Number(selectedQuantity);
         const qtyPrice = Number(item.price) * Number(selectedQuantity);
         totalPrice += qtyPrice;
       }
     });
+
     return totalPrice;
   };
   const renderItems = () => {
     if (noItems) return null;
 
-    return Object.keys(activeCartItems).map((id) => {
-      const itemId = id as ItemId;
-      const item = products.get(itemId);
+    return Array.from([...cartItemsMap.keys()]).map((id) => {
+      const item = cartItemsMap.get(id as ItemId);
       if (!item || !item.metadata.image) return;
       return (
         <div
-          key={item.metadata.name}
+          key={item.metadata.title}
           className="flex flex-col items-center gap-3 min-w-24 min-h-30 max-w-24"
         >
           <div className="h-12 flex justify-center text-center">
             <p className="text-xs text-primary-gray text-center text-ellipsis overflow-hidden self-end">
-              {item.metadata.name}
+              {item.metadata.title}
             </p>
           </div>
           <div className="border-2 p-3 rounded-xl bg-white">
@@ -111,7 +131,7 @@ const NewCart = ({ next }: { next: () => void }) => {
     <div className="text-center">
       {errorMsg.length && <p className="text-red-500">{errorMsg}</p>}
       <h2 className="my-4">
-        {calculateTotal()} {baseCurrSymbol}
+        {calculateTotal()} {currencySym}
       </h2>
       <Button
         onClick={() => {
@@ -128,7 +148,7 @@ const NewCart = ({ next }: { next: () => void }) => {
       <button
         className="text-red-400 mt-6"
         onClick={() => {
-          updateOrder();
+          clearCart();
           router.push("/products");
         }}
       >

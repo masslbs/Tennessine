@@ -6,13 +6,13 @@
 
 import React from "react";
 import Image from "next/image";
-import { IContributor } from "./Permissions";
+import { Contributor } from "./Permissions";
 
-const Contributor = ({
+const ContributorSection = ({
   contributor,
   openHalfModal,
 }: {
-  contributor: IContributor;
+  contributor: Contributor;
   openHalfModal?: () => void;
 }) => {
   return (
@@ -49,4 +49,4 @@ const Contributor = ({
   );
 };
 
-export default Contributor;
+export default ContributorSection;
