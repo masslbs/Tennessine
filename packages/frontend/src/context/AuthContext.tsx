@@ -4,18 +4,18 @@
 
 import React, { SetStateAction, Dispatch } from "react";
 import { createContext, useContext, useState } from "react";
-import { IStatus } from "@/types";
+import { Status } from "@/types";
 
 export type IAuthContext = {
-  isConnected: IStatus;
-  setIsConnected: Dispatch<SetStateAction<IStatus>>;
+  isConnected: Status;
+  setIsConnected: Dispatch<SetStateAction<Status>>;
   hasUpdateRootHashPerm: boolean;
   setUpdateRootHashPerm: Dispatch<SetStateAction<boolean>>;
   isMerchantView: boolean;
   setIsMerchantView: Dispatch<SetStateAction<boolean>>;
 };
 export const AuthContext = createContext<IAuthContext>({
-  isConnected: IStatus.Pending,
+  isConnected: Status.Pending,
   setIsConnected: () => {},
   hasUpdateRootHashPerm: false,
   setUpdateRootHashPerm: () => {},
@@ -28,7 +28,7 @@ type Props = {
 };
 
 export const AuthProvider = (props: Props) => {
-  const [isConnected, setIsConnected] = useState<IStatus>(IStatus.Pending);
+  const [isConnected, setIsConnected] = useState<Status>(Status.Pending);
   const [hasUpdateRootHashPerm, setUpdateRootHashPerm] =
     useState<boolean>(false);
   const [isMerchantView, setIsMerchantView] = useState<boolean>(false);

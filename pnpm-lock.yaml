@@ -129,6 +129,9 @@ importers:
       '@massmarket/schema':
         specifier: workspace:*
         version: link:../schema
+      '@massmarket/stateManager':
+        specifier: workspace:*
+        version: link:../stateManager
       '@massmarket/utils':
         specifier: workspace:*
         version: link:../utils

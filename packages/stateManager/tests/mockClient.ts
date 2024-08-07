@@ -11,7 +11,7 @@ import schema, {
 } from "@massmarket/schema";
 import { requestId, eventId } from "@massmarket/utils";
 import { ReadableEventStream } from "@massmarket/client/stream";
-import { IRelayClient } from "../";
+import { IRelayClient } from "../types";
 
 export type IncomingEvent = {
   request: schema.EventPushRequest;

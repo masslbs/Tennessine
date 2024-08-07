@@ -19,8 +19,8 @@ import { hardhat, sepolia, mainnet, type Chain } from "viem/chains";
 import { http, createPublicClient, createWalletClient } from "viem";
 import { useAuth } from "@/context/AuthContext";
 import * as abi from "@massmarket/contracts";
-import { IStatus } from "../types";
-import { type ClientContext, ShopId } from "./types";
+import { Status, ShopId } from "@/types";
+import { type ClientContext } from "@/context/types";
 import { privateKeyToAccount } from "viem/accounts";
 import { usePathname } from "next/navigation";
 import { random32BytesHex } from "@massmarket/utils";
@@ -208,8 +208,8 @@ export const MyContextProvider = (
       console.log(
         `relay client set ${user.relayEndpoint.url} with shop: ${shopId}`,
       );
-      const _relayClient = new RelayClient(user);
-      setRelayClient(_relayClient);
+      const rc = new RelayClient(user);
+      setRelayClient(rc);
       if (!guestKeyCard && !merchantKeyCard && !keyCardEnrolled) {
         console.log("enrolling KC with guest wallet...");
         const guestWallet = createWalletClient({
@@ -217,7 +217,7 @@ export const MyContextProvider = (
           chain: usedChain,
           transport: http(),
         });
-        const res = await _relayClient.enrollKeycard(
+        const res = await rc.enrollKeycard(
           guestWallet,
           true,
           shopId,
@@ -226,19 +226,19 @@ export const MyContextProvider = (
         if (res.ok) {
           setKeyCardEnrolled(true);
           privateKey && localStorage.setItem("guestKeyCard", privateKey);
-          setIsConnected(IStatus.Complete);
+          setIsConnected(Status.Complete);
         } else {
-          setIsConnected(IStatus.Failed);
+          setIsConnected(Status.Failed);
           localStorage.removeItem("shopId");
         }
         localStorage.removeItem("keyCardToEnroll");
-      } else if (guestKeyCard && isConnected === IStatus.Pending) {
+      } else if (guestKeyCard && isConnected === Status.Pending) {
         console.log(`connecting to client with guest KC : ${guestKeyCard}`);
         setKeyCardEnrolled(true);
       } else if (
         merchantKeyCard &&
         walletAddress &&
-        isConnected === IStatus.Pending
+        isConnected === Status.Pending
       ) {
         const hasAccess = await checkPermissions();
         if (hasAccess) {
@@ -257,9 +257,9 @@ export const MyContextProvider = (
         const authenticated = await relayClient!.connect();
         console.log({ authenticated });
         if (authenticated) {
-          setIsConnected(IStatus.Complete);
+          setIsConnected(Status.Complete);
         } else {
-          setIsConnected(IStatus.Failed);
+          setIsConnected(Status.Failed);
         }
       })();
     }

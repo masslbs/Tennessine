@@ -12,23 +12,50 @@ import SecondaryButton from "@/app/common/components/SecondaryButton";
 import Image from "next/image";
 import { createQueryString } from "@/app/utils";
 import { useSearchParams } from "next/navigation";
-import { IStatus, OrderId } from "@/types";
-import { OrderState } from "@/context/types";
+import { Status, Order } from "@/types";
 
 const MerchantDashboard = () => {
-  //   const { storeIds } = useMerchantContext();
-  const { storeData, orderItems } = useStoreContext();
+  const { stateManager } = useStoreContext();
   const searchParams = useSearchParams();
-  const [transactions, setTransactions] = useState<
-    [OrderId, OrderState][] | []
-  >([]);
+  const [name, setName] = useState("");
+  const [orders, setOrders] = useState(new Map());
 
   useEffect(() => {
-    const carts = Array.from([...orderItems.entries()]);
-    setTransactions(carts);
-  }, [orderItems]);
+    (async () => {
+      const shopManifest = await stateManager.manifest.get();
+      setName(shopManifest.name);
+    })();
+  }, []);
+
+  useEffect(() => {
+    const onCreateOrder = (order: Order) => {
+      orders.set(order.id, order);
+      setOrders(orders);
+    };
+    const onUpdateOrder = (order: Order) => {
+      orders.set(order.id, order);
+      setOrders(orders);
+    };
+    (async () => {
+      const allOrders = new Map();
+      for await (const [id, o] of stateManager.orders.iterator()) {
+        if (id.slice(0, 2) === "0x") {
+          allOrders.set(id, o);
+        }
+      }
+      setOrders(allOrders);
+      stateManager.orders.on("create", onCreateOrder);
+      stateManager.orders.on("update", onUpdateOrder);
+    })();
+    return () => {
+      // Cleanup listeners on unmount
+      stateManager.orders.removeListener("create", onCreateOrder);
+      stateManager.orders.removeListener("update", onUpdateOrder);
+    };
+  }, []);
 
   const renderTransactions = () => {
+    const transactions = Array.from([...orders.entries()]);
     return transactions?.length ? (
       transactions.map((entry) => {
         const cartId = entry[0];
@@ -37,9 +64,9 @@ const MerchantDashboard = () => {
         if (!value?.items) return null;
         const len = Object.keys(value.items).length;
         const status =
-          value.status === IStatus.Complete
+          value.status === Status.Complete
             ? "green"
-            : value.status === IStatus.Failed
+            : value.status === Status.Failed
               ? "red"
               : "yellow";
         return (
@@ -63,7 +90,7 @@ const MerchantDashboard = () => {
     <main className="pt-under-nav h-screen">
       <div className="flex flex-col justify-between mx-4 mt-4">
         <div className="mb-4">
-          <h2>{storeData.name}</h2>
+          <h2>{name}</h2>
           <div className="flex text-xs gap-1 pt-4">
             <SecondaryButton>
               <Link className="flex items-center gap-1" href="/products">

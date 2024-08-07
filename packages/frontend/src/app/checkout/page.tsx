@@ -9,19 +9,24 @@ import { useStoreContext } from "@/context/StoreContext";
 import NewCart from "@/app/cart/NewCart";
 import ShippingDetails from "@/app/components/checkout/ShippingDetails";
 import Image from "next/image";
-import { IStatus } from "@/types";
+import {
+  OrderFinalized,
+  Status,
+  Order,
+  TokenAddr,
+  ShopCurrencies,
+  OrderId,
+} from "@/types";
+
 import PaymentOptions from "@/app/components/checkout/PaymentOptions";
 import { useMyContext } from "@/context/MyContext";
 import * as abi from "@massmarket/contracts";
-import { bytesToHex, bytesToNumber } from "viem";
-import { sepolia, mainnet, hardhat } from "viem/chains";
 import CurrencyButton from "@/app/common/components/CurrencyButton";
 import CurrencyChange from "@/app/common/components/CurrencyChange";
 import { zeroAddress } from "@massmarket/contracts";
 
 const CheckoutFlow = () => {
-  const { commitOrder, finalizedOrders, orderItems, orderId, setOrderId } =
-    useStoreContext();
+  const { getOrderId, stateManager, selectedCurrency } = useStoreContext();
   const { publicClient, shopId, getTokenInformation } = useMyContext();
   const [step, setStep] = useState(0);
 
@@ -29,7 +34,7 @@ const CheckoutFlow = () => {
   const [checkoutReqId, setCheckoutRequestId] = useState<`0x${string}` | null>(
     null,
   );
-  const [showErrorMessage, setShowErrorMessage] = useState<null | string>(null);
+  const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [cryptoTotal, setCryptoTotal] = useState<number | null>(null);
   const [purchaseAddress, setPurchaseAddr] = useState<string | null>(null);
   const [totalDollar, setTotalDollar] = useState<string | null>(null);
@@ -45,61 +50,61 @@ const CheckoutFlow = () => {
   const [erc20Amount, setErc20Amount] = useState<null | number>(null);
   const [symbol, setSymbol] = useState<null | string>(null);
   const [openCurrencySelection, setOpen] = useState(false);
+  const [orderId, setOrderId] = useState<OrderId | null>(null);
+  const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
 
   const currencyToggle = () => {
     setOpen(!openCurrencySelection);
   };
-  const chainName = process.env.NEXT_PUBLIC_CHAIN_NAME!;
-  const usedChainId: number =
-    chainName === "sepolia"
-      ? sepolia.id
-      : chainName === "hardhat"
-        ? hardhat.id
-        : mainnet.id;
-
   const copyToClipboard = () => {
     navigator.clipboard.writeText(purchaseAddress!);
   };
   useEffect(() => {
-    if (
-      orderItems &&
-      orderId &&
-      orderItems.get(orderId)?.status === IStatus.Complete
-    ) {
-      const h = orderItems.get(orderId)?.txHash as `0x${string}`;
+    (async () => {
+      const id = await getOrderId();
+      const o = await stateManager.orders.get(id);
+      setOrderId(id);
+      setCurrentOrder(o);
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (currentOrder?.status === Status.Complete) {
+      const h = currentOrder.txHash as `0x${string}`;
       setOrderId(null);
       setConfirmedTxHash(h);
       setStep(3);
     }
-  }, [orderItems]);
+  }, [currentOrder]);
 
   useEffect(() => {
-    if (finalizedOrders.size && checkoutReqId) {
-      const currentCart = finalizedOrders.get(checkoutReqId);
-      if (!currentCart) return;
-
-      const {
-        ttl,
-        orderHash,
-        currencyAddr,
-        totalInCrypto,
-        payeeAddr,
-        shopSignature,
-        total,
-      } = currentCart;
-
+    if (checkoutReqId && orderId && stateManager) {
       (async () => {
-        const currencyAddrHex = bytesToHex(currencyAddr);
-        const arg = [
-          usedChainId,
+        const committed = await stateManager.orders.get(orderId);
+        const {
           ttl,
-          bytesToHex(orderHash),
-          currencyAddrHex,
-          bytesToHex(totalInCrypto),
-          bytesToHex(payeeAddr),
+          orderHash,
+          currencyAddr,
+          totalInCrypto,
+          payeeAddr,
+          shopSignature,
+          total,
+        } = committed.orderFinalized as OrderFinalized;
+        // Find the chainId for the currencyAddr used from shopManifest.
+        const manifest = await stateManager.manifest.get();
+        const curr = manifest.acceptedCurrencies.find(
+          (c: ShopCurrencies) => c.tokenAddr === currencyAddr,
+        );
+        const arg = [
+          curr?.chainId,
+          ttl,
+          orderHash,
+          currencyAddr,
+          totalInCrypto,
+          payeeAddr,
           false,
           shopId,
-          bytesToHex(shopSignature),
+          shopSignature,
         ];
         const ownerAdd = await publicClient!.readContract({
           address: abi.addresses.ShopReg as `0x${string}`,
@@ -113,15 +118,17 @@ const CheckoutFlow = () => {
           functionName: "getPaymentAddress",
           args: [arg, ownerAdd],
         });
-        const { decimals, symbol } = await getTokenInformation(currencyAddrHex);
+        const { decimals, symbol } = await getTokenInformation(
+          currencyAddr as TokenAddr,
+        );
         setSymbol(symbol);
         if (purchaseAdd) {
-          const amount = bytesToNumber(totalInCrypto);
+          const amount = Number(totalInCrypto);
           const _erc20Amount = amount / Math.pow(10, decimals);
           const payLink =
-            currencyAddrHex === zeroAddress
+            currencyAddr === zeroAddress
               ? `ethereum:${purchaseAdd}?value=${amount}`
-              : `ethereum:${currencyAddrHex}/transfer?address=${purchaseAdd}&uint256=${amount}`;
+              : `ethereum:${currencyAddr}/transfer?address=${purchaseAdd}&uint256=${amount}`;
           setPurchaseAddr(purchaseAdd as `0x${string}`);
           setSrc(payLink);
           setCryptoTotal(amount);
@@ -131,15 +138,25 @@ const CheckoutFlow = () => {
         }
       })();
     }
-  }, [finalizedOrders, checkoutReqId]);
+  }, [checkoutReqId]);
 
   const checkout = async () => {
-    const res = await commitOrder();
-    if (res.error) {
-      console.log("there was an error");
-      setShowErrorMessage(res.error);
-    } else if (res.orderFinalizedId) {
-      setCheckoutRequestId(res.orderFinalizedId);
+    const orderId = await getOrderId();
+    if (!selectedCurrency) {
+      setErrorMsg("Please select a currency to pay in.");
+    }
+    try {
+      const checkout = await stateManager!.orders.commit(
+        orderId,
+        selectedCurrency!.tokenAddr,
+        selectedCurrency!.chainId,
+        "default",
+      );
+      setCheckoutRequestId(checkout.orderFinalizedId);
+    } catch (error) {
+      // If there was an error while committing, cancel the order.
+      await stateManager!.orders.cancel(orderId, 0);
+      setErrorMsg("Error while checking out order");
     }
   };
 
@@ -151,6 +168,7 @@ const CheckoutFlow = () => {
             setStep(1);
             currencyToggle();
           }}
+          orderId={orderId}
         />
       );
     } else if (step === 1) {
@@ -215,7 +233,7 @@ const CheckoutFlow = () => {
   return (
     <main className="pt-under-nav h-screen bg-gray-100 ">
       {/* FIXME: need banner design for errors */}
-      {showErrorMessage && showErrorMessage}
+      {errorMsg && errorMsg}
       <div className="px-4">
         <CurrencyButton toggle={currencyToggle} />
         <CurrencyChange open={openCurrencySelection} />
