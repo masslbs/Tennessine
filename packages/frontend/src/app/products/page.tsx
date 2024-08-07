@@ -8,7 +8,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Sort from "@/app/common/components/Sort";
 import Search from "@/app/common/components/Search";
-import { SortOption, IProduct, TagId, ITag } from "@/types";
+import { SortOption, Item, TagId, Tag } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import withAuth from "@/app/components/withAuth";
 import SuccessMessage from "@/app/common/components/SuccessMessage";
@@ -27,22 +27,90 @@ const Products = () => {
   const [sortOption, setCheck] = useState<SortOption>(SortOption.default);
   const [searchPhrase, setSearchPhrase] = useState<string>("");
   const [showSuccessMsg, setMsg] = useState<boolean>(success !== null);
-  const { products, publishedTagId, allTags, storeData } = useStoreContext();
-  const [arrToRender, setArrToRender] = useState<IProduct[] | null>(null);
+  const { stateManager } = useStoreContext();
+  const [products, setProducts] = useState(new Map());
+  const [arrToRender, setArrToRender] = useState<Item[] | null>(null);
   const [resultCount, setResultCount] = useState<number>(products.size);
   const [showTags, setShowTags] = useState<boolean>(false);
   const [tagIdToFilter, setTagIdToFilter] = useState<null | TagId>(null);
   const [gridView, setGridView] = useState<boolean>(true);
+  const [pId, setPublishedTagId] = useState<`0x${string}` | null>(null);
+  const [storeName, setStoreName] = useState<string>("");
+  const [allTags, setAllTags] = useState(new Map());
+  const [removeTagId, setRemoveTagId] = useState<null | TagId>(null);
   const { isMerchantView } = useAuth();
-  const findRemoveTagId = () => {
-    for (const [key, value] of allTags.entries()) {
-      if (value.text && value.text === "remove") {
-        return key;
+
+  useEffect(() => {
+    (async () => {
+      const shopManifest = await stateManager.manifest.get();
+      setPublishedTagId(shopManifest.publishedTagId);
+      setStoreName(shopManifest.name);
+    })();
+  }, []);
+
+  useEffect(() => {
+    const onCreateEvent = (item: Item) => {
+      products.set(item.id, item);
+      setProducts(products);
+    };
+    const onUpdateEvent = (item: Item) => {
+      products.set(item.id, item);
+      setProducts(products);
+    };
+    const onAddItemId = (item: Item) => {
+      products.set(item.id, item);
+      setProducts(products);
+    };
+    const onRemoveItemId = (item: Item) => {
+      products.set(item.id, item);
+      setProducts(products);
+    };
+    (async () => {
+      const listings = new Map();
+      for await (const [id, item] of stateManager.items.iterator()) {
+        listings.set(id, item);
       }
-    }
-    return null;
-  };
-  const removeTagId = findRemoveTagId();
+      setProducts(listings);
+
+      // Listen to future events
+      stateManager.items.on("create", onCreateEvent);
+      stateManager.items.on("update", onUpdateEvent);
+      stateManager.items.on("addItemId", onAddItemId);
+      stateManager.items.on("removeItemId", onRemoveItemId);
+    })();
+    return () => {
+      // Cleanup listeners on unmount
+      stateManager.items.removeListener("create", onCreateEvent);
+      stateManager.items.removeListener("update", onUpdateEvent);
+      stateManager.items.removeListener("addItemId", onAddItemId);
+      stateManager.items.removeListener("removeItemId", onRemoveItemId);
+    };
+  }, []);
+
+  useEffect(() => {
+    const onCreateEvent = (tag: Tag) => {
+      allTags.set(tag.id, tag);
+      setAllTags(allTags);
+    };
+    (async () => {
+      const tags = new Map();
+      for await (const [id, tag] of stateManager.tags.iterator()) {
+        tags.set(id, tag);
+        if (tag.name === "remove") {
+          setRemoveTagId(id as TagId);
+        }
+      }
+      setAllTags(tags);
+
+      // Listen to future events
+      stateManager.tags.on("create", onCreateEvent);
+    })();
+
+    return () => {
+      // Cleanup listeners on unmount
+      stateManager.items.removeListener("create", onCreateEvent);
+    };
+  }, []);
 
   useEffect(() => {
     if (!products) return;
@@ -50,13 +118,9 @@ const Products = () => {
     const arrayToRender = sorted.filter((item) => {
       if (!item || !item.metadata?.image) {
         return false;
-      } else if (
-        removeTagId &&
-        item.tagIds &&
-        item.tagIds.includes(removeTagId)
-      ) {
+      } else if (removeTagId && item.tags && item.tags.includes(removeTagId)) {
         return false;
-      } else if (tagIdToFilter && !item.tagIds?.includes(tagIdToFilter)) {
+      } else if (tagIdToFilter && !item.tags?.includes(tagIdToFilter)) {
         return false;
       }
       return true;
@@ -65,7 +129,7 @@ const Products = () => {
     setResultCount(arrayToRender.length);
   }, [sortOption, products, tagIdToFilter]);
 
-  const viewProductDetails = (item: IProduct) => {
+  const viewProductDetails = (item: Item) => {
     router.push(
       `/products/productDetail?${createQueryString("itemId", item.id, searchParams)}`,
     );
@@ -83,22 +147,21 @@ const Products = () => {
       case SortOption.newest:
         return arr.reverse();
       case SortOption.hidden:
-        return !publishedTagId
+        return !pId
           ? arr
           : arr.filter(
-              (product) =>
-                !product?.tagIds || !product.tagIds.includes(publishedTagId),
+              (product) => !product?.tags || !product.tags.includes(pId),
             );
       case SortOption.available:
         return arr.filter(
           (product) =>
-            product.stockQty &&
-            publishedTagId &&
-            product.tagIds &&
-            product.tagIds?.includes(publishedTagId),
+            product.quantity &&
+            pId &&
+            product.tags &&
+            product.tags?.includes(pId),
         );
       case SortOption.unavailable:
-        return arr.filter((product) => !product.stockQty);
+        return arr.filter((product) => !product.quantity);
       default:
         return arr;
     }
@@ -111,14 +174,14 @@ const Products = () => {
     return (
       <div className="inline-flex gap-3">
         {tags.map((t: TagId) => {
-          const tag = allTags.get(t) as ITag;
+          const tag = allTags.get(t) as Tag;
           return (
             <button
               key={t}
               onClick={() => setTagIdToFilter(t)}
               className="bg-primary-blue text-white text-sm rounded p-2"
             >
-              {tag.text}
+              {tag.name}
             </button>
           );
         })}
@@ -131,12 +194,13 @@ const Products = () => {
       const { metadata } = item;
       if (!metadata) return null;
       if (searchPhrase?.length) {
-        if (!metadata.name.toLowerCase().includes(searchPhrase.toLowerCase())) {
+        if (
+          !metadata.title.toLowerCase().includes(searchPhrase.toLowerCase())
+        ) {
           return;
         }
       }
-      const visible =
-        publishedTagId && item.tagIds && item.tagIds.includes(publishedTagId);
+      const visible = pId && item.tags && item.tags.includes(pId);
 
       return (
         <div key={item.id} className="mt-4 mx-4 last: mr-0">
@@ -149,12 +213,12 @@ const Products = () => {
                 className="text-xs text-center text-ellipsis overflow-hidden self-end"
                 data-testid={`product-name`}
               >
-                {metadata.name}
+                {metadata.title}
               </p>
             </div>
             <div
               className="product-box gap-2 flex flex-col text-center border-2 p-3 rounded-xl bg-white"
-              data-testid={`product-${metadata.name}`}
+              data-testid={`product-${metadata.title}`}
             >
               <div className="flex justify-center min-h-16 ">
                 <Image
@@ -171,7 +235,7 @@ const Products = () => {
                 />
               </div>
               <h4>{Number(item.price)}</h4>
-              <p className="text-sm text-gray-400">{item.stockQty} left</p>
+              <p className="text-sm text-gray-400">{item.quantity} left</p>
             </div>
           </div>
           {isMerchantView && (
@@ -202,7 +266,7 @@ const Products = () => {
       <section className="bg-gray-100 pb-6">
         <section className="m-4">
           <div className="flex pb-4">
-            <h2 className="grow flex">{storeData.name}</h2>
+            <h2 className="grow flex">{storeName}</h2>
             <CartButton />
           </div>
           <Search

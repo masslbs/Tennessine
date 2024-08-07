@@ -17,10 +17,10 @@
       "path": "./packages/client"
     },
     {
-      "path": "./packages/frontend"
+      "path": "./packages/stateManager"
     },
     {
-      "path": "./packages/stateManager"
+      "path": "./packages/frontend"
     }
   ]
 }
