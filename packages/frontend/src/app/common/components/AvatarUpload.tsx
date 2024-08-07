@@ -35,9 +35,10 @@ const AvatarUpload = ({
         const blob = new FormData();
         blob.append("file", fileInput.files[0]);
         reader.onload = function (e) {
-          const img = e.target?.result;
-          blob && setImgBlob(blob);
-          typeof img == "string" && setLocalImg(img);
+          const r = e.target as FileReader;
+          const url = r.result;
+          typeof url == "string" && setLocalImg(url);
+          setImgBlob(blob);
         };
 
         reader.readAsDataURL(fileInput.files[0]);
@@ -60,6 +61,7 @@ const AvatarUpload = ({
         </button>
         <div className="hidden">
           <input
+            data-testid="file-upload"
             type="file"
             ref={fileInputRef}
             className="file-input"

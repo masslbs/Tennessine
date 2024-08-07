@@ -4,11 +4,11 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useMyContext } from "@/context/MyContext";
 import { useAuth } from "@/context/AuthContext";
-import { IStatus } from "@/types";
+import { ShopManifest, Status } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import FullModal from "@/app/common/components/FullModal";
@@ -23,23 +23,39 @@ const _menuOptions = [
     href: "/merchant-dashboard",
   },
   { title: "Shop settings", img: "store-settings.svg", href: "/store" },
-  { title: "My profile", img: "profile.svg", href: "/account" },
   { title: "New shop", img: "create-store.png", href: "/create-store" },
 ];
 
 const Navigation = () => {
   const [menuOpened, setMenuOpened] = useState<boolean>(false);
-
-  const { name } = useMyContext();
   const { setIsConnected, isMerchantView } = useAuth();
-  const { db, storeData, invalidateOrder } = useStoreContext();
+  const { stateManager } = useStoreContext();
+  const [shopManifest, setShopManifest] = useState<ShopManifest | null>(null);
+  const { ensName } = useMyContext();
+
   const searchParams = useSearchParams();
 
-  // const profilePhoto = avatar ? avatar : "example-avatar.svg";
   const router = useRouter();
+
+  useEffect(() => {
+    function onUpdateEvent(manifest: ShopManifest) {
+      setShopManifest(manifest);
+    }
+    if (!stateManager) return;
+    (async () => {
+      const shopManifest = await stateManager.manifest.get();
+      setShopManifest(shopManifest);
+      // Listen to future events
+      stateManager.manifest.on("update", onUpdateEvent);
+    })();
+    return () => {
+      // Cleanup listeners on unmount
+      stateManager.manifest.removeListener("update", onUpdateEvent);
+    };
+  }, [stateManager]);
+
   const logout = () => {
-    db.clear();
-    setIsConnected(IStatus.Pending);
+    setIsConnected(Status.Pending);
     localStorage.clear();
     router.push("/");
   };
@@ -70,13 +86,13 @@ const Navigation = () => {
     <FullModal isOpen={menuOpened}>
       <main>
         <div className="w-full border border-gray-200 p-4 text-base flex justify-between">
-          <p>{name}</p>
+          <p>{ensName}</p>
           <div className="flex gap-4">
             <button onClick={menuSwitch}>
               <Image
                 src={
-                  storeData.profilePictureUrl
-                    ? storeData.profilePictureUrl
+                  shopManifest?.profilePictureUrl
+                    ? shopManifest?.profilePictureUrl
                     : `/assets/MassLabsLogo.svg`
                 }
                 width={40}
@@ -89,7 +105,7 @@ const Navigation = () => {
         </div>
         <div className="flex flex-col justify-between mx-4 mt-4">
           <div className="mb-4">
-            <h2>{storeData.name}</h2>
+            <h2>{shopManifest?.name}</h2>
             <div className="flex text-xs gap-1">
               <SecondaryButton onClick={menuSwitch}>
                 <Link className="flex items-center gap-1" href="/products">
@@ -110,31 +126,9 @@ const Navigation = () => {
                   Add Product +
                 </Link>
               </SecondaryButton>
-              <SecondaryButton onClick={menuSwitch}>
-                <div className="flex items-center gap-1">
-                  Settings
-                  <Image
-                    src="/assets/settings.svg"
-                    width={12}
-                    height={12}
-                    alt="settings-icon"
-                  />
-                </div>
-              </SecondaryButton>
             </div>
           </div>
           <div>{renderItems()}</div>
-          <div>
-            <button
-              onClick={() => {
-                invalidateOrder("new sale started");
-                router.push("/");
-                menuSwitch();
-              }}
-            >
-              <h2>New Sale</h2>
-            </button>
-          </div>
           <div>
             <h2 onClick={logout}>Log out</h2>
           </div>
@@ -158,14 +152,14 @@ const Navigation = () => {
             />
             <p>back</p>
           </button>
-          <p className="ml-5">{name}</p>
+          <p className="ml-5">{ensName}</p>
         </div>
         <div className="flex gap-4">
           <button onClick={menuSwitch}>
             <Image
               src={
-                storeData.profilePictureUrl
-                  ? storeData.profilePictureUrl
+                shopManifest?.profilePictureUrl
+                  ? shopManifest?.profilePictureUrl
                   : `/assets/MassLabsLogo.svg`
               }
               width={40}

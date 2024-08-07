@@ -5,20 +5,30 @@
 "use client";
 
 import { useStoreContext } from "@/context/StoreContext";
-import React from "react";
+import { ShopCurrencies } from "@/types";
+import React, { useEffect, useState } from "react";
 
 const CurrencyChange = ({ open }: { open: boolean }) => {
   if (!open) return null;
-  const { acceptedCurrencies, selectedCurrency, setSelectedCurrency } =
+  const { selectedCurrency, setSelectedCurrency, stateManager } =
     useStoreContext();
-  const currencies = Array.from([...acceptedCurrencies.keys()]);
+  const [acceptedCurrencies, setAcceptedChain] = useState<ShopCurrencies[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      const shopManifest = await stateManager.manifest.get();
+      setAcceptedChain(shopManifest.acceptedCurrencies);
+    })();
+  }, []);
+
   const renderCurrencies = () => {
-    return currencies.map((a, i) => (
-      <button onClick={() => setSelectedCurrency(a)} key={i}>
+    if (!acceptedCurrencies.length) return null;
+    return acceptedCurrencies.map((c, i) => (
+      <button onClick={() => setSelectedCurrency(c)} key={i}>
         <p
-          className={`${a === selectedCurrency ? "bg-black text-white" : "bg-primary-gray"} w-fit px-2 py-1 rounded-lg`}
+          className={`${c.tokenAddr === selectedCurrency?.tokenAddr ? "bg-black text-white" : "bg-primary-gray"} w-fit px-2 py-1 rounded-lg`}
         >
-          {acceptedCurrencies.get(a)}
+          {c.tokenAddr}
         </p>
       </button>
     ));

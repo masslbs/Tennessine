@@ -4,82 +4,61 @@
 
 "use client";
 
-import React, {
-  useReducer,
-  ChangeEvent,
-  useRef,
-  useState,
-  useEffect,
-} from "react";
+import React, { ChangeEvent, useRef, useState, useEffect } from "react";
 import Image from "next/image";
-import {
-  EDIT_PRICE,
-  EDIT_TITLE,
-  EDIT_UNIT,
-  UPLOAD_IMG,
-  EDIT_IMG,
-  newProductReducer,
-  initialState,
-  newProductActions,
-  EDIT_DESC,
-} from "@/reducers/productReducers";
-import { SELECT_TAG, selectedTagReducer } from "@/reducers/tagReducers";
+
 import { useStoreContext } from "@/context/StoreContext";
 import ProductsTags from "@/app/components/products/ProductTags";
 import { useRouter, useSearchParams } from "next/navigation";
-import { IProduct, ITag, ItemId, TagId } from "@/types";
+import { Tag, ItemId, Item, TagId } from "@/types";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import VisibilitySlider from "@/app/components/products/VisibilitySlider";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
+import { useMyContext } from "@/context/MyContext";
 
 const AddProductView = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const itemId = searchParams.get("itemId") as ItemId | "new";
   const editView = itemId !== "new";
-  const { addProduct, updateProduct, allTags, products } = useStoreContext();
-  const productInView = editView ? products.get(itemId) : null;
-  const [img, setImg] = useState<string>(productInView?.metadata?.image || "");
-  const [price, setPrice] = useState<string>(productInView?.price || "");
-  const [title, setTitle] = useState<string>(
-    productInView?.metadata?.name || "",
-  );
-  const [description, setDescription] = useState<string>(
-    productInView?.metadata?.description || "",
-  );
-  const [stockQty, setStockQty] = useState(productInView?.stockQty || "0");
-  const [editedPrice, setEditedPrice] = useState(false);
-  const [editedMetaData, setEditedMetadata] = useState(false);
-  const [editedUnit, setEditedUnit] = useState(false);
+  const { stateManager } = useStoreContext();
+  const { relayClient } = useMyContext();
+  const [productInView, setProductInView] = useState<Item | null>(null);
+  const [imgSrc, setImg] = useState<string>("");
+  const [imgAsBlob, setBlob] = useState<FormData | null>(null);
+  const [price, setPrice] = useState<string>("");
+  const [title, setTitle] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
+  const [units, setUnits] = useState<number>(0);
   const [error, setError] = useState<null | string>(null);
-  const [selectedTags, selectedTagsDispatch] = useReducer(
-    selectedTagReducer,
-    new Map(),
-  );
-  const _initialState =
-    editView && productInView
-      ? {
-          id: productInView.id,
-          price: price,
-          stockQty: Number(stockQty),
-          blob: null,
-          tagIds: productInView.tagIds,
-          metadata: productInView.metadata,
-        }
-      : initialState;
-  const [newProduct, updateNewProduct] = useReducer<
-    (state: IProduct, actions: newProductActions) => IProduct
-  >(newProductReducer, _initialState);
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
 
   useEffect(() => {
-    if (!productInView?.tagIds) return;
+    (async () => {
+      if (editView && itemId) {
+        const p = await stateManager.items.get(itemId);
+        setProductInView(p);
+        setTitle(p.metadata.title);
+        setPrice(p.price);
+        setImg(p.metadata.image);
+        setDescription(p.metadata.description);
+        setUnits(p.quantity);
+      }
+    })();
+  }, []);
 
-    productInView.tagIds.map((id) => {
-      const t = allTags.get(id) as ITag;
-      if (!t) return null;
-      selectedTagsDispatch({ type: SELECT_TAG, payload: { selectedTag: t } });
-    });
-  }, [productInView?.tagIds]);
+  useEffect(() => {
+    if (productInView) {
+      (async () => {
+        const selected = [];
+        for (const id of productInView.tags) {
+          const t = (await stateManager.tags.get(id)) as Tag;
+          selected.push(t);
+        }
+        setSelectedTags(selected);
+      })();
+    }
+  }, [productInView]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const hed = editView && productInView ? "Edit product" : "Add Product";
@@ -94,7 +73,6 @@ const AddProductView = () => {
     router.push(`/products`);
   };
   const handleUpload = (e: ChangeEvent<HTMLInputElement>) => {
-    checkIfMetadata();
     try {
       const fileInput = e.target;
       if (fileInput.files && fileInput.files[0]) {
@@ -106,15 +84,7 @@ const AddProductView = () => {
           const r = e.target as FileReader;
           const url = r.result;
           typeof url == "string" && setImg(url);
-          updateNewProduct({
-            type: UPLOAD_IMG,
-            payload: { blob },
-          });
-          typeof url == "string" &&
-            updateNewProduct({
-              type: EDIT_IMG,
-              payload: { img: url },
-            });
+          setBlob(blob);
         };
 
         reader.readAsDataURL(fileInput.files[0]);
@@ -128,14 +98,56 @@ const AddProductView = () => {
 
   const removeImg = () => {
     setImg("");
-    updateNewProduct({
-      type: EDIT_IMG,
-      payload: { img: "" },
-    });
-    updateNewProduct({
-      type: UPLOAD_IMG,
-      payload: { blob: null },
-    });
+  };
+
+  const create = async (newItem: Partial<Item>) => {
+    const { id } = await stateManager!.items.create(newItem);
+    await stateManager!.items.changeStock([id], [units]);
+    if (selectedTags.length) {
+      selectedTags.map(async (t) => {
+        await stateManager!.items.addItemToTag(t.id, id);
+      });
+    }
+  };
+
+  const update = async (newItem: Partial<Item>) => {
+    //compare the edited fields against the original object.
+    const diff: Partial<Item> = {
+      id: itemId as ItemId,
+    };
+    if (newItem.price !== productInView!.price) {
+      diff["price"] = newItem.price;
+    }
+    if (newItem.metadata !== productInView!.metadata) {
+      diff["metadata"] = newItem.metadata;
+    }
+    //checking for diff in selected tags
+    const newTags = selectedTags.filter(
+      ({ id }) => !productInView!.tags.includes(id),
+    );
+    if (newTags.length) {
+      newTags.map(async ({ id }) => {
+        await stateManager!.items.addItemToTag(id, itemId as ItemId);
+      });
+    }
+    //checking for any removed tags
+    const selectTagIds = selectedTags.map((t) => t.id);
+    const removedTags = productInView?.tags.filter(
+      (id: TagId) => !selectTagIds.includes(id),
+    );
+    if (removedTags?.length) {
+      removedTags.map(async (id: TagId) => {
+        await stateManager!.items.removeItemFromTag(id, itemId as ItemId);
+      });
+    }
+    if (Object.keys(diff).length === 1) return;
+    await stateManager!.items.update(diff);
+    if (units !== productInView?.quantity) {
+      await stateManager!.items.changeStock(
+        [itemId as ItemId],
+        [units - productInView!.quantity],
+      );
+    }
   };
 
   const onPublish = async () => {
@@ -143,87 +155,56 @@ const AddProductView = () => {
       setError("Product must include price.");
     } else if (!title) {
       setError("Product must include title.");
-    } else if (!img) {
+    } else if (!imgSrc) {
       setError("Product must include image.");
     } else if (productInView && !productInView.id) {
       setError("Product id is missing.");
     } else {
-      const changedFields = {
-        price: editedPrice,
-        metadata: editedMetaData,
-        stockQty: editedUnit,
-      };
-      const selectedTagKeys: TagId[] | [] = selectedTags.size
-        ? Array.from([...selectedTags.keys()])
-        : [];
-      const res =
+      try {
+        const path = imgAsBlob
+          ? await relayClient!.uploadBlob(imgAsBlob)
+          : { url: imgSrc };
+        const newItem = {
+          price: Number(price).toFixed(2),
+          metadata: {
+            title,
+            description,
+            image: path.url,
+          },
+        };
         editView && productInView
-          ? await updateProduct(
-              productInView.id,
-              changedFields,
-              newProduct,
-              selectedTagKeys,
-            )
-          : await addProduct(newProduct, selectedTagKeys);
-      if (res.error) {
-        setError(res.error);
-      } else {
+          ? await update(newItem)
+          : await create(newItem);
         router.push(`/products`);
+      } catch (error) {
+        setError("Error while saving item");
       }
     }
   };
 
-  const checkIfMetadata = () => {
-    if (editView && productInView) {
-      setEditedMetadata(true);
-    }
-  };
-
   const handleTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    checkIfMetadata();
     setTitle(e.target.value);
-    updateNewProduct({
-      type: EDIT_TITLE,
-      payload: { name: e.target.value },
-    });
   };
   const handleDescriptionChange = (e: ChangeEvent<HTMLInputElement>) => {
-    checkIfMetadata();
     setDescription(e.target.value);
-    updateNewProduct({
-      type: EDIT_DESC,
-      payload: { description: e.target.value },
-    });
   };
 
   const handlePriceChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (editView && productInView) {
-      setEditedPrice(true);
-    }
     const _price = e.target.value;
     if (_price && !Number(_price)) {
       setPrice("");
     } else {
       setPrice(_price);
-      updateNewProduct({
-        type: EDIT_PRICE,
-        payload: { price: _price },
-      });
     }
   };
 
   const handleStockChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const _units = e.target.value;
-    if (_units && !Number(_units)) {
-      setStockQty(0);
+    const units = e.target.value;
+    if (units && !Number(units)) {
+      setUnits(0);
     } else {
-      setStockQty(Number(e.target.value) || 0);
-      updateNewProduct({
-        type: EDIT_UNIT,
-        payload: { unit: Number(e.target.value) },
-      });
+      setUnits(Number(e.target.value) || 0);
     }
-    setEditedUnit(true);
   };
 
   return (
@@ -283,7 +264,7 @@ const AddProductView = () => {
               <input
                 value={title}
                 className="border-2 border-solid mt-1 p-3 rounded-2xl"
-                id="title"
+                data-testid="title"
                 name="title"
                 onChange={(e) => handleTitleChange(e)}
               />
@@ -298,19 +279,19 @@ const AddProductView = () => {
               <input
                 value={description}
                 className="border-2 border-solid mt-1 p-3 rounded-2xl"
-                id="description"
+                data-testid="description"
                 name="description"
                 onChange={(e) => handleDescriptionChange(e)}
               />
             </form>
             <div className="flex flex-col">
               <p className="mb-2">Product pics</p>
-              {img ? (
+              {imgSrc ? (
                 <div className="p-4 bg-white border-2 border-solid rounded-2xl">
                   <div className="relative w-fit p-2 mb-2">
                     <div className="p-4 border-2 w-fit rounded-2xl">
                       <Image
-                        src={img}
+                        src={imgSrc}
                         width={50}
                         height={50}
                         alt="uploaded-product-image"
@@ -368,7 +349,7 @@ const AddProductView = () => {
                 <input
                   value={price}
                   className="border-2 border-solid mt-1 p-3 rounded-2xl"
-                  id="price"
+                  data-testid="price"
                   name="price"
                   onChange={(e) => handlePriceChange(e)}
                 />
@@ -381,9 +362,9 @@ const AddProductView = () => {
               >
                 <label htmlFor="units">units</label>
                 <input
-                  value={stockQty}
+                  value={units}
                   className="border-2 border-solid mt-1 p-3 rounded-2xl"
-                  id="units"
+                  data-testid="units"
                   name="units"
                   onChange={(e) => handleStockChange(e)}
                 />
@@ -393,6 +374,7 @@ const AddProductView = () => {
             <div className="hidden">
               <input
                 type="file"
+                data-testid="file-upload"
                 ref={fileInputRef}
                 className="file-input"
                 accept="image/*"
@@ -405,15 +387,13 @@ const AddProductView = () => {
               </div>
               <ProductsTags
                 selectedTags={selectedTags}
-                selectedTagsDispatch={selectedTagsDispatch}
-                itemId={editView ? itemId : null}
+                setSelectedTags={setSelectedTags}
                 setError={setError}
               />
             </section>
             <VisibilitySlider
               selectedTags={selectedTags}
-              selectedTagsDispatch={selectedTagsDispatch}
-              itemId={editView ? itemId : null}
+              setSelectedTags={setSelectedTags}
               editView={editView}
             />
           </section>

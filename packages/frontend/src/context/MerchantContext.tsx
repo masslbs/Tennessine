@@ -4,7 +4,7 @@
 
 import React, { SetStateAction, Dispatch } from "react";
 import { createContext, useContext, useState } from "react";
-import { ShopId } from "./types";
+import { ShopId } from "@/types";
 
 export type IMerchantContext = {
   storeIds: Map<ShopId, number> | null;

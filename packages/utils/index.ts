@@ -41,3 +41,5 @@ export const stringifyToBuffer = (data: any) => {
 };
 
 export const zeroAddress = "0x0000000000000000000000000000000000000000";
+export const anvilAddress =
+  "0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6";

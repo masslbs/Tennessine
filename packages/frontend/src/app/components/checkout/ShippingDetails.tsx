@@ -36,6 +36,7 @@ const ShippingDetails = ({
           className="border-2 border-solid mt-1 p-3 rounded-2xl"
           id="name"
           name="name"
+          data-testid="name"
           onChange={(e) => setName(e.target.value)}
         />
         <label htmlFor="price">Address</label>
@@ -43,6 +44,7 @@ const ShippingDetails = ({
           className="border-2 border-solid mt-1 p-3 rounded-2xl"
           id="address"
           name="address"
+          data-testid="address"
           onChange={(e) => setAddress(e.target.value)}
         />
         <div className="flex gap-2">
@@ -52,6 +54,7 @@ const ShippingDetails = ({
               className="border-2 border-solid mt-1 p-3 rounded-2xl	w-full"
               id="city"
               name="city"
+              data-testid="city"
               onChange={(e) => setCity(e.target.value)}
             />
           </div>
@@ -61,6 +64,7 @@ const ShippingDetails = ({
               className="border-2 border-solid mt-1 p-3 rounded-2xl	w-full"
               id="zip"
               name="zip"
+              data-testid="zip"
               onChange={(e) => setZip(e.target.value)}
             />
           </div>
@@ -71,6 +75,7 @@ const ShippingDetails = ({
           className="border-2 border-solid mt-1 p-3 rounded-2xl"
           id="country"
           name="country"
+          data-testid="country"
           onChange={(e) => setCountry(e.target.value)}
         />
         <label htmlFor="price">Phone Number</label>
@@ -78,6 +83,7 @@ const ShippingDetails = ({
           className="border-2 border-solid mt-1 p-3 rounded-2xl"
           id="phone"
           name="phone"
+          data-testid="phone"
           onChange={(e) => setNumber(e.target.value)}
         />
       </form>

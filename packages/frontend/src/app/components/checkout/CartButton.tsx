@@ -2,19 +2,28 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useStoreContext } from "@/context/StoreContext";
 import Link from "next/link";
+import { Order } from "@/types";
 
 const CartButton = () => {
-  const { orderItems, orderId } = useStoreContext();
+  const { stateManager, getOrderId } = useStoreContext();
+  const [cartItemIds, setItemIds] = useState<Order["items"] | null>(null);
 
-  const activeCartItems = orderId && orderItems.get(orderId)?.items;
-  const arr = activeCartItems ? Object.values(activeCartItems) : [];
+  useEffect(() => {
+    (async () => {
+      const id = await getOrderId();
+      const ci = (await stateManager.orders.get(id)).items;
+      setItemIds(ci);
+    })();
+  }, []);
+
+  const cartItemsArr = cartItemIds ? Object.values(cartItemIds) : [];
   let len = 0;
-  for (const val of arr) {
-    len += val;
+  for (const val of cartItemsArr) {
+    len += Number(val);
   }
   return (
     <button>
