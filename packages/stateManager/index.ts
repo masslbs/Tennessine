@@ -202,8 +202,7 @@ class ListingManager extends PublicObjectManager<Item> {
         await this.store.put(itemId, item);
         this.emit("addItemId", item, ut.eventId);
         return;
-      }
-      if (ut.removeItemId) {
+      } else if (ut.removeItemId) {
         const itemId = bytesToHex(ut.removeItemId);
         const item = await this.store.get(itemId);
         // remove `tagId` from item.tags array
