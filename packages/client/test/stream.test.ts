@@ -76,7 +76,7 @@ describe("Stream", async () => {
     }
   });
 
-  test("Stream with lot's of events", async () => {
+  test("Stream with lots of events", async () => {
     const testCreateItem = {
       updateItem: {
         eventId: Buffer.from([1, 2, 3, 4]),
@@ -161,5 +161,31 @@ describe("Stream", async () => {
       await reader.read();
       reader.cancel();
     });
+  });
+
+  test("Stream error should bubble up", async () => {
+    const signedMessage = await signMessage({
+      updateItem: {
+        eventId: Buffer.from([1, 2, 3, 4]),
+        price: "1000",
+        metadata: Buffer.from([1, 2, 3, 4]),
+      },
+    });
+
+    const pushEvent = {
+      requestId: Uint8Array.from([1, 2, 3, 4]),
+      events: [signedMessage],
+    };
+    const client = new MockClient();
+    const stream = new ReadableEventStream(client);
+    stream.enqueue(pushEvent);
+
+    const errorTest = async () => {
+      for await (const evt of stream.stream) {
+        throw new Error("Store update failed");
+      }
+    };
+
+    await expect(errorTest).rejects.toThrowError();
   });
 });

@@ -616,6 +616,125 @@ export namespace market {
       ERROR_CODES_SIMULATED = 10,
     }
 
+    /** Properties of a ShopCurrency. */
+    interface IShopCurrency {
+      /** ShopCurrency chainId */
+      chainId?: number | Long | null;
+
+      /** ShopCurrency tokenAddr */
+      tokenAddr?: Uint8Array | null;
+    }
+
+    /** Represents a ShopCurrency. */
+    class ShopCurrency implements IShopCurrency {
+      /**
+       * Constructs a new ShopCurrency.
+       * @param [properties] Properties to set
+       */
+      constructor(properties?: market.mass.IShopCurrency);
+
+      /** ShopCurrency chainId. */
+      public chainId: number | Long;
+
+      /** ShopCurrency tokenAddr. */
+      public tokenAddr: Uint8Array;
+
+      /**
+       * Creates a new ShopCurrency instance using the specified properties.
+       * @param [properties] Properties to set
+       * @returns ShopCurrency instance
+       */
+      public static create(
+        properties?: market.mass.IShopCurrency,
+      ): market.mass.ShopCurrency;
+
+      /**
+       * Encodes the specified ShopCurrency message. Does not implicitly {@link market.mass.ShopCurrency.verify|verify} messages.
+       * @param message ShopCurrency message or plain object to encode
+       * @param [writer] Writer to encode to
+       * @returns Writer
+       */
+      public static encode(
+        message: market.mass.IShopCurrency,
+        writer?: $protobuf.Writer,
+      ): $protobuf.Writer;
+
+      /**
+       * Encodes the specified ShopCurrency message, length delimited. Does not implicitly {@link market.mass.ShopCurrency.verify|verify} messages.
+       * @param message ShopCurrency message or plain object to encode
+       * @param [writer] Writer to encode to
+       * @returns Writer
+       */
+      public static encodeDelimited(
+        message: market.mass.IShopCurrency,
+        writer?: $protobuf.Writer,
+      ): $protobuf.Writer;
+
+      /**
+       * Decodes a ShopCurrency message from the specified reader or buffer.
+       * @param reader Reader or buffer to decode from
+       * @param [length] Message length if known beforehand
+       * @returns ShopCurrency
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      public static decode(
+        reader: $protobuf.Reader | Uint8Array,
+        length?: number,
+      ): market.mass.ShopCurrency;
+
+      /**
+       * Decodes a ShopCurrency message from the specified reader or buffer, length delimited.
+       * @param reader Reader or buffer to decode from
+       * @returns ShopCurrency
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      public static decodeDelimited(
+        reader: $protobuf.Reader | Uint8Array,
+      ): market.mass.ShopCurrency;
+
+      /**
+       * Verifies a ShopCurrency message.
+       * @param message Plain object to verify
+       * @returns `null` if valid, otherwise the reason why it is not
+       */
+      public static verify(message: { [k: string]: any }): string | null;
+
+      /**
+       * Creates a ShopCurrency message from a plain object. Also converts values to their respective internal types.
+       * @param object Plain object
+       * @returns ShopCurrency
+       */
+      public static fromObject(object: {
+        [k: string]: any;
+      }): market.mass.ShopCurrency;
+
+      /**
+       * Creates a plain object from a ShopCurrency message. Also converts values to other types if specified.
+       * @param message ShopCurrency
+       * @param [options] Conversion options
+       * @returns Plain object
+       */
+      public static toObject(
+        message: market.mass.ShopCurrency,
+        options?: $protobuf.IConversionOptions,
+      ): { [k: string]: any };
+
+      /**
+       * Converts this ShopCurrency to JSON.
+       * @returns JSON object
+       */
+      public toJSON(): { [k: string]: any };
+
+      /**
+       * Gets the default type url for ShopCurrency
+       * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+       * @returns The default type url
+       */
+      public static getTypeUrl(typeUrlPrefix?: string): string;
+    }
+
     /** Properties of a ShopManifest. */
     interface IShopManifest {
       /** ShopManifest eventId */
@@ -791,11 +910,11 @@ export namespace market {
       /** UpdateShopManifest removePayee */
       removePayee?: market.mass.UpdateShopManifest.IPayee | null;
 
-      /** UpdateShopManifest addAcceptedCurrency */
-      addAcceptedCurrency?: market.mass.IShopCurrency | null;
+      /** UpdateShopManifest addAcceptedCurrencies */
+      addAcceptedCurrencies?: market.mass.IShopCurrency[] | null;
 
-      /** UpdateShopManifest removeAcceptedCurrency */
-      removeAcceptedCurrency?: market.mass.IShopCurrency | null;
+      /** UpdateShopManifest removeAcceptedCurrencies */
+      removeAcceptedCurrencies?: market.mass.IShopCurrency[] | null;
 
       /** UpdateShopManifest setBaseCurrency */
       setBaseCurrency?: market.mass.IShopCurrency | null;
@@ -833,11 +952,11 @@ export namespace market {
       /** UpdateShopManifest removePayee. */
       public removePayee?: market.mass.UpdateShopManifest.IPayee | null;
 
-      /** UpdateShopManifest addAcceptedCurrency. */
-      public addAcceptedCurrency?: market.mass.IShopCurrency | null;
+      /** UpdateShopManifest addAcceptedCurrencies. */
+      public addAcceptedCurrencies: market.mass.IShopCurrency[];
 
-      /** UpdateShopManifest removeAcceptedCurrency. */
-      public removeAcceptedCurrency?: market.mass.IShopCurrency | null;
+      /** UpdateShopManifest removeAcceptedCurrencies. */
+      public removeAcceptedCurrencies: market.mass.IShopCurrency[];
 
       /** UpdateShopManifest setBaseCurrency. */
       public setBaseCurrency?: market.mass.IShopCurrency | null;
@@ -862,12 +981,6 @@ export namespace market {
 
       /** UpdateShopManifest _removePayee. */
       public _removePayee?: "removePayee";
-
-      /** UpdateShopManifest _addAcceptedCurrency. */
-      public _addAcceptedCurrency?: "addAcceptedCurrency";
-
-      /** UpdateShopManifest _removeAcceptedCurrency. */
-      public _removeAcceptedCurrency?: "removeAcceptedCurrency";
 
       /** UpdateShopManifest _setBaseCurrency. */
       public _setBaseCurrency?: "setBaseCurrency";
@@ -2898,125 +3011,6 @@ export namespace market {
 
       /**
        * Gets the default type url for ShopEvent
-       * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-       * @returns The default type url
-       */
-      public static getTypeUrl(typeUrlPrefix?: string): string;
-    }
-
-    /** Properties of a ShopCurrency. */
-    interface IShopCurrency {
-      /** ShopCurrency chainId */
-      chainId?: number | Long | null;
-
-      /** ShopCurrency tokenAddr */
-      tokenAddr?: Uint8Array | null;
-    }
-
-    /** Represents a ShopCurrency. */
-    class ShopCurrency implements IShopCurrency {
-      /**
-       * Constructs a new ShopCurrency.
-       * @param [properties] Properties to set
-       */
-      constructor(properties?: market.mass.IShopCurrency);
-
-      /** ShopCurrency chainId. */
-      public chainId: number | Long;
-
-      /** ShopCurrency tokenAddr. */
-      public tokenAddr: Uint8Array;
-
-      /**
-       * Creates a new ShopCurrency instance using the specified properties.
-       * @param [properties] Properties to set
-       * @returns ShopCurrency instance
-       */
-      public static create(
-        properties?: market.mass.IShopCurrency,
-      ): market.mass.ShopCurrency;
-
-      /**
-       * Encodes the specified ShopCurrency message. Does not implicitly {@link market.mass.ShopCurrency.verify|verify} messages.
-       * @param message ShopCurrency message or plain object to encode
-       * @param [writer] Writer to encode to
-       * @returns Writer
-       */
-      public static encode(
-        message: market.mass.IShopCurrency,
-        writer?: $protobuf.Writer,
-      ): $protobuf.Writer;
-
-      /**
-       * Encodes the specified ShopCurrency message, length delimited. Does not implicitly {@link market.mass.ShopCurrency.verify|verify} messages.
-       * @param message ShopCurrency message or plain object to encode
-       * @param [writer] Writer to encode to
-       * @returns Writer
-       */
-      public static encodeDelimited(
-        message: market.mass.IShopCurrency,
-        writer?: $protobuf.Writer,
-      ): $protobuf.Writer;
-
-      /**
-       * Decodes a ShopCurrency message from the specified reader or buffer.
-       * @param reader Reader or buffer to decode from
-       * @param [length] Message length if known beforehand
-       * @returns ShopCurrency
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      public static decode(
-        reader: $protobuf.Reader | Uint8Array,
-        length?: number,
-      ): market.mass.ShopCurrency;
-
-      /**
-       * Decodes a ShopCurrency message from the specified reader or buffer, length delimited.
-       * @param reader Reader or buffer to decode from
-       * @returns ShopCurrency
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      public static decodeDelimited(
-        reader: $protobuf.Reader | Uint8Array,
-      ): market.mass.ShopCurrency;
-
-      /**
-       * Verifies a ShopCurrency message.
-       * @param message Plain object to verify
-       * @returns `null` if valid, otherwise the reason why it is not
-       */
-      public static verify(message: { [k: string]: any }): string | null;
-
-      /**
-       * Creates a ShopCurrency message from a plain object. Also converts values to their respective internal types.
-       * @param object Plain object
-       * @returns ShopCurrency
-       */
-      public static fromObject(object: {
-        [k: string]: any;
-      }): market.mass.ShopCurrency;
-
-      /**
-       * Creates a plain object from a ShopCurrency message. Also converts values to other types if specified.
-       * @param message ShopCurrency
-       * @param [options] Conversion options
-       * @returns Plain object
-       */
-      public static toObject(
-        message: market.mass.ShopCurrency,
-        options?: $protobuf.IConversionOptions,
-      ): { [k: string]: any };
-
-      /**
-       * Converts this ShopCurrency to JSON.
-       * @returns JSON object
-       */
-      public toJSON(): { [k: string]: any };
-
-      /**
-       * Gets the default type url for ShopCurrency
        * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
        * @returns The default type url
        */

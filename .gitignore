@@ -36,3 +36,6 @@ dist-ssr
 # next
 **/.next
 packages/frontend/out
+
+# test Level DB
+packages/stateManager/tmpDb

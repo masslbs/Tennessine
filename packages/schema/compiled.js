@@ -1544,6 +1544,305 @@ $root.market = (function () {
       return values;
     })();
 
+    mass.ShopCurrency = (function () {
+      /**
+       * Properties of a ShopCurrency.
+       * @memberof market.mass
+       * @interface IShopCurrency
+       * @property {number|Long|null} [chainId] ShopCurrency chainId
+       * @property {Uint8Array|null} [tokenAddr] ShopCurrency tokenAddr
+       */
+
+      /**
+       * Constructs a new ShopCurrency.
+       * @memberof market.mass
+       * @classdesc Represents a ShopCurrency.
+       * @implements IShopCurrency
+       * @constructor
+       * @param {market.mass.IShopCurrency=} [properties] Properties to set
+       */
+      function ShopCurrency(properties) {
+        if (properties)
+          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+            if (properties[keys[i]] != null)
+              this[keys[i]] = properties[keys[i]];
+      }
+
+      /**
+       * ShopCurrency chainId.
+       * @member {number|Long} chainId
+       * @memberof market.mass.ShopCurrency
+       * @instance
+       */
+      ShopCurrency.prototype.chainId = $util.Long
+        ? $util.Long.fromBits(0, 0, true)
+        : 0;
+
+      /**
+       * ShopCurrency tokenAddr.
+       * @member {Uint8Array} tokenAddr
+       * @memberof market.mass.ShopCurrency
+       * @instance
+       */
+      ShopCurrency.prototype.tokenAddr = $util.newBuffer([]);
+
+      /**
+       * Creates a new ShopCurrency instance using the specified properties.
+       * @function create
+       * @memberof market.mass.ShopCurrency
+       * @static
+       * @param {market.mass.IShopCurrency=} [properties] Properties to set
+       * @returns {market.mass.ShopCurrency} ShopCurrency instance
+       */
+      ShopCurrency.create = function create(properties) {
+        return new ShopCurrency(properties);
+      };
+
+      /**
+       * Encodes the specified ShopCurrency message. Does not implicitly {@link market.mass.ShopCurrency.verify|verify} messages.
+       * @function encode
+       * @memberof market.mass.ShopCurrency
+       * @static
+       * @param {market.mass.IShopCurrency} message ShopCurrency message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      ShopCurrency.encode = function encode(message, writer) {
+        if (!writer) writer = $Writer.create();
+        if (
+          message.chainId != null &&
+          Object.hasOwnProperty.call(message, "chainId")
+        )
+          writer.uint32(/* id 1, wireType 0 =*/ 8).uint64(message.chainId);
+        if (
+          message.tokenAddr != null &&
+          Object.hasOwnProperty.call(message, "tokenAddr")
+        )
+          writer.uint32(/* id 2, wireType 2 =*/ 18).bytes(message.tokenAddr);
+        return writer;
+      };
+
+      /**
+       * Encodes the specified ShopCurrency message, length delimited. Does not implicitly {@link market.mass.ShopCurrency.verify|verify} messages.
+       * @function encodeDelimited
+       * @memberof market.mass.ShopCurrency
+       * @static
+       * @param {market.mass.IShopCurrency} message ShopCurrency message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      ShopCurrency.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+      };
+
+      /**
+       * Decodes a ShopCurrency message from the specified reader or buffer.
+       * @function decode
+       * @memberof market.mass.ShopCurrency
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @param {number} [length] Message length if known beforehand
+       * @returns {market.mass.ShopCurrency} ShopCurrency
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      ShopCurrency.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+        var end = length === undefined ? reader.len : reader.pos + length,
+          message = new $root.market.mass.ShopCurrency();
+        while (reader.pos < end) {
+          var tag = reader.uint32();
+          switch (tag >>> 3) {
+            case 1: {
+              message.chainId = reader.uint64();
+              break;
+            }
+            case 2: {
+              message.tokenAddr = reader.bytes();
+              break;
+            }
+            default:
+              reader.skipType(tag & 7);
+              break;
+          }
+        }
+        return message;
+      };
+
+      /**
+       * Decodes a ShopCurrency message from the specified reader or buffer, length delimited.
+       * @function decodeDelimited
+       * @memberof market.mass.ShopCurrency
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @returns {market.mass.ShopCurrency} ShopCurrency
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      ShopCurrency.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+      };
+
+      /**
+       * Verifies a ShopCurrency message.
+       * @function verify
+       * @memberof market.mass.ShopCurrency
+       * @static
+       * @param {Object.<string,*>} message Plain object to verify
+       * @returns {string|null} `null` if valid, otherwise the reason why it is not
+       */
+      ShopCurrency.verify = function verify(message) {
+        if (typeof message !== "object" || message === null)
+          return "object expected";
+        if (message.chainId != null && message.hasOwnProperty("chainId"))
+          if (
+            !$util.isInteger(message.chainId) &&
+            !(
+              message.chainId &&
+              $util.isInteger(message.chainId.low) &&
+              $util.isInteger(message.chainId.high)
+            )
+          )
+            return "chainId: integer|Long expected";
+        if (message.tokenAddr != null && message.hasOwnProperty("tokenAddr"))
+          if (
+            !(
+              (message.tokenAddr &&
+                typeof message.tokenAddr.length === "number") ||
+              $util.isString(message.tokenAddr)
+            )
+          )
+            return "tokenAddr: buffer expected";
+        return null;
+      };
+
+      /**
+       * Creates a ShopCurrency message from a plain object. Also converts values to their respective internal types.
+       * @function fromObject
+       * @memberof market.mass.ShopCurrency
+       * @static
+       * @param {Object.<string,*>} object Plain object
+       * @returns {market.mass.ShopCurrency} ShopCurrency
+       */
+      ShopCurrency.fromObject = function fromObject(object) {
+        if (object instanceof $root.market.mass.ShopCurrency) return object;
+        var message = new $root.market.mass.ShopCurrency();
+        if (object.chainId != null)
+          if ($util.Long)
+            (message.chainId = $util.Long.fromValue(object.chainId)).unsigned =
+              true;
+          else if (typeof object.chainId === "string")
+            message.chainId = parseInt(object.chainId, 10);
+          else if (typeof object.chainId === "number")
+            message.chainId = object.chainId;
+          else if (typeof object.chainId === "object")
+            message.chainId = new $util.LongBits(
+              object.chainId.low >>> 0,
+              object.chainId.high >>> 0,
+            ).toNumber(true);
+        if (object.tokenAddr != null)
+          if (typeof object.tokenAddr === "string")
+            $util.base64.decode(
+              object.tokenAddr,
+              (message.tokenAddr = $util.newBuffer(
+                $util.base64.length(object.tokenAddr),
+              )),
+              0,
+            );
+          else if (object.tokenAddr.length >= 0)
+            message.tokenAddr = object.tokenAddr;
+        return message;
+      };
+
+      /**
+       * Creates a plain object from a ShopCurrency message. Also converts values to other types if specified.
+       * @function toObject
+       * @memberof market.mass.ShopCurrency
+       * @static
+       * @param {market.mass.ShopCurrency} message ShopCurrency
+       * @param {$protobuf.IConversionOptions} [options] Conversion options
+       * @returns {Object.<string,*>} Plain object
+       */
+      ShopCurrency.toObject = function toObject(message, options) {
+        if (!options) options = {};
+        var object = {};
+        if (options.defaults) {
+          if ($util.Long) {
+            var long = new $util.Long(0, 0, true);
+            object.chainId =
+              options.longs === String
+                ? long.toString()
+                : options.longs === Number
+                  ? long.toNumber()
+                  : long;
+          } else object.chainId = options.longs === String ? "0" : 0;
+          if (options.bytes === String) object.tokenAddr = "";
+          else {
+            object.tokenAddr = [];
+            if (options.bytes !== Array)
+              object.tokenAddr = $util.newBuffer(object.tokenAddr);
+          }
+        }
+        if (message.chainId != null && message.hasOwnProperty("chainId"))
+          if (typeof message.chainId === "number")
+            object.chainId =
+              options.longs === String
+                ? String(message.chainId)
+                : message.chainId;
+          else
+            object.chainId =
+              options.longs === String
+                ? $util.Long.prototype.toString.call(message.chainId)
+                : options.longs === Number
+                  ? new $util.LongBits(
+                      message.chainId.low >>> 0,
+                      message.chainId.high >>> 0,
+                    ).toNumber(true)
+                  : message.chainId;
+        if (message.tokenAddr != null && message.hasOwnProperty("tokenAddr"))
+          object.tokenAddr =
+            options.bytes === String
+              ? $util.base64.encode(
+                  message.tokenAddr,
+                  0,
+                  message.tokenAddr.length,
+                )
+              : options.bytes === Array
+                ? Array.prototype.slice.call(message.tokenAddr)
+                : message.tokenAddr;
+        return object;
+      };
+
+      /**
+       * Converts this ShopCurrency to JSON.
+       * @function toJSON
+       * @memberof market.mass.ShopCurrency
+       * @instance
+       * @returns {Object.<string,*>} JSON object
+       */
+      ShopCurrency.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+      };
+
+      /**
+       * Gets the default type url for ShopCurrency
+       * @function getTypeUrl
+       * @memberof market.mass.ShopCurrency
+       * @static
+       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+       * @returns {string} The default type url
+       */
+      ShopCurrency.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        if (typeUrlPrefix === undefined) {
+          typeUrlPrefix = "type.googleapis.com";
+        }
+        return typeUrlPrefix + "/market.mass.ShopCurrency";
+      };
+
+      return ShopCurrency;
+    })();
+
     mass.ShopManifest = (function () {
       /**
        * Properties of a ShopManifest.
@@ -2017,8 +2316,8 @@ $root.market = (function () {
        * @property {Uint8Array|null} [publishedTagId] UpdateShopManifest publishedTagId
        * @property {market.mass.UpdateShopManifest.IPayee|null} [addPayee] UpdateShopManifest addPayee
        * @property {market.mass.UpdateShopManifest.IPayee|null} [removePayee] UpdateShopManifest removePayee
-       * @property {market.mass.IShopCurrency|null} [addAcceptedCurrency] UpdateShopManifest addAcceptedCurrency
-       * @property {market.mass.IShopCurrency|null} [removeAcceptedCurrency] UpdateShopManifest removeAcceptedCurrency
+       * @property {Array.<market.mass.IShopCurrency>|null} [addAcceptedCurrencies] UpdateShopManifest addAcceptedCurrencies
+       * @property {Array.<market.mass.IShopCurrency>|null} [removeAcceptedCurrencies] UpdateShopManifest removeAcceptedCurrencies
        * @property {market.mass.IShopCurrency|null} [setBaseCurrency] UpdateShopManifest setBaseCurrency
        */
 
@@ -2031,6 +2330,8 @@ $root.market = (function () {
        * @param {market.mass.IUpdateShopManifest=} [properties] Properties to set
        */
       function UpdateShopManifest(properties) {
+        this.addAcceptedCurrencies = [];
+        this.removeAcceptedCurrencies = [];
         if (properties)
           for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
             if (properties[keys[i]] != null)
@@ -2102,20 +2403,20 @@ $root.market = (function () {
       UpdateShopManifest.prototype.removePayee = null;
 
       /**
-       * UpdateShopManifest addAcceptedCurrency.
-       * @member {market.mass.IShopCurrency|null|undefined} addAcceptedCurrency
+       * UpdateShopManifest addAcceptedCurrencies.
+       * @member {Array.<market.mass.IShopCurrency>} addAcceptedCurrencies
        * @memberof market.mass.UpdateShopManifest
        * @instance
        */
-      UpdateShopManifest.prototype.addAcceptedCurrency = null;
+      UpdateShopManifest.prototype.addAcceptedCurrencies = $util.emptyArray;
 
       /**
-       * UpdateShopManifest removeAcceptedCurrency.
-       * @member {market.mass.IShopCurrency|null|undefined} removeAcceptedCurrency
+       * UpdateShopManifest removeAcceptedCurrencies.
+       * @member {Array.<market.mass.IShopCurrency>} removeAcceptedCurrencies
        * @memberof market.mass.UpdateShopManifest
        * @instance
        */
-      UpdateShopManifest.prototype.removeAcceptedCurrency = null;
+      UpdateShopManifest.prototype.removeAcceptedCurrencies = $util.emptyArray;
 
       /**
        * UpdateShopManifest setBaseCurrency.
@@ -2210,36 +2511,6 @@ $root.market = (function () {
       });
 
       /**
-       * UpdateShopManifest _addAcceptedCurrency.
-       * @member {"addAcceptedCurrency"|undefined} _addAcceptedCurrency
-       * @memberof market.mass.UpdateShopManifest
-       * @instance
-       */
-      Object.defineProperty(
-        UpdateShopManifest.prototype,
-        "_addAcceptedCurrency",
-        {
-          get: $util.oneOfGetter(($oneOfFields = ["addAcceptedCurrency"])),
-          set: $util.oneOfSetter($oneOfFields),
-        },
-      );
-
-      /**
-       * UpdateShopManifest _removeAcceptedCurrency.
-       * @member {"removeAcceptedCurrency"|undefined} _removeAcceptedCurrency
-       * @memberof market.mass.UpdateShopManifest
-       * @instance
-       */
-      Object.defineProperty(
-        UpdateShopManifest.prototype,
-        "_removeAcceptedCurrency",
-        {
-          get: $util.oneOfGetter(($oneOfFields = ["removeAcceptedCurrency"])),
-          set: $util.oneOfSetter($oneOfFields),
-        },
-      );
-
-      /**
        * UpdateShopManifest _setBaseCurrency.
        * @member {"setBaseCurrency"|undefined} _setBaseCurrency
        * @memberof market.mass.UpdateShopManifest
@@ -2321,21 +2592,23 @@ $root.market = (function () {
             writer.uint32(/* id 8, wireType 2 =*/ 66).fork(),
           ).ldelim();
         if (
-          message.addAcceptedCurrency != null &&
-          Object.hasOwnProperty.call(message, "addAcceptedCurrency")
+          message.addAcceptedCurrencies != null &&
+          message.addAcceptedCurrencies.length
         )
-          $root.market.mass.ShopCurrency.encode(
-            message.addAcceptedCurrency,
-            writer.uint32(/* id 9, wireType 2 =*/ 74).fork(),
-          ).ldelim();
+          for (var i = 0; i < message.addAcceptedCurrencies.length; ++i)
+            $root.market.mass.ShopCurrency.encode(
+              message.addAcceptedCurrencies[i],
+              writer.uint32(/* id 9, wireType 2 =*/ 74).fork(),
+            ).ldelim();
         if (
-          message.removeAcceptedCurrency != null &&
-          Object.hasOwnProperty.call(message, "removeAcceptedCurrency")
+          message.removeAcceptedCurrencies != null &&
+          message.removeAcceptedCurrencies.length
         )
-          $root.market.mass.ShopCurrency.encode(
-            message.removeAcceptedCurrency,
-            writer.uint32(/* id 10, wireType 2 =*/ 82).fork(),
-          ).ldelim();
+          for (var i = 0; i < message.removeAcceptedCurrencies.length; ++i)
+            $root.market.mass.ShopCurrency.encode(
+              message.removeAcceptedCurrencies[i],
+              writer.uint32(/* id 10, wireType 2 =*/ 82).fork(),
+            ).ldelim();
         if (
           message.setBaseCurrency != null &&
           Object.hasOwnProperty.call(message, "setBaseCurrency")
@@ -2422,13 +2695,29 @@ $root.market = (function () {
               break;
             }
             case 9: {
-              message.addAcceptedCurrency =
-                $root.market.mass.ShopCurrency.decode(reader, reader.uint32());
+              if (
+                !(
+                  message.addAcceptedCurrencies &&
+                  message.addAcceptedCurrencies.length
+                )
+              )
+                message.addAcceptedCurrencies = [];
+              message.addAcceptedCurrencies.push(
+                $root.market.mass.ShopCurrency.decode(reader, reader.uint32()),
+              );
               break;
             }
             case 10: {
-              message.removeAcceptedCurrency =
-                $root.market.mass.ShopCurrency.decode(reader, reader.uint32());
+              if (
+                !(
+                  message.removeAcceptedCurrencies &&
+                  message.removeAcceptedCurrencies.length
+                )
+              )
+                message.removeAcceptedCurrencies = [];
+              message.removeAcceptedCurrencies.push(
+                $root.market.mass.ShopCurrency.decode(reader, reader.uint32()),
+              );
               break;
             }
             case 11: {
@@ -2541,27 +2830,29 @@ $root.market = (function () {
           }
         }
         if (
-          message.addAcceptedCurrency != null &&
-          message.hasOwnProperty("addAcceptedCurrency")
+          message.addAcceptedCurrencies != null &&
+          message.hasOwnProperty("addAcceptedCurrencies")
         ) {
-          properties._addAcceptedCurrency = 1;
-          {
+          if (!Array.isArray(message.addAcceptedCurrencies))
+            return "addAcceptedCurrencies: array expected";
+          for (var i = 0; i < message.addAcceptedCurrencies.length; ++i) {
             var error = $root.market.mass.ShopCurrency.verify(
-              message.addAcceptedCurrency,
+              message.addAcceptedCurrencies[i],
             );
-            if (error) return "addAcceptedCurrency." + error;
+            if (error) return "addAcceptedCurrencies." + error;
           }
         }
         if (
-          message.removeAcceptedCurrency != null &&
-          message.hasOwnProperty("removeAcceptedCurrency")
+          message.removeAcceptedCurrencies != null &&
+          message.hasOwnProperty("removeAcceptedCurrencies")
         ) {
-          properties._removeAcceptedCurrency = 1;
-          {
+          if (!Array.isArray(message.removeAcceptedCurrencies))
+            return "removeAcceptedCurrencies: array expected";
+          for (var i = 0; i < message.removeAcceptedCurrencies.length; ++i) {
             var error = $root.market.mass.ShopCurrency.verify(
-              message.removeAcceptedCurrency,
+              message.removeAcceptedCurrencies[i],
             );
-            if (error) return "removeAcceptedCurrency." + error;
+            if (error) return "removeAcceptedCurrencies." + error;
           }
         }
         if (
@@ -2638,25 +2929,39 @@ $root.market = (function () {
               object.removePayee,
             );
         }
-        if (object.addAcceptedCurrency != null) {
-          if (typeof object.addAcceptedCurrency !== "object")
+        if (object.addAcceptedCurrencies) {
+          if (!Array.isArray(object.addAcceptedCurrencies))
             throw TypeError(
-              ".market.mass.UpdateShopManifest.addAcceptedCurrency: object expected",
+              ".market.mass.UpdateShopManifest.addAcceptedCurrencies: array expected",
             );
-          message.addAcceptedCurrency =
-            $root.market.mass.ShopCurrency.fromObject(
-              object.addAcceptedCurrency,
-            );
+          message.addAcceptedCurrencies = [];
+          for (var i = 0; i < object.addAcceptedCurrencies.length; ++i) {
+            if (typeof object.addAcceptedCurrencies[i] !== "object")
+              throw TypeError(
+                ".market.mass.UpdateShopManifest.addAcceptedCurrencies: object expected",
+              );
+            message.addAcceptedCurrencies[i] =
+              $root.market.mass.ShopCurrency.fromObject(
+                object.addAcceptedCurrencies[i],
+              );
+          }
         }
-        if (object.removeAcceptedCurrency != null) {
-          if (typeof object.removeAcceptedCurrency !== "object")
+        if (object.removeAcceptedCurrencies) {
+          if (!Array.isArray(object.removeAcceptedCurrencies))
             throw TypeError(
-              ".market.mass.UpdateShopManifest.removeAcceptedCurrency: object expected",
+              ".market.mass.UpdateShopManifest.removeAcceptedCurrencies: array expected",
             );
-          message.removeAcceptedCurrency =
-            $root.market.mass.ShopCurrency.fromObject(
-              object.removeAcceptedCurrency,
-            );
+          message.removeAcceptedCurrencies = [];
+          for (var i = 0; i < object.removeAcceptedCurrencies.length; ++i) {
+            if (typeof object.removeAcceptedCurrencies[i] !== "object")
+              throw TypeError(
+                ".market.mass.UpdateShopManifest.removeAcceptedCurrencies: object expected",
+              );
+            message.removeAcceptedCurrencies[i] =
+              $root.market.mass.ShopCurrency.fromObject(
+                object.removeAcceptedCurrencies[i],
+              );
+          }
         }
         if (object.setBaseCurrency != null) {
           if (typeof object.setBaseCurrency !== "object")
@@ -2682,6 +2987,10 @@ $root.market = (function () {
       UpdateShopManifest.toObject = function toObject(message, options) {
         if (!options) options = {};
         var object = {};
+        if (options.arrays || options.defaults) {
+          object.addAcceptedCurrencies = [];
+          object.removeAcceptedCurrencies = [];
+        }
         if (options.defaults)
           if (options.bytes === String) object.eventId = "";
           else {
@@ -2753,27 +3062,28 @@ $root.market = (function () {
           if (options.oneofs) object._removePayee = "removePayee";
         }
         if (
-          message.addAcceptedCurrency != null &&
-          message.hasOwnProperty("addAcceptedCurrency")
+          message.addAcceptedCurrencies &&
+          message.addAcceptedCurrencies.length
         ) {
-          object.addAcceptedCurrency = $root.market.mass.ShopCurrency.toObject(
-            message.addAcceptedCurrency,
-            options,
-          );
-          if (options.oneofs)
-            object._addAcceptedCurrency = "addAcceptedCurrency";
+          object.addAcceptedCurrencies = [];
+          for (var j = 0; j < message.addAcceptedCurrencies.length; ++j)
+            object.addAcceptedCurrencies[j] =
+              $root.market.mass.ShopCurrency.toObject(
+                message.addAcceptedCurrencies[j],
+                options,
+              );
         }
         if (
-          message.removeAcceptedCurrency != null &&
-          message.hasOwnProperty("removeAcceptedCurrency")
+          message.removeAcceptedCurrencies &&
+          message.removeAcceptedCurrencies.length
         ) {
-          object.removeAcceptedCurrency =
-            $root.market.mass.ShopCurrency.toObject(
-              message.removeAcceptedCurrency,
-              options,
-            );
-          if (options.oneofs)
-            object._removeAcceptedCurrency = "removeAcceptedCurrency";
+          object.removeAcceptedCurrencies = [];
+          for (var j = 0; j < message.removeAcceptedCurrencies.length; ++j)
+            object.removeAcceptedCurrencies[j] =
+              $root.market.mass.ShopCurrency.toObject(
+                message.removeAcceptedCurrencies[j],
+                options,
+              );
         }
         if (
           message.setBaseCurrency != null &&
@@ -8451,305 +8761,6 @@ $root.market = (function () {
       };
 
       return ShopEvent;
-    })();
-
-    mass.ShopCurrency = (function () {
-      /**
-       * Properties of a ShopCurrency.
-       * @memberof market.mass
-       * @interface IShopCurrency
-       * @property {number|Long|null} [chainId] ShopCurrency chainId
-       * @property {Uint8Array|null} [tokenAddr] ShopCurrency tokenAddr
-       */
-
-      /**
-       * Constructs a new ShopCurrency.
-       * @memberof market.mass
-       * @classdesc Represents a ShopCurrency.
-       * @implements IShopCurrency
-       * @constructor
-       * @param {market.mass.IShopCurrency=} [properties] Properties to set
-       */
-      function ShopCurrency(properties) {
-        if (properties)
-          for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-            if (properties[keys[i]] != null)
-              this[keys[i]] = properties[keys[i]];
-      }
-
-      /**
-       * ShopCurrency chainId.
-       * @member {number|Long} chainId
-       * @memberof market.mass.ShopCurrency
-       * @instance
-       */
-      ShopCurrency.prototype.chainId = $util.Long
-        ? $util.Long.fromBits(0, 0, true)
-        : 0;
-
-      /**
-       * ShopCurrency tokenAddr.
-       * @member {Uint8Array} tokenAddr
-       * @memberof market.mass.ShopCurrency
-       * @instance
-       */
-      ShopCurrency.prototype.tokenAddr = $util.newBuffer([]);
-
-      /**
-       * Creates a new ShopCurrency instance using the specified properties.
-       * @function create
-       * @memberof market.mass.ShopCurrency
-       * @static
-       * @param {market.mass.IShopCurrency=} [properties] Properties to set
-       * @returns {market.mass.ShopCurrency} ShopCurrency instance
-       */
-      ShopCurrency.create = function create(properties) {
-        return new ShopCurrency(properties);
-      };
-
-      /**
-       * Encodes the specified ShopCurrency message. Does not implicitly {@link market.mass.ShopCurrency.verify|verify} messages.
-       * @function encode
-       * @memberof market.mass.ShopCurrency
-       * @static
-       * @param {market.mass.IShopCurrency} message ShopCurrency message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      ShopCurrency.encode = function encode(message, writer) {
-        if (!writer) writer = $Writer.create();
-        if (
-          message.chainId != null &&
-          Object.hasOwnProperty.call(message, "chainId")
-        )
-          writer.uint32(/* id 1, wireType 0 =*/ 8).uint64(message.chainId);
-        if (
-          message.tokenAddr != null &&
-          Object.hasOwnProperty.call(message, "tokenAddr")
-        )
-          writer.uint32(/* id 2, wireType 2 =*/ 18).bytes(message.tokenAddr);
-        return writer;
-      };
-
-      /**
-       * Encodes the specified ShopCurrency message, length delimited. Does not implicitly {@link market.mass.ShopCurrency.verify|verify} messages.
-       * @function encodeDelimited
-       * @memberof market.mass.ShopCurrency
-       * @static
-       * @param {market.mass.IShopCurrency} message ShopCurrency message or plain object to encode
-       * @param {$protobuf.Writer} [writer] Writer to encode to
-       * @returns {$protobuf.Writer} Writer
-       */
-      ShopCurrency.encodeDelimited = function encodeDelimited(message, writer) {
-        return this.encode(message, writer).ldelim();
-      };
-
-      /**
-       * Decodes a ShopCurrency message from the specified reader or buffer.
-       * @function decode
-       * @memberof market.mass.ShopCurrency
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @param {number} [length] Message length if known beforehand
-       * @returns {market.mass.ShopCurrency} ShopCurrency
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      ShopCurrency.decode = function decode(reader, length) {
-        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
-        var end = length === undefined ? reader.len : reader.pos + length,
-          message = new $root.market.mass.ShopCurrency();
-        while (reader.pos < end) {
-          var tag = reader.uint32();
-          switch (tag >>> 3) {
-            case 1: {
-              message.chainId = reader.uint64();
-              break;
-            }
-            case 2: {
-              message.tokenAddr = reader.bytes();
-              break;
-            }
-            default:
-              reader.skipType(tag & 7);
-              break;
-          }
-        }
-        return message;
-      };
-
-      /**
-       * Decodes a ShopCurrency message from the specified reader or buffer, length delimited.
-       * @function decodeDelimited
-       * @memberof market.mass.ShopCurrency
-       * @static
-       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-       * @returns {market.mass.ShopCurrency} ShopCurrency
-       * @throws {Error} If the payload is not a reader or valid buffer
-       * @throws {$protobuf.util.ProtocolError} If required fields are missing
-       */
-      ShopCurrency.decodeDelimited = function decodeDelimited(reader) {
-        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
-        return this.decode(reader, reader.uint32());
-      };
-
-      /**
-       * Verifies a ShopCurrency message.
-       * @function verify
-       * @memberof market.mass.ShopCurrency
-       * @static
-       * @param {Object.<string,*>} message Plain object to verify
-       * @returns {string|null} `null` if valid, otherwise the reason why it is not
-       */
-      ShopCurrency.verify = function verify(message) {
-        if (typeof message !== "object" || message === null)
-          return "object expected";
-        if (message.chainId != null && message.hasOwnProperty("chainId"))
-          if (
-            !$util.isInteger(message.chainId) &&
-            !(
-              message.chainId &&
-              $util.isInteger(message.chainId.low) &&
-              $util.isInteger(message.chainId.high)
-            )
-          )
-            return "chainId: integer|Long expected";
-        if (message.tokenAddr != null && message.hasOwnProperty("tokenAddr"))
-          if (
-            !(
-              (message.tokenAddr &&
-                typeof message.tokenAddr.length === "number") ||
-              $util.isString(message.tokenAddr)
-            )
-          )
-            return "tokenAddr: buffer expected";
-        return null;
-      };
-
-      /**
-       * Creates a ShopCurrency message from a plain object. Also converts values to their respective internal types.
-       * @function fromObject
-       * @memberof market.mass.ShopCurrency
-       * @static
-       * @param {Object.<string,*>} object Plain object
-       * @returns {market.mass.ShopCurrency} ShopCurrency
-       */
-      ShopCurrency.fromObject = function fromObject(object) {
-        if (object instanceof $root.market.mass.ShopCurrency) return object;
-        var message = new $root.market.mass.ShopCurrency();
-        if (object.chainId != null)
-          if ($util.Long)
-            (message.chainId = $util.Long.fromValue(object.chainId)).unsigned =
-              true;
-          else if (typeof object.chainId === "string")
-            message.chainId = parseInt(object.chainId, 10);
-          else if (typeof object.chainId === "number")
-            message.chainId = object.chainId;
-          else if (typeof object.chainId === "object")
-            message.chainId = new $util.LongBits(
-              object.chainId.low >>> 0,
-              object.chainId.high >>> 0,
-            ).toNumber(true);
-        if (object.tokenAddr != null)
-          if (typeof object.tokenAddr === "string")
-            $util.base64.decode(
-              object.tokenAddr,
-              (message.tokenAddr = $util.newBuffer(
-                $util.base64.length(object.tokenAddr),
-              )),
-              0,
-            );
-          else if (object.tokenAddr.length >= 0)
-            message.tokenAddr = object.tokenAddr;
-        return message;
-      };
-
-      /**
-       * Creates a plain object from a ShopCurrency message. Also converts values to other types if specified.
-       * @function toObject
-       * @memberof market.mass.ShopCurrency
-       * @static
-       * @param {market.mass.ShopCurrency} message ShopCurrency
-       * @param {$protobuf.IConversionOptions} [options] Conversion options
-       * @returns {Object.<string,*>} Plain object
-       */
-      ShopCurrency.toObject = function toObject(message, options) {
-        if (!options) options = {};
-        var object = {};
-        if (options.defaults) {
-          if ($util.Long) {
-            var long = new $util.Long(0, 0, true);
-            object.chainId =
-              options.longs === String
-                ? long.toString()
-                : options.longs === Number
-                  ? long.toNumber()
-                  : long;
-          } else object.chainId = options.longs === String ? "0" : 0;
-          if (options.bytes === String) object.tokenAddr = "";
-          else {
-            object.tokenAddr = [];
-            if (options.bytes !== Array)
-              object.tokenAddr = $util.newBuffer(object.tokenAddr);
-          }
-        }
-        if (message.chainId != null && message.hasOwnProperty("chainId"))
-          if (typeof message.chainId === "number")
-            object.chainId =
-              options.longs === String
-                ? String(message.chainId)
-                : message.chainId;
-          else
-            object.chainId =
-              options.longs === String
-                ? $util.Long.prototype.toString.call(message.chainId)
-                : options.longs === Number
-                  ? new $util.LongBits(
-                      message.chainId.low >>> 0,
-                      message.chainId.high >>> 0,
-                    ).toNumber(true)
-                  : message.chainId;
-        if (message.tokenAddr != null && message.hasOwnProperty("tokenAddr"))
-          object.tokenAddr =
-            options.bytes === String
-              ? $util.base64.encode(
-                  message.tokenAddr,
-                  0,
-                  message.tokenAddr.length,
-                )
-              : options.bytes === Array
-                ? Array.prototype.slice.call(message.tokenAddr)
-                : message.tokenAddr;
-        return object;
-      };
-
-      /**
-       * Converts this ShopCurrency to JSON.
-       * @function toJSON
-       * @memberof market.mass.ShopCurrency
-       * @instance
-       * @returns {Object.<string,*>} JSON object
-       */
-      ShopCurrency.prototype.toJSON = function toJSON() {
-        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-      };
-
-      /**
-       * Gets the default type url for ShopCurrency
-       * @function getTypeUrl
-       * @memberof market.mass.ShopCurrency
-       * @static
-       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-       * @returns {string} The default type url
-       */
-      ShopCurrency.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-        if (typeUrlPrefix === undefined) {
-          typeUrlPrefix = "type.googleapis.com";
-        }
-        return typeUrlPrefix + "/market.mass.ShopCurrency";
-      };
-
-      return ShopCurrency;
     })();
 
     mass.CommitItemsToOrderRequest = (function () {

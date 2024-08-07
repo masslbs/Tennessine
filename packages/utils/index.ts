@@ -31,3 +31,13 @@ export function hexToBase64(hex: string) {
   const u8 = new Uint8Array(toBytes(hex));
   return Buffer.from(u8).toString("base64");
 }
+
+export const bufferToJSON = (metadata: Uint8Array) => {
+  return JSON.parse(new TextDecoder().decode(metadata));
+};
+
+export const stringifyToBuffer = (data: any) => {
+  return new TextEncoder().encode(JSON.stringify(data));
+};
+
+export const zeroAddress = "0x0000000000000000000000000000000000000000";

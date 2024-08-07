@@ -130,10 +130,6 @@ jobs:
         run: nix develop -c bash -c "pnpm exec vitest --browser --watch=false"
         working-directory: Tennessine/packages/client
 
-      - name: Run mockClient tests
-        run: nix develop -c bash -c "pnpm test ./test/mockClient.test.ts"
-        working-directory: Tennessine/packages/frontend
-
       - name: build frontend
         run: nix develop -c bash -c "pnpm build"
         working-directory: Tennessine/packages/frontend

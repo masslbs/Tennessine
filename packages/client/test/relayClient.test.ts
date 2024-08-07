@@ -5,7 +5,6 @@
 import { WebSocket } from "isows";
 import {
   hexToBytes,
-  toHex,
   createWalletClient,
   createPublicClient,
   http,
@@ -18,7 +17,6 @@ import { describe, beforeEach, expect, test } from "vitest";
 import { RelayClient } from "../src";
 import { random32BytesHex, randomBytes } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
-import { randomAddress } from "@massmarket/utils";
 import {
   BlockchainClient,
   WalletClientWithAccount,
@@ -128,6 +126,7 @@ describe("RelayClient", async () => {
 
 describe("user behaviour", () => {
   const relayClient = createRelayClient();
+
   // enroll and login
   test("should enroll keycard", async () => {
     const response = await relayClient.enrollKeycard(wallet, false, shopId);
@@ -163,7 +162,6 @@ describe("user behaviour", () => {
       shopId,
     );
   });
-
   test("update shop manifest", async () => {
     await relayClient.updateShopManifest({ domain: "socks.mass.market" });
     await relayClient.updateShopManifest({
@@ -175,16 +173,20 @@ describe("user behaviour", () => {
     });
 
     await relayClient.updateShopManifest({
-      addAcceptedCurrency: {
-        tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
-        chainId: 31337,
-      },
+      addAcceptedCurrencies: [
+        {
+          tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
+          chainId: 31337,
+        },
+      ],
     });
     await relayClient.updateShopManifest({
-      removeAcceptedCurrency: {
-        tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
-        chainId: 31337,
-      },
+      removeAcceptedCurrencies: [
+        {
+          tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
+          chainId: 31337,
+        },
+      ],
     });
   });
 
@@ -296,7 +298,16 @@ describe("user behaviour", () => {
         domain: "test2-test",
       });
     });
-
+    test("client 1 receives events from createEventStream", async () => {
+      const getStream = async () => {
+        const stream = relayClient.createEventStream();
+        for await (const evt of stream) {
+          return 1;
+        }
+      };
+      const evtLength = await getStream();
+      expect(evtLength).toBeGreaterThan(0);
+    });
     test("client 2 receives events from createEventStream", async () => {
       const getStream = async () => {
         const stream = relayClient2.createEventStream();
@@ -307,5 +318,62 @@ describe("user behaviour", () => {
       const evtLength = await getStream();
       expect(evtLength).toBeGreaterThan(0);
     });
+  });
+});
+
+describe("If there is a network error, state manager should not change the state.", async () => {
+  const client = createRelayClient();
+
+  const shopId = random32BytesHex();
+
+  let blockchain = new BlockchainClient(shopId);
+
+  test("Bad network calls should not change state data", async () => {
+    const transactionHash = await blockchain.createShop(wallet);
+    const receipt = await publicClient.waitForTransactionReceipt({
+      hash: transactionHash,
+    });
+    expect(receipt.status).equals("success");
+    const publishedTagId = randomBytes(32);
+    const name = "test shop";
+    const description = "creating test shop";
+    const profilePictureUrl = "https://http.cat/images/200.jpg";
+    const response = await client.enrollKeycard(wallet, false, shopId);
+    expect(response.status).toBe(201);
+    await client.connect();
+
+    await client.shopManifest(
+      {
+        name,
+        description,
+        profilePictureUrl,
+        publishedTagId,
+      },
+      shopId,
+    );
+
+    await expect(async () => {
+      await client.updateShopManifest({
+        addAcceptedCurrencies: [
+          {
+            chainId: 31337,
+            tokenAddr: "bad address",
+          },
+        ],
+      });
+    }).rejects.toThrowError();
+
+    // const manifest = await stateManager.manifest.get();
+    // expect(manifest.addAcceptedCurrencies.length).toEqual(0);
+
+    // await expect(async () => {
+    //   await client.createItem({
+    //     price: "10.99",
+    //     metadata: "bad metadata",
+    //   });
+    // }).rejects.toThrowError();
+
+    // const keys = await listingStore.keys().all();
+    // expect(keys.length).toEqual(0);
   });
 });

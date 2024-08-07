@@ -101,10 +101,12 @@ test("update shop manifest", async () => {
   currency = hexToBytes(abi.addresses.Eddies as Address);
   // tell the relay to accept our money
   const r = await relayClient.updateShopManifest({
-    addAcceptedCurrency: {
-      tokenAddr: currency,
-      chainId: 31337,
-    },
+    addAcceptedCurrencies: [
+      {
+        tokenAddr: currency,
+        chainId: 31337,
+      },
+    ],
     addPayee: {
       addr: payee,
       callAsContract: false,

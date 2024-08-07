@@ -65,4 +65,8 @@ export class ReadableEventStream {
       this.resolve = resolve;
     });
   }
+  //This method enqueues events created by the client, since these are not sent back from the relay.
+  async outgoingEnqueue(event: schema.IShopEvent) {
+    this.controller.enqueue({ event });
+  }
 }
