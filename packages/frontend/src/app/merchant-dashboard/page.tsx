@@ -12,7 +12,7 @@ import SecondaryButton from "@/app/common/components/SecondaryButton";
 import Image from "next/image";
 import { createQueryString } from "@/app/utils";
 import { useSearchParams } from "next/navigation";
-import { IStatus, OrderId } from "@/types";
+import { Status, OrderId } from "@/types";
 import { OrderState } from "@/context/types";
 
 const MerchantDashboard = () => {
@@ -37,9 +37,9 @@ const MerchantDashboard = () => {
         if (!value?.items) return null;
         const len = Object.keys(value.items).length;
         const status =
-          value.status === IStatus.Complete
+          value.status === Status.Complete
             ? "green"
-            : value.status === IStatus.Failed
+            : value.status === Status.Failed
               ? "red"
               : "yellow";
         return (

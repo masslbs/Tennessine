@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { ITag, TagId } from "@/types";
+import { Tag, TagId } from "@/types";
 
 export const ADD_TAG = "ADD_TAG";
 export const SET_ALL_TAGS = "SET_ALL_TAGS";
@@ -16,11 +16,11 @@ export const ALL_TAGS = "ALL_TAGS";
 
 export type selectedTagsAction = {
   type: "SELECT_TAG" | "DESELECT_TAG" | "RESET_TAGS";
-  payload: { selectedTag: ITag };
+  payload: { selectedTag: Tag };
 };
 
 export const selectedTagReducer = (
-  state: Map<TagId, ITag>,
+  state: Map<TagId, Tag>,
   action: selectedTagsAction,
 ) => {
   const _state = new Map(state);
@@ -42,18 +42,18 @@ export const selectedTagReducer = (
 export type allTagsAction =
   | {
       type: "ADD_TAG";
-      payload: { tag: ITag };
+      payload: { tag: Tag };
     }
   | {
       type: "SET_ALL_TAGS";
-      payload: { allTags: Map<TagId, ITag> };
+      payload: { allTags: Map<TagId, Tag> };
     }
   | {
       type: "CLEAR_ALL_TAGS";
     };
 
 export const allTagsReducer = (
-  state: Map<`0x${string}`, ITag>,
+  state: Map<`0x${string}`, Tag>,
   action: allTagsAction,
 ) => {
   const _state = new Map(state);
@@ -75,14 +75,14 @@ export const allTagsReducer = (
 type visibilityAction =
   | {
       type: "TURN_ON_SEARCH_VIS" | "TURN_OFF_SEARCH_VIS";
-      payload: { tag: ITag };
+      payload: { tag: Tag };
     }
   | {
       type: "ALL_TAGS";
     };
 
 export const searchReducer = (
-  state: Map<TagId, ITag>,
+  state: Map<TagId, Tag>,
   action: visibilityAction,
 ) => {
   const newState = new Map(state);

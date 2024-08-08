@@ -11,7 +11,7 @@ import React, {
 } from "react";
 import { bytesToHex, hexToBytes } from "viem";
 
-import { IProduct, TagId, ItemId, IStatus, IRelay } from "@/types";
+import { Item, TagId, ItemId, Status, Relay } from "@/types";
 import { useMyContext } from "./MyContext";
 import {
   StoreContent,
@@ -39,7 +39,6 @@ import {
   SET_ALL_TAGS,
   CLEAR_ALL_TAGS,
 } from "@/reducers/tagReducers";
-import { buildState } from "@/utils/buildState";
 import {
   CLEAR_ORDER,
   REMOVE_ORDER_ITEM,
@@ -75,10 +74,7 @@ export const StoreContextProvider = (
   const [orderId, setOrderId] = useState<OrderId | null>(null);
   const [erc20Addr, setErc20Addr] = useState<null | `0x${string}`>(null);
   const [publishedTagId, setPublishedTagId] = useState<null | TagId>(null);
-  const [finalizedOrders, setFinalizedOrders] = useReducer(
-    finalizedOrderReducer,
-    new Map(),
-  );
+  const [finalizedOrders] = useReducer(finalizedOrderReducer, new Map());
   const [storeData, setStoreData] = useReducer(storeReducer, {
     name: "",
     profilePictureUrl: "",
@@ -88,9 +84,9 @@ export const StoreContextProvider = (
     acceptedCurrencyReducer,
     new Map(),
   );
-  const [pubKeys, setPubKeys] = useReducer(pubKeyReducer, []);
+  const [pubKeys] = useReducer(pubKeyReducer, []);
   const [db, setDb] = useState(null);
-  const [relays, setRelays] = useState<IRelay[]>(dummyRelays);
+  const [relays, setRelays] = useState<Relay[]>(dummyRelays);
   const [selectedCurrency, setSelectedCurrency] = useState(null);
   const { relayClient, walletAddress, shopId, getTokenInformation } =
     useMyContext();
@@ -300,31 +296,8 @@ export const StoreContextProvider = (
     }
   }, [publishedTagId]);
 
-  const createState = async () => {
-    try {
-      const stream = relayClient && relayClient.createEventStream();
-      if (stream) {
-        for await (const evt of stream) {
-          buildState(
-            products,
-            allTags,
-            evt.event,
-            setProducts,
-            setAllTags,
-            setOrderItems,
-            setPublishedTagId,
-            setFinalizedOrders,
-            setPubKeys,
-            setStoreData,
-            setAcceptedCurrencies,
-            walletAddress,
-          );
-        }
-      }
-    } catch (err) {
-      console.error("error receiving events", err);
-    }
-  };
+  const createState = async () => {};
+
   const verify = async (
     _orderItems: Map<OrderId, OrderState>,
     _pubKeys: `0x${string}`[],
@@ -338,7 +311,7 @@ export const StoreContextProvider = (
     //   : [];
     // for (const _orderId of keysArr) {
     //   const _order = _orderItems.get(_orderId) as OrderState;
-    //   if (_order && _order.status !== IStatus.Failed) {
+    //   if (_order && _order.status !== Status.Failed) {
     //     const sig = _order.signature as `0x${string}`;
     //     const retrievedAdd = await relayClient!.recoverSignedAddress(
     //       _orderId,
@@ -352,14 +325,11 @@ export const StoreContextProvider = (
     // }
   };
 
-  const addProduct = async (
-    product: IProduct,
-    selectedTagIds: TagId[] | [],
-  ) => {
+  const addProduct = async (product: Item, selectedTagIds: TagId[] | []) => {
     try {
       const path = await relayClient!.uploadBlob(product.blob as FormData);
       const metadata = {
-        name: product.metadata.name,
+        title: product.metadata.title,
         description: product.metadata.description,
         image: path.url as string,
       };
@@ -372,14 +342,14 @@ export const StoreContextProvider = (
       });
       const productId = bytesToHex(iid);
       product.id = productId;
-      product.tagIds = selectedTagIds;
+      product.tags = selectedTagIds;
       product.metadata = metadata;
       productId &&
         setProducts({
           type: ADD_PRODUCT,
           payload: { itemId: productId, item: product },
         });
-      changeStock([iid], [product.stockQty || 0]);
+      changeStock([iid], [product.quantity || 0]);
 
       selectedTagIds &&
         selectedTagIds.map((id) => {
@@ -395,8 +365,8 @@ export const StoreContextProvider = (
 
   const updateProduct = async (
     itemId: ItemId,
-    fields: { price: boolean; metadata: boolean; stockQty?: boolean },
-    updatedProduct: IProduct,
+    fields: { price: boolean; metadata: boolean; quantity?: boolean },
+    updatedProduct: Item,
     selectedTagIds: TagId[] | [],
   ) => {
     try {
@@ -424,7 +394,7 @@ export const StoreContextProvider = (
           : { url: updatedProduct.metadata.image };
 
         const metadata = {
-          name: updatedProduct.metadata.name,
+          title: updatedProduct.metadata.title,
           description: updatedProduct.metadata.description,
           image: path.url,
         };
@@ -440,10 +410,10 @@ export const StoreContextProvider = (
           },
         });
       }
-      if (fields.stockQty) {
+      if (fields.quantity) {
         //calculate unit difference
-        const previousUnit = products.get(itemId)?.stockQty || 0;
-        const diff = Number(updatedProduct.stockQty) - Number(previousUnit);
+        const previousUnit = products.get(itemId)?.quantity || 0;
+        const diff = Number(updatedProduct.quantity) - Number(previousUnit);
         changeStock([itemIdBytes], [diff]);
         setProducts({
           type: UPDATE_STOCKQTY,
@@ -454,7 +424,7 @@ export const StoreContextProvider = (
         });
       }
 
-      updatedProduct.tagIds = selectedTagIds;
+      updatedProduct.tags = selectedTagIds;
 
       setProducts({
         type: UPDATE_PRODUCT,
@@ -474,7 +444,7 @@ export const StoreContextProvider = (
       const id: TagId = bytesToHex(
         await relayClient!.createTag({ name: _name }),
       );
-      const tag = { id, text: _name, color: "special" }; // TODO: color: hex?
+      const tag = { id, name }; // TODO: color: hex?
       setAllTags({ type: ADD_TAG, payload: { tag } });
       return { id, error: null };
     } catch (error) {
@@ -593,7 +563,7 @@ export const StoreContextProvider = (
       // });
       setOrderItems({
         type: UPDATE_ORDER_STATUS,
-        payload: { orderId: orderId as OrderId, status: IStatus.Failed },
+        payload: { orderId: orderId as OrderId, status: Status.Failed },
       });
       setOrderItems({
         type: CLEAR_ALL_ORDERS,
@@ -602,7 +572,7 @@ export const StoreContextProvider = (
     } catch (error) {
       setOrderItems({
         type: UPDATE_ORDER_STATUS,
-        payload: { orderId: orderId as OrderId, status: IStatus.Failed },
+        payload: { orderId: orderId as OrderId, status: Status.Failed },
       });
       await createOrder();
     }

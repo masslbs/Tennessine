@@ -27,7 +27,7 @@ import { SELECT_TAG, selectedTagReducer } from "@/reducers/tagReducers";
 import { useStoreContext } from "@/context/StoreContext";
 import ProductsTags from "@/app/components/products/ProductTags";
 import { useRouter, useSearchParams } from "next/navigation";
-import { IProduct, ITag, ItemId, TagId } from "@/types";
+import { Item, Tag, ItemId, TagId } from "@/types";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import VisibilitySlider from "@/app/components/products/VisibilitySlider";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
@@ -42,12 +42,12 @@ const AddProductView = () => {
   const [img, setImg] = useState<string>(productInView?.metadata?.image || "");
   const [price, setPrice] = useState<string>(productInView?.price || "");
   const [title, setTitle] = useState<string>(
-    productInView?.metadata?.name || "",
+    productInView?.metadata?.title || "",
   );
   const [description, setDescription] = useState<string>(
     productInView?.metadata?.description || "",
   );
-  const [stockQty, setStockQty] = useState(productInView?.stockQty || "0");
+  const [quantity, setStockQty] = useState(productInView?.quantity || "0");
   const [editedPrice, setEditedPrice] = useState(false);
   const [editedMetaData, setEditedMetadata] = useState(false);
   const [editedUnit, setEditedUnit] = useState(false);
@@ -61,25 +61,24 @@ const AddProductView = () => {
       ? {
           id: productInView.id,
           price: price,
-          stockQty: Number(stockQty),
-          blob: null,
-          tagIds: productInView.tagIds,
+          quantity: Number(quantity),
+          tags: productInView.tags,
           metadata: productInView.metadata,
         }
       : initialState;
   const [newProduct, updateNewProduct] = useReducer<
-    (state: IProduct, actions: newProductActions) => IProduct
+    (state: Item, actions: newProductActions) => Item
   >(newProductReducer, _initialState);
 
   useEffect(() => {
-    if (!productInView?.tagIds) return;
+    if (!productInView?.tags) return;
 
-    productInView.tagIds.map((id) => {
-      const t = allTags.get(id) as ITag;
+    productInView.tags.map((id) => {
+      const t = allTags.get(id) as Tag;
       if (!t) return null;
       selectedTagsDispatch({ type: SELECT_TAG, payload: { selectedTag: t } });
     });
-  }, [productInView?.tagIds]);
+  }, [productInView?.tags]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const hed = editView && productInView ? "Edit product" : "Add Product";
@@ -151,7 +150,7 @@ const AddProductView = () => {
       const changedFields = {
         price: editedPrice,
         metadata: editedMetaData,
-        stockQty: editedUnit,
+        quantity: editedUnit,
       };
       const selectedTagKeys: TagId[] | [] = selectedTags.size
         ? Array.from([...selectedTags.keys()])
@@ -184,7 +183,7 @@ const AddProductView = () => {
     setTitle(e.target.value);
     updateNewProduct({
       type: EDIT_TITLE,
-      payload: { name: e.target.value },
+      payload: { title: e.target.value },
     });
   };
   const handleDescriptionChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -381,7 +380,7 @@ const AddProductView = () => {
               >
                 <label htmlFor="units">units</label>
                 <input
-                  value={stockQty}
+                  value={quantity}
                   className="border-2 border-solid mt-1 p-3 rounded-2xl"
                   id="units"
                   name="units"

@@ -13,17 +13,17 @@ import Contributor from "./Contributor";
 import { useMyContext } from "@/context/MyContext";
 import { formatPK } from "@/app/utils";
 
-export type IContributor = {
+export type Contributor = {
   name: string;
   walletAddress: string;
 };
 
-const admins: IContributor[] = [
+const admins: Contributor[] = [
   { name: "Martin", walletAddress: "0x71C76...d8976F" },
   { name: "Mu", walletAddress: "0x71C76...d8976F" },
 ];
 
-const clerks: IContributor[] = [
+const clerks: Contributor[] = [
   { name: "Beatrice", walletAddress: "0x71C76...d8976F" },
   { name: "Henry", walletAddress: "0x71C76...d8976F" },
 ];
@@ -60,8 +60,8 @@ const Permissions = ({ close }: { close: () => void }) => {
       );
   };
 
-  const renderList = (arr: IContributor[]) => {
-    return arr.map((a: IContributor) => {
+  const renderList = (arr: Contributor[]) => {
+    return arr.map((a: Contributor) => {
       return (
         <ContributorBlock
           contributor={a}

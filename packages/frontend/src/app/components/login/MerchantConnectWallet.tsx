@@ -12,7 +12,7 @@ import { parseAbiItem } from "viem";
 import * as abi from "@massmarket/contracts";
 
 import { useAuth } from "@/context/AuthContext";
-import { IStatus } from "@/types";
+import { Status } from "@/types";
 import { Address } from "viem/accounts";
 import { ShopId } from "@/context/types";
 import { useMerchantContext } from "@/context/MerchantContext";
@@ -97,7 +97,7 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
     if (shopId) {
       if (
         clientWallet &&
-        isConnected === IStatus.Pending &&
+        isConnected === Status.Pending &&
         !enrollKeycard.current
       ) {
         enrollKeycard.current = true;
@@ -122,10 +122,10 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
             setKeyCardEnrolled(true);
             keyCardToEnroll &&
               localStorage.setItem("merchantKeyCard", keyCardToEnroll);
-            setIsConnected(IStatus.Complete);
+            setIsConnected(Status.Complete);
           } else {
             enrollKeycard.current = false;
-            setIsConnected(IStatus.Failed);
+            setIsConnected(Status.Failed);
             localStorage.removeItem("keyCard");
           }
           localStorage.removeItem("keyCardToEnroll");

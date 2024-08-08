@@ -9,7 +9,7 @@ import { useStoreContext } from "@/context/StoreContext";
 import NewCart from "@/app/cart/NewCart";
 import ShippingDetails from "@/app/components/checkout/ShippingDetails";
 import Image from "next/image";
-import { IStatus } from "@/types";
+import { Status } from "@/types";
 import PaymentOptions from "@/app/components/checkout/PaymentOptions";
 import { useMyContext } from "@/context/MyContext";
 import * as abi from "@massmarket/contracts";
@@ -64,7 +64,7 @@ const CheckoutFlow = () => {
     if (
       orderItems &&
       orderId &&
-      orderItems.get(orderId)?.status === IStatus.Complete
+      orderItems.get(orderId)?.status === Status.Complete
     ) {
       const h = orderItems.get(orderId)?.txHash as `0x${string}`;
       setOrderId(null);

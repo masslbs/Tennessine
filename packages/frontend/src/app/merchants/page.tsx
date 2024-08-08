@@ -10,7 +10,7 @@ import { useMyContext } from "@/context/MyContext";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { IStatus } from "@/types";
+import { Status } from "@/types";
 import MerchantConnectWallet from "@/app/components/login/MerchantConnectWallet";
 
 function MerchantHomepage() {
@@ -23,7 +23,7 @@ function MerchantHomepage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (isConnected === IStatus.Complete && isMerchantView) {
+    if (isConnected === Status.Complete && isMerchantView) {
       router.push("/merchant-dashboard");
     }
   }, [isConnected, isMerchantView]);
@@ -33,7 +33,7 @@ function MerchantHomepage() {
   }
 
   const connectAction =
-    isConnected === IStatus.Complete
+    isConnected === Status.Complete
       ? () => router.push("/products")
       : () => setOpenConnectModal(true);
 

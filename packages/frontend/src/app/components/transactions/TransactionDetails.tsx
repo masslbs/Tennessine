@@ -7,7 +7,7 @@ import React, { useEffect, useState } from "react";
 import FullModal from "@/app/common/components/FullModal";
 import Image from "next/image";
 import { useStoreContext } from "@/context/StoreContext";
-import { IProduct, ItemId } from "@/types";
+import { Item, ItemId } from "@/types";
 import { ItemState } from "@/context/types";
 import { useMyContext } from "@/context/MyContext";
 
@@ -37,7 +37,7 @@ const TransactionDetails = ({
     items.map((i) => {
       const qty = i[1];
       const itemId = i[0] as ItemId;
-      const p = products.get(itemId) as IProduct;
+      const p = products.get(itemId) as Item;
       total += qty * Number(p.price);
     });
     setTotalPrice(total);
@@ -81,9 +81,9 @@ const TransactionDetails = ({
   }, [transactionHash]);
 
   const renderProduct = (itemId: ItemId, quantity: number) => {
-    const product = products.get(itemId) as IProduct;
+    const product = products.get(itemId) as Item;
     return (
-      <div key={product.metadata.name} className="flex gap-1">
+      <div key={product.metadata.title} className="flex gap-1">
         {product.metadata.image && (
           <div className="border p-1 rounded">
             <Image
@@ -96,7 +96,7 @@ const TransactionDetails = ({
           </div>
         )}
         <div className="flex flex-col ml-4">
-          <p>{product.metadata.name}</p>
+          <p>{product.metadata.title}</p>
           <p className="text-sm">{Number(product.price) * quantity} USDC</p>
           <p className="text-sm text-gray-400">QTY: {quantity}</p>
         </div>

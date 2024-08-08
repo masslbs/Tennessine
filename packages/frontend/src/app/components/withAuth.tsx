@@ -6,7 +6,7 @@
 import React, { FunctionComponent } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { IStatus } from "@/types";
+import { Status } from "@/types";
 interface PageProps {
   params: { slug: string };
   searchParams: { [key: string]: string | string[] | undefined };
@@ -20,7 +20,7 @@ export default (WrappedComponent: FunctionComponent<PageProps>) => {
       console.warn("not a browser session");
       return;
     }
-    if (isConnected === IStatus.Complete) {
+    if (isConnected === Status.Complete) {
       return <WrappedComponent {...props} />;
     } else {
       router.push("/");

@@ -10,7 +10,7 @@ import { useMyContext } from "@/context/MyContext";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { IStatus } from "../types";
+import { Status } from "../types";
 
 function Homepage() {
   const { setInviteSecret } = useMyContext();
@@ -20,7 +20,7 @@ function Homepage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (isConnected === IStatus.Complete) {
+    if (isConnected === Status.Complete) {
       router.push("/products");
     }
   }, [isConnected]);

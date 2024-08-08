@@ -2,31 +2,31 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { IProduct, IRelay, RelayStatus } from "../types";
-export const dummyProducts: IProduct[] = [
+import { Item, Relay, RelayStatus } from "../types";
+export const dummyProducts: Item[] = [
   {
     id: "0x1",
     metadata: {
-      name: "Dubai Camel Sticker",
+      title: "Dubai Camel Sticker",
       image: "/assets/camel.png",
       description: "N/A",
     },
     price: "1.22",
-    stockQty: 10,
+    quantity: 0,
   },
   {
     id: "0x2",
     metadata: {
-      name: "Money Printer Sticker",
+      title: "Money Printer Sticker",
       image: "/assets/printer.png",
       description: "N/A",
     },
     price: "4.22",
-    stockQty: 1,
+    quantity: 0,
   },
 ];
 
-export const dummyRelays: IRelay[] = [
+export const dummyRelays: Relay[] = [
   {
     id: "0x3",
     name: "Pufferfish",
