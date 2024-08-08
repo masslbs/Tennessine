@@ -350,29 +350,6 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
           (p) => p.addr !== bytesToHex(um.removePayee.addr),
         );
       }
-      if (um.addPayee) {
-        const p = um.addPayee;
-        const payeeInfo = manifest.addPayee
-          ? manifest.addPayee
-          : {
-              callAsContract: false,
-              chainId: 0,
-              name: "",
-            };
-        if (p.addr) {
-          payeeInfo.addr = bytesToHex(p.addr);
-        }
-        if (p.name) {
-          payeeInfo.name = p.name;
-        }
-        if (p.classAsContract) {
-          payeeInfo.callAsContract = p.callAsContract;
-        }
-        if (p.chainId) {
-          payeeInfo.chainId = p.chainId;
-        }
-        manifest.addPayee = payeeInfo;
-      }
       await this.store.put("shopManifest", manifest);
       this.emit("update", manifest, um.eventId);
 

@@ -224,12 +224,6 @@ describe("CRUD functions update stores", async () => {
         chainId: 1,
         tokenAddr: zeroAddress,
       },
-      addPayee: {
-        addr: "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
-        callAsContract: false,
-        chainId: 1,
-        name: "default",
-      },
     });
     const {
       name,
