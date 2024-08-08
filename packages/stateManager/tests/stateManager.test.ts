@@ -1,13 +1,13 @@
 import { describe, expect, test, vi, beforeEach } from "vitest";
 import { MemoryLevel } from "memory-level";
 import {
-  StateManager,
   type Item,
   type Tag,
   type ShopManifest,
   type Order,
   type KeyCard,
-} from "../";
+} from "../types";
+import { StateManager } from "..";
 import { MockClient } from "./mockClient";
 import {
   randomAddress,
