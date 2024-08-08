@@ -12,34 +12,30 @@ import React, {
   useEffect,
 } from "react";
 import Image from "next/image";
-import {
-  EDIT_PRICE,
-  EDIT_TITLE,
-  EDIT_UNIT,
-  UPLOAD_IMG,
-  EDIT_IMG,
-  newProductReducer,
-  initialState,
-  newProductActions,
-  EDIT_DESC,
-} from "@/reducers/productReducers";
+
 import { SELECT_TAG, selectedTagReducer } from "@/reducers/tagReducers";
 import { useStoreContext } from "@/context/StoreContext";
 import ProductsTags from "@/app/components/products/ProductTags";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Item, Tag, ItemId, TagId } from "@/types";
+import { Tag, ItemId, Item } from "@/types";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import VisibilitySlider from "@/app/components/products/VisibilitySlider";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
+import { useMyContext } from "@/context/MyContext";
 
 const AddProductView = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const itemId = searchParams.get("itemId") as ItemId | "new";
   const editView = itemId !== "new";
-  const { addProduct, updateProduct, allTags, products } = useStoreContext();
+  const { stateManager, allTags, products } = useStoreContext();
+  const { relayClient } = useMyContext();
+
   const productInView = editView ? products.get(itemId) : null;
-  const [img, setImg] = useState<string>(productInView?.metadata?.image || "");
+  const [imgSrc, setImg] = useState<string>(
+    productInView?.metadata?.image || "",
+  );
+  const [imgAsBlob, setBlob] = useState<FormData | null>(null);
   const [price, setPrice] = useState<string>(productInView?.price || "");
   const [title, setTitle] = useState<string>(
     productInView?.metadata?.title || "",
@@ -48,27 +44,11 @@ const AddProductView = () => {
     productInView?.metadata?.description || "",
   );
   const [quantity, setStockQty] = useState(productInView?.quantity || "0");
-  const [editedPrice, setEditedPrice] = useState(false);
-  const [editedMetaData, setEditedMetadata] = useState(false);
-  const [editedUnit, setEditedUnit] = useState(false);
   const [error, setError] = useState<null | string>(null);
   const [selectedTags, selectedTagsDispatch] = useReducer(
     selectedTagReducer,
     new Map(),
   );
-  const _initialState =
-    editView && productInView
-      ? {
-          id: productInView.id,
-          price: price,
-          quantity: Number(quantity),
-          tags: productInView.tags,
-          metadata: productInView.metadata,
-        }
-      : initialState;
-  const [newProduct, updateNewProduct] = useReducer<
-    (state: Item, actions: newProductActions) => Item
-  >(newProductReducer, _initialState);
 
   useEffect(() => {
     if (!productInView?.tags) return;
@@ -93,7 +73,6 @@ const AddProductView = () => {
     router.push(`/products`);
   };
   const handleUpload = (e: ChangeEvent<HTMLInputElement>) => {
-    checkIfMetadata();
     try {
       const fileInput = e.target;
       if (fileInput.files && fileInput.files[0]) {
@@ -105,15 +84,7 @@ const AddProductView = () => {
           const r = e.target as FileReader;
           const url = r.result;
           typeof url == "string" && setImg(url);
-          updateNewProduct({
-            type: UPLOAD_IMG,
-            payload: { blob },
-          });
-          typeof url == "string" &&
-            updateNewProduct({
-              type: EDIT_IMG,
-              payload: { img: url },
-            });
+          setBlob(blob);
         };
 
         reader.readAsDataURL(fileInput.files[0]);
@@ -127,14 +98,32 @@ const AddProductView = () => {
 
   const removeImg = () => {
     setImg("");
-    updateNewProduct({
-      type: EDIT_IMG,
-      payload: { img: "" },
-    });
-    updateNewProduct({
-      type: UPLOAD_IMG,
-      payload: { blob: null },
-    });
+  };
+
+  const create = async (newItem: Partial<Item>) => {
+    const { id } = await stateManager.items.create(newItem);
+    await stateManager.items.changeStock([id], [Number(quantity)]);
+    // const selectedTagKeys: TagId[] | [] = selectedTags.size
+    //     ? Array.from([...selectedTags.keys()])
+    //     : [];
+    // selectedTagIds &&
+    //     selectedTagIds.map((id) => {
+    //       addProductToTag(id, productId);
+    //     });
+  };
+
+  const update = async (newItem: Partial<Item>) => {
+    //compare the edited fields against the original object.
+    const diff = {
+      id: itemId as `0x${string}`,
+    };
+    for (const key in newItem) {
+      if (newItem[key] !== productInView[key]) {
+        diff[key] = newItem[key];
+      }
+    }
+    console.log({ diff });
+    await stateManager.items.update(diff);
   };
 
   const onPublish = async () => {
@@ -142,72 +131,47 @@ const AddProductView = () => {
       setError("Product must include price.");
     } else if (!title) {
       setError("Product must include title.");
-    } else if (!img) {
+    } else if (!imgSrc) {
       setError("Product must include image.");
     } else if (productInView && !productInView.id) {
       setError("Product id is missing.");
     } else {
-      const changedFields = {
-        price: editedPrice,
-        metadata: editedMetaData,
-        quantity: editedUnit,
-      };
-      const selectedTagKeys: TagId[] | [] = selectedTags.size
-        ? Array.from([...selectedTags.keys()])
-        : [];
-      const res =
+      try {
+        const path = imgAsBlob
+          ? await relayClient!.uploadBlob(imgAsBlob)
+          : imgSrc;
+
+        const newItem = {
+          price: Number(price).toFixed(2),
+          metadata: {
+            title,
+            description,
+            image: path.url,
+          },
+        };
         editView && productInView
-          ? await updateProduct(
-              productInView.id,
-              changedFields,
-              newProduct,
-              selectedTagKeys,
-            )
-          : await addProduct(newProduct, selectedTagKeys);
-      if (res.error) {
-        setError(res.error);
-      } else {
+          ? await update(newItem)
+          : await create(newItem);
         router.push(`/products`);
+      } catch (error) {
+        setError(error);
       }
     }
   };
 
-  const checkIfMetadata = () => {
-    if (editView && productInView) {
-      setEditedMetadata(true);
-    }
-  };
-
   const handleTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    checkIfMetadata();
     setTitle(e.target.value);
-    updateNewProduct({
-      type: EDIT_TITLE,
-      payload: { title: e.target.value },
-    });
   };
   const handleDescriptionChange = (e: ChangeEvent<HTMLInputElement>) => {
-    checkIfMetadata();
     setDescription(e.target.value);
-    updateNewProduct({
-      type: EDIT_DESC,
-      payload: { description: e.target.value },
-    });
   };
 
   const handlePriceChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (editView && productInView) {
-      setEditedPrice(true);
-    }
     const _price = e.target.value;
     if (_price && !Number(_price)) {
       setPrice("");
     } else {
       setPrice(_price);
-      updateNewProduct({
-        type: EDIT_PRICE,
-        payload: { price: _price },
-      });
     }
   };
 
@@ -217,12 +181,7 @@ const AddProductView = () => {
       setStockQty(0);
     } else {
       setStockQty(Number(e.target.value) || 0);
-      updateNewProduct({
-        type: EDIT_UNIT,
-        payload: { unit: Number(e.target.value) },
-      });
     }
-    setEditedUnit(true);
   };
 
   return (
@@ -304,12 +263,12 @@ const AddProductView = () => {
             </form>
             <div className="flex flex-col">
               <p className="mb-2">Product pics</p>
-              {img ? (
+              {imgSrc ? (
                 <div className="p-4 bg-white border-2 border-solid rounded-2xl">
                   <div className="relative w-fit p-2 mb-2">
                     <div className="p-4 border-2 w-fit rounded-2xl">
                       <Image
-                        src={img}
+                        src={imgSrc}
                         width={50}
                         height={50}
                         alt="uploaded-product-image"
