@@ -109,13 +109,13 @@ describe("Fill state manager with test vectors", async () => {
     );
     expect(shop.description).toEqual(vectorState.manifest.description);
     expect(shop.publishedTagId).toEqual(vectorState.manifest.published_tag);
-    expect(shop.addAcceptedCurrencies!.length).toEqual(
+    expect(shop.acceptedCurrencies!.length).toEqual(
       vectorState.manifest.accepted_currencies.length,
     );
-    expect(shop.addAcceptedCurrencies[0].chainId).toEqual(
+    expect(shop.acceptedCurrencies[0].chainId).toEqual(
       vectorState.manifest.accepted_currencies[0].chain,
     );
-    expect(shop.addAcceptedCurrencies[0].tokenAddr).toEqual(
+    expect(shop.acceptedCurrencies[0].tokenAddr).toEqual(
       vectorState.manifest.accepted_currencies[0].addr,
     );
     expect(shop.setBaseCurrency!.chainId).toEqual(
@@ -216,17 +216,10 @@ describe("CRUD functions update stores", async () => {
     );
     expect(cm).toBeTruthy();
     await stateManager.manifest.update({
-      tokenId: cm.tokenId,
       name: "Update Test Shop",
       description: "Testing updateShopManifest",
       profilePictureUrl: "https://http.cat/images/202.jpg",
       publishedTagId: random32BytesHex(),
-      addAcceptedCurrencies: [
-        {
-          chainId: 1,
-          tokenAddr: zeroAddress,
-        },
-      ],
       setBaseCurrency: {
         chainId: 1,
         tokenAddr: zeroAddress,
@@ -244,8 +237,6 @@ describe("CRUD functions update stores", async () => {
       profilePictureUrl,
       publishedTagId,
       setBaseCurrency,
-      addAcceptedCurrencies,
-      addPayee,
     } = await stateManager.manifest.get();
     expect(name).toEqual("Update Test Shop");
     expect(description).toEqual("Testing updateShopManifest");
@@ -253,14 +244,81 @@ describe("CRUD functions update stores", async () => {
     expect(publishedTagId).toEqual(publishedTagId);
     expect(setBaseCurrency!.chainId).toEqual(1);
     expect(setBaseCurrency!.tokenAddr).toEqual(zeroAddress);
-    expect(addAcceptedCurrencies!.length).toEqual(1);
-    expect(addAcceptedCurrencies![0].chainId).toEqual(1);
-    expect(addAcceptedCurrencies![0].tokenAddr).toEqual(zeroAddress);
-    expect(addPayee!.addr!).toEqual(
+  });
+  test("ShopManifest - adds/removes acceptedCurrencies", async () => {
+    const cm = await stateManager.manifest.create(
+      {
+        name: "Test Shop",
+        description: "Testing shopManifest",
+      },
+      randomAddress(),
+    );
+    expect(cm).toBeTruthy();
+    await stateManager.manifest.update({
+      addAcceptedCurrencies: [
+        {
+          chainId: 10,
+          tokenAddr: zeroAddress,
+        },
+        {
+          chainId: 2,
+          tokenAddr: randomAddress(),
+        },
+      ],
+    });
+    const { acceptedCurrencies } = await stateManager.manifest.get();
+    expect(acceptedCurrencies!.length).toEqual(2);
+    //checking that both currencies were saved.
+    expect(acceptedCurrencies[0].chainId).toEqual(10);
+    expect(acceptedCurrencies[0].tokenAddr).toEqual(zeroAddress);
+    expect(acceptedCurrencies[1].chainId).toEqual(2);
+    await stateManager.manifest.update({
+      removeAcceptedCurrencies: [
+        {
+          chainId: 10,
+          tokenAddr: zeroAddress,
+        },
+      ],
+    });
+    const removed = await stateManager.manifest.get();
+    expect(removed.acceptedCurrencies.length).toEqual(1);
+    expect(removed.acceptedCurrencies[0].chainId).toEqual(2);
+  });
+  test("ShopManifest - addPayee/removePayee", async () => {
+    const cm = await stateManager.manifest.create(
+      {
+        name: "Test Shop",
+        description: "Testing shopManifest",
+      },
+      randomAddress(),
+    );
+    expect(cm).toBeTruthy();
+    await stateManager.manifest.update({
+      addPayee: {
+        addr: "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+        callAsContract: false,
+        chainId: 1,
+        name: "default",
+      },
+    });
+    const { payee } = await stateManager.manifest.get();
+
+    expect(payee![0].addr!).toEqual(
       "0x976ea74026e726554db657fa54763abd0c3a0aa9",
     );
-    expect(addPayee!.chainId).toEqual(1);
-    expect(addPayee!.name).toEqual("default");
+    expect(payee![0].chainId).toEqual(1);
+    expect(payee![0].name).toEqual("default");
+
+    await stateManager.manifest.update({
+      removePayee: {
+        addr: "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+        callAsContract: false,
+        chainId: 1,
+        name: "default",
+      },
+    });
+    const removed = await stateManager.manifest.get();
+    expect(removed.payee.length).toBe(0);
   });
 
   test("TagManager - create", async () => {
@@ -386,7 +444,7 @@ describe("CRUD functions update stores", async () => {
     //New status should be fail
     expect(canceled.status).toEqual("FAILED");
   });
-  test("OrderManager - calling commit should trigger an updateOrder event with itemsFinalized property", async () => {
+  test("OrderManager - commit triggers an updateOrder event with itemsFinalized property", async () => {
     const { id } = await stateManager.orders.create();
     await stateManager.items.create({
       price: "12.00",
