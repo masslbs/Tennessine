@@ -32,7 +32,7 @@ const StoreCreation = () => {
     createNewRelayClient,
   } = useMyContext();
 
-  const { setStoreData, setPublishedTagId } = useStoreContext();
+  const { setStoreData, setPublishedTagId, stateManager } = useStoreContext();
   const { isConnected, setIsConnected, setIsMerchantView } = useAuth();
   const chains = useChains();
   const router = useRouter();
@@ -96,9 +96,9 @@ const StoreCreation = () => {
 
   const createShop = async () => {
     checkRequiredFields();
-    const _relayClient = await createNewRelayClient();
+    const rc = await createNewRelayClient();
 
-    if (_relayClient && publicClient && clientWallet) {
+    if (rc && publicClient && clientWallet) {
       try {
         const blockchainClient = new BlockchainClient(shopId);
         const hash = await blockchainClient.createShop(clientWallet);
@@ -116,7 +116,7 @@ const StoreCreation = () => {
           if (hasAccess && clientWallet) {
             if (enrollKeycard.current) return;
             enrollKeycard.current = true;
-            const res = await _relayClient.enrollKeycard(
+            const res = await rc.enrollKeycard(
               clientWallet,
               false,
               shopId,
@@ -127,7 +127,7 @@ const StoreCreation = () => {
                 "keyCardToEnroll",
               ) as `0x${string}`;
               setIsMerchantView(true);
-              setRelayClient(_relayClient);
+              setRelayClient(rc);
               localStorage.setItem("merchantKeyCard", keyCardToEnroll);
               console.log(`keycard enrolled:${keyCardToEnroll}`);
               setKeyCardEnrolled(true);
@@ -144,7 +144,7 @@ const StoreCreation = () => {
     } else {
       console.error("unable to create store. clients undefined:");
       console.log({
-        _relayClient,
+        rc,
         publicClient,
         clientWallet,
       });
@@ -158,37 +158,40 @@ const StoreCreation = () => {
   }, [clientWallet != null]);
 
   useEffect(() => {
-    if (relayClient && isStoreCreated && isConnected == Status.Complete) {
+    if (
+      relayClient &&
+      stateManager &&
+      isStoreCreated &&
+      isConnected == Status.Complete
+    ) {
       (async () => {
-        const publishedTagId = new Uint8Array(32);
-        crypto.getRandomValues(publishedTagId);
-        await relayClient.shopManifest(
+        await stateManager.manifest.create(
           {
             name: storeName,
             description,
-            profilePictureUrl: "https://http.cat/images/200.jpg",
-            publishedTagId,
           },
           shopId,
         );
         console.log(`Shop Manifested with shopId:${shopId}`);
-        const newPubId = await relayClient.createTag({ name: "visible" });
-        setPublishedTagId(bytesToHex(newPubId));
+        const newPubId = await stateManager.tags.create("visible");
+        setPublishedTagId(newPubId.id);
         const path = await relayClient!.uploadBlob(avatar as FormData);
 
         if (newPubId && path.url) {
-          await relayClient!.updateShopManifest({
-            publishedTagId: newPubId,
+          await stateManager.manifest.update({
+            publishedTagId: newPubId.id,
             setBaseCurrency: {
-              tokenAddr: hexToBytes(tokenAddr as `0x${string}`),
+              tokenAddr: tokenAddr as `0x${string}`,
               chainId,
             },
-            addAcceptedCurrency: {
-              tokenAddr: hexToBytes(tokenAddr as `0x${string}`),
-              chainId,
-            },
+            addAcceptedCurrencies: [
+              {
+                tokenAddr: tokenAddr as `0x${string}`,
+                chainId,
+              },
+            ],
             addPayee: {
-              addr: hexToBytes(payeeAddr as `0x${string}`),
+              addr: payeeAddr as `0x${string}`,
               callAsContract: false,
               chainId,
               name: "default",
@@ -226,7 +229,7 @@ const StoreCreation = () => {
         router.push("/products");
       })();
     }
-  }, [isConnected, isStoreCreated]);
+  }, [isConnected, isStoreCreated, stateManager]);
 
   return (
     <main className="pt-under-nav h-screen p-4 mt-5">

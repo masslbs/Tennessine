@@ -13,6 +13,7 @@ import {
   TokenAddr,
   AcceptedCurrencyActions,
 } from "@/reducers/acceptedCurrencyReducers";
+import { StateManager } from "@massmarket/stateManager";
 
 export type ItemId = `0x${string}`;
 export type TagId = `0x${string}`;
@@ -126,6 +127,7 @@ export type StoreContent = {
   setAcceptedCurrencies: Dispatch<AcceptedCurrencyActions>;
   selectedCurrency: TokenAddr;
   setSelectedCurrency: Dispatch<TokenAddr>;
+  stateManager: StateManager;
 };
 
 export type ProductsMap = Map<ItemId, Item>;

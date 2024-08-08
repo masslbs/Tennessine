@@ -10,41 +10,36 @@ import React, {
   useEffect,
 } from "react";
 import { bytesToHex, hexToBytes } from "viem";
-
-import { Item, TagId, ItemId, Status, Relay } from "@/types";
-import { useMyContext } from "./MyContext";
+import { MemoryLevel } from "memory-level";
 import {
-  StoreContent,
-  ProductsMap,
-  TagsMap,
-  OrdersMap,
-  OrderId,
-  CurrenciesState,
-} from "@/context/types";
+  Item,
+  TagId,
+  ItemId,
+  Status,
+  Relay,
+  Order,
+  KeyCard,
+  ShopManifest,
+  Tag,
+} from "@/types";
+import { useMyContext } from "./MyContext";
+import { StoreContent, OrderId } from "@/context/types";
 import {
   productReducer,
   ADD_PRODUCT,
   UPDATE_PRODUCT,
   ADD_PRODUCT_TAGS,
   REMOVE_PRODUCT_TAG,
-  SET_PRODUCTS,
   UPDATE_PRICE,
   UPDATE_METADATA,
   UPDATE_STOCKQTY,
-  CLEAR_PRODUCTS,
 } from "@/reducers/productReducers";
-import {
-  allTagsReducer,
-  ADD_TAG,
-  SET_ALL_TAGS,
-  CLEAR_ALL_TAGS,
-} from "@/reducers/tagReducers";
+import { allTagsReducer, ADD_TAG } from "@/reducers/tagReducers";
 import {
   CLEAR_ORDER,
   REMOVE_ORDER_ITEM,
   UPDATE_ORDER_ITEM,
   UPDATE_ORDER_STATUS,
-  SET_ALL_ORDER_ITEMS,
   orderReducer,
   OrderState,
   CLEAR_ALL_ORDERS,
@@ -52,16 +47,14 @@ import {
 import {
   acceptedCurrencyReducer,
   UPDATE_SYMBOL,
-  SET_ALL_CURRENCIES,
 } from "@/reducers/acceptedCurrencyReducers";
 import { finalizedOrderReducer } from "@/reducers/finalizedOrderReducers";
 import { initialStoreContext } from "../context/initialLoadingState";
 import { dummyRelays } from "./dummyData";
 import { pubKeyReducer } from "@/reducers/KCPubKeysReducers";
-import { setMapData, getParsedMapData, setItem, getItem } from "@/utils/level";
-import { storeReducer, SET_STORE_DATA } from "@/reducers/storeReducer";
+import { storeReducer } from "@/reducers/storeReducer";
 import { hardhat, sepolia, mainnet } from "viem/chains";
-
+import { StateManager } from "@massmarket/stateManager";
 // @ts-expect-error FIXME
 export const StoreContext = createContext<StoreContent>(initialStoreContext);
 
@@ -85,12 +78,11 @@ export const StoreContextProvider = (
     new Map(),
   );
   const [pubKeys] = useReducer(pubKeyReducer, []);
-  const [db, setDb] = useState(null);
   const [relays, setRelays] = useState<Relay[]>(dummyRelays);
   const [selectedCurrency, setSelectedCurrency] = useState(null);
   const { relayClient, walletAddress, shopId, getTokenInformation } =
     useMyContext();
-
+  const [stateManager, setStateManager] = useState<StateManager | null>(null);
   const chainName = process.env.NEXT_PUBLIC_CHAIN_NAME!;
   const usedChainId: number =
     chainName === "sepolia"
@@ -99,8 +91,42 @@ export const StoreContextProvider = (
         ? hardhat.id
         : mainnet.id;
 
+  const db = new MemoryLevel({
+    valueEncoding: "json",
+  });
+
+  const listingStore = db.sublevel<string, Item>("listingStore", {
+    valueEncoding: "json",
+  });
+  const tagStore = db.sublevel<string, Tag>("tagStore", {
+    valueEncoding: "json",
+  });
+  const shopManifestStore = db.sublevel<string, ShopManifest>(
+    "shopManifestStore",
+    {
+      valueEncoding: "json",
+    },
+  );
+  const orderStore = db.sublevel<string, Order>("orderStore", {
+    valueEncoding: "json",
+  });
+
+  const keycardStore = db.sublevel<string, KeyCard>("keycardStore", {
+    valueEncoding: "json",
+  });
+
   useEffect(() => {
-    createState();
+    if (relayClient) {
+      const stateManager = new StateManager(
+        relayClient,
+        listingStore,
+        tagStore,
+        shopManifestStore,
+        orderStore,
+        keycardStore,
+      );
+      setStateManager(stateManager);
+    }
   }, [relayClient]);
 
   useEffect(() => {
@@ -117,186 +143,6 @@ export const StoreContextProvider = (
       });
     })();
   }, [acceptedCurrencies]);
-
-  useEffect(() => {
-    (async () => {
-      const { Level } = await import("level");
-      const dbName = `${shopId?.slice(0, 5)}${walletAddress?.slice(0, 5)}`;
-      console.log("using level db:", { dbName });
-      const db = new Level(`./${dbName}`, {
-        valueEncoding: "json",
-      });
-      // @ts-expect-error FIXME
-      setDb(db);
-      if (window && db) {
-        window.addEventListener("beforeunload", () => {
-          console.log("closing db connection");
-          db.close();
-        });
-      }
-    })();
-  }, [shopId]);
-
-  useEffect(() => {
-    //FIXME: to fix once we intergrate multiple relays
-    setRelays(dummyRelays);
-
-    (async () => {
-      if (db) {
-        const productsLocal = (await getParsedMapData(
-          "products",
-          db,
-        )) as ProductsMap;
-
-        const tagsLocal = (await getParsedMapData("tags", db)) as TagsMap;
-        const orderItemsLocal = (await getParsedMapData(
-          "orderItems",
-          db,
-        )) as OrdersMap;
-        const acceptedCurrenciesLocal = (await getParsedMapData(
-          "acceptedCurrencies",
-          db,
-        )) as CurrenciesState;
-        const orderIdLocal = await getItem("orderId", db);
-        const publishedTagIdLocal = await getItem("publishedTagId", db);
-        const storeDataLocal = await getItem("storeData", db);
-
-        if (productsLocal?.size) {
-          setProducts({
-            type: SET_PRODUCTS,
-            payload: {
-              allProducts: productsLocal,
-            },
-          });
-        } else {
-          setProducts({
-            type: CLEAR_PRODUCTS,
-          });
-        }
-        if (acceptedCurrenciesLocal?.size) {
-          setAcceptedCurrencies({
-            type: SET_ALL_CURRENCIES,
-            payload: {
-              currencies: acceptedCurrenciesLocal,
-            },
-          });
-        }
-        if (tagsLocal?.size) {
-          setAllTags({
-            type: SET_ALL_TAGS,
-            payload: { allTags: tagsLocal },
-          });
-        } else {
-          setAllTags({
-            type: CLEAR_ALL_TAGS,
-          });
-        }
-        if (orderItemsLocal?.size) {
-          setOrderItems({
-            type: SET_ALL_ORDER_ITEMS,
-            payload: { allOrderItems: orderItemsLocal },
-          });
-        } else {
-          setOrderItems({
-            type: CLEAR_ALL_ORDERS,
-          });
-        }
-
-        if (orderIdLocal) {
-          setOrderId(orderIdLocal as OrderId);
-        } else {
-          setOrderId(null);
-        }
-
-        if (publishedTagIdLocal) {
-          setPublishedTagId(publishedTagIdLocal as TagId);
-        } else {
-          setPublishedTagId(null);
-        }
-        if (storeDataLocal) {
-          setStoreData({
-            type: SET_STORE_DATA,
-            payload: {
-              name: storeDataLocal.name!,
-              profilePictureUrl: storeDataLocal.profilePictureUrl!,
-              baseCurrencyAddr: storeDataLocal.baseCurrencyAddr,
-            },
-          });
-        }
-      }
-    })();
-  }, [relayClient, db]);
-
-  useEffect(() => {
-    pubKeys.length && orderItems.size && verify(orderItems, pubKeys);
-  }, [pubKeys, orderItems]);
-
-  useEffect(() => {
-    try {
-      products.size && setMapData("products", products, db);
-    } catch (error) {
-      console.log(error);
-    }
-  }, [products]);
-
-  useEffect(() => {
-    try {
-      acceptedCurrencies.size &&
-        setMapData("acceptedCurrencies", acceptedCurrencies, db);
-    } catch (error) {
-      console.log(error);
-    }
-  }, [acceptedCurrencies]);
-
-  useEffect(() => {
-    try {
-      allTags.size && setMapData("tags", allTags, db);
-    } catch (error) {
-      console.log(error);
-    }
-  }, [allTags]);
-
-  useEffect(() => {
-    try {
-      orderItems.size && setMapData("orderItems", orderItems, db);
-    } catch (error) {
-      console.log(error);
-    }
-  }, [orderItems]);
-
-  useEffect(() => {
-    try {
-      orderId && setItem("orderId", orderId, db);
-    } catch (error) {
-      console.log(error);
-    }
-  }, [orderId]);
-
-  useEffect(() => {
-    try {
-      storeData.name.length && setItem("storeData", storeData, db);
-    } catch (error) {
-      console.log(error);
-    }
-  }, [storeData]);
-
-  useEffect(() => {
-    try {
-      erc20Addr && setItem("erc20Addr", erc20Addr, db);
-    } catch (error) {
-      console.log(error);
-    }
-  }, [erc20Addr]);
-
-  useEffect(() => {
-    try {
-      publishedTagId && setItem("publishedTagId", publishedTagId, db);
-    } catch (error) {
-      console.log(error);
-    }
-  }, [publishedTagId]);
-
-  const createState = async () => {};
 
   const verify = async (
     _orderItems: Map<OrderId, OrderState>,
@@ -626,7 +472,6 @@ export const StoreContextProvider = (
     storeData,
     addProduct,
     updateProduct,
-    createState,
     createTag,
     addProductToTag,
     removeProductFromTag,
@@ -640,6 +485,7 @@ export const StoreContextProvider = (
     acceptedCurrencies,
     selectedCurrency,
     setSelectedCurrency,
+    stateManager,
   };
 
   return (
