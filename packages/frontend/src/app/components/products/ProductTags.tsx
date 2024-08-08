@@ -22,32 +22,28 @@ import {
   TURN_ON_SEARCH_VIS,
   TURN_OFF_SEARCH_VIS,
   ALL_TAGS,
-  SELECT_TAG,
-  DESELECT_TAG,
-  selectedTagsAction,
 } from "@/reducers/tagReducers";
 
 const ProductsTags = ({
   selectedTags,
-  selectedTagsDispatch,
   itemId,
   setError,
+  setSelectedTags,
 }: {
-  selectedTags: Map<TagId, Tag>;
-  selectedTagsDispatch: (t: selectedTagsAction) => void;
+  selectedTags: TagId[];
+  setSelectedTags: Dispatch<SetStateAction<TagId[]>>;
   itemId: ItemId | null;
   setError: Dispatch<SetStateAction<null | string>>;
 }) => {
-  const { allTags, addProductToTag, removeProductFromTag, stateManager } =
-    useStoreContext();
+  const { allTags, stateManager } = useStoreContext();
   const [isSearchState, setIsSearchState] = React.useState<boolean>(false);
   const [searchResults, searchDispatch] = useReducer(searchReducer, new Map());
   const [tagName, setTagName] = useState<string>("");
-  const [_selectedTags, setSelectedTags] = useState<Map<TagId, Tag>>(new Map());
+  const [selected, setAll] = useState<TagId[]>([]);
   if (!allTags) return null;
 
   useEffect(() => {
-    setSelectedTags(selectedTags);
+    setAll([...selectedTags]);
   }, [selectedTags]);
 
   const handleTagClick = () => {
@@ -55,12 +51,9 @@ const ProductsTags = ({
   };
 
   const renderSelectedTags = () => {
-    if (!_selectedTags) return null;
-    const keysArr: `0x${string}`[] | null = _selectedTags.size
-      ? Array.from([..._selectedTags.keys()])
-      : null;
-    if (!keysArr) return null;
-    return keysArr.map((t) => {
+    if (!selected) return null;
+
+    return selected.map((t) => {
       const tag = allTags.get(t) as Tag;
       if (!tag) return null;
       return (
@@ -74,29 +67,26 @@ const ProductsTags = ({
   };
 
   const handleSelectTag = async (t: Tag) => {
-    selectedTagsDispatch({
-      type: SELECT_TAG,
-      payload: { selectedTag: t },
-    });
     //if updating product
     if (itemId) {
-      const res = await addProductToTag(t.id, itemId);
-      if (res.error) {
-        setError(res.error);
+      try {
+        await stateManager.items.addItemToTag(t.id, itemId);
+      } catch (error) {
+        setError("Error while updating product");
       }
+    } else {
+      //creating new item
+      setSelectedTags([...selectedTags, t.id]);
     }
   };
 
   const handleDeselectTag = async (t: Tag) => {
-    selectedTagsDispatch({
-      type: DESELECT_TAG,
-      payload: { selectedTag: t },
-    });
     //if updating product
     if (itemId) {
-      const res = await removeProductFromTag(t.id, itemId);
-      if (res.error) {
-        setError(res.error);
+      try {
+        await stateManager.items.removeItemFromTag(t.id, itemId);
+      } catch (error) {
+        setError("Error while removing item from tag");
       }
     }
   };
@@ -144,11 +134,11 @@ const ProductsTags = ({
 
   const renderAllTags = () => {
     const tagsToRender = searchResults.size ? searchResults : allTags;
-    const _tagsToRender = Array.from([...tagsToRender.keys()]);
-    if (!_tagsToRender?.length) return null;
-    return _tagsToRender.map((t: TagId) => {
+    const t = Array.from([...tagsToRender.keys()]);
+    if (!t?.length) return null;
+    return t.map((t: TagId) => {
       //do not display already selected tags
-      if (_selectedTags.get(t) || !allTags.get(t)) return;
+      if (selectedTags.includes(t)) return;
       return (
         <TagSection
           key={t}
