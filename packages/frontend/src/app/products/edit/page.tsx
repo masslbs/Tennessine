@@ -115,15 +115,20 @@ const AddProductView = () => {
   const update = async (newItem: Partial<Item>) => {
     //compare the edited fields against the original object.
     const diff = {
-      id: itemId as `0x${string}`,
+      id: itemId as ItemId,
     };
     for (const key in newItem) {
       if (newItem[key] !== productInView[key]) {
         diff[key] = newItem[key];
       }
     }
-    console.log({ diff });
     await stateManager.items.update(diff);
+    if (quantity !== productInView?.quantity) {
+      await stateManager.items.changeStock(
+        [itemId as ItemId],
+        [Number(quantity)],
+      );
+    }
   };
 
   const onPublish = async () => {
@@ -176,8 +181,8 @@ const AddProductView = () => {
   };
 
   const handleStockChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const _units = e.target.value;
-    if (_units && !Number(_units)) {
+    const units = e.target.value;
+    if (units && !Number(units)) {
       setStockQty(0);
     } else {
       setStockQty(Number(e.target.value) || 0);
