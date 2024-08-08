@@ -20,15 +20,15 @@ export type IRelayClient = Pick<
   | "commitOrder"
   | "updateTag"
 >;
-
+export interface Metadata {
+  title: string;
+  description: string;
+  image: string;
+}
 export interface Item {
   id: `0x${string}`;
   price: string;
-  metadata: {
-    title: string;
-    description: string;
-    image: string;
-  };
+  metadata: Metadata;
   tags: `0x${string}`[];
   quantity: number;
 }
@@ -39,11 +39,6 @@ export interface Tag {
 }
 
 export type KeyCard = `0x${string}`;
-export enum Status {
-  Failed = "FAILED",
-  Pending = "PENDING",
-  Complete = "COMPLETE",
-}
 export interface ShippingDetails {
   name: string;
   address1: string;
@@ -51,6 +46,11 @@ export interface ShippingDetails {
   postalCode: string;
   country: string;
   phoneNumber: string;
+}
+export enum Status {
+  Failed = "FAILED",
+  Pending = "PENDING",
+  Complete = "COMPLETE",
 }
 export interface Order {
   id: `0x${string}`;
