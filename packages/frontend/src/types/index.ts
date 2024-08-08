@@ -1,23 +1,11 @@
 // SPDX-FileCopyrightText: 2024 Mass Labs
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
-
+import { Item, Order } from "@massmarket/stateManager/types";
 export type ItemId = `0x${string}`;
 export type TagId = `0x${string}`;
 export type OrderId = `0x${string}`;
-
-export interface Item {
-  id: `0x${string}`;
-  price: string;
-  metadata: {
-    title: string;
-    description: string;
-    image: string;
-  };
-  tags?: `0x${string}`[];
-  quantity: number;
-  blob?: Blob | FormData | null;
-}
+export type { Item, Order };
 export interface Metadata {
   title: string;
   description: string;
@@ -45,26 +33,6 @@ export interface Transaction {
     id: number;
     paymentAddr: string;
   };
-}
-
-//transaction order
-export interface Order {
-  id: `0x${string}`;
-  items: { [key: `0x${string}`]: number };
-  status: Status;
-  shippingDetails?: ShippingDetails;
-  txHash?: string;
-  orderFinalized?:
-    | {
-        orderHash: string;
-        currencyAddr: string;
-        totalInCrypto: string;
-        ttl: string;
-        payeeAddr: string;
-        shopSignature: string;
-        total: string;
-      }
-    | false;
 }
 
 export enum Role {
@@ -127,24 +95,7 @@ interface ShopCurrencies {
   tokenAddr: `0x${string}`;
   chainId: number;
 }
-export interface Order {
-  id: `0x${string}`;
-  items: { [key: `0x${string}`]: number };
-  status: Status;
-  shippingDetails?: ShippingDetails;
-  txHash?: string;
-  orderFinalized?:
-    | {
-        orderHash: string;
-        currencyAddr: string;
-        totalInCrypto: string;
-        ttl: string;
-        payeeAddr: string;
-        shopSignature: string;
-        total: string;
-      }
-    | false;
-}
+
 export enum SortOption {
   priceLow = "Price Low",
   priceHigh = "Price High",
