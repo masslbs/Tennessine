@@ -32,11 +32,13 @@ const Navigation = () => {
 
   const { name } = useMyContext();
   const { setIsConnected, isMerchantView } = useAuth();
-  const { db, storeData, invalidateOrder } = useStoreContext();
+  const { db, shopManifest, invalidateOrder } = useStoreContext();
+
   const searchParams = useSearchParams();
 
-  // const profilePhoto = avatar ? avatar : "example-avatar.svg";
   const router = useRouter();
+  if (!shopManifest) return null;
+
   const logout = () => {
     db.clear();
     setIsConnected(Status.Pending);
@@ -75,8 +77,8 @@ const Navigation = () => {
             <button onClick={menuSwitch}>
               <Image
                 src={
-                  storeData.profilePictureUrl
-                    ? storeData.profilePictureUrl
+                  shopManifest.profilePictureUrl
+                    ? shopManifest.profilePictureUrl
                     : `/assets/MassLabsLogo.svg`
                 }
                 width={40}
@@ -89,7 +91,7 @@ const Navigation = () => {
         </div>
         <div className="flex flex-col justify-between mx-4 mt-4">
           <div className="mb-4">
-            <h2>{storeData.name}</h2>
+            <h2>{shopManifest.name}</h2>
             <div className="flex text-xs gap-1">
               <SecondaryButton onClick={menuSwitch}>
                 <Link className="flex items-center gap-1" href="/products">
@@ -164,8 +166,8 @@ const Navigation = () => {
           <button onClick={menuSwitch}>
             <Image
               src={
-                storeData.profilePictureUrl
-                  ? storeData.profilePictureUrl
+                shopManifest.profilePictureUrl
+                  ? shopManifest.profilePictureUrl
                   : `/assets/MassLabsLogo.svg`
               }
               width={40}

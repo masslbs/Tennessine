@@ -10,7 +10,6 @@ import React, {
   useEffect,
 } from "react";
 import { bytesToHex, hexToBytes } from "viem";
-import { MemoryLevel } from "memory-level";
 import {
   Item,
   TagId,
@@ -52,7 +51,6 @@ import { finalizedOrderReducer } from "@/reducers/finalizedOrderReducers";
 import { initialStoreContext } from "../context/initialLoadingState";
 import { dummyRelays } from "./dummyData";
 import { pubKeyReducer } from "@/reducers/KCPubKeysReducers";
-import { storeReducer } from "@/reducers/storeReducer";
 import { hardhat, sepolia, mainnet } from "viem/chains";
 import { StateManager } from "@massmarket/stateManager";
 // @ts-expect-error FIXME
@@ -68,11 +66,7 @@ export const StoreContextProvider = (
   const [erc20Addr, setErc20Addr] = useState<null | `0x${string}`>(null);
   const [publishedTagId, setPublishedTagId] = useState<null | TagId>(null);
   const [finalizedOrders] = useReducer(finalizedOrderReducer, new Map());
-  const [storeData, setStoreData] = useReducer(storeReducer, {
-    name: "",
-    profilePictureUrl: "",
-    baseCurrencyAddr: null,
-  });
+  const [shopManifest, setShopManifest] = useState<ShopManifest | null>(null);
   const [acceptedCurrencies, setAcceptedCurrencies] = useReducer(
     acceptedCurrencyReducer,
     new Map(),
@@ -80,9 +74,9 @@ export const StoreContextProvider = (
   const [pubKeys] = useReducer(pubKeyReducer, []);
   const [relays, setRelays] = useState<Relay[]>(dummyRelays);
   const [selectedCurrency, setSelectedCurrency] = useState(null);
-  const { relayClient, walletAddress, shopId, getTokenInformation } =
-    useMyContext();
+  const { relayClient, getTokenInformation, shopId } = useMyContext();
   const [stateManager, setStateManager] = useState<StateManager | null>(null);
+
   const chainName = process.env.NEXT_PUBLIC_CHAIN_NAME!;
   const usedChainId: number =
     chainName === "sepolia"
@@ -91,41 +85,63 @@ export const StoreContextProvider = (
         ? hardhat.id
         : mainnet.id;
 
-  const db = new MemoryLevel({
-    valueEncoding: "json",
-  });
-
-  const listingStore = db.sublevel<string, Item>("listingStore", {
-    valueEncoding: "json",
-  });
-  const tagStore = db.sublevel<string, Tag>("tagStore", {
-    valueEncoding: "json",
-  });
-  const shopManifestStore = db.sublevel<string, ShopManifest>(
-    "shopManifestStore",
-    {
-      valueEncoding: "json",
-    },
-  );
-  const orderStore = db.sublevel<string, Order>("orderStore", {
-    valueEncoding: "json",
-  });
-
-  const keycardStore = db.sublevel<string, KeyCard>("keycardStore", {
-    valueEncoding: "json",
-  });
-
   useEffect(() => {
     if (relayClient) {
-      const stateManager = new StateManager(
-        relayClient,
-        listingStore,
-        tagStore,
-        shopManifestStore,
-        orderStore,
-        keycardStore,
-      );
-      setStateManager(stateManager);
+      (async () => {
+        const { Level } = await import("level");
+        const dbName = shopId?.slice(0, 7);
+        console.log("using level db:", { dbName });
+        const db = new Level(`./${dbName}`, {
+          valueEncoding: "json",
+        });
+
+        const listingStore = db.sublevel<string, Item>("listingStore", {
+          valueEncoding: "json",
+        });
+        const tagStore = db.sublevel<string, Tag>("tagStore", {
+          valueEncoding: "json",
+        });
+        const shopManifestStore = db.sublevel<string, ShopManifest>(
+          "shopManifestStore",
+          {
+            valueEncoding: "json",
+          },
+        );
+        const orderStore = db.sublevel<string, Order>("orderStore", {
+          valueEncoding: "json",
+        });
+
+        const keycardStore = db.sublevel<string, KeyCard>("keycardStore", {
+          valueEncoding: "json",
+        });
+        const stateManager = new StateManager(
+          relayClient,
+          listingStore,
+          tagStore,
+          shopManifestStore,
+          orderStore,
+          keycardStore,
+        );
+        setStateManager(stateManager);
+
+        stateManager.manifest.on("create", async () => {
+          console.log("create manifest");
+          const shopManifest = await stateManager.manifest.get();
+
+          setShopManifest(shopManifest);
+        });
+
+        //on page refresh, retrieve stored data
+        const savedShopManifest = await stateManager.manifest.get();
+        setShopManifest(savedShopManifest);
+
+        if (window && db) {
+          window.addEventListener("beforeunload", () => {
+            console.log("closing db connection");
+            db.close();
+          });
+        }
+      })();
     }
   }, [relayClient]);
 
@@ -468,8 +484,7 @@ export const StoreContextProvider = (
     publishedTagId,
     finalizedOrders,
     relays,
-    db,
-    storeData,
+    shopManifest,
     addProduct,
     updateProduct,
     createTag,
@@ -481,7 +496,7 @@ export const StoreContextProvider = (
     setErc20Addr,
     setPublishedTagId,
     setOrderId,
-    setStoreData,
+    setShopManifest,
     acceptedCurrencies,
     selectedCurrency,
     setSelectedCurrency,

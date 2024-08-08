@@ -32,7 +32,8 @@ const StoreCreation = () => {
     createNewRelayClient,
   } = useMyContext();
 
-  const { setStoreData, setPublishedTagId, stateManager } = useStoreContext();
+  const { setShopManifest, setPublishedTagId, stateManager } =
+    useStoreContext();
   const { isConnected, setIsConnected, setIsMerchantView } = useAuth();
   const chains = useChains();
   const router = useRouter();
@@ -201,7 +202,7 @@ const StoreCreation = () => {
           console.log(`UPDATED Manifest shopId:${shopId}`);
         }
 
-        setStoreData({
+        setShopManifest({
           type: SET_STORE_DATA,
           payload: {
             name: storeName!,
