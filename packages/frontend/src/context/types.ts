@@ -87,17 +87,7 @@ export type StoreContent = {
   publishedTagId: TagId | null;
   finalizedOrders: Map<EventId, FinalizedOrderState>;
   db: Level<string, string>;
-  storeData: storeState;
-  addProduct: (
-    p: Item,
-    keysArr: ItemId[] | [],
-  ) => Promise<{ id?: ItemId; error: null | string }>;
-  updateProduct: (
-    itemId: ItemId,
-    updatedFields: { price: boolean; metadata: boolean },
-    newProduct: Item,
-    keysArr: ItemId[] | [],
-  ) => Promise<{ error: string | null }>;
+  shopManifest: storeState;
   createState: () => void;
   createTag: (name: string) => Promise<{ id?: TagId; error: null | string }>;
   addProductToTag: (
@@ -122,7 +112,7 @@ export type StoreContent = {
   setErc20Addr: (erc20: `0x${string}`) => void;
   setPublishedTagId: (id: TagId) => void;
   setOrderId: (orderId: OrderId | null) => void;
-  setStoreData: Dispatch<updateStoreDataAction>;
+  setShopManifest: Dispatch<updateStoreDataAction>;
   acceptedCurrencies: Map<TokenAddr, null | string>;
   setAcceptedCurrencies: Dispatch<AcceptedCurrencyActions>;
   selectedCurrency: TokenAddr;

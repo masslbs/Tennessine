@@ -23,10 +23,14 @@ import { hexToBytes } from "viem";
 import { sepolia, hardhat } from "viem/chains";
 
 const StoreProfile = ({ close }: { close: () => void }) => {
-  const { storeData, setStoreData, acceptedCurrencies, setAcceptedCurrencies } =
-    useStoreContext();
+  const {
+    shopManifest,
+    setShopManifest,
+    acceptedCurrencies,
+    setAcceptedCurrencies,
+  } = useStoreContext();
   const { relayClient } = useMyContext();
-  const [storeName, setStoreName] = useState<string>(storeData?.name);
+  const [storeName, setStoreName] = useState<string>(shopManifest?.name);
   const [baseCurrencyAddr, setStoreBase] = useState<TokenAddr | "">("");
   const [avatar, setAvatar] = useState<FormData | null>(null);
   const [addTokenAddr, setAddTokenAddr] = useState<TokenAddr | "">("");
@@ -35,8 +39,8 @@ const StoreProfile = ({ close }: { close: () => void }) => {
   const chainName = process.env.NEXT_PUBLIC_CHAIN_NAME!;
 
   useEffect(() => {
-    setStoreName(storeData?.name);
-    setStoreBase(storeData?.baseCurrencyAddr || "");
+    setStoreName(shopManifest?.name);
+    setStoreBase(shopManifest?.baseCurrencyAddr || "");
   }, [acceptedCurrencies]);
 
   const copyToClipboard = () => {
@@ -49,16 +53,16 @@ const StoreProfile = ({ close }: { close: () => void }) => {
     let path;
     if (avatar) {
       path = await relayClient!.uploadBlob(avatar as FormData);
-      setStoreData({
+      setShopManifest({
         type: UPDATE_STORE_PIC,
         payload: { profilePictureUrl: path.url },
       });
     }
-    setStoreData({
+    setShopManifest({
       type: UPDATE_STORE_NAME,
       payload: { name: storeName },
     });
-    setStoreData({
+    setShopManifest({
       type: UPDATE_BASE_CURRENCY,
       payload: { baseCurrencyAddr },
     });

@@ -20,7 +20,7 @@ const NewCart = ({ next }: { next: () => void }) => {
   const [errorMsg, setErrorMsg] = useState("");
   const [baseCurrSymbol, setBaseCurrSymbol] = useState<string | null>(null);
   const router = useRouter();
-  const { storeData, selectedCurrency } = useStoreContext();
+  const { shopManifest, selectedCurrency } = useStoreContext();
   const { getTokenInformation } = useMyContext();
   const symbolSet = useRef(false);
   useEffect(() => {
@@ -35,10 +35,10 @@ const NewCart = ({ next }: { next: () => void }) => {
 
   useEffect(() => {
     (async () => {
-      if (storeData?.baseCurrencyAddr && !symbolSet.current) {
+      if (shopManifest?.baseCurrencyAddr && !symbolSet.current) {
         symbolSet.current = true;
         const { symbol } = await getTokenInformation(
-          storeData?.baseCurrencyAddr,
+          shopManifest?.baseCurrencyAddr,
         );
         setBaseCurrSymbol(symbol);
       }
