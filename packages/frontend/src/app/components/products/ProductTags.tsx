@@ -38,7 +38,7 @@ const ProductsTags = ({
   itemId: ItemId | null;
   setError: Dispatch<SetStateAction<null | string>>;
 }) => {
-  const { createTag, allTags, addProductToTag, removeProductFromTag } =
+  const { allTags, addProductToTag, removeProductFromTag, stateManager } =
     useStoreContext();
   const [isSearchState, setIsSearchState] = React.useState<boolean>(false);
   const [searchResults, searchDispatch] = useReducer(searchReducer, new Map());
@@ -134,10 +134,10 @@ const ProductsTags = ({
     }
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     tagName.length && tagName[0] === ":"
-      ? createTag(tagName)
+      ? await stateManager.tags.create(tagName)
       : setError("to create a tag name, begin the tag name with :");
     setTagName("");
   };

@@ -60,8 +60,8 @@ export const StoreContextProvider = (
   props: React.HTMLAttributes<HTMLDivElement>,
 ) => {
   const [orderItems, setOrderItems] = useReducer(orderReducer, new Map());
-  const [products, setProducts] = useReducer(productReducer, new Map());
-  const [allTags, setAllTags] = useReducer(allTagsReducer, new Map());
+  const [products, setProducts] = useState(new Map());
+  const [allTags, setAllTags] = useState(new Map());
   const [orderId, setOrderId] = useState<OrderId | null>(null);
   const [erc20Addr, setErc20Addr] = useState<null | `0x${string}`>(null);
   const [publishedTagId, setPublishedTagId] = useState<null | TagId>(null);
@@ -124,17 +124,41 @@ export const StoreContextProvider = (
         );
         setStateManager(stateManager);
 
-        stateManager.manifest.on("create", async () => {
-          console.log("create manifest");
-          const shopManifest = await stateManager.manifest.get();
+        stateManager.manifest.on("create", (manifest) => {
+          setShopManifest(manifest);
+        });
+        stateManager.manifest.on("update", (manifest) => {
+          setShopManifest(manifest);
+        });
+        stateManager.items.on("create", (item) => {
+          products.set(item.id, item);
+          setProducts(products);
+        });
+        stateManager.items.on("update", (item) => {
+          products.set(item.id, item);
+          setProducts(products);
+        });
 
-          setShopManifest(shopManifest);
+        stateManager.tags.on("create", (tag) => {
+          allTags.set(tag.id, tag);
+          setAllTags(allTags);
         });
 
         //on page refresh, retrieve stored data
         const savedShopManifest = await stateManager.manifest.get();
         setShopManifest(savedShopManifest);
 
+        for await (const [id, item] of stateManager.items.iterator()) {
+          products.set(id, item);
+        }
+        setProducts(products);
+
+        for await (const [id, tag] of stateManager.tags.iterator()) {
+          products.set(id, tag);
+        }
+        setAllTags(allTags);
+
+        //close db connection on unload
         if (window && db) {
           window.addEventListener("beforeunload", () => {
             console.log("closing db connection");
@@ -185,119 +209,6 @@ export const StoreContextProvider = (
     //     }
     //   }
     // }
-  };
-
-  const addProduct = async (product: Item, selectedTagIds: TagId[] | []) => {
-    try {
-      const path = await relayClient!.uploadBlob(product.blob as FormData);
-      const metadata = {
-        title: product.metadata.title,
-        description: product.metadata.description,
-        image: path.url as string,
-      };
-
-      const priceAsNum = Number(product.price);
-      product.price = priceAsNum.toFixed(2);
-      const iid = await relayClient!.createItem({
-        price: product.price,
-        metadata: new TextEncoder().encode(JSON.stringify(metadata)),
-      });
-      const productId = bytesToHex(iid);
-      product.id = productId;
-      product.tags = selectedTagIds;
-      product.metadata = metadata;
-      productId &&
-        setProducts({
-          type: ADD_PRODUCT,
-          payload: { itemId: productId, item: product },
-        });
-      changeStock([iid], [product.quantity || 0]);
-
-      selectedTagIds &&
-        selectedTagIds.map((id) => {
-          addProductToTag(id, productId);
-        });
-      return { id: productId, error: null };
-    } catch (error) {
-      console.error({ error });
-      const errMsg = error as { message: string };
-      return { error: errMsg.message };
-    }
-  };
-
-  const updateProduct = async (
-    itemId: ItemId,
-    fields: { price: boolean; metadata: boolean; quantity?: boolean },
-    updatedProduct: Item,
-    selectedTagIds: TagId[] | [],
-  ) => {
-    try {
-      const itemIdBytes = hexToBytes(itemId);
-      if (fields.price) {
-        const priceAsNum = Number(updatedProduct.price);
-        updatedProduct.price = priceAsNum.toFixed(2);
-        await relayClient!.updateItem({
-          itemId: itemIdBytes,
-          price: updatedProduct.price,
-        });
-        setProducts({
-          type: UPDATE_PRICE,
-          payload: {
-            itemId,
-            price: updatedProduct.price,
-          },
-        });
-      }
-      if (fields.metadata) {
-        const hasEmbeddedImage =
-          updatedProduct.metadata.image.includes("data:image");
-        const path = hasEmbeddedImage
-          ? await relayClient!.uploadBlob(updatedProduct.blob as FormData)
-          : { url: updatedProduct.metadata.image };
-
-        const metadata = {
-          title: updatedProduct.metadata.title,
-          description: updatedProduct.metadata.description,
-          image: path.url,
-        };
-        await relayClient!.updateItem({
-          itemId: itemIdBytes,
-          metadata: new TextEncoder().encode(JSON.stringify(metadata)),
-        });
-        setProducts({
-          type: UPDATE_METADATA,
-          payload: {
-            itemId,
-            metadata: metadata,
-          },
-        });
-      }
-      if (fields.quantity) {
-        //calculate unit difference
-        const previousUnit = products.get(itemId)?.quantity || 0;
-        const diff = Number(updatedProduct.quantity) - Number(previousUnit);
-        changeStock([itemIdBytes], [diff]);
-        setProducts({
-          type: UPDATE_STOCKQTY,
-          payload: {
-            itemId: itemId,
-            unitDiff: diff,
-          },
-        });
-      }
-
-      updatedProduct.tags = selectedTagIds;
-
-      setProducts({
-        type: UPDATE_PRODUCT,
-        payload: { itemId: itemId, item: updatedProduct },
-      });
-      return { error: null };
-    } catch (error) {
-      console.log({ error });
-      const errMsg = error as { message: string };
-      return { error: errMsg.message };
-    }
   };
 
   const createTag = async (name: string) => {
@@ -485,8 +396,6 @@ export const StoreContextProvider = (
     finalizedOrders,
     relays,
     shopManifest,
-    addProduct,
-    updateProduct,
     createTag,
     addProductToTag,
     removeProductFromTag,
