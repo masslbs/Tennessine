@@ -4,20 +4,13 @@
 
 "use client";
 
-import React, {
-  useReducer,
-  ChangeEvent,
-  useRef,
-  useState,
-  useEffect,
-} from "react";
+import React, { ChangeEvent, useRef, useState, useEffect } from "react";
 import Image from "next/image";
 
-import { SELECT_TAG, selectedTagReducer } from "@/reducers/tagReducers";
 import { useStoreContext } from "@/context/StoreContext";
 import ProductsTags from "@/app/components/products/ProductTags";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Tag, ItemId, Item } from "@/types";
+import { Tag, ItemId, Item, TagId } from "@/types";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import VisibilitySlider from "@/app/components/products/VisibilitySlider";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
@@ -45,19 +38,18 @@ const AddProductView = () => {
   );
   const [quantity, setStockQty] = useState(productInView?.quantity || "0");
   const [error, setError] = useState<null | string>(null);
-  const [selectedTags, selectedTagsDispatch] = useReducer(
-    selectedTagReducer,
-    new Map(),
-  );
+  const [selectedTags, setSelectedTags] = useState<TagId[]>([]);
 
   useEffect(() => {
     if (!productInView?.tags) return;
+    const selected: TagId[] = [];
 
     productInView.tags.map((id) => {
       const t = allTags.get(id) as Tag;
       if (!t) return null;
-      selectedTagsDispatch({ type: SELECT_TAG, payload: { selectedTag: t } });
+      selected.push(t.id);
     });
+    setSelectedTags(selected);
   }, [productInView?.tags]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -103,13 +95,11 @@ const AddProductView = () => {
   const create = async (newItem: Partial<Item>) => {
     const { id } = await stateManager.items.create(newItem);
     await stateManager.items.changeStock([id], [Number(quantity)]);
-    // const selectedTagKeys: TagId[] | [] = selectedTags.size
-    //     ? Array.from([...selectedTags.keys()])
-    //     : [];
-    // selectedTagIds &&
-    //     selectedTagIds.map((id) => {
-    //       addProductToTag(id, productId);
-    //     });
+    if (selectedTags.length) {
+      selectedTags.map((tId) => {
+        stateManager.items.addItemToTag(tId, id);
+      });
+    }
   };
 
   const update = async (newItem: Partial<Item>) => {
@@ -159,7 +149,7 @@ const AddProductView = () => {
           : await create(newItem);
         router.push(`/products`);
       } catch (error) {
-        setError(error);
+        setError("Error while saving item");
       }
     }
   };
@@ -368,17 +358,16 @@ const AddProductView = () => {
               </div>
               <ProductsTags
                 selectedTags={selectedTags}
-                selectedTagsDispatch={selectedTagsDispatch}
+                setSelectedTags={setSelectedTags}
                 itemId={editView ? itemId : null}
                 setError={setError}
               />
             </section>
-            <VisibilitySlider
+            {/* <VisibilitySlider
               selectedTags={selectedTags}
-              selectedTagsDispatch={selectedTagsDispatch}
               itemId={editView ? itemId : null}
               editView={editView}
-            />
+            /> */}
           </section>
         </section>
       </div>
