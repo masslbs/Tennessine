@@ -4,11 +4,11 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useMyContext } from "@/context/MyContext";
 import { useAuth } from "@/context/AuthContext";
-import { Status } from "@/types";
+import { ShopManifest, Status } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import FullModal from "@/app/common/components/FullModal";
@@ -29,15 +29,31 @@ const _menuOptions = [
 
 const Navigation = () => {
   const [menuOpened, setMenuOpened] = useState<boolean>(false);
-
-  const { name } = useMyContext();
   const { setIsConnected, isMerchantView } = useAuth();
-  const { db, shopManifest, invalidateOrder } = useStoreContext();
+  const { db, stateManager, invalidateOrder } = useStoreContext();
+  const [shopManifest, setShopManifest] = useState<ShopManifest | null>(null);
+  const { name } = useMyContext();
 
   const searchParams = useSearchParams();
 
   const router = useRouter();
-  if (!shopManifest) return null;
+
+  useEffect(() => {
+    function onUpdateEvent(manifest: ShopManifest) {
+      setShopManifest(manifest);
+    }
+    if (!stateManager) return;
+    (async () => {
+      const shopManifest = await stateManager.manifest.get();
+      setShopManifest(shopManifest);
+      // Listen to future events
+      stateManager.manifest.on("update", onUpdateEvent);
+    })();
+    return () => {
+      // Cleanup listeners on unmount
+      stateManager.manifest.removeListener("update", onUpdateEvent);
+    };
+  }, [stateManager]);
 
   const logout = () => {
     db.clear();
@@ -77,8 +93,8 @@ const Navigation = () => {
             <button onClick={menuSwitch}>
               <Image
                 src={
-                  shopManifest.profilePictureUrl
-                    ? shopManifest.profilePictureUrl
+                  shopManifest?.profilePictureUrl
+                    ? shopManifest?.profilePictureUrl
                     : `/assets/MassLabsLogo.svg`
                 }
                 width={40}
@@ -91,7 +107,7 @@ const Navigation = () => {
         </div>
         <div className="flex flex-col justify-between mx-4 mt-4">
           <div className="mb-4">
-            <h2>{shopManifest.name}</h2>
+            <h2>{shopManifest?.name}</h2>
             <div className="flex text-xs gap-1">
               <SecondaryButton onClick={menuSwitch}>
                 <Link className="flex items-center gap-1" href="/products">
@@ -166,8 +182,8 @@ const Navigation = () => {
           <button onClick={menuSwitch}>
             <Image
               src={
-                shopManifest.profilePictureUrl
-                  ? shopManifest.profilePictureUrl
+                shopManifest?.profilePictureUrl
+                  ? shopManifest?.profilePictureUrl
                   : `/assets/MassLabsLogo.svg`
               }
               width={40}

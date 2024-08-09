@@ -3,73 +3,61 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useStoreContext } from "@/context/StoreContext";
-import { ItemId } from "@/types";
-import React, { useEffect, useState } from "react";
-import {
-  selectedTagsAction,
-  SELECT_TAG,
-  DESELECT_TAG,
-} from "@/reducers/tagReducers";
-import { TagId, Tag } from "@/types";
+import React, { useEffect, useState, Dispatch, SetStateAction } from "react";
+
+import { TagId } from "@/types";
 
 const VisibilitySlider = ({
-  selectedTagsDispatch,
-  itemId,
   selectedTags,
   editView,
+  setSelectedTags,
 }: {
-  selectedTagsDispatch: (t: selectedTagsAction) => void;
-  itemId: ItemId | null;
-  selectedTags: Map<TagId, Tag>;
+  selectedTags: TagId[];
   editView: boolean;
+  setSelectedTags: Dispatch<SetStateAction<TagId[]>>;
 }) => {
-  const { publishedTagId, allTags, addProductToTag, removeProductFromTag } =
-    useStoreContext();
+  const { stateManager } = useStoreContext();
   const [selectedOption, setSelectedOption] = useState<number>(1);
-  const [_selectedTags, setSelectedTags] = useState<Map<TagId, Tag>>(new Map());
+  const [selected, setAll] = useState<TagId[]>([]);
+  const [pId, setPublishedTagId] = useState<`0x${string}` | null>(null);
 
   useEffect(() => {
-    setSelectedTags(selectedTags);
+    (async () => {
+      const shopManifest = await stateManager.manifest.get();
+      setPublishedTagId(shopManifest.publishedTagId);
+    })();
+  }, []);
+
+  useEffect(() => {
+    setAll(selectedTags);
   }, [selectedTags]);
 
   useEffect(() => {
-    if (!editView && publishedTagId) {
-      handleVisibility();
-    }
-  }, [editView, publishedTagId]);
+    //default new item to visible.
+    (async () => {
+      console.log({ pId });
+      if (!editView && pId) {
+        await markAsVisible();
+      }
+    })();
+  }, [editView, pId]);
 
   useEffect(() => {
-    const isVisible =
-      publishedTagId && _selectedTags
-        ? _selectedTags.get(publishedTagId)?.id
-        : false;
+    const isVisible = pId && selected ? selected.includes(pId) : false;
     isVisible ? setSelectedOption(1) : setSelectedOption(2);
-  }, [allTags, publishedTagId, _selectedTags]);
+  }, [pId, selected]);
 
-  const handleVisibility = () => {
-    if (publishedTagId) {
-      selectedTagsDispatch({
-        type: SELECT_TAG,
-        payload: { selectedTag: { id: publishedTagId, name: "visibility" } },
-      });
+  const markAsVisible = async () => {
+    if (pId) {
       setSelectedOption(1);
-      if (itemId) {
-        addProductToTag(publishedTagId, itemId);
-      }
+      setSelectedTags([...selectedTags, pId]);
     }
   };
 
-  const handleHideTag = () => {
-    if (publishedTagId) {
-      selectedTagsDispatch({
-        type: DESELECT_TAG,
-        payload: { selectedTag: { id: publishedTagId, name: "visibility" } },
-      });
+  const markAsHidden = async () => {
+    if (pId) {
       setSelectedOption(2);
-      //if updating product
-      if (itemId) {
-        removeProductFromTag(publishedTagId, itemId);
-      }
+      setSelectedTags([...selectedTags].filter((i) => i !== pId));
     }
   };
 
@@ -80,12 +68,16 @@ const VisibilitySlider = ({
         <div
           className={`px-2 py-4 grow ${selectedOption === 1 ? "bg-gray-200" : ""}`}
         >
-          <button onClick={handleVisibility}>Visible</button>
+          <button disabled={selectedOption === 1} onClick={markAsVisible}>
+            Visible
+          </button>
         </div>
         <div
           className={`px-2 py-4 grow ${selectedOption === 2 ? "bg-gray-200" : ""}`}
         >
-          <button onClick={handleHideTag}>Hidden</button>
+          <button disabled={selectedOption === 2} onClick={markAsHidden}>
+            Hidden
+          </button>
         </div>
         <div
           className={`px-2 py-4 grow ${selectedOption === 3 ? "bg-gray-200" : ""}`}

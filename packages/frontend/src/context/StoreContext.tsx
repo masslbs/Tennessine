@@ -23,17 +23,7 @@ import {
 } from "@/types";
 import { useMyContext } from "./MyContext";
 import { StoreContent, OrderId } from "@/context/types";
-import {
-  productReducer,
-  ADD_PRODUCT,
-  UPDATE_PRODUCT,
-  ADD_PRODUCT_TAGS,
-  REMOVE_PRODUCT_TAG,
-  UPDATE_PRICE,
-  UPDATE_METADATA,
-  UPDATE_STOCKQTY,
-} from "@/reducers/productReducers";
-import { allTagsReducer, ADD_TAG } from "@/reducers/tagReducers";
+
 import {
   CLEAR_ORDER,
   REMOVE_ORDER_ITEM,
@@ -66,7 +56,6 @@ export const StoreContextProvider = (
   const [erc20Addr, setErc20Addr] = useState<null | `0x${string}`>(null);
   const [publishedTagId, setPublishedTagId] = useState<null | TagId>(null);
   const [finalizedOrders] = useReducer(finalizedOrderReducer, new Map());
-  const [shopManifest, setShopManifest] = useState<ShopManifest | null>(null);
   const [acceptedCurrencies, setAcceptedCurrencies] = useReducer(
     acceptedCurrencyReducer,
     new Map(),
@@ -124,34 +113,21 @@ export const StoreContextProvider = (
         );
         setStateManager(stateManager);
 
-        stateManager.manifest.on("create", (manifest) => {
-          setShopManifest(manifest);
-        });
-        stateManager.manifest.on("update", (manifest) => {
-          setShopManifest(manifest);
-        });
-        stateManager.items.on("create", (item) => {
+        stateManager.items.on("addItemId", (item) => {
+          console.log({ item });
           products.set(item.id, item);
           setProducts(products);
         });
-        stateManager.items.on("update", (item) => {
-          products.set(item.id, item);
-          setProducts(products);
-        });
+        stateManager.items.on("removeItemId", (item) => {
+          console.log("removeItemId", { item });
 
+          products.set(item.id, item);
+          setProducts(products);
+        });
         stateManager.tags.on("create", (tag) => {
           allTags.set(tag.id, tag);
           setAllTags(allTags);
         });
-
-        //on page refresh, retrieve stored data
-        const savedShopManifest = await stateManager.manifest.get();
-        setShopManifest(savedShopManifest);
-
-        for await (const [id, item] of stateManager.items.iterator()) {
-          products.set(id, item);
-        }
-        setProducts(products);
 
         for await (const [id, tag] of stateManager.tags.iterator()) {
           products.set(id, tag);
@@ -209,64 +185,6 @@ export const StoreContextProvider = (
     //     }
     //   }
     // }
-  };
-
-  const createTag = async (name: string) => {
-    try {
-      const _name = name.slice(1);
-      const id: TagId = bytesToHex(
-        await relayClient!.createTag({ name: _name }),
-      );
-      const tag = { id, name }; // TODO: color: hex?
-      setAllTags({ type: ADD_TAG, payload: { tag } });
-      return { id, error: null };
-    } catch (error) {
-      console.log({ error });
-      const errMsg = error as { message: string };
-      return { error: errMsg.message };
-    }
-  };
-
-  const addProductToTag = async (tagId: TagId, itemId: ItemId) => {
-    try {
-      await relayClient!.updateTag({
-        tagId: hexToBytes(tagId),
-        addItemId: hexToBytes(itemId),
-      });
-      setProducts({
-        type: ADD_PRODUCT_TAGS,
-        payload: {
-          itemId,
-          tagId,
-        },
-      });
-      return { error: null };
-    } catch (error) {
-      console.log({ error });
-      const errMsg = error as { message: string };
-      return { error: errMsg.message };
-    }
-  };
-
-  const removeProductFromTag = async (tagId: TagId, itemId: ItemId) => {
-    try {
-      await relayClient!.updateTag({
-        tagId: hexToBytes(tagId),
-        removeItemId: hexToBytes(itemId),
-      });
-      setProducts({
-        type: REMOVE_PRODUCT_TAG,
-        payload: {
-          itemId,
-          tagId,
-        },
-      });
-      return { id: tagId, error: null };
-    } catch (error) {
-      console.log({ error });
-      const errMsg = error as { message: string };
-      return { error: errMsg.message };
-    }
   };
 
   const updateOrder = async (itemId?: ItemId, saleQty: number = 0) => {
@@ -358,10 +276,6 @@ export const StoreContextProvider = (
     return orderId;
   };
 
-  const changeStock = async (itemIds: Uint8Array[], diffs: number[]) => {
-    await relayClient!.changeStock({ itemIds, diffs });
-  };
-
   const commitOrder = async () => {
     try {
       if (!relayClient) throw Error(`Disconnected from relayClient`);
@@ -395,17 +309,12 @@ export const StoreContextProvider = (
     publishedTagId,
     finalizedOrders,
     relays,
-    shopManifest,
-    createTag,
-    addProductToTag,
-    removeProductFromTag,
     updateOrder,
     commitOrder,
     invalidateOrder,
     setErc20Addr,
     setPublishedTagId,
     setOrderId,
-    setShopManifest,
     acceptedCurrencies,
     selectedCurrency,
     setSelectedCurrency,

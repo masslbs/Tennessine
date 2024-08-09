@@ -17,17 +17,24 @@ import { OrderState } from "@/context/types";
 
 const MerchantDashboard = () => {
   //   const { storeIds } = useMerchantContext();
-  const { shopManifest, orderItems } = useStoreContext();
+  const { stateManager, orderItems } = useStoreContext();
   const searchParams = useSearchParams();
   const [transactions, setTransactions] = useState<
     [OrderId, OrderState][] | []
   >([]);
+  const [name, setName] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      const shopManifest = await stateManager.manifest.get();
+      setName(shopManifest.name);
+    })();
+  }, []);
 
   useEffect(() => {
     const carts = Array.from([...orderItems.entries()]);
     setTransactions(carts);
   }, [orderItems]);
-  if (!shopManifest) return null;
 
   const renderTransactions = () => {
     return transactions?.length ? (
@@ -64,7 +71,7 @@ const MerchantDashboard = () => {
     <main className="pt-under-nav h-screen">
       <div className="flex flex-col justify-between mx-4 mt-4">
         <div className="mb-4">
-          <h2>{shopManifest.name}</h2>
+          <h2>{name}</h2>
           <div className="flex text-xs gap-1 pt-4">
             <SecondaryButton>
               <Link className="flex items-center gap-1" href="/products">

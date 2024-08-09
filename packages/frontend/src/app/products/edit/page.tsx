@@ -21,7 +21,7 @@ const AddProductView = () => {
   const searchParams = useSearchParams();
   const itemId = searchParams.get("itemId") as ItemId | "new";
   const editView = itemId !== "new";
-  const { stateManager, allTags } = useStoreContext();
+  const { stateManager } = useStoreContext();
   const { relayClient } = useMyContext();
   const [productInView, setProductInView] = useState<Item | null>(null);
   const [imgSrc, setImg] = useState<string>("");
@@ -51,14 +51,13 @@ const AddProductView = () => {
   useEffect(() => {
     if (!productInView?.tags) return;
     const selected: TagId[] = [];
-
-    productInView.tags.map((id) => {
-      const t = allTags.get(id) as Tag;
+    productInView.tags.map(async (id) => {
+      const t = (await stateManager.tags.get(id)) as Tag;
       if (!t) return null;
       selected.push(t.id);
     });
     setSelectedTags(selected);
-  }, [productInView?.tags]);
+  }, [productInView]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const hed = editView && productInView ? "Edit product" : "Add Product";
@@ -124,7 +123,6 @@ const AddProductView = () => {
     const newTags = selectedTags.filter(
       (tId) => !productInView!.tags.includes(tId),
     );
-    console.log({ newTags });
     if (newTags.length) {
       newTags.map((tId) => {
         stateManager.items.addItemToTag(tId, itemId as ItemId);
@@ -385,7 +383,6 @@ const AddProductView = () => {
             <VisibilitySlider
               selectedTags={selectedTags}
               setSelectedTags={setSelectedTags}
-              itemId={editView ? itemId : null}
               editView={editView}
             />
           </section>

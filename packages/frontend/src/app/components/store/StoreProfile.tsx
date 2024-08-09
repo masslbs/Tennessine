@@ -5,43 +5,36 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import ModalHeader from "../../common/components/ModalHeader";
-import Button from "../../common/components/Button";
+import ModalHeader from "@/app/common/components/ModalHeader";
+import Button from "@/app/common/components/Button";
 import { useStoreContext } from "@/context/StoreContext";
 import { useMyContext } from "@/context/MyContext";
 import Image from "next/image";
 import AvatarUpload from "@/app/common/components/AvatarUpload";
-import {
-  UPDATE_STORE_NAME,
-  UPDATE_STORE_PIC,
-  UPDATE_BASE_CURRENCY,
-} from "@/reducers/storeReducer";
-import { ADD_ACCEPTED_CURR } from "@/reducers/acceptedCurrencyReducers";
 import { TokenAddr } from "@/reducers/acceptedCurrencyReducers";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
-import { hexToBytes } from "viem";
+import { ShopManifest } from "@/types";
 import { sepolia, hardhat } from "viem/chains";
 
 const StoreProfile = ({ close }: { close: () => void }) => {
-  const {
-    shopManifest,
-    setShopManifest,
-    acceptedCurrencies,
-    setAcceptedCurrencies,
-  } = useStoreContext();
+  const { stateManager, acceptedCurrencies } = useStoreContext();
   const { relayClient } = useMyContext();
-  const [storeName, setStoreName] = useState<string>(shopManifest?.name);
+  const [storeName, setStoreName] = useState<string>("");
   const [baseCurrencyAddr, setStoreBase] = useState<TokenAddr | "">("");
   const [avatar, setAvatar] = useState<FormData | null>(null);
   const [addTokenAddr, setAddTokenAddr] = useState<TokenAddr | "">("");
   const { shopId } = useMyContext();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
   const chainName = process.env.NEXT_PUBLIC_CHAIN_NAME!;
 
   useEffect(() => {
-    setStoreName(shopManifest?.name);
-    setStoreBase(shopManifest?.baseCurrencyAddr || "");
-  }, [acceptedCurrencies]);
+    (async () => {
+      const shopManifest = await stateManager.manifest.get();
+      setStoreName(shopManifest.name);
+      setStoreBase(shopManifest.setBaseCurrency!.tokenAddr);
+    })();
+  }, []);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(shopId!);
@@ -50,39 +43,19 @@ const StoreProfile = ({ close }: { close: () => void }) => {
   const updateStoreInfo = async () => {
     if (!baseCurrencyAddr)
       throw Error("Missing base currency address for store.");
-    let path;
+    const manifest: Partial<ShopManifest> = {
+      name: storeName,
+      setBaseCurrency: {
+        tokenAddr: baseCurrencyAddr,
+        chainId: chainName === "sepolia" ? sepolia.id : hardhat.id,
+      },
+    };
     if (avatar) {
-      path = await relayClient!.uploadBlob(avatar as FormData);
-      setShopManifest({
-        type: UPDATE_STORE_PIC,
-        payload: { profilePictureUrl: path.url },
-      });
+      const path = await relayClient!.uploadBlob(avatar as FormData);
+      manifest["profilePictureUrl"] = path.url;
     }
-    setShopManifest({
-      type: UPDATE_STORE_NAME,
-      payload: { name: storeName },
-    });
-    setShopManifest({
-      type: UPDATE_BASE_CURRENCY,
-      payload: { baseCurrencyAddr },
-    });
 
-    avatar
-      ? await relayClient!.updateShopManifest({
-          name: storeName,
-          profilePictureUrl: path.url,
-          setBaseCurrency: {
-            tokenAddr: hexToBytes(baseCurrencyAddr as `0x${string}`),
-            chainId: chainName === "sepolia" ? sepolia.id : hardhat.id,
-          },
-        })
-      : await relayClient!.updateShopManifest({
-          name: storeName,
-          setBaseCurrency: {
-            tokenAddr: hexToBytes(baseCurrencyAddr as `0x${string}`),
-            chainId: chainName === "sepolia" ? sepolia.id : hardhat.id,
-          },
-        });
+    await stateManager.manifest.update(manifest);
     close();
   };
   const renderAcceptedCurrencies = () => {
@@ -92,15 +65,13 @@ const StoreProfile = ({ close }: { close: () => void }) => {
   const addAcceptedCurrencyFn = async () => {
     if (!addTokenAddr.length) return;
     try {
-      await relayClient!.updateShopManifest({
-        addAcceptedCurrency: {
-          tokenAddr: hexToBytes(addTokenAddr as `0x${string}`),
-          chainId: chainName === "sepolia" ? sepolia.id : hardhat.id,
-        },
-      });
-      setAcceptedCurrencies({
-        type: ADD_ACCEPTED_CURR,
-        payload: { tokenAddr: addTokenAddr as TokenAddr },
+      await stateManager.manifest.update({
+        addAcceptedCurrencies: [
+          {
+            tokenAddr: addTokenAddr as TokenAddr,
+            chainId: chainName === "sepolia" ? sepolia.id : hardhat.id,
+          },
+        ],
       });
       console.log("tokenAddr added to accepted currencies");
     } catch (error) {

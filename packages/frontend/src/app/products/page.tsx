@@ -27,15 +27,24 @@ const Products = () => {
   const [sortOption, setCheck] = useState<SortOption>(SortOption.default);
   const [searchPhrase, setSearchPhrase] = useState<string>("");
   const [showSuccessMsg, setMsg] = useState<boolean>(success !== null);
-  const { allTags, shopManifest, stateManager } = useStoreContext();
+  const { allTags, stateManager } = useStoreContext();
   const [products, setProducts] = useState(new Map());
   const [arrToRender, setArrToRender] = useState<Item[] | null>(null);
   const [resultCount, setResultCount] = useState<number>(products.size);
   const [showTags, setShowTags] = useState<boolean>(false);
   const [tagIdToFilter, setTagIdToFilter] = useState<null | TagId>(null);
   const [gridView, setGridView] = useState<boolean>(true);
+  const [pId, setPublishedTagId] = useState<`0x${string}` | null>(null);
+  const [storeName, setStoreName] = useState<string>("");
   const { isMerchantView } = useAuth();
-  const pId = shopManifest.publishedTagId;
+
+  useEffect(() => {
+    (async () => {
+      const shopManifest = await stateManager.manifest.get();
+      setPublishedTagId(shopManifest.publishedTagId);
+      setStoreName(shopManifest.name);
+    })();
+  }, []);
 
   useEffect(() => {
     const onCreateEvent = (item: Item) => {
@@ -227,7 +236,7 @@ const Products = () => {
       <section className="bg-gray-100 pb-6">
         <section className="m-4">
           <div className="flex pb-4">
-            <h2 className="grow flex">{shopManifest.name}</h2>
+            <h2 className="grow flex">{storeName}</h2>
             <CartButton />
           </div>
           <Search

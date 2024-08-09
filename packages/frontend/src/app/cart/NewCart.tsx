@@ -13,16 +13,23 @@ import { useRouter } from "next/navigation";
 import { useMyContext } from "@/context/MyContext";
 
 const NewCart = ({ next }: { next: () => void }) => {
-  const { orderItems, products, orderId, updateOrder } = useStoreContext();
+  const {
+    orderItems,
+    products,
+    orderId,
+    updateOrder,
+    stateManager,
+    selectedCurrency,
+  } = useStoreContext();
   const [activeCartItems, setActiveCartItems] = useState<ItemState | null>(
     null,
   );
   const [errorMsg, setErrorMsg] = useState("");
-  const [baseCurrSymbol, setBaseCurrSymbol] = useState<string | null>(null);
+  const [currencySym, setBaseCurrSymbol] = useState<string | null>(null);
   const router = useRouter();
-  const { shopManifest, selectedCurrency } = useStoreContext();
   const { getTokenInformation } = useMyContext();
   const symbolSet = useRef(false);
+
   useEffect(() => {
     if (orderId) {
       const items = orderItems.get(orderId)?.items || null;
@@ -35,10 +42,12 @@ const NewCart = ({ next }: { next: () => void }) => {
 
   useEffect(() => {
     (async () => {
-      if (shopManifest?.baseCurrencyAddr && !symbolSet.current) {
+      const shopManifest = await stateManager.manifest.get();
+
+      if (shopManifest.setBaseCurrency && !symbolSet.current) {
         symbolSet.current = true;
         const { symbol } = await getTokenInformation(
-          shopManifest?.baseCurrencyAddr,
+          shopManifest.setBaseCurrency.tokenAddr,
         );
         setBaseCurrSymbol(symbol);
       }
@@ -111,7 +120,7 @@ const NewCart = ({ next }: { next: () => void }) => {
     <div className="text-center">
       {errorMsg.length && <p className="text-red-500">{errorMsg}</p>}
       <h2 className="my-4">
-        {calculateTotal()} {baseCurrSymbol}
+        {calculateTotal()} {currencySym}
       </h2>
       <Button
         onClick={() => {

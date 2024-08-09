@@ -8,7 +8,6 @@ import { type PublicClient } from "viem";
 import { Item, Tag, Status, Relay } from "@/types";
 import { Level } from "level";
 import { RelayClient, WalletClientWithAccount } from "@massmarket/client";
-import { updateStoreDataAction } from "@/reducers/storeReducer";
 import {
   TokenAddr,
   AcceptedCurrencyActions,
@@ -33,12 +32,6 @@ export type FinalizedOrderState = {
 export type UpdateItemProps = {
   itemId: ItemId;
   value: number | { title: string; description: string; image: string };
-};
-
-export type storeState = {
-  name: string;
-  profilePictureUrl: string;
-  baseCurrencyAddr: `0x${string}` | null;
 };
 
 export type ItemState = { [key: ItemId]: number };
@@ -84,12 +77,9 @@ export type StoreContent = {
   orderItems: Map<OrderId, OrderState>;
   orderId: OrderId | null;
   erc20Addr: `0x${string}` | null;
-  publishedTagId: TagId | null;
   finalizedOrders: Map<EventId, FinalizedOrderState>;
   db: Level<string, string>;
-  shopManifest: storeState;
   createState: () => void;
-  createTag: (name: string) => Promise<{ id?: TagId; error: null | string }>;
   addProductToTag: (
     tagId: TagId,
     itemId: ItemId,
@@ -112,7 +102,6 @@ export type StoreContent = {
   setErc20Addr: (erc20: `0x${string}`) => void;
   setPublishedTagId: (id: TagId) => void;
   setOrderId: (orderId: OrderId | null) => void;
-  setShopManifest: Dispatch<updateStoreDataAction>;
   acceptedCurrencies: Map<TokenAddr, null | string>;
   setAcceptedCurrencies: Dispatch<AcceptedCurrencyActions>;
   selectedCurrency: TokenAddr;

@@ -16,14 +16,8 @@ import ErrorMessage from "@/app/common/components/ErrorMessage";
 import { useAuth } from "@/context/AuthContext";
 
 const ProductDetail = () => {
-  const {
-    products,
-    updateOrder,
-    orderItems,
-    orderId,
-    addProductToTag,
-    allTags,
-  } = useStoreContext();
+  const { products, updateOrder, orderItems, orderId, allTags, stateManager } =
+    useStoreContext();
   const { isMerchantView } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -63,14 +57,12 @@ const ProductDetail = () => {
 
   const handleDelete = async () => {
     const tagId = findRemoveTagId();
-    const res = tagId ? await addProductToTag(tagId, itemId) : null;
-    if (!res || res.error) {
-      setShowErrorMessage(
-        res?.error || "There was an error removing tag from Item.",
-      );
-    } else {
+    try {
+      tagId && (await stateManager.items.removeItemFromTag(tagId, itemId));
       console.log("successfully removed item");
       router.push("/products");
+    } catch (error) {
+      setShowErrorMessage("There was an error removing tag from Item.");
     }
   };
 
