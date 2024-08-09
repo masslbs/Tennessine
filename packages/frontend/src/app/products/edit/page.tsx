@@ -21,24 +21,32 @@ const AddProductView = () => {
   const searchParams = useSearchParams();
   const itemId = searchParams.get("itemId") as ItemId | "new";
   const editView = itemId !== "new";
-  const { stateManager, allTags, products } = useStoreContext();
+  const { stateManager, allTags } = useStoreContext();
   const { relayClient } = useMyContext();
-
-  const productInView = editView ? products.get(itemId) : null;
-  const [imgSrc, setImg] = useState<string>(
-    productInView?.metadata?.image || "",
-  );
+  const [productInView, setProductInView] = useState<Item | null>(null);
+  const [imgSrc, setImg] = useState<string>("");
   const [imgAsBlob, setBlob] = useState<FormData | null>(null);
-  const [price, setPrice] = useState<string>(productInView?.price || "");
-  const [title, setTitle] = useState<string>(
-    productInView?.metadata?.title || "",
-  );
+  const [price, setPrice] = useState<string>("");
+  const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>(
     productInView?.metadata?.description || "",
   );
   const [quantity, setStockQty] = useState(productInView?.quantity || "0");
   const [error, setError] = useState<null | string>(null);
   const [selectedTags, setSelectedTags] = useState<TagId[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      if (editView && itemId) {
+        const p = await stateManager.items.get(itemId);
+        setProductInView(p);
+        setTitle(p.metadata.title);
+        setPrice(p.price);
+        setImg(p.metadata.image);
+        setDescription(p.metadata.description);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     if (!productInView?.tags) return;
@@ -112,6 +120,17 @@ const AddProductView = () => {
         diff[key] = newItem[key];
       }
     }
+    //checking for diff in selected tags
+    const newTags = selectedTags.filter(
+      (tId) => !productInView!.tags.includes(tId),
+    );
+    console.log({ newTags });
+    if (newTags.length) {
+      newTags.map((tId) => {
+        stateManager.items.addItemToTag(tId, itemId as ItemId);
+      });
+    }
+    if (Object.keys(diff).length === 1) return;
     await stateManager.items.update(diff);
     if (quantity !== productInView?.quantity) {
       await stateManager.items.changeStock(
@@ -363,11 +382,12 @@ const AddProductView = () => {
                 setError={setError}
               />
             </section>
-            {/* <VisibilitySlider
+            <VisibilitySlider
               selectedTags={selectedTags}
+              setSelectedTags={setSelectedTags}
               itemId={editView ? itemId : null}
               editView={editView}
-            /> */}
+            />
           </section>
         </section>
       </div>

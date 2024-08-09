@@ -27,13 +27,43 @@ const Products = () => {
   const [sortOption, setCheck] = useState<SortOption>(SortOption.default);
   const [searchPhrase, setSearchPhrase] = useState<string>("");
   const [showSuccessMsg, setMsg] = useState<boolean>(success !== null);
-  const { products, publishedTagId, allTags, shopManifest } = useStoreContext();
+  const { allTags, shopManifest, stateManager } = useStoreContext();
+  const [products, setProducts] = useState(new Map());
   const [arrToRender, setArrToRender] = useState<Item[] | null>(null);
   const [resultCount, setResultCount] = useState<number>(products.size);
   const [showTags, setShowTags] = useState<boolean>(false);
   const [tagIdToFilter, setTagIdToFilter] = useState<null | TagId>(null);
   const [gridView, setGridView] = useState<boolean>(true);
   const { isMerchantView } = useAuth();
+  const pId = shopManifest.publishedTagId;
+
+  useEffect(() => {
+    const onCreateEvent = (item: Item) => {
+      products.set(item.id, item);
+      setProducts(products);
+    };
+    const onUpdateEvent = (item: Item) => {
+      products.set(item.id, item);
+      setProducts(products);
+    };
+    (async () => {
+      const listings = new Map();
+      for await (const [id, item] of stateManager.items.iterator()) {
+        listings.set(id, item);
+      }
+      setProducts(listings);
+
+      // Listen to future events
+      stateManager.items.on("create", onCreateEvent);
+      stateManager.items.on("update", onUpdateEvent);
+    })();
+    return () => {
+      // Cleanup listeners on unmount
+      stateManager.items.removeListener("create", onCreateEvent);
+      stateManager.items.removeListener("update", onUpdateEvent);
+    };
+  }, []);
+
   const findRemoveTagId = () => {
     for (const [key, value] of allTags.entries()) {
       if (value.name && value.name === "remove") {
@@ -43,7 +73,6 @@ const Products = () => {
     return null;
   };
   const removeTagId = findRemoveTagId();
-
   useEffect(() => {
     if (!products) return;
     const sorted = getSorted();
@@ -79,19 +108,18 @@ const Products = () => {
       case SortOption.newest:
         return arr.reverse();
       case SortOption.hidden:
-        return !publishedTagId
+        return !pId
           ? arr
           : arr.filter(
-              (product) =>
-                !product?.tags || !product.tags.includes(publishedTagId),
+              (product) => !product?.tags || !product.tags.includes(pId),
             );
       case SortOption.available:
         return arr.filter(
           (product) =>
             product.quantity &&
-            publishedTagId &&
+            pId &&
             product.tags &&
-            product.tags?.includes(publishedTagId),
+            product.tags?.includes(pId),
         );
       case SortOption.unavailable:
         return arr.filter((product) => !product.quantity);
@@ -133,8 +161,7 @@ const Products = () => {
           return;
         }
       }
-      const visible =
-        publishedTagId && item.tags && item.tags.includes(publishedTagId);
+      const visible = pId && item.tags && item.tags.includes(pId);
 
       return (
         <div key={item.id} className="mt-4 mx-4 last: mr-0">
