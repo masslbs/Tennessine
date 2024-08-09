@@ -7,23 +7,22 @@ import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useStoreContext } from "@/context/StoreContext";
 import Button from "@/app/common/components/Button";
-import { ItemId } from "@/types";
+import { ItemId, OrderId } from "@/types";
 import { ItemState } from "@/context/types";
 import { useRouter } from "next/navigation";
 import { useMyContext } from "@/context/MyContext";
 
-const NewCart = ({ next }: { next: () => void }) => {
-  const {
-    orderItems,
-    products,
-    orderId,
-    updateOrder,
-    stateManager,
-    selectedCurrency,
-  } = useStoreContext();
-  const [activeCartItems, setActiveCartItems] = useState<ItemState | null>(
-    null,
-  );
+const NewCart = ({
+  next,
+  orderId,
+}: {
+  next: () => void;
+  orderId: OrderId | null;
+}) => {
+  const { orderItems, updateOrder, stateManager, selectedCurrency } =
+    useStoreContext();
+  const [cartItemIds, setItemIds] = useState<ItemState | null>(null);
+  const [cartItemsMap, setCartMap] = useState(new Map());
   const [errorMsg, setErrorMsg] = useState("");
   const [currencySym, setBaseCurrSymbol] = useState<string | null>(null);
   const router = useRouter();
@@ -31,14 +30,24 @@ const NewCart = ({ next }: { next: () => void }) => {
   const symbolSet = useRef(false);
 
   useEffect(() => {
-    if (orderId) {
-      const items = orderItems.get(orderId)?.items || null;
-      setActiveCartItems(items);
-    }
+    (async () => {
+      if (orderId) {
+        const cartObjects = new Map();
+        const ci = (await stateManager.orders.get(orderId)).items;
+        await Promise.all(
+          Object.keys(ci).map(async (id) => {
+            const item = await stateManager.items.get(id as ItemId);
+            cartObjects.set(id, item);
+          }),
+        );
+        console.log({ cartObjects });
+        setCartMap(cartObjects);
+        setItemIds(ci);
+      }
+    })();
   }, [orderId, orderItems]);
 
-  const noItems =
-    !orderId || !activeCartItems || !Object.keys(activeCartItems).length;
+  const noItems = !orderId || !cartItemIds || !Object.keys(cartItemIds).length;
 
   useEffect(() => {
     (async () => {
@@ -64,27 +73,24 @@ const NewCart = ({ next }: { next: () => void }) => {
 
   const calculateTotal = () => {
     if (noItems) return null;
-    // let quantity: number = 0;
     let totalPrice: number = 0;
-    Object.keys(activeCartItems).map((id) => {
-      const itemId = id as ItemId;
-      const item = products.get(itemId);
-      if (!item) return;
-      const selectedQuantity = activeCartItems[itemId] || 0;
+    Object.keys(cartItemsMap).map((id) => {
+      const selectedQuantity = cartItemIds[id as ItemId] || 0;
+      const item = cartItemsMap.get(id);
+      if (!item) return null;
       if (selectedQuantity && item.price) {
-        // quantity += Number(selectedQuantity);
         const qtyPrice = Number(item.price) * Number(selectedQuantity);
         totalPrice += qtyPrice;
       }
     });
+
     return totalPrice;
   };
   const renderItems = () => {
     if (noItems) return null;
-
-    return Object.keys(activeCartItems).map((id) => {
+    Object.keys(cartItemsMap).map((id) => {
       const itemId = id as ItemId;
-      const item = products.get(itemId);
+      const item = cartItemsMap.get(itemId);
       if (!item || !item.metadata.image) return;
       return (
         <div

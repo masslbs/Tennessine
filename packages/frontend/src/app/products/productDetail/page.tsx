@@ -8,7 +8,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Button from "@/app/common/components/Button";
 // import SeeProductActions from "@/app/components/products/SeeProductActions";
-import { Item, ItemId } from "@/types";
+import { Item, ItemId, Tag, TagId } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ItemState } from "@/context/types";
@@ -16,8 +16,7 @@ import ErrorMessage from "@/app/common/components/ErrorMessage";
 import { useAuth } from "@/context/AuthContext";
 
 const ProductDetail = () => {
-  const { products, updateOrder, orderItems, orderId, allTags, stateManager } =
-    useStoreContext();
+  const { updateOrder, orderItems, orderId, stateManager } = useStoreContext();
   const { isMerchantView } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -33,6 +32,8 @@ const ProductDetail = () => {
   );
   const [showErrorMessage, setShowErrorMessage] = useState<null | string>(null);
   const [available, setAvailable] = useState<number>(0);
+  const [allTags, setAllTags] = useState(new Map());
+  const [removeTagId, setRemoveTagId] = useState<null | TagId>(null);
 
   // const flyoutRef = createRef<HTMLDivElement>();
 
@@ -44,21 +45,36 @@ const ProductDetail = () => {
   //     setShowActions(false);
   //   }
   // };
+  useEffect(() => {
+    const onCreateEvent = (tag: Tag) => {
+      allTags.set(tag.id, tag);
+      setAllTags(allTags);
+    };
 
-  const findRemoveTagId = () => {
-    for (const [key, value] of allTags.entries()) {
-      if (value.name && value.name === "remove") {
-        return key;
+    (async () => {
+      const tags = new Map();
+      for await (const [id, tag] of stateManager.tags.iterator()) {
+        tags.set(id, tag);
+        if (tag.name === "remove") {
+          setRemoveTagId(id as TagId);
+        }
       }
-    }
-    setShowErrorMessage("Create a :remove tag first.");
-    return null;
-  };
+      setAllTags(tags);
+
+      // Listen to future events
+      stateManager.tags.on("create", onCreateEvent);
+    })();
+
+    return () => {
+      // Cleanup listeners on unmount
+      stateManager.items.removeListener("create", onCreateEvent);
+    };
+  }, []);
 
   const handleDelete = async () => {
-    const tagId = findRemoveTagId();
     try {
-      tagId && (await stateManager.items.removeItemFromTag(tagId, itemId));
+      removeTagId &&
+        (await stateManager.items.removeItemFromTag(removeTagId, itemId));
       console.log("successfully removed item");
       router.push("/products");
     } catch (error) {
@@ -86,14 +102,16 @@ const ProductDetail = () => {
   }, [orderItems, item]);
 
   useEffect(() => {
-    if (itemId) {
-      const _item = products.get(itemId);
-      _item && setItem(_item);
-      _item && setAvailable(_item?.quantity || 0);
-      const qty =
-        _item && orderId ? orderItems.get(orderId)?.items?.[itemId] || 0 : 0;
-      setQuantity(qty);
-    }
+    (async () => {
+      if (itemId) {
+        const i = await stateManager.items.get(itemId);
+        i && setItem(i);
+        i && setAvailable(i?.quantity || 0);
+        const qty =
+          i && orderId ? orderItems.get(orderId)?.items?.[itemId] || 0 : 0;
+        setQuantity(qty);
+      }
+    })();
   }, [itemId]);
 
   const confirmDelete = (

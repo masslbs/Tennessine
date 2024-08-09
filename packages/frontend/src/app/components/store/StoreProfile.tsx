@@ -11,28 +11,38 @@ import { useStoreContext } from "@/context/StoreContext";
 import { useMyContext } from "@/context/MyContext";
 import Image from "next/image";
 import AvatarUpload from "@/app/common/components/AvatarUpload";
-import { TokenAddr } from "@/reducers/acceptedCurrencyReducers";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
-import { ShopManifest } from "@/types";
+import { ShopManifest, ShopCurrencies, TokenAddr } from "@/types";
 import { sepolia, hardhat } from "viem/chains";
+import ErrorMessage from "@/app/common/components/ErrorMessage";
 
 const StoreProfile = ({ close }: { close: () => void }) => {
-  const { stateManager, acceptedCurrencies } = useStoreContext();
+  const { stateManager } = useStoreContext();
   const { relayClient } = useMyContext();
   const [storeName, setStoreName] = useState<string>("");
-  const [baseCurrencyAddr, setStoreBase] = useState<TokenAddr | "">("");
+  const [baseAddr, setStoreBase] = useState<TokenAddr | "">("");
   const [avatar, setAvatar] = useState<FormData | null>(null);
   const [addTokenAddr, setAddTokenAddr] = useState<TokenAddr | "">("");
   const { shopId } = useMyContext();
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [acceptedCurrencies, setAcceptedCurrencies] = useState<
+    ShopCurrencies[]
+  >([]);
+  const [error, setError] = useState<null | string>(null);
 
   const chainName = process.env.NEXT_PUBLIC_CHAIN_NAME!;
+  const [addAcceptedChainId, setAddChainId] = useState<number>(
+    chainName === "sepolia" ? sepolia.id : hardhat.id,
+  );
+  const [baseChainId, setBaseChainId] = useState<number>(
+    chainName === "sepolia" ? sepolia.id : hardhat.id,
+  );
 
   useEffect(() => {
     (async () => {
       const shopManifest = await stateManager.manifest.get();
       setStoreName(shopManifest.name);
       setStoreBase(shopManifest.setBaseCurrency!.tokenAddr);
+      setAcceptedCurrencies(shopManifest.acceptedCurrencies);
     })();
   }, []);
 
@@ -41,52 +51,65 @@ const StoreProfile = ({ close }: { close: () => void }) => {
   };
 
   const updateStoreInfo = async () => {
-    if (!baseCurrencyAddr)
-      throw Error("Missing base currency address for store.");
-    const manifest: Partial<ShopManifest> = {
-      name: storeName,
-      setBaseCurrency: {
-        tokenAddr: baseCurrencyAddr,
-        chainId: chainName === "sepolia" ? sepolia.id : hardhat.id,
-      },
-    };
-    if (avatar) {
-      const path = await relayClient!.uploadBlob(avatar as FormData);
-      manifest["profilePictureUrl"] = path.url;
-    }
+    if (!baseAddr.length) {
+      setError(`Missing base currency address for store.`);
+    } else if (!baseChainId) {
+      setError(`Missing base currency chainId for store.`);
+    } else {
+      const manifest: Partial<ShopManifest> = {
+        name: storeName,
+        setBaseCurrency: {
+          tokenAddr: baseAddr as TokenAddr,
+          chainId: baseChainId,
+        },
+      };
+      if (avatar) {
+        const path = await relayClient!.uploadBlob(avatar as FormData);
+        manifest["profilePictureUrl"] = path.url;
+      }
 
-    await stateManager.manifest.update(manifest);
-    close();
+      await stateManager.manifest.update(manifest);
+      close();
+    }
   };
   const renderAcceptedCurrencies = () => {
-    const currencies = Array.from([...acceptedCurrencies.keys()]);
-    return currencies.map((a, i) => <p key={i}>{a}</p>);
+    return acceptedCurrencies.map((c, i) => <p key={i}>{c.tokenAddr}</p>);
   };
   const addAcceptedCurrencyFn = async () => {
-    if (!addTokenAddr.length) return;
-    try {
-      await stateManager.manifest.update({
-        addAcceptedCurrencies: [
-          {
-            tokenAddr: addTokenAddr as TokenAddr,
-            chainId: chainName === "sepolia" ? sepolia.id : hardhat.id,
-          },
-        ],
-      });
-      console.log("tokenAddr added to accepted currencies");
-    } catch (error) {
-      console.log({ error });
-      setAddTokenAddr("");
-      //@ts-expect-error FIXME
-      error.message && setErrorMsg(error.message);
+    if (!addTokenAddr.length) {
+      setError(`Must enter a token address to add`);
+    } else if (!addAcceptedChainId) {
+      setError(`Must enter a token chainId to add`);
+    } else {
+      try {
+        await stateManager.manifest.update({
+          addAcceptedCurrencies: [
+            {
+              tokenAddr: addTokenAddr as TokenAddr,
+              chainId: addAcceptedChainId,
+            },
+          ],
+        });
+      } catch (error) {
+        console.log({ error });
+        setAddTokenAddr("");
+        setError("Faile to add accepted currency");
+      }
     }
   };
 
   return (
     <section className="pt-under-nav h-screen">
       <ModalHeader headerText="Store Profile" goBack={close} />
-      <h1 className="text-red-500">{errorMsg}</h1>
       <section className="flex flex-col h-5/6">
+        {error && (
+          <ErrorMessage
+            errorMessage={error}
+            onClose={() => {
+              setError(null);
+            }}
+          />
+        )}
         <AvatarUpload setImgBlob={setAvatar} />
         <div className="m-4">
           <p className="font-sans">General</p>
@@ -138,14 +161,15 @@ const StoreProfile = ({ close }: { close: () => void }) => {
                   onSubmit={(e) => e.preventDefault()}
                 >
                   <label htmlFor="storeName">Base Currency</label>
-                  <div className="flex gap-2">
+                  <div>
                     <input
                       className="border-2 border-solid mt-1 p-2 rounded"
-                      id="storeName"
-                      name="storeName"
-                      value={baseCurrencyAddr}
-                      //@ts-expect-error FIXME
-                      onChange={(e) => setStoreBase(e.target.value)}
+                      id="baseAddr"
+                      name="baseAddr"
+                      value={baseAddr}
+                      onChange={(e) =>
+                        setStoreBase(e.target.value as TokenAddr)
+                      }
                     />
                     <button className="mr-4" onClick={copyToClipboard}>
                       <Image
@@ -155,6 +179,13 @@ const StoreProfile = ({ close }: { close: () => void }) => {
                         alt="copy-icon"
                       />
                     </button>
+                    <input
+                      className="border-2 border-solid mt-1 p-2 rounded"
+                      id="baseChainId"
+                      name="baseChainId"
+                      value={baseChainId}
+                      onChange={(e) => setBaseChainId(Number(e.target.value))}
+                    />
                   </div>
                 </form>
               </section>
@@ -171,14 +202,22 @@ const StoreProfile = ({ close }: { close: () => void }) => {
                   <p>
                     Note: for now it will add with the chainID from env file...
                   </p>
-                  <div className="flex gap-2">
+                  <div>
                     <input
-                      className="border-2 border-solid mt-1 p-2 rounded"
+                      className="border-2 border-solid mt-1 p-2 rounded "
                       id="addTokenAddr"
                       name="addTokenAddr"
                       value={addTokenAddr}
-                      //@ts-expect-error FIXME
-                      onChange={(e) => setAddTokenAddr(e.target.value)}
+                      onChange={(e) =>
+                        setAddTokenAddr(e.target.value as TokenAddr)
+                      }
+                    />
+                    <input
+                      className="border-2 border-solid mt-1 p-2 rounded"
+                      id="addTokenChainId"
+                      name="addTokenChainId"
+                      value={addAcceptedChainId}
+                      onChange={(e) => setAddChainId(Number(e.target.value))}
                     />
                     <SecondaryButton
                       className="mr-4"

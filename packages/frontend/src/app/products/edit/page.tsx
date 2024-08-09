@@ -10,7 +10,7 @@ import Image from "next/image";
 import { useStoreContext } from "@/context/StoreContext";
 import ProductsTags from "@/app/components/products/ProductTags";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Tag, ItemId, Item, TagId } from "@/types";
+import { Tag, ItemId, Item } from "@/types";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import VisibilitySlider from "@/app/components/products/VisibilitySlider";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
@@ -28,12 +28,10 @@ const AddProductView = () => {
   const [imgAsBlob, setBlob] = useState<FormData | null>(null);
   const [price, setPrice] = useState<string>("");
   const [title, setTitle] = useState<string>("");
-  const [description, setDescription] = useState<string>(
-    productInView?.metadata?.description || "",
-  );
-  const [quantity, setStockQty] = useState(productInView?.quantity || "0");
+  const [description, setDescription] = useState<string>("");
+  const [quantity, setStockQty] = useState<number>(0);
   const [error, setError] = useState<null | string>(null);
-  const [selectedTags, setSelectedTags] = useState<TagId[]>([]);
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -49,14 +47,17 @@ const AddProductView = () => {
   }, []);
 
   useEffect(() => {
-    if (!productInView?.tags) return;
-    const selected: TagId[] = [];
-    productInView.tags.map(async (id) => {
-      const t = (await stateManager.tags.get(id)) as Tag;
-      if (!t) return null;
-      selected.push(t.id);
-    });
-    setSelectedTags(selected);
+    if (!productInView) return;
+    console.log({ productInView });
+
+    (async () => {
+      const selected = [];
+      for (const id of productInView.tags) {
+        const t = (await stateManager.tags.get(id)) as Tag;
+        selected.push(t);
+      }
+      setSelectedTags(selected);
+    })();
   }, [productInView]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -101,10 +102,10 @@ const AddProductView = () => {
 
   const create = async (newItem: Partial<Item>) => {
     const { id } = await stateManager.items.create(newItem);
-    await stateManager.items.changeStock([id], [Number(quantity)]);
+    await stateManager.items.changeStock([id], [quantity]);
     if (selectedTags.length) {
-      selectedTags.map((tId) => {
-        stateManager.items.addItemToTag(tId, id);
+      selectedTags.map((t) => {
+        stateManager.items.addItemToTag(t.id, id);
       });
     }
   };
@@ -121,20 +122,17 @@ const AddProductView = () => {
     }
     //checking for diff in selected tags
     const newTags = selectedTags.filter(
-      (tId) => !productInView!.tags.includes(tId),
+      ({ id }) => !productInView!.tags.includes(id),
     );
     if (newTags.length) {
-      newTags.map((tId) => {
-        stateManager.items.addItemToTag(tId, itemId as ItemId);
+      newTags.map(({ id }) => {
+        stateManager.items.addItemToTag(id, itemId as ItemId);
       });
     }
     if (Object.keys(diff).length === 1) return;
     await stateManager.items.update(diff);
     if (quantity !== productInView?.quantity) {
-      await stateManager.items.changeStock(
-        [itemId as ItemId],
-        [Number(quantity)],
-      );
+      await stateManager.items.changeStock([itemId as ItemId], [quantity]);
     }
   };
 
@@ -376,7 +374,6 @@ const AddProductView = () => {
               <ProductsTags
                 selectedTags={selectedTags}
                 setSelectedTags={setSelectedTags}
-                itemId={editView ? itemId : null}
                 setError={setError}
               />
             </section>

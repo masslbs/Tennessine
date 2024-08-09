@@ -52,23 +52,22 @@ export enum Status {
   Pending = "PENDING",
   Complete = "COMPLETE",
 }
+export interface OrderFinalized {
+  orderHash: string;
+  currencyAddr: string;
+  totalInCrypto: string;
+  ttl: string;
+  payeeAddr: string;
+  shopSignature: string;
+  total: string;
+}
 export interface Order {
   id: `0x${string}`;
   items: { [key: `0x${string}`]: number };
   status: Status;
   shippingDetails?: ShippingDetails;
   txHash?: string;
-  orderFinalized?:
-    | {
-        orderHash: string;
-        currencyAddr: string;
-        totalInCrypto: string;
-        ttl: string;
-        payeeAddr: string;
-        shopSignature: string;
-        total: string;
-      }
-    | false;
+  orderFinalized?: OrderFinalized;
 }
 export interface ShopCurrencies {
   tokenAddr: `0x${string}`;

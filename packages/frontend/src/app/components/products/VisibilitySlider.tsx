@@ -5,20 +5,20 @@
 import { useStoreContext } from "@/context/StoreContext";
 import React, { useEffect, useState, Dispatch, SetStateAction } from "react";
 
-import { TagId } from "@/types";
+import { Tag } from "@/types";
 
 const VisibilitySlider = ({
   selectedTags,
   editView,
   setSelectedTags,
 }: {
-  selectedTags: TagId[];
+  selectedTags: Tag[];
   editView: boolean;
-  setSelectedTags: Dispatch<SetStateAction<TagId[]>>;
+  setSelectedTags: Dispatch<SetStateAction<Tag[]>>;
 }) => {
   const { stateManager } = useStoreContext();
   const [selectedOption, setSelectedOption] = useState<number>(1);
-  const [selected, setAll] = useState<TagId[]>([]);
+  const [selected, setAll] = useState<Tag[]>([]);
   const [pId, setPublishedTagId] = useState<`0x${string}` | null>(null);
 
   useEffect(() => {
@@ -35,7 +35,6 @@ const VisibilitySlider = ({
   useEffect(() => {
     //default new item to visible.
     (async () => {
-      console.log({ pId });
       if (!editView && pId) {
         await markAsVisible();
       }
@@ -43,21 +42,22 @@ const VisibilitySlider = ({
   }, [editView, pId]);
 
   useEffect(() => {
-    const isVisible = pId && selected ? selected.includes(pId) : false;
+    const isVisible =
+      pId && selected ? selected.find((tag) => tag.id === pId) : false;
     isVisible ? setSelectedOption(1) : setSelectedOption(2);
   }, [pId, selected]);
 
   const markAsVisible = async () => {
     if (pId) {
       setSelectedOption(1);
-      setSelectedTags([...selectedTags, pId]);
+      setSelectedTags([...selectedTags, { id: pId, name: "visible" }]);
     }
   };
 
   const markAsHidden = async () => {
     if (pId) {
       setSelectedOption(2);
-      setSelectedTags([...selectedTags].filter((i) => i !== pId));
+      setSelectedTags([...selectedTags].filter((tag) => tag.id !== pId));
     }
   };
 

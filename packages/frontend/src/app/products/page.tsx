@@ -27,7 +27,7 @@ const Products = () => {
   const [sortOption, setCheck] = useState<SortOption>(SortOption.default);
   const [searchPhrase, setSearchPhrase] = useState<string>("");
   const [showSuccessMsg, setMsg] = useState<boolean>(success !== null);
-  const { allTags, stateManager } = useStoreContext();
+  const { stateManager } = useStoreContext();
   const [products, setProducts] = useState(new Map());
   const [arrToRender, setArrToRender] = useState<Item[] | null>(null);
   const [resultCount, setResultCount] = useState<number>(products.size);
@@ -36,6 +36,8 @@ const Products = () => {
   const [gridView, setGridView] = useState<boolean>(true);
   const [pId, setPublishedTagId] = useState<`0x${string}` | null>(null);
   const [storeName, setStoreName] = useState<string>("");
+  const [allTags, setAllTags] = useState(new Map());
+  const [removeTagId, setRemoveTagId] = useState<null | TagId>(null);
   const { isMerchantView } = useAuth();
 
   useEffect(() => {
@@ -55,6 +57,15 @@ const Products = () => {
       products.set(item.id, item);
       setProducts(products);
     };
+    const onAddItemId = (item: Item) => {
+      products.set(item.id, item);
+      setProducts(products);
+    };
+    const onRemoveItemId = (item: Item) => {
+      products.set(item.id, item);
+      setProducts(products);
+    };
+
     (async () => {
       const listings = new Map();
       for await (const [id, item] of stateManager.items.iterator()) {
@@ -65,23 +76,44 @@ const Products = () => {
       // Listen to future events
       stateManager.items.on("create", onCreateEvent);
       stateManager.items.on("update", onUpdateEvent);
+      stateManager.items.on("addItemId", onAddItemId);
+      stateManager.items.on("removeItemId", onRemoveItemId);
     })();
     return () => {
       // Cleanup listeners on unmount
       stateManager.items.removeListener("create", onCreateEvent);
       stateManager.items.removeListener("update", onUpdateEvent);
+      stateManager.items.removeListener("addItemId", onAddItemId);
+      stateManager.items.removeListener("removeItemId", onRemoveItemId);
     };
   }, []);
 
-  const findRemoveTagId = () => {
-    for (const [key, value] of allTags.entries()) {
-      if (value.name && value.name === "remove") {
-        return key;
+  useEffect(() => {
+    const onCreateEvent = (tag: Tag) => {
+      allTags.set(tag.id, tag);
+      setAllTags(allTags);
+    };
+
+    (async () => {
+      const tags = new Map();
+      for await (const [id, tag] of stateManager.tags.iterator()) {
+        tags.set(id, tag);
+        if (tag.name === "remove") {
+          setRemoveTagId(id as TagId);
+        }
       }
-    }
-    return null;
-  };
-  const removeTagId = findRemoveTagId();
+      setAllTags(tags);
+
+      // Listen to future events
+      stateManager.tags.on("create", onCreateEvent);
+    })();
+
+    return () => {
+      // Cleanup listeners on unmount
+      stateManager.items.removeListener("create", onCreateEvent);
+    };
+  }, []);
+
   useEffect(() => {
     if (!products) return;
     const sorted = getSorted();

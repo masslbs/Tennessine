@@ -5,7 +5,6 @@
 "use client";
 
 import React, {
-  useReducer,
   useState,
   ChangeEvent,
   useEffect,
@@ -15,35 +14,50 @@ import React, {
 } from "react";
 import Image from "next/image";
 import TagSection from "./Tag";
-import { Tag, TagId, ItemId } from "@/types";
+import { Tag, TagId } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
-import {
-  searchReducer,
-  TURN_ON_SEARCH_VIS,
-  TURN_OFF_SEARCH_VIS,
-  ALL_TAGS,
-} from "@/reducers/tagReducers";
 
 const ProductsTags = ({
   selectedTags,
-  itemId,
   setError,
   setSelectedTags,
 }: {
-  selectedTags: TagId[];
-  setSelectedTags: Dispatch<SetStateAction<TagId[]>>;
-  itemId: ItemId | null;
+  selectedTags: Tag[];
+  setSelectedTags: Dispatch<SetStateAction<Tag[]>>;
   setError: Dispatch<SetStateAction<null | string>>;
 }) => {
-  const { allTags, stateManager } = useStoreContext();
+  const { stateManager } = useStoreContext();
+  const [allTags, setAllTags] = useState(new Map());
   const [isSearchState, setIsSearchState] = React.useState<boolean>(false);
-  const [searchResults, searchDispatch] = useReducer(searchReducer, new Map());
+  const [searchResults, setSearchResults] = useState(new Map());
   const [tagName, setTagName] = useState<string>("");
-  const [selected, setAll] = useState<TagId[]>([]);
-  if (!allTags) return null;
+  const [selected, setAllSelected] = useState<Tag[]>([]);
 
   useEffect(() => {
-    setAll([...selectedTags]);
+    const onCreateEvent = (tag: Tag) => {
+      allTags.set(tag.id, tag);
+      setAllTags(allTags);
+    };
+
+    (async () => {
+      const tags = new Map();
+      for await (const [id, tag] of stateManager.tags.iterator()) {
+        tags.set(id, tag);
+      }
+      setAllTags(tags);
+
+      // Listen to future events
+      stateManager.tags.on("create", onCreateEvent);
+    })();
+
+    return () => {
+      // Cleanup listeners on unmount
+      stateManager.items.removeListener("create", onCreateEvent);
+    };
+  }, []);
+
+  useEffect(() => {
+    setAllSelected([...selectedTags]);
   }, [selectedTags]);
 
   const handleTagClick = () => {
@@ -52,57 +66,38 @@ const ProductsTags = ({
 
   const renderSelectedTags = () => {
     if (!selected) return null;
-
-    return selected.map((t) => {
-      const tag = allTags.get(t) as Tag;
-      if (!tag) return null;
+    return selected.map((tag) => {
       return (
         <TagSection
           key={tag.id}
           tag={tag}
           removeFn={() => handleDeselectTag(tag)}
+          handleSelectTag={() => {}}
         />
       );
     });
   };
 
   const handleSelectTag = async (t: Tag) => {
-    //if updating product
-    if (itemId) {
-      try {
-        await stateManager.items.addItemToTag(t.id, itemId);
-      } catch (error) {
-        setError("Error while updating product");
-      }
-    } else {
-      //creating new item
-      setSelectedTags([...selectedTags, t.id]);
-    }
+    const tags = [...selectedTags];
+    tags.push(t);
+    setSelectedTags(tags);
   };
 
   const handleDeselectTag = async (t: Tag) => {
-    //if updating product
-    if (itemId) {
-      try {
-        await stateManager.items.removeItemFromTag(t.id, itemId);
-      } catch (error) {
-        setError("Error while removing item from tag");
-      }
-    }
+    setSelectedTags([...selectedTags].filter((tag) => tag.id !== t.id));
   };
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
     setTagName(value);
-    //FIXME:search
     if (value[0] === ":") {
       console.log("creating new tag...");
     } else if (!value.length) {
-      searchDispatch({ type: ALL_TAGS });
-      return;
-    } else {
+      searchResults.clear();
+      setSearchResults(searchResults);
+    } else if (value.length) {
       const tagIds: `0x${string}`[] = Array.from([...allTags.keys()]);
-
       for (const tId of tagIds) {
         const searchTag = allTags.get(tId);
         if (!searchTag) return;
@@ -110,16 +105,11 @@ const ProductsTags = ({
           value &&
           searchTag.name.toLowerCase().includes(value.toLowerCase())
         ) {
-          searchDispatch({
-            type: TURN_ON_SEARCH_VIS,
-            payload: { tag: searchTag as Tag },
-          });
+          searchResults.set(searchTag.id, searchTag);
         } else {
-          searchDispatch({
-            type: TURN_OFF_SEARCH_VIS,
-            payload: { tag: searchTag as Tag },
-          });
+          searchResults.delete(searchTag.id);
         }
+        setSearchResults(searchResults);
       }
     }
   };
@@ -133,17 +123,16 @@ const ProductsTags = ({
   };
 
   const renderAllTags = () => {
-    const tagsToRender = searchResults.size ? searchResults : allTags;
-    const t = Array.from([...tagsToRender.keys()]);
-    if (!t?.length) return null;
-    return t.map((t: TagId) => {
-      //do not display already selected tags
-      if (selectedTags.includes(t)) return;
+    const tags = searchResults.size
+      ? Array.from([...searchResults.keys()])
+      : Array.from([...allTags.keys()]);
+    if (!tags?.length) return null;
+    return tags.map((tId: TagId) => {
       return (
         <TagSection
-          key={t}
-          onClick={() => handleSelectTag(allTags.get(t) as Tag)}
-          tag={allTags.get(t) as Tag}
+          key={tId}
+          handleSelectTag={handleSelectTag}
+          tag={allTags.get(tId) as Tag}
         />
       );
     });
@@ -171,13 +160,14 @@ const ProductsTags = ({
             e.preventDefault();
             setIsSearchState(false);
             setTagName("");
-            searchDispatch({ type: ALL_TAGS });
+            searchResults.clear();
+            setSearchResults(searchResults);
           }}
           className="self-center absolute right-0 top-0.5 bottom-0"
         >
           <Image
             src="/assets/grey-x-icon.svg"
-            alt="checkmark-icon"
+            alt="grey-x-icon"
             width={20}
             height={20}
             className="mr-2"

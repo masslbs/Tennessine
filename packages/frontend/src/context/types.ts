@@ -5,13 +5,9 @@
 import { Dispatch, SetStateAction } from "react";
 import { type PublicClient } from "viem";
 
-import { Item, Tag, Status, Relay } from "@/types";
-import { Level } from "level";
+import { Item, Tag, Status, Relay, ShopCurrencies } from "@/types";
 import { RelayClient, WalletClientWithAccount } from "@massmarket/client";
-import {
-  TokenAddr,
-  AcceptedCurrencyActions,
-} from "@/reducers/acceptedCurrencyReducers";
+
 import { StateManager } from "@massmarket/stateManager";
 
 export type ItemId = `0x${string}`;
@@ -19,16 +15,8 @@ export type TagId = `0x${string}`;
 export type OrderId = `0x${string}`;
 export type EventId = `0x${string}`;
 export type ShopId = `0x${string}`;
+export type TokenAddr = `0x${string}`;
 
-export type FinalizedOrderState = {
-  orderHash: Uint8Array;
-  currencyAddr: Uint8Array;
-  totalInCrypto: Uint8Array;
-  ttl: string;
-  payeeAddr: Uint8Array;
-  shopSignature: Uint8Array;
-  total: string;
-};
 export type UpdateItemProps = {
   itemId: ItemId;
   value: number | { title: string; description: string; image: string };
@@ -72,41 +60,16 @@ export type ClientContext = {
 
 export type StoreContent = {
   relays: Relay[];
-  products: Map<ItemId, Item>;
-  allTags: Map<TagId, Tag>;
   orderItems: Map<OrderId, OrderState>;
   orderId: OrderId | null;
   erc20Addr: `0x${string}` | null;
-  finalizedOrders: Map<EventId, FinalizedOrderState>;
-  db: Level<string, string>;
-  createState: () => void;
-  addProductToTag: (
-    tagId: TagId,
-    itemId: ItemId,
-  ) => Promise<{ error: string | null }>;
-  removeProductFromTag: (
-    tagId: TagId,
-    itemId: ItemId,
-  ) => Promise<{ id?: TagId; error: string | null }>;
-  updateOrder: (
-    itemId?: ItemId,
-    saleQty?: number,
-  ) => Promise<{ error: string | null }>;
-  commitOrder: () => Promise<{
-    orderFinalizedId?: OrderId;
-    requestId?: `0x${string}`;
-    error: string | null;
-    erc20?: `0x${string}`;
-  }>;
   invalidateOrder: (msg: string) => void;
   setErc20Addr: (erc20: `0x${string}`) => void;
-  setPublishedTagId: (id: TagId) => void;
   setOrderId: (orderId: OrderId | null) => void;
-  acceptedCurrencies: Map<TokenAddr, null | string>;
-  setAcceptedCurrencies: Dispatch<AcceptedCurrencyActions>;
-  selectedCurrency: TokenAddr;
-  setSelectedCurrency: Dispatch<TokenAddr>;
+  selectedCurrency: ShopCurrencies;
+  setSelectedCurrency: Dispatch<ShopCurrencies>;
   stateManager: StateManager;
+  getOrderId: () => Promise<OrderId>;
 };
 
 export type ProductsMap = Map<ItemId, Item>;

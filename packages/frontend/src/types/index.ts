@@ -10,6 +10,7 @@ import {
   ShopManifest,
   Status,
   KeyCard,
+  OrderFinalized,
 } from "@massmarket/stateManager/types";
 
 export type {
@@ -20,11 +21,13 @@ export type {
   ShopCurrencies,
   ShopManifest,
   KeyCard,
+  OrderFinalized,
 };
 export { Status };
 export type ItemId = `0x${string}`;
 export type TagId = `0x${string}`;
 export type OrderId = `0x${string}`;
+export type TokenAddr = `0x${string}`;
 
 export enum RelayStatus {
   Available = "AVAILABLE",
