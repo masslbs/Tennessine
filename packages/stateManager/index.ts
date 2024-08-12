@@ -44,7 +44,7 @@ export interface Tag {
 }
 
 export type KeyCard = `0x${string}`;
-enum Status {
+export enum Status {
   Failed = "FAILED",
   Pending = "PENDING",
   Complete = "COMPLETE",
@@ -75,6 +75,7 @@ export interface Order {
       }
     | false;
 }
+export type OrdersByStatus = string[];
 interface ShopCurrencies {
   tokenAddr: `0x${string}`;
   chainId: number;
@@ -99,6 +100,10 @@ export type ShopManifest = CreateShopManifest & {
   publishedTagId: `0x${string}`;
   profilePictureUrl: string;
 };
+interface Error {
+  notFound: boolean;
+  code: string;
+}
 
 //These UpdateShopManifest properties are only for updating the manifest and not properties on the store state.
 //payee in type ShopManifest stores the actual state, while these update properties are for the update client request.
@@ -108,7 +113,13 @@ interface UpdateShopManifest {
   addAcceptedCurrencies?: ShopCurrencies[];
   removeAcceptedCurrencies?: ShopCurrencies[];
 }
-type ShopObjectTypes = Item | Tag | KeyCard | Order | ShopManifest;
+type ShopObjectTypes =
+  | Item
+  | Tag
+  | KeyCard
+  | Order
+  | OrdersByStatus
+  | ShopManifest;
 
 // This is an interface that is used to retrieve and store objects from a persistant layer
 type Store<T extends ShopObjectTypes> = {
@@ -134,7 +145,26 @@ function eventListenAndResolve<T = ShopObjectTypes>(
     em.on(eventName, onUpdate);
   });
 }
+async function storeOrdersByStatus(
+  orderId: `0x${string}`,
+  store: Store<Order | OrdersByStatus>,
+  status: Status,
+) {
+  let orders: OrdersByStatus = [];
 
+  try {
+    orders = (await store.get(status)) as OrdersByStatus;
+    orders.push(orderId);
+  } catch (error) {
+    const e = error as Error;
+    if (e.notFound) {
+      orders.push(orderId);
+    } else {
+      throw new Error(e.code);
+    }
+  }
+  await store.put(status, orders);
+}
 abstract class PublicObjectManager<
   T extends ShopObjectTypes,
 > extends EventEmitter {
@@ -150,6 +180,7 @@ abstract class PublicObjectManager<
     return this.store.iterator.bind(this.store);
   }
 }
+
 //We should always make sure the network call is successful before updating the store with store.put
 class ListingManager extends PublicObjectManager<Item> {
   constructor(store: Store<Item>, client: IRelayClient) {
@@ -409,8 +440,8 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
     return this.store.get("shopManifest");
   }
 }
-class OrderManager extends PublicObjectManager<Order> {
-  constructor(store: Store<Order>, client: IRelayClient) {
+class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
+  constructor(store: Store<Order | OrdersByStatus>, client: IRelayClient) {
     super(store, client);
   }
   //Process all Order events. Convert bytes to hex, waits for database update, then emits event
@@ -424,12 +455,14 @@ class OrderManager extends PublicObjectManager<Order> {
         status: Status.Pending,
       };
       await this.store.put(id, o);
+      await storeOrdersByStatus(id, this.store, Status.Pending);
+
       this.emit("create", o, co.eventId);
       return;
     } else if (event.updateOrder) {
       const uo: schema.IUpdateOrder = event.updateOrder;
       const orderId = bytesToHex(uo.orderId);
-      const order = await this.store.get(orderId);
+      const order = (await this.store.get(orderId)) as Order;
 
       if (uo.changeItems) {
         const ci = uo.changeItems;
@@ -463,6 +496,7 @@ class OrderManager extends PublicObjectManager<Order> {
       } else if (uo.orderCanceled) {
         order.status = Status.Failed;
         await this.store.put(orderId, order);
+        await storeOrdersByStatus(orderId, this.store, Status.Failed);
         this.emit("orderCanceled", order, uo.eventId);
         return;
       } else if (uo.updateShippingDetails) {
@@ -505,10 +539,11 @@ class OrderManager extends PublicObjectManager<Order> {
       const cs = event.changeStock;
       if (cs.txHash && cs.orderId.byteLength) {
         const orderId = bytesToHex(cs.orderId);
-        const order = await this.store.get(orderId);
+        const order = (await this.store.get(orderId)) as Order;
         order.status = Status.Complete;
         order.txHash = bytesToHex(cs.txHash);
         await this.store.put(orderId, order);
+        await storeOrdersByStatus(orderId, this.store, Status.Complete);
         this.emit("orderPaid", order);
         return;
       }
@@ -516,7 +551,11 @@ class OrderManager extends PublicObjectManager<Order> {
   }
 
   get(key: `0x${string}`) {
-    return this.store.get(key);
+    return this.store.get(key) as Promise<Order>;
+  }
+
+  getStatus(key: Status) {
+    return this.store.get(key) as Promise<OrdersByStatus>;
   }
 
   async create() {
@@ -638,7 +677,7 @@ export class StateManager {
     listingStore: Store<Item>,
     tagStore: Store<Tag>,
     shopManifestStore: Store<ShopManifest>,
-    orderStore: Store<Order>,
+    orderStore: Store<Order | OrdersByStatus>,
     keycardStore: Store<KeyCard>,
   ) {
     this.items = new ListingManager(listingStore, client);
