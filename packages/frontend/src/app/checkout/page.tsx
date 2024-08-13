@@ -9,7 +9,13 @@ import { useStoreContext } from "@/context/StoreContext";
 import NewCart from "@/app/cart/NewCart";
 import ShippingDetails from "@/app/components/checkout/ShippingDetails";
 import Image from "next/image";
-import { OrderFinalized, Status, Order, TokenAddr } from "@/types";
+import {
+  OrderFinalized,
+  Status,
+  Order,
+  TokenAddr,
+  ShopCurrencies,
+} from "@/types";
 import { OrderId } from "@/context/types";
 
 import PaymentOptions from "@/app/components/checkout/PaymentOptions";
@@ -87,7 +93,7 @@ const CheckoutFlow = () => {
         // Find the chainId for the currencyAddr used from shopManifest.
         const manifest = await stateManager.manifest.get();
         const curr = manifest.acceptedCurrencies.find(
-          (c) => c.tokenAddr === currencyAddr,
+          (c: ShopCurrencies) => c.tokenAddr === currencyAddr,
         );
         const arg = [
           curr?.chainId,
