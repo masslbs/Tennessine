@@ -14,7 +14,6 @@ import { useAuth } from "@/context/AuthContext";
 import { formatEthAdd } from "../utils";
 import withAuth from "../components/withAuth";
 import { useRouter } from "next/navigation";
-import { useStoreContext } from "@/context/StoreContext";
 
 const AccountSettings = () => {
   const { walletAddress, avatar, name } = useMyContext();
@@ -27,7 +26,6 @@ const AccountSettings = () => {
   const [ethAdd, setEthAdd] = useState<string>("");
   const router = useRouter();
   const { setIsConnected } = useAuth();
-  const { db } = useStoreContext();
 
   useEffect(() => {
     if (walletAddress) {
@@ -46,7 +44,6 @@ const AccountSettings = () => {
   };
 
   const logout = () => {
-    db.clear();
     setIsConnected(Status.Pending);
     localStorage.clear();
     router.push("/");

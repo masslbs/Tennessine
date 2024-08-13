@@ -12,17 +12,13 @@ import SecondaryButton from "@/app/common/components/SecondaryButton";
 import Image from "next/image";
 import { createQueryString } from "@/app/utils";
 import { useSearchParams } from "next/navigation";
-import { Status, OrderId } from "@/types";
-import { OrderState } from "@/context/types";
+import { Status, Order } from "@/types";
 
 const MerchantDashboard = () => {
-  //   const { storeIds } = useMerchantContext();
-  const { stateManager, orderItems } = useStoreContext();
+  const { stateManager } = useStoreContext();
   const searchParams = useSearchParams();
-  const [transactions, setTransactions] = useState<
-    [OrderId, OrderState][] | []
-  >([]);
   const [name, setName] = useState("");
+  const [orders, setOrders] = useState(new Map());
 
   useEffect(() => {
     (async () => {
@@ -32,11 +28,34 @@ const MerchantDashboard = () => {
   }, []);
 
   useEffect(() => {
-    const carts = Array.from([...orderItems.entries()]);
-    setTransactions(carts);
-  }, [orderItems]);
+    const onCreateOrder = (order: Order) => {
+      orders.set(order.id, order);
+      setOrders(orders);
+    };
+    const onUpdateOrder = (order: Order) => {
+      orders.set(order.id, order);
+      setOrders(orders);
+    };
+    (async () => {
+      const allOrders = new Map();
+      for await (const [id, o] of stateManager.orders.iterator()) {
+        if (id.slice(0, 2) === "0x") {
+          allOrders.set(id, o);
+        }
+      }
+      setOrders(allOrders);
+      stateManager.orders.on("create", onCreateOrder);
+      stateManager.orders.on("update", onUpdateOrder);
+    })();
+    return () => {
+      // Cleanup listeners on unmount
+      stateManager.orders.removeListener("create", onCreateOrder);
+      stateManager.orders.removeListener("update", onUpdateOrder);
+    };
+  }, []);
 
   const renderTransactions = () => {
+    const transactions = Array.from([...orders.entries()]);
     return transactions?.length ? (
       transactions.map((entry) => {
         const cartId = entry[0];

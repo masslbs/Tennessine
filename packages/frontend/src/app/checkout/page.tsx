@@ -9,13 +9,12 @@ import { useStoreContext } from "@/context/StoreContext";
 import NewCart from "@/app/cart/NewCart";
 import ShippingDetails from "@/app/components/checkout/ShippingDetails";
 import Image from "next/image";
-import { OrderFinalized, Status, Order } from "@/types";
+import { OrderFinalized, Status, Order, TokenAddr } from "@/types";
 import { OrderId } from "@/context/types";
 
 import PaymentOptions from "@/app/components/checkout/PaymentOptions";
 import { useMyContext } from "@/context/MyContext";
 import * as abi from "@massmarket/contracts";
-import { sepolia, mainnet, hardhat } from "viem/chains";
 import CurrencyButton from "@/app/common/components/CurrencyButton";
 import CurrencyChange from "@/app/common/components/CurrencyChange";
 import { zeroAddress } from "@massmarket/contracts";
@@ -51,22 +50,12 @@ const CheckoutFlow = () => {
   const currencyToggle = () => {
     setOpen(!openCurrencySelection);
   };
-
-  const chainName = process.env.NEXT_PUBLIC_CHAIN_NAME!;
-  const usedChainId: number =
-    chainName === "sepolia"
-      ? sepolia.id
-      : chainName === "hardhat"
-        ? hardhat.id
-        : mainnet.id;
-
   const copyToClipboard = () => {
     navigator.clipboard.writeText(purchaseAddress!);
   };
   useEffect(() => {
     (async () => {
       const id = await getOrderId();
-      console.log({ id });
       const o = await stateManager.orders.get(id);
       setOrderId(id);
       setCurrentOrder(o);
@@ -95,12 +84,16 @@ const CheckoutFlow = () => {
           shopSignature,
           total,
         } = committed.orderFinalized as OrderFinalized;
-        const currencyAddrHex = currencyAddr;
+        // Find the chainId for the currencyAddr used from shopManifest.
+        const manifest = await stateManager.manifest.get();
+        const curr = manifest.acceptedCurrencies.find(
+          (c) => c.tokenAddr === currencyAddr,
+        );
         const arg = [
-          usedChainId,
+          curr?.chainId,
           ttl,
           orderHash,
-          currencyAddrHex,
+          currencyAddr,
           totalInCrypto,
           payeeAddr,
           false,
@@ -119,15 +112,17 @@ const CheckoutFlow = () => {
           functionName: "getPaymentAddress",
           args: [arg, ownerAdd],
         });
-        const { decimals, symbol } = await getTokenInformation(currencyAddrHex);
+        const { decimals, symbol } = await getTokenInformation(
+          currencyAddr as TokenAddr,
+        );
         setSymbol(symbol);
         if (purchaseAdd) {
           const amount = Number(totalInCrypto);
           const _erc20Amount = amount / Math.pow(10, decimals);
           const payLink =
-            currencyAddrHex === zeroAddress
+            currencyAddr === zeroAddress
               ? `ethereum:${purchaseAdd}?value=${amount}`
-              : `ethereum:${currencyAddrHex}/transfer?address=${purchaseAdd}&uint256=${amount}`;
+              : `ethereum:${currencyAddr}/transfer?address=${purchaseAdd}&uint256=${amount}`;
           setPurchaseAddr(purchaseAdd as `0x${string}`);
           setSrc(payLink);
           setCryptoTotal(amount);
@@ -140,8 +135,8 @@ const CheckoutFlow = () => {
   }, [checkoutReqId]);
 
   const checkout = async () => {
+    const orderId = await getOrderId();
     try {
-      const orderId = await getOrderId();
       const checkout = await stateManager.orders.commit(
         orderId,
         selectedCurrency.tokenAddr,
@@ -150,9 +145,9 @@ const CheckoutFlow = () => {
       );
       setCheckoutRequestId(checkout.orderFinalizedId);
     } catch (error) {
-      // const errMsg = error as { message: string };
-      // invalidateOrder(errMsg.message);
-      // return { error: errMsg.message };
+      // If there was an error while committing, cancel the order.
+      await stateManager.orders.cancel(orderId, 0);
+      setErrorMsg("Error while checking out order");
     }
   };
 

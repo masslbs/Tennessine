@@ -5,7 +5,7 @@
 import { Dispatch, SetStateAction } from "react";
 import { type PublicClient } from "viem";
 
-import { Item, Tag, Status, Relay, ShopCurrencies } from "@/types";
+import { Item, Tag, Status, ShopCurrencies } from "@/types";
 import { RelayClient, WalletClientWithAccount } from "@massmarket/client";
 
 import { StateManager } from "@massmarket/stateManager";
@@ -59,12 +59,7 @@ export type ClientContext = {
 };
 
 export type StoreContent = {
-  relays: Relay[];
-  orderItems: Map<OrderId, OrderState>;
   orderId: OrderId | null;
-  erc20Addr: `0x${string}` | null;
-  invalidateOrder: (msg: string) => void;
-  setErc20Addr: (erc20: `0x${string}`) => void;
   setOrderId: (orderId: OrderId | null) => void;
   selectedCurrency: ShopCurrencies;
   setSelectedCurrency: Dispatch<ShopCurrencies>;

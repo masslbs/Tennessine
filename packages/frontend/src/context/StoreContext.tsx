@@ -2,16 +2,9 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useReducer,
-  useEffect,
-} from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import {
   Item,
-  Relay,
   Order,
   KeyCard,
   ShopManifest,
@@ -20,26 +13,18 @@ import {
 } from "@/types";
 import { useMyContext } from "./MyContext";
 import { StoreContent, OrderId } from "@/context/types";
-import { orderReducer, OrderState } from "@/reducers/orderReducers";
-import { initialStoreContext } from "../context/initialLoadingState";
-import { dummyRelays } from "./dummyData";
-import { pubKeyReducer } from "@/reducers/KCPubKeysReducers";
 import { StateManager } from "@massmarket/stateManager";
+
 // @ts-expect-error FIXME
-export const StoreContext = createContext<StoreContent>(initialStoreContext);
+export const StoreContext = createContext<StoreContent>({});
 
 export const StoreContextProvider = (
   props: React.HTMLAttributes<HTMLDivElement>,
 ) => {
-  const [orderItems, setOrderItems] = useReducer(orderReducer, new Map());
   const [orderId, setOrderId] = useState<OrderId | null>(null);
-  const [erc20Addr, setErc20Addr] = useState<null | `0x${string}`>(null);
-
-  const [pubKeys] = useReducer(pubKeyReducer, []);
-  const [relays, setRelays] = useState<Relay[]>(dummyRelays);
   const [selectedCurrency, setSelectedCurrency] =
     useState<ShopCurrencies | null>(null);
-  const { relayClient, getTokenInformation, shopId } = useMyContext();
+  const { relayClient, shopId } = useMyContext();
   const [stateManager, setStateManager] = useState<StateManager | null>(null);
 
   useEffect(() => {
@@ -108,77 +93,32 @@ export const StoreContextProvider = (
   //   })();
   // }, [acceptedCurrencies]);
 
-  const verify = async (
-    _orderItems: Map<OrderId, OrderState>,
-    _pubKeys: `0x${string}`[],
-  ) => {
-    console.log(_orderItems, _pubKeys);
-    // const addresses = _pubKeys.map((k) => {
-    //   return Address.fromPublicKey(hexToBytes(k)).toString();
-    // });
-    // const keysArr: `0x${string}`[] = _orderItems.size
-    //   ? Array.from([..._orderItems.keys()])
-    //   : [];
-    // for (const _orderId of keysArr) {
-    //   const _order = _orderItems.get(_orderId) as OrderState;
-    //   if (_order && _order.status !== Status.Failed) {
-    //     const sig = _order.signature as `0x${string}`;
-    //     const retrievedAdd = await relayClient!.recoverSignedAddress(
-    //       _orderId,
-    //       sig,
-    //     );
-    //     if (addresses.includes(retrievedAdd.toLowerCase())) {
-    //       console.log("inside inclue", _orderId);
-    //       setOrderId(_orderId);
-    //     }
-    //   }
-    // }
-  };
-
-  // const updateOrder = async (itemId?: ItemId, saleQty: number = 0) => {
-  //   try {
-  //     const activeOrderItems =
-  //       (order_id && (await stateManager.orders.get(order_id)).items) || {};
-
-  //     if (!itemId) {
-  //       //Clear order and set every item in order to quantity 0
-  //       const itemIds = Object.keys(activeOrderItems) as ItemId[];
-  //       for (const id of itemIds) {
-  //         await stateManager.orders.changeItems(order_id, id, 0);
-  //       }
-  //     } else if (saleQty === 0) {
-  //       //delete it from orderItems
-  //       await relayClient!.updateOrder({
-  //         order: hexToBytes(order_id),
-  //         changeItems: { itemId: hexToBytes(itemId), quantity: saleQty },
-  //       });
-  //     } else {
-  //       //update item sale qty
-  //       // const difference = (activeOrderItems?.[itemId] || 0) - Number(saleQty);
-  //       // updateUnitChnage(itemId, difference);
+  // const verify = async (
+  //   _orderItems: Map<OrderId, OrderState>,
+  //   _pubKeys: `0x${string}`[],
+  // ) => {
+  //   console.log(_orderItems, _pubKeys);
+  // const addresses = _pubKeys.map((k) => {
+  //   return Address.fromPublicKey(hexToBytes(k)).toString();
+  // });
+  // const keysArr: `0x${string}`[] = _orderItems.size
+  //   ? Array.from([..._orderItems.keys()])
+  //   : [];
+  // for (const _orderId of keysArr) {
+  //   const _order = _orderItems.get(_orderId) as OrderState;
+  //   if (_order && _order.status !== Status.Failed) {
+  //     const sig = _order.signature as `0x${string}`;
+  //     const retrievedAdd = await relayClient!.recoverSignedAddress(
+  //       _orderId,
+  //       sig,
+  //     );
+  //     if (addresses.includes(retrievedAdd.toLowerCase())) {
+  //       console.log("inside inclue", _orderId);
+  //       setOrderId(_orderId);
   //     }
-  //     return { error: null };
-  //   } catch (error) {
-  //     const errMsg = error as { message: string };
-  //     return {
-  //       error: `${errMsg.message}. Create New Sale in the navigation menu. `,
-  //     };
   //   }
+  // }
   // };
-
-  const invalidateOrder = async (msg: string | null = null) => {
-    try {
-      console.log(`Invalidating order: ${msg}`);
-      if (!orderId) throw Error(`No ${orderId} found`);
-      if (!relayClient) throw Error(`Disconnected from relayClient`);
-      // await relayClient.updateOrder({
-      //   orderId: hexToBytes(orderId),
-      //   orderCancelled: { timestamp: Date.now() },
-      // });
-
-      await getOrderId();
-    } catch (error) {}
-  };
 
   const getOrderId = async () => {
     //FIXME fetch saved OrderId here
@@ -195,13 +135,8 @@ export const StoreContextProvider = (
   };
 
   const value = {
-    orderItems,
     orderId,
-    erc20Addr,
-    relays,
     getOrderId,
-    invalidateOrder,
-    setErc20Addr,
     setOrderId,
     selectedCurrency,
     setSelectedCurrency,

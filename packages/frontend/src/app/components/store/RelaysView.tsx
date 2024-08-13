@@ -10,12 +10,9 @@ import RelayBlock from "./RelayBlock";
 import Image from "next/image";
 
 import { Relay } from "@/types";
-import { useStoreContext } from "@/context/StoreContext";
 
 const RelaysView = ({ close }: { close: () => void }) => {
-  //fixme typescript error:
-  const { relays } = useStoreContext();
-
+  const relays: Relay[] = [];
   return (
     <main className="pt-under-nav">
       <ModalHeader headerText="Relays" goBack={close} />

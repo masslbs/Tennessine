@@ -30,7 +30,7 @@ const _menuOptions = [
 const Navigation = () => {
   const [menuOpened, setMenuOpened] = useState<boolean>(false);
   const { setIsConnected, isMerchantView } = useAuth();
-  const { db, stateManager, invalidateOrder } = useStoreContext();
+  const { stateManager } = useStoreContext();
   const [shopManifest, setShopManifest] = useState<ShopManifest | null>(null);
   const { name } = useMyContext();
 
@@ -56,7 +56,6 @@ const Navigation = () => {
   }, [stateManager]);
 
   const logout = () => {
-    db.clear();
     setIsConnected(Status.Pending);
     localStorage.clear();
     router.push("/");
@@ -142,17 +141,6 @@ const Navigation = () => {
             </div>
           </div>
           <div>{renderItems()}</div>
-          <div>
-            <button
-              onClick={() => {
-                invalidateOrder("new sale started");
-                router.push("/");
-                menuSwitch();
-              }}
-            >
-              <h2>New Sale</h2>
-            </button>
-          </div>
           <div>
             <h2 onClick={logout}>Log out</h2>
           </div>

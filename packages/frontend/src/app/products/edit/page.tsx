@@ -48,7 +48,6 @@ const AddProductView = () => {
 
   useEffect(() => {
     if (!productInView) return;
-    console.log({ productInView });
 
     (async () => {
       const selected = [];
@@ -112,14 +111,17 @@ const AddProductView = () => {
 
   const update = async (newItem: Partial<Item>) => {
     //compare the edited fields against the original object.
-    const diff = {
+    const diff: Partial<Item> = {
       id: itemId as ItemId,
     };
-    for (const key in newItem) {
-      if (newItem[key] !== productInView[key]) {
-        diff[key] = newItem[key];
-      }
+    if (newItem.price !== productInView!.price) {
+      diff["price"] = newItem.price;
     }
+    if (newItem.metadata !== productInView!.metadata) {
+      console.log("in here metadata");
+      diff["metadata"] = newItem.metadata;
+    }
+
     //checking for diff in selected tags
     const newTags = selectedTags.filter(
       ({ id }) => !productInView!.tags.includes(id),

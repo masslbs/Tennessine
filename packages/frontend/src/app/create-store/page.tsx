@@ -14,8 +14,6 @@ import SecondaryButton from "@/app/common/components/SecondaryButton";
 import { random32BytesHex } from "@massmarket/utils";
 import Image from "next/image";
 import { useChains } from "wagmi";
-import { bytesToHex, hexToBytes } from "viem";
-import { SET_STORE_DATA } from "@/reducers/storeReducer";
 import { useStoreContext } from "@/context/StoreContext";
 import { BlockchainClient } from "@massmarket/blockchain";
 
@@ -32,8 +30,7 @@ const StoreCreation = () => {
     createNewRelayClient,
   } = useMyContext();
 
-  const { setShopManifest, setPublishedTagId, stateManager } =
-    useStoreContext();
+  const { stateManager } = useStoreContext();
   const { isConnected, setIsConnected, setIsMerchantView } = useAuth();
   const chains = useChains();
   const router = useRouter();
@@ -175,7 +172,6 @@ const StoreCreation = () => {
         );
         console.log(`Shop Manifested with shopId:${shopId}`);
         const newPubId = await stateManager.tags.create("visible");
-        setPublishedTagId(newPubId.id);
         const path = await relayClient!.uploadBlob(avatar as FormData);
 
         if (newPubId && path.url) {
@@ -202,14 +198,6 @@ const StoreCreation = () => {
           console.log(`UPDATED Manifest shopId:${shopId}`);
         }
 
-        setShopManifest({
-          type: SET_STORE_DATA,
-          payload: {
-            name: storeName!,
-            profilePictureUrl: path.url!,
-            baseCurrencyAddr: tokenAddr as `0x${string}`,
-          },
-        });
         const metadata = {
           name: storeName,
           description: description,
