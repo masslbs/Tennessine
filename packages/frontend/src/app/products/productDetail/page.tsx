@@ -8,7 +8,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Button from "@/app/common/components/Button";
 // import SeeProductActions from "@/app/components/products/SeeProductActions";
-import { Item, ItemId, Tag, TagId } from "@/types";
+import { Item, ItemId, OrderId, Tag, TagId, Order } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ItemState } from "@/context/types";
@@ -16,7 +16,7 @@ import ErrorMessage from "@/app/common/components/ErrorMessage";
 import { useAuth } from "@/context/AuthContext";
 
 const ProductDetail = () => {
-  const { updateOrder, orderItems, orderId, stateManager } = useStoreContext();
+  const { stateManager, getOrderId } = useStoreContext();
   const { isMerchantView } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -34,19 +34,47 @@ const ProductDetail = () => {
   const [available, setAvailable] = useState<number>(0);
   const [allTags, setAllTags] = useState(new Map());
   const [removeTagId, setRemoveTagId] = useState<null | TagId>(null);
+  const [orderId, setOrderId] = useState<OrderId | null>(null);
+  const [currentCartItems, setCurrentCart] = useState<ItemState | null>(null);
 
-  // const flyoutRef = createRef<HTMLDivElement>();
-
-  // const handleFlyout = (event: MouseEvent) => {
-  //   if (
-  //     flyoutRef.current &&
-  //     !flyoutRef.current.contains(event.target as Node)
-  //   ) {
-  //     setShowActions(false);
-  //   }
-  // };
   useEffect(() => {
-    const onCreateEvent = (tag: Tag) => {
+    (async () => {
+      const id = await getOrderId();
+      setOrderId(id);
+      const ci = (await stateManager.orders.get(id)).items;
+      setCurrentCart(ci);
+      const onChangeItems = (order: Order) => {
+        if (order.id === id) {
+          setCurrentCart(order.items);
+        }
+      };
+      stateManager.orders.on("changeItems", onChangeItems);
+      return () => {
+        // Cleanup listeners on unmount
+        stateManager.orders.removeListener("changeItems", onChangeItems);
+      };
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      if (itemId) {
+        //set item details
+        const i = await stateManager.items.get(itemId);
+        setItem(i);
+        setAvailable(i?.quantity || 0);
+        if (!currentCartItems) return;
+        //Check if item is already added to cart
+        if (itemId in currentCartItems) {
+          setAddedToCart(true);
+          setQuantity(currentCartItems[itemId]);
+        }
+      }
+    })();
+  }, [currentCartItems, itemId]);
+
+  useEffect(() => {
+    const onCreateTag = (tag: Tag) => {
       allTags.set(tag.id, tag);
       setAllTags(allTags);
     };
@@ -62,26 +90,35 @@ const ProductDetail = () => {
       setAllTags(tags);
 
       // Listen to future events
-      stateManager.tags.on("create", onCreateEvent);
+      stateManager.tags.on("create", onCreateTag);
     })();
 
     return () => {
       // Cleanup listeners on unmount
-      stateManager.items.removeListener("create", onCreateEvent);
+      stateManager.items.removeListener("create", onCreateTag);
     };
   }, []);
 
-  const handleDelete = async () => {
+  const changeItems = async () => {
+    if (!orderId) return;
     try {
-      removeTagId &&
-        (await stateManager.items.removeItemFromTag(removeTagId, itemId));
-      console.log("successfully removed item");
-      router.push("/products");
+      await stateManager.orders.changeItems(orderId, itemId, quantity);
+      setButton("Review");
     } catch (error) {
-      setShowErrorMessage("There was an error removing tag from Item.");
+      setShowErrorMessage("There was an error updating cart");
     }
   };
 
+  // const flyoutRef = createRef<HTMLDivElement>();
+
+  // const handleFlyout = (event: MouseEvent) => {
+  //   if (
+  //     flyoutRef.current &&
+  //     !flyoutRef.current.contains(event.target as Node)
+  //   ) {
+  //     setShowActions(false);
+  //   }
+  // };
   // useEffect(() => {
   //   document.addEventListener("mousedown", (event: MouseEvent) =>
   //     handleFlyout(event),
@@ -93,26 +130,16 @@ const ProductDetail = () => {
   //   };
   // }, [flyoutRef]);
 
-  useEffect(() => {
-    const itemsInCurrentCart: ItemState | null =
-      (orderId && orderItems.get(orderId)?.items) || null;
-    if (itemId && itemsInCurrentCart?.[itemId]) {
-      setAddedToCart(true);
+  const handleDelete = async () => {
+    try {
+      removeTagId &&
+        (await stateManager.items.removeItemFromTag(removeTagId, itemId));
+      console.log("successfully removed item");
+      router.push("/products");
+    } catch (error) {
+      setShowErrorMessage("There was an error removing tag from Item.");
     }
-  }, [orderItems, item]);
-
-  useEffect(() => {
-    (async () => {
-      if (itemId) {
-        const i = await stateManager.items.get(itemId);
-        i && setItem(i);
-        i && setAvailable(i?.quantity || 0);
-        const qty =
-          i && orderId ? orderItems.get(orderId)?.items?.[itemId] || 0 : 0;
-        setQuantity(qty);
-      }
-    })();
-  }, [itemId]);
+  };
 
   const confirmDelete = (
     <div
@@ -147,17 +174,7 @@ const ProductDetail = () => {
   const getCtaButton = () => {
     if (!addedToCart) {
       return (
-        <Button
-          disabled={!quantity}
-          onClick={async () => {
-            const res = await updateOrder(item.id, quantity);
-            if (res?.error) {
-              setShowErrorMessage(res.error);
-            } else {
-              setButton("Review");
-            }
-          }}
-        >
+        <Button disabled={!quantity} onClick={changeItems}>
           {(Number(item.price) * quantity).toFixed(2)}
         </Button>
       );
@@ -165,21 +182,7 @@ const ProductDetail = () => {
       return (
         <Button onClick={() => router.push("/checkout")}>Review Sale</Button>
       );
-    } else
-      return (
-        <Button
-          onClick={async () => {
-            const res = await updateOrder(item.id, quantity);
-            if (res?.error) {
-              setShowErrorMessage(res.error);
-            } else {
-              setButton("Review");
-            }
-          }}
-        >
-          Update Sale
-        </Button>
-      );
+    } else return <Button onClick={changeItems}>Update Sale</Button>;
   };
 
   return (

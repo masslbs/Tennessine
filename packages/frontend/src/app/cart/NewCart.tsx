@@ -19,8 +19,7 @@ const NewCart = ({
   next: () => void;
   orderId: OrderId | null;
 }) => {
-  const { orderItems, updateOrder, stateManager, selectedCurrency } =
-    useStoreContext();
+  const { stateManager, selectedCurrency } = useStoreContext();
   const [cartItemIds, setItemIds] = useState<ItemState | null>(null);
   const [cartItemsMap, setCartMap] = useState(new Map());
   const [errorMsg, setErrorMsg] = useState("");
@@ -28,6 +27,13 @@ const NewCart = ({
   const router = useRouter();
   const { getTokenInformation } = useMyContext();
   const symbolSet = useRef(false);
+
+  const clearCart = async () => {
+    const ids = Object.keys(cartItemIds!);
+    for (const id of ids) {
+      await stateManager.orders.changeItems(orderId!, id as ItemId, 0);
+    }
+  };
 
   useEffect(() => {
     (async () => {
@@ -40,12 +46,11 @@ const NewCart = ({
             cartObjects.set(id, item);
           }),
         );
-        console.log({ cartObjects });
         setCartMap(cartObjects);
         setItemIds(ci);
       }
     })();
-  }, [orderId, orderItems]);
+  }, [orderId]);
 
   const noItems = !orderId || !cartItemIds || !Object.keys(cartItemIds).length;
 
@@ -74,7 +79,7 @@ const NewCart = ({
   const calculateTotal = () => {
     if (noItems) return null;
     let totalPrice: number = 0;
-    Object.keys(cartItemsMap).map((id) => {
+    Array.from([...cartItemsMap.keys()]).map((id) => {
       const selectedQuantity = cartItemIds[id as ItemId] || 0;
       const item = cartItemsMap.get(id);
       if (!item) return null;
@@ -88,9 +93,9 @@ const NewCart = ({
   };
   const renderItems = () => {
     if (noItems) return null;
-    Object.keys(cartItemsMap).map((id) => {
-      const itemId = id as ItemId;
-      const item = cartItemsMap.get(itemId);
+
+    return Array.from([...cartItemsMap.keys()]).map((id) => {
+      const item = cartItemsMap.get(id as ItemId);
       if (!item || !item.metadata.image) return;
       return (
         <div
@@ -143,7 +148,7 @@ const NewCart = ({
       <button
         className="text-red-400 mt-6"
         onClick={() => {
-          updateOrder();
+          clearCart();
           router.push("/products");
         }}
       >
