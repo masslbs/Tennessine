@@ -123,11 +123,14 @@ const ProductsTags = ({
   };
 
   const renderAllTags = () => {
+    const selectedTagIds = selected.map((t) => t.id);
     const tags = searchResults.size
       ? Array.from([...searchResults.keys()])
       : Array.from([...allTags.keys()]);
     if (!tags?.length) return null;
     return tags.map((tId: TagId) => {
+      // Filtering out selected tags from rendering in this section
+      if (selectedTagIds.includes(tId)) return null;
       return (
         <TagSection
           key={tId}

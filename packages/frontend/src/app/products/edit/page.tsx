@@ -29,7 +29,7 @@ const AddProductView = () => {
   const [price, setPrice] = useState<string>("");
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-  const [quantity, setStockQty] = useState<number>(0);
+  const [units, setUnits] = useState<number>(0);
   const [error, setError] = useState<null | string>(null);
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
 
@@ -42,6 +42,7 @@ const AddProductView = () => {
         setPrice(p.price);
         setImg(p.metadata.image);
         setDescription(p.metadata.description);
+        setUnits(p.quantity);
       }
     })();
   }, []);
@@ -101,7 +102,7 @@ const AddProductView = () => {
 
   const create = async (newItem: Partial<Item>) => {
     const { id } = await stateManager.items.create(newItem);
-    await stateManager.items.changeStock([id], [quantity]);
+    await stateManager.items.changeStock([id], [units]);
     if (selectedTags.length) {
       selectedTags.map((t) => {
         stateManager.items.addItemToTag(t.id, id);
@@ -118,10 +119,8 @@ const AddProductView = () => {
       diff["price"] = newItem.price;
     }
     if (newItem.metadata !== productInView!.metadata) {
-      console.log("in here metadata");
       diff["metadata"] = newItem.metadata;
     }
-
     //checking for diff in selected tags
     const newTags = selectedTags.filter(
       ({ id }) => !productInView!.tags.includes(id),
@@ -131,10 +130,23 @@ const AddProductView = () => {
         stateManager.items.addItemToTag(id, itemId as ItemId);
       });
     }
+    //checking for any removed tags
+    const selectTagIds = selectedTags.map((t) => t.id);
+    const removedTags = productInView?.tags.filter(
+      (id) => !selectTagIds.includes(id),
+    );
+    if (removedTags?.length) {
+      removedTags.map((id) => {
+        stateManager.items.removeItemFromTag(id, itemId as ItemId);
+      });
+    }
     if (Object.keys(diff).length === 1) return;
     await stateManager.items.update(diff);
-    if (quantity !== productInView?.quantity) {
-      await stateManager.items.changeStock([itemId as ItemId], [quantity]);
+    if (units !== productInView?.quantity) {
+      await stateManager.items.changeStock(
+        [itemId as ItemId],
+        [units - productInView!.quantity],
+      );
     }
   };
 
@@ -151,7 +163,7 @@ const AddProductView = () => {
       try {
         const path = imgAsBlob
           ? await relayClient!.uploadBlob(imgAsBlob)
-          : imgSrc;
+          : { url: imgSrc };
 
         const newItem = {
           price: Number(price).toFixed(2),
@@ -190,9 +202,9 @@ const AddProductView = () => {
   const handleStockChange = (e: ChangeEvent<HTMLInputElement>) => {
     const units = e.target.value;
     if (units && !Number(units)) {
-      setStockQty(0);
+      setUnits(0);
     } else {
-      setStockQty(Number(e.target.value) || 0);
+      setUnits(Number(e.target.value) || 0);
     }
   };
 
@@ -351,7 +363,7 @@ const AddProductView = () => {
               >
                 <label htmlFor="units">units</label>
                 <input
-                  value={quantity}
+                  value={units}
                   className="border-2 border-solid mt-1 p-3 rounded-2xl"
                   id="units"
                   name="units"
