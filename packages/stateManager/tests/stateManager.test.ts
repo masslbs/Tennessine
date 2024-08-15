@@ -7,6 +7,8 @@ import {
   type ShopManifest,
   type Order,
   type KeyCard,
+  Status,
+  OrdersByStatus,
 } from "../";
 import { MockClient } from "./mockClient";
 import {
@@ -31,7 +33,7 @@ const shopManifestStore = db.sublevel<string, ShopManifest>(
     valueEncoding: "json",
   },
 );
-const orderStore = db.sublevel<string, Order>("orderStore", {
+const orderStore = db.sublevel<string, Order | OrdersByStatus>("orderStore", {
   valueEncoding: "json",
 });
 
@@ -126,6 +128,15 @@ describe("Fill state manager with test vectors", async () => {
     );
   });
 
+  test("KeycardManager - updates keycard events", async () => {
+    let keyCount = 0;
+    for await (const [walletAddress, pk] of stateManager.keycards.iterator()) {
+      keyCount++;
+      expect(pk).toEqual(vectorState.keycards[walletAddress]);
+    }
+    expect(Object.keys(vectorState.keycards).length).toEqual(keyCount);
+  });
+
   test("ListingManager - adds and updates item events", async () => {
     let itemCount = 0;
     for await (const [id, item] of stateManager.items.iterator()) {
@@ -156,13 +167,16 @@ describe("Fill state manager with test vectors", async () => {
     //So we are checking that all payed orders have status=complete and that it has a txHash
     for await (const order of payed) {
       const o = await stateManager.orders.get(order.order_id as `0x${string}`);
-      expect(o.status).toEqual("COMPLETE");
+      expect(o.status).toEqual(Status.Complete);
       expect(o.txHash).toEqual(order.tx_hash);
+      // Should also be able to get orders by status.
+      const orders = await stateManager.orders.getStatus(Status.Complete);
+      expect(orders[0]).toEqual(order.order_id);
     }
     //Abandoned orders should be stauts=failed
     for await (const order of abandoned) {
       const o = await stateManager.orders.get(order.order_id as `0x${string}`);
-      expect(o.status).toEqual("FAILED");
+      expect(o.status).toEqual(Status.Failed);
     }
     //Commited orders should have the items + qty purchased, and the total amount.
     for await (const order of committed) {
@@ -172,7 +186,7 @@ describe("Fill state manager with test vectors", async () => {
     //Open orders should have status=pending and have the corrects items + qty
     for await (const order of open) {
       const o = await stateManager.orders.get(order.order_id as `0x${string}`);
-      expect(o.status).toEqual("PENDING");
+      expect(o.status).toEqual(Status.Pending);
       expect(o.items).toEqual(order.items);
     }
   });
@@ -388,6 +402,7 @@ describe("CRUD functions update stores", async () => {
   });
   test("OrderManager - create/update", async () => {
     const { id } = await stateManager.orders.create();
+    const order2 = await stateManager.orders.create();
     const o = await stateManager.items.create({
       price: "12.00",
       metadata: {
@@ -400,7 +415,12 @@ describe("CRUD functions update stores", async () => {
     const uo = await stateManager.orders.get(id);
     expect(uo.items[o.id]).toEqual(4);
     //Since we just created this order, status should be pending.
-    expect(uo.status).toEqual("PENDING");
+    expect(uo.status).toEqual(Status.Pending);
+
+    // Should also be able to get orders by status.
+    const orders = await stateManager.orders.getStatus(Status.Pending);
+    expect(orders[0]).toEqual(id);
+    expect(orders[1]).toEqual(order2.id);
   });
 
   test("OrderManager - updateShippingDetails/cancel", async () => {
@@ -415,7 +435,7 @@ describe("CRUD functions update stores", async () => {
     };
     await stateManager.orders.updateShippingDetails(id, shippingInfo);
     const { status, shippingDetails } = await stateManager.orders.get(id);
-    expect(status).toEqual("PENDING");
+    expect(status).toEqual(Status.Pending);
     expect(shippingDetails!.name).toEqual(shippingInfo.name);
     expect(shippingDetails!.address1).toEqual(shippingInfo.address1);
     expect(shippingDetails!.city).toEqual(shippingInfo.city);
@@ -436,7 +456,10 @@ describe("CRUD functions update stores", async () => {
     await stateManager.orders.cancel(id, 0);
     const canceled = await stateManager.orders.get(id);
     //New status should be fail
-    expect(canceled.status).toEqual("FAILED");
+    expect(canceled.status).toEqual(Status.Failed);
+    // Should also be able to get orders by status.
+    const orders = await stateManager.orders.getStatus(Status.Failed);
+    expect(orders[0]).toEqual(id);
   });
   test("OrderManager - commit triggers an updateOrder event with itemsFinalized property", async () => {
     const { id } = await stateManager.orders.create();
