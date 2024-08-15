@@ -128,6 +128,15 @@ describe("Fill state manager with test vectors", async () => {
     );
   });
 
+  test("KeycardManager - updates keycard events", async () => {
+    let keyCount = 0;
+    for await (const [walletAddress, pk] of stateManager.keycards.iterator()) {
+      keyCount++;
+      expect(pk).toEqual(vectorState.keycards[walletAddress]);
+    }
+    expect(Object.keys(vectorState.keycards).length).toEqual(keyCount);
+  });
+
   test("ListingManager - adds and updates item events", async () => {
     let itemCount = 0;
     for await (const [id, item] of stateManager.items.iterator()) {
