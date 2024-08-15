@@ -44,8 +44,14 @@ const ProductDetail = () => {
       setOrderId(id);
       const ci = (await stateManager.orders.get(id)).items;
       setCurrentCart(ci);
+    })();
+  }, []);
+
+  useEffect(() => {
+    // Set up changeItems event listener.
+    if (orderId) {
       const onChangeItems = (order: Order) => {
-        if (order.id === id) {
+        if (order.id === orderId) {
           setCurrentCart(order.items);
         }
       };
@@ -54,10 +60,16 @@ const ProductDetail = () => {
         // Cleanup listeners on unmount
         stateManager.orders.removeListener("changeItems", onChangeItems);
       };
-    })();
-  }, []);
+    }
+  });
 
   useEffect(() => {
+    const onChangeStock = async (itemIds: ItemId[]) => {
+      if (itemIds.includes(itemId)) {
+        const available = await stateManager.items.get(itemId);
+        setAvailable(available.quantity);
+      }
+    };
     (async () => {
       if (itemId) {
         //set item details
@@ -72,6 +84,11 @@ const ProductDetail = () => {
         }
       }
     })();
+    stateManager.items.on("changeStock", onChangeStock);
+
+    return () => {
+      stateManager.items.on("changeStock", onChangeStock);
+    };
   }, [currentCartItems, itemId]);
 
   useEffect(() => {
@@ -130,10 +147,12 @@ const ProductDetail = () => {
   // }, [flyoutRef]);
 
   const handleDelete = async () => {
+    if (!removeTagId) {
+      setShowErrorMessage("No remove tag found.");
+      return;
+    }
     try {
-      removeTagId &&
-        (await stateManager!.items.removeItemFromTag(removeTagId, itemId));
-      console.log("successfully removed item");
+      await stateManager!.items.addItemToTag(removeTagId, itemId);
       router.push("/products");
     } catch (error) {
       setShowErrorMessage("There was an error removing tag from Item.");
@@ -173,21 +192,33 @@ const ProductDetail = () => {
   const getCtaButton = () => {
     if (!addedToCart) {
       return (
-        <Button disabled={!quantity} onClick={changeItems}>
+        <Button
+          data-testid="addToCart"
+          disabled={!quantity}
+          onClick={changeItems}
+        >
           {(Number(item.price) * quantity).toFixed(2)}
+        </Button>
+      );
+    } else if (quantity !== currentCartItems?.[itemId]) {
+      return (
+        <Button data-testid="updateQty" onClick={changeItems}>
+          Update Sale
         </Button>
       );
     } else if (buttonState === "Review") {
       return (
         <Button onClick={() => router.push("/checkout")}>Review Sale</Button>
       );
-    } else return <Button onClick={changeItems}>Update Sale</Button>;
+    }
   };
 
   return (
     <main className="pt-under-nav h-screen bg-gray-100">
+      <button data-testid="delete" onClick={() => setShowConfirmModal(true)}>
+        Delete Item
+      </button>
       {showConfirmModal && confirmDelete}
-      {/* <ModalHeader /> */}
       <section className="h-[45rem] flex flex-col">
         <ErrorMessage
           errorMessage={showErrorMessage}
@@ -210,10 +241,16 @@ const ProductDetail = () => {
               />
             )}
             <div className="flex flex-col">
-              <h2 className="text-xl flex items-center pl-4">
+              <h2
+                data-testid="title"
+                className="text-xl flex items-center pl-4"
+              >
                 {item.metadata.title}
               </h2>
-              <p className=" text-xs flex items-center pl-4">
+              <p
+                className="text-xs flex items-center pl-4"
+                data-testid="description"
+              >
                 {item.metadata.description}
               </p>
             </div>
@@ -223,7 +260,7 @@ const ProductDetail = () => {
               <h5 className="font-sans text-gray-700 my-4">Product Details</h5>
               <div className="flex justify-between py-4 bg-white border rounded-lg p-4">
                 <p>Price</p>
-                <p>{item.price} usdc</p>
+                <p data-testid="price">{item.price}</p>
               </div>
             </div>
             {isMerchantView ? (
@@ -233,7 +270,7 @@ const ProductDetail = () => {
                 </h5>
                 <div className="flex justify-between py-4 bg-white border rounded-lg p-4">
                   <p>Available</p>
-                  <p>{available}</p>
+                  <p data-testid="available">{available}</p>
                 </div>
               </div>
             ) : null}
@@ -245,6 +282,7 @@ const ProductDetail = () => {
                   id="quantity"
                   name="quantity"
                   value={quantity}
+                  data-testid="purchaseQty"
                   onChange={(e) => setQuantity(Number(e.target.value))}
                 />
               </div>

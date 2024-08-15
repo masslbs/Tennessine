@@ -13,11 +13,10 @@ import { StateManager } from "@massmarket/stateManager";
 //Types for Contexts only
 export type ClientContext = {
   keyCardEnrolled: boolean;
+  ensName: string | null;
   walletAddress: `0x${string}` | null;
   clientWallet: WalletClientWithAccount | null;
-  balance: string | null;
   avatar: string | null;
-  name: string | null;
   relayClient: RelayClient | null;
   publicClient: PublicClient | null;
   inviteSecret: `0x${string}` | null;

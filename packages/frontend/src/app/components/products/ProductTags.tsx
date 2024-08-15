@@ -34,21 +34,21 @@ const ProductsTags = ({
   const [selected, setAllSelected] = useState<Tag[]>([]);
 
   useEffect(() => {
-    const onCreateEvent = (tag: Tag) => {
-      allTags.set(tag.id, tag);
-      setAllTags(allTags);
+    const set = async () => {
+      const tags = new Map();
+      for await (const [id, tag] of stateManager.tags.iterator()) {
+        tags.set(id, tag);
+      }
+      setAllTags(tags);
     };
-    if (stateManager)
-      (async () => {
-        const tags = new Map();
-        for await (const [id, tag] of stateManager.tags.iterator()) {
-          tags.set(id, tag);
-        }
-        setAllTags(tags);
-
-        // Listen to future events
-        stateManager.tags.on("create", onCreateEvent);
-      })();
+    const onCreateEvent = async () => {
+      await set();
+    };
+    (async () => {
+      await set();
+      // Listen to future events
+      stateManager.tags.on("create", onCreateEvent);
+    })();
     return () => {
       // Cleanup listeners on unmount
       stateManager.items.removeListener("create", onCreateEvent);
@@ -116,7 +116,7 @@ const ProductsTags = ({
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     tagName.length && tagName[0] === ":"
-      ? await stateManager!.tags.create(tagName)
+      ? await stateManager!.tags.create(tagName.substring(1))
       : setError("to create a tag name, begin the tag name with :");
     setTagName("");
   };
@@ -143,6 +143,7 @@ const ProductsTags = ({
   const tagField = isSearchState ? (
     <div>
       <form
+        data-testid="tagForm"
         className="relative"
         onSubmit={(e: FormEvent<HTMLFormElement>) => {
           e.preventDefault();
@@ -151,8 +152,9 @@ const ProductsTags = ({
       >
         <input
           className="border-2 border-solid mt-1 px-4 py-3 w-full rounded"
-          id="fname"
-          name="fname"
+          id="tagInput"
+          name="tagInput"
+          data-testid="tagInput"
           placeholder="Search your store"
           value={tagName}
           onChange={(e: ChangeEvent<HTMLInputElement>) => handleChange(e)}
@@ -178,9 +180,10 @@ const ProductsTags = ({
       </form>
     </div>
   ) : (
-    <div
+    <button
       className="border border-gray-300 py-3 px-4 mt-1 flex rounded bg-white"
       onClick={() => handleTagClick()}
+      data-testid="add-tag-btn"
     >
       <Image
         src="/assets/add-icon.svg"
@@ -190,7 +193,7 @@ const ProductsTags = ({
         className="mr-2"
       />
       <p className="text-blue-700 flex items-center">Add keyword tag(s)</p>
-    </div>
+    </button>
   );
 
   return (

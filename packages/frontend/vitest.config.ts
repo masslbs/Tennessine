@@ -4,12 +4,16 @@
 
 import { defineConfig } from "vitest/config";
 import path from "path";
+import dotenv from "dotenv";
+
+dotenv.config({ path: path.resolve(__dirname, ".env.development") });
+
 export default defineConfig({
   test: {
     coverage: {
       reporter: ["text", "json", "html"],
     },
-    environment: "jsdom",
+    environment: "happy-dom",
     exclude: [
       "**/.{idea,git,cache,output,temp}/**",
       "**/cypress/**",
@@ -18,7 +22,7 @@ export default defineConfig({
       "./test/pages/**",
     ],
     globals: true,
-    setupFiles: "./test/setup.ts",
+    setupFiles: ["./tests/setup.ts"],
   },
   resolve: {
     alias: {

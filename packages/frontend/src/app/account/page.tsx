@@ -16,7 +16,7 @@ import withAuth from "../components/withAuth";
 import { useRouter } from "next/navigation";
 
 const AccountSettings = () => {
-  const { walletAddress, avatar, name } = useMyContext();
+  const { walletAddress, avatar, ensName } = useMyContext();
   const [openNameEdit, setOpenNameEdit] = useState<boolean>(false);
   const [openPhotoUpload, setOpenPhotoUpload] = useState<boolean>(false);
   const [profilePhoto, setProfilePhoto] = useState<string>(
@@ -34,10 +34,10 @@ const AccountSettings = () => {
     if (avatar) {
       setProfilePhoto(avatar);
     }
-    if (name) {
-      setFirstName(name);
+    if (ensName) {
+      setFirstName(ensName);
     }
-  }, [walletAddress, avatar, name]);
+  }, [walletAddress, avatar, ensName]);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(walletAddress!);

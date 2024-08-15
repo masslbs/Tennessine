@@ -26,6 +26,7 @@ const TagSection = ({
   return (
     <div
       id="tag"
+      data-testid="tagSection"
       className={`w-fit flex text-sm rounded p-1`}
       style={{ backgroundColor: `#${hex}` }}
       onClick={() => handleSelectTag(tag as Tag)}

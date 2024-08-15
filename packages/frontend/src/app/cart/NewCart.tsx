@@ -98,6 +98,7 @@ const NewCart = ({
         <div
           key={item.metadata.title}
           className="flex flex-col items-center gap-3 min-w-24 min-h-30 max-w-24"
+          data-testid="title"
         >
           <div className="h-12 flex justify-center text-center">
             <p className="text-xs text-primary-gray text-center text-ellipsis overflow-hidden self-end">
@@ -127,9 +128,10 @@ const NewCart = ({
   return (
     <div className="text-center">
       {errorMsg.length && <p className="text-red-500">{errorMsg}</p>}
-      <h2 className="my-4">
-        {calculateTotal()} {currencySym}
+      <h2 className="my-4" data-testid="total">
+        {calculateTotal()}
       </h2>
+      <h2 data-testid="symbol">{currencySym}</h2>
       <Button
         onClick={() => {
           checkForErrors();

@@ -125,7 +125,11 @@ class ListingManager extends PublicObjectManager<Item> {
             return this.store.put(itemId, item);
           }),
         );
-        this.emit("changeStock", cs, cs.eventId);
+        this.emit(
+          "changeStock",
+          cs.itemIds.map((id: Uint8Array) => bytesToHex(id)),
+          cs.eventId,
+        );
         return;
       }
     } else if (event.updateTag) {
@@ -442,6 +446,10 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         order.txHash = bytesToHex(cs.txHash);
         await this.store.put(orderId, order);
         await storeOrdersByStatus(orderId, this.store, Status.Complete);
+        //remove the orderId from pending orders since its status is now complete
+        let orders = (await this.store.get(Status.Pending)) as OrdersByStatus;
+        orders = orders.filter((id) => id !== orderId);
+        await this.store.put(Status.Pending, orders);
         this.emit("orderPaid", order);
         return;
       }
@@ -452,8 +460,17 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
     return this.store.get(key) as Promise<Order>;
   }
 
-  getStatus(key: Status) {
-    return this.store.get(key) as Promise<OrdersByStatus>;
+  async getStatus(key: Status): Promise<`0x${string}`[]> {
+    try {
+      return (await this.store.get(key)) as `0x${string}`[];
+    } catch (error) {
+      const e = error as IError;
+      if (e.notFound) {
+        return [];
+      } else {
+        throw new Error(e.code);
+      }
+    }
   }
 
   async create() {

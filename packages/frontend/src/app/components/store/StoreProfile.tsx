@@ -38,20 +38,27 @@ const StoreProfile = ({ close }: { close: () => void }) => {
   );
 
   useEffect(() => {
-    if (stateManager) {
-      (async () => {
-        const shopManifest = await stateManager.manifest.get();
-        setStoreName(shopManifest.name);
-        setStoreBase(shopManifest.setBaseCurrency!.tokenAddr);
-        setAcceptedCurrencies(shopManifest.acceptedCurrencies);
-      })();
-    }
+    const onUpdateEvent = async (updatedManifest: ShopManifest) => {
+      setAcceptedCurrencies(updatedManifest.acceptedCurrencies);
+      setStoreName(updatedManifest.name);
+      setStoreBase(updatedManifest.setBaseCurrency!.tokenAddr);
+    };
+    (async () => {
+      const shopManifest = await stateManager.manifest.get();
+      setStoreName(shopManifest.name);
+      setStoreBase(shopManifest.setBaseCurrency!.tokenAddr);
+      setAcceptedCurrencies(shopManifest.acceptedCurrencies);
+    })();
+    stateManager.manifest.on("update", onUpdateEvent);
+    return () => {
+      // Cleanup listeners on unmount
+      stateManager.manifest.on("update", onUpdateEvent);
+    };
   }, []);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(shopId!);
   };
-
   const updateStoreInfo = async () => {
     if (!baseAddr.length) {
       setError(`Missing base currency address for store.`);
@@ -75,7 +82,11 @@ const StoreProfile = ({ close }: { close: () => void }) => {
     }
   };
   const renderAcceptedCurrencies = () => {
-    return acceptedCurrencies.map((c, i) => <p key={i}>{c.tokenAddr}</p>);
+    return acceptedCurrencies.map((c, i) => (
+      <p data-testid={`accepted-currencies`} key={i}>
+        {c.tokenAddr}
+      </p>
+    ));
   };
   const addAcceptedCurrencyFn = async () => {
     if (!addTokenAddr.length) {
@@ -95,7 +106,7 @@ const StoreProfile = ({ close }: { close: () => void }) => {
       } catch (error) {
         console.log({ error });
         setAddTokenAddr("");
-        setError("Faile to add accepted currency");
+        setError("Failed to add accepted currency");
       }
     }
   };
@@ -125,7 +136,7 @@ const StoreProfile = ({ close }: { close: () => void }) => {
                   <label htmlFor="storeName">Store Name</label>
                   <input
                     className="border-2 border-solid mt-1 p-2 rounded"
-                    id="storeName"
+                    data-testid="storeName"
                     name="storeName"
                     value={storeName}
                     onChange={(e) => setStoreName(e.target.value)}
@@ -162,11 +173,11 @@ const StoreProfile = ({ close }: { close: () => void }) => {
                   className="flex flex-col"
                   onSubmit={(e) => e.preventDefault()}
                 >
-                  <label htmlFor="storeName">Base Currency</label>
+                  <label htmlFor="baseCurrency">Base Currency</label>
                   <div>
                     <input
                       className="border-2 border-solid mt-1 p-2 rounded"
-                      id="baseAddr"
+                      data-testid="baseAddr"
                       name="baseAddr"
                       value={baseAddr}
                       onChange={(e) =>
@@ -181,9 +192,10 @@ const StoreProfile = ({ close }: { close: () => void }) => {
                         alt="copy-icon"
                       />
                     </button>
+
                     <input
                       className="border-2 border-solid mt-1 p-2 rounded"
-                      id="baseChainId"
+                      data-testid="baseChainId"
                       name="baseChainId"
                       value={baseChainId}
                       onChange={(e) => setBaseChainId(Number(e.target.value))}
@@ -207,7 +219,7 @@ const StoreProfile = ({ close }: { close: () => void }) => {
                   <div>
                     <input
                       className="border-2 border-solid mt-1 p-2 rounded "
-                      id="addTokenAddr"
+                      data-testid="addTokenAddr"
                       name="addTokenAddr"
                       value={addTokenAddr}
                       onChange={(e) =>
@@ -216,7 +228,7 @@ const StoreProfile = ({ close }: { close: () => void }) => {
                     />
                     <input
                       className="border-2 border-solid mt-1 p-2 rounded"
-                      id="addTokenChainId"
+                      data-testid="addTokenChainId"
                       name="addTokenChainId"
                       value={addAcceptedChainId}
                       onChange={(e) => setAddChainId(Number(e.target.value))}

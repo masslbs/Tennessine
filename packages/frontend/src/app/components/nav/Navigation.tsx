@@ -23,7 +23,6 @@ const _menuOptions = [
     href: "/merchant-dashboard",
   },
   { title: "Shop settings", img: "store-settings.svg", href: "/store" },
-  { title: "My profile", img: "profile.svg", href: "/account" },
   { title: "New shop", img: "create-store.png", href: "/create-store" },
 ];
 
@@ -32,7 +31,7 @@ const Navigation = () => {
   const { setIsConnected, isMerchantView } = useAuth();
   const { stateManager } = useStoreContext();
   const [shopManifest, setShopManifest] = useState<ShopManifest | null>(null);
-  const { name } = useMyContext();
+  const { ensName } = useMyContext();
 
   const searchParams = useSearchParams();
 
@@ -87,7 +86,7 @@ const Navigation = () => {
     <FullModal isOpen={menuOpened}>
       <main>
         <div className="w-full border border-gray-200 p-4 text-base flex justify-between">
-          <p>{name}</p>
+          <p>{ensName}</p>
           <div className="flex gap-4">
             <button onClick={menuSwitch}>
               <Image
@@ -127,17 +126,6 @@ const Navigation = () => {
                   Add Product +
                 </Link>
               </SecondaryButton>
-              <SecondaryButton onClick={menuSwitch}>
-                <div className="flex items-center gap-1">
-                  Settings
-                  <Image
-                    src="/assets/settings.svg"
-                    width={12}
-                    height={12}
-                    alt="settings-icon"
-                  />
-                </div>
-              </SecondaryButton>
             </div>
           </div>
           <div>{renderItems()}</div>
@@ -164,7 +152,7 @@ const Navigation = () => {
             />
             <p>back</p>
           </button>
-          <p className="ml-5">{name}</p>
+          <p className="ml-5">{ensName}</p>
         </div>
         <div className="flex gap-4">
           <button onClick={menuSwitch}>

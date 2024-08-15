@@ -27,13 +27,10 @@ import { zeroAddress } from "@massmarket/contracts";
 
 const CheckoutFlow = () => {
   const { getOrderId, stateManager, selectedCurrency } = useStoreContext();
-  const { publicClient, shopId, getTokenInformation } = useMyContext();
+  const { publicClient, getTokenInformation } = useMyContext();
   const [step, setStep] = useState(0);
-
   const [imgSrc, setSrc] = useState<null | string>(null);
-  const [checkoutReqId, setCheckoutRequestId] = useState<`0x${string}` | null>(
-    null,
-  );
+
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [cryptoTotal, setCryptoTotal] = useState<number | null>(null);
   const [purchaseAddress, setPurchaseAddr] = useState<string | null>(null);
@@ -65,8 +62,25 @@ const CheckoutFlow = () => {
       const o = await stateManager.orders.get(id);
       setOrderId(id);
       setCurrentOrder(o);
+      if (o.orderFinalized) {
+        getDetails(id);
+      }
     })();
   }, []);
+
+  useEffect(() => {
+    const onOrderPaid = (order: Order) => {
+      if (order.id === orderId) {
+        setCurrentOrder(order);
+      }
+    };
+
+    stateManager.orders.on("orderPaid", onOrderPaid);
+    return () => {
+      // Cleanup listeners on unmount
+      stateManager.orders.removeListener("orderPaid", onOrderPaid);
+    };
+  });
 
   useEffect(() => {
     if (currentOrder?.status === Status.Complete) {
@@ -78,67 +92,80 @@ const CheckoutFlow = () => {
   }, [currentOrder]);
 
   useEffect(() => {
-    if (checkoutReqId && orderId && stateManager) {
-      (async () => {
-        const committed = await stateManager.orders.get(orderId);
-        const {
-          ttl,
-          orderHash,
-          currencyAddr,
-          totalInCrypto,
-          payeeAddr,
-          shopSignature,
-          total,
-        } = committed.orderFinalized as OrderFinalized;
-        // Find the chainId for the currencyAddr used from shopManifest.
-        const manifest = await stateManager.manifest.get();
-        const curr = manifest.acceptedCurrencies.find(
-          (c: ShopCurrencies) => c.tokenAddr === currencyAddr,
-        );
-        const arg = [
-          curr?.chainId,
-          ttl,
-          orderHash,
-          currencyAddr,
-          totalInCrypto,
-          payeeAddr,
-          false,
-          shopId,
-          shopSignature,
-        ];
-        const ownerAdd = await publicClient!.readContract({
-          address: abi.addresses.ShopReg as `0x${string}`,
-          abi: abi.ShopReg,
-          functionName: "ownerOf",
-          args: [shopId],
-        });
-        const purchaseAdd = await publicClient!.readContract({
-          address: abi.addresses.Payments as `0x${string}`,
-          abi: abi.PaymentsByAddress,
-          functionName: "getPaymentAddress",
-          args: [arg, ownerAdd],
-        });
-        const { decimals, symbol } = await getTokenInformation(
-          currencyAddr as TokenAddr,
-        );
-        setSymbol(symbol);
-        if (purchaseAdd) {
-          const amount = Number(totalInCrypto);
-          const _erc20Amount = amount / Math.pow(10, decimals);
-          const payLink =
-            currencyAddr === zeroAddress
-              ? `ethereum:${purchaseAdd}?value=${amount}`
-              : `ethereum:${currencyAddr}/transfer?address=${purchaseAdd}&uint256=${amount}`;
-          setPurchaseAddr(purchaseAdd as `0x${string}`);
-          setSrc(payLink);
-          setCryptoTotal(amount);
-          setErc20Amount(_erc20Amount);
-          setTotalDollar(total);
-          setStep(2);
-        }
-      })();
-    }
-  }, [checkoutReqId]);
+    const onItemsFinalized = (order: Order) => {
+      if (order.id === orderId) {
+        getDetails(orderId);
+      }
+    };
+    stateManager.orders.on("itemsFinalized", onItemsFinalized);
+
+    return () => {
+      // Cleanup listeners on unmount
+      stateManager.items.removeListener("itemsFinalized", onItemsFinalized);
+    };
+  });
+
+  const getDetails = (oId: OrderId) => {
+    (async () => {
+      const committed = await stateManager.orders.get(oId!);
+      const {
+        ttl,
+        orderHash,
+        currencyAddr,
+        totalInCrypto,
+        payeeAddr,
+        shopSignature,
+        total,
+      } = committed.orderFinalized as OrderFinalized;
+      // Find the chainId for the currencyAddr used from shopManifest.
+      const manifest = await stateManager.manifest.get();
+      const curr = manifest.acceptedCurrencies.find(
+        (c: ShopCurrencies) => c.tokenAddr === currencyAddr,
+      );
+      const shopId = manifest.tokenId;
+      const arg = [
+        curr?.chainId,
+        ttl,
+        orderHash,
+        currencyAddr,
+        totalInCrypto,
+        payeeAddr,
+        false,
+        shopId,
+        shopSignature,
+      ];
+      const ownerAdd = await publicClient!.readContract({
+        address: abi.addresses.ShopReg as `0x${string}`,
+        abi: abi.ShopReg,
+        functionName: "ownerOf",
+        args: [shopId],
+      });
+      const purchaseAdd = await publicClient!.readContract({
+        address: abi.addresses.Payments as `0x${string}`,
+        abi: abi.PaymentsByAddress,
+        functionName: "getPaymentAddress",
+        args: [arg, ownerAdd],
+      });
+      const { decimals, symbol } = await getTokenInformation(
+        currencyAddr as TokenAddr,
+      );
+      setSymbol(symbol);
+      if (purchaseAdd) {
+        const amount = Number(totalInCrypto);
+        const _erc20Amount = amount / Math.pow(10, decimals);
+        const payLink =
+          currencyAddr === zeroAddress
+            ? `ethereum:${purchaseAdd}?value=${amount}`
+            : `ethereum:${currencyAddr}/transfer?address=${purchaseAdd}&uint256=${amount}`;
+        setPurchaseAddr(purchaseAdd as `0x${string}`);
+        setSrc(payLink);
+        setCryptoTotal(amount);
+        setErc20Amount(_erc20Amount);
+        setTotalDollar(total);
+        setStep(2);
+      }
+    })();
+  };
 
   const checkout = async () => {
     const orderId = await getOrderId();
@@ -146,13 +173,12 @@ const CheckoutFlow = () => {
       setErrorMsg("Please select a currency to pay in.");
     }
     try {
-      const checkout = await stateManager!.orders.commit(
+      await stateManager!.orders.commit(
         orderId,
         selectedCurrency!.tokenAddr,
         selectedCurrency!.chainId,
         "default",
       );
-      setCheckoutRequestId(checkout.orderFinalizedId);
     } catch (error) {
       // If there was an error while committing, cancel the order.
       await stateManager!.orders.cancel(orderId, 0);
@@ -186,8 +212,8 @@ const CheckoutFlow = () => {
     } else if (
       step === 2 &&
       imgSrc &&
-      totalDollar &&
       purchaseAddress &&
+      totalDollar &&
       cryptoTotal
     ) {
       return (
