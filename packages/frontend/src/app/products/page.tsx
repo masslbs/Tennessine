@@ -49,13 +49,19 @@ const Products = () => {
   }, []);
 
   useEffect(() => {
-    const onCreateEvent = (item: Item) => {
-      products.set(item.id, item);
-      setProducts(products);
+    const onCreateEvent = async () => {
+      const l = new Map();
+      for await (const [id, item] of stateManager.items.iterator()) {
+        l.set(id, item);
+      }
+      setProducts(l);
     };
-    const onUpdateEvent = (item: Item) => {
-      products.set(item.id, item);
-      setProducts(products);
+    const onUpdateEvent = async () => {
+      const l = new Map();
+      for await (const [id, item] of stateManager.items.iterator()) {
+        l.set(id, item);
+      }
+      setProducts(l);
     };
     const onAddItemId = (item: Item) => {
       products.set(item.id, item);
