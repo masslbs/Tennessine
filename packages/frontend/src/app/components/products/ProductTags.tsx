@@ -38,22 +38,22 @@ const ProductsTags = ({
       allTags.set(tag.id, tag);
       setAllTags(allTags);
     };
+    if (stateManager) {
+      (async () => {
+        const tags = new Map();
+        for await (const [id, tag] of stateManager.tags.iterator()) {
+          tags.set(id, tag);
+        }
+        setAllTags(tags);
 
-    (async () => {
-      const tags = new Map();
-      for await (const [id, tag] of stateManager.tags.iterator()) {
-        tags.set(id, tag);
-      }
-      setAllTags(tags);
-
-      // Listen to future events
-      stateManager.tags.on("create", onCreateEvent);
-    })();
-
-    return () => {
-      // Cleanup listeners on unmount
-      stateManager.items.removeListener("create", onCreateEvent);
-    };
+        // Listen to future events
+        stateManager.tags.on("create", onCreateEvent);
+      })();
+      return () => {
+        // Cleanup listeners on unmount
+        stateManager.items.removeListener("create", onCreateEvent);
+      };
+    }
   }, []);
 
   useEffect(() => {
@@ -117,7 +117,7 @@ const ProductsTags = ({
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     tagName.length && tagName[0] === ":"
-      ? await stateManager.tags.create(tagName)
+      ? await stateManager!.tags.create(tagName)
       : setError("to create a tag name, begin the tag name with :");
     setTagName("");
   };

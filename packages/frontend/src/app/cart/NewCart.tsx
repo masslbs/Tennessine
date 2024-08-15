@@ -28,16 +28,9 @@ const NewCart = ({
   const { getTokenInformation } = useMyContext();
   const symbolSet = useRef(false);
 
-  const clearCart = async () => {
-    const ids = Object.keys(cartItemIds!);
-    for (const id of ids) {
-      await stateManager.orders.changeItems(orderId!, id as ItemId, 0);
-    }
-  };
-
   useEffect(() => {
     (async () => {
-      if (orderId) {
+      if (orderId && stateManager) {
         const cartObjects = new Map();
         const ci = (await stateManager.orders.get(orderId)).items;
         await Promise.all(
@@ -52,18 +45,18 @@ const NewCart = ({
     })();
   }, [orderId]);
 
-  const noItems = !orderId || !cartItemIds || !Object.keys(cartItemIds).length;
-
   useEffect(() => {
     (async () => {
-      const shopManifest = await stateManager.manifest.get();
+      if (stateManager) {
+        const shopManifest = await stateManager.manifest.get();
 
-      if (shopManifest.setBaseCurrency && !symbolSet.current) {
-        symbolSet.current = true;
-        const { symbol } = await getTokenInformation(
-          shopManifest.setBaseCurrency.tokenAddr,
-        );
-        setBaseCurrSymbol(symbol);
+        if (shopManifest.setBaseCurrency && !symbolSet.current) {
+          symbolSet.current = true;
+          const { symbol } = await getTokenInformation(
+            shopManifest.setBaseCurrency.tokenAddr,
+          );
+          setBaseCurrSymbol(symbol);
+        }
       }
     })();
   }, []);
@@ -75,6 +68,14 @@ const NewCart = ({
       setErrorMsg("");
     }
   };
+
+  const clearCart = async () => {
+    const ids = Object.keys(cartItemIds!);
+    for (const id of ids) {
+      await stateManager?.orders.changeItems(orderId!, id as ItemId, 0);
+    }
+  };
+  const noItems = !orderId || !cartItemIds || !Object.keys(cartItemIds).length;
 
   const calculateTotal = () => {
     if (noItems) return null;

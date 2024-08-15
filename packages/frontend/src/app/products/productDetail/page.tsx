@@ -38,39 +38,43 @@ const ProductDetail = () => {
   const [currentCartItems, setCurrentCart] = useState<ItemState | null>(null);
 
   useEffect(() => {
-    (async () => {
-      const id = await getOrderId();
-      setOrderId(id);
-      const ci = (await stateManager.orders.get(id)).items;
-      setCurrentCart(ci);
-      const onChangeItems = (order: Order) => {
-        if (order.id === id) {
-          setCurrentCart(order.items);
-        }
-      };
-      stateManager.orders.on("changeItems", onChangeItems);
-      return () => {
-        // Cleanup listeners on unmount
-        stateManager.orders.removeListener("changeItems", onChangeItems);
-      };
-    })();
+    if (stateManager) {
+      (async () => {
+        const id = await getOrderId();
+        setOrderId(id);
+        const ci = (await stateManager.orders.get(id)).items;
+        setCurrentCart(ci);
+        const onChangeItems = (order: Order) => {
+          if (order.id === id) {
+            setCurrentCart(order.items);
+          }
+        };
+        stateManager.orders.on("changeItems", onChangeItems);
+        return () => {
+          // Cleanup listeners on unmount
+          stateManager.orders.removeListener("changeItems", onChangeItems);
+        };
+      })();
+    }
   }, []);
 
   useEffect(() => {
-    (async () => {
-      if (itemId) {
-        //set item details
-        const i = await stateManager.items.get(itemId);
-        setItem(i);
-        setAvailable(i?.quantity || 0);
-        if (!currentCartItems) return;
-        //Check if item is already added to cart
-        if (itemId in currentCartItems) {
-          setAddedToCart(true);
-          setQuantity(currentCartItems[itemId]);
+    if (stateManager) {
+      (async () => {
+        if (itemId) {
+          //set item details
+          const i = await stateManager.items.get(itemId);
+          setItem(i);
+          setAvailable(i?.quantity || 0);
+          if (!currentCartItems) return;
+          //Check if item is already added to cart
+          if (itemId in currentCartItems) {
+            setAddedToCart(true);
+            setQuantity(currentCartItems[itemId]);
+          }
         }
-      }
-    })();
+      })();
+    }
   }, [currentCartItems, itemId]);
 
   useEffect(() => {
@@ -78,31 +82,31 @@ const ProductDetail = () => {
       allTags.set(tag.id, tag);
       setAllTags(allTags);
     };
-
-    (async () => {
-      const tags = new Map();
-      for await (const [id, tag] of stateManager.tags.iterator()) {
-        tags.set(id, tag);
-        if (tag.name === "remove") {
-          setRemoveTagId(id as TagId);
+    if (stateManager) {
+      (async () => {
+        const tags = new Map();
+        for await (const [id, tag] of stateManager.tags.iterator()) {
+          tags.set(id, tag);
+          if (tag.name === "remove") {
+            setRemoveTagId(id as TagId);
+          }
         }
-      }
-      setAllTags(tags);
+        setAllTags(tags);
 
-      // Listen to future events
-      stateManager.tags.on("create", onCreateTag);
-    })();
-
-    return () => {
-      // Cleanup listeners on unmount
-      stateManager.items.removeListener("create", onCreateTag);
-    };
+        // Listen to future events
+        stateManager.tags.on("create", onCreateTag);
+      })();
+      return () => {
+        // Cleanup listeners on unmount
+        stateManager.items.removeListener("create", onCreateTag);
+      };
+    }
   }, []);
 
   const changeItems = async () => {
     if (!orderId) return;
     try {
-      await stateManager.orders.changeItems(orderId, itemId, quantity);
+      await stateManager!.orders.changeItems(orderId, itemId, quantity);
       setButton("Review");
     } catch (error) {
       setShowErrorMessage("There was an error updating cart");
@@ -133,7 +137,7 @@ const ProductDetail = () => {
   const handleDelete = async () => {
     try {
       removeTagId &&
-        (await stateManager.items.removeItemFromTag(removeTagId, itemId));
+        (await stateManager!.items.removeItemFromTag(removeTagId, itemId));
       console.log("successfully removed item");
       router.push("/products");
     } catch (error) {

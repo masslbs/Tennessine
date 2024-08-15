@@ -61,10 +61,12 @@ const CheckoutFlow = () => {
   };
   useEffect(() => {
     (async () => {
-      const id = await getOrderId();
-      const o = await stateManager.orders.get(id);
-      setOrderId(id);
-      setCurrentOrder(o);
+      if (stateManager) {
+        const id = await getOrderId();
+        const o = await stateManager.orders.get(id);
+        setOrderId(id);
+        setCurrentOrder(o);
+      }
     })();
   }, []);
 
@@ -78,7 +80,7 @@ const CheckoutFlow = () => {
   }, [currentOrder]);
 
   useEffect(() => {
-    if (checkoutReqId && orderId) {
+    if (checkoutReqId && orderId && stateManager) {
       (async () => {
         const committed = await stateManager.orders.get(orderId);
         const {
@@ -142,17 +144,20 @@ const CheckoutFlow = () => {
 
   const checkout = async () => {
     const orderId = await getOrderId();
+    if (!selectedCurrency) {
+      setErrorMsg("Please select a currency to pay in.");
+    }
     try {
-      const checkout = await stateManager.orders.commit(
+      const checkout = await stateManager!.orders.commit(
         orderId,
-        selectedCurrency.tokenAddr,
-        selectedCurrency.chainId,
+        selectedCurrency!.tokenAddr,
+        selectedCurrency!.chainId,
         "default",
       );
       setCheckoutRequestId(checkout.orderFinalizedId);
     } catch (error) {
       // If there was an error while committing, cancel the order.
-      await stateManager.orders.cancel(orderId, 0);
+      await stateManager!.orders.cancel(orderId, 0);
       setErrorMsg("Error while checking out order");
     }
   };

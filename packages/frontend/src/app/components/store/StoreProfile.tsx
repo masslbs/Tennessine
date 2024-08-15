@@ -38,12 +38,14 @@ const StoreProfile = ({ close }: { close: () => void }) => {
   );
 
   useEffect(() => {
-    (async () => {
-      const shopManifest = await stateManager.manifest.get();
-      setStoreName(shopManifest.name);
-      setStoreBase(shopManifest.setBaseCurrency!.tokenAddr);
-      setAcceptedCurrencies(shopManifest.acceptedCurrencies);
-    })();
+    if (stateManager) {
+      (async () => {
+        const shopManifest = await stateManager.manifest.get();
+        setStoreName(shopManifest.name);
+        setStoreBase(shopManifest.setBaseCurrency!.tokenAddr);
+        setAcceptedCurrencies(shopManifest.acceptedCurrencies);
+      })();
+    }
   }, []);
 
   const copyToClipboard = () => {
@@ -68,7 +70,7 @@ const StoreProfile = ({ close }: { close: () => void }) => {
         manifest["profilePictureUrl"] = path.url;
       }
 
-      await stateManager.manifest.update(manifest);
+      await stateManager!.manifest.update(manifest);
       close();
     }
   };
@@ -82,7 +84,7 @@ const StoreProfile = ({ close }: { close: () => void }) => {
       setError(`Must enter a token chainId to add`);
     } else {
       try {
-        await stateManager.manifest.update({
+        await stateManager!.manifest.update({
           addAcceptedCurrencies: [
             {
               tokenAddr: addTokenAddr as TokenAddr,

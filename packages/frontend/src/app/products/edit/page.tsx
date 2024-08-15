@@ -35,7 +35,7 @@ const AddProductView = () => {
 
   useEffect(() => {
     (async () => {
-      if (editView && itemId) {
+      if (editView && itemId && stateManager) {
         const p = await stateManager.items.get(itemId);
         setProductInView(p);
         setTitle(p.metadata.title);
@@ -48,16 +48,16 @@ const AddProductView = () => {
   }, []);
 
   useEffect(() => {
-    if (!productInView) return;
-
-    (async () => {
-      const selected = [];
-      for (const id of productInView.tags) {
-        const t = (await stateManager.tags.get(id)) as Tag;
-        selected.push(t);
-      }
-      setSelectedTags(selected);
-    })();
+    if (stateManager && productInView) {
+      (async () => {
+        const selected = [];
+        for (const id of productInView.tags) {
+          const t = (await stateManager.tags.get(id)) as Tag;
+          selected.push(t);
+        }
+        setSelectedTags(selected);
+      })();
+    }
   }, [productInView]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -101,11 +101,11 @@ const AddProductView = () => {
   };
 
   const create = async (newItem: Partial<Item>) => {
-    const { id } = await stateManager.items.create(newItem);
-    await stateManager.items.changeStock([id], [units]);
+    const { id } = await stateManager!.items.create(newItem);
+    await stateManager!.items.changeStock([id], [units]);
     if (selectedTags.length) {
       selectedTags.map((t) => {
-        stateManager.items.addItemToTag(t.id, id);
+        stateManager!.items.addItemToTag(t.id, id);
       });
     }
   };
@@ -127,7 +127,7 @@ const AddProductView = () => {
     );
     if (newTags.length) {
       newTags.map(({ id }) => {
-        stateManager.items.addItemToTag(id, itemId as ItemId);
+        stateManager!.items.addItemToTag(id, itemId as ItemId);
       });
     }
     //checking for any removed tags
@@ -137,13 +137,13 @@ const AddProductView = () => {
     );
     if (removedTags?.length) {
       removedTags.map((id: TagId) => {
-        stateManager.items.removeItemFromTag(id, itemId as ItemId);
+        stateManager!.items.removeItemFromTag(id, itemId as ItemId);
       });
     }
     if (Object.keys(diff).length === 1) return;
-    await stateManager.items.update(diff);
+    await stateManager!.items.update(diff);
     if (units !== productInView?.quantity) {
-      await stateManager.items.changeStock(
+      await stateManager!.items.changeStock(
         [itemId as ItemId],
         [units - productInView!.quantity],
       );

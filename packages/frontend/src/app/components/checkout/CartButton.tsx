@@ -14,9 +14,11 @@ const CartButton = () => {
 
   useEffect(() => {
     (async () => {
-      const id = await getOrderId();
-      const ci = (await stateManager.orders.get(id)).items;
-      setItemIds(ci);
+      if (stateManager) {
+        const id = await getOrderId();
+        const ci = (await stateManager.orders.get(id)).items;
+        setItemIds(ci);
+      }
     })();
   }, []);
 

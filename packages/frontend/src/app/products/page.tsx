@@ -41,11 +41,13 @@ const Products = () => {
   const { isMerchantView } = useAuth();
 
   useEffect(() => {
-    (async () => {
-      const shopManifest = await stateManager.manifest.get();
-      setPublishedTagId(shopManifest.publishedTagId);
-      setStoreName(shopManifest.name);
-    })();
+    if (stateManager) {
+      (async () => {
+        const shopManifest = await stateManager.manifest.get();
+        setPublishedTagId(shopManifest.publishedTagId);
+        setStoreName(shopManifest.name);
+      })();
+    }
   }, []);
 
   useEffect(() => {
@@ -65,27 +67,28 @@ const Products = () => {
       products.set(item.id, item);
       setProducts(products);
     };
+    if (stateManager) {
+      (async () => {
+        const listings = new Map();
+        for await (const [id, item] of stateManager.items.iterator()) {
+          listings.set(id, item);
+        }
+        setProducts(listings);
 
-    (async () => {
-      const listings = new Map();
-      for await (const [id, item] of stateManager.items.iterator()) {
-        listings.set(id, item);
-      }
-      setProducts(listings);
-
-      // Listen to future events
-      stateManager.items.on("create", onCreateEvent);
-      stateManager.items.on("update", onUpdateEvent);
-      stateManager.items.on("addItemId", onAddItemId);
-      stateManager.items.on("removeItemId", onRemoveItemId);
-    })();
-    return () => {
-      // Cleanup listeners on unmount
-      stateManager.items.removeListener("create", onCreateEvent);
-      stateManager.items.removeListener("update", onUpdateEvent);
-      stateManager.items.removeListener("addItemId", onAddItemId);
-      stateManager.items.removeListener("removeItemId", onRemoveItemId);
-    };
+        // Listen to future events
+        stateManager.items.on("create", onCreateEvent);
+        stateManager.items.on("update", onUpdateEvent);
+        stateManager.items.on("addItemId", onAddItemId);
+        stateManager.items.on("removeItemId", onRemoveItemId);
+      })();
+      return () => {
+        // Cleanup listeners on unmount
+        stateManager.items.removeListener("create", onCreateEvent);
+        stateManager.items.removeListener("update", onUpdateEvent);
+        stateManager.items.removeListener("addItemId", onAddItemId);
+        stateManager.items.removeListener("removeItemId", onRemoveItemId);
+      };
+    }
   }, []);
 
   useEffect(() => {
@@ -93,25 +96,26 @@ const Products = () => {
       allTags.set(tag.id, tag);
       setAllTags(allTags);
     };
-
-    (async () => {
-      const tags = new Map();
-      for await (const [id, tag] of stateManager.tags.iterator()) {
-        tags.set(id, tag);
-        if (tag.name === "remove") {
-          setRemoveTagId(id as TagId);
+    if (stateManager) {
+      (async () => {
+        const tags = new Map();
+        for await (const [id, tag] of stateManager.tags.iterator()) {
+          tags.set(id, tag);
+          if (tag.name === "remove") {
+            setRemoveTagId(id as TagId);
+          }
         }
-      }
-      setAllTags(tags);
+        setAllTags(tags);
 
-      // Listen to future events
-      stateManager.tags.on("create", onCreateEvent);
-    })();
+        // Listen to future events
+        stateManager.tags.on("create", onCreateEvent);
+      })();
 
-    return () => {
-      // Cleanup listeners on unmount
-      stateManager.items.removeListener("create", onCreateEvent);
-    };
+      return () => {
+        // Cleanup listeners on unmount
+        stateManager.items.removeListener("create", onCreateEvent);
+      };
+    }
   }, []);
 
   useEffect(() => {

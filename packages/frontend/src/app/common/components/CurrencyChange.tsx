@@ -16,8 +16,10 @@ const CurrencyChange = ({ open }: { open: boolean }) => {
 
   useEffect(() => {
     (async () => {
-      const shopManifest = await stateManager.manifest.get();
-      setAcceptedChain(shopManifest.acceptedCurrencies);
+      if (stateManager) {
+        const shopManifest = await stateManager.manifest.get();
+        setAcceptedChain(shopManifest.acceptedCurrencies);
+      }
     })();
   }, []);
 

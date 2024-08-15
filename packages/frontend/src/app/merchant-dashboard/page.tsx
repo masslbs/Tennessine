@@ -21,10 +21,12 @@ const MerchantDashboard = () => {
   const [orders, setOrders] = useState(new Map());
 
   useEffect(() => {
-    (async () => {
-      const shopManifest = await stateManager.manifest.get();
-      setName(shopManifest.name);
-    })();
+    if (stateManager) {
+      (async () => {
+        const shopManifest = await stateManager.manifest.get();
+        setName(shopManifest.name);
+      })();
+    }
   }, []);
 
   useEffect(() => {
@@ -36,22 +38,24 @@ const MerchantDashboard = () => {
       orders.set(order.id, order);
       setOrders(orders);
     };
-    (async () => {
-      const allOrders = new Map();
-      for await (const [id, o] of stateManager.orders.iterator()) {
-        if (id.slice(0, 2) === "0x") {
-          allOrders.set(id, o);
+    if (stateManager) {
+      (async () => {
+        const allOrders = new Map();
+        for await (const [id, o] of stateManager.orders.iterator()) {
+          if (id.slice(0, 2) === "0x") {
+            allOrders.set(id, o);
+          }
         }
-      }
-      setOrders(allOrders);
-      stateManager.orders.on("create", onCreateOrder);
-      stateManager.orders.on("update", onUpdateOrder);
-    })();
-    return () => {
-      // Cleanup listeners on unmount
-      stateManager.orders.removeListener("create", onCreateOrder);
-      stateManager.orders.removeListener("update", onUpdateOrder);
-    };
+        setOrders(allOrders);
+        stateManager.orders.on("create", onCreateOrder);
+        stateManager.orders.on("update", onUpdateOrder);
+      })();
+      return () => {
+        // Cleanup listeners on unmount
+        stateManager.orders.removeListener("create", onCreateOrder);
+        stateManager.orders.removeListener("update", onUpdateOrder);
+      };
+    }
   }, []);
 
   const renderTransactions = () => {

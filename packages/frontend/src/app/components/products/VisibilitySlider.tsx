@@ -22,10 +22,12 @@ const VisibilitySlider = ({
   const [pId, setPublishedTagId] = useState<`0x${string}` | null>(null);
 
   useEffect(() => {
-    (async () => {
-      const shopManifest = await stateManager.manifest.get();
-      setPublishedTagId(shopManifest.publishedTagId);
-    })();
+    if (stateManager) {
+      (async () => {
+        const shopManifest = await stateManager.manifest.get();
+        setPublishedTagId(shopManifest.publishedTagId);
+      })();
+    }
   }, []);
 
   useEffect(() => {
