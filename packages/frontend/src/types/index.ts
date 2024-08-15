@@ -11,7 +11,7 @@ import {
   Status,
   KeyCard,
   OrderFinalized,
-} from "@massmarket/stateManager/types";
+} from "@massmarket/statemanager/types";
 
 export {
   type Item,

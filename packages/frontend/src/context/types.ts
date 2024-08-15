@@ -8,7 +8,7 @@ import { type PublicClient } from "viem";
 import { Item, Tag, Status, ShopCurrencies } from "@/types";
 import { RelayClient, WalletClientWithAccount } from "@massmarket/client";
 
-import { StateManager } from "@massmarket/stateManager";
+import { StateManager } from "@massmarket/statemanager";
 
 export type ItemId = `0x${string}`;
 export type TagId = `0x${string}`;

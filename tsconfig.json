@@ -20,7 +20,7 @@
       "path": "./packages/frontend"
     },
     {
-      "path": "./packages/stateManager"
+      "path": "./packages/statemanager"
     }
   ]
 }

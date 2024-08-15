@@ -13,7 +13,7 @@ import {
 } from "@/types";
 import { useMyContext } from "./MyContext";
 import { StoreContent, OrderId } from "@/context/types";
-import { StateManager } from "@massmarket/stateManager";
+import { StateManager } from "@massmarket/statemanager";
 
 // @ts-expect-error FIXME
 export const StoreContext = createContext<StoreContent>({});
