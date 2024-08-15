@@ -13,17 +13,17 @@ import {
   OrderFinalized,
 } from "@massmarket/stateManager/types";
 
-export type {
-  Item,
-  Order,
-  Metadata,
-  Tag,
-  ShopCurrencies,
-  ShopManifest,
-  KeyCard,
-  OrderFinalized,
+export {
+  type Item,
+  type Order,
+  type Metadata,
+  type Tag,
+  type ShopCurrencies,
+  type ShopManifest,
+  type KeyCard,
+  type OrderFinalized,
+  Status,
 };
-export { Status };
 export type ItemId = `0x${string}`;
 export type TagId = `0x${string}`;
 export type OrderId = `0x${string}`;

@@ -61,9 +61,9 @@ export type ClientContext = {
 export type StoreContent = {
   orderId: OrderId | null;
   setOrderId: (orderId: OrderId | null) => void;
-  selectedCurrency: ShopCurrencies;
+  selectedCurrency: ShopCurrencies | null;
   setSelectedCurrency: Dispatch<ShopCurrencies>;
-  stateManager: StateManager;
+  stateManager: StateManager | null;
   getOrderId: () => Promise<OrderId>;
 };
 

@@ -144,7 +144,6 @@ export const StoreContextProvider = (
   };
 
   return (
-    // @ts-expect-error FIXME
     <StoreContext.Provider value={value}>
       {props.children}
     </StoreContext.Provider>

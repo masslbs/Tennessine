@@ -10,7 +10,7 @@ import Image from "next/image";
 import { useStoreContext } from "@/context/StoreContext";
 import ProductsTags from "@/app/components/products/ProductTags";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Tag, ItemId, Item } from "@/types";
+import { Tag, ItemId, Item, TagId } from "@/types";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import VisibilitySlider from "@/app/components/products/VisibilitySlider";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
@@ -133,10 +133,10 @@ const AddProductView = () => {
     //checking for any removed tags
     const selectTagIds = selectedTags.map((t) => t.id);
     const removedTags = productInView?.tags.filter(
-      (id) => !selectTagIds.includes(id),
+      (id: TagId) => !selectTagIds.includes(id),
     );
     if (removedTags?.length) {
-      removedTags.map((id) => {
+      removedTags.map((id: TagId) => {
         stateManager.items.removeItemFromTag(id, itemId as ItemId);
       });
     }
