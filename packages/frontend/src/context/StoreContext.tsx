@@ -35,6 +35,7 @@ export const StoreContextProvider = (
   useEffect(() => {
     if (relayClient) {
       (async () => {
+        //FIXME: Prerender error if we import normally: https://nextjs.org/docs/messages/prerender-error
         const { Level } = await import("level");
         const dbName = shopId?.slice(0, 7);
         console.log("using level db:", { dbName });

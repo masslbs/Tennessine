@@ -32,7 +32,7 @@ const Navigation = () => {
   const { setIsConnected, isMerchantView } = useAuth();
   const { stateManager } = useStoreContext();
   const [shopManifest, setShopManifest] = useState<ShopManifest | null>(null);
-  const { name } = useMyContext();
+  const { ensName } = useMyContext();
 
   const searchParams = useSearchParams();
 
@@ -87,7 +87,7 @@ const Navigation = () => {
     <FullModal isOpen={menuOpened}>
       <main>
         <div className="w-full border border-gray-200 p-4 text-base flex justify-between">
-          <p>{name}</p>
+          <p>{ensName}</p>
           <div className="flex gap-4">
             <button onClick={menuSwitch}>
               <Image
@@ -164,7 +164,7 @@ const Navigation = () => {
             />
             <p>back</p>
           </button>
-          <p className="ml-5">{name}</p>
+          <p className="ml-5">{ensName}</p>
         </div>
         <div className="flex gap-4">
           <button onClick={menuSwitch}>

@@ -47,17 +47,18 @@ const VisibilitySlider = ({
     isVisible ? setSelectedOption(1) : setSelectedOption(2);
   }, [pId, selected]);
 
-  const markAsVisible = async () => {
+  const markAsVisible = () => {
     if (pId) {
-      setSelectedOption(1);
       setSelectedTags([...selectedTags, { id: pId, name: "visible" }]);
+      setSelectedOption(1);
     }
   };
 
-  const markAsHidden = async () => {
+  const markAsHidden = () => {
     if (pId) {
+      const filtered = [...selectedTags].filter((tag) => tag.id !== pId);
+      setSelectedTags(filtered);
       setSelectedOption(2);
-      setSelectedTags([...selectedTags].filter((tag) => tag.id !== pId));
     }
   };
 

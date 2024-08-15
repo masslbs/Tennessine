@@ -211,6 +211,7 @@ const Products = () => {
       return (
         <div key={item.id} className="mt-4 mx-4 last: mr-0">
           <div
+            data-testid={`product-container`}
             onClick={() => viewProductDetails(item)}
             className={`flex flex-col text-center ${!visible ? "opacity-50" : ""} max-w-24 min-w-24 min-h-30 max-h-30`}
           >
@@ -222,11 +223,11 @@ const Products = () => {
                 {metadata.title}
               </p>
             </div>
-            <div
-              className="product-box gap-2 flex flex-col text-center border-2 p-3 rounded-xl bg-white"
-              data-testid={`product-${metadata.title}`}
-            >
-              <div className="flex justify-center min-h-16 ">
+            <div className="product-box gap-2 flex flex-col text-center border-2 p-3 rounded-xl bg-white">
+              <div
+                className="flex justify-center min-h-16"
+                data-testid={`product-img`}
+              >
                 <Image
                   src={metadata.image || "/assets/no-image.png"}
                   width={85}
@@ -240,7 +241,7 @@ const Products = () => {
                   }}
                 />
               </div>
-              <h4>{Number(item.price)}</h4>
+              <h4 data-testid={`product-price`}>{Number(item.price)}</h4>
               <p className="text-sm text-gray-400">{item.quantity} left</p>
             </div>
           </div>

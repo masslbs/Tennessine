@@ -130,6 +130,10 @@ export class MockClient implements IRelayClient {
     });
     return id;
   }
+  async uploadBlob(blob: FormData) {
+    const file = blob.get(`file`) as { name: string };
+    return { url: file.name };
+  }
 
   async commitOrder(order: schema.CommitItemsToOrderRequest) {
     this.sendShopEvent({

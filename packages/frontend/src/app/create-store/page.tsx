@@ -50,33 +50,11 @@ const StoreCreation = () => {
   const enrollKeycard = useRef(false);
   const randomShopIdHasBeenSet = useRef(false);
 
-  const checkRequiredFields = () => {
-    const isTokenAddrHex = Boolean(tokenAddr.match(/^0x[0-9a-f]+$/i));
-    const isPayeeAddHex = Boolean(payeeAddr.match(/^0x[0-9a-f]+$/i));
-
-    let error = null;
-    if (!isTokenAddrHex) {
-      error = "Token address must be a valid hex value";
-    } else if (!storeName.length) {
-      error = "Store name is required";
-    } else if (!description.length) {
-      error = "Store description is required";
-    } else if (!avatar) {
-      error = "Store mage is required";
-    } else if (!tokenAddr.length) {
-      error = "Token Address is required";
-    } else if (!chainId) {
-      error = "Select a chainID";
-    } else if (!isPayeeAddHex) {
-      error = "Payee Address must be a valid hex value";
+  useEffect(() => {
+    if (clientWallet?.account.address) {
+      setPayeeAddr(clientWallet?.account.address);
     }
-    if (error) {
-      setErrorMsg(error);
-      throw Error("Check all required fields");
-    } else {
-      setErrorMsg(null);
-    }
-  };
+  }, [clientWallet]);
 
   useEffect(() => {
     if (!randomShopIdHasBeenSet.current) {
@@ -87,25 +65,50 @@ const StoreCreation = () => {
       const randomShopId = random32BytesHex();
       setIsConnected(Status.Pending);
       setKeyCardEnrolled(false);
-      console.log(`enrolling shopId: ${randomShopId}`);
       setShopId(randomShopId);
     }
   }, []);
 
+  const checkRequiredFields = () => {
+    const isTokenAddrHex = Boolean(tokenAddr.match(/^0x[0-9a-f]+$/i));
+    const isPayeeAddHex = Boolean(payeeAddr.match(/^0x[0-9a-f]+$/i));
+    let error = null;
+    if (!isTokenAddrHex) {
+      error = "Token address must be a valid hex value";
+    } else if (!storeName.length) {
+      error = "Store name is required";
+    } else if (!description.length) {
+      error = "Store description is required";
+    } else if (!avatar) {
+      error = "Store image is required";
+    } else if (!tokenAddr.length) {
+      error = "Token Address is required";
+    } else if (!chainId) {
+      error = "Select a chainID";
+    } else if (!isPayeeAddHex) {
+      error = "Payee Address must be a valid hex value";
+    }
+    if (error) {
+      setErrorMsg(error);
+      throw Error(`Check all required fields:${error}`);
+    } else {
+      setErrorMsg(null);
+    }
+  };
+
   const createShop = async () => {
     checkRequiredFields();
     const rc = await createNewRelayClient();
-
     if (rc && publicClient && clientWallet) {
       try {
         const blockchainClient = new BlockchainClient(shopId);
         const hash = await blockchainClient.createShop(clientWallet);
-        const transaction =
-          publicClient &&
-          (await publicClient.waitForTransactionReceipt({
-            hash,
-            retryCount: 10,
-          }));
+
+        const transaction = await publicClient.waitForTransactionReceipt({
+          hash,
+          retryCount: 10,
+        });
+
         if (transaction!.status == "success") {
           console.log(`CREATED shopId: ${shopId}`);
           localStorage.setItem("shopId", shopId!);
@@ -118,7 +121,7 @@ const StoreCreation = () => {
               clientWallet,
               false,
               shopId,
-              new URL(window.location.href),
+              process.env.TEST ? undefined : new URL(window.location.href),
             );
             if (res.ok) {
               const keyCardToEnroll = localStorage.getItem(
@@ -141,19 +144,8 @@ const StoreCreation = () => {
       }
     } else {
       console.error("unable to create store. clients undefined:");
-      console.log({
-        rc,
-        publicClient,
-        clientWallet,
-      });
     }
   };
-
-  useEffect(() => {
-    if (clientWallet?.account.address) {
-      setPayeeAddr(clientWallet?.account.address);
-    }
-  }, [clientWallet != null]);
 
   useEffect(() => {
     if (
@@ -172,7 +164,12 @@ const StoreCreation = () => {
         );
         console.log(`Shop Manifested with shopId:${shopId}`);
         const newPubId = await stateManager.tags.create("visible");
-        const path = await relayClient!.uploadBlob(avatar as FormData);
+        //Testing dom does not support FormData and test client will fail with:
+        //Content-Type isn't multipart/form-data
+        //so if it is a test env, we are skipping uploadBlob
+        const path = process.env.TEST
+          ? { url: "/" }
+          : await relayClient!.uploadBlob(avatar as FormData);
 
         if (newPubId && path.url) {
           await stateManager.manifest.update({
@@ -208,8 +205,12 @@ const StoreCreation = () => {
         const file = new File([blob], "file.json");
         const formData = new FormData();
         formData.append("file", file);
-
-        const { url } = await relayClient.uploadBlob(formData);
+        //Testing dom does not support FormData and test client will fail with:
+        //Content-Type isn't multipart/form-data
+        //so if it is a test env, we are skipping uploadBlob
+        const { url } = process.env.TEST
+          ? { url: "/" }
+          : await relayClient.uploadBlob(formData);
         if (clientWallet && url) {
           const blockchainClient = new BlockchainClient(shopId);
           await blockchainClient.setShopMetadataURI(clientWallet, url);
@@ -244,7 +245,7 @@ const StoreCreation = () => {
             <label htmlFor="storeName">Store Name</label>
             <input
               className="border-2 border-solid mt-1 p-2 rounded-2xl"
-              id="storeName"
+              data-testid="storeName"
               name="storeName"
               value={storeName}
               onChange={(e) => setStoreName(e.target.value)}
@@ -267,7 +268,7 @@ const StoreCreation = () => {
           <label htmlFor="desc">Description</label>
           <input
             className="border-2 border-solid mt-1 p-2 rounded-2xl"
-            id="desc"
+            data-testid="desc"
             name="desc"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -282,6 +283,7 @@ const StoreCreation = () => {
                 onClick={() => {
                   setAcceptedChain(c.id);
                 }}
+                data-testid="acceptedChains"
                 key={c.id}
                 color={c.id === chainId ? "bg-black" : "bg-primary-gray"}
               >
@@ -308,6 +310,7 @@ const StoreCreation = () => {
             <input
               className="border-2 border-solid mt-1 p-2 rounded-2xl w-full pl-10"
               id="tokenAddr"
+              data-testid="baseTokenAddr"
               name="tokenAddr"
               value={tokenAddr}
               onChange={(e) => setTokenAddr(e.target.value)}
@@ -324,6 +327,7 @@ const StoreCreation = () => {
           <input
             className="border-2 border-solid mt-1 p-2 rounded-2xl w-full"
             id="payee"
+            data-testid="payeeAddress"
             name="payee"
             value={payeeAddr}
             onChange={(e) => setPayeeAddr(e.target.value)}

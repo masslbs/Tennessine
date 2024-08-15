@@ -3,13 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import {
-  useAccount,
-  useEnsName,
-  useBalance,
-  useEnsAvatar,
-  useWalletClient,
-} from "wagmi";
+import { useEnsAvatar, useWalletClient } from "wagmi";
 import {
   RelayClient,
   discoverRelay,
@@ -29,10 +23,9 @@ import { zeroAddress } from "@massmarket/contracts";
 
 export const MyContext = createContext<ClientContext>({
   walletAddress: null,
+  ensName: null,
   shopId: "0x",
-  balance: null,
   avatar: null,
-  name: null,
   relayClient: null,
   publicClient: null,
   inviteSecret: null,
@@ -68,15 +61,13 @@ export const MyContextProvider = (
     null,
   );
   const [relayClient, setRelayClient] = useState<RelayClient | null>(null);
-  const [balance, setBalance] = useState<string | null>(null);
   const [avatar, setAvatar] = useState<string | null>(null);
   const [ensName, setEnsName] = useState<string | null>(null);
   const [clientWallet, setWallet] = useState<WalletClientWithAccount | null>(
     null,
   );
   const [inviteSecret, setInviteSecret] = useState<`0x${string}` | null>(null);
-  const { address } = useAccount();
-  const name = useEnsName({ address })?.data || null;
+
   const ensAvatar = useEnsAvatar({ name: ensName! })?.data;
   const { data: _wallet, status: walletStatus } = useWalletClient();
   const {
@@ -98,9 +89,7 @@ export const MyContextProvider = (
   );
   const pathname = usePathname();
   const isMerchantPath = [`/merchants/`, `/create-store/`].includes(pathname);
-  if (!shopId) {
-    throw Error("missing shop ID");
-  }
+
   const guestKeyCard = localStorage.getItem("guestKeyCard") as `0x${string}`;
   const merchantKeyCard = localStorage.getItem(
     "merchantKeyCard",
@@ -138,9 +127,6 @@ export const MyContextProvider = (
           chain: usedChain,
           transport: http(),
         });
-  const { data } = useBalance({
-    address: address as `0x${string}`,
-  });
 
   const getTokenInformation = async (address: `0x${string}`) => {
     if (address === zeroAddress) {
@@ -174,12 +160,11 @@ export const MyContextProvider = (
 
   useEffect(() => {
     if (clientWallet) {
-      address && setWalletAddress(address);
-      data?.formatted && setBalance(data.formatted);
+      setWalletAddress(clientWallet.account.address);
       ensAvatar && setAvatar(ensAvatar);
-      ensName && setEnsName(name);
+      ensName && setEnsName(clientWallet.account.address);
     }
-  }, [clientWallet, data, ensAvatar, name, address]);
+  }, [clientWallet, ensAvatar]);
 
   useEffect(() => {
     if (isMerchantPath) return;
@@ -299,9 +284,7 @@ export const MyContextProvider = (
   };
 
   const value = {
-    name,
     walletAddress,
-    balance,
     avatar,
     ensName,
     relayClient,

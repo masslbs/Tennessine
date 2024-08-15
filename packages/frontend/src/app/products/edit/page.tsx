@@ -35,7 +35,7 @@ const AddProductView = () => {
 
   useEffect(() => {
     (async () => {
-      if (editView && itemId && stateManager) {
+      if (editView && itemId) {
         const p = await stateManager.items.get(itemId);
         setProductInView(p);
         setTitle(p.metadata.title);
@@ -48,7 +48,7 @@ const AddProductView = () => {
   }, []);
 
   useEffect(() => {
-    if (stateManager && productInView) {
+    if (productInView) {
       (async () => {
         const selected = [];
         for (const id of productInView.tags) {
@@ -104,8 +104,8 @@ const AddProductView = () => {
     const { id } = await stateManager!.items.create(newItem);
     await stateManager!.items.changeStock([id], [units]);
     if (selectedTags.length) {
-      selectedTags.map((t) => {
-        stateManager!.items.addItemToTag(t.id, id);
+      selectedTags.map(async (t) => {
+        await stateManager!.items.addItemToTag(t.id, id);
       });
     }
   };
@@ -126,8 +126,8 @@ const AddProductView = () => {
       ({ id }) => !productInView!.tags.includes(id),
     );
     if (newTags.length) {
-      newTags.map(({ id }) => {
-        stateManager!.items.addItemToTag(id, itemId as ItemId);
+      newTags.map(async ({ id }) => {
+        await stateManager!.items.addItemToTag(id, itemId as ItemId);
       });
     }
     //checking for any removed tags
@@ -136,8 +136,8 @@ const AddProductView = () => {
       (id: TagId) => !selectTagIds.includes(id),
     );
     if (removedTags?.length) {
-      removedTags.map((id: TagId) => {
-        stateManager!.items.removeItemFromTag(id, itemId as ItemId);
+      removedTags.map(async (id: TagId) => {
+        await stateManager!.items.removeItemFromTag(id, itemId as ItemId);
       });
     }
     if (Object.keys(diff).length === 1) return;
@@ -164,7 +164,6 @@ const AddProductView = () => {
         const path = imgAsBlob
           ? await relayClient!.uploadBlob(imgAsBlob)
           : { url: imgSrc };
-
         const newItem = {
           price: Number(price).toFixed(2),
           metadata: {
@@ -265,7 +264,7 @@ const AddProductView = () => {
               <input
                 value={title}
                 className="border-2 border-solid mt-1 p-3 rounded-2xl"
-                id="title"
+                data-testid="title"
                 name="title"
                 onChange={(e) => handleTitleChange(e)}
               />
@@ -280,7 +279,7 @@ const AddProductView = () => {
               <input
                 value={description}
                 className="border-2 border-solid mt-1 p-3 rounded-2xl"
-                id="description"
+                data-testid="description"
                 name="description"
                 onChange={(e) => handleDescriptionChange(e)}
               />
@@ -350,7 +349,7 @@ const AddProductView = () => {
                 <input
                   value={price}
                   className="border-2 border-solid mt-1 p-3 rounded-2xl"
-                  id="price"
+                  data-testid="price"
                   name="price"
                   onChange={(e) => handlePriceChange(e)}
                 />
@@ -365,7 +364,7 @@ const AddProductView = () => {
                 <input
                   value={units}
                   className="border-2 border-solid mt-1 p-3 rounded-2xl"
-                  id="units"
+                  data-testid="units"
                   name="units"
                   onChange={(e) => handleStockChange(e)}
                 />
@@ -375,6 +374,7 @@ const AddProductView = () => {
             <div className="hidden">
               <input
                 type="file"
+                data-testid="file-upload"
                 ref={fileInputRef}
                 className="file-input"
                 accept="image/*"
