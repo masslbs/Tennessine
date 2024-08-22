@@ -125,7 +125,11 @@ class ListingManager extends PublicObjectManager<Item> {
             return this.store.put(itemId, item);
           }),
         );
-        this.emit("changeStock", cs, cs.eventId);
+        this.emit(
+          "changeStock",
+          cs.itemIds.map((id: Uint8Array) => bytesToHex(id)),
+          cs.eventId,
+        );
         return;
       }
     } else if (event.updateTag) {

@@ -44,8 +44,14 @@ const ProductDetail = () => {
       setOrderId(id);
       const ci = (await stateManager.orders.get(id)).items;
       setCurrentCart(ci);
+    })();
+  }, []);
+
+  useEffect(() => {
+    // Set up changeItems event listener.
+    if (orderId) {
       const onChangeItems = (order: Order) => {
-        if (order.id === id) {
+        if (order.id === orderId) {
           setCurrentCart(order.items);
         }
       };
@@ -54,10 +60,16 @@ const ProductDetail = () => {
         // Cleanup listeners on unmount
         stateManager.orders.removeListener("changeItems", onChangeItems);
       };
-    })();
-  }, []);
+    }
+  });
 
   useEffect(() => {
+    const onChangeStock = async (itemIds: ItemId[]) => {
+      if (itemIds.includes(itemId)) {
+        const available = await stateManager.items.get(itemId);
+        setAvailable(available.quantity);
+      }
+    };
     (async () => {
       if (itemId) {
         //set item details
@@ -72,6 +84,11 @@ const ProductDetail = () => {
         }
       }
     })();
+    stateManager.items.on("changeStock", onChangeStock);
+
+    return () => {
+      stateManager.items.on("changeStock", onChangeStock);
+    };
   }, [currentCartItems, itemId]);
 
   useEffect(() => {
@@ -130,10 +147,12 @@ const ProductDetail = () => {
   // }, [flyoutRef]);
 
   const handleDelete = async () => {
+    if (!removeTagId) {
+      setShowErrorMessage("No remove tag found.");
+      return;
+    }
     try {
-      removeTagId &&
-        (await stateManager!.items.removeItemFromTag(removeTagId, itemId));
-      console.log("successfully removed item");
+      await stateManager!.items.addItemToTag(removeTagId, itemId);
       router.push("/products");
     } catch (error) {
       setShowErrorMessage("There was an error removing tag from Item.");
@@ -196,8 +215,10 @@ const ProductDetail = () => {
 
   return (
     <main className="pt-under-nav h-screen bg-gray-100">
+      <button data-testid="delete" onClick={() => setShowConfirmModal(true)}>
+        Delete Item
+      </button>
       {showConfirmModal && confirmDelete}
-      {/* <ModalHeader /> */}
       <section className="h-[45rem] flex flex-col">
         <ErrorMessage
           errorMessage={showErrorMessage}
@@ -249,7 +270,7 @@ const ProductDetail = () => {
                 </h5>
                 <div className="flex justify-between py-4 bg-white border rounded-lg p-4">
                   <p>Available</p>
-                  <p data-testid="quantity">{available}</p>
+                  <p data-testid="available">{available}</p>
                 </div>
               </div>
             ) : null}

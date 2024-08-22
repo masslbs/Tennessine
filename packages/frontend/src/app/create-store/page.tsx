@@ -163,7 +163,10 @@ const StoreCreation = () => {
           shopId,
         );
         console.log(`Shop Manifested with shopId:${shopId}`);
+        // Create published and remove tags
         const newPubId = await stateManager.tags.create("visible");
+        await stateManager.tags.create("remove");
+
         //Testing dom does not support FormData and test client will fail with:
         //Content-Type isn't multipart/form-data
         //so if it is a test env, we are skipping uploadBlob

@@ -62,7 +62,7 @@ afterEach(async () => {
 describe("Create Store", async () => {
   const user = userEvent.setup();
 
-  test("create store - with auto-filled tokenIds", async () => {
+  test("create store - with auto-filled payee and base currency", async () => {
     render(<CreateStore />, sm);
     expect(spy).not.toHaveBeenCalled();
     await waitFor(async () => {
@@ -89,11 +89,14 @@ describe("Create Store", async () => {
       let pId;
       for await (const [id, tag] of sm.tags.iterator()) {
         count++;
-        //Creating store thru create-store page should auto generate publishedTagId
-        expect(tag.name).toEqual("visible");
-        pId = id;
+        //Creating store thru create-store page should auto generate published and removed tags
+        if (tag.name === "visible") {
+          pId = id;
+        } else {
+          expect(tag.name).toEqual("remove");
+        }
       }
-      expect(count).toEqual(1);
+      expect(count).toEqual(2);
       const manifest = await sm.manifest.get();
       expect(manifest.publishedTagId).toEqual(pId);
       expect(manifest.name).toEqual("New Store Name!!");
