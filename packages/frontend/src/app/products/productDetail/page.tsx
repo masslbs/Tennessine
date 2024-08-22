@@ -173,7 +173,11 @@ const ProductDetail = () => {
   const getCtaButton = () => {
     if (!addedToCart) {
       return (
-        <Button disabled={!quantity} onClick={changeItems}>
+        <Button
+          data-testid="addToCart"
+          disabled={!quantity}
+          onClick={changeItems}
+        >
           {(Number(item.price) * quantity).toFixed(2)}
         </Button>
       );
@@ -210,10 +214,16 @@ const ProductDetail = () => {
               />
             )}
             <div className="flex flex-col">
-              <h2 className="text-xl flex items-center pl-4">
+              <h2
+                data-testid="title"
+                className="text-xl flex items-center pl-4"
+              >
                 {item.metadata.title}
               </h2>
-              <p className=" text-xs flex items-center pl-4">
+              <p
+                className="text-xs flex items-center pl-4"
+                data-testid="description"
+              >
                 {item.metadata.description}
               </p>
             </div>
@@ -223,7 +233,7 @@ const ProductDetail = () => {
               <h5 className="font-sans text-gray-700 my-4">Product Details</h5>
               <div className="flex justify-between py-4 bg-white border rounded-lg p-4">
                 <p>Price</p>
-                <p>{item.price} usdc</p>
+                <p data-testid="price">{item.price}</p>
               </div>
             </div>
             {isMerchantView ? (
@@ -233,7 +243,7 @@ const ProductDetail = () => {
                 </h5>
                 <div className="flex justify-between py-4 bg-white border rounded-lg p-4">
                   <p>Available</p>
-                  <p>{available}</p>
+                  <p data-testid="quantity">{available}</p>
                 </div>
               </div>
             ) : null}
@@ -245,6 +255,7 @@ const ProductDetail = () => {
                   id="quantity"
                   name="quantity"
                   value={quantity}
+                  data-testid="purchaseQty"
                   onChange={(e) => setQuantity(Number(e.target.value))}
                 />
               </div>

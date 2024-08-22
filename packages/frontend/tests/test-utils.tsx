@@ -98,7 +98,7 @@ const AuthorizedWrapper = ({
             setIsConnected: () => {},
             hasUpdateRootHashPerm: false,
             setUpdateRootHashPerm: () => {},
-            isMerchantView: false,
+            isMerchantView: true,
             setIsMerchantView: () => {},
           }}
         >

@@ -211,7 +211,7 @@ const Products = () => {
       return (
         <div key={item.id} className="mt-4 mx-4 last: mr-0">
           <div
-            data-testid={`product-container`}
+            data-testid="product-container"
             onClick={() => viewProductDetails(item)}
             className={`flex flex-col text-center ${!visible ? "opacity-50" : ""} max-w-24 min-w-24 min-h-30 max-h-30`}
           >
