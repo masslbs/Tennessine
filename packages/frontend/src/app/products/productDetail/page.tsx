@@ -181,11 +181,17 @@ const ProductDetail = () => {
           {(Number(item.price) * quantity).toFixed(2)}
         </Button>
       );
+    } else if (quantity !== currentCartItems?.[itemId]) {
+      return (
+        <Button data-testid="updateQty" onClick={changeItems}>
+          Update Sale
+        </Button>
+      );
     } else if (buttonState === "Review") {
       return (
         <Button onClick={() => router.push("/checkout")}>Review Sale</Button>
       );
-    } else return <Button onClick={changeItems}>Update Sale</Button>;
+    }
   };
 
   return (

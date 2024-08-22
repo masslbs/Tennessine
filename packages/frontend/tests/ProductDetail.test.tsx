@@ -72,9 +72,23 @@ describe("Product Detail Component", async () => {
       });
       await user.click(screen.getByTestId("addToCart"));
     });
-    //Check that the item (2qty) we added to cart above is saved in stateManager
+    // Check that the item (2qty) we added to cart above is saved in stateManager
     const openOrder = await sm.orders.getStatus(Status.Pending);
     const orderDetails = await sm.orders.get(openOrder[0]);
     expect(orderDetails.items[id]).toEqual(2);
+
+    // Update purchase quantity
+    await act(async () => {
+      const qtyInput = screen.getByTestId("purchaseQty");
+      user.clear(qtyInput);
+      fireEvent.change(qtyInput, {
+        target: { value: "3" },
+      });
+      await user.click(await screen.findByTestId("updateQty"));
+    });
+
+    const o = await sm.orders.getStatus(Status.Pending);
+    const d = await sm.orders.get(o[0]);
+    expect(d.items[id]).toEqual(3);
   });
 });
