@@ -3,7 +3,7 @@ import { describe, test, expect, beforeEach } from "vitest";
 import { waitFor, screen, act, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { randomAddress, zeroAddress } from "@massmarket/utils";
-import { authorizedRender, getStateManager } from "./test-utils";
+import { merchantsWrapper, getStateManager } from "./test-utils";
 import ProductDetail from "@/app/products/productDetail/page";
 import mockRouter from "next-router-mock";
 import { Status } from "@/types";
@@ -55,7 +55,7 @@ describe("Product Detail Component", async () => {
     const rm = await sm.tags.create("remove");
     removeTagId = rm.id;
     mockRouter.push(`?itemId=${id}`);
-    authorizedRender(<ProductDetail />, sm, order.id);
+    merchantsWrapper(<ProductDetail />, sm, order.id);
   });
 
   test("Product Detail renders product data ", async () => {

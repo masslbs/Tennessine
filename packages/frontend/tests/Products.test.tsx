@@ -3,7 +3,7 @@ import { describe, expect, test } from "vitest";
 import { screen, waitFor, within } from "@testing-library/react";
 import Products from "../src/app/products/page";
 import { randomAddress } from "@massmarket/utils";
-import { authorizedRender, getStateManager } from "./test-utils";
+import { merchantsWrapper, getStateManager } from "./test-utils";
 
 const sm = getStateManager();
 
@@ -29,7 +29,7 @@ describe("Products Component", async () => {
   }
 
   test("All listings are displayed", async () => {
-    authorizedRender(<Products />, sm, order.id);
+    merchantsWrapper(<Products />, sm, order.id);
 
     await waitFor(async () => {
       const items = await screen.findAllByTestId("product-name");
@@ -62,7 +62,7 @@ describe("Products Component", async () => {
       }
     });
   });
-  test("Update Item - New title and price are rendered", async () => {
+  test("Update Item - Updated title and price are rendered", async () => {
     //Testing Update Item event before render
     const { id } = await sm.items.create({
       price: `9.00`,
@@ -81,7 +81,7 @@ describe("Products Component", async () => {
         image: "https://http.cat/images/201.jpg",
       },
     });
-    authorizedRender(<Products />, sm, order.id);
+    merchantsWrapper(<Products />, sm, order.id);
     await waitFor(() => {
       const items = screen.getAllByTestId("product-container");
       expect(items.length).toEqual(52);

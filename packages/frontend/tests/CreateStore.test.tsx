@@ -61,9 +61,11 @@ afterEach(async () => {
 
 describe("Create Store", async () => {
   const user = userEvent.setup();
-
-  test("create store - with auto-filled payee and base currency", async () => {
+  beforeEach(async () => {
     render(<CreateStore />, sm);
+  });
+
+  test("Create store - with auto-filled payee and base currency", async () => {
     expect(spy).not.toHaveBeenCalled();
     await waitFor(async () => {
       const file = new File(["hello"], "hello.png", { type: "image/png" });
@@ -105,7 +107,6 @@ describe("Create Store", async () => {
   });
 
   test("create store - with changed payee address and base currency", async () => {
-    render(<CreateStore />, sm);
     expect(spy).not.toHaveBeenCalled();
     const payee = randomAddress();
     await waitFor(async () => {

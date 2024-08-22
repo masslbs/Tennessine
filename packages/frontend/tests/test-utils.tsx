@@ -80,7 +80,7 @@ const Wrapper = ({
   );
 };
 
-const AuthorizedWrapper = ({
+const MerchantsWrapper = ({
   children,
   stateManager,
   orderId,
@@ -131,9 +131,9 @@ const AuthorizedCustomRender = (
   orderId: OrderId,
 ) => {
   render(
-    <AuthorizedWrapper orderId={orderId} stateManager={stateManager}>
+    <MerchantsWrapper orderId={orderId} stateManager={stateManager}>
       {ui}
-    </AuthorizedWrapper>,
+    </MerchantsWrapper>,
   );
 };
-export { customRender as render, AuthorizedCustomRender as authorizedRender };
+export { customRender as render, AuthorizedCustomRender as merchantsWrapper };

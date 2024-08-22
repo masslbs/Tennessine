@@ -1,33 +1,35 @@
 import React from "react";
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, beforeAll } from "vitest";
 import { screen, fireEvent, waitFor } from "@testing-library/react";
 import AddProductView from "@/app/products/edit/page";
 import { randomAddress } from "@massmarket/utils";
 import userEvent from "@testing-library/user-event";
-import { getStateManager, authorizedRender } from "./test-utils";
+import { getStateManager, merchantsWrapper } from "./test-utils";
 import mockRouter from "next-router-mock";
 
 describe("Add New Product", async () => {
   const sm = getStateManager();
   const user = userEvent.setup();
-
-  await sm.manifest.create(
-    {
-      name: "Test Shop",
-      description: "Testing shopManifest",
-    },
-    randomAddress(),
-  );
   const tag = await sm.tags.create("visible");
-
-  await sm.manifest.update({
-    publishedTagId: tag.id,
-  });
   const order = await sm.orders.create();
+
+  beforeAll(async () => {
+    await sm.manifest.create(
+      {
+        name: "Test Shop",
+        description: "Testing shopManifest",
+      },
+      randomAddress(),
+    );
+
+    await sm.manifest.update({
+      publishedTagId: tag.id,
+    });
+  });
 
   test("Create new product", async () => {
     mockRouter.push("?itemId=new");
-    authorizedRender(<AddProductView />, sm, order.id);
+    merchantsWrapper(<AddProductView />, sm, order.id);
     const file = new File(["hello"], "hello.png", { type: "image/png" });
 
     await waitFor(async () => {
@@ -81,7 +83,7 @@ describe("Add New Product", async () => {
 
     await sm.items.addItemToTag(tag.id, id);
 
-    authorizedRender(<AddProductView />, sm, order.id);
+    merchantsWrapper(<AddProductView />, sm, order.id);
     //Test stored fields are correctly populated.
     await waitFor(async () => {
       const title = screen.getByDisplayValue("Test Item 1");
