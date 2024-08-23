@@ -23,7 +23,6 @@ const _menuOptions = [
     href: "/merchant-dashboard",
   },
   { title: "Shop settings", img: "store-settings.svg", href: "/store" },
-  { title: "My profile", img: "profile.svg", href: "/account" },
   { title: "New shop", img: "create-store.png", href: "/create-store" },
 ];
 
@@ -126,17 +125,6 @@ const Navigation = () => {
                 >
                   Add Product +
                 </Link>
-              </SecondaryButton>
-              <SecondaryButton onClick={menuSwitch}>
-                <div className="flex items-center gap-1">
-                  Settings
-                  <Image
-                    src="/assets/settings.svg"
-                    width={12}
-                    height={12}
-                    alt="settings-icon"
-                  />
-                </div>
               </SecondaryButton>
             </div>
           </div>
