@@ -27,13 +27,10 @@ import { zeroAddress } from "@massmarket/contracts";
 
 const CheckoutFlow = () => {
   const { getOrderId, stateManager, selectedCurrency } = useStoreContext();
-  const { publicClient, shopId, getTokenInformation } = useMyContext();
+  const { publicClient, getTokenInformation } = useMyContext();
   const [step, setStep] = useState(0);
-
   const [imgSrc, setSrc] = useState<null | string>(null);
-  const [checkoutReqId, setCheckoutRequestId] = useState<`0x${string}` | null>(
-    null,
-  );
+
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [cryptoTotal, setCryptoTotal] = useState<number | null>(null);
   const [purchaseAddress, setPurchaseAddr] = useState<string | null>(null);
@@ -78,9 +75,13 @@ const CheckoutFlow = () => {
   }, [currentOrder]);
 
   useEffect(() => {
-    if (checkoutReqId && orderId && stateManager) {
+    stateManager.orders.on("itemsFinalized", getDetails);
+  });
+
+  const getDetails = (order: Order) => {
+    if (orderId === order.id) {
       (async () => {
-        const committed = await stateManager.orders.get(orderId);
+        const committed = await stateManager.orders.get(orderId!);
         const {
           ttl,
           orderHash,
@@ -95,6 +96,7 @@ const CheckoutFlow = () => {
         const curr = manifest.acceptedCurrencies.find(
           (c: ShopCurrencies) => c.tokenAddr === currencyAddr,
         );
+        const shopId = manifest.tokenId;
         const arg = [
           curr?.chainId,
           ttl,
@@ -138,7 +140,7 @@ const CheckoutFlow = () => {
         }
       })();
     }
-  }, [checkoutReqId]);
+  };
 
   const checkout = async () => {
     const orderId = await getOrderId();
@@ -146,13 +148,12 @@ const CheckoutFlow = () => {
       setErrorMsg("Please select a currency to pay in.");
     }
     try {
-      const checkout = await stateManager!.orders.commit(
+      await stateManager!.orders.commit(
         orderId,
         selectedCurrency!.tokenAddr,
         selectedCurrency!.chainId,
         "default",
       );
-      setCheckoutRequestId(checkout.orderFinalizedId);
     } catch (error) {
       // If there was an error while committing, cancel the order.
       await stateManager!.orders.cancel(orderId, 0);
@@ -186,8 +187,8 @@ const CheckoutFlow = () => {
     } else if (
       step === 2 &&
       imgSrc &&
-      totalDollar &&
       purchaseAddress &&
+      totalDollar &&
       cryptoTotal
     ) {
       return (
