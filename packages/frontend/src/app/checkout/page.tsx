@@ -62,6 +62,9 @@ const CheckoutFlow = () => {
       const o = await stateManager.orders.get(id);
       setOrderId(id);
       setCurrentOrder(o);
+      if (o.orderFinalized) {
+        getDetails(id);
+      }
     })();
   }, []);
 
@@ -89,71 +92,79 @@ const CheckoutFlow = () => {
   }, [currentOrder]);
 
   useEffect(() => {
-    stateManager.orders.on("itemsFinalized", getDetails);
+    const onItemsFinalized = (order: Order) => {
+      if (order.id === orderId) {
+        getDetails(orderId);
+      }
+    };
+    stateManager.orders.on("itemsFinalized", onItemsFinalized);
+
+    return () => {
+      // Cleanup listeners on unmount
+      stateManager.items.removeListener("itemsFinalized", onItemsFinalized);
+    };
   });
 
-  const getDetails = (order: Order) => {
-    if (orderId === order.id) {
-      (async () => {
-        const committed = await stateManager.orders.get(orderId!);
-        const {
-          ttl,
-          orderHash,
-          currencyAddr,
-          totalInCrypto,
-          payeeAddr,
-          shopSignature,
-          total,
-        } = committed.orderFinalized as OrderFinalized;
-        // Find the chainId for the currencyAddr used from shopManifest.
-        const manifest = await stateManager.manifest.get();
-        const curr = manifest.acceptedCurrencies.find(
-          (c: ShopCurrencies) => c.tokenAddr === currencyAddr,
-        );
-        const shopId = manifest.tokenId;
-        const arg = [
-          curr?.chainId,
-          ttl,
-          orderHash,
-          currencyAddr,
-          totalInCrypto,
-          payeeAddr,
-          false,
-          shopId,
-          shopSignature,
-        ];
-        const ownerAdd = await publicClient!.readContract({
-          address: abi.addresses.ShopReg as `0x${string}`,
-          abi: abi.ShopReg,
-          functionName: "ownerOf",
-          args: [shopId],
-        });
-        const purchaseAdd = await publicClient!.readContract({
-          address: abi.addresses.Payments as `0x${string}`,
-          abi: abi.PaymentsByAddress,
-          functionName: "getPaymentAddress",
-          args: [arg, ownerAdd],
-        });
-        const { decimals, symbol } = await getTokenInformation(
-          currencyAddr as TokenAddr,
-        );
-        setSymbol(symbol);
-        if (purchaseAdd) {
-          const amount = Number(totalInCrypto);
-          const _erc20Amount = amount / Math.pow(10, decimals);
-          const payLink =
-            currencyAddr === zeroAddress
-              ? `ethereum:${purchaseAdd}?value=${amount}`
-              : `ethereum:${currencyAddr}/transfer?address=${purchaseAdd}&uint256=${amount}`;
-          setPurchaseAddr(purchaseAdd as `0x${string}`);
-          setSrc(payLink);
-          setCryptoTotal(amount);
-          setErc20Amount(_erc20Amount);
-          setTotalDollar(total);
-          setStep(2);
-        }
-      })();
-    }
+  const getDetails = (oId: OrderId) => {
+    (async () => {
+      const committed = await stateManager.orders.get(oId!);
+      const {
+        ttl,
+        orderHash,
+        currencyAddr,
+        totalInCrypto,
+        payeeAddr,
+        shopSignature,
+        total,
+      } = committed.orderFinalized as OrderFinalized;
+      // Find the chainId for the currencyAddr used from shopManifest.
+      const manifest = await stateManager.manifest.get();
+      const curr = manifest.acceptedCurrencies.find(
+        (c: ShopCurrencies) => c.tokenAddr === currencyAddr,
+      );
+      const shopId = manifest.tokenId;
+      const arg = [
+        curr?.chainId,
+        ttl,
+        orderHash,
+        currencyAddr,
+        totalInCrypto,
+        payeeAddr,
+        false,
+        shopId,
+        shopSignature,
+      ];
+      const ownerAdd = await publicClient!.readContract({
+        address: abi.addresses.ShopReg as `0x${string}`,
+        abi: abi.ShopReg,
+        functionName: "ownerOf",
+        args: [shopId],
+      });
+      const purchaseAdd = await publicClient!.readContract({
+        address: abi.addresses.Payments as `0x${string}`,
+        abi: abi.PaymentsByAddress,
+        functionName: "getPaymentAddress",
+        args: [arg, ownerAdd],
+      });
+      const { decimals, symbol } = await getTokenInformation(
+        currencyAddr as TokenAddr,
+      );
+      setSymbol(symbol);
+      if (purchaseAdd) {
+        const amount = Number(totalInCrypto);
+        const _erc20Amount = amount / Math.pow(10, decimals);
+        const payLink =
+          currencyAddr === zeroAddress
+            ? `ethereum:${purchaseAdd}?value=${amount}`
+            : `ethereum:${currencyAddr}/transfer?address=${purchaseAdd}&uint256=${amount}`;
+        setPurchaseAddr(purchaseAdd as `0x${string}`);
+        setSrc(payLink);
+        setCryptoTotal(amount);
+        setErc20Amount(_erc20Amount);
+        setTotalDollar(total);
+        setStep(2);
+      }
+    })();
   };
 
   const checkout = async () => {

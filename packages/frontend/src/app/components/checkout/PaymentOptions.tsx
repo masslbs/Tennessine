@@ -39,7 +39,6 @@ const PaymentOptions = ({
 }) => {
   const [showPaymentOptions, setShowPaymentOptions] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<"QR" | "Address" | null>(null);
-
   return (
     <div>
       <FullModal isOpen={Boolean(showModal)}>
@@ -54,21 +53,23 @@ const PaymentOptions = ({
         />
       </FullModal>
 
-      <div className="text-primary-gray text-xs mt-8">
-        <p className="text-center">Your order will be sent to:</p>
-        <div className="ml-2 mt-4 flex gap-1 border-2 items-center border-gray-300 rounded-xl p-3">
-          <div>
-            <p>{name}</p>
-            <p>{number}</p>
-            <p>
-              {address}, {city}, {country}, {zip}
-            </p>
-          </div>
-          <div className="ml-auto">
-            <SecondaryButton>EDIT</SecondaryButton>
+      {name.length ? (
+        <div className="text-primary-gray text-xs mt-8">
+          <p className="text-center">Your order will be sent to:</p>
+          <div className="ml-2 mt-4 flex gap-1 border-2 items-center border-gray-300 rounded-xl p-3">
+            <div>
+              <p>{name}</p>
+              <p>{number}</p>
+              <p>
+                {address}, {city}, {country}, {zip}
+              </p>
+            </div>
+            <div className="ml-auto">
+              <SecondaryButton>EDIT</SecondaryButton>
+            </div>
           </div>
         </div>
-      </div>
+      ) : null}
       <WalletConnectQR
         purchaseAddress={purchaseAddress}
         cryptoTotal={cryptoTotal}
