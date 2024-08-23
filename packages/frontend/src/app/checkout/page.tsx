@@ -66,6 +66,20 @@ const CheckoutFlow = () => {
   }, []);
 
   useEffect(() => {
+    const onOrderPaid = (order: Order) => {
+      if (order.id === orderId) {
+        setCurrentOrder(order);
+      }
+    };
+
+    stateManager.orders.on("orderPaid", onOrderPaid);
+    return () => {
+      // Cleanup listeners on unmount
+      stateManager.orders.removeListener("orderPaid", onOrderPaid);
+    };
+  });
+
+  useEffect(() => {
     if (currentOrder?.status === Status.Complete) {
       const h = currentOrder.txHash as `0x${string}`;
       setOrderId(null);
