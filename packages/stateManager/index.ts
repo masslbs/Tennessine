@@ -446,6 +446,10 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         order.txHash = bytesToHex(cs.txHash);
         await this.store.put(orderId, order);
         await storeOrdersByStatus(orderId, this.store, Status.Complete);
+        //remove the orderId from pending orders since its status is now complete
+        let orders = (await this.store.get(Status.Pending)) as OrdersByStatus;
+        orders = orders.filter((id) => id !== orderId);
+        await this.store.put(Status.Pending, orders);
         this.emit("orderPaid", order);
         return;
       }
