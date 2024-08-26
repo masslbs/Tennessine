@@ -13,10 +13,13 @@ import { MyContextProvider } from "../context/MyContext";
 import { StoreContextProvider } from "../context/StoreContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { MerchantProvider } from "@/context/MerchantContext";
+import debugLib from "debug";
 
 export function Providers(props: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
-
+  if (process.env.NEXT_PUBLIC_DEBUG) {
+    debugLib.enable(process.env.NEXT_PUBLIC_DEBUG);
+  }
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>

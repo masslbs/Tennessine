@@ -6,7 +6,6 @@
 
 import React, { ChangeEvent, useRef, useState, useEffect } from "react";
 import Image from "next/image";
-
 import { useStoreContext } from "@/context/StoreContext";
 import ProductsTags from "@/app/components/products/ProductTags";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -15,6 +14,7 @@ import ErrorMessage from "@/app/common/components/ErrorMessage";
 import VisibilitySlider from "@/app/components/products/VisibilitySlider";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
 import { useMyContext } from "@/context/MyContext";
+import debugLib from "debug";
 
 const AddProductView = () => {
   const router = useRouter();
@@ -32,31 +32,39 @@ const AddProductView = () => {
   const [units, setUnits] = useState<number>(0);
   const [error, setError] = useState<null | string>(null);
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
+  const debug = debugLib("frontend:products:edit");
 
   useEffect(() => {
-    (async () => {
-      if (editView && itemId) {
-        const p = await stateManager.items.get(itemId);
-        setProductInView(p);
-        setTitle(p.metadata.title);
-        setPrice(p.price);
-        setImg(p.metadata.image);
-        setDescription(p.metadata.description);
-        setUnits(p.quantity);
-      }
-    })();
+    if (editView && itemId) {
+      stateManager.items
+        .get(itemId)
+        .then((item) => {
+          setProductInView(item);
+          setTitle(item.metadata.title);
+          setPrice(item.price);
+          setImg(item.metadata.image);
+          setDescription(item.metadata.description);
+          setUnits(item.quantity);
+        })
+        .catch((e) => {
+          debug(e);
+        });
+    }
   }, []);
 
   useEffect(() => {
+    const getSelectedTags = async () => {
+      const selected = [];
+      for (const id of productInView!.tags) {
+        const t = (await stateManager.tags.get(id)) as Tag;
+        selected.push(t);
+      }
+      return selected;
+    };
     if (productInView) {
-      (async () => {
-        const selected = [];
-        for (const id of productInView.tags) {
-          const t = (await stateManager.tags.get(id)) as Tag;
-          selected.push(t);
-        }
+      getSelectedTags().then((selected) => {
         setSelectedTags(selected);
-      })();
+      });
     }
   }, [productInView]);
 
@@ -92,7 +100,7 @@ const AddProductView = () => {
         e.target.value = "";
       }
     } catch (error) {
-      console.error(error);
+      debug(error);
     }
   };
 
@@ -101,52 +109,60 @@ const AddProductView = () => {
   };
 
   const create = async (newItem: Partial<Item>) => {
-    const { id } = await stateManager!.items.create(newItem);
-    await stateManager!.items.changeStock([id], [units]);
-    if (selectedTags.length) {
-      selectedTags.map(async (t) => {
-        await stateManager!.items.addItemToTag(t.id, id);
-      });
+    try {
+      const { id } = await stateManager!.items.create(newItem);
+      await stateManager!.items.changeStock([id], [units]);
+      if (selectedTags.length) {
+        selectedTags.map(async (t) => {
+          await stateManager!.items.addItemToTag(t.id, id);
+        });
+      }
+    } catch (error) {
+      debug(error);
     }
   };
 
   const update = async (newItem: Partial<Item>) => {
-    //compare the edited fields against the original object.
-    const diff: Partial<Item> = {
-      id: itemId as ItemId,
-    };
-    if (newItem.price !== productInView!.price) {
-      diff["price"] = newItem.price;
-    }
-    if (newItem.metadata !== productInView!.metadata) {
-      diff["metadata"] = newItem.metadata;
-    }
-    //checking for diff in selected tags
-    const newTags = selectedTags.filter(
-      ({ id }) => !productInView!.tags.includes(id),
-    );
-    if (newTags.length) {
-      newTags.map(async ({ id }) => {
-        await stateManager!.items.addItemToTag(id, itemId as ItemId);
-      });
-    }
-    //checking for any removed tags
-    const selectTagIds = selectedTags.map((t) => t.id);
-    const removedTags = productInView?.tags.filter(
-      (id: TagId) => !selectTagIds.includes(id),
-    );
-    if (removedTags?.length) {
-      removedTags.map(async (id: TagId) => {
-        await stateManager!.items.removeItemFromTag(id, itemId as ItemId);
-      });
-    }
-    if (Object.keys(diff).length === 1) return;
-    await stateManager!.items.update(diff);
-    if (units !== productInView?.quantity) {
-      await stateManager!.items.changeStock(
-        [itemId as ItemId],
-        [units - productInView!.quantity],
+    try {
+      //compare the edited fields against the original object.
+      const diff: Partial<Item> = {
+        id: itemId as ItemId,
+      };
+      if (newItem.price !== productInView!.price) {
+        diff["price"] = newItem.price;
+      }
+      if (newItem.metadata !== productInView!.metadata) {
+        diff["metadata"] = newItem.metadata;
+      }
+      //checking for diff in selected tags
+      const newTags = selectedTags.filter(
+        ({ id }) => !productInView!.tags.includes(id),
       );
+      if (newTags.length) {
+        newTags.map(async ({ id }) => {
+          await stateManager!.items.addItemToTag(id, itemId as ItemId);
+        });
+      }
+      //checking for any removed tags
+      const selectTagIds = selectedTags.map((t) => t.id);
+      const removedTags = productInView?.tags.filter(
+        (id: TagId) => !selectTagIds.includes(id),
+      );
+      if (removedTags?.length) {
+        removedTags.map(async (id: TagId) => {
+          await stateManager!.items.removeItemFromTag(id, itemId as ItemId);
+        });
+      }
+      if (Object.keys(diff).length === 1) return;
+      await stateManager!.items.update(diff);
+      if (units !== productInView?.quantity) {
+        await stateManager!.items.changeStock(
+          [itemId as ItemId],
+          [units - productInView!.quantity],
+        );
+      }
+    } catch (error) {
+      debug(error);
     }
   };
 
@@ -177,6 +193,7 @@ const AddProductView = () => {
           : await create(newItem);
         router.push(`/products`);
       } catch (error) {
+        debug(`Error while saving item:${error}`);
         setError("Error while saving item");
       }
     }

@@ -65,12 +65,13 @@ describe("Create Store", async () => {
     render(<CreateStore />, sm);
   });
 
-  test("Create store - with auto-filled payee and base currency", async () => {
+  test("Create store - with auto-filled payee address", async () => {
     expect(spy).not.toHaveBeenCalled();
     await waitFor(async () => {
       const file = new File(["hello"], "hello.png", { type: "image/png" });
 
       const nameInput = screen.getByTestId(`storeName`);
+      const baseAddrInput = screen.getByTestId("baseTokenAddr");
       const descInput = screen.getByTestId(`desc`);
       const chains = screen.getByRole("button", { name: /hardhat/i });
       const uploadInput = screen.getByTestId("file-upload");
@@ -81,8 +82,11 @@ describe("Create Store", async () => {
       await user.click(chains);
       await user.clear(nameInput);
       await user.clear(descInput);
+      await user.clear(baseAddrInput);
       await user.type(nameInput, "New Store Name!!");
       await user.type(descInput, "New Store Description!!");
+      await user.type(baseAddrInput, zeroAddress);
+
       await user.click(saveBtn);
     });
     await waitFor(async () => {

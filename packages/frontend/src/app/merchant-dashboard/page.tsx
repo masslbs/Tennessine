@@ -13,18 +13,34 @@ import Image from "next/image";
 import { createQueryString } from "@/app/utils";
 import { useSearchParams } from "next/navigation";
 import { Status, Order } from "@/types";
+import debugLib from "debug";
 
 const MerchantDashboard = () => {
   const { stateManager } = useStoreContext();
   const searchParams = useSearchParams();
   const [name, setName] = useState("");
   const [orders, setOrders] = useState(new Map());
+  const debug = debugLib("frontend:merchantDashboard");
+
+  const getAllOrders = async () => {
+    const allOrders = new Map();
+    for await (const [id, o] of stateManager.orders.iterator()) {
+      if (id.slice(0, 2) === "0x") {
+        allOrders.set(id, o);
+      }
+    }
+    return allOrders;
+  };
 
   useEffect(() => {
-    (async () => {
-      const shopManifest = await stateManager.manifest.get();
-      setName(shopManifest.name);
-    })();
+    stateManager.manifest
+      .get()
+      .then((shopManifest) => {
+        setName(shopManifest.name);
+      })
+      .catch((e) => {
+        debug(e);
+      });
   }, []);
 
   useEffect(() => {
@@ -36,17 +52,16 @@ const MerchantDashboard = () => {
       orders.set(order.id, order);
       setOrders(orders);
     };
-    (async () => {
-      const allOrders = new Map();
-      for await (const [id, o] of stateManager.orders.iterator()) {
-        if (id.slice(0, 2) === "0x") {
-          allOrders.set(id, o);
-        }
-      }
-      setOrders(allOrders);
-      stateManager.orders.on("create", onCreateOrder);
-      stateManager.orders.on("update", onUpdateOrder);
-    })();
+    getAllOrders()
+      .then((allOrders) => {
+        setOrders(allOrders);
+        stateManager.orders.on("create", onCreateOrder);
+        stateManager.orders.on("update", onUpdateOrder);
+      })
+      .catch((e) => {
+        debug(e);
+      });
+
     return () => {
       // Cleanup listeners on unmount
       stateManager.orders.removeListener("create", onCreateOrder);

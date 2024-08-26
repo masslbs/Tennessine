@@ -24,6 +24,7 @@ import * as abi from "@massmarket/contracts";
 import CurrencyButton from "@/app/common/components/CurrencyButton";
 import CurrencyChange from "@/app/common/components/CurrencyChange";
 import { zeroAddress } from "@massmarket/contracts";
+import debugLib from "debug";
 
 const CheckoutFlow = () => {
   const { getOrderId, stateManager, selectedCurrency } = useStoreContext();
@@ -49,6 +50,7 @@ const CheckoutFlow = () => {
   const [openCurrencySelection, setOpen] = useState(false);
   const [orderId, setOrderId] = useState<OrderId | null>(null);
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
+  const debug = debugLib("frontend:checkout");
 
   const currencyToggle = () => {
     setOpen(!openCurrencySelection);
@@ -57,15 +59,18 @@ const CheckoutFlow = () => {
     navigator.clipboard.writeText(purchaseAddress!);
   };
   useEffect(() => {
-    (async () => {
-      const id = await getOrderId();
-      const o = await stateManager.orders.get(id);
-      setOrderId(id);
-      setCurrentOrder(o);
-      if (o.orderFinalized) {
-        getDetails(id);
-      }
-    })();
+    getOrderId()
+      .then(async (id) => {
+        const o = await stateManager.orders.get(id);
+        setOrderId(id);
+        setCurrentOrder(o);
+        if (o.orderFinalized) {
+          getDetails(id);
+        }
+      })
+      .catch((e) => {
+        debug(e);
+      });
   }, []);
 
   useEffect(() => {
@@ -182,6 +187,7 @@ const CheckoutFlow = () => {
     } catch (error) {
       // If there was an error while committing, cancel the order.
       await stateManager!.orders.cancel(orderId, 0);
+      debug(error);
       setErrorMsg("Error while checking out order");
     }
   };

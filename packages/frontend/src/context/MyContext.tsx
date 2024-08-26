@@ -94,6 +94,7 @@ export const MyContextProvider = (
   const merchantKeyCard = localStorage.getItem(
     "merchantKeyCard",
   ) as `0x${string}`;
+
   useEffect(() => {
     if (isMerchantPath) {
       localStorage.removeItem("merchantKeyCard");
