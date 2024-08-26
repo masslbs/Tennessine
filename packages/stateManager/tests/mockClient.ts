@@ -11,7 +11,7 @@ import schema, {
 } from "@massmarket/schema";
 import { requestId, eventId } from "@massmarket/utils";
 import { ReadableEventStream } from "@massmarket/client/stream";
-import { IRelayClient } from "../";
+import { IRelayClient } from "../types";
 
 export type IncomingEvent = {
   request: schema.EventPushRequest;
@@ -129,6 +129,10 @@ export class MockClient implements IRelayClient {
       updateOrder: order,
     });
     return id;
+  }
+  async uploadBlob(blob: FormData) {
+    const file = blob.get(`file`) as { name: string };
+    return { url: file.name };
   }
 
   async commitOrder(order: schema.CommitItemsToOrderRequest) {

@@ -8,16 +8,15 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import EditName from "../components/account/EditName";
 import AccountProfilePhoto from "../components/account/AccountProfilePhoto";
-import { IRole, IStatus } from "@/types";
+import { Role, Status } from "@/types";
 import { useMyContext } from "@/context/MyContext";
 import { useAuth } from "@/context/AuthContext";
 import { formatEthAdd } from "../utils";
 import withAuth from "../components/withAuth";
 import { useRouter } from "next/navigation";
-import { useStoreContext } from "@/context/StoreContext";
 
 const AccountSettings = () => {
-  const { walletAddress, avatar, name } = useMyContext();
+  const { walletAddress, avatar, ensName } = useMyContext();
   const [openNameEdit, setOpenNameEdit] = useState<boolean>(false);
   const [openPhotoUpload, setOpenPhotoUpload] = useState<boolean>(false);
   const [profilePhoto, setProfilePhoto] = useState<string>(
@@ -27,7 +26,6 @@ const AccountSettings = () => {
   const [ethAdd, setEthAdd] = useState<string>("");
   const router = useRouter();
   const { setIsConnected } = useAuth();
-  const { db } = useStoreContext();
 
   useEffect(() => {
     if (walletAddress) {
@@ -36,18 +34,17 @@ const AccountSettings = () => {
     if (avatar) {
       setProfilePhoto(avatar);
     }
-    if (name) {
-      setFirstName(name);
+    if (ensName) {
+      setFirstName(ensName);
     }
-  }, [walletAddress, avatar, name]);
+  }, [walletAddress, avatar, ensName]);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(walletAddress!);
   };
 
   const logout = () => {
-    db.clear();
-    setIsConnected(IStatus.Pending);
+    setIsConnected(Status.Pending);
     localStorage.clear();
     router.push("/");
   };
@@ -114,7 +111,7 @@ const AccountSettings = () => {
           </section>
           <section className="border-b border-gray-200 py-6">
             <p className="text-xs text-gray-500">Role</p>
-            <p className="text-gray-700 mt-2">{IRole.Admin}</p>
+            <p className="text-gray-700 mt-2">{Role.Admin}</p>
           </section>
         </section>
         <section className="py-12">
