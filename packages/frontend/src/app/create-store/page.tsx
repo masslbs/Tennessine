@@ -11,7 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Status } from "@/types";
 import { useRouter } from "next/navigation";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
-import { random32BytesHex } from "@massmarket/utils";
+import { random32BytesHex, zeroAddress } from "@massmarket/utils";
 import Image from "next/image";
 import { useChains } from "wagmi";
 import { useStoreContext } from "@/context/StoreContext";
@@ -39,9 +39,7 @@ const StoreCreation = () => {
   // const [storeURL, setStoreURL] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [avatar, setAvatar] = useState<FormData | null>(null);
-  const [tokenAddr, setTokenAddr] = useState<string>(
-    process.env.NEXT_PUBLIC_DEFAULT_ERC20 ?? "",
-  );
+  const [tokenAddr, setTokenAddr] = useState<string>(zeroAddress);
   const [chainId, setAcceptedChain] = useState<number>(0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isStoreCreated, setStoreCreated] = useState<boolean>(false);

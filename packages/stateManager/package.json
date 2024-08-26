@@ -32,9 +32,9 @@
     }
   },
   "devDependencies": {
+    "@massmarket/blockchain": "workspace:*",
     "@types/events": "^3.0.3",
-    "vitest": "^2.0.4",
     "memory-level": "^1.0.0",
-    "@massmarket/blockchain": "workspace:*"
+    "vitest": "^2.0.4"
   }
 }

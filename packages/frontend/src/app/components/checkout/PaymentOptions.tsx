@@ -9,6 +9,7 @@ import Image from "next/image";
 import FullModal from "@/app/common/components/FullModal";
 import QRScan from "@/app/components/transactions/QRScan";
 import WalletConnectQR from "../transactions/WalletConnectQR";
+import BigNumber from "bignumber.js";
 
 const PaymentOptions = ({
   imgSrc,
@@ -27,7 +28,7 @@ const PaymentOptions = ({
   imgSrc: string;
   totalDollar: string;
   purchaseAddress: string;
-  cryptoTotal: number;
+  cryptoTotal: BigNumber;
   symbol: string | null;
   name: string;
   address: string;
@@ -35,7 +36,7 @@ const PaymentOptions = ({
   zip: string;
   country: string;
   number: string;
-  erc20Amount: number | null;
+  erc20Amount: BigNumber | null;
 }) => {
   const [showPaymentOptions, setShowPaymentOptions] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<"QR" | "Address" | null>(null);

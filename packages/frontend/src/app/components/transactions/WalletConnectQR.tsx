@@ -9,13 +9,14 @@ import { sepolia, mainnet, hardhat } from "viem/chains";
 import { SignClient as ISignClient } from "@walletconnect/sign-client/dist/types/client";
 import { SessionTypes } from "@walletconnect/types";
 import Button from "@/app/common/components/Button";
+import BigNumber from "bignumber.js";
 
 function WalletConnectQR({
   purchaseAddress,
   cryptoTotal,
 }: {
   purchaseAddress: string;
-  cryptoTotal: number;
+  cryptoTotal: BigNumber;
 }) {
   const [signClient, setSignClient] = useState<null | ISignClient>(null);
   const [session, setSession] = useState<SessionTypes.Struct | null>(null);

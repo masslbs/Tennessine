@@ -46,6 +46,7 @@
     "@vitejs/plugin-react": "^4.2.1",
     "@wagmi/cli": "latest",
     "autoprefixer": "^10.4.16",
+    "bignumber.js": "^9.1.2",
     "clsx": "^2.1.0",
     "dotenv": "^16.4.5",
     "eslint": "^8.56.0",

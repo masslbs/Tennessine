@@ -5,6 +5,7 @@
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import QRCode from "qrcode";
+import BigNumber from "bignumber.js";
 
 function QRScan({
   imgSrc,
@@ -19,7 +20,7 @@ function QRScan({
   totalDollar: string;
   purchaseAddress: string;
   showModal: string | null;
-  erc20Amount: number | null;
+  erc20Amount: BigNumber | null;
   symbol: string | null;
   goBack: () => void;
 }) {
@@ -47,14 +48,14 @@ function QRScan({
           </div>
           <p className="text-primary-gray">scan to pay</p>
           <h2>
-            {erc20Amount} {symbol}
+            {erc20Amount?.toNumber()} {symbol}
           </h2>
         </div>
       ) : (
         <div className="flex flex-col gap-5 text-primary-gray">
           <button onClick={goBack}>go back</button>
           <h2>
-            Send <span className="text-black">{erc20Amount}</span>
+            Send <span className="text-black">{erc20Amount?.toNumber()}</span>
           </h2>
           <p>{totalDollar}</p>
           <p>to this address:</p>
