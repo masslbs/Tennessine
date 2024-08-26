@@ -25,6 +25,7 @@ import { createWalletClient, http } from "viem";
 import { hardhat } from "viem/chains";
 import { zeroAddress, anvilAddress } from "@massmarket/utils";
 
+const mockClient = new MockClient();
 const relayURL =
   (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v2";
 const relayEndpoint = await discoverRelay(relayURL);
@@ -47,7 +48,7 @@ export function getWallet() {
   return wallet;
 }
 export function getStateManager(useRelayClient?: boolean) {
-  const client = useRelayClient ? createRelayClient() : new MockClient();
+  const client = useRelayClient ? createRelayClient() : mockClient;
 
   const db = new MemoryLevel({
     valueEncoding: "json",
@@ -141,7 +142,7 @@ const MerchantsWrapper = ({
           }}
         >
           {/* @ts-expect-error FIXME */}
-          <MyContext.Provider value={{ relayClient: client }}>
+          <MyContext.Provider value={{ relayClient: mockClient }}>
             <StoreContext.Provider
               //@ts-expect-error FIXME
               value={{
