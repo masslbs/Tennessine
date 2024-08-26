@@ -16,6 +16,7 @@ import Image from "next/image";
 import TagSection from "./Tag";
 import { Tag, TagId } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
+import debugLib from "debug";
 
 const ProductsTags = ({
   selectedTags,
@@ -32,6 +33,7 @@ const ProductsTags = ({
   const [searchResults, setSearchResults] = useState(new Map());
   const [tagName, setTagName] = useState<string>("");
   const [selected, setAllSelected] = useState<Tag[]>([]);
+  const debug = debugLib("frontend:productTags");
 
   useEffect(() => {
     const set = async () => {
@@ -44,11 +46,16 @@ const ProductsTags = ({
     const onCreateEvent = async () => {
       await set();
     };
-    (async () => {
-      await set();
-      // Listen to future events
-      stateManager.tags.on("create", onCreateEvent);
-    })();
+    try {
+      (async () => {
+        await set();
+        // Listen to future events
+        stateManager.tags.on("create", onCreateEvent);
+      })();
+    } catch (error) {
+      debug(error);
+    }
+
     return () => {
       // Cleanup listeners on unmount
       stateManager.items.removeListener("create", onCreateEvent);
@@ -115,10 +122,14 @@ const ProductsTags = ({
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    tagName.length && tagName[0] === ":"
-      ? await stateManager!.tags.create(tagName.substring(1))
-      : setError("to create a tag name, begin the tag name with :");
-    setTagName("");
+    try {
+      tagName.length && tagName[0] === ":"
+        ? await stateManager!.tags.create(tagName.substring(1))
+        : setError("to create a tag name, begin the tag name with :");
+      setTagName("");
+    } catch (error) {
+      debug(error);
+    }
   };
 
   const renderAllTags = () => {

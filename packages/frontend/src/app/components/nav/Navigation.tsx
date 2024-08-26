@@ -15,6 +15,7 @@ import FullModal from "@/app/common/components/FullModal";
 import Link from "next/link";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
 import { createQueryString } from "@/app/utils";
+import debugLib from "debug";
 
 const _menuOptions = [
   {
@@ -32,22 +33,26 @@ const Navigation = () => {
   const { stateManager } = useStoreContext();
   const [shopManifest, setShopManifest] = useState<ShopManifest | null>(null);
   const { ensName } = useMyContext();
-
   const searchParams = useSearchParams();
-
   const router = useRouter();
+  const debug = debugLib("frontend:navigation");
 
   useEffect(() => {
     function onUpdateEvent(manifest: ShopManifest) {
       setShopManifest(manifest);
     }
     if (!stateManager) return;
-    (async () => {
-      const shopManifest = await stateManager.manifest.get();
-      setShopManifest(shopManifest);
-      // Listen to future events
-      stateManager.manifest.on("update", onUpdateEvent);
-    })();
+    try {
+      (async () => {
+        const shopManifest = await stateManager.manifest.get();
+        setShopManifest(shopManifest);
+        // Listen to future events
+        stateManager.manifest.on("update", onUpdateEvent);
+      })();
+    } catch (error) {
+      debug(error);
+    }
+
     return () => {
       // Cleanup listeners on unmount
       stateManager.manifest.removeListener("update", onUpdateEvent);

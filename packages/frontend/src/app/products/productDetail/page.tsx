@@ -13,6 +13,7 @@ import { useStoreContext } from "@/context/StoreContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import { useAuth } from "@/context/AuthContext";
+import debugLib from "debug";
 
 const ProductDetail = () => {
   const { stateManager, getOrderId } = useStoreContext();
@@ -37,14 +38,19 @@ const ProductDetail = () => {
   const [currentCartItems, setCurrentCart] = useState<Order["items"] | null>(
     null,
   );
+  const debug = debugLib("frontend:productDetail");
 
   useEffect(() => {
-    (async () => {
-      const id = await getOrderId();
-      setOrderId(id);
-      const ci = (await stateManager.orders.get(id)).items;
-      setCurrentCart(ci);
-    })();
+    try {
+      (async () => {
+        const id = await getOrderId();
+        setOrderId(id);
+        const ci = (await stateManager.orders.get(id)).items;
+        setCurrentCart(ci);
+      })();
+    } catch (error) {
+      debug(error);
+    }
   }, []);
 
   useEffect(() => {
@@ -70,20 +76,25 @@ const ProductDetail = () => {
         setAvailable(available.quantity);
       }
     };
-    (async () => {
-      if (itemId) {
-        //set item details
-        const i = await stateManager.items.get(itemId);
-        setItem(i);
-        setAvailable(i?.quantity || 0);
-        if (!currentCartItems) return;
-        //Check if item is already added to cart
-        if (itemId in currentCartItems) {
-          setAddedToCart(true);
-          setQuantity(currentCartItems[itemId]);
+    try {
+      (async () => {
+        if (itemId) {
+          //set item details
+          const i = await stateManager.items.get(itemId);
+          setItem(i);
+          setAvailable(i?.quantity || 0);
+          if (!currentCartItems) return;
+          //Check if item is already added to cart
+          if (itemId in currentCartItems) {
+            setAddedToCart(true);
+            setQuantity(currentCartItems[itemId]);
+          }
         }
-      }
-    })();
+      })();
+    } catch (error) {
+      debug(error);
+    }
+
     stateManager.items.on("changeStock", onChangeStock);
 
     return () => {
@@ -96,19 +107,24 @@ const ProductDetail = () => {
       allTags.set(tag.id, tag);
       setAllTags(allTags);
     };
-    (async () => {
-      const tags = new Map();
-      for await (const [id, tag] of stateManager.tags.iterator()) {
-        tags.set(id, tag);
-        if (tag.name === "remove") {
-          setRemoveTagId(id as TagId);
+    try {
+      (async () => {
+        const tags = new Map();
+        for await (const [id, tag] of stateManager.tags.iterator()) {
+          tags.set(id, tag);
+          if (tag.name === "remove") {
+            setRemoveTagId(id as TagId);
+          }
         }
-      }
-      setAllTags(tags);
+        setAllTags(tags);
 
-      // Listen to future events
-      stateManager.tags.on("create", onCreateTag);
-    })();
+        // Listen to future events
+        stateManager.tags.on("create", onCreateTag);
+      })();
+    } catch (error) {
+      debug(error);
+    }
+
     return () => {
       // Cleanup listeners on unmount
       stateManager.items.removeListener("create", onCreateTag);
@@ -121,6 +137,7 @@ const ProductDetail = () => {
       await stateManager!.orders.changeItems(orderId, itemId, quantity);
       setButton("Review");
     } catch (error) {
+      debug(error);
       setShowErrorMessage("There was an error updating cart");
     }
   };
@@ -155,6 +172,7 @@ const ProductDetail = () => {
       await stateManager!.items.addItemToTag(removeTagId, itemId);
       router.push("/products");
     } catch (error) {
+      debug(error);
       setShowErrorMessage("There was an error removing tag from Item.");
     }
   };

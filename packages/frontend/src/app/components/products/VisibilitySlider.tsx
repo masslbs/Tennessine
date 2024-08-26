@@ -4,8 +4,8 @@
 
 import { useStoreContext } from "@/context/StoreContext";
 import React, { useEffect, useState, Dispatch, SetStateAction } from "react";
-
 import { Tag } from "@/types";
+import debugLib from "debug";
 
 const VisibilitySlider = ({
   selectedTags,
@@ -20,12 +20,17 @@ const VisibilitySlider = ({
   const [selectedOption, setSelectedOption] = useState<number>(1);
   const [selected, setAll] = useState<Tag[]>([]);
   const [pId, setPublishedTagId] = useState<`0x${string}` | null>(null);
+  const debug = debugLib("frontend:visibilitySlider");
 
   useEffect(() => {
-    (async () => {
-      const shopManifest = await stateManager.manifest.get();
-      setPublishedTagId(shopManifest.publishedTagId);
-    })();
+    try {
+      (async () => {
+        const shopManifest = await stateManager.manifest.get();
+        setPublishedTagId(shopManifest.publishedTagId);
+      })();
+    } catch (error) {
+      debug(error);
+    }
   }, []);
 
   useEffect(() => {

@@ -13,18 +13,24 @@ import Image from "next/image";
 import { createQueryString } from "@/app/utils";
 import { useSearchParams } from "next/navigation";
 import { Status, Order } from "@/types";
+import debugLib from "debug";
 
 const MerchantDashboard = () => {
   const { stateManager } = useStoreContext();
   const searchParams = useSearchParams();
   const [name, setName] = useState("");
   const [orders, setOrders] = useState(new Map());
+  const debug = debugLib("frontend:merchantDashboard");
 
   useEffect(() => {
-    (async () => {
-      const shopManifest = await stateManager.manifest.get();
-      setName(shopManifest.name);
-    })();
+    try {
+      (async () => {
+        const shopManifest = await stateManager.manifest.get();
+        setName(shopManifest.name);
+      })();
+    } catch (error) {
+      debug(error);
+    }
   }, []);
 
   useEffect(() => {
@@ -36,17 +42,22 @@ const MerchantDashboard = () => {
       orders.set(order.id, order);
       setOrders(orders);
     };
-    (async () => {
-      const allOrders = new Map();
-      for await (const [id, o] of stateManager.orders.iterator()) {
-        if (id.slice(0, 2) === "0x") {
-          allOrders.set(id, o);
+    try {
+      (async () => {
+        const allOrders = new Map();
+        for await (const [id, o] of stateManager.orders.iterator()) {
+          if (id.slice(0, 2) === "0x") {
+            allOrders.set(id, o);
+          }
         }
-      }
-      setOrders(allOrders);
-      stateManager.orders.on("create", onCreateOrder);
-      stateManager.orders.on("update", onUpdateOrder);
-    })();
+        setOrders(allOrders);
+        stateManager.orders.on("create", onCreateOrder);
+        stateManager.orders.on("update", onUpdateOrder);
+      })();
+    } catch (error) {
+      debug(error);
+    }
+
     return () => {
       // Cleanup listeners on unmount
       stateManager.orders.removeListener("create", onCreateOrder);

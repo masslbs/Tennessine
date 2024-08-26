@@ -18,6 +18,7 @@ import SecondaryButton from "@/app/common/components/SecondaryButton";
 import CartButton from "@/app/components/checkout/CartButton";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import debugLib from "debug";
 
 const Products = () => {
   const searchParams = useSearchParams();
@@ -39,13 +40,18 @@ const Products = () => {
   const [allTags, setAllTags] = useState(new Map());
   const [removeTagId, setRemoveTagId] = useState<null | TagId>(null);
   const { isMerchantView } = useAuth();
+  const debug = debugLib("frontend:products");
 
   useEffect(() => {
-    (async () => {
-      const shopManifest = await stateManager.manifest.get();
-      setPublishedTagId(shopManifest.publishedTagId);
-      setStoreName(shopManifest.name);
-    })();
+    try {
+      (async () => {
+        const shopManifest = await stateManager.manifest.get();
+        setPublishedTagId(shopManifest.publishedTagId);
+        setStoreName(shopManifest.name);
+      })();
+    } catch (error) {
+      debug(error);
+    }
   }, []);
 
   useEffect(() => {
@@ -71,19 +77,24 @@ const Products = () => {
       products.set(item.id, item);
       setProducts(products);
     };
-    (async () => {
-      const listings = new Map();
-      for await (const [id, item] of stateManager.items.iterator()) {
-        listings.set(id, item);
-      }
-      setProducts(listings);
+    try {
+      (async () => {
+        const listings = new Map();
+        for await (const [id, item] of stateManager.items.iterator()) {
+          listings.set(id, item);
+        }
+        setProducts(listings);
 
-      // Listen to future events
-      stateManager.items.on("create", onCreateEvent);
-      stateManager.items.on("update", onUpdateEvent);
-      stateManager.items.on("addItemId", onAddItemId);
-      stateManager.items.on("removeItemId", onRemoveItemId);
-    })();
+        // Listen to future events
+        stateManager.items.on("create", onCreateEvent);
+        stateManager.items.on("update", onUpdateEvent);
+        stateManager.items.on("addItemId", onAddItemId);
+        stateManager.items.on("removeItemId", onRemoveItemId);
+      })();
+    } catch (error) {
+      debug(error);
+    }
+
     return () => {
       // Cleanup listeners on unmount
       stateManager.items.removeListener("create", onCreateEvent);
@@ -98,19 +109,23 @@ const Products = () => {
       allTags.set(tag.id, tag);
       setAllTags(allTags);
     };
-    (async () => {
-      const tags = new Map();
-      for await (const [id, tag] of stateManager.tags.iterator()) {
-        tags.set(id, tag);
-        if (tag.name === "remove") {
-          setRemoveTagId(id as TagId);
+    try {
+      (async () => {
+        const tags = new Map();
+        for await (const [id, tag] of stateManager.tags.iterator()) {
+          tags.set(id, tag);
+          if (tag.name === "remove") {
+            setRemoveTagId(id as TagId);
+          }
         }
-      }
-      setAllTags(tags);
+        setAllTags(tags);
 
-      // Listen to future events
-      stateManager.tags.on("create", onCreateEvent);
-    })();
+        // Listen to future events
+        stateManager.tags.on("create", onCreateEvent);
+      })();
+    } catch (error) {
+      debug(error);
+    }
 
     return () => {
       // Cleanup listeners on unmount

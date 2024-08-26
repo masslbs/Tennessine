@@ -15,6 +15,7 @@ import SecondaryButton from "@/app/common/components/SecondaryButton";
 import { ShopManifest, ShopCurrencies, TokenAddr } from "@/types";
 import { sepolia, hardhat } from "viem/chains";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
+import debugLib from "debug";
 
 const StoreProfile = ({ close }: { close: () => void }) => {
   const { stateManager } = useStoreContext();
@@ -36,6 +37,7 @@ const StoreProfile = ({ close }: { close: () => void }) => {
   const [baseChainId, setBaseChainId] = useState<number>(
     chainName === "sepolia" ? sepolia.id : hardhat.id,
   );
+  const debug = debugLib("frontend:storeProfile");
 
   useEffect(() => {
     const onUpdateEvent = async (updatedManifest: ShopManifest) => {
@@ -43,12 +45,17 @@ const StoreProfile = ({ close }: { close: () => void }) => {
       setStoreName(updatedManifest.name);
       setStoreBase(updatedManifest.setBaseCurrency!.tokenAddr);
     };
-    (async () => {
-      const shopManifest = await stateManager.manifest.get();
-      setStoreName(shopManifest.name);
-      setStoreBase(shopManifest.setBaseCurrency!.tokenAddr);
-      setAcceptedCurrencies(shopManifest.acceptedCurrencies);
-    })();
+    try {
+      (async () => {
+        const shopManifest = await stateManager.manifest.get();
+        setStoreName(shopManifest.name);
+        setStoreBase(shopManifest.setBaseCurrency!.tokenAddr);
+        setAcceptedCurrencies(shopManifest.acceptedCurrencies);
+      })();
+    } catch (error) {
+      debug(error);
+    }
+
     stateManager.manifest.on("update", onUpdateEvent);
     return () => {
       // Cleanup listeners on unmount
@@ -65,20 +72,23 @@ const StoreProfile = ({ close }: { close: () => void }) => {
     } else if (!baseChainId) {
       setError(`Missing base currency chainId for store.`);
     } else {
-      const manifest: Partial<ShopManifest> = {
-        name: storeName,
-        setBaseCurrency: {
-          tokenAddr: baseAddr as TokenAddr,
-          chainId: baseChainId,
-        },
-      };
-      if (avatar) {
-        const path = await relayClient!.uploadBlob(avatar as FormData);
-        manifest["profilePictureUrl"] = path.url;
+      try {
+        const manifest: Partial<ShopManifest> = {
+          name: storeName,
+          setBaseCurrency: {
+            tokenAddr: baseAddr as TokenAddr,
+            chainId: baseChainId,
+          },
+        };
+        if (avatar) {
+          const path = await relayClient!.uploadBlob(avatar as FormData);
+          manifest["profilePictureUrl"] = path.url;
+        }
+        await stateManager!.manifest.update(manifest);
+        close();
+      } catch (error) {
+        debug(error);
       }
-
-      await stateManager!.manifest.update(manifest);
-      close();
     }
   };
   const renderAcceptedCurrencies = () => {
@@ -104,7 +114,7 @@ const StoreProfile = ({ close }: { close: () => void }) => {
           ],
         });
       } catch (error) {
-        console.log({ error });
+        debug(error);
         setAddTokenAddr("");
         setError("Failed to add accepted currency");
       }

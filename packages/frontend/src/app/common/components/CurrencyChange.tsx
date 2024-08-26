@@ -7,18 +7,25 @@
 import { useStoreContext } from "@/context/StoreContext";
 import { ShopCurrencies } from "@/types";
 import React, { useEffect, useState } from "react";
+import debugLib from "debug";
 
 const CurrencyChange = ({ open }: { open: boolean }) => {
   if (!open) return null;
+  const debug = debugLib("frontend:currencyChange");
+
   const { selectedCurrency, setSelectedCurrency, stateManager } =
     useStoreContext();
   const [acceptedCurrencies, setAcceptedChain] = useState<ShopCurrencies[]>([]);
 
   useEffect(() => {
-    (async () => {
-      const shopManifest = await stateManager.manifest.get();
-      setAcceptedChain(shopManifest.acceptedCurrencies);
-    })();
+    try {
+      (async () => {
+        const shopManifest = await stateManager.manifest.get();
+        setAcceptedChain(shopManifest.acceptedCurrencies);
+      })();
+    } catch (error) {
+      debug(error);
+    }
   }, []);
 
   const renderCurrencies = () => {

@@ -7,17 +7,23 @@ import Image from "next/image";
 import { useStoreContext } from "@/context/StoreContext";
 import Link from "next/link";
 import { Order } from "@/types";
+import debugLib from "debug";
 
 const CartButton = () => {
   const { stateManager, getOrderId } = useStoreContext();
   const [cartItemIds, setItemIds] = useState<Order["items"] | null>(null);
+  const debug = debugLib("frontend:cartButton");
 
   useEffect(() => {
-    (async () => {
-      const id = await getOrderId();
-      const ci = (await stateManager.orders.get(id)).items;
-      setItemIds(ci);
-    })();
+    try {
+      (async () => {
+        const id = await getOrderId();
+        const ci = (await stateManager.orders.get(id)).items;
+        setItemIds(ci);
+      })();
+    } catch (error) {
+      debug(error);
+    }
   }, []);
 
   const cartItemsArr = cartItemIds ? Object.values(cartItemIds) : [];
