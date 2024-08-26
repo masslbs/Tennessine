@@ -16,6 +16,8 @@ import { ShopManifest, ShopCurrencies, TokenAddr } from "@/types";
 import { sepolia, hardhat } from "viem/chains";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import debugLib from "debug";
+import ValidationWarning from "@/app/common/components/ValidationWarning";
+import { isValidHex } from "@/app/utils";
 
 const StoreProfile = ({ close }: { close: () => void }) => {
   const { stateManager } = useStoreContext();
@@ -29,6 +31,7 @@ const StoreProfile = ({ close }: { close: () => void }) => {
     ShopCurrencies[]
   >([]);
   const [error, setError] = useState<null | string>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const chainName = process.env.NEXT_PUBLIC_CHAIN_NAME!;
   const [addAcceptedChainId, setAddChainId] = useState<number>(
@@ -70,9 +73,11 @@ const StoreProfile = ({ close }: { close: () => void }) => {
   };
   const updateStoreInfo = async () => {
     if (!baseAddr.length) {
-      setError(`Missing base currency address for store.`);
+      setValidationError("Missing base currency address for store.");
     } else if (!baseChainId) {
-      setError(`Missing base currency chainId for store.`);
+      setValidationError("Missing base currency chainId for store.");
+    } else if (!isValidHex(baseAddr)) {
+      setValidationError("Base token address must be a valid hex value");
     } else {
       try {
         const manifest: Partial<ShopManifest> = {
@@ -95,16 +100,16 @@ const StoreProfile = ({ close }: { close: () => void }) => {
   };
   const renderAcceptedCurrencies = () => {
     return acceptedCurrencies.map((c, i) => (
-      <p data-testid={`accepted-currencies`} key={i}>
+      <p data-testid="accepted-currencies" key={i}>
         {c.tokenAddr}
       </p>
     ));
   };
   const addAcceptedCurrencyFn = async () => {
     if (!addTokenAddr.length) {
-      setError(`Must enter a token address to add`);
+      setValidationError("Must enter a token address to add");
     } else if (!addAcceptedChainId) {
-      setError(`Must enter a token chainId to add`);
+      setValidationError("Must enter a token chainId to add");
     } else {
       try {
         await stateManager!.manifest.update({
@@ -127,14 +132,18 @@ const StoreProfile = ({ close }: { close: () => void }) => {
     <section className="pt-under-nav h-screen">
       <ModalHeader headerText="Store Profile" goBack={close} />
       <section className="flex flex-col h-5/6">
-        {error && (
-          <ErrorMessage
-            errorMessage={error}
-            onClose={() => {
-              setError(null);
-            }}
-          />
-        )}
+        <ErrorMessage
+          errorMessage={error}
+          onClose={() => {
+            setError(null);
+          }}
+        />
+        <ValidationWarning
+          warningMessage={validationError}
+          onClose={() => {
+            setValidationError(null);
+          }}
+        />
         <AvatarUpload setImgBlob={setAvatar} />
         <div className="m-4">
           <p className="font-sans">General</p>

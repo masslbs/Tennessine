@@ -19,7 +19,7 @@ const PaymentOptions = ({
   name,
   address,
   city,
-  zip,
+  postalCode,
   country,
   number,
   erc20Amount,
@@ -32,7 +32,7 @@ const PaymentOptions = ({
   name: string;
   address: string;
   city: string;
-  zip: string;
+  postalCode: string;
   country: string;
   number: string;
   erc20Amount: bigint | null;
@@ -61,7 +61,7 @@ const PaymentOptions = ({
               <p>{name}</p>
               <p>{number}</p>
               <p>
-                {address}, {city}, {country}, {zip}
+                {address}, {city}, {country}, {postalCode}
               </p>
             </div>
             <div className="ml-auto">

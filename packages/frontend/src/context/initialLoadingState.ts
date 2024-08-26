@@ -88,4 +88,5 @@ class LoadingManager<T> extends EventEmitter {
   async removeItemFromTag() {}
   async changeStock() {}
   async getStatus() {}
+  async updateShippingDetails() {}
 }

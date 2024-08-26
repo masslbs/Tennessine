@@ -15,6 +15,7 @@ import VisibilitySlider from "@/app/components/products/VisibilitySlider";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
 import { useMyContext } from "@/context/MyContext";
 import debugLib from "debug";
+import ValidationWarning from "@/app/common/components/ValidationWarning";
 
 const AddProductView = () => {
   const router = useRouter();
@@ -30,7 +31,8 @@ const AddProductView = () => {
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [units, setUnits] = useState<number>(0);
-  const [error, setError] = useState<null | string>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const debug = debugLib("frontend:products:edit");
 
@@ -47,6 +49,7 @@ const AddProductView = () => {
           setUnits(item.quantity);
         })
         .catch((e) => {
+          setErrorMsg("Error while updating image.");
           debug(e);
         });
     }
@@ -80,6 +83,7 @@ const AddProductView = () => {
   const onBack = () => {
     router.push(`/products`);
   };
+
   const handleUpload = (e: ChangeEvent<HTMLInputElement>) => {
     try {
       const fileInput = e.target;
@@ -118,6 +122,7 @@ const AddProductView = () => {
         });
       }
     } catch (error) {
+      setErrorMsg("Error while creating listing.");
       debug(error);
     }
   };
@@ -162,19 +167,20 @@ const AddProductView = () => {
         );
       }
     } catch (error) {
+      setErrorMsg("Error while updating listing.");
       debug(error);
     }
   };
 
   const onPublish = async () => {
     if (!price) {
-      setError("Product must include price.");
+      setValidationError("Product must include price.");
     } else if (!title) {
-      setError("Product must include title.");
+      setValidationError("Product must include title.");
     } else if (!imgSrc) {
-      setError("Product must include image.");
+      setValidationError("Product must include image.");
     } else if (productInView && !productInView.id) {
-      setError("Product id is missing.");
+      setValidationError("Product id is missing.");
     } else {
       try {
         const path = imgAsBlob
@@ -194,7 +200,7 @@ const AddProductView = () => {
         router.push(`/products`);
       } catch (error) {
         debug(`Error while saving item:${error}`);
-        setError("Error while saving item");
+        setErrorMsg("Error while saving item");
       }
     }
   };
@@ -245,14 +251,18 @@ const AddProductView = () => {
             <header className="pr-6">{hed}</header>
           </div>
         </div>
-        {error && (
-          <ErrorMessage
-            errorMessage={error}
-            onClose={() => {
-              setError(null);
-            }}
-          />
-        )}
+        <ValidationWarning
+          warningMessage={validationError}
+          onClose={() => {
+            setValidationError(null);
+          }}
+        />
+        <ErrorMessage
+          errorMessage={errorMsg}
+          onClose={() => {
+            setErrorMsg(null);
+          }}
+        />
         <section id="content" className="m-4">
           <div className="flex">
             <div className="flex gap-3 items-center">
@@ -405,7 +415,7 @@ const AddProductView = () => {
               <ProductsTags
                 selectedTags={selectedTags}
                 setSelectedTags={setSelectedTags}
-                setError={setError}
+                setError={setErrorMsg}
               />
             </section>
             <VisibilitySlider
