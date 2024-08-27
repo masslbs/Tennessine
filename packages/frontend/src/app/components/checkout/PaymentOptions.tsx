@@ -27,7 +27,7 @@ const PaymentOptions = ({
   imgSrc: string;
   totalDollar: string;
   purchaseAddress: string;
-  cryptoTotal: number;
+  cryptoTotal: bigint;
   symbol: string | null;
   name: string;
   address: string;
@@ -35,7 +35,7 @@ const PaymentOptions = ({
   zip: string;
   country: string;
   number: string;
-  erc20Amount: number | null;
+  erc20Amount: bigint | null;
 }) => {
   const [showPaymentOptions, setShowPaymentOptions] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<"QR" | "Address" | null>(null);

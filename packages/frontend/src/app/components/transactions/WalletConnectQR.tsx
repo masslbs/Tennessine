@@ -15,7 +15,7 @@ function WalletConnectQR({
   cryptoTotal,
 }: {
   purchaseAddress: string;
-  cryptoTotal: number;
+  cryptoTotal: bigint;
 }) {
   const [signClient, setSignClient] = useState<null | ISignClient>(null);
   const [session, setSession] = useState<SessionTypes.Struct | null>(null);

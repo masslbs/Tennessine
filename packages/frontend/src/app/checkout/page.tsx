@@ -32,7 +32,7 @@ const CheckoutFlow = () => {
   const [imgSrc, setSrc] = useState<null | string>(null);
 
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
-  const [cryptoTotal, setCryptoTotal] = useState<number | null>(null);
+  const [cryptoTotal, setCryptoTotal] = useState<bigint | null>(null);
   const [purchaseAddress, setPurchaseAddr] = useState<string | null>(null);
   const [totalDollar, setTotalDollar] = useState<string | null>(null);
   const [city, setCity] = useState("");
@@ -44,7 +44,7 @@ const CheckoutFlow = () => {
   const [confirmedTxHash, setConfirmedTxHash] = useState<null | `0x${string}`>(
     null,
   );
-  const [erc20Amount, setErc20Amount] = useState<null | number>(null);
+  const [erc20Amount, setErc20Amount] = useState<null | bigint>(null);
   const [symbol, setSymbol] = useState<null | string>(null);
   const [openCurrencySelection, setOpen] = useState(false);
   const [orderId, setOrderId] = useState<OrderId | null>(null);
@@ -151,8 +151,8 @@ const CheckoutFlow = () => {
       );
       setSymbol(symbol);
       if (purchaseAdd) {
-        const amount = Number(totalInCrypto);
-        const _erc20Amount = amount / Math.pow(10, decimals);
+        const amount = BigInt(totalInCrypto);
+        const displayedErc20 = amount / BigInt(10) ** BigInt(decimals);
         const payLink =
           currencyAddr === zeroAddress
             ? `ethereum:${purchaseAdd}?value=${amount}`
@@ -160,7 +160,7 @@ const CheckoutFlow = () => {
         setPurchaseAddr(purchaseAdd as `0x${string}`);
         setSrc(payLink);
         setCryptoTotal(amount);
-        setErc20Amount(_erc20Amount);
+        setErc20Amount(displayedErc20);
         setTotalDollar(total);
         setStep(2);
       }
