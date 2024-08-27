@@ -47,7 +47,7 @@ function QRScan({
           </div>
           <p className="text-primary-gray">scan to pay</p>
           <h2>
-            {erc20Amount} {symbol}
+            {Number(erc20Amount)} {symbol}
           </h2>
         </div>
       ) : (

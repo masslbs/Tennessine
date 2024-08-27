@@ -27,7 +27,7 @@ const PaymentOptions = ({
   imgSrc: string;
   totalDollar: string;
   purchaseAddress: string;
-  cryptoTotal: number;
+  cryptoTotal: bigint;
   symbol: string | null;
   name: string;
   address: string;
