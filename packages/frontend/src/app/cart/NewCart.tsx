@@ -10,6 +10,7 @@ import Button from "@/app/common/components/Button";
 import { ItemId, OrderId, Order } from "@/types";
 import { useRouter } from "next/navigation";
 import { useMyContext } from "@/context/MyContext";
+import debugLib from "debug";
 
 const NewCart = ({
   next,
@@ -26,35 +27,43 @@ const NewCart = ({
   const router = useRouter();
   const { getTokenInformation } = useMyContext();
   const symbolSet = useRef(false);
+  const debug = debugLib("frontend:newCart");
 
   useEffect(() => {
-    (async () => {
-      if (orderId && stateManager) {
-        const cartObjects = new Map();
-        const ci = (await stateManager.orders.get(orderId)).items;
-        await Promise.all(
-          Object.keys(ci).map(async (id) => {
-            const item = await stateManager.items.get(id as ItemId);
-            cartObjects.set(id, item);
-          }),
-        );
-        setCartMap(cartObjects);
-        setItemIds(ci);
-      }
-    })();
+    if (orderId && stateManager) {
+      const cartObjects = new Map();
+      stateManager.orders
+        .get(orderId)
+        .then(async (o) => {
+          const ci = o.items;
+          await Promise.all(
+            Object.keys(ci).map(async (id) => {
+              const item = await stateManager.items.get(id as ItemId);
+              cartObjects.set(id, item);
+            }),
+          );
+          setCartMap(cartObjects);
+          setItemIds(ci);
+        })
+        .catch((e) => debug(e));
+    }
   }, [orderId]);
 
   useEffect(() => {
-    (async () => {
-      const shopManifest = await stateManager.manifest.get();
-      if (shopManifest.setBaseCurrency && !symbolSet.current) {
-        symbolSet.current = true;
-        const { symbol } = await getTokenInformation(
-          shopManifest.setBaseCurrency.tokenAddr,
-        );
-        setCurrencySym(symbol);
-      }
-    })();
+    stateManager.manifest
+      .get()
+      .then(async (shopManifest) => {
+        if (shopManifest.setBaseCurrency && !symbolSet.current) {
+          symbolSet.current = true;
+          const { symbol } = await getTokenInformation(
+            shopManifest.setBaseCurrency.tokenAddr,
+          );
+          setCurrencySym(symbol);
+        }
+      })
+      .catch((e) => {
+        debug(e);
+      });
   }, []);
 
   const checkForErrors = () => {
@@ -66,9 +75,13 @@ const NewCart = ({
   };
 
   const clearCart = async () => {
-    const ids = Object.keys(cartItemIds!);
-    for (const id of ids) {
-      await stateManager?.orders.changeItems(orderId!, id as ItemId, 0);
+    try {
+      const ids = Object.keys(cartItemIds!);
+      for (const id of ids) {
+        await stateManager?.orders.changeItems(orderId!, id as ItemId, 0);
+      }
+    } catch (error) {
+      debug(error);
     }
   };
   const noItems = !orderId || !cartItemIds || !Object.keys(cartItemIds).length;

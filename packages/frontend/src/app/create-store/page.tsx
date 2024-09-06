@@ -16,6 +16,7 @@ import Image from "next/image";
 import { useChains } from "wagmi";
 import { useStoreContext } from "@/context/StoreContext";
 import { BlockchainClient } from "@massmarket/blockchain";
+import debugLib from "debug";
 
 const StoreCreation = () => {
   const {
@@ -36,7 +37,6 @@ const StoreCreation = () => {
   const router = useRouter();
 
   const [storeName, setStoreName] = useState<string>("");
-  // const [storeURL, setStoreURL] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [avatar, setAvatar] = useState<FormData | null>(null);
   const [tokenAddr, setTokenAddr] = useState<string>(zeroAddress);
@@ -47,6 +47,7 @@ const StoreCreation = () => {
 
   const enrollKeycard = useRef(false);
   const randomShopIdHasBeenSet = useRef(false);
+  const debug = debugLib("frontend:create-store");
 
   useEffect(() => {
     if (clientWallet?.account.address) {
@@ -108,7 +109,6 @@ const StoreCreation = () => {
         });
 
         if (transaction!.status == "success") {
-          console.log(`CREATED shopId: ${shopId}`);
           localStorage.setItem("shopId", shopId!);
           const hasAccess = await checkPermissions();
 
@@ -128,7 +128,6 @@ const StoreCreation = () => {
               setIsMerchantView(true);
               setRelayClient(rc);
               localStorage.setItem("merchantKeyCard", keyCardToEnroll);
-              console.log(`keycard enrolled:${keyCardToEnroll}`);
               setKeyCardEnrolled(true);
               setStoreCreated(true);
             } else {
@@ -138,10 +137,10 @@ const StoreCreation = () => {
           }
         }
       } catch (err) {
-        console.log("error creating store", err);
+        debug(`Error while creating store: ${err}`);
       }
     } else {
-      console.error("unable to create store. clients undefined:");
+      debug(`Client undefined`);
     }
   };
 
@@ -152,73 +151,80 @@ const StoreCreation = () => {
       isStoreCreated &&
       isConnected == Status.Complete
     ) {
-      (async () => {
-        await stateManager.manifest.create(
+      stateManager.manifest
+        .create(
           {
             name: storeName,
             description,
           },
           shopId,
-        );
-        console.log(`Shop Manifested with shopId:${shopId}`);
-        // Create published and remove tags
-        const newPubId = await stateManager.tags.create("visible");
-        await stateManager.tags.create("remove");
+        )
+        .catch((e) => {
+          debug(e);
+        });
 
-        //Testing dom does not support FormData and test client will fail with:
-        //Content-Type isn't multipart/form-data
-        //so if it is a test env, we are skipping uploadBlob
-        const path = process.env.TEST
-          ? { url: "/" }
-          : await relayClient!.uploadBlob(avatar as FormData);
+      // Create published and remove tags + update shopManifest and metadata
+      stateManager.tags
+        .create("visible")
+        .then(async (newPubId) => {
+          await stateManager.tags.create("remove");
 
-        if (newPubId && path.url) {
-          await stateManager.manifest.update({
-            publishedTagId: newPubId.id,
-            setBaseCurrency: {
-              tokenAddr: tokenAddr as `0x${string}`,
-              chainId,
-            },
-            addAcceptedCurrencies: [
-              {
+          //Testing dom does not support FormData and test client will fail with:
+          //Content-Type isn't multipart/form-data
+          //so if it is a test env, we are skipping uploadBlob
+          const path = process.env.TEST
+            ? { url: "/" }
+            : await relayClient!.uploadBlob(avatar as FormData);
+
+          if (newPubId && path.url) {
+            await stateManager.manifest.update({
+              publishedTagId: newPubId.id,
+              setBaseCurrency: {
                 tokenAddr: tokenAddr as `0x${string}`,
                 chainId,
               },
-            ],
-            addPayee: {
-              addr: payeeAddr as `0x${string}`,
-              callAsContract: false,
-              chainId,
-              name: "default",
-            },
-            profilePictureUrl: path.url,
-          });
-          console.log(`UPDATED Manifest shopId:${shopId}`);
-        }
+              addAcceptedCurrencies: [
+                {
+                  tokenAddr: tokenAddr as `0x${string}`,
+                  chainId,
+                },
+              ],
+              addPayee: {
+                addr: payeeAddr as `0x${string}`,
+                callAsContract: false,
+                chainId,
+                name: "default",
+              },
+              profilePictureUrl: path.url,
+            });
+          }
 
-        const metadata = {
-          name: storeName,
-          description: description,
-          image: path.url,
-        };
-        const jsn = JSON.stringify(metadata);
-        const blob = new Blob([jsn], { type: "application/json" });
-        const file = new File([blob], "file.json");
-        const formData = new FormData();
-        formData.append("file", file);
-        //Testing dom does not support FormData and test client will fail with:
-        //Content-Type isn't multipart/form-data
-        //so if it is a test env, we are skipping uploadBlob
-        const { url } = process.env.TEST
-          ? { url: "/" }
-          : await relayClient.uploadBlob(formData);
-        if (clientWallet && url) {
-          const blockchainClient = new BlockchainClient(shopId);
-          await blockchainClient.setShopMetadataURI(clientWallet, url);
-        }
+          const metadata = {
+            name: storeName,
+            description: description,
+            image: path.url,
+          };
+          const jsn = JSON.stringify(metadata);
+          const blob = new Blob([jsn], { type: "application/json" });
+          const file = new File([blob], "file.json");
+          const formData = new FormData();
+          formData.append("file", file);
+          //Testing dom does not support FormData and test client will fail with:
+          //Content-Type isn't multipart/form-data
+          //so if it is a test env, we are skipping uploadBlob
+          const { url } = process.env.TEST
+            ? { url: "/" }
+            : await relayClient.uploadBlob(formData);
+          if (clientWallet && url) {
+            const blockchainClient = new BlockchainClient(shopId);
+            await blockchainClient.setShopMetadataURI(clientWallet, url);
+          }
 
-        router.push("/products");
-      })();
+          router.push("/products");
+        })
+        .catch((e) => {
+          debug(e);
+        });
     }
   }, [isConnected, isStoreCreated, stateManager]);
 
