@@ -36,7 +36,7 @@ const ProductsTags = ({
   const debug = debugLib("frontend:productTags");
 
   useEffect(() => {
-    const set = async () => {
+    const setAllTagsFn = async () => {
       const tags = new Map();
       for await (const [id, tag] of stateManager.tags.iterator()) {
         tags.set(id, tag);
@@ -45,12 +45,14 @@ const ProductsTags = ({
     };
 
     const onCreateEvent = async () => {
-      await set();
+      await setAllTagsFn();
     };
 
-    set().catch((e) => {
-      debug(e);
-    });
+    setAllTagsFn()
+      .then()
+      .catch((e) => {
+        debug(e);
+      });
 
     // Listen to future events
     stateManager.tags.on("create", onCreateEvent);

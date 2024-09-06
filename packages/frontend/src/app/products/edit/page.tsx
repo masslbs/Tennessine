@@ -53,18 +53,18 @@ const AddProductView = () => {
   }, []);
 
   useEffect(() => {
-    const getSelectedTags = async () => {
-      const selected = [];
-      for (const id of productInView!.tags) {
-        const t = (await stateManager.tags.get(id)) as Tag;
-        selected.push(t);
-      }
-      return selected;
-    };
+    const selected: Tag[] = [];
+
     if (productInView) {
-      getSelectedTags().then((selected) => {
-        setSelectedTags(selected);
-      });
+      for (const id of productInView!.tags) {
+        stateManager.tags
+          .get(id)
+          .then((tag: Tag) => {
+            selected.push(tag);
+          })
+          .catch((e) => debug(e));
+      }
+      setSelectedTags(selected);
     }
   }, [productInView]);
 

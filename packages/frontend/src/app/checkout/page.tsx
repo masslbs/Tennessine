@@ -60,13 +60,19 @@ const CheckoutFlow = () => {
   };
   useEffect(() => {
     getOrderId()
-      .then(async (id) => {
-        const o = await stateManager.orders.get(id);
+      .then((id) => {
         setOrderId(id);
-        setCurrentOrder(o);
-        if (o.orderFinalized) {
-          getDetails(id);
-        }
+        stateManager.orders
+          .get(id)
+          .then((order) => {
+            if (order.orderFinalized) {
+              getDetails(id);
+            }
+            setCurrentOrder(order);
+          })
+          .catch((e) => {
+            debug(e);
+          });
       })
       .catch((e) => {
         debug(e);

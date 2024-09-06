@@ -17,8 +17,14 @@ const CartButton = () => {
   useEffect(() => {
     getOrderId()
       .then(async (id) => {
-        const ci = (await stateManager.orders.get(id)).items;
-        setItemIds(ci);
+        stateManager.orders
+          .get(id)
+          .then((order) => {
+            setItemIds(order.items);
+          })
+          .catch((e) => {
+            debug(e);
+          });
       })
       .catch((e) => {
         debug(e);
