@@ -66,6 +66,9 @@ const StoreCreation = () => {
       setKeyCardEnrolled(false);
       setShopId(randomShopId);
     }
+    return () => {
+      randomShopIdHasBeenSet.current = false;
+    };
   }, []);
 
   const checkRequiredFields = () => {
@@ -98,7 +101,7 @@ const StoreCreation = () => {
   const createShop = async () => {
     checkRequiredFields();
     const rc = await createNewRelayClient();
-    if (rc && publicClient && clientWallet) {
+    if (rc && publicClient && clientWallet && shopId) {
       try {
         const blockchainClient = new BlockchainClient(shopId);
         const hash = await blockchainClient.createShop(clientWallet);
@@ -147,6 +150,7 @@ const StoreCreation = () => {
   useEffect(() => {
     if (
       relayClient &&
+      shopId &&
       stateManager &&
       isStoreCreated &&
       isConnected == Status.Complete

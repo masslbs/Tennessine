@@ -20,8 +20,8 @@ export type ClientContext = {
   relayClient: RelayClient | null;
   publicClient: PublicClient | null;
   inviteSecret: `0x${string}` | null;
-  shopId: ShopId;
-  setShopId: Dispatch<SetStateAction<ShopId>>;
+  shopId: ShopId | null;
+  setShopId: Dispatch<SetStateAction<ShopId | null>>;
   setKeyCardEnrolled: Dispatch<SetStateAction<boolean>>;
   setInviteSecret: Dispatch<SetStateAction<`0x${string}` | null>>;
   setWallet: Dispatch<SetStateAction<WalletClientWithAccount | null>>;
