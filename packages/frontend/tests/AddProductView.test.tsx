@@ -21,10 +21,6 @@ describe("Add New Product", async () => {
       },
       randomAddress(),
     );
-
-    await sm.manifest.update({
-      publishedTagId: tag.id,
-    });
   });
 
   test("Create new product", async () => {
@@ -58,9 +54,9 @@ describe("Add New Product", async () => {
     let count = 0;
     for await (const [id, item] of sm.items.iterator()) {
       count++;
-      expect(item.metadata.title).toEqual("Brand New Store Name");
-      expect(item.price).toEqual("4.00");
-      expect(item.metadata.description).toEqual("Description...");
+      expect(item.baseInfo.title).toEqual("Brand New Store Name");
+      expect(item.basePrice).toEqual("4.00");
+      expect(item.baseInfo.description).toEqual("Description...");
       expect(item.quantity).toEqual(5);
     }
     expect(count).toEqual(1);
@@ -72,11 +68,11 @@ describe("Add New Product", async () => {
   });
   test("Edit product", async () => {
     const { id } = await sm.items.create({
-      price: "12.00",
-      metadata: {
+      basePrice: "12.00",
+      baseInfo: {
         title: "Test Item 1",
         description: "Test description 1",
-        image: "https://http.cat/images/201.jpg",
+        images: ["https://http.cat/images/201.jpg"],
       },
     });
     mockRouter.push(`?itemId=${id}`);
@@ -117,9 +113,9 @@ describe("Add New Product", async () => {
 
     const item = await sm.items.get(id);
     expect(item.quantity).toEqual(5);
-    expect(item.metadata.title).toEqual("Updated Store Name");
-    expect(item.metadata.description).toEqual("Updated description");
-    expect(item.price).toEqual("54.00");
+    expect(item.baseInfo.title).toEqual("Updated Store Name");
+    expect(item.baseInfo.description).toEqual("Updated description");
+    expect(item.basePrice).toEqual("54.00");
     expect(item.tags[0]).toEqual(tag.id);
   });
 });

@@ -19,8 +19,8 @@ const loadingOrders = {
 };
 const loadingItem = {
   id,
-  price: "",
-  metadata: {
+  basePrice: "",
+  baseInfo: {
     title: "",
     description: "",
     image: "",
@@ -86,7 +86,7 @@ class LoadingManager<T> extends EventEmitter {
   async changeItems() {}
   async addItemToTag() {}
   async removeItemFromTag() {}
-  async changeStock() {}
+  async changeInventory() {}
   async getStatus() {}
   async updateShippingDetails() {}
 }

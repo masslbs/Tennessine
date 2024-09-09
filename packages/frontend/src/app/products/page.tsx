@@ -142,7 +142,7 @@ const Products = () => {
     if (!products) return;
     const sorted = getSorted();
     const arrayToRender = sorted.filter((item) => {
-      if (!item || !item.metadata?.image) {
+      if (!item || !item.baseInfo?.image) {
         return false;
       } else if (removeTagId && item.tags && item.tags.includes(removeTagId)) {
         return false;
@@ -217,11 +217,11 @@ const Products = () => {
   const renderProducts = () => {
     if (!arrToRender?.length) return null;
     return arrToRender.map((item) => {
-      const { metadata } = item;
-      if (!metadata) return null;
+      const { baseInfo } = item;
+      if (!baseInfo) return null;
       if (searchPhrase?.length) {
         if (
-          !metadata.title.toLowerCase().includes(searchPhrase.toLowerCase())
+          !baseInfo.title.toLowerCase().includes(searchPhrase.toLowerCase())
         ) {
           return;
         }
@@ -240,7 +240,7 @@ const Products = () => {
                 className="text-xs text-center text-ellipsis overflow-hidden self-end"
                 data-testid={`product-name`}
               >
-                {metadata.title}
+                {baseInfo.title}
               </p>
             </div>
             <div className="product-box gap-2 flex flex-col text-center border-2 p-3 rounded-xl bg-white">
@@ -249,7 +249,7 @@ const Products = () => {
                 data-testid={`product-img`}
               >
                 <Image
-                  src={metadata.image || "/assets/no-image.png"}
+                  src={baseInfo.image || "/assets/no-image.png"}
                   width={85}
                   height={60}
                   alt="product-thumb"

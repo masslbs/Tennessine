@@ -9,32 +9,46 @@ export type IRelayClient = Pick<
   | "connect"
   | "sendShopEvent"
   | "createEventStream"
-  | "createItem"
-  | "updateItem"
-  | "createTag"
+  | "listing"
+  | "updateListing"
+  | "tag"
   | "shopManifest"
   | "updateShopManifest"
-  | "changeStock"
+  | "changeInventory"
   | "createOrder"
   | "updateOrder"
   | "commitOrder"
   | "updateTag"
 >;
+export enum OrderState {
+  STATE_UNSPECIFIED = 0,
+  STATE_OPEN = 1,
+  STATE_CANCELED = 2,
+  STATE_COMMITED = 3,
+  STATE_UNPAID = 4,
+  STATE_PAID = 5,
+}
+export enum ListingViewState {
+  LISTING_VIEW_STATE_UNSPECIFIED = 0,
+  LISTING_VIEW_STATE_PUBLISHED = 1,
+  LISTING_VIEW_STATE_DELETED = 2,
+}
 export interface Metadata {
   title: string;
   description: string;
-  image: string;
+  images: string[];
 }
 export interface Item {
-  id: `0x${string}`;
-  price: string;
-  metadata: Metadata;
-  tags: `0x${string}`[];
+  id: number;
+  basePrice: string;
+  baseInfo: Metadata;
+  tags: number[];
   quantity: number;
+  viewState: ListingViewState;
 }
 
 export interface Tag {
-  id: `0x${string}`;
+  id: number;
   name: string;
 }
 
@@ -42,9 +56,9 @@ export interface IError {
   notFound: boolean;
   code: string;
 }
-export type OrdersByStatus = string[];
+export type OrdersByStatus = number[];
 
-export type KeyCard = `0x${string}`;
+export type KeyCard = `0x${string}`[];
 export interface ShippingDetails {
   name: string;
   address1: string;
@@ -52,12 +66,9 @@ export interface ShippingDetails {
   postalCode: string;
   country: string;
   phoneNumber: string;
+  emailAddress: string;
 }
-export enum Status {
-  Failed = "FAILED",
-  Pending = "PENDING",
-  Complete = "COMPLETE",
-}
+
 export interface OrderFinalized {
   orderHash: string;
   currencyAddr: string;
@@ -67,25 +78,33 @@ export interface OrderFinalized {
   shopSignature: string;
   total: string;
 }
+
+export interface PaymentDetails {
+  paymentId: string;
+  total: string;
+}
 export interface Order {
-  id: `0x${string}`;
-  items: { [key: `0x${string}`]: number };
-  status: Status;
+  id: number;
+  items: { [key: string]: number };
+  status: OrderState;
   shippingDetails?: ShippingDetails;
+  invoiceAddress?: ShippingDetails;
   txHash?: string;
   orderFinalized?: OrderFinalized;
+  paymentDetails?: PaymentDetails;
 }
 export interface ShopCurrencies {
-  tokenAddr: `0x${string}`;
+  address: `0x${string}`;
   chainId: number;
 }
-//This interface is used to type a manifest obj for create, and these fields are required.
+//This interface is only for create manifest.
 export interface CreateShopManifest {
-  name: string;
-  description: string;
+  baseCurrency: ShopCurrencies | {};
+  acceptedCurrencies: ShopCurrencies[];
+  payees: Payee[];
 }
 export interface Payee {
-  addr: `0x${string}`;
+  address: `0x${string}`;
   callAsContract: boolean;
   chainId: number;
   name: string;
@@ -93,20 +112,16 @@ export interface Payee {
 //This type is used to store and retrieve the manifest from db. All the fields are required in this case.
 export type ShopManifest = CreateShopManifest & {
   tokenId: `0x${string}` | null;
-  setBaseCurrency: ShopCurrencies | null;
-  acceptedCurrencies: ShopCurrencies[];
-  payee: Payee[];
-  publishedTagId: `0x${string}` | null;
-  profilePictureUrl: string;
 };
 
 //These UpdateShopManifest properties are only for updating the manifest and not properties on the store state.
-//payee in type ShopManifest stores the actual state, while these update properties are for the update client request.
+//i.e. payees in type ShopManifest stores the actual state, while these update properties are for the update client request.
 export interface UpdateShopManifest {
   removePayee?: Payee;
   addPayee?: Payee;
   addAcceptedCurrencies?: ShopCurrencies[];
   removeAcceptedCurrencies?: ShopCurrencies[];
+  setBaseCurrency?: ShopCurrencies | null;
 }
 export type ShopObjectTypes =
   | Item

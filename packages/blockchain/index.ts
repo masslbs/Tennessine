@@ -13,7 +13,7 @@ import {
 } from "viem";
 
 import * as abi from "@massmarket/contracts";
-import { eventId } from "@massmarket/utils";
+import { random32BytesHex } from "@massmarket/utils";
 import { privateKeyToAccount } from "viem/accounts";
 
 export type WalletClientWithAccount = WalletClient<
@@ -25,7 +25,7 @@ export type WalletClientWithAccount = WalletClient<
 };
 
 export class BlockchainClient {
-  constructor(public shopId = bytesToHex(eventId())) {}
+  constructor(public shopId = random32BytesHex()) {}
 
   createShop(wallet: WalletClientWithAccount) {
     return wallet.writeContract({
