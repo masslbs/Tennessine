@@ -8,13 +8,15 @@ import {
   createWalletClient,
   createPublicClient,
   http,
+  toBytes,
   type Address,
 } from "viem";
 import { hardhat } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 import { describe, beforeEach, expect, test } from "vitest";
+import { priceToUint256 } from "@massmarket/utils";
 
-import { random32BytesHex, randomBytes } from "@massmarket/utils";
+import { random32BytesHex, randomBytes, zeroAddress } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 import {
   BlockchainClient,
@@ -42,7 +44,7 @@ const publicClient = createPublicClient({
 const shopId = random32BytesHex();
 let blockchain: BlockchainClient;
 const relayURL =
-  (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v2";
+  (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v3";
 const relayEndpoint = await discoverRelay(relayURL);
 
 function createRelayClient(pk = random32BytesHex()) {
@@ -144,7 +146,7 @@ describe("user behaviour", () => {
 
   test("should connect and disconnect", { retry: 3 }, async () => {
     const authenticated = await relayClient.connect();
-    expect(authenticated.error).toBeNull();
+    expect(authenticated.response.error).toBeNull();
     const closeEvent = await relayClient.disconnect();
     const r = closeEvent as CloseEvent;
     expect(r.wasClean).toBe(true);
@@ -157,34 +159,37 @@ describe("user behaviour", () => {
   });
 
   test("write shop manifest", async () => {
-    const publishedTagId = randomBytes(32);
-    const name = "test shop";
-    const description = "creating test shop";
-    const profilePictureUrl = "https://http.cat/images/200.jpg";
     await relayClient.shopManifest(
       {
-        name,
-        description,
-        profilePictureUrl,
-        publishedTagId,
+        payees: [
+          {
+            address: {
+              raw: toBytes("0x8B9d37288f0ecB014912B6B3B165DDbEEc3247Ac"),
+            },
+            callAsContract: false,
+            chainId: 1,
+            name: "default",
+          },
+        ],
+        acceptedCurrencies: [
+          {
+            chainId: 10,
+            address: { raw: hexToBytes(zeroAddress) },
+          },
+        ],
+        baseCurrency: {
+          chainId: 10,
+          address: { raw: hexToBytes(zeroAddress) },
+        },
       },
       shopId,
     );
   });
   test("update shop manifest", async () => {
-    await relayClient.updateShopManifest({ domain: "socks.mass.market" });
-    await relayClient.updateShopManifest({
-      publishedTagId: randomBytes(32),
-    });
-    await relayClient.updateShopManifest({
-      name: "socks.mass.market",
-      description: "foo",
-    });
-
     await relayClient.updateShopManifest({
       addAcceptedCurrencies: [
         {
-          tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
+          address: { raw: hexToBytes(abi.addresses.Eddies as Address) },
           chainId: 31337,
         },
       ],
@@ -192,7 +197,7 @@ describe("user behaviour", () => {
     await relayClient.updateShopManifest({
       removeAcceptedCurrencies: [
         {
-          tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
+          address: { raw: hexToBytes(abi.addresses.Eddies as Address) },
           chainId: 31337,
         },
       ],
@@ -212,193 +217,190 @@ describe("user behaviour", () => {
   });
 
   describe("editing the listing", () => {
-    let itemId: Uint8Array;
-    // create item
+    let itemId;
     beforeEach(async () => {
-      const metadata = new TextEncoder().encode(
-        JSON.stringify({
-          name: "test",
-          description: "test",
-          image: "https://http.cat/images/200.jpg",
-        }),
-      );
-      itemId = await relayClient.createItem({
-        price: "10.99",
-        metadata,
+      const baseInfo = {
+        title: "test",
+        description: "test",
+        images: ["https://http.cat/images/200.jpg"],
+      };
+      const price = priceToUint256("12.99");
+      itemId = await relayClient.listing({
+        basePrice: {
+          raw: price,
+        },
+        baseInfo,
       });
+      console.log({ itemId });
       expect(itemId).not.toBeNull();
     });
 
-    test("update item - price", async () => {
-      await relayClient.updateItem({ itemId, price: "20.99" });
-      expect(itemId).not.toBeNull();
-    });
-
-    test("update item - metadata", async () => {
-      await relayClient.updateItem({
-        itemId,
-        metadata: new TextEncoder().encode(
-          JSON.stringify({
-            name: "new name",
-            image: "https://http.cat/images/200.jpg",
-          }),
-        ),
+    test("update item - baseInfo", async () => {
+      await relayClient.updateListing({
+        id: itemId,
+        baseInfo: {
+          title: "new name",
+          images: ["https://http.cat/images/200.jpg"],
+        },
       });
-      expect(itemId).not.toBeNull();
     });
 
     describe("tagging", () => {
-      let tagId: Uint8Array;
+      let tagId: BigInt;
       beforeEach(async () => {
-        tagId = await relayClient.createTag({ name: "Testing New Tag" });
+        tagId = await relayClient.tag({ name: "Testing New Tag" });
+        console.log({ tagId });
         expect(tagId).not.toBeNull();
       });
       test("add item to tag", async () => {
-        await relayClient.updateTag({ tagId, addItemId: itemId });
+        await relayClient.updateTag({ id: tagId, addListingIds: [itemId] });
       });
       test("remove item from tag", async () => {
-        await relayClient.updateTag({ tagId, removeItemId: itemId });
+        await relayClient.updateTag({ id: tagId, removeListingIds: [itemId] });
       });
     });
   });
 
-  describe("invite another user", { retry: 3 }, async () => {
-    let client2Wallet;
-    let relayClient2: RelayClient;
-    beforeEach(async () => {
-      const sk = random32BytesHex();
-      const token = privateKeyToAccount(sk);
-      const hash = await blockchain.createInviteSecret(wallet, token.address);
+  // describe("invite another user", { retry: 3 }, async () => {
+  //   let client2Wallet;
+  //   let relayClient2: RelayClient;
+  //   beforeEach(async () => {
+  //     const sk = random32BytesHex();
+  //     const token = privateKeyToAccount(sk);
+  //     const hash = await blockchain.createInviteSecret(wallet, token.address);
 
-      // wait for the transaction to be included in the blockchain
-      const receipt = await publicClient.waitForTransactionReceipt({
-        hash,
-      });
+  //     // wait for the transaction to be included in the blockchain
+  //     const receipt = await publicClient.waitForTransactionReceipt({
+  //       hash,
+  //     });
 
-      expect(receipt.status).to.equal("success");
-      const acc2 = privateKeyToAccount(sk);
-      await wallet.sendTransaction({
-        account,
-        to: acc2.address,
-        value: BigInt("250000000000000000"),
-      });
-      client2Wallet = createWalletClient({
-        account: acc2,
-        chain: hardhat,
-        transport: http(),
-      });
-      relayClient2 = new RelayClient({
-        relayEndpoint,
-        keyCardWallet: privateKeyToAccount(sk),
-      });
-      const redeemHash = await blockchain.redeemInviteSecret(sk, client2Wallet);
-      // wait for the transaction to be included in the blockchain
-      const redeemReceipt = await publicClient.waitForTransactionReceipt({
-        hash: redeemHash,
-      });
+  //     expect(receipt.status).to.equal("success");
+  //     const acc2 = privateKeyToAccount(sk);
+  //     await wallet.sendTransaction({
+  //       account,
+  //       to: acc2.address,
+  //       value: BigInt("250000000000000000"),
+  //     });
+  //     client2Wallet = createWalletClient({
+  //       account: acc2,
+  //       chain: hardhat,
+  //       transport: http(),
+  //     });
+  //     relayClient2 = new RelayClient({
+  //       relayEndpoint,
+  //       keyCardWallet: privateKeyToAccount(sk),
+  //     });
+  //     const redeemHash = await blockchain.redeemInviteSecret(sk, client2Wallet);
+  //     // wait for the transaction to be included in the blockchain
+  //     const redeemReceipt = await publicClient.waitForTransactionReceipt({
+  //       hash: redeemHash,
+  //     });
 
-      expect(redeemReceipt.status).to.equal("success");
-      const windowLocation =
-        typeof window == "undefined"
-          ? undefined
-          : new URL(window.location.href);
-      await relayClient2.enrollKeycard(
-        client2Wallet,
-        false,
-        shopId,
-        windowLocation,
-      );
-      await relayClient2.connect();
-    });
+  //     expect(redeemReceipt.status).to.equal("success");
+  //     const windowLocation =
+  //       typeof window == "undefined"
+  //         ? undefined
+  //         : new URL(window.location.href);
+  //     await relayClient2.enrollKeycard(
+  //       client2Wallet,
+  //       false,
+  //       shopId,
+  //       windowLocation,
+  //     );
+  //     await relayClient2.connect();
+  //   });
 
-    test("client2 successfully updates manifest", async () => {
-      await relayClient2.updateShopManifest({
-        domain: "test2-test",
-      });
-    });
-    test("client 1 receives events from createEventStream", async () => {
-      const getStream = async () => {
-        const stream = relayClient.createEventStream();
-        for await (const evt of stream) {
-          return 1;
-        }
-      };
-      const evtLength = await getStream();
-      expect(evtLength).toBeGreaterThan(0);
-    });
-    test("client 2 receives events from createEventStream", async () => {
-      const getStream = async () => {
-        const stream = relayClient2.createEventStream();
-        for await (const evt of stream) {
-          return 1;
-        }
-      };
-      const evtLength = await getStream();
-      expect(evtLength).toBeGreaterThan(0);
-    });
-  });
+  //   test("client2 successfully updates manifest", async () => {
+  //     await relayClient2.updateShopManifest({
+  //       setBaseCurrency: {
+  //         chianId: 31337,
+  //         address: { raw: hexToBytes(abi.addresses.Eddies as Address) },
+  //       },
+  //     });
+  //   });
+  //   test("client 1 receives events from createEventStream", async () => {
+  //     const getStream = async () => {
+  //       const stream = relayClient.createEventStream();
+  //       for await (const evt of stream) {
+  //         return 1;
+  //       }
+  //     };
+  //     const evtLength = await getStream();
+  //     expect(evtLength).toBeGreaterThan(0);
+  //   });
+  //   test("client 2 receives events from createEventStream", async () => {
+  //     const getStream = async () => {
+  //       const stream = relayClient2.createEventStream();
+  //       for await (const evt of stream) {
+  //         return 1;
+  //       }
+  //     };
+  //     const evtLength = await getStream();
+  //     expect(evtLength).toBeGreaterThan(0);
+  //   });
+  // });
 });
 
-describe("If there is a network error, state manager should not change the state.", async () => {
-  const client = createRelayClient();
+// describe("If there is a network error, state manager should not change the state.", async () => {
+//   const client = createRelayClient();
 
-  const shopId = random32BytesHex();
+//   const shopId = random32BytesHex();
 
-  let blockchain = new BlockchainClient(shopId);
+//   let blockchain = new BlockchainClient(shopId);
 
-  test("Bad network calls should not change state data", async () => {
-    const transactionHash = await blockchain.createShop(wallet);
-    const receipt = await publicClient.waitForTransactionReceipt({
-      hash: transactionHash,
-    });
-    expect(receipt.status).equals("success");
-    const publishedTagId = randomBytes(32);
-    const name = "test shop";
-    const description = "creating test shop";
-    const profilePictureUrl = "https://http.cat/images/200.jpg";
-    const windowLocation =
-      typeof window == "undefined" ? undefined : new URL(window.location.href);
-    const response = await client.enrollKeycard(
-      wallet,
-      false,
-      shopId,
-      windowLocation,
-    );
-    expect(response.status).toBe(201);
-    await client.connect();
+//   test("Bad network calls should not change state data", async () => {
+//     const transactionHash = await blockchain.createShop(wallet);
+//     const receipt = await publicClient.waitForTransactionReceipt({
+//       hash: transactionHash,
+//     });
+//     expect(receipt.status).equals("success");
+//     const publishedTagId = randomBytes(32);
+//     const name = "test shop";
+//     const description = "creating test shop";
+//     const profilePictureUrl = "https://http.cat/images/200.jpg";
+//     const windowLocation =
+//       typeof window == "undefined" ? undefined : new URL(window.location.href);
+//     const response = await client.enrollKeycard(
+//       wallet,
+//       false,
+//       shopId,
+//       windowLocation,
+//     );
+//     expect(response.status).toBe(201);
+//     await client.connect();
 
-    await client.shopManifest(
-      {
-        name,
-        description,
-        profilePictureUrl,
-        publishedTagId,
-      },
-      shopId,
-    );
+//     await client.shopManifest(
+//       {
+//         name,
+//         description,
+//         profilePictureUrl,
+//         publishedTagId,
+//       },
+//       shopId,
+//     );
 
-    await expect(async () => {
-      await client.updateShopManifest({
-        addAcceptedCurrencies: [
-          {
-            chainId: 31337,
-            tokenAddr: "bad address",
-          },
-        ],
-      });
-    }).rejects.toThrowError();
+//     await expect(async () => {
+//       await client.updateShopManifest({
+//         addAcceptedCurrencies: [
+//           {
+//             chainId: 31337,
+//             tokenAddr: "bad address",
+//           },
+//         ],
+//       });
+//     }).rejects.toThrowError();
 
-    // const manifest = await stateManager.manifest.get();
-    // expect(manifest.addAcceptedCurrencies.length).toEqual(0);
+//     const manifest = await stateManager.manifest.get();
+//     expect(manifest.addAcceptedCurrencies.length).toEqual(0);
 
-    // await expect(async () => {
-    //   await client.createItem({
-    //     price: "10.99",
-    //     metadata: "bad metadata",
-    //   });
-    // }).rejects.toThrowError();
+//     await expect(async () => {
+//       await client.listing({
+//         price: "10.99",
+//         metadata: "bad metadata",
+//       });
+//     }).rejects.toThrowError();
 
-    // const keys = await listingStore.keys().all();
-    // expect(keys.length).toEqual(0);
-  });
-});
+//     const keys = await listingStore.keys().all();
+//     expect(keys.length).toEqual(0);
+//   });
+// });

@@ -5,19 +5,13 @@
 import { EventEmitter } from "events";
 
 import { WebSocket } from "isows";
-import { bytesToHex, hexToBytes, hexToBigInt, toBytes } from "viem";
+import { bytesToHex, hexToBytes, hexToBigInt, toBytes, toHex } from "viem";
 import { PrivateKeyAccount } from "viem/accounts";
 import { createSiweMessage } from "viem/siwe";
 
-import schema, {
-  PBObject,
-  PBMessage,
-  PBInstance,
-  MESSAGE_TYPES,
-  MESSAGE_PREFIXES,
-} from "@massmarket/schema";
+import schema, { PBObject, PBMessage, PBInstance } from "@massmarket/schema";
 import { WalletClientWithAccount } from "@massmarket/blockchain";
-import { requestId, eventId, hexToBase64 } from "@massmarket/utils";
+import { eventId, hexToBase64, decodeBuffer } from "@massmarket/utils";
 
 import { ReadableEventStream } from "./stream.js";
 
@@ -34,7 +28,8 @@ export class RelayClient extends EventEmitter {
   private relayEndpoint: RelayEndpoint;
   private useTLS;
   private eventStream;
-
+  private requestCounter;
+  private eventNonceCounter;
   constructor({
     relayEndpoint,
     keyCardWallet,
@@ -47,6 +42,8 @@ export class RelayClient extends EventEmitter {
     this.relayEndpoint = relayEndpoint;
     this.useTLS = relayEndpoint.url.protocol == "wss";
     this.eventStream = new ReadableEventStream(this);
+    this.requestCounter = 1;
+    this.eventNonceCounter = 0;
   }
 
   createEventStream() {
@@ -67,16 +64,12 @@ export class RelayClient extends EventEmitter {
   // like encodeAndSend but doesn't wait for a response; EventPushResponse uses this
   encodeAndSendNoWait(encoder: PBMessage, object: PBObject = {}) {
     if (!object.requestId) {
-      object.requestId = requestId();
+      object.requestId = { raw: this.requestCounter };
     }
-    const id = object.requestId;
-    const payload = encoder.encode(object).finish();
-    const typed = new Uint8Array(payload.length + 1);
-    typed[0] = MESSAGE_TYPES.get(encoder) as number;
-    typed.set(payload, 1);
-    console.log(`[send] reqId=${bytesToHex(id)} typeCode=${typed[0]}`);
-    this.connection.send(typed);
-    return id;
+    const payload = schema.Envelope.encode(object).finish();
+    this.connection.send(payload);
+    this.requestCounter++;
+    return object.requestId.raw;
   }
 
   // encode and send a message and then wait for a response
@@ -86,9 +79,9 @@ export class RelayClient extends EventEmitter {
   ): Promise<PBInstance> {
     const id = this.encodeAndSendNoWait(encoder, object);
     return new Promise((resolve, reject) => {
-      this.once(bytesToHex(id), (result) => {
-        if (result.error) {
-          const { code, message } = result.error;
+      this.once(id, (result) => {
+        if (result.response.error) {
+          const { code, message } = result.response.error;
           console.error(`network error[${code}]: ${message}`);
           reject(result.error);
         } else {
@@ -102,97 +95,96 @@ export class RelayClient extends EventEmitter {
     shopEvent: schema.IShopEvent,
   ): Promise<schema.EventWriteResponse> {
     await this.connect();
+    if (!shopEvent.nonce) {
+      shopEvent.nonce = this.eventNonceCounter++;
+    }
     const shopEventBytes = schema.ShopEvent.encode(shopEvent).finish();
     const sig = await this.keyCardWallet.signMessage({
       message: { raw: shopEventBytes },
     });
     const signedEvent = {
-      signature: hexToBytes(sig),
+      signature: { raw: hexToBytes(sig) },
       event: {
         type_url: "type.googleapis.com/market.mass.ShopEvent",
         value: shopEventBytes,
       },
     };
     const eventWriteRequest = {
-      event: signedEvent,
+      eventWriteRequest: {
+        events: [signedEvent],
+      },
     };
     await this.encodeAndSend(schema.EventWriteRequest, eventWriteRequest);
     this.eventStream.outgoingEnqueue(shopEvent);
   }
 
   async shopManifest(manifest: schema.IShopManifest, shopId: `0x${string}`) {
-    const id = (manifest.eventId = eventId());
-    manifest.shopTokenId = hexToBytes(shopId);
+    manifest.tokenId = { raw: hexToBytes(shopId) };
     await this.sendShopEvent({
-      shopManifest: manifest,
+      manifest: manifest,
     });
-    return id;
+    return eventId();
   }
 
   async updateShopManifest(update: schema.IUpdateShopManifest) {
-    const id = (update.eventId = eventId());
     await this.sendShopEvent({
-      updateShopManifest: update,
+      updateManifest: update,
+    });
+    return eventId();
+  }
+
+  async listing(item: schema.ICreateItem) {
+    const id = (item.id = eventId());
+    await this.sendShopEvent({
+      listing: item,
     });
     return id;
   }
 
-  async createItem(item: schema.ICreateItem) {
-    const id = (item.eventId = eventId());
+  async updateListing(item: schema.IUpdateItem) {
     await this.sendShopEvent({
-      createItem: item,
+      updateListing: item,
     });
-    return id;
+    return eventId();
   }
 
-  async updateItem(item: schema.IUpdateItem) {
-    const id = (item.eventId = eventId());
+  async tag(tag: schema.ICreateTag) {
+    const id = (tag.id = eventId());
     await this.sendShopEvent({
-      updateItem: item,
-    });
-    return id;
-  }
-
-  async createTag(tag: schema.ICreateTag) {
-    const id = (tag.eventId = eventId());
-    await this.sendShopEvent({
-      createTag: tag,
+      tag: tag,
     });
     return id;
   }
 
   async updateTag(tag: schema.IUpdateTag) {
-    const id = (tag.eventId = eventId());
     await this.sendShopEvent({
       updateTag: tag,
     });
-    return id;
+    return eventId();
   }
 
   async createOrder() {
     const id = eventId();
     await this.sendShopEvent({
       createOrder: {
-        eventId: id,
+        id: id,
       },
     });
     return id;
   }
 
   async updateOrder(order: schema.IUpdateOrder) {
-    const id = (order.eventId = eventId());
     await this.sendShopEvent({
       updateOrder: order,
     });
-    return id;
+    return eventId();
   }
 
-  async changeStock(stock: schema.IChangeStock) {
-    const id = (stock.eventId = eventId());
+  async changeInventory(stock: schema.IChangeInventory) {
     await this.sendShopEvent({
-      changeStock: stock,
+      changeInventory: stock,
     });
-    return id;
+    return eventId();
   }
 
   async #decodeMessage(me: MessageEvent) {
@@ -200,19 +192,11 @@ export class RelayClient extends EventEmitter {
       me.data instanceof Blob
         ? await new Response(me.data).arrayBuffer()
         : me.data;
-    const data = new Uint8Array(_data);
-    const prefix = data[0];
-    const pbMessage = MESSAGE_PREFIXES.get(prefix);
-    if (!pbMessage) {
-      console.warn("unkown message", prefix);
-      return;
-    }
-    const payload = data.slice(1);
-    const message = pbMessage.decode(payload);
-    console.log(
-      `[recv] reqId=${bytesToHex(message.requestId)} typeCode=${prefix}`,
-    );
-    switch (pbMessage) {
+    const payload = new Uint8Array(_data);
+
+    const message = schema.Envelope.decode(payload);
+    const type = message.message;
+    switch (type) {
       case schema.PingRequest:
         this.#handlePingRequest(message);
         break;
@@ -220,22 +204,27 @@ export class RelayClient extends EventEmitter {
         this.eventStream.enqueue(message);
         break;
       default:
-        this.emit(bytesToHex(message.requestId), message);
+        this.emit(`${parseInt(message.requestId.raw)}`, message);
     }
   }
 
   async #authenticate() {
-    const response = await this.encodeAndSend(schema.AuthenticateRequest, {
-      // slice(1) to remove 0x04 prefix
-      publicKey: toBytes(this.keyCardWallet.publicKey).slice(1),
+    const { response } = await this.encodeAndSend(schema.AuthenticateRequest, {
+      authRequest: {
+        publicKey: {
+          raw: toBytes(this.keyCardWallet.publicKey).slice(1),
+        },
+      },
     });
     const sig = await this.keyCardWallet.signMessage({
       message: {
-        raw: response.challenge,
+        raw: response.payload,
       },
     });
     return this.encodeAndSend(schema.ChallengeSolvedRequest, {
-      signature: toBytes(sig),
+      challengeSolutionRequest: {
+        signature: { raw: toBytes(sig) },
+      },
     });
   }
 
@@ -296,7 +285,6 @@ export class RelayClient extends EventEmitter {
     location?: URL,
   ) {
     const publicKey = toBytes(this.keyCardWallet.publicKey).slice(1);
-
     const endpointURL = new URL(this.relayEndpoint.url);
     endpointURL.protocol = this.useTLS ? "https" : "http";
     endpointURL.pathname += `/enroll_key_card`;
@@ -336,18 +324,22 @@ export class RelayClient extends EventEmitter {
     await this.connect();
     const uploadURLResp = (await this.encodeAndSend(
       schema.GetBlobUploadURLRequest,
+      {
+        getBlobUploadUrlRequest: {},
+      },
     )) as schema.GetBlobUploadURLResponse;
-    if (uploadURLResp.error !== null) {
+
+    if (uploadURLResp.response.error !== null) {
       throw new Error(
         `Failed to get blob upload URL: ${uploadURLResp.error!.message}`,
       );
     }
-    const uploadResp = await fetch(uploadURLResp.url, {
+    const url = decodeBuffer(uploadURLResp.response.payload);
+    const uploadResp = await fetch(url, {
       method: "POST",
       body: blob,
     });
     if (uploadResp.status !== 201) {
-      console.log(uploadResp);
       throw new Error(
         `unexpected status: ${uploadResp.statusText} (${uploadResp.status})`,
       );
@@ -358,9 +350,12 @@ export class RelayClient extends EventEmitter {
   // null erc20Addr means vanilla ethererum is used
   async commitOrder(
     order: schema.ICommitItemsToOrderRequest,
+    orderId: number,
   ): Promise<schema.CommitItemsToOrderResponse> {
-    await this.connect();
-    return this.encodeAndSend(schema.CommitItemsToOrderRequest, order);
+    await this.sendShopEvent({
+      updateOrder: { id: orderId, commit: order },
+    });
+    return eventId();
   }
 }
 
@@ -368,7 +363,7 @@ export class RelayClient extends EventEmitter {
 export async function discoverRelay(url: string): Promise<RelayEndpoint> {
   const discoveryURL = url
     .replace("ws", "http")
-    .replace("/v2", "/testing/discovery");
+    .replace("/v3", "/testing/discovery");
   const testingResponse = await fetch(discoveryURL);
   const testingData = await testingResponse.json();
   return {

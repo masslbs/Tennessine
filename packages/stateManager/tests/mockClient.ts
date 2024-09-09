@@ -61,24 +61,24 @@ export class MockClient implements IRelayClient {
     });
   }
 
-  async createItem(item: schema.ICreateItem) {
+  async listing(item: schema.ICreateItem) {
     const id = (item.eventId = eventId());
     this.sendShopEvent({
-      createItem: item,
+      listing: item,
     });
     return id;
   }
-  async updateItem(item: schema.IUpdateItem) {
+  async updateListing(item: schema.IUpdateItem) {
     const id = (item.eventId = eventId());
     this.sendShopEvent({
-      updateItem: item,
+      updateListing: item,
     });
     return id;
   }
-  async createTag(tag: schema.ICreateTag) {
+  async tag(tag: schema.ICreateTag) {
     const id = (tag.eventId = eventId());
     this.sendShopEvent({
-      createTag: tag,
+      tag: tag,
     });
     return id;
   }
@@ -105,10 +105,10 @@ export class MockClient implements IRelayClient {
     return id;
   }
 
-  async changeStock(stock: schema.IChangeStock) {
+  async changeInventory(stock: schema.IChangeStock) {
     const id = (stock.eventId = eventId());
     this.sendShopEvent({
-      changeStock: stock,
+      changeInventory: stock,
     });
     return id;
   }

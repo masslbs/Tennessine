@@ -3,14 +3,17 @@
 // SPDX-License-Identifier: MIT
 
 import { Buffer } from "buffer";
-import { bytesToHex, toBytes } from "viem";
+import { bytesToHex, toBytes, parseUnits, numberToBytes } from "viem";
 
 export function requestId() {
   return randomBytes(16);
 }
 
 export function eventId() {
-  return randomBytes(32);
+  // const a = new BigInt64Array(1);
+  const a = randomBytes(42);
+
+  return Number(a[0]);
 }
 
 export function randomBytes(n: number) {
@@ -36,9 +39,22 @@ export const bufferToJSON = (metadata: Uint8Array) => {
   return JSON.parse(new TextDecoder().decode(metadata));
 };
 
+export const decodeBuffer = (buffer: Uint8Array) => {
+  const textDecoder = new TextDecoder();
+  return textDecoder.decode(buffer);
+};
+
 export const stringifyToBuffer = (data: any) => {
   return new TextEncoder().encode(JSON.stringify(data));
 };
+
+export function priceToUint256(priceString: string, decimals = 18) {
+  // Parse the price string to a bigint
+  const priceInSmallestUnit = parseUnits(priceString, decimals);
+  // Convert bigint to 32 byte directly
+  const buffer = numberToBytes(priceInSmallestUnit, { size: 32 });
+  return buffer;
+}
 
 export const zeroAddress = "0x0000000000000000000000000000000000000000";
 export const anvilAddress =

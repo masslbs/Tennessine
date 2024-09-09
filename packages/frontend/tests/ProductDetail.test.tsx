@@ -43,15 +43,15 @@ describe("Product Detail Component", async () => {
       },
     });
     const { id } = await sm.items.create({
-      price: "12.00",
-      metadata: {
+      basePrice: "12.00",
+      baseInfo: {
         title: "Meow meow",
         description: "description...meow",
         image: "https://http.cat/images/201.jpg",
       },
     });
     itemId = id;
-    await sm.items.changeStock([id], [5]);
+    await sm.items.changeInventory([id], [5]);
     const rm = await sm.tags.create("remove");
     removeTagId = rm.id;
     mockRouter.push(`?itemId=${id}`);
@@ -98,7 +98,7 @@ describe("Product Detail Component", async () => {
     expect(d.items[itemId]).toEqual(3);
 
     // Testing event listener for change stock
-    await sm.items.changeStock([itemId], [400]);
+    await sm.items.changeInventory([itemId], [400]);
 
     await waitFor(async () => {
       const available = screen.getByTestId("available");

@@ -1,14 +1,13 @@
 import { EventEmitter } from "events";
 import schema from "@massmarket/schema";
-import { bytesToHex, hexToBytes } from "viem";
-import { bufferToJSON, stringifyToBuffer } from "@massmarket/utils";
+import { bytesToHex, hexToBytes, fromBytes } from "viem";
+import { priceToUint256 } from "@massmarket/utils";
 import {
   IRelayClient,
   Item,
   Tag,
   KeyCard,
   ShippingDetails,
-  Status,
   Order,
   ShopCurrencies,
   ShopManifest,
@@ -17,25 +16,28 @@ import {
   ShopObjectTypes,
   IError,
   OrdersByStatus,
+  ListingViewState,
+  Payee,
+  OrderState,
 } from "./types";
 
 // This is an interface that is used to retrieve and store objects from a persistant layer
 export type Store<T extends ShopObjectTypes> = {
-  put(key: string, value: T): Promise<void>;
-  get(key: string): Promise<T>;
-  iterator(): AsyncIterable<[string, T]>;
+  put(key: string | BigInt | OrderState, value: T): Promise<void>;
+  get(key: string | BigInt | OrderState): Promise<T>;
+  iterator(): AsyncIterable<[BigInt | string, T]>;
 };
 
 // Given an eventId which is the returned value of the network event
 // This returns a promise that resolves once the event has been emitted as js event
 function eventListenAndResolve<T = ShopObjectTypes>(
-  eventId: Uint8Array,
+  eventId: BigInt,
   em: EventEmitter,
   eventName: string,
 ): Promise<T> {
   return new Promise((resolve, _) => {
-    function onUpdate(update: T, eId: Uint8Array) {
-      if (bytesToHex(eId) === bytesToHex(eventId)) {
+    function onUpdate(update: T, eId: BigInt) {
+      if (eId === eventId) {
         resolve(update);
         em.removeListener(eventName, onUpdate);
       }
@@ -44,9 +46,9 @@ function eventListenAndResolve<T = ShopObjectTypes>(
   });
 }
 async function storeOrdersByStatus(
-  orderId: `0x${string}`,
+  orderId: BigInt,
   store: Store<Order | OrdersByStatus>,
-  status: Status,
+  status: OrderState,
 ) {
   let orders: OrdersByStatus = [];
 
@@ -73,7 +75,7 @@ abstract class PublicObjectManager<
     super();
   }
   abstract _processEvent(event: schema.ShopEvents): Promise<void>;
-  abstract get(key?: string): Promise<T>;
+  abstract get(key?: string | BigInt): Promise<T>;
   get iterator() {
     return this.store.iterator.bind(this.store);
   }
@@ -87,81 +89,83 @@ class ListingManager extends PublicObjectManager<Item> {
   // Process all events for listings.
   // Convert bytes to hex and save item object to listings store.
   async _processEvent(event: schema.ShopEvents): Promise<void> {
-    if (event.createItem) {
-      const ci = event.createItem;
-      const id = bytesToHex(ci.eventId);
+    if (event.listing) {
+      const cl = event.listing;
+      const { id } = cl;
       const item = {
         id,
-        price: ci.price,
-        metadata: bufferToJSON(ci.metadata),
+        basePrice: fromBytes(cl.basePrice.raw, "bigint").toString(),
+        baseInfo: cl.baseInfo,
         tags: [],
         quantity: 0,
+        viewState: cl.viewState,
       };
       await this.store.put(id, item);
-      this.emit("create", item, ci.eventId);
+      this.emit("create", item, cl.eventId);
       return;
-    } else if (event.updateItem) {
-      const ui = event.updateItem;
-      const id = bytesToHex(ui.itemId);
+    } else if (event.updateListing) {
+      const ui = event.updateListing;
+      const { id } = ui;
       const item = await this.store.get(id);
-      if (ui.metadata) {
-        item.metadata = bufferToJSON(ui.metadata);
+      if (ui.baseInfo) {
+        item.baseInfo = ui.baseInfo;
       }
-      if (ui.price) {
-        item.price = ui.price;
+      if (ui.basePrice) {
+        item.basePrice = fromBytes(ui.basePrice.raw, "bigint").toString();
+      }
+      if (ui.viewState) {
+        item.viewState = ui.viewState;
       }
       await this.store.put(id, item);
       this.emit("update", item, ui.eventId);
       return;
-    } else if (event.changeStock) {
-      const cs = event.changeStock;
-      if (cs.itemIds) {
-        await Promise.all(
-          cs.itemIds.map(async (id: Uint8Array, i: number) => {
-            const itemId = bytesToHex(id);
-            const item = await this.store.get(itemId);
-            const diff = cs.diffs ? cs.diffs[i] : 0;
-            item.quantity = item.quantity + diff;
-            return this.store.put(itemId, item);
-          }),
-        );
-        this.emit(
-          "changeStock",
-          cs.itemIds.map((id: Uint8Array) => bytesToHex(id)),
-          cs.eventId,
-        );
-        return;
-      }
+    } else if (event.changeInventory) {
+      const cs = event.changeInventory;
+      const itemId = cs.id;
+      const item = await this.store.get(itemId);
+      item.quantity = item.quantity + cs.diff;
+      await this.store.put(itemId, item);
+      this.emit("changeInventory", itemId, cs.eventId);
+      return;
     } else if (event.updateTag) {
       // Add or remove tagId to item
       const ut = event.updateTag;
-      const tagId = bytesToHex(ut.tagId);
+      const tagId = ut.id;
 
-      if (ut.addItemId) {
-        const itemId = bytesToHex(ut.addItemId);
-        const item = await this.store.get(itemId);
-        item.tags.push(tagId);
-        await this.store.put(itemId, item);
-        this.emit("addItemId", item, ut.eventId);
+      if (ut.addListingIds) {
+        const itemIds = ut.addListingIds;
+        await Promise.all(
+          itemIds.map(async (itemId: BigInt) => {
+            const item = await this.store.get(itemId);
+            item.tags.push(tagId);
+            this.emit("addListingIds", itemId, ut.eventId);
+            return await this.store.put(itemId, item);
+          }),
+        );
         return;
-      } else if (ut.removeItemId) {
-        const itemId = bytesToHex(ut.removeItemId);
-        const item = await this.store.get(itemId);
-        // remove `tagId` from item.tags array
-        item.tags = [...item.tags.filter((id: `0x${string}`) => id !== tagId)];
-        await this.store.put(itemId, item);
-        this.emit("removeItemId", item, ut.eventId);
+      } else if (ut.removeListingIds) {
+        const itemIds = ut.removeListingIds;
+        await Promise.all(
+          itemIds.map(async (itemId: BigInt) => {
+            const item = await this.store.get(itemId);
+            // remove `tagId` from item.tags array
+            item.tags = [...item.tags.filter((id: BigInt) => id !== tagId)];
+            this.emit("removeListingIds", tagId, ut.eventId);
+            await this.store.put(itemId, item);
+          }),
+        );
         return;
       }
     }
   }
 
   async create(item: Partial<Item>) {
-    const eventId = await this.client.createItem({
-      price: item.price,
-      metadata: stringifyToBuffer(item.metadata),
+    const eventId = await this.client.listing({
+      basePrice: { raw: priceToUint256(item.basePrice!) },
+      baseInfo: item.baseInfo,
+      viewState: item.viewState,
     });
-    // resolves after the `createItem` event has been fired in _processEvent, which happens after the relay accepts the update and has written to the database.
+    // resolves after the `listing` =event has been fired in _processEvent, which happens after the relay accepts the update and has written to the database.
     return eventListenAndResolve<Item>(eventId, this, "create");
   }
   //update argument passed here will only contain the fields to update.
@@ -169,43 +173,46 @@ class ListingManager extends PublicObjectManager<Item> {
     //ui object to be passed to the network with converted network data types.
     //we are declaring the update object as type schema.IUpdateItem since we are changing values from hex to bytes and is no longer a interface Item
     const ui: schema.IUpdateItem = {
-      itemId: hexToBytes(update.id!),
+      itemId: update.id,
     };
-    if (update.price) {
-      ui.price = update.price;
+    if (update.basePrice) {
+      ui.basePrice = { raw: priceToUint256(update.basePrice) };
     }
-    if (update.metadata) {
-      ui.metadata = stringifyToBuffer(update.metadata);
+    if (update.baseInfo) {
+      ui.baseInfo = update.baseInfo;
     }
-    const eventId = await this.client.updateItem(ui);
-    // resolves after the `updateItem` event has been fired, which happens after the relay accepts the update and has written to the database.
+    if (update.viewState) {
+      ui.viewState = update.viewState;
+    }
+    const eventId = await this.client.updateListing(ui);
+    // resolves after the `updateListing` event has been fired, which happens after the relay accepts the update and has written to the database.
     return eventListenAndResolve<Item>(eventId, this, "update");
   }
 
-  async addItemToTag(tagId: `0x${string}`, itemId: `0x${string}`) {
+  async addItemToTag(tagId: BigInt, itemId: BigInt) {
     const eventId = await this.client.updateTag({
-      tagId: hexToBytes(tagId),
-      addItemId: hexToBytes(itemId),
+      id: tagId,
+      addListingIds: [itemId],
     });
     return eventListenAndResolve<Item>(eventId, this, "addItemId");
   }
 
-  async removeItemFromTag(tagId: `0x${string}`, itemId: `0x${string}`) {
+  async removeItemFromTag(tagId: BigInt, itemId: BigInt) {
     const eventId = await this.client.updateTag({
-      tagId: hexToBytes(tagId),
-      removeItemId: hexToBytes(itemId),
+      id: tagId,
+      removeListingIds: [itemId],
     });
     return eventListenAndResolve<Item>(eventId, this, "removeItemId");
   }
 
-  async changeStock(itemIds: `0x${string}`[], diffs: number[]) {
-    const eventId = await this.client.changeStock({
-      itemIds: itemIds.map((id) => hexToBytes(id)),
+  async changeInventory(itemIds: BigInt[], diffs: number[]) {
+    const eventId = await this.client.changeInventory({
+      itemIds: itemIds.map((id) => id),
       diffs,
     });
-    return eventListenAndResolve<Item>(eventId, this, "changeStock");
+    return eventListenAndResolve<Item>(eventId, this, "changeInventory");
   }
-  get(key: `0x${string}`) {
+  get(key: BigInt) {
     return this.store.get(key);
   }
 }
@@ -216,48 +223,56 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
   }
   //Process all manifest events. Convert bytes to hex, wait for database update, then emit event name
   async _processEvent(event: schema.ShopEvents) {
-    if (event.shopManifest) {
-      const sm = event.shopManifest;
+    if (event.manifest) {
+      const sm = event.manifest;
       const manifest = {
-        tokenId: bytesToHex(sm.shopTokenId),
-        name: sm.name,
-        profilePictureUrl: sm.profilePictureUrl,
-        publishedTagId: bytesToHex(sm.publishedTagId),
-        description: sm.description,
+        tokenId: sm.tokenId.raw,
         acceptedCurrencies: [],
-        setBaseCurrency: null,
-        payee: [],
+        baseCurrency: {},
+        payees: [],
       };
+      if (sm.acceptedCurrencies) {
+        manifest.acceptedCurrencies = sm.acceptedCurrencies.map(
+          (a: schema.IShopCurrency) => {
+            return {
+              address: bytesToHex(a.address.raw),
+              chainId: Number(a.chainId),
+            };
+          },
+        );
+      }
+      if (sm.baseCurrency) {
+        manifest.baseCurrency = {
+          chainId: Number(sm.baseCurrency.chainId),
+          address: bytesToHex(sm.baseCurrency.address.raw),
+        };
+      }
+      if (sm.payees) {
+        manifest.payees = sm.payees.map((p: schema.IPayee) => {
+          return {
+            ...p,
+            chainId: Number(p.chainId),
+            address: bytesToHex(p.address.raw),
+          };
+        });
+      }
       await this.store.put("shopManifest", manifest);
       this.emit("create", manifest, sm.eventId);
       return;
-    } else if (event.updateShopManifest) {
-      const um = event.updateShopManifest;
+    } else if (event.updateManifest) {
+      const um = event.updateManifest;
       const manifest = await this.store.get("shopManifest");
-
-      if (um.name) {
-        manifest.name = um.name;
-      }
-      if (um.description) {
-        manifest.description = um.description;
-      }
-      if (um.profilePictureUrl) {
-        manifest.profilePictureUrl = um.profilePictureUrl;
-      }
-      if (um.publishedTagId) {
-        manifest.publishedTagId = bytesToHex(um.publishedTagId);
-      }
       if (um.setBaseCurrency) {
-        manifest.setBaseCurrency = {
+        manifest.baseCurrency = {
           chainId: Number(um.setBaseCurrency.chainId),
-          tokenAddr: bytesToHex(um.setBaseCurrency.tokenAddr),
+          address: bytesToHex(um.setBaseCurrency.address.raw),
         };
       }
       if (um.addAcceptedCurrencies) {
         const currencies = [...manifest.acceptedCurrencies];
         um.addAcceptedCurrencies.forEach((a: schema.IShopCurrency) => {
           currencies.push({
-            tokenAddr: bytesToHex(a.tokenAddr),
+            address: bytesToHex(a.address.raw),
             chainId: Number(a.chainId),
           });
         });
@@ -267,20 +282,21 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
         let filtered = [...manifest.acceptedCurrencies!];
         for (const rm of um.removeAcceptedCurrencies) {
           filtered = manifest.acceptedCurrencies!.filter(
-            (cur) => cur.tokenAddr !== bytesToHex(rm.tokenAddr),
+            (cur) => cur.address !== bytesToHex(rm.address.raw),
           );
         }
         manifest.acceptedCurrencies = filtered;
       }
       if (um.addPayee) {
-        manifest.payee.push({
+        manifest.payees.push({
           ...um.addPayee,
-          addr: bytesToHex(um.addPayee.addr),
+          chainId: Number(um.addPayee.chainId),
+          address: bytesToHex(um.addPayee.address.raw),
         });
       }
       if (um.removePayee) {
-        manifest.payee = manifest.payee.filter(
-          (p) => p.addr !== bytesToHex(um.removePayee.addr),
+        manifest.payees = manifest.payees.filter(
+          (p) => p.address !== bytesToHex(um.removePayee.address.raw),
         );
       }
       await this.store.put("shopManifest", manifest);
@@ -290,21 +306,13 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
     }
   }
   async create(manifest: CreateShopManifest, shopId: `0x${string}`) {
-    //FIXME publishedTagId & profilePictureUrl are currently a required fields for ShopManifest
-    const eventId = await this.client.shopManifest(
-      {
-        ...manifest,
-        publishedTagId: new Uint8Array(32),
-        profilePictureUrl: "https://http.cat/images/200.jpg",
-      },
-      shopId,
-    );
+    const eventId = await this.client.shopManifest(manifest, shopId);
     // resolves after the `createShopManifest` event has been fired above in _processEvent, which happens after the relay accepts the update and has written to the database.
     return eventListenAndResolve<ShopManifest>(eventId, this, "create");
   }
 
   async update(um: Partial<ShopManifest> & UpdateShopManifest) {
-    //Convert tokenAddr and publishedTagId to bytes before sending to client.
+    //Convert address to bytes before sending to client.
     //We have to explicitly declare the update object as type schema.IUpdateShopManifest since we are changing hex to bytes and is no longer a type ShopManifest
     const updateShopManifest: schema.IUpdateShopManifest = um;
     for (const [key, _] of Object.entries(updateShopManifest)) {
@@ -316,21 +324,23 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
           (a: ShopCurrencies) => {
             return {
               chainId: a.chainId,
-              tokenAddr: hexToBytes(a.tokenAddr),
+              address: { raw: hexToBytes(a.address) },
             };
           },
         );
-      } else if (key === "publishedTagId") {
-        updateShopManifest[key] = hexToBytes(updateShopManifest.publishedTagId);
       } else if (key === "setBaseCurrency") {
         updateShopManifest[key] = {
-          tokenAddr: hexToBytes(updateShopManifest[key].tokenAddr),
+          address: { raw: hexToBytes(updateShopManifest[key].address) },
           chainId: updateShopManifest[key].chainId,
         };
       } else if (key === "addPayee") {
-        updateShopManifest[key].addr = hexToBytes(updateShopManifest[key].addr);
+        updateShopManifest[key].address = hexToBytes(
+          updateShopManifest[key].address,
+        );
       } else if (key === "removePayee") {
-        updateShopManifest[key].addr = hexToBytes(updateShopManifest[key].addr);
+        updateShopManifest[key].address = hexToBytes(
+          updateShopManifest[key].address,
+        );
       }
     }
     // resolves after the `updateShopManifest` event has been fired above in _processEvent, which happens after the relay accepts the update and has written to the database.
@@ -350,35 +360,37 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
   async _processEvent(event: schema.ShopEvents): Promise<void> {
     if (event.createOrder) {
       const co = event.createOrder;
-      const id = bytesToHex(co.eventId!);
+      const { id } = co;
       const o = {
         id,
         items: {},
-        status: Status.Pending,
+        status: OrderState.STATE_OPEN,
       };
       await this.store.put(id, o);
-      await storeOrdersByStatus(id, this.store, Status.Pending);
-
+      await storeOrdersByStatus(id, this.store, OrderState.STATE_OPEN);
       this.emit("create", o, co.eventId);
       return;
     } else if (event.updateOrder) {
       const uo: schema.IUpdateOrder = event.updateOrder;
-      const orderId = bytesToHex(uo.orderId);
-      const order = (await this.store.get(orderId)) as Order;
-
+      const { id } = uo;
+      const order = (await this.store.get(id)) as Order;
       if (uo.changeItems) {
         const ci = uo.changeItems;
-        const itemId = bytesToHex(ci.itemId);
-        const quantity = ci.quantity;
-
-        if (quantity === 0) {
-          delete order.items[itemId];
-        } else {
-          order.items[itemId] = quantity;
+        if (ci.adds) {
+          ci.adds.map((orderItem: schema.IOrderedItem) => {
+            order.items[orderItem.listingId] = orderItem.quantity;
+          });
         }
-        await this.store.put(orderId, order);
+        if (ci.removes) {
+          ci.removes.map((orderItem: schema.IOrderedItem) => {
+            order.items[orderItem.listingId] = orderItem.quantity;
+          });
+        }
+        await this.store.put(id, order);
         this.emit("changeItems", order, uo.eventId);
         return;
+      } else if (uo.paymentDetails) {
+        this.emit("paymentDetails", order, uo.eventId);
       } else if (uo.itemsFinalized) {
         //Converting all Uint8Array values to hex before saving to store.
         const fo = {
@@ -389,20 +401,20 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
           payeeAddr: bytesToHex(uo.itemsFinalized.payeeAddr),
           shopSignature: bytesToHex(uo.itemsFinalized.shopSignature),
           total: uo.itemsFinalized.total,
-          eventId: bytesToHex(uo.eventId),
+          eventId: uo.eventId,
         };
         order.orderFinalized = fo;
-        await this.store.put(orderId, order);
+        await this.store.put(id, order);
         this.emit("itemsFinalized", order, uo.eventId);
         return;
-      } else if (uo.orderCanceled) {
-        order.status = Status.Failed;
-        await this.store.put(orderId, order);
-        await storeOrdersByStatus(orderId, this.store, Status.Failed);
+      } else if (uo.canceled) {
+        order.status = OrderState.STATE_CANCELED;
+        await this.store.put(id, order);
+        await storeOrdersByStatus(id, this.store, OrderState.STATE_CANCELED);
         this.emit("orderCanceled", order, uo.eventId);
         return;
-      } else if (uo.updateShippingDetails) {
-        const update = uo.updateShippingDetails;
+      } else if (uo.invoiceAddress) {
+        const update = uo.invoiceAddress;
         // shippingDetails may be null. If null, create an initial shipping details object to update.
         const sd = order.shippingDetails
           ? order.shippingDetails
@@ -413,6 +425,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
               postalCode: "",
               country: "",
               phoneNumber: "",
+              emailAddress: "",
             };
         if (update.name) {
           sd.name = update.name;
@@ -433,36 +446,38 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
           sd.phoneNumber = update.phoneNumber;
         }
         order.shippingDetails = sd;
-        await this.store.put(orderId, order);
-        this.emit("updateShippingDetails", order, uo.eventId);
+        await this.store.put(id, order);
+        this.emit("invoiceAddress", order, uo.eventId);
         return;
-      }
-    } else if (event.changeStock) {
-      const cs = event.changeStock;
-      if (cs.txHash && cs.orderId.byteLength) {
-        const orderId = bytesToHex(cs.orderId);
-        const order = (await this.store.get(orderId)) as Order;
-        order.status = Status.Complete;
-        order.txHash = bytesToHex(cs.txHash);
-        await this.store.put(orderId, order);
-        await storeOrdersByStatus(orderId, this.store, Status.Complete);
-        //remove the orderId from pending orders since its status is now complete
-        let orders = (await this.store.get(Status.Pending)) as OrdersByStatus;
-        orders = orders.filter((id) => id !== orderId);
-        await this.store.put(Status.Pending, orders);
+      } else if (uo.commit) {
+        order.status = OrderState.STATE_COMMITED;
+        await this.store.put(id, order);
+        await storeOrdersByStatus(id, this.store, OrderState.STATE_COMMITED);
+        this.emit("orderCommit", order, uo.eventId);
+        return;
+      } else if (uo.paid) {
+        const currentState = order.status;
+        order.status = OrderState.STATE_PAID;
+        order.txHash = bytesToHex(uo.paid.txHash.raw);
+        await this.store.put(id, order);
+        await storeOrdersByStatus(id, this.store, OrderState.STATE_PAID);
+        //remove the orderId from state of orders before this event.
+        let orders = (await this.store.get(currentState)) as OrdersByStatus;
+        orders = orders.filter((oId) => oId !== id);
+        await this.store.put(OrderState.STATE_OPEN, orders);
         this.emit("orderPaid", order);
         return;
       }
     }
   }
 
-  get(key: `0x${string}`) {
+  get(key: BigInt) {
     return this.store.get(key) as Promise<Order>;
   }
 
-  async getStatus(key: Status): Promise<`0x${string}`[]> {
+  async getStatus(key: OrderState): Promise<BigInt[]> {
     try {
-      return (await this.store.get(key)) as `0x${string}`[];
+      return (await this.store.get(key)) as BigInt[];
     } catch (error) {
       const e = error as IError;
       if (e.notFound) {
@@ -479,53 +494,51 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
     return eventListenAndResolve<Order>(eventId, this, "create");
   }
 
-  async changeItems(
-    orderId: `0x${string}`,
-    itemId: `0x${string}`,
-    quantity: number,
-  ) {
+  async changeItems(orderId: BigInt, itemId: BigInt, quantity: number) {
     const eventId = await this.client.updateOrder({
-      orderId: hexToBytes(orderId),
-      changeItems: { itemId: hexToBytes(itemId), quantity },
+      id: orderId,
+      changeItems: { itemId, quantity },
     });
     // resolves after the `changeItems` event has been fired, which happens after the relay accepts the update and has written to the database.
     return eventListenAndResolve<Order>(eventId, this, "changeItems");
   }
   async updateShippingDetails(
-    orderId: `0x${string}`,
+    orderId: BigInt,
     update: Partial<ShippingDetails>,
   ) {
     const eventId = await this.client.updateOrder({
-      orderId: hexToBytes(orderId),
+      orderId,
       updateShippingDetails: update,
     });
     return eventListenAndResolve<Order>(eventId, this, "updateShippingDetails");
   }
 
-  async cancel(orderId: `0x${string}`, timestamp: number) {
+  async cancel(orderId: BigInt, timestamp: number) {
     const eventId = await this.client.updateOrder({
-      orderId: hexToBytes(orderId),
+      orderId,
       orderCanceled: { timestamp },
     });
     return eventListenAndResolve<Order>(eventId, this, "orderCanceled");
   }
 
   async commit(
-    orderId: `0x${string}`,
+    orderId: BigInt,
     addr: `0x${string}`,
     chainId: number,
-    payeeName: string,
+    payee: Payee,
   ) {
     //Currently, this is a network request only.
     //This will trigger an updateOrder event from the relay, with a itemsFinalized property.
-    return this.client.commitOrder({
-      orderId: hexToBytes(orderId),
-      currency: {
-        tokenAddr: hexToBytes(addr),
-        chainId,
+    return this.client.commitOrder(
+      {
+        currency: {
+          address: { raw: hexToBytes(addr) },
+          chainId,
+        },
+        payee,
       },
-      payeeName,
-    });
+      orderId,
+    );
   }
 }
 class TagManager extends PublicObjectManager<Tag> {
@@ -534,9 +547,9 @@ class TagManager extends PublicObjectManager<Tag> {
   }
 
   async _processEvent(event: schema.ShopEvents): Promise<void> {
-    if (event.createTag) {
-      const ct = event.createTag;
-      const id = bytesToHex(ct.eventId);
+    if (event.tag) {
+      const ct = event.tag;
+      const { id } = ct;
       const tag = {
         id,
         name: ct.name,
@@ -547,12 +560,12 @@ class TagManager extends PublicObjectManager<Tag> {
     }
   }
   async create(name: string) {
-    const eventId = await this.client.createTag({ name });
-    // resolves after the `createTag` event has been fired, which happens after the relay accepts the update and has written to the database.
+    const eventId = await this.client.tag({ name });
+    // resolves after the `tag` event has been fired, which happens after the relay accepts the update and has written to the database.
     return eventListenAndResolve<Tag>(eventId, this, "create");
   }
 
-  get(key: `0x${string}`) {
+  get(key: BigInt) {
     return this.store.get(key);
   }
 }
@@ -563,11 +576,11 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
   }
 
   async _processEvent(event: schema.ShopEvents): Promise<void> {
-    if (event.newKeyCard) {
+    if (event.account) {
       //storing WA and KC pair
-      const kc = event.newKeyCard;
-      const userWalletAddr = bytesToHex(kc.userWalletAddr!);
-      const cardPublicKey = bytesToHex(kc.cardPublicKey!);
+      const a = event.account;
+      const userWalletAddr = bytesToHex(a.enrollKeycard.userWallet.raw);
+      const cardPublicKey = bytesToHex(a.enrollKeycard.keycardPubkey.raw);
       await this.store.put(cardPublicKey, userWalletAddr);
       this.emit("newKeyCard", cardPublicKey);
       return;

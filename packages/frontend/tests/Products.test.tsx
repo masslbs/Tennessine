@@ -19,8 +19,8 @@ describe("Products Component", async () => {
 
   for (let index = 0; index < 50; index++) {
     await sm.items.create({
-      price: `${index + 1}`,
-      metadata: {
+      basePrice: `${index + 1}`,
+      baseInfo: {
         title: `Test Item ${index + 1}`,
         description: "Test description",
         image: "https://http.cat/images/201.jpg",
@@ -37,8 +37,8 @@ describe("Products Component", async () => {
     });
     // Testing component properly listens to future create events
     await sm.items.create({
-      price: `9.00`,
-      metadata: {
+      basePrice: `9.00`,
+      baseInfo: {
         title: "Another Item",
         description: "Test description",
         image: "https://http.cat/images/201.jpg",
@@ -65,8 +65,8 @@ describe("Products Component", async () => {
   test("Update Item - Updated title and price are rendered", async () => {
     //Testing Update Item event before render
     const { id } = await sm.items.create({
-      price: `9.00`,
-      metadata: {
+      basePrice: "9.00",
+      baseInfo: {
         title: "Test Item to update",
         description: "Test description 1",
         image: "https://http.cat/images/201.jpg",
@@ -74,8 +74,8 @@ describe("Products Component", async () => {
     });
     await sm.items.update({
       id,
-      price: `1.00`,
-      metadata: {
+      basePrice: "1.00",
+      baseInfo: {
         title: "Test Item - Updated",
         description: "Test description",
         image: "https://http.cat/images/201.jpg",
@@ -97,8 +97,8 @@ describe("Products Component", async () => {
     //Test that the event listeners update the item
     await sm.items.update({
       id,
-      price: "5.00",
-      metadata: {
+      basePrice: "5.00",
+      baseInfo: {
         title: "Updated!!",
         description: "Updated test description 1",
         image: "https://http.cat/images/205.jpg",

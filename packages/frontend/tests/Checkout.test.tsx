@@ -58,16 +58,16 @@ describe("Checkout", async () => {
       },
     });
     const { id } = await sm.items.create({
-      price: "12.00",
-      metadata: {
+      basePrice: "12.00",
+      baseInfo: {
         title: "Cart testing Product I",
         description: "Test description I",
         image: "https://http.cat/images/201.jpg",
       },
     });
     const { id: id2 } = await sm.items.create({
-      price: "5.00",
-      metadata: {
+      basePrice: "5.00",
+      baseInfo: {
         title: "Cart testing Product II",
         description: "Test description II",
         image: "https://http.cat/images/201.jpg",
@@ -75,7 +75,7 @@ describe("Checkout", async () => {
     });
     const order = await sm.orders.create();
     orderId = order.id;
-    await sm.items.changeStock([id, id2], [100, 100]);
+    await sm.items.changeInventory([id, id2], [100, 100]);
     await sm.orders.changeItems(order.id, id, 5);
     await sm.orders.changeItems(order.id, id2, 1);
     render(<CheckoutFlow />, sm, orderId);

@@ -100,10 +100,10 @@ const ProductDetail = () => {
         });
     }
 
-    stateManager.items.on("changeStock", onChangeStock);
+    stateManager.items.on("changeInventory", onChangeStock);
 
     return () => {
-      stateManager.items.on("changeStock", onChangeStock);
+      stateManager.items.on("changeInventory", onChangeStock);
     };
   }, [currentCartItems, itemId]);
 
@@ -256,9 +256,9 @@ const ProductDetail = () => {
         />
         <div className="m-4">
           <div className="flex">
-            {item.metadata.image && (
+            {item.baseInfo.image && (
               <Image
-                src={item.metadata.image}
+                src={item.baseInfo.image}
                 alt="product-detail-image"
                 width={136}
                 height={136}
@@ -272,13 +272,13 @@ const ProductDetail = () => {
                 data-testid="title"
                 className="text-xl flex items-center pl-4"
               >
-                {item.metadata.title}
+                {item.baseInfo.title}
               </h2>
               <p
                 className="text-xs flex items-center pl-4"
                 data-testid="description"
               >
-                {item.metadata.description}
+                {item.baseInfo.description}
               </p>
             </div>
           </div>
