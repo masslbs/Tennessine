@@ -39,7 +39,7 @@ export class ReadableEventStream {
           const requestId = pushReq.requestId;
           for (const anyEvt of pushReq.events) {
             const event = schema.ShopEvent.decode(anyEvt.event.value);
-            const signer = await recoverMessageAddress({
+            const signer = recoverMessageAddress({
               message: { raw: anyEvt.event.value },
               signature: anyEvt.signature,
             });

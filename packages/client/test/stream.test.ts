@@ -43,7 +43,7 @@ class MockClient {
   }
 }
 
-describe("Stream", async () => {
+describe("Stream", () => {
   test("Stream Creation", async () => {
     const testCreateItem = {
       updateItem: {
@@ -65,7 +65,7 @@ describe("Stream", async () => {
         evt.event.updateItem,
         schema.UpdateItem.create(testCreateItem.updateItem),
       );
-      expect(evt.signer).toEqual(account.address);
+      expect(await evt.signer).toEqual(account.address);
       break;
     }
 
