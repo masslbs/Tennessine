@@ -166,7 +166,7 @@ const StoreProfile = ({ close }: { close: () => void }) => {
                       className="border-2 border-solid mt-1 p-2 rounded"
                       id="fname"
                       name="fname"
-                      value={shopId}
+                      value={shopId!}
                       onChange={() => {}}
                     />
                     <button className="mr-4" onClick={copyToClipboard}>
