@@ -38,8 +38,12 @@ const NewCart = ({
           const ci = o.items;
           await Promise.all(
             Object.keys(ci).map(async (id) => {
-              const item = await stateManager.items.get(id as ItemId);
-              cartObjects.set(id, item);
+              stateManager.items
+                .get(id as ItemId)
+                .then((item) => {
+                  cartObjects.set(id, item);
+                })
+                .catch((e) => debug(e));
             }),
           );
           setCartMap(cartObjects);
@@ -55,10 +59,11 @@ const NewCart = ({
       .then(async (shopManifest) => {
         if (shopManifest.setBaseCurrency && !symbolSet.current) {
           symbolSet.current = true;
-          const { symbol } = await getTokenInformation(
-            shopManifest.setBaseCurrency.tokenAddr,
-          );
-          setCurrencySym(symbol);
+          getTokenInformation(shopManifest.setBaseCurrency.tokenAddr)
+            .then(({ symbol }) => {
+              setCurrencySym(symbol);
+            })
+            .catch((e) => debug(e));
         }
       })
       .catch((e) => {

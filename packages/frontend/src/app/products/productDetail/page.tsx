@@ -44,8 +44,13 @@ const ProductDetail = () => {
     getOrderId()
       .then(async (id) => {
         setOrderId(id);
-        const ci = (await stateManager.orders.get(id)).items;
-        setCurrentCart(ci);
+        stateManager.orders
+          .get(id)
+          .then((order) => {
+            const orderItems = order.items;
+            setCurrentCart(orderItems);
+          })
+          .catch((e) => debug(e));
       })
       .catch((e) => {
         debug(e);
@@ -71,8 +76,9 @@ const ProductDetail = () => {
   useEffect(() => {
     const onChangeStock = async (itemIds: ItemId[]) => {
       if (itemIds.includes(itemId)) {
-        const available = await stateManager.items.get(itemId);
-        setAvailable(available.quantity);
+        stateManager.items.get(itemId).then((available) => {
+          setAvailable(available.quantity);
+        });
       }
     };
     if (itemId) {

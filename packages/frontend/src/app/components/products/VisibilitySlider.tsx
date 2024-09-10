@@ -39,11 +39,9 @@ const VisibilitySlider = ({
 
   useEffect(() => {
     //default new item to visible.
-    (() => {
-      if (!editView && pId) {
-        markAsVisible();
-      }
-    })();
+    if (!editView && pId) {
+      markAsVisible();
+    }
   }, [editView, pId]);
 
   useEffect(() => {

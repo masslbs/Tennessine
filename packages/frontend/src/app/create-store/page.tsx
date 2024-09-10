@@ -170,37 +170,49 @@ const StoreCreation = () => {
       // Create published and remove tags + update shopManifest and metadata
       stateManager.tags
         .create("visible")
-        .then(async (newPubId) => {
-          await stateManager.tags.create("remove");
+        .then((newPubId) => {
+          stateManager.tags
+            .create("remove")
+            .then()
+            .catch((e) => debug(e));
 
           //Testing dom does not support FormData and test client will fail with:
           //Content-Type isn't multipart/form-data
           //so if it is a test env, we are skipping uploadBlob
-          const path = process.env.TEST
-            ? { url: "/" }
-            : await relayClient!.uploadBlob(avatar as FormData);
+          let path = { url: "/" };
+          if (!process.env.TEST) {
+            relayClient!
+              .uploadBlob(avatar as FormData)
+              .then((res) => {
+                path = res;
+              })
+              .catch((e) => debug(e));
+          }
 
           if (newPubId && path.url) {
-            await stateManager.manifest.update({
-              publishedTagId: newPubId.id,
-              setBaseCurrency: {
-                tokenAddr: tokenAddr as `0x${string}`,
-                chainId,
-              },
-              addAcceptedCurrencies: [
-                {
+            stateManager.manifest
+              .update({
+                publishedTagId: newPubId.id,
+                setBaseCurrency: {
                   tokenAddr: tokenAddr as `0x${string}`,
                   chainId,
                 },
-              ],
-              addPayee: {
-                addr: payeeAddr as `0x${string}`,
-                callAsContract: false,
-                chainId,
-                name: "default",
-              },
-              profilePictureUrl: path.url,
-            });
+                addAcceptedCurrencies: [
+                  {
+                    tokenAddr: tokenAddr as `0x${string}`,
+                    chainId,
+                  },
+                ],
+                addPayee: {
+                  addr: payeeAddr as `0x${string}`,
+                  callAsContract: false,
+                  chainId,
+                  name: "default",
+                },
+                profilePictureUrl: path.url,
+              })
+              .then()
+              .catch((e) => debug(e));
           }
 
           const metadata = {
@@ -213,15 +225,22 @@ const StoreCreation = () => {
           const file = new File([blob], "file.json");
           const formData = new FormData();
           formData.append("file", file);
+
           //Testing dom does not support FormData and test client will fail with:
           //Content-Type isn't multipart/form-data
           //so if it is a test env, we are skipping uploadBlob
-          const { url } = process.env.TEST
-            ? { url: "/" }
-            : await relayClient.uploadBlob(formData);
-          if (clientWallet && url) {
+          let response = { url: "/" };
+          if (!process.env.TEST) {
+            relayClient.uploadBlob(formData).then((res) => {
+              response = res;
+            });
+          }
+          if (clientWallet && response.url) {
             const blockchainClient = new BlockchainClient(shopId);
-            await blockchainClient.setShopMetadataURI(clientWallet, url);
+            blockchainClient
+              .setShopMetadataURI(clientWallet, response.url)
+              .then()
+              .catch((e) => debug(e));
           }
 
           router.push("/products");
