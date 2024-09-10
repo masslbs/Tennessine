@@ -27,7 +27,7 @@ describe("Checkout", async () => {
   });
   let orderId: `0x${string}`;
 
-  test("Items added to order are displayed", async () => {
+  test("Update shipping details", async () => {
     expect(receipt.status).equals("success");
     //@ts-expect-error FIXME
     await sm.client.enrollKeycard(wallet, false, randomShopId, undefined);
@@ -91,7 +91,7 @@ describe("Checkout", async () => {
       expect(symbol.textContent).toEqual("ETH");
     });
   });
-  test("Items added to order are displayed", async () => {
+  test("Update shipping details", async () => {
     render(<CheckoutFlow />, sm, orderId);
 
     await act(async () => {
@@ -104,12 +104,14 @@ describe("Checkout", async () => {
       const cityInput = screen.getByTestId("city");
       const zipInput = screen.getByTestId("zip");
       const countryInput = screen.getByTestId("country");
+      const phoneInput = screen.getByTestId("phone");
 
       await user.type(nameInput, "First Last");
       await user.type(addressInput, "111 fakeAddress");
       await user.type(cityInput, "Los Angeles");
       await user.type(zipInput, "91011");
       await user.type(countryInput, "California");
+      await user.type(phoneInput, "123456789");
     });
     await act(async () => {
       const checkout = screen.getByRole("button", { name: /checkout/i });

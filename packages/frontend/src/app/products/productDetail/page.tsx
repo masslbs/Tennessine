@@ -30,7 +30,7 @@ const ProductDetail = () => {
   const [buttonState, setButton] = useState<"Success" | "Review" | "Update">(
     "Review",
   );
-  const [showErrorMessage, setShowErrorMessage] = useState<null | string>(null);
+  const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [available, setAvailable] = useState<number>(0);
   const [allTags, setAllTags] = useState(new Map());
   const [removeTagId, setRemoveTagId] = useState<null | TagId>(null);
@@ -147,7 +147,7 @@ const ProductDetail = () => {
       setButton("Review");
     } catch (error) {
       debug(error);
-      setShowErrorMessage("There was an error updating cart");
+      setErrorMsg("There was an error updating cart");
     }
   };
 
@@ -174,7 +174,7 @@ const ProductDetail = () => {
 
   const handleDelete = async () => {
     if (!removeTagId) {
-      setShowErrorMessage("No remove tag found.");
+      setErrorMsg("No remove tag found.");
       return;
     }
     try {
@@ -182,7 +182,7 @@ const ProductDetail = () => {
       router.push("/products");
     } catch (error) {
       debug(error);
-      setShowErrorMessage("There was an error removing tag from Item.");
+      setErrorMsg("There was an error removing tag from Item.");
     }
   };
 
@@ -248,9 +248,9 @@ const ProductDetail = () => {
       {showConfirmModal && confirmDelete}
       <section className="h-[45rem] flex flex-col">
         <ErrorMessage
-          errorMessage={showErrorMessage}
+          errorMessage={errorMsg}
           onClose={() => {
-            setShowErrorMessage(null);
+            setErrorMsg(null);
             router.push("/products");
           }}
         />

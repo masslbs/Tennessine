@@ -4,32 +4,32 @@
 
 import React, { useEffect } from "react";
 
-interface ErrorMessageProps {
-  errorMessage: string | null;
+interface ValidationWarningProps {
+  warningMessage: string | null;
   onClose: () => void;
 }
 
-const ErrorMessage: React.FC<ErrorMessageProps> = ({
-  errorMessage,
+const ValidationWarning: React.FC<ValidationWarningProps> = ({
+  warningMessage,
   onClose,
 }) => {
-  if (!errorMessage) return null;
+  if (!warningMessage) return null;
 
   useEffect(() => {
-    if (errorMessage) {
+    if (warningMessage) {
       const timeoutId = setTimeout(() => {
         onClose();
       }, 2000);
 
       return () => clearTimeout(timeoutId);
     }
-  }, [errorMessage, onClose]);
+  }, [warningMessage, onClose]);
 
   return (
-    <div className="pl-4 py-2 bg-red-400">
-      <p>{errorMessage}</p>
+    <div className="pl-4 py-2 bg-orange-400">
+      <p>{warningMessage}</p>
     </div>
   );
 };
 
-export default ErrorMessage;
+export default ValidationWarning;

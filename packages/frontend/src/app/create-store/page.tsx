@@ -17,6 +17,9 @@ import { useChains } from "wagmi";
 import { useStoreContext } from "@/context/StoreContext";
 import { BlockchainClient } from "@massmarket/blockchain";
 import debugLib from "debug";
+import { isValidHex } from "@/app/utils";
+import ValidationWarning from "@/app/common/components/ValidationWarning";
+import ErrorMessage from "@/app/common/components/ErrorMessage";
 
 const StoreCreation = () => {
   const {
@@ -42,6 +45,7 @@ const StoreCreation = () => {
   const [tokenAddr, setTokenAddr] = useState<string>(zeroAddress);
   const [chainId, setAcceptedChain] = useState<number>(0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const [isStoreCreated, setStoreCreated] = useState<boolean>(false);
   const [payeeAddr, setPayeeAddr] = useState<string>("");
 
@@ -72,29 +76,30 @@ const StoreCreation = () => {
   }, []);
 
   const checkRequiredFields = () => {
-    const isTokenAddrHex = Boolean(tokenAddr.match(/^0x[0-9a-f]+$/i));
-    const isPayeeAddHex = Boolean(payeeAddr.match(/^0x[0-9a-f]+$/i));
-    let error = null;
+    const isTokenAddrHex = isValidHex(tokenAddr);
+    const isPayeeAddHex = isValidHex(payeeAddr);
+
+    let warning = null;
     if (!isTokenAddrHex) {
-      error = "Token address must be a valid hex value";
+      warning = "Token address must be a valid hex value";
     } else if (!storeName.length) {
-      error = "Store name is required";
+      warning = "Store name is required";
     } else if (!description.length) {
-      error = "Store description is required";
+      warning = "Store description is required";
     } else if (!avatar) {
-      error = "Store image is required";
+      warning = "Store image is required";
     } else if (!tokenAddr.length) {
-      error = "Token Address is required";
+      warning = "Token Address is required";
     } else if (!chainId) {
-      error = "Select a chainID";
+      warning = "Select a chainID";
     } else if (!isPayeeAddHex) {
-      error = "Payee Address must be a valid hex value";
+      warning = "Payee Address must be a valid hex value";
     }
-    if (error) {
-      setErrorMsg(error);
-      throw Error(`Check all required fields:${error}`);
+    if (warning) {
+      setValidationError(warning);
+      throw Error(`Check all required fields:${warning}`);
     } else {
-      setErrorMsg(null);
+      setValidationError(null);
     }
   };
 
@@ -140,10 +145,11 @@ const StoreCreation = () => {
           }
         }
       } catch (err) {
+        setErrorMsg("Error while creating store");
         debug(`Error while creating store: ${err}`);
       }
     } else {
-      debug(`Client undefined`);
+      debug("Client undefined");
     }
   };
 
@@ -246,6 +252,7 @@ const StoreCreation = () => {
           router.push("/products");
         })
         .catch((e) => {
+          setErrorMsg("Error while updating store manifest");
           debug(e);
         });
     }
@@ -253,7 +260,18 @@ const StoreCreation = () => {
 
   return (
     <main className="pt-under-nav h-screen p-4 mt-5">
-      {errorMsg ? <p>{errorMsg}</p> : null}
+      <ValidationWarning
+        warningMessage={validationError}
+        onClose={() => {
+          setValidationError(null);
+        }}
+      />
+      <ErrorMessage
+        errorMessage={errorMsg}
+        onClose={() => {
+          setErrorMsg(null);
+        }}
+      />
       <div className="flex">
         <h2>Create new shop</h2>
         <div className="ml-auto">

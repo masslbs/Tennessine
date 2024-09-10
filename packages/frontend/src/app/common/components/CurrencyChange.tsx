@@ -7,6 +7,7 @@
 import { useStoreContext } from "@/context/StoreContext";
 import { ShopCurrencies } from "@/types";
 import React, { useEffect, useState } from "react";
+import ErrorMessage from "@/app/common/components/ErrorMessage";
 import debugLib from "debug";
 
 const CurrencyChange = ({ open }: { open: boolean }) => {
@@ -16,6 +17,7 @@ const CurrencyChange = ({ open }: { open: boolean }) => {
   const { selectedCurrency, setSelectedCurrency, stateManager } =
     useStoreContext();
   const [acceptedCurrencies, setAcceptedChain] = useState<ShopCurrencies[]>([]);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     stateManager.manifest
@@ -24,6 +26,7 @@ const CurrencyChange = ({ open }: { open: boolean }) => {
         setAcceptedChain(shopManifest.acceptedCurrencies);
       })
       .then((e) => {
+        setErrorMsg("Error while selecting payment currency");
         debug(e);
       });
   }, []);
@@ -45,6 +48,12 @@ const CurrencyChange = ({ open }: { open: boolean }) => {
     <section className="bg-gray-300 p-4 border rounded-xl">
       <p>Choose any ERC20 token to preview and pay.</p>
       <section>
+        <ErrorMessage
+          errorMessage={errorMsg}
+          onClose={() => {
+            setErrorMsg(null);
+          }}
+        />
         <div className="mt-6">
           <p>choose currency</p>
           <div className="flex gap-2">{renderCurrencies()}</div>

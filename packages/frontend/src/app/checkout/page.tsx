@@ -24,6 +24,7 @@ import * as abi from "@massmarket/contracts";
 import CurrencyButton from "@/app/common/components/CurrencyButton";
 import CurrencyChange from "@/app/common/components/CurrencyChange";
 import { zeroAddress } from "@massmarket/contracts";
+import ErrorMessage from "@/app/common/components/ErrorMessage";
 import debugLib from "debug";
 
 const CheckoutFlow = () => {
@@ -39,9 +40,9 @@ const CheckoutFlow = () => {
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
   const [name, setName] = useState("");
-  const [zip, setZip] = useState("");
+  const [postalCode, setPostal] = useState("");
   const [country, setCountry] = useState("");
-  const [number, setNumber] = useState("");
+  const [phoneNumber, setNumber] = useState("");
   const [confirmedTxHash, setConfirmedTxHash] = useState<null | `0x${string}`>(
     null,
   );
@@ -184,6 +185,14 @@ const CheckoutFlow = () => {
       setErrorMsg("Please select a currency to pay in.");
     }
     try {
+      await stateManager.orders.updateShippingDetails(orderId, {
+        name,
+        address1: address,
+        country,
+        city,
+        postalCode,
+        phoneNumber,
+      });
       await stateManager!.orders.commit(
         orderId,
         selectedCurrency!.tokenAddr,
@@ -216,7 +225,7 @@ const CheckoutFlow = () => {
           setCity={setCity}
           setName={setName}
           setAddress={setAddress}
-          setZip={setZip}
+          setPostal={setPostal}
           setCountry={setCountry}
           setNumber={setNumber}
         />
@@ -238,9 +247,9 @@ const CheckoutFlow = () => {
           city={city}
           name={name}
           address={address}
-          zip={zip}
+          postalCode={postalCode}
           country={country}
-          number={number}
+          number={phoneNumber}
           erc20Amount={erc20Amount}
         />
       );
@@ -271,7 +280,12 @@ const CheckoutFlow = () => {
   return (
     <main className="pt-under-nav h-screen bg-gray-100 ">
       {/* FIXME: need banner design for errors */}
-      {errorMsg && errorMsg}
+      <ErrorMessage
+        errorMessage={errorMsg}
+        onClose={() => {
+          setErrorMsg(null);
+        }}
+      />
       <div className="px-4">
         <CurrencyButton toggle={currencyToggle} />
         <CurrencyChange open={openCurrencySelection} />

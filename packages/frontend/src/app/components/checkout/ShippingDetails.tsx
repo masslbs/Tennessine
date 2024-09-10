@@ -11,7 +11,7 @@ const ShippingDetails = ({
   setCity,
   setName,
   setAddress,
-  setZip,
+  setPostal,
   setCountry,
   setNumber,
 }: {
@@ -19,7 +19,7 @@ const ShippingDetails = ({
   setCity: Dispatch<SetStateAction<string>>;
   setName: Dispatch<SetStateAction<string>>;
   setAddress: Dispatch<SetStateAction<string>>;
-  setZip: Dispatch<SetStateAction<string>>;
+  setPostal: Dispatch<SetStateAction<string>>;
   setCountry: Dispatch<SetStateAction<string>>;
   setNumber: Dispatch<SetStateAction<string>>;
 }) => {
@@ -65,7 +65,7 @@ const ShippingDetails = ({
               id="zip"
               name="zip"
               data-testid="zip"
-              onChange={(e) => setZip(e.target.value)}
+              onChange={(e) => setPostal(e.target.value)}
             />
           </div>
         </div>
