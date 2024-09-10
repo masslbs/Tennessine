@@ -96,7 +96,10 @@ const PaymentOptions = ({
             />
           </div>
         </SecondaryButton>
-        <SecondaryButton onClick={() => setShowModal("Address")}>
+        <SecondaryButton
+          data-testid="copyAddress"
+          onClick={() => setShowModal("Address")}
+        >
           <div className="flex gap-2">
             <h6> Copy Address</h6>
             <Image

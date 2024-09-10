@@ -53,7 +53,7 @@ function QRScan({
       ) : (
         <div className="flex flex-col gap-5 text-primary-gray">
           <button onClick={goBack}>go back</button>
-          <h2>
+          <h2 data-testid="erc20Amount">
             Send <span className="text-black">{erc20Amount?.toString()}</span>
           </h2>
           <p>{totalDollar}</p>

@@ -125,6 +125,10 @@ describe("Checkout", async () => {
 
         const o = await sm.orders.get(orderId);
         expect(o.orderFinalized).toBeTruthy;
+        const copy = await screen.findByTestId("copyAddress");
+        await user.click(copy);
+        const erc20Amount = await screen.findByTestId("erc20Amount");
+        console.log("displayedValue", erc20Amount.textContent);
       },
       { timeout: 10000 },
     );
