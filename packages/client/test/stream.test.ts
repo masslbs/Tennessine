@@ -182,12 +182,10 @@ describe("Stream", async () => {
       count++;
       if (count === events.length) break;
     }
+    expect(receivedEvents.length).toEqual(events.length);
 
     for (let i = 0; i < events.length; i++) {
-
-      expect(receivedEvents.length).toEqual(events.length);
       expect(schema.ShopEvent.decode(events[i].event.value)).toEqual(receivedEvents[i].event);
-
     }
   });
 
