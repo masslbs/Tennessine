@@ -34,6 +34,14 @@ async function signMessage(message: PBObject) {
   return signedEvent;
 }
 
+async function chunkArray(array: any[], chunkSize: number) {
+  const chunks = [];
+  for (let i = 0; i < array.length; i += chunkSize) {
+    chunks.push(array.slice(i, i + chunkSize));
+  }
+  return chunks;
+}
+
 class MockClient {
   encodeAndSendNoWait(
     encoder: PBMessage,
@@ -140,7 +148,50 @@ describe("Stream", async () => {
   // TODO: should add version of the test above that creates random chunking of the test vectors
   // and assert that they are all returned in order as individual events
 
-  test("Stream Cancel ", () => {
+  test("Stream with random chunking of test vectors", async () => {
+    const events = [];
+    for (let index = 0; index < testVectors.events.length; index++) {
+        const evt = testVectors.events[index];
+      events.push({
+        signature: hexToBytes(evt.signature as `0x${string}`),
+        event: {
+          type_url: "type.googleapis.com/market.mass.ShopEvent",
+          value: hexToBytes(evt.encoded as `0x${string}`),
+        },
+      });
+    }
+
+    const client = new MockClient();
+    const stream = new ReadableEventStream(client);
+
+    const chunkedEvents = await chunkArray(events, Math.floor(Math.random() * events.length) + 1);
+    for (const chunk of chunkedEvents) {
+      stream.enqueue(new schema.EventPushRequest({
+        requestId: randomBytes(16),
+        events: chunk,
+      }));
+
+      await new Promise(resolve => setTimeout(resolve, 10));
+    }
+
+    let count = 0;
+    let receivedEvents = [];
+
+    for await (const evt of stream.stream) {
+      receivedEvents.push(evt);
+      count++;
+      if (count === events.length) break;
+    }
+
+    for (let i = 0; i < events.length; i++) {
+
+      expect(receivedEvents.length).toEqual(events.length);
+      expect(schema.ShopEvent.decode(events[i].event.value)).toEqual(receivedEvents[i].event);
+
+    }
+  });
+
+    test("Stream Cancel ", () => {
     assert.doesNotThrow(async () => {
       const testCreateItem = {
         updateItem: {
