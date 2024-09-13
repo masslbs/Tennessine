@@ -34,7 +34,7 @@ async function signMessage(message: PBObject) {
   return signedEvent;
 }
 
-async function chunkArray(array: any[], chunkSize: number) {
+function chunkArray(array: any[], chunkSize: number) {
   const chunks = [];
   for (let i = 0; i < array.length; i += chunkSize) {
     chunks.push(array.slice(i, i + chunkSize));
@@ -164,7 +164,7 @@ describe("Stream", async () => {
     const client = new MockClient();
     const stream = new ReadableEventStream(client);
 
-    const chunkedEvents = await chunkArray(events, Math.floor(Math.random() * events.length) + 1);
+    const chunkedEvents = chunkArray(events, Math.floor(Math.random() * events.length) + 1);
     for (const chunk of chunkedEvents) {
       stream.enqueue(new schema.EventPushRequest({
         requestId: randomBytes(16),
