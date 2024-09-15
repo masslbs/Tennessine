@@ -37,7 +37,7 @@ const orderStore = db.sublevel<string, Order | OrdersByStatus>("orderStore", {
   valueEncoding: "json",
 });
 
-const keycardStore = db.sublevel<string, KeyCard>("keycardStore", {
+const keycardStore = db.sublevel<string, KeyCard[]>("keycardStore", {
   valueEncoding: "json",
 });
 

@@ -17,7 +17,8 @@ import { useMyContext } from "./MyContext";
 import { StoreContent } from "@/context/types";
 import { LoadingStateManager } from "@/context/initialLoadingState";
 import { StateManager } from "@massmarket/stateManager";
-
+import { Address } from "@ethereumjs/util";
+import { hexToBytes } from "viem";
 // @ts-expect-error FIXME
 export const StoreContext = createContext<StoreContent>({});
 
@@ -27,7 +28,7 @@ export const StoreContextProvider = (
   const [orderId, setOrderId] = useState<OrderId | null>(null);
   const [selectedCurrency, setSelectedCurrency] =
     useState<ShopCurrencies | null>(null);
-  const { relayClient, shopId } = useMyContext();
+  const { relayClient, shopId, walletAddress } = useMyContext();
   const [stateManager, setStateManager] = useState<
     StateManager | LoadingStateManager
   >(new LoadingStateManager());
@@ -59,7 +60,7 @@ export const StoreContextProvider = (
           valueEncoding: "json",
         });
 
-        const keycardStore = db.sublevel<string, KeyCard>("keycardStore", {
+        const keycardStore = db.sublevel<string, KeyCard[]>("keycardStore", {
           valueEncoding: "json",
         });
         //instantiate stateManager and set it in context
@@ -84,55 +85,33 @@ export const StoreContextProvider = (
     }
   }, [relayClient]);
 
-  // useEffect(() => {
-  //   (async () => {
-  //     const currencies = Array.from([...acceptedCurrencies.keys()]);
-  //     const _cur = currencies.filter((a) => !acceptedCurrencies.get(a));
-  //     _cur.map(async (address) => {
-  //       const { symbol } = await getTokenInformation(address);
-
-  //       setAcceptedCurrencies({
-  //         type: UPDATE_SYMBOL,
-  //         payload: { tokenAddr: address, symbol },
-  //       });
-  //     });
-  //   })();
-  // }, [acceptedCurrencies]);
-
-  // const verify = async (
-  //   _orderItems: Map<OrderId, OrderState>,
-  //   _pubKeys: `0x${string}`[],
-  // ) => {
-  //   console.log(_orderItems, _pubKeys);
-  // const addresses = _pubKeys.map((k) => {
-  //   return Address.fromPublicKey(hexToBytes(k)).toString();
-  // });
-  // const keysArr: `0x${string}`[] = _orderItems.size
-  //   ? Array.from([..._orderItems.keys()])
-  //   : [];
-  // for (const _orderId of keysArr) {
-  //   const _order = _orderItems.get(_orderId) as OrderState;
-  //   if (_order && _order.status !== Status.Failed) {
-  //     const sig = _order.signature as `0x${string}`;
-  //     const retrievedAdd = await relayClient!.recoverSignedAddress(
-  //       _orderId,
-  //       sig,
-  //     );
-  //     if (addresses.includes(retrievedAdd.toLowerCase())) {
-  //       console.log("inside inclue", _orderId);
-  //       setOrderId(_orderId);
-  //     }
-  //   }
-  // }
-  // };
-
   const getOrderId = async () => {
-    //FIXME: This part is still wip. We will have to go through the openOrders(array) and verify the signed address via keycard store. There should only be one open order per clerk.
-    // For now just set current order id as the first open order
+    //Getting all open orders.
     const openOrders = await stateManager?.orders.getStatus(Status.Pending);
-    let order_id: OrderId;
-    if (openOrders && openOrders.length) {
-      order_id = openOrders[0] as OrderId;
+    let order_id: OrderId | null = null;
+    if (openOrders && openOrders.length && walletAddress) {
+      //Getting all public keys by current wallet address.
+      const publicKeys = await stateManager?.keycards.get(
+        walletAddress.toLowerCase() as `0x${string}`,
+      );
+      //Getting address from public key.
+      const addresses = publicKeys.map((a: OrderId) => {
+        return Address.fromPublicKey(hexToBytes(a)).toString();
+      });
+      for (const o of openOrders) {
+        //Go through the open orders and see if the signer address is one of the public keys created with the wallet address.
+        //signer property is retrieved from recoverMessageAddress fn. See the pull fn in client/stream.ts
+        if (o.signer) {
+          if (addresses.includes(o.signer.toLowerCase())) {
+            order_id = o.orderId;
+          }
+        }
+      }
+      if (!order_id) {
+        const { id } = await stateManager!.orders.create();
+        order_id = id;
+      }
+
       setOrderId(order_id);
     } else {
       // If open order id does not exist, create new id

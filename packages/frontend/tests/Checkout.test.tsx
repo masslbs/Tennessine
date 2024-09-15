@@ -27,7 +27,7 @@ describe("Checkout", async () => {
   });
   let orderId: `0x${string}`;
 
-  test("Update shipping details", async () => {
+  test("Total in checkout page is rendered correctly", async () => {
     expect(receipt.status).equals("success");
     //@ts-expect-error FIXME
     await sm.client.enrollKeycard(wallet, false, randomShopId, undefined);

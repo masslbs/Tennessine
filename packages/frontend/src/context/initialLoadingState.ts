@@ -1,4 +1,4 @@
-import { Status, ShopManifest, Order, Item, Tag } from "@/types";
+import { Status, ShopManifest, Order, Item, Tag, KeyCard } from "@/types";
 import { EventEmitter } from "events";
 
 const id = "0x" as `0x${string}`;
@@ -38,11 +38,13 @@ export class LoadingStateManager {
   readonly tags;
   readonly manifest;
   readonly orders;
+  readonly keycards;
   constructor() {
     this.items = new LoadingManager<Item>(loadingItem);
     this.tags = new LoadingManager<Tag>(loadingTag);
     this.manifest = new LoadingManager<ShopManifest>(loadingManifest);
     this.orders = new LoadingManager<Order>(loadingOrders);
+    this.keycards = new LoadingManager<KeyCard[]>([id]);
   }
 }
 class AsyncIterableExample<T> {

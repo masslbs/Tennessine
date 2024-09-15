@@ -80,7 +80,7 @@ describe("Product Detail Component", async () => {
     });
     // Check that the item (2qty) we added to cart above is saved in stateManager
     const openOrder = await sm.orders.getStatus(Status.Pending);
-    const orderDetails = await sm.orders.get(openOrder[0]);
+    const orderDetails = await sm.orders.get(openOrder[0].orderId);
     expect(orderDetails.items[itemId]).toEqual(2);
 
     // Update purchase quantity
@@ -94,7 +94,7 @@ describe("Product Detail Component", async () => {
     });
 
     const o = await sm.orders.getStatus(Status.Pending);
-    const d = await sm.orders.get(o[0]);
+    const d = await sm.orders.get(o[0].orderId);
     expect(d.items[itemId]).toEqual(3);
 
     // Testing event listener for change stock

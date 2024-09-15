@@ -47,16 +47,17 @@ async function storeOrdersByStatus(
   orderId: `0x${string}`,
   store: Store<Order | OrdersByStatus>,
   status: Status,
+  signer: `0x${string}`,
 ) {
   let orders: OrdersByStatus = [];
 
   try {
     orders = (await store.get(status)) as OrdersByStatus;
-    orders.push(orderId);
+    orders.push({ orderId, signer });
   } catch (error) {
     const e = error as IError;
     if (e.notFound) {
-      orders.push(orderId);
+      orders.push({ orderId, signer });
     } else {
       throw new Error(e.code);
     }
@@ -72,7 +73,10 @@ abstract class PublicObjectManager<
   ) {
     super();
   }
-  abstract _processEvent(event: schema.ShopEvents): Promise<void>;
+  abstract _processEvent(
+    event: schema.ShopEvents,
+    signer: `0x${string}`,
+  ): Promise<void>;
   abstract get(key?: string): Promise<T>;
   get iterator() {
     return this.store.iterator.bind(this.store);
@@ -347,7 +351,10 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
     super(store, client);
   }
   //Process all Order events. Convert bytes to hex, waits for database update, then emits event
-  async _processEvent(event: schema.ShopEvents): Promise<void> {
+  async _processEvent(
+    event: schema.ShopEvents,
+    signer: `0x${string}`,
+  ): Promise<void> {
     if (event.createOrder) {
       const co = event.createOrder;
       const id = bytesToHex(co.eventId!);
@@ -357,7 +364,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         status: Status.Pending,
       };
       await this.store.put(id, o);
-      await storeOrdersByStatus(id, this.store, Status.Pending);
+      await storeOrdersByStatus(id, this.store, Status.Pending, signer);
 
       this.emit("create", o, co.eventId);
       return;
@@ -398,7 +405,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       } else if (uo.orderCanceled) {
         order.status = Status.Failed;
         await this.store.put(orderId, order);
-        await storeOrdersByStatus(orderId, this.store, Status.Failed);
+        await storeOrdersByStatus(orderId, this.store, Status.Failed, signer);
         this.emit("orderCanceled", order, uo.eventId);
         return;
       } else if (uo.updateShippingDetails) {
@@ -445,10 +452,10 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         order.status = Status.Complete;
         order.txHash = bytesToHex(cs.txHash);
         await this.store.put(orderId, order);
-        await storeOrdersByStatus(orderId, this.store, Status.Complete);
+        await storeOrdersByStatus(orderId, this.store, Status.Complete, signer);
         //remove the orderId from pending orders since its status is now complete
         let orders = (await this.store.get(Status.Pending)) as OrdersByStatus;
-        orders = orders.filter((id) => id !== orderId);
+        orders = orders.filter((o) => o.orderId !== orderId);
         await this.store.put(Status.Pending, orders);
         this.emit("orderPaid", order);
         return;
@@ -460,9 +467,9 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
     return this.store.get(key) as Promise<Order>;
   }
 
-  async getStatus(key: Status): Promise<`0x${string}`[]> {
+  async getStatus(key: Status): Promise<OrdersByStatus> {
     try {
-      return (await this.store.get(key)) as `0x${string}`[];
+      return (await this.store.get(key)) as OrdersByStatus;
     } catch (error) {
       const e = error as IError;
       if (e.notFound) {
@@ -557,8 +564,8 @@ class TagManager extends PublicObjectManager<Tag> {
   }
 }
 
-class KeyCardManager extends PublicObjectManager<KeyCard> {
-  constructor(store: Store<KeyCard>, client: IRelayClient) {
+class KeyCardManager extends PublicObjectManager<KeyCard[]> {
+  constructor(store: Store<KeyCard[]>, client: IRelayClient) {
     super(store, client);
   }
 
@@ -568,14 +575,29 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
       const kc = event.newKeyCard;
       const userWalletAddr = bytesToHex(kc.userWalletAddr!);
       const cardPublicKey = bytesToHex(kc.cardPublicKey!);
-      await this.store.put(cardPublicKey, userWalletAddr);
+      let keycards: `0x${string}`[] = [];
+      //If walletAdress already exists, add the new KC to the existing array of values.
+      //If this is the first KC, create a new array with the new KC.
+      try {
+        keycards = await this.store.get(userWalletAddr);
+        keycards.push(cardPublicKey);
+      } catch (error) {
+        const e = error as IError;
+        if (e.notFound) {
+          keycards.push(cardPublicKey);
+        } else {
+          throw new Error(e.code);
+        }
+      }
+      await this.store.put(userWalletAddr, keycards);
+
       this.emit("newKeyCard", cardPublicKey);
       return;
     }
   }
 
-  get(key: `0x${string}`) {
-    return this.store.get(key);
+  get(walletAddress: `0x${string}`) {
+    return this.store.get(walletAddress);
   }
 }
 // This class creates the state of a store from an event stream
@@ -593,7 +615,7 @@ export class StateManager {
     tagStore: Store<Tag>,
     shopManifestStore: Store<ShopManifest>,
     orderStore: Store<Order | OrdersByStatus>,
-    keycardStore: Store<KeyCard>,
+    keycardStore: Store<KeyCard[]>,
   ) {
     this.items = new ListingManager(listingStore, client);
     this.tags = new TagManager(tagStore, client);
@@ -618,7 +640,7 @@ export class StateManager {
     //Each event will go through all the storeObjects and update the relevant stores.
     for await (const event of stream) {
       for (const storeObject of storeObjects) {
-        await storeObject._processEvent(event.event);
+        await storeObject._processEvent(event.event, event.signer);
       }
     }
   }

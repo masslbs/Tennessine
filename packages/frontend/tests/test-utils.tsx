@@ -70,7 +70,7 @@ export function getStateManager(useRelayClient?: boolean) {
     valueEncoding: "json",
   });
 
-  const keycardStore = db.sublevel<string, KeyCard>("keycardStore", {
+  const keycardStore = db.sublevel<string, KeyCard[]>("keycardStore", {
     valueEncoding: "json",
   });
   return new StateManager(

@@ -42,7 +42,10 @@ export interface IError {
   notFound: boolean;
   code: string;
 }
-export type OrdersByStatus = string[];
+export type OrdersByStatus = {
+  orderId: `0x${string}`;
+  signer: `0x${string}`;
+}[];
 
 export type KeyCard = `0x${string}`;
 export interface ShippingDetails {
@@ -111,7 +114,7 @@ export interface UpdateShopManifest {
 export type ShopObjectTypes =
   | Item
   | Tag
-  | KeyCard
+  | KeyCard[]
   | Order
   | OrdersByStatus
   | ShopManifest;

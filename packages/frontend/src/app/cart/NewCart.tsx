@@ -31,23 +31,25 @@ const NewCart = ({
 
   useEffect(() => {
     if (orderId && stateManager) {
-      const cartObjects = new Map();
       stateManager.orders
         .get(orderId)
         .then(async (o) => {
+          const cartObjects = new Map();
           const ci = o.items;
-          await Promise.all(
+          Promise.all(
             Object.keys(ci).map(async (id) => {
-              stateManager.items
+              return stateManager.items
                 .get(id as ItemId)
                 .then((item) => {
                   cartObjects.set(id, item);
+                  setCartMap(cartObjects);
                 })
                 .catch((e) => debug(e));
             }),
-          );
-          setCartMap(cartObjects);
-          setItemIds(ci);
+          ).then(() => {
+            setCartMap(cartObjects);
+            setItemIds(ci);
+          });
         })
         .catch((e) => debug(e));
     }
