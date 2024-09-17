@@ -86,6 +86,8 @@ export const StoreContextProvider = (
   }, [relayClient]);
 
   const getOrderId = async () => {
+    //If orderId is already set, return it. Else, get the open order signed by the public key from the current walletAddress.
+    if (orderId) return orderId;
     //Getting all open orders.
     const openOrders = await stateManager?.orders.getStatus(Status.Pending);
     let order_id: OrderId | null = null;
