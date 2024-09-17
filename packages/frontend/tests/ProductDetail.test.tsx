@@ -8,12 +8,12 @@ import ProductDetail from "@/app/products/productDetail/page";
 import mockRouter from "next-router-mock";
 import { Status } from "@/types";
 
-const sm = getStateManager();
-
 describe("Product Detail Component", async () => {
   const user = userEvent.setup();
   let itemId: `0x${string}`;
   let removeTagId: `0x${string}`;
+  const sm = await getStateManager();
+
   beforeEach(async () => {
     const order = await sm.orders.create();
 
@@ -78,10 +78,13 @@ describe("Product Detail Component", async () => {
       });
       await user.click(screen.getByTestId("addToCart"));
     });
-    // Check that the item (2qty) we added to cart above is saved in stateManager
-    const openOrder = await sm.orders.getStatus(Status.Pending);
-    const orderDetails = await sm.orders.get(openOrder[0]);
-    expect(orderDetails.items[itemId]).toEqual(2);
+
+    await waitFor(async () => {
+      // Check that the item (2qty) we added to cart above is saved in stateManager
+      const openOrder = await sm.orders.getStatus(Status.Pending);
+      const orderDetails = await sm.orders.get(openOrder[0]);
+      expect(orderDetails.items[itemId]).toEqual(2);
+    });
 
     // Update purchase quantity
     await act(async () => {
@@ -90,17 +93,17 @@ describe("Product Detail Component", async () => {
       fireEvent.change(qtyInput, {
         target: { value: "3" },
       });
+    });
+    await waitFor(async () => {
       await user.click(await screen.findByTestId("updateQty"));
+      const o = await sm.orders.getStatus(Status.Pending);
+      const d = await sm.orders.get(o[0]);
+      expect(d.items[itemId]).toEqual(3);
     });
 
-    const o = await sm.orders.getStatus(Status.Pending);
-    const d = await sm.orders.get(o[0]);
-    expect(d.items[itemId]).toEqual(3);
-
-    // Testing event listener for change stock
-    await sm.items.changeStock([itemId], [400]);
-
     await waitFor(async () => {
+      // Testing event listener for change stock
+      await sm.items.changeStock([itemId], [400]);
       const available = screen.getByTestId("available");
       expect(available.textContent).toEqual("405");
     });
@@ -116,6 +119,9 @@ describe("Product Detail Component", async () => {
         name: /Im sure/i,
       });
       await user.click(confirmButton);
+    });
+
+    await waitFor(async () => {
       const res = await sm.items.get(itemId);
       // Check that given item.tags includes the removeTagId
       expect(res.tags[0]).toEqual(removeTagId);

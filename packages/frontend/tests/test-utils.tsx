@@ -18,10 +18,10 @@ import { MemoryLevel } from "memory-level";
 import { WagmiProvider } from "wagmi";
 import { config } from "../src/wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { random32BytesHex } from "@massmarket/utils";
+import { random32BytesHex, randomAddress } from "@massmarket/utils";
 import { RelayClient, discoverRelay } from "@massmarket/client";
 import { privateKeyToAccount } from "viem/accounts";
-import { createWalletClient, http } from "viem";
+import { createWalletClient, http, createPublicClient } from "viem";
 import { hardhat } from "viem/chains";
 import { zeroAddress, anvilAddress } from "@massmarket/utils";
 
@@ -29,13 +29,6 @@ const mockClient = new MockClient();
 const relayURL =
   (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v2";
 const relayEndpoint = await discoverRelay(relayURL);
-
-function createRelayClient(pk = random32BytesHex()) {
-  return new RelayClient({
-    relayEndpoint,
-    keyCardWallet: privateKeyToAccount(pk),
-  });
-}
 
 export function getWallet() {
   // this key is from one of anvil's default keypairs
@@ -47,12 +40,19 @@ export function getWallet() {
   });
   return wallet;
 }
-export function getStateManager(useRelayClient?: boolean) {
-  const client = useRelayClient ? createRelayClient() : mockClient;
+export async function getStateManager(useRelayClient?: boolean) {
+  const kcWallet = privateKeyToAccount(random32BytesHex());
+  const client = useRelayClient
+    ? new RelayClient({
+        relayEndpoint,
+        keyCardWallet: kcWallet,
+      })
+    : mockClient;
 
   const db = new MemoryLevel({
     valueEncoding: "json",
   });
+
   db.clear();
   const listingStore = db.sublevel<string, Item>("listingStore", {
     valueEncoding: "json",
@@ -73,14 +73,25 @@ export function getStateManager(useRelayClient?: boolean) {
   const keycardStore = db.sublevel<string, KeyCard>("keycardStore", {
     valueEncoding: "json",
   });
-  return new StateManager(
+  const shopClient = createPublicClient({
+    chain: hardhat,
+    transport: http(),
+  });
+  const sm = new StateManager(
     client,
     listingStore,
     tagStore,
     shopManifestStore,
     orderStore,
     keycardStore,
+    randomAddress(),
+    shopClient,
   );
+  //Usually addAddress is called in the stateManager by finding the ownerAdd of the relayTokenIds associated with a shopId.
+  //But for testing purposes, manually add relay addresses to db.
+  await sm.keycards.addAddress(mockClient.keyCardWallet.address);
+  await sm.keycards.addAddress(kcWallet.address);
+  return sm;
 }
 
 const Wrapper = ({

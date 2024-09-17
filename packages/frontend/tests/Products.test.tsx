@@ -5,9 +5,9 @@ import Products from "../src/app/products/page";
 import { randomAddress } from "@massmarket/utils";
 import { merchantsWrapper, getStateManager } from "./test-utils";
 
-const sm = getStateManager();
-
 describe("Products Component", async () => {
+  const sm = await getStateManager();
+
   await sm.manifest.create(
     {
       name: "Test Shop",

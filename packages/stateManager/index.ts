@@ -1,6 +1,6 @@
 import { EventEmitter } from "events";
 import schema from "@massmarket/schema";
-import { bytesToHex, hexToBytes } from "viem";
+import { bytesToHex, hexToBytes, PublicClient } from "viem";
 import { bufferToJSON, stringifyToBuffer } from "@massmarket/utils";
 import {
   IRelayClient,
@@ -18,6 +18,8 @@ import {
   IError,
   OrdersByStatus,
 } from "./types";
+import { Address } from "@ethereumjs/util";
+import * as abi from "@massmarket/contracts";
 
 // This is an interface that is used to retrieve and store objects from a persistant layer
 export type Store<T extends ShopObjectTypes> = {
@@ -567,15 +569,22 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
       //storing WA and KC pair
       const kc = event.newKeyCard;
       const userWalletAddr = bytesToHex(kc.userWalletAddr!);
-      const cardPublicKey = bytesToHex(kc.cardPublicKey!);
-      await this.store.put(cardPublicKey, userWalletAddr);
-      this.emit("newKeyCard", cardPublicKey);
+      //Returns hex encoding of address.
+      const addressFromPubKey = Address.fromPublicKey(
+        kc.cardPublicKey,
+      ).toString();
+      await this.store.put(addressFromPubKey, userWalletAddr);
+      this.emit("newKeyCard", addressFromPubKey);
       return;
     }
   }
 
   get(key: `0x${string}`) {
     return this.store.get(key);
+  }
+  addAddress(key: `0x${string}`) {
+    const k = key.toLowerCase();
+    return this.store.put(k, key);
   }
 }
 // This class creates the state of a store from an event stream
@@ -586,6 +595,8 @@ export class StateManager {
   readonly manifest;
   readonly orders;
   readonly keycards;
+  readonly shopId;
+  readonly publicClient;
   eventStreamProcessing;
   constructor(
     public client: IRelayClient,
@@ -594,12 +605,16 @@ export class StateManager {
     shopManifestStore: Store<ShopManifest>,
     orderStore: Store<Order | OrdersByStatus>,
     keycardStore: Store<KeyCard>,
+    shopId: `0x${string}`,
+    publicClient: PublicClient,
   ) {
     this.items = new ListingManager(listingStore, client);
     this.tags = new TagManager(tagStore, client);
     this.manifest = new ShopManifestManager(shopManifestStore, client);
     this.orders = new OrderManager(orderStore, client);
     this.keycards = new KeyCardManager(keycardStore, client);
+    this.shopId = shopId;
+    this.publicClient = publicClient;
     this.eventStreamProcessing = this.#start();
     this.eventStreamProcessing.catch((err) => {
       console.log("Error something bad happened in the stream", err);
@@ -615,8 +630,38 @@ export class StateManager {
       this.keycards,
     ];
     const stream = this.client.createEventStream();
+
+    //When we inititally create a shop, we are saving the relay tokenId => shopId.
+    //Here, we are retrieving all the relay addresses associated with the shopId and saving them to keycards store.
+    //Since some shopEvents are signed by a relay, we need to include these addresses when verifying the event signer.
+    const count = (await this.publicClient.readContract({
+      address: abi.addresses.ShopReg as `0x${string}`,
+      abi: abi.ShopReg,
+      functionName: "getRelayCount",
+      args: [this.shopId],
+    })) as number;
+
+    if (count > 0) {
+      const tokenIds = (await this.publicClient.readContract({
+        address: abi.addresses.ShopReg as `0x${string}`,
+        abi: abi.ShopReg,
+        functionName: "getAllRelays",
+        args: [this.shopId],
+      })) as `0x${string}`[];
+      for await (const tokenId of tokenIds) {
+        const ownerAdd = (await this.publicClient!.readContract({
+          address: abi.addresses.RelayReg as `0x${string}`,
+          abi: abi.RelayReg,
+          functionName: "ownerOf",
+          args: [tokenId],
+        })) as `0x${string}`;
+        await this.keycards.addAddress(ownerAdd);
+      }
+    }
+
     //Each event will go through all the storeObjects and update the relevant stores.
     for await (const event of stream) {
+      await this.keycards.get(event.signer.toLowerCase());
       for (const storeObject of storeObjects) {
         await storeObject._processEvent(event.event);
       }

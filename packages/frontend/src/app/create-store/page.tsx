@@ -20,7 +20,7 @@ import debugLib from "debug";
 import { isValidHex } from "@/app/utils";
 import ValidationWarning from "@/app/common/components/ValidationWarning";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
-
+import { discoverRelay } from "@massmarket/client";
 const StoreCreation = () => {
   const {
     publicClient,
@@ -105,6 +105,7 @@ const StoreCreation = () => {
 
   const createShop = async () => {
     checkRequiredFields();
+
     const rc = await createNewRelayClient();
     if (rc && publicClient && clientWallet && shopId) {
       try {
@@ -117,6 +118,13 @@ const StoreCreation = () => {
         });
 
         if (transaction!.status == "success") {
+          //Add relay tokenId
+          const relayURL =
+            (process && process.env["RELAY_ENDPOINT"]) ||
+            "ws://localhost:4444/v2";
+          // TODO: use process.env.NEXT_PUBLIC_RELAY_TOKEN_ID in prod
+          const relayEndpoint = await discoverRelay(relayURL);
+          await blockchainClient.addRelay(clientWallet, relayEndpoint.tokenId);
           localStorage.setItem("shopId", shopId!);
           const hasAccess = await checkPermissions();
 

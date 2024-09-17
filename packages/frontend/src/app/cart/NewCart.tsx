@@ -36,9 +36,10 @@ const NewCart = ({
         .get(orderId)
         .then(async (o) => {
           const ci = o.items;
+          const keys = Object.keys(ci);
           await Promise.all(
-            Object.keys(ci).map(async (id) => {
-              stateManager.items
+            keys.map(async (id) => {
+              return stateManager.items
                 .get(id as ItemId)
                 .then((item) => {
                   cartObjects.set(id, item);
@@ -111,6 +112,7 @@ const NewCart = ({
 
     return Array.from([...cartItemsMap.keys()]).map((id) => {
       const item = cartItemsMap.get(id as ItemId);
+
       if (!item || !item.metadata.image) return;
       return (
         <div

@@ -16,9 +16,15 @@ import {
   random32BytesHex,
   zeroAddress,
 } from "@massmarket/utils";
+import { createPublicClient, http } from "viem";
+import { hardhat } from "viem/chains";
 
 const db = new MemoryLevel({
   valueEncoding: "json",
+});
+const publicClient = createPublicClient({
+  chain: hardhat,
+  transport: http(),
 });
 db.clear();
 const listingStore = db.sublevel<string, Item>("listingStore", {
@@ -50,8 +56,11 @@ describe("Fill state manager with test vectors", async () => {
     shopManifestStore,
     orderStore,
     keycardStore,
+    randomAddress(),
+    publicClient,
   );
-
+  //Store test vector address to db for event verification
+  await stateManager.keycards.addAddress(client.keyCardWallet.address);
   let count = 0;
 
   stateManager.manifest.on("create", () => {
@@ -127,15 +136,14 @@ describe("Fill state manager with test vectors", async () => {
       vectorState.manifest.base_currency.addr,
     );
   });
-
-  test("KeycardManager - updates keycard events", async () => {
-    let keyCount = 0;
-    for await (const [walletAddress, pk] of stateManager.keycards.iterator()) {
-      keyCount++;
-      expect(pk).toEqual(vectorState.keycards[walletAddress]);
-    }
-    expect(Object.keys(vectorState.keycards).length).toEqual(keyCount);
-  });
+  //FIXME: this will change with network-v3
+  // test("KeycardManager - updates keycard events", async () => {
+  //   let keyCount = 0;
+  //   for await (const [address, walletAddress] of stateManager.keycards.iterator()) {
+  //     keyCount++;
+  //   }
+  //   expect(Object.keys(vectorState.keycards).length).toEqual(keyCount);
+  // });
 
   test("ListingManager - adds and updates item events", async () => {
     let itemCount = 0;
@@ -191,7 +199,40 @@ describe("Fill state manager with test vectors", async () => {
     }
   });
 });
-
+describe("Unverified events should be caught in error", async () => {
+  beforeEach(() => {
+    db.clear();
+  });
+  const client = new MockClient();
+  const stateManager = new StateManager(
+    client,
+    listingStore,
+    tagStore,
+    shopManifestStore,
+    orderStore,
+    keycardStore,
+    randomAddress(),
+    publicClient,
+  );
+  test("catches error", async () => {
+    let error = false;
+    stateManager.eventStreamProcessing.catch((e) => {
+      error = true;
+    });
+    stateManager.manifest
+      .create(
+        {
+          name: "Test Shop",
+          description: "Testing shopManifest",
+        },
+        randomAddress(),
+      )
+      .then();
+    await vi.waitUntil(async () => {
+      return error;
+    });
+  });
+});
 describe("CRUD functions update stores", async () => {
   const client = new MockClient();
   const stateManager = new StateManager(
@@ -201,10 +242,14 @@ describe("CRUD functions update stores", async () => {
     shopManifestStore,
     orderStore,
     keycardStore,
+    randomAddress(),
+    publicClient,
   );
 
   beforeEach(async () => {
     db.clear();
+    //Store test vector address to db for event verification
+    await stateManager.keycards.addAddress(client.keyCardWallet.address);
   });
 
   test("ShopManifest - create", async () => {

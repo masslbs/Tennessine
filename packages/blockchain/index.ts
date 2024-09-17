@@ -26,7 +26,14 @@ export type WalletClientWithAccount = WalletClient<
 
 export class BlockchainClient {
   constructor(public shopId = bytesToHex(eventId())) {}
-
+  addRelay(wallet: WalletClientWithAccount, tokenId: `0x${string}`) {
+    return wallet.writeContract({
+      address: abi.addresses.ShopReg as Address,
+      abi: abi.ShopReg,
+      functionName: "addRelay",
+      args: [BigInt(this.shopId), tokenId],
+    });
+  }
   createShop(wallet: WalletClientWithAccount) {
     return wallet.writeContract({
       address: abi.addresses.ShopReg as Address,

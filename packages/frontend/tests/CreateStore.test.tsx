@@ -8,9 +8,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { hardhat } from "viem/chains";
 import { randomAddress, zeroAddress } from "@massmarket/utils";
 
-import { render, getStateManager } from "./test-utils";
-
-const sm = getStateManager();
+import { render, getStateManager, getWallet } from "./test-utils";
 
 const spy = vi.fn(() => {});
 
@@ -38,14 +36,7 @@ beforeEach(async () => {
     return {
       ...mod,
       useWalletClient() {
-        const account = privateKeyToAccount(
-          "0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6",
-        );
-        const wallet = createWalletClient({
-          account,
-          chain: hardhat,
-          transport: http(),
-        });
+        const wallet = getWallet();
         return {
           data: wallet,
           status: "success",
@@ -61,6 +52,8 @@ afterEach(async () => {
 
 describe("Create Store", async () => {
   const user = userEvent.setup();
+  const sm = await getStateManager();
+
   beforeEach(async () => {
     render(<CreateStore />, sm);
   });

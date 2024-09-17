@@ -117,7 +117,8 @@ export class RelayClient extends EventEmitter {
       event: signedEvent,
     };
     await this.encodeAndSend(schema.EventWriteRequest, eventWriteRequest);
-    this.eventStream.outgoingEnqueue(shopEvent);
+    //Passing current KC address as signer for event verification.
+    this.eventStream.outgoingEnqueue(shopEvent, this.keyCardWallet.address);
   }
 
   async shopManifest(manifest: schema.IShopManifest, shopId: `0x${string}`) {
