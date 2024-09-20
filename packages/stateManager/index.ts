@@ -1,7 +1,7 @@
 import { EventEmitter } from "events";
 import schema from "@massmarket/schema";
 import { bytesToHex, hexToBytes, fromBytes } from "viem";
-import { priceToUint256 } from "@massmarket/utils";
+import { priceToUint256, addressToUint256 } from "@massmarket/utils";
 import {
   IRelayClient,
   Item,
@@ -104,20 +104,20 @@ class ListingManager extends PublicObjectManager<Item> {
       this.emit("create", item, cl.eventId);
       return;
     } else if (event.updateListing) {
-      const ui = event.updateListing;
-      const { id } = ui;
+      const ul = event.updateListing;
+      const { id } = ul;
       const item = await this.store.get(id);
-      if (ui.baseInfo) {
-        item.baseInfo = ui.baseInfo;
+      if (ul.baseInfo) {
+        item.baseInfo = ul.baseInfo;
       }
-      if (ui.basePrice) {
-        item.basePrice = fromBytes(ui.basePrice.raw, "bigint").toString();
+      if (ul.basePrice) {
+        item.basePrice = fromBytes(ul.basePrice.raw, "bigint").toString();
       }
-      if (ui.viewState) {
-        item.viewState = ui.viewState;
+      if (ul.viewState) {
+        item.viewState = ul.viewState;
       }
       await this.store.put(id, item);
-      this.emit("update", item, ui.eventId);
+      this.emit("update", item, ul.eventId);
       return;
     } else if (event.changeInventory) {
       const cs = event.changeInventory;
@@ -131,14 +131,14 @@ class ListingManager extends PublicObjectManager<Item> {
       // Add or remove tagId to item
       const ut = event.updateTag;
       const tagId = ut.id;
-
       if (ut.addListingIds) {
         const itemIds = ut.addListingIds;
         await Promise.all(
           itemIds.map(async (itemId: BigInt) => {
             const item = await this.store.get(itemId);
             item.tags.push(tagId);
-            this.emit("addListingIds", itemId, ut.eventId);
+            // this.emit("addListingIds", itemId, ut.eventId);
+            this.emit("addItemId", itemId, ut.eventId);
             return await this.store.put(itemId, item);
           }),
         );
@@ -150,7 +150,7 @@ class ListingManager extends PublicObjectManager<Item> {
             const item = await this.store.get(itemId);
             // remove `tagId` from item.tags array
             item.tags = [...item.tags.filter((id: BigInt) => id !== tagId)];
-            this.emit("removeListingIds", tagId, ut.eventId);
+            this.emit("removeItemId", tagId, ut.eventId);
             await this.store.put(itemId, item);
           }),
         );
@@ -159,9 +159,9 @@ class ListingManager extends PublicObjectManager<Item> {
     }
   }
 
-  async create(item: Partial<Item>) {
+  async create(item: Partial<Item>, decimals?: number) {
     const eventId = await this.client.listing({
-      basePrice: { raw: priceToUint256(item.basePrice!) },
+      basePrice: { raw: priceToUint256(item.basePrice!, decimals) },
       baseInfo: item.baseInfo,
       viewState: item.viewState,
     });
@@ -169,14 +169,14 @@ class ListingManager extends PublicObjectManager<Item> {
     return eventListenAndResolve<Item>(eventId, this, "create");
   }
   //update argument passed here will only contain the fields to update.
-  async update(update: Partial<Item>) {
+  async update(update: Partial<Item>, decimals?: number) {
     //ui object to be passed to the network with converted network data types.
     //we are declaring the update object as type schema.IUpdateItem since we are changing values from hex to bytes and is no longer a interface Item
     const ui: schema.IUpdateItem = {
-      itemId: update.id,
+      id: update.id,
     };
     if (update.basePrice) {
-      ui.basePrice = { raw: priceToUint256(update.basePrice) };
+      ui.basePrice = { raw: priceToUint256(update.basePrice, decimals) };
     }
     if (update.baseInfo) {
       ui.baseInfo = update.baseInfo;
@@ -205,10 +205,10 @@ class ListingManager extends PublicObjectManager<Item> {
     return eventListenAndResolve<Item>(eventId, this, "removeItemId");
   }
 
-  async changeInventory(itemIds: BigInt[], diffs: number[]) {
+  async changeInventory(itemId: BigInt, diff: number) {
     const eventId = await this.client.changeInventory({
-      itemIds: itemIds.map((id) => id),
-      diffs,
+      id: itemId,
+      diff,
     });
     return eventListenAndResolve<Item>(eventId, this, "changeInventory");
   }
@@ -305,42 +305,36 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
       return;
     }
   }
-  async create(manifest: CreateShopManifest, shopId: `0x${string}`) {
-    const eventId = await this.client.shopManifest(manifest, shopId);
+  async create(manifest: Partial<CreateShopManifest>, shopId: `0x${string}`) {
+    const m: schema.IShopManifest = manifest;
+    if (manifest.baseCurrency) {
+      m.baseCurrency = addressToUint256(manifest.baseCurrency);
+    }
+    if (manifest.acceptedCurrencies) {
+      m.acceptedCurrencies = addressToUint256(manifest.acceptedCurrencies);
+    }
+    if (manifest.payees) {
+      m.payees = addressToUint256(manifest.payees);
+    }
+    const eventId = await this.client.shopManifest(m, shopId);
     // resolves after the `createShopManifest` event has been fired above in _processEvent, which happens after the relay accepts the update and has written to the database.
     return eventListenAndResolve<ShopManifest>(eventId, this, "create");
   }
 
-  async update(um: Partial<ShopManifest> & UpdateShopManifest) {
+  async update(um: UpdateShopManifest) {
     //Convert address to bytes before sending to client.
     //We have to explicitly declare the update object as type schema.IUpdateShopManifest since we are changing hex to bytes and is no longer a type ShopManifest
     const updateShopManifest: schema.IUpdateShopManifest = um;
     for (const [key, _] of Object.entries(updateShopManifest)) {
-      if (
-        key === "addAcceptedCurrencies" ||
-        key === "removeAcceptedCurrencies"
-      ) {
-        updateShopManifest[key] = updateShopManifest[key].map(
-          (a: ShopCurrencies) => {
-            return {
-              chainId: a.chainId,
-              address: { raw: hexToBytes(a.address) },
-            };
-          },
-        );
-      } else if (key === "setBaseCurrency") {
-        updateShopManifest[key] = {
-          address: { raw: hexToBytes(updateShopManifest[key].address) },
-          chainId: updateShopManifest[key].chainId,
-        };
-      } else if (key === "addPayee") {
-        updateShopManifest[key].address = hexToBytes(
-          updateShopManifest[key].address,
-        );
-      } else if (key === "removePayee") {
-        updateShopManifest[key].address = hexToBytes(
-          updateShopManifest[key].address,
-        );
+      const keys = [
+        "addAcceptedCurrencies",
+        "removeAcceptedCurrencies",
+        "setBaseCurrency",
+        "addPayee",
+        "removePayee",
+      ];
+      if (keys.includes(key)) {
+        updateShopManifest[key] = addressToUint256(updateShopManifest[key]);
       }
     }
     // resolves after the `updateShopManifest` event has been fired above in _processEvent, which happens after the relay accepts the update and has written to the database.
@@ -408,13 +402,57 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         this.emit("itemsFinalized", order, uo.eventId);
         return;
       } else if (uo.canceled) {
+        const currentState = order.status;
         order.status = OrderState.STATE_CANCELED;
+        //Save status as cancelled
         await this.store.put(id, order);
         await storeOrdersByStatus(id, this.store, OrderState.STATE_CANCELED);
+        //remove the orderId from state of orders before this event.
+        let orders = (await this.store.get(currentState)) as OrdersByStatus;
+        orders = orders.filter((oId) => oId !== id);
+        await this.store.put(currentState, orders);
         this.emit("orderCanceled", order, uo.eventId);
         return;
       } else if (uo.invoiceAddress) {
         const update = uo.invoiceAddress;
+        const sd = order.invoiceAddress
+          ? order.invoiceAddress
+          : {
+              name: "",
+              address1: "",
+              city: "",
+              postalCode: "",
+              country: "",
+              phoneNumber: "",
+              emailAddress: "",
+            };
+        if (update.name) {
+          sd.name = update.name;
+        }
+        if (update.address1) {
+          sd.address1 = update.address1;
+        }
+        if (update.city) {
+          sd.city = update.city;
+        }
+        if (update.postalCode) {
+          sd.postalCode = update.postalCode;
+        }
+        if (update.country) {
+          sd.country = update.country;
+        }
+        if (update.phoneNumber) {
+          sd.phoneNumber = update.phoneNumber;
+        }
+        if (update.emailAddress) {
+          sd.emailAddress = update.emailAddress;
+        }
+        order.invoiceAddress = sd;
+        await this.store.put(id, order);
+        this.emit("invoiceAddress", order, uo.eventId);
+        return;
+      } else if (uo.shippingAddress) {
+        const update = uo.shippingAddress;
         // shippingDetails may be null. If null, create an initial shipping details object to update.
         const sd = order.shippingDetails
           ? order.shippingDetails
@@ -445,9 +483,12 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         if (update.phoneNumber) {
           sd.phoneNumber = update.phoneNumber;
         }
+        if (update.emailAddress) {
+          sd.emailAddress = update.emailAddress;
+        }
         order.shippingDetails = sd;
         await this.store.put(id, order);
-        this.emit("invoiceAddress", order, uo.eventId);
+        this.emit("shippingAddress", order, uo.eventId);
         return;
       } else if (uo.commit) {
         order.status = OrderState.STATE_COMMITED;
@@ -464,7 +505,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         //remove the orderId from state of orders before this event.
         let orders = (await this.store.get(currentState)) as OrdersByStatus;
         orders = orders.filter((oId) => oId !== id);
-        await this.store.put(OrderState.STATE_OPEN, orders);
+        await this.store.put(currentState, orders);
         this.emit("orderPaid", order);
         return;
       }
@@ -494,10 +535,18 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
     return eventListenAndResolve<Order>(eventId, this, "create");
   }
 
-  async changeItems(orderId: BigInt, itemId: BigInt, quantity: number) {
+  async addsItems(orderId: BigInt, itemId: BigInt, quantity: number) {
     const eventId = await this.client.updateOrder({
       id: orderId,
-      changeItems: { itemId, quantity },
+      changeItems: { adds: [{ listingId: itemId, quantity }] },
+    });
+    // resolves after the `changeItems` event has been fired, which happens after the relay accepts the update and has written to the database.
+    return eventListenAndResolve<Order>(eventId, this, "changeItems");
+  }
+  async removesItems(orderId: BigInt, itemId: BigInt, quantity: number) {
+    const eventId = await this.client.updateOrder({
+      id: orderId,
+      changeItems: { removes: [{ listingId: itemId, quantity }] },
     });
     // resolves after the `changeItems` event has been fired, which happens after the relay accepts the update and has written to the database.
     return eventListenAndResolve<Order>(eventId, this, "changeItems");
@@ -507,16 +556,26 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
     update: Partial<ShippingDetails>,
   ) {
     const eventId = await this.client.updateOrder({
-      orderId,
-      updateShippingDetails: update,
+      id: orderId,
+      shippingAddress: update,
     });
-    return eventListenAndResolve<Order>(eventId, this, "updateShippingDetails");
+    return eventListenAndResolve<Order>(eventId, this, "shippingAddress");
+  }
+  async updateInvoiceAddress(
+    orderId: BigInt,
+    update: Partial<ShippingDetails>,
+  ) {
+    const eventId = await this.client.updateOrder({
+      id: orderId,
+      invoiceAddress: update,
+    });
+    return eventListenAndResolve<Order>(eventId, this, "invoiceAddress");
   }
 
   async cancel(orderId: BigInt, timestamp: number) {
     const eventId = await this.client.updateOrder({
-      orderId,
-      orderCanceled: { timestamp },
+      id: orderId,
+      canceled: { canceldAt: timestamp },
     });
     return eventListenAndResolve<Order>(eventId, this, "orderCanceled");
   }

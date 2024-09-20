@@ -66,6 +66,7 @@ export interface ShippingDetails {
   postalCode: string;
   country: string;
   phoneNumber: string;
+  emailAddress: string;
 }
 
 export interface OrderFinalized {
@@ -82,6 +83,7 @@ export interface Order {
   items: { [key: string]: number };
   status: OrderState;
   shippingDetails?: ShippingDetails;
+  invoiceAddress?: ShippingDetails;
   txHash?: string;
   orderFinalized?: OrderFinalized;
 }
@@ -113,7 +115,7 @@ export interface UpdateShopManifest {
   addPayee?: Payee;
   addAcceptedCurrencies?: ShopCurrencies[];
   removeAcceptedCurrencies?: ShopCurrencies[];
-  setBaseCurrency: ShopCurrencies | null;
+  setBaseCurrency?: ShopCurrencies | null;
 }
 export type ShopObjectTypes =
   | Item

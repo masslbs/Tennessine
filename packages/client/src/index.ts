@@ -120,21 +120,24 @@ export class RelayClient extends EventEmitter {
 
   async shopManifest(manifest: schema.IShopManifest, shopId: `0x${string}`) {
     manifest.tokenId = { raw: hexToBytes(shopId) };
+    const id = (manifest.eventId = eventId());
     await this.sendShopEvent({
       manifest: manifest,
     });
-    return eventId();
+    return id;
   }
 
   async updateShopManifest(update: schema.IUpdateShopManifest) {
+    const id = (update.eventId = eventId());
     await this.sendShopEvent({
       updateManifest: update,
     });
-    return eventId();
+    return id;
   }
 
   async listing(item: schema.ICreateItem) {
     const id = (item.id = eventId());
+    item.eventId = id;
     await this.sendShopEvent({
       listing: item,
     });
@@ -142,14 +145,16 @@ export class RelayClient extends EventEmitter {
   }
 
   async updateListing(item: schema.IUpdateItem) {
+    const id = (item.eventId = eventId());
     await this.sendShopEvent({
       updateListing: item,
     });
-    return eventId();
+    return id;
   }
 
   async tag(tag: schema.ICreateTag) {
     const id = (tag.id = eventId());
+    tag.eventId = id;
     await this.sendShopEvent({
       tag: tag,
     });
@@ -157,34 +162,38 @@ export class RelayClient extends EventEmitter {
   }
 
   async updateTag(tag: schema.IUpdateTag) {
+    const id = (tag.eventId = eventId());
     await this.sendShopEvent({
       updateTag: tag,
     });
-    return eventId();
+    return id;
   }
 
   async createOrder() {
     const id = eventId();
     await this.sendShopEvent({
       createOrder: {
-        id: id,
+        id,
+        eventId: id,
       },
     });
     return id;
   }
 
   async updateOrder(order: schema.IUpdateOrder) {
+    const id = (order.eventId = eventId());
     await this.sendShopEvent({
       updateOrder: order,
     });
-    return eventId();
+    return id;
   }
 
   async changeInventory(stock: schema.IChangeInventory) {
+    const id = (stock.eventId = eventId());
     await this.sendShopEvent({
       changeInventory: stock,
     });
-    return eventId();
+    return id;
   }
 
   async #decodeMessage(me: MessageEvent) {
@@ -350,10 +359,11 @@ export class RelayClient extends EventEmitter {
   // null erc20Addr means vanilla ethererum is used
   async commitOrder(
     order: schema.ICommitItemsToOrderRequest,
-    orderId: number,
+    orderId: BigInt,
   ): Promise<schema.CommitItemsToOrderResponse> {
+    const eId = eventId();
     await this.sendShopEvent({
-      updateOrder: { id: orderId, commit: order },
+      updateOrder: { id: orderId, commit: order, eventId: eId },
     });
     return eventId();
   }
