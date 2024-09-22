@@ -62,7 +62,7 @@ export class RelayClient extends EventEmitter {
   }
 
   // like encodeAndSend but doesn't wait for a response; EventPushResponse uses this
-  encodeAndSendNoWait(encoder: PBMessage, object: PBObject = {}) {
+  encodeAndSendNoWait(object: PBObject = {}) {
     if (!object.requestId) {
       object.requestId = { raw: this.requestCounter };
     }
@@ -73,11 +73,8 @@ export class RelayClient extends EventEmitter {
   }
 
   // encode and send a message and then wait for a response
-  encodeAndSend(
-    encoder: PBMessage,
-    object: PBObject = {},
-  ): Promise<PBInstance> {
-    const id = this.encodeAndSendNoWait(encoder, object);
+  encodeAndSend(object: PBObject = {}): Promise<PBInstance> {
+    const id = this.encodeAndSendNoWait(object);
     return new Promise((resolve, reject) => {
       this.once(id, (result) => {
         if (result.response.error) {
@@ -114,7 +111,7 @@ export class RelayClient extends EventEmitter {
         events: [signedEvent],
       },
     };
-    await this.encodeAndSend(schema.EventWriteRequest, eventWriteRequest);
+    await this.encodeAndSend(eventWriteRequest);
     this.eventStream.outgoingEnqueue(shopEvent);
   }
 
@@ -218,7 +215,7 @@ export class RelayClient extends EventEmitter {
   }
 
   async #authenticate() {
-    const { response } = await this.encodeAndSend(schema.AuthenticateRequest, {
+    const { response } = await this.encodeAndSend({
       authRequest: {
         publicKey: {
           raw: toBytes(this.keyCardWallet.publicKey).slice(1),
@@ -230,7 +227,7 @@ export class RelayClient extends EventEmitter {
         raw: response.payload,
       },
     });
-    return this.encodeAndSend(schema.ChallengeSolvedRequest, {
+    return this.encodeAndSend({
       challengeSolutionRequest: {
         signature: { raw: toBytes(sig) },
       },
@@ -331,12 +328,9 @@ export class RelayClient extends EventEmitter {
 
   async uploadBlob(blob: FormData) {
     await this.connect();
-    const uploadURLResp = (await this.encodeAndSend(
-      schema.GetBlobUploadURLRequest,
-      {
-        getBlobUploadUrlRequest: {},
-      },
-    )) as schema.GetBlobUploadURLResponse;
+    const uploadURLResp = (await this.encodeAndSend({
+      getBlobUploadUrlRequest: {},
+    })) as schema.GetBlobUploadURLResponse;
 
     if (uploadURLResp.response.error !== null) {
       throw new Error(

@@ -33,11 +33,8 @@ async function signMessage(message: PBObject) {
 }
 
 class MockClient {
-  encodeAndSendNoWait(
-    encoder: PBMessage,
-    object: PBObject = {},
-  ): Promise<PBInstance> {
-    return Promise.resolve(encoder.encode(object).finish());
+  encodeAndSendNoWait(object: PBObject = {}): Promise<PBInstance> {
+    return Promise.resolve(object);
   }
 }
 

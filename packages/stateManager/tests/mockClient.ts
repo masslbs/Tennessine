@@ -21,13 +21,20 @@ export type IncomingEvent = {
 export class MockClient implements IRelayClient {
   vectors: TestVectors;
   private eventStream: ReadableEventStream;
+  private requestCounter;
 
   constructor() {
     this.vectors = testVectors;
     this.eventStream = new ReadableEventStream(this);
+    this.requestCounter = 1;
   }
-  encodeAndSendNoWait(encoder: PBMessage, object: PBObject = {}) {
-    return Promise.resolve(encoder.encode(object).finish());
+  encodeAndSendNoWait(object: PBObject = {}) {
+    if (!object.requestId) {
+      object.requestId = { raw: this.requestCounter };
+    }
+    this.requestCounter++;
+
+    return Promise.resolve(object);
   }
 
   connect() {
@@ -44,8 +51,7 @@ export class MockClient implements IRelayClient {
       });
     }
 
-    const pushReq = new schema.EventPushRequest({
-      requestId: requestId(),
+    const pushReq = new schema.SubscriptionPushRequest({
       events,
     });
     this.eventStream.enqueue(pushReq);
@@ -55,14 +61,18 @@ export class MockClient implements IRelayClient {
   }
 
   sendShopEvent(shopEvent: schema.IShopEvent) {
-    this.eventStream.outgoingEnqueue(shopEvent);
+    this.eventStream.outgoingEnqueue(
+      shopEvent,
+      this.vectors.signatures.signer_address as `0x${string}`,
+    );
     return new Promise((resolve) => {
       resolve;
     });
   }
 
   async listing(item: schema.ICreateItem) {
-    const id = (item.eventId = eventId());
+    const id = (item.id = eventId());
+    item.eventId = id;
     this.sendShopEvent({
       listing: item,
     });
@@ -76,7 +86,8 @@ export class MockClient implements IRelayClient {
     return id;
   }
   async tag(tag: schema.ICreateTag) {
-    const id = (tag.eventId = eventId());
+    const id = (tag.id = eventId());
+    tag.eventId = id;
     this.sendShopEvent({
       tag: tag,
     });
@@ -90,17 +101,17 @@ export class MockClient implements IRelayClient {
     return id;
   }
   async shopManifest(manifest: schema.IShopManifest, shopId: `0x${string}`) {
+    manifest.tokenId = { raw: hexToBytes(shopId) };
     const id = (manifest.eventId = eventId());
-    manifest.shopTokenId = hexToBytes(shopId);
     this.sendShopEvent({
-      shopManifest: manifest,
+      manifest: manifest,
     });
     return id;
   }
   async updateShopManifest(update: schema.IUpdateShopManifest) {
     const id = (update.eventId = eventId());
     this.sendShopEvent({
-      updateShopManifest: update,
+      updateManifest: update,
     });
     return id;
   }
@@ -117,6 +128,7 @@ export class MockClient implements IRelayClient {
     const id = eventId();
     this.sendShopEvent({
       createOrder: {
+        id,
         eventId: id,
       },
     });

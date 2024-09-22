@@ -14,7 +14,7 @@ import {
 import { hardhat } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 import { describe, beforeEach, expect, test } from "vitest";
-import { priceToUint256 } from "@massmarket/utils";
+import { priceToUint256, randomAddress } from "@massmarket/utils";
 
 import { random32BytesHex, randomBytes, zeroAddress } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
@@ -164,7 +164,7 @@ describe("user behaviour", () => {
         payees: [
           {
             address: {
-              raw: toBytes("0x8B9d37288f0ecB014912B6B3B165DDbEEc3247Ac"),
+              raw: randomAddress(),
             },
             callAsContract: false,
             chainId: 1,
