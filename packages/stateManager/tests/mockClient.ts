@@ -147,29 +147,33 @@ export class MockClient implements IRelayClient {
     return { url: file.name };
   }
 
-  async commitOrder(order: schema.CommitItemsToOrderRequest) {
+  async commitOrder(order: schema.CommitItemsToOrderRequest, orderId) {
     this.sendShopEvent({
       updateOrder: {
-        orderId: order.orderId,
+        id: orderId,
         eventId: hexToBytes(
           "0x32b36377007de4ab0fcc3eabb1ef3a7096c42004c14babc3638f81b9d0982625",
         ),
-        itemsFinalized: {
-          orderHash: hexToBytes(
+        paymentDetails: {
+          paymentId: hexToBytes(
             "0xb99eb05b47157e6c952120861036e65b471aa97badc3f3379f0b904f3c4c11ee",
           ),
-          currencyAddr: hexToBytes(
-            "0x88dcf92582223fd469df2263ade6e8020166808f",
-          ),
-          totalInCrypto: hexToBytes(
-            "0x000000000000000000000000000000000000000000000000000000000002d384",
-          ),
+          total: {
+            raw: hexToBytes(
+              "0x00000000000000000000000000000000000000000000000000000000004f1550",
+            ),
+          },
+          listingHashes: [
+            {
+              cid: "/ipfs/foobar",
+            },
+          ],
           ttl: "1",
-          payeeAddr: hexToBytes("0x8412ebe8ca946066c6db6ae5031ffeb13e703309"),
-          shopSignature: hexToBytes(
-            "0xa69c2c3e98a986d83d307af9d72f4703cfd2535794a6d2c246b5cd04f8b2d96b41556cb280b63ac3e863d226c14c603b09bb9507d4d74349744aef39b20039bc",
-          ),
-          total: "1852.20",
+          shopSignature: {
+            raw: hexToBytes(
+              "0xa69c2c3e98a986d83d307af9d72f4703cfd2535794a6d2c246b5cd04f8b2d96b41556cb280b63ac3e863d226c14c603b09bb9507d4d74349744aef39b20039bc",
+            ),
+          },
         },
       },
     });

@@ -80,7 +80,7 @@ export type TestVectors = {
       base_currency: VectorAddress;
     };
     // keycard_id -> user_wallet
-    keycards: { [key: string]: string };
+    keycards: string[];
 
     // item_id -> { price, metadata }
     listings: VectorItems[];

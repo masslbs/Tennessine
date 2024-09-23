@@ -14,9 +14,14 @@ import {
 import { hardhat } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 import { describe, beforeEach, expect, test } from "vitest";
-import { priceToUint256, randomAddress } from "@massmarket/utils";
 
-import { random32BytesHex, randomBytes, zeroAddress } from "@massmarket/utils";
+import {
+  random32BytesHex,
+  zeroAddress,
+  priceToUint256,
+  anvilAddress,
+  anvilPrivateKey,
+} from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 import {
   BlockchainClient,
@@ -26,9 +31,7 @@ import {
 import { RelayClient, discoverRelay } from "../src";
 
 // this key is from one of anvil's default keypairs
-const account = privateKeyToAccount(
-  "0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6",
-);
+const account = privateKeyToAccount(anvilPrivateKey);
 
 const wallet = createWalletClient({
   account,
@@ -164,7 +167,7 @@ describe("user behaviour", () => {
         payees: [
           {
             address: {
-              raw: randomAddress(),
+              raw: toBytes(anvilAddress),
             },
             callAsContract: false,
             chainId: 1,

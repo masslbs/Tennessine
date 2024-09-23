@@ -49,10 +49,11 @@ export class ReadableEventStream {
           // Send a response to the relay to indicate that we have processed the events
           self.client.encodeAndSendNoWait({
             requestId,
-            //FIXME : what should be the payload in this response we are sending to client?
+            //FIXME : response.payload?
             response: {},
           });
         }
+
         await self.nextPushReq;
         return this.pull!(controller);
       },

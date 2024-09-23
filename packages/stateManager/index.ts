@@ -54,11 +54,11 @@ async function storeOrdersByStatus(
 
   try {
     orders = (await store.get(status)) as OrdersByStatus;
-    orders.push(orderId);
+    orders.push(String(orderId));
   } catch (error) {
     const e = error as IError;
     if (e.notFound) {
-      orders.push(orderId);
+      orders.push(String(orderId));
     } else {
       throw new Error(e.code);
     }
@@ -93,7 +93,7 @@ class ListingManager extends PublicObjectManager<Item> {
       const cl = event.listing;
       const { id } = cl;
       const item = {
-        id,
+        id: String(id),
         basePrice: fromBytes(cl.basePrice.raw, "bigint").toString(),
         baseInfo: cl.baseInfo,
         tags: [],
@@ -356,7 +356,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       const co = event.createOrder;
       const { id } = co;
       const o = {
-        id,
+        id: String(id),
         items: {},
         status: OrderState.STATE_OPEN,
       };
@@ -384,23 +384,14 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         this.emit("changeItems", order, uo.eventId);
         return;
       } else if (uo.paymentDetails) {
-        this.emit("paymentDetails", order, uo.eventId);
-      } else if (uo.itemsFinalized) {
-        //Converting all Uint8Array values to hex before saving to store.
-        const fo = {
-          orderHash: bytesToHex(uo.itemsFinalized.orderHash),
-          currencyAddr: bytesToHex(uo.itemsFinalized.currencyAddr),
-          totalInCrypto: bytesToHex(uo.itemsFinalized.totalInCrypto),
-          ttl: uo.itemsFinalized.ttl,
-          payeeAddr: bytesToHex(uo.itemsFinalized.payeeAddr),
-          shopSignature: bytesToHex(uo.itemsFinalized.shopSignature),
-          total: uo.itemsFinalized.total,
-          eventId: uo.eventId,
+        const pd = uo.paymentDetails;
+        const paymentDetails = {
+          paymentId: bytesToHex(pd.paymentId),
+          total: fromBytes(pd.total.raw, "bigint").toString(),
         };
-        order.orderFinalized = fo;
+        order.paymentDetails = paymentDetails;
         await this.store.put(id, order);
-        this.emit("itemsFinalized", order, uo.eventId);
-        return;
+        this.emit("paymentDetails", order, uo.eventId);
       } else if (uo.canceled) {
         const currentState = order.status;
         order.status = OrderState.STATE_CANCELED;
@@ -409,7 +400,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         await storeOrdersByStatus(id, this.store, OrderState.STATE_CANCELED);
         //remove the orderId from state of orders before this event.
         let orders = (await this.store.get(currentState)) as OrdersByStatus;
-        orders = orders.filter((oId) => oId !== id);
+        orders = orders.filter((oId) => oId !== String(id));
         await this.store.put(currentState, orders);
         this.emit("orderCanceled", order, uo.eventId);
         return;
@@ -491,9 +482,14 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         this.emit("shippingAddress", order, uo.eventId);
         return;
       } else if (uo.commit) {
+        const currentState = order.status;
         order.status = OrderState.STATE_COMMITED;
         await this.store.put(id, order);
         await storeOrdersByStatus(id, this.store, OrderState.STATE_COMMITED);
+        //remove the orderId from state of orders before this event.
+        let orders = (await this.store.get(currentState)) as OrdersByStatus;
+        orders = orders.filter((oId) => oId !== String(id));
+        await this.store.put(currentState, orders);
         this.emit("orderCommit", order, uo.eventId);
         return;
       } else if (uo.paid) {
@@ -504,7 +500,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         await storeOrdersByStatus(id, this.store, OrderState.STATE_PAID);
         //remove the orderId from state of orders before this event.
         let orders = (await this.store.get(currentState)) as OrdersByStatus;
-        orders = orders.filter((oId) => oId !== id);
+        orders = orders.filter((oId) => oId !== String(id));
         await this.store.put(currentState, orders);
         this.emit("orderPaid", order);
         return;
@@ -610,7 +606,7 @@ class TagManager extends PublicObjectManager<Tag> {
       const ct = event.tag;
       const { id } = ct;
       const tag = {
-        id,
+        id: String(id),
         name: ct.name,
       };
       await this.store.put(id, tag);
@@ -638,16 +634,27 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
     if (event.account) {
       //storing WA and KC pair
       const a = event.account;
-      const userWalletAddr = bytesToHex(a.enrollKeycard.userWallet.raw);
       const cardPublicKey = bytesToHex(a.enrollKeycard.keycardPubkey.raw);
-      await this.store.put(cardPublicKey, userWalletAddr);
+      let publicKeys: `0x${string}`[] = [];
+      try {
+        publicKeys = await this.store.get("cardPublicKey");
+        publicKeys.push(cardPublicKey);
+      } catch (error) {
+        const e = error as IError;
+        if (e.notFound) {
+          publicKeys.push(cardPublicKey);
+        } else {
+          throw new Error(e.code);
+        }
+      }
+      await this.store.put("cardPublicKey", publicKeys);
       this.emit("newKeyCard", cardPublicKey);
       return;
     }
   }
 
-  get(key: `0x${string}`) {
-    return this.store.get(key);
+  get() {
+    return this.store.get("cardPublicKey");
   }
 }
 // This class creates the state of a store from an event stream

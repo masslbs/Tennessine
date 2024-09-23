@@ -13,9 +13,9 @@ import schema, {
   PBMessage,
   PBInstance,
 } from "@massmarket/schema";
-import { anvilAddress, eventId, priceToUint256 } from "@massmarket/utils";
+import { anvilPrivateKey, eventId, priceToUint256 } from "@massmarket/utils";
 
-const account = privateKeyToAccount(anvilAddress);
+const account = privateKeyToAccount(anvilPrivateKey);
 
 async function signMessage(message: PBObject) {
   const shopEventBytes = schema.ShopEvent.encode(message).finish();

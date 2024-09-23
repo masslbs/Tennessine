@@ -10,6 +10,7 @@ import {
   ListingViewState,
   OrderState,
 } from "../types";
+import { testVectors } from "@massmarket/schema";
 import { StateManager } from "..";
 import { MockClient } from "./mockClient";
 import {
@@ -116,6 +117,7 @@ describe("Fill state manager with test vectors", async () => {
   });
   const vectorState = client.vectors.reduced;
   test("ShopManifest - adds and updates shop manifest events", async () => {
+    const test = testVectors.reduced;
     const shop = await stateManager.manifest.get();
     const vm = vectorState.manifest;
     expect(shop.acceptedCurrencies.length).toEqual(
@@ -130,43 +132,46 @@ describe("Fill state manager with test vectors", async () => {
     expect(shop.baseCurrency.chainId).toEqual(vm.base_currency.chain_id);
     expect(shop.baseCurrency.address).toEqual(vm.base_currency.address.raw);
     expect(shop.payees.length).toEqual(vm.payees.length);
-    for (const i in vm.payees) {
-      //fixme:testvectors update
-
-      expect(shop.payees[i].address).toEqual(vm.payees[i].address.raw);
-      expect(shop.payees[i].name).toEqual(vm.payees[i].name);
-      expect(shop.payees[i].chainId).toEqual(vm.payees[i].chain_id);
+    for (const payee of vm.payees) {
+      const smPayee = shop.payees.find((p) => p.name === payee.name);
+      expect(smPayee).toBeTruthy;
+      expect(smPayee!.address).toEqual(payee.address.raw);
+      expect(smPayee!.name).toEqual(payee.name);
+      expect(smPayee!.chainId).toEqual(payee.chain_id);
     }
   });
 
   test("KeycardManager - updates keycard events", async () => {
-    let keyCount = 0;
-    for await (const [pk, walletAddress] of stateManager.keycards.iterator()) {
-      keyCount++;
-      expect(pk).toEqual(vectorState.keycards[walletAddress as string]);
-    }
-    expect(Object.keys(vectorState.keycards).length).toEqual(keyCount);
+    const keys = await stateManager.keycards.get();
+    expect(vectorState.keycards.length).toEqual(keys.length);
+    //FIXME: testVectors to return publicKeys instead of address in reduced.
+
+    // for (const key of vectorState.keycards) {
+    //   const keyFound = keys.find((k) => k === key);
+    // }
   });
 
   test("ListingManager - adds and updates item events", async () => {
     let itemCount = 0;
-    for await (const [id, item] of stateManager.items.iterator()) {
+    for await (const [key, item] of stateManager.items.iterator()) {
       itemCount++;
-      const vectorItem = vectorState.listings.find((l) => {
-        return l.id === Number(id);
-      });
-      console.log({ vectorItem, item });
-      // const bytes = hexToBytes(vectorItem!.base_price.raw, { size: 32 });
-      // console.log({ bytes });
-      // const number = bytesToBigInt(bytes);
-      // console.log({ number })
 
-      expect(item.basePrice).toEqual(BigInt(vectorItem!.base_price.raw));
-      expect(item.baseInfo.title).toEqual(vectorItem!.base_info!.title);
-      expect(item.baseInfo.images).toEqual(vectorItem!.base_info!.images);
-      // expect(item.quantity).toEqual(vectorItem!.stock_qty);
+      const vectorItem = vectorState.listings.find((vi) => {
+        const id = vi.id;
+        return Number(vi.id) === Number(key);
+      });
+
+      expect(vectorItem).toBeTruthy;
+
+      expect(BigInt(item.basePrice)).toEqual(
+        BigInt(vectorItem!.base_price.raw),
+      );
+      if (vectorItem!.base_info) {
+        expect(item.baseInfo.title).toEqual(vectorItem!.base_info.title);
+        expect(item.baseInfo.images).toEqual(vectorItem!.base_info.images);
+      }
     }
-    expect(itemCount).toEqual(Object.keys(vectorState.inventory).length);
+    expect(itemCount).toEqual(Object.keys(vectorState.listings).length);
   });
 
   test("TagManager - adds and updates tag events", async () => {
@@ -181,36 +186,64 @@ describe("Fill state manager with test vectors", async () => {
 
   test("OrderManager - adds and updates order events", async () => {
     //Check that all paid orders have has txHash
-    for await (const order of vectorState.orders) {
-      const o = await stateManager.orders.get(order.id);
-      if (order.state === OrderState.STATE_PAID) {
-        expect(o.status).toEqual(OrderState.STATE_PAID);
-        expect(o.txHash).toBeTruthy();
-        // Should also be able to get orders by status.
-        const orders = await stateManager.orders.getStatus(
-          OrderState.STATE_PAID,
-        );
-        expect(orders[0]).toEqual(order.id);
-      }
-      if (order.state === OrderState.STATE_CANCELED) {
-        expect(o.status).toEqual(OrderState.STATE_CANCELED);
-      }
-      if (order.state === OrderState.STATE_OPEN) {
-        expect(o.status).toEqual(OrderState.STATE_OPEN);
-        expect(o.items).toEqual(order.items);
-        // Should also be able to get orders by status.
-        const orders = await stateManager.orders.getStatus(
-          OrderState.STATE_OPEN,
-        );
-        expect(orders[0]).toEqual(order.id);
-      }
-      if (order.state === OrderState.STATE_COMMITED) {
-        expect(o.items).toEqual(order.items);
+    const vectorOrders = vectorState.orders;
+    for await (const [key, order] of stateManager.orders.iterator()) {
+      if (Number(key) === OrderState.STATE_OPEN) {
+        const openOrders = order as OrdersByStatus;
+        let count = 0;
+        for (const oId of openOrders) {
+          const vectorOrder = vectorOrders.find((vo) => vo.id === Number(oId));
+          expect(vectorOrder!.state).toEqual(OrderState.STATE_OPEN);
+          const stateManagerOrder = await stateManager.orders.get(BigInt(oId));
+          expect(Object.keys(stateManagerOrder.items).length).toEqual(
+            vectorOrder!.items!.length,
+          );
+          count++;
+        }
+        expect(openOrders.length).toEqual(count);
+      } else if (Number(key) === OrderState.STATE_PAID) {
+        const paidOrders = order as OrdersByStatus;
+        let count = 0;
+        for (const oId of paidOrders) {
+          const vectorOrder = vectorOrders.find((vo) => vo.id === Number(oId));
+          expect(vectorOrder!.state).toEqual(OrderState.STATE_PAID);
+          const stateManagerOrder = await stateManager.orders.get(BigInt(oId));
+          expect(Object.keys(stateManagerOrder.items).length).toEqual(
+            vectorOrder!.items!.length,
+          );
+          expect(stateManagerOrder.txHash).toBeTruthy();
+          count++;
+        }
+        expect(paidOrders.length).toEqual(count);
+      } else if (Number(key) === OrderState.STATE_CANCELED) {
+        const cancelledOrders = order as OrdersByStatus;
+        let count = 0;
+        for (const oId of cancelledOrders) {
+          const vectorOrder = vectorOrders.find((vo) => vo.id === Number(oId));
+          expect(vectorOrder).toBeTruthy;
+          expect(vectorOrder!.state).toEqual(OrderState.STATE_CANCELED);
+          const stateManagerOrder = await stateManager.orders.get(BigInt(oId));
+          expect(Object.keys(stateManagerOrder.items).length).toEqual(
+            vectorOrder!.items!.length,
+          );
+          count++;
+        }
+        expect(cancelledOrders.length).toEqual(count);
+      } else if (Number(key) === OrderState.STATE_COMMITED) {
+        const committedOrders = order as OrdersByStatus;
+        let count = 0;
+        for (const oId of committedOrders) {
+          const vectorOrder = vectorOrders.find((vo) => vo.id === Number(oId));
+          expect(vectorOrder).toBeTruthy;
+          //FIXME: there is no difference between committed and unpaid right now.
+          expect(vectorOrder!.state).toEqual(OrderState.STATE_UNPAID);
+          count++;
+        }
+        expect(committedOrders.length).toEqual(count);
       }
     }
   });
 });
-
 describe("CRUD functions update stores", async () => {
   const eddies = abi.addresses.Eddies.toLowerCase() as Address;
   const client = new MockClient();
@@ -266,7 +299,7 @@ describe("CRUD functions update stores", async () => {
       assert.deepEqual(shop.payees, payees);
     });
 
-    test.only("UpdateManifest - setBaseCurrency", async () => {
+    test("UpdateManifest - setBaseCurrency", async () => {
       const newBase = {
         chainId: 100,
         address: eddies,
@@ -277,7 +310,7 @@ describe("CRUD functions update stores", async () => {
       const { baseCurrency } = await stateManager.manifest.get();
       assert.deepEqual(baseCurrency, newBase);
     });
-    test.only("UpdateManifest - adds/removes acceptedCurrencies", async () => {
+    test("UpdateManifest - adds/removes acceptedCurrencies", async () => {
       const newCurrencies = [
         {
           chainId: 10,
@@ -305,7 +338,7 @@ describe("CRUD functions update stores", async () => {
       );
       expect(found).toBe(undefined);
     });
-    test.only("UpdateManifest - addPayee/removePayee", async () => {
+    test("UpdateManifest - addPayee/removePayee", async () => {
       const newPayee = {
         address: randomAddress(),
         callAsContract: false,
@@ -356,7 +389,7 @@ describe("CRUD functions update stores", async () => {
         ListingViewState.LISTING_VIEW_STATE_PUBLISHED,
       );
     });
-    test.only("update + changeInventory", async () => {
+    test("update + changeInventory", async () => {
       const updatedBaseInfo = {
         title: "Updated Test Item 1",
         description: "Updated test description 1",
@@ -379,7 +412,7 @@ describe("CRUD functions update stores", async () => {
       expect(item.quantity).toEqual(58);
     });
 
-    test.only("add/remove item to/from tag", async () => {
+    test("add/remove item to/from tag", async () => {
       const tag = await stateManager.tags.create("Test Create Tag");
       const tag2 = await stateManager.tags.create("Test Create Tag 2");
 
@@ -394,6 +427,7 @@ describe("CRUD functions update stores", async () => {
       expect(removed.tags[0]).toEqual(tag2.id);
     });
   });
+
   describe("OrderManager", () => {
     let itemId: BigInt;
     beforeEach(async () => {
@@ -407,29 +441,29 @@ describe("CRUD functions update stores", async () => {
       });
       itemId = item.id;
     });
-    test.only("Create and changeItems", async () => {
+    test("Create and changeItems", async () => {
       const order1 = await stateManager.orders.create();
       const order2 = await stateManager.orders.create();
       await stateManager.orders.addsItems(order1.id, itemId, 4);
       const uo = await stateManager.orders.get(order1.id);
       expect(uo.items[itemId]).toEqual(4);
 
-      //Since we just created this order, status should be open.
+      // //Since we just created this order, status should be open.
       expect(uo.status).toEqual(OrderState.STATE_OPEN);
 
-      // Should also be able to get orders by status.
+      // // Should also be able to get orders by status.
       const orders = await stateManager.orders.getStatus(OrderState.STATE_OPEN);
       expect(orders[0]).toEqual(order1.id);
       expect(orders[1]).toEqual(order2.id);
 
-      //removes items from order
+      // //removes items from order
       await stateManager.orders.removesItems(order1.id, itemId, 3);
       const changedOrder = await stateManager.orders.get(order1.id);
       expect(changedOrder.items[itemId]).toEqual(3);
     });
   });
 
-  test.only("updateOrder - updateShippingDetails/updateInvoiceAddress", async () => {
+  test("updateOrder - updateShippingDetails/updateInvoiceAddress", async () => {
     const { id } = await stateManager.orders.create();
     const shippingInfo = {
       name: "Paul Atreides",
@@ -466,7 +500,7 @@ describe("CRUD functions update stores", async () => {
     const order = await stateManager.orders.get(id);
     assert.deepEqual(order.invoiceAddress, shippingInfo);
   });
-  test.only("updateOrder - cancel", async () => {
+  test("updateOrder - cancel", async () => {
     const { id } = await stateManager.orders.create();
     await stateManager.orders.cancel(id, 0);
     const cancelled = await stateManager.orders.get(id);
@@ -483,21 +517,28 @@ describe("CRUD functions update stores", async () => {
     );
     expect(openOrders.find((oId) => oId === id)).toBe(undefined);
   });
-  // test("Commit triggers an updateOrder event with paid property", async () => {
-  //   const { id } = await stateManager.orders.create();
-  //   const order = await stateManager.orders.get(id);
-  //   //Before order is committed, it should not have an orderFinalized property
-  //   expect(order.orderFinalized).toBeFalsy();
+  test("Commit triggers an updateOrder event with paymentDetails property", async () => {
+    const { id } = await stateManager.orders.create();
+    const order = await stateManager.orders.get(id);
+    const payee = {
+      address: randomAddress(),
+      callAsContract: false,
+      chainId: 1,
+      name: "default",
+    };
 
-  //   await stateManager.orders.commit(id, zeroAddress, 1, "default");
-  //   let received = false;
-  //   stateManager.orders.on("itemsFinalized", (order) => {
-  //     received = true;
-  //   });
-  //   await vi.waitUntil(async () => {
-  //     return received;
-  //   });
-  //   const committed = await stateManager.orders.get(id);
-  //   expect(committed.orderFinalized).toBeTruthy();
-  // });
+    //Before order is committed, it should not have an paymentDetails property
+    expect(order.paymentDetails).toBeFalsy();
+
+    await stateManager.orders.commit(id, zeroAddress, 1, payee);
+    let received = false;
+    stateManager.orders.on("paymentDetails", (order) => {
+      received = true;
+    });
+    await vi.waitUntil(async () => {
+      return received;
+    });
+    const committed = await stateManager.orders.get(id);
+    expect(committed.paymentDetails).toBeTruthy();
+  });
 });

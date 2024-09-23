@@ -16,10 +16,12 @@ export function requestId() {
 }
 
 export function eventId() {
+  const num = randomBytes(64);
+  return Number(num[0]);
   // const a = new BigInt64Array(1);
-  const a = randomBytes(42);
-
-  return Number(a[0]);
+  // crypto.getRandomValues(a);
+  // return crypto.getRandomValues(a)[0];
+  // return BigInt.asUintN(64, a[0]);
 }
 
 export function randomBytes(n: number) {
@@ -85,5 +87,6 @@ export function addressToUint256(addressObject: AdressObj | AdressObj[]) {
 
 export const zeroAddress: `0x${string}` =
   "0x0000000000000000000000000000000000000000";
-export const anvilAddress =
+export const anvilPrivateKey =
   "0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6";
+export const anvilAddress = "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";

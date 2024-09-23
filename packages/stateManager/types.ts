@@ -56,9 +56,9 @@ export interface IError {
   notFound: boolean;
   code: string;
 }
-export type OrdersByStatus = BigInt[];
+export type OrdersByStatus = string[];
 
-export type KeyCard = `0x${string}`;
+export type KeyCard = `0x${string}`[];
 export interface ShippingDetails {
   name: string;
   address1: string;
@@ -78,6 +78,11 @@ export interface OrderFinalized {
   shopSignature: string;
   total: string;
 }
+
+export interface PaymentDetails {
+  paymentId: string;
+  total: string;
+}
 export interface Order {
   id: BigInt;
   items: { [key: string]: number };
@@ -86,6 +91,7 @@ export interface Order {
   invoiceAddress?: ShippingDetails;
   txHash?: string;
   orderFinalized?: OrderFinalized;
+  paymentDetails?: PaymentDetails;
 }
 export interface ShopCurrencies {
   address: `0x${string}`;
