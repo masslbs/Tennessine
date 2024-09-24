@@ -206,7 +206,7 @@ export class RelayClient extends EventEmitter {
       case schema.PingRequest:
         this.#handlePingRequest(message);
         break;
-      case schema.EventPushRequest:
+      case schema.SubscriptionPushRequest:
         this.eventStream.enqueue(message);
         break;
       default:
