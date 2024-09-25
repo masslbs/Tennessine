@@ -6,54 +6,45 @@ import { randomAddress, zeroAddress } from "@massmarket/utils";
 import { merchantsWrapper, getStateManager } from "./test-utils";
 import ProductDetail from "@/app/products/productDetail/page";
 import mockRouter from "next-router-mock";
-import { Status } from "@/types";
+import { ListingViewState, OrderState } from "@/types";
 
 const sm = getStateManager();
 
 describe("Product Detail Component", async () => {
   const user = userEvent.setup();
   let itemId: `0x${string}`;
-  let removeTagId: `0x${string}`;
   beforeEach(async () => {
     const order = await sm.orders.create();
 
     await sm.manifest.create(
       {
-        name: "New Shop",
-        description: "New shopManifest",
+        payees: [
+          {
+            address: randomAddress(),
+            callAsContract: false,
+            chainId: 1,
+            name: "default",
+          },
+        ],
+        baseCurrency: {
+          chainId: 1,
+          address: zeroAddress,
+        },
       },
       randomAddress(),
     );
 
-    const randomTokenAddr = randomAddress();
-    await sm.manifest.update({
-      addAcceptedCurrencies: [
-        {
-          chainId: 10,
-          tokenAddr: zeroAddress,
-        },
-        {
-          chainId: 2,
-          tokenAddr: randomTokenAddr,
-        },
-      ],
-      setBaseCurrency: {
-        chainId: 1,
-        tokenAddr: zeroAddress,
-      },
-    });
     const { id } = await sm.items.create({
       basePrice: "12.00",
       baseInfo: {
         title: "Meow meow",
         description: "description...meow",
-        image: "https://http.cat/images/201.jpg",
+        images: ["https://http.cat/images/201.jpg"],
       },
     });
     itemId = id;
-    await sm.items.changeInventory([id], [5]);
-    const rm = await sm.tags.create("remove");
-    removeTagId = rm.id;
+    await sm.items.changeInventory(id, 5);
+
     mockRouter.push(`?itemId=${id}`);
     merchantsWrapper(<ProductDetail />, sm, order.id);
   });
@@ -66,7 +57,7 @@ describe("Product Detail Component", async () => {
       const quantity = screen.getByTestId("available");
 
       expect(title.textContent).toEqual("Meow meow");
-      expect(price.textContent).toEqual("12.00");
+      expect(price.textContent).toEqual("12");
       expect(desc.textContent).toEqual("description...meow");
       expect(quantity.textContent).toEqual("5");
     });
@@ -79,11 +70,11 @@ describe("Product Detail Component", async () => {
       await user.click(screen.getByTestId("addToCart"));
     });
     // Check that the item (2qty) we added to cart above is saved in stateManager
-    const openOrder = await sm.orders.getStatus(Status.Pending);
+    const openOrder = await sm.orders.getStatus(OrderState.STATE_OPEN);
     const orderDetails = await sm.orders.get(openOrder[0]);
     expect(orderDetails.items[itemId]).toEqual(2);
 
-    // Update purchase quantity
+    //addsItems
     await act(async () => {
       const qtyInput = screen.getByTestId("purchaseQty");
       user.clear(qtyInput);
@@ -92,13 +83,25 @@ describe("Product Detail Component", async () => {
       });
       await user.click(await screen.findByTestId("updateQty"));
     });
-
-    const o = await sm.orders.getStatus(Status.Pending);
+    const o = await sm.orders.getStatus(OrderState.STATE_OPEN);
     const d = await sm.orders.get(o[0]);
     expect(d.items[itemId]).toEqual(3);
 
+    //removesItems
+    await act(async () => {
+      const qtyInput = screen.getByTestId("purchaseQty");
+      user.clear(qtyInput);
+      fireEvent.change(qtyInput, {
+        target: { value: "1" },
+      });
+      await user.click(await screen.findByTestId("updateQty"));
+    });
+    const ro = await sm.orders.getStatus(OrderState.STATE_OPEN);
+    const b = await sm.orders.get(ro[0]);
+    expect(b.items[itemId]).toEqual(1);
+
     // Testing event listener for change stock
-    await sm.items.changeInventory([itemId], [400]);
+    await sm.items.changeInventory(itemId, 400);
 
     await waitFor(async () => {
       const available = screen.getByTestId("available");
@@ -117,8 +120,9 @@ describe("Product Detail Component", async () => {
       });
       await user.click(confirmButton);
       const res = await sm.items.get(itemId);
-      // Check that given item.tags includes the removeTagId
-      expect(res.tags[0]).toEqual(removeTagId);
+      expect(res.viewState).toEqual(
+        ListingViewState.LISTING_VIEW_STATE_DELETED,
+      );
     });
   });
 });

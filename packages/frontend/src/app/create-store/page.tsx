@@ -164,97 +164,72 @@ const StoreCreation = () => {
       stateManager.manifest
         .create(
           {
-            name: storeName,
-            description,
+            baseCurrency: {
+              chainId: 1,
+              address: tokenAddr as `0x${string}`,
+            },
+            acceptedCurrencies: [
+              {
+                address: tokenAddr as `0x${string}`,
+                chainId,
+              },
+            ],
+            payees: [
+              {
+                address: payeeAddr as `0x${string}`,
+                callAsContract: false,
+                chainId,
+                name: "default",
+              },
+            ],
           },
           shopId,
         )
         .catch((e) => {
           debug(e);
+          setErrorMsg("Error while create shop manifest");
         });
 
-      // Create published and remove tags + update shopManifest and metadata
-      stateManager.tags
-        .create("visible")
-        .then((newPubId) => {
-          stateManager.tags
-            .create("remove")
-            .then()
-            .catch((e) => debug(e));
+      //Now we write shop metadata to blockchain client.
 
-          //Testing dom does not support FormData and test client will fail with:
-          //Content-Type isn't multipart/form-data
-          //so if it is a test env, we are skipping uploadBlob
-          let path = { url: "/" };
-          if (!process.env.TEST) {
-            relayClient!
-              .uploadBlob(avatar as FormData)
-              .then((res) => {
-                path = res;
-              })
-              .catch((e) => debug(e));
-          }
+      //Testing dom does not support FormData and test client will fail with:
+      //Content-Type isn't multipart/form-data
+      //so if it is a test env, we are skipping uploadBlob
+      let path = { url: "/" };
+      if (!process.env.TEST) {
+        relayClient!
+          .uploadBlob(avatar as FormData)
+          .then((res) => {
+            path = res;
+          })
+          .catch((e) => debug(e));
+      }
+      const metadata = {
+        name: storeName,
+        description: description,
+        image: path.url,
+      };
+      const jsn = JSON.stringify(metadata);
+      const blob = new Blob([jsn], { type: "application/json" });
+      const file = new File([blob], "file.json");
+      const formData = new FormData();
+      formData.append("file", file);
 
-          if (newPubId && path.url) {
-            stateManager.manifest
-              .update({
-                publishedTagId: newPubId.id,
-                setBaseCurrency: {
-                  tokenAddr: tokenAddr as `0x${string}`,
-                  chainId,
-                },
-                addAcceptedCurrencies: [
-                  {
-                    tokenAddr: tokenAddr as `0x${string}`,
-                    chainId,
-                  },
-                ],
-                addPayee: {
-                  addr: payeeAddr as `0x${string}`,
-                  callAsContract: false,
-                  chainId,
-                  name: "default",
-                },
-                profilePictureUrl: path.url,
-              })
-              .then()
-              .catch((e) => debug(e));
-          }
-
-          const metadata = {
-            name: storeName,
-            description: description,
-            image: path.url,
-          };
-          const jsn = JSON.stringify(metadata);
-          const blob = new Blob([jsn], { type: "application/json" });
-          const file = new File([blob], "file.json");
-          const formData = new FormData();
-          formData.append("file", file);
-
-          //Testing dom does not support FormData and test client will fail with:
-          //Content-Type isn't multipart/form-data
-          //so if it is a test env, we are skipping uploadBlob
-          let response = { url: "/" };
-          if (!process.env.TEST) {
-            relayClient.uploadBlob(formData).then((res) => {
-              response = res;
-            });
-          }
-          if (clientWallet && response.url) {
-            const blockchainClient = new BlockchainClient(shopId);
-            blockchainClient
-              .setShopMetadataURI(clientWallet, response.url)
-              .then()
-              .catch((e) => debug(e));
-          }
-
-          router.push("/products");
-        })
-        .catch((e) => {
-          setErrorMsg("Error while updating store manifest");
-          debug(e);
+      let response = { url: "/" };
+      if (!process.env.TEST) {
+        relayClient.uploadBlob(formData).then((res) => {
+          response = res;
         });
+      }
+      if (clientWallet && response.url) {
+        const blockchainClient = new BlockchainClient(shopId);
+        blockchainClient
+          .setShopMetadataURI(clientWallet, response.url)
+          .then()
+          .catch((e) => debug(e));
+      }
+
+      router.push("/products");
     }
   }, [isConnected, isStoreCreated, stateManager]);
 

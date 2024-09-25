@@ -16,13 +16,14 @@ import SecondaryButton from "@/app/common/components/SecondaryButton";
 import { useMyContext } from "@/context/MyContext";
 import debugLib from "debug";
 import ValidationWarning from "@/app/common/components/ValidationWarning";
+import { formatPrice } from "@massmarket/utils";
 
 const AddProductView = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const itemId = searchParams.get("itemId") as ItemId | "new";
   const editView = itemId !== "new";
-  const { stateManager } = useStoreContext();
+  const { stateManager, baseCurrencyInfo } = useStoreContext();
   const { relayClient } = useMyContext();
   const [productInView, setProductInView] = useState<Item | null>(null);
   const [imgSrc, setImg] = useState<string>("");
@@ -43,13 +44,14 @@ const AddProductView = () => {
         .then((item) => {
           setProductInView(item);
           setTitle(item.baseInfo.title);
-          setPrice(item.price);
-          setImg(item.baseInfo.image);
+          const price = formatPrice(item.basePrice, baseCurrencyInfo.decimal);
+          setPrice(price);
+          setImg(item.baseInfo.images[0]);
           setDescription(item.baseInfo.description);
           setUnits(item.quantity);
         })
         .catch((e) => {
-          setErrorMsg("Error while updating image.");
+          setErrorMsg("Error while getting product.");
           debug(e);
         });
     }
@@ -114,8 +116,11 @@ const AddProductView = () => {
 
   const create = async (newItem: Partial<Item>) => {
     try {
-      const { id } = await stateManager!.items.create(newItem);
-      await stateManager!.items.changeInventory([id], [units]);
+      const { id } = await stateManager!.items.create(
+        newItem,
+        baseCurrencyInfo.decimals,
+      );
+      await stateManager!.items.changeInventory(id, units);
       if (selectedTags.length) {
         selectedTags.map(async (t) => {
           await stateManager!.items.addItemToTag(t.id, id);
@@ -133,8 +138,8 @@ const AddProductView = () => {
       const diff: Partial<Item> = {
         id: itemId as ItemId,
       };
-      if (newItem.price !== productInView!.price) {
-        diff["price"] = newItem.price;
+      if (newItem.basePrice !== productInView!.basePrice) {
+        diff["basePrice"] = newItem.basePrice;
       }
       if (newItem.baseInfo !== productInView!.baseInfo) {
         diff["baseInfo"] = newItem.baseInfo;
@@ -162,8 +167,8 @@ const AddProductView = () => {
       await stateManager!.items.update(diff);
       if (units !== productInView?.quantity) {
         await stateManager!.items.changeInventory(
-          [itemId as ItemId],
-          [units - productInView!.quantity],
+          itemId as ItemId,
+          units - productInView!.quantity,
         );
       }
     } catch (error) {
@@ -187,11 +192,11 @@ const AddProductView = () => {
           ? await relayClient!.uploadBlob(imgAsBlob)
           : { url: imgSrc };
         const newItem = {
-          price: Number(price).toFixed(2),
+          basePrice: Number(price).toFixed(2),
           baseInfo: {
             title,
             description,
-            image: path.url,
+            images: [path.url],
           },
         };
         editView && productInView

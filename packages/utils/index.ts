@@ -9,6 +9,7 @@ import {
   parseUnits,
   numberToBytes,
   hexToBytes,
+  formatUnits,
 } from "viem";
 
 export function requestId() {
@@ -62,6 +63,9 @@ export function priceToUint256(priceString: string, decimals = 18) {
   // Convert bigint to 32 byte directly
   const buffer = numberToBytes(priceInSmallestUnit, { size: 32 });
   return buffer;
+}
+export function formatPrice(price: string, decimal: number) {
+  return formatUnits(BigInt(price), decimal);
 }
 interface AdressObj {
   address: `0x${string}`;

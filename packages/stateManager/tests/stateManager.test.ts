@@ -464,7 +464,7 @@ describe("CRUD functions update stores", async () => {
       // //removes items from order
       await stateManager.orders.removesItems(order1.id, itemId, 3);
       const changedOrder = await stateManager.orders.get(order1.id);
-      expect(changedOrder.items[itemId]).toEqual(3);
+      expect(changedOrder.items[itemId]).toEqual(1);
     });
   });
   /* TODO: re-enable

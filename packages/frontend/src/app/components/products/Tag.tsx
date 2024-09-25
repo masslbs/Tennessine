@@ -18,7 +18,7 @@ const TagSection = ({
   removeFn?: () => Promise<void>;
 }) => {
   if (!tag?.id) return null;
-  const hex = tag.id.slice(-6).replace("0", "f");
+  // const hex = tag.id.slice(-6).replace("0", "f");
   //FIXME: kind of a hacky way of removing items for now.
   if (tag.name === "visible" || tag.name === "remove") {
     return null;
@@ -28,7 +28,7 @@ const TagSection = ({
       id="tag"
       data-testid="tagSection"
       className={`w-fit flex text-sm rounded p-1`}
-      style={{ backgroundColor: `#${hex}` }}
+      // style={{ backgroundColor: `#${hex}` }}
       onClick={() => handleSelectTag(tag as Tag)}
     >
       <p className="mr-1">{tag.name}</p>

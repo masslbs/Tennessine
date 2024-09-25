@@ -8,9 +8,10 @@ import {
   Tag,
   ShopCurrencies,
   ShopManifest,
-  Status,
   KeyCard,
   OrderFinalized,
+  OrderState,
+  ListingViewState,
 } from "@massmarket/stateManager/types";
 
 export {
@@ -22,7 +23,8 @@ export {
   type ShopManifest,
   type KeyCard,
   type OrderFinalized,
-  Status,
+  OrderState,
+  ListingViewState,
 };
 export type ItemId = `0x${string}`;
 export type TagId = `0x${string}`;
@@ -66,4 +68,9 @@ export enum SortOption {
   available = "Available",
   hidden = "Hidden",
   unavailable = "Unavailable",
+}
+export enum Status {
+  Failed = "FAILED",
+  Pending = "PENDING",
+  Complete = "COMPLETE",
 }

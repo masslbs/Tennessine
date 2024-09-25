@@ -27,7 +27,7 @@ import { zeroAddress, anvilAddress } from "@massmarket/utils";
 
 const mockClient = new MockClient();
 const relayURL =
-  (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v2";
+  (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v3";
 const relayEndpoint = await discoverRelay(relayURL);
 
 function createRelayClient(pk = random32BytesHex()) {
@@ -108,6 +108,10 @@ const Wrapper = ({
                   chainId: 31337,
                   tokenAddr: zeroAddress,
                 },
+                baseCurrencyInfo: {
+                  symbol: "ETH",
+                  decimal: 18,
+                },
               }}
             >
               {children}
@@ -149,6 +153,10 @@ const MerchantsWrapper = ({
                 stateManager: stateManager,
                 getOrderId: async () => {
                   return orderId;
+                },
+                baseCurrencyInfo: {
+                  symbol: "ETH",
+                  decimal: 18,
                 },
               }}
             >

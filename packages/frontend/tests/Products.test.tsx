@@ -1,47 +1,60 @@
 import React from "react";
-import { describe, expect, test } from "vitest";
+import { beforeAll, describe, expect, test } from "vitest";
 import { screen, waitFor, within } from "@testing-library/react";
 import Products from "../src/app/products/page";
-import { randomAddress } from "@massmarket/utils";
+import { randomAddress, zeroAddress } from "@massmarket/utils";
 import { merchantsWrapper, getStateManager } from "./test-utils";
 
 const sm = getStateManager();
 
 describe("Products Component", async () => {
-  await sm.manifest.create(
-    {
-      name: "Test Shop",
-      description: "Testing shopManifest",
-    },
-    randomAddress(),
-  );
+  beforeAll(async () => {
+    await sm.manifest.create(
+      {
+        payees: [
+          {
+            address: randomAddress(),
+            callAsContract: false,
+            chainId: 1,
+            name: "default",
+          },
+        ],
+        baseCurrency: {
+          chainId: 1,
+          address: zeroAddress,
+        },
+      },
+      randomAddress(),
+    );
+  });
   const order = await sm.orders.create();
 
-  for (let index = 0; index < 50; index++) {
-    await sm.items.create({
-      basePrice: `${index + 1}`,
-      baseInfo: {
-        title: `Test Item ${index + 1}`,
-        description: "Test description",
-        image: "https://http.cat/images/201.jpg",
-      },
-    });
-  }
-
   test("All listings are displayed", async () => {
+    for (let index = 0; index < 50; index++) {
+      await sm.items.create({
+        basePrice: `${index + 1}.00`,
+        baseInfo: {
+          title: `Test Item ${index + 1}`,
+          description: "Test description",
+          images: ["https://http.cat/images/201.jpg"],
+        },
+      });
+    }
+
     merchantsWrapper(<Products />, sm, order.id);
 
     await waitFor(async () => {
       const items = await screen.findAllByTestId("product-name");
       expect(items.length).toEqual(50);
     });
+
     // Testing component properly listens to future create events
     await sm.items.create({
       basePrice: `9.00`,
       baseInfo: {
         title: "Another Item",
         description: "Test description",
-        image: "https://http.cat/images/201.jpg",
+        images: ["https://http.cat/images/201.jpg"],
       },
     });
     await waitFor(() => {
@@ -69,7 +82,7 @@ describe("Products Component", async () => {
       baseInfo: {
         title: "Test Item to update",
         description: "Test description 1",
-        image: "https://http.cat/images/201.jpg",
+        images: ["https://http.cat/images/201.jpg"],
       },
     });
     await sm.items.update({
@@ -78,7 +91,7 @@ describe("Products Component", async () => {
       baseInfo: {
         title: "Test Item - Updated",
         description: "Test description",
-        image: "https://http.cat/images/201.jpg",
+        images: ["https://http.cat/images/201.jpg"],
       },
     });
     merchantsWrapper(<Products />, sm, order.id);
@@ -101,7 +114,7 @@ describe("Products Component", async () => {
       baseInfo: {
         title: "Updated!!",
         description: "Updated test description 1",
-        image: "https://http.cat/images/205.jpg",
+        images: ["https://http.cat/images/205.jpg"],
       },
     });
 

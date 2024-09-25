@@ -165,7 +165,7 @@ class ListingManager extends PublicObjectManager<Item> {
       baseInfo: item.baseInfo,
       viewState: item.viewState,
     });
-    // resolves after the `listing` =event has been fired in _processEvent, which happens after the relay accepts the update and has written to the database.
+    // resolves after the `listing` event has been fired in _processEvent, which happens after the relay accepts the update and has written to the database.
     return eventListenAndResolve<Item>(eventId, this, "create");
   }
   //update argument passed here will only contain the fields to update.
@@ -374,12 +374,19 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         const ci = uo.changeItems;
         if (ci.adds) {
           ci.adds.map((orderItem: schema.IOrderedItem) => {
-            order.items[orderItem.listingId] = orderItem.quantity;
+            //Check if item is already selected. If it is, add quantity to already selected quantity.
+            if (order.items[orderItem.listingId]) {
+              order.items[orderItem.listingId] =
+                orderItem.quantity + order.items[orderItem.listingId];
+            } else {
+              order.items[orderItem.listingId] = orderItem.quantity;
+            }
           });
         }
         if (ci.removes) {
           ci.removes.map((orderItem: schema.IOrderedItem) => {
-            order.items[orderItem.listingId] = orderItem.quantity;
+            order.items[orderItem.listingId] =
+              order.items[orderItem.listingId] - orderItem.quantity;
           });
         }
         await this.store.put(id, order);
