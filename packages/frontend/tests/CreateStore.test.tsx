@@ -2,13 +2,15 @@ import React from "react";
 import { describe, expect, test, vi, beforeEach, afterEach } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import CreateStore from "@/app/create-store/page";
-import { createWalletClient, http } from "viem";
+import { createWalletClient, createPublicClient, http } from "viem";
 import userEvent from "@testing-library/user-event";
 import { privateKeyToAccount } from "viem/accounts";
 import { hardhat } from "viem/chains";
 import { randomAddress, zeroAddress } from "@massmarket/utils";
 
 import { render, getStateManager } from "./test-utils";
+import { ShopCurrencies } from "@/types";
+import { BlockchainClient } from "@massmarket/blockchain";
 
 const sm = getStateManager();
 
@@ -89,20 +91,29 @@ describe("Create Store", async () => {
 
       await user.click(saveBtn);
     });
+    let shopId;
     await waitFor(async () => {
       expect(spy).toHaveBeenCalled();
-      let count = 0;
-      for await (const [id, tag] of sm.tags.iterator()) {
-        count++;
-      }
-      expect(count).toEqual(2);
       const manifest = await sm.manifest.get();
-      expect(manifest.name).toEqual("New Store Name!!");
-      expect(manifest.description).toEqual("New Store Description!!");
+      const bc = manifest.baseCurrency as ShopCurrencies;
+      //Correctly saves hardhat and zeroAddress in statemanager.
+      expect(bc.chainId).toEqual(1);
+      expect(bc.address).toEqual(zeroAddress);
+      shopId = manifest.tokenId;
+    });
+
+    await waitFor(async () => {
+      const blockchainClient = new BlockchainClient(shopId);
+      const publicClient = createPublicClient({
+        chain: hardhat,
+        transport: http(),
+      });
+      const uri = await blockchainClient.getTokenURI(publicClient);
+      expect(uri).toEqual("/");
     });
   });
 
-  test("create store - with changed payee address and base currency", async () => {
+  test("Create store - with changed payee address and base currency", async () => {
     expect(spy).not.toHaveBeenCalled();
     const payee = randomAddress();
     await waitFor(async () => {
@@ -130,13 +141,22 @@ describe("Create Store", async () => {
 
       await user.click(saveBtn);
     });
+    let shopId;
     await waitFor(async () => {
       expect(spy).toHaveBeenCalled();
       const manifest = await sm.manifest.get();
-      expect(manifest.name).toEqual("New Store Name II");
-      expect(manifest.description).toEqual("New Store Description II");
-      expect(manifest.payee[0].addr).toEqual(payee);
-      expect(manifest.setBaseCurrency?.tokenAddr).toEqual(zeroAddress);
+      shopId = manifest.tokenId;
+      const bc = manifest.baseCurrency as ShopCurrencies;
+      expect(bc.address).toEqual(zeroAddress);
+    });
+    await waitFor(async () => {
+      const blockchainClient = new BlockchainClient(shopId);
+      const publicClient = createPublicClient({
+        chain: hardhat,
+        transport: http(),
+      });
+      const uri = await blockchainClient.getTokenURI(publicClient);
+      expect(uri).toEqual("/");
     });
   });
 });

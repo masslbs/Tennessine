@@ -10,6 +10,7 @@ import {
   type Transport,
   type Account,
   type Chain,
+  PublicClient,
 } from "viem";
 
 import * as abi from "@massmarket/contracts";
@@ -42,6 +43,14 @@ export class BlockchainClient {
       abi: abi.ShopReg,
       functionName: "setTokenURI",
       args: [BigInt(this.shopId), uri],
+    });
+  }
+  getTokenURI(publicClient: PublicClient) {
+    return publicClient.readContract({
+      address: abi.addresses.ShopReg as Address,
+      abi: abi.ShopReg,
+      functionName: "tokenURI",
+      args: [BigInt(this.shopId)],
     });
   }
 
