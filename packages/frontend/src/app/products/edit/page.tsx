@@ -42,10 +42,10 @@ const AddProductView = () => {
         .get(itemId)
         .then((item) => {
           setProductInView(item);
-          setTitle(item.metadata.title);
+          setTitle(item.baseInfo.title);
           setPrice(item.price);
-          setImg(item.metadata.image);
-          setDescription(item.metadata.description);
+          setImg(item.baseInfo.image);
+          setDescription(item.baseInfo.description);
           setUnits(item.quantity);
         })
         .catch((e) => {
@@ -115,7 +115,7 @@ const AddProductView = () => {
   const create = async (newItem: Partial<Item>) => {
     try {
       const { id } = await stateManager!.items.create(newItem);
-      await stateManager!.items.changeStock([id], [units]);
+      await stateManager!.items.changeInventory([id], [units]);
       if (selectedTags.length) {
         selectedTags.map(async (t) => {
           await stateManager!.items.addItemToTag(t.id, id);
@@ -136,8 +136,8 @@ const AddProductView = () => {
       if (newItem.price !== productInView!.price) {
         diff["price"] = newItem.price;
       }
-      if (newItem.metadata !== productInView!.metadata) {
-        diff["metadata"] = newItem.metadata;
+      if (newItem.baseInfo !== productInView!.baseInfo) {
+        diff["baseInfo"] = newItem.baseInfo;
       }
       //checking for diff in selected tags
       const newTags = selectedTags.filter(
@@ -161,7 +161,7 @@ const AddProductView = () => {
       if (Object.keys(diff).length === 1) return;
       await stateManager!.items.update(diff);
       if (units !== productInView?.quantity) {
-        await stateManager!.items.changeStock(
+        await stateManager!.items.changeInventory(
           [itemId as ItemId],
           [units - productInView!.quantity],
         );
@@ -188,7 +188,7 @@ const AddProductView = () => {
           : { url: imgSrc };
         const newItem = {
           price: Number(price).toFixed(2),
-          metadata: {
+          baseInfo: {
             title,
             description,
             image: path.url,

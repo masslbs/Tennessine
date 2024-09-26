@@ -92,19 +92,11 @@ describe("Create Store", async () => {
     await waitFor(async () => {
       expect(spy).toHaveBeenCalled();
       let count = 0;
-      let pId;
       for await (const [id, tag] of sm.tags.iterator()) {
         count++;
-        //Creating store thru create-store page should auto generate published and removed tags
-        if (tag.name === "visible") {
-          pId = id;
-        } else {
-          expect(tag.name).toEqual("remove");
-        }
       }
       expect(count).toEqual(2);
       const manifest = await sm.manifest.get();
-      expect(manifest.publishedTagId).toEqual(pId);
       expect(manifest.name).toEqual("New Store Name!!");
       expect(manifest.description).toEqual("New Store Description!!");
     });

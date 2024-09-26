@@ -111,21 +111,21 @@ const NewCart = ({
 
     return Array.from([...cartItemsMap.keys()]).map((id) => {
       const item = cartItemsMap.get(id as ItemId);
-      if (!item || !item.metadata.image) return;
+      if (!item || !item.baseInfo.image) return;
       return (
         <div
-          key={item.metadata.title}
+          key={item.baseInfo.title}
           className="flex flex-col items-center gap-3 min-w-24 min-h-30 max-w-24"
           data-testid="title"
         >
           <div className="h-12 flex justify-center text-center">
             <p className="text-xs text-primary-gray text-center text-ellipsis overflow-hidden self-end">
-              {item.metadata.title}
+              {item.baseInfo.title}
             </p>
           </div>
           <div className="border-2 p-3 rounded-xl bg-white">
             <Image
-              src={item.metadata.image}
+              src={item.baseInfo.image}
               width={85}
               height={60}
               alt="item-thumbnail"
