@@ -203,11 +203,14 @@ export class RelayClient extends EventEmitter {
     const message = schema.Envelope.decode(payload);
     const type = message.message;
     switch (type) {
-      case schema.PingRequest:
+      case "pingRequest":
         this.#handlePingRequest(message);
         break;
-      case schema.SubscriptionPushRequest:
-        this.eventStream.enqueue(message);
+      case "subscriptionPushRequest":
+        this.eventStream.enqueue({
+          requestId: message.requestId,
+          events: message.subscriptionPushRequest.events,
+        });
         break;
       default:
         this.emit(`${parseInt(message.requestId.raw)}`, message);

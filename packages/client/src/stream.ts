@@ -41,9 +41,8 @@ export class ReadableEventStream {
             const event = schema.ShopEvent.decode(anyEvt.event.value);
             const signer = await recoverMessageAddress({
               message: { raw: anyEvt.event.value },
-              signature: anyEvt.signature,
+              signature: anyEvt.signature.raw,
             });
-
             self.controller.enqueue({ event, signer });
           }
           // Send a response to the relay to indicate that we have processed the events
