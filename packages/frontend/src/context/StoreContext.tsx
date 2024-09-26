@@ -154,18 +154,20 @@ export const StoreContextProvider = (
   }, [relayClient]);
 
   useEffect(() => {
-    if (stateManager) {
+    if (stateManager && shopDetails.name) {
       //Get base token decimal and symbol.
       stateManager.manifest.get().then((manifest) => {
         const { chainId, address } = manifest.pricingCurrency;
         const chain = chains.find((chain) => chainId === chain.id);
-        const baseTokenPublicClient = createPublicClient({
-          chain,
-          transport: http(),
-        });
-        getTokenInformation(baseTokenPublicClient, address!).then((res) => {
-          setBaseTokenDetails({ decimal: res[1], symbol: res[0] });
-        });
+        if (chain) {
+          const baseTokenPublicClient = createPublicClient({
+            chain,
+            transport: http(),
+          });
+          getTokenInformation(baseTokenPublicClient, address!).then((res) => {
+            setBaseTokenDetails({ decimal: res[1], symbol: res[0] });
+          });
+        }
       });
     }
   }, [stateManager]);

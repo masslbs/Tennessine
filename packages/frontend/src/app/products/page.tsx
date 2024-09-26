@@ -265,31 +265,14 @@ const Products = () => {
 
           <div className="flex gap-2 py-4 text-sm">
             <SecondaryButton onClick={() => setSortOpened(true)}>
-              <div className="items-center flex gap-3">
-                Filters
-                <Image
-                  src="/assets/filters.png"
-                  width={12}
-                  height={12}
-                  alt="filter"
-                  unoptimized={true}
-                />
-              </div>
+              <div className="items-center flex gap-3">Filters</div>
             </SecondaryButton>
             <SecondaryButton
               onClick={() => {
                 setShowTags(!showTags);
               }}
             >
-              <div className="items-center flex gap-3">
-                Tags
-                <Image
-                  src="/assets/tags.svg"
-                  width={20}
-                  height={12}
-                  alt="tags"
-                />
-              </div>
+              <div className="items-center flex gap-3">Tags</div>
             </SecondaryButton>
           </div>
           {renderFilterTags()}

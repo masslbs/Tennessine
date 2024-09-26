@@ -37,7 +37,7 @@ describe("Add New Product", async () => {
         target: { value: ":new tag" },
       });
       fireEvent.submit(await screen.findByTestId("tagForm"));
-      await user.click(screen.getByRole("button", { name: /publish/i }));
+      await user.click(screen.getByRole("button", { name: "create product" }));
       //Test creating a new tag via UI
       const newTag = await screen.findByTestId("tagSection");
       expect(newTag.textContent).toEqual("new tag");

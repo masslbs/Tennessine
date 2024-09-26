@@ -14,7 +14,9 @@ import { StoreContextProvider } from "../context/StoreContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { MerchantProvider } from "@/context/MerchantContext";
 import debugLib from "debug";
+import "@rainbow-me/rainbowkit/styles.css";
 
+import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 export function Providers(props: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
   if (process.env.NEXT_PUBLIC_DEBUG) {
@@ -23,13 +25,15 @@ export function Providers(props: { children: ReactNode }) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <MyContextProvider>
-            <StoreContextProvider>
-              <MerchantProvider>{props.children}</MerchantProvider>
-            </StoreContextProvider>
-          </MyContextProvider>
-        </AuthProvider>
+        <RainbowKitProvider>
+          <AuthProvider>
+            <MyContextProvider>
+              <StoreContextProvider>
+                <MerchantProvider>{props.children}</MerchantProvider>
+              </StoreContextProvider>
+            </MyContextProvider>
+          </AuthProvider>
+        </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );
