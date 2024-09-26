@@ -15,9 +15,11 @@ import ErrorMessage from "@/app/common/components/ErrorMessage";
 import { useAuth } from "@/context/AuthContext";
 import debugLib from "debug";
 import { formatUnitsFromString } from "@massmarket/utils";
+import { useUserContext } from "@/context/UserContext";
 
 const ProductDetail = () => {
   const { stateManager, getOrderId, baseTokenDetails } = useStoreContext();
+  const { sendGuestCheckoutSubscription } = useUserContext();
   const { isMerchantView } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -44,14 +46,16 @@ const ProductDetail = () => {
   useEffect(() => {
     getOrderId()
       .then(async (id) => {
-        setOrderId(id);
-        stateManager.orders
-          .get(id)
-          .then((order) => {
-            const orderItems = order.items;
-            setCurrentCart(orderItems);
-          })
-          .catch((e) => debug(e));
+        if (id) {
+          setOrderId(id);
+          stateManager.orders
+            .get(id)
+            .then((order) => {
+              const orderItems = order.items;
+              setCurrentCart(orderItems);
+            })
+            .catch((e) => debug(e));
+        }
       })
       .catch((e) => {
         debug(e);
@@ -145,15 +149,29 @@ const ProductDetail = () => {
   }, []);
 
   const changeItems = async () => {
-    if (!orderId) return;
+    let order_id = orderId;
+    if (
+      !order_id &&
+      (localStorage.getItem("merchantKeyCard") ||
+        localStorage.getItem("guestCheckoutKC"))
+    ) {
+      order_id = (await stateManager.orders.create()).id;
+      setOrderId(order_id);
+    } else if (!order_id) {
+      //For users with no enrolled KC: upgrade subscription when adding an item to cart.
+      await sendGuestCheckoutSubscription();
+      order_id = (await stateManager.orders.create()).id;
+      setOrderId(order_id);
+    }
     try {
       const diff = !addedToCart
         ? quantity
         : quantity - currentCartItems![itemId];
+
       if (diff > 0) {
-        await stateManager!.orders.addsItems(orderId, itemId, diff);
+        await stateManager!.orders.addsItems(order_id, itemId, diff);
       } else {
-        await stateManager!.orders.removesItems(orderId, [
+        await stateManager!.orders.removesItems(order_id, [
           {
             listingId: itemId,
             quantity: currentCartItems![itemId]! - quantity,

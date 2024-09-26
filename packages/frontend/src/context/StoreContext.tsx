@@ -14,14 +14,15 @@ import {
   OrderState,
   BaseTokenDetails,
 } from "@/types";
-import { useMyContext } from "./MyContext";
+import { useUserContext } from "./UserContext";
 import { StoreContent } from "@/context/types";
 import { LoadingStateManager } from "@/context/initialLoadingState";
 import { StateManager } from "@massmarket/stateManager";
 import * as abi from "@massmarket/contracts";
 import { createPublicClient, http, Address } from "viem";
-import { getTokenInformation, getChainById } from "@/app/utils";
+import { getTokenInformation } from "@/app/utils";
 import debugLib from "debug";
+import { useChains } from "wagmi";
 
 // @ts-expect-error FIXME
 export const StoreContext = createContext<StoreContent>({});
@@ -33,7 +34,7 @@ export const StoreContextProvider = (
   const [orderId, setOrderId] = useState<OrderId | null>(null);
   const [selectedCurrency, setSelectedCurrency] =
     useState<ShopCurrencies | null>(null);
-  const { relayClient, shopId, shopPublicClient } = useMyContext();
+  const { relayClient, shopId, shopPublicClient } = useUserContext();
   const [stateManager, setStateManager] = useState<
     StateManager | LoadingStateManager
   >(new LoadingStateManager());
@@ -46,13 +47,16 @@ export const StoreContextProvider = (
     decimal: 18,
     symbol: "ETH",
   });
+  const chains = useChains();
 
   useEffect(() => {
     if (relayClient && shopId && shopPublicClient) {
       (async () => {
         // Prerender error if we import normally: https://nextjs.org/docs/messages/prerender-error
         const { Level } = await import("level");
-        const dbName = shopId?.slice(0, 7);
+        const merchantKC = localStorage.getItem("merchantKeyCard");
+        const guestKC = localStorage.getItem("guestCheckoutKC");
+        const dbName = `${shopId?.slice(0, 7)}${merchantKC ? merchantKC.slice(0, 5) : guestKC ? guestKC.slice(0, 5) : "-guest"}`;
         console.log("using level db:", { dbName });
         const db = new Level(`./${dbName}`, {
           valueEncoding: "json",
@@ -92,7 +96,30 @@ export const StoreContextProvider = (
         stateManager.eventStreamProcessing.catch((e) => {
           debug(`Error while executing eventStreamProcessing ${e}`);
         });
+        stateManager.seqNo.on("seqNo", (res) => {
+          localStorage.setItem("seqNo", res);
+        });
         setStateManager(stateManager);
+        if (shopPublicClient && shopId) {
+          shopPublicClient
+            .readContract({
+              address: abi.addresses.ShopReg as Address,
+              abi: abi.ShopReg,
+              functionName: "tokenURI",
+              args: [BigInt(shopId)],
+            })
+            .then((uri) => {
+              const url = uri as string;
+              fetch(url).then((res) => {
+                res.json().then((data) => {
+                  setShopDetails({
+                    name: data.name,
+                    profilePictureUrl: data.image,
+                  });
+                });
+              });
+            });
+        }
 
         if (shopPublicClient && shopId) {
           shopPublicClient
@@ -131,13 +158,13 @@ export const StoreContextProvider = (
       //Get base token decimal and symbol.
       stateManager.manifest.get().then((manifest) => {
         const { chainId, address } = manifest.pricingCurrency;
-        const chain = getChainById(chainId!);
+        const chain = chains.find((chain) => chainId === chain.id);
         const baseTokenPublicClient = createPublicClient({
           chain,
           transport: http(),
         });
         getTokenInformation(baseTokenPublicClient, address!).then((res) => {
-          setBaseTokenDetails(res);
+          setBaseTokenDetails({ decimal: res[1], symbol: res[0] });
         });
       });
     }
@@ -147,17 +174,9 @@ export const StoreContextProvider = (
     const openOrders = await stateManager?.orders.getStatus(
       OrderState.STATE_OPEN,
     );
-    let order_id: OrderId;
     if (openOrders && openOrders.length) {
-      order_id = openOrders[0] as OrderId;
-      setOrderId(order_id);
-    } else {
-      // If open order id does not exist, create new id
-      const { id } = await stateManager!.orders.create();
-      setOrderId(id);
-      order_id = id;
-    }
-    return order_id;
+      return openOrders[0] as OrderId;
+    } else return null;
   };
 
   const value = {

@@ -6,24 +6,24 @@
 
 import React, { useEffect } from "react";
 
-import { useMyContext } from "@/context/MyContext";
+import { useUserContext } from "@/context/UserContext";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Status } from "../types";
 
 function Homepage() {
-  const { setInviteSecret } = useMyContext();
-  const { isConnected } = useAuth();
+  const { setInviteSecret } = useUserContext();
+  const { clientConnected } = useAuth();
   const searchParams = useSearchParams();
   const inviteSecret = searchParams!.get("inviteSecret") as `0x${string}`;
   const router = useRouter();
 
   useEffect(() => {
-    if (isConnected === Status.Complete) {
+    if (clientConnected === Status.Complete) {
       router.push("/products");
     }
-  }, [isConnected]);
+  }, [clientConnected]);
 
   if (inviteSecret) {
     setInviteSecret(inviteSecret);

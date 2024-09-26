@@ -6,9 +6,9 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import AvatarUpload from "@/app/common/components/AvatarUpload";
-import { useMyContext } from "@/context/MyContext";
+import { useUserContext } from "@/context/UserContext";
 import { useAuth } from "@/context/AuthContext";
-import { Status } from "@/types";
+import { Status, ObjectType } from "@/types";
 import { useRouter } from "next/navigation";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
 import { random32BytesHex, zeroAddress } from "@massmarket/utils";
@@ -21,6 +21,7 @@ import { isValidHex } from "@/app/utils";
 import ValidationWarning from "@/app/common/components/ValidationWarning";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import { discoverRelay } from "@massmarket/client";
+import { privateKeyToAccount } from "viem/accounts";
 
 const StoreCreation = () => {
   const {
@@ -28,15 +29,14 @@ const StoreCreation = () => {
     clientWallet,
     shopId,
     setShopId,
-    setKeyCardEnrolled,
     checkPermissions,
     setRelayClient,
     relayClient,
     createNewRelayClient,
-  } = useMyContext();
+  } = useUserContext();
 
   const { stateManager, setShopDetails } = useStoreContext();
-  const { isConnected, setIsConnected, setIsMerchantView } = useAuth();
+  const { clientConnected, setIsConnected, setIsMerchantView } = useAuth();
   const chains = useChains();
   const router = useRouter();
 
@@ -68,7 +68,6 @@ const StoreCreation = () => {
       randomShopIdHasBeenSet.current = true;
       const randomShopId = random32BytesHex();
       setIsConnected(Status.Pending);
-      setKeyCardEnrolled(false);
       setShopId(randomShopId);
     }
     return () => {
@@ -87,8 +86,6 @@ const StoreCreation = () => {
       warning = "Store name is required";
     } else if (!description.length) {
       warning = "Store description is required";
-    } else if (!avatar) {
-      warning = "Store image is required";
     } else if (!tokenAddr.length) {
       warning = "Token Address is required";
     } else if (!chainId) {
@@ -119,6 +116,12 @@ const StoreCreation = () => {
         });
 
         if (transaction!.status == "success") {
+          // //Add relay tokenId for event verification.
+          const relayURL =
+            (process && process.env["NEXT_PUBLIC_RELAY_TOKEN_ID"]) ||
+            "ws://localhost:4444/v3";
+          const relayEndpoint = await discoverRelay(relayURL);
+          await blockchainClient.addRelay(clientWallet, relayEndpoint.tokenId);
           localStorage.setItem("shopId", shopId!);
           const hasAccess = await checkPermissions();
 
@@ -132,14 +135,26 @@ const StoreCreation = () => {
               process.env.TEST ? undefined : new URL(window.location.href),
             );
             if (res.ok) {
+              setRelayClient(rc);
               const keyCardToEnroll = localStorage.getItem(
                 "keyCardToEnroll",
               ) as `0x${string}`;
               setIsMerchantView(true);
-              setRelayClient(rc);
               localStorage.setItem("merchantKeyCard", keyCardToEnroll);
-              setKeyCardEnrolled(true);
+              //Connect, authenticate, and send subscription request.
+              await rc.connect();
+              await rc.authenticate();
+              const filters = [
+                { objectType: ObjectType.OBJECT_TYPE_LISTING },
+                { objectType: ObjectType.OBJECT_TYPE_TAG },
+                { objectType: ObjectType.OBJECT_TYPE_ORDER },
+                { objectType: ObjectType.OBJECT_TYPE_ACCOUNT },
+                { objectType: ObjectType.OBJECT_TYPE_MANIFEST },
+                { objectType: ObjectType.OBJECT_TYPE_INVENTORY },
+              ];
+              await rc.sendSubscriptionRequest(shopId, filters);
               setStoreCreated(true);
+              setIsConnected(Status.Complete);
             } else {
               console.error("failed to enroll keycard");
             }
@@ -156,114 +171,102 @@ const StoreCreation = () => {
   };
 
   useEffect(() => {
+    //Create manifest once KC is enrolled and client is connected + authenticated.
     if (
       relayClient &&
       shopId &&
       stateManager &&
       isStoreCreated &&
-      isConnected == Status.Complete
+      clientConnected == Status.Complete
     ) {
-      stateManager.manifest
-        .create(
-          {
-            pricingCurrency: {
-              chainId: 1,
-              address: tokenAddr as `0x${string}`,
-            },
-            acceptedCurrencies: [
-              {
+      //Add address of kc wallet for all outgoing event verification.
+      const kc = localStorage.getItem("merchantKeyCard") as `0x${string}`;
+      const keyCardWallet = privateKeyToAccount(kc!);
+      stateManager.keycards.addAddress(keyCardWallet.address).then(() => {
+        stateManager.manifest
+          .create(
+            {
+              pricingCurrency: {
+                chainId: 1,
                 address: tokenAddr as `0x${string}`,
-                chainId,
               },
-            ],
-            payees: [
-              {
-                address: payeeAddr as `0x${string}`,
-                callAsContract: false,
-                chainId,
-                name: "default",
-              },
-            ],
-            //TODO: UI for inputting shipping regions.
-            shippingRegions: [
-              {
-                name: "test",
-                country: "test country",
-                postalCode: "test postal",
-                city: "test city",
-                orderPriceModifiers: [],
-              },
-            ],
-          },
-          shopId,
-        )
-        .then()
-        .catch((e) => {
-          debug(e);
-          setErrorMsg("Error while create shop manifest");
-        });
-
-      //Now we write shop metadata to blockchain client.
-
-      //Testing dom does not support FormData and test client will fail with:
-      //Content-Type isn't multipart/form-data
-      //so if it is a test env, we are skipping uploadBlob
-
-      (async () => {
-        let metadataPath;
-        let imgPath;
-        if (process.env.TEST) {
-          metadataPath = { url: "/" };
-          imgPath = { url: "/" };
-        } else {
-          imgPath = await relayClient!.uploadBlob(avatar as FormData);
-          const metadata = {
-            name: storeName,
-            description: description,
-            image: imgPath.url,
-          };
-          const jsn = JSON.stringify(metadata);
-          const blob = new Blob([jsn], { type: "application/json" });
-          const file = new File([blob], "file.json");
-          const formData = new FormData();
-          formData.append("file", file);
-          metadataPath = await relayClient.uploadBlob(formData);
-        }
-
-        if (clientWallet && metadataPath) {
-          const blockchainClient = new BlockchainClient(shopId);
-          blockchainClient
-            .setShopMetadataURI(clientWallet, metadataPath.url)
-            .then(() => {
-              setShopDetails({
-                name: storeName,
-                profilePictureUrl: imgPath.url,
-              });
-            })
-            .catch((e) => debug(e));
-        }
-      })();
-
-      //Add relay tokenId
-      const relayURL =
-        (process && process.env["NEXT_PUBLIC_RELAY_TOKEN_ID"]) ||
-        "ws://localhost:4444/v3";
-      discoverRelay(relayURL)
-        .then((relayEndpoint) => {
-          stateManager.keycards
-            .addAddress(relayEndpoint.tokenId)
-            .then(() => {
-              router.push("/products");
-            })
-            .catch((e) => {
-              debug(e);
-            });
-        })
-        .catch((e) => {
-          debug(e);
-        });
+              acceptedCurrencies: [
+                {
+                  address: tokenAddr as `0x${string}`,
+                  chainId,
+                },
+              ],
+              payees: [
+                {
+                  address: payeeAddr as `0x${string}`,
+                  callAsContract: false,
+                  chainId,
+                  name: "default",
+                },
+              ],
+              //TODO: UI for inputting shipping regions.
+              shippingRegions: [
+                {
+                  name: "test",
+                  country: "test country",
+                  postalCode: "test postal",
+                  city: "test city",
+                  orderPriceModifiers: [],
+                },
+              ],
+            },
+            shopId,
+          )
+          .then(() => {
+            uploadMetadata()
+              .then(() => {
+                router.push("/products");
+              })
+              .catch((e) => debug(e));
+          })
+          .catch((e) => {
+            debug(e);
+            setErrorMsg("Error while create shop manifest");
+          });
+      });
     }
-  }, [isConnected, isStoreCreated]);
+  }, [clientConnected]);
+
+  const uploadMetadata = async () => {
+    let metadataPath;
+    let imgPath;
+    //Testing dom does not support FormData and test client will fail with:
+    //Content-Type isn't multipart/form-data
+    //so if it is a test env, we are skipping uploadBlob
+    if (process.env.TEST) {
+      metadataPath = { url: "/" };
+      imgPath = { url: "/" };
+    } else {
+      imgPath = await relayClient!.uploadBlob(avatar as FormData);
+      const metadata = {
+        name: storeName,
+        description: description,
+        image: imgPath.url,
+      };
+      const jsn = JSON.stringify(metadata);
+      const blob = new Blob([jsn], { type: "application/json" });
+      const file = new File([blob], "file.json");
+      const formData = new FormData();
+      formData.append("file", file);
+      metadataPath = await relayClient!.uploadBlob(formData);
+    }
+
+    if (clientWallet && metadataPath) {
+      const blockchainClient = new BlockchainClient(shopId!);
+
+      //Write shop metadata to blockchain client.
+      await blockchainClient.setShopMetadataURI(clientWallet, metadataPath.url);
+      setShopDetails({
+        name: storeName,
+        profilePictureUrl: imgPath.url,
+      });
+    }
+  };
 
   return (
     <main className="pt-under-nav h-screen p-4 mt-5">

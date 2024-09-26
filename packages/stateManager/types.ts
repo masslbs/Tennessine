@@ -18,6 +18,8 @@ export type IRelayClient = Pick<
   | "createOrder"
   | "updateOrder"
   | "updateTag"
+  | "sendSubscriptionRequest"
+  | "authenticate"
 >;
 export enum OrderState {
   STATE_UNSPECIFIED = 0,

@@ -12,26 +12,25 @@ import Image from "next/image";
 import { OrderState, Order, OrderId } from "@/types";
 
 import PaymentOptions from "@/app/components/checkout/PaymentOptions";
-import { useMyContext } from "@/context/MyContext";
 import * as abi from "@massmarket/contracts";
 import CurrencyButton from "@/app/common/components/CurrencyButton";
 import CurrencyChange from "@/app/common/components/CurrencyChange";
 import { zeroAddress } from "@massmarket/contracts";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import debugLib from "debug";
-import { getTokenInformation, getPublicClient } from "@/app/utils";
 import { formatUnitsFromString } from "@massmarket/utils";
+import { getTokenInformation } from "@/app/utils";
+import { useChains } from "wagmi";
+import { createPublicClient, http, pad } from "viem";
 
 const CheckoutFlow = () => {
   const { getOrderId, stateManager, selectedCurrency } = useStoreContext();
-  const { shopId } = useMyContext();
   const [step, setStep] = useState(0);
   const [imgSrc, setSrc] = useState<null | string>(null);
 
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [cryptoTotal, setCryptoTotal] = useState<bigint | null>(null);
   const [purchaseAddress, setPurchaseAddr] = useState<string | null>(null);
-  const [totalDollar, setTotalDollar] = useState<string | null>(null);
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
   const [name, setName] = useState("");
@@ -47,6 +46,7 @@ const CheckoutFlow = () => {
   const [orderId, setOrderId] = useState<OrderId | null>(null);
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
   const debug = debugLib("frontend:checkout");
+  const chains = useChains();
 
   const currencyToggle = () => {
     setOpen(!openCurrencySelection);
@@ -57,18 +57,17 @@ const CheckoutFlow = () => {
   useEffect(() => {
     getOrderId()
       .then((id) => {
-        setOrderId(id);
-        stateManager.orders
-          .get(id)
-          .then((order) => {
-            // if (order.choosePayment) {
-            //   getDetails(id);
-            // }
-            setCurrentOrder(order);
-          })
-          .catch((e) => {
-            debug(e);
-          });
+        if (id) {
+          setOrderId(id);
+          stateManager.orders
+            .get(id)
+            .then((order) => {
+              setCurrentOrder(order);
+            })
+            .catch((e) => {
+              debug(e);
+            });
+        }
       })
       .catch((e) => {
         debug(e);
@@ -76,21 +75,21 @@ const CheckoutFlow = () => {
   }, []);
 
   useEffect(() => {
-    const onOrderPaid = (order: Order) => {
+    const txHashDetected = (order: Order) => {
       if (order.id === orderId) {
         setCurrentOrder(order);
       }
     };
 
-    stateManager.orders.on("orderPaid", onOrderPaid);
+    stateManager.orders.on("addPaymentTx", txHashDetected);
     return () => {
       // Cleanup listeners on unmount
-      stateManager.orders.removeListener("orderPaid", onOrderPaid);
+      stateManager.orders.removeListener("addPaymentTx", txHashDetected);
     };
   });
 
   useEffect(() => {
-    if (currentOrder && currentOrder.status === OrderState.STATE_PAID) {
+    if (currentOrder && currentOrder.status === OrderState.STATE_PAYMENT_TX) {
       const h = currentOrder.txHash as `0x${string}`;
       setOrderId(null);
       setConfirmedTxHash(h);
@@ -118,26 +117,39 @@ const CheckoutFlow = () => {
       const committedOrder = await stateManager.orders.get(oId!);
       const { currency, payee } = committedOrder.choosePayment!;
       const { total, shopSignature, ttl } = committedOrder.paymentDetails!;
-
+      const chosenPaymentChain = chains.find(
+        (chain) => currency.chainId === chain.id,
+      );
       //Create public client with correct chainId.
-      const chosenPaymentPublicClient = getPublicClient(currency.chainId);
+      const chosenPaymentPublicClient = createPublicClient({
+        chain: chosenPaymentChain,
+        transport: http(),
+      });
 
-      const { decimal, symbol } = await getTokenInformation(
+      const [symbol, decimal] = await getTokenInformation(
         chosenPaymentPublicClient,
         currency.address,
       );
-      const paymentRPC = getPublicClient(payee.chainId);
-      //FIXME: get Order hash from paymentDetails.
-      const orderHash = zeroAddress;
+      setSymbol(symbol);
+
+      const payeeChain = chains.find((chain) => payee.chainId === chain.id);
+      const paymentRPC = createPublicClient({
+        chain: payeeChain,
+        transport: http(),
+      });
+      const manifest = await stateManager.manifest.get();
+      //FIXME: get orderHash from paymentDetails.
+      const zeros32Bytes = pad(zeroAddress, { size: 32 });
+
       const arg = [
         currency.chainId,
         ttl,
-        orderHash,
+        zeros32Bytes,
         currency.address,
-        total,
+        BigInt(total),
         payee.address,
-        false,
-        shopId,
+        false, //isPaymentEndpoint
+        manifest.tokenId,
         shopSignature,
       ];
       const purchaseAdd = await paymentRPC.readContract({
@@ -146,8 +158,6 @@ const CheckoutFlow = () => {
         functionName: "getPaymentAddress",
         args: [arg, payee.address],
       });
-
-      setSymbol(symbol);
       if (purchaseAdd) {
         const amount = BigInt(total);
         const displayedErc20 = formatUnitsFromString(total, decimal);
@@ -159,7 +169,6 @@ const CheckoutFlow = () => {
         setSrc(payLink);
         setCryptoTotal(amount);
         setErc20Amount(displayedErc20);
-        setTotalDollar(total);
         setStep(2);
       }
     })();
@@ -167,6 +176,10 @@ const CheckoutFlow = () => {
 
   const checkout = async () => {
     const orderId = await getOrderId();
+    if (!orderId) {
+      debug("orderId not found.");
+      return;
+    }
     if (!selectedCurrency) {
       setErrorMsg("Please select a currency to pay in.");
     } else {
@@ -182,6 +195,7 @@ const CheckoutFlow = () => {
           emailAddress: "example@example.com",
         });
         const payee = await stateManager!.manifest.get();
+
         await stateManager!.orders.commit(orderId);
         await stateManager!.orders.choosePayment(orderId, {
           currency: selectedCurrency,
@@ -224,13 +238,12 @@ const CheckoutFlow = () => {
       step === 2 &&
       imgSrc &&
       purchaseAddress &&
-      totalDollar &&
-      cryptoTotal
+      cryptoTotal &&
+      symbol
     ) {
       return (
         <PaymentOptions
           imgSrc={imgSrc}
-          totalDollar={totalDollar}
           purchaseAddress={purchaseAddress}
           cryptoTotal={cryptoTotal}
           symbol={symbol}
@@ -250,7 +263,7 @@ const CheckoutFlow = () => {
           <div className="flex-col items-center gap-2 flex">
             <p>Tx hash:</p>
             <div className="bg-white w-fit p-2 border-2 rounded-xl shadow-lg flex gap-2">
-              <p>{confirmedTxHash?.slice(0, 20)}...</p>
+              <p data-testid="txHash">{confirmedTxHash}</p>
               <button onClick={copyToClipboard}>
                 <Image
                   src={"/assets/copy-icon.svg"}

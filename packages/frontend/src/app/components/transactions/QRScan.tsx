@@ -8,7 +8,6 @@ import QRCode from "qrcode";
 
 function QRScan({
   imgSrc,
-  totalDollar,
   purchaseAddress,
   showModal,
   erc20Amount,
@@ -16,14 +15,12 @@ function QRScan({
   goBack,
 }: {
   imgSrc: string | null;
-  totalDollar: string;
   purchaseAddress: string;
   showModal: string | null;
   erc20Amount: string | null;
   symbol: string | null;
   goBack: () => void;
 }) {
-  console.log("for testing send payment to:", imgSrc);
   const [src, setQr] = useState<string | null>(null);
   const copyToClipboard = () => {
     navigator.clipboard.writeText(purchaseAddress!);
@@ -54,9 +51,11 @@ function QRScan({
         <div className="flex flex-col gap-5 text-primary-gray">
           <button onClick={goBack}>go back</button>
           <h2 data-testid="erc20Amount">
-            Send <span className="text-black">{erc20Amount}</span>
+            Send{" "}
+            <span className="text-black">
+              {erc20Amount} {symbol}
+            </span>
           </h2>
-          <p>{totalDollar}</p>
           <p>to this address:</p>
           <div className="flex text-center justify-center border-2 p-2 rounded-xl shadow-xl">
             <p>{purchaseAddress.slice(0, 20)}...</p>

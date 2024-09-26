@@ -12,7 +12,6 @@ import { StateManager } from "@massmarket/stateManager";
 
 //Types for Contexts only
 export type ClientContext = {
-  keyCardEnrolled: boolean;
   ensName: string | null;
   walletAddress: `0x${string}` | null;
   clientWallet: WalletClientWithAccount | null;
@@ -22,12 +21,12 @@ export type ClientContext = {
   inviteSecret: `0x${string}` | null;
   shopId: ShopId | null;
   setShopId: Dispatch<SetStateAction<ShopId | null>>;
-  setKeyCardEnrolled: Dispatch<SetStateAction<boolean>>;
   setInviteSecret: Dispatch<SetStateAction<`0x${string}` | null>>;
   setWallet: Dispatch<SetStateAction<WalletClientWithAccount | null>>;
   checkPermissions: () => Promise<boolean>;
   setRelayClient: Dispatch<SetStateAction<RelayClient | null>>;
   createNewRelayClient: () => Promise<RelayClient | null>;
+  sendGuestCheckoutSubscription: () => Promise<void>;
 };
 
 export type StoreContent = {
@@ -36,7 +35,7 @@ export type StoreContent = {
   selectedCurrency: ShopCurrencies | null;
   setSelectedCurrency: Dispatch<ShopCurrencies>;
   stateManager: StateManager | LoadingStateManager;
-  getOrderId: () => Promise<OrderId>;
+  getOrderId: () => Promise<OrderId | null>;
   baseTokenDetails: { decimal: number; symbol: string };
   shopDetails: ShopDetails;
   setShopDetails: Dispatch<ShopDetails>;

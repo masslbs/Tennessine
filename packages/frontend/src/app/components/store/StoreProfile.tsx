@@ -8,7 +8,7 @@ import React, { useEffect, useState } from "react";
 import ModalHeader from "@/app/common/components/ModalHeader";
 import Button from "@/app/common/components/Button";
 import { useStoreContext } from "@/context/StoreContext";
-import { useMyContext } from "@/context/MyContext";
+import { useUserContext } from "@/context/UserContext";
 import Image from "next/image";
 import AvatarUpload from "@/app/common/components/AvatarUpload";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
@@ -23,7 +23,7 @@ import { BlockchainClient } from "@massmarket/blockchain";
 
 const StoreProfile = ({ close }: { close: () => void }) => {
   const { stateManager, shopDetails } = useStoreContext();
-  const { relayClient, clientWallet, shopId } = useMyContext();
+  const { relayClient, clientWallet, shopId } = useUserContext();
   const [storeName, setStoreName] = useState<string>("");
   const [baseAddr, setStoreBase] = useState<TokenAddr | null>(null);
   const [avatar, setAvatar] = useState<FormData | null>(null);

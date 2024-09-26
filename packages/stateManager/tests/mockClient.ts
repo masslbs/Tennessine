@@ -61,7 +61,11 @@ export class MockClient implements IRelayClient {
       resolve;
     });
   }
-
+  authenticate() {
+    return new Promise((resolve) => {
+      resolve;
+    });
+  }
   sendShopEvent(shopEvent: schema.IShopEvent) {
     const requestId = this.encodeAndSendNoWait();
     this.eventStream.outgoingEnqueue(
@@ -126,6 +130,11 @@ export class MockClient implements IRelayClient {
     const file = blob.get(`file`) as { name: string };
     return { url: file.name };
   }
+  async sendSubscriptionRequest(
+    shopId: `0x${string}`,
+    filters: schema.IFilter[],
+    seqNo = 0,
+  ) {}
 
   //Mimics client-fired event paymentDetails after commit event - for testing paymentDetails gets stored correctly in stateManager.
   async sendPaymentDetails(orderId: `0x${string}`) {

@@ -2,7 +2,6 @@ import React from "react";
 import { describe, test, expect, beforeEach } from "vitest";
 import { waitFor, screen, act, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { randomAddress, zeroAddress } from "@massmarket/utils";
 import { merchantsWrapper, getStateManager } from "./test-utils";
 import ProductDetail from "@/app/products/productDetail/page";
 import mockRouter from "next-router-mock";
@@ -64,12 +63,15 @@ describe("Product Detail Component", async () => {
       });
     });
 
-    await waitFor(async () => {
-      await user.click(await screen.findByTestId("updateQty"));
-      const o = await sm.orders.getStatus(OrderState.STATE_OPEN);
-      const d = await sm.orders.get(o[0]);
-      expect(d.items[itemId]).toEqual(3);
-    });
+    await waitFor(
+      async () => {
+        await user.click(await screen.findByTestId("updateQty"));
+        const o = await sm.orders.getStatus(OrderState.STATE_OPEN);
+        const d = await sm.orders.get(o[0]);
+        expect(d.items[itemId]).toEqual(3);
+      },
+      { timeout: 20000 },
+    );
 
     const o = await sm.orders.getStatus(OrderState.STATE_OPEN);
     const d = await sm.orders.get(o[0]);

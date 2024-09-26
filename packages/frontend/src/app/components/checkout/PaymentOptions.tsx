@@ -12,7 +12,6 @@ import WalletConnectQR from "../transactions/WalletConnectQR";
 
 const PaymentOptions = ({
   imgSrc,
-  totalDollar,
   purchaseAddress,
   cryptoTotal,
   symbol,
@@ -25,7 +24,6 @@ const PaymentOptions = ({
   erc20Amount,
 }: {
   imgSrc: string;
-  totalDollar: string;
   purchaseAddress: string;
   cryptoTotal: bigint;
   symbol: string | null;
@@ -44,7 +42,6 @@ const PaymentOptions = ({
       <FullModal isOpen={Boolean(showModal)}>
         <QRScan
           imgSrc={imgSrc}
-          totalDollar={totalDollar}
           purchaseAddress={purchaseAddress}
           erc20Amount={erc20Amount}
           symbol={symbol}

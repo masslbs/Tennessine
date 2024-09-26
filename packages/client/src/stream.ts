@@ -39,6 +39,7 @@ export class ReadableEventStream {
           const requestId = pushReq.requestId;
           for (const anyEvt of pushReq.events) {
             const event = schema.ShopEvent.decode(anyEvt.event.event.value);
+            event.seqNo = anyEvt.seqNo;
             const signer = await recoverMessageAddress({
               message: { raw: anyEvt.event.event.value },
               signature: anyEvt.event.signature.raw,
@@ -72,7 +73,8 @@ export class ReadableEventStream {
   async outgoingEnqueue(
     event: schema.IShopEvent,
     signer: `0x${string}`,
-    requestId: number,
+    //Since outgoing enrollKeycard is not a eventWriteRequest, it will not be attached a requestId
+    requestId?: number,
   ) {
     event.requestId = requestId;
     this.controller.enqueue({ event, signer });

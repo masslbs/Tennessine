@@ -7,11 +7,11 @@
 import React, { useEffect, useRef } from "react";
 import Image from "next/image";
 import { Connector, useConnect } from "wagmi";
-import { useMyContext } from "@/context/MyContext";
+import { useUserContext } from "@/context/UserContext";
 import { parseAbiItem } from "viem";
 import * as abi from "@massmarket/contracts";
 import { useAuth } from "@/context/AuthContext";
-import { Status, ShopId } from "@/types";
+import { Status, ShopId, ObjectType } from "@/types";
 import { Address } from "viem/accounts";
 import { useMerchantContext } from "@/context/MerchantContext";
 import { useRouter } from "next/navigation";
@@ -25,10 +25,9 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
     clientWallet,
     setShopId,
     setRelayClient,
-    setKeyCardEnrolled,
     createNewRelayClient,
-  } = useMyContext();
-  const { isConnected, setIsConnected, setIsMerchantView } = useAuth();
+  } = useUserContext();
+  const { clientConnected, setIsConnected, setIsMerchantView } = useAuth();
   const enrollKeycard = useRef(false);
 
   const { setStoreIds } = useMerchantContext();
@@ -95,7 +94,7 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
     if (shopId) {
       if (
         clientWallet &&
-        isConnected === Status.Pending &&
+        clientConnected === Status.Pending &&
         !enrollKeycard.current
       ) {
         enrollKeycard.current = true;
@@ -115,9 +114,20 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
           );
           if (res.ok) {
             console.log(`Keycard enrolled: ${keyCardToEnroll}`);
-            setIsMerchantView(true);
+            //Once merchant keycard is enrolled, connect and authenticate.
+            await _relayClient.connect();
+            await _relayClient.authenticate();
+            const filters = [
+              { objectType: ObjectType.OBJECT_TYPE_LISTING },
+              { objectType: ObjectType.OBJECT_TYPE_TAG },
+              { objectType: ObjectType.OBJECT_TYPE_ORDER },
+              { objectType: ObjectType.OBJECT_TYPE_ACCOUNT },
+              { objectType: ObjectType.OBJECT_TYPE_MANIFEST },
+              { objectType: ObjectType.OBJECT_TYPE_INVENTORY },
+            ];
+            await _relayClient!.sendSubscriptionRequest(shopId, filters);
             setRelayClient(_relayClient);
-            setKeyCardEnrolled(true);
+            setIsMerchantView(true);
             keyCardToEnroll &&
               localStorage.setItem("merchantKeyCard", keyCardToEnroll);
             setIsConnected(Status.Complete);

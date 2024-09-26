@@ -1,5 +1,5 @@
 import React, { ReactElement } from "react";
-import { MyContextProvider, MyContext } from "../src/context/MyContext";
+import { MyContextProvider, UserContext } from "../src/context/UserContext";
 import { MockClient } from "@massmarket/stateManager/tests/mockClient";
 import { render } from "@testing-library/react";
 import { AuthProvider, AuthContext } from "../src/context/AuthContext";
@@ -127,6 +127,7 @@ const Wrapper = ({
                   symbol: "ETH",
                   decimal: 18,
                 },
+                setShopDetails: async () => {},
               }}
             >
               {children}
@@ -152,10 +153,8 @@ const MerchantsWrapper = ({
       <QueryClientProvider client={new QueryClient()}>
         <AuthContext.Provider
           value={{
-            isConnected: Status.Complete,
+            clientConnected: Status.Complete,
             setIsConnected: () => {},
-            hasUpdateRootHashPerm: false,
-            setUpdateRootHashPerm: () => {},
             isMerchantView: true,
             setIsMerchantView: () => {},
           }}
@@ -183,7 +182,7 @@ const MerchantsWrapper = ({
             >
               {children}
             </StoreContext.Provider>
-          </MyContext.Provider>
+          </UserContext.Provider>
         </AuthContext.Provider>
       </QueryClientProvider>
     </WagmiProvider>

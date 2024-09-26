@@ -30,6 +30,7 @@ export class RelayClient extends EventEmitter {
   private eventStream;
   private requestCounter;
   private eventNonceCounter;
+  private subscriptionId: number | null;
   constructor({
     relayEndpoint,
     keyCardWallet,
@@ -43,7 +44,8 @@ export class RelayClient extends EventEmitter {
     this.useTLS = relayEndpoint.url.protocol == "wss";
     this.eventStream = new ReadableEventStream(this);
     this.requestCounter = 1;
-    this.eventNonceCounter = 0;
+    this.eventNonceCounter = 1;
+    this.subscriptionId = null;
   }
 
   createEventStream() {
@@ -58,7 +60,7 @@ export class RelayClient extends EventEmitter {
     });
   }
 
-  // like encodeAndSend but doesn't wait for a response; EventPushResponse uses this
+  // like encodeAndSend but doesn't wait for a response.
   encodeAndSendNoWait(object: PBObject = {}) {
     if (!object.requestId) {
       object.requestId = { raw: this.requestCounter };
@@ -182,7 +184,6 @@ export class RelayClient extends EventEmitter {
 
     const message = schema.Envelope.decode(payload);
     const type = message.message;
-    console.warn(type, message);
     switch (type) {
       case PBMessage.PingRequest:
         this.#handlePingRequest(message);
@@ -200,18 +201,26 @@ export class RelayClient extends EventEmitter {
   async sendSubscriptionRequest(
     shopId: `0x${string}`,
     filters: schema.IFilter[],
+    seqNo = 0,
   ) {
-    this.encodeAndSend({
+    const { response } = await this.encodeAndSend({
       subscriptionRequest: {
-        //TODO: seq no. will get its value from the previous event received.
-        startShopSeqNo: 0,
+        startShopSeqNo: seqNo,
         shopId: { raw: hexToBytes(shopId) },
         filters,
       },
     });
+    this.subscriptionId = response.payload;
+  }
+  async cancelSubscriptionRequest() {
+    this.encodeAndSend({
+      subscriptionCancelRequest: {
+        subscriptionId: this.subscriptionId,
+      },
+    });
   }
 
-  async #authenticate() {
+  async authenticate() {
     const { response } = await this.encodeAndSend({
       authRequest: {
         publicKey: {
@@ -249,20 +258,11 @@ export class RelayClient extends EventEmitter {
         this.#decodeMessage.bind(this),
       );
     }
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       if (this.connection.readyState === WebSocket.OPEN) {
         resolve("already open");
       } else {
-        this.connection.addEventListener("open", async () => {
-          const res = await this.#authenticate();
-          if (res) {
-            console.log("authentication success");
-            resolve(res);
-          } else {
-            console.log("authentication failed");
-            reject(res);
-          }
-        });
+        this.connection.addEventListener("open", resolve);
       }
     });
   }
@@ -308,7 +308,6 @@ export class RelayClient extends EventEmitter {
         `mass-keycard:${Buffer.from(publicKey).toString("hex")}`,
       ],
     });
-    this.eventNonceCounter++;
     const signature = await wallet.signMessage({
       message: { raw: Buffer.from(message) },
     });

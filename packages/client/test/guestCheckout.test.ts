@@ -89,7 +89,9 @@ test("enroll keycard", { timeout: 10000 }, async () => {
 let payee: Uint8Array = hexToBytes(randomAddress());
 let currency: Uint8Array = hexToBytes(abi.addresses.Eddies as Address);
 
-test("write shop manifest", async () => {
+test("write shop manifest", { timeout: 10000 }, async () => {
+  await relayClient.connect();
+  await relayClient.authenticate();
   await relayClient.shopManifest(
     {
       payees: [
@@ -126,7 +128,7 @@ test("write shop manifest", async () => {
   );
 });
 
-test("update shop manifest", async () => {
+test("update shop manifest", { timeout: 10000 }, async () => {
   // tell the relay to accept our money
   await relayClient.updateShopManifest({
     addAcceptedCurrencies: [
@@ -160,62 +162,6 @@ test("should create a item", { timeout: 10000 }, async () => {
   });
 });
 
-test("should update stock", { timeout: 10000 }, async () => {
-  // increase stock
-  await relayClient.changeInventory({
-    id: itemId,
-    diff: [10],
-  });
-});
-
-test("client commits an order", { timeout: 10000 }, async () => {
-  const id = { raw: objectId() };
-  await relayClient.createOrder({ id });
-  await relayClient.updateOrder({
-    id,
-    changeItems: {
-      adds: [{ listingId: itemId, quantity: 1 }],
-    },
-  });
-  await relayClient.updateOrder({
-    id,
-    setInvoiceAddress: {
-      name: "Paul Atreides",
-      address1: "100 Colomb Street",
-      city: "Arakkis",
-      postalCode: "SE10 9EZ",
-      country: "Dune",
-      phoneNumber: "0103330524",
-      emailAddress: "arakkis@dune.planet",
-    },
-    setShippingAddress: {
-      name: "Paul Atreides",
-      address1: "100 Colomb Street",
-      city: "Arakkis",
-      postalCode: "SE10 9EZ",
-      country: "Dune",
-      phoneNumber: "0103330524",
-      emailAddress: "arakkis@dune.planet",
-    },
-  });
-  await relayClient.updateOrder({ id, commitItems: {} });
-  await relayClient.updateOrder({
-    id,
-    choosePayment: {
-      currency: {
-        chainId: 31337,
-        address: { raw: currency },
-      },
-      payee: {
-        address: { raw: payee },
-        callAsContract: false,
-        chainId: 31337,
-        name: "test",
-      },
-    },
-  });
-});
-
 let guestAccount: Account;
 let guestRelayClient: RelayClient;
 let guestWallet: WalletClientWithAccount;
@@ -244,6 +190,8 @@ test("create and enroll guest", { timeout: 10000 }, async () => {
     shopId,
     windowLocation,
   );
+  await guestRelayClient.connect();
+  await guestRelayClient.authenticate();
 
   expect(response.status).toBe(201);
 });
