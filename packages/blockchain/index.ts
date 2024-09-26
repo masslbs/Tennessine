@@ -12,8 +12,9 @@ import {
   type Chain,
 } from "viem";
 
+import { randomBytes } from "@massmarket/utils";
+
 import * as abi from "@massmarket/contracts";
-import { eventId } from "@massmarket/utils";
 import { privateKeyToAccount } from "viem/accounts";
 
 export type WalletClientWithAccount = WalletClient<
@@ -25,7 +26,7 @@ export type WalletClientWithAccount = WalletClient<
 };
 
 export class BlockchainClient {
-  constructor(public shopId = bytesToHex(eventId())) {}
+  constructor(public shopId = bytesToHex(randomBytes(32))) {}
   addRelay(wallet: WalletClientWithAccount, tokenId: `0x${string}`) {
     return wallet.writeContract({
       address: abi.addresses.ShopReg as Address,

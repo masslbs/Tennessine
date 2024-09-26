@@ -13,11 +13,9 @@ import schema, {
   PBMessage,
   PBInstance,
 } from "@massmarket/schema";
-import { randomBytes } from "@massmarket/utils";
+import { anvilPrivateKey, priceToUint256, objectId } from "@massmarket/utils";
 
-const account = privateKeyToAccount(
-  "0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6",
-);
+const account = privateKeyToAccount(anvilPrivateKey);
 
 async function signMessage(message: PBObject) {
   const shopEventBytes = schema.ShopEvent.encode(message).finish();
@@ -25,45 +23,52 @@ async function signMessage(message: PBObject) {
     message: { raw: shopEventBytes },
   });
   const signedEvent = {
-    signature: hexToBytes(sig),
     event: {
-      type_url: "type.googleapis.com/market.mass.ShopEvent",
-      value: shopEventBytes,
+      signature: { raw: hexToBytes(sig) },
+      event: {
+        type_url: "type.googleapis.com/market.mass.ShopEvent",
+        value: shopEventBytes,
+      },
     },
   };
   return signedEvent;
 }
 
 class MockClient {
-  encodeAndSendNoWait(
-    encoder: PBMessage,
-    object: PBObject = {},
-  ): Promise<PBInstance> {
-    return Promise.resolve(encoder.encode(object).finish());
+  encodeAndSendNoWait(object: PBObject = {}): Promise<PBInstance> {
+    return Promise.resolve(object);
   }
 }
 
 describe("Stream", async () => {
+  const price = priceToUint256("10.99");
+
   test("Stream Creation", async () => {
     const testCreateItem = {
-      updateItem: {
-        eventId: Buffer.from([1, 2, 3, 4]),
-        price: "1000",
-        metadata: Buffer.from([1, 2, 3, 4]),
+      listing: {
+        id: objectId(),
+        price: {
+          raw: price,
+        },
+        metadata: schema.ListingMetadata.create({
+          title: "",
+          description: "",
+          images: [""],
+        }),
       },
     };
     const signedMessage = await signMessage(testCreateItem);
     const pushEvent = {
-      requestId: Uint8Array.from([1, 2, 3, 4]),
       events: [signedMessage],
     };
     const client = new MockClient();
     const stream = new ReadableEventStream(client);
+    const testItem = schema.Listing.create(testCreateItem.listing);
     stream.enqueue(pushEvent);
     for await (const evt of stream.stream) {
-      assert.deepEqual(
-        evt.event.updateItem,
-        schema.UpdateItem.create(testCreateItem.updateItem),
+      assert.deepEqual(evt.event.listing.metadata, testItem.metadata);
+      expect(Buffer.from(evt.event.listing.price.raw)).toEqual(
+        Buffer.from(testItem.price.raw),
       );
       expect(evt.signer).toEqual(account.address);
       break;
@@ -78,10 +83,13 @@ describe("Stream", async () => {
 
   test("Stream with lots of events", async () => {
     const testCreateItem = {
-      updateItem: {
-        eventId: Buffer.from([1, 2, 3, 4]),
-        price: "1000",
-        metadata: Buffer.from([1, 2, 3, 4]),
+      createItem: {
+        price: price,
+        metadata: {
+          title: "",
+          description: "",
+          image: "",
+        },
       },
     };
 
@@ -92,7 +100,6 @@ describe("Stream", async () => {
       events.push(signedMessage);
     }
     const pushEvent = {
-      requestId: Uint8Array.from([1, 2, 3, 4]),
       events,
     };
     const client = new MockClient();
@@ -110,16 +117,17 @@ describe("Stream", async () => {
     for (let index = 0; index < testVectors.events.length; index++) {
       const evt = testVectors.events[index];
       events.push({
-        signature: hexToBytes(evt.signature as `0x${string}`),
         event: {
-          type_url: "type.googleapis.com/market.mass.ShopEvent",
-          value: hexToBytes(evt.encoded as `0x${string}`),
+          signature: { raw: hexToBytes(evt.signature as `0x${string}`) },
+          event: {
+            type_url: "type.googleapis.com/market.mass.ShopEvent",
+            value: hexToBytes(evt.encoded as `0x${string}`),
+          },
         },
       });
     }
 
-    const pushReq = new schema.EventPushRequest({
-      requestId: randomBytes(16),
+    const pushReq = new schema.SubscriptionPushRequest({
       events,
     });
 
@@ -143,15 +151,18 @@ describe("Stream", async () => {
   test("Stream Cancel ", () => {
     assert.doesNotThrow(async () => {
       const testCreateItem = {
-        updateItem: {
+        updateListing: {
           eventId: Buffer.from([1, 2, 3, 4]),
-          price: "1000",
-          metadata: Buffer.from([1, 2, 3, 4]),
+          price: Buffer.from([1, 2, 3, 4]),
+          metadata: {
+            title: "",
+            description: "",
+            image: "",
+          },
         },
       };
       const signedMessage = await signMessage(testCreateItem);
       const pushEvent = {
-        requestId: Uint8Array.from([1, 2, 3, 4]),
         events: [signedMessage, signedMessage],
       };
       const client = new MockClient();
@@ -165,15 +176,18 @@ describe("Stream", async () => {
 
   test("Stream error should bubble up", async () => {
     const signedMessage = await signMessage({
-      updateItem: {
+      updateListing: {
         eventId: Buffer.from([1, 2, 3, 4]),
-        price: "1000",
-        metadata: Buffer.from([1, 2, 3, 4]),
+        price: Buffer.from([1, 2, 3, 4]),
+        metadata: {
+          title: "",
+          description: "",
+          image: "",
+        },
       },
     });
 
     const pushEvent = {
-      requestId: Uint8Array.from([1, 2, 3, 4]),
       events: [signedMessage],
     };
     const client = new MockClient();

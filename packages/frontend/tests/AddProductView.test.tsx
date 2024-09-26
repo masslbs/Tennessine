@@ -1,31 +1,18 @@
 import React from "react";
-import { describe, expect, test, beforeAll } from "vitest";
-import { screen, fireEvent, waitFor } from "@testing-library/react";
+import { describe, expect, test } from "vitest";
+import { screen, fireEvent, waitFor, act } from "@testing-library/react";
 import AddProductView from "@/app/products/edit/page";
-import { randomAddress } from "@massmarket/utils";
+import { formatUnitsFromString } from "@massmarket/utils";
 import userEvent from "@testing-library/user-event";
 import { getStateManager, merchantsWrapper } from "./test-utils";
 import mockRouter from "next-router-mock";
+import { formatUnits } from "viem";
 
 describe("Add New Product", async () => {
   const sm = await getStateManager();
   const user = userEvent.setup();
-  const tag = await sm.tags.create("visible");
   const order = await sm.orders.create();
-
-  beforeAll(async () => {
-    await sm.manifest.create(
-      {
-        name: "Test Shop",
-        description: "Testing shopManifest",
-      },
-      randomAddress(),
-    );
-
-    await sm.manifest.update({
-      publishedTagId: tag.id,
-    });
-  });
+  const decimals = 18;
 
   test("Create new product", async () => {
     mockRouter.push("?itemId=new");
@@ -40,7 +27,7 @@ describe("Add New Product", async () => {
       const uploadInput = screen.getByTestId("file-upload");
 
       await user.upload(uploadInput, file);
-      await user.type(titleInput, "Brand New Store Name");
+      await user.type(titleInput, "Brand New Item");
       await user.type(descInput, "Description...");
       await user.type(priceInput, "4.00");
       await user.type(unitInput, "5");
@@ -58,17 +45,17 @@ describe("Add New Product", async () => {
     let count = 0;
     for await (const [id, item] of sm.items.iterator()) {
       count++;
-      expect(item.metadata.title).toEqual("Brand New Store Name");
-      expect(item.price).toEqual("4.00");
+      expect(item.metadata.title).toEqual("Brand New Item");
+      expect(formatUnitsFromString(item.price, decimals)).toEqual("4");
       expect(item.metadata.description).toEqual("Description...");
       expect(item.quantity).toEqual(5);
     }
     expect(count).toEqual(1);
     let tagCount = 0;
     for await (const [id, tag] of sm.tags.iterator()) {
-      if (tag.name === "visible" || tag.name === "new tag") tagCount++;
+      if (tag.name === "new tag") tagCount++;
     }
-    expect(tagCount).toEqual(2);
+    expect(tagCount).toEqual(1);
   });
   test("Edit product", async () => {
     const { id } = await sm.items.create({
@@ -76,9 +63,10 @@ describe("Add New Product", async () => {
       metadata: {
         title: "Test Item 1",
         description: "Test description 1",
-        image: "https://http.cat/images/201.jpg",
+        images: ["https://http.cat/images/201.jpg"],
       },
     });
+    const tag = await sm.tags.create("new tag");
     mockRouter.push(`?itemId=${id}`);
 
     await sm.items.addItemToTag(tag.id, id);
@@ -88,13 +76,13 @@ describe("Add New Product", async () => {
     await waitFor(async () => {
       const title = screen.getByDisplayValue("Test Item 1");
       const description = screen.getByDisplayValue("Test description 1");
-      const price = screen.getByDisplayValue("12.00");
-      expect(price).toBeTruthy;
-      expect(description).toBeTruthy;
-      expect(title).toBeTruthy;
+      const price = screen.getByDisplayValue("12");
+      expect(price).toBeTruthy();
+      expect(description).toBeTruthy();
+      expect(title).toBeTruthy();
     });
     //Test updating product via UI
-    await waitFor(async () => {
+    await act(async () => {
       const titleInput = screen.getByTestId("title");
       const descInput = screen.getByTestId("description");
       const priceInput = screen.getByTestId("price");
@@ -110,17 +98,16 @@ describe("Add New Product", async () => {
       });
       user.clear(unitInput);
       fireEvent.change(unitInput, {
-        target: { value: 5 },
+        target: { value: 10 },
       });
       await user.click(screen.getByRole("button", { name: /update/i }));
     });
-
     await waitFor(async () => {
       const item = await sm.items.get(id);
-      expect(item.quantity).toEqual(5);
+      expect(item.quantity).toEqual(10);
       expect(item.metadata.title).toEqual("Updated Store Name");
       expect(item.metadata.description).toEqual("Updated description");
-      expect(item.price).toEqual("54.00");
+      expect(formatUnits(BigInt(item.price), decimals)).toEqual("54");
       expect(item.tags[0]).toEqual(tag.id);
     });
   });

@@ -1,8 +1,12 @@
 import React from "react";
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, beforeAll } from "vitest";
 import { screen, waitFor, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { randomAddress, zeroAddress } from "@massmarket/utils";
+import {
+  randomAddress,
+  zeroAddress,
+  random32BytesHex,
+} from "@massmarket/utils";
 import StoreProfile from "@/app/components/store/StoreProfile";
 import { merchantsWrapper, getStateManager } from "./test-utils";
 
@@ -10,46 +14,64 @@ describe("StoreProfile Component", async () => {
   const sm = await getStateManager();
 
   const user = userEvent.setup();
+  const randomAddr1 = randomAddress();
+  const randomAddr2 = randomAddress();
+  beforeAll(async () => {
+    await sm.manifest.create(
+      {
+        payees: [
+          {
+            address: randomAddress(),
+            callAsContract: false,
+            chainId: 1,
+            name: "default",
+          },
+        ],
+        pricingCurrency: {
+          chainId: 1,
+          address: zeroAddress,
+        },
+        acceptedCurrencies: [
+          {
+            chainId: 10,
+            address: randomAddr1,
+          },
+          {
+            chainId: 2,
+            address: randomAddr2,
+          },
+        ],
+        shippingRegions: [
+          {
+            name: "test",
+            country: "test country",
+            postalCode: "test postal",
+            city: "test city",
+            orderPriceModifiers: [
+              {
+                title: "EU VAT",
+                percentage: random32BytesHex(),
+              },
+            ],
+          },
+        ],
+      },
+      randomAddress(),
+    );
+  });
   const order = await sm.orders.create();
 
-  await sm.manifest.create(
-    {
-      name: "Test Shop",
-      description: "Testing shopManifest",
-    },
-    randomAddress(),
-  );
-
-  const randomTokenAddr = randomAddress();
-  await sm.manifest.update({
-    addAcceptedCurrencies: [
-      {
-        chainId: 10,
-        tokenAddr: zeroAddress,
-      },
-      {
-        chainId: 2,
-        tokenAddr: randomTokenAddr,
-      },
-    ],
-    setBaseCurrency: {
-      chainId: 1,
-      tokenAddr: zeroAddress,
-    },
-  });
   test("Shop Manifest data is rendered correctly", async () => {
     merchantsWrapper(<StoreProfile close={() => {}} />, sm, order.id);
     await waitFor(async () => {
-      const nameForm = screen.getByDisplayValue("Test Shop");
       const baseCurrencyForm = screen.getByDisplayValue(zeroAddress);
       const acceptedCurrencies = screen.getAllByTestId(`accepted-currencies`);
       const tokenAddresses = acceptedCurrencies.map((c) => c.textContent);
-      expect(nameForm).toBeTruthy;
-      expect(baseCurrencyForm).toBeTruthy;
+      expect(baseCurrencyForm).toBeTruthy();
       expect(tokenAddresses.length).toEqual(2);
       //Correct accepted currencies are rendered
-      [randomTokenAddr, zeroAddress].forEach((c) => {
-        expect(tokenAddresses.includes(c)).toBeTruthy;
+      [randomAddr1, randomAddr2].forEach((c) => {
+        expect(tokenAddresses.includes(c)).toBeTruthy();
       });
     });
   });
@@ -74,30 +96,23 @@ describe("StoreProfile Component", async () => {
       expect(tokenAddresses.length).toEqual(3);
     });
   });
-  test("Update store name and baseCurrency via UI", async () => {
+  test("Update store name and pricingCurrency via UI", async () => {
     merchantsWrapper(<StoreProfile close={() => {}} />, sm, order.id);
 
-    await waitFor(async () => {
-      const nameInput = screen.getByTestId(`storeName`);
-      await user.clear(nameInput);
-      await user.type(nameInput, "Updated Store Name");
-      await user.click(screen.getByRole("button", { name: /Update/i }));
-      //Test that updating name via UI updated the store.
-      const manifest = await sm.manifest.get();
-      expect(manifest.name).toEqual(`Updated Store Name`);
-    });
-
-    await waitFor(async () => {
+    await act(async () => {
       const chainIdInput = screen.getByTestId(`baseChainId`);
       const addrInput = screen.getByTestId(`baseAddr`);
       await user.clear(chainIdInput);
       await user.clear(addrInput);
-      await user.type(addrInput, randomTokenAddr);
+      await user.type(addrInput, randomAddr1);
       await user.type(chainIdInput, `2`);
       await user.click(screen.getByRole("button", { name: /Update/i }));
-      const manifest = await sm.manifest.get();
-      expect(manifest.setBaseCurrency!.tokenAddr).toEqual(randomTokenAddr);
-      expect(manifest.name).toEqual(`Updated Store Name`);
     });
+    await waitFor(async () => {
+      const manifest = await sm.manifest.get();
+      expect(manifest.pricingCurrency!.address).toEqual(randomAddr1);
+    });
+
+    //TODO: check that user can update shipping regions.
   });
 });

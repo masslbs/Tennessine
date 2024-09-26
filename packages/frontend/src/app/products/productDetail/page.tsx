@@ -8,15 +8,16 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Button from "@/app/common/components/Button";
 // import SeeProductActions from "@/app/components/products/SeeProductActions";
-import { Item, ItemId, OrderId, Tag, TagId, Order } from "@/types";
+import { Item, ItemId, OrderId, Tag, Order, ListingViewState } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import { useAuth } from "@/context/AuthContext";
 import debugLib from "debug";
+import { formatUnitsFromString } from "@massmarket/utils";
 
 const ProductDetail = () => {
-  const { stateManager, getOrderId } = useStoreContext();
+  const { stateManager, getOrderId, baseTokenDetails } = useStoreContext();
   const { isMerchantView } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -33,11 +34,11 @@ const ProductDetail = () => {
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [available, setAvailable] = useState<number>(0);
   const [allTags, setAllTags] = useState(new Map());
-  const [removeTagId, setRemoveTagId] = useState<null | TagId>(null);
   const [orderId, setOrderId] = useState<OrderId | null>(null);
   const [currentCartItems, setCurrentCart] = useState<Order["items"] | null>(
     null,
   );
+  const [price, setPrice] = useState("");
   const debug = debugLib("frontend:productDetail");
 
   useEffect(() => {
@@ -74,8 +75,9 @@ const ProductDetail = () => {
   });
 
   useEffect(() => {
-    const onChangeStock = async (itemIds: ItemId[]) => {
-      if (itemIds.includes(itemId)) {
+    const onChangeStock = async (id: ItemId) => {
+      //FIXME: remove stringify once we change id back to hex
+      if (itemId === String(id)) {
         stateManager.items.get(itemId).then((available) => {
           setAvailable(available.quantity);
         });
@@ -87,6 +89,11 @@ const ProductDetail = () => {
         .get(itemId)
         .then((item) => {
           setItem(item);
+          const price = formatUnitsFromString(
+            item.price,
+            baseTokenDetails.decimal,
+          );
+          setPrice(price);
           setAvailable(item.quantity || 0);
           if (!currentCartItems) return;
           //Check if item is already added to cart
@@ -100,10 +107,10 @@ const ProductDetail = () => {
         });
     }
 
-    stateManager.items.on("changeStock", onChangeStock);
+    stateManager.items.on("changeInventory", onChangeStock);
 
     return () => {
-      stateManager.items.on("changeStock", onChangeStock);
+      stateManager.items.on("changeInventory", onChangeStock);
     };
   }, [currentCartItems, itemId]);
 
@@ -111,9 +118,6 @@ const ProductDetail = () => {
     const tags = new Map();
     for await (const [id, tag] of stateManager.tags.iterator()) {
       tags.set(id, tag);
-      if (tag.name === "remove") {
-        setRemoveTagId(id as TagId);
-      }
     }
     return tags;
   };
@@ -143,7 +147,19 @@ const ProductDetail = () => {
   const changeItems = async () => {
     if (!orderId) return;
     try {
-      await stateManager!.orders.changeItems(orderId, itemId, quantity);
+      const diff = !addedToCart
+        ? quantity
+        : quantity - currentCartItems![itemId];
+      if (diff > 0) {
+        await stateManager!.orders.addsItems(orderId, itemId, diff);
+      } else {
+        await stateManager!.orders.removesItems(orderId, [
+          {
+            listingId: itemId,
+            quantity: currentCartItems![itemId]! - quantity,
+          },
+        ]);
+      }
       setButton("Review");
     } catch (error) {
       debug(error);
@@ -151,35 +167,12 @@ const ProductDetail = () => {
     }
   };
 
-  // const flyoutRef = createRef<HTMLDivElement>();
-
-  // const handleFlyout = (event: MouseEvent) => {
-  //   if (
-  //     flyoutRef.current &&
-  //     !flyoutRef.current.contains(event.target as Node)
-  //   ) {
-  //     setShowActions(false);
-  //   }
-  // };
-  // useEffect(() => {
-  //   document.addEventListener("mousedown", (event: MouseEvent) =>
-  //     handleFlyout(event),
-  //   );
-  //   return () => {
-  //     document.removeEventListener("mousedown", (event: MouseEvent) =>
-  //       handleFlyout(event),
-  //     );
-  //   };
-  // }, [flyoutRef]);
-
   const handleDelete = async () => {
-    if (!removeTagId) {
-      setErrorMsg("No remove tag found.");
-      return;
-    }
     try {
-      await stateManager!.items.addItemToTag(removeTagId, itemId);
-      router.push("/products");
+      await stateManager.items.update({
+        id: itemId,
+        viewState: ListingViewState.LISTING_VIEW_STATE_DELETED,
+      });
     } catch (error) {
       debug(error);
       setErrorMsg("There was an error removing tag from Item.");
@@ -224,7 +217,7 @@ const ProductDetail = () => {
           disabled={!quantity}
           onClick={changeItems}
         >
-          {(Number(item.price) * quantity).toFixed(2)}
+          {(Number(price) * quantity).toFixed(2)}
         </Button>
       );
     } else if (quantity !== currentCartItems?.[itemId]) {
@@ -256,9 +249,9 @@ const ProductDetail = () => {
         />
         <div className="m-4">
           <div className="flex">
-            {item.metadata.image && (
+            {item.metadata.images[0] && (
               <Image
-                src={item.metadata.image}
+                src={item.metadata.images[0]}
                 alt="product-detail-image"
                 width={136}
                 height={136}
@@ -287,7 +280,7 @@ const ProductDetail = () => {
               <h5 className="font-sans text-gray-700 my-4">Product Details</h5>
               <div className="flex justify-between py-4 bg-white border rounded-lg p-4">
                 <p>Price</p>
-                <p data-testid="price">{item.price}</p>
+                <p data-testid="price">{price}</p>
               </div>
             </div>
             {isMerchantView ? (

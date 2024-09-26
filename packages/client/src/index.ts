@@ -5,19 +5,13 @@
 import { EventEmitter } from "events";
 
 import { WebSocket } from "isows";
-import { bytesToHex, hexToBytes, hexToBigInt, toBytes } from "viem";
+import { hexToBytes, hexToBigInt, toBytes } from "viem";
 import { PrivateKeyAccount } from "viem/accounts";
 import { createSiweMessage } from "viem/siwe";
 
-import schema, {
-  PBObject,
-  PBMessage,
-  PBInstance,
-  MESSAGE_TYPES,
-  MESSAGE_PREFIXES,
-} from "@massmarket/schema";
+import schema, { PBObject, PBInstance, PBMessage } from "@massmarket/schema";
 import { WalletClientWithAccount } from "@massmarket/blockchain";
-import { requestId, eventId, hexToBase64 } from "@massmarket/utils";
+import { hexToBase64, decodeBufferToString } from "@massmarket/utils";
 
 import { ReadableEventStream } from "./stream.js";
 
@@ -34,7 +28,8 @@ export class RelayClient extends EventEmitter {
   private relayEndpoint: RelayEndpoint;
   private useTLS;
   private eventStream;
-
+  private requestCounter;
+  private eventNonceCounter;
   constructor({
     relayEndpoint,
     keyCardWallet,
@@ -47,6 +42,8 @@ export class RelayClient extends EventEmitter {
     this.relayEndpoint = relayEndpoint;
     this.useTLS = relayEndpoint.url.protocol == "wss";
     this.eventStream = new ReadableEventStream(this);
+    this.requestCounter = 1;
+    this.eventNonceCounter = 0;
   }
 
   createEventStream() {
@@ -54,43 +51,33 @@ export class RelayClient extends EventEmitter {
   }
 
   #handlePingRequest(ping: schema.PingRequest) {
-    const pr = schema.PingResponse.encode({
+    // relay ends connection if ping is not responded to 3 times.
+    this.encodeAndSendNoWait({
       requestId: ping.requestId,
-    }).finish();
-
-    const typedPr = new Uint8Array(pr.length + 1);
-    typedPr[0] = 2;
-    typedPr.set(pr, 1);
-    this.connection.send(typedPr);
+      response: {},
+    });
   }
 
   // like encodeAndSend but doesn't wait for a response; EventPushResponse uses this
-  encodeAndSendNoWait(encoder: PBMessage, object: PBObject = {}) {
+  encodeAndSendNoWait(object: PBObject = {}) {
     if (!object.requestId) {
-      object.requestId = requestId();
+      object.requestId = { raw: this.requestCounter };
     }
-    const id = object.requestId;
-    const payload = encoder.encode(object).finish();
-    const typed = new Uint8Array(payload.length + 1);
-    typed[0] = MESSAGE_TYPES.get(encoder) as number;
-    typed.set(payload, 1);
-    console.log(`[send] reqId=${bytesToHex(id)} typeCode=${typed[0]}`);
-    this.connection.send(typed);
-    return id;
+    const payload = schema.Envelope.encode(object).finish();
+    this.connection.send(payload);
+    this.requestCounter++;
+    return object.requestId.raw;
   }
 
   // encode and send a message and then wait for a response
-  encodeAndSend(
-    encoder: PBMessage,
-    object: PBObject = {},
-  ): Promise<PBInstance> {
-    const id = this.encodeAndSendNoWait(encoder, object);
+  encodeAndSend(object: PBObject = {}): Promise<PBInstance> {
+    const id = this.encodeAndSendNoWait(object);
     return new Promise((resolve, reject) => {
-      this.once(bytesToHex(id), (result) => {
-        if (result.error) {
-          const { code, message } = result.error;
+      this.once(id, (result) => {
+        if (result.response.error) {
+          const { code, message } = result.response.error;
           console.error(`network error[${code}]: ${message}`);
-          reject(result.error);
+          reject(result.response.error);
         } else {
           resolve(result);
         }
@@ -102,98 +89,88 @@ export class RelayClient extends EventEmitter {
     shopEvent: schema.IShopEvent,
   ): Promise<schema.EventWriteResponse> {
     await this.connect();
+
+    shopEvent.nonce = this.eventNonceCounter++;
+    shopEvent.timestamp = { seconds: Date.now() / 1000 };
     const shopEventBytes = schema.ShopEvent.encode(shopEvent).finish();
     const sig = await this.keyCardWallet.signMessage({
       message: { raw: shopEventBytes },
     });
     const signedEvent = {
-      signature: hexToBytes(sig),
+      signature: { raw: hexToBytes(sig) },
       event: {
         type_url: "type.googleapis.com/market.mass.ShopEvent",
         value: shopEventBytes,
       },
     };
     const eventWriteRequest = {
-      event: signedEvent,
+      eventWriteRequest: {
+        events: [signedEvent],
+      },
     };
-    await this.encodeAndSend(schema.EventWriteRequest, eventWriteRequest);
+    const res = await this.encodeAndSend(eventWriteRequest);
     //Passing current KC address as signer for event verification.
-    this.eventStream.outgoingEnqueue(shopEvent, this.keyCardWallet.address);
+    this.eventStream.outgoingEnqueue(
+      shopEvent,
+      this.keyCardWallet.address,
+      res.requestId,
+    );
+    return res.requestId;
   }
 
-  async shopManifest(manifest: schema.IShopManifest, shopId: `0x${string}`) {
-    const id = (manifest.eventId = eventId());
-    manifest.shopTokenId = hexToBytes(shopId);
-    await this.sendShopEvent({
-      shopManifest: manifest,
+  shopManifest(manifest: schema.IShopManifest, shopId: `0x${string}`) {
+    manifest.tokenId = { raw: hexToBytes(shopId) };
+    return this.sendShopEvent({
+      manifest: manifest,
     });
-    return id;
   }
 
-  async updateShopManifest(update: schema.IUpdateShopManifest) {
-    const id = (update.eventId = eventId());
-    await this.sendShopEvent({
-      updateShopManifest: update,
+  updateShopManifest(update: schema.IUpdateShopManifest) {
+    return this.sendShopEvent({
+      updateManifest: update,
     });
-    return id;
   }
 
-  async createItem(item: schema.ICreateItem) {
-    const id = (item.eventId = eventId());
-    await this.sendShopEvent({
-      createItem: item,
+  listing(item: schema.ICreateItem) {
+    return this.sendShopEvent({
+      listing: item,
     });
-    return id;
   }
 
-  async updateItem(item: schema.IUpdateItem) {
-    const id = (item.eventId = eventId());
-    await this.sendShopEvent({
-      updateItem: item,
+  updateListing(item: schema.IUpdateItem) {
+    return this.sendShopEvent({
+      updateListing: item,
     });
-    return id;
   }
 
-  async createTag(tag: schema.ICreateTag) {
-    const id = (tag.eventId = eventId());
-    await this.sendShopEvent({
-      createTag: tag,
+  tag(tag: schema.ICreateTag) {
+    return this.sendShopEvent({
+      tag: tag,
     });
-    return id;
   }
 
-  async updateTag(tag: schema.IUpdateTag) {
-    const id = (tag.eventId = eventId());
-    await this.sendShopEvent({
+  updateTag(tag: schema.IUpdateTag) {
+    return this.sendShopEvent({
       updateTag: tag,
     });
-    return id;
   }
 
-  async createOrder() {
-    const id = eventId();
-    await this.sendShopEvent({
-      createOrder: {
-        eventId: id,
-      },
+  createOrder(order: schema.ICreateOrder) {
+    return this.sendShopEvent({
+      createOrder: order,
     });
-    return id;
   }
 
-  async updateOrder(order: schema.IUpdateOrder) {
-    const id = (order.eventId = eventId());
-    await this.sendShopEvent({
+  updateOrder(order: schema.IUpdateOrder) {
+    return this.sendShopEvent({
       updateOrder: order,
     });
-    return id;
   }
 
-  async changeStock(stock: schema.IChangeStock) {
-    const id = (stock.eventId = eventId());
-    await this.sendShopEvent({
-      changeStock: stock,
+  changeInventory(stock: schema.IChangeInventory) {
+    return this.sendShopEvent({
+      changeInventory: stock,
     });
-    return id;
   }
 
   async #decodeMessage(me: MessageEvent) {
@@ -201,42 +178,56 @@ export class RelayClient extends EventEmitter {
       me.data instanceof Blob
         ? await new Response(me.data).arrayBuffer()
         : me.data;
-    const data = new Uint8Array(_data);
-    const prefix = data[0];
-    const pbMessage = MESSAGE_PREFIXES.get(prefix);
-    if (!pbMessage) {
-      console.warn("unkown message", prefix);
-      return;
-    }
-    const payload = data.slice(1);
-    const message = pbMessage.decode(payload);
-    console.log(
-      `[recv] reqId=${bytesToHex(message.requestId)} typeCode=${prefix}`,
-    );
-    switch (pbMessage) {
-      case schema.PingRequest:
+    const payload = new Uint8Array(_data);
+
+    const message = schema.Envelope.decode(payload);
+    const type = message.message;
+    console.warn(type, message);
+    switch (type) {
+      case PBMessage.PingRequest:
         this.#handlePingRequest(message);
         break;
-      case schema.EventPushRequest:
-        this.eventStream.enqueue(message);
+      case PBMessage.SubscriptionPushRequest:
+        this.eventStream.enqueue({
+          requestId: message.requestId,
+          events: message.subscriptionPushRequest.events,
+        });
         break;
       default:
-        this.emit(bytesToHex(message.requestId), message);
+        this.emit(`${parseInt(message.requestId.raw)}`, message);
     }
+  }
+  async sendSubscriptionRequest(
+    shopId: `0x${string}`,
+    filters: schema.IFilter[],
+  ) {
+    this.encodeAndSend({
+      subscriptionRequest: {
+        //TODO: seq no. will get its value from the previous event received.
+        startShopSeqNo: 0,
+        shopId: { raw: hexToBytes(shopId) },
+        filters,
+      },
+    });
   }
 
   async #authenticate() {
-    const response = await this.encodeAndSend(schema.AuthenticateRequest, {
-      // slice(1) to remove 0x04 prefix
-      publicKey: toBytes(this.keyCardWallet.publicKey).slice(1),
+    const { response } = await this.encodeAndSend({
+      authRequest: {
+        publicKey: {
+          raw: toBytes(this.keyCardWallet.publicKey).slice(1),
+        },
+      },
     });
     const sig = await this.keyCardWallet.signMessage({
       message: {
-        raw: response.challenge,
+        raw: response.payload,
       },
     });
-    return this.encodeAndSend(schema.ChallengeSolvedRequest, {
-      signature: toBytes(sig),
+    return this.encodeAndSend({
+      challengeSolutionRequest: {
+        signature: { raw: toBytes(sig) },
+      },
     });
   }
 
@@ -297,7 +288,6 @@ export class RelayClient extends EventEmitter {
     location?: URL,
   ) {
     const publicKey = toBytes(this.keyCardWallet.publicKey).slice(1);
-
     const endpointURL = new URL(this.relayEndpoint.url);
     endpointURL.protocol = this.useTLS ? "https" : "http";
     endpointURL.pathname += `/enroll_key_card`;
@@ -318,7 +308,7 @@ export class RelayClient extends EventEmitter {
         `mass-keycard:${Buffer.from(publicKey).toString("hex")}`,
       ],
     });
-
+    this.eventNonceCounter++;
     const signature = await wallet.signMessage({
       message: { raw: Buffer.from(message) },
     });
@@ -335,33 +325,26 @@ export class RelayClient extends EventEmitter {
 
   async uploadBlob(blob: FormData) {
     await this.connect();
-    const uploadURLResp = (await this.encodeAndSend(
-      schema.GetBlobUploadURLRequest,
-    )) as schema.GetBlobUploadURLResponse;
-    if (uploadURLResp.error !== null) {
+    const uploadURLResp = (await this.encodeAndSend({
+      getBlobUploadUrlRequest: {},
+    })) as schema.GetBlobUploadURLResponse;
+
+    if (uploadURLResp.response.error !== null) {
       throw new Error(
         `Failed to get blob upload URL: ${uploadURLResp.error!.message}`,
       );
     }
-    const uploadResp = await fetch(uploadURLResp.url, {
+    const url = decodeBufferToString(uploadURLResp.response.payload);
+    const uploadResp = await fetch(url, {
       method: "POST",
       body: blob,
     });
     if (uploadResp.status !== 201) {
-      console.log(uploadResp);
       throw new Error(
         `unexpected status: ${uploadResp.statusText} (${uploadResp.status})`,
       );
     }
     return uploadResp.json();
-  }
-
-  // null erc20Addr means vanilla ethererum is used
-  async commitOrder(
-    order: schema.ICommitItemsToOrderRequest,
-  ): Promise<schema.CommitItemsToOrderResponse> {
-    await this.connect();
-    return this.encodeAndSend(schema.CommitItemsToOrderRequest, order);
   }
 }
 
@@ -369,7 +352,7 @@ export class RelayClient extends EventEmitter {
 export async function discoverRelay(url: string): Promise<RelayEndpoint> {
   const discoveryURL = url
     .replace("ws", "http")
-    .replace("/v2", "/testing/discovery");
+    .replace("/v3", "/testing/discovery");
   const testingResponse = await fetch(discoveryURL);
   const testingData = await testingResponse.json();
   return {

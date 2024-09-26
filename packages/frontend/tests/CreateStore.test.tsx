@@ -2,13 +2,13 @@ import React from "react";
 import { describe, expect, test, vi, beforeEach, afterEach } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import CreateStore from "@/app/create-store/page";
-import { createWalletClient, http } from "viem";
+import { createPublicClient, http, Address } from "viem";
 import userEvent from "@testing-library/user-event";
-import { privateKeyToAccount } from "viem/accounts";
 import { hardhat } from "viem/chains";
 import { randomAddress, zeroAddress } from "@massmarket/utils";
-
 import { render, getStateManager, getWallet } from "./test-utils";
+import { ShopCurrencies, ShopId } from "@/types";
+import * as abi from "@massmarket/contracts";
 
 const spy = vi.fn(() => {});
 
@@ -36,9 +36,8 @@ beforeEach(async () => {
     return {
       ...mod,
       useWalletClient() {
-        const wallet = getWallet();
         return {
-          data: wallet,
+          data: getWallet(),
           status: "success",
         };
       },
@@ -51,9 +50,9 @@ afterEach(async () => {
 });
 
 describe("Create Store", async () => {
-  const user = userEvent.setup();
   const sm = await getStateManager();
 
+  const user = userEvent.setup();
   beforeEach(async () => {
     render(<CreateStore />, sm);
   });
@@ -82,28 +81,33 @@ describe("Create Store", async () => {
 
       await user.click(saveBtn);
     });
+    let shopId: ShopId;
     await waitFor(async () => {
       expect(spy).toHaveBeenCalled();
-      let count = 0;
-      let pId;
-      for await (const [id, tag] of sm.tags.iterator()) {
-        count++;
-        //Creating store thru create-store page should auto generate published and removed tags
-        if (tag.name === "visible") {
-          pId = id;
-        } else {
-          expect(tag.name).toEqual("remove");
-        }
-      }
-      expect(count).toEqual(2);
       const manifest = await sm.manifest.get();
-      expect(manifest.publishedTagId).toEqual(pId);
-      expect(manifest.name).toEqual("New Store Name!!");
-      expect(manifest.description).toEqual("New Store Description!!");
+      const bc = manifest.pricingCurrency as ShopCurrencies;
+      //Correctly saves hardhat and zeroAddress in statemanager.
+      expect(bc.chainId).toEqual(1);
+      expect(bc.address).toEqual(zeroAddress);
+      shopId = manifest.tokenId!;
+    });
+
+    await waitFor(async () => {
+      const publicClient = createPublicClient({
+        chain: hardhat,
+        transport: http(),
+      });
+      const uri = await publicClient.readContract({
+        address: abi.addresses.ShopReg as Address,
+        abi: abi.ShopReg,
+        functionName: "tokenURI",
+        args: [BigInt(shopId)],
+      });
+      expect(uri).toEqual("/");
     });
   });
 
-  test("create store - with changed payee address and base currency", async () => {
+  test("Create store - with changed payee address and base currency", async () => {
     expect(spy).not.toHaveBeenCalled();
     const payee = randomAddress();
     await waitFor(async () => {
@@ -131,13 +135,26 @@ describe("Create Store", async () => {
 
       await user.click(saveBtn);
     });
+    let shopId: ShopId;
     await waitFor(async () => {
       expect(spy).toHaveBeenCalled();
       const manifest = await sm.manifest.get();
-      expect(manifest.name).toEqual("New Store Name II");
-      expect(manifest.description).toEqual("New Store Description II");
-      expect(manifest.payee[0].addr).toEqual(payee);
-      expect(manifest.setBaseCurrency?.tokenAddr).toEqual(zeroAddress);
+      shopId = manifest.tokenId!;
+      const bc = manifest.pricingCurrency as ShopCurrencies;
+      expect(bc.address).toEqual(zeroAddress);
+    });
+    await waitFor(async () => {
+      const publicClient = createPublicClient({
+        chain: hardhat,
+        transport: http(),
+      });
+      const uri = await publicClient.readContract({
+        address: abi.addresses.ShopReg as Address,
+        abi: abi.ShopReg,
+        functionName: "tokenURI",
+        args: [BigInt(shopId)],
+      });
+      expect(uri).toEqual("/");
     });
   });
 });

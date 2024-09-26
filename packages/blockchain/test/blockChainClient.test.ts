@@ -50,7 +50,6 @@ describe("blockChain Client", async () => {
       functionName: "tokenURI",
       args: [shopId],
     });
-
     expect(uri).toEqual(test_uri);
   });
 });

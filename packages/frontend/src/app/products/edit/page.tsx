@@ -9,20 +9,20 @@ import Image from "next/image";
 import { useStoreContext } from "@/context/StoreContext";
 import ProductsTags from "@/app/components/products/ProductTags";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Tag, ItemId, Item, TagId } from "@/types";
+import { Tag, ItemId, Item, TagId, ListingViewState } from "@/types";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
-import VisibilitySlider from "@/app/components/products/VisibilitySlider";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
 import { useMyContext } from "@/context/MyContext";
 import debugLib from "debug";
 import ValidationWarning from "@/app/common/components/ValidationWarning";
+import { formatUnitsFromString } from "@massmarket/utils";
 
 const AddProductView = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const itemId = searchParams.get("itemId") as ItemId | "new";
   const editView = itemId !== "new";
-  const { stateManager } = useStoreContext();
+  const { stateManager, baseTokenDetails } = useStoreContext();
   const { relayClient } = useMyContext();
   const [productInView, setProductInView] = useState<Item | null>(null);
   const [imgSrc, setImg] = useState<string>("");
@@ -34,6 +34,9 @@ const AddProductView = () => {
   const [validationError, setValidationError] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
+  const [viewState, setViewState] = useState(
+    ListingViewState.LISTING_VIEW_STATE_UNSPECIFIED,
+  );
   const debug = debugLib("frontend:products:edit");
 
   useEffect(() => {
@@ -43,13 +46,17 @@ const AddProductView = () => {
         .then((item) => {
           setProductInView(item);
           setTitle(item.metadata.title);
-          setPrice(item.price);
-          setImg(item.metadata.image);
+          const price = formatUnitsFromString(
+            item.price,
+            baseTokenDetails.decimal,
+          );
+          setPrice(price);
+          setImg(item.metadata.images[0]);
           setDescription(item.metadata.description);
           setUnits(item.quantity);
         })
         .catch((e) => {
-          setErrorMsg("Error while updating image.");
+          setErrorMsg("Error while getting product.");
           debug(e);
         });
     }
@@ -114,8 +121,11 @@ const AddProductView = () => {
 
   const create = async (newItem: Partial<Item>) => {
     try {
-      const { id } = await stateManager!.items.create(newItem);
-      await stateManager!.items.changeStock([id], [units]);
+      const { id } = await stateManager!.items.create(
+        newItem,
+        baseTokenDetails.decimal,
+      );
+      await stateManager!.items.changeInventory(id, units);
       if (selectedTags.length) {
         selectedTags.map(async (t) => {
           await stateManager!.items.addItemToTag(t.id, id);
@@ -161,9 +171,9 @@ const AddProductView = () => {
       if (Object.keys(diff).length === 1) return;
       await stateManager!.items.update(diff);
       if (units !== productInView?.quantity) {
-        await stateManager!.items.changeStock(
-          [itemId as ItemId],
-          [units - productInView!.quantity],
+        await stateManager!.items.changeInventory(
+          itemId as ItemId,
+          units - productInView!.quantity,
         );
       }
     } catch (error) {
@@ -191,8 +201,9 @@ const AddProductView = () => {
           metadata: {
             title,
             description,
-            image: path.url,
+            images: [path.url],
           },
+          viewState,
         };
         editView && productInView
           ? await update(newItem)
@@ -418,11 +429,25 @@ const AddProductView = () => {
                 setError={setErrorMsg}
               />
             </section>
-            <VisibilitySlider
-              selectedTags={selectedTags}
-              setSelectedTags={setSelectedTags}
-              editView={editView}
-            />
+            <div>
+              <label htmlFor="published">Published</label>
+              <input
+                id="published"
+                name="published"
+                type="checkbox"
+                checked={
+                  viewState === ListingViewState.LISTING_VIEW_STATE_PUBLISHED
+                }
+                onChange={(e) => {
+                  const { checked } = e.target;
+                  setViewState(
+                    checked
+                      ? ListingViewState.LISTING_VIEW_STATE_PUBLISHED
+                      : ListingViewState.LISTING_VIEW_STATE_UNSPECIFIED,
+                  );
+                }}
+              />
+            </div>
           </section>
         </section>
       </div>
