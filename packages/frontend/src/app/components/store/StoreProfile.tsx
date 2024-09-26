@@ -18,6 +18,7 @@ import ErrorMessage from "@/app/common/components/ErrorMessage";
 import debugLib from "debug";
 import ValidationWarning from "@/app/common/components/ValidationWarning";
 import { isValidHex } from "@/app/utils";
+import { UpdateShopManifest } from "@massmarket/stateManager/types";
 
 const StoreProfile = ({ close }: { close: () => void }) => {
   const { stateManager } = useStoreContext();
@@ -45,15 +46,15 @@ const StoreProfile = ({ close }: { close: () => void }) => {
   useEffect(() => {
     const onUpdateEvent = async (updatedManifest: ShopManifest) => {
       setAcceptedCurrencies(updatedManifest.acceptedCurrencies);
-      setStoreName(updatedManifest.name);
-      setStoreBase(updatedManifest.setBaseCurrency!.tokenAddr);
+      // setStoreName(updatedManifest.name);
+      setStoreBase(updatedManifest.baseCurrency!.address);
     };
 
     stateManager.manifest
       .get()
       .then((shopManifest) => {
-        setStoreName(shopManifest.name);
-        setStoreBase(shopManifest.setBaseCurrency!.tokenAddr);
+        // setStoreName(shopManifest.name);
+        setStoreBase(shopManifest.baseCurrency.address);
         setAcceptedCurrencies(shopManifest.acceptedCurrencies);
       })
       .catch((e) => {
@@ -80,16 +81,15 @@ const StoreProfile = ({ close }: { close: () => void }) => {
       setValidationError("Base token address must be a valid hex value");
     } else {
       try {
-        const manifest: Partial<ShopManifest> = {
-          name: storeName,
+        const manifest: Partial<UpdateShopManifest> = {
           setBaseCurrency: {
-            tokenAddr: baseAddr as TokenAddr,
+            address: baseAddr as TokenAddr,
             chainId: baseChainId,
           },
         };
+
         if (avatar) {
           const path = await relayClient!.uploadBlob(avatar as FormData);
-          manifest["profilePictureUrl"] = path.url;
         }
         await stateManager!.manifest.update(manifest);
         close();
@@ -101,7 +101,7 @@ const StoreProfile = ({ close }: { close: () => void }) => {
   const renderAcceptedCurrencies = () => {
     return acceptedCurrencies.map((c, i) => (
       <p data-testid="accepted-currencies" key={i}>
-        {c.tokenAddr}
+        {c.address}
       </p>
     ));
   };
@@ -115,7 +115,7 @@ const StoreProfile = ({ close }: { close: () => void }) => {
         await stateManager!.manifest.update({
           addAcceptedCurrencies: [
             {
-              tokenAddr: addTokenAddr as TokenAddr,
+              address: addTokenAddr as TokenAddr,
               chainId: addAcceptedChainId,
             },
           ],

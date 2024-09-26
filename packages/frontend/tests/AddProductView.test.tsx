@@ -96,9 +96,9 @@ describe("Add New Product", async () => {
       const title = screen.getByDisplayValue("Test Item 1");
       const description = screen.getByDisplayValue("Test description 1");
       const price = screen.getByDisplayValue("12");
-      expect(price).toBeTruthy;
-      expect(description).toBeTruthy;
-      expect(title).toBeTruthy;
+      expect(price).toBeTruthy();
+      expect(description).toBeTruthy();
+      expect(title).toBeTruthy();
     });
     //Test updating product via UI
     await waitFor(async () => {

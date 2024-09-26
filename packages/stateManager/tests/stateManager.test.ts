@@ -136,7 +136,7 @@ describe("Fill state manager with test vectors", async () => {
     expect(shop.payees.length).toEqual(vm.payees.length);
     for (const payee of vm.payees) {
       const smPayee = shop.payees.find((p) => p.name === payee.name);
-      expect(smPayee).toBeTruthy;
+      expect(smPayee).toBeTruthy();
       expect(smPayee!.address).toEqual(payee.address.raw);
       expect(smPayee!.name).toEqual(payee.name);
       expect(smPayee!.chainId).toEqual(payee.chain_id);
@@ -163,7 +163,7 @@ describe("Fill state manager with test vectors", async () => {
         return Number(vi.id) === Number(key);
       });
 
-      expect(vectorItem).toBeTruthy;
+      expect(vectorItem).toBeTruthy();
 
       expect(BigInt(item.basePrice)).toEqual(
         BigInt(vectorItem!.base_price.raw),
@@ -226,7 +226,7 @@ describe("Fill state manager with test vectors", async () => {
     let cancelledCount = 0;
     for (const oId of cancelledOrders) {
       const vectorOrder = vectorOrders.find((vo) => vo.id === Number(oId));
-      expect(vectorOrder).toBeTruthy;
+      expect(vectorOrder).toBeTruthy();
       expect(vectorOrder!.state).toEqual(OrderState.STATE_CANCELED);
       const stateManagerOrder = await stateManager.orders.get(oId);
       expect(Object.keys(stateManagerOrder.items).length).toEqual(
@@ -241,7 +241,7 @@ describe("Fill state manager with test vectors", async () => {
     let committedCount = 0;
     for (const oId of committedOrders) {
       const vectorOrder = vectorOrders.find((vo) => vo.id === Number(oId));
-      expect(vectorOrder).toBeTruthy;
+      expect(vectorOrder).toBeTruthy();
       //FIXME: there is no difference between committed and unpaid right now.
       expect(vectorOrder!.state).toEqual(OrderState.STATE_UNPAID);
       committedCount++;
