@@ -1,21 +1,37 @@
-import { Status, ShopManifest, Order, Item, Tag } from "@/types";
+import {
+  ShopManifest,
+  Order,
+  Item,
+  Tag,
+  ListingViewState,
+  OrderState,
+  KeyCard,
+} from "@/types";
 import { EventEmitter } from "events";
 
 const id = "0x" as `0x${string}`;
 const loadingManifest = {
-  name: "",
-  description: "",
-  setBaseCurrency: null,
+  pricingCurrency: {
+    address: null,
+    chainId: null,
+  },
   acceptedCurrencies: [],
-  profilePictureUrl: "",
-  payee: [],
-  publishedTagId: null,
+  payees: [],
   tokenId: null,
+  shippingRegions: [
+    {
+      name: "",
+      country: "",
+      postalCode: "",
+      city: "",
+      orderPriceModifiers: [],
+    },
+  ],
 };
 const loadingOrders = {
   id,
   items: {},
-  status: Status.Pending,
+  status: OrderState.STATE_UNSPECIFIED,
 };
 const loadingItem = {
   id,
@@ -23,26 +39,30 @@ const loadingItem = {
   metadata: {
     title: "",
     description: "",
-    image: "",
+    images: [],
   },
   tags: [],
   quantity: 0,
+  viewState: ListingViewState.LISTING_VIEW_STATE_UNSPECIFIED,
 };
 const loadingTag = {
   id,
   name: "",
 };
+const loadingKeyCard: `0x${string}`[] = [];
 
 export class LoadingStateManager {
   readonly items;
   readonly tags;
   readonly manifest;
   readonly orders;
+  readonly keycards;
   constructor() {
     this.items = new LoadingManager<Item>(loadingItem);
     this.tags = new LoadingManager<Tag>(loadingTag);
     this.manifest = new LoadingManager<ShopManifest>(loadingManifest);
     this.orders = new LoadingManager<Order>(loadingOrders);
+    this.keycards = new LoadingManager<KeyCard>(loadingKeyCard);
   }
 }
 class AsyncIterableExample<T> {
@@ -86,7 +106,11 @@ class LoadingManager<T> extends EventEmitter {
   async changeItems() {}
   async addItemToTag() {}
   async removeItemFromTag() {}
-  async changeStock() {}
+  async changeInventory() {}
   async getStatus() {}
   async updateShippingDetails() {}
+  async addsItems() {}
+  async removesItems() {}
+  async addAddress() {}
+  async choosePayment() {}
 }

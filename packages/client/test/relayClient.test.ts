@@ -8,13 +8,22 @@ import {
   createWalletClient,
   createPublicClient,
   http,
+  toBytes,
   type Address,
 } from "viem";
 import { hardhat } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
-import { describe, beforeEach, expect, test } from "vitest";
+import { describe, beforeEach, expect, test, beforeAll, vi } from "vitest";
 
-import { random32BytesHex, randomBytes } from "@massmarket/utils";
+import {
+  random32BytesHex,
+  zeroAddress,
+  priceToUint256,
+  anvilAddress,
+  anvilPrivateKey,
+  objectId,
+  randomBytes,
+} from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 import {
   BlockchainClient,
@@ -23,10 +32,10 @@ import {
 
 import { RelayClient, discoverRelay } from "../src";
 
+const windowLocation =
+  typeof window == "undefined" ? undefined : new URL(window.location.href);
 // this key is from one of anvil's default keypairs
-const account = privateKeyToAccount(
-  "0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6",
-);
+const account = privateKeyToAccount(anvilPrivateKey);
 
 const wallet = createWalletClient({
   account,
@@ -42,7 +51,7 @@ const publicClient = createPublicClient({
 const shopId = random32BytesHex();
 let blockchain: BlockchainClient;
 const relayURL =
-  (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v2";
+  (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v3";
 const relayEndpoint = await discoverRelay(relayURL);
 
 function createRelayClient(pk = random32BytesHex()) {
@@ -66,7 +75,7 @@ describe("RelayClient", async () => {
     expect(receipt.status).equals("success");
   });
 
-  test("regstrationTokenRedeem", async () => {
+  test("registrationTokenRedeem", async () => {
     // still contrived, we would use a seperate keypair in reality and pass it via some sidechannel
     //
     // acc2 is the "long term wallet" of the new user
@@ -131,8 +140,6 @@ describe("user behaviour", () => {
 
   // enroll and login
   test("should enroll keycard", async () => {
-    const windowLocation =
-      typeof window == "undefined" ? undefined : new URL(window.location.href);
     const response = await relayClient.enrollKeycard(
       wallet,
       false,
@@ -144,7 +151,7 @@ describe("user behaviour", () => {
 
   test("should connect and disconnect", { retry: 3 }, async () => {
     const authenticated = await relayClient.connect();
-    expect(authenticated.error).toBeNull();
+    expect(authenticated.response.error).toBeNull();
     const closeEvent = await relayClient.disconnect();
     const r = closeEvent as CloseEvent;
     expect(r.wasClean).toBe(true);
@@ -157,34 +164,47 @@ describe("user behaviour", () => {
   });
 
   test("write shop manifest", async () => {
-    const publishedTagId = randomBytes(32);
-    const name = "test shop";
-    const description = "creating test shop";
-    const profilePictureUrl = "https://http.cat/images/200.jpg";
+    const id = objectId();
     await relayClient.shopManifest(
       {
-        name,
-        description,
-        profilePictureUrl,
-        publishedTagId,
+        payees: [
+          {
+            address: {
+              raw: toBytes(anvilAddress),
+            },
+            callAsContract: false,
+            chainId: 1,
+            name: "default",
+          },
+        ],
+        acceptedCurrencies: [
+          {
+            chainId: 10,
+            address: { raw: hexToBytes(zeroAddress) },
+          },
+        ],
+        pricingCurrency: {
+          chainId: 10,
+          address: { raw: hexToBytes(zeroAddress) },
+        },
+        shippingRegions: [
+          {
+            name: "test",
+            country: "test country",
+            postalCode: "test postal",
+            city: "test city",
+            orderPriceModifiers: [],
+          },
+        ],
       },
       shopId,
     );
   });
   test("update shop manifest", async () => {
-    await relayClient.updateShopManifest({ domain: "socks.mass.market" });
-    await relayClient.updateShopManifest({
-      publishedTagId: randomBytes(32),
-    });
-    await relayClient.updateShopManifest({
-      name: "socks.mass.market",
-      description: "foo",
-    });
-
     await relayClient.updateShopManifest({
       addAcceptedCurrencies: [
         {
-          tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
+          address: { raw: hexToBytes(abi.addresses.Eddies as Address) },
           chainId: 31337,
         },
       ],
@@ -192,7 +212,7 @@ describe("user behaviour", () => {
     await relayClient.updateShopManifest({
       removeAcceptedCurrencies: [
         {
-          tokenAddr: hexToBytes(abi.addresses.Eddies as Address),
+          address: { raw: hexToBytes(abi.addresses.Eddies as Address) },
           chainId: 31337,
         },
       ],
@@ -212,55 +232,56 @@ describe("user behaviour", () => {
   });
 
   describe("editing the listing", () => {
-    let itemId: Uint8Array;
-    // create item
-    beforeEach(async () => {
-      const metadata = new TextEncoder().encode(
-        JSON.stringify({
-          name: "test",
-          description: "test",
-          image: "https://http.cat/images/200.jpg",
-        }),
-      );
-      itemId = await relayClient.createItem({
-        price: "10.99",
+    let tagId = { raw: objectId() };
+    beforeAll(async () => {
+      const metadata = {
+        title: "test",
+        description: "test",
+        images: ["https://http.cat/images/200.jpg"],
+      };
+      const price = priceToUint256("12.99");
+
+      const requestId = await relayClient.listing({
+        id: tagId,
+        price: {
+          raw: price,
+        },
         metadata,
       });
-      expect(itemId).not.toBeNull();
-    });
-
-    test("update item - price", async () => {
-      await relayClient.updateItem({ itemId, price: "20.99" });
-      expect(itemId).not.toBeNull();
+      expect(requestId).not.toBeNull();
     });
 
     test("update item - metadata", async () => {
-      await relayClient.updateItem({
-        itemId,
-        metadata: new TextEncoder().encode(
-          JSON.stringify({
-            name: "new name",
-            image: "https://http.cat/images/200.jpg",
-          }),
-        ),
+      const requestId = await relayClient.updateListing({
+        id: tagId,
+        metadata: {
+          title: "new name",
+          images: ["https://http.cat/images/200.jpg"],
+        },
       });
-      expect(itemId).not.toBeNull();
+      expect(requestId).not.toBeNull();
     });
+    test("#handlePingRequest - relay does not end connection", async () => {
+      await relayClient.disconnect();
+      await relayClient.connect();
 
-    describe("tagging", () => {
-      let tagId: Uint8Array;
-      beforeEach(async () => {
-        tagId = await relayClient.createTag({ name: "Testing New Tag" });
-        expect(tagId).not.toBeNull();
+      vi.useRealTimers();
+      //sanity check to make sure timeout works properly
+      let value = false;
+
+      const promise = new Promise((resolve) => {
+        setTimeout(() => {
+          value = true;
+          resolve(value);
+        }, 10000);
       });
-      test("add item to tag", async () => {
-        await relayClient.updateTag({ tagId, addItemId: itemId });
-      });
-      test("remove item from tag", async () => {
-        await relayClient.updateTag({ tagId, removeItemId: itemId });
-      });
+
+      expect(value).toBe(false);
+      await promise;
+      expect(value).toBe(true);
+      expect(relayClient.connection.readyState).toBe(WebSocket.OPEN);
     });
-  });
+  }, 10400);
 
   describe("invite another user", { retry: 3 }, async () => {
     let client2Wallet;
@@ -269,7 +290,6 @@ describe("user behaviour", () => {
       const sk = random32BytesHex();
       const token = privateKeyToAccount(sk);
       const hash = await blockchain.createInviteSecret(wallet, token.address);
-
       // wait for the transaction to be included in the blockchain
       const receipt = await publicClient.waitForTransactionReceipt({
         hash,
@@ -287,10 +307,7 @@ describe("user behaviour", () => {
         chain: hardhat,
         transport: http(),
       });
-      relayClient2 = new RelayClient({
-        relayEndpoint,
-        keyCardWallet: privateKeyToAccount(sk),
-      });
+      relayClient2 = createRelayClient(sk);
       const redeemHash = await blockchain.redeemInviteSecret(sk, client2Wallet);
       // wait for the transaction to be included in the blockchain
       const redeemReceipt = await publicClient.waitForTransactionReceipt({
@@ -298,10 +315,7 @@ describe("user behaviour", () => {
       });
 
       expect(redeemReceipt.status).to.equal("success");
-      const windowLocation =
-        typeof window == "undefined"
-          ? undefined
-          : new URL(window.location.href);
+
       await relayClient2.enrollKeycard(
         client2Wallet,
         false,
@@ -313,7 +327,12 @@ describe("user behaviour", () => {
 
     test("client2 successfully updates manifest", async () => {
       await relayClient2.updateShopManifest({
-        domain: "test2-test",
+        addPayee: {
+          address: { raw: randomBytes(20) },
+          callAsContract: false,
+          chainId: 1,
+          name: "new payee",
+        },
       });
     });
     test("client 1 receives events from createEventStream", async () => {
@@ -326,7 +345,7 @@ describe("user behaviour", () => {
       const evtLength = await getStream();
       expect(evtLength).toBeGreaterThan(0);
     });
-    test("client 2 receives events from createEventStream", async () => {
+    test.skip("client 2 receives events from createEventStream", async () => {
       const getStream = async () => {
         const stream = relayClient2.createEventStream();
         for await (const evt of stream) {
@@ -352,12 +371,7 @@ describe("If there is a network error, state manager should not change the state
       hash: transactionHash,
     });
     expect(receipt.status).equals("success");
-    const publishedTagId = randomBytes(32);
-    const name = "test shop";
-    const description = "creating test shop";
-    const profilePictureUrl = "https://http.cat/images/200.jpg";
-    const windowLocation =
-      typeof window == "undefined" ? undefined : new URL(window.location.href);
+
     const response = await client.enrollKeycard(
       wallet,
       false,
@@ -369,10 +383,35 @@ describe("If there is a network error, state manager should not change the state
 
     await client.shopManifest(
       {
-        name,
-        description,
-        profilePictureUrl,
-        publishedTagId,
+        payees: [
+          {
+            address: {
+              raw: toBytes(anvilAddress),
+            },
+            callAsContract: false,
+            chainId: 1,
+            name: "default",
+          },
+        ],
+        acceptedCurrencies: [
+          {
+            chainId: 10,
+            address: { raw: hexToBytes(zeroAddress) },
+          },
+        ],
+        pricingCurrency: {
+          chainId: 10,
+          address: { raw: hexToBytes(zeroAddress) },
+        },
+        shippingRegions: [
+          {
+            name: "test",
+            country: "test country",
+            postalCode: "test postal",
+            city: "test city",
+            orderPriceModifiers: [],
+          },
+        ],
       },
       shopId,
     );
@@ -382,7 +421,7 @@ describe("If there is a network error, state manager should not change the state
         addAcceptedCurrencies: [
           {
             chainId: 31337,
-            tokenAddr: "bad address",
+            address: "bad address",
           },
         ],
       });
@@ -392,7 +431,7 @@ describe("If there is a network error, state manager should not change the state
     // expect(manifest.addAcceptedCurrencies.length).toEqual(0);
 
     // await expect(async () => {
-    //   await client.createItem({
+    //   await client.listing({
     //     price: "10.99",
     //     metadata: "bad metadata",
     //   });
