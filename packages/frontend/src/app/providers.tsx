@@ -9,7 +9,7 @@ import { useState, type ReactNode } from "react";
 import { WagmiProvider } from "wagmi";
 
 import { config } from "../wagmi";
-import { MyContextProvider } from "../context/MyContext";
+import { MyContextProvider } from "../context/UserContext";
 import { StoreContextProvider } from "../context/StoreContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { MerchantProvider } from "@/context/MerchantContext";

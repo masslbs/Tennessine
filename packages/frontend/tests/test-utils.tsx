@@ -1,5 +1,5 @@
 import React, { ReactElement } from "react";
-import { MyContextProvider, MyContext } from "../src/context/MyContext";
+import { MyContextProvider, UserContext } from "../src/context/UserContext";
 import { MockClient } from "@massmarket/stateManager/tests/mockClient";
 import { render } from "@testing-library/react";
 import { AuthProvider, AuthContext } from "../src/context/AuthContext";
@@ -18,21 +18,25 @@ import { MemoryLevel } from "memory-level";
 import { WagmiProvider } from "wagmi";
 import { config } from "../src/wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { random32BytesHex, randomAddress } from "@massmarket/utils";
+import {
+  anvilPrivateKey,
+  random32BytesHex,
+  zeroAddress,
+  randomAddress,
+} from "@massmarket/utils";
 import { RelayClient, discoverRelay } from "@massmarket/client";
 import { privateKeyToAccount } from "viem/accounts";
 import { createWalletClient, http, createPublicClient } from "viem";
 import { hardhat } from "viem/chains";
-import { zeroAddress, anvilAddress } from "@massmarket/utils";
 
 const mockClient = new MockClient();
 const relayURL =
-  (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v2";
+  (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v3";
 const relayEndpoint = await discoverRelay(relayURL);
 
 export function getWallet() {
   // this key is from one of anvil's default keypairs
-  const account = privateKeyToAccount(anvilAddress);
+  const account = privateKeyToAccount(anvilPrivateKey);
   const wallet = createWalletClient({
     account,
     chain: hardhat,
@@ -117,8 +121,13 @@ const Wrapper = ({
                 },
                 selectedCurrency: {
                   chainId: 31337,
-                  tokenAddr: zeroAddress,
+                  address: zeroAddress,
                 },
+                baseTokenDetails: {
+                  symbol: "ETH",
+                  decimal: 18,
+                },
+                setShopDetails: async () => {},
               }}
             >
               {children}
@@ -144,16 +153,14 @@ const MerchantsWrapper = ({
       <QueryClientProvider client={new QueryClient()}>
         <AuthContext.Provider
           value={{
-            isConnected: Status.Complete,
+            clientConnected: Status.Complete,
             setIsConnected: () => {},
-            hasUpdateRootHashPerm: false,
-            setUpdateRootHashPerm: () => {},
             isMerchantView: true,
             setIsMerchantView: () => {},
           }}
         >
           {/* @ts-expect-error FIXME */}
-          <MyContext.Provider value={{ relayClient: mockClient }}>
+          <UserContext.Provider value={{ relayClient: mockClient }}>
             <StoreContext.Provider
               //@ts-expect-error FIXME
               value={{
@@ -161,11 +168,19 @@ const MerchantsWrapper = ({
                 getOrderId: async () => {
                   return orderId;
                 },
+                baseTokenDetails: {
+                  symbol: "ETH",
+                  decimal: 18,
+                },
+                shopDetails: {
+                  name: "test store",
+                  profilePictureUrl: "",
+                },
               }}
             >
               {children}
             </StoreContext.Provider>
-          </MyContext.Provider>
+          </UserContext.Provider>
         </AuthContext.Provider>
       </QueryClientProvider>
     </WagmiProvider>
