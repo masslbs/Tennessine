@@ -484,6 +484,9 @@ describe("CRUD functions update stores", async () => {
       expect(formatUnits(BigInt(item.price), decimals)).toEqual("25.55");
       assert.deepEqual(item.metadata, updatedMetadata);
       expect(item.quantity).toEqual(58);
+      expect(item.viewState).toEqual(
+        ListingViewState.LISTING_VIEW_STATE_UNSPECIFIED,
+      );
     });
 
     test("add/remove item to/from tag", async () => {

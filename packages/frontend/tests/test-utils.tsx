@@ -28,6 +28,7 @@ import { RelayClient, discoverRelay } from "@massmarket/client";
 import { privateKeyToAccount } from "viem/accounts";
 import { createWalletClient, http, createPublicClient } from "viem";
 import { hardhat } from "viem/chains";
+import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 
 const mockClient = new MockClient();
 const relayURL =
@@ -110,30 +111,35 @@ const Wrapper = ({
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={new QueryClient()}>
-        <AuthProvider>
-          <MyContextProvider>
-            <StoreContext.Provider
-              value={{
-                stateManager: stateManager,
-                //@ts-expect-error FIXME
-                getOrderId: async () => {
-                  return orderId;
-                },
-                selectedCurrency: {
-                  chainId: 31337,
-                  address: zeroAddress,
-                },
-                baseTokenDetails: {
-                  symbol: "ETH",
-                  decimal: 18,
-                },
-                setShopDetails: async () => {},
-              }}
-            >
-              {children}
-            </StoreContext.Provider>
-          </MyContextProvider>
-        </AuthProvider>
+        <RainbowKitProvider>
+          <AuthProvider>
+            <MyContextProvider>
+              |
+              {/* Here we are mocking StoreContext/we're currently unable to test StoreContext.tsx. 
+              This is because stateManager is being instantiated/set in StoreContext.tsx but for testing,
+              we need to access the SM so we can test that the UI updates the state correctly. */}
+              <StoreContext.Provider
+                value={{
+                  stateManager: stateManager,
+                  //@ts-expect-error FIXME
+                  getOrderId: async () => {
+                    return orderId;
+                  },
+                  selectedCurrency: {
+                    chainId: 31337,
+                    address: zeroAddress,
+                  },
+                  getBaseTokenInfo: async () => {
+                    return ["ETH", 18];
+                  },
+                  setShopDetails: async () => {},
+                }}
+              >
+                {children}
+              </StoreContext.Provider>
+            </MyContextProvider>
+          </AuthProvider>
+        </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );
@@ -170,9 +176,8 @@ const MerchantsWrapper = ({
                 getOrderId: async () => {
                   return orderId;
                 },
-                baseTokenDetails: {
-                  symbol: "ETH",
-                  decimal: 18,
+                getBaseTokenInfo: async () => {
+                  return ["ETH", 18];
                 },
                 shopDetails: {
                   name: "test store",

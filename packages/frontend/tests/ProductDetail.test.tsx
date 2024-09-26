@@ -1,45 +1,45 @@
 import React from "react";
-import { describe, test, expect, beforeEach } from "vitest";
+import { describe, test, expect } from "vitest";
 import { waitFor, screen, act, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { merchantsWrapper, getStateManager } from "./test-utils";
 import ProductDetail from "@/app/products/productDetail/page";
 import mockRouter from "next-router-mock";
-import { ListingViewState, OrderState } from "@/types";
+import { OrderId, OrderState, ItemId } from "@/types";
 
 describe("Product Detail Component", async () => {
   const user = userEvent.setup();
-  let itemId: `0x${string}`;
   const sm = await getStateManager();
 
-  beforeEach(async () => {
-    const order = await sm.orders.create();
-    const { id } = await sm.items.create({
-      price: "12.00",
-      metadata: {
-        title: "Meow meow",
-        description: "description...meow",
-        images: ["https://http.cat/images/201.jpg"],
-      },
-    });
-    itemId = id;
-    await sm.items.changeInventory(id, 5);
-
-    mockRouter.push(`?itemId=${id}`);
-    merchantsWrapper(<ProductDetail />, sm, order.id);
-  });
+  let itemId: ItemId;
+  let orderId: OrderId;
 
   test("Product Detail renders product data ", async () => {
+    await act(async () => {
+      const order = await sm.orders.create();
+      const { id } = await sm.items.create({
+        price: "12.00",
+        metadata: {
+          title: "Meow meow",
+          description: "description...meow",
+          images: ["https://http.cat/images/201.jpg"],
+        },
+      });
+      itemId = id;
+      orderId = order.id;
+      mockRouter.push(`?itemId=${itemId}`);
+      await sm.items.changeInventory(itemId, 5);
+    });
+
+    merchantsWrapper(<ProductDetail />, sm, orderId);
+
     await waitFor(async () => {
       const title = screen.getByTestId("title");
       const price = screen.getByTestId("price");
       const desc = screen.getByTestId("description");
-      const quantity = screen.getByTestId("available");
-
       expect(title.textContent).toEqual("Meow meow");
-      expect(price.textContent).toEqual("12");
+      expect(price.textContent).toEqual("12.00");
       expect(desc.textContent).toEqual("description...meow");
-      expect(quantity.textContent).toEqual("5");
     });
 
     await act(async () => {
@@ -89,34 +89,5 @@ describe("Product Detail Component", async () => {
     const ro = await sm.orders.getStatus(OrderState.STATE_OPEN);
     const b = await sm.orders.get(ro[0]);
     expect(b.items[itemId]).toEqual(1);
-
-    // Testing event listener for change stock
-    await sm.items.changeInventory(itemId, 400);
-
-    await waitFor(async () => {
-      // Testing event listener for change stock
-      const available = screen.getByTestId("available");
-      expect(available.textContent).toEqual("405");
-    });
-
-    // Test deleting an item
-    await act(async () => {
-      const deleteButton = screen.getByRole("button", { name: /Delete Item/i });
-      await user.click(deleteButton);
-    });
-
-    await act(async () => {
-      const confirmButton = await screen.findByRole("button", {
-        name: /Im sure/i,
-      });
-      await user.click(confirmButton);
-    });
-
-    await waitFor(async () => {
-      const res = await sm.items.get(itemId);
-      expect(res.viewState).toEqual(
-        ListingViewState.LISTING_VIEW_STATE_DELETED,
-      );
-    });
   });
 });

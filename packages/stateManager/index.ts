@@ -119,7 +119,7 @@ class ListingManager extends PublicObjectManager<Item> {
       if (ul.price) {
         item.price = fromBytes(ul.price.raw, "bigint").toString();
       }
-      if (ul.viewState) {
+      if (Object.values(ListingViewState).includes(ul.viewState)) {
         item.viewState = ul.viewState;
       }
       await this.store.put(id, item);
@@ -191,7 +191,7 @@ class ListingManager extends PublicObjectManager<Item> {
     if (update.metadata) {
       ui.metadata = update.metadata;
     }
-    if (update.viewState) {
+    if (Object.values(ListingViewState).includes(update.viewState!)) {
       ui.viewState = update.viewState;
     }
     const eventId = await this.client.updateListing(ui);

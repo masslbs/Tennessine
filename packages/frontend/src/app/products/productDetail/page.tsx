@@ -4,29 +4,26 @@
 
 "use client";
 import React, { useState, useEffect } from "react";
-// import ModalHeader from "@/app/common/components/ModalHeader";
 import Image from "next/image";
-import Button from "@/app/common/components/Button";
-// import SeeProductActions from "@/app/components/products/SeeProductActions";
-import { Item, ItemId, OrderId, Tag, Order, ListingViewState } from "@/types";
-import { useStoreContext } from "@/context/StoreContext";
 import { useRouter, useSearchParams } from "next/navigation";
-import ErrorMessage from "@/app/common/components/ErrorMessage";
-import { useAuth } from "@/context/AuthContext";
 import debugLib from "debug";
-import { formatUnitsFromString } from "@massmarket/utils";
+
+import Button from "@/app/common/components/Button";
+import ErrorMessage from "@/app/common/components/ErrorMessage";
+import BackButton from "@/app/common/components/BackButton";
+import { Item, ItemId, OrderId, Tag, Order } from "@/types";
+import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
+import { formatUnitsFromString } from "@massmarket/utils";
+import { privateKeyToAccount } from "viem/accounts";
 
 const ProductDetail = () => {
-  const { stateManager, getOrderId, baseTokenDetails } = useStoreContext();
+  const { stateManager, getOrderId, getBaseTokenInfo } = useStoreContext();
   const { upgradeGuestToCustomer } = useUserContext();
-  const { isMerchantView } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const itemId = searchParams.get("itemId") as ItemId;
   const [quantity, setQuantity] = useState<number>(0);
-  // const [showActions, setShowActions] = useState<boolean>(false);
-  const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
   const [item, setItem] = useState<Item | null>(null);
 
   const [addedToCart, setAddedToCart] = useState<boolean>(false);
@@ -34,7 +31,6 @@ const ProductDetail = () => {
     "Review",
   );
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
-  const [available, setAvailable] = useState<number>(0);
   const [allTags, setAllTags] = useState(new Map());
   const [orderId, setOrderId] = useState<OrderId | null>(null);
   const [currentCartItems, setCurrentCart] = useState<Order["items"] | null>(
@@ -45,7 +41,7 @@ const ProductDetail = () => {
 
   useEffect(() => {
     getOrderId()
-      .then(async (id) => {
+      .then((id) => {
         if (id) {
           setOrderId(id);
           stateManager.orders
@@ -79,43 +75,30 @@ const ProductDetail = () => {
   });
 
   useEffect(() => {
-    const onChangeStock = async (id: ItemId) => {
-      //FIXME: remove stringify once we change id back to hex
-      if (itemId === String(id)) {
-        stateManager.items.get(itemId).then((available) => {
-          setAvailable(available.quantity);
-        });
-      }
-    };
     if (itemId) {
       //set item details
-      stateManager.items
-        .get(itemId)
-        .then((item) => {
-          setItem(item);
-          const price = formatUnitsFromString(
-            item.price,
-            baseTokenDetails.decimal,
-          );
-          setPrice(price);
-          setAvailable(item.quantity || 0);
-          if (!currentCartItems) return;
-          //Check if item is already added to cart
-          if (itemId in currentCartItems) {
-            setAddedToCart(true);
-            setQuantity(currentCartItems[itemId]);
-          }
-        })
-        .catch((e) => {
-          debug(e);
-        });
+      getBaseTokenInfo().then((baseTokenInfo) => {
+        stateManager.items
+          .get(itemId)
+          .then((item) => {
+            setItem(item);
+            const price = formatUnitsFromString(
+              item.price,
+              baseTokenInfo?.[1] || 0,
+            );
+            setPrice(price);
+            if (!currentCartItems) return;
+            //Check if item is already added to cart
+            if (itemId in currentCartItems) {
+              setAddedToCart(true);
+              setQuantity(currentCartItems[itemId]);
+            }
+          })
+          .catch((e) => {
+            debug(e);
+          });
+      });
     }
-
-    stateManager.items.on("changeInventory", onChangeStock);
-
-    return () => {
-      stateManager.items.on("changeInventory", onChangeStock);
-    };
   }, [currentCartItems, itemId]);
 
   const getAllTags = async () => {
@@ -160,6 +143,9 @@ const ProductDetail = () => {
     } else if (!order_id) {
       //For users with no enrolled KC: upgrade subscription when adding an item to cart.
       await upgradeGuestToCustomer();
+      const kc = localStorage.getItem("guestCheckoutKC") as `0x${string}`;
+      const keyCardWallet = privateKeyToAccount(kc);
+      await stateManager.keycards.addAddress(keyCardWallet.address);
       order_id = (await stateManager.orders.create()).id;
       setOrderId(order_id);
     }
@@ -184,46 +170,6 @@ const ProductDetail = () => {
       setErrorMsg("There was an error updating cart");
     }
   };
-
-  const handleDelete = async () => {
-    try {
-      await stateManager.items.update({
-        id: itemId,
-        viewState: ListingViewState.LISTING_VIEW_STATE_DELETED,
-      });
-    } catch (error) {
-      debug(error);
-      setErrorMsg("There was an error removing tag from Item.");
-    }
-  };
-
-  const confirmDelete = (
-    <div
-      id="confirm-modal-container"
-      className="absolute h-4/6 w-full flex justify-center items-center"
-    >
-      <div
-        id="confirm-modal"
-        className="w-72 h-64 bg-white text-center px-6 py-2 flex items-center justify-center rounded-2xl flex-col border"
-      >
-        <p>Are you sure you want to remove this product from your store?</p>
-        <div id="buttons" className="flex text-sm gap-2 mt-4">
-          <button
-            className="border-4 p-2 rounded-lg"
-            onClick={() => setShowConfirmModal(false)}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleDelete}
-            className="bg-blue-900 p-3 text-white rounded-lg"
-          >
-            Im sure
-          </button>
-        </div>
-      </div>
-    </div>
-  );
 
   if (!item) return null;
 
@@ -253,10 +199,6 @@ const ProductDetail = () => {
 
   return (
     <main className="pt-under-nav h-screen bg-gray-100">
-      <button data-testid="delete" onClick={() => setShowConfirmModal(true)}>
-        Delete Item
-      </button>
-      {showConfirmModal && confirmDelete}
       <section className="h-[45rem] flex flex-col">
         <ErrorMessage
           errorMessage={errorMsg}
@@ -266,57 +208,71 @@ const ProductDetail = () => {
           }}
         />
         <div className="m-4">
-          <div className="flex">
-            {item.metadata.images[0] && (
-              <Image
-                src={item.metadata.images[0]}
-                alt="product-detail-image"
-                width={136}
-                height={136}
-                className="border rounded-lg"
-                unoptimized={true}
-                style={{ maxHeight: "136px", maxWidth: "136px" }}
-              />
-            )}
-            <div className="flex flex-col">
-              <h2
-                data-testid="title"
-                className="text-xl flex items-center pl-4"
-              >
-                {item.metadata.title}
-              </h2>
-              <p
-                className="text-xs flex items-center pl-4"
-                data-testid="description"
-              >
-                {item.metadata.description}
-              </p>
-            </div>
+          <BackButton href="/products" />
+          <div className="my-3">
+            <h1 data-testid="title">{item.metadata.title}</h1>
           </div>
-          <section className="flex gap-4 flex-col">
-            <div>
-              <h5 className="font-sans text-gray-700 my-4">Product Details</h5>
-              <div className="flex justify-between py-4 bg-white border rounded-lg p-4">
-                <p>Price</p>
-                <p data-testid="price">{price}</p>
-              </div>
-            </div>
-            {isMerchantView ? (
-              <div>
-                <h5 className="font-sans  text-gray-700 my-4">
-                  Inventory Details
-                </h5>
-                <div className="flex justify-between py-4 bg-white border rounded-lg p-4">
-                  <p>Available</p>
-                  <p data-testid="available">{available}</p>
-                </div>
+          <div>
+            <Image
+              src={item.metadata.images[0]}
+              alt="product-detail-image"
+              width={390}
+              height={250}
+              className="border rounded-lg"
+              unoptimized={true}
+              style={{
+                maxHeight: "250px",
+                maxWidth: "390px",
+                objectFit: "cover",
+                objectPosition: "center",
+              }}
+            />
+            {item.metadata.images.length > 1 ? (
+              <div className="flex mt-2 gap-2">
+                {item.metadata.images.map((image, i) => {
+                  return (
+                    <Image
+                      key={i}
+                      src={image}
+                      alt="product-detail-image"
+                      width={90}
+                      height={81}
+                      className="border rounded-lg"
+                      unoptimized={true}
+                      style={{
+                        maxHeight: "81px",
+                        maxWidth: "90px",
+                        objectFit: "cover",
+                        objectPosition: "center",
+                      }}
+                    />
+                  );
+                })}
               </div>
             ) : null}
-            <section className="flex gap-6">
+          </div>
+
+          <section className="flex gap-4 flex-col bg-white mt-5 rounded-md p-5">
+            <div>
+              <h2 className="font-sans text-gray-700">Description</h2>
+              <p data-testid="description">{item.metadata.description}</p>
+            </div>
+            <div className="flex gap-2 items-center">
+              <Image
+                src="/icons/usdc-coin.png"
+                alt="coin"
+                width={24}
+                height={24}
+                unoptimized={true}
+                className="w-auto h-auto max-h-6"
+              />
+              <h1 data-testid="price">{Number(price).toFixed(2)}</h1>
+            </div>
+            <div className="flex gap-6">
               <div className="">
-                <h5 className="text-xs text-primary-gray mb-2">Quantity</h5>
+                <p className="text-xs text-primary-gray mb-2">Quantity</p>
                 <input
-                  className="border-2 border-solid mt-1 p-2 rounded w-14 h-16"
+                  className="border-2 border-solid p-2 rounded-md max-w-12"
                   id="quantity"
                   name="quantity"
                   value={quantity}
@@ -330,20 +286,9 @@ const ProductDetail = () => {
                 </h5>
                 <div>{getCtaButton()}</div>
               </div>
-            </section>
+            </div>
           </section>
         </div>
-
-        {/* <div className="mt-auto bg-white p-4 pb-8 rounded-2xl border border-gray-200">
-          <div className="flex my-5">
-            <div className="flex flex-col mr-auto">
-              <p>total</p>
-              <p className="text-xs text-gray-500">{quantity} items</p>
-            </div>
-            <p>{(Number(item.price) * quantity).toFixed(2)} USDC</p>
-          </div>
-          <div>{getCtaButton()}</div>
-        </div> */}
       </section>
     </main>
   );

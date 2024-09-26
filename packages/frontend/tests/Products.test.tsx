@@ -1,32 +1,11 @@
 import React from "react";
-import { beforeAll, describe, expect, test } from "vitest";
+import { describe, expect, test } from "vitest";
 import { screen, waitFor, within } from "@testing-library/react";
 import Products from "../src/app/products/page";
-import { randomAddress, zeroAddress } from "@massmarket/utils";
 import { merchantsWrapper, getStateManager } from "./test-utils";
 
 describe("Products Component", async () => {
   const sm = await getStateManager();
-
-  // beforeAll(async () => {
-  //   await sm.manifest.create(
-  //     {
-  //       payees: [
-  //         {
-  //           address: randomAddress(),
-  //           callAsContract: false,
-  //           chainId: 1,
-  //           name: "default",
-  //         },
-  //       ],
-  //       pricingCurrency: {
-  //         chainId: 1,
-  //         address: zeroAddress,
-  //       },
-  //     },
-  //     randomAddress(),
-  //   );
-  // });
   const order = await sm.orders.create();
 
   test("All listings are displayed", async () => {

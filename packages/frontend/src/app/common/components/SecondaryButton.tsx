@@ -8,16 +8,14 @@ import React from "react";
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  color?: string;
+  custom?: string;
 }
 
 const SecondaryButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ ...props }, ref) => {
     return (
       <button
-        className={`flex justify-center items-center p-2 text-white rounded-lg ${
-          props.color ? props.color : "bg-primary-gray"
-        } w-full disabled:bg-gray-200 disabled:text-gray-500`}
+        className={`flex justify-center px-5 py-3 rounded-md text-lg bg-background-gray disabled:bg-gray-200 disabled:text-gray-500 ${props.custom ? props.custom : ""}`}
         ref={ref}
         {...props}
       />

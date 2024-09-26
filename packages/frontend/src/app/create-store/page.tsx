@@ -4,24 +4,28 @@
 
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, ChangeEvent } from "react";
 import AvatarUpload from "@/app/common/components/AvatarUpload";
 import { useUserContext } from "@/context/UserContext";
 import { useAuth } from "@/context/AuthContext";
-import { Status } from "@/types";
-import { useRouter } from "next/navigation";
-import SecondaryButton from "@/app/common/components/SecondaryButton";
+import { Option, Payee, ShopCurrencies, Status } from "@/types";
 import { random32BytesHex, zeroAddress } from "@massmarket/utils";
-import Image from "next/image";
 import { useChains } from "wagmi";
 import { useStoreContext } from "@/context/StoreContext";
 import { BlockchainClient } from "@massmarket/blockchain";
 import debugLib from "debug";
-import { isValidHex } from "@/app/utils";
+import { getTokenAddress, isValidHex } from "@/app/utils";
 import ValidationWarning from "@/app/common/components/ValidationWarning";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import { discoverRelay } from "@massmarket/client";
 import { privateKeyToAccount } from "viem/accounts";
+import Dropdown from "@/app/common/components/Dropdown";
+import Button from "@/app/common/components/Button";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import Image from "next/image";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { useAccount } from "wagmi";
+import Confirmation from "./Confirmation";
 
 const StoreCreation = () => {
   const {
@@ -38,25 +42,35 @@ const StoreCreation = () => {
   const { stateManager, setShopDetails } = useStoreContext();
   const { clientConnected, setIsConnected, setIsMerchantView } = useAuth();
   const chains = useChains();
-  const router = useRouter();
+  const { status } = useAccount();
+  const { openConnectModal } = useConnectModal();
 
+  const [step, setStep] = useState<
+    "manifest form" | "connect wallet" | "confirmation"
+  >("manifest form");
   const [storeName, setStoreName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [avatar, setAvatar] = useState<FormData | null>(null);
-  const [tokenAddr, setTokenAddr] = useState<string>(zeroAddress);
-  const [chainId, setAcceptedChain] = useState<number>(0);
+  const [pricingCurrency, setPricingCurrency] = useState<
+    Partial<ShopCurrencies>
+  >({ address: zeroAddress });
+  const [acceptedCurrencies, setAcceptedCurrencies] = useState<
+    ShopCurrencies[]
+  >([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [isStoreCreated, setStoreCreated] = useState<boolean>(false);
-  const [payeeAddr, setPayeeAddr] = useState<string>("");
-
+  const [payeeChain, setPayeeChain] = useState<number | null>(null);
+  const [payeeAddress, setPayeeAddress] = useState<`0x${string}` | null>(
+    clientWallet?.account.address || null,
+  );
   const enrollKeycard = useRef(false);
   const randomShopIdHasBeenSet = useRef(false);
   const debug = debugLib("frontend:create-store");
 
   useEffect(() => {
-    if (clientWallet?.account.address) {
-      setPayeeAddr(clientWallet?.account.address);
+    if (clientWallet?.account) {
+      setPayeeAddress(clientWallet.account.address);
     }
   }, [clientWallet]);
 
@@ -75,102 +89,129 @@ const StoreCreation = () => {
     };
   }, []);
 
-  const checkRequiredFields = () => {
-    const isTokenAddrHex = isValidHex(tokenAddr);
-    const isPayeeAddHex = isValidHex(payeeAddr);
-
-    let warning = null;
-    if (!isTokenAddrHex) {
-      warning = "Token address must be a valid hex value";
-    } else if (!storeName.length) {
-      warning = "Store name is required";
-    } else if (!description.length) {
-      warning = "Store description is required";
-    } else if (!tokenAddr.length) {
-      warning = "Token Address is required";
-    } else if (!chainId) {
-      warning = "Select a chainID";
-    } else if (!isPayeeAddHex) {
-      warning = "Payee Address must be a valid hex value";
+  const handleAcceptedCurrencies = async (e: ChangeEvent<HTMLInputElement>) => {
+    const [sym, chainId] = e.target.value.split("/");
+    const address = await getTokenAddress(sym, Number(chainId));
+    if (e.target.checked) {
+      setAcceptedCurrencies([
+        ...acceptedCurrencies,
+        { address, chainId: Number(chainId) },
+      ]);
+    } else {
+      setAcceptedCurrencies(
+        acceptedCurrencies.filter(
+          (c) => c.chainId !== Number(chainId) || c.address !== address,
+        ),
+      );
     }
+  };
+
+  const handlePricingCurrency = async (option: Option) => {
+    const v = option.value as string;
+    const [sym, chainId] = v.split("/");
+    const address = await getTokenAddress(sym, Number(chainId));
+    setPricingCurrency({ address, chainId: Number(chainId) });
+  };
+
+  const checkRequiredFields = () => {
+    if (!payeeAddress) {
+      return "Payee address is required.";
+    } else if (!payeeChain) {
+      return "Payee chain is required.";
+    } else if (!pricingCurrency?.address) {
+      return "Pricing currency address is required.";
+    } else if (!pricingCurrency?.chainId) {
+      return "Pricing currency chain is required.";
+    }
+
+    const isTokenAddrHex = isValidHex(pricingCurrency.address);
+    const isPayeeAddHex = isValidHex(payeeAddress);
+
+    if (!isTokenAddrHex) {
+      return "Token address must be a valid hex value";
+    } else if (!storeName.length) {
+      return "Store name is required";
+    } else if (!description.length) {
+      return "Store description is required";
+    } else if (!isPayeeAddHex) {
+      return "Payee Address must be a valid hex value";
+    }
+    return null;
+  };
+
+  const goToConnectWallet = () => {
+    const warning = checkRequiredFields();
     if (warning) {
       setValidationError(warning);
       throw Error(`Check all required fields:${warning}`);
     } else {
       setValidationError(null);
     }
+    setStep("connect wallet");
   };
 
   const createShop = async () => {
-    checkRequiredFields();
+    try {
+      const rc = await createNewRelayClient();
+      const blockchainClient = new BlockchainClient(shopId!);
+      const hash = await blockchainClient.createShop(clientWallet!);
 
-    const rc = await createNewRelayClient();
-    if (rc && shopPublicClient && clientWallet && shopId) {
-      try {
-        const blockchainClient = new BlockchainClient(shopId);
-        const hash = await blockchainClient.createShop(clientWallet);
+      const transaction = await shopPublicClient!.waitForTransactionReceipt({
+        hash,
+        retryCount: 10,
+      });
 
-        const transaction = await shopPublicClient.waitForTransactionReceipt({
-          hash,
-          retryCount: 10,
-        });
+      if (transaction!.status == "success") {
+        // Add relay tokenId for event verification.
+        const relayURL =
+          (process && process.env["NEXT_PUBLIC_RELAY_TOKEN_ID"]) ||
+          "ws://localhost:4444/v3";
+        const relayEndpoint = await discoverRelay(relayURL);
+        await blockchainClient.addRelay(clientWallet!, relayEndpoint.tokenId);
+        localStorage.setItem("shopId", shopId!);
+        const hasAccess = await checkPermissions();
 
-        if (transaction!.status == "success") {
-          // //Add relay tokenId for event verification.
-          const relayURL =
-            (process && process.env["NEXT_PUBLIC_RELAY_TOKEN_ID"]) ||
-            "ws://localhost:4444/v3";
-          const relayEndpoint = await discoverRelay(relayURL);
-          await blockchainClient.addRelay(clientWallet, relayEndpoint.tokenId);
-          localStorage.setItem("shopId", shopId!);
-          const hasAccess = await checkPermissions();
-
-          if (hasAccess && clientWallet) {
-            if (enrollKeycard.current) return;
-            enrollKeycard.current = true;
-            const res = await rc.enrollKeycard(
-              clientWallet,
-              false,
-              shopId,
-              process.env.TEST ? undefined : new URL(window.location.href),
-            );
-            if (res.ok) {
-              setRelayClient(rc);
-              const keyCardToEnroll = localStorage.getItem(
-                "keyCardToEnroll",
-              ) as `0x${string}`;
-              setIsMerchantView(true);
-              localStorage.setItem("merchantKeyCard", keyCardToEnroll);
-              //Connect, authenticate, and send subscription request.
-              await rc.connect();
-              await rc.authenticate();
-              await rc.sendMerchantSubscriptionRequest(shopId);
-              setStoreCreated(true);
-              setIsConnected(Status.Complete);
-            } else {
-              console.error("failed to enroll keycard");
-            }
-            localStorage.removeItem("keyCardToEnroll");
+        if (hasAccess) {
+          if (enrollKeycard.current) return;
+          enrollKeycard.current = true;
+          const res = await rc!.enrollKeycard(
+            clientWallet!,
+            false,
+            shopId!,
+            process.env.TEST ? undefined : new URL(window.location.href),
+          );
+          if (res.ok) {
+            setRelayClient(rc);
+            const keyCardToEnroll = localStorage.getItem(
+              "keyCardToEnroll",
+            ) as `0x${string}`;
+            setIsMerchantView(true);
+            localStorage.setItem("merchantKeyCard", keyCardToEnroll);
+            //Connect, authenticate, and send subscription request.
+            await rc!.connect();
+            await rc!.authenticate();
+            await rc!.sendMerchantSubscriptionRequest(shopId!);
+            setStoreCreated(true);
+            setIsConnected(Status.Complete);
+          } else {
+            debug("Failed to enroll keycard");
           }
+          localStorage.removeItem("keyCardToEnroll");
+        } else {
+          debug("Access denied.");
         }
-      } catch (err) {
-        setErrorMsg("Error while creating store");
-        debug(`Error while creating store: ${err}`);
+      } else {
+        debug("Transaction failed while minting store.");
       }
-    } else {
-      debug("Client undefined");
+    } catch (err) {
+      setErrorMsg("Error while creating store");
+      debug(`Failed createShop: ${err}`);
     }
   };
 
   useEffect(() => {
-    //Create manifest once KC is enrolled and client is connected + authenticated.
-    if (
-      relayClient &&
-      shopId &&
-      stateManager &&
-      isStoreCreated &&
-      clientConnected == Status.Complete
-    ) {
+    //Create manifest once KC is enrolled and client is connected + authenticated in createShop fn.
+    if (isStoreCreated && clientConnected == Status.Complete) {
       //Add address of kc wallet for all outgoing event verification.
       const kc = localStorage.getItem("merchantKeyCard") as `0x${string}`;
       const keyCardWallet = privateKeyToAccount(kc!);
@@ -178,23 +219,15 @@ const StoreCreation = () => {
         stateManager.manifest
           .create(
             {
-              pricingCurrency: {
-                chainId: 1,
-                address: tokenAddr as `0x${string}`,
-              },
-              acceptedCurrencies: [
-                {
-                  address: tokenAddr as `0x${string}`,
-                  chainId,
-                },
-              ],
+              pricingCurrency: pricingCurrency as ShopCurrencies,
+              acceptedCurrencies,
               payees: [
                 {
-                  address: payeeAddr as `0x${string}`,
+                  address: payeeAddress,
                   callAsContract: false,
-                  chainId,
+                  chainId: payeeChain,
                   name: "default",
-                },
+                } as Payee,
               ],
               //TODO: UI for inputting shipping regions.
               shippingRegions: [
@@ -207,18 +240,21 @@ const StoreCreation = () => {
                 },
               ],
             },
-            shopId,
+            shopId!,
           )
           .then(() => {
             uploadMetadata()
               .then(() => {
-                router.push("/products");
+                setStep("confirmation");
               })
-              .catch((e) => debug(e));
+              .catch((e) => {
+                debug(e);
+                setErrorMsg("Error uploading blob");
+              });
           })
           .catch((e) => {
             debug(e);
-            setErrorMsg("Error while create shop manifest");
+            setErrorMsg("Error while calling create shop manifest");
           });
       });
     }
@@ -234,7 +270,9 @@ const StoreCreation = () => {
       metadataPath = { url: "/" };
       imgPath = { url: "/" };
     } else {
-      imgPath = await relayClient!.uploadBlob(avatar as FormData);
+      imgPath = avatar
+        ? await relayClient!.uploadBlob(avatar as FormData)
+        : { url: null };
       const metadata = {
         name: storeName,
         description: description,
@@ -248,144 +286,212 @@ const StoreCreation = () => {
       metadataPath = await relayClient!.uploadBlob(formData);
     }
 
-    if (clientWallet && metadataPath) {
-      const blockchainClient = new BlockchainClient(shopId!);
-
-      //Write shop metadata to blockchain client.
-      await blockchainClient.setShopMetadataURI(clientWallet, metadataPath.url);
-      setShopDetails({
-        name: storeName,
-        profilePictureUrl: imgPath.url,
-      });
-    }
+    const blockchainClient = new BlockchainClient(shopId!);
+    //Write shop metadata to blockchain client.
+    await blockchainClient.setShopMetadataURI(clientWallet!, metadataPath.url);
+    setShopDetails({
+      name: storeName,
+      profilePictureUrl: imgPath.url,
+    });
   };
-
-  return (
-    <main className="pt-under-nav h-screen p-4 mt-5">
-      <ValidationWarning
-        warningMessage={validationError}
-        onClose={() => {
-          setValidationError(null);
-        }}
-      />
-      <ErrorMessage
-        errorMessage={errorMsg}
-        onClose={() => {
-          setErrorMsg(null);
-        }}
-      />
-      <div className="flex">
-        <h2>Create new shop</h2>
-        <div className="ml-auto">
-          <SecondaryButton onClick={createShop}>
-            <h6>save</h6>
-          </SecondaryButton>
+  if (step === "manifest form") {
+    return (
+      <main className="pt-under-nav h-screen p-4 mt-5">
+        <ValidationWarning
+          warning={validationError}
+          onClose={() => {
+            setValidationError(null);
+          }}
+        />
+        <ErrorMessage
+          errorMessage={errorMsg}
+          onClose={() => {
+            setErrorMsg(null);
+          }}
+        />
+        <div className="flex">
+          <h1>Create new shop</h1>
         </div>
-      </div>
-      <section className="mt-8 flex flex-col gap-4">
-        <div className="flex gap-4">
-          <div>
-            <p>PFP</p>
-            <AvatarUpload setImgBlob={setAvatar} />
-          </div>
+        <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
           <form
             className="flex flex-col grow"
             onSubmit={(e) => e.preventDefault()}
           >
-            <label htmlFor="storeName">Store Name</label>
+            <label className="font-medium" htmlFor="storeName">
+              Store Name
+            </label>
             <input
-              className="border-2 border-solid mt-1 p-2 rounded-2xl"
+              className="border-2 border-solid mt-1 p-2 rounded-md bg-background-gray"
               data-testid="storeName"
               name="storeName"
               value={storeName}
               onChange={(e) => setStoreName(e.target.value)}
-              placeholder="Type a name"
             />
           </form>
-        </div>
-
-        {/* <form className="flex flex-col" onSubmit={(e) => e.preventDefault()}>
-          <label htmlFor="url">URL</label>
-          <input
-            className="border-2 border-solid mt-1 p-2 rounded-2xl"
-            id="url"
-            name="url"
-            value={storeURL}
-            onChange={(e) => handleStoreURL(e)}
-          />
-        </form> */}
-        <form className="flex flex-col" onSubmit={(e) => e.preventDefault()}>
-          <label htmlFor="desc">Description</label>
-          <input
-            className="border-2 border-solid mt-1 p-2 rounded-2xl"
-            data-testid="desc"
-            name="desc"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Type a description"
-          />
-        </form>
-        <div>
-          <label>Accepted chains</label>
           <div className="flex gap-2">
-            {chains.map((c) => (
-              <SecondaryButton
-                onClick={() => {
-                  setAcceptedChain(c.id);
-                }}
-                data-testid="acceptedChains"
-                key={c.id}
-                color={c.id === chainId ? "bg-black" : "bg-primary-gray"}
-              >
-                {c.name}
-              </SecondaryButton>
-            ))}
+            <AvatarUpload setImgBlob={setAvatar} />
+            <p className="flex items-center">Upload PFP</p>
           </div>
-        </div>
-        <div className="flex flex-col" onSubmit={(e) => e.preventDefault()}>
+          <form className="flex flex-col" onSubmit={(e) => e.preventDefault()}>
+            <label htmlFor="desc" className="font-medium">
+              Description
+            </label>
+            <input
+              className="border-2 border-solid mt-1 p-2 rounded-md bg-background-gray"
+              data-testid="desc"
+              name="desc"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </form>
+          <div>
+            <label className="font-medium">Accepted currency</label>
+            <div className="flex flex-col gap-2">
+              {chains.map((c) => (
+                <div key={c.id}>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      onChange={(e) => handleAcceptedCurrencies(e)}
+                      className="form-checkbox h-4 w-4"
+                      value={`ETH/${c.id}`}
+                    />
+                    <span>{`ETH/${c.name}`}</span>
+                  </label>
+
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      onChange={(e) => handleAcceptedCurrencies(e)}
+                      className="form-checkbox h-4 w-4"
+                      value={`USDC/${c.id}`}
+                    />
+                    <span>{`USDC/${c.name}`}</span>
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
           <form
             onSubmit={(e) => {
               e.preventDefault();
             }}
           >
-            <label htmlFor="tokenAddr as `0x${string}`">Base Currency</label>
-
-            <Image
-              src="/assets/search.svg"
-              width={19}
-              height={19}
-              alt="search-icon"
-              className="absolute m-2 mt-4 ml-3"
-            />
-            <input
-              className="border-2 border-solid mt-1 p-2 rounded-2xl w-full pl-10"
-              id="tokenAddr"
-              data-testid="baseTokenAddr"
-              name="tokenAddr"
-              value={tokenAddr}
-              onChange={(e) => setTokenAddr(e.target.value)}
-              placeholder="Search or Paste Address"
-            />
+            <div
+              className="flex flex-col"
+              onSubmit={(e) => e.preventDefault()}
+              data-testid="pricing-currency"
+            >
+              <label htmlFor="pricingCurrency" className="font-medium">
+                Pricing Currency
+              </label>
+              <Dropdown
+                options={chains
+                  .map((c) => {
+                    return { label: `ETH/${c.name}`, value: `ETH/${c.id}` };
+                  })
+                  .concat(
+                    chains.map((c) => {
+                      return { label: `USDC/${c.name}`, value: `USDC/${c.id}` };
+                    }),
+                  )}
+                callback={handlePricingCurrency}
+              />
+            </div>
           </form>
-        </div>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
+          <div data-testid="payee-info" className="flex flex-col gap-2">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+              }}
+            >
+              <label htmlFor="payee" className="font-medium">
+                Payment Address
+              </label>
+              <input
+                className="border-2 border-solid mt-1 p-2 rounded-md w-full bg-background-gray"
+                id="payee"
+                data-testid="payeeAddress"
+                name="payee"
+                value={payeeAddress || ""}
+                onChange={(e) =>
+                  setPayeeAddress(e.target.value as `0x${string}`)
+                }
+              />
+            </form>
+            <Dropdown
+              options={chains.map((c) => {
+                return { label: c.name, value: c.id };
+              })}
+              callback={(selected) => {
+                setPayeeChain(selected.value as number);
+              }}
+            />
+          </div>
+
+          <div className="mt-6">
+            <Button onClick={goToConnectWallet}>
+              <h6>Connect Wallet</h6>
+            </Button>
+          </div>
+        </section>
+      </main>
+    );
+  } else if (step === "connect wallet") {
+    return (
+      <main className="pt-under-nav h-screen p-4 mt-5">
+        <ValidationWarning
+          warning={validationError}
+          onClose={() => {
+            setValidationError(null);
           }}
-        >
-          <label htmlFor="payee">Payment Address</label>
-          <input
-            className="border-2 border-solid mt-1 p-2 rounded-2xl w-full"
-            id="payee"
-            data-testid="payeeAddress"
-            name="payee"
-            value={payeeAddr}
-            onChange={(e) => setPayeeAddr(e.target.value)}
-          />
-        </form>
-      </section>
-    </main>
-  );
+        />
+        <ErrorMessage
+          errorMessage={errorMsg}
+          onClose={() => {
+            setErrorMsg(null);
+          }}
+        />
+        <h1>Connect your wallet</h1>
+        <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
+          {status === "connected" ? (
+            <div className="flex flex-col gap-4">
+              <ConnectButton chainStatus="name" />
+              <Button onClick={createShop} disabled={!clientWallet}>
+                <h6>Mint Shop</h6>
+              </Button>
+            </div>
+          ) : (
+            <button
+              data-testid="connect-wallet"
+              className="rounded-lg flex flex-col items-center gap-2"
+              onClick={openConnectModal}
+            >
+              <Image
+                src="/icons/wallet-icon.svg"
+                width={40}
+                height={40}
+                alt="wallet-icon"
+                unoptimized={true}
+              />
+              <div className="flex gap-2">
+                <p>Connect wallet</p>
+                <Image
+                  src="/icons/chevron-left.svg"
+                  width={5}
+                  height={5}
+                  alt="wallet-icon"
+                  unoptimized={true}
+                />
+              </div>
+            </button>
+          )}
+        </section>
+      </main>
+    );
+  } else if (step === "confirmation") {
+    return <Confirmation />;
+  }
 };
 
 export default StoreCreation;

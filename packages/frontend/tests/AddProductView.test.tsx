@@ -19,7 +19,7 @@ describe("Add New Product", async () => {
     merchantsWrapper(<AddProductView />, sm, order.id);
     const file = new File(["hello"], "hello.png", { type: "image/png" });
 
-    await waitFor(async () => {
+    await act(async () => {
       const titleInput = screen.getByTestId("title");
       const descInput = screen.getByTestId("description");
       const priceInput = screen.getByTestId("price");
@@ -31,31 +31,23 @@ describe("Add New Product", async () => {
       await user.type(descInput, "Description...");
       await user.type(priceInput, "4.00");
       await user.type(unitInput, "5");
-      await user.click(await screen.findByTestId(`add-tag-btn`));
-      const tagInput = await screen.findByTestId("tagInput");
-      fireEvent.change(tagInput, {
-        target: { value: ":new tag" },
-      });
-      fireEvent.submit(await screen.findByTestId("tagForm"));
-      await user.click(screen.getByRole("button", { name: /publish/i }));
-      //Test creating a new tag via UI
-      const newTag = await screen.findByTestId("tagSection");
-      expect(newTag.textContent).toEqual("new tag");
     });
-    let count = 0;
-    for await (const [id, item] of sm.items.iterator()) {
-      count++;
-      expect(item.metadata.title).toEqual("Brand New Item");
-      expect(formatUnitsFromString(item.price, decimals)).toEqual("4");
-      expect(item.metadata.description).toEqual("Description...");
-      expect(item.quantity).toEqual(5);
-    }
-    expect(count).toEqual(1);
-    let tagCount = 0;
-    for await (const [id, tag] of sm.tags.iterator()) {
-      if (tag.name === "new tag") tagCount++;
-    }
-    expect(tagCount).toEqual(1);
+
+    await act(async () => {
+      await user.click(screen.getByRole("button", { name: "create product" }));
+    });
+    await waitFor(async () => {
+      let count = 0;
+
+      for await (const [id, item] of sm.items.iterator()) {
+        count++;
+        expect(item.metadata.title).toEqual("Brand New Item");
+        expect(formatUnitsFromString(item.price, decimals)).toEqual("4");
+        expect(item.metadata.description).toEqual("Description...");
+        expect(item.quantity).toEqual(5);
+      }
+      expect(count).toEqual(1);
+    });
   });
   test("Edit product", async () => {
     const { id } = await sm.items.create({
@@ -66,11 +58,7 @@ describe("Add New Product", async () => {
         images: ["https://http.cat/images/201.jpg"],
       },
     });
-    const tag = await sm.tags.create("new tag");
     mockRouter.push(`?itemId=${id}`);
-
-    await sm.items.addItemToTag(tag.id, id);
-
     merchantsWrapper(<AddProductView />, sm, order.id);
     //Test stored fields are correctly populated.
     await waitFor(async () => {
@@ -108,7 +96,6 @@ describe("Add New Product", async () => {
       expect(item.metadata.title).toEqual("Updated Store Name");
       expect(item.metadata.description).toEqual("Updated description");
       expect(formatUnits(BigInt(item.price), decimals)).toEqual("54");
-      expect(item.tags[0]).toEqual(tag.id);
     });
   });
 });

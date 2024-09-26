@@ -80,6 +80,8 @@ export const MyContextProvider = (
   useEffect(() => {
     if (isMerchantPath) {
       localStorage.removeItem("merchantKeyCard");
+      localStorage.removeItem("guestCheckoutKC");
+      localStorage.removeItem("seqNo");
     }
     //If shopId is provided as a query, set it as shopId, otherwise check for storeId in localStorage.
     const _shopId =
@@ -144,8 +146,7 @@ export const MyContextProvider = (
                   rc.sendMerchantSubscriptionRequest(
                     shopId,
                     Number(seqNo),
-                  ).then();
-                  setIsConnected(Status.Complete);
+                  ).then(() => setIsConnected(Status.Complete));
                 });
               });
             }
@@ -156,11 +157,12 @@ export const MyContextProvider = (
         createNewRelayClient().then((rc) => {
           setRelayClient(rc);
           rc.connect().then(() => {
-            rc.sendGuestSubscriptionRequest(shopId, Number(seqNo)).then();
-            setIsConnected(Status.Complete);
+            rc.sendGuestSubscriptionRequest(shopId, Number(seqNo)).then(() =>
+              setIsConnected(Status.Complete),
+            );
           });
         });
-      } else if (guestCheckoutKC) {
+      } else if (guestCheckoutKC && clientConnected === Status.Pending) {
         //If already enrolled with guestCheckout keycard, connect, authenticate, and subscribe to orders.
         const keyCardWallet = privateKeyToAccount(guestCheckoutKC);
         const rc = new RelayClient({
@@ -233,20 +235,26 @@ export const MyContextProvider = (
       await relayClient!.sendGuestCheckoutSubscriptionRequest(shopId!);
       localStorage.setItem("guestCheckoutKC", keyCard!);
       setIsConnected(Status.Complete);
+    } else {
+      debug("Failed to enroll keycard while upgrading subscription");
     }
   };
 
   const createNewRelayClient = async () => {
-    const keyCard = random32BytesHex();
-    const keyCardWallet = privateKeyToAccount(keyCard);
-    localStorage.setItem("keyCardToEnroll", keyCard);
-    const relayEndpoint = await discoverRelay(relayURL);
-    const user = {
-      relayEndpoint,
-      keyCardWallet,
-    };
-
-    return new RelayClient(user);
+    try {
+      const keyCard = random32BytesHex();
+      const keyCardWallet = privateKeyToAccount(keyCard);
+      localStorage.setItem("keyCardToEnroll", keyCard);
+      const relayEndpoint = await discoverRelay(relayURL);
+      const user = {
+        relayEndpoint,
+        keyCardWallet,
+      };
+      return new RelayClient(user);
+    } catch (e) {
+      debug(e);
+      throw new Error("Error creating new RelayClient");
+    }
   };
 
   const value = {

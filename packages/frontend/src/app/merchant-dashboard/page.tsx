@@ -8,7 +8,6 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 // import { useMerchantContext } from "@/context/MerchantContext";
 import { useStoreContext } from "@/context/StoreContext";
-import SecondaryButton from "@/app/common/components/SecondaryButton";
 import Image from "next/image";
 import { createQueryString } from "@/app/utils";
 import { useSearchParams } from "next/navigation";
@@ -16,7 +15,7 @@ import { Status, Order, OrderState } from "@/types";
 import debugLib from "debug";
 
 const MerchantDashboard = () => {
-  const { stateManager, shopDetails } = useStoreContext();
+  const { stateManager } = useStoreContext();
   const searchParams = useSearchParams();
   const [orders, setOrders] = useState(new Map());
   const debug = debugLib("frontend:merchantDashboard");
@@ -93,37 +92,51 @@ const MerchantDashboard = () => {
     <main className="pt-under-nav h-screen">
       <div className="flex flex-col justify-between mx-4 mt-4">
         <div className="mb-4">
-          <h2>{shopDetails.name}</h2>
-          <div className="flex text-xs gap-1 pt-4">
-            <SecondaryButton>
-              <Link className="flex items-center gap-1" href="/products">
-                Go to Shop
-                <Image
-                  src="/assets/forward-button.svg"
-                  width={12}
-                  height={12}
-                  alt="forward-icon"
-                />
-              </Link>
-            </SecondaryButton>
-            <SecondaryButton>
-              <Link
-                href={`/products/edit?${createQueryString("itemId", "new", searchParams)}`}
-              >
-                Add Product +
-              </Link>
-            </SecondaryButton>
-            <SecondaryButton>
-              <div className="flex items-center gap-1">
-                Settings
-                <Image
-                  src="/assets/settings.svg"
-                  width={12}
-                  height={12}
-                  alt="settings-icon"
-                />
-              </div>
-            </SecondaryButton>
+          <h1>Dashboard</h1>
+          <div className="flex flex-col gap-1 pt-4">
+            <Link
+              className="flex items-center gap-1 p-3 bg-white rounded-md"
+              href="/products"
+            >
+              <p> View products</p>
+              <Image
+                src={`/icons/chevron-right.svg`}
+                width={8}
+                height={8}
+                alt="chevron-right"
+                unoptimized={true}
+                className="w-auto h-auto ml-auto"
+              />
+            </Link>
+            <Link
+              className="flex items-center gap-1 p-3 bg-white rounded-md"
+              href={`/products/edit?${createQueryString("itemId", "new", searchParams)}`}
+            >
+              Add new product
+              <Image
+                src={`/icons/chevron-right.svg`}
+                width={8}
+                height={8}
+                alt="chevron-right"
+                unoptimized={true}
+                className="w-auto h-auto ml-auto"
+              />
+            </Link>
+
+            <Link
+              href="/store"
+              className="flex items-center gap-1 p-3 bg-white rounded-md"
+            >
+              <p>Shop settings</p>
+              <Image
+                src={`/icons/chevron-right.svg`}
+                width={8}
+                height={8}
+                alt="chevron-right"
+                unoptimized={true}
+                className="w-auto h-auto ml-auto"
+              />
+            </Link>
           </div>
         </div>
         <div className="transactions-container">

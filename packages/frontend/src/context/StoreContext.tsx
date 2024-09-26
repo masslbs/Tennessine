@@ -12,7 +12,6 @@ import {
   ShopCurrencies,
   OrderId,
   OrderState,
-  BaseTokenDetails,
 } from "@/types";
 import { useUserContext } from "./UserContext";
 import { StoreContent } from "@/context/types";
@@ -42,10 +41,6 @@ export const StoreContextProvider = (
   const [shopDetails, setShopDetails] = useState({
     name: "",
     profilePictureUrl: "",
-  });
-  const [baseTokenDetails, setBaseTokenDetails] = useState<BaseTokenDetails>({
-    decimal: 18,
-    symbol: "ETH",
   });
   const chains = useChains();
 
@@ -100,37 +95,17 @@ export const StoreContextProvider = (
           localStorage.setItem("seqNo", res);
         });
         setStateManager(stateManager);
-        if (shopPublicClient && shopId) {
-          shopPublicClient
-            .readContract({
-              address: abi.addresses.ShopReg as Address,
-              abi: abi.ShopReg,
-              functionName: "tokenURI",
-              args: [BigInt(shopId)],
-            })
-            .then((uri) => {
-              const url = uri as string;
-              fetch(url).then((res) => {
-                res.json().then((data) => {
-                  setShopDetails({
-                    name: data.name,
-                    profilePictureUrl: data.image,
-                  });
-                });
-              });
-            });
-        }
 
-        if (shopPublicClient && shopId) {
-          shopPublicClient
-            .readContract({
-              address: abi.addresses.ShopReg as Address,
-              abi: abi.ShopReg,
-              functionName: "tokenURI",
-              args: [BigInt(shopId)],
-            })
-            .then((uri) => {
-              const url = uri as string;
+        shopPublicClient
+          .readContract({
+            address: abi.addresses.ShopReg as Address,
+            abi: abi.ShopReg,
+            functionName: "tokenURI",
+            args: [BigInt(shopId)],
+          })
+          .then((uri) => {
+            const url = uri as string;
+            if (url.length) {
               fetch(url).then((res) => {
                 res.json().then((data) => {
                   setShopDetails({
@@ -139,8 +114,8 @@ export const StoreContextProvider = (
                   });
                 });
               });
-            });
-        }
+            }
+          });
 
         //close db connection on unload
         if (window && db) {
@@ -153,22 +128,23 @@ export const StoreContextProvider = (
     }
   }, [relayClient]);
 
-  useEffect(() => {
-    if (stateManager) {
-      //Get base token decimal and symbol.
-      stateManager.manifest.get().then((manifest) => {
-        const { chainId, address } = manifest.pricingCurrency;
-        const chain = chains.find((chain) => chainId === chain.id);
-        const baseTokenPublicClient = createPublicClient({
-          chain,
-          transport: http(),
-        });
-        getTokenInformation(baseTokenPublicClient, address!).then((res) => {
-          setBaseTokenDetails({ decimal: res[1], symbol: res[0] });
-        });
+  async function getBaseTokenInfo() {
+    //Get base token decimal and symbol.
+    try {
+      const manifest = await stateManager.manifest.get();
+      const { chainId, address } = manifest.pricingCurrency;
+      const chain = chains.find((chain) => chainId === chain.id);
+      const baseTokenPublicClient = createPublicClient({
+        chain,
+        transport: http(),
       });
+      const res = await getTokenInformation(baseTokenPublicClient, address!);
+      return res;
+    } catch (error) {
+      debug("Failed: getBaseTokenInfo", error);
+      return null;
     }
-  }, [stateManager]);
+  }
 
   const getOrderId = async () => {
     const openOrders = await stateManager?.orders.getStatus(
@@ -188,7 +164,7 @@ export const StoreContextProvider = (
     stateManager,
     shopDetails,
     setShopDetails,
-    baseTokenDetails,
+    getBaseTokenInfo,
   };
 
   return (

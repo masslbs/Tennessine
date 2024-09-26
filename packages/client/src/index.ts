@@ -65,6 +65,7 @@ export class RelayClient extends EventEmitter {
     if (!object.requestId) {
       object.requestId = { raw: this.requestCounter };
     }
+    // Turns json into binary
     const payload = schema.Envelope.encode(object).finish();
     this.connection.send(payload);
     this.requestCounter++;

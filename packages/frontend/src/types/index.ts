@@ -11,6 +11,7 @@ import {
   KeyCard,
   OrderState,
   ListingViewState,
+  Payee,
 } from "@massmarket/stateManager/types";
 
 export {
@@ -21,6 +22,7 @@ export {
   type ShopCurrencies,
   type ShopManifest,
   type KeyCard,
+  type Payee,
   OrderState,
   ListingViewState,
 };
@@ -79,4 +81,8 @@ export interface BaseTokenDetails {
 export interface ShopDetails {
   name: string;
   profilePictureUrl: string;
+}
+export interface Option {
+  label: string;
+  value: string | number;
 }

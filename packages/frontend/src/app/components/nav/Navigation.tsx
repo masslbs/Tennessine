@@ -6,152 +6,186 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { useUserContext } from "@/context/UserContext";
-import { useAuth } from "@/context/AuthContext";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useDisconnect } from "wagmi";
+
 import { Status } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
-import { useRouter, useSearchParams } from "next/navigation";
-import FullModal from "@/app/common/components/FullModal";
-import Link from "next/link";
-import SecondaryButton from "@/app/common/components/SecondaryButton";
-import { createQueryString } from "@/app/utils";
+import { useAuth } from "@/context/AuthContext";
+import Cart from "@/app/cart/Cart";
 
-const _menuOptions = [
+const merchantMenu = [
   {
-    title: "Sales dashboard",
-    img: "earnings.svg",
+    title: "Dashboard",
+    img: "menu-dashboard.svg",
     href: "/merchant-dashboard",
   },
-  { title: "Shop settings", img: "store-settings.svg", href: "/store" },
-  { title: "New shop", img: "create-store.png", href: "/create-store" },
+  //TODO: href for orders, contact, share.
+  { title: "Manage Products", img: "menu-products.svg", href: "/products" },
+  { title: "Manage Orders", img: "menu-order.svg", href: "/" },
+  { title: "Shop Settings", img: "menu-settings.svg", href: "/store" },
+  { title: "Disconnect", img: "menu-disconnect.svg" },
+];
+const customerMenu = [
+  { title: "Shop", img: "menu-products.svg", href: "/products" },
+  { title: "Basket", img: "menu-basket.svg", href: "/" },
+  { title: "Contact", img: "menu-contact.svg", href: "/" },
+  { title: "Share", img: "menu-share.svg", href: "/" },
 ];
 
-const Navigation = () => {
-  const [menuOpened, setMenuOpened] = useState<boolean>(false);
-  const { setIsConnected, isMerchantView } = useAuth();
+function Navigation() {
+  const [menuOpen, setMenuOpen] = useState<boolean>(false);
+  const [basketOpen, setBasketOpen] = useState<boolean>(false);
+
+  const { clientConnected, setIsConnected, isMerchantView } = useAuth();
   const { shopDetails } = useStoreContext();
-  const { ensName } = useUserContext();
-  const searchParams = useSearchParams();
   const router = useRouter();
+  const { disconnect } = useDisconnect();
 
-  const logout = () => {
-    setIsConnected(Status.Pending);
+  function onDisconnect() {
+    setMenuOpen(false);
     localStorage.clear();
-    router.push("/");
-  };
+    disconnect();
+    router.push("/merchants");
+    setIsConnected(Status.Pending);
+  }
 
-  const menuSwitch = () => {
-    setMenuOpened(!menuOpened);
-  };
+  function menuSwitch() {
+    setMenuOpen(!menuOpen);
+  }
 
-  const renderItems = () => {
-    return _menuOptions.map((opt, i) => {
+  function renderMenuItems() {
+    const menuItems = isMerchantView ? merchantMenu : customerMenu;
+    return menuItems.map((opt, i) => {
+      if (opt.title === "Disconnect") {
+        return (
+          <button key={i} onClick={onDisconnect}>
+            <div className="flex gap-3">
+              <Image
+                src={`/icons/${opt.img}`}
+                width={16}
+                height={16}
+                alt="menu-item"
+                unoptimized={true}
+                priority={true}
+                className="w-auto h-auto"
+              />
+              <h2 className="font-normal">{opt.title}</h2>
+              <Image
+                src="/icons/chevron-right.svg"
+                width={8}
+                height={8}
+                alt="chevron-right"
+                unoptimized={true}
+                priority={true}
+                className="ml-auto w-auto h-auto"
+              />
+            </div>
+          </button>
+        );
+      }
+
       return (
-        <section
+        <div
           data-testid={`menu-button-${opt.title}`}
           key={i}
-          onClick={() => setMenuOpened(false)}
+          onClick={() => setMenuOpen(false)}
         >
-          <div className="flex">
-            <Link href={opt.href} key={opt.title}>
-              <h2>{opt.title}</h2>
+          <div className="flex gap-3">
+            <Image
+              src={`/icons/${opt.img}`}
+              width={16}
+              height={16}
+              alt="menu-item"
+              unoptimized={true}
+              priority={true}
+              className="w-auto h-auto"
+            />
+            <Link href={opt.href!} key={opt.title}>
+              <h2 className="font-normal">{opt.title}</h2>
             </Link>
+            <Image
+              src="/icons/chevron-right.svg"
+              width={8}
+              height={8}
+              alt="chevron-right"
+              unoptimized={true}
+              priority={true}
+              className="ml-auto w-auto h-auto"
+            />
           </div>
-        </section>
+        </div>
       );
     });
-  };
+  }
 
-  return menuOpened && isMerchantView ? (
-    <FullModal isOpen={menuOpened}>
-      <main>
-        <div className="w-full border border-gray-200 p-4 text-base flex justify-between">
-          <p>{ensName}</p>
-          <div className="flex gap-4">
-            <button onClick={menuSwitch}>
+  return (
+    <section className={`absolute left-0 top-0 right-0`}>
+      <section className="w-full p-2 text-base flex justify-between bg-white">
+        <div className="flex gap-2">
+          {shopDetails.profilePictureUrl ? (
+            <div className="overflow-hidden	rounded-full w-12 h-12">
               <Image
-                src={
-                  shopDetails.profilePictureUrl
-                    ? shopDetails.profilePictureUrl
-                    : `/assets/MassLabsLogo.svg`
-                }
-                width={40}
-                height={40}
+                src={shopDetails.profilePictureUrl}
+                width={50}
+                height={50}
                 alt="profile-avatar"
                 unoptimized={true}
+                priority={true}
+                className="w-12 h-12"
               />
-            </button>
-          </div>
-        </div>
-        <div className="flex flex-col justify-between mx-4 mt-4">
-          <div className="mb-4">
-            <h2>{shopDetails.name}</h2>
-            <div className="flex text-xs gap-1">
-              <SecondaryButton onClick={menuSwitch}>
-                <Link className="flex items-center gap-1" href="/products">
-                  Go to Shop
-                  <Image
-                    src="/assets/forward-button.svg"
-                    width={12}
-                    height={12}
-                    alt="forward-icon"
-                  />
-                </Link>
-              </SecondaryButton>
-              <SecondaryButton onClick={menuSwitch}>
-                <Link
-                  href={`/products/edit?${createQueryString("itemId", "new", searchParams)}`}
-                  onClick={menuSwitch}
-                >
-                  Add Product +
-                </Link>
-              </SecondaryButton>
             </div>
-          </div>
-          <div>{renderItems()}</div>
-          <div>
-            <h2 onClick={logout}>Log out</h2>
-          </div>
-        </div>
-      </main>
-    </FullModal>
-  ) : (
-    <div className={`absolute left-0 top-0 right-0`}>
-      <div className="w-full border border-gray-200 p-4 text-base flex justify-between">
-        <div
-          className="flex items-center text-primary-gray"
-          onClick={menuSwitch}
-        >
-          <button onClick={() => router.back()} className="flex gap-2">
+          ) : (
             <Image
-              src="/assets/back-button.svg"
-              width={12}
-              height={12}
-              alt="hamburger-icon"
-              className="h-6"
-            />
-            <p>back</p>
-          </button>
-          <p className="ml-5">{ensName}</p>
-        </div>
-        <div className="flex gap-4">
-          <button onClick={menuSwitch}>
-            <Image
-              src={
-                shopDetails.profilePictureUrl
-                  ? shopDetails.profilePictureUrl
-                  : `/assets/MassLabsLogo.svg`
-              }
+              src={`/icons/mass-labs-logo.svg`}
               width={40}
               height={40}
-              alt="profile-avatar"
+              alt="mass-labs-logo"
               unoptimized={true}
+              priority={true}
+              className="w-10 h-10"
+            />
+          )}
+
+          <h2 className="flex items-center">{shopDetails.name}</h2>
+        </div>
+        <section
+          className={`flex gap-6 p-2 ${clientConnected === Status.Complete ? "" : "hidden"}`}
+        >
+          <button onClick={() => setBasketOpen(!basketOpen)}>
+            <Image
+              src="/icons/menu-basket.svg"
+              width={20}
+              height={20}
+              alt="basket-icon"
+              unoptimized={true}
+              className="w-auto h-auto"
             />
           </button>
-        </div>
-      </div>
-    </div>
+          <button onClick={menuSwitch}>
+            <Image
+              src={menuOpen ? "/icons/close-icon.svg" : "/icons/hamburger.svg"}
+              width={20}
+              height={20}
+              alt="menu-icon"
+              unoptimized={true}
+              className="w-5 h-5"
+            />
+          </button>
+        </section>
+      </section>
+      {menuOpen ? (
+        <section>
+          <span className="fixed bg-black w-full h-full opacity-60" />
+          <div className="fixed bg-background-gray z-10 w-full flex flex-col gap-5 rounded-b-lg p-5">
+            {renderMenuItems()}
+          </div>
+        </section>
+      ) : null}
+      {basketOpen ? <Cart /> : null}
+    </section>
   );
-};
+}
 
 export default Navigation;

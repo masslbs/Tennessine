@@ -36,7 +36,7 @@ export type StoreContent = {
   setSelectedCurrency: Dispatch<ShopCurrencies>;
   stateManager: StateManager | LoadingStateManager;
   getOrderId: () => Promise<OrderId | null>;
-  baseTokenDetails: { decimal: number; symbol: string };
   shopDetails: ShopDetails;
   setShopDetails: Dispatch<ShopDetails>;
+  getBaseTokenInfo: () => Promise<[string, number] | null>;
 };

@@ -24,7 +24,7 @@
 
 @layer base {
   html {
-    font-family: "JetBrainsMono", system-ui, sans-serif;
+    font-family: "outfit", system-ui, sans-serif;
   }
 }
 @layer utilities {
@@ -40,27 +40,24 @@
 }
 
 @font-face {
-  font-family: "JetBrainsMono";
-  src: url("../../public/fonts/JetBrainsMono-VariableFont_wght.ttf");
+  font-family: "outfit";
+  src: url("../../public/fonts/Outfit-VariableFont_wght.ttf");
 }
 
 body {
   overflow: visible;
   color: rgb(var(--foreground-rgb));
   background-color: #eaedee;
+  h1 {
+    font-size: 24px;
+    font-weight: 700;
+  }
   h2 {
-    font-size: 25px;
+    font-size: 20px;
+    font-weight: 700;
   }
   h3 {
-    font-size: 22px;
-  }
-  h4 {
-    font-size: 20px;
-  }
-  h5 {
     font-size: 18px;
-  }
-  h6 {
-    font-size: 15px;
+    font-weight: 500;
   }
 }

@@ -7,7 +7,7 @@ import {
   zeroAddress,
   random32BytesHex,
 } from "@massmarket/utils";
-import StoreProfile from "@/app/components/store/StoreProfile";
+import StoreProfile from "@/app/store/page";
 import { merchantsWrapper, getStateManager } from "./test-utils";
 
 describe("StoreProfile Component", async () => {
@@ -62,7 +62,7 @@ describe("StoreProfile Component", async () => {
   const order = await sm.orders.create();
 
   test("Shop Manifest data is rendered correctly", async () => {
-    merchantsWrapper(<StoreProfile close={() => {}} />, sm, order.id);
+    merchantsWrapper(<StoreProfile />, sm, order.id);
     await waitFor(async () => {
       const baseCurrencyForm = screen.getByDisplayValue(zeroAddress);
       const acceptedCurrencies = screen.getAllByTestId(`accepted-currencies`);
@@ -76,7 +76,7 @@ describe("StoreProfile Component", async () => {
     });
   });
   test("Add accepted currency via UI", async () => {
-    merchantsWrapper(<StoreProfile close={() => {}} />, sm, order.id);
+    merchantsWrapper(<StoreProfile />, sm, order.id);
 
     await act(async () => {
       const addButton = screen.getByRole("button", { name: /Add/i });
@@ -97,7 +97,7 @@ describe("StoreProfile Component", async () => {
     });
   });
   test("Update store name and pricingCurrency via UI", async () => {
-    merchantsWrapper(<StoreProfile close={() => {}} />, sm, order.id);
+    merchantsWrapper(<StoreProfile />, sm, order.id);
 
     await act(async () => {
       const chainIdInput = screen.getByTestId(`baseChainId`);
