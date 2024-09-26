@@ -19,7 +19,6 @@ import { privateKeyToAccount } from "viem/accounts";
 import { usePathname } from "next/navigation";
 import { random32BytesHex } from "@massmarket/utils";
 import { useSearchParams } from "next/navigation";
-import { zeroAddress } from "@massmarket/contracts";
 
 export const MyContext = createContext<ClientContext>({
   walletAddress: null,
@@ -27,7 +26,7 @@ export const MyContext = createContext<ClientContext>({
   shopId: "0x",
   avatar: null,
   relayClient: null,
-  publicClient: null,
+  shopPublicClient: null,
   inviteSecret: null,
   clientWallet: null,
   keyCardEnrolled: false,
@@ -43,10 +42,6 @@ export const MyContext = createContext<ClientContext>({
   checkPermissions: () =>
     new Promise(() => {
       return false;
-    }),
-  getTokenInformation: () =>
-    new Promise(() => {
-      return { name: "", symbol: "", decimals: 0 };
     }),
 });
 
@@ -124,16 +119,10 @@ export const MyContextProvider = (
       throw new Error(`unhandled chain name ${chainName}`);
   }
 
-  const publicClient =
-    chainName === "sepolia"
-      ? createPublicClient({
-          chain: usedChain,
-          transport: http("https://rpc2.sepolia.org"),
-        })
-      : createPublicClient({
-          chain: usedChain,
-          transport: http(),
-        });
+  const shopPublicClient = createPublicClient({
+    chain: process.env.DEV ? hardhat : mainnet,
+    transport: http(),
+  });
 
   useEffect(() => {
     if (_wallet && walletStatus == "success") {
@@ -173,10 +162,10 @@ export const MyContextProvider = (
             tokenId: process.env.NEXT_PUBLIC_RELAY_TOKEN_ID as `0x${string}`,
           }
         : await discoverRelay(relayUrl);
+
       const user = {
         relayEndpoint,
         keyCardWallet,
-        chain: usedChain,
       };
       console.log(
         `relay client set ${user.relayEndpoint.url} with shop: ${shopId}`,
@@ -243,33 +232,9 @@ export const MyContextProvider = (
     }
   }, [keyCardEnrolled]);
 
-  const getTokenInformation = async (address: `0x${string}`) => {
-    if (address === zeroAddress) {
-      return { name: "Ethereum", symbol: "ETH", decimals: 18 };
-    }
-    const name = (await publicClient.readContract({
-      address: address,
-      abi: abi.ERC20,
-      functionName: "name",
-      args: [],
-    })) as string;
-    const symbol = (await publicClient.readContract({
-      address: address,
-      abi: abi.ERC20,
-      functionName: "symbol",
-      args: [],
-    })) as string;
-    const decimals = (await publicClient.readContract({
-      address: address,
-      abi: abi.ERC20,
-      functionName: "decimals",
-      args: [],
-    })) as number;
-    return { name, symbol, decimals };
-  };
   const checkPermissions = async () => {
     if (walletAddress) {
-      const hasAccess = (await publicClient.readContract({
+      const hasAccess = (await shopPublicClient.readContract({
         address: abi.addresses.ShopReg as `0x${string}`,
         abi: abi.ShopReg,
         functionName: "hasPermission",
@@ -293,8 +258,6 @@ export const MyContextProvider = (
     const user = {
       relayEndpoint,
       keyCardWallet,
-      shopId: shopId as `0x${string}`,
-      chain: usedChain,
     };
 
     return new RelayClient(user);
@@ -305,13 +268,12 @@ export const MyContextProvider = (
     avatar,
     ensName,
     relayClient,
-    publicClient,
+    shopPublicClient,
     inviteSecret,
     clientWallet,
     keyCardEnrolled,
     setInviteSecret,
     setWallet,
-    getTokenInformation,
     setKeyCardEnrolled,
     shopId,
     setShopId,

@@ -3,13 +3,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useStoreContext } from "@/context/StoreContext";
 import Button from "@/app/common/components/Button";
 import { ItemId, OrderId, Order } from "@/types";
 import { useRouter } from "next/navigation";
-import { useMyContext } from "@/context/MyContext";
 import debugLib from "debug";
 
 const NewCart = ({
@@ -19,14 +18,12 @@ const NewCart = ({
   next: () => void;
   orderId: OrderId | null;
 }) => {
-  const { stateManager, selectedCurrency } = useStoreContext();
+  const { stateManager, selectedCurrency, baseTokenDetails } =
+    useStoreContext();
   const [cartItemIds, setItemIds] = useState<Order["items"] | null>(null);
   const [cartItemsMap, setCartMap] = useState(new Map());
   const [errorMsg, setErrorMsg] = useState("");
-  const [currencySym, setCurrencySym] = useState<string | null>(null);
   const router = useRouter();
-  const { getTokenInformation } = useMyContext();
-  const symbolSet = useRef(false);
   const debug = debugLib("frontend:newCart");
 
   useEffect(() => {
@@ -54,24 +51,6 @@ const NewCart = ({
     }
   }, [orderId]);
 
-  useEffect(() => {
-    stateManager.manifest
-      .get()
-      .then(async (shopManifest) => {
-        if (shopManifest.setBaseCurrency && !symbolSet.current) {
-          symbolSet.current = true;
-          getTokenInformation(shopManifest.setBaseCurrency.tokenAddr)
-            .then(({ symbol }) => {
-              setCurrencySym(symbol);
-            })
-            .catch((e) => debug(e));
-        }
-      })
-      .catch((e) => {
-        debug(e);
-      });
-  }, []);
-
   const checkForErrors = () => {
     if (!selectedCurrency) {
       setErrorMsg("You must selected a currency first.");
@@ -83,9 +62,17 @@ const NewCart = ({
   const clearCart = async () => {
     try {
       const ids = Object.keys(cartItemIds!);
-      for (const id of ids) {
-        await stateManager?.orders.changeItems(orderId!, id as ItemId, 0);
-      }
+      await stateManager?.orders.removesItems(
+        orderId!,
+        ids.map((id) => {
+          //Here we are getting the quantity to remove from the order for every item in the cart.
+          const selectedQuantity = cartItemIds![id as ItemId];
+          return {
+            listingId: id as ItemId,
+            quantity: selectedQuantity,
+          };
+        }),
+      );
     } catch (error) {
       debug(error);
     }
@@ -112,7 +99,6 @@ const NewCart = ({
 
     return Array.from([...cartItemsMap.keys()]).map((id) => {
       const item = cartItemsMap.get(id as ItemId);
-
       if (!item || !item.metadata.image) return;
       return (
         <div
@@ -151,7 +137,7 @@ const NewCart = ({
       <h2 className="my-4" data-testid="total">
         {calculateTotal()}
       </h2>
-      <h2 data-testid="symbol">{currencySym}</h2>
+      <h2 data-testid="symbol">{baseTokenDetails.symbol}</h2>
       <Button
         onClick={() => {
           checkForErrors();

@@ -18,15 +18,16 @@ import ErrorMessage from "@/app/common/components/ErrorMessage";
 import debugLib from "debug";
 import ValidationWarning from "@/app/common/components/ValidationWarning";
 import { isValidHex } from "@/app/utils";
+import { UpdateShopManifest } from "@massmarket/stateManager/types";
+import { BlockchainClient } from "@massmarket/blockchain";
 
 const StoreProfile = ({ close }: { close: () => void }) => {
-  const { stateManager } = useStoreContext();
-  const { relayClient } = useMyContext();
+  const { stateManager, shopDetails } = useStoreContext();
+  const { relayClient, clientWallet, shopId } = useMyContext();
   const [storeName, setStoreName] = useState<string>("");
-  const [baseAddr, setStoreBase] = useState<TokenAddr | "">("");
+  const [baseAddr, setStoreBase] = useState<TokenAddr | null>(null);
   const [avatar, setAvatar] = useState<FormData | null>(null);
   const [addTokenAddr, setAddTokenAddr] = useState<TokenAddr | "">("");
-  const { shopId } = useMyContext();
   const [acceptedCurrencies, setAcceptedCurrencies] = useState<
     ShopCurrencies[]
   >([]);
@@ -44,17 +45,17 @@ const StoreProfile = ({ close }: { close: () => void }) => {
 
   useEffect(() => {
     const onUpdateEvent = async (updatedManifest: ShopManifest) => {
-      setAcceptedCurrencies(updatedManifest.acceptedCurrencies);
-      setStoreName(updatedManifest.name);
-      setStoreBase(updatedManifest.setBaseCurrency!.tokenAddr);
+      const { pricingCurrency, acceptedCurrencies } = updatedManifest;
+      setAcceptedCurrencies(acceptedCurrencies);
+      setStoreBase(pricingCurrency.address);
     };
 
     stateManager.manifest
       .get()
       .then((shopManifest) => {
-        setStoreName(shopManifest.name);
-        setStoreBase(shopManifest.setBaseCurrency!.tokenAddr);
-        setAcceptedCurrencies(shopManifest.acceptedCurrencies);
+        const { pricingCurrency, acceptedCurrencies } = shopManifest;
+        setAcceptedCurrencies(acceptedCurrencies);
+        setStoreBase(pricingCurrency.address);
       })
       .catch((e) => {
         debug(e);
@@ -67,12 +68,11 @@ const StoreProfile = ({ close }: { close: () => void }) => {
       stateManager.manifest.on("update", onUpdateEvent);
     };
   }, []);
-
   const copyToClipboard = () => {
     navigator.clipboard.writeText(shopId!);
   };
   const updateStoreInfo = async () => {
-    if (!baseAddr.length) {
+    if (!baseAddr) {
       setValidationError("Missing base currency address for store.");
     } else if (!baseChainId) {
       setValidationError("Missing base currency chainId for store.");
@@ -80,18 +80,39 @@ const StoreProfile = ({ close }: { close: () => void }) => {
       setValidationError("Base token address must be a valid hex value");
     } else {
       try {
-        const manifest: Partial<ShopManifest> = {
-          name: storeName,
-          setBaseCurrency: {
-            tokenAddr: baseAddr as TokenAddr,
+        const manifest: Partial<UpdateShopManifest> = {
+          setPricingCurrency: {
+            address: baseAddr as TokenAddr,
             chainId: baseChainId,
           },
         };
-        if (avatar) {
-          const path = await relayClient!.uploadBlob(avatar as FormData);
-          manifest["profilePictureUrl"] = path.url;
-        }
         await stateManager!.manifest.update(manifest);
+
+        //If avatar or store name changed, setShopMetadataURI.
+        if (avatar || storeName !== shopDetails.name) {
+          const metadata = {
+            name: storeName,
+            //If new avatar was uploaded, upload the image, otherwise use previous image.
+            image: avatar
+              ? (await relayClient!.uploadBlob(avatar as FormData)).url
+              : shopDetails.profilePictureUrl,
+          };
+          const jsn = JSON.stringify(metadata);
+          const blob = new Blob([jsn], { type: "application/json" });
+          const file = new File([blob], "file.json");
+          const formData = new FormData();
+          formData.append("file", file);
+
+          relayClient!.uploadBlob(formData).then(({ url }) => {
+            if (clientWallet && shopId) {
+              const blockchainClient = new BlockchainClient(shopId);
+              blockchainClient
+                .setShopMetadataURI(clientWallet, url)
+                .then()
+                .catch((e) => debug(e));
+            }
+          });
+        }
         close();
       } catch (error) {
         debug(error);
@@ -101,7 +122,7 @@ const StoreProfile = ({ close }: { close: () => void }) => {
   const renderAcceptedCurrencies = () => {
     return acceptedCurrencies.map((c, i) => (
       <p data-testid="accepted-currencies" key={i}>
-        {c.tokenAddr}
+        {c.address}
       </p>
     ));
   };
@@ -115,7 +136,7 @@ const StoreProfile = ({ close }: { close: () => void }) => {
         await stateManager!.manifest.update({
           addAcceptedCurrencies: [
             {
-              tokenAddr: addTokenAddr as TokenAddr,
+              address: addTokenAddr as TokenAddr,
               chainId: addAcceptedChainId,
             },
           ],
@@ -194,13 +215,13 @@ const StoreProfile = ({ close }: { close: () => void }) => {
                   className="flex flex-col"
                   onSubmit={(e) => e.preventDefault()}
                 >
-                  <label htmlFor="baseCurrency">Base Currency</label>
+                  <label htmlFor="pricingCurrency">Base Currency</label>
                   <div>
                     <input
                       className="border-2 border-solid mt-1 p-2 rounded"
                       data-testid="baseAddr"
                       name="baseAddr"
-                      value={baseAddr}
+                      value={baseAddr ?? ""}
                       onChange={(e) =>
                         setStoreBase(e.target.value as TokenAddr)
                       }

@@ -10,10 +10,11 @@ import {
   type Transport,
   type Account,
   type Chain,
+  PublicClient,
 } from "viem";
 
 import * as abi from "@massmarket/contracts";
-import { eventId } from "@massmarket/utils";
+import { random32BytesHex } from "@massmarket/utils";
 import { privateKeyToAccount } from "viem/accounts";
 
 export type WalletClientWithAccount = WalletClient<

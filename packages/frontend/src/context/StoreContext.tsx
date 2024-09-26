@@ -11,14 +11,17 @@ import {
   Tag,
   ShopCurrencies,
   OrderId,
-  Status,
+  OrderState,
+  BaseTokenDetails,
 } from "@/types";
 import { useMyContext } from "./MyContext";
 import { StoreContent } from "@/context/types";
 import { LoadingStateManager } from "@/context/initialLoadingState";
 import { StateManager } from "@massmarket/stateManager";
 import { hardhat, mainnet } from "viem/chains";
-import { createPublicClient, http } from "viem";
+import * as abi from "@massmarket/contracts";
+import { createPublicClient, http, Address } from "viem";
+import { getTokenInformation, getChainById } from "@/app/utils";
 
 // @ts-expect-error FIXME
 export const StoreContext = createContext<StoreContent>({});
@@ -29,10 +32,19 @@ export const StoreContextProvider = (
   const [orderId, setOrderId] = useState<OrderId | null>(null);
   const [selectedCurrency, setSelectedCurrency] =
     useState<ShopCurrencies | null>(null);
-  const { relayClient, shopId } = useMyContext();
+  const { relayClient, shopId, shopPublicClient } = useMyContext();
   const [stateManager, setStateManager] = useState<
     StateManager | LoadingStateManager
   >(new LoadingStateManager());
+
+  const [shopDetails, setShopDetails] = useState({
+    name: "",
+    profilePictureUrl: "",
+  });
+  const [baseTokenDetails, setBaseTokenDetails] = useState<BaseTokenDetails>({
+    decimal: null,
+    symbol: "",
+  });
 
   useEffect(() => {
     if (relayClient && shopId) {
@@ -92,52 +104,39 @@ export const StoreContextProvider = (
     }
   }, [relayClient]);
 
-  // useEffect(() => {
-  //   (async () => {
-  //     const currencies = Array.from([...acceptedCurrencies.keys()]);
-  //     const _cur = currencies.filter((a) => !acceptedCurrencies.get(a));
-  //     _cur.map(async (address) => {
-  //       const { symbol } = await getTokenInformation(address);
+  useEffect(() => {
+    if (shopPublicClient && shopId) {
+      shopPublicClient
+        .readContract({
+          address: abi.addresses.ShopReg as Address,
+          abi: abi.ShopReg,
+          functionName: "tokenURI",
+          args: [BigInt(shopId)],
+        })
+        .then(() => {
+          //FIXME: setShopDetails with data from uri
+          console.log({ uri });
+        });
+    }
 
-  //       setAcceptedCurrencies({
-  //         type: UPDATE_SYMBOL,
-  //         payload: { tokenAddr: address, symbol },
-  //       });
-  //     });
-  //   })();
-  // }, [acceptedCurrencies]);
-
-  // const verify = async (
-  //   _orderItems: Map<OrderId, OrderState>,
-  //   _pubKeys: `0x${string}`[],
-  // ) => {
-  //   console.log(_orderItems, _pubKeys);
-  // const addresses = _pubKeys.map((k) => {
-  //   return Address.fromPublicKey(hexToBytes(k)).toString();
-  // });
-  // const keysArr: `0x${string}`[] = _orderItems.size
-  //   ? Array.from([..._orderItems.keys()])
-  //   : [];
-  // for (const _orderId of keysArr) {
-  //   const _order = _orderItems.get(_orderId) as OrderState;
-  //   if (_order && _order.status !== Status.Failed) {
-  //     const sig = _order.signature as `0x${string}`;
-  //     const retrievedAdd = await relayClient!.recoverSignedAddress(
-  //       _orderId,
-  //       sig,
-  //     );
-  //     if (addresses.includes(retrievedAdd.toLowerCase())) {
-  //       console.log("inside inclue", _orderId);
-  //       setOrderId(_orderId);
-  //     }
-  //   }
-  // }
-  // };
+    //Get base token decimal and symbol.
+    stateManager.manifest.get().then((manifest) => {
+      const { chainId, address } = manifest.pricingCurrency;
+      const chain = getChainById(chainId!);
+      const baseTokenPublicClient = createPublicClient({
+        chain,
+        transport: http(),
+      });
+      getTokenInformation(baseTokenPublicClient, address!).then((res) => {
+        setBaseTokenDetails(res);
+      });
+    });
+  }, []);
 
   const getOrderId = async () => {
-    //FIXME: This part is still wip. We will have to go through the openOrders(array) and verify the signed address via keycard store. There should only be one open order per clerk.
-    // For now just set current order id as the first open order
-    const openOrders = await stateManager?.orders.getStatus(Status.Pending);
+    const openOrders = await stateManager?.orders.getStatus(
+      OrderState.STATE_OPEN,
+    );
     let order_id: OrderId;
     if (openOrders && openOrders.length) {
       order_id = openOrders[0] as OrderId;
@@ -158,6 +157,8 @@ export const StoreContextProvider = (
     selectedCurrency,
     setSelectedCurrency,
     stateManager,
+    shopDetails,
+    baseTokenDetails,
   };
 
   return (

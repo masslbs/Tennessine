@@ -334,6 +334,9 @@ importers:
       '@massmarket/blockchain':
         specifier: workspace:*
         version: link:../blockchain
+      '@massmarket/contracts':
+        specifier: workspace:*
+        version: link:../contracts
       '@types/events':
         specifier: ^3.0.3
         version: 3.0.3

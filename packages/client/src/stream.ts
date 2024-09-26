@@ -41,16 +41,19 @@ export class ReadableEventStream {
             const event = schema.ShopEvent.decode(anyEvt.event.value);
             const signer = await recoverMessageAddress({
               message: { raw: anyEvt.event.value },
+              //FIXME: client returns signature {raw:}
               signature: anyEvt.signature,
             });
-
             self.controller.enqueue({ event, signer });
           }
           // Send a response to the relay to indicate that we have processed the events
-          self.client.encodeAndSendNoWait(schema.EventPushResponse, {
+          self.client.encodeAndSendNoWait({
             requestId,
+            //FIXME : response.payload?
+            response: {},
           });
         }
+
         await self.nextPushReq;
         return this.pull!(controller);
       },
@@ -58,12 +61,14 @@ export class ReadableEventStream {
   }
 
   // This method is meant to be used by the client to enqueue events into the stream
-  enqueue(pushReq: schema.EventPushRequest) {
+  enqueue(pushReq: schema.SubscriptionPushRequest) {
     this.queue.push(pushReq);
     this.resolve(null);
-    this.nextPushReq = new Promise<schema.EventPushRequest>((resolve) => {
-      this.resolve = resolve;
-    });
+    this.nextPushReq = new Promise<schema.SubscriptionPushRequest>(
+      (resolve) => {
+        this.resolve = resolve;
+      },
+    );
   }
   //This method enqueues events created by the client, since these are not sent back from the relay.
   async outgoingEnqueue(event: schema.IShopEvent, signer: `0x${string}`) {

@@ -18,16 +18,13 @@ export type ClientContext = {
   clientWallet: WalletClientWithAccount | null;
   avatar: string | null;
   relayClient: RelayClient | null;
-  publicClient: PublicClient | null;
+  shopPublicClient: PublicClient | null;
   inviteSecret: `0x${string}` | null;
   shopId: ShopId | null;
   setShopId: Dispatch<SetStateAction<ShopId | null>>;
   setKeyCardEnrolled: Dispatch<SetStateAction<boolean>>;
   setInviteSecret: Dispatch<SetStateAction<`0x${string}` | null>>;
   setWallet: Dispatch<SetStateAction<WalletClientWithAccount | null>>;
-  getTokenInformation: (
-    d: `0x${string}`,
-  ) => Promise<{ name: string; symbol: string; decimals: number }>;
   checkPermissions: () => Promise<boolean>;
   setRelayClient: Dispatch<SetStateAction<RelayClient | null>>;
   createNewRelayClient: () => Promise<RelayClient | null>;
@@ -40,4 +37,6 @@ export type StoreContent = {
   setSelectedCurrency: Dispatch<ShopCurrencies>;
   stateManager: StateManager | LoadingStateManager;
   getOrderId: () => Promise<OrderId>;
+  baseTokenDetails: { decimal: number; symbol: string };
+  shopDetails: { name: string; profilePictureUrl: string };
 };

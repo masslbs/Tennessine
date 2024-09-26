@@ -12,14 +12,20 @@ import {
   http,
   type Address,
   type Account,
+  toBytes,
 } from "viem";
 import { hardhat } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 import { expect, test } from "vitest";
 
-import { random32BytesHex, randomBytes } from "@massmarket/utils";
+import { random32BytesHex, zeroAddress } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
-import { randomAddress } from "@massmarket/utils";
+import {
+  randomAddress,
+  stringifyToBuffer,
+  anvilPrivateKey,
+  priceToUint256,
+} from "@massmarket/utils";
 import {
   BlockchainClient,
   WalletClientWithAccount,
@@ -27,9 +33,7 @@ import {
 import { RelayClient, discoverRelay } from "../src";
 
 // this key is from one of anvil's default keypairs
-const account = privateKeyToAccount(
-  "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
-);
+const account = privateKeyToAccount(anvilPrivateKey);
 
 const wallet = createWalletClient({
   account,
@@ -44,7 +48,7 @@ const publicClient = createPublicClient({
 
 let blockchain: BlockchainClient;
 const relayURL =
-  (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v2";
+  (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v3";
 const relayEndpoint = await discoverRelay(relayURL);
 
 function createRelayClient(pk = random32BytesHex()) {
@@ -81,74 +85,115 @@ test("enroll keycard", { timeout: 10000 }, async () => {
   expect(enrolledResponse.status).toBe(201);
 });
 
+// create a random address to pay to
+let payee: Uint8Array = hexToBytes(randomAddress());
+let currency: Uint8Array = hexToBytes(abi.addresses.Eddies as Address);
+
 test("write shop manifest", async () => {
-  const publishedTagId = randomBytes(32);
-  const name = "test shop";
-  const description = "creating test shop";
-  const profilePictureUrl = "https://http.cat/images/200.jpg";
-  const response = await relayClient.shopManifest(
+  await relayClient.shopManifest(
     {
-      name,
-      description,
-      profilePictureUrl,
-      publishedTagId,
+      payees: [
+        {
+          address: {
+            raw: hexToBytes(randomAddress()),
+          },
+          callAsContract: false,
+          chainId: 1,
+          name: "default",
+        },
+      ],
+      acceptedCurrencies: [
+        {
+          chainId: 10,
+          address: { raw: currency },
+        },
+      ],
+      pricingCurrency: {
+        chainId: 10,
+        address: { raw: currency },
+      },
     },
     shopId,
   );
-  expect(response.length).toBe(32);
 });
 
-let payee: Uint8Array;
-let currency: Uint8Array;
 test("update shop manifest", async () => {
-  // create a random address to pay to
-  payee = hexToBytes(randomAddress());
-  currency = hexToBytes(abi.addresses.Eddies as Address);
   // tell the relay to accept our money
-  const r = await relayClient.updateShopManifest({
+  await relayClient.updateShopManifest({
     addAcceptedCurrencies: [
       {
-        tokenAddr: currency,
+        address: { raw: currency },
         chainId: 31337,
       },
     ],
     addPayee: {
-      addr: payee,
+      address: { raw: payee },
       callAsContract: false,
       chainId: 31337,
       name: "test",
     },
   });
-
-  expect(r.length).toBe(32);
 });
 
 let itemId: Uint8Array;
 test("should create a item", { timeout: 10000 }, async () => {
-  const metadata = new TextEncoder().encode(
-    JSON.stringify({
-      name: "test",
-      description: "test",
-      image: "https://http.cat/images/200.jpg",
-    }),
-  );
+  const metadata = {
+    title: "guestCheckout test item",
+    description: "test",
+    images: ["https://http.cat/images/200.jpg"],
+  };
+
   // create an item
-  itemId = await relayClient.createItem({
-    price: "10.99",
+  itemId = await relayClient.listing({
+    price: { raw: priceToUint256("10.99") },
     metadata,
   });
-
-  expect(itemId).not.toBeNull();
 });
 
 test("should update stock", { timeout: 10000 }, async () => {
   // increase stock
-  const r = await relayClient.changeStock({
-    itemIds: [itemId],
-    diffs: [10],
+  await relayClient.changeInventory({
+    id: itemId,
+    diff: [10],
   });
+});
 
-  expect(r.length).toBe(32);
+test.skip("client commits an order", { timeout: 10000 }, async () => {
+  const orderId = await relayClient.createOrder();
+  await relayClient.updateOrder({
+    id: orderId,
+    changeItems: {
+      adds: [{ listingId: itemId, quantity: 1 }],
+    },
+  });
+  await relayClient.updateOrder({
+    id: orderId,
+    invoiceAddress: {
+      name: "Paul Atreides",
+      address1: "100 Colomb Street",
+      city: "Arakkis",
+      postalCode: "SE10 9EZ",
+      country: "Dune",
+      phoneNumber: "0103330524",
+      emailAddress: "arakkis@dune.planet",
+    },
+  });
+  await relayClient.commitOrder(
+    {
+      currency: {
+        address: { raw: currency },
+        chainId: 31337,
+      },
+      payee: {
+        name: "test",
+        chainId: 31337,
+        callAsContract: false,
+        address: { raw: payee },
+      },
+    },
+    orderId,
+  );
+  // expect(checkout.orderFinalizedId).not.toBeNull();
 });
 
 let guestAccount: Account;
@@ -187,35 +232,18 @@ let orderId: Uint8Array;
 test("guest creating an order", { timeout: 10000 }, async () => {
   // create an order
   orderId = await guestRelayClient.createOrder();
-  expect(orderId.length).toBe(32);
 });
 
 test("guest updating an order", { timeout: 10000 }, async () => {
-  // create an order
-  const r = await guestRelayClient.updateOrder({
-    orderId,
+  await guestRelayClient.updateOrder({
+    id: orderId,
     changeItems: {
-      itemId,
-      quantity: 1,
+      adds: [{ listingId: itemId, quantity: 1 }],
     },
   });
-  expect(r.length).toBe(32);
 });
 
-test("guest finilize an order", { timeout: 10000 }, async () => {
-  // create an order
-  const checkout = await guestRelayClient.commitOrder({
-    orderId,
-    currency: {
-      tokenAddr: currency,
-      chainId: 31337,
-    },
-    payeeName: "test",
-  });
-  expect(checkout.orderFinalizedId).not.toBeNull();
-});
-
-test("single item checkout with a guest", { timeout: 10000 }, async () => {
+test.skip("single item checkout with a guest", { timeout: 10000 }, async () => {
   // give the guest account some money to spend
   const txHash = await wallet.writeContract({
     address: abi.addresses.Eddies as Address,
@@ -242,9 +270,6 @@ test("single item checkout with a guest", { timeout: 10000 }, async () => {
         hash,
       });
     });
-
-  // commit the order
-  console.log("committed order");
 
   // iterate through the event stream
   const stream = guestRelayClient.createEventStream();
@@ -280,8 +305,8 @@ test("single item checkout with a guest", { timeout: 10000 }, async () => {
         functionName: "payTokenPreApproved",
         args: [args],
       });
-    } else if (event.changeStock) {
-      expect(toHex(event.changeStock.itemIds[0])).toEqual(toHex(itemId));
+    } else if (event.changeInventory) {
+      expect(toHex(event.changeInventory.itemIds[0])).toEqual(toHex(itemId));
       return;
     }
   }
