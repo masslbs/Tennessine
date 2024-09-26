@@ -17,12 +17,7 @@ export function requestId() {
 }
 
 export function eventId() {
-  const num = randomBytes(64);
-  return Number(num[0]);
-  // const a = new BigInt64Array(1);
-  // crypto.getRandomValues(a);
-  // return crypto.getRandomValues(a)[0];
-  // return BigInt.asUintN(64, a[0]);
+  return randomBytes(32);
 }
 
 export function randomBytes(n: number) {
