@@ -99,7 +99,10 @@ export interface ShopCurrencies {
 }
 //This interface is only for create manifest.
 export interface CreateShopManifest {
-  baseCurrency: ShopCurrencies | {};
+  baseCurrency: {
+    address: `0x${string}` | null;
+    chainId: number | null;
+  };
   acceptedCurrencies: ShopCurrencies[];
   payees: Payee[];
 }

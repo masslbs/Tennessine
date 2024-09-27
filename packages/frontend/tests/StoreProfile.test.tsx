@@ -46,11 +46,9 @@ describe("StoreProfile Component", async () => {
   test("Shop Manifest data is rendered correctly", async () => {
     merchantsWrapper(<StoreProfile close={() => {}} />, sm, order.id);
     await waitFor(async () => {
-      // const nameForm = screen.getByDisplayValue("Test Shop");
       const baseCurrencyForm = screen.getByDisplayValue(zeroAddress);
       const acceptedCurrencies = screen.getAllByTestId(`accepted-currencies`);
       const tokenAddresses = acceptedCurrencies.map((c) => c.textContent);
-      // expect(nameForm).toBeTruthy;
       expect(baseCurrencyForm).toBeTruthy();
       expect(tokenAddresses.length).toEqual(2);
       //Correct accepted currencies are rendered
@@ -81,16 +79,6 @@ describe("StoreProfile Component", async () => {
   test("Update store name and baseCurrency via UI", async () => {
     merchantsWrapper(<StoreProfile close={() => {}} />, sm, order.id);
 
-    // await waitFor(async () => {
-    //   const nameInput = screen.getByTestId(`storeName`);
-    //   await user.clear(nameInput);
-    //   await user.type(nameInput, "Updated Store Name");
-    //   await user.click(screen.getByRole("button", { name: /Update/i }));
-    //   //Test that updating name via UI updated the store.
-    //   const manifest = await sm.manifest.get();
-    //   expect(manifest.name).toEqual(`Updated Store Name`);
-    // });
-
     await waitFor(async () => {
       const chainIdInput = screen.getByTestId(`baseChainId`);
       const addrInput = screen.getByTestId(`baseAddr`);
@@ -101,7 +89,6 @@ describe("StoreProfile Component", async () => {
       await user.click(screen.getByRole("button", { name: /Update/i }));
       const manifest = await sm.manifest.get();
       expect(manifest.baseCurrency!.address).toEqual(randomAddr1);
-      // expect(manifest.name).toEqual(`Updated Store Name`);
     });
   });
 });

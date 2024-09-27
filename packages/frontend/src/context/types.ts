@@ -41,4 +41,5 @@ export type StoreContent = {
   stateManager: StateManager | LoadingStateManager;
   getOrderId: () => Promise<OrderId>;
   baseCurrencyInfo: { decimal: number; symbol: string };
+  shopDetails: { name: string; profilePictureUrl: string };
 };

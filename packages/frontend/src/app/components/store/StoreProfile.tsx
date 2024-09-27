@@ -19,15 +19,15 @@ import debugLib from "debug";
 import ValidationWarning from "@/app/common/components/ValidationWarning";
 import { isValidHex } from "@/app/utils";
 import { UpdateShopManifest } from "@massmarket/stateManager/types";
+import { BlockchainClient } from "@massmarket/blockchain";
 
 const StoreProfile = ({ close }: { close: () => void }) => {
-  const { stateManager } = useStoreContext();
-  const { relayClient } = useMyContext();
+  const { stateManager, shopDetails } = useStoreContext();
+  const { relayClient, clientWallet, shopId } = useMyContext();
   const [storeName, setStoreName] = useState<string>("");
-  const [baseAddr, setStoreBase] = useState<TokenAddr | "">("");
+  const [baseAddr, setStoreBase] = useState<TokenAddr | null>(null);
   const [avatar, setAvatar] = useState<FormData | null>(null);
   const [addTokenAddr, setAddTokenAddr] = useState<TokenAddr | "">("");
-  const { shopId } = useMyContext();
   const [acceptedCurrencies, setAcceptedCurrencies] = useState<
     ShopCurrencies[]
   >([]);
@@ -45,17 +45,17 @@ const StoreProfile = ({ close }: { close: () => void }) => {
 
   useEffect(() => {
     const onUpdateEvent = async (updatedManifest: ShopManifest) => {
-      setAcceptedCurrencies(updatedManifest.acceptedCurrencies);
-      // setStoreName(updatedManifest.name);
-      setStoreBase(updatedManifest.baseCurrency!.address);
+      const { baseCurrency, acceptedCurrencies } = updatedManifest;
+      setAcceptedCurrencies(acceptedCurrencies);
+      setStoreBase(baseCurrency.address);
     };
 
     stateManager.manifest
       .get()
       .then((shopManifest) => {
-        // setStoreName(shopManifest.name);
-        setStoreBase(shopManifest.baseCurrency.address);
-        setAcceptedCurrencies(shopManifest.acceptedCurrencies);
+        const { baseCurrency, acceptedCurrencies } = shopManifest;
+        setAcceptedCurrencies(acceptedCurrencies);
+        setStoreBase(baseCurrency.address);
       })
       .catch((e) => {
         debug(e);
@@ -68,12 +68,11 @@ const StoreProfile = ({ close }: { close: () => void }) => {
       stateManager.manifest.on("update", onUpdateEvent);
     };
   }, []);
-
   const copyToClipboard = () => {
     navigator.clipboard.writeText(shopId!);
   };
   const updateStoreInfo = async () => {
-    if (!baseAddr.length) {
+    if (!baseAddr) {
       setValidationError("Missing base currency address for store.");
     } else if (!baseChainId) {
       setValidationError("Missing base currency chainId for store.");
@@ -87,11 +86,33 @@ const StoreProfile = ({ close }: { close: () => void }) => {
             chainId: baseChainId,
           },
         };
-
-        if (avatar) {
-          const path = await relayClient!.uploadBlob(avatar as FormData);
-        }
         await stateManager!.manifest.update(manifest);
+
+        //If avatar or store name changed, setShopMetadataURI.
+        if (avatar || storeName !== shopDetails.name) {
+          const metadata = {
+            name: storeName,
+            //If new avatar was uploaded, upload the image, otherwise use previous image.
+            image: avatar
+              ? (await relayClient!.uploadBlob(avatar as FormData)).url
+              : shopDetails.profilePictureUrl,
+          };
+          const jsn = JSON.stringify(metadata);
+          const blob = new Blob([jsn], { type: "application/json" });
+          const file = new File([blob], "file.json");
+          const formData = new FormData();
+          formData.append("file", file);
+
+          relayClient!.uploadBlob(formData).then(({ url }) => {
+            if (clientWallet && shopId) {
+              const blockchainClient = new BlockchainClient(shopId);
+              blockchainClient
+                .setShopMetadataURI(clientWallet, url)
+                .then()
+                .catch((e) => debug(e));
+            }
+          });
+        }
         close();
       } catch (error) {
         debug(error);
@@ -200,7 +221,7 @@ const StoreProfile = ({ close }: { close: () => void }) => {
                       className="border-2 border-solid mt-1 p-2 rounded"
                       data-testid="baseAddr"
                       name="baseAddr"
-                      value={baseAddr}
+                      value={baseAddr ?? ""}
                       onChange={(e) =>
                         setStoreBase(e.target.value as TokenAddr)
                       }

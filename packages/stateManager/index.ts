@@ -229,10 +229,13 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
   async _processEvent(event: schema.ShopEvents) {
     if (event.manifest) {
       const sm = event.manifest;
-      const manifest = {
+      const manifest: ShopManifest = {
         tokenId: bytesToHex(sm.tokenId.raw),
         acceptedCurrencies: [],
-        baseCurrency: {},
+        baseCurrency: {
+          address: null,
+          chainId: null,
+        },
         payees: [],
       };
       if (sm.acceptedCurrencies) {
