@@ -40,4 +40,5 @@ export type StoreContent = {
   setSelectedCurrency: Dispatch<ShopCurrencies>;
   stateManager: StateManager | LoadingStateManager;
   getOrderId: () => Promise<OrderId>;
+  baseCurrencyInfo: { decimal: number; symbol: string };
 };

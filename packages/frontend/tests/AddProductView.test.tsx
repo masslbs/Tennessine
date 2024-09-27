@@ -2,7 +2,7 @@ import React from "react";
 import { describe, expect, test, beforeAll } from "vitest";
 import { screen, fireEvent, waitFor } from "@testing-library/react";
 import AddProductView from "@/app/products/edit/page";
-import { randomAddress, zeroAddress } from "@massmarket/utils";
+import { randomAddress, zeroAddress, formatPrice } from "@massmarket/utils";
 import userEvent from "@testing-library/user-event";
 import { getStateManager, merchantsWrapper } from "./test-utils";
 import mockRouter from "next-router-mock";
@@ -65,7 +65,7 @@ describe("Add New Product", async () => {
     for await (const [id, item] of sm.items.iterator()) {
       count++;
       expect(item.baseInfo.title).toEqual("Brand New Item");
-      expect(formatUnits(BigInt(item.basePrice), decimals)).toEqual("4");
+      expect(formatPrice(item.basePrice, decimals)).toEqual("4");
       expect(item.baseInfo.description).toEqual("Description...");
       expect(item.quantity).toEqual(5);
     }

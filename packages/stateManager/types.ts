@@ -85,7 +85,7 @@ export interface PaymentDetails {
 }
 export interface Order {
   id: `0x${string}`;
-  items: { [key: string]: number };
+  items: { [key: `0x${string}`]: number };
   status: OrderState;
   shippingDetails?: ShippingDetails;
   invoiceAddress?: ShippingDetails;

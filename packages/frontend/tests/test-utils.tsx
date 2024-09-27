@@ -18,12 +18,15 @@ import { MemoryLevel } from "memory-level";
 import { WagmiProvider } from "wagmi";
 import { config } from "../src/wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { random32BytesHex } from "@massmarket/utils";
+import {
+  anvilPrivateKey,
+  random32BytesHex,
+  zeroAddress,
+} from "@massmarket/utils";
 import { RelayClient, discoverRelay } from "@massmarket/client";
 import { privateKeyToAccount } from "viem/accounts";
 import { createWalletClient, http } from "viem";
 import { hardhat } from "viem/chains";
-import { zeroAddress, anvilAddress } from "@massmarket/utils";
 
 const mockClient = new MockClient();
 const relayURL =
@@ -39,7 +42,7 @@ function createRelayClient(pk = random32BytesHex()) {
 
 export function getWallet() {
   // this key is from one of anvil's default keypairs
-  const account = privateKeyToAccount(anvilAddress);
+  const account = privateKeyToAccount(anvilPrivateKey);
   const wallet = createWalletClient({
     account,
     chain: hardhat,

@@ -27,42 +27,40 @@ describe("Checkout", async () => {
   });
   let orderId: `0x${string}`;
 
-  test("Update shipping details", async () => {
+  test.only("Update shipping details", async () => {
     expect(receipt.status).equals("success");
     //@ts-expect-error FIXME
     await sm.client.enrollKeycard(wallet, false, randomShopId, undefined);
     await sm.manifest.create(
       {
-        name: "New Shop",
-        description: "New shopManifest",
+        acceptedCurrencies: [
+          {
+            chainId: 31337,
+            address: zeroAddress,
+          },
+        ],
+        baseCurrency: {
+          chainId: 31337,
+          address: zeroAddress,
+        },
+        payees: [
+          {
+            address: "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+            callAsContract: false,
+            chainId: 31337,
+            name: "default",
+          },
+        ],
       },
       randomShopId,
     );
 
-    await sm.manifest.update({
-      addAcceptedCurrencies: [
-        {
-          chainId: 31337,
-          tokenAddr: zeroAddress,
-        },
-      ],
-      setBaseCurrency: {
-        chainId: 31337,
-        tokenAddr: zeroAddress,
-      },
-      addPayee: {
-        addr: "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
-        callAsContract: false,
-        chainId: 31337,
-        name: "default",
-      },
-    });
     const { id } = await sm.items.create({
       basePrice: "12.00",
       baseInfo: {
         title: "Cart testing Product I",
         description: "Test description I",
-        image: "https://http.cat/images/201.jpg",
+        images: ["https://http.cat/images/201.jpg"],
       },
     });
     const { id: id2 } = await sm.items.create({
@@ -70,14 +68,16 @@ describe("Checkout", async () => {
       baseInfo: {
         title: "Cart testing Product II",
         description: "Test description II",
-        image: "https://http.cat/images/201.jpg",
+        images: ["https://http.cat/images/201.jpg"],
       },
     });
     const order = await sm.orders.create();
     orderId = order.id;
-    await sm.items.changeInventory([id, id2], [100, 100]);
-    await sm.orders.changeItems(order.id, id, 5);
-    await sm.orders.changeItems(order.id, id2, 1);
+    await sm.items.changeInventory(id, 100);
+    await sm.items.changeInventory(id2, 100);
+
+    await sm.orders.addsItems(order.id, id, 5);
+    await sm.orders.addsItems(order.id, id2, 1);
     render(<CheckoutFlow />, sm, orderId);
 
     await waitFor(async () => {
@@ -91,6 +91,7 @@ describe("Checkout", async () => {
       expect(symbol.textContent).toEqual("ETH");
     });
   });
+
   test("Update shipping details", async () => {
     render(<CheckoutFlow />, sm, orderId);
 

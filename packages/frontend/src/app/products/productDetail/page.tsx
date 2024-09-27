@@ -146,14 +146,14 @@ const ProductDetail = () => {
     try {
       const diff = !addedToCart
         ? quantity
-        : quantity - currentCartItems?.[itemId];
+        : quantity - currentCartItems![itemId];
       if (diff > 0) {
         await stateManager!.orders.addsItems(orderId, itemId, diff);
       } else {
         await stateManager!.orders.removesItems(
           orderId,
           itemId,
-          currentCartItems?.[itemId] - quantity,
+          currentCartItems![itemId]! - quantity,
         );
       }
       setButton("Review");
@@ -266,9 +266,9 @@ const ProductDetail = () => {
         />
         <div className="m-4">
           <div className="flex">
-            {item.baseInfo.image && (
+            {item.baseInfo.images[0] && (
               <Image
-                src={item.baseInfo.image}
+                src={item.baseInfo.images[0]}
                 alt="product-detail-image"
                 width={136}
                 height={136}
