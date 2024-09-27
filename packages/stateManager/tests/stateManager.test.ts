@@ -46,6 +46,7 @@ const keycardStore = db.sublevel<string, KeyCard>("keycardStore", {
   valueEncoding: "json",
 });
 
+//FIXME: Test Vector tests will fail till ids are changed back to bytes.
 describe("Fill state manager with test vectors", async () => {
   const client = new MockClient();
   const stateManager = new StateManager(
@@ -249,6 +250,7 @@ describe("Fill state manager with test vectors", async () => {
     expect(committedOrders.length).toEqual(committedCount);
   });
 });
+
 describe("CRUD functions update stores", async () => {
   const eddies = abi.addresses.Eddies.toLowerCase() as Address;
   const client = new MockClient();
@@ -376,7 +378,7 @@ describe("CRUD functions update stores", async () => {
       description: "Test description 1",
       images: ["https://http.cat/images/201.jpg"],
     };
-    let id: number;
+    let id: `0x${string}`;
     beforeEach(async () => {
       const res = await stateManager.items.create(
         {
@@ -434,7 +436,7 @@ describe("CRUD functions update stores", async () => {
   });
 
   describe("OrderManager", () => {
-    let itemId: number;
+    let itemId: `0x${string}`;
     beforeEach(async () => {
       const item = await stateManager.items.create({
         basePrice: "12.00",
@@ -452,6 +454,9 @@ describe("CRUD functions update stores", async () => {
       await stateManager.orders.addsItems(order1.id, itemId, 4);
       const uo = await stateManager.orders.get(order1.id);
       expect(uo.items[itemId]).toEqual(4);
+      await stateManager.orders.addsItems(order1.id, itemId, 5);
+      const uo2 = await stateManager.orders.get(order1.id);
+      expect(uo2.items[itemId]).toEqual(9);
 
       // //Since we just created this order, status should be open.
       expect(uo.status).toEqual(OrderState.STATE_OPEN);
@@ -464,10 +469,10 @@ describe("CRUD functions update stores", async () => {
       // //removes items from order
       await stateManager.orders.removesItems(order1.id, itemId, 3);
       const changedOrder = await stateManager.orders.get(order1.id);
-      expect(changedOrder.items[itemId]).toEqual(1);
+      // 9 - 3 = 6
+      expect(changedOrder.items[itemId]).toEqual(6);
     });
   });
-  /* TODO: re-enable
   test("updateOrder - updateShippingDetails/updateInvoiceAddress", async () => {
     const { id } = await stateManager.orders.create();
     const shippingInfo = {
@@ -516,7 +521,7 @@ describe("CRUD functions update stores", async () => {
       OrderState.STATE_CANCELED,
     );
     expect(cancelledOrders[0]).toEqual(id);
-    //Make sure the order id is not open orders
+    //Make sure the order id is not in open orders
     const openOrders = await stateManager.orders.getStatus(
       OrderState.STATE_OPEN,
     );
@@ -536,15 +541,25 @@ describe("CRUD functions update stores", async () => {
     expect(order.paymentDetails).toBeFalsy();
 
     await stateManager.orders.commit(id, zeroAddress, 1, payee);
+
+    //Make sure the order is only in committed orders.
+    const committedOrders = await stateManager.orders.getStatus(
+      OrderState.STATE_COMMITED,
+    );
+    const o = committedOrders.find((oId) => oId === id);
+    expect(o).toBeTruthy();
+
     let received = false;
     stateManager.orders.on("paymentDetails", (order) => {
       received = true;
     });
+    //Mimic client event paymentDetails once commit is called.
+    client.sendPaymentDetails(id).then();
+
     await vi.waitUntil(async () => {
       return received;
     });
     const committed = await stateManager.orders.get(id);
     expect(committed.paymentDetails).toBeTruthy();
   });
- */
 });

@@ -23,20 +23,20 @@ import {
 
 // This is an interface that is used to retrieve and store objects from a persistant layer
 export type Store<T extends ShopObjectTypes> = {
-  put(key: string | number | OrderState, value: T): Promise<void>;
-  get(key: string | number | OrderState): Promise<T>;
-  iterator(): AsyncIterable<[number | string, T]>;
+  put(key: string | `0x${string}` | OrderState, value: T): Promise<void>;
+  get(key: string | `0x${string}` | OrderState): Promise<T>;
+  iterator(): AsyncIterable<[string | `0x${string}` | OrderState, T]>;
 };
 
 // Given an eventId which is the returned value of the network event
 // This returns a promise that resolves once the event has been emitted as js event
 function eventListenAndResolve<T = ShopObjectTypes>(
-  eventId: number,
+  eventId: Uint8Array,
   em: EventEmitter,
   eventName: string,
 ): Promise<T> {
   return new Promise((resolve, _) => {
-    function onUpdate(update: T, eId: number) {
+    function onUpdate(update: T, eId: Uint8Array) {
       if (eId === eventId) {
         resolve(update);
         em.removeListener(eventName, onUpdate);
@@ -46,7 +46,7 @@ function eventListenAndResolve<T = ShopObjectTypes>(
   });
 }
 async function storeOrdersByStatus(
-  orderId: number,
+  orderId: `0x${string}`,
   store: Store<Order | OrdersByStatus>,
   status: OrderState,
 ) {
@@ -75,7 +75,7 @@ abstract class PublicObjectManager<
     super();
   }
   abstract _processEvent(event: schema.ShopEvents): Promise<void>;
-  abstract get(key?: string | number): Promise<T>;
+  abstract get(key?: string | `0x${string}`): Promise<T>;
   get iterator() {
     return this.store.iterator.bind(this.store);
   }
@@ -91,7 +91,7 @@ class ListingManager extends PublicObjectManager<Item> {
   async _processEvent(event: schema.ShopEvents): Promise<void> {
     if (event.listing) {
       const cl = event.listing;
-      const { id } = cl;
+      const id = bytesToHex(cl.id);
       const item = {
         id: id,
         basePrice: fromBytes(cl.basePrice.raw, "number").toString(),
@@ -105,7 +105,7 @@ class ListingManager extends PublicObjectManager<Item> {
       return;
     } else if (event.updateListing) {
       const ul = event.updateListing;
-      const { id } = ul;
+      const id = bytesToHex(ul.id);
       const item = await this.store.get(id);
       if (ul.baseInfo) {
         item.baseInfo = ul.baseInfo;
@@ -121,7 +121,7 @@ class ListingManager extends PublicObjectManager<Item> {
       return;
     } else if (event.changeInventory) {
       const cs = event.changeInventory;
-      const itemId = cs.id;
+      const itemId = bytesToHex(cs.id);
       const item = await this.store.get(itemId);
       item.quantity = item.quantity + cs.diff;
       await this.store.put(itemId, item);
@@ -130,28 +130,32 @@ class ListingManager extends PublicObjectManager<Item> {
     } else if (event.updateTag) {
       // Add or remove tagId to item
       const ut = event.updateTag;
-      const tagId = ut.id;
+      const tagId = bytesToHex(ut.id);
       if (ut.addListingIds) {
         const itemIds = ut.addListingIds;
         await Promise.all(
-          itemIds.map(async (itemId: number) => {
-            const item = await this.store.get(itemId);
+          itemIds.map(async (itemId: Uint8Array) => {
+            const iid = bytesToHex(itemId);
+            const item = await this.store.get(iid);
             item.tags.push(tagId);
             // this.emit("addListingIds", itemId, ut.eventId);
-            this.emit("addItemId", itemId, ut.eventId);
-            return await this.store.put(itemId, item);
+            this.emit("addItemId", iid, ut.eventId);
+            return await this.store.put(iid, item);
           }),
         );
         return;
       } else if (ut.removeListingIds) {
         const itemIds = ut.removeListingIds;
         await Promise.all(
-          itemIds.map(async (itemId: number) => {
-            const item = await this.store.get(itemId);
+          itemIds.map(async (itemId: Uint8Array) => {
+            const iid = bytesToHex(itemId);
+            const item = await this.store.get(iid);
             // remove `tagId` from item.tags array
-            item.tags = [...item.tags.filter((id: number) => id !== tagId)];
+            item.tags = [
+              ...item.tags.filter((id: `0x${string}`) => id !== tagId),
+            ];
             this.emit("removeItemId", tagId, ut.eventId);
-            await this.store.put(itemId, item);
+            await this.store.put(iid, item);
           }),
         );
         return;
@@ -173,7 +177,7 @@ class ListingManager extends PublicObjectManager<Item> {
     //ui object to be passed to the network with converted network data types.
     //we are declaring the update object as type schema.IUpdateItem since we are changing values from hex to bytes and is no longer a interface Item
     const ui: schema.IUpdateItem = {
-      id: update.id,
+      id: hexToBytes(update.id!),
     };
     if (update.basePrice) {
       ui.basePrice = { raw: priceToUint256(update.basePrice, decimals) };
@@ -189,30 +193,30 @@ class ListingManager extends PublicObjectManager<Item> {
     return eventListenAndResolve<Item>(eventId, this, "update");
   }
 
-  async addItemToTag(tagId: number, itemId: number) {
+  async addItemToTag(tagId: `0x${string}`, itemId: `0x${string}`) {
     const eventId = await this.client.updateTag({
-      id: tagId,
-      addListingIds: [itemId],
+      id: hexToBytes(tagId),
+      addListingIds: [hexToBytes(itemId)],
     });
     return eventListenAndResolve<Item>(eventId, this, "addItemId");
   }
 
-  async removeItemFromTag(tagId: number, itemId: number) {
+  async removeItemFromTag(tagId: `0x${string}`, itemId: `0x${string}`) {
     const eventId = await this.client.updateTag({
-      id: tagId,
-      removeListingIds: [itemId],
+      id: hexToBytes(tagId),
+      removeListingIds: [hexToBytes(itemId)],
     });
     return eventListenAndResolve<Item>(eventId, this, "removeItemId");
   }
 
-  async changeInventory(itemId: number, diff: number) {
+  async changeInventory(itemId: `0x${string}`, diff: number) {
     const eventId = await this.client.changeInventory({
-      id: itemId,
+      id: hexToBytes(itemId),
       diff,
     });
     return eventListenAndResolve<Item>(eventId, this, "changeInventory");
   }
-  get(key: number) {
+  get(key: `0x${string}`) {
     return this.store.get(key);
   }
 }
@@ -226,7 +230,7 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
     if (event.manifest) {
       const sm = event.manifest;
       const manifest = {
-        tokenId: sm.tokenId.raw,
+        tokenId: bytesToHex(sm.tokenId.raw),
         acceptedCurrencies: [],
         baseCurrency: {},
         payees: [],
@@ -356,7 +360,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
   async _processEvent(event: schema.ShopEvents): Promise<void> {
     if (event.createOrder) {
       const co = event.createOrder;
-      const { id } = co;
+      const id = bytesToHex(co.id);
       const o = {
         id: id,
         items: {},
@@ -368,25 +372,27 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       return;
     } else if (event.updateOrder) {
       const uo: schema.IUpdateOrder = event.updateOrder;
-      const { id } = uo;
+      const id = bytesToHex(uo.id);
       const order = (await this.store.get(id)) as Order;
       if (uo.changeItems) {
         const ci = uo.changeItems;
         if (ci.adds) {
           ci.adds.map((orderItem: schema.IOrderedItem) => {
+            const listingId = bytesToHex(orderItem.listingId);
             //Check if item is already selected. If it is, add quantity to already selected quantity.
-            if (order.items[orderItem.listingId]) {
-              order.items[orderItem.listingId] =
-                orderItem.quantity + order.items[orderItem.listingId];
+            if (order.items[listingId]) {
+              order.items[listingId] =
+                orderItem.quantity + order.items[listingId];
             } else {
-              order.items[orderItem.listingId] = orderItem.quantity;
+              order.items[listingId] = orderItem.quantity;
             }
           });
         }
         if (ci.removes) {
           ci.removes.map((orderItem: schema.IOrderedItem) => {
-            order.items[orderItem.listingId] =
-              order.items[orderItem.listingId] - orderItem.quantity;
+            const listingId = bytesToHex(orderItem.listingId);
+            order.items[listingId] =
+              order.items[listingId] - orderItem.quantity;
           });
         }
         await this.store.put(id, order);
@@ -517,13 +523,13 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
     }
   }
 
-  get(key: number) {
+  get(key: `0x${string}`) {
     return this.store.get(key) as Promise<Order>;
   }
 
-  async getStatus(key: OrderState): Promise<number[]> {
+  async getStatus(key: OrderState): Promise<`0x${string}`[]> {
     try {
-      return (await this.store.get(key)) as number[];
+      return (await this.store.get(key)) as `0x${string}`[];
     } catch (error) {
       const e = error as IError;
       if (e.notFound) {
@@ -540,60 +546,66 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
     return eventListenAndResolve<Order>(eventId, this, "create");
   }
 
-  async addsItems(orderId: number, itemId: number, quantity: number) {
+  async addsItems(
+    orderId: `0x${string}`,
+    itemId: `0x${string}`,
+    quantity: number,
+  ) {
     const eventId = await this.client.updateOrder({
-      id: orderId,
-      changeItems: { adds: [{ listingId: itemId, quantity }] },
+      id: hexToBytes(orderId),
+      changeItems: { adds: [{ listingId: hexToBytes(itemId), quantity }] },
     });
     // resolves after the `changeItems` event has been fired, which happens after the relay accepts the update and has written to the database.
     return eventListenAndResolve<Order>(eventId, this, "changeItems");
   }
-  async removesItems(orderId: number, itemId: number, quantity: number) {
+  async removesItems(
+    orderId: `0x${string}`,
+    itemId: `0x${string}`,
+    quantity: number,
+  ) {
     const eventId = await this.client.updateOrder({
-      id: orderId,
-      changeItems: { removes: [{ listingId: itemId, quantity }] },
+      id: hexToBytes(orderId),
+      changeItems: { removes: [{ listingId: hexToBytes(itemId), quantity }] },
     });
     // resolves after the `changeItems` event has been fired, which happens after the relay accepts the update and has written to the database.
     return eventListenAndResolve<Order>(eventId, this, "changeItems");
   }
   async updateShippingDetails(
-    orderId: number,
+    orderId: `0x${string}`,
     update: Partial<ShippingDetails>,
   ) {
     const eventId = await this.client.updateOrder({
-      id: orderId,
+      id: hexToBytes(orderId),
       shippingAddress: update,
     });
     return eventListenAndResolve<Order>(eventId, this, "shippingAddress");
   }
   async updateInvoiceAddress(
-    orderId: number,
+    orderId: `0x${string}`,
     update: Partial<ShippingDetails>,
   ) {
     const eventId = await this.client.updateOrder({
-      id: orderId,
+      id: hexToBytes(orderId),
       invoiceAddress: update,
     });
     return eventListenAndResolve<Order>(eventId, this, "invoiceAddress");
   }
 
-  async cancel(orderId: number, timestamp: number) {
+  async cancel(orderId: `0x${string}`, timestamp: number) {
     const eventId = await this.client.updateOrder({
-      id: orderId,
+      id: hexToBytes(orderId),
       canceled: { canceldAt: timestamp },
     });
     return eventListenAndResolve<Order>(eventId, this, "orderCanceled");
   }
 
   async commit(
-    orderId: number,
+    orderId: `0x${string}`,
     addr: `0x${string}`,
     chainId: number,
     payee: Payee,
   ) {
-    //Currently, this is a network request only.
-    //This will trigger an updateOrder event from the relay, with a itemsFinalized property.
-    return this.client.commitOrder(
+    const eventId = await this.client.commitOrder(
       {
         currency: {
           address: { raw: hexToBytes(addr) },
@@ -601,8 +613,9 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         },
         payee,
       },
-      orderId,
+      hexToBytes(orderId),
     );
+    return eventListenAndResolve<Order>(eventId, this, "orderCommit");
   }
 }
 class TagManager extends PublicObjectManager<Tag> {
@@ -613,7 +626,7 @@ class TagManager extends PublicObjectManager<Tag> {
   async _processEvent(event: schema.ShopEvents): Promise<void> {
     if (event.tag) {
       const ct = event.tag;
-      const { id } = ct;
+      const id = bytesToHex(ct.id);
       const tag = {
         id: id,
         name: ct.name,
@@ -629,7 +642,7 @@ class TagManager extends PublicObjectManager<Tag> {
     return eventListenAndResolve<Tag>(eventId, this, "create");
   }
 
-  get(key: number) {
+  get(key: `0x${string}`) {
     return this.store.get(key);
   }
 }

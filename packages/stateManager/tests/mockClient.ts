@@ -5,11 +5,10 @@
 import { hexToBytes } from "viem";
 import schema, {
   type PBObject,
-  type PBMessage,
   testVectors,
   type TestVectors,
 } from "@massmarket/schema";
-import { requestId, eventId } from "@massmarket/utils";
+import { eventId } from "@massmarket/utils";
 import { ReadableEventStream } from "@massmarket/client/stream";
 import { IRelayClient } from "../types";
 
@@ -144,10 +143,21 @@ export class MockClient implements IRelayClient {
     return { url: file.name };
   }
 
-  async commitOrder(order: schema.CommitItemsToOrderRequest, orderId: number) {
+  async commitOrder(
+    order: schema.CommitItemsToOrderRequest,
+    orderId: Uint8Array,
+  ) {
+    const eId = eventId();
     this.sendShopEvent({
+      updateOrder: { id: orderId, commit: order, eventId: eId },
+    });
+    return eId;
+  }
+  //Mimics client-fired event paymentDetails after commit event - for testing paymentDetails gets stored correctly in stateManager.
+  async sendPaymentDetails(orderId: `0x${string}`) {
+    return this.sendShopEvent({
       updateOrder: {
-        id: orderId,
+        id: hexToBytes(orderId),
         eventId: hexToBytes(
           "0x32b36377007de4ab0fcc3eabb1ef3a7096c42004c14babc3638f81b9d0982625",
         ),
@@ -174,9 +184,7 @@ export class MockClient implements IRelayClient {
         },
       },
     });
-    return;
   }
-
   createEventStream() {
     return this.eventStream.stream;
   }

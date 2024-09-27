@@ -5,7 +5,7 @@
 import { EventEmitter } from "events";
 
 import { WebSocket } from "isows";
-import { hexToBytes, hexToBigInt, toBytes } from "viem";
+import { hexToBytes, hexToBigInt, toBytes, bytesToHex } from "viem";
 import { PrivateKeyAccount } from "viem/accounts";
 import { createSiweMessage } from "viem/siwe";
 
@@ -356,13 +356,13 @@ export class RelayClient extends EventEmitter {
   // null erc20Addr means vanilla ethererum is used
   async commitOrder(
     order: schema.ICommitItemsToOrderRequest,
-    orderId: number,
+    orderId: Uint8Array,
   ): Promise<schema.CommitItemsToOrderResponse> {
     const eId = eventId();
     await this.sendShopEvent({
       updateOrder: { id: orderId, commit: order, eventId: eId },
     });
-    return eventId();
+    return eId;
   }
 }
 

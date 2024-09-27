@@ -39,16 +39,16 @@ export interface Metadata {
   images: string[];
 }
 export interface Item {
-  id: number;
+  id: `0x${string}`;
   basePrice: string;
   baseInfo: Metadata;
-  tags: number[];
+  tags: `0x${string}`[];
   quantity: number;
   viewState: ListingViewState;
 }
 
 export interface Tag {
-  id: number;
+  id: `0x${string}`;
   name: string;
 }
 
@@ -56,7 +56,7 @@ export interface IError {
   notFound: boolean;
   code: string;
 }
-export type OrdersByStatus = number[];
+export type OrdersByStatus = `0x${string}`[];
 
 export type KeyCard = `0x${string}`[];
 export interface ShippingDetails {
@@ -84,7 +84,7 @@ export interface PaymentDetails {
   total: string;
 }
 export interface Order {
-  id: number;
+  id: `0x${string}`;
   items: { [key: string]: number };
   status: OrderState;
   shippingDetails?: ShippingDetails;
