@@ -19,7 +19,7 @@ describe("Checkout", async () => {
 
   const randomShopId = random32BytesHex();
   const wallet = getWallet();
-  const sm = getStateManager(true);
+  const sm = await getStateManager(true);
   const blockchain = new BlockchainClient(randomShopId);
   const transactionHash = await blockchain.createShop(wallet);
   const receipt = await publicClient.waitForTransactionReceipt({
@@ -27,64 +27,67 @@ describe("Checkout", async () => {
   });
   let orderId: `0x${string}`;
 
-  test("Update shipping details", async () => {
-    expect(receipt.status).equals("success");
-    //@ts-expect-error FIXME
-    await sm.client.enrollKeycard(wallet, false, randomShopId, undefined);
-    await sm.manifest.create(
-      {
-        name: "New Shop",
-        description: "New shopManifest",
-      },
-      randomShopId,
-    );
+  test("Display correct cart item values", async () => {
+    await waitFor(async () => {
+      expect(receipt.status).equals("success");
 
-    await sm.manifest.update({
-      addAcceptedCurrencies: [
+      await sm.keycards.addAddress(wallet.account.address);
+      //@ts-expect-error FIXME
+      await sm.client.enrollKeycard(wallet, false, randomShopId, undefined);
+      await sm.manifest.create(
         {
+          name: "New Shop",
+          description: "New shopManifest",
+        },
+        randomShopId,
+      );
+
+      await sm.manifest.update({
+        addAcceptedCurrencies: [
+          {
+            chainId: 31337,
+            tokenAddr: zeroAddress,
+          },
+        ],
+        setBaseCurrency: {
           chainId: 31337,
           tokenAddr: zeroAddress,
         },
-      ],
-      setBaseCurrency: {
-        chainId: 31337,
-        tokenAddr: zeroAddress,
-      },
-      addPayee: {
-        addr: "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
-        callAsContract: false,
-        chainId: 31337,
-        name: "default",
-      },
+        addPayee: {
+          addr: "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+          callAsContract: false,
+          chainId: 31337,
+          name: "default",
+        },
+      });
+      const { id } = await sm.items.create({
+        price: "12.00",
+        metadata: {
+          title: "Cart testing Product I",
+          description: "Test description I",
+          image: "https://http.cat/images/201.jpg",
+        },
+      });
+      const { id: id2 } = await sm.items.create({
+        price: "5.00",
+        metadata: {
+          title: "Cart testing Product II",
+          description: "Test description II",
+          image: "https://http.cat/images/201.jpg",
+        },
+      });
+      const order = await sm.orders.create();
+      orderId = order.id;
+      await sm.items.changeStock([id, id2], [100, 100]);
+      await sm.orders.changeItems(orderId, id, 5);
+      await sm.orders.changeItems(orderId, id2, 1);
+      render(<CheckoutFlow />, sm, orderId);
     });
-    const { id } = await sm.items.create({
-      price: "12.00",
-      metadata: {
-        title: "Cart testing Product I",
-        description: "Test description I",
-        image: "https://http.cat/images/201.jpg",
-      },
-    });
-    const { id: id2 } = await sm.items.create({
-      price: "5.00",
-      metadata: {
-        title: "Cart testing Product II",
-        description: "Test description II",
-        image: "https://http.cat/images/201.jpg",
-      },
-    });
-    const order = await sm.orders.create();
-    orderId = order.id;
-    await sm.items.changeStock([id, id2], [100, 100]);
-    await sm.orders.changeItems(order.id, id, 5);
-    await sm.orders.changeItems(order.id, id2, 1);
-    render(<CheckoutFlow />, sm, orderId);
 
     await waitFor(async () => {
       const p = await screen.findAllByTestId("title");
       const total = await screen.findByTestId("total");
       const symbol = await screen.findByTestId("symbol");
-
       expect(p.length).toEqual(2);
       expect(total.textContent).toEqual("65");
       // Since we set our base currency as ETH, this checks that getTokenInformation fn is correct.

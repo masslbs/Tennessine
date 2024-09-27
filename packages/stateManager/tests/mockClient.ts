@@ -21,10 +21,13 @@ export type IncomingEvent = {
 export class MockClient implements IRelayClient {
   vectors: TestVectors;
   private eventStream: ReadableEventStream;
-
+  keyCardWallet: { address: `0x${string}` };
   constructor() {
     this.vectors = testVectors;
     this.eventStream = new ReadableEventStream(this);
+    this.keyCardWallet = {
+      address: this.vectors.signatures.signer_address as `0x${string}`,
+    };
   }
   encodeAndSendNoWait(encoder: PBMessage, object: PBObject = {}) {
     return Promise.resolve(encoder.encode(object).finish());
@@ -55,7 +58,11 @@ export class MockClient implements IRelayClient {
   }
 
   sendShopEvent(shopEvent: schema.IShopEvent) {
-    this.eventStream.outgoingEnqueue(shopEvent);
+    this.eventStream.outgoingEnqueue(
+      shopEvent,
+      //Pass in test signer address for event verification
+      this.keyCardWallet.address,
+    );
     return new Promise((resolve) => {
       resolve;
     });

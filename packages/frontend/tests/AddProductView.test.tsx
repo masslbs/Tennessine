@@ -8,7 +8,7 @@ import { getStateManager, merchantsWrapper } from "./test-utils";
 import mockRouter from "next-router-mock";
 
 describe("Add New Product", async () => {
-  const sm = getStateManager();
+  const sm = await getStateManager();
   const user = userEvent.setup();
   const tag = await sm.tags.create("visible");
   const order = await sm.orders.create();
@@ -115,11 +115,13 @@ describe("Add New Product", async () => {
       await user.click(screen.getByRole("button", { name: /update/i }));
     });
 
-    const item = await sm.items.get(id);
-    expect(item.quantity).toEqual(5);
-    expect(item.metadata.title).toEqual("Updated Store Name");
-    expect(item.metadata.description).toEqual("Updated description");
-    expect(item.price).toEqual("54.00");
-    expect(item.tags[0]).toEqual(tag.id);
+    await waitFor(async () => {
+      const item = await sm.items.get(id);
+      expect(item.quantity).toEqual(5);
+      expect(item.metadata.title).toEqual("Updated Store Name");
+      expect(item.metadata.description).toEqual("Updated description");
+      expect(item.price).toEqual("54.00");
+      expect(item.tags[0]).toEqual(tag.id);
+    });
   });
 });

@@ -17,6 +17,8 @@ import { useMyContext } from "./MyContext";
 import { StoreContent } from "@/context/types";
 import { LoadingStateManager } from "@/context/initialLoadingState";
 import { StateManager } from "@massmarket/stateManager";
+import { hardhat, mainnet } from "viem/chains";
+import { createPublicClient, http } from "viem";
 
 // @ts-expect-error FIXME
 export const StoreContext = createContext<StoreContent>({});
@@ -33,7 +35,7 @@ export const StoreContextProvider = (
   >(new LoadingStateManager());
 
   useEffect(() => {
-    if (relayClient) {
+    if (relayClient && shopId) {
       (async () => {
         //FIXME: Prerender error if we import normally: https://nextjs.org/docs/messages/prerender-error
         const { Level } = await import("level");
@@ -62,6 +64,10 @@ export const StoreContextProvider = (
         const keycardStore = db.sublevel<string, KeyCard>("keycardStore", {
           valueEncoding: "json",
         });
+        const shopClient = createPublicClient({
+          chain: process.env.DEV ? hardhat : mainnet,
+          transport: http(),
+        });
         //instantiate stateManager and set it in context
         const stateManager = new StateManager(
           relayClient,
@@ -70,6 +76,8 @@ export const StoreContextProvider = (
           shopManifestStore,
           orderStore,
           keycardStore,
+          shopId,
+          shopClient,
         );
         setStateManager(stateManager);
 

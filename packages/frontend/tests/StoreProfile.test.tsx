@@ -6,9 +6,9 @@ import { randomAddress, zeroAddress } from "@massmarket/utils";
 import StoreProfile from "@/app/components/store/StoreProfile";
 import { merchantsWrapper, getStateManager } from "./test-utils";
 
-const sm = getStateManager();
-
 describe("StoreProfile Component", async () => {
+  const sm = await getStateManager();
+
   const user = userEvent.setup();
   const order = await sm.orders.create();
 
@@ -63,14 +63,16 @@ describe("StoreProfile Component", async () => {
       await user.type(screen.getByTestId(`addTokenChainId`), "1");
       await user.click(addButton);
     });
-    //Test that adding new currency via UI updated the store.
-    const manifest = await sm.manifest.get();
-    expect(manifest.acceptedCurrencies.length).toEqual(3);
+    await waitFor(async () => {
+      //Test that adding new currency via UI updated the store.
+      const manifest = await sm.manifest.get();
+      expect(manifest.acceptedCurrencies.length).toEqual(3);
 
-    //Test that UI is updated
-    const acceptedCurrencies = screen.getAllByTestId(`accepted-currencies`);
-    const tokenAddresses = acceptedCurrencies.map((c) => c.textContent);
-    expect(tokenAddresses.length).toEqual(3);
+      //Test that UI is updated
+      const acceptedCurrencies = screen.getAllByTestId(`accepted-currencies`);
+      const tokenAddresses = acceptedCurrencies.map((c) => c.textContent);
+      expect(tokenAddresses.length).toEqual(3);
+    });
   });
   test("Update store name and baseCurrency via UI", async () => {
     merchantsWrapper(<StoreProfile close={() => {}} />, sm, order.id);

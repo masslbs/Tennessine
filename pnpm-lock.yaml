@@ -306,9 +306,15 @@ importers:
 
   packages/stateManager:
     dependencies:
+      '@ethereumjs/util':
+        specifier: ^9.0.3
+        version: 9.0.3
       '@massmarket/client':
         specifier: workspace:*
         version: link:../client
+      '@massmarket/contracts':
+        specifier: workspace:*
+        version: link:../contracts
       '@massmarket/schema':
         specifier: workspace:*
         version: link:../schema
