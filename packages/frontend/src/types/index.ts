@@ -74,3 +74,7 @@ export enum Status {
   Pending = "PENDING",
   Complete = "COMPLETE",
 }
+export interface BaseTokenDetails {
+  decimal: null | number;
+  symbol: string;
+}

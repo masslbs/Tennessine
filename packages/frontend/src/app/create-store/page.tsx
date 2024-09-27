@@ -23,7 +23,7 @@ import ErrorMessage from "@/app/common/components/ErrorMessage";
 
 const StoreCreation = () => {
   const {
-    publicClient,
+    shopPublicClient,
     clientWallet,
     shopId,
     setShopId,
@@ -106,12 +106,12 @@ const StoreCreation = () => {
   const createShop = async () => {
     checkRequiredFields();
     const rc = await createNewRelayClient();
-    if (rc && publicClient && clientWallet && shopId) {
+    if (rc && shopPublicClient && clientWallet && shopId) {
       try {
         const blockchainClient = new BlockchainClient(shopId);
         const hash = await blockchainClient.createShop(clientWallet);
 
-        const transaction = await publicClient.waitForTransactionReceipt({
+        const transaction = await shopPublicClient.waitForTransactionReceipt({
           hash,
           retryCount: 10,
         });

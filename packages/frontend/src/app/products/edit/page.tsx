@@ -23,7 +23,7 @@ const AddProductView = () => {
   const searchParams = useSearchParams();
   const itemId = searchParams.get("itemId") as ItemId | "new";
   const editView = itemId !== "new";
-  const { stateManager, baseCurrencyInfo } = useStoreContext();
+  const { stateManager, baseTokenDetails } = useStoreContext();
   const { relayClient } = useMyContext();
   const [productInView, setProductInView] = useState<Item | null>(null);
   const [imgSrc, setImg] = useState<string>("");
@@ -44,7 +44,7 @@ const AddProductView = () => {
         .then((item) => {
           setProductInView(item);
           setTitle(item.baseInfo.title);
-          const price = formatPrice(item.basePrice, baseCurrencyInfo.decimal);
+          const price = formatPrice(item.basePrice, baseTokenDetails.decimal);
           setPrice(price);
           setImg(item.baseInfo.images[0]);
           setDescription(item.baseInfo.description);
@@ -118,7 +118,7 @@ const AddProductView = () => {
     try {
       const { id } = await stateManager!.items.create(
         newItem,
-        baseCurrencyInfo.decimals,
+        baseTokenDetails.decimal,
       );
       await stateManager!.items.changeInventory(id, units);
       if (selectedTags.length) {

@@ -17,7 +17,7 @@ import debugLib from "debug";
 import { formatPrice } from "@massmarket/utils";
 
 const ProductDetail = () => {
-  const { stateManager, getOrderId, baseCurrencyInfo } = useStoreContext();
+  const { stateManager, getOrderId, baseTokenDetails } = useStoreContext();
   const { isMerchantView } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -89,7 +89,7 @@ const ProductDetail = () => {
         .get(itemId)
         .then((item) => {
           setItem(item);
-          const price = formatPrice(item.basePrice, baseCurrencyInfo.decimal);
+          const price = formatPrice(item.basePrice, baseTokenDetails.decimal);
           setPrice(price);
           setAvailable(item.quantity || 0);
           if (!currentCartItems) return;

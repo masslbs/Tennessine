@@ -29,7 +29,7 @@ const Products = () => {
   const [sortOption, setCheck] = useState<SortOption>(SortOption.default);
   const [searchPhrase, setSearchPhrase] = useState<string>("");
   const [showSuccessMsg, setMsg] = useState<boolean>(success !== null);
-  const { stateManager, baseCurrencyInfo } = useStoreContext();
+  const { stateManager, baseTokenDetails } = useStoreContext();
   const [products, setProducts] = useState(new Map());
   const [arrToRender, setArrToRender] = useState<Item[] | null>(null);
   const [resultCount, setResultCount] = useState<number>(products.size);
@@ -234,7 +234,7 @@ const Products = () => {
                 />
               </div>
               <h4 data-testid={`product-price`}>
-                {formatPrice(item.basePrice, baseCurrencyInfo.decimal)}
+                {formatPrice(item.basePrice, baseTokenDetails.decimal)}
               </h4>
               <p className="text-sm text-gray-400">{item.quantity} left</p>
             </div>

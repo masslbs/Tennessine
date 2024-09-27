@@ -9,14 +9,7 @@ import { useStoreContext } from "@/context/StoreContext";
 import NewCart from "@/app/cart/NewCart";
 import ShippingDetails from "@/app/components/checkout/ShippingDetails";
 import Image from "next/image";
-import {
-  OrderFinalized,
-  Status,
-  Order,
-  TokenAddr,
-  ShopCurrencies,
-  OrderId,
-} from "@/types";
+import { OrderState, Order, OrderId } from "@/types";
 
 import PaymentOptions from "@/app/components/checkout/PaymentOptions";
 import { useMyContext } from "@/context/MyContext";
@@ -26,10 +19,12 @@ import CurrencyChange from "@/app/common/components/CurrencyChange";
 import { zeroAddress } from "@massmarket/contracts";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import debugLib from "debug";
+import { getTokenInformation, getPublicClient } from "@/app/utils";
+import { formatPrice } from "@massmarket/utils";
 
 const CheckoutFlow = () => {
   const { getOrderId, stateManager, selectedCurrency } = useStoreContext();
-  const { publicClient, getTokenInformation } = useMyContext();
+  const { shopId } = useMyContext();
   const [step, setStep] = useState(0);
   const [imgSrc, setSrc] = useState<null | string>(null);
 
@@ -46,7 +41,7 @@ const CheckoutFlow = () => {
   const [confirmedTxHash, setConfirmedTxHash] = useState<null | `0x${string}`>(
     null,
   );
-  const [erc20Amount, setErc20Amount] = useState<null | bigint>(null);
+  const [erc20Amount, setErc20Amount] = useState<null | string>(null);
   const [symbol, setSymbol] = useState<null | string>(null);
   const [openCurrencySelection, setOpen] = useState(false);
   const [orderId, setOrderId] = useState<OrderId | null>(null);
@@ -66,7 +61,7 @@ const CheckoutFlow = () => {
         stateManager.orders
           .get(id)
           .then((order) => {
-            if (order.orderFinalized) {
+            if (order.commit) {
               getDetails(id);
             }
             setCurrentOrder(order);
@@ -95,7 +90,7 @@ const CheckoutFlow = () => {
   });
 
   useEffect(() => {
-    if (currentOrder?.status === Status.Complete) {
+    if (currentOrder && currentOrder.status === OrderState.STATE_PAID) {
       const h = currentOrder.txHash as `0x${string}`;
       setOrderId(null);
       setConfirmedTxHash(h);
@@ -104,71 +99,61 @@ const CheckoutFlow = () => {
   }, [currentOrder]);
 
   useEffect(() => {
+    //Listen for client to send paymentDetails event.
     const onItemsFinalized = (order: Order) => {
       if (order.id === orderId) {
         getDetails(orderId);
       }
     };
-    stateManager.orders.on("itemsFinalized", onItemsFinalized);
+    stateManager.orders.on("paymentDetails", onItemsFinalized);
 
     return () => {
       // Cleanup listeners on unmount
-      stateManager.items.removeListener("itemsFinalized", onItemsFinalized);
+      stateManager.items.removeListener("paymentDetails", onItemsFinalized);
     };
   });
 
   const getDetails = (oId: OrderId) => {
     (async () => {
-      const committed = await stateManager.orders.get(oId!);
-      const {
-        ttl,
-        orderHash,
-        currencyAddr,
-        totalInCrypto,
-        payeeAddr,
-        shopSignature,
-        total,
-      } = committed.orderFinalized as OrderFinalized;
-      // Find the chainId for the currencyAddr used from shopManifest.
-      const manifest = await stateManager.manifest.get();
-      const curr = manifest.acceptedCurrencies.find(
-        (c: ShopCurrencies) => c.tokenAddr === currencyAddr,
+      const committedOrder = await stateManager.orders.get(oId!);
+      const { currency, payee } = committedOrder.commit!;
+      const { total, shopSignature, ttl } = committedOrder.paymentDetails!;
+
+      //Create public client with correct chainId.
+      const committedCurrencyPC = getPublicClient(currency.chainId);
+
+      const { decimal, symbol } = await getTokenInformation(
+        committedCurrencyPC,
+        currency.address,
       );
-      const shopId = manifest.tokenId;
+      const paymentPC = getPublicClient(payee.chainId);
+      //FIXME: get Order hash from paymentDetails.
       const arg = [
-        curr?.chainId,
+        currency.chainId,
         ttl,
         orderHash,
-        currencyAddr,
-        totalInCrypto,
-        payeeAddr,
+        currency.address,
+        total,
+        payee.address,
         false,
         shopId,
         shopSignature,
       ];
-      const ownerAdd = await publicClient!.readContract({
-        address: abi.addresses.ShopReg as `0x${string}`,
-        abi: abi.ShopReg,
-        functionName: "ownerOf",
-        args: [shopId],
-      });
-      const purchaseAdd = await publicClient!.readContract({
+      const purchaseAdd = await paymentPC.readContract({
         address: abi.addresses.Payments as `0x${string}`,
         abi: abi.PaymentsByAddress,
         functionName: "getPaymentAddress",
-        args: [arg, ownerAdd],
+        args: [arg, payee.address],
       });
-      const { decimals, symbol } = await getTokenInformation(
-        currencyAddr as TokenAddr,
-      );
+
       setSymbol(symbol);
       if (purchaseAdd) {
-        const amount = BigInt(totalInCrypto);
-        const displayedErc20 = amount / BigInt(10) ** BigInt(decimals);
+        const amount = BigInt(total);
+        const displayedErc20 = formatPrice(total, decimal);
         const payLink =
-          currencyAddr === zeroAddress
+          currency.address === zeroAddress
             ? `ethereum:${purchaseAdd}?value=${amount}`
-            : `ethereum:${currencyAddr}/transfer?address=${purchaseAdd}&uint256=${amount}`;
+            : `ethereum:${currency.address}/transfer?address=${purchaseAdd}&uint256=${amount}`;
         setPurchaseAddr(purchaseAdd as `0x${string}`);
         setSrc(payLink);
         setCryptoTotal(amount);
@@ -183,27 +168,29 @@ const CheckoutFlow = () => {
     const orderId = await getOrderId();
     if (!selectedCurrency) {
       setErrorMsg("Please select a currency to pay in.");
-    }
-    try {
-      await stateManager.orders.updateShippingDetails(orderId, {
-        name,
-        address1: address,
-        country,
-        city,
-        postalCode,
-        phoneNumber,
-      });
-      await stateManager!.orders.commit(
-        orderId,
-        selectedCurrency!.tokenAddr,
-        selectedCurrency!.chainId,
-        "default",
-      );
-    } catch (error) {
-      // If there was an error while committing, cancel the order.
-      await stateManager!.orders.cancel(orderId, 0);
-      debug(error);
-      setErrorMsg("Error while checking out order");
+    } else {
+      try {
+        await stateManager.orders.updateShippingDetails(orderId, {
+          name,
+          address1: address,
+          country,
+          city,
+          postalCode,
+          phoneNumber,
+        });
+        //FIXME: Get payee from manifest.
+        await stateManager!.orders.commit(
+          orderId,
+          selectedCurrency!.address,
+          selectedCurrency!.chainId,
+          payee,
+        );
+      } catch (error) {
+        // If there was an error while committing, cancel the order.
+        await stateManager!.orders.cancel(orderId);
+        debug(error);
+        setErrorMsg("Error while checking out order");
+      }
     }
   };
 

@@ -12,6 +12,7 @@ import {
   ShopCurrencies,
   OrderId,
   OrderState,
+  BaseTokenDetails,
 } from "@/types";
 import { useMyContext } from "./MyContext";
 import { StoreContent } from "@/context/types";
@@ -19,8 +20,7 @@ import { LoadingStateManager } from "@/context/initialLoadingState";
 import { StateManager } from "@massmarket/stateManager";
 import { BlockchainClient } from "@massmarket/blockchain";
 import { createPublicClient, http } from "viem";
-import { hardhat } from "viem/chains";
-
+import { getTokenInformation, getChainById } from "@/app/utils";
 // @ts-expect-error FIXME
 export const StoreContext = createContext<StoreContent>({});
 
@@ -30,7 +30,7 @@ export const StoreContextProvider = (
   const [orderId, setOrderId] = useState<OrderId | null>(null);
   const [selectedCurrency, setSelectedCurrency] =
     useState<ShopCurrencies | null>(null);
-  const { relayClient, shopId } = useMyContext();
+  const { relayClient, shopId, shopPublicClient } = useMyContext();
   const [stateManager, setStateManager] = useState<
     StateManager | LoadingStateManager
   >(new LoadingStateManager());
@@ -38,6 +38,10 @@ export const StoreContextProvider = (
   const [shopDetails, setShopDetails] = useState({
     name: "",
     profilePictureUrl: "",
+  });
+  const [baseTokenDetails, setBaseTokenDetails] = useState<BaseTokenDetails>({
+    decimal: null,
+    symbol: "",
   });
 
   useEffect(() => {
@@ -93,29 +97,24 @@ export const StoreContextProvider = (
   }, [relayClient]);
 
   useEffect(() => {
-    const publicClient = createPublicClient({
-      chain: hardhat,
-      transport: http(),
-    });
     const blockChainClient = new BlockchainClient();
-    const uri = blockChainClient.getTokenURI(publicClient).then();
+    const uri = blockChainClient.getTokenURI(shopPublicClient!).then();
+    console.log({ uri });
     //FIXME: need to get metadata from uri.
+
+    //Get base token decimal and symbol.
+    stateManager.manifest.get().then((manifest) => {
+      const { chainId, address } = manifest.baseCurrency;
+      const chain = getChainById(chainId!);
+      const baseTokenPublicClient = createPublicClient({
+        chain,
+        transport: http(),
+      });
+      getTokenInformation(baseTokenPublicClient, address!).then((res) => {
+        setBaseTokenDetails(res);
+      });
+    });
   }, []);
-
-  // useEffect(() => {
-  //   (async () => {
-  //     const currencies = Array.from([...acceptedCurrencies.keys()]);
-  //     const _cur = currencies.filter((a) => !acceptedCurrencies.get(a));
-  //     _cur.map(async (address) => {
-  //       const { symbol } = await getTokenInformation(address);
-
-  //       setAcceptedCurrencies({
-  //         type: UPDATE_SYMBOL,
-  //         payload: { tokenAddr: address, symbol },
-  //       });
-  //     });
-  //   })();
-  // }, [acceptedCurrencies]);
 
   const getOrderId = async () => {
     const openOrders = await stateManager?.orders.getStatus(
@@ -142,6 +141,7 @@ export const StoreContextProvider = (
     setSelectedCurrency,
     stateManager,
     shopDetails,
+    baseTokenDetails,
   };
 
   return (

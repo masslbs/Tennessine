@@ -109,9 +109,9 @@ const Wrapper = ({
                 },
                 selectedCurrency: {
                   chainId: 31337,
-                  tokenAddr: zeroAddress,
+                  address: zeroAddress,
                 },
-                baseCurrencyInfo: {
+                baseTokenDetails: {
                   symbol: "ETH",
                   decimal: 18,
                 },
@@ -157,7 +157,7 @@ const MerchantsWrapper = ({
                 getOrderId: async () => {
                   return orderId;
                 },
-                baseCurrencyInfo: {
+                baseTokenDetails: {
                   symbol: "ETH",
                   decimal: 18,
                 },

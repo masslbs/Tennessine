@@ -84,11 +84,10 @@ test("enroll keycard", { timeout: 10000 }, async () => {
   );
   expect(enrolledResponse.status).toBe(201);
 });
-let payee: Uint8Array;
-let currency: Uint8Array;
+
 // create a random address to pay to
-payee = hexToBytes(randomAddress());
-currency = hexToBytes(abi.addresses.Eddies as Address);
+let payee: Uint8Array = hexToBytes(randomAddress());
+let currency: Uint8Array = hexToBytes(abi.addresses.Eddies as Address);
 
 test("write shop manifest", async () => {
   await relayClient.shopManifest(

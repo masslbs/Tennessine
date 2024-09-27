@@ -354,10 +354,7 @@ export class RelayClient extends EventEmitter {
   }
 
   // null erc20Addr means vanilla ethererum is used
-  async commitOrder(
-    order: schema.ICommitItemsToOrderRequest,
-    orderId: Uint8Array,
-  ): Promise<schema.CommitItemsToOrderResponse> {
+  async commitOrder(order: schema.ICommitItems, orderId: Uint8Array) {
     const eId = eventId();
     await this.sendShopEvent({
       updateOrder: { id: orderId, commit: order, eventId: eId },

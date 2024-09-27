@@ -9,7 +9,7 @@ import { hardhat } from "viem/chains";
 import { randomAddress, zeroAddress } from "@massmarket/utils";
 
 import { render, getStateManager } from "./test-utils";
-import { ShopCurrencies } from "@/types";
+import { ShopCurrencies, ShopId } from "@/types";
 import { BlockchainClient } from "@massmarket/blockchain";
 
 const sm = getStateManager();
@@ -91,7 +91,7 @@ describe("Create Store", async () => {
 
       await user.click(saveBtn);
     });
-    let shopId;
+    let shopId: ShopId;
     await waitFor(async () => {
       expect(spy).toHaveBeenCalled();
       const manifest = await sm.manifest.get();
@@ -99,7 +99,7 @@ describe("Create Store", async () => {
       //Correctly saves hardhat and zeroAddress in statemanager.
       expect(bc.chainId).toEqual(1);
       expect(bc.address).toEqual(zeroAddress);
-      shopId = manifest.tokenId;
+      shopId = manifest.tokenId!;
     });
 
     await waitFor(async () => {
@@ -141,11 +141,11 @@ describe("Create Store", async () => {
 
       await user.click(saveBtn);
     });
-    let shopId;
+    let shopId: ShopId;
     await waitFor(async () => {
       expect(spy).toHaveBeenCalled();
       const manifest = await sm.manifest.get();
-      shopId = manifest.tokenId;
+      shopId = manifest.tokenId!;
       const bc = manifest.baseCurrency as ShopCurrencies;
       expect(bc.address).toEqual(zeroAddress);
     });

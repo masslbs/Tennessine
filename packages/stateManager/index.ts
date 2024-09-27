@@ -406,6 +406,8 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         const paymentDetails = {
           paymentId: bytesToHex(pd.paymentId),
           total: fromBytes(pd.total.raw, "number").toString(),
+          shopSignature: bytesToHex(pd.shopSignature.raw),
+          ttl: pd.ttl,
         };
         order.paymentDetails = paymentDetails;
         await this.store.put(id, order);
@@ -500,8 +502,22 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         this.emit("shippingAddress", order, uo.eventId);
         return;
       } else if (uo.commit) {
+        const { chainId, address } = uo.commit.currency;
+        const { payee } = uo.commit;
+        const commit = {
+          currency: {
+            chainId,
+            address,
+          },
+          payee: {
+            name: payee.name,
+            address: payee.address,
+            chainId: payee.chainId,
+          },
+        };
         const currentState = order.status;
         order.status = OrderState.STATE_COMMITED;
+        order.commit = commit;
         await this.store.put(id, order);
         await storeOrdersByStatus(id, this.store, OrderState.STATE_COMMITED);
         //remove the orderId from state of orders before this event.
@@ -594,7 +610,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
     return eventListenAndResolve<Order>(eventId, this, "invoiceAddress");
   }
 
-  async cancel(orderId: `0x${string}`, timestamp: number) {
+  async cancel(orderId: `0x${string}`, timestamp: number = 0) {
     const eventId = await this.client.updateOrder({
       id: hexToBytes(orderId),
       canceled: { canceldAt: timestamp },
@@ -603,6 +619,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
   }
 
   async commit(
+    //FIXME: send currency addresss as one obj
     orderId: `0x${string}`,
     addr: `0x${string}`,
     chainId: number,
@@ -614,7 +631,10 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
           address: { raw: hexToBytes(addr) },
           chainId,
         },
-        payee,
+        payee: {
+          ...payee,
+          address: { raw: hexToBytes(payee.address) },
+        },
       },
       hexToBytes(orderId),
     );

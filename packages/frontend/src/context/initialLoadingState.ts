@@ -1,21 +1,27 @@
-import { Status, ShopManifest, Order, Item, Tag } from "@/types";
+import {
+  ShopManifest,
+  Order,
+  Item,
+  Tag,
+  ListingViewState,
+  OrderState,
+} from "@/types";
 import { EventEmitter } from "events";
 
 const id = "0x" as `0x${string}`;
 const loadingManifest = {
-  name: "",
-  description: "",
-  setBaseCurrency: null,
+  baseCurrency: {
+    address: null,
+    chainId: null,
+  },
   acceptedCurrencies: [],
-  profilePictureUrl: "",
-  payee: [],
-  publishedTagId: null,
+  payees: [],
   tokenId: null,
 };
 const loadingOrders = {
   id,
   items: {},
-  status: Status.Pending,
+  status: OrderState.STATE_UNSPECIFIED,
 };
 const loadingItem = {
   id,
@@ -23,10 +29,11 @@ const loadingItem = {
   baseInfo: {
     title: "",
     description: "",
-    image: "",
+    images: [],
   },
   tags: [],
   quantity: 0,
+  viewState: ListingViewState.LISTING_VIEW_STATE_UNSPECIFIED,
 };
 const loadingTag = {
   id,

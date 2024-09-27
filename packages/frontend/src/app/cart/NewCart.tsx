@@ -3,13 +3,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useStoreContext } from "@/context/StoreContext";
 import Button from "@/app/common/components/Button";
 import { ItemId, OrderId, Order } from "@/types";
 import { useRouter } from "next/navigation";
-import { useMyContext } from "@/context/MyContext";
 import debugLib from "debug";
 
 const NewCart = ({
@@ -19,14 +18,12 @@ const NewCart = ({
   next: () => void;
   orderId: OrderId | null;
 }) => {
-  const { stateManager, selectedCurrency } = useStoreContext();
+  const { stateManager, selectedCurrency, baseTokenDetails } =
+    useStoreContext();
   const [cartItemIds, setItemIds] = useState<Order["items"] | null>(null);
   const [cartItemsMap, setCartMap] = useState(new Map());
   const [errorMsg, setErrorMsg] = useState("");
-  const [currencySym, setCurrencySym] = useState<string | null>(null);
   const router = useRouter();
-  const { getTokenInformation } = useMyContext();
-  const symbolSet = useRef(false);
   const debug = debugLib("frontend:newCart");
 
   useEffect(() => {
@@ -52,24 +49,6 @@ const NewCart = ({
         .catch((e) => debug(e));
     }
   }, [orderId]);
-
-  useEffect(() => {
-    stateManager.manifest
-      .get()
-      .then(async (shopManifest) => {
-        if (shopManifest.setBaseCurrency && !symbolSet.current) {
-          symbolSet.current = true;
-          getTokenInformation(shopManifest.setBaseCurrency.tokenAddr)
-            .then(({ symbol }) => {
-              setCurrencySym(symbol);
-            })
-            .catch((e) => debug(e));
-        }
-      })
-      .catch((e) => {
-        debug(e);
-      });
-  }, []);
 
   const checkForErrors = () => {
     if (!selectedCurrency) {
@@ -149,7 +128,7 @@ const NewCart = ({
       <h2 className="my-4" data-testid="total">
         {calculateTotal()}
       </h2>
-      <h2 data-testid="symbol">{currencySym}</h2>
+      <h2 data-testid="symbol">{baseTokenDetails.symbol}</h2>
       <Button
         onClick={() => {
           checkForErrors();

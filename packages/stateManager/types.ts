@@ -69,19 +69,23 @@ export interface ShippingDetails {
   emailAddress: string;
 }
 
-export interface OrderFinalized {
-  orderHash: string;
-  currencyAddr: string;
-  totalInCrypto: string;
-  ttl: string;
-  payeeAddr: string;
-  shopSignature: string;
-  total: string;
+export interface Commit {
+  currency: {
+    chainId: number;
+    address: `0x${string}`;
+  };
+  payee: {
+    name: string;
+    address: `0x${string}`;
+    chainId: number;
+  };
 }
 
 export interface PaymentDetails {
   paymentId: string;
   total: string;
+  shopSignature: `0x${string}`;
+  ttl: string;
 }
 export interface Order {
   id: `0x${string}`;
@@ -90,7 +94,7 @@ export interface Order {
   shippingDetails?: ShippingDetails;
   invoiceAddress?: ShippingDetails;
   txHash?: string;
-  orderFinalized?: OrderFinalized;
+  commit?: Commit;
   paymentDetails?: PaymentDetails;
 }
 export interface ShopCurrencies {

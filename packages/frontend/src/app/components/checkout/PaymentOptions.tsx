@@ -35,7 +35,7 @@ const PaymentOptions = ({
   postalCode: string;
   country: string;
   number: string;
-  erc20Amount: bigint | null;
+  erc20Amount: string | null;
 }) => {
   const [showPaymentOptions, setShowPaymentOptions] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<"QR" | "Address" | null>(null);
