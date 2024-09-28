@@ -10,6 +10,7 @@ import {
   http,
   toBytes,
   type Address,
+  bytesToHex,
 } from "viem";
 import { hardhat } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
@@ -220,7 +221,7 @@ describe("user behaviour", () => {
   });
 
   describe("editing the listing", () => {
-    let itemId: number;
+    let itemId: Uint8Array;
     beforeEach(async () => {
       const baseInfo = {
         title: "test",
@@ -248,17 +249,22 @@ describe("user behaviour", () => {
     });
 
     describe("tagging", () => {
-      let tagId: number;
+      let tagId: Uint8Array;
       beforeEach(async () => {
         tagId = await relayClient.tag({ name: "Testing New Tag" });
-        console.log({ tagId });
         expect(tagId).not.toBeNull();
       });
       test("add item to tag", async () => {
-        await relayClient.updateTag({ id: tagId, addListingIds: [itemId] });
+        await relayClient.updateTag({
+          id: bytesToHex(tagId),
+          addListingIds: [itemId],
+        });
       });
       test("remove item from tag", async () => {
-        await relayClient.updateTag({ id: tagId, removeListingIds: [itemId] });
+        await relayClient.updateTag({
+          id: bytesToHex(tagId),
+          removeListingIds: [itemId],
+        });
       });
     });
   });

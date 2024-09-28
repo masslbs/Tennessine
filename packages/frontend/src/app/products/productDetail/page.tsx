@@ -150,11 +150,12 @@ const ProductDetail = () => {
       if (diff > 0) {
         await stateManager!.orders.addsItems(orderId, itemId, diff);
       } else {
-        await stateManager!.orders.removesItems(
-          orderId,
-          itemId,
-          currentCartItems![itemId]! - quantity,
-        );
+        await stateManager!.orders.removesItems(orderId, [
+          {
+            listingId: itemId,
+            quantity: currentCartItems![itemId]! - quantity,
+          },
+        ]);
       }
       setButton("Review");
     } catch (error) {
@@ -162,27 +163,6 @@ const ProductDetail = () => {
       setErrorMsg("There was an error updating cart");
     }
   };
-
-  // const flyoutRef = createRef<HTMLDivElement>();
-
-  // const handleFlyout = (event: MouseEvent) => {
-  //   if (
-  //     flyoutRef.current &&
-  //     !flyoutRef.current.contains(event.target as Node)
-  //   ) {
-  //     setShowActions(false);
-  //   }
-  // };
-  // useEffect(() => {
-  //   document.addEventListener("mousedown", (event: MouseEvent) =>
-  //     handleFlyout(event),
-  //   );
-  //   return () => {
-  //     document.removeEventListener("mousedown", (event: MouseEvent) =>
-  //       handleFlyout(event),
-  //     );
-  //   };
-  // }, [flyoutRef]);
 
   const handleDelete = async () => {
     try {

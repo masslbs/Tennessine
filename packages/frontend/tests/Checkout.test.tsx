@@ -123,9 +123,8 @@ describe("Checkout", async () => {
         // payment option screen means commitOrder successfully went thru and we have all the payment details.
         const payment = await screen.findByTestId("paymentOptions");
         expect(payment).toBeTruthy();
-
         const o = await sm.orders.get(orderId);
-        expect(o.orderFinalized).toBeTruthy();
+        expect(o.commit).toBeTruthy();
         const copy = await screen.findByTestId("copyAddress");
         await user.click(copy);
         const erc20Amount = await screen.findByTestId("erc20Amount");

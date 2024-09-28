@@ -579,12 +579,15 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
   }
   async removesItems(
     orderId: `0x${string}`,
-    itemId: `0x${string}`,
-    quantity: number,
+    items: { listingId: `0x${string}`; quantity: number }[],
   ) {
     const eventId = await this.client.updateOrder({
       id: hexToBytes(orderId),
-      changeItems: { removes: [{ listingId: hexToBytes(itemId), quantity }] },
+      changeItems: {
+        removes: items.map((i) => {
+          return { listingId: hexToBytes(i.listingId), quantity: i.quantity };
+        }),
+      },
     });
     // resolves after the `changeItems` event has been fired, which happens after the relay accepts the update and has written to the database.
     return eventListenAndResolve<Order>(eventId, this, "changeItems");
@@ -618,23 +621,11 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
     return eventListenAndResolve<Order>(eventId, this, "orderCanceled");
   }
 
-  async commit(
-    //FIXME: send currency addresss as one obj
-    orderId: `0x${string}`,
-    addr: `0x${string}`,
-    chainId: number,
-    payee: Payee,
-  ) {
+  async commit(orderId: `0x${string}`, currency: ShopCurrencies, payee: Payee) {
     const eventId = await this.client.commitOrder(
       {
-        currency: {
-          address: { raw: hexToBytes(addr) },
-          chainId,
-        },
-        payee: {
-          ...payee,
-          address: { raw: hexToBytes(payee.address) },
-        },
+        currency: addressToUint256(currency),
+        payee: addressToUint256(payee),
       },
       hexToBytes(orderId),
     );

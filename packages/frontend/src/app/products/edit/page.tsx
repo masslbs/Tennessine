@@ -9,9 +9,8 @@ import Image from "next/image";
 import { useStoreContext } from "@/context/StoreContext";
 import ProductsTags from "@/app/components/products/ProductTags";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Tag, ItemId, Item, TagId } from "@/types";
+import { Tag, ItemId, Item, TagId, ListingViewState } from "@/types";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
-import VisibilitySlider from "@/app/components/products/VisibilitySlider";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
 import { useMyContext } from "@/context/MyContext";
 import debugLib from "debug";
@@ -35,6 +34,9 @@ const AddProductView = () => {
   const [validationError, setValidationError] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
+  const [viewState, setViewState] = useState(
+    ListingViewState.LISTING_VIEW_STATE_UNSPECIFIED,
+  );
   const debug = debugLib("frontend:products:edit");
 
   useEffect(() => {
@@ -198,6 +200,7 @@ const AddProductView = () => {
             description,
             images: [path.url],
           },
+          viewState,
         };
         editView && productInView
           ? await update(newItem)
@@ -423,11 +426,25 @@ const AddProductView = () => {
                 setError={setErrorMsg}
               />
             </section>
-            <VisibilitySlider
-              selectedTags={selectedTags}
-              setSelectedTags={setSelectedTags}
-              editView={editView}
-            />
+            <div>
+              <label htmlFor="published">Published</label>
+              <input
+                id="published"
+                name="published"
+                type="checkbox"
+                checked={
+                  viewState === ListingViewState.LISTING_VIEW_STATE_PUBLISHED
+                }
+                onChange={(e) => {
+                  const { checked } = e.target;
+                  setViewState(
+                    checked
+                      ? ListingViewState.LISTING_VIEW_STATE_PUBLISHED
+                      : ListingViewState.LISTING_VIEW_STATE_UNSPECIFIED,
+                  );
+                }}
+              />
+            </div>
           </section>
         </section>
       </div>

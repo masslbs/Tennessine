@@ -9,7 +9,6 @@ import {
   ShopCurrencies,
   ShopManifest,
   KeyCard,
-  OrderFinalized,
   OrderState,
   ListingViewState,
 } from "@massmarket/stateManager/types";
@@ -22,7 +21,6 @@ export {
   type ShopCurrencies,
   type ShopManifest,
   type KeyCard,
-  type OrderFinalized,
   OrderState,
   ListingViewState,
 };

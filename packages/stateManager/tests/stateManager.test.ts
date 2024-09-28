@@ -467,9 +467,11 @@ describe("CRUD functions update stores", async () => {
       expect(orders[1]).toEqual(order2.id);
 
       // //removes items from order
-      await stateManager.orders.removesItems(order1.id, itemId, 3);
+      await stateManager.orders.removesItems(order1.id, [
+        { listingId: itemId, quantity: 3 },
+      ]);
       const changedOrder = await stateManager.orders.get(order1.id);
-      // 9 - 3 = 6
+      //Correctly removes 3 from the previously selected 9 qty.
       expect(changedOrder.items[itemId]).toEqual(6);
     });
   });
@@ -536,11 +538,14 @@ describe("CRUD functions update stores", async () => {
       chainId: 1,
       name: "default",
     };
-
-    //Before order is committed, it should not have an paymentDetails property
+    const currency = {
+      address: zeroAddress,
+      chainId: 1,
+    };
+    //Before order is committed, it should not have a paymentDetails property
     expect(order.paymentDetails).toBeFalsy();
 
-    await stateManager.orders.commit(id, zeroAddress, 1, payee);
+    await stateManager.orders.commit(id, currency, payee);
 
     //Make sure the order is only in committed orders.
     const committedOrders = await stateManager.orders.getStatus(

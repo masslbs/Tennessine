@@ -61,9 +61,17 @@ const NewCart = ({
   const clearCart = async () => {
     try {
       const ids = Object.keys(cartItemIds!);
-      for (const id of ids) {
-        await stateManager?.orders.changeItems(orderId!, id as ItemId, 0);
-      }
+      await stateManager?.orders.removesItems(
+        orderId!,
+        ids.map((id) => {
+          //Here we are getting the quantity to remove from the order for every item in the cart.
+          const selectedQuantity = cartItemIds![id as ItemId];
+          return {
+            listingId: id as ItemId,
+            quantity: selectedQuantity,
+          };
+        }),
+      );
     } catch (error) {
       debug(error);
     }

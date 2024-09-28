@@ -135,7 +135,7 @@ test("update shop manifest", async () => {
   });
 });
 
-let itemId: number;
+let itemId: Uint8Array;
 test("should create a item", { timeout: 10000 }, async () => {
   const baseInfo = {
     title: "guestCheckout test item",
@@ -228,7 +228,7 @@ test("create and enroll guest", { timeout: 10000 }, async () => {
   expect(response.status).toBe(201);
 });
 
-let orderId: number;
+let orderId: Uint8Array;
 test("guest creating an order", { timeout: 10000 }, async () => {
   // create an order
   orderId = await guestRelayClient.createOrder();
