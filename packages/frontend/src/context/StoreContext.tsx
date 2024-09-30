@@ -18,9 +18,10 @@ import { useMyContext } from "./MyContext";
 import { StoreContent } from "@/context/types";
 import { LoadingStateManager } from "@/context/initialLoadingState";
 import { StateManager } from "@massmarket/stateManager";
-import { BlockchainClient } from "@massmarket/blockchain";
-import { createPublicClient, http } from "viem";
+import * as abi from "@massmarket/contracts";
+import { createPublicClient, http, Address } from "viem";
 import { getTokenInformation, getChainById } from "@/app/utils";
+
 // @ts-expect-error FIXME
 export const StoreContext = createContext<StoreContent>({});
 
@@ -97,10 +98,19 @@ export const StoreContextProvider = (
   }, [relayClient]);
 
   useEffect(() => {
-    const blockChainClient = new BlockchainClient();
-    const uri = blockChainClient.getTokenURI(shopPublicClient!).then();
-    console.log({ uri });
-    //FIXME: need to get metadata from uri.
+    if (shopPublicClient && shopId) {
+      shopPublicClient
+        .readContract({
+          address: abi.addresses.ShopReg as Address,
+          abi: abi.ShopReg,
+          functionName: "tokenURI",
+          args: [BigInt(shopId)],
+        })
+        .then(() => {
+          //FIXME: setShopDetails with data from uri
+          console.log({ uri });
+        });
+    }
 
     //Get base token decimal and symbol.
     stateManager.manifest.get().then((manifest) => {

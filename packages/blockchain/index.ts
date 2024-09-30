@@ -45,14 +45,6 @@ export class BlockchainClient {
       args: [BigInt(this.shopId), uri],
     });
   }
-  getTokenURI(publicClient: PublicClient) {
-    return publicClient.readContract({
-      address: abi.addresses.ShopReg as Address,
-      abi: abi.ShopReg,
-      functionName: "tokenURI",
-      args: [BigInt(this.shopId)],
-    });
-  }
 
   createInviteSecret(wallet: WalletClientWithAccount, token: Address) {
     // Save the public key onchain

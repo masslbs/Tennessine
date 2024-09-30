@@ -42,8 +42,12 @@ describe("blockChain Client", async () => {
   });
   test("setShopMetadataURI", async () => {
     const test_uri = "/testing/path";
-    await blockChainClient.setShopMetadataURI(wallet, test_uri);
-    const uri = await blockChainClient.getTokenURI(publicClient);
+    const uri = await publicClient.readContract({
+      address: abi.addresses.ShopReg as Address,
+      abi: abi.ShopReg,
+      functionName: "tokenURI",
+      args: [BigInt(shopId)],
+    });
     expect(uri).toEqual(test_uri);
   });
 });

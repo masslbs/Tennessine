@@ -2,15 +2,14 @@ import React from "react";
 import { describe, expect, test, vi, beforeEach, afterEach } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import CreateStore from "@/app/create-store/page";
-import { createWalletClient, createPublicClient, http } from "viem";
+import { createWalletClient, createPublicClient, http, Address } from "viem";
 import userEvent from "@testing-library/user-event";
 import { privateKeyToAccount } from "viem/accounts";
 import { hardhat } from "viem/chains";
 import { randomAddress, zeroAddress } from "@massmarket/utils";
-
 import { render, getStateManager } from "./test-utils";
 import { ShopCurrencies, ShopId } from "@/types";
-import { BlockchainClient } from "@massmarket/blockchain";
+import * as abi from "@massmarket/contracts";
 
 const sm = getStateManager();
 
@@ -103,12 +102,16 @@ describe("Create Store", async () => {
     });
 
     await waitFor(async () => {
-      const blockchainClient = new BlockchainClient(shopId);
       const publicClient = createPublicClient({
         chain: hardhat,
         transport: http(),
       });
-      const uri = await blockchainClient.getTokenURI(publicClient);
+      const uri = await publicClient.readContract({
+        address: abi.addresses.ShopReg as Address,
+        abi: abi.ShopReg,
+        functionName: "tokenURI",
+        args: [BigInt(shopId)],
+      });
       expect(uri).toEqual("/");
     });
   });
@@ -150,12 +153,16 @@ describe("Create Store", async () => {
       expect(bc.address).toEqual(zeroAddress);
     });
     await waitFor(async () => {
-      const blockchainClient = new BlockchainClient(shopId);
       const publicClient = createPublicClient({
         chain: hardhat,
         transport: http(),
       });
-      const uri = await blockchainClient.getTokenURI(publicClient);
+      const uri = await publicClient.readContract({
+        address: abi.addresses.ShopReg as Address,
+        abi: abi.ShopReg,
+        functionName: "tokenURI",
+        args: [BigInt(shopId)],
+      });
       expect(uri).toEqual("/");
     });
   });
