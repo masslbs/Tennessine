@@ -777,23 +777,24 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
 
   async _processEvent(event: schema.ShopEvents): Promise<void> {
     if (event.account) {
-      //storing WA and KC pair
       const a = event.account;
-      const cardPublicKey = bytesToHex(a.enrollKeycard.keycardPubkey.raw);
       let publicKeys: `0x${string}`[] = [];
+      const addressFromPubKey = Address.fromPublicKey(
+        a.enrollKeycard.keycardPubkey.raw,
+      ).toString() as `0x${string}`;
       try {
         publicKeys = await this.store.get("cardPublicKey");
-        publicKeys.push(cardPublicKey);
+        publicKeys.push(addressFromPubKey);
       } catch (error) {
         const e = error as IError;
         if (e.notFound) {
-          publicKeys.push(cardPublicKey);
+          publicKeys.push(addressFromPubKey);
         } else {
           throw new Error(e.code);
         }
       }
       await this.store.put("cardPublicKey", publicKeys);
-      this.emit("newKeyCard", cardPublicKey);
+      this.emit("newKeyCard", addressFromPubKey);
       return;
     }
   }
@@ -801,9 +802,27 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
   get() {
     return this.store.get("cardPublicKey");
   }
-  addAddress(key: `0x${string}`) {
-    const k = key.toLowerCase();
-    return this.store.put(k, key);
+  async verify(address) {
+    const keys = await this.store.get("cardPublicKey");
+    if (keys.includes(address)) {
+      return;
+    } else throw new Error("Unverified Event");
+  }
+  async addAddress(key: `0x${string}`) {
+    const k = key.toLowerCase() as `0x${string}`;
+    let publicKeys: `0x${string}`[] = [];
+    try {
+      publicKeys = await this.store.get("cardPublicKey");
+      publicKeys.push(k);
+    } catch (error) {
+      const e = error as IError;
+      if (e.notFound) {
+        publicKeys.push(k);
+      } else {
+        throw new Error(e.code);
+      }
+    }
+    await this.store.put("cardPublicKey", publicKeys);
   }
 }
 // This class creates the state of a store from an event stream
@@ -880,7 +899,7 @@ export class StateManager {
 
     //Each event will go through all the storeObjects and update the relevant stores.
     for await (const event of stream) {
-      await this.keycards.get(event.signer.toLowerCase());
+      await this.keycards.verify(event.signer.toLowerCase());
       for (const storeObject of storeObjects) {
         await storeObject._processEvent(event.event);
       }
