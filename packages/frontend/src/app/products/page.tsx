@@ -8,7 +8,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Sort from "@/app/common/components/Sort";
 import Search from "@/app/common/components/Search";
-import { SortOption, Item, TagId, Tag } from "@/types";
+import { SortOption, Item, TagId, Tag, ListingViewState } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import withAuth from "@/app/components/withAuth";
 import SuccessMessage from "@/app/common/components/SuccessMessage";
@@ -19,6 +19,7 @@ import CartButton from "@/app/components/checkout/CartButton";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import debugLib from "debug";
+import { formatPrice } from "@massmarket/utils";
 
 const Products = () => {
   const searchParams = useSearchParams();
@@ -28,17 +29,14 @@ const Products = () => {
   const [sortOption, setCheck] = useState<SortOption>(SortOption.default);
   const [searchPhrase, setSearchPhrase] = useState<string>("");
   const [showSuccessMsg, setMsg] = useState<boolean>(success !== null);
-  const { stateManager } = useStoreContext();
+  const { stateManager, baseTokenDetails, shopDetails } = useStoreContext();
   const [products, setProducts] = useState(new Map());
   const [arrToRender, setArrToRender] = useState<Item[] | null>(null);
   const [resultCount, setResultCount] = useState<number>(products.size);
   const [showTags, setShowTags] = useState<boolean>(false);
   const [tagIdToFilter, setTagIdToFilter] = useState<null | TagId>(null);
   const [gridView, setGridView] = useState<boolean>(true);
-  const [pId, setPublishedTagId] = useState<`0x${string}` | null>(null);
-  const [storeName, setStoreName] = useState<string>("");
   const [allTags, setAllTags] = useState(new Map());
-  const [removeTagId, setRemoveTagId] = useState<null | TagId>(null);
   const { isMerchantView } = useAuth();
   const debug = debugLib("frontend:products");
 
@@ -49,27 +47,6 @@ const Products = () => {
     }
     return listings;
   };
-  const getAllTags = async () => {
-    const tags = new Map();
-    for await (const [id, tag] of stateManager.tags.iterator()) {
-      tags.set(id, tag);
-      if (tag.name === "remove") {
-        setRemoveTagId(id as TagId);
-      }
-    }
-    return tags;
-  };
-  useEffect(() => {
-    stateManager.manifest
-      .get()
-      .then((shopManifest) => {
-        setPublishedTagId(shopManifest.publishedTagId);
-        setStoreName(shopManifest.name);
-      })
-      .catch((e) => {
-        debug(e);
-      });
-  }, []);
 
   useEffect(() => {
     const onCreateEvent = async () => {
@@ -122,13 +99,7 @@ const Products = () => {
       allTags.set(tag.id, tag);
       setAllTags(allTags);
     };
-    getAllTags()
-      .then((tags) => {
-        setAllTags(tags);
-      })
-      .catch((e) => {
-        debug(e);
-      });
+
     // Listen to future events
     stateManager.tags.on("create", onCreateEvent);
 
@@ -140,17 +111,7 @@ const Products = () => {
 
   useEffect(() => {
     if (!products) return;
-    const sorted = getSorted();
-    const arrayToRender = sorted.filter((item) => {
-      if (!item || !item.metadata?.image) {
-        return false;
-      } else if (removeTagId && item.tags && item.tags.includes(removeTagId)) {
-        return false;
-      } else if (tagIdToFilter && !item.tags?.includes(tagIdToFilter)) {
-        return false;
-      }
-      return true;
-    });
+    const arrayToRender = getSorted();
     arrayToRender.length && setArrToRender(arrayToRender);
     setResultCount(arrayToRender.length);
   }, [sortOption, products, tagIdToFilter]);
@@ -163,6 +124,7 @@ const Products = () => {
 
   const getSorted = () => {
     const arr = Array.from([...products.values()]);
+
     switch (sortOption) {
       case SortOption.default:
         return arr;
@@ -173,18 +135,15 @@ const Products = () => {
       case SortOption.newest:
         return arr.reverse();
       case SortOption.hidden:
-        return !pId
-          ? arr
-          : arr.filter(
-              (product) => !product?.tags || !product.tags.includes(pId),
-            );
+        return arr.filter(
+          (product) =>
+            product.viewState ===
+            ListingViewState.LISTING_VIEW_STATE_UNSPECIFIED,
+        );
       case SortOption.available:
         return arr.filter(
           (product) =>
-            product.quantity &&
-            pId &&
-            product.tags &&
-            product.tags?.includes(pId),
+            product.quantity && ListingViewState.LISTING_VIEW_STATE_PUBLISHED,
         );
       case SortOption.unavailable:
         return arr.filter((product) => !product.quantity);
@@ -226,7 +185,8 @@ const Products = () => {
           return;
         }
       }
-      const visible = pId && item.tags && item.tags.includes(pId);
+      const visible =
+        item.viewState === ListingViewState.LISTING_VIEW_STATE_PUBLISHED;
 
       return (
         <div key={item.id} className="mt-4 mx-4 last: mr-0">
@@ -249,7 +209,7 @@ const Products = () => {
                 data-testid={`product-img`}
               >
                 <Image
-                  src={metadata.image || "/assets/no-image.png"}
+                  src={metadata.images[0] || "/assets/no-image.png"}
                   width={85}
                   height={60}
                   alt="product-thumb"
@@ -261,7 +221,9 @@ const Products = () => {
                   }}
                 />
               </div>
-              <h4 data-testid={`product-price`}>{Number(item.price)}</h4>
+              <h4 data-testid={`product-price`}>
+                {formatPrice(item.price, baseTokenDetails.decimal)}
+              </h4>
               <p className="text-sm text-gray-400">{item.quantity} left</p>
             </div>
           </div>
@@ -293,7 +255,7 @@ const Products = () => {
       <section className="bg-gray-100 pb-6">
         <section className="m-4">
           <div className="flex pb-4">
-            <h2 className="grow flex">{storeName}</h2>
+            <h2 className="grow flex">{shopDetails.name}</h2>
             <CartButton />
           </div>
           <Search

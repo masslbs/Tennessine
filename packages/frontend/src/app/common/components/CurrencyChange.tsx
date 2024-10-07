@@ -36,9 +36,9 @@ const CurrencyChange = ({ open }: { open: boolean }) => {
     return acceptedCurrencies.map((c, i) => (
       <button onClick={() => setSelectedCurrency(c)} key={i}>
         <p
-          className={`${c.tokenAddr === selectedCurrency?.tokenAddr ? "bg-black text-white" : "bg-primary-gray"} w-fit px-2 py-1 rounded-lg`}
+          className={`${c.address === selectedCurrency?.address ? "bg-black text-white" : "bg-primary-gray"} w-fit px-2 py-1 rounded-lg`}
         >
-          {c.tokenAddr}
+          {c.address}
         </p>
       </button>
     ));

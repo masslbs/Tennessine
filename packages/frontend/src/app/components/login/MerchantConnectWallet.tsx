@@ -21,7 +21,7 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
   const { connectors, connect } = useConnect();
   const {
     walletAddress,
-    publicClient,
+    shopPublicClient,
     clientWallet,
     setShopId,
     setRelayClient,
@@ -51,7 +51,7 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
 
   useEffect(() => {
     (async () => {
-      if (publicClient && walletAddress && !storeIdsVerified.current) {
+      if (shopPublicClient && walletAddress && !storeIdsVerified.current) {
         storeIdsVerified.current = true;
         let usedShopId;
         if (shopId) {
@@ -66,12 +66,12 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
         await enroll(usedShopId);
       }
     })();
-  }, [walletAddress, publicClient]);
+  }, [walletAddress, shopPublicClient]);
 
   const getShops = async () => {
     const stores = new Map();
-    const block = await publicClient!.getBlockNumber();
-    const logs = await publicClient!.getLogs({
+    const block = await shopPublicClient!.getBlockNumber();
+    const logs = await shopPublicClient!.getLogs({
       address: abi.addresses.ShopReg as Address,
       event: parseAbiItem(
         "event Transfer(address indexed from, address indexed to, uint256 value)",

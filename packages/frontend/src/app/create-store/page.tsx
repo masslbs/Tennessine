@@ -21,9 +21,10 @@ import { isValidHex } from "@/app/utils";
 import ValidationWarning from "@/app/common/components/ValidationWarning";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import { discoverRelay } from "@massmarket/client";
+
 const StoreCreation = () => {
   const {
-    publicClient,
+    shopPublicClient,
     clientWallet,
     shopId,
     setShopId,
@@ -34,7 +35,7 @@ const StoreCreation = () => {
     createNewRelayClient,
   } = useMyContext();
 
-  const { stateManager } = useStoreContext();
+  const { stateManager, setShopDetails } = useStoreContext();
   const { isConnected, setIsConnected, setIsMerchantView } = useAuth();
   const chains = useChains();
   const router = useRouter();
@@ -107,24 +108,17 @@ const StoreCreation = () => {
     checkRequiredFields();
 
     const rc = await createNewRelayClient();
-    if (rc && publicClient && clientWallet && shopId) {
+    if (rc && shopPublicClient && clientWallet && shopId) {
       try {
         const blockchainClient = new BlockchainClient(shopId);
         const hash = await blockchainClient.createShop(clientWallet);
 
-        const transaction = await publicClient.waitForTransactionReceipt({
+        const transaction = await shopPublicClient.waitForTransactionReceipt({
           hash,
           retryCount: 10,
         });
 
         if (transaction!.status == "success") {
-          //Add relay tokenId
-          const relayURL =
-            (process && process.env["RELAY_ENDPOINT"]) ||
-            "ws://localhost:4444/v2";
-          // TODO: use process.env.NEXT_PUBLIC_RELAY_TOKEN_ID in prod
-          const relayEndpoint = await discoverRelay(relayURL);
-          await blockchainClient.addRelay(clientWallet, relayEndpoint.tokenId);
           localStorage.setItem("shopId", shopId!);
           const hasAccess = await checkPermissions();
 
@@ -172,99 +166,104 @@ const StoreCreation = () => {
       stateManager.manifest
         .create(
           {
-            name: storeName,
-            description,
+            pricingCurrency: {
+              chainId: 1,
+              address: tokenAddr as `0x${string}`,
+            },
+            acceptedCurrencies: [
+              {
+                address: tokenAddr as `0x${string}`,
+                chainId,
+              },
+            ],
+            payees: [
+              {
+                address: payeeAddr as `0x${string}`,
+                callAsContract: false,
+                chainId,
+                name: "default",
+              },
+            ],
+            //TODO: UI for inputting shipping regions.
+            shippingRegions: [
+              {
+                name: "test",
+                country: "test country",
+                postalCode: "test postal",
+                city: "test city",
+                orderPriceModifiers: [],
+              },
+            ],
           },
           shopId,
         )
+        .then()
         .catch((e) => {
           debug(e);
+          setErrorMsg("Error while create shop manifest");
         });
 
-      // Create published and remove tags + update shopManifest and metadata
-      stateManager.tags
-        .create("visible")
-        .then((newPubId) => {
-          stateManager.tags
-            .create("remove")
-            .then()
-            .catch((e) => debug(e));
+      //Now we write shop metadata to blockchain client.
 
-          //Testing dom does not support FormData and test client will fail with:
-          //Content-Type isn't multipart/form-data
-          //so if it is a test env, we are skipping uploadBlob
-          let path = { url: "/" };
-          if (!process.env.TEST) {
-            relayClient!
-              .uploadBlob(avatar as FormData)
-              .then((res) => {
-                path = res;
-              })
-              .catch((e) => debug(e));
-          }
+      //Testing dom does not support FormData and test client will fail with:
+      //Content-Type isn't multipart/form-data
+      //so if it is a test env, we are skipping uploadBlob
 
-          if (newPubId && path.url) {
-            stateManager.manifest
-              .update({
-                publishedTagId: newPubId.id,
-                setBaseCurrency: {
-                  tokenAddr: tokenAddr as `0x${string}`,
-                  chainId,
-                },
-                addAcceptedCurrencies: [
-                  {
-                    tokenAddr: tokenAddr as `0x${string}`,
-                    chainId,
-                  },
-                ],
-                addPayee: {
-                  addr: payeeAddr as `0x${string}`,
-                  callAsContract: false,
-                  chainId,
-                  name: "default",
-                },
-                profilePictureUrl: path.url,
-              })
-              .then()
-              .catch((e) => debug(e));
-          }
-
+      (async () => {
+        let metadataPath;
+        let imgPath;
+        if (process.env.TEST) {
+          metadataPath = { url: "/" };
+          imgPath = { url: "/" };
+        } else {
+          imgPath = await relayClient!.uploadBlob(avatar as FormData);
           const metadata = {
             name: storeName,
             description: description,
-            image: path.url,
+            image: imgPath.url,
           };
           const jsn = JSON.stringify(metadata);
           const blob = new Blob([jsn], { type: "application/json" });
           const file = new File([blob], "file.json");
           const formData = new FormData();
           formData.append("file", file);
+          metadataPath = await relayClient.uploadBlob(formData);
+        }
 
-          //Testing dom does not support FormData and test client will fail with:
-          //Content-Type isn't multipart/form-data
-          //so if it is a test env, we are skipping uploadBlob
-          let response = { url: "/" };
-          if (!process.env.TEST) {
-            relayClient.uploadBlob(formData).then((res) => {
-              response = res;
+        if (clientWallet && metadataPath) {
+          const blockchainClient = new BlockchainClient(shopId);
+          blockchainClient
+            .setShopMetadataURI(clientWallet, metadataPath.url)
+            .then(() => {
+              setShopDetails({
+                name: storeName,
+                profilePictureUrl: imgPath.url,
+              });
+            })
+            .catch((e) => debug(e));
+        }
+      })();
+
+      //Add relay tokenId
+      const relayURL =
+        (process && process.env["NEXT_PUBLIC_RELAY_TOKEN_ID"]) ||
+        "ws://localhost:4444/v3";
+      discoverRelay(relayURL)
+        .then((relayEndpoint) => {
+          stateManager.keycards
+            .addAddress(relayEndpoint.tokenId)
+            .then(() => {
+              router.push("/products");
+            })
+            .catch((e) => {
+              debug(e);
             });
-          }
-          if (clientWallet && response.url) {
-            const blockchainClient = new BlockchainClient(shopId);
-            blockchainClient
-              .setShopMetadataURI(clientWallet, response.url)
-              .then()
-              .catch((e) => debug(e));
-          }
-
-          router.push("/products");
         })
         .catch((e) => {
-          setErrorMsg("Error while updating store manifest");
           debug(e);
         });
     }
-  }, [isConnected, isStoreCreated, stateManager]);
+  }, [isConnected, isStoreCreated]);
 
   return (
     <main className="pt-under-nav h-screen p-4 mt-5">
