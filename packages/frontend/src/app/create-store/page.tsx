@@ -197,6 +197,7 @@ const StoreCreation = () => {
           },
           shopId,
         )
+        .then()
         .catch((e) => {
           debug(e);
           setErrorMsg("Error while create shop manifest");
