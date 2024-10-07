@@ -14,6 +14,7 @@ import {
 import { hardhat } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 import { describe, beforeEach, expect, test, beforeAll, vi } from "vitest";
+import schema from "@massmarket/schema";
 
 import {
   random32BytesHex,
@@ -160,6 +161,8 @@ describe("user behaviour", () => {
   test("should reconnect", async () => {
     await relayClient.disconnect();
     await relayClient.connect();
+    const filters = [{ objectType: schema.ObjectType.OBJECT_TYPE_LISTING }];
+    await relayClient.sendSubscriptionRequest(shopId, filters);
     expect(relayClient.connection.readyState).toBe(WebSocket.OPEN);
   });
 
