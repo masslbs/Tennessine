@@ -163,6 +163,27 @@ describe("user behaviour", () => {
     expect(relayClient.connection.readyState).toBe(WebSocket.OPEN);
   });
 
+  test("#handlePingRequest - relay does not end connection", async () => {
+    await relayClient.disconnect();
+    await relayClient.connect();
+
+    vi.useRealTimers();
+    //sanity check to make sure timeout works properly
+    let value = false;
+
+    const promise = new Promise((resolve) => {
+      setTimeout(() => {
+        value = true;
+        resolve(value);
+      }, 10000);
+    });
+
+    expect(value).toBe(false);
+    await promise;
+    expect(value).toBe(true);
+    expect(relayClient.connection.readyState).toBe(WebSocket.OPEN);
+  }, 10400);
+
   test("write shop manifest", async () => {
     const id = objectId();
     await relayClient.shopManifest(
@@ -173,7 +194,7 @@ describe("user behaviour", () => {
               raw: toBytes(anvilAddress),
             },
             callAsContract: false,
-            chainId: 1,
+            chainId: 31337,
             name: "default",
           },
         ],
@@ -207,6 +228,10 @@ describe("user behaviour", () => {
           address: { raw: hexToBytes(abi.addresses.Eddies as Address) },
           chainId: 31337,
         },
+        {
+          address: { raw: hexToBytes(zeroAddress) },
+          chainId: 31337,
+        },
       ],
     });
     await relayClient.updateShopManifest({
@@ -231,8 +256,8 @@ describe("user behaviour", () => {
     );
   });
 
-  describe("editing the listing", () => {
-    let tagId = { raw: objectId() };
+  describe("editing listing + tag", () => {
+    let id = { raw: objectId() };
     beforeAll(async () => {
       const metadata = {
         title: "test",
@@ -242,7 +267,7 @@ describe("user behaviour", () => {
       const price = priceToUint256("12.99");
 
       const requestId = await relayClient.listing({
-        id: tagId,
+        id,
         price: {
           raw: price,
         },
@@ -253,7 +278,7 @@ describe("user behaviour", () => {
 
     test("update item - metadata", async () => {
       const requestId = await relayClient.updateListing({
-        id: tagId,
+        id,
         metadata: {
           title: "new name",
           images: ["https://http.cat/images/200.jpg"],
@@ -261,27 +286,100 @@ describe("user behaviour", () => {
       });
       expect(requestId).not.toBeNull();
     });
-    test("#handlePingRequest - relay does not end connection", async () => {
-      await relayClient.disconnect();
-      await relayClient.connect();
+    let tagId = { raw: objectId() };
 
-      vi.useRealTimers();
-      //sanity check to make sure timeout works properly
-      let value = false;
-
-      const promise = new Promise((resolve) => {
-        setTimeout(() => {
-          value = true;
-          resolve(value);
-        }, 10000);
+    test("create tag", async () => {
+      const requestId = await relayClient.tag({
+        id: tagId,
+        name: "Test Tag",
       });
-
-      expect(value).toBe(false);
-      await promise;
-      expect(value).toBe(true);
-      expect(relayClient.connection.readyState).toBe(WebSocket.OPEN);
+      expect(requestId).not.toBeNull();
     });
-  }, 10400);
+    test("update tag", async () => {
+      const requestId = await relayClient.updateTag({
+        id: tagId,
+        addListingIds: [id],
+      });
+      expect(requestId).not.toBeNull();
+    });
+  });
+  describe("merchant checkout", () => {
+    let id = { raw: objectId() };
+    beforeAll(async () => {
+      const metadata = {
+        title: "test",
+        description: "test",
+        images: ["https://http.cat/images/200.jpg"],
+      };
+      const price = priceToUint256("12.99");
+
+      const requestId = await relayClient.listing({
+        id,
+        price: {
+          raw: price,
+        },
+        metadata,
+      });
+      expect(requestId).not.toBeNull();
+    });
+    test("should update stock", { timeout: 10000 }, async () => {
+      await relayClient.changeInventory({
+        id,
+        diff: [10],
+      });
+    });
+
+    test("client commits an order", { timeout: 10000 }, async () => {
+      const orderId = { raw: objectId() };
+
+      await relayClient.createOrder({ id: orderId });
+      await relayClient.updateOrder({
+        id: orderId,
+        changeItems: {
+          adds: [{ listingId: id, quantity: 1 }],
+        },
+      });
+      await relayClient.updateOrder({
+        id: orderId,
+        setInvoiceAddress: {
+          name: "test",
+          address1: "100 Colomb Street",
+          country: "test country",
+          postalCode: "test postal",
+          city: "test city",
+          orderPriceModifiers: [],
+          phoneNumber: "0103330524",
+          emailAddress: "arakkis@dune.planet",
+        },
+        setShippingAddress: {
+          name: "test",
+          address1: "100 Colomb Street",
+          country: "test country",
+          postalCode: "test postal",
+          city: "test city",
+          orderPriceModifiers: [],
+          phoneNumber: "0103330524",
+          emailAddress: "arakkis@dune.planet",
+        },
+      });
+      await relayClient.updateOrder({ id: orderId, commitItems: {} });
+      await relayClient.updateOrder({
+        id: orderId,
+        choosePayment: {
+          currency: {
+            chainId: 31337,
+            address: { raw: hexToBytes(zeroAddress) },
+          },
+          payee: {
+            address: { raw: toBytes(anvilAddress) },
+            callAsContract: false,
+            chainId: 31337,
+            name: "default",
+          },
+        },
+      });
+    });
+  });
 
   describe("invite another user", { retry: 3 }, async () => {
     let client2Wallet;
