@@ -184,7 +184,6 @@ export class RelayClient extends EventEmitter {
 
     const message = schema.Envelope.decode(payload);
     const type = message.message;
-    console.warn(type, message);
     switch (type) {
       case PBMessage.PingRequest:
         this.#handlePingRequest(message);

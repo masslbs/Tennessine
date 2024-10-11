@@ -21,7 +21,7 @@ import debugLib from "debug";
 import { formatUnitsFromString } from "@massmarket/utils";
 import { getTokenInformation } from "@/app/utils";
 import { useChains } from "wagmi";
-import { createPublicClient, hexToBytes, http } from "viem";
+import { createPublicClient, http, pad } from "viem";
 
 const CheckoutFlow = () => {
   const { getOrderId, stateManager, selectedCurrency } = useStoreContext();
@@ -31,7 +31,6 @@ const CheckoutFlow = () => {
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [cryptoTotal, setCryptoTotal] = useState<bigint | null>(null);
   const [purchaseAddress, setPurchaseAddr] = useState<string | null>(null);
-  const [totalDollar, setTotalDollar] = useState<string | null>(null);
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
   const [name, setName] = useState("");
@@ -76,21 +75,21 @@ const CheckoutFlow = () => {
   }, []);
 
   useEffect(() => {
-    const onOrderPaid = (order: Order) => {
+    const txHashDetected = (order: Order) => {
       if (order.id === orderId) {
         setCurrentOrder(order);
       }
     };
 
-    stateManager.orders.on("orderPaid", onOrderPaid);
+    stateManager.orders.on("addPaymentTx", txHashDetected);
     return () => {
       // Cleanup listeners on unmount
-      stateManager.orders.removeListener("orderPaid", onOrderPaid);
+      stateManager.orders.removeListener("addPaymentTx", txHashDetected);
     };
   });
 
   useEffect(() => {
-    if (currentOrder && currentOrder.status === OrderState.STATE_PAID) {
+    if (currentOrder && currentOrder.status === OrderState.STATE_PAYMENT_TX) {
       const h = currentOrder.txHash as `0x${string}`;
       setOrderId(null);
       setConfirmedTxHash(h);
@@ -131,23 +130,26 @@ const CheckoutFlow = () => {
         chosenPaymentPublicClient,
         currency.address,
       );
+      setSymbol(symbol);
+
       const payeeChain = chains.find((chain) => payee.chainId === chain.id);
       const paymentRPC = createPublicClient({
         chain: payeeChain,
         transport: http(),
       });
-      //FIXME: get Order hash from paymentDetails.
-      const orderHash = hexToBytes(zeroAddress, { size: 32 });
       const manifest = await stateManager.manifest.get();
+      //FIXME: get orderHash from paymentDetails.
+      const zeros32Bytes = pad(zeroAddress, { size: 32 });
+
       const arg = [
-        { raw: currency.chainId },
-        { raw: ttl },
-        orderHash,
+        currency.chainId,
+        ttl,
+        zeros32Bytes,
         currency.address,
-        total,
+        BigInt(total),
         payee.address,
-        false,
-        { raw: manifest.tokenId },
+        false, //isPaymentEndpoint
+        manifest.tokenId,
         shopSignature,
       ];
       const purchaseAdd = await paymentRPC.readContract({
@@ -156,8 +158,6 @@ const CheckoutFlow = () => {
         functionName: "getPaymentAddress",
         args: [arg, payee.address],
       });
-
-      setSymbol(symbol);
       if (purchaseAdd) {
         const amount = BigInt(total);
         const displayedErc20 = formatUnitsFromString(total, decimal);
@@ -169,7 +169,6 @@ const CheckoutFlow = () => {
         setSrc(payLink);
         setCryptoTotal(amount);
         setErc20Amount(displayedErc20);
-        setTotalDollar(total);
         setStep(2);
       }
     })();
@@ -196,6 +195,7 @@ const CheckoutFlow = () => {
           emailAddress: "example@example.com",
         });
         const payee = await stateManager!.manifest.get();
+
         await stateManager!.orders.commit(orderId);
         await stateManager!.orders.choosePayment(orderId, {
           currency: selectedCurrency,
@@ -238,13 +238,12 @@ const CheckoutFlow = () => {
       step === 2 &&
       imgSrc &&
       purchaseAddress &&
-      totalDollar &&
-      cryptoTotal
+      cryptoTotal &&
+      symbol
     ) {
       return (
         <PaymentOptions
           imgSrc={imgSrc}
-          totalDollar={totalDollar}
           purchaseAddress={purchaseAddress}
           cryptoTotal={cryptoTotal}
           symbol={symbol}
@@ -264,7 +263,7 @@ const CheckoutFlow = () => {
           <div className="flex-col items-center gap-2 flex">
             <p>Tx hash:</p>
             <div className="bg-white w-fit p-2 border-2 rounded-xl shadow-lg flex gap-2">
-              <p>{confirmedTxHash?.slice(0, 20)}...</p>
+              <p data-testid="txHash">{confirmedTxHash}</p>
               <button onClick={copyToClipboard}>
                 <Image
                   src={"/assets/copy-icon.svg"}

@@ -10,6 +10,8 @@ import {
   http,
   toBytes,
   type Address,
+  toHex,
+  pad,
 } from "viem";
 import { hardhat } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
@@ -161,8 +163,9 @@ describe("user behaviour", () => {
   test("should reconnect", async () => {
     await relayClient.disconnect();
     await relayClient.connect(true);
-    const filters = [{ objectType: schema.ObjectType.OBJECT_TYPE_LISTING }];
-    await relayClient.sendSubscriptionRequest(shopId, filters);
+    await relayClient.sendSubscriptionRequest(shopId, [
+      { objectType: schema.ObjectType.OBJECT_TYPE_ORDER },
+    ]);
     expect(relayClient.connection.readyState).toBe(WebSocket.OPEN);
   });
 
@@ -332,7 +335,7 @@ describe("user behaviour", () => {
       });
     });
 
-    test("client commits an order", { timeout: 10000 }, async () => {
+    test("client commits an order", { timeout: 20000 }, async () => {
       const orderId = { raw: objectId() };
 
       await relayClient.createOrder({ id: orderId });
@@ -381,6 +384,44 @@ describe("user behaviour", () => {
           },
         },
       });
+      const stream = relayClient.createEventStream();
+      for await (const { event } of stream) {
+        if (event.updateOrder?.setPaymentDetails) {
+          const paymentDetails = event.updateOrder.setPaymentDetails;
+          const zeros32Bytes = pad(zeroAddress, { size: 32 });
+
+          const args = [
+            31337, // chainid
+            paymentDetails.ttl,
+            zeros32Bytes,
+            zeroAddress,
+            toHex(paymentDetails.total.raw),
+            anvilAddress,
+            false, // is paymentendpoint?
+            shopId,
+            toHex(paymentDetails.shopSignature.raw),
+          ];
+          const paymentId = (await publicClient.readContract({
+            address: abi.addresses.Payments as Address,
+            abi: abi.PaymentsByAddress,
+            functionName: "getPaymentId",
+            args: [args],
+          })) as bigint;
+
+          expect(toHex(paymentDetails.paymentId.raw)).toEqual(toHex(paymentId));
+          const hash = await wallet.writeContract({
+            address: abi.addresses.Payments as Address,
+            abi: abi.PaymentsByAddress,
+            functionName: "payTokenPreApproved",
+            args: [args],
+          });
+          const receipt = await publicClient.waitForTransactionReceipt({
+            hash,
+          });
+          expect(receipt.status).toEqual("success");
+          return;
+        }
+      }
     });
   });
 
@@ -424,29 +465,12 @@ describe("user behaviour", () => {
         windowLocation,
       );
       await relayClient2.connect(true);
+      await relayClient2.sendSubscriptionRequest(shopId, [
+        { objectType: schema.ObjectType.OBJECT_TYPE_MANIFEST },
+      ]);
     });
 
-    test("client2 successfully updates manifest", async () => {
-      await relayClient2.updateShopManifest({
-        addPayee: {
-          address: { raw: randomBytes(20) },
-          callAsContract: false,
-          chainId: 1,
-          name: "new payee",
-        },
-      });
-    });
-    test("client 1 receives events from createEventStream", async () => {
-      const getStream = async () => {
-        const stream = relayClient.createEventStream();
-        for await (const evt of stream) {
-          return 1;
-        }
-      };
-      const evtLength = await getStream();
-      expect(evtLength).toBeGreaterThan(0);
-    });
-    test.skip("client 2 receives events from createEventStream", async () => {
+    test("client 2 receives events created by client 1", async () => {
       const getStream = async () => {
         const stream = relayClient2.createEventStream();
         for await (const evt of stream) {
@@ -455,6 +479,16 @@ describe("user behaviour", () => {
       };
       const evtLength = await getStream();
       expect(evtLength).toBeGreaterThan(0);
+    });
+    test("client2 can update manifest", async () => {
+      await relayClient2.updateShopManifest({
+        addPayee: {
+          address: { raw: randomBytes(20) },
+          callAsContract: false,
+          chainId: 1,
+          name: "new payee",
+        },
+      });
     });
   });
 });

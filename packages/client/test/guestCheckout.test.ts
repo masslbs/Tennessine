@@ -90,6 +90,8 @@ let payee: Uint8Array = hexToBytes(randomAddress());
 let currency: Uint8Array = hexToBytes(abi.addresses.Eddies as Address);
 
 test("write shop manifest", async () => {
+  await relayClient.connect(true);
+
   await relayClient.shopManifest(
     {
       payees: [
@@ -188,6 +190,7 @@ test("create and enroll guest", { timeout: 10000 }, async () => {
     shopId,
     windowLocation,
   );
+  await guestRelayClient.connect(true);
 
   expect(response.status).toBe(201);
 });

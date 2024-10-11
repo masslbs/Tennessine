@@ -4,11 +4,12 @@ import { waitFor, screen, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { zeroAddress, random32BytesHex, anvilAddress } from "@massmarket/utils";
 import { getStateManager, render, getWallet } from "./test-utils";
-import { createPublicClient, http } from "viem";
+import { createPublicClient, http, pad, Address } from "viem";
 import CheckoutFlow from "@/app/checkout/page";
 import { BlockchainClient } from "@massmarket/blockchain";
 import { hardhat } from "viem/chains";
 import { ObjectType } from "@/types";
+import * as abi from "@massmarket/contracts";
 
 describe("Checkout", async () => {
   const user = userEvent.setup();
@@ -18,10 +19,10 @@ describe("Checkout", async () => {
     transport: http(),
   });
 
-  const randomShopId = random32BytesHex();
+  const shopId = random32BytesHex();
   const wallet = getWallet();
   const sm = await getStateManager(true);
-  const blockchain = new BlockchainClient(randomShopId);
+  const blockchain = new BlockchainClient(shopId);
   const transactionHash = await blockchain.createShop(wallet);
   const receipt = await publicClient.waitForTransactionReceipt({
     hash: transactionHash,
@@ -32,7 +33,7 @@ describe("Checkout", async () => {
     expect(receipt.status).equals("success");
     await sm.keycards.addAddress(wallet.account.address);
     //@ts-expect-error FIXME
-    await sm.client.enrollKeycard(wallet, false, randomShopId, undefined);
+    await sm.client.enrollKeycard(wallet, false, shopId, undefined);
     await sm.client.connect(true);
     const filters = [
       { objectType: ObjectType.OBJECT_TYPE_LISTING },
@@ -42,7 +43,7 @@ describe("Checkout", async () => {
       { objectType: ObjectType.OBJECT_TYPE_MANIFEST },
       { objectType: ObjectType.OBJECT_TYPE_INVENTORY },
     ];
-    await sm.client.sendSubscriptionRequest(randomShopId, filters);
+    await sm.client.sendSubscriptionRequest(shopId, filters);
 
     await sm.manifest.create(
       {
@@ -74,7 +75,7 @@ describe("Checkout", async () => {
           },
         ],
       },
-      randomShopId,
+      shopId,
     );
 
     const { id } = await sm.items.create({
@@ -113,7 +114,7 @@ describe("Checkout", async () => {
     });
   });
 
-  test.skip("Update shipping details and commit items.", async () => {
+  test("Update shipping details and commit items.", async () => {
     render(<CheckoutFlow />, sm, orderId);
 
     await act(async () => {
@@ -141,16 +142,56 @@ describe("Checkout", async () => {
     });
     await waitFor(
       async () => {
-        //TODO: check that statemanager has all the paymentDetails properties.
-        // payment option screen means commitOrder successfully went thru and we have all the payment details.
+        //Payment option screen means commitOrder successfully went thru and we have all the payment details.
         const payment = await screen.findByTestId("paymentOptions");
         expect(payment).toBeTruthy();
         const o = await sm.orders.get(orderId);
+        //choosePayment and paymentDetails properties should now exist on the order.
         expect(o.choosePayment).toBeTruthy();
+        expect(o.paymentDetails).toBeTruthy();
         const copy = await screen.findByTestId("copyAddress");
         await user.click(copy);
+        //Renders correct price and symbol.
         const erc20Amount = await screen.findByTestId("erc20Amount");
-        console.log("displayedValue", erc20Amount.textContent);
+        expect(erc20Amount.textContent).toEqual("Send 65 ETH");
+
+        //Make a payment
+        const { total, shopSignature, ttl } = o.paymentDetails!;
+        const { currency, payee } = o.choosePayment!;
+        const zeros32Bytes = pad(zeroAddress, { size: 32 });
+
+        const args = [
+          currency.chainId,
+          ttl,
+          zeros32Bytes,
+          zeroAddress,
+          BigInt(total),
+          payee.address,
+          false, // is paymentendpoint?
+          shopId,
+          shopSignature,
+        ];
+
+        const hash = await wallet.writeContract({
+          address: abi.addresses.Payments as Address,
+          abi: abi.PaymentsByAddress,
+          functionName: "payTokenPreApproved",
+          args: [args],
+        });
+        const receipt = await publicClient.waitForTransactionReceipt({
+          hash,
+        });
+        expect(receipt.status).toEqual("success");
+      },
+      { timeout: 10000 },
+    );
+    await waitFor(
+      async () => {
+        const o = await sm.orders.get(orderId);
+        expect(o.txHash).toBeTruthy();
+        const tx = await screen.findByTestId("txHash");
+
+        expect(tx.textContent).toEqual(o.txHash);
       },
       { timeout: 10000 },
     );

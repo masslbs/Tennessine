@@ -168,7 +168,7 @@ export const MyContextProvider = (
               { objectType: ObjectType.OBJECT_TYPE_LISTING },
               { objectType: ObjectType.OBJECT_TYPE_TAG },
               { objectType: ObjectType.OBJECT_TYPE_MANIFEST },
-              // { objectType: ObjectType.OBJECT_TYPE_ACCOUNT },
+              { objectType: ObjectType.OBJECT_TYPE_ACCOUNT },
             ];
             rc.sendSubscriptionRequest(shopId!, filters, Number(seqNo)).then();
             setIsConnected(Status.Complete);
