@@ -39,7 +39,7 @@ export function bufferToJSON(metadata: Uint8Array) {
   return JSON.parse(new TextDecoder().decode(metadata));
 }
 
-//This is used
+//This is used to get the string value from an array buffer
 export function decodeBufferToString(buffer: Uint8Array) {
   const textDecoder = new TextDecoder();
   return textDecoder.decode(buffer);
