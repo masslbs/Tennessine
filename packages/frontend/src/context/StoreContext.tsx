@@ -121,6 +121,27 @@ export const StoreContextProvider = (
             });
         }
 
+        if (shopPublicClient && shopId) {
+          shopPublicClient
+            .readContract({
+              address: abi.addresses.ShopReg as Address,
+              abi: abi.ShopReg,
+              functionName: "tokenURI",
+              args: [BigInt(shopId)],
+            })
+            .then((uri) => {
+              const url = uri as string;
+              fetch(url).then((res) => {
+                res.json().then((data) => {
+                  setShopDetails({
+                    name: data.name,
+                    profilePictureUrl: data.image,
+                  });
+                });
+              });
+            });
+        }
+
         //close db connection on unload
         if (window && db) {
           window.addEventListener("beforeunload", () => {

@@ -94,6 +94,26 @@ describe("Product Detail Component", async () => {
     // Testing event listener for change stock
     await sm.items.changeInventory(itemId, 400);
 
+    const o = await sm.orders.getStatus(OrderState.STATE_OPEN);
+    const d = await sm.orders.get(o[0]);
+    expect(d.items[itemId]).toEqual(3);
+
+    //removesItems
+    await act(async () => {
+      const qtyInput = screen.getByTestId("purchaseQty");
+      user.clear(qtyInput);
+      fireEvent.change(qtyInput, {
+        target: { value: "1" },
+      });
+      await user.click(await screen.findByTestId("updateQty"));
+    });
+    const ro = await sm.orders.getStatus(OrderState.STATE_OPEN);
+    const b = await sm.orders.get(ro[0]);
+    expect(b.items[itemId]).toEqual(1);
+
+    // Testing event listener for change stock
+    await sm.items.changeInventory(itemId, 400);
+
     await waitFor(async () => {
       // Testing event listener for change stock
       const available = screen.getByTestId("available");

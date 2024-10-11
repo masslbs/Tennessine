@@ -48,7 +48,6 @@ export const createQueryString = (
 export const isValidHex = (hex: string) => {
   return Boolean(hex.match(/^0x[0-9a-f]+$/i));
 };
-
 export const getTokenInformation = async (
   publicClient: PublicClient,
   tokenAddress: `0x${string}`,

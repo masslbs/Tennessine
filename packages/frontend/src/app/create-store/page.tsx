@@ -105,7 +105,6 @@ const StoreCreation = () => {
     checkRequiredFields();
 
     const rc = await createNewRelayClient();
-
     if (rc && shopPublicClient && clientWallet && shopId) {
       try {
         const blockchainClient = new BlockchainClient(shopId);

@@ -301,7 +301,7 @@ export class RelayClient extends EventEmitter {
     shopId: `0x${string}`,
     location?: URL,
   ) {
-    const publicKey = toBytes(this.keyCardWallet!.publicKey).slice(1);
+    const publicKey = toBytes(this.keyCardWallet.publicKey).slice(1);
     const endpointURL = new URL(this.relayEndpoint.url);
     endpointURL.protocol = this.useTLS ? "https" : "http";
     endpointURL.pathname += `/enroll_key_card`;
