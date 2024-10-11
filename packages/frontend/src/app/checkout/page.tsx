@@ -127,7 +127,7 @@ const CheckoutFlow = () => {
         transport: http(),
       });
 
-      const { decimal, symbol } = await getTokenInformation(
+      const [symbol, decimal] = await getTokenInformation(
         chosenPaymentPublicClient,
         currency.address,
       );

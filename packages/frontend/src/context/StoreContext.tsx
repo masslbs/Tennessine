@@ -164,7 +164,7 @@ export const StoreContextProvider = (
           transport: http(),
         });
         getTokenInformation(baseTokenPublicClient, address!).then((res) => {
-          setBaseTokenDetails(res);
+          setBaseTokenDetails({ decimal: res[1], symbol: res[0] });
         });
       });
     }
