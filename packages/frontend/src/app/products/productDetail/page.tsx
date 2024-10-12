@@ -158,7 +158,7 @@ const ProductDetail = () => {
       order_id = (await stateManager.orders.create()).id;
       setOrderId(order_id);
     } else if (!order_id) {
-      //For users with no enrolled KC: upgrade subscription.
+      //For users with no enrolled KC: upgrade subscription when adding an item to cart.
       await sendGuestCheckoutSubscription();
       order_id = (await stateManager.orders.create()).id;
       setOrderId(order_id);

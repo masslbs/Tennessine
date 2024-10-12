@@ -73,7 +73,7 @@ export class ReadableEventStream {
   async outgoingEnqueue(
     event: schema.IShopEvent,
     signer: `0x${string}`,
-    //Since enrollKeycard is not a eventWriteRequest, it will not have a requestId.
+    //Since outgoing enrollKeycard is not a eventWriteRequest, it will not be attached a requestId
     requestId?: number,
   ) {
     event.requestId = requestId;

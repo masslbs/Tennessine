@@ -45,7 +45,7 @@ export class RelayClient extends EventEmitter {
     this.eventStream = new ReadableEventStream(this);
     this.requestCounter = 1;
     this.eventNonceCounter = 1;
-    this.subscriptionId = 0;
+    this.subscriptionId = null;
   }
 
   createEventStream() {
@@ -95,7 +95,7 @@ export class RelayClient extends EventEmitter {
     shopEvent.nonce = this.eventNonceCounter++;
     shopEvent.timestamp = { seconds: Date.now() / 1000 };
     const shopEventBytes = schema.ShopEvent.encode(shopEvent).finish();
-    const sig = await this.keyCardWallet!.signMessage({
+    const sig = await this.keyCardWallet.signMessage({
       message: { raw: shopEventBytes },
     });
     const signedEvent = {
@@ -203,14 +203,14 @@ export class RelayClient extends EventEmitter {
     filters: schema.IFilter[],
     seqNo = 0,
   ) {
-    const res = await this.encodeAndSend({
+    const { response } = await this.encodeAndSend({
       subscriptionRequest: {
         startShopSeqNo: seqNo,
         shopId: { raw: hexToBytes(shopId) },
         filters,
       },
     });
-    this.subscriptionId = res.response.payload;
+    this.subscriptionId = response.payload;
   }
   async cancelSubscriptionRequest() {
     this.encodeAndSend({
@@ -224,11 +224,11 @@ export class RelayClient extends EventEmitter {
     const { response } = await this.encodeAndSend({
       authRequest: {
         publicKey: {
-          raw: toBytes(this.keyCardWallet!.publicKey).slice(1),
+          raw: toBytes(this.keyCardWallet.publicKey).slice(1),
         },
       },
     });
-    const sig = await this.keyCardWallet!.signMessage({
+    const sig = await this.keyCardWallet.signMessage({
       message: {
         raw: response.payload,
       },
