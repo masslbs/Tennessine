@@ -30,7 +30,7 @@ export class RelayClient extends EventEmitter {
   private eventStream;
   private requestCounter;
   private eventNonceCounter;
-  private subscriptionId;
+  private subscriptionId: number | null;
   constructor({
     relayEndpoint,
     keyCardWallet,
