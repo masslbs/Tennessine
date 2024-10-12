@@ -89,7 +89,7 @@ test("enroll keycard", { timeout: 10000 }, async () => {
 let payee: Uint8Array = hexToBytes(randomAddress());
 let currency: Uint8Array = hexToBytes(abi.addresses.Eddies as Address);
 
-test("write shop manifest", async () => {
+test("write shop manifest", { timeout: 10000 }, async () => {
   await relayClient.connect(true);
 
   await relayClient.shopManifest(
@@ -128,7 +128,7 @@ test("write shop manifest", async () => {
   );
 });
 
-test("update shop manifest", async () => {
+test("update shop manifest", { timeout: 10000 }, async () => {
   // tell the relay to accept our money
   await relayClient.updateShopManifest({
     addAcceptedCurrencies: [
