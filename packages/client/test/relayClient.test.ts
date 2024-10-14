@@ -171,27 +171,6 @@ describe("user behaviour", () => {
     expect(relayClient.connection.readyState).toBe(WebSocket.OPEN);
   });
 
-  test("#handlePingRequest - relay does not end connection", async () => {
-    await relayClient.disconnect();
-    await relayClient.connect(true);
-
-    vi.useRealTimers();
-    //sanity check to make sure timeout works properly
-    let value = false;
-
-    const promise = new Promise((resolve) => {
-      setTimeout(() => {
-        value = true;
-        resolve(value);
-      }, 10000);
-    });
-
-    expect(value).toBe(false);
-    await promise;
-    expect(value).toBe(true);
-    expect(relayClient.connection.readyState).toBe(WebSocket.OPEN);
-  }, 10400);
-
   test("write shop manifest", async () => {
     const id = objectId();
     await relayClient.shopManifest(

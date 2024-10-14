@@ -159,7 +159,7 @@ const MerchantsWrapper = ({
             setIsMerchantView: () => {},
           }}
         >
-          <MyContext.Provider
+          <UserContext.Provider
             //@ts-expect-error FIXME
             value={{ relayClient: mockClient, clientWallet: getWallet() }}
           >
