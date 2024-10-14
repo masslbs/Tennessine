@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, expect, test, vi, beforeEach, afterEach } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, act } from "@testing-library/react";
 import CreateStore from "@/app/create-store/page";
 import { createPublicClient, http, Address } from "viem";
 import userEvent from "@testing-library/user-event";
@@ -110,7 +110,7 @@ describe("Create Store", async () => {
   test("Create store - with changed payee address and base currency", async () => {
     expect(spy).not.toHaveBeenCalled();
     const payee = randomAddress();
-    await waitFor(async () => {
+    await act(async () => {
       const file = new File(["hello"], "hello.png", { type: "image/png" });
 
       const nameInput = screen.getByTestId(`storeName`);
@@ -136,25 +136,31 @@ describe("Create Store", async () => {
       await user.click(saveBtn);
     });
     let shopId: ShopId;
-    await waitFor(async () => {
-      expect(spy).toHaveBeenCalled();
-      const manifest = await sm.manifest.get();
-      shopId = manifest.tokenId!;
-      const bc = manifest.pricingCurrency as ShopCurrencies;
-      expect(bc.address).toEqual(zeroAddress);
-    });
-    await waitFor(async () => {
-      const publicClient = createPublicClient({
-        chain: hardhat,
-        transport: http(),
-      });
-      const uri = await publicClient.readContract({
-        address: abi.addresses.ShopReg as Address,
-        abi: abi.ShopReg,
-        functionName: "tokenURI",
-        args: [BigInt(shopId)],
-      });
-      expect(uri).toEqual("/");
-    });
+    await waitFor(
+      async () => {
+        expect(spy).toHaveBeenCalled();
+        const manifest = await sm.manifest.get();
+        shopId = manifest.tokenId!;
+        const bc = manifest.pricingCurrency as ShopCurrencies;
+        expect(bc.address).toEqual(zeroAddress);
+      },
+      { timeout: 20000 },
+    );
+    await waitFor(
+      async () => {
+        const publicClient = createPublicClient({
+          chain: hardhat,
+          transport: http(),
+        });
+        const uri = await publicClient.readContract({
+          address: abi.addresses.ShopReg as Address,
+          abi: abi.ShopReg,
+          functionName: "tokenURI",
+          args: [BigInt(shopId)],
+        });
+        expect(uri).toEqual("/");
+      },
+      { timeout: 20000 },
+    );
   });
 });

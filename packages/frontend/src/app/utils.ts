@@ -6,8 +6,7 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { Metadata } from "@/types";
 import { ReadonlyURLSearchParams } from "next/navigation";
-import { useChains } from "wagmi";
-import { createPublicClient, http, PublicClient } from "viem";
+import { PublicClient } from "viem";
 import { zeroAddress } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 
@@ -49,34 +48,27 @@ export const createQueryString = (
 export const isValidHex = (hex: string) => {
   return Boolean(hex.match(/^0x[0-9a-f]+$/i));
 };
-export const getChainById = (chainId: number) => {
-  const chains = useChains();
-  return chains.find((chain) => chainId === chain.id);
-};
-export const getPublicClient = (chainId: number) => {
-  return createPublicClient({
-    chain: getChainById(chainId),
-    transport: http(),
-  });
-};
-export const getTokenInformation = async (
+
+export const getTokenInformation = (
   publicClient: PublicClient,
   tokenAddress: `0x${string}`,
-) => {
+): Promise<[string, number]> => {
   if (tokenAddress === zeroAddress) {
-    return { symbol: "ETH", decimal: 18 };
+    return new Promise((resolve) => {
+      resolve(["ETH", 18]);
+    });
   }
-  const symbol = (await publicClient.readContract({
+  const symbol = publicClient.readContract({
     address: tokenAddress,
     abi: abi.ERC20,
     functionName: "symbol",
     args: [],
-  })) as string;
-  const decimal = (await publicClient.readContract({
+  }) as Promise<string>;
+  const decimal = publicClient.readContract({
     address: tokenAddress,
     abi: abi.ERC20,
     functionName: "decimals",
     args: [],
-  })) as number;
-  return { symbol, decimal };
+  }) as Promise<number>;
+  return Promise.all([symbol, decimal]);
 };

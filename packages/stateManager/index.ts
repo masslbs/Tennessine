@@ -85,6 +85,7 @@ abstract class PublicObjectManager<
     return this.store.iterator.bind(this.store);
   }
 }
+class SeqNoEmitter extends EventEmitter {}
 
 //We should always make sure the network call is successful before updating the store with store.put
 class ListingManager extends PublicObjectManager<Item> {
@@ -99,7 +100,7 @@ class ListingManager extends PublicObjectManager<Item> {
       const id = bytesToHex(cl.id.raw);
       const item = {
         id: id,
-        price: fromBytes(cl.price.raw, "number").toString(),
+        price: fromBytes(cl.price.raw, "bigint").toString(),
         metadata: cl.metadata,
         tags: [],
         quantity: 0,
@@ -116,7 +117,7 @@ class ListingManager extends PublicObjectManager<Item> {
         item.metadata = ul.metadata;
       }
       if (ul.price) {
-        item.price = fromBytes(ul.price.raw, "number").toString();
+        item.price = fromBytes(ul.price.raw, "bigint").toString();
       }
       if (ul.viewState) {
         item.viewState = ul.viewState;
@@ -605,7 +606,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         const pd = uo.setPaymentDetails;
         const paymentDetails = {
           paymentId: bytesToHex(pd.paymentId.raw),
-          total: fromBytes(pd.total.raw, "number").toString(),
+          total: fromBytes(pd.total.raw, "bigint").toString(),
           shopSignature: bytesToHex(pd.shopSignature.raw),
           ttl: pd.ttl,
         };
@@ -820,6 +821,7 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
 }
 // This class creates the state of a store from an event stream
 // It also handles the states persistence, retrieval and updates
+
 export class StateManager {
   readonly items;
   readonly tags;
@@ -828,6 +830,7 @@ export class StateManager {
   readonly keycards;
   readonly shopId;
   readonly publicClient;
+  readonly seqNo;
   eventStreamProcessing;
   constructor(
     public client: IRelayClient,
@@ -846,6 +849,8 @@ export class StateManager {
     this.keycards = new KeyCardManager(keycardStore, client);
     this.shopId = shopId;
     this.publicClient = publicClient;
+    this.seqNo = new SeqNoEmitter();
+
     this.eventStreamProcessing = this.#start();
     this.eventStreamProcessing.catch((err) => {
       console.log("Error something bad happened in the stream", err);
@@ -890,6 +895,9 @@ export class StateManager {
     }
     //Each event will go through all the storeObjects and update the relevant stores.
     for await (const event of stream) {
+      if (event.event.seqNo) {
+        this.seqNo.emit("seqNo", event.event.seqNo);
+      }
       //fromPublicKey in KeyCard manager returns the address from public key as all lowercase.
       await this.keycards.verify(event.signer.toLowerCase());
       for (const storeObject of storeObjects) {

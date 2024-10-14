@@ -6,7 +6,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { useMyContext } from "@/context/MyContext";
+import { useUserContext } from "@/context/UserContext";
 import { useAuth } from "@/context/AuthContext";
 import { Status } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
@@ -30,7 +30,7 @@ const Navigation = () => {
   const [menuOpened, setMenuOpened] = useState<boolean>(false);
   const { setIsConnected, isMerchantView } = useAuth();
   const { shopDetails } = useStoreContext();
-  const { ensName } = useMyContext();
+  const { ensName } = useUserContext();
   const searchParams = useSearchParams();
   const router = useRouter();
 

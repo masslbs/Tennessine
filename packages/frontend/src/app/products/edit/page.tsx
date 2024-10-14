@@ -12,7 +12,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Tag, ItemId, Item, TagId, ListingViewState } from "@/types";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
-import { useMyContext } from "@/context/MyContext";
+import { useUserContext } from "@/context/UserContext";
 import debugLib from "debug";
 import ValidationWarning from "@/app/common/components/ValidationWarning";
 import { formatUnitsFromString } from "@massmarket/utils";
@@ -23,7 +23,7 @@ const AddProductView = () => {
   const itemId = searchParams.get("itemId") as ItemId | "new";
   const editView = itemId !== "new";
   const { stateManager, baseTokenDetails } = useStoreContext();
-  const { relayClient } = useMyContext();
+  const { relayClient } = useUserContext();
   const [productInView, setProductInView] = useState<Item | null>(null);
   const [imgSrc, setImg] = useState<string>("");
   const [imgAsBlob, setBlob] = useState<FormData | null>(null);

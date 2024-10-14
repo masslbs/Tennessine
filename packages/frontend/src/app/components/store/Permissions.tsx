@@ -10,7 +10,7 @@ import Button from "../../common/components/Button";
 import ContributorBlock from "./Contributor";
 import HalfModal from "../../common/components/HalfModal";
 import Contributor from "./Contributor";
-import { useMyContext } from "@/context/MyContext";
+import { useUserContext } from "@/context/UserContext";
 import { formatPK } from "@/app/utils";
 
 export type Contributor = {
@@ -29,11 +29,11 @@ const clerks: Contributor[] = [
 ];
 
 const Permissions = ({ close }: { close: () => void }) => {
-  const { clientWallet } = useMyContext();
+  const { clientWallet } = useUserContext();
   const [showInviteLink, setShowInviteLink] = useState<boolean>(false);
   const [inviteLink, setInviteLink] = useState<`0x${string}` | null>(null);
   const [isHalfModalOpen, setIsHalfModalOpen] = useState(false);
-  const { relayClient } = useMyContext();
+  const { relayClient } = useUserContext();
 
   const openHalfModal = () => {
     setIsHalfModalOpen(true);

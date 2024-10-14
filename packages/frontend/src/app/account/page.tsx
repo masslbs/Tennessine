@@ -9,14 +9,14 @@ import Image from "next/image";
 import EditName from "../components/account/EditName";
 import AccountProfilePhoto from "../components/account/AccountProfilePhoto";
 import { Role, Status } from "@/types";
-import { useMyContext } from "@/context/MyContext";
+import { useUserContext } from "@/context/UserContext";
 import { useAuth } from "@/context/AuthContext";
 import { formatEthAdd } from "../utils";
 import withAuth from "../components/withAuth";
 import { useRouter } from "next/navigation";
 
 const AccountSettings = () => {
-  const { walletAddress, avatar, ensName } = useMyContext();
+  const { walletAddress, avatar, ensName } = useUserContext();
   const [openNameEdit, setOpenNameEdit] = useState<boolean>(false);
   const [openPhotoUpload, setOpenPhotoUpload] = useState<boolean>(false);
   const [profilePhoto, setProfilePhoto] = useState<string>(
