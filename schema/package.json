@@ -1,0 +1,26 @@
+{
+  "name": "@massmarket/schema",
+  "version": "0.0.0",
+  "description": "This contains the generated protobuf schema bindings",
+  "scripts": {
+    "pbjs-build": "pnpm exec pbjs -t static-module -w ./wrapper.js  -r market.mass -o ./compiled.js $NETWORK_SCHEMA_PATH/*.proto --dependency protobufjs/minimal.js",
+    "pbts-build": "pbts -r market.mass -o ./compiled.d.ts ./compiled.js",
+    "build": "pnpm pbjs-build && pnpm pbts-build"
+  },
+  "keywords": [],
+  "author": "",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "default": "./mod.ts"
+    }
+  },
+  "devDependencies": {
+    "protobufjs-cli": "^1.1.2"
+  },
+  "dependencies": {
+    "long": "^5.2.3",
+    "protobufjs": "^7.2.6"
+  }
+}

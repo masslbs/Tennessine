@@ -1,0 +1,6 @@
+{
+  "name": "@massmarket/contracts",
+  "version": "0.0.1",
+  "exports": "./mod.ts"
+}
+
