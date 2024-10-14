@@ -1,0 +1,81 @@
+// SPDX-FileCopyrightText: 2024 Mass Labs
+//
+// SPDX-License-Identifier: MIT
+
+import { recoverMessageAddress } from "jsr:@wevm/viem";
+import schema from "@massmarket/schema";
+import { RelayClient } from "./mod.ts";
+
+/**
+ * This class is a Simple wrapper around a ReadableStream that expose the controller
+ * so that a third party can enqueue events into the stream.
+ */
+export class ReadableEventStream {
+  public stream;
+  public requestId: Uint8Array | null = null;
+  private controller!: ReadableStreamDefaultController<schema.ShopEvent>;
+  private resolve!: (val: any) => void;
+  private nextPushReq: Promise<void>;
+  private queue: schema.EventPushRequest[] = [];
+
+  constructor(public client: Pick<RelayClient, "encodeAndSendNoWait">) {
+    const self = this;
+
+    this.nextPushReq = new Promise<schema.EventPushRequest>((resolve) => {
+      this.resolve = resolve;
+    });
+
+    this.stream = new ReadableStream({
+      start(controller) {
+        self.controller = controller;
+      },
+      // if pull returns a promise it will not be called again untill the promise is resolved regardless of the highwatermark
+      // here we are using a recursive pull that will never resolve so that we have full control over when it is being called
+      // and when to ask for the next chunk of data
+      async pull(controller) {
+        const pushReq = self.queue.shift();
+        if (pushReq) {
+          const requestId = pushReq.requestId;
+          for (const anyEvt of pushReq.events) {
+            const event = schema.ShopEvent.decode(anyEvt.event.event.value);
+            event.seqNo = anyEvt.seqNo;
+            const signer = await recoverMessageAddress({
+              message: { raw: anyEvt.event.event.value },
+              signature: anyEvt.event.signature.raw,
+            });
+            self.controller.enqueue({ event, signer });
+          }
+          // Send a response to the relay to indicate that we have processed the events
+          self.client.encodeAndSendNoWait({
+            requestId,
+            response: {},
+          });
+        }
+
+        await self.nextPushReq;
+        return this.pull!(controller);
+      },
+    });
+  }
+
+  // This method is meant to be used by the client to enqueue events into the stream
+  enqueue(pushReq: schema.SubscriptionPushRequest) {
+    this.queue.push(pushReq);
+    this.resolve(null);
+    this.nextPushReq = new Promise<schema.SubscriptionPushRequest>(
+      (resolve) => {
+        this.resolve = resolve;
+      },
+    );
+  }
+  //This method enqueues events created by the client, since these are not sent back from the relay.
+  async outgoingEnqueue(
+    event: schema.IShopEvent,
+    signer: `0x${string}`,
+    //Since outgoing enrollKeycard is not a eventWriteRequest, it will not be attached a requestId
+    requestId?: number,
+  ) {
+    event.requestId = requestId;
+    this.controller.enqueue({ event, signer });
+  }
+}

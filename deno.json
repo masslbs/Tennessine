@@ -1,0 +1,11 @@
+{
+    "workspace":  [
+        "./schema",
+        "./stateManager",
+        "./client",
+        "./contracts",
+        "./utils",
+        "./frontend",
+        "./blockchain",
+    ]
+}
