@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import AvatarUpload from "@/app/common/components/AvatarUpload";
-import { useMyContext } from "@/context/MyContext";
+import { useUserContext } from "@/context/UserContext";
 import { useAuth } from "@/context/AuthContext";
 import { Status } from "@/types";
 import { useRouter } from "next/navigation";
@@ -21,21 +21,22 @@ import { isValidHex } from "@/app/utils";
 import ValidationWarning from "@/app/common/components/ValidationWarning";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import { discoverRelay } from "@massmarket/client";
+import { privateKeyToAccount } from "viem/accounts";
+
 const StoreCreation = () => {
   const {
-    publicClient,
+    shopPublicClient,
     clientWallet,
     shopId,
     setShopId,
-    setKeyCardEnrolled,
     checkPermissions,
     setRelayClient,
     relayClient,
     createNewRelayClient,
-  } = useMyContext();
+  } = useUserContext();
 
-  const { stateManager } = useStoreContext();
-  const { isConnected, setIsConnected, setIsMerchantView } = useAuth();
+  const { stateManager, setShopDetails } = useStoreContext();
+  const { clientConnected, setIsConnected, setIsMerchantView } = useAuth();
   const chains = useChains();
   const router = useRouter();
 
@@ -67,7 +68,6 @@ const StoreCreation = () => {
       randomShopIdHasBeenSet.current = true;
       const randomShopId = random32BytesHex();
       setIsConnected(Status.Pending);
-      setKeyCardEnrolled(false);
       setShopId(randomShopId);
     }
     return () => {
@@ -86,8 +86,6 @@ const StoreCreation = () => {
       warning = "Store name is required";
     } else if (!description.length) {
       warning = "Store description is required";
-    } else if (!avatar) {
-      warning = "Store image is required";
     } else if (!tokenAddr.length) {
       warning = "Token Address is required";
     } else if (!chainId) {
@@ -107,22 +105,21 @@ const StoreCreation = () => {
     checkRequiredFields();
 
     const rc = await createNewRelayClient();
-    if (rc && publicClient && clientWallet && shopId) {
+    if (rc && shopPublicClient && clientWallet && shopId) {
       try {
         const blockchainClient = new BlockchainClient(shopId);
         const hash = await blockchainClient.createShop(clientWallet);
 
-        const transaction = await publicClient.waitForTransactionReceipt({
+        const transaction = await shopPublicClient.waitForTransactionReceipt({
           hash,
           retryCount: 10,
         });
 
         if (transaction!.status == "success") {
-          //Add relay tokenId
+          // //Add relay tokenId for event verification.
           const relayURL =
-            (process && process.env["RELAY_ENDPOINT"]) ||
-            "ws://localhost:4444/v2";
-          // TODO: use process.env.NEXT_PUBLIC_RELAY_TOKEN_ID in prod
+            (process && process.env["NEXT_PUBLIC_RELAY_TOKEN_ID"]) ||
+            "ws://localhost:4444/v3";
           const relayEndpoint = await discoverRelay(relayURL);
           await blockchainClient.addRelay(clientWallet, relayEndpoint.tokenId);
           localStorage.setItem("shopId", shopId!);
@@ -138,14 +135,18 @@ const StoreCreation = () => {
               process.env.TEST ? undefined : new URL(window.location.href),
             );
             if (res.ok) {
+              setRelayClient(rc);
               const keyCardToEnroll = localStorage.getItem(
                 "keyCardToEnroll",
               ) as `0x${string}`;
               setIsMerchantView(true);
-              setRelayClient(rc);
               localStorage.setItem("merchantKeyCard", keyCardToEnroll);
-              setKeyCardEnrolled(true);
+              //Connect, authenticate, and send subscription request.
+              await rc.connect();
+              await rc.authenticate();
+              await rc.sendMerchantSubscriptionRequest(shopId);
               setStoreCreated(true);
+              setIsConnected(Status.Complete);
             } else {
               console.error("failed to enroll keycard");
             }
@@ -162,109 +163,102 @@ const StoreCreation = () => {
   };
 
   useEffect(() => {
+    //Create manifest once KC is enrolled and client is connected + authenticated.
     if (
       relayClient &&
       shopId &&
       stateManager &&
       isStoreCreated &&
-      isConnected == Status.Complete
+      clientConnected == Status.Complete
     ) {
-      stateManager.manifest
-        .create(
-          {
-            name: storeName,
-            description,
-          },
-          shopId,
-        )
-        .catch((e) => {
-          debug(e);
-        });
-
-      // Create published and remove tags + update shopManifest and metadata
-      stateManager.tags
-        .create("visible")
-        .then((newPubId) => {
-          stateManager.tags
-            .create("remove")
-            .then()
-            .catch((e) => debug(e));
-
-          //Testing dom does not support FormData and test client will fail with:
-          //Content-Type isn't multipart/form-data
-          //so if it is a test env, we are skipping uploadBlob
-          let path = { url: "/" };
-          if (!process.env.TEST) {
-            relayClient!
-              .uploadBlob(avatar as FormData)
-              .then((res) => {
-                path = res;
-              })
-              .catch((e) => debug(e));
-          }
-
-          if (newPubId && path.url) {
-            stateManager.manifest
-              .update({
-                publishedTagId: newPubId.id,
-                setBaseCurrency: {
-                  tokenAddr: tokenAddr as `0x${string}`,
+      //Add address of kc wallet for all outgoing event verification.
+      const kc = localStorage.getItem("merchantKeyCard") as `0x${string}`;
+      const keyCardWallet = privateKeyToAccount(kc!);
+      stateManager.keycards.addAddress(keyCardWallet.address).then(() => {
+        stateManager.manifest
+          .create(
+            {
+              pricingCurrency: {
+                chainId: 1,
+                address: tokenAddr as `0x${string}`,
+              },
+              acceptedCurrencies: [
+                {
+                  address: tokenAddr as `0x${string}`,
                   chainId,
                 },
-                addAcceptedCurrencies: [
-                  {
-                    tokenAddr: tokenAddr as `0x${string}`,
-                    chainId,
-                  },
-                ],
-                addPayee: {
-                  addr: payeeAddr as `0x${string}`,
+              ],
+              payees: [
+                {
+                  address: payeeAddr as `0x${string}`,
                   callAsContract: false,
                   chainId,
                   name: "default",
                 },
-                profilePictureUrl: path.url,
+              ],
+              //TODO: UI for inputting shipping regions.
+              shippingRegions: [
+                {
+                  name: "default",
+                  country: "",
+                  postalCode: "",
+                  city: "",
+                  orderPriceModifiers: [],
+                },
+              ],
+            },
+            shopId,
+          )
+          .then(() => {
+            uploadMetadata()
+              .then(() => {
+                router.push("/products");
               })
-              .then()
               .catch((e) => debug(e));
-          }
-
-          const metadata = {
-            name: storeName,
-            description: description,
-            image: path.url,
-          };
-          const jsn = JSON.stringify(metadata);
-          const blob = new Blob([jsn], { type: "application/json" });
-          const file = new File([blob], "file.json");
-          const formData = new FormData();
-          formData.append("file", file);
-
-          //Testing dom does not support FormData and test client will fail with:
-          //Content-Type isn't multipart/form-data
-          //so if it is a test env, we are skipping uploadBlob
-          let response = { url: "/" };
-          if (!process.env.TEST) {
-            relayClient.uploadBlob(formData).then((res) => {
-              response = res;
-            });
-          }
-          if (clientWallet && response.url) {
-            const blockchainClient = new BlockchainClient(shopId);
-            blockchainClient
-              .setShopMetadataURI(clientWallet, response.url)
-              .then()
-              .catch((e) => debug(e));
-          }
-
-          router.push("/products");
-        })
-        .catch((e) => {
-          setErrorMsg("Error while updating store manifest");
-          debug(e);
-        });
+          })
+          .catch((e) => {
+            debug(e);
+            setErrorMsg("Error while create shop manifest");
+          });
+      });
     }
-  }, [isConnected, isStoreCreated, stateManager]);
+  }, [clientConnected]);
+
+  const uploadMetadata = async () => {
+    let metadataPath;
+    let imgPath;
+    //Testing dom does not support FormData and test client will fail with:
+    //Content-Type isn't multipart/form-data
+    //so if it is a test env, we are skipping uploadBlob
+    if (process.env.TEST) {
+      metadataPath = { url: "/" };
+      imgPath = { url: "/" };
+    } else {
+      imgPath = await relayClient!.uploadBlob(avatar as FormData);
+      const metadata = {
+        name: storeName,
+        description: description,
+        image: imgPath.url,
+      };
+      const jsn = JSON.stringify(metadata);
+      const blob = new Blob([jsn], { type: "application/json" });
+      const file = new File([blob], "file.json");
+      const formData = new FormData();
+      formData.append("file", file);
+      metadataPath = await relayClient!.uploadBlob(formData);
+    }
+
+    if (clientWallet && metadataPath) {
+      const blockchainClient = new BlockchainClient(shopId!);
+
+      //Write shop metadata to blockchain client.
+      await blockchainClient.setShopMetadataURI(clientWallet, metadataPath.url);
+      setShopDetails({
+        name: storeName,
+        profilePictureUrl: imgPath.url,
+      });
+    }
+  };
 
   return (
     <main className="pt-under-nav h-screen p-4 mt-5">

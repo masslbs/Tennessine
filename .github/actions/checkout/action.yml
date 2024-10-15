@@ -32,7 +32,7 @@ inputs:
   ssh-key:
     description: SSH key used to fetch the repository
   fallback-branch:
-    default: "main"
+    default: "shipping"
     required: false
     type: string
 

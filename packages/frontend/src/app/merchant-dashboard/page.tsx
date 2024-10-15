@@ -12,36 +12,24 @@ import SecondaryButton from "@/app/common/components/SecondaryButton";
 import Image from "next/image";
 import { createQueryString } from "@/app/utils";
 import { useSearchParams } from "next/navigation";
-import { Status, Order } from "@/types";
+import { Status, Order, OrderState } from "@/types";
 import debugLib from "debug";
 
 const MerchantDashboard = () => {
-  const { stateManager } = useStoreContext();
+  const { stateManager, shopDetails } = useStoreContext();
   const searchParams = useSearchParams();
-  const [name, setName] = useState("");
   const [orders, setOrders] = useState(new Map());
   const debug = debugLib("frontend:merchantDashboard");
 
   const getAllOrders = async () => {
     const allOrders = new Map();
     for await (const [id, o] of stateManager.orders.iterator()) {
-      if (id.slice(0, 2) === "0x") {
+      if (Object.values(OrderState).includes(id)) {
         allOrders.set(id, o);
       }
     }
     return allOrders;
   };
-
-  useEffect(() => {
-    stateManager.manifest
-      .get()
-      .then((shopManifest) => {
-        setName(shopManifest.name);
-      })
-      .catch((e) => {
-        debug(e);
-      });
-  }, []);
 
   useEffect(() => {
     const onCreateOrder = (order: Order) => {
@@ -105,7 +93,7 @@ const MerchantDashboard = () => {
     <main className="pt-under-nav h-screen">
       <div className="flex flex-col justify-between mx-4 mt-4">
         <div className="mb-4">
-          <h2>{name}</h2>
+          <h2>{shopDetails.name}</h2>
           <div className="flex text-xs gap-1 pt-4">
             <SecondaryButton>
               <Link className="flex items-center gap-1" href="/products">

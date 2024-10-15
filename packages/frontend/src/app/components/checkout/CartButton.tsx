@@ -17,14 +17,16 @@ const CartButton = () => {
   useEffect(() => {
     getOrderId()
       .then(async (id) => {
-        stateManager.orders
-          .get(id)
-          .then((order) => {
-            setItemIds(order.items);
-          })
-          .catch((e) => {
-            debug(e);
-          });
+        if (id) {
+          stateManager.orders
+            .get(id)
+            .then((order) => {
+              setItemIds(order.items);
+            })
+            .catch((e) => {
+              debug(e);
+            });
+        }
       })
       .catch((e) => {
         debug(e);

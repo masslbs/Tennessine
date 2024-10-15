@@ -6,7 +6,7 @@
 
 import React, { useEffect, useState } from "react";
 import Button from "@/app/common/components/Button";
-import { useMyContext } from "@/context/MyContext";
+import { useUserContext } from "@/context/UserContext";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -16,24 +16,24 @@ import MerchantConnectWallet from "@/app/components/login/MerchantConnectWallet"
 function MerchantHomepage() {
   const [openConnectModal, setOpenConnectModal] = useState<boolean>(false);
 
-  const { setInviteSecret } = useMyContext();
-  const { isConnected, isMerchantView } = useAuth();
+  const { setInviteSecret } = useUserContext();
+  const { clientConnected, isMerchantView } = useAuth();
   const searchParams = useSearchParams();
   const inviteSecret = searchParams!.get("inviteSecret") as `0x${string}`;
   const router = useRouter();
 
   useEffect(() => {
-    if (isConnected === Status.Complete && isMerchantView) {
+    if (clientConnected === Status.Complete && isMerchantView) {
       router.push("/merchant-dashboard");
     }
-  }, [isConnected, isMerchantView]);
+  }, [clientConnected, isMerchantView]);
 
   if (inviteSecret) {
     setInviteSecret(inviteSecret);
   }
 
   const connectAction =
-    isConnected === Status.Complete
+    clientConnected === Status.Complete
       ? () => router.push("/products")
       : () => setOpenConnectModal(true);
 
