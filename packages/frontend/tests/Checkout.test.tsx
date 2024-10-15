@@ -8,7 +8,6 @@ import { createPublicClient, http, pad, Address } from "viem";
 import CheckoutFlow from "@/app/checkout/page";
 import { BlockchainClient } from "@massmarket/blockchain";
 import { hardhat } from "viem/chains";
-import { ObjectType } from "@/types";
 import * as abi from "@massmarket/contracts";
 
 describe("Checkout", async () => {

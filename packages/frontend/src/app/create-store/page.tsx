@@ -8,7 +8,7 @@ import React, { useState, useEffect, useRef } from "react";
 import AvatarUpload from "@/app/common/components/AvatarUpload";
 import { useUserContext } from "@/context/UserContext";
 import { useAuth } from "@/context/AuthContext";
-import { Status, ObjectType } from "@/types";
+import { Status } from "@/types";
 import { useRouter } from "next/navigation";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
 import { random32BytesHex, zeroAddress } from "@massmarket/utils";
@@ -199,10 +199,10 @@ const StoreCreation = () => {
               //TODO: UI for inputting shipping regions.
               shippingRegions: [
                 {
-                  name: "test",
-                  country: "test country",
-                  postalCode: "test postal",
-                  city: "test city",
+                  name: "default",
+                  country: "",
+                  postalCode: "",
+                  city: "",
                   orderPriceModifiers: [],
                 },
               ],

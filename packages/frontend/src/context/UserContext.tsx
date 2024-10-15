@@ -13,7 +13,7 @@ import { hardhat, mainnet, sepolia } from "viem/chains";
 import { http, createPublicClient, createWalletClient } from "viem";
 import { useAuth } from "@/context/AuthContext";
 import * as abi from "@massmarket/contracts";
-import { Status, ShopId, ObjectType } from "@/types";
+import { Status, ShopId } from "@/types";
 import { type ClientContext } from "@/context/types";
 import { privateKeyToAccount } from "viem/accounts";
 import { usePathname } from "next/navigation";

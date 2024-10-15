@@ -80,12 +80,3 @@ export interface ShopDetails {
   name: string;
   profilePictureUrl: string;
 }
-export enum ObjectType {
-  OBJECT_TYPE_UNSPECIFIED = 0,
-  OBJECT_TYPE_LISTING = 1,
-  OBJECT_TYPE_TAG = 2,
-  OBJECT_TYPE_ORDER = 3,
-  OBJECT_TYPE_ACCOUNT = 4,
-  OBJECT_TYPE_MANIFEST = 5,
-  OBJECT_TYPE_INVENTORY = 6,
-}

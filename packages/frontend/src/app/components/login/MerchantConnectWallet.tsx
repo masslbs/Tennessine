@@ -11,7 +11,7 @@ import { useUserContext } from "@/context/UserContext";
 import { parseAbiItem } from "viem";
 import * as abi from "@massmarket/contracts";
 import { useAuth } from "@/context/AuthContext";
-import { Status, ShopId, ObjectType } from "@/types";
+import { Status, ShopId } from "@/types";
 import { Address } from "viem/accounts";
 import { useMerchantContext } from "@/context/MerchantContext";
 import { useRouter } from "next/navigation";
