@@ -42,7 +42,7 @@ export const UserContext = createContext<ClientContext>({
     new Promise(() => {
       return false;
     }),
-  sendGuestCheckoutSubscription: () => new Promise(() => {}),
+  upgradeGuestToCustomer: () => new Promise(() => {}),
 });
 
 export const MyContextProvider = (
@@ -141,18 +141,8 @@ export const MyContextProvider = (
               setIsMerchantView(true);
               rc.connect().then(() => {
                 rc.authenticate().then(() => {
-                  const filters = [
-                    { objectType: ObjectType.OBJECT_TYPE_LISTING },
-                    { objectType: ObjectType.OBJECT_TYPE_TAG },
-                    { objectType: ObjectType.OBJECT_TYPE_ORDER },
-                    { objectType: ObjectType.OBJECT_TYPE_ACCOUNT },
-                    { objectType: ObjectType.OBJECT_TYPE_MANIFEST },
-                    { objectType: ObjectType.OBJECT_TYPE_INVENTORY },
-                  ];
-
-                  rc.sendSubscriptionRequest(
+                  rc.sendMerchantSubscriptionRequest(
                     shopId,
-                    filters,
                     Number(seqNo),
                   ).then();
                   setIsConnected(Status.Complete);
@@ -166,13 +156,7 @@ export const MyContextProvider = (
         createNewRelayClient().then((rc) => {
           setRelayClient(rc);
           rc.connect().then(() => {
-            const filters = [
-              { objectType: ObjectType.OBJECT_TYPE_LISTING },
-              { objectType: ObjectType.OBJECT_TYPE_TAG },
-              { objectType: ObjectType.OBJECT_TYPE_MANIFEST },
-              { objectType: ObjectType.OBJECT_TYPE_ACCOUNT },
-            ];
-            rc.sendSubscriptionRequest(shopId!, filters, Number(seqNo)).then();
+            rc.sendGuestSubscriptionRequest(shopId, Number(seqNo)).then();
             setIsConnected(Status.Complete);
           });
         });
@@ -186,14 +170,7 @@ export const MyContextProvider = (
         setRelayClient(rc);
         rc.connect().then(() => {
           rc.authenticate().then(() => {
-            const filters = [
-              { objectType: ObjectType.OBJECT_TYPE_LISTING },
-              { objectType: ObjectType.OBJECT_TYPE_TAG },
-              { objectType: ObjectType.OBJECT_TYPE_MANIFEST },
-              { objectType: ObjectType.OBJECT_TYPE_ORDER },
-              { objectType: ObjectType.OBJECT_TYPE_ACCOUNT },
-            ];
-            rc.sendSubscriptionRequest(shopId!, filters, Number(seqNo)).then(
+            rc.sendGuestCheckoutSubscriptionRequest(shopId, Number(seqNo)).then(
               () => {
                 setIsConnected(Status.Complete);
               },
@@ -216,7 +193,7 @@ export const MyContextProvider = (
     } else return false;
   };
 
-  const sendGuestCheckoutSubscription = async () => {
+  const upgradeGuestToCustomer = async () => {
     let usedChain;
     const chainName = process.env.NEXT_PUBLIC_CHAIN_NAME!;
     switch (chainName) {
@@ -253,13 +230,7 @@ export const MyContextProvider = (
         debug(response.error);
         throw new Error("Error while authenticating");
       }
-      const filters = [
-        { objectType: ObjectType.OBJECT_TYPE_LISTING },
-        { objectType: ObjectType.OBJECT_TYPE_TAG },
-        { objectType: ObjectType.OBJECT_TYPE_MANIFEST },
-        { objectType: ObjectType.OBJECT_TYPE_ORDER },
-      ];
-      await relayClient!.sendSubscriptionRequest(shopId!, filters);
+      await relayClient!.sendGuestCheckoutSubscriptionRequest(shopId!);
       localStorage.setItem("guestCheckoutKC", keyCard!);
       setIsConnected(Status.Complete);
     }
@@ -293,7 +264,7 @@ export const MyContextProvider = (
     checkPermissions,
     setRelayClient,
     createNewRelayClient,
-    sendGuestCheckoutSubscription,
+    upgradeGuestToCustomer,
   };
 
   return (

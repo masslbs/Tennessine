@@ -130,12 +130,12 @@ export class MockClient implements IRelayClient {
     const file = blob.get(`file`) as { name: string };
     return { url: file.name };
   }
-  async sendSubscriptionRequest(
+  async sendGuestSubscriptionRequest(shopId: `0x${string}`, seqNo = 0) {}
+  async sendGuestCheckoutSubscriptionRequest(
     shopId: `0x${string}`,
-    filters: schema.IFilter[],
     seqNo = 0,
   ) {}
-
+  async sendMerchantSubscriptionRequest(shopId: `0x${string}`, seqNo = 0) {}
   //Mimics client-fired event paymentDetails after commit event - for testing paymentDetails gets stored correctly in stateManager.
   async sendPaymentDetails(orderId: `0x${string}`) {
     return this.sendShopEvent({

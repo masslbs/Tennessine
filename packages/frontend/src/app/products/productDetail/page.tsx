@@ -19,7 +19,7 @@ import { useUserContext } from "@/context/UserContext";
 
 const ProductDetail = () => {
   const { stateManager, getOrderId, baseTokenDetails } = useStoreContext();
-  const { sendGuestCheckoutSubscription } = useUserContext();
+  const { upgradeGuestToCustomer } = useUserContext();
   const { isMerchantView } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -159,7 +159,7 @@ const ProductDetail = () => {
       setOrderId(order_id);
     } else if (!order_id) {
       //For users with no enrolled KC: upgrade subscription when adding an item to cart.
-      await sendGuestCheckoutSubscription();
+      await upgradeGuestToCustomer();
       order_id = (await stateManager.orders.create()).id;
       setOrderId(order_id);
     }

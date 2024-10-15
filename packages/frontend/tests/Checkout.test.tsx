@@ -36,15 +36,8 @@ describe("Checkout", async () => {
     await sm.client.enrollKeycard(wallet, false, shopId, undefined);
     await sm.client.connect();
     await sm.client.authenticate();
-    const filters = [
-      { objectType: ObjectType.OBJECT_TYPE_LISTING },
-      { objectType: ObjectType.OBJECT_TYPE_TAG },
-      { objectType: ObjectType.OBJECT_TYPE_ORDER },
-      { objectType: ObjectType.OBJECT_TYPE_ACCOUNT },
-      { objectType: ObjectType.OBJECT_TYPE_MANIFEST },
-      { objectType: ObjectType.OBJECT_TYPE_INVENTORY },
-    ];
-    await sm.client.sendSubscriptionRequest(shopId, filters);
+
+    await sm.client.sendMerchantSubscriptionRequest(shopId);
 
     await sm.manifest.create(
       {

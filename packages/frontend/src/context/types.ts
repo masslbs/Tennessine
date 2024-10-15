@@ -26,7 +26,7 @@ export type ClientContext = {
   checkPermissions: () => Promise<boolean>;
   setRelayClient: Dispatch<SetStateAction<RelayClient | null>>;
   createNewRelayClient: () => Promise<RelayClient | null>;
-  sendGuestCheckoutSubscription: () => Promise<void>;
+  upgradeGuestToCustomer: () => Promise<void>;
 };
 
 export type StoreContent = {

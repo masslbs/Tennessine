@@ -144,15 +144,7 @@ const StoreCreation = () => {
               //Connect, authenticate, and send subscription request.
               await rc.connect();
               await rc.authenticate();
-              const filters = [
-                { objectType: ObjectType.OBJECT_TYPE_LISTING },
-                { objectType: ObjectType.OBJECT_TYPE_TAG },
-                { objectType: ObjectType.OBJECT_TYPE_ORDER },
-                { objectType: ObjectType.OBJECT_TYPE_ACCOUNT },
-                { objectType: ObjectType.OBJECT_TYPE_MANIFEST },
-                { objectType: ObjectType.OBJECT_TYPE_INVENTORY },
-              ];
-              await rc.sendSubscriptionRequest(shopId, filters);
+              await rc.sendMerchantSubscriptionRequest(shopId);
               setStoreCreated(true);
               setIsConnected(Status.Complete);
             } else {

@@ -165,9 +165,7 @@ describe("user behaviour", () => {
     await relayClient.disconnect();
     await relayClient.connect();
     await relayClient.authenticate();
-    await relayClient.sendSubscriptionRequest(shopId, [
-      { objectType: schema.ObjectType.OBJECT_TYPE_ORDER },
-    ]);
+    await relayClient.sendMerchantSubscriptionRequest(shopId);
     expect(relayClient.connection.readyState).toBe(WebSocket.OPEN);
   });
 
@@ -447,9 +445,7 @@ describe("user behaviour", () => {
       );
       await relayClient2.connect();
       await relayClient2.authenticate();
-      await relayClient2.sendSubscriptionRequest(shopId, [
-        { objectType: schema.ObjectType.OBJECT_TYPE_MANIFEST },
-      ]);
+      await relayClient2.sendMerchantSubscriptionRequest(shopId);
     });
 
     test("client 2 receives events created by client 1", async () => {

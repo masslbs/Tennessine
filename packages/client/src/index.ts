@@ -198,11 +198,49 @@ export class RelayClient extends EventEmitter {
         this.emit(`${parseInt(message.requestId.raw)}`, message);
     }
   }
-  async sendSubscriptionRequest(
-    shopId: `0x${string}`,
-    filters: schema.IFilter[],
-    seqNo = 0,
-  ) {
+  async sendMerchantSubscriptionRequest(shopId: `0x${string}`, seqNo = 0) {
+    const filters = [
+      { objectType: schema.ObjectType.OBJECT_TYPE_LISTING },
+      { objectType: schema.ObjectType.OBJECT_TYPE_TAG },
+      { objectType: schema.ObjectType.OBJECT_TYPE_ORDER },
+      { objectType: schema.ObjectType.OBJECT_TYPE_ACCOUNT },
+      { objectType: schema.ObjectType.OBJECT_TYPE_MANIFEST },
+      { objectType: schema.ObjectType.OBJECT_TYPE_INVENTORY },
+    ];
+    const { response } = await this.encodeAndSend({
+      subscriptionRequest: {
+        startShopSeqNo: seqNo,
+        shopId: { raw: hexToBytes(shopId) },
+        filters,
+      },
+    });
+    this.subscriptionId = response.payload;
+  }
+  async sendGuestCheckoutSubscriptionRequest(shopId: `0x${string}`, seqNo = 0) {
+    const filters = [
+      { objectType: schema.ObjectType.OBJECT_TYPE_LISTING },
+      { objectType: schema.ObjectType.OBJECT_TYPE_TAG },
+      { objectType: schema.ObjectType.OBJECT_TYPE_ORDER },
+      { objectType: schema.ObjectType.OBJECT_TYPE_ACCOUNT },
+      { objectType: schema.ObjectType.OBJECT_TYPE_MANIFEST },
+    ];
+    const { response } = await this.encodeAndSend({
+      subscriptionRequest: {
+        startShopSeqNo: seqNo,
+        shopId: { raw: hexToBytes(shopId) },
+        filters,
+      },
+    });
+    this.subscriptionId = response.payload;
+  }
+
+  async sendGuestSubscriptionRequest(shopId: `0x${string}`, seqNo = 0) {
+    const filters = [
+      { objectType: schema.ObjectType.OBJECT_TYPE_LISTING },
+      { objectType: schema.ObjectType.OBJECT_TYPE_TAG },
+      { objectType: schema.ObjectType.OBJECT_TYPE_MANIFEST },
+      { objectType: schema.ObjectType.OBJECT_TYPE_ACCOUNT },
+    ];
     const { response } = await this.encodeAndSend({
       subscriptionRequest: {
         startShopSeqNo: seqNo,

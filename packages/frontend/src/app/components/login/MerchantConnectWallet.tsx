@@ -117,15 +117,7 @@ const MerchantConnectWallet = ({ close }: { close: () => void }) => {
             //Once merchant keycard is enrolled, connect and authenticate.
             await _relayClient.connect();
             await _relayClient.authenticate();
-            const filters = [
-              { objectType: ObjectType.OBJECT_TYPE_LISTING },
-              { objectType: ObjectType.OBJECT_TYPE_TAG },
-              { objectType: ObjectType.OBJECT_TYPE_ORDER },
-              { objectType: ObjectType.OBJECT_TYPE_ACCOUNT },
-              { objectType: ObjectType.OBJECT_TYPE_MANIFEST },
-              { objectType: ObjectType.OBJECT_TYPE_INVENTORY },
-            ];
-            await _relayClient!.sendSubscriptionRequest(shopId, filters);
+            await _relayClient!.sendMerchantSubscriptionRequest(shopId);
             setRelayClient(_relayClient);
             setIsMerchantView(true);
             keyCardToEnroll &&
