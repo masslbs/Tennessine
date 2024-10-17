@@ -157,7 +157,7 @@ const StoreProfile = ({ close }: { close: () => void }) => {
           }}
         />
         <ValidationWarning
-          warningMessage={validationError}
+          warning={validationError}
           onClose={() => {
             setValidationError(null);
           }}

@@ -197,13 +197,6 @@ const ProductsTags = ({
       onClick={() => handleTagClick()}
       data-testid="add-tag-btn"
     >
-      <Image
-        src="/assets/add-icon.svg"
-        alt="checkmark-icon"
-        width={24}
-        height={24}
-        className="mr-2"
-      />
       <p className="text-blue-700 flex items-center">Add keyword tag(s)</p>
     </button>
   );

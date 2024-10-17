@@ -117,38 +117,31 @@ const Navigation = () => {
     </FullModal>
   ) : (
     <div className={`absolute left-0 top-0 right-0`}>
-      <div className="w-full border border-gray-200 p-4 text-base flex justify-between">
-        <div
-          className="flex items-center text-primary-gray"
-          onClick={menuSwitch}
-        >
-          <button onClick={() => router.back()} className="flex gap-2">
-            <Image
-              src="/assets/back-button.svg"
-              width={12}
-              height={12}
-              alt="hamburger-icon"
-              className="h-6"
-            />
-            <p>back</p>
-          </button>
-          <p className="ml-5">{ensName}</p>
+      <div className="w-full p-4 text-base flex justify-between bg-white">
+        <div className="flex gap-2">
+          <Image
+            src={
+              shopDetails.profilePictureUrl
+                ? shopDetails.profilePictureUrl
+                : `/icons/mass-labs-logo.svg`
+            }
+            width={29}
+            height={25}
+            alt="profile-avatar"
+            unoptimized={true}
+            priority={true}
+          />
+          <h2>{shopDetails.name}</h2>
         </div>
-        <div className="flex gap-4">
-          <button onClick={menuSwitch}>
-            <Image
-              src={
-                shopDetails.profilePictureUrl
-                  ? shopDetails.profilePictureUrl
-                  : `/assets/MassLabsLogo.svg`
-              }
-              width={40}
-              height={40}
-              alt="profile-avatar"
-              unoptimized={true}
-            />
-          </button>
-        </div>
+        <button onClick={menuSwitch}>
+          <Image
+            src="/icons/hamburger.svg"
+            width={23}
+            height={18}
+            alt="hamburger"
+            unoptimized={true}
+          />
+        </button>
       </div>
     </div>
   );

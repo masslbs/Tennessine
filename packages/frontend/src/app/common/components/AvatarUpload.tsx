@@ -50,12 +50,12 @@ const AvatarUpload = ({
 
   return (
     <section>
-      <div className="flex justify-center">
+      <div className="flex">
         <button onClick={triggerFileInput}>
           <Image
-            src={localImg ? localImg : "/assets/upload-button.svg"}
-            width={52}
-            height={52}
+            src={localImg ? localImg : "/icons/picture-upload.svg"}
+            width={27}
+            height={21}
             alt="upload"
           />
         </button>

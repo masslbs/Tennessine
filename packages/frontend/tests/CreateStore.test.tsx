@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, expect, test, vi, beforeEach, afterEach } from "vitest";
-import { screen, waitFor, act } from "@testing-library/react";
+import { screen, waitFor, act, within } from "@testing-library/react";
 import CreateStore from "@/app/create-store/page";
 import { createPublicClient, http, Address } from "viem";
 import userEvent from "@testing-library/user-event";
@@ -41,6 +41,11 @@ beforeEach(async () => {
           status: "success",
         };
       },
+      useAccount() {
+        return {
+          status: "connected",
+        };
+      },
     };
   });
 });
@@ -63,32 +68,45 @@ describe("Create Store", async () => {
       const file = new File(["hello"], "hello.png", { type: "image/png" });
 
       const nameInput = screen.getByTestId(`storeName`);
-      const baseAddrInput = screen.getByTestId("baseTokenAddr");
       const descInput = screen.getByTestId(`desc`);
-      const chains = screen.getByRole("button", { name: /hardhat/i });
+      const chains = screen.getByRole("checkbox", { name: "ETH/Hardhat" });
       const uploadInput = screen.getByTestId("file-upload");
-      const saveBtn = screen.getByRole("button", { name: /save/i });
+      const withinPricingCurrency = within(
+        screen.getByTestId("pricing-currency"),
+      );
+      const pricingDropdown = withinPricingCurrency.getByTestId("dropdown");
+      const withinPayeeDropdown = within(screen.getByTestId("payee-info"));
+      const payeeDropdown = withinPayeeDropdown.getByTestId("dropdown");
 
       await user.upload(uploadInput, file);
-
       await user.click(chains);
       await user.clear(nameInput);
       await user.clear(descInput);
-      await user.clear(baseAddrInput);
-      await user.type(nameInput, "New Store Name!!");
-      await user.type(descInput, "New Store Description!!");
-      await user.type(baseAddrInput, zeroAddress);
-
+      await user.click(pricingDropdown);
+      await user.click(payeeDropdown);
+      await user.type(nameInput, "New Store Name II");
+      await user.type(descInput, "New Store Description II");
+      const baseCurrencySelection = await screen.findByTestId("ETH/Hardhat");
+      await user.click(baseCurrencySelection);
+      const payeeSelection = await screen.findByTestId("Hardhat");
+      await user.click(payeeSelection);
+    });
+    await act(async () => {
+      const saveBtn = screen.getByRole("button", { name: "Connect Wallet" });
       await user.click(saveBtn);
+    });
+    await act(async () => {
+      const mint = await screen.findByRole("button", { name: "Mint Shop" });
+      await user.click(mint);
     });
     let shopId: ShopId;
     await waitFor(async () => {
       expect(spy).toHaveBeenCalled();
       const manifest = await sm.manifest.get();
-      const bc = manifest.pricingCurrency as ShopCurrencies;
+      const pc = manifest.pricingCurrency as ShopCurrencies;
       //Correctly saves hardhat and zeroAddress in statemanager.
-      expect(bc.chainId).toEqual(1);
-      expect(bc.address).toEqual(zeroAddress);
+      expect(pc.chainId).toEqual(31337);
+      expect(pc.address).toEqual(zeroAddress);
       shopId = manifest.tokenId!;
     });
 
@@ -107,7 +125,7 @@ describe("Create Store", async () => {
     });
   });
 
-  test("Create store - with changed payee address and base currency", async () => {
+  test("Create store - with changed payee address and pricing currency", async () => {
     expect(spy).not.toHaveBeenCalled();
     const payee = randomAddress();
     await act(async () => {
@@ -115,34 +133,52 @@ describe("Create Store", async () => {
 
       const nameInput = screen.getByTestId(`storeName`);
       const descInput = screen.getByTestId(`desc`);
-      const chains = screen.getByRole("button", { name: /hardhat/i });
+      const chains = screen.getByRole("checkbox", { name: "ETH/Hardhat" });
       const uploadInput = screen.getByTestId("file-upload");
-      const saveBtn = screen.getByRole("button", { name: /save/i });
       const payeeInput = screen.getByTestId("payeeAddress");
-      const baseAddrInput = screen.getByTestId("baseTokenAddr");
+      const withinPricingCurrency = within(
+        screen.getByTestId("pricing-currency"),
+      );
+      const pricingDropdown = withinPricingCurrency.getByTestId("dropdown");
+      const withinPayeeDropdown = within(screen.getByTestId("payee-info"));
+      const payeeDropdown = withinPayeeDropdown.getByTestId("dropdown");
 
       await user.upload(uploadInput, file);
       await user.click(chains);
       await user.clear(nameInput);
       await user.clear(descInput);
       await user.clear(payeeInput);
-      await user.clear(baseAddrInput);
-
+      await user.click(pricingDropdown);
+      await user.click(payeeDropdown);
       await user.type(nameInput, "New Store Name II");
       await user.type(descInput, "New Store Description II");
       await user.type(payeeInput, payee);
-      await user.type(baseAddrInput, zeroAddress);
-
+      const baseCurrencySelection = await screen.findByTestId("USDC/Hardhat");
+      await user.click(baseCurrencySelection);
+      const payeeSelection = await screen.findByTestId("Hardhat");
+      await user.click(payeeSelection);
+    });
+    await act(async () => {
+      const saveBtn = screen.getByRole("button", { name: "Connect Wallet" });
       await user.click(saveBtn);
     });
+
+    await act(async () => {
+      const mint = await screen.findByRole("button", { name: "Mint Shop" });
+      await user.click(mint);
+    });
+
     let shopId: ShopId;
     await waitFor(
       async () => {
         expect(spy).toHaveBeenCalled();
         const manifest = await sm.manifest.get();
         shopId = manifest.tokenId!;
-        const bc = manifest.pricingCurrency as ShopCurrencies;
-        expect(bc.address).toEqual(zeroAddress);
+        const pc = manifest.pricingCurrency as ShopCurrencies;
+        expect(pc.address).toEqual(
+          //USDC address - since we select USDC/Hardhat above.
+          "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        );
       },
       { timeout: 20000 },
     );

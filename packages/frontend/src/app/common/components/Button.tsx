@@ -16,8 +16,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     //fixme: make sure button ui is clicked, not just fire onclick fn
     return (
       <button
-        className={`flex justify-center text-3xl text-white px-6 py-4 rounded-2xl ${
-          props.color ? props.color : "bg-primary-button"
+        className={`flex justify-center text-white px-5 py-3 rounded-md ${
+          props.color ? props.color : "bg-primary-dark-green"
         } w-full disabled:bg-gray-200 disabled:text-gray-500`}
         ref={ref}
         {...props}

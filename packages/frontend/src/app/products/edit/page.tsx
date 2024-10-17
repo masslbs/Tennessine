@@ -11,11 +11,11 @@ import ProductsTags from "@/app/components/products/ProductTags";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Tag, ItemId, Item, TagId, ListingViewState } from "@/types";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
-import SecondaryButton from "@/app/common/components/SecondaryButton";
 import { useUserContext } from "@/context/UserContext";
 import debugLib from "debug";
 import ValidationWarning from "@/app/common/components/ValidationWarning";
 import { formatUnitsFromString } from "@massmarket/utils";
+import Button from "@/app/common/components/Button";
 
 const AddProductView = () => {
   const router = useRouter();
@@ -85,10 +85,6 @@ const AddProductView = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
-  };
-
-  const onBack = () => {
-    router.push(`/products`);
   };
 
   const handleUpload = (e: ChangeEvent<HTMLInputElement>) => {
@@ -242,216 +238,188 @@ const AddProductView = () => {
   };
 
   return (
-    <div className="h-screen inset-0 flex items-end justify-center z-40 text-sm bg-gray-100">
-      <div
-        className={`bg-gray-100 rounded-2xl w-full h-full min-w-full relative pb-10`}
-      >
-        <div id="header" className="flex relative m-4 gap-2">
-          <Image
-            src={"/assets/back-button.svg"}
-            width={12}
-            height={12}
-            alt="back-button"
-            unoptimized={true}
-            style={{ maxHeight: "64px", maxWidth: "64px" }}
-          />
-          <button onClick={onBack} className="text-primary-gray">
-            back
-          </button>
-          <div className="flex justify-center w-full">
-            <header className="pr-6">{hed}</header>
-          </div>
+    <main className="pt-under-nav h-screen p-4 mt-5">
+      <ValidationWarning
+        warning={validationError}
+        onClose={() => {
+          setValidationError(null);
+        }}
+      />
+      <ErrorMessage
+        errorMessage={errorMsg}
+        onClose={() => {
+          setErrorMsg(null);
+        }}
+      />
+      <section>
+        <div className="flex">
+          <h2>{hed}</h2>
         </div>
-        <ValidationWarning
-          warningMessage={validationError}
-          onClose={() => {
-            setValidationError(null);
-          }}
-        />
-        <ErrorMessage
-          errorMessage={errorMsg}
-          onClose={() => {
-            setErrorMsg(null);
-          }}
-        />
-        <section id="content" className="m-4">
-          <div className="flex">
-            <div className="flex gap-3 items-center">
-              <Image
-                src={"/assets/chevron-right.svg"}
-                width={9}
-                height={15}
-                alt="chevron-right"
-              />
-              <h2>{hed}</h2>
-            </div>
-            <div className="ml-auto">
-              <SecondaryButton onClick={onPublish}>
-                {editView ? "update" : "publish"}
-              </SecondaryButton>
-            </div>
-          </div>
-          <section className="mt-6 flex flex-col gap-4">
-            <form
-              className="flex flex-col"
-              onSubmit={(e) => {
-                e.preventDefault();
-              }}
-            >
-              <label htmlFor="title">Title</label>
-              <input
-                value={title}
-                className="border-2 border-solid mt-1 p-3 rounded-2xl"
-                data-testid="title"
-                name="title"
-                onChange={(e) => handleTitleChange(e)}
-              />
-            </form>
-            <form
-              className="flex flex-col"
-              onSubmit={(e) => {
-                e.preventDefault();
-              }}
-            >
-              <label htmlFor="description">description</label>
-              <input
-                value={description}
-                className="border-2 border-solid mt-1 p-3 rounded-2xl"
-                data-testid="description"
-                name="description"
-                onChange={(e) => handleDescriptionChange(e)}
-              />
-            </form>
-            <div className="flex flex-col">
-              <p className="mb-2">Product pics</p>
-              {imgSrc ? (
-                <div className="p-4 bg-white border-2 border-solid rounded-2xl">
-                  <div className="relative w-fit p-2 mb-2">
-                    <div className="p-4 border-2 w-fit rounded-2xl">
-                      <Image
-                        src={imgSrc}
-                        width={50}
-                        height={50}
-                        alt="uploaded-product-image"
-                        unoptimized={true}
-                        style={{ maxHeight: "64px", maxWidth: "64px" }}
-                      />
-                    </div>
+        <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
+          <form
+            className="flex flex-col"
+            onSubmit={(e) => {
+              e.preventDefault();
+            }}
+          >
+            <label htmlFor="title">Product name</label>
+            <input
+              value={title}
+              className="border-2 border-solid mt-1 p-3 rounded-md bg-background-gray"
+              data-testid="title"
+              name="title"
+              onChange={(e) => handleTitleChange(e)}
+            />
+          </form>
+          <form
+            className="flex flex-col"
+            onSubmit={(e) => {
+              e.preventDefault();
+            }}
+          >
+            <label htmlFor="description">Product description</label>
+            <input
+              value={description}
+              className="border-2 border-solid mt-1 p-3 rounded-md bg-background-gray"
+              data-testid="description"
+              name="description"
+              onChange={(e) => handleDescriptionChange(e)}
+            />
+          </form>
+          <div className="flex flex-col">
+            <p className="mb-2">Product pics</p>
+            {imgSrc ? (
+              <div className="p-4 bg-white border-2 border-solid rounded-md">
+                <div className="relative w-fit p-2 mb-2">
+                  <div className="p-4 border-2 w-fit rounded-md">
                     <Image
-                      src="/assets/circle-remove.svg"
-                      width={24}
-                      height={24}
-                      alt="remove"
-                      className="absolute top-0 right-0"
-                      onClick={removeImg}
+                      src={imgSrc}
+                      width={50}
+                      height={50}
+                      alt="uploaded-product-image"
+                      unoptimized={true}
+                      style={{ maxHeight: "64px", maxWidth: "64px" }}
                     />
                   </div>
-                  <div className="border-t border-gray-300 border-0">
-                    <button onClick={removeImg}>
-                      <p className="text-blue-700 mt-2">Remove</p>
-                    </button>
-                  </div>
+                  <Image
+                    src="/assets/circle-remove.svg"
+                    width={24}
+                    height={24}
+                    alt="remove"
+                    className="absolute top-0 right-0"
+                    onClick={removeImg}
+                  />
                 </div>
-              ) : (
-                <div className="border-2 border-solid rounded-2xl bg-primary-gray">
-                  <button
-                    onClick={triggerFileInput}
-                    className="p-5 w-full text-white"
-                  >
-                    <div className="flex flex-col items-center gap-2">
-                      <Image
-                        src={"/assets/upload-image.svg"}
-                        width={20}
-                        height={20}
-                        alt="back-button"
-                        unoptimized={true}
-                        style={{ maxHeight: "64px", maxWidth: "64px" }}
-                      />
-                      <p>Upload image</p>
-                      <p className="text-gray-400 text-xs ">
-                        {"upload JPG or PNG <10MB"}
-                      </p>
-                    </div>
+                <div className="border-t border-gray-300 border-0">
+                  <button onClick={removeImg}>
+                    <p className="text-blue-700 mt-2">Remove</p>
                   </button>
                 </div>
-              )}
-            </div>
-            <div className="flex justify-between">
-              <form
-                className="flex flex-col w-40"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                }}
-              >
-                <label htmlFor="price">price</label>
-                <input
-                  value={price}
-                  className="border-2 border-solid mt-1 p-3 rounded-2xl"
-                  data-testid="price"
-                  name="price"
-                  onChange={(e) => handlePriceChange(e)}
-                />
-              </form>
-              <form
-                className="flex flex-col w-40"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                }}
-              >
-                <label htmlFor="units">units</label>
-                <input
-                  value={units}
-                  className="border-2 border-solid mt-1 p-3 rounded-2xl"
-                  data-testid="units"
-                  name="units"
-                  onChange={(e) => handleStockChange(e)}
-                />
-              </form>
-            </div>
-
-            <div className="hidden">
-              <input
-                type="file"
-                data-testid="file-upload"
-                ref={fileInputRef}
-                className="file-input"
-                accept="image/*"
-                onChange={handleUpload}
-              />
-            </div>
-            <section id="tags">
-              <div className="flex mb-4">
-                <p>Tags</p>
               </div>
-              <ProductsTags
-                selectedTags={selectedTags}
-                setSelectedTags={setSelectedTags}
-                setError={setErrorMsg}
-              />
-            </section>
-            <div>
-              <label htmlFor="published">Published</label>
+            ) : (
+              <div className="border-2 border-solid rounded-md bg-background-gray h-32 flex">
+                <button
+                  onClick={triggerFileInput}
+                  className="p-5 w-full text-white"
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <Image
+                      src={"/icons/picture.svg"}
+                      width={25}
+                      height={25}
+                      alt="upload-picture"
+                      unoptimized={true}
+                      style={{ maxHeight: "64px", maxWidth: "64px" }}
+                    />
+                    <p className="text-gray-400 text-xs ">
+                      {"upload JPG or PNG <10MB"}
+                    </p>
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
+          <div className="flex justify-between">
+            <form
+              className="flex flex-col w-40"
+              onSubmit={(e) => {
+                e.preventDefault();
+              }}
+            >
+              <label htmlFor="price">price</label>
               <input
-                id="published"
-                name="published"
-                type="checkbox"
-                checked={
-                  viewState === ListingViewState.LISTING_VIEW_STATE_PUBLISHED
-                }
-                onChange={(e) => {
-                  const { checked } = e.target;
-                  setViewState(
-                    checked
-                      ? ListingViewState.LISTING_VIEW_STATE_PUBLISHED
-                      : ListingViewState.LISTING_VIEW_STATE_UNSPECIFIED,
-                  );
-                }}
+                value={price}
+                className="border-2 border-solid mt-1 p-3 rounded-md bg-background-gray"
+                data-testid="price"
+                name="price"
+                onChange={(e) => handlePriceChange(e)}
               />
+            </form>
+            <form
+              className="flex flex-col w-40"
+              onSubmit={(e) => {
+                e.preventDefault();
+              }}
+            >
+              <label htmlFor="units">units</label>
+              <input
+                value={units}
+                className="border-2 border-solid mt-1 p-3 rounded-md bg-background-gray"
+                data-testid="units"
+                name="units"
+                onChange={(e) => handleStockChange(e)}
+              />
+            </form>
+          </div>
+
+          <div className="hidden">
+            <input
+              type="file"
+              data-testid="file-upload"
+              ref={fileInputRef}
+              className="file-input"
+              accept="image/*"
+              onChange={handleUpload}
+            />
+          </div>
+          <section id="tags">
+            <div className="flex">
+              <p>Tags</p>
             </div>
+            <ProductsTags
+              selectedTags={selectedTags}
+              setSelectedTags={setSelectedTags}
+              setError={setErrorMsg}
+            />
           </section>
+          <div className="flex gap-2 items-center">
+            <input
+              id="published"
+              name="published"
+              type="checkbox"
+              className="form-checkbox h-4 w-4"
+              checked={
+                viewState === ListingViewState.LISTING_VIEW_STATE_PUBLISHED
+              }
+              onChange={(e) => {
+                const { checked } = e.target;
+                setViewState(
+                  checked
+                    ? ListingViewState.LISTING_VIEW_STATE_PUBLISHED
+                    : ListingViewState.LISTING_VIEW_STATE_UNSPECIFIED,
+                );
+              }}
+            />
+            <label htmlFor="published">Publish product</label>
+          </div>
         </section>
-      </div>
-    </div>
+        <div className="ml-auto">
+          <Button onClick={onPublish}>
+            {editView ? "update" : "create product"}
+          </Button>
+        </div>
+      </section>
+    </main>
   );
 };
 export default AddProductView;

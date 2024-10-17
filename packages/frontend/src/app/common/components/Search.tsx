@@ -37,7 +37,7 @@ const Search = ({
           />
         ) : (
           <Image
-            src="/assets/search.svg"
+            src="/icons/search-icon.svg"
             width={19}
             height={19}
             alt="search-icon"
