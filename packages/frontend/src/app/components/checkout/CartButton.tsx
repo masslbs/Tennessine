@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import React, { useState, useEffect } from "react";
-import Image from "next/image";
 import { useStoreContext } from "@/context/StoreContext";
 import Link from "next/link";
 import { Order } from "@/types";
