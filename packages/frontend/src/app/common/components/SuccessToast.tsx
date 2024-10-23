@@ -5,20 +5,17 @@
 import React from "react";
 import Image from "next/image";
 
-interface ValidationWarningProps {
-  warning: string | null;
+interface SuccessToastProps {
+  message: string | null;
   onClose: () => void;
 }
 
-const ValidationWarning: React.FC<ValidationWarningProps> = ({
-  warning,
-  onClose,
-}) => {
-  if (!warning) return null;
+const SuccessToast: React.FC<SuccessToastProps> = ({ message, onClose }) => {
+  if (!message) return null;
 
   return (
-    <div className="px-4 py-2 bg-warning-yellow text-white font-thin rounded-lg flex items-center">
-      <p>{warning}</p>
+    <div className="px-4 py-2 bg-success-green text-white font-thin rounded-lg flex items-center">
+      <p>{message}</p>
       <button onClick={() => onClose()} className="ml-auto">
         <div className="bg-white rounded-full w-4 h-4 flex justify-center items-center">
           <Image
@@ -34,4 +31,4 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
   );
 };
 
-export default ValidationWarning;
+export default SuccessToast;

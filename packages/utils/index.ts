@@ -83,6 +83,8 @@ export function addressToUint256(addressObject: AdressObj | AdressObj[]) {
 
 export const zeroAddress: `0x${string}` =
   "0x0000000000000000000000000000000000000000";
+export const usdcAddress: `0x${string}` =
+  "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 export const anvilPrivateKey =
   "0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6";
 export const anvilPrivateKey2 =

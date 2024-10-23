@@ -318,7 +318,7 @@ const StoreCreation = () => {
             onSubmit={(e) => e.preventDefault()}
           >
             <label className="font-medium" htmlFor="storeName">
-              Store Name
+              Shop Name
             </label>
             <input
               className="border-2 border-solid mt-1 p-2 rounded-md bg-background-gray"

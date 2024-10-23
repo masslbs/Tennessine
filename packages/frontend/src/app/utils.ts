@@ -7,7 +7,7 @@ import { twMerge } from "tailwind-merge";
 import { Metadata } from "@/types";
 import { ReadonlyURLSearchParams } from "next/navigation";
 import { PublicClient } from "viem";
-import { zeroAddress } from "@massmarket/utils";
+import { zeroAddress, usdcAddress } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 import { sepolia, hardhat } from "wagmi/chains";
 
@@ -59,7 +59,7 @@ export const getTokenInformation = (
       resolve(["ETH", 18]);
     });
   } else if (
-    // FIXME: Cannot symbol/decimal functions from contract for test chains.
+    // FIXME: Cannot get symbol/decimal functions from contract for test chains.
     publicClient.chain?.id === hardhat.id ||
     publicClient.chain?.id === sepolia.id
   ) {
@@ -82,12 +82,15 @@ export const getTokenInformation = (
 
   return Promise.all([symbol, decimal]);
 };
-export const getTokenAddress = async (symbol: string, chainId: number) => {
-  const testChains = chainId === 31337 || chainId === 11155111;
+export const getTokenAddress = async (
+  symbol: string,
+  chainId: number,
+): Promise<`0x${string}`> => {
+  const testChains = chainId === hardhat.id || chainId === sepolia.id;
+
   // Token list from uniswap does not carry test chain token data, so directly return token addresses for ETH/USDC if selected chain is sepolia/hardhat.
-  if (symbol === "ETH" && (testChains || chainId === 1)) return zeroAddress;
-  if (symbol === "USDC" && testChains)
-    return "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
+  if (symbol === "ETH") return zeroAddress;
+  if (symbol === "USDC" && testChains) return usdcAddress;
 
   const response = await fetch("https://tokens.uniswap.org/");
   const tokenList = await response.json();
@@ -96,5 +99,10 @@ export const getTokenAddress = async (symbol: string, chainId: number) => {
     (t: { symbol: string; chainId: number }) =>
       t.symbol === symbol && t.chainId === chainId,
   );
-  return token ? token.address : null;
+
+  if (token) {
+    return token.address;
+  }
+
+  throw new Error(`Token not found for ${symbol} on chainId: ${chainId}`);
 };

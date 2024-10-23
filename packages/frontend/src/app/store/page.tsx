@@ -4,58 +4,105 @@
 
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, ChangeEvent } from "react";
 import Image from "next/image";
-import { sepolia, hardhat } from "viem/chains";
+import { useChains } from "wagmi";
 import debugLib from "debug";
+import { Address } from "viem";
 
-import { ShopManifest, ShopCurrencies, TokenAddr } from "@/types";
-import { isValidHex } from "@/app/utils";
+import { UpdateShopManifest } from "@massmarket/stateManager/types";
+
+import { ShopManifest, ShopCurrencies, Option } from "@/types";
+import { getTokenAddress } from "@/app/utils";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
 import Button from "@/app/common/components/Button";
 import AvatarUpload from "@/app/common/components/AvatarUpload";
 import ValidationWarning from "@/app/common/components/ValidationWarning";
-import SecondaryButton from "@/app/common/components/SecondaryButton";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
-import { BlockchainClient } from "@massmarket/blockchain";
-import { UpdateShopManifest } from "@massmarket/stateManager/types";
+import SuccessToast from "@/app/common/components/SuccessToast";
+import BackButton from "@/app/common/components/BackButton";
+import Dropdown from "@/app/common/components/Dropdown";
 
+interface DisplayedChains {
+  label: string;
+  value: `${Address}/${string}`;
+  address: Address;
+  chainId: number;
+}
+interface AcceptedChains {
+  address: Address;
+  chainId: number;
+  removed?: boolean;
+  added?: boolean;
+}
 const StoreProfile = () => {
   const { stateManager, shopDetails } = useStoreContext();
-  const { relayClient, clientWallet, shopId } = useUserContext();
+  const { shopId } = useUserContext();
   const [storeName, setStoreName] = useState<string>("");
-  const [baseAddr, setStoreBase] = useState<TokenAddr | null>(null);
   const [avatar, setAvatar] = useState<FormData | null>(null);
-  const [addTokenAddr, setAddTokenAddr] = useState<TokenAddr | "">("");
   const [acceptedCurrencies, setAcceptedCurrencies] = useState<
-    ShopCurrencies[]
+    AcceptedChains[]
   >([]);
+  const [pricingToken, setPricingCurrency] = useState<ShopCurrencies | null>(
+    null,
+  );
   const [error, setError] = useState<null | string>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [manifest, setManifest] = useState<ShopManifest | null>(null);
+  const [displayedChains, setRenderChains] = useState<DisplayedChains[]>([]);
 
-  const chainName = process.env.NEXT_PUBLIC_CHAIN_NAME!;
-  const [addAcceptedChainId, setAddChainId] = useState<number>(
-    chainName === "sepolia" ? sepolia.id : hardhat.id,
-  );
-  const [baseChainId, setBaseChainId] = useState<number>(
-    chainName === "sepolia" ? sepolia.id : hardhat.id,
-  );
   const debug = debugLib("frontend:storeProfile");
+  const chains = useChains();
+
+  useEffect(() => {
+    if (chains) {
+      const chainsToRender: DisplayedChains[] = [];
+      Promise.all(
+        chains.map(async (c) => {
+          const ethTokenAddress = await getTokenAddress("ETH", c.id);
+          chainsToRender.push({
+            label: `ETH/${c.name}`,
+            value: `${ethTokenAddress}/${c.id}`,
+            address: ethTokenAddress,
+            chainId: c.id,
+          });
+          const usdcTokenAddress = await getTokenAddress("USDC", c.id);
+
+          chainsToRender.push({
+            label: `USDC/${c.name}`,
+            value: `${usdcTokenAddress}/${c.id}`,
+            address: usdcTokenAddress,
+            chainId: c.id,
+          });
+        }),
+      ).then(() => {
+        setRenderChains(chainsToRender);
+      });
+    }
+  }, []);
 
   useEffect(() => {
     const onUpdateEvent = async (updatedManifest: ShopManifest) => {
       const { pricingCurrency, acceptedCurrencies } = updatedManifest;
       setAcceptedCurrencies(acceptedCurrencies);
-      setStoreBase(pricingCurrency.address);
+      setPricingCurrency({
+        address: pricingCurrency.address!,
+        chainId: pricingCurrency.chainId!,
+      });
     };
 
     stateManager.manifest
       .get()
       .then((shopManifest) => {
         const { pricingCurrency, acceptedCurrencies } = shopManifest;
+        setManifest(shopManifest);
         setAcceptedCurrencies(acceptedCurrencies);
-        setStoreBase(pricingCurrency.address);
+        setPricingCurrency({
+          address: pricingCurrency.address!,
+          chainId: pricingCurrency.chainId!,
+        });
       })
       .catch((e) => {
         debug(e);
@@ -71,79 +118,95 @@ const StoreProfile = () => {
   const copyToClipboard = () => {
     navigator.clipboard.writeText(shopId!);
   };
-  const updateStoreInfo = async () => {
-    if (!baseAddr) {
-      setValidationError("Missing base currency address for store.");
-    } else if (!baseChainId) {
-      setValidationError("Missing base currency chainId for store.");
-    } else if (!isValidHex(baseAddr)) {
-      setValidationError("Base token address must be a valid hex value");
-    } else {
-      try {
-        const manifest: Partial<UpdateShopManifest> = {
-          setPricingCurrency: {
-            address: baseAddr as TokenAddr,
-            chainId: baseChainId,
-          },
-        };
-        await stateManager!.manifest.update(manifest);
+  const updateShopManifest = async () => {
+    const um: Partial<UpdateShopManifest> = {};
+    //If pricing currency needs to update.
+    if (
+      pricingToken!.address !== manifest!.pricingCurrency.address ||
+      pricingToken!.chainId !== manifest!.pricingCurrency.chainId
+    ) {
+      um.setPricingCurrency = pricingToken;
+    }
+    const remove: ShopCurrencies[] = [];
+    const add: ShopCurrencies[] = [];
 
-        //If avatar or store name changed, setShopMetadataURI.
-        if (avatar || storeName !== shopDetails.name) {
-          const metadata = {
-            name: storeName,
-            //If new avatar was uploaded, upload the image, otherwise use previous image.
-            image: avatar
-              ? (await relayClient!.uploadBlob(avatar as FormData)).url
-              : shopDetails.profilePictureUrl,
-          };
-          const jsn = JSON.stringify(metadata);
-          const blob = new Blob([jsn], { type: "application/json" });
-          const file = new File([blob], "file.json");
-          const formData = new FormData();
-          formData.append("file", file);
-          relayClient!.uploadBlob(formData).then(({ url }) => {
-            const blockchainClient = new BlockchainClient(shopId!);
-            blockchainClient
-              .setShopMetadataURI(clientWallet!, url)
-              .then()
-              .catch((e) => debug(e));
-          });
-        }
-        close();
-      } catch (error) {
-        debug(error);
+    acceptedCurrencies.map((c) => {
+      if (c.removed) {
+        remove.push({ address: c.address, chainId: c.chainId });
+      } else if (c.added) {
+        add.push({ address: c.address, chainId: c.chainId });
       }
+      return;
+    });
+    if (remove.length) {
+      um.removeAcceptedCurrencies = remove;
+    }
+    if (add.length) {
+      um.addAcceptedCurrencies = add;
+    }
+    try {
+      if (!Object.keys(um).length) {
+        setValidationError("No changes found");
+        return;
+      }
+      await stateManager!.manifest.update(um);
+
+      //If avatar or store name changed, setShopMetadataURI.
+      // if (avatar || storeName !== shopDetails.name) {
+      //   const metadata = {
+      //     name: storeName,
+      //     //If new avatar was uploaded, upload the image, otherwise use previous image.
+      //     image: avatar
+      //       ? (await relayClient!.uploadBlob(avatar as FormData)).url
+      //       : shopDetails.profilePictureUrl,
+      //   };
+      //   const jsn = JSON.stringify(metadata);
+      //   const blob = new Blob([jsn], { type: "application/json" });
+      //   const file = new File([blob], "file.json");
+      //   const formData = new FormData();
+      //   formData.append("file", file);
+      //   relayClient!.uploadBlob(formData).then(({ url }) => {
+      //     const blockchainClient = new BlockchainClient(shopId!);
+      //     blockchainClient
+      //       .setShopMetadataURI(clientWallet!, url)
+      //       .then()
+      //       .catch((e) => debug(e));
+      //   });
+      // }
+      setSuccess("Changes saved.");
+    } catch (error) {
+      debug("Failed: updateShopManifest", error);
+      setError("Error updating shop manifest.");
     }
   };
-  const renderAcceptedCurrencies = () => {
-    return acceptedCurrencies.map((c, i) => (
-      <p data-testid="accepted-currencies" key={i}>
-        {c.address}
-      </p>
-    ));
-  };
-  const addAcceptedCurrencyFn = async () => {
-    if (!addTokenAddr.length) {
-      setValidationError("Must enter a token address to add");
-    } else if (!addAcceptedChainId) {
-      setValidationError("Must enter a token chainId to add");
+
+  const handleAcceptedCurrencies = async (e: ChangeEvent<HTMLInputElement>) => {
+    const [addr, chainId] = e.target.value.split("/");
+    const address = addr as Address;
+    if (e.target.checked) {
+      setAcceptedCurrencies([
+        ...acceptedCurrencies,
+        { address, chainId: Number(chainId), added: true, removed: false },
+      ]);
     } else {
-      try {
-        await stateManager!.manifest.update({
-          addAcceptedCurrencies: [
-            {
-              address: addTokenAddr as TokenAddr,
-              chainId: addAcceptedChainId,
-            },
-          ],
-        });
-      } catch (error) {
-        debug(error);
-        setAddTokenAddr("");
-        setError("Failed to add accepted currency");
-      }
+      //remove accepted currency
+      setAcceptedCurrencies(
+        acceptedCurrencies.map((c) => {
+          if (
+            c.address === address.toLowerCase() &&
+            c.chainId === Number(chainId)
+          ) {
+            return { ...c, added: false, removed: true };
+          } else return c;
+        }),
+      );
     }
+  };
+  const handlePricingCurrency = async (option: Option) => {
+    const v = option.value as string;
+    const [addr, chainId] = v.split("/");
+    const address = addr as Address;
+    setPricingCurrency({ address, chainId: Number(chainId) });
   };
 
   return (
@@ -160,12 +223,19 @@ const StoreProfile = () => {
           setValidationError(null);
         }}
       />
-      <section>
+      <SuccessToast
+        message={success}
+        onClose={() => {
+          setSuccess(null);
+        }}
+      />
+      <BackButton href="/products" />
+      <section className="mt-2">
         <div className="flex">
           <h2>Edit shop details</h2>
         </div>
         <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
-          <p className="flex items-center">Shop PFP</p>
+          <p className="flex items-center font-medium">Shop PFP</p>
           <AvatarUpload setImgBlob={setAvatar} />
           <section className="text-sm flex flex-col gap-4">
             <div>
@@ -174,12 +244,15 @@ const StoreProfile = () => {
                   className="flex flex-col"
                   onSubmit={(e) => e.preventDefault()}
                 >
-                  <label htmlFor="storeName">Store Name</label>
+                  <label className="font-medium text-base" htmlFor="storeName">
+                    Shop Name
+                  </label>
                   <input
                     className="border-2 border-solid mt-1 p-2 rounded"
                     data-testid="storeName"
                     name="storeName"
                     value={storeName}
+                    placeholder={shopDetails.name}
                     onChange={(e) => setStoreName(e.target.value)}
                   />
                 </form>
@@ -189,7 +262,9 @@ const StoreProfile = () => {
                   className="flex flex-col"
                   onSubmit={(e) => e.preventDefault()}
                 >
-                  <label htmlFor="storeId">Store ID</label>
+                  <label className="font-medium text-base" htmlFor="storeId">
+                    Shop ID
+                  </label>
                   <div className="flex gap-2">
                     <input
                       className="border-2 border-solid mt-1 p-2 rounded"
@@ -200,7 +275,7 @@ const StoreProfile = () => {
                     />
                     <button className="mr-4" onClick={copyToClipboard}>
                       <Image
-                        src="/assets/copy-icon.svg"
+                        src="/icons/copy-icon.svg"
                         width={14}
                         height={14}
                         alt="copy-icon"
@@ -211,77 +286,63 @@ const StoreProfile = () => {
                 </form>
               </section>
               <section className="mt-4">
-                <form
-                  className="flex flex-col"
-                  onSubmit={(e) => e.preventDefault()}
-                >
-                  <label htmlFor="pricingCurrency">Base Currency</label>
-                  <div>
-                    <input
-                      className="border-2 border-solid mt-1 p-2 rounded"
-                      data-testid="baseAddr"
-                      name="baseAddr"
-                      value={baseAddr ?? ""}
-                      onChange={(e) =>
-                        setStoreBase(e.target.value as TokenAddr)
-                      }
-                    />
-                    <button className="mr-4" onClick={copyToClipboard}>
-                      <Image
-                        src="/assets/copy-icon.svg"
-                        width={14}
-                        height={14}
-                        alt="copy-icon"
-                        className="w-auto h-auto"
-                      />
-                    </button>
-
-                    <input
-                      className="border-2 border-solid mt-1 p-2 rounded"
-                      data-testid="baseChainId"
-                      name="baseChainId"
-                      value={baseChainId}
-                      onChange={(e) => setBaseChainId(Number(e.target.value))}
-                    />
-                  </div>
-                </form>
-              </section>
-              <section className="mt-4">
-                <p>Accepted currencies:</p>
-                {renderAcceptedCurrencies()}
+                <label className="font-medium text-base">
+                  Accepted currency
+                </label>
+                <div className="flex flex-col gap-1 mt-1">
+                  {displayedChains &&
+                    displayedChains.map((c) => {
+                      return (
+                        <div key={c.value}>
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              onChange={(e) => handleAcceptedCurrencies(e)}
+                              className="form-checkbox h-4 w-4"
+                              value={c.value}
+                              checked={Boolean(
+                                acceptedCurrencies.find(
+                                  (currency) =>
+                                    !currency.removed &&
+                                    currency.chainId === c.chainId &&
+                                    currency.address ===
+                                      c.address.toLowerCase(),
+                                ),
+                              )}
+                            />
+                            <span>{c.label}</span>
+                          </label>
+                        </div>
+                      );
+                    })}
+                </div>
               </section>
               <section className="mt-4">
                 <form
-                  className="flex flex-col"
-                  onSubmit={(e) => e.preventDefault()}
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                  }}
                 >
-                  <label htmlFor="addTokenAddr">Add Token Address</label>
-                  <p>
-                    Note: for now it will add with the chainID from env file...
-                  </p>
-                  <div>
-                    <input
-                      className="border-2 border-solid mt-1 p-2 rounded "
-                      data-testid="addTokenAddr"
-                      name="addTokenAddr"
-                      value={addTokenAddr}
-                      onChange={(e) =>
-                        setAddTokenAddr(e.target.value as TokenAddr)
-                      }
-                    />
-                    <input
-                      className="border-2 border-solid mt-1 p-2 rounded"
-                      data-testid="addTokenChainId"
-                      name="addTokenChainId"
-                      value={addAcceptedChainId}
-                      onChange={(e) => setAddChainId(Number(e.target.value))}
-                    />
-                    <SecondaryButton
-                      className="mr-4"
-                      onClick={addAcceptedCurrencyFn}
+                  <div
+                    className="flex flex-col"
+                    onSubmit={(e) => e.preventDefault()}
+                    data-testid="pricing-currency"
+                  >
+                    <label
+                      htmlFor="pricingCurrency"
+                      className="font-medium text-base mb-1"
                     >
-                      Add
-                    </SecondaryButton>
+                      Pricing Currency
+                    </label>
+                    <Dropdown
+                      options={displayedChains}
+                      callback={handlePricingCurrency}
+                      selected={displayedChains.find(
+                        (c) =>
+                          c.address.toLowerCase() === pricingToken?.address &&
+                          c.chainId === pricingToken?.chainId,
+                      )}
+                    />
                   </div>
                 </form>
               </section>
@@ -290,7 +351,7 @@ const StoreProfile = () => {
           </section>
         </section>
         <div className="mt-auto mx-4">
-          <Button onClick={updateStoreInfo}>Update</Button>
+          <Button onClick={updateShopManifest}>Update</Button>
         </div>
       </section>
     </main>

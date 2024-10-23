@@ -26,6 +26,7 @@ const config: Config = {
         "error-red": "#A31621",
         "primary-dark-green": "#3B513E",
         "background-gray": "#F3F3F3",
+        "success-green": "#5B9279",
       },
 
       fontFamily: {

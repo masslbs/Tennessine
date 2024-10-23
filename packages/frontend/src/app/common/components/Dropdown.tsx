@@ -1,18 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Chevron from "./Chevron";
 import { Option } from "@/types";
 
 const Dropdown = ({
   options,
   callback,
+  selected = null,
 }: {
   options: Option[];
   callback: (option: Option) => void;
+  selected?: null | Option;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<Option | null>(null);
+  const [selectedOption, setSelectedOption] = useState<Option | null>(selected);
 
   const toggleDropdown = () => setIsOpen(!isOpen);
+
+  useEffect(() => {
+    selected && setSelectedOption(selected);
+  }, [selected]);
 
   const handleOptionClick = (option: Option) => {
     setSelectedOption(option);
