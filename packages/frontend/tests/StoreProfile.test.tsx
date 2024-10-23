@@ -72,21 +72,21 @@ describe("StoreProfile Component", async () => {
         "displayed-accepted-currencies",
       );
       // sepolia and hardhat ETH should be checked since we created the manifest above with those accepted currencies
-      const sepoliaETH = displayedSelections.find(
-        (element) =>
-          element.value === `${zeroAddress}/${sepolia.id}` && element.checked,
-      );
+      const sepoliaETH = displayedSelections.find((element) => {
+        const ele = element as HTMLInputElement;
+        return ele.value === `${zeroAddress}/${sepolia.id}` && ele.checked;
+      });
       expect(sepoliaETH).toBeTruthy();
-      const hardhatETH = displayedSelections.find(
-        (element) =>
-          element.value === `${zeroAddress}/${sepolia.id}` && element.checked,
-      );
+      const hardhatETH = displayedSelections.find((element) => {
+        const ele = element as HTMLInputElement;
+        return ele.value === `${zeroAddress}/${sepolia.id}` && ele.checked;
+      });
       expect(hardhatETH).toBeTruthy();
       // mainnet ETH should not be checked.
-      const mainnetEth = displayedSelections.find(
-        (element) =>
-          element.value === `${zeroAddress}/${mainnet.id}` && element.checked,
-      );
+      const mainnetEth = displayedSelections.find((element) => {
+        const ele = element as HTMLInputElement;
+        return ele.value === `${zeroAddress}/${mainnet.id}` && ele.checked;
+      });
       expect(mainnetEth).not.toBeTruthy();
     });
   });
