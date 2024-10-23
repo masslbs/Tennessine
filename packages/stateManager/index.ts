@@ -323,9 +323,12 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
         let filtered = [...manifest.acceptedCurrencies!];
         for (const rm of um.removeAcceptedCurrencies) {
           filtered = manifest.acceptedCurrencies!.filter(
-            (cur) => cur.address !== bytesToHex(rm.address.raw),
+            (cur) =>
+              cur.address !== bytesToHex(rm.address.raw) ||
+              cur.chainId !== rm.chainId,
           );
         }
+
         manifest.acceptedCurrencies = filtered;
       }
       if (um.addPayee) {

@@ -1,21 +1,21 @@
 import React from "react";
-import { describe, expect, test, beforeAll } from "vitest";
-import { screen, waitFor, act } from "@testing-library/react";
+import { screen, waitFor, act, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { describe, expect, test, beforeAll, beforeEach } from "vitest";
+import { sepolia, hardhat, mainnet } from "wagmi/chains";
 import {
   randomAddress,
   zeroAddress,
   random32BytesHex,
+  usdcAddress,
 } from "@massmarket/utils";
 import StoreProfile from "@/app/store/page";
 import { merchantsWrapper, getStateManager } from "./test-utils";
 
 describe("StoreProfile Component", async () => {
   const sm = await getStateManager();
-
   const user = userEvent.setup();
-  const randomAddr1 = randomAddress();
-  const randomAddr2 = randomAddress();
+
   beforeAll(async () => {
     await sm.manifest.create(
       {
@@ -28,17 +28,17 @@ describe("StoreProfile Component", async () => {
           },
         ],
         pricingCurrency: {
-          chainId: 1,
+          chainId: hardhat.id,
           address: zeroAddress,
         },
         acceptedCurrencies: [
           {
-            chainId: 10,
-            address: randomAddr1,
+            chainId: hardhat.id,
+            address: zeroAddress,
           },
           {
-            chainId: 2,
-            address: randomAddr2,
+            chainId: sepolia.id,
+            address: zeroAddress,
           },
         ],
         shippingRegions: [
@@ -61,56 +61,88 @@ describe("StoreProfile Component", async () => {
   });
   const order = await sm.orders.create();
 
+  beforeEach(async () => {
+    merchantsWrapper(<StoreProfile />, sm, order.id);
+  });
+
   test("Shop Manifest data is rendered correctly", async () => {
     merchantsWrapper(<StoreProfile />, sm, order.id);
     await waitFor(async () => {
-      const baseCurrencyForm = screen.getByDisplayValue(zeroAddress);
-      const acceptedCurrencies = screen.getAllByTestId(`accepted-currencies`);
-      const tokenAddresses = acceptedCurrencies.map((c) => c.textContent);
-      expect(baseCurrencyForm).toBeTruthy();
-      expect(tokenAddresses.length).toEqual(2);
-      //Correct accepted currencies are rendered
-      [randomAddr1, randomAddr2].forEach((c) => {
-        expect(tokenAddresses.includes(c)).toBeTruthy();
-      });
+      const displayedSelections = await screen.findAllByTestId(
+        "displayed-accepted-currencies",
+      );
+      // sepolia and hardhat ETH should be checked since we created the manifest above with those accepted currencies
+      const sepoliaETH = displayedSelections.find(
+        (element) =>
+          element.value === `${zeroAddress}/${sepolia.id}` && element.checked,
+      );
+      expect(sepoliaETH).toBeTruthy();
+      const hardhatETH = displayedSelections.find(
+        (element) =>
+          element.value === `${zeroAddress}/${sepolia.id}` && element.checked,
+      );
+      expect(hardhatETH).toBeTruthy();
+      // mainnet ETH should not be checked.
+      const mainnetEth = displayedSelections.find(
+        (element) =>
+          element.value === `${zeroAddress}/${mainnet.id}` && element.checked,
+      );
+      expect(mainnetEth).not.toBeTruthy();
     });
   });
-  test("Add accepted currency via UI", async () => {
-    merchantsWrapper(<StoreProfile />, sm, order.id);
-
+  test("Change accepted currency via UI", async () => {
+    await screen.findAllByTestId("displayed-accepted-currencies");
     await act(async () => {
-      const addButton = screen.getByRole("button", { name: /Add/i });
-      const address = randomAddress();
-      await user.type(screen.getByTestId(`addTokenAddr`), address);
-      await user.type(screen.getByTestId(`addTokenChainId`), "1");
-      await user.click(addButton);
+      const sepoliaETH = screen.getByLabelText("ETH/Sepolia");
+      await user.click(sepoliaETH);
+    });
+    await act(async () => {
+      await user.click(screen.getByRole("button", { name: /Update/i }));
+    });
+    await waitFor(async () => {
+      //Test that removing currency via UI updated the store.
+      const manifest = await sm.manifest.get();
+      expect(manifest.acceptedCurrencies.length).toEqual(1);
+      expect(manifest.acceptedCurrencies[0].address).toEqual(zeroAddress);
+      expect(manifest.acceptedCurrencies[0].chainId).toEqual(hardhat.id);
+    });
+    await act(async () => {
+      const sepoliaUSDC = screen.getByLabelText("USDC/Sepolia");
+      await user.click(sepoliaUSDC);
+    });
+    await act(async () => {
+      await user.click(screen.getByRole("button", { name: /Update/i }));
     });
     await waitFor(async () => {
       //Test that adding new currency via UI updated the store.
       const manifest = await sm.manifest.get();
-      expect(manifest.acceptedCurrencies.length).toEqual(3);
-
-      //Test that UI is updated
-      const acceptedCurrencies = screen.getAllByTestId(`accepted-currencies`);
-      const tokenAddresses = acceptedCurrencies.map((c) => c.textContent);
-      expect(tokenAddresses.length).toEqual(3);
+      expect(manifest.acceptedCurrencies.length).toEqual(2);
+      expect(manifest.acceptedCurrencies[1].address).toEqual(
+        usdcAddress.toLowerCase(),
+      );
+      expect(manifest.acceptedCurrencies[1].chainId).toEqual(sepolia.id);
     });
   });
-  test("Update store name and pricingCurrency via UI", async () => {
-    merchantsWrapper(<StoreProfile />, sm, order.id);
 
+  test("Update store name and pricingCurrency via UI", async () => {
     await act(async () => {
-      const chainIdInput = screen.getByTestId(`baseChainId`);
-      const addrInput = screen.getByTestId(`baseAddr`);
-      await user.clear(chainIdInput);
-      await user.clear(addrInput);
-      await user.type(addrInput, randomAddr1);
-      await user.type(chainIdInput, `2`);
+      const withinPricingCurrency = within(
+        screen.getByTestId("pricing-currency"),
+      );
+      const pricingDropdown = withinPricingCurrency.getByTestId("dropdown");
+      await user.click(pricingDropdown);
+    });
+    await waitFor(async () => {
+      const usdcSepolia = await screen.findByTestId("USDC/Sepolia");
+      await user.click(usdcSepolia);
+    });
+    await act(async () => {
       await user.click(screen.getByRole("button", { name: /Update/i }));
     });
     await waitFor(async () => {
-      const manifest = await sm.manifest.get();
-      expect(manifest.pricingCurrency!.address).toEqual(randomAddr1);
+      const { pricingCurrency } = await sm.manifest.get();
+      expect(pricingCurrency.chainId).toEqual(sepolia.id);
+      expect(pricingCurrency.address).toEqual(usdcAddress.toLowerCase());
     });
 
     //TODO: check that user can update shipping regions.

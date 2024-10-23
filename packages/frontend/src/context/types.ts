@@ -38,5 +38,5 @@ export type StoreContent = {
   getOrderId: () => Promise<OrderId | null>;
   shopDetails: ShopDetails;
   setShopDetails: Dispatch<ShopDetails>;
-  getBaseTokenInfo: () => Promise<[string, number] | null>;
+  getBaseTokenInfo: () => Promise<[string, number]>;
 };

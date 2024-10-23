@@ -47,14 +47,14 @@ const AddProductView = () => {
   const debug = debugLib("frontend:products:edit");
 
   useEffect(() => {
-    getBaseTokenInfo().then((res: [string, number] | null) => {
+    getBaseTokenInfo().then((res: [string, number]) => {
       res && setBaseDecimal(res[1]);
     });
   }, []);
 
   useEffect(() => {
     if (editView && itemId) {
-      getBaseTokenInfo().then((res: [string, number] | null) => {
+      getBaseTokenInfo().then((res: [string, number]) => {
         stateManager.items
           .get(itemId)
           .then((item) => {

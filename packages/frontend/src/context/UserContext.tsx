@@ -89,14 +89,14 @@ export const MyContextProvider = (
         tokenId: process.env["NEXT_PUBLIC_RELAY_TOKEN_ID"] as `0x${string}`,
       };
       setRelayEndpoint(re);
-      debug("using environment variables for relay endpoint %o", re);
+      console.log("using environment variables for relay endpoint %o", re);
     } else {
       discoverRelay("ws://localhost:4444/v3").then((relayEndpoint) => {
         if (!relayEndpoint.url) throw new Error("Relay endpoint URL not set");
         if (!relayEndpoint.tokenId)
           throw new Error("Relay endpoint tokenId not set");
         setRelayEndpoint(relayEndpoint);
-        debug("using testing relay endpoint %o", relayEndpoint);
+        console.log("using testing relay endpoint %o", relayEndpoint);
       });
     }
   }, []);
@@ -160,7 +160,7 @@ export const MyContextProvider = (
   }, [clientWallet, ensAvatar]);
 
   useEffect(() => {
-    if (isMerchantPath || !shopId) return;
+    if (isMerchantPath || !shopId || !relayEndpoint) return;
     const seqNo = localStorage.getItem("seqNo") || 0;
     //If merchantKeyCard is cached, double check that the KC has permission, then connect & authenticate.
     if (
@@ -263,7 +263,7 @@ export const MyContextProvider = (
     if (!relayEndpoint.url) throw new Error("Relay endpoint URL not set");
     if (!relayEndpoint.tokenId)
       throw new Error("Relay endpoint tokenId not set");
-    debug(`Relay endpoint: %o`, relayEndpoint);
+    console.log(`Relay endpoint: %o`, relayEndpoint);
     const keyCard = random32BytesHex();
     const keyCardWallet = privateKeyToAccount(keyCard);
     localStorage.setItem("keyCardToEnroll", keyCard);

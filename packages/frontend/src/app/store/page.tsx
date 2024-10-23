@@ -209,7 +209,6 @@ const StoreProfile = () => {
     const address = addr as Address;
     setPricingCurrency({ address, chainId: Number(chainId) });
   };
-
   return (
     <main className="pt-under-nav h-screen px-4 mt-3">
       <ErrorMessage
@@ -297,6 +296,7 @@ const StoreProfile = () => {
                         <div key={c.value}>
                           <label className="flex items-center space-x-2">
                             <input
+                              data-testid="displayed-accepted-currencies"
                               type="checkbox"
                               onChange={(e) => handleAcceptedCurrencies(e)}
                               className="form-checkbox h-4 w-4"

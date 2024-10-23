@@ -8,6 +8,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
+import debugLib from "debug";
 
 import { createQueryString } from "@/app/utils";
 import { formatUnitsFromString } from "@massmarket/utils";
@@ -16,18 +17,26 @@ import { useStoreContext } from "@/context/StoreContext";
 import { Item, ListingViewState } from "@/types";
 
 function CustomerViewProducts({ products }: { products: Item[] | null }) {
+  const debug = debugLib("frontend:CustomerViewProducts");
   const { getBaseTokenInfo } = useStoreContext();
   const searchParams = useSearchParams();
   const [baseDecimal, setBaseDecimal] = useState<null | number>(null);
 
   useEffect(() => {
-    getBaseTokenInfo().then((res: [string, number] | null) => {
-      res && setBaseDecimal(res[1]);
-    });
+    getBaseTokenInfo()
+      .then((res: [string, number]) => {
+        res && setBaseDecimal(res[1]);
+      })
+      .catch((e) => debug(e));
   }, []);
 
   function renderProducts() {
-    if (!products?.length) return null;
+    if (!products?.length)
+      return (
+        <div className="flex justify-center w-full mb-4">
+          <p>No Products</p>
+        </div>
+      );
     return products.map((item) => {
       const { metadata } = item;
       if (!metadata) return null;

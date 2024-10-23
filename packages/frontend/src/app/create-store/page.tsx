@@ -156,7 +156,7 @@ const StoreCreation = () => {
   };
 
   const createShop = async () => {
-    debug(`creating shop for ${shopId}`);
+    console.log(`creating shop for ${shopId}`);
     setStoreRegistrationStatus("Minting shop...");
     if (enrollKeycard.current) {
       setErrorMsg("Keycard already enrolled.");

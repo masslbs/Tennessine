@@ -142,7 +142,7 @@ export const StoreContextProvider = (
       return res;
     } catch (error) {
       debug("Failed: getBaseTokenInfo", error);
-      return null;
+      throw new Error("Failed: getBaseTokenInfo");
     }
   }
 

@@ -20,10 +20,12 @@ function Cart() {
   const debug = debugLib("frontend:newCart");
 
   useEffect(() => {
-    getBaseTokenInfo().then((res: [string, number] | null) => {
-      res && setBaseDecimal(res[1]);
-      res && setBaseSymbol(res[0]);
-    });
+    getBaseTokenInfo()
+      .then((res: [string, number]) => {
+        res && setBaseDecimal(res[1]);
+        res && setBaseSymbol(res[0]);
+      })
+      .catch((e) => debug(e));
   }, []);
 
   useEffect(() => {

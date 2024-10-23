@@ -77,27 +77,29 @@ const ProductDetail = () => {
   useEffect(() => {
     if (itemId) {
       //set item details
-      getBaseTokenInfo().then((baseTokenInfo) => {
-        stateManager.items
-          .get(itemId)
-          .then((item) => {
-            setItem(item);
-            const price = formatUnitsFromString(
-              item.price,
-              baseTokenInfo?.[1] || 0,
-            );
-            setPrice(price);
-            if (!currentCartItems) return;
-            //Check if item is already added to cart
-            if (itemId in currentCartItems) {
-              setAddedToCart(true);
-              setQuantity(currentCartItems[itemId]);
-            }
-          })
-          .catch((e) => {
-            debug(e);
-          });
-      });
+      getBaseTokenInfo()
+        .then((baseTokenInfo) => {
+          stateManager.items
+            .get(itemId)
+            .then((item) => {
+              setItem(item);
+              const price = formatUnitsFromString(
+                item.price,
+                baseTokenInfo?.[1] || 0,
+              );
+              setPrice(price);
+              if (!currentCartItems) return;
+              //Check if item is already added to cart
+              if (itemId in currentCartItems) {
+                setAddedToCart(true);
+                setQuantity(currentCartItems[itemId]);
+              }
+            })
+            .catch((e) => {
+              debug(e);
+            });
+        })
+        .catch((e) => debug(e));
     }
   }, [currentCartItems, itemId]);
 

@@ -102,6 +102,7 @@ describe("Create Store", async () => {
     await waitFor(async () => {
       await screen.findByTestId("confirmation");
       const manifest = await sm.manifest.get();
+
       const pc = manifest.pricingCurrency as ShopCurrencies;
       //Correctly saves hardhat and zeroAddress in statemanager.
       expect(pc.chainId).toEqual(31337);
@@ -178,7 +179,6 @@ describe("Create Store", async () => {
           //USDC address - since we select USDC/Hardhat above.
           "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
         );
-        console.log("here", { payees });
         expect(payees[0].address).toEqual(payee);
         expect(payees[0].chainId).toEqual(31337);
       },
