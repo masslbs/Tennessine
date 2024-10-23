@@ -72,6 +72,7 @@ const StoreCreation = () => {
   const [isStoreCreated, setStoreCreated] = useState<boolean>(false);
   const [storeRegistrationStatus, setStoreRegistrationStatus] =
     useState<string>("");
+
   useEffect(() => {
     if (clientWallet?.account) {
       setPayeeAddress(clientWallet.account.address);
@@ -158,7 +159,7 @@ const StoreCreation = () => {
     debug(`creating shop for ${shopId}`);
     setStoreRegistrationStatus("Minting shop...");
     if (enrollKeycard.current) {
-      setStoreRegistrationStatus("Keycard already enrolled.");
+      setErrorMsg("Keycard already enrolled.");
       debug("Keycard already enrolled.");
       return;
     }
@@ -166,15 +167,15 @@ const StoreCreation = () => {
       const rc = await createNewRelayClient();
       const blockchainClient = new BlockchainClient(shopId!);
       const hash = await blockchainClient.createShop(clientWallet!);
-      setStoreRegistrationStatus(" Waiting for mint to confirm...");
+      setStoreRegistrationStatus("Waiting for mint to confirm...");
       const transaction = await shopPublicClient!.waitForTransactionReceipt({
         hash,
         retryCount: 10,
       });
 
       if (transaction!.status !== "success") {
-        setStoreRegistrationStatus("Failed to mint shop.");
-        throw new Error("Failed to mint shop.");
+        setErrorMsg("Mint shop: transaction failed");
+        throw new Error("Mint shop: transaction failed");
       }
 
       // Add relay tokenId for event verification.

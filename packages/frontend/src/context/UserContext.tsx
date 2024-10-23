@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import debugLib from "debug";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useEnsAvatar, useWalletClient } from "wagmi";
 import { http, createPublicClient, createWalletClient } from "viem";
@@ -10,6 +9,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { hardhat, mainnet, sepolia } from "viem/chains";
 import { usePathname } from "next/navigation";
 import { useSearchParams } from "next/navigation";
+import debugLib from "debug";
 
 import {
   RelayClient,

@@ -25,7 +25,7 @@ export type ClientContext = {
   setWallet: Dispatch<SetStateAction<WalletClientWithAccount | null>>;
   checkPermissions: () => Promise<boolean>;
   setRelayClient: Dispatch<SetStateAction<RelayClient | null>>;
-  createNewRelayClient: () => Promise<RelayClient | null>; // TODO: i think this shouldn't have to retun null
+  createNewRelayClient: () => Promise<RelayClient>;
   upgradeGuestToCustomer: () => Promise<void>;
 };
 

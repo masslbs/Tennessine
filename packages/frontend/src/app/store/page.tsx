@@ -11,6 +11,7 @@ import debugLib from "debug";
 import { Address } from "viem";
 
 import { UpdateShopManifest } from "@massmarket/stateManager/types";
+import { BlockchainClient } from "@massmarket/blockchain";
 
 import { ShopManifest, ShopCurrencies, Option } from "@/types";
 import { getTokenAddress } from "@/app/utils";
@@ -38,7 +39,7 @@ interface AcceptedChains {
 }
 const StoreProfile = () => {
   const { stateManager, shopDetails } = useStoreContext();
-  const { shopId } = useUserContext();
+  const { shopId, relayClient, clientWallet } = useUserContext();
   const [storeName, setStoreName] = useState<string>("");
   const [avatar, setAvatar] = useState<FormData | null>(null);
   const [acceptedCurrencies, setAcceptedCurrencies] = useState<
@@ -152,27 +153,27 @@ const StoreProfile = () => {
       await stateManager!.manifest.update(um);
 
       //If avatar or store name changed, setShopMetadataURI.
-      // if (avatar || storeName !== shopDetails.name) {
-      //   const metadata = {
-      //     name: storeName,
-      //     //If new avatar was uploaded, upload the image, otherwise use previous image.
-      //     image: avatar
-      //       ? (await relayClient!.uploadBlob(avatar as FormData)).url
-      //       : shopDetails.profilePictureUrl,
-      //   };
-      //   const jsn = JSON.stringify(metadata);
-      //   const blob = new Blob([jsn], { type: "application/json" });
-      //   const file = new File([blob], "file.json");
-      //   const formData = new FormData();
-      //   formData.append("file", file);
-      //   relayClient!.uploadBlob(formData).then(({ url }) => {
-      //     const blockchainClient = new BlockchainClient(shopId!);
-      //     blockchainClient
-      //       .setShopMetadataURI(clientWallet!, url)
-      //       .then()
-      //       .catch((e) => debug(e));
-      //   });
-      // }
+      if (avatar || storeName !== shopDetails.name) {
+        const metadata = {
+          name: storeName,
+          //If new avatar was uploaded, upload the image, otherwise use previous image.
+          image: avatar
+            ? (await relayClient!.uploadBlob(avatar as FormData)).url
+            : shopDetails.profilePictureUrl,
+        };
+        const jsn = JSON.stringify(metadata);
+        const blob = new Blob([jsn], { type: "application/json" });
+        const file = new File([blob], "file.json");
+        const formData = new FormData();
+        formData.append("file", file);
+        relayClient!.uploadBlob(formData).then(({ url }) => {
+          const blockchainClient = new BlockchainClient(shopId!);
+          blockchainClient
+            .setShopMetadataURI(clientWallet!, url)
+            .then()
+            .catch((e) => debug(e));
+        });
+      }
       setSuccess("Changes saved.");
     } catch (error) {
       debug("Failed: updateShopManifest", error);
