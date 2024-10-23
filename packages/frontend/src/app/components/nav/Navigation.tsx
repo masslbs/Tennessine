@@ -61,25 +61,25 @@ function Navigation() {
       if (opt.title === "Disconnect") {
         return (
           <button key={i} onClick={onDisconnect}>
-            <div className="flex gap-3">
+            <div className="flex gap-3 items-center">
               <Image
                 src={`/icons/${opt.img}`}
-                width={16}
-                height={16}
+                width={20}
+                height={20}
                 alt="menu-item"
                 unoptimized={true}
                 priority={true}
-                className="w-auto h-auto"
+                className="w-5 h-5"
               />
               <h2 className="font-normal">{opt.title}</h2>
               <Image
                 src="/icons/chevron-right.svg"
-                width={8}
-                height={8}
+                width={12}
+                height={12}
                 alt="chevron-right"
                 unoptimized={true}
                 priority={true}
-                className="ml-auto w-auto h-auto"
+                className="ml-auto w-3 h-3"
               />
             </div>
           </button>
@@ -92,27 +92,27 @@ function Navigation() {
           key={i}
           onClick={() => setMenuOpen(false)}
         >
-          <div className="flex gap-3">
+          <div className="flex gap-3 items-center">
             <Image
               src={`/icons/${opt.img}`}
-              width={16}
-              height={16}
+              width={20}
+              height={20}
               alt="menu-item"
               unoptimized={true}
               priority={true}
-              className="w-auto h-auto"
+              className="w-5 h-5"
             />
             <Link href={opt.href!} key={opt.title}>
               <h2 className="font-normal">{opt.title}</h2>
             </Link>
             <Image
               src="/icons/chevron-right.svg"
-              width={8}
-              height={8}
+              width={12}
+              height={12}
               alt="chevron-right"
               unoptimized={true}
               priority={true}
-              className="ml-auto w-auto h-auto"
+              className="ml-auto w-3 h-3"
             />
           </div>
         </div>
@@ -160,7 +160,7 @@ function Navigation() {
               height={20}
               alt="basket-icon"
               unoptimized={true}
-              className="w-auto h-auto"
+              className="w-5 h-5"
             />
           </button>
           <button onClick={menuSwitch}>

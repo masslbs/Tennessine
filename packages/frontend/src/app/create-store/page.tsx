@@ -179,7 +179,17 @@ const StoreCreation = () => {
       }
 
       // Add relay tokenId for event verification.
-      await blockchainClient.addRelay(clientWallet!, rc!.relayEndpoint.tokenId);
+      const tx = await blockchainClient.addRelay(
+        clientWallet!,
+        rc!.relayEndpoint.tokenId,
+      );
+      const receipt = await shopPublicClient!.waitForTransactionReceipt({
+        hash: tx,
+      });
+      if (receipt.status !== "success") {
+        setErrorMsg("Transaction failed adding relay");
+        throw new Error("Error: addRelay");
+      }
       setStoreRegistrationStatus("Relay tokenId added...");
       localStorage.setItem("shopId", shopId!);
       const hasAccess = await checkPermissions();
@@ -226,48 +236,54 @@ const StoreCreation = () => {
       //Add address of kc wallet for all outgoing event verification.
       const kc = localStorage.getItem("merchantKeyCard") as `0x${string}`;
       const keyCardWallet = privateKeyToAccount(kc!);
-      stateManager.keycards.addAddress(keyCardWallet.address).then(() => {
-        stateManager.manifest
-          .create(
-            {
-              pricingCurrency: pricingCurrency as ShopCurrencies,
-              acceptedCurrencies,
-              payees: [
-                {
-                  address: payeeAddress,
-                  callAsContract: false,
-                  chainId: payeeChain,
-                  name: "default",
-                } as Payee,
-              ],
-              //TODO: UI for inputting shipping regions.
-              shippingRegions: [
-                {
-                  name: "default",
-                  country: "",
-                  postalCode: "",
-                  city: "",
-                  orderPriceModifiers: [],
-                },
-              ],
-            },
-            shopId!,
-          )
-          .then(() => {
-            uploadMetadata()
-              .then(() => {
-                setStep("confirmation");
-              })
-              .catch((e) => {
-                debug(e);
-                setErrorMsg("Error uploading blob");
-              });
-          })
-          .catch((e) => {
-            debug(e);
-            setErrorMsg("Error while calling create shop manifest");
-          });
-      });
+      stateManager.keycards
+        .addAddress(keyCardWallet.address)
+        .then(() => {
+          console.log(`keycard wallet address added: ${keyCardWallet.address}`);
+          stateManager.manifest
+            .create(
+              {
+                pricingCurrency: pricingCurrency as ShopCurrencies,
+                acceptedCurrencies,
+                payees: [
+                  {
+                    address: payeeAddress,
+                    callAsContract: false,
+                    chainId: payeeChain,
+                    name: "default",
+                  } as Payee,
+                ],
+                //TODO: UI for inputting shipping regions.
+                shippingRegions: [
+                  {
+                    name: "default",
+                    country: "",
+                    postalCode: "",
+                    city: "",
+                    orderPriceModifiers: [],
+                  },
+                ],
+              },
+              shopId!,
+            )
+            .then(() => {
+              setStoreRegistrationStatus("Setting shop metadata");
+
+              uploadMetadata()
+                .then(() => {
+                  setStep("confirmation");
+                })
+                .catch((e) => {
+                  debug(e);
+                  setErrorMsg("Error uploading blob");
+                });
+            })
+            .catch((e) => {
+              debug("Error: create manifest", e);
+              setErrorMsg("Error creating shop manifest");
+            });
+        })
+        .catch((e) => debug("Error:addAddress", e));
     }
   }, [clientConnected]);
 

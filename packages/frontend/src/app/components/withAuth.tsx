@@ -16,10 +16,7 @@ export default (WrappedComponent: FunctionComponent<PageProps>) => {
   return function WithAuth(props: PageProps) {
     const router = useRouter();
     const { clientConnected } = useAuth();
-    if (typeof window == "undefined") {
-      console.warn("not a browser session");
-      return;
-    }
+
     if (clientConnected === Status.Complete) {
       return <WrappedComponent {...props} />;
     } else {

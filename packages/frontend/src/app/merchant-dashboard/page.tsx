@@ -105,7 +105,7 @@ const MerchantDashboard = () => {
                 height={8}
                 alt="chevron-right"
                 unoptimized={true}
-                className="w-auto h-auto ml-auto"
+                className="w-2 h-2 ml-auto"
               />
             </Link>
             <Link
@@ -119,7 +119,7 @@ const MerchantDashboard = () => {
                 height={8}
                 alt="chevron-right"
                 unoptimized={true}
-                className="w-auto h-auto ml-auto"
+                className="w-2 h-2 ml-auto"
               />
             </Link>
 
@@ -134,7 +134,7 @@ const MerchantDashboard = () => {
                 height={8}
                 alt="chevron-right"
                 unoptimized={true}
-                className="w-auto h-auto ml-auto"
+                className="w-2 h-2 ml-auto"
               />
             </Link>
           </div>

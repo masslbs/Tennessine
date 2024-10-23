@@ -43,10 +43,6 @@ const MerchantConnectWallet = () => {
     name: string;
     image: string;
   } | null>(null);
-  if (typeof window == "undefined") {
-    console.warn("not a browser session");
-    return;
-  }
 
   const getButton = () => {
     if (step === "search") {
@@ -107,6 +103,8 @@ const MerchantConnectWallet = () => {
       const id = searchShopId as ShopId;
       setShopId(id);
       localStorage.setItem("shopId", id);
+      localStorage.removeItem("seqNo");
+
       try {
         (async () => {
           const _relayClient = await createNewRelayClient();

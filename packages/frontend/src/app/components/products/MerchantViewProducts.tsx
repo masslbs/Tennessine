@@ -50,16 +50,19 @@ function MerchantViewProducts({ products }: { products: Item[] | null }) {
           key={item.id}
           data-testid="product-container"
           href={`/products/edit?${createQueryString("itemId", item.id, searchParams)}`}
-          className={`${!visible ? "opacity-50" : ""} flex w-full mb-4`}
+          className={`${!visible ? "opacity-50" : ""} flex w-full h-auto mb-4`}
         >
-          <div className="flex justify-center h-28" data-testid={`product-img`}>
+          <div
+            className="flex justify-center w-32 h-28"
+            data-testid="product-img"
+          >
             <Image
               src={metadata.images[0] || "/assets/no-image.png"}
               width={127}
               height={112}
               alt="product-thumb"
               unoptimized={true}
-              className="w-auto h-auto object-cover	max-h-28 max-w-32  min-w-32 min-h-28 object-center rounded-l-lg"
+              className="w-32 h-28 object-cover object-center rounded-l-lg"
             />
           </div>
           <div className="bg-background-gray w-full rounded-lg px-5 py-4">
@@ -113,11 +116,11 @@ function MerchantViewProducts({ products }: { products: Item[] | null }) {
             <p>Filter</p>
             <Image
               src="/icons/filter.svg"
-              width={13}
-              height={10}
+              width={12}
+              height={12}
               alt="filter-icon"
               unoptimized={true}
-              className="w-auto h-auto"
+              className="w-3 h-3"
             />
           </button>
         </div>

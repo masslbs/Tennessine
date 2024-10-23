@@ -819,7 +819,7 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
         throw new Error(e.code);
       }
     }
-    await this.store.put("cardPublicKey", publicKeys);
+    return this.store.put("cardPublicKey", publicKeys);
   }
 }
 // This class creates the state of a store from an event stream
