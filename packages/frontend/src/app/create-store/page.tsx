@@ -4,28 +4,31 @@
 
 "use client";
 
-import React, { useState, useEffect, useRef, ChangeEvent } from "react";
-import AvatarUpload from "@/app/common/components/AvatarUpload";
-import { useUserContext } from "@/context/UserContext";
-import { useAuth } from "@/context/AuthContext";
-import { Option, Payee, ShopCurrencies, Status } from "@/types";
-import { random32BytesHex, zeroAddress } from "@massmarket/utils";
-import { useChains } from "wagmi";
-import { useStoreContext } from "@/context/StoreContext";
-import { BlockchainClient } from "@massmarket/blockchain";
 import debugLib from "debug";
+import Image from "next/image";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
+import React, { useState, useEffect, useRef, ChangeEvent } from "react";
+import { privateKeyToAccount } from "viem/accounts";
+import { useChains, useAccount } from "wagmi";
+
+import { BlockchainClient } from "@massmarket/blockchain";
+import { random32BytesHex, zeroAddress } from "@massmarket/utils";
+
+import AvatarUpload from "@/app/common/components/AvatarUpload";
+import Button from "@/app/common/components/Button";
+import Dropdown from "@/app/common/components/Dropdown";
+import ErrorMessage from "@/app/common/components/ErrorMessage";
 import { getTokenAddress, isValidHex } from "@/app/utils";
 import ValidationWarning from "@/app/common/components/ValidationWarning";
-import ErrorMessage from "@/app/common/components/ErrorMessage";
-import { discoverRelay } from "@massmarket/client";
-import { privateKeyToAccount } from "viem/accounts";
-import Dropdown from "@/app/common/components/Dropdown";
-import Button from "@/app/common/components/Button";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-import Image from "next/image";
-import { useConnectModal } from "@rainbow-me/rainbowkit";
-import { useAccount } from "wagmi";
+import { useAuth } from "@/context/AuthContext";
+import { useStoreContext } from "@/context/StoreContext";
+import { useUserContext } from "@/context/UserContext";
+import { Option, Payee, ShopCurrencies, Status } from "@/types";
+
 import Confirmation from "./Confirmation";
+
+const debug = debugLib("frontend:create-store");
 
 const StoreCreation = () => {
   const {
@@ -57,17 +60,18 @@ const StoreCreation = () => {
   const [acceptedCurrencies, setAcceptedCurrencies] = useState<
     ShopCurrencies[]
   >([]);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [validationError, setValidationError] = useState<string | null>(null);
-  const [isStoreCreated, setStoreCreated] = useState<boolean>(false);
   const [payeeChain, setPayeeChain] = useState<number | null>(null);
   const [payeeAddress, setPayeeAddress] = useState<`0x${string}` | null>(
     clientWallet?.account.address || null,
   );
   const enrollKeycard = useRef(false);
   const randomShopIdHasBeenSet = useRef(false);
-  const debug = debugLib("frontend:create-store");
 
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [isStoreCreated, setStoreCreated] = useState<boolean>(false);
+  const [storeRegistrationStatus, setStoreRegistrationStatus] =
+    useState<string>("");
   useEffect(() => {
     if (clientWallet?.account) {
       setPayeeAddress(clientWallet.account.address);
@@ -151,61 +155,67 @@ const StoreCreation = () => {
   };
 
   const createShop = async () => {
+    debug(`creating shop for ${shopId}`);
+    setStoreRegistrationStatus("Minting shop...");
+    if (enrollKeycard.current) {
+      setStoreRegistrationStatus("Keycard already enrolled.");
+      debug("Keycard already enrolled.");
+      return;
+    }
     try {
       const rc = await createNewRelayClient();
       const blockchainClient = new BlockchainClient(shopId!);
       const hash = await blockchainClient.createShop(clientWallet!);
-
+      setStoreRegistrationStatus(" Waiting for mint to confirm...");
       const transaction = await shopPublicClient!.waitForTransactionReceipt({
         hash,
         retryCount: 10,
       });
 
-      if (transaction!.status == "success") {
-        // Add relay tokenId for event verification.
-        const relayURL =
-          (process && process.env["NEXT_PUBLIC_RELAY_TOKEN_ID"]) ||
-          "ws://localhost:4444/v3";
-        const relayEndpoint = await discoverRelay(relayURL);
-        await blockchainClient.addRelay(clientWallet!, relayEndpoint.tokenId);
-        localStorage.setItem("shopId", shopId!);
-        const hasAccess = await checkPermissions();
-
-        if (hasAccess) {
-          if (enrollKeycard.current) return;
-          enrollKeycard.current = true;
-          const res = await rc!.enrollKeycard(
-            clientWallet!,
-            false,
-            shopId!,
-            process.env.TEST ? undefined : new URL(window.location.href),
-          );
-          if (res.ok) {
-            setRelayClient(rc);
-            const keyCardToEnroll = localStorage.getItem(
-              "keyCardToEnroll",
-            ) as `0x${string}`;
-            setIsMerchantView(true);
-            localStorage.setItem("merchantKeyCard", keyCardToEnroll);
-            //Connect, authenticate, and send subscription request.
-            await rc!.connect();
-            await rc!.authenticate();
-            await rc!.sendMerchantSubscriptionRequest(shopId!);
-            setStoreCreated(true);
-            setIsConnected(Status.Complete);
-          } else {
-            debug("Failed to enroll keycard");
-          }
-          localStorage.removeItem("keyCardToEnroll");
-        } else {
-          debug("Access denied.");
-        }
-      } else {
-        debug("Transaction failed while minting store.");
+      if (transaction!.status !== "success") {
+        setStoreRegistrationStatus("Failed to mint shop.");
+        throw new Error("Failed to mint shop.");
       }
+
+      // Add relay tokenId for event verification.
+      await blockchainClient.addRelay(clientWallet!, rc!.relayEndpoint.tokenId);
+      setStoreRegistrationStatus("Relay tokenId added...");
+      localStorage.setItem("shopId", shopId!);
+      const hasAccess = await checkPermissions();
+      if (!hasAccess) {
+        setStoreRegistrationStatus("Access denied.");
+        throw new Error("Access denied.");
+      }
+      setStoreRegistrationStatus("Enrolling keycard...");
+      const res = await rc!.enrollKeycard(
+        clientWallet!,
+        false,
+        shopId!,
+        process.env.TEST ? undefined : new URL(window.location.href),
+      );
+      if (!res.ok) {
+        setStoreRegistrationStatus("Failed to enroll keycard");
+        throw Error("Failed to enroll keycard");
+      }
+      enrollKeycard.current = true;
+      setStoreRegistrationStatus("Keycard enrolled...");
+      const keyCardToEnroll = localStorage.getItem(
+        "keyCardToEnroll",
+      ) as `0x${string}`;
+      setIsMerchantView(true);
+      localStorage.setItem("merchantKeyCard", keyCardToEnroll);
+      //Connect, authenticate, and send subscription request.
+      setRelayClient(rc);
+      await rc!.connect();
+      await rc!.authenticate();
+      await rc!.sendMerchantSubscriptionRequest(shopId!);
+      setStoreRegistrationStatus("Relay Client connected...");
+      setStoreCreated(true);
+      setIsConnected(Status.Complete);
+      localStorage.removeItem("keyCardToEnroll");
     } catch (err) {
       setErrorMsg("Error while creating store");
-      debug(`Failed createShop: ${err}`);
+      debug(`Failed createShop: %o`, err);
     }
   };
 
@@ -457,6 +467,7 @@ const StoreCreation = () => {
           {status === "connected" ? (
             <div className="flex flex-col gap-4">
               <ConnectButton chainStatus="name" />
+              <p>{storeRegistrationStatus}</p>
               <Button onClick={createShop} disabled={!clientWallet}>
                 <h6>Mint Shop</h6>
               </Button>
