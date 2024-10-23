@@ -31,12 +31,14 @@ describe("Product Detail Component", async () => {
       await sm.items.changeInventory(itemId, 5);
     });
 
-    merchantsWrapper(<ProductDetail />, sm, orderId);
+    await waitFor(async () => {
+      merchantsWrapper(<ProductDetail />, sm, orderId);
+    });
 
     await waitFor(async () => {
-      const title = screen.getByTestId("title");
-      const price = screen.getByTestId("price");
-      const desc = screen.getByTestId("description");
+      const title = await screen.findByTestId("title");
+      const price = await screen.findByTestId("price");
+      const desc = await screen.findByTestId("description");
       expect(title.textContent).toEqual("Meow meow");
       expect(price.textContent).toEqual("12.00");
       expect(desc.textContent).toEqual("description...meow");

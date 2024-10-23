@@ -37,7 +37,8 @@ interface AcceptedChains {
   removed?: boolean;
   added?: boolean;
 }
-const StoreProfile = () => {
+
+function StoreProfile() {
   const { stateManager, shopDetails } = useStoreContext();
   const { shopId, relayClient, clientWallet } = useUserContext();
   const [storeName, setStoreName] = useState<string>("");
@@ -116,10 +117,11 @@ const StoreProfile = () => {
       stateManager.manifest.removeListener("update", onUpdateEvent);
     };
   }, []);
-  const copyToClipboard = () => {
+
+  function copyToClipboard() {
     navigator.clipboard.writeText(shopId!);
-  };
-  const updateShopManifest = async () => {
+  }
+  async function updateShopManifest() {
     const um: Partial<UpdateShopManifest> = {};
     //If pricing currency needs to update.
     if (
@@ -179,9 +181,9 @@ const StoreProfile = () => {
       debug("Failed: updateShopManifest", error);
       setError("Error updating shop manifest.");
     }
-  };
+  }
 
-  const handleAcceptedCurrencies = async (e: ChangeEvent<HTMLInputElement>) => {
+  async function handleAcceptedCurrencies(e: ChangeEvent<HTMLInputElement>) {
     const [addr, chainId] = e.target.value.split("/");
     const address = addr as Address;
     if (e.target.checked) {
@@ -202,13 +204,14 @@ const StoreProfile = () => {
         }),
       );
     }
-  };
-  const handlePricingCurrency = async (option: Option) => {
+  }
+  async function handlePricingCurrency(option: Option) {
     const v = option.value as string;
     const [addr, chainId] = v.split("/");
     const address = addr as Address;
     setPricingCurrency({ address, chainId: Number(chainId) });
-  };
+  }
+
   return (
     <main className="pt-under-nav h-screen px-4 mt-3">
       <ErrorMessage
@@ -357,6 +360,6 @@ const StoreProfile = () => {
       </section>
     </main>
   );
-};
+}
 
 export default StoreProfile;
