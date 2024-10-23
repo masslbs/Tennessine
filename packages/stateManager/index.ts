@@ -17,11 +17,10 @@ import {
   IError,
   OrdersByStatus,
   ListingViewState,
-  Payee,
   OrderState,
-  ShippingRegion,
   OrderPriceModifier,
   ChoosePayment,
+  SeqNo,
 } from "./types";
 import { Address } from "@ethereumjs/util";
 import * as abi from "@massmarket/contracts";
@@ -68,7 +67,7 @@ async function storeOrdersByStatus(
       throw new Error(e.code);
     }
   }
-  await store.put(status, orders);
+  return store.put(status, orders);
 }
 abstract class PublicObjectManager<
   T extends ShopObjectTypes,
@@ -227,8 +226,8 @@ class ListingManager extends PublicObjectManager<Item> {
   }
 }
 
-class ShopManifestManager extends PublicObjectManager<ShopManifest> {
-  constructor(store: Store<ShopManifest>, client: IRelayClient) {
+class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
+  constructor(store: Store<ShopManifest | SeqNo>, client: IRelayClient) {
     super(store, client);
   }
   //Process all manifest events. Convert bytes to hex, wait for database update, then emit event name
@@ -302,7 +301,7 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
       return;
     } else if (event.updateManifest) {
       const um = event.updateManifest;
-      const manifest = await this.store.get("shopManifest");
+      const manifest = (await this.store.get("shopManifest")) as ShopManifest;
       if (um.setPricingCurrency) {
         manifest.pricingCurrency = {
           chainId: Number(um.setPricingCurrency.chainId),
@@ -323,9 +322,12 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
         let filtered = [...manifest.acceptedCurrencies!];
         for (const rm of um.removeAcceptedCurrencies) {
           filtered = manifest.acceptedCurrencies!.filter(
-            (cur) => cur.address !== bytesToHex(rm.address.raw),
+            (cur) =>
+              cur.address !== bytesToHex(rm.address.raw) ||
+              cur.chainId !== Number(rm.chainId),
           );
         }
+
         manifest.acceptedCurrencies = filtered;
       }
       if (um.addPayee) {
@@ -370,6 +372,7 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
       return;
     }
   }
+
   async create(manifest: CreateShopManifest, shopId: `0x${string}`) {
     const m: schema.IShopManifest = manifest;
     if (manifest.pricingCurrency) {
@@ -434,8 +437,24 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
     return eventListenAndResolve<ShopManifest>(eventId, this, "update");
   }
 
-  get() {
-    return this.store.get("shopManifest");
+  get(): Promise<ShopManifest> {
+    return this.store.get("shopManifest") as Promise<ShopManifest>;
+  }
+  async addSeqNo(no: number) {
+    return this.store.put("seqNo", no);
+  }
+
+  async getSeqNo() {
+    let no = 0;
+    try {
+      no = (await this.store.get("seqNo")) as number;
+    } catch (error) {
+      const e = error as IError;
+      if (!e.notFound) {
+        throw new Error(e.code);
+      }
+    }
+    return no;
   }
 }
 class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
@@ -616,7 +635,12 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       } else if (uo.addPaymentTx) {
         const currentState = order.status;
         order.status = OrderState.STATE_PAYMENT_TX;
-        order.txHash = bytesToHex(uo.addPaymentTx.txHash.raw);
+        if (uo.addPaymentTx.blockHash) {
+          order.blockHash = bytesToHex(uo.addPaymentTx.blockHash.raw);
+        }
+        if (uo.addPaymentTx.txHash) {
+          order.txHash = bytesToHex(uo.addPaymentTx.txHash.raw);
+        }
         await this.store.put(id, order);
         await storeOrdersByStatus(id, this.store, OrderState.STATE_PAYMENT_TX);
         //remove the orderId from state of orders before this event.
@@ -633,9 +657,9 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
     return this.store.get(key) as Promise<Order>;
   }
 
-  async getStatus(key: OrderState): Promise<`0x${string}`[]> {
+  async getStatus(key: OrderState): Promise<OrdersByStatus> {
     try {
-      return (await this.store.get(key)) as `0x${string}`[];
+      return this.store.get(key) as Promise<OrdersByStatus>;
     } catch (error) {
       const e = error as IError;
       if (e.notFound) {
@@ -816,7 +840,7 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
         throw new Error(e.code);
       }
     }
-    await this.store.put("cardPublicKey", publicKeys);
+    return this.store.put("cardPublicKey", publicKeys);
   }
 }
 // This class creates the state of a store from an event stream
@@ -830,13 +854,12 @@ export class StateManager {
   readonly keycards;
   readonly shopId;
   readonly publicClient;
-  readonly seqNo;
-  eventStreamProcessing;
+
   constructor(
     public client: IRelayClient,
     listingStore: Store<Item>,
     tagStore: Store<Tag>,
-    shopManifestStore: Store<ShopManifest>,
+    shopManifestStore: Store<ShopManifest | SeqNo>,
     orderStore: Store<Order | OrdersByStatus>,
     keycardStore: Store<KeyCard>,
     shopId: `0x${string}`,
@@ -849,24 +872,9 @@ export class StateManager {
     this.keycards = new KeyCardManager(keycardStore, client);
     this.shopId = shopId;
     this.publicClient = publicClient;
-    this.seqNo = new SeqNoEmitter();
-
-    this.eventStreamProcessing = this.#start();
-    this.eventStreamProcessing.catch((err) => {
-      console.log("Error something bad happened in the stream", err);
-    });
   }
-
-  async #start() {
-    const storeObjects = [
-      this.items,
-      this.tags,
-      this.manifest,
-      this.orders,
-      this.keycards,
-    ];
-    const stream = this.client.createEventStream();
-
+  //TODO: Watch for new relays being added. We also need to invalidate addresses from old relay.
+  async addRelayOwnerAddress() {
     //When we inititally create a shop, we are saving the relay tokenId => shopId.
     //Here, we are retrieving all the relay addresses associated with the shopId and saving them to keycards store.
     //Since some shopEvents are signed by a relay, we need to include these addresses when verifying the event signer.
@@ -876,6 +884,7 @@ export class StateManager {
       functionName: "getRelayCount",
       args: [this.shopId],
     })) as number;
+
     if (count > 0) {
       const tokenIds = (await this.publicClient.readContract({
         address: abi.addresses.ShopReg as `0x${string}`,
@@ -893,10 +902,23 @@ export class StateManager {
         await this.keycards.addAddress(ownerAdd);
       }
     }
+  }
+
+  async eventStreamProcessing() {
+    const storeObjects = [
+      this.items,
+      this.tags,
+      this.manifest,
+      this.orders,
+      this.keycards,
+    ];
+
+    const stream = this.client.createEventStream();
+
     //Each event will go through all the storeObjects and update the relevant stores.
     for await (const event of stream) {
       if (event.event.seqNo) {
-        this.seqNo.emit("seqNo", event.event.seqNo);
+        await this.manifest.addSeqNo(event.event.seqNo);
       }
       //fromPublicKey in KeyCard manager returns the address from public key as all lowercase.
       await this.keycards.verify(event.signer.toLowerCase());

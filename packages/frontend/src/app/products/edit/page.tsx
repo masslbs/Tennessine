@@ -25,12 +25,11 @@ const AddProductView = () => {
   const searchParams = useSearchParams();
   const itemId = searchParams.get("itemId") as ItemId | "new";
   const editView = itemId !== "new";
-  const { stateManager, getBaseTokenInfo } = useStoreContext();
-  const { relayClient } = useUserContext();
+  const { getBaseTokenInfo } = useStoreContext();
+  const { clientWithStateManager } = useUserContext();
+  const debug = debugLib("frontend:edit product");
+
   const [productInView, setProductInView] = useState<Item | null>(null);
-  const [images, setImages] = useState<
-    { blob: null | FormData; url: string }[]
-  >([]);
   const [price, setPrice] = useState<string>("");
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
@@ -43,20 +42,23 @@ const AddProductView = () => {
   );
   const [deleteConfirmation, setDeleteConfirm] = useState(false);
   const [baseDecimal, setBaseDecimal] = useState<null | number>(null);
-
-  const debug = debugLib("frontend:products:edit");
+  const [images, setImages] = useState<
+    { blob: null | FormData; url: string }[]
+  >([]);
 
   useEffect(() => {
-    getBaseTokenInfo().then((res: [string, number] | null) => {
-      res && setBaseDecimal(res[1]);
-    });
+    getBaseTokenInfo()
+      .then((res: [string, number]) => {
+        res && setBaseDecimal(res[1]);
+      })
+      .catch((e) => debug(e));
   }, []);
 
   useEffect(() => {
     if (editView && itemId) {
-      getBaseTokenInfo().then((res: [string, number] | null) => {
-        stateManager.items
-          .get(itemId)
+      getBaseTokenInfo().then((res: [string, number]) => {
+        clientWithStateManager!
+          .stateManager!.items.get(itemId)
           .then((item) => {
             setProductInView(item);
             setTitle(item.metadata.title);
@@ -84,8 +86,8 @@ const AddProductView = () => {
 
     if (productInView) {
       for (const id of productInView!.tags) {
-        stateManager.tags
-          .get(id)
+        clientWithStateManager!
+          .stateManager!.tags.get(id)
           .then((tag: Tag) => {
             selected.push(tag);
           })
@@ -133,7 +135,7 @@ const AddProductView = () => {
 
   const handleDelete = async () => {
     try {
-      await stateManager.items.update({
+      await clientWithStateManager!.stateManager!.items.update({
         id: productInView!.id,
         viewState: ListingViewState.LISTING_VIEW_STATE_DELETED,
       });
@@ -146,11 +148,20 @@ const AddProductView = () => {
 
   const create = async (newItem: Partial<Item>) => {
     try {
-      const { id } = await stateManager!.items.create(newItem, baseDecimal!);
-      await stateManager!.items.changeInventory(id, units);
+      const { id } = await clientWithStateManager!.stateManager!.items.create(
+        newItem,
+        baseDecimal!,
+      );
+      await clientWithStateManager!.stateManager!.items.changeInventory(
+        id,
+        units,
+      );
       if (selectedTags.length) {
         selectedTags.map(async (t) => {
-          await stateManager!.items.addItemToTag(t.id, id);
+          await clientWithStateManager!.stateManager!.items.addItemToTag(
+            t.id,
+            id,
+          );
         });
       }
     } catch (error) {
@@ -183,7 +194,10 @@ const AddProductView = () => {
       );
       if (newTags.length) {
         newTags.map(async ({ id }) => {
-          await stateManager!.items.addItemToTag(id, itemId as ItemId);
+          await clientWithStateManager!.stateManager!.items.addItemToTag(
+            id,
+            itemId as ItemId,
+          );
         });
       }
       //checking for any removed tags
@@ -193,13 +207,19 @@ const AddProductView = () => {
       );
       if (removedTags?.length) {
         removedTags.map(async (id: TagId) => {
-          await stateManager!.items.removeItemFromTag(id, itemId as ItemId);
+          await clientWithStateManager!.stateManager!.items.removeItemFromTag(
+            id,
+            itemId as ItemId,
+          );
         });
       }
       if (Object.keys(diff).length === 1) return;
-      await stateManager!.items.update(diff, baseDecimal!);
+      await clientWithStateManager!.stateManager!.items.update(
+        diff,
+        baseDecimal!,
+      );
       if (units !== productInView?.quantity) {
-        await stateManager!.items.changeInventory(
+        await clientWithStateManager!.stateManager!.items.changeInventory(
           itemId as ItemId,
           units - productInView!.quantity,
         );
@@ -224,7 +244,8 @@ const AddProductView = () => {
         const uploaded = await Promise.all(
           images.map(async (i) => {
             if (i.blob) {
-              const { url } = await relayClient!.uploadBlob(i.blob);
+              const { url } =
+                await clientWithStateManager!.relayClient!.uploadBlob(i.blob);
               return url;
             } else {
               return i.url;

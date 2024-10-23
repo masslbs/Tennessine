@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from "react";
 import Chevron from "./Chevron";
-import { Option } from "@/types";
+import { CurrencyChainOption } from "@/types";
 
 const Dropdown = ({
   options,
   callback,
   selected = null,
 }: {
-  options: Option[];
-  callback: (option: Option) => void;
-  selected?: null | Option;
+  options: CurrencyChainOption[];
+  callback: (option: CurrencyChainOption) => void | Promise<void>;
+  selected?: null | CurrencyChainOption;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<Option | null>(selected);
+  const [selectedOption, setSelectedOption] =
+    useState<CurrencyChainOption | null>(selected);
 
   const toggleDropdown = () => setIsOpen(!isOpen);
 
@@ -20,7 +21,7 @@ const Dropdown = ({
     selected && setSelectedOption(selected);
   }, [selected]);
 
-  const handleOptionClick = (option: Option) => {
+  const handleOptionClick = (option: CurrencyChainOption) => {
     setSelectedOption(option);
     setIsOpen(false);
     callback(option);

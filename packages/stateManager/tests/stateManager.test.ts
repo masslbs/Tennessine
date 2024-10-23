@@ -109,6 +109,7 @@ describe("Fill state manager with test vectors", async () => {
     randomAddress(),
     publicClient,
   );
+  stateManager.eventStreamProcessing().then();
   //Store test vector address to db for event verification
   await stateManager.keycards.addAddress(client.keyCardWallet.address);
   let count = 0;
@@ -306,9 +307,12 @@ describe("Unverified events should be caught in error", async () => {
   );
   test("catches error", async () => {
     let error = false;
-    stateManager.eventStreamProcessing.catch((e) => {
-      error = true;
-    });
+    stateManager
+      .eventStreamProcessing()
+      .then()
+      .catch((e) => {
+        error = true;
+      });
     stateManager.manifest
       .create(
         {
@@ -342,7 +346,7 @@ describe("CRUD functions update stores", async () => {
     randomAddress(),
     publicClient,
   );
-
+  stateManager.eventStreamProcessing().then();
   beforeEach(async () => {
     db.clear();
     //Store test vector address to db for event verification

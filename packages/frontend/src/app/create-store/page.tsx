@@ -4,49 +4,52 @@
 
 "use client";
 
-import debugLib from "debug";
-import Image from "next/image";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useConnectModal } from "@rainbow-me/rainbowkit";
 import React, { useState, useEffect, useRef, ChangeEvent } from "react";
+import debugLib from "debug";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { privateKeyToAccount } from "viem/accounts";
 import { useChains, useAccount } from "wagmi";
 
 import { BlockchainClient } from "@massmarket/blockchain";
 import { random32BytesHex, zeroAddress } from "@massmarket/utils";
 
-import AvatarUpload from "@/app/common/components/AvatarUpload";
-import Button from "@/app/common/components/Button";
-import Dropdown from "@/app/common/components/Dropdown";
-import ErrorMessage from "@/app/common/components/ErrorMessage";
+import { CurrencyChainOption, Payee, ShopCurrencies, Status } from "@/types";
 import { getTokenAddress, isValidHex } from "@/app/utils";
-import ValidationWarning from "@/app/common/components/ValidationWarning";
 import { useAuth } from "@/context/AuthContext";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
-import { Option, Payee, ShopCurrencies, Status } from "@/types";
+import AvatarUpload from "@/app/common/components/AvatarUpload";
+import Button from "@/app/common/components/Button";
+import Dropdown from "@/app/common/components/CurrencyDropdown";
+import ErrorMessage from "@/app/common/components/ErrorMessage";
+import { ConnectWalletButton } from "@/app/common/components/ConnectWalletButton";
+import ValidationWarning from "@/app/common/components/ValidationWarning";
+import Confirmation from "@/app/create-store/Confirmation";
 
-import Confirmation from "./Confirmation";
+// When create shop CTA is clicked, these functions are called:
+// 1. mintShop
+// 2. enrollConnectAuthenticate
+// 3. createShopManifest
+// 4. uploadMetadata
 
 const debug = debugLib("frontend:create-store");
+const log = debugLib("log:create-store");
+log.color = "242";
 
 const StoreCreation = () => {
   const {
     shopPublicClient,
     clientWallet,
     shopId,
+    clientWithStateManager,
     setShopId,
     checkPermissions,
-    setRelayClient,
-    relayClient,
-    createNewRelayClient,
   } = useUserContext();
 
-  const { stateManager, setShopDetails } = useStoreContext();
-  const { clientConnected, setIsConnected, setIsMerchantView } = useAuth();
+  const { setShopDetails } = useStoreContext();
+  const { setIsConnected, setIsMerchantView } = useAuth();
   const chains = useChains();
   const { status } = useAccount();
-  const { openConnectModal } = useConnectModal();
 
   const [step, setStep] = useState<
     "manifest form" | "connect wallet" | "confirmation"
@@ -69,9 +72,9 @@ const StoreCreation = () => {
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [isStoreCreated, setStoreCreated] = useState<boolean>(false);
   const [storeRegistrationStatus, setStoreRegistrationStatus] =
     useState<string>("");
+
   useEffect(() => {
     if (clientWallet?.account) {
       setPayeeAddress(clientWallet.account.address);
@@ -80,7 +83,7 @@ const StoreCreation = () => {
 
   useEffect(() => {
     if (!randomShopIdHasBeenSet.current) {
-      localStorage.removeItem("merchantKeyCard");
+      localStorage.removeItem("merchantKC");
       localStorage.removeItem("guestKeyCard");
 
       randomShopIdHasBeenSet.current = true;
@@ -93,9 +96,10 @@ const StoreCreation = () => {
     };
   }, []);
 
-  const handleAcceptedCurrencies = async (e: ChangeEvent<HTMLInputElement>) => {
+  async function handleAcceptedCurrencies(e: ChangeEvent<HTMLInputElement>) {
     const [sym, chainId] = e.target.value.split("/");
-    const address = await getTokenAddress(sym, Number(chainId));
+    const address = getTokenAddress(sym, chainId);
+
     if (e.target.checked) {
       setAcceptedCurrencies([
         ...acceptedCurrencies,
@@ -108,16 +112,16 @@ const StoreCreation = () => {
         ),
       );
     }
-  };
+  }
 
-  const handlePricingCurrency = async (option: Option) => {
+  async function handlePricingCurrency(option: CurrencyChainOption) {
     const v = option.value as string;
     const [sym, chainId] = v.split("/");
-    const address = await getTokenAddress(sym, Number(chainId));
+    const address = getTokenAddress(sym, chainId);
     setPricingCurrency({ address, chainId: Number(chainId) });
-  };
+  }
 
-  const checkRequiredFields = () => {
+  function checkRequiredFields() {
     if (!payeeAddress) {
       return "Payee address is required.";
     } else if (!payeeChain) {
@@ -141,9 +145,9 @@ const StoreCreation = () => {
       return "Payee Address must be a valid hex value";
     }
     return null;
-  };
+  }
 
-  const goToConnectWallet = () => {
+  function goToConnectWallet() {
     const warning = checkRequiredFields();
     if (warning) {
       setValidationError(warning);
@@ -152,161 +156,205 @@ const StoreCreation = () => {
       setValidationError(null);
     }
     setStep("connect wallet");
-  };
+  }
 
-  const createShop = async () => {
-    debug(`creating shop for ${shopId}`);
+  async function mintShop() {
+    log(`creating shop for ${shopId}`);
     setStoreRegistrationStatus("Minting shop...");
-    if (enrollKeycard.current) {
-      setStoreRegistrationStatus("Keycard already enrolled.");
-      debug("Keycard already enrolled.");
-      return;
-    }
     try {
-      const rc = await createNewRelayClient();
+      if (enrollKeycard.current) {
+        throw new Error("Keycard already enrolled");
+      }
+      const rc = clientWithStateManager!.createNewRelayClient();
+
       const blockchainClient = new BlockchainClient(shopId!);
       const hash = await blockchainClient.createShop(clientWallet!);
-      setStoreRegistrationStatus(" Waiting for mint to confirm...");
+      setStoreRegistrationStatus("Waiting to confirm mint transaction...");
       const transaction = await shopPublicClient!.waitForTransactionReceipt({
         hash,
         retryCount: 10,
       });
 
       if (transaction!.status !== "success") {
-        setStoreRegistrationStatus("Failed to mint shop.");
-        throw new Error("Failed to mint shop.");
+        throw new Error("Mint shop: transaction failed");
       }
-
-      // Add relay tokenId for event verification.
-      await blockchainClient.addRelay(clientWallet!, rc!.relayEndpoint.tokenId);
-      setStoreRegistrationStatus("Relay tokenId added...");
       localStorage.setItem("shopId", shopId!);
+
+      setStoreRegistrationStatus("Adding relay token ID...");
+      // Add relay tokenId for event verification.
+      const tx = await blockchainClient.addRelay(
+        clientWallet!,
+        rc.relayEndpoint.tokenId,
+      );
+      log(`Added relay token ID:${rc.relayEndpoint.tokenId}`);
+      const receipt = await shopPublicClient!.waitForTransactionReceipt({
+        hash: tx,
+      });
+      if (receipt.status !== "success") {
+        throw new Error("Error: addRelay");
+      }
+    } catch (err) {
+      setErrorMsg(`Error minting store ${err}`);
+      debug(`Error: mintShop:`, err);
+      return;
+    }
+
+    await enrollConnectAuthenticate();
+  }
+
+  async function enrollConnectAuthenticate() {
+    setStoreRegistrationStatus("Checking permissions...");
+    try {
       const hasAccess = await checkPermissions();
       if (!hasAccess) {
-        setStoreRegistrationStatus("Access denied.");
         throw new Error("Access denied.");
       }
       setStoreRegistrationStatus("Enrolling keycard...");
-      const res = await rc!.enrollKeycard(
+      const res = await clientWithStateManager!.relayClient!.enrollKeycard(
         clientWallet!,
         false,
         shopId!,
         process.env.TEST ? undefined : new URL(window.location.href),
       );
       if (!res.ok) {
-        setStoreRegistrationStatus("Failed to enroll keycard");
         throw Error("Failed to enroll keycard");
       }
       enrollKeycard.current = true;
-      setStoreRegistrationStatus("Keycard enrolled...");
-      const keyCardToEnroll = localStorage.getItem(
-        "keyCardToEnroll",
-      ) as `0x${string}`;
-      setIsMerchantView(true);
-      localStorage.setItem("merchantKeyCard", keyCardToEnroll);
-      //Connect, authenticate, and send subscription request.
-      setRelayClient(rc);
-      await rc!.connect();
-      await rc!.authenticate();
-      await rc!.sendMerchantSubscriptionRequest(shopId!);
-      setStoreRegistrationStatus("Relay Client connected...");
-      setStoreCreated(true);
-      setIsConnected(Status.Complete);
+      // Replace keyCardToEnroll to merchantKC for future refreshes
+      const keycard = localStorage.getItem("keyCardToEnroll") as `0x${string}`;
+      localStorage.setItem("merchantKC", keycard);
       localStorage.removeItem("keyCardToEnroll");
-    } catch (err) {
-      setErrorMsg("Error while creating store");
-      debug(`Failed createShop: %o`, err);
-    }
-  };
 
-  useEffect(() => {
-    //Create manifest once KC is enrolled and client is connected + authenticated in createShop fn.
-    if (isStoreCreated && clientConnected == Status.Complete) {
-      //Add address of kc wallet for all outgoing event verification.
-      const kc = localStorage.getItem("merchantKeyCard") as `0x${string}`;
-      const keyCardWallet = privateKeyToAccount(kc!);
-      stateManager.keycards.addAddress(keyCardWallet.address).then(() => {
-        stateManager.manifest
-          .create(
+      // FIXME: for now we are instantiating sm after kc enroll. The reason is because we want to create a unique db name based on keycard.
+      // TODO: see if it would be cleaner to pass the KC as a param
+      await clientWithStateManager!.createStateManager();
+      log("StateManager created");
+
+      //Add address of current kc wallet for all outgoing event verification.
+      const keyCardWallet = privateKeyToAccount(keycard);
+      await clientWithStateManager!.stateManager!.keycards.addAddress(
+        keyCardWallet.address.toLowerCase() as `0x${string}`,
+      );
+
+      log(
+        `keycard wallet address added: ${keyCardWallet.address.toLowerCase()}`,
+      );
+
+      // Connect & authenticate
+      setStoreRegistrationStatus(
+        "Connecting and authenticating Relay Client...",
+      );
+      await clientWithStateManager!.relayClient!.connect();
+      await clientWithStateManager!.relayClient!.authenticate();
+    } catch (error) {
+      debug(`Error:enrollConnectAuthenticate ${error}`);
+      setErrorMsg("Error connecting to client");
+      return;
+    }
+    await createShopManifest();
+  }
+
+  async function createShopManifest() {
+    try {
+      await clientWithStateManager!.stateManager!.manifest.create(
+        {
+          pricingCurrency: pricingCurrency as ShopCurrencies,
+          acceptedCurrencies,
+          payees: [
             {
-              pricingCurrency: pricingCurrency as ShopCurrencies,
-              acceptedCurrencies,
-              payees: [
-                {
-                  address: payeeAddress,
-                  callAsContract: false,
-                  chainId: payeeChain,
-                  name: "default",
-                } as Payee,
-              ],
-              //TODO: UI for inputting shipping regions.
-              shippingRegions: [
-                {
-                  name: "default",
-                  country: "",
-                  postalCode: "",
-                  city: "",
-                  orderPriceModifiers: [],
-                },
-              ],
+              address: payeeAddress,
+              callAsContract: false,
+              chainId: payeeChain,
+              name: "default",
+            } as Payee,
+          ],
+          //TODO: UI for inputting shipping regions.
+          shippingRegions: [
+            {
+              name: "default",
+              country: "",
+              postalCode: "",
+              city: "",
+              orderPriceModifiers: [],
             },
-            shopId!,
-          )
-          .then(() => {
-            uploadMetadata()
-              .then(() => {
-                setStep("confirmation");
-              })
-              .catch((e) => {
-                debug(e);
-                setErrorMsg("Error uploading blob");
-              });
-          })
-          .catch((e) => {
-            debug(e);
-            setErrorMsg("Error while calling create shop manifest");
-          });
-      });
+          ],
+        },
+        shopId!,
+      );
+      log("Manifest created");
+    } catch (error) {
+      debug(`Error:createShopManifest ${error}`);
+      setErrorMsg("Error creating shop manifest");
+      return;
     }
-  }, [clientConnected]);
 
-  const uploadMetadata = async () => {
+    await uploadMetadata();
+  }
+
+  async function uploadMetadata() {
+    setStoreRegistrationStatus("Setting shop metadata...");
     let metadataPath;
     let imgPath;
-    //Testing dom does not support FormData and test client will fail with:
-    //Content-Type isn't multipart/form-data
-    //so if it is a test env, we are skipping uploadBlob
-    if (process.env.TEST) {
-      metadataPath = { url: "/" };
-      imgPath = { url: "/" };
-    } else {
-      imgPath = avatar
-        ? await relayClient!.uploadBlob(avatar as FormData)
-        : { url: null };
-      const metadata = {
-        name: storeName,
-        description: description,
-        image: imgPath.url,
-      };
-      const jsn = JSON.stringify(metadata);
-      const blob = new Blob([jsn], { type: "application/json" });
-      const file = new File([blob], "file.json");
-      const formData = new FormData();
-      formData.append("file", file);
-      metadataPath = await relayClient!.uploadBlob(formData);
-    }
+    try {
+      //Testing dom does not support FormData and test client will fail with:
+      //Content-Type isn't multipart/form-data
+      //so if it is a test env, we are skipping uploadBlob
+      if (process.env.TEST) {
+        metadataPath = { url: "/" };
+        imgPath = { url: "/" };
+      } else {
+        imgPath = avatar
+          ? await clientWithStateManager!.relayClient!.uploadBlob(
+              avatar as FormData,
+            )
+          : { url: null };
+        const metadata = {
+          name: storeName,
+          description: description,
+          image: imgPath.url,
+        };
+        const jsn = JSON.stringify(metadata);
+        const blob = new Blob([jsn], { type: "application/json" });
+        const file = new File([blob], "file.json");
+        const formData = new FormData();
+        formData.append("file", file);
+        metadataPath =
+          await clientWithStateManager!.relayClient!.uploadBlob(formData);
+      }
+      const blockchainClient = new BlockchainClient(shopId!);
+      //Write shop metadata to blockchain client.
+      const metadataHash = await blockchainClient.setShopMetadataURI(
+        clientWallet!,
+        metadataPath.url,
+      );
 
-    const blockchainClient = new BlockchainClient(shopId!);
-    //Write shop metadata to blockchain client.
-    await blockchainClient.setShopMetadataURI(clientWallet!, metadataPath.url);
-    setShopDetails({
-      name: storeName,
-      profilePictureUrl: imgPath.url,
-    });
-  };
+      const transaction = await shopPublicClient!.waitForTransactionReceipt({
+        hash: metadataHash,
+        retryCount: 10,
+      });
+
+      if (transaction.status !== "success") {
+        debug("Error: setShopMetadataURI");
+        throw new Error("Error: setShopMetadataURI");
+      }
+      setShopDetails({
+        name: storeName,
+        profilePictureUrl: imgPath.url,
+      });
+      await clientWithStateManager!.sendMerchantSubscriptionRequest();
+
+      setIsMerchantView(true);
+      setIsConnected(Status.Complete);
+      setStep("confirmation");
+    } catch (error) {
+      debug(`Error:uploadMetadata ${error}`);
+      setErrorMsg("Error uploading metadata");
+    }
+  }
+
   if (step === "manifest form") {
     return (
-      <main className="pt-under-nav h-screen p-4 mt-5">
+      <main className="pt-under-nav h-screen p-4 mt-2">
         <ValidationWarning
           warning={validationError}
           onClose={() => {
@@ -438,8 +486,7 @@ const StoreCreation = () => {
               }}
             />
           </div>
-
-          <div className="mt-6">
+          <div>
             <Button onClick={goToConnectWallet}>
               <h6>Connect Wallet</h6>
             </Button>
@@ -468,34 +515,12 @@ const StoreCreation = () => {
             <div className="flex flex-col gap-4">
               <ConnectButton chainStatus="name" />
               <p>{storeRegistrationStatus}</p>
-              <Button onClick={createShop} disabled={!clientWallet}>
+              <Button onClick={mintShop} disabled={!clientWallet}>
                 <h6>Mint Shop</h6>
               </Button>
             </div>
           ) : (
-            <button
-              data-testid="connect-wallet"
-              className="rounded-lg flex flex-col items-center gap-2"
-              onClick={openConnectModal}
-            >
-              <Image
-                src="/icons/wallet-icon.svg"
-                width={40}
-                height={40}
-                alt="wallet-icon"
-                unoptimized={true}
-              />
-              <div className="flex gap-2">
-                <p>Connect wallet</p>
-                <Image
-                  src="/icons/chevron-left.svg"
-                  width={5}
-                  height={5}
-                  alt="wallet-icon"
-                  unoptimized={true}
-                />
-              </div>
-            </button>
+            <ConnectWalletButton />
           )}
         </section>
       </main>

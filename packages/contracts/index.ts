@@ -4,6 +4,8 @@
 
 import addresses from "./deploymentAddresses.json" with { type: "json" };
 export { addresses };
+import tokenAddresses from "./tokenAddresses.json" with { type: "json" };
+export { tokenAddresses };
 import Payments from "./abi/Payments.json" with { type: "json" };
 export { Payments };
 import PaymentsByAddress from "./abi/PaymentsByAddress.json" with { type: "json" };

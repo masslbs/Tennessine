@@ -53,7 +53,7 @@ const AvatarUpload = ({
       <div className="flex">
         <button onClick={triggerFileInput}>
           {localImg ? (
-            <div className="overflow-hidden	rounded-full w-12 h-12">
+            <div className="overflow-hidden rounded-full w-12 h-12">
               <Image
                 src={localImg}
                 width={50}

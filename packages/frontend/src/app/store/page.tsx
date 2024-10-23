@@ -11,8 +11,9 @@ import debugLib from "debug";
 import { Address } from "viem";
 
 import { UpdateShopManifest } from "@massmarket/stateManager/types";
+import { BlockchainClient } from "@massmarket/blockchain";
 
-import { ShopManifest, ShopCurrencies, Option } from "@/types";
+import { ShopManifest, ShopCurrencies, CurrencyChainOption } from "@/types";
 import { getTokenAddress } from "@/app/utils";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
@@ -22,28 +23,24 @@ import ValidationWarning from "@/app/common/components/ValidationWarning";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import SuccessToast from "@/app/common/components/SuccessToast";
 import BackButton from "@/app/common/components/BackButton";
-import Dropdown from "@/app/common/components/Dropdown";
+import Dropdown from "@/app/common/components/CurrencyDropdown";
+import { zeroAddress } from "@massmarket/utils";
 
-interface DisplayedChains {
-  label: string;
-  value: `${Address}/${string}`;
-  address: Address;
-  chainId: number;
-}
-interface AcceptedChains {
+interface AcceptedChain {
   address: Address;
   chainId: number;
   removed?: boolean;
   added?: boolean;
 }
-const StoreProfile = () => {
-  const { stateManager, shopDetails } = useStoreContext();
-  const { shopId } = useUserContext();
+
+function StoreProfile() {
+  const { shopDetails } = useStoreContext();
+  const { shopId, clientWallet, clientWithStateManager } = useUserContext();
   const [storeName, setStoreName] = useState<string>("");
   const [avatar, setAvatar] = useState<FormData | null>(null);
-  const [acceptedCurrencies, setAcceptedCurrencies] = useState<
-    AcceptedChains[]
-  >([]);
+  const [acceptedCurrencies, setAcceptedCurrencies] = useState<AcceptedChain[]>(
+    [],
+  );
   const [pricingToken, setPricingCurrency] = useState<ShopCurrencies | null>(
     null,
   );
@@ -51,25 +48,25 @@ const StoreProfile = () => {
   const [validationError, setValidationError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [manifest, setManifest] = useState<ShopManifest | null>(null);
-  const [displayedChains, setRenderChains] = useState<DisplayedChains[]>([]);
+  const [displayedChains, setRenderChains] = useState<CurrencyChainOption[]>(
+    [],
+  );
 
   const debug = debugLib("frontend:storeProfile");
   const chains = useChains();
 
   useEffect(() => {
     if (chains) {
-      const chainsToRender: DisplayedChains[] = [];
+      const chainsToRender: CurrencyChainOption[] = [];
       Promise.all(
         chains.map(async (c) => {
-          const ethTokenAddress = await getTokenAddress("ETH", c.id);
           chainsToRender.push({
             label: `ETH/${c.name}`,
-            value: `${ethTokenAddress}/${c.id}`,
-            address: ethTokenAddress,
+            value: `${zeroAddress}/${c.id}`,
+            address: zeroAddress,
             chainId: c.id,
           });
-          const usdcTokenAddress = await getTokenAddress("USDC", c.id);
-
+          const usdcTokenAddress = getTokenAddress("USDC", String(c.id));
           chainsToRender.push({
             label: `USDC/${c.name}`,
             value: `${usdcTokenAddress}/${c.id}`,
@@ -93,8 +90,8 @@ const StoreProfile = () => {
       });
     };
 
-    stateManager.manifest
-      .get()
+    clientWithStateManager!
+      .stateManager!.manifest.get()
       .then((shopManifest) => {
         const { pricingCurrency, acceptedCurrencies } = shopManifest;
         setManifest(shopManifest);
@@ -108,17 +105,21 @@ const StoreProfile = () => {
         debug(e);
       });
 
-    stateManager.manifest.on("update", onUpdateEvent);
+    clientWithStateManager!.stateManager!.manifest.on("update", onUpdateEvent);
 
     return () => {
       // Cleanup listeners on unmount
-      stateManager.manifest.removeListener("update", onUpdateEvent);
+      clientWithStateManager!.stateManager!.manifest.removeListener(
+        "update",
+        onUpdateEvent,
+      );
     };
   }, []);
-  const copyToClipboard = () => {
+
+  function copyToClipboard() {
     navigator.clipboard.writeText(shopId!);
-  };
-  const updateShopManifest = async () => {
+  }
+  async function updateShopManifest() {
     const um: Partial<UpdateShopManifest> = {};
     //If pricing currency needs to update.
     if (
@@ -149,38 +150,44 @@ const StoreProfile = () => {
         setValidationError("No changes found");
         return;
       }
-      await stateManager!.manifest.update(um);
+      await clientWithStateManager!.stateManager!.manifest.update(um);
 
       //If avatar or store name changed, setShopMetadataURI.
-      // if (avatar || storeName !== shopDetails.name) {
-      //   const metadata = {
-      //     name: storeName,
-      //     //If new avatar was uploaded, upload the image, otherwise use previous image.
-      //     image: avatar
-      //       ? (await relayClient!.uploadBlob(avatar as FormData)).url
-      //       : shopDetails.profilePictureUrl,
-      //   };
-      //   const jsn = JSON.stringify(metadata);
-      //   const blob = new Blob([jsn], { type: "application/json" });
-      //   const file = new File([blob], "file.json");
-      //   const formData = new FormData();
-      //   formData.append("file", file);
-      //   relayClient!.uploadBlob(formData).then(({ url }) => {
-      //     const blockchainClient = new BlockchainClient(shopId!);
-      //     blockchainClient
-      //       .setShopMetadataURI(clientWallet!, url)
-      //       .then()
-      //       .catch((e) => debug(e));
-      //   });
-      // }
+      if (avatar || storeName !== shopDetails.name) {
+        const metadata = {
+          name: storeName,
+          //If new avatar was uploaded, upload the image, otherwise use previous image.
+          image: avatar
+            ? (
+                await clientWithStateManager!.relayClient!.uploadBlob(
+                  avatar as FormData,
+                )
+              ).url
+            : shopDetails.profilePictureUrl,
+        };
+        const jsn = JSON.stringify(metadata);
+        const blob = new Blob([jsn], { type: "application/json" });
+        const file = new File([blob], "file.json");
+        const formData = new FormData();
+        formData.append("file", file);
+        clientWithStateManager!
+          .relayClient!.uploadBlob(formData)
+          .then(({ url }) => {
+            const blockchainClient = new BlockchainClient(shopId!);
+            blockchainClient
+              .setShopMetadataURI(clientWallet!, url)
+              .then()
+              .catch((e) => debug(e));
+          });
+      }
       setSuccess("Changes saved.");
     } catch (error) {
       debug("Failed: updateShopManifest", error);
       setError("Error updating shop manifest.");
     }
-  };
+  }
 
-  const handleAcceptedCurrencies = async (e: ChangeEvent<HTMLInputElement>) => {
+  async function handleAcceptedCurrencies(e: ChangeEvent<HTMLInputElement>) {
     const [addr, chainId] = e.target.value.split("/");
     const address = addr as Address;
     if (e.target.checked) {
@@ -201,13 +208,13 @@ const StoreProfile = () => {
         }),
       );
     }
-  };
-  const handlePricingCurrency = async (option: Option) => {
+  }
+  async function handlePricingCurrency(option: CurrencyChainOption) {
     const v = option.value as string;
     const [addr, chainId] = v.split("/");
     const address = addr as Address;
     setPricingCurrency({ address, chainId: Number(chainId) });
-  };
+  }
 
   return (
     <main className="pt-under-nav h-screen px-4 mt-3">
@@ -268,8 +275,8 @@ const StoreProfile = () => {
                   <div className="flex gap-2">
                     <input
                       className="border-2 border-solid mt-1 p-2 rounded"
-                      id="fname"
-                      name="fname"
+                      id="shopId"
+                      name="shopId"
                       value={shopId!}
                       onChange={() => {}}
                     />
@@ -290,12 +297,13 @@ const StoreProfile = () => {
                   Accepted currency
                 </label>
                 <div className="flex flex-col gap-1 mt-1">
-                  {displayedChains &&
+                  {displayedChains.length &&
                     displayedChains.map((c) => {
                       return (
                         <div key={c.value}>
                           <label className="flex items-center space-x-2">
                             <input
+                              data-testid="displayed-accepted-currencies"
                               type="checkbox"
                               onChange={(e) => handleAcceptedCurrencies(e)}
                               className="form-checkbox h-4 w-4"
@@ -306,7 +314,7 @@ const StoreProfile = () => {
                                     !currency.removed &&
                                     currency.chainId === c.chainId &&
                                     currency.address ===
-                                      c.address.toLowerCase(),
+                                      c.address!.toLowerCase(),
                                 ),
                               )}
                             />
@@ -339,7 +347,7 @@ const StoreProfile = () => {
                       callback={handlePricingCurrency}
                       selected={displayedChains.find(
                         (c) =>
-                          c.address.toLowerCase() === pricingToken?.address &&
+                          c.address!.toLowerCase() === pricingToken?.address &&
                           c.chainId === pricingToken?.chainId,
                       )}
                     />
@@ -356,6 +364,6 @@ const StoreProfile = () => {
       </section>
     </main>
   );
-};
+}
 
 export default StoreProfile;

@@ -4,12 +4,14 @@
 
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { Metadata } from "@/types";
-import { ReadonlyURLSearchParams } from "next/navigation";
-import { PublicClient } from "viem";
-import { zeroAddress, usdcAddress } from "@massmarket/utils";
-import * as abi from "@massmarket/contracts";
+import { Address, PublicClient } from "viem";
 import { sepolia, hardhat } from "wagmi/chains";
+import { ReadonlyURLSearchParams } from "next/navigation";
+
+import { zeroAddress } from "@massmarket/utils";
+import * as abi from "@massmarket/contracts";
+
+import { Metadata } from "@/types";
 
 export const cn = (...inputs: ClassValue[]) => {
   return twMerge(clsx(inputs));
@@ -40,7 +42,7 @@ export const createQueryString = (
   value: string,
   searchParams: ReadonlyURLSearchParams,
 ) => {
-  const params = new URLSearchParams(searchParams);
+  const params = new URLSearchParams(searchParams.toString());
   params.set(name, value);
 
   return params.toString();
@@ -82,27 +84,18 @@ export const getTokenInformation = (
 
   return Promise.all([symbol, decimal]);
 };
-export const getTokenAddress = async (
-  symbol: string,
-  chainId: number,
-): Promise<`0x${string}`> => {
-  const testChains = chainId === hardhat.id || chainId === sepolia.id;
 
-  // Token list from uniswap does not carry test chain token data, so directly return token addresses for ETH/USDC if selected chain is sepolia/hardhat.
+export const getTokenAddress = (symbol: string, chainId: string): Address => {
   if (symbol === "ETH") return zeroAddress;
-  if (symbol === "USDC" && testChains) return usdcAddress;
+  const addresses: {
+    [key: string]: {
+      [key: string]: string;
+    };
+  } = abi.tokenAddresses;
+  const tokenAddress = addresses[chainId][symbol] as Address;
 
-  const response = await fetch("https://tokens.uniswap.org/");
-  const tokenList = await response.json();
-
-  const token = tokenList.tokens.find(
-    (t: { symbol: string; chainId: number }) =>
-      t.symbol === symbol && t.chainId === chainId,
-  );
-
-  if (token) {
-    return token.address;
+  if (!tokenAddress) {
+    throw new Error(`Token not found for ${symbol} on chainId: ${chainId}`);
   }
-
-  throw new Error(`Token not found for ${symbol} on chainId: ${chainId}`);
+  return tokenAddress;
 };

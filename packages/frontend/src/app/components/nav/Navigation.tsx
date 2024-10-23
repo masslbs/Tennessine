@@ -4,16 +4,19 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useDisconnect } from "wagmi";
+import debugLib from "debug";
 
-import { Status } from "@/types";
+import { Order, OrderId, OrderState, Status } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useAuth } from "@/context/AuthContext";
+import { useUserContext } from "@/context/UserContext";
 import Cart from "@/app/cart/Cart";
+import { createQueryString } from "@/app/utils";
 
 const merchantMenu = [
   {
@@ -34,14 +37,56 @@ const customerMenu = [
   { title: "Share", img: "menu-share.svg", href: "/" },
 ];
 
+const debug = debugLib("frontend:Navigation");
+const log = debugLib("log:Navigation");
+log.color = "242";
+
 function Navigation() {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const [basketOpen, setBasketOpen] = useState<boolean>(false);
-
+  const [cartLength, setLength] = useState<number>(0);
   const { clientConnected, setIsConnected, isMerchantView } = useAuth();
   const { shopDetails } = useStoreContext();
+  const { clientWithStateManager } = useUserContext();
+  const searchParams = useSearchParams();
+
   const router = useRouter();
   const { disconnect } = useDisconnect();
+
+  useEffect(() => {
+    function onChangeItems(order: Order) {
+      const values = Object.values(order.items);
+      let length = 0;
+      values.map((qty) => (length += Number(qty)));
+      setLength(length);
+    }
+    function txHashDetected(order: Order) {
+      if (order.status === OrderState.STATE_PAYMENT_TX) {
+        setLength(0);
+      }
+    }
+    if (clientWithStateManager?.stateManager) {
+      clientWithStateManager.stateManager.orders.on(
+        "changeItems",
+        onChangeItems,
+      );
+
+      clientWithStateManager!.stateManager.orders.on(
+        "addPaymentTx",
+        txHashDetected,
+      );
+      return () => {
+        clientWithStateManager!.stateManager!.orders.removeListener(
+          "addPaymentTx",
+          txHashDetected,
+        );
+        clientWithStateManager!.stateManager!.orders.removeListener(
+          "changeItems",
+          onChangeItems,
+        );
+      };
+    }
+  }, [clientWithStateManager?.stateManager]);
 
   function onDisconnect() {
     setMenuOpen(false);
@@ -55,31 +100,53 @@ function Navigation() {
     setMenuOpen(!menuOpen);
   }
 
+  async function onCheckout(orderId: OrderId) {
+    try {
+      if (!orderId) {
+        debug("orderId not found");
+        throw new Error("No order found");
+      }
+      await clientWithStateManager!.stateManager!.orders.commit(orderId);
+      setBasketOpen(false);
+      log(`Order ID: ${orderId} committed`);
+      router.push(
+        `/checkout?${createQueryString("step", "shippingDetails", searchParams)}`,
+      );
+    } catch (error) {
+      if (error instanceof Error && error.message === "not enough stock") {
+        log("Not enough stock");
+        return;
+      }
+      debug(error);
+      throw new Error("Failed to commit order");
+    }
+  }
+
   function renderMenuItems() {
     const menuItems = isMerchantView ? merchantMenu : customerMenu;
     return menuItems.map((opt, i) => {
       if (opt.title === "Disconnect") {
         return (
           <button key={i} onClick={onDisconnect}>
-            <div className="flex gap-3">
+            <div className="flex gap-3 items-center">
               <Image
                 src={`/icons/${opt.img}`}
-                width={16}
-                height={16}
+                width={20}
+                height={20}
                 alt="menu-item"
                 unoptimized={true}
                 priority={true}
-                className="w-auto h-auto"
+                className="w-5 h-5"
               />
               <h2 className="font-normal">{opt.title}</h2>
               <Image
                 src="/icons/chevron-right.svg"
-                width={8}
-                height={8}
+                width={12}
+                height={12}
                 alt="chevron-right"
                 unoptimized={true}
                 priority={true}
-                className="ml-auto w-auto h-auto"
+                className="ml-auto w-3 h-3"
               />
             </div>
           </button>
@@ -92,27 +159,27 @@ function Navigation() {
           key={i}
           onClick={() => setMenuOpen(false)}
         >
-          <div className="flex gap-3">
+          <div className="flex gap-3 items-center">
             <Image
               src={`/icons/${opt.img}`}
-              width={16}
-              height={16}
+              width={20}
+              height={20}
               alt="menu-item"
               unoptimized={true}
               priority={true}
-              className="w-auto h-auto"
+              className="w-5 h-5"
             />
             <Link href={opt.href!} key={opt.title}>
               <h2 className="font-normal">{opt.title}</h2>
             </Link>
             <Image
               src="/icons/chevron-right.svg"
-              width={8}
-              height={8}
+              width={12}
+              height={12}
               alt="chevron-right"
               unoptimized={true}
               priority={true}
-              className="ml-auto w-auto h-auto"
+              className="ml-auto w-3 h-3"
             />
           </div>
         </div>
@@ -153,15 +220,23 @@ function Navigation() {
         <section
           className={`flex gap-6 p-2 ${clientConnected === Status.Complete ? "" : "hidden"}`}
         >
-          <button onClick={() => setBasketOpen(!basketOpen)}>
+          <button
+            className="relative"
+            onClick={() => setBasketOpen(!basketOpen)}
+          >
             <Image
               src="/icons/menu-basket.svg"
               width={20}
               height={20}
               alt="basket-icon"
               unoptimized={true}
-              className="w-auto h-auto"
+              className="w-5 h-5"
             />
+            <div
+              className={`${!cartLength ? "hidden" : ""} bg-red-700 rounded-full absolute top-0 left-3 w-4 h-4 flex justify-center items-center`}
+            >
+              <p className="text-white text-[10px]">{cartLength}</p>
+            </div>
           </button>
           <button onClick={menuSwitch}>
             <Image
@@ -183,7 +258,14 @@ function Navigation() {
           </div>
         </section>
       ) : null}
-      {basketOpen ? <Cart /> : null}
+      {basketOpen ? (
+        <section>
+          <span className="fixed bg-black w-full h-full opacity-60" />
+          <div className="fixed bg-background-gray z-10 w-full flex flex-col gap-5 rounded-b-lg p-5">
+            <Cart onCheckout={onCheckout} />
+          </div>
+        </section>
+      ) : null}
     </section>
   );
 }

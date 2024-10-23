@@ -9,7 +9,7 @@ import { useSearchParams } from "next/navigation";
 import debugLib from "debug";
 
 import { Item, Tag } from "@/types";
-import { useStoreContext } from "@/context/StoreContext";
+import { useUserContext } from "@/context/UserContext";
 import { useAuth } from "@/context/AuthContext";
 import withAuth from "@/app/components/withAuth";
 import SuccessMessage from "@/app/common/components/SuccessMessage";
@@ -18,7 +18,7 @@ import CustomerViewProducts from "@/app/components/products/CustomerViewProducts
 
 const Products = () => {
   const searchParams = useSearchParams();
-  const { stateManager } = useStoreContext();
+  const { clientWithStateManager } = useUserContext();
   const success = searchParams?.get("success");
   const { isMerchantView } = useAuth();
   const debug = debugLib("frontend:products");
@@ -29,7 +29,10 @@ const Products = () => {
 
   const getAllListings = async () => {
     const listings = new Map();
-    for await (const [id, item] of stateManager.items.iterator()) {
+    for await (const [
+      id,
+      item,
+    ] of clientWithStateManager!.stateManager!.items.iterator()) {
       listings.set(id, item);
     }
     return listings;
@@ -38,14 +41,20 @@ const Products = () => {
   useEffect(() => {
     const onCreateEvent = async () => {
       const l = new Map();
-      for await (const [id, item] of stateManager.items.iterator()) {
+      for await (const [
+        id,
+        item,
+      ] of clientWithStateManager!.stateManager!.items.iterator()) {
         l.set(id, item);
       }
       setProducts(l);
     };
     const onUpdateEvent = async () => {
       const l = new Map();
-      for await (const [id, item] of stateManager.items.iterator()) {
+      for await (const [
+        id,
+        item,
+      ] of clientWithStateManager!.stateManager!.items.iterator()) {
         l.set(id, item);
       }
       setProducts(l);
@@ -67,17 +76,32 @@ const Products = () => {
       });
 
     // Listen to future events
-    stateManager.items.on("create", onCreateEvent);
-    stateManager.items.on("update", onUpdateEvent);
-    stateManager.items.on("addItemId", onAddItemId);
-    stateManager.items.on("removeItemId", onRemoveItemId);
+    clientWithStateManager!.stateManager!.items.on("create", onCreateEvent);
+    clientWithStateManager!.stateManager!.items.on("update", onUpdateEvent);
+    clientWithStateManager!.stateManager!.items.on("addItemId", onAddItemId);
+    clientWithStateManager!.stateManager!.items.on(
+      "removeItemId",
+      onRemoveItemId,
+    );
 
     return () => {
       // Cleanup listeners on unmount
-      stateManager.items.removeListener("create", onCreateEvent);
-      stateManager.items.removeListener("update", onUpdateEvent);
-      stateManager.items.removeListener("addItemId", onAddItemId);
-      stateManager.items.removeListener("removeItemId", onRemoveItemId);
+      clientWithStateManager!.stateManager!.items.removeListener(
+        "create",
+        onCreateEvent,
+      );
+      clientWithStateManager!.stateManager!.items.removeListener(
+        "update",
+        onUpdateEvent,
+      );
+      clientWithStateManager!.stateManager!.items.removeListener(
+        "addItemId",
+        onAddItemId,
+      );
+      clientWithStateManager!.stateManager!.items.removeListener(
+        "removeItemId",
+        onRemoveItemId,
+      );
     };
   }, []);
 
@@ -87,11 +111,14 @@ const Products = () => {
       setAllTags(allTags);
     };
     // Listen to future events
-    stateManager.tags.on("create", onCreateEvent);
+    clientWithStateManager!.stateManager!.tags.on("create", onCreateEvent);
 
     return () => {
       // Cleanup listeners on unmount
-      stateManager.items.removeListener("create", onCreateEvent);
+      clientWithStateManager!.stateManager!.items.removeListener(
+        "create",
+        onCreateEvent,
+      );
     };
   }, []);
 

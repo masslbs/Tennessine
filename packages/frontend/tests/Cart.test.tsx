@@ -1,15 +1,21 @@
 import React from "react";
-import { describe, test, expect, beforeEach } from "vitest";
+import { describe, test, expect, beforeAll } from "vitest";
 import { waitFor, screen, act } from "@testing-library/react";
-import { merchantsWrapper, getStateManager } from "./test-utils";
+
+import { MockClientStateManager } from "@massmarket/stateManager/tests/mockClient";
+import { Order } from "@/types";
 import Cart from "@/app/cart/Cart";
+import { MerchantsRender, getMockClient } from "./test-utils";
 
 describe("Cart component", async () => {
-  beforeEach(async () => {});
-  const sm = await getStateManager();
-  const order = await sm.orders.create();
+  let client: MockClientStateManager;
+  let order: Order;
+  beforeAll(async () => {
+    client = await getMockClient();
+    order = await client!.stateManager!.orders.create();
+  });
   test("Renders cart items", async () => {
-    merchantsWrapper(<Cart />, sm, order.id);
+    MerchantsRender(<Cart />, client);
     const testProducts = [
       {
         title: "Cart testing Product I",
@@ -23,20 +29,20 @@ describe("Cart component", async () => {
       },
     ];
     await act(async () => {
-      const { id } = await sm.items.create({
+      const { id } = await client!.stateManager!.items.create({
         price: "12.00",
         metadata: testProducts[0],
       });
-      const { id: id2 } = await sm.items.create({
+      const { id: id2 } = await client!.stateManager!.items.create({
         price: "5.00",
         metadata: testProducts[1],
       });
 
-      await sm.items.changeInventory(id, 100);
-      await sm.items.changeInventory(id2, 100);
+      await client!.stateManager!.items.changeInventory(id, 100);
+      await client!.stateManager!.items.changeInventory(id2, 100);
 
-      await sm.orders.addsItems(order.id, id, 5);
-      await sm.orders.addsItems(order.id, id2, 1);
+      await client!.stateManager!.orders.addsItems(order.id, id, 5);
+      await client!.stateManager!.orders.addsItems(order.id, id2, 1);
     });
 
     await waitFor(async () => {

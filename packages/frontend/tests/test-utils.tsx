@@ -1,40 +1,30 @@
 import React, { ReactElement } from "react";
-import { MyContextProvider, UserContext } from "../src/context/UserContext";
-import { MockClient } from "@massmarket/stateManager/tests/mockClient";
-import { render } from "@testing-library/react";
-import { AuthProvider, AuthContext } from "../src/context/AuthContext";
-import {
-  type Item,
-  type Tag,
-  type ShopManifest,
-  type Order,
-  type KeyCard,
-  type OrderId,
-  Status,
-} from "@/types";
-import { StateManager } from "@massmarket/stateManager";
-import { StoreContext } from "@/context/StoreContext";
-import { MemoryLevel } from "memory-level";
 import { WagmiProvider } from "wagmi";
-import { config } from "../src/wagmi";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import {
-  anvilPrivateKey,
-  random32BytesHex,
-  zeroAddress,
-  randomAddress,
-} from "@massmarket/utils";
-import { RelayClient, discoverRelay } from "@massmarket/client";
-import { privateKeyToAccount } from "viem/accounts";
 import { createWalletClient, http, createPublicClient } from "viem";
 import { hardhat } from "viem/chains";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render } from "@testing-library/react";
+import { privateKeyToAccount } from "viem/accounts";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 
-const mockClient = new MockClient();
-const relayURL =
-  (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v3";
-const relayEndpoint = await discoverRelay(relayURL);
+import { anvilPrivateKey, random32BytesHex } from "@massmarket/utils";
+import { MockClientStateManager } from "@massmarket/stateManager/tests/mockClient";
+import { MockClient } from "@massmarket/stateManager/tests/mockClient";
+import { discoverRelay } from "@massmarket/client";
 
+import { Status } from "@/types";
+import { StoreContext } from "@/context/StoreContext";
+import { UserContext } from "../src/context/UserContext";
+import { AuthContext } from "../src/context/AuthContext";
+import { config } from "../src/wagmi";
+import { ClientWithStateManager } from "@/app/ClientWithStateManager";
+
+const mockClient = new MockClient();
+const shopPublicClient = createPublicClient({
+  chain: hardhat,
+  transport: http(),
+});
+export const randomShopId = random32BytesHex();
 export function getWallet() {
   // this key is from one of anvil's default keypairs
   const account = privateKeyToAccount(anvilPrivateKey);
@@ -45,175 +35,97 @@ export function getWallet() {
   });
   return wallet;
 }
-export async function getStateManager(useRelayClient?: boolean) {
-  const kcWallet = privateKeyToAccount(random32BytesHex());
-  const client = useRelayClient
-    ? new RelayClient({
-        relayEndpoint,
-        keyCardWallet: kcWallet,
-      })
-    : mockClient;
 
-  const db = new MemoryLevel({
-    valueEncoding: "json",
-  });
-
-  db.clear();
-  const listingStore = db.sublevel<string, Item>("listingStore", {
-    valueEncoding: "json",
-  });
-  const tagStore = db.sublevel<string, Tag>("tagStore", {
-    valueEncoding: "json",
-  });
-  const shopManifestStore = db.sublevel<string, ShopManifest>(
-    "shopManifestStore",
-    {
-      valueEncoding: "json",
-    },
+export async function getMockClient() {
+  const client = new MockClientStateManager(
+    shopPublicClient,
+    random32BytesHex(),
   );
-  const orderStore = db.sublevel<string, Order>("orderStore", {
-    valueEncoding: "json",
-  });
+  client.setClientAndConnect();
+  client.createStateManager();
 
-  const keycardStore = db.sublevel<string, KeyCard>("keycardStore", {
-    valueEncoding: "json",
-  });
+  //Usually addAddress is called in the stateManager by finding the ownerAdd of the relayTokenIds associated with a shopId.
+  //But for testing purposes, manually add relay addresses to db.
+  await client!.stateManager!.keycards.addAddress(
+    mockClient.keyCardWallet.address,
+  );
+  return client;
+}
+
+// This sets up the real client, for CreateStore and Checkout tests
+export async function getClient() {
   const shopClient = createPublicClient({
     chain: hardhat,
     transport: http(),
   });
-  const sm = new StateManager(
-    client,
-    listingStore,
-    tagStore,
-    shopManifestStore,
-    orderStore,
-    keycardStore,
-    randomAddress(),
+  const relayURL =
+    (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v3";
+  const relayEndpoint = await discoverRelay(relayURL);
+  const client = new ClientWithStateManager(
     shopClient,
+    randomShopId,
+    relayEndpoint,
   );
-  //Usually addAddress is called in the stateManager by finding the ownerAdd of the relayTokenIds associated with a shopId.
-  //But for testing purposes, manually add relay addresses to db.
-  await sm.keycards.addAddress(mockClient.keyCardWallet.address);
-  await sm.keycards.addAddress(kcWallet.address);
-  return sm;
+  return client;
 }
 
-const Wrapper = ({
+const MerchantsWrapper = ({
   children,
-  stateManager,
-  orderId,
+  client,
 }: {
   children: React.ReactNode;
-  stateManager: StateManager;
-  orderId?: OrderId;
+  client: ClientWithStateManager | MockClientStateManager;
 }) => {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={new QueryClient()}>
         <RainbowKitProvider>
-          <AuthProvider>
-            <MyContextProvider>
-              |
-              {/* Here we are mocking StoreContext/we're currently unable to test StoreContext.tsx. 
-              This is because stateManager is being instantiated/set in StoreContext.tsx but for testing,
-              we need to access the SM so we can test that the UI updates the state correctly. */}
+          <AuthContext.Provider
+            value={{
+              clientConnected: Status.Complete,
+              setIsConnected: () => {},
+              isMerchantView: true,
+              setIsMerchantView: () => {},
+            }}
+          >
+            <UserContext.Provider
+              value={{
+                //@ts-expect-error FIXME
+                clientWithStateManager: client,
+                clientWallet: getWallet(),
+                shopId: randomShopId,
+                shopPublicClient,
+                setShopId: () => {},
+                checkPermissions: async () => {
+                  return true;
+                },
+              }}
+            >
               <StoreContext.Provider
                 value={{
-                  stateManager: stateManager,
-                  //@ts-expect-error FIXME
-                  getOrderId: async () => {
-                    return orderId;
-                  },
-                  selectedCurrency: {
-                    chainId: 31337,
-                    address: zeroAddress,
-                  },
                   getBaseTokenInfo: async () => {
                     return ["ETH", 18];
                   },
-                  setShopDetails: async () => {},
+                  shopDetails: {
+                    name: "test store",
+                    profilePictureUrl: "",
+                  },
+                  setShopDetails: () => {},
                 }}
               >
                 {children}
               </StoreContext.Provider>
-            </MyContextProvider>
-          </AuthProvider>
+            </UserContext.Provider>
+          </AuthContext.Provider>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );
 };
 
-const MerchantsWrapper = ({
-  children,
-  stateManager,
-  orderId,
-}: {
-  children: React.ReactNode;
-  stateManager: StateManager;
-  orderId: OrderId;
-}) => {
-  return (
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={new QueryClient()}>
-        <AuthContext.Provider
-          value={{
-            clientConnected: Status.Complete,
-            setIsConnected: () => {},
-            isMerchantView: true,
-            setIsMerchantView: () => {},
-          }}
-        >
-          <UserContext.Provider
-            //@ts-expect-error FIXME
-            value={{ relayClient: mockClient, clientWallet: getWallet() }}
-          >
-            <StoreContext.Provider
-              //@ts-expect-error FIXME
-              value={{
-                stateManager: stateManager,
-                getOrderId: async () => {
-                  return orderId;
-                },
-                getBaseTokenInfo: async () => {
-                  return ["ETH", 18];
-                },
-                shopDetails: {
-                  name: "test store",
-                  profilePictureUrl: "",
-                },
-              }}
-            >
-              {children}
-            </StoreContext.Provider>
-          </UserContext.Provider>
-        </AuthContext.Provider>
-      </QueryClientProvider>
-    </WagmiProvider>
-  );
-};
-
-const customRender = (
+export const MerchantsRender = (
   ui: ReactElement,
-  stateManager: StateManager,
-  orderId?: OrderId,
+  client: ClientWithStateManager | MockClientStateManager,
 ) => {
-  render(
-    <Wrapper stateManager={stateManager} orderId={orderId}>
-      {ui}
-    </Wrapper>,
-  );
+  render(<MerchantsWrapper client={client}>{ui}</MerchantsWrapper>);
 };
-const AuthorizedCustomRender = (
-  ui: ReactElement,
-  stateManager: StateManager,
-  orderId: OrderId,
-) => {
-  render(
-    <MerchantsWrapper orderId={orderId} stateManager={stateManager}>
-      {ui}
-    </MerchantsWrapper>,
-  );
-};
-export { customRender as render, AuthorizedCustomRender as merchantsWrapper };

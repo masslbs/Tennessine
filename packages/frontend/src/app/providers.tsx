@@ -9,7 +9,7 @@ import { useState, type ReactNode } from "react";
 import { WagmiProvider } from "wagmi";
 
 import { config } from "../wagmi";
-import { MyContextProvider } from "../context/UserContext";
+import { UserContextProvider } from "../context/UserContext";
 import { StoreContextProvider } from "../context/StoreContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { MerchantProvider } from "@/context/MerchantContext";
@@ -22,16 +22,17 @@ export function Providers(props: { children: ReactNode }) {
   if (process.env.NEXT_PUBLIC_DEBUG) {
     debugLib.enable(process.env.NEXT_PUBLIC_DEBUG);
   }
+
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider>
           <AuthProvider>
-            <MyContextProvider>
+            <UserContextProvider>
               <StoreContextProvider>
                 <MerchantProvider>{props.children}</MerchantProvider>
               </StoreContextProvider>
-            </MyContextProvider>
+            </UserContextProvider>
           </AuthProvider>
         </RainbowKitProvider>
       </QueryClientProvider>

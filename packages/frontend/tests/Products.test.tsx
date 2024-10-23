@@ -2,15 +2,15 @@ import React from "react";
 import { describe, expect, test } from "vitest";
 import { screen, waitFor, within } from "@testing-library/react";
 import Products from "../src/app/products/page";
-import { merchantsWrapper, getStateManager } from "./test-utils";
+import { MerchantsRender, getMockClient } from "./test-utils";
 
 describe("Products Component", async () => {
-  const sm = await getStateManager();
-  const order = await sm.orders.create();
+  const client = await getMockClient();
 
   test("All listings are displayed", async () => {
+    //TODO: turn this into promise.all and see if it correctly saves concurrently.
     for (let index = 0; index < 50; index++) {
-      await sm.items.create({
+      await client!.stateManager!.items.create({
         price: `${index + 1}.00`,
         metadata: {
           title: `Test Item ${index + 1}`,
@@ -20,15 +20,15 @@ describe("Products Component", async () => {
       });
     }
 
-    merchantsWrapper(<Products />, sm, order.id);
-
+    MerchantsRender(<Products />, client);
+    //TODO: Do we need this waitfor for the rerender?
     await waitFor(async () => {
       const items = await screen.findAllByTestId("product-name");
       expect(items.length).toEqual(50);
     });
 
     // Testing component properly listens to future create events
-    await sm.items.create({
+    await client!.stateManager!.items.create({
       price: `9.00`,
       metadata: {
         title: "Another Item",
@@ -56,7 +56,7 @@ describe("Products Component", async () => {
   });
   test("Update Item - Updated title and price are rendered", async () => {
     //Testing Update Item event before render
-    const { id } = await sm.items.create({
+    const { id } = await client!.stateManager!.items.create({
       price: "9.00",
       metadata: {
         title: "Test Item to update",
@@ -64,7 +64,7 @@ describe("Products Component", async () => {
         images: ["https://http.cat/images/201.jpg"],
       },
     });
-    await sm.items.update({
+    await client!.stateManager!.items.update({
       id,
       price: "1.00",
       metadata: {
@@ -73,7 +73,7 @@ describe("Products Component", async () => {
         images: ["https://http.cat/images/201.jpg"],
       },
     });
-    merchantsWrapper(<Products />, sm, order.id);
+    MerchantsRender(<Products />, client);
     await waitFor(() => {
       const items = screen.getAllByTestId("product-container");
       expect(items.length).toEqual(52);
@@ -87,7 +87,7 @@ describe("Products Component", async () => {
       expect(Number(productMap.get("Test Item - Updated"))).toEqual(1);
     });
     //Test that the event listeners update the item
-    await sm.items.update({
+    await client!.stateManager!.items.update({
       id,
       price: "5.00",
       metadata: {

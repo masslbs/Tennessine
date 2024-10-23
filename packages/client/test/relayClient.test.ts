@@ -16,7 +16,6 @@ import {
 import { hardhat } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 import { describe, beforeEach, expect, test, beforeAll, vi } from "vitest";
-import schema from "@massmarket/schema";
 
 import {
   random32BytesHex,
@@ -372,10 +371,10 @@ describe("user behaviour", () => {
           const args = [
             31337, // chainid
             paymentDetails.ttl,
-            zeros32Bytes,
-            zeroAddress,
+            zeros32Bytes, //orderHash
+            zeroAddress, //currency address
             toHex(paymentDetails.total.raw),
-            anvilAddress,
+            anvilAddress, //payee address
             false, // is paymentendpoint?
             shopId,
             toHex(paymentDetails.shopSignature.raw),
