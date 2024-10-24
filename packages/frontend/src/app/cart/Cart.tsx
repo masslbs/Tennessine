@@ -36,7 +36,6 @@ function Cart({
         res && setBaseDecimal(res[1]);
         res && setBaseSymbol(res[0]);
       })
-      .catch((e) => debug("error getting base token info %o", e));
   }, []);
 
   useEffect(() => {

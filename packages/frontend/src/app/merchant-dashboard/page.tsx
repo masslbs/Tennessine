@@ -54,9 +54,7 @@ const MerchantDashboard = () => {
           onUpdateOrder,
         );
       })
-      .catch((e) => {
-        debug(e);
-      });
+
 
     return () => {
       // Cleanup listeners on unmount

@@ -14,6 +14,8 @@ import ErrorMessage from "@/app/common/components/ErrorMessage";
 import ShippingDetails from "@/app/components/checkout/ShippingDetails";
 import ChoosePayment from "@/app/components/checkout/ChoosePayment";
 
+const debug = debugLib("frontend:checkout");
+
 const CheckoutFlow = () => {
   const { clientWithStateManager } = useUserContext();
 
@@ -21,9 +23,43 @@ const CheckoutFlow = () => {
     "cart" | "shipping details" | "payment details" | "confirmation"
   >("shipping details");
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
-  const [txHash, setTxHash] = useState<null | `0x${string}`>(null);
-  const [blockHash, setBlockHash] = useState<null | `0x${string}`>(null);
-  const [displayedAmount, setDisplayedAmount] = useState<null | string>(null);
+  const [cryptoTotal, setCryptoTotal] = useState<bigint | null>(null);
+  const [purchaseAddress, setPurchaseAddr] = useState<string | null>(null);
+  const [city, setCity] = useState("");
+  const [address, setAddress] = useState("");
+  const [name, setName] = useState("");
+  const [postalCode, setPostal] = useState("");
+  const [country, setCountry] = useState("");
+  const [phoneNumber, setNumber] = useState("");
+  const [confirmedTxHash, setConfirmedTxHash] = useState<null | `0x${string}`>(
+    null,
+  );
+  const [erc20Amount, setErc20Amount] = useState<null | string>(null);
+  const [symbol, setSymbol] = useState<null | string>(null);
+  const [openCurrencySelection, setOpen] = useState(false);
+  const [orderId, setOrderId] = useState<OrderId | null>(null);
+  const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
+  const chains = useChains();
+
+  const currencyToggle = () => {
+    setOpen(!openCurrencySelection);
+  };
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(purchaseAddress!);
+  };
+  useEffect(() => {
+    getOrderId()
+      .then((id) => {
+        if (id) {
+          setOrderId(id);
+          stateManager.orders
+            .get(id)
+            .then((order) => {
+              setCurrentOrder(order);
+            })
+        }
+      })
+  }, []);
 
   useEffect(() => {
     const txHashDetected = (order: Order) => {
