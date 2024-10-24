@@ -62,9 +62,6 @@ const Products = () => {
       .then((listings) => {
         setProducts(listings);
       })
-      .catch((e) => {
-        debug(e);
-      });
 
     // Listen to future events
     stateManager.items.on("create", onCreateEvent);

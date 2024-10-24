@@ -50,12 +50,8 @@ const ProductDetail = () => {
               const orderItems = order.items;
               setCurrentCart(orderItems);
             })
-            .catch((e) => debug(e));
         }
       })
-      .catch((e) => {
-        debug(e);
-      });
   }, []);
 
   useEffect(() => {
@@ -95,11 +91,7 @@ const ProductDetail = () => {
                 setQuantity(currentCartItems[itemId]);
               }
             })
-            .catch((e) => {
-              debug(e);
-            });
         })
-        .catch((e) => debug(e));
     }
   }, [currentCartItems, itemId]);
 
@@ -120,9 +112,6 @@ const ProductDetail = () => {
       .then((tags) => {
         setAllTags(tags);
       })
-      .catch((e) => {
-        debug(e);
-      });
 
     // Listen to future events
     stateManager.tags.on("create", onCreateTag);

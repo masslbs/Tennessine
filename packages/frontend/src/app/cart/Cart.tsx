@@ -25,7 +25,6 @@ function Cart() {
         res && setBaseDecimal(res[1]);
         res && setBaseSymbol(res[0]);
       })
-      .catch((e) => debug(e));
   }, []);
 
   useEffect(() => {
@@ -49,12 +48,10 @@ function Cart() {
                       selectedQty: ci[id as ItemId],
                     });
                   })
-                  .catch((e) => debug(e));
               }),
             );
             setCartMap(cartObjects);
           })
-          .catch((e) => debug(e));
       }
     });
   }, [orderId]);

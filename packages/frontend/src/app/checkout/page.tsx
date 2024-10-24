@@ -64,14 +64,8 @@ const CheckoutFlow = () => {
             .then((order) => {
               setCurrentOrder(order);
             })
-            .catch((e) => {
-              debug(e);
-            });
         }
       })
-      .catch((e) => {
-        debug(e);
-      });
   }, []);
 
   useEffect(() => {

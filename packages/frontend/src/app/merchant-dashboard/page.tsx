@@ -45,9 +45,7 @@ const MerchantDashboard = () => {
         stateManager.orders.on("create", onCreateOrder);
         stateManager.orders.on("update", onUpdateOrder);
       })
-      .catch((e) => {
-        debug(e);
-      });
+
 
     return () => {
       // Cleanup listeners on unmount
