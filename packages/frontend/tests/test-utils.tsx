@@ -1,6 +1,6 @@
 import React, { ReactElement } from "react";
 import { MyContextProvider, UserContext } from "../src/context/UserContext";
-import { MockClient } from "@massmarket/stateManager/tests/mockClient";
+import { MockClient } from "@massmarket/stateManager/mockClient";
 import { render } from "@testing-library/react";
 import { AuthProvider, AuthContext } from "../src/context/AuthContext";
 import {

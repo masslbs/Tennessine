@@ -3,19 +3,19 @@
 // SPDX-License-Identifier: MIT
 
 import { EventEmitter } from "events";
-
+import { Buffer } from "buffer";
 import { WebSocket } from "isows";
 import { hexToBytes, hexToBigInt, toBytes } from "viem";
 import { PrivateKeyAccount } from "viem/accounts";
 import { createSiweMessage } from "viem/siwe";
+import assert from "assert";
 
-import schema, { PBObject, PBInstance, PBMessage } from "@massmarket/schema";
-import { WalletClientWithAccount } from "@massmarket/blockchain";
+import schema, { EnvelopMessageTypes } from "@massmarket/schema";
+import { type ConcreteWalletClient } from "@massmarket/blockchain";
 import { hexToBase64, decodeBufferToString } from "@massmarket/utils";
 
-import { ReadableEventStream } from "./stream.js";
+import { ReadableEventStream } from "./stream.ts";
 
-export type { WalletClientWithAccount };
 
 export type RelayEndpoint = {
   url: URL; // the websocket URL to talk to
@@ -24,13 +24,14 @@ export type RelayEndpoint = {
 
 export class RelayClient extends EventEmitter {
   connection!: WebSocket;
-  private keyCardWallet;
+  private keyCardWallet: PrivateKeyAccount;
   public readonly relayEndpoint: RelayEndpoint;
+  private subscriptionId: Uint8Array | null;
+  // TODO: type these out? apparently not inferred? - maybe just two different LSPs in my editor?
   private useTLS;
   private eventStream;
   private requestCounter;
   private eventNonceCounter;
-  private subscriptionId: number | null;
   constructor({
     relayEndpoint,
     keyCardWallet,
@@ -52,7 +53,7 @@ export class RelayClient extends EventEmitter {
     return this.eventStream.stream;
   }
 
-  #handlePingRequest(ping: schema.PingRequest) {
+  #handlePingRequest(ping: schema.Envelope) {
     // relay ends connection if ping is not responded to 3 times.
     this.encodeAndSendNoWait({
       requestId: ping.requestId,
@@ -61,28 +62,32 @@ export class RelayClient extends EventEmitter {
   }
 
   // like encodeAndSend but doesn't wait for a response.
-  encodeAndSendNoWait(object: PBObject = {}) {
+  encodeAndSendNoWait(object: schema.IEnvelope = {}): schema.RequestId {
     if (!object.requestId) {
       object.requestId = { raw: this.requestCounter };
+    }
+    const err = schema.Envelope.verify(object);
+    if (err) {
+      throw new Error(err);
     }
     // Turns json into binary
     const payload = schema.Envelope.encode(object).finish();
     this.connection.send(payload);
     this.requestCounter++;
-    return object.requestId.raw;
+    return schema.RequestId.create(object.requestId);
   }
 
   // encode and send a message and then wait for a response
-  encodeAndSend(object: PBObject = {}): Promise<PBInstance> {
+  encodeAndSend(object: schema.IEnvelope = {}): Promise<schema.Envelope> {
     const id = this.encodeAndSendNoWait(object);
     return new Promise((resolve, reject) => {
-      this.once(id, (result) => {
-        if (result.response.error) {
-          const { code, message } = result.response.error;
+      this.once(id.raw.toString(), (response: schema.Envelope) => {
+        if (response.response?.error) {
+          const { code, message } = response.response.error;
           console.error(`network error[${code}]: ${message}`);
-          reject(result.response.error);
+          reject(response.response.error);
         } else {
-          resolve(result);
+          resolve(response);
         }
       });
     });
@@ -90,15 +95,19 @@ export class RelayClient extends EventEmitter {
 
   async sendShopEvent(
     shopEvent: schema.IShopEvent,
-  ): Promise<schema.EventWriteResponse> {
+  ): Promise<schema.RequestId> {
     await this.connect();
 
+    // prepare for signing
     shopEvent.nonce = this.eventNonceCounter++;
     shopEvent.timestamp = { seconds: Date.now() / 1000 };
     const shopEventBytes = schema.ShopEvent.encode(shopEvent).finish();
+
+    // create signature for new event
     const sig = await this.keyCardWallet.signMessage({
       message: { raw: shopEventBytes },
     });
+    
     const signedEvent = {
       signature: { raw: hexToBytes(sig) },
       event: {
@@ -106,47 +115,48 @@ export class RelayClient extends EventEmitter {
         value: shopEventBytes,
       },
     };
-    const eventWriteRequest = {
+    const envelope = {
       eventWriteRequest: {
         events: [signedEvent],
       },
     };
-    const res = await this.encodeAndSend(eventWriteRequest);
+    const { requestId } = await this.encodeAndSend(envelope);
+    assert(requestId, "requestId is required");
     //Passing current KC address as signer for event verification.
     this.eventStream.outgoingEnqueue(
       shopEvent,
       this.keyCardWallet.address,
-      res.requestId,
+     requestId!,
     );
-    return res.requestId;
+    return schema.RequestId.create(requestId);
   }
 
-  shopManifest(manifest: schema.IShopManifest, shopId: `0x${string}`) {
+  shopManifest(manifest: schema.IManifest, shopId: `0x${string}`) {
     manifest.tokenId = { raw: hexToBytes(shopId) };
     return this.sendShopEvent({
       manifest: manifest,
     });
   }
 
-  updateShopManifest(update: schema.IUpdateShopManifest) {
+  updateShopManifest(update: schema.IUpdateManifest) {
     return this.sendShopEvent({
       updateManifest: update,
     });
   }
 
-  listing(item: schema.ICreateItem) {
+  listing(item: schema.IListing) {
     return this.sendShopEvent({
       listing: item,
     });
   }
 
-  updateListing(item: schema.IUpdateItem) {
+  updateListing(item: schema.IUpdateListing) {
     return this.sendShopEvent({
       updateListing: item,
     });
   }
 
-  tag(tag: schema.ICreateTag) {
+  tag(tag: schema.ITag) {
     return this.sendShopEvent({
       tag: tag,
     });
@@ -183,20 +193,20 @@ export class RelayClient extends EventEmitter {
         : me.data;
     const payload = new Uint8Array(_data);
 
-    const message = schema.Envelope.decode(payload);
-    const type = message.message;
-    switch (type) {
-      case PBMessage.PingRequest:
-        this.#handlePingRequest(message);
+    const envelope = schema.Envelope.decode(payload);
+    switch (envelope.message) {
+      case EnvelopMessageTypes.PingRequest:
+        this.#handlePingRequest(envelope);
         break;
-      case PBMessage.SubscriptionPushRequest:
+      case EnvelopMessageTypes.SubscriptionPushRequest:
+        assert(envelope.subscriptionPushRequest, "subscriptionPushRequest is required");
         this.eventStream.enqueue({
-          requestId: message.requestId,
-          events: message.subscriptionPushRequest.events,
+          requestId: envelope.requestId,
+          events: envelope.subscriptionPushRequest.events,
         });
         break;
       default:
-        this.emit(`${parseInt(message.requestId.raw)}`, message);
+        this.emit(envelope.requestId!.raw.toString(), envelope);
     }
   }
   async sendMerchantSubscriptionRequest(shopId: `0x${string}`, seqNo = 0) {
@@ -215,6 +225,8 @@ export class RelayClient extends EventEmitter {
         filters,
       },
     });
+    assert(response, "response is required");
+    assert(response.payload, "response.payload is required");
     this.subscriptionId = response.payload;
   }
   async sendGuestCheckoutSubscriptionRequest(shopId: `0x${string}`, seqNo = 0) {
@@ -232,6 +244,7 @@ export class RelayClient extends EventEmitter {
         filters,
       },
     });
+    assert(response?.payload, "response.payload is required");
     this.subscriptionId = response.payload;
   }
 
@@ -249,6 +262,7 @@ export class RelayClient extends EventEmitter {
         filters,
       },
     });
+    assert(response?.payload, "response.payload is required");
     this.subscriptionId = response.payload;
   }
   async cancelSubscriptionRequest() {
@@ -267,6 +281,7 @@ export class RelayClient extends EventEmitter {
         },
       },
     });
+    assert(response?.payload, "response.payload is required");
     const sig = await this.keyCardWallet.signMessage({
       message: {
         raw: response.payload,
@@ -279,8 +294,9 @@ export class RelayClient extends EventEmitter {
     });
   }
 
+  // TODO: make an enum of the possible events
   async connect(): Promise<
-    void | Event | schema.ChallengeSolvedResponse | string
+    Event | string
   > {
     if (
       !this.connection ||
@@ -301,7 +317,10 @@ export class RelayClient extends EventEmitter {
       if (this.connection.readyState === WebSocket.OPEN) {
         resolve("already open");
       } else {
-        this.connection.addEventListener("open", resolve);
+        this.connection.addEventListener("open", (evt: Event) => {
+          // TODO: unbox event to concrete values
+          resolve(evt)
+        });
       }
     });
   }
@@ -321,7 +340,7 @@ export class RelayClient extends EventEmitter {
   }
 
   async enrollKeycard(
-    wallet: WalletClientWithAccount,
+    wallet: ConcreteWalletClient,
     isGuest: boolean = true,
     shopId: `0x${string}`,
     location?: URL,
@@ -363,16 +382,20 @@ export class RelayClient extends EventEmitter {
 
   async uploadBlob(blob: FormData) {
     await this.connect();
-    const uploadURLResp = (await this.encodeAndSend({
+    const envelope = await this.encodeAndSend({
       getBlobUploadUrlRequest: {},
-    })) as schema.GetBlobUploadURLResponse;
-
-    if (uploadURLResp.response.error !== null) {
+    });
+    assert(envelope.response, "envelope.response is required");
+ 
+    if (envelope.response.error) {
+      const {code, message} = envelope.response.error
       throw new Error(
-        `Failed to get blob upload URL: ${uploadURLResp.error!.message}`,
+        `Failed to get blob upload URL - code: ${code} message: ${message}`,
       );
     }
-    const url = decodeBufferToString(uploadURLResp.response.payload);
+    assert(envelope.response?.payload, "envelope.response.payload is required");
+
+    const url = decodeBufferToString(envelope.response.payload);
     const uploadResp = await fetch(url, {
       method: "POST",
       body: blob,

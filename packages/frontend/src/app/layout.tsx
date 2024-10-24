@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import React from "react";
+import React, {Suspense} from "react";
 import { Providers } from "./providers";
 import "./globals.css";
 import Navigation from "./components/nav/Navigation";
@@ -21,10 +21,12 @@ export default function RootLayout({
         <title>Mass Market</title>
       </head>
       <body className="min-h-screen">
+       <Suspense>
         <Providers>
           <Navigation />
           {children}
         </Providers>
+       </Suspense>
       </body>
     </html>
   );

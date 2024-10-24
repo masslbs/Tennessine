@@ -1,5 +1,4 @@
-import { beforeEach } from "vitest";
-import { vi } from "vitest";
+import { vi, beforeEach } from "vitest";
 
 beforeEach(async () => {
   vi.mock("next/navigation", async (importOriginal) => {
