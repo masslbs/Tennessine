@@ -9,7 +9,7 @@ import schema, {
   type TestVectors,
 } from "@massmarket/schema";
 import { ReadableEventStream } from "@massmarket/client/stream";
-import { IRelayClient } from "../types";
+import { IRelayClient } from "./types.ts";
 
 export type IncomingEvent = {
   request: schema.EventPushRequest;

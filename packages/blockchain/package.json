@@ -1,6 +1,6 @@
 {
   "name": "@massmarket/blockchain",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Blockchain client",
   "keywords": [],
   "author": "",
@@ -8,14 +8,10 @@
   "scripts": {
     "test": "vitest"
   },
-  "devDependencies": {
-    "@massmarket/tsconfig": "workspace:*"
-  },
   "type": "module",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "default": "./mod.ts"
     }
   },
   "dependencies": {

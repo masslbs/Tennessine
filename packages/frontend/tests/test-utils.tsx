@@ -1,6 +1,6 @@
 import React, { ReactElement } from "react";
 import { UserContextProvider, UserContext } from "../src/context/UserContext";
-import { MockClient } from "@massmarket/stateManager/tests/mockClient";
+import { MockClient } from "@massmarket/stateManager/mockClient";
 import { render } from "@testing-library/react";
 import { AuthProvider, AuthContext } from "../src/context/AuthContext";
 import {
@@ -114,7 +114,7 @@ const Wrapper = ({
           <AuthProvider>
             <UserContextProvider>
               |
-              {/* Here we are mocking StoreContext/we're currently unable to test StoreContext.tsx. 
+              {/* Here we are mocking StoreContext/we're currently unable to test StoreContext.tsx.
               This is because stateManager is being instantiated/set in StoreContext.tsx but for testing,
               we need to access the SM so we can test that the UI updates the state correctly. */}
               <StoreContext.Provider

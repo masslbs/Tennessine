@@ -1,0 +1,9 @@
+{
+  "name": "@massmarket/utils",
+  "version": "0.0.1",
+  "exports": "./mod.ts",
+  "imports": {
+    "buffer": "node:buffer",
+  }
+}
+

@@ -6,8 +6,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "vitest",
-    "test:watch": "jest --watch"
+    "test": "vitest"
   },
   "dependencies": {
     "@ethereumjs/util": "^9.0.3",
@@ -26,17 +25,19 @@
     "@walletconnect/sign-client": "^2.13.0",
     "@walletconnect/types": "^2.13.0",
     "debug": "^4.3.6",
+    "encoding": "^0.1.13",
     "level": "^8.0.1",
     "next": "14.0.4",
     "qrcode": "^1.5.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-test-renderer": "^18.2.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3",
     "viem": "^2.16.3",
     "wagmi": "^2.10.6"
   },
   "devDependencies": {
-    "@massmarket/tsconfig": "workspace:*",
     "@next/eslint-plugin-next": "^14.2.3",
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/react": "^14.2.1",

@@ -1,0 +1,14 @@
+{
+  "name": "@massmarket/client",
+  "version": "0.0.1",
+  "exports": {
+      ".": "./mod.ts",
+      "./stream": "./stream.ts"
+  },
+  "imports": {
+    "events": "node:events",
+    "buffer": "node:buffer",
+    "assert": "node:assert"
+  }
+}
+
