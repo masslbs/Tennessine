@@ -12,6 +12,7 @@
     }
   },
   "dependencies": {
+    "@sentry/nextjs": "^8.35.0",
     "buffer": "^6.0.3",
     "viem": "^2.16.3"
   }

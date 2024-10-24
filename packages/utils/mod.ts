@@ -11,6 +11,28 @@ import {
   hexToBytes,
   formatUnits,
 } from "viem";
+import debugLibOriginal from "debug";
+import * as Sentry from "@sentry/nextjs";
+
+export function debugLib(namespace: string) {
+  const debug = debugLibOriginal(namespace);
+  const wrapper = (formatter: any, ...args: any[]) => {
+    debug(formatter, ...args);
+
+    if (args[0] instanceof Error) {
+        console.error("Capturing error", args[0]);
+        Sentry.captureException(args[0]);
+      } else if (typeof args[0] === "string") {
+        console.log("Capturing message", args[0]);
+        Sentry.captureMessage(args[0]);
+      } else {
+        debug("Unknown type:", args[0]);
+      }
+    
+  };
+  console.log("Debug wrapper created for", namespace);
+  return wrapper;
+};
 
 // Type predicate to narrow undefined | null | T to T
 function isDefined<T>(value: T | undefined | null): value is T {

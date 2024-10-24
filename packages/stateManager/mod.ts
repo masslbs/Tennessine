@@ -1143,6 +1143,9 @@ export class StateManager {
     this.seqNo = new EventEmitter();
     this.stream = this.client.createEventStream();
     this.eventStreamProcessing = this.#start();
+    this.eventStreamProcessing.catch((err) => {
+      debug("Error in event stream processing %o", err);
+    });
   }
 
   async #start() {

@@ -12,9 +12,11 @@ import assert from "assert";
 
 import schema, { EnvelopMessageTypes } from "@massmarket/schema";
 import { type ConcreteWalletClient } from "@massmarket/blockchain";
-import { hexToBase64, decodeBufferToString } from "@massmarket/utils";
+import { hexToBase64, decodeBufferToString, debugLib } from "@massmarket/utils";
+const debug = debugLib("relayClient");
 
 import { ReadableEventStream } from "./stream.ts";
+
 
 export type RelayEndpoint = {
   url: URL; // the websocket URL to talk to
@@ -357,8 +359,7 @@ export class RelayClient extends EventEmitter {
     ) {
       this.connection = new WebSocket(this.relayEndpoint.url + "/sessions");
       this.connection.addEventListener("error", (error: Event) => {
-        console.error("WebSocket error!");
-        console.error(error);
+        debug("WebSocket error: %o", error);
       });
       this.connection.addEventListener(
         "message",

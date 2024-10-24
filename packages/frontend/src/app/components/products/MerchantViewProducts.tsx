@@ -8,7 +8,6 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import debugLib from "debug";
 
 import { formatUnitsFromString } from "@massmarket/utils";
 import { Item, ListingViewState } from "@/types";
@@ -17,8 +16,6 @@ import { useStoreContext } from "@/context/StoreContext";
 import Button from "@/app/common/components/Button";
 
 function MerchantViewProducts({ products }: { products: Item[] | null }) {
-  const debug = debugLib("frontend: MerchantViewProducts");
-
   const { getBaseTokenInfo } = useStoreContext();
   const searchParams = useSearchParams();
   const [baseDecimal, setBaseDecimal] = useState<null | number>(null);

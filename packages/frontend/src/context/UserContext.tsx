@@ -86,15 +86,16 @@ export const UserContextProvider = (
   );
 
   useEffect(() => {
+    const relayURL = process.env["NEXT_PUBLIC_RELAY_URL"]! as string;
     if (process && process.env["NEXT_PUBLIC_RELAY_TOKEN_ID"]) {
       const re = {
-        url: new URL(process.env["NEXT_PUBLIC_RELAY_ENDPOINT"] as string),
+        url: new URL(relayURL),
         tokenId: process.env["NEXT_PUBLIC_RELAY_TOKEN_ID"] as `0x${string}`,
       };
       setRelayEndpoint(re);
       log("using environment variables for relay endpoint %o", re);
     } else {
-      discoverRelay("ws://localhost:4444/v3").then((relayEndpoint) => {
+      discoverRelay(relayURL).then((relayEndpoint) => {
         if (!relayEndpoint.url) throw new Error("Relay endpoint URL not set");
         if (!relayEndpoint.tokenId)
           throw new Error("Relay endpoint tokenId not set");

@@ -20,7 +20,7 @@ const log = debugLib("log:StoreContext");
 log.color = "242";
 
 export const StoreContextProvider = (
-  props: React.HTMLAttributes<HTMLDivElement>,
+  props: React.HTMLAttributes<HTMLDivElement>
 ) => {
   const chains = useChains();
   const { clientWithStateManager, shopPublicClient, shopId } = useUserContext();
@@ -32,26 +32,24 @@ export const StoreContextProvider = (
 
   useEffect(() => {
     if (shopPublicClient && shopId) {
-      shopPublicClient
-        .readContract({
+      (async () => {
+        const uri = await shopPublicClient.readContract({
           address: abi.addresses.ShopReg as Address,
           abi: abi.ShopReg,
           functionName: "tokenURI",
           args: [BigInt(shopId)],
-        })
-        .then((uri) => {
-          const url = uri as string;
-          if (url.length) {
-            fetch(url).then((res) => {
-              res.json().then((data) => {
-                setShopDetails({
-                  name: data.name,
-                  profilePictureUrl: data.image,
-                });
-              });
-            });
-          }
         });
+
+        const url = uri as string;
+        if (url.length) {
+          const res = await fetch(url);
+          const data = await res.json();
+          setShopDetails({
+            name: data.name,
+            profilePictureUrl: data.image,
+          });
+        }
+      })();
     }
   }, [shopPublicClient, shopId]);
 

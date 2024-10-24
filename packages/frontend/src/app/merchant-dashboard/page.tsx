@@ -18,8 +18,7 @@ const MerchantDashboard = () => {
   const { clientWithStateManager } = useUserContext();
   const searchParams = useSearchParams();
   const [orders, setOrders] = useState(new Map());
-  const debug = debugLib("frontend:merchantDashboard");
-
+ 
   const getAllOrders = async () => {
     const allOrders = new Map();
     for await (const [
