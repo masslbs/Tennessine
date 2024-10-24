@@ -72,6 +72,7 @@ const MerchantConnectWallet = () => {
     }
   };
   const handleClearShopIdInput = () => {
+    setIsConnected(Status.Pending);
     setSearchShopId("");
     setStep("search");
   };
@@ -98,53 +99,58 @@ const MerchantConnectWallet = () => {
   };
 
   const enroll = async () => {
-    if (clientConnected === Status.Pending && !enrollKeycard.current) {
-      enrollKeycard.current = true;
-      const id = searchShopId as ShopId;
-      setShopId(id);
-      localStorage.setItem("shopId", id);
-      localStorage.removeItem("seqNo");
+    if (clientConnected !== Status.Pending) {
+      setErrorMsg(`Client not pending. Status: ${clientConnected}`);
+      return;
+    }
+    if (enrollKeycard.current) {
+      setErrorMsg("Keycard already enrolled");
+      return;
+    }
+    enrollKeycard.current = true;
+    const id = searchShopId as ShopId;
+    setShopId(id);
+    localStorage.setItem("shopId", id);
+    localStorage.removeItem("seqNo");
 
+    (async () => {
       try {
-        (async () => {
-          const _relayClient = await createNewRelayClient();
-          if (!_relayClient) return;
-          const keyCardToEnroll = localStorage.getItem(
-            "keyCardToEnroll",
-          ) as `0x${string}`;
-          const res = await _relayClient.enrollKeycard(
-            clientWallet!,
-            false,
-            id,
-            new URL(window.location.href),
-          );
-          if (res.ok) {
-            console.log(`Keycard enrolled: ${keyCardToEnroll}`);
-            //Once merchant keycard is enrolled, connect and authenticate.
-            await _relayClient.connect();
-            await _relayClient.authenticate();
-            await _relayClient!.sendMerchantSubscriptionRequest(id);
-            setRelayClient(_relayClient);
-            setIsMerchantView(true);
-            keyCardToEnroll &&
-              localStorage.setItem("merchantKeyCard", keyCardToEnroll);
-            setIsConnected(Status.Complete);
-            setStep("confirmation");
-          } else {
-            enrollKeycard.current = false;
-            setIsConnected(Status.Failed);
-            throw new Error("Failed to enroll keycard");
-          }
-          localStorage.removeItem("keyCardToEnroll");
-        })();
+        const _relayClient = await createNewRelayClient();
+        if (!_relayClient) return;
+        const keyCardToEnroll = localStorage.getItem(
+          "keyCardToEnroll",
+        ) as `0x${string}`;
+        const res = await _relayClient.enrollKeycard(
+          clientWallet!,
+          false,
+          id,
+          new URL(window.location.href),
+        );
+        if (res.ok) {
+          console.log(`Keycard enrolled: ${keyCardToEnroll}`);
+          //Once merchant keycard is enrolled, connect and authenticate.
+          await _relayClient.connect();
+          await _relayClient.authenticate();
+          await _relayClient!.sendMerchantSubscriptionRequest(id);
+          setRelayClient(_relayClient);
+          setIsMerchantView(true);
+          keyCardToEnroll &&
+            localStorage.setItem("merchantKeyCard", keyCardToEnroll);
+          setIsConnected(Status.Complete);
+          setStep("confirmation");
+        } else {
+          enrollKeycard.current = false;
+          setIsConnected(Status.Failed);
+          throw new Error("Failed to enroll keycard");
+        }
+        localStorage.removeItem("keyCardToEnroll");
       } catch (error) {
-        setErrorMsg("Something went wrong");
+        setErrorMsg(`Something went wrong. ${error}`);
         debug(error);
       }
-    } else {
-      setErrorMsg("Something went wrong");
-    }
+    })();
   };
+
   if (step === "confirmation") {
     return <Confirmation />;
   }

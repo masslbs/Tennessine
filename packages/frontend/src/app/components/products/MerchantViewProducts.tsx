@@ -60,6 +60,8 @@ function MerchantViewProducts({ products }: { products: Item[] | null }) {
               src={metadata.images[0] || "/assets/no-image.png"}
               width={127}
               height={112}
+              placeholder="empty"
+              priority={true}
               alt="product-thumb"
               unoptimized={true}
               className="w-32 h-28 object-cover object-center rounded-l-lg"

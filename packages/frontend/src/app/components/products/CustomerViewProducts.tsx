@@ -55,20 +55,12 @@ function CustomerViewProducts({ products }: { products: Item[] | null }) {
               <Image
                 src={metadata.images[0] || "/assets/no-image.png"}
                 width={176}
-                height={150}
+                height={144}
                 alt="product-thumb"
                 unoptimized={true}
-                style={{
-                  objectFit: "cover",
-                  objectPosition: "center",
-                  maxHeight: 150,
-                  maxWidth: 176,
-                  minHeight: 150,
-                  minWidth: 176,
-                  borderTopLeftRadius: 12,
-                  borderTopRightRadius: 12,
-                }}
-                className="w-auto h-auto"
+                placeholder="empty"
+                priority={true}
+                className="h-36 w-44 rounded-t-lg object-cover object-center"
               />
             </div>
             <div className="bg-white flex flex-col gap-2 rounded-b-lg p-3 min-h-24 max-h-24 h-24 w-44">
@@ -84,7 +76,7 @@ function CustomerViewProducts({ products }: { products: Item[] | null }) {
                   width={20}
                   height={20}
                   unoptimized={true}
-                  className="w-auto h-auto max-h-5"
+                  className="w-5 h-5"
                 />
                 <p>
                   {baseDecimal &&
@@ -104,7 +96,7 @@ function CustomerViewProducts({ products }: { products: Item[] | null }) {
         <button>Search</button>
         <button className="ml-2">Filter</button>
       </div>
-      <section className="flex flex-wrap justify-between gap-2 mt-3">
+      <section className="flex flex-wrap justify-between gap-3 mt-3">
         {renderProducts()}
       </section>
     </section>
