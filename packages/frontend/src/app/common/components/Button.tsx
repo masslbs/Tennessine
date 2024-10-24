@@ -8,7 +8,7 @@ import React from "react";
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  color?: string;
+  custom?: string;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -16,9 +16,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     //fixme: make sure button ui is clicked, not just fire onclick fn
     return (
       <button
-        className={`flex justify-center text-3xl text-white px-6 py-4 rounded-2xl ${
-          props.color ? props.color : "bg-primary-button"
-        } w-full disabled:bg-gray-200 disabled:text-gray-500`}
+        className={`flex justify-center text-white px-5 py-3 rounded-md text-lg	
+          bg-primary-dark-green disabled:bg-gray-200 disabled:text-gray-500 ${props.custom ? props.custom : ""}`}
         ref={ref}
         {...props}
       />

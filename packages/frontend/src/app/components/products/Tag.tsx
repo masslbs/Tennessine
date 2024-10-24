@@ -18,11 +18,7 @@ const TagSection = ({
   removeFn?: () => Promise<void>;
 }) => {
   if (!tag?.id) return null;
-  // const hex = tag.id.slice(-6).replace("0", "f");
-  //FIXME: kind of a hacky way of removing items for now.
-  if (tag.name === "visible" || tag.name === "remove") {
-    return null;
-  }
+
   return (
     <div
       id="tag"
@@ -34,10 +30,10 @@ const TagSection = ({
       <p className="mr-1">{tag.name}</p>
       {removeFn ? (
         <Image
-          src="/assets/quit.svg"
-          alt="2dots-icon"
-          width={18}
-          height={18}
+          src="/icons/close-icon.svg"
+          alt="close-icon"
+          width={10}
+          height={10}
           onClick={removeFn}
         />
       ) : null}

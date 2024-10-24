@@ -25,7 +25,7 @@ export type ClientContext = {
   setWallet: Dispatch<SetStateAction<WalletClientWithAccount | null>>;
   checkPermissions: () => Promise<boolean>;
   setRelayClient: Dispatch<SetStateAction<RelayClient | null>>;
-  createNewRelayClient: () => Promise<RelayClient | null>;
+  createNewRelayClient: () => Promise<RelayClient>;
   upgradeGuestToCustomer: () => Promise<void>;
 };
 
@@ -36,7 +36,7 @@ export type StoreContent = {
   setSelectedCurrency: Dispatch<ShopCurrencies>;
   stateManager: StateManager | LoadingStateManager;
   getOrderId: () => Promise<OrderId | null>;
-  baseTokenDetails: { decimal: number; symbol: string };
   shopDetails: ShopDetails;
   setShopDetails: Dispatch<ShopDetails>;
+  getBaseTokenInfo: () => Promise<[string, number]>;
 };

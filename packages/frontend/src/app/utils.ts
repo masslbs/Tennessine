@@ -7,8 +7,9 @@ import { twMerge } from "tailwind-merge";
 import { Metadata } from "@/types";
 import { ReadonlyURLSearchParams } from "next/navigation";
 import { PublicClient } from "viem";
-import { zeroAddress } from "@massmarket/utils";
+import { zeroAddress, usdcAddress } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
+import { sepolia, hardhat } from "wagmi/chains";
 
 export const cn = (...inputs: ClassValue[]) => {
   return twMerge(clsx(inputs));
@@ -57,6 +58,14 @@ export const getTokenInformation = (
     return new Promise((resolve) => {
       resolve(["ETH", 18]);
     });
+  } else if (
+    // FIXME: Cannot get symbol/decimal functions from contract for test chains.
+    publicClient.chain?.id === hardhat.id ||
+    publicClient.chain?.id === sepolia.id
+  ) {
+    return new Promise((resolve) => {
+      resolve(["USDC", 6]);
+    });
   }
   const symbol = publicClient.readContract({
     address: tokenAddress,
@@ -70,5 +79,30 @@ export const getTokenInformation = (
     functionName: "decimals",
     args: [],
   }) as Promise<number>;
+
   return Promise.all([symbol, decimal]);
+};
+export const getTokenAddress = async (
+  symbol: string,
+  chainId: number,
+): Promise<`0x${string}`> => {
+  const testChains = chainId === hardhat.id || chainId === sepolia.id;
+
+  // Token list from uniswap does not carry test chain token data, so directly return token addresses for ETH/USDC if selected chain is sepolia/hardhat.
+  if (symbol === "ETH") return zeroAddress;
+  if (symbol === "USDC" && testChains) return usdcAddress;
+
+  const response = await fetch("https://tokens.uniswap.org/");
+  const tokenList = await response.json();
+
+  const token = tokenList.tokens.find(
+    (t: { symbol: string; chainId: number }) =>
+      t.symbol === symbol && t.chainId === chainId,
+  );
+
+  if (token) {
+    return token.address;
+  }
+
+  throw new Error(`Token not found for ${symbol} on chainId: ${chainId}`);
 };

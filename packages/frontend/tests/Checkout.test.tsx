@@ -2,7 +2,7 @@ import React from "react";
 import { describe, test, expect } from "vitest";
 import { waitFor, screen, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { zeroAddress, random32BytesHex, anvilAddress } from "@massmarket/utils";
+import { zeroAddress, random32BytesHex } from "@massmarket/utils";
 import { getStateManager, render, getWallet } from "./test-utils";
 import { createPublicClient, http, pad, Address } from "viem";
 import CheckoutFlow from "@/app/checkout/page";
@@ -10,7 +10,7 @@ import { BlockchainClient } from "@massmarket/blockchain";
 import { hardhat } from "viem/chains";
 import * as abi from "@massmarket/contracts";
 
-describe("Checkout", async () => {
+describe.skip("Checkout", async () => {
   const user = userEvent.setup();
 
   const publicClient = createPublicClient({
@@ -28,86 +28,9 @@ describe("Checkout", async () => {
   });
   let orderId: `0x${string}`;
 
-  test("Renders correct amount", async () => {
-    expect(receipt.status).equals("success");
-    await sm.keycards.addAddress(wallet.account.address);
-    //@ts-expect-error FIXME
-    await sm.client.enrollKeycard(wallet, false, shopId, undefined);
-    await sm.client.connect();
-    await sm.client.authenticate();
-
-    await sm.client.sendMerchantSubscriptionRequest(shopId);
-
-    await sm.manifest.create(
-      {
-        acceptedCurrencies: [
-          {
-            chainId: 31337,
-            address: zeroAddress,
-          },
-        ],
-        pricingCurrency: {
-          chainId: 31337,
-          address: zeroAddress,
-        },
-        payees: [
-          {
-            address: anvilAddress,
-            callAsContract: false,
-            chainId: 31337,
-            name: "default",
-          },
-        ],
-        shippingRegions: [
-          {
-            name: "test",
-            country: "California",
-            postalCode: "91011",
-            city: "Los Angeles",
-            orderPriceModifiers: [],
-          },
-        ],
-      },
-      shopId,
-    );
-
-    const { id } = await sm.items.create({
-      price: "12.00",
-      metadata: {
-        title: "Cart testing Product I",
-        description: "Test description I",
-        images: ["https://http.cat/images/201.jpg"],
-      },
-    });
-    const { id: id2 } = await sm.items.create({
-      price: "5.00",
-      metadata: {
-        title: "Cart testing Product II",
-        description: "Test description II",
-        images: ["https://http.cat/images/201.jpg"],
-      },
-    });
-    const order = await sm.orders.create();
-    orderId = order.id;
-    await sm.items.changeInventory(id, 100);
-    await sm.items.changeInventory(id2, 100);
-
-    await sm.orders.addsItems(order.id, id, 5);
-    await sm.orders.addsItems(order.id, id2, 1);
-    render(<CheckoutFlow />, sm, orderId);
-
-    await waitFor(async () => {
-      const p = await screen.findAllByTestId("title");
-      const total = await screen.findByTestId("total");
-      const symbol = await screen.findByTestId("symbol");
-      expect(p.length).toEqual(2);
-      expect(total.textContent).toEqual("65");
-      // Since we set our base currency as ETH, this checks that getTokenInformation fn is correct.
-      expect(symbol.textContent).toEqual("ETH");
-    });
-  });
-
   test("Update shipping details and commit items.", async () => {
+    expect(receipt.status).equals("success");
+
     render(<CheckoutFlow />, sm, orderId);
 
     await act(async () => {

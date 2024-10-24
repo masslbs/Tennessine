@@ -6,7 +6,7 @@
 import ProgressBar from "@/app/components/checkout/ProgressBar";
 import React, { useEffect, useState } from "react";
 import { useStoreContext } from "@/context/StoreContext";
-import NewCart from "@/app/cart/NewCart";
+import Cart from "@/app/cart/Cart";
 import ShippingDetails from "@/app/components/checkout/ShippingDetails";
 import Image from "next/image";
 import { OrderState, Order, OrderId } from "@/types";
@@ -213,15 +213,7 @@ const CheckoutFlow = () => {
 
   const renderContent = () => {
     if (step === 0) {
-      return (
-        <NewCart
-          next={() => {
-            setStep(1);
-            currencyToggle();
-          }}
-          orderId={orderId}
-        />
-      );
+      return <Cart />;
     } else if (step === 1) {
       return (
         <ShippingDetails

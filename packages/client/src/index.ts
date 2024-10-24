@@ -25,7 +25,7 @@ export type RelayEndpoint = {
 export class RelayClient extends EventEmitter {
   connection!: WebSocket;
   private keyCardWallet;
-  private relayEndpoint: RelayEndpoint;
+  public readonly relayEndpoint: RelayEndpoint;
   private useTLS;
   private eventStream;
   private requestCounter;
@@ -65,6 +65,7 @@ export class RelayClient extends EventEmitter {
     if (!object.requestId) {
       object.requestId = { raw: this.requestCounter };
     }
+    // Turns json into binary
     const payload = schema.Envelope.encode(object).finish();
     this.connection.send(payload);
     this.requestCounter++;

@@ -119,7 +119,7 @@ class ListingManager extends PublicObjectManager<Item> {
       if (ul.price) {
         item.price = fromBytes(ul.price.raw, "bigint").toString();
       }
-      if (ul.viewState) {
+      if (Object.values(ListingViewState).includes(ul.viewState)) {
         item.viewState = ul.viewState;
       }
       await this.store.put(id, item);
@@ -191,7 +191,7 @@ class ListingManager extends PublicObjectManager<Item> {
     if (update.metadata) {
       ui.metadata = update.metadata;
     }
-    if (update.viewState) {
+    if (Object.values(ListingViewState).includes(update.viewState!)) {
       ui.viewState = update.viewState;
     }
     const eventId = await this.client.updateListing(ui);
@@ -323,9 +323,12 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
         let filtered = [...manifest.acceptedCurrencies!];
         for (const rm of um.removeAcceptedCurrencies) {
           filtered = manifest.acceptedCurrencies!.filter(
-            (cur) => cur.address !== bytesToHex(rm.address.raw),
+            (cur) =>
+              cur.address !== bytesToHex(rm.address.raw) ||
+              cur.chainId !== rm.chainId,
           );
         }
+
         manifest.acceptedCurrencies = filtered;
       }
       if (um.addPayee) {
@@ -816,7 +819,7 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
         throw new Error(e.code);
       }
     }
-    await this.store.put("cardPublicKey", publicKeys);
+    return this.store.put("cardPublicKey", publicKeys);
   }
 }
 // This class creates the state of a store from an event stream
