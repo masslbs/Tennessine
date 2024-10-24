@@ -1,6 +1,11 @@
 import { EventEmitter } from "events";
-import schema from "@massmarket/schema";
+
 import { bytesToHex, hexToBytes, PublicClient, fromBytes } from "viem";
+import { Address } from "@ethereumjs/util";
+
+import schema from "@massmarket/schema";
+import * as abi from "@massmarket/contracts";
+
 import { priceToUint256, addressToUint256, objectId } from "@massmarket/utils";
 import {
   IRelayClient,
@@ -23,8 +28,9 @@ import {
   OrderPriceModifier,
   ChoosePayment,
 } from "./types";
-import { Address } from "@ethereumjs/util";
-import * as abi from "@massmarket/contracts";
+import { debugLib } from "@massmarket/utils";
+
+const debug = debugLib("stateManager");
 
 // This is an interface that is used to retrieve and store objects from a persistant layer
 export type Store<T extends ShopObjectTypes> = {
@@ -856,7 +862,7 @@ export class StateManager {
 
     this.eventStreamProcessing = this.#start();
     this.eventStreamProcessing.catch((err) => {
-      console.log("Error something bad happened in the stream", err);
+      debug("Error in event stream processing %o", err);
     });
   }
 

@@ -89,7 +89,6 @@ const AddProductView = () => {
           .then((tag: Tag) => {
             selected.push(tag);
           })
-          .catch((e) => debug(e));
       }
       setSelectedTags(selected);
     }

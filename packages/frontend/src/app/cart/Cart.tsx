@@ -7,7 +7,6 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useStoreContext } from "@/context/StoreContext";
 import { ItemId, OrderId } from "@/types";
-import debugLib from "debug";
 import { formatUnitsFromString } from "@massmarket/utils";
 
 function Cart() {
@@ -17,15 +16,12 @@ function Cart() {
   const [baseDecimal, setBaseDecimal] = useState<null | number>(null);
   const [baseSymbol, setBaseSymbol] = useState<null | string>(null);
 
-  const debug = debugLib("frontend:newCart");
-
   useEffect(() => {
     getBaseTokenInfo()
       .then((res: [string, number]) => {
         res && setBaseDecimal(res[1]);
         res && setBaseSymbol(res[0]);
       })
-      .catch((e) => debug(e));
   }, []);
 
   useEffect(() => {
@@ -49,12 +45,10 @@ function Cart() {
                       selectedQty: ci[id as ItemId],
                     });
                   })
-                  .catch((e) => debug(e));
               }),
             );
             setCartMap(cartObjects);
           })
-          .catch((e) => debug(e));
       }
     });
   }, [orderId]);

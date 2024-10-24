@@ -106,9 +106,7 @@ function StoreProfile() {
           chainId: pricingCurrency.chainId!,
         });
       })
-      .catch((e) => {
-        debug(e);
-      });
+
 
     stateManager.manifest.on("update", onUpdateEvent);
 
@@ -172,11 +170,11 @@ function StoreProfile() {
           const blockchainClient = new BlockchainClient(shopId!);
           blockchainClient
             .setShopMetadataURI(clientWallet!, url)
-            .then()
-            .catch((e) => debug(e));
+            .then(() => {
+              setSuccess("Changes saved.");
+            });
         });
       }
-      setSuccess("Changes saved.");
     } catch (error) {
       debug("Failed: updateShopManifest", error);
       setError("Error updating shop manifest.");

@@ -283,7 +283,6 @@ const StoreCreation = () => {
               setErrorMsg("Error creating shop manifest");
             });
         })
-        .catch((e) => debug("Error:addAddress", e));
     }
   }, [clientConnected]);
 
