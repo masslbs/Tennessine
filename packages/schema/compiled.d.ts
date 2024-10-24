@@ -1,5 +1,5 @@
-import * as $protobuf from "protobufjs";
-import Long = require("long");
+import * as $protobuf from "npm:protobufjs";
+import Long from "npm:long";
 /** Namespace market. */
 export namespace market {
   /** Namespace mass. */
@@ -2329,9 +2329,6 @@ export namespace market {
       /** AddressDetails phoneNumber. */
       public phoneNumber?: string | null;
 
-      /** AddressDetails _phoneNumber. */
-      public _phoneNumber?: "phoneNumber";
-
       /**
        * Creates a new AddressDetails instance using the specified properties.
        * @param [properties] Properties to set
@@ -3523,9 +3520,6 @@ export namespace market {
         /** Filter objectId. */
         public objectId?: market.mass.IObjectId | null;
 
-        /** Filter _objectId. */
-        public _objectId?: "objectId";
-
         /**
          * Creates a new Filter instance using the specified properties.
          * @param [properties] Properties to set
@@ -4620,15 +4614,6 @@ export namespace market {
       /** UpdateManifest removeShippingRegions. */
       public removeShippingRegions: string[];
 
-      /** UpdateManifest _addPayee. */
-      public _addPayee?: "addPayee";
-
-      /** UpdateManifest _removePayee. */
-      public _removePayee?: "removePayee";
-
-      /** UpdateManifest _setPricingCurrency. */
-      public _setPricingCurrency?: "setPricingCurrency";
-
       /**
        * Creates a new UpdateManifest instance using the specified properties.
        * @param [properties] Properties to set
@@ -5307,15 +5292,6 @@ export namespace market {
       /** UpdateListing stockUpdates. */
       public stockUpdates: market.mass.IListingStockStatus[];
 
-      /** UpdateListing _price. */
-      public _price?: "price";
-
-      /** UpdateListing _metadata. */
-      public _metadata?: "metadata";
-
-      /** UpdateListing _viewState. */
-      public _viewState?: "viewState";
-
       /**
        * Creates a new UpdateListing instance using the specified properties.
        * @param [properties] Properties to set
@@ -5825,12 +5801,6 @@ export namespace market {
 
       /** UpdateTag delete. */
       public delete?: boolean | null;
-
-      /** UpdateTag _rename. */
-      public _rename?: "rename";
-
-      /** UpdateTag _delete. */
-      public _delete?: "delete";
 
       /**
        * Creates a new UpdateTag instance using the specified properties.
@@ -6960,33 +6930,6 @@ export namespace market {
 
       /** Order paymentTransactions. */
       public paymentTransactions: market.mass.IOrderTransaction[];
-
-      /** Order _canceledAt. */
-      public _canceledAt?: "canceledAt";
-
-      /** Order _commitedAt. */
-      public _commitedAt?: "commitedAt";
-
-      /** Order _invoiceAddress. */
-      public _invoiceAddress?: "invoiceAddress";
-
-      /** Order _shippingAddress. */
-      public _shippingAddress?: "shippingAddress";
-
-      /** Order _addressUpdatedAt. */
-      public _addressUpdatedAt?: "addressUpdatedAt";
-
-      /** Order _chosenPayee. */
-      public _chosenPayee?: "chosenPayee";
-
-      /** Order _chosenCurrency. */
-      public _chosenCurrency?: "chosenCurrency";
-
-      /** Order _paymentDetails. */
-      public _paymentDetails?: "paymentDetails";
-
-      /** Order _paymentDetailsCreatedAt. */
-      public _paymentDetailsCreatedAt?: "paymentDetailsCreatedAt";
 
       /**
        * Creates a new Order instance using the specified properties.

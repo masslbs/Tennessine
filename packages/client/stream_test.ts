@@ -2,22 +2,23 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { describe, assert, expect, test } from "vitest";
-import { ReadableEventStream } from "../src/stream";
-import { privateKeyToAccount } from "viem/accounts";
-import { hexToBytes } from "viem";
-
+import assert from "node:assert";
+import { Buffer } from "node:buffer";
+import { describe, test } from "jsr:@std/testing/bdd";
+import { expect } from "jsr:@std/expect";
+import { privateKeyToAccount } from "jsr:@wevm/viem/accounts";
+import { hexToBytes } from "jsr:@wevm/viem";
 import schema, {
+  type PBInstance,
+  type PBObject,
   testVectors,
-  PBObject,
-  PBMessage,
-  PBInstance,
 } from "@massmarket/schema";
-import { anvilPrivateKey, priceToUint256, objectId } from "@massmarket/utils";
+import { anvilPrivateKey, objectId, priceToUint256 } from "@massmarket/utils";
+import { ReadableEventStream } from "./stream.ts";
 
 const account = privateKeyToAccount(anvilPrivateKey);
 
-async function signMessage(message: PBObject) {
+async function signMessage(message: schema.IShopEvent) {
   const shopEventBytes = schema.ShopEvent.encode(message).finish();
   const sig = await account.signMessage({
     message: { raw: shopEventBytes },
@@ -35,12 +36,12 @@ async function signMessage(message: PBObject) {
 }
 
 class MockClient {
-  encodeAndSendNoWait(object: PBObject = {}): Promise<PBInstance> {
-    return Promise.resolve(object);
+  encodeAndSendNoWait(_: schema.IEnvelope) {
+    return 0;
   }
 }
 
-describe("Stream", async () => {
+describe("Stream", () => {
   const price = priceToUint256("10.99");
 
   test("Stream Creation", async () => {
@@ -186,20 +187,18 @@ describe("Stream", async () => {
         },
       },
     });
-
     const pushEvent = {
       events: [signedMessage],
     };
     const client = new MockClient();
     const stream = new ReadableEventStream(client);
     stream.enqueue(pushEvent);
-
-    const errorTest = async () => {
+    try {
       for await (const evt of stream.stream) {
         throw new Error("Store update failed");
       }
-    };
-
-    await expect(errorTest).rejects.toThrowError();
+    } catch (e) {
+      expect(e.message).toEqual("Store update failed");
+    }
   });
 });

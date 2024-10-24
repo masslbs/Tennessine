@@ -1,4 +1,4 @@
-import { RelayClient } from "@massmarket/client";
+import { type RelayClient } from "@massmarket/client";
 /**
  * Define the Store Objects that are reified from the event stream
  */

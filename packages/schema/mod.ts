@@ -1,8 +1,9 @@
 // SPDX-FileCopyrightText: 2024 Mass Labs
 //
 // SPDX-License-Identifier: MIT
-
+// @ts-types="./compiled.d.ts"
 import pb from "./compiled.js";
+// @ts-nocheck
 import schema = pb.market.mass;
 import google = pb.google;
 
@@ -14,15 +15,6 @@ export { testVectors };
 /**
  * Define the test vector's types
  */
-type VectorEvent = {
-  type: string;
-  // actually all combinations are known but depends on 'type', not sure how to map this.
-  // Might not be necessary to access these for these tests, tho.
-  object: any;
-  signature: string;
-  hash: string;
-  encoded: string;
-};
 
 export type VectorItems = {
   id: { raw: string };

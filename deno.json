@@ -1,0 +1,12 @@
+{
+   "nodeModulesDir": "manual",
+    "workspace":  [
+        "./packages/utils",
+        "./packages/schema",
+        "./packages/stateManager",
+        "./packages/client",
+        "./packages/contracts",
+        "./packages/frontend",
+        "./packages/blockchain"
+    ]
+}

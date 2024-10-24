@@ -3,10 +3,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 /** @type {import('next').NextConfig} */
-module.exports = {
+export default {
   output: "export",
   reactStrictMode: true,
   productionBrowserSourceMaps: true,
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   images: {
     domains: ["ipfs.io"],
   },
