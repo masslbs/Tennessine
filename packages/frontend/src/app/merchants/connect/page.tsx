@@ -4,7 +4,7 @@
 
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import debugLib from "debug";
 import { useAccount } from "wagmi";
@@ -33,6 +33,8 @@ const MerchantConnectWallet = () => {
 
   const { status } = useAccount();
   const debug = debugLib("frontend: Connect Merchant");
+  const log = debugLib("frontend: log - Connect Merchant");
+  log.color = "242";
 
   const [searchShopId, setSearchShopId] = useState<string>("");
   const [step, setStep] = useState<"search" | "connect" | "confirmation">(
@@ -43,6 +45,12 @@ const MerchantConnectWallet = () => {
     name: string;
     image: string;
   } | null>(null);
+
+  useEffect(() => {
+    //If user connects different wallet, set client connection back to pending.
+    setIsConnected(Status.Pending);
+    setErrorMsg(null);
+  }, [clientWallet?.account.address]);
 
   const getButton = () => {
     if (step === "search") {
@@ -72,7 +80,6 @@ const MerchantConnectWallet = () => {
     }
   };
   const handleClearShopIdInput = () => {
-    setIsConnected(Status.Pending);
     setSearchShopId("");
     setStep("search");
   };
@@ -127,7 +134,7 @@ const MerchantConnectWallet = () => {
           new URL(window.location.href),
         );
         if (res.ok) {
-          console.log(`Keycard enrolled: ${keyCardToEnroll}`);
+          log(`Keycard enrolled: ${keyCardToEnroll}`);
           //Once merchant keycard is enrolled, connect and authenticate.
           await _relayClient.connect();
           await _relayClient.authenticate();

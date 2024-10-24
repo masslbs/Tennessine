@@ -22,6 +22,9 @@ export function Providers(props: { children: ReactNode }) {
   if (process.env.NEXT_PUBLIC_DEBUG) {
     debugLib.enable(process.env.NEXT_PUBLIC_DEBUG);
   }
+  if (process.env.NEXT_PUBLIC_DEV) {
+    debugLib.enable("log:*");
+  }
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>

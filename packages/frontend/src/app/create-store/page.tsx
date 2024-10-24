@@ -29,6 +29,8 @@ import { Option, Payee, ShopCurrencies, Status } from "@/types";
 import Confirmation from "./Confirmation";
 
 const debug = debugLib("frontend:create-store");
+const log = debugLib("log: create-store");
+log.color = "242";
 
 const StoreCreation = () => {
   const {
@@ -156,11 +158,11 @@ const StoreCreation = () => {
   };
 
   const createShop = async () => {
-    console.log(`creating shop for ${shopId}`);
+    log(`creating shop for ${shopId}`);
     setStoreRegistrationStatus("Minting shop...");
     if (enrollKeycard.current) {
       setErrorMsg("Keycard already enrolled.");
-      debug("Keycard already enrolled.");
+      debug("Error: Keycard already enrolled.");
       return;
     }
     try {
@@ -174,7 +176,6 @@ const StoreCreation = () => {
       });
 
       if (transaction!.status !== "success") {
-        setErrorMsg("Mint shop: transaction failed");
         throw new Error("Mint shop: transaction failed");
       }
 
@@ -187,7 +188,6 @@ const StoreCreation = () => {
         hash: tx,
       });
       if (receipt.status !== "success") {
-        setErrorMsg("Transaction failed adding relay");
         throw new Error("Error: addRelay");
       }
       setStoreRegistrationStatus("Relay tokenId added...");
@@ -225,7 +225,7 @@ const StoreCreation = () => {
       setIsConnected(Status.Complete);
       localStorage.removeItem("keyCardToEnroll");
     } catch (err) {
-      setErrorMsg("Error while creating store");
+      setErrorMsg(`Error while creating store ${err}`);
       debug(`Failed createShop: %o`, err);
     }
   };
@@ -239,7 +239,7 @@ const StoreCreation = () => {
       stateManager.keycards
         .addAddress(keyCardWallet.address)
         .then(() => {
-          console.log(`keycard wallet address added: ${keyCardWallet.address}`);
+          log(`keycard wallet address added: ${keyCardWallet.address}`);
           stateManager.manifest
             .create(
               {
@@ -315,7 +315,20 @@ const StoreCreation = () => {
 
     const blockchainClient = new BlockchainClient(shopId!);
     //Write shop metadata to blockchain client.
-    await blockchainClient.setShopMetadataURI(clientWallet!, metadataPath.url);
+    const metadataHash = await blockchainClient.setShopMetadataURI(
+      clientWallet!,
+      metadataPath.url,
+    );
+    const transaction = await shopPublicClient!.waitForTransactionReceipt({
+      hash: metadataHash,
+      retryCount: 10,
+    });
+
+    if (transaction.status !== "success") {
+      debug("Error: setShopMetadataURI");
+      throw new Error("Error: setShopMetadataURI");
+    }
+
     setShopDetails({
       name: storeName,
       profilePictureUrl: imgPath.url,

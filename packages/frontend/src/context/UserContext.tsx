@@ -52,6 +52,8 @@ export const MyContextProvider = (
   props: React.HTMLAttributes<HTMLDivElement>,
 ) => {
   const debug = debugLib("frontend: UserContext");
+  const log = debugLib("log: UserContext");
+  log.color = "242";
 
   const [walletAddress, setWalletAddress] = useState<`0x${string}` | null>(
     null,
@@ -71,7 +73,12 @@ export const MyContextProvider = (
 
   const [shopId, setShopId] = useState<ShopId | null>(null);
   const pathname = usePathname();
-  const isMerchantPath = [`/merchants/`, `/create-store/`].includes(pathname);
+  const isMerchantPath = [
+    "/merchants/",
+    "/create-store/",
+    "/merchants/connect/",
+  ].includes(pathname);
+
   const [merchantKeyCard, setMerchantKeyCard] = useState<`0x${string}` | null>(
     null,
   );
@@ -89,14 +96,14 @@ export const MyContextProvider = (
         tokenId: process.env["NEXT_PUBLIC_RELAY_TOKEN_ID"] as `0x${string}`,
       };
       setRelayEndpoint(re);
-      console.log("using environment variables for relay endpoint %o", re);
+      log("using environment variables for relay endpoint %o", re);
     } else {
       discoverRelay("ws://localhost:4444/v3").then((relayEndpoint) => {
         if (!relayEndpoint.url) throw new Error("Relay endpoint URL not set");
         if (!relayEndpoint.tokenId)
           throw new Error("Relay endpoint tokenId not set");
         setRelayEndpoint(relayEndpoint);
-        console.log("using testing relay endpoint %o", relayEndpoint);
+        log("using testing relay endpoint %o", relayEndpoint);
       });
     }
   }, []);
@@ -263,7 +270,7 @@ export const MyContextProvider = (
     if (!relayEndpoint.url) throw new Error("Relay endpoint URL not set");
     if (!relayEndpoint.tokenId)
       throw new Error("Relay endpoint tokenId not set");
-    console.log(`Relay endpoint: %o`, relayEndpoint);
+    log(`Relay endpoint: %o`, relayEndpoint);
     const keyCard = random32BytesHex();
     const keyCardWallet = privateKeyToAccount(keyCard);
     localStorage.setItem("keyCardToEnroll", keyCard);
