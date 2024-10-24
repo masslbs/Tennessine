@@ -4,7 +4,7 @@
 {
   description = "massmarket-typescript";
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "nixpkgs/nixos-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
@@ -61,7 +61,7 @@
                 # frontend dependencies
                 typescript
                 nodejs_latest
-                nodePackages.pnpm
+                deno
                 nodePackages.typescript-language-server
                 playwright-driver.browsers
                 contracts.packages.${system}.default

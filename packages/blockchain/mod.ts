@@ -17,17 +17,15 @@ import { randomBytes } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 import { privateKeyToAccount } from "viem/accounts";
 
-export type WalletClientWithAccount = WalletClient<
+export type ConcreteWalletClient = WalletClient<
   Transport,
   Chain,
   Account
-> & {
-  account: Account;
-};
+>;
 
 export class BlockchainClient {
   constructor(public shopId = bytesToHex(randomBytes(32))) {}
-  addRelay(wallet: WalletClientWithAccount, tokenId: `0x${string}`) {
+  addRelay(wallet: ConcreteWalletClient, tokenId: `0x${string}`) {
     return wallet.writeContract({
       address: abi.addresses.ShopReg as Address,
       abi: abi.ShopReg,
@@ -35,7 +33,7 @@ export class BlockchainClient {
       args: [BigInt(this.shopId), tokenId],
     });
   }
-  createShop(wallet: WalletClientWithAccount) {
+  createShop(wallet: ConcreteWalletClient) {
     return wallet.writeContract({
       address: abi.addresses.ShopReg as Address,
       abi: abi.ShopReg,
@@ -44,7 +42,7 @@ export class BlockchainClient {
     });
   }
 
-  setShopMetadataURI(wallet: WalletClientWithAccount, uri: string) {
+  setShopMetadataURI(wallet: ConcreteWalletClient, uri: string) {
     return wallet.writeContract({
       address: abi.addresses.ShopReg as Address,
       abi: abi.ShopReg,
@@ -53,7 +51,7 @@ export class BlockchainClient {
     });
   }
 
-  createInviteSecret(wallet: WalletClientWithAccount, token: Address) {
+  createInviteSecret(wallet: ConcreteWalletClient, token: Address) {
     // Save the public key onchain
     return wallet.writeContract({
       address: abi.addresses.ShopReg as Address,
@@ -63,7 +61,7 @@ export class BlockchainClient {
     });
   }
 
-  async redeemInviteSecret(secret: Address, wallet: WalletClientWithAccount) {
+  async redeemInviteSecret(secret: Address, wallet: ConcreteWalletClient) {
     const message = "enrolling:" + wallet.account.address.toLowerCase();
     const tokenAccount = privateKeyToAccount(secret);
     const sig = await tokenAccount.signMessage({

@@ -1,0 +1,15 @@
+{
+    "nodeModulesDir": "manual",
+    "test": {
+        "exclude": ["packages/frontend"]
+    },
+    "workspace":  [
+        "./packages/utils",
+        "./packages/schema",
+        "./packages/stateManager",
+        "./packages/client",
+        "./packages/contracts",
+        "./packages/frontend",
+        "./packages/blockchain"
+    ]
+}

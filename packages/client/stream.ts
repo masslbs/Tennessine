@@ -4,7 +4,7 @@
 
 import { recoverMessageAddress } from "viem";
 import schema from "@massmarket/schema";
-import { RelayClient } from "./";
+import { RelayClient } from "./mod.ts";
 import { ReadableStream } from "web-streams-polyfill";
 
 /**
@@ -74,7 +74,7 @@ export class ReadableEventStream {
     event: schema.IShopEvent,
     signer: `0x${string}`,
     //Since outgoing enrollKeycard is not a eventWriteRequest, it will not be attached a requestId
-    requestId?: number,
+    requestId?: schema.RequestId,
   ) {
     event.requestId = requestId;
     this.controller.enqueue({ event, signer });
