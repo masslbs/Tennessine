@@ -6,20 +6,17 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-// import { useMerchantContext } from "@/context/MerchantContext";
 import { useStoreContext } from "@/context/StoreContext";
 import Image from "next/image";
 import { createQueryString } from "@/app/utils";
 import { useSearchParams } from "next/navigation";
 import { Status, Order, OrderState } from "@/types";
-import debugLib from "debug";
 
 const MerchantDashboard = () => {
   const { stateManager } = useStoreContext();
   const searchParams = useSearchParams();
   const [orders, setOrders] = useState(new Map());
-  const debug = debugLib("frontend:merchantDashboard");
-
+ 
   const getAllOrders = async () => {
     const allOrders = new Map();
     for await (const [id, o] of stateManager.orders.iterator()) {

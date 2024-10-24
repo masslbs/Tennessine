@@ -11,9 +11,12 @@ import { createSiweMessage } from "viem/siwe";
 
 import schema, { PBObject, PBInstance, PBMessage } from "@massmarket/schema";
 import { WalletClientWithAccount } from "@massmarket/blockchain";
-import { hexToBase64, decodeBufferToString } from "@massmarket/utils";
+import { hexToBase64, decodeBufferToString, debugLib } from "@massmarket/utils";
+
+const debug = debugLib("relayClient");
 
 import { ReadableEventStream } from "./stream.js";
+
 
 export type { WalletClientWithAccount };
 
@@ -79,7 +82,7 @@ export class RelayClient extends EventEmitter {
       this.once(id, (result) => {
         if (result.response.error) {
           const { code, message } = result.response.error;
-          console.error(`network error[${code}]: ${message}`);
+          debug(`network error[${code}]: ${message}`);
           reject(result.response.error);
         } else {
           resolve(result);
@@ -289,8 +292,7 @@ export class RelayClient extends EventEmitter {
     ) {
       this.connection = new WebSocket(this.relayEndpoint.url + "/sessions");
       this.connection.addEventListener("error", (error: Event) => {
-        console.error("WebSocket error!");
-        console.error(error);
+        debug("WebSocket error: %o", error);
       });
       this.connection.addEventListener(
         "message",

@@ -6,7 +6,6 @@
 
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import debugLib from "debug";
 
 import { Item, Tag } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
@@ -21,7 +20,6 @@ const Products = () => {
   const { stateManager } = useStoreContext();
   const success = searchParams?.get("success");
   const { isMerchantView } = useAuth();
-  const debug = debugLib("frontend:products");
 
   const [showSuccessMsg, setMsg] = useState<boolean>(success !== null);
   const [products, setProducts] = useState(new Map());

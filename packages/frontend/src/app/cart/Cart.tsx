@@ -7,7 +7,6 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useStoreContext } from "@/context/StoreContext";
 import { ItemId, OrderId } from "@/types";
-import debugLib from "debug";
 import { formatUnitsFromString } from "@massmarket/utils";
 
 function Cart() {
@@ -16,8 +15,6 @@ function Cart() {
   const [orderId, setOrderId] = useState<OrderId | null>(null);
   const [baseDecimal, setBaseDecimal] = useState<null | number>(null);
   const [baseSymbol, setBaseSymbol] = useState<null | string>(null);
-
-  const debug = debugLib("frontend:newCart");
 
   useEffect(() => {
     getBaseTokenInfo()

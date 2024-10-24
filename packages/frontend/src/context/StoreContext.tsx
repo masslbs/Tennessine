@@ -89,7 +89,8 @@ export const StoreContextProvider = (
           shopPublicClient,
         );
         stateManager.eventStreamProcessing.catch((e) => {
-          debug(`Error while executing eventStreamProcessing ${e}`);
+          debug("Error while executing eventStreamProcessing");
+          debug(e);
         });
         stateManager.seqNo.on("seqNo", (res) => {
           localStorage.setItem("seqNo", res);
@@ -130,20 +131,15 @@ export const StoreContextProvider = (
 
   async function getBaseTokenInfo() {
     //Get base token decimal and symbol.
-    try {
-      const manifest = await stateManager.manifest.get();
-      const { chainId, address } = manifest.pricingCurrency;
-      const chain = chains.find((chain) => chainId === chain.id);
-      const baseTokenPublicClient = createPublicClient({
-        chain,
-        transport: http(),
-      });
-      const res = await getTokenInformation(baseTokenPublicClient, address!);
-      return res;
-    } catch (error) {
-      debug("Failed: getBaseTokenInfo", error);
-      throw new Error("Failed: getBaseTokenInfo");
-    }
+    const manifest = await stateManager.manifest.get();
+    const { chainId, address } = manifest.pricingCurrency;
+    const chain = chains.find((chain) => chainId === chain.id);
+    const baseTokenPublicClient = createPublicClient({
+      chain,
+      transport: http(),
+    });
+    const res = await getTokenInformation(baseTokenPublicClient, address!);
+    return res;
   }
 
   const getOrderId = async () => {

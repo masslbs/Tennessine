@@ -6,7 +6,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@massmarket/tsconfig": "workspace:*"
+    "@massmarket/tsconfig": "workspace:*",
+    "@types/debug": "^4.1.12"
   },
   "type": "module",
   "exports": {
@@ -16,6 +17,7 @@
     }
   },
   "dependencies": {
+    "@sentry/nextjs": "^8.35.0",
     "buffer": "^6.0.3",
     "viem": "^2.16.3"
   }
