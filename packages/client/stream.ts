@@ -4,7 +4,7 @@
 
 import { recoverMessageAddress } from "viem";
 import schema from "@massmarket/schema";
-import { RelayClient } from "./";
+import { RelayClient } from "./mod.ts";
 import { ReadableStream } from "web-streams-polyfill";
 
 /**

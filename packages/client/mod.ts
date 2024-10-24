@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { EventEmitter } from "events";
-
+import { Buffer } from "buffer";
 import { WebSocket } from "isows";
 import { hexToBytes, hexToBigInt, toBytes } from "viem";
 import { PrivateKeyAccount } from "viem/accounts";
@@ -13,7 +13,7 @@ import schema, { PBObject, PBInstance, PBMessage } from "@massmarket/schema";
 import { WalletClientWithAccount } from "@massmarket/blockchain";
 import { hexToBase64, decodeBufferToString } from "@massmarket/utils";
 
-import { ReadableEventStream } from "./stream.js";
+import { ReadableEventStream } from "./stream.ts";
 
 export type { WalletClientWithAccount };
 

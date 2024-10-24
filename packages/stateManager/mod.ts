@@ -22,7 +22,7 @@ import {
   ShippingRegion,
   OrderPriceModifier,
   ChoosePayment,
-} from "./types";
+} from "./types.ts";
 import { Address } from "@ethereumjs/util";
 import * as abi from "@massmarket/contracts";
 
