@@ -1,5 +1,5 @@
 import React, { ReactElement } from "react";
-import { MyContextProvider, UserContext } from "../src/context/UserContext";
+import { UserContextProvider, UserContext } from "../src/context/UserContext";
 import { MockClient } from "@massmarket/stateManager/tests/mockClient";
 import { render } from "@testing-library/react";
 import { AuthProvider, AuthContext } from "../src/context/AuthContext";
@@ -33,7 +33,6 @@ import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 const mockClient = new MockClient();
 const relayURL =
   (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v3";
-const relayEndpoint = await discoverRelay(relayURL);
 
 export function getWallet() {
   // this key is from one of anvil's default keypairs
@@ -49,7 +48,7 @@ export async function getStateManager(useRelayClient?: boolean) {
   const kcWallet = privateKeyToAccount(random32BytesHex());
   const client = useRelayClient
     ? new RelayClient({
-        relayEndpoint,
+        relayEndpoint: await discoverRelay(relayURL),
         keyCardWallet: kcWallet,
       })
     : mockClient;
@@ -102,18 +101,18 @@ export async function getStateManager(useRelayClient?: boolean) {
 const Wrapper = ({
   children,
   stateManager,
-  orderId,
+  orderId = null,
 }: {
   children: React.ReactNode;
   stateManager: StateManager;
-  orderId?: OrderId;
+  orderId: OrderId | null;
 }) => {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={new QueryClient()}>
         <RainbowKitProvider>
           <AuthProvider>
-            <MyContextProvider>
+            <UserContextProvider>
               |
               {/* Here we are mocking StoreContext/we're currently unable to test StoreContext.tsx. 
               This is because stateManager is being instantiated/set in StoreContext.tsx but for testing,
@@ -121,23 +120,22 @@ const Wrapper = ({
               <StoreContext.Provider
                 value={{
                   stateManager: stateManager,
-                  //@ts-expect-error FIXME
-                  getOrderId: async () => {
-                    return orderId;
-                  },
-                  selectedCurrency: {
-                    chainId: 31337,
-                    address: zeroAddress,
-                  },
                   getBaseTokenInfo: async () => {
                     return ["ETH", 18];
                   },
-                  setShopDetails: async () => {},
+                  shopDetails: {
+                    name: "test store",
+                    profilePictureUrl: "",
+                  },
+                  setShopDetails: () => {},
+                  getOrderId: async () => {
+                    return orderId;
+                  },
                 }}
               >
                 {children}
               </StoreContext.Provider>
-            </MyContextProvider>
+            </UserContextProvider>
           </AuthProvider>
         </RainbowKitProvider>
       </QueryClientProvider>
@@ -148,11 +146,11 @@ const Wrapper = ({
 const MerchantsWrapper = ({
   children,
   stateManager,
-  orderId,
+  orderId = null,
 }: {
   children: React.ReactNode;
   stateManager: StateManager;
-  orderId: OrderId;
+  orderId: OrderId | null;
 }) => {
   return (
     <WagmiProvider config={config}>
@@ -170,18 +168,18 @@ const MerchantsWrapper = ({
             value={{ relayClient: mockClient, clientWallet: getWallet() }}
           >
             <StoreContext.Provider
-              //@ts-expect-error FIXME
               value={{
                 stateManager: stateManager,
-                getOrderId: async () => {
-                  return orderId;
-                },
                 getBaseTokenInfo: async () => {
                   return ["ETH", 18];
                 },
                 shopDetails: {
                   name: "test store",
                   profilePictureUrl: "",
+                },
+                setShopDetails: () => {},
+                getOrderId: async () => {
+                  return orderId;
                 },
               }}
             >
@@ -197,7 +195,7 @@ const MerchantsWrapper = ({
 const customRender = (
   ui: ReactElement,
   stateManager: StateManager,
-  orderId?: OrderId,
+  orderId: OrderId | null = null,
 ) => {
   render(
     <Wrapper stateManager={stateManager} orderId={orderId}>
@@ -208,7 +206,7 @@ const customRender = (
 const AuthorizedCustomRender = (
   ui: ReactElement,
   stateManager: StateManager,
-  orderId: OrderId,
+  orderId: OrderId | null,
 ) => {
   render(
     <MerchantsWrapper orderId={orderId} stateManager={stateManager}>

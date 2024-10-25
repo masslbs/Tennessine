@@ -151,10 +151,12 @@ export interface UpdateShopManifest {
   addShippingRegions?: ShippingRegion[];
   removeShippingRegions?: string[];
 }
+export type SeqNo = number;
 export type ShopObjectTypes =
   | Item
   | Tag
   | KeyCard
   | Order
   | OrdersByStatus
-  | ShopManifest;
+  | ShopManifest
+  | SeqNo;

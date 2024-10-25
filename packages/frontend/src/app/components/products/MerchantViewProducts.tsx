@@ -49,13 +49,10 @@ function MerchantViewProducts({ products }: { products: Item[] | null }) {
         <Link
           key={item.id}
           data-testid="product-container"
-          href={`/products/edit?${createQueryString("itemId", item.id, searchParams)}`}
+          href={`/products/productDetail?${createQueryString("itemId", item.id, searchParams)}`}
           className={`${!visible ? "opacity-50" : ""} flex w-full h-auto mb-4`}
         >
-          <div
-            className="flex justify-center w-32 h-28"
-            data-testid="product-img"
-          >
+          <div className="flex justify-center" data-testid="product-img">
             <Image
               src={metadata.images[0] || "/assets/no-image.png"}
               width={127}
@@ -67,7 +64,7 @@ function MerchantViewProducts({ products }: { products: Item[] | null }) {
               className="w-32 h-28 object-cover object-center rounded-l-lg"
             />
           </div>
-          <div className="bg-background-gray w-full rounded-lg px-5 py-4">
+          <div className="bg-background-gray w-full rounded-r-lg px-5 py-4">
             <div className="flex">
               <h3 data-testid="product-name" className="leading-4">
                 {metadata.title}

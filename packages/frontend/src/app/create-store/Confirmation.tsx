@@ -7,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { useUserContext } from "@/context/UserContext";
+import Button from "@/app/common/components/Button";
 
 const Confirmation = () => {
   const { shopId } = useUserContext();
@@ -57,12 +58,9 @@ const Confirmation = () => {
       </section>
       <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg ">
         <h2 className="font-bold">Next steps</h2>
-        <Link
-          href="/merchant-dashboard"
-          className="flex justify-center text-white px-5 py-3 rounded-md text-lg bg-primary-dark-green"
-        >
-          View Dashboard
-        </Link>
+        <Button>
+          <Link href="/merchant-dashboard">View Dashboard</Link>
+        </Button>
       </section>
     </main>
   );

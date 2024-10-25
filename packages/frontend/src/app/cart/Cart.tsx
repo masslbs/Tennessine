@@ -5,19 +5,27 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { useStoreContext } from "@/context/StoreContext";
-import { ItemId, OrderId } from "@/types";
 import debugLib from "debug";
 import { formatUnitsFromString } from "@massmarket/utils";
+import { useStoreContext } from "@/context/StoreContext";
+import { ItemId, OrderId } from "@/types";
+import Button from "@/app/common/components/Button";
+import SecondaryButton from "@/app/common/components/SecondaryButton";
 
-function Cart() {
+function Cart({
+  onCheckout,
+}: {
+  onCheckout?: (orderId: OrderId) => Promise<void>;
+}) {
   const { stateManager, getBaseTokenInfo, getOrderId } = useStoreContext();
+  const debug = debugLib("frontend:Cart");
+  const log = debugLib("log:Cart");
+  log.color = "242";
+
   const [cartItemsMap, setCartMap] = useState(new Map());
   const [orderId, setOrderId] = useState<OrderId | null>(null);
   const [baseDecimal, setBaseDecimal] = useState<null | number>(null);
   const [baseSymbol, setBaseSymbol] = useState<null | string>(null);
-
-  const debug = debugLib("frontend:newCart");
 
   useEffect(() => {
     getBaseTokenInfo()
@@ -59,9 +67,28 @@ function Cart() {
     });
   }, [orderId]);
 
+  async function clearCart() {
+    try {
+      const values = Array.from(cartItemsMap.values());
+      console.log("KEYS", values);
+      const map = values.map((item) => {
+        // We are getting the quantity to remove from the order for every item in the cart.
+        return {
+          listingId: item.id,
+          quantity: item.selectedQty,
+        };
+      });
+      console.log({ map });
+      await stateManager?.orders.removesItems(orderId!, map);
+    } catch (error) {
+      debug(error);
+    }
+  }
+
   function renderItems() {
     if (!orderId || !cartItemsMap.size) return <p>No items in cart</p>;
     const values = cartItemsMap.values();
+
     return Array.from(values).map((item) => {
       const price = baseDecimal
         ? Number(formatUnitsFromString(item.price, baseDecimal)) *
@@ -76,15 +103,7 @@ function Cart() {
               height={112}
               alt="product-thumb"
               unoptimized={true}
-              style={{
-                objectFit: "cover",
-                objectPosition: "center",
-                maxHeight: 112,
-                maxWidth: 127,
-                borderTopLeftRadius: 12,
-                borderBottomLeftRadius: 12,
-              }}
-              className="w-auto h-auto"
+              className="w-32 h-28 object-cover object-center rounded-l-lg"
             />
           </div>
           <div className="bg-background-gray w-full rounded-lg px-5 py-4">
@@ -108,7 +127,7 @@ function Cart() {
                 width={20}
                 height={20}
                 unoptimized={true}
-                className="w-auto h-auto max-h-5"
+                className="w-5 h-5 max-h-5"
               />
               <p data-testid="price">{price}</p>
               <p data-testid="symbol">{baseSymbol}</p>
@@ -123,8 +142,30 @@ function Cart() {
     <section>
       <span className="fixed bg-black w-full h-full opacity-60" />
       <div className="fixed bg-background-gray z-10 w-full flex flex-col gap-5 rounded-b-lg p-5">
-        <div className="bg-background-gray">
-          <div className="bg-white rounded-lg p-5">{renderItems()}</div>
+        <div className="bg-white rounded-lg p-5">
+          {renderItems()}
+          <div className="mt-2">
+            <p>Total Price:</p>
+            <div className="flex items-center gap-2">
+              <Image
+                src="/icons/usdc-coin.png"
+                alt="coin"
+                width={20}
+                height={20}
+                unoptimized={true}
+                className="w-5 h-5 max-h-5"
+              />
+              <h1>total</h1>
+            </div>
+          </div>
+          <div className="flex gap-4 mt-2">
+            {onCheckout && (
+              <Button disabled={!orderId} onClick={() => onCheckout(orderId!)}>
+                Checkout
+              </Button>
+            )}
+            <SecondaryButton onClick={clearCart}>Clear basket</SecondaryButton>
+          </div>
         </div>
       </div>
     </section>

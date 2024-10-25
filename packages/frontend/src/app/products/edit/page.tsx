@@ -44,12 +44,14 @@ const AddProductView = () => {
   const [deleteConfirmation, setDeleteConfirm] = useState(false);
   const [baseDecimal, setBaseDecimal] = useState<null | number>(null);
 
-  const debug = debugLib("frontend:products:edit");
+  const debug = debugLib("frontend:edit product");
 
   useEffect(() => {
-    getBaseTokenInfo().then((res: [string, number]) => {
-      res && setBaseDecimal(res[1]);
-    });
+    getBaseTokenInfo()
+      .then((res: [string, number]) => {
+        res && setBaseDecimal(res[1]);
+      })
+      .catch((e) => debug(e));
   }, []);
 
   useEffect(() => {

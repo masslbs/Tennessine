@@ -118,7 +118,6 @@ const MerchantConnectWallet = () => {
     const id = searchShopId as ShopId;
     setShopId(id);
     localStorage.setItem("shopId", id);
-    localStorage.removeItem("seqNo");
 
     (async () => {
       try {

@@ -5,10 +5,15 @@
 import { Dispatch, SetStateAction } from "react";
 import { type PublicClient } from "viem";
 
-import { ShopId, OrderId, ShopCurrencies, ShopDetails } from "@/types";
-import { RelayClient, WalletClientWithAccount } from "@massmarket/client";
+import { ShopId, OrderId, ShopDetails } from "@/types";
+import {
+  RelayClient,
+  WalletClientWithAccount,
+  RelayEndpoint,
+} from "@massmarket/client";
 import { LoadingStateManager } from "./initialLoadingState";
 import { StateManager } from "@massmarket/stateManager";
+import { ClientWithStateManager } from "@/app/ClientWithStateManager";
 
 //Types for Contexts only
 export type ClientContext = {
@@ -25,17 +30,16 @@ export type ClientContext = {
   setWallet: Dispatch<SetStateAction<WalletClientWithAccount | null>>;
   checkPermissions: () => Promise<boolean>;
   setRelayClient: Dispatch<SetStateAction<RelayClient | null>>;
-  createNewRelayClient: () => Promise<RelayClient>;
   upgradeGuestToCustomer: () => Promise<void>;
+  relayEndpoint: RelayEndpoint;
+  createNewRelayClient: () => Promise<RelayClient>;
+  clientWithStateManager: ClientWithStateManager;
+  setClientStateManager: Dispatch<SetStateAction<ClientWithStateManager>>;
 };
 
 export type StoreContent = {
-  orderId: OrderId | null;
-  setOrderId: (orderId: OrderId | null) => void;
-  selectedCurrency: ShopCurrencies | null;
-  setSelectedCurrency: Dispatch<ShopCurrencies>;
-  stateManager: StateManager | LoadingStateManager;
   getOrderId: () => Promise<OrderId | null>;
+  stateManager: StateManager | LoadingStateManager;
   shopDetails: ShopDetails;
   setShopDetails: Dispatch<ShopDetails>;
   getBaseTokenInfo: () => Promise<[string, number]>;

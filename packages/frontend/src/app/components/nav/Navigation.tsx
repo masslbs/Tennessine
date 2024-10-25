@@ -9,8 +9,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useDisconnect } from "wagmi";
+import debugLib from "debug";
 
-import { Status } from "@/types";
+import { OrderId, Status } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useAuth } from "@/context/AuthContext";
 import Cart from "@/app/cart/Cart";
@@ -39,9 +40,12 @@ function Navigation() {
   const [basketOpen, setBasketOpen] = useState<boolean>(false);
 
   const { clientConnected, setIsConnected, isMerchantView } = useAuth();
-  const { shopDetails } = useStoreContext();
+  const { shopDetails, stateManager } = useStoreContext();
   const router = useRouter();
   const { disconnect } = useDisconnect();
+  const debug = debugLib("frontend:Navigation");
+  const log = debugLib("log:Navigation");
+  log.color = "242";
 
   function onDisconnect() {
     setMenuOpen(false);
@@ -54,7 +58,25 @@ function Navigation() {
   function menuSwitch() {
     setMenuOpen(!menuOpen);
   }
-
+  async function onCheckout(orderId: OrderId) {
+    try {
+      if (!orderId) {
+        debug("orderId not found");
+        throw new Error("No order found");
+      }
+      await stateManager!.orders.commit(orderId);
+      setBasketOpen(false);
+      log(`Order ID: ${orderId} committed`);
+      router.push("/checkout");
+    } catch (error) {
+      if (error instanceof Error && error.message === "not enough stock") {
+        log("Not enough stock");
+        return;
+      }
+      debug(error);
+      throw new Error("Failed to commit order");
+    }
+  }
   function renderMenuItems() {
     const menuItems = isMerchantView ? merchantMenu : customerMenu;
     return menuItems.map((opt, i) => {
@@ -183,7 +205,11 @@ function Navigation() {
           </div>
         </section>
       ) : null}
-      {basketOpen ? <Cart /> : null}
+      {basketOpen ? (
+        <section>
+          <Cart onCheckout={onCheckout} />
+        </section>
+      ) : null}
     </section>
   );
 }

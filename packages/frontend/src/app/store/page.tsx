@@ -13,7 +13,7 @@ import { Address } from "viem";
 import { UpdateShopManifest } from "@massmarket/stateManager/types";
 import { BlockchainClient } from "@massmarket/blockchain";
 
-import { ShopManifest, ShopCurrencies, Option } from "@/types";
+import { ShopManifest, ShopCurrencies, CurrencyChainOption } from "@/types";
 import { getTokenAddress } from "@/app/utils";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
@@ -23,15 +23,9 @@ import ValidationWarning from "@/app/common/components/ValidationWarning";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import SuccessToast from "@/app/common/components/SuccessToast";
 import BackButton from "@/app/common/components/BackButton";
-import Dropdown from "@/app/common/components/Dropdown";
+import Dropdown from "@/app/common/components/CurrencyDropdown";
 
-interface DisplayedChains {
-  label: string;
-  value: `${Address}/${string}`;
-  address: Address;
-  chainId: number;
-}
-interface AcceptedChains {
+interface AcceptedChain {
   address: Address;
   chainId: number;
   removed?: boolean;
@@ -43,9 +37,9 @@ function StoreProfile() {
   const { shopId, relayClient, clientWallet } = useUserContext();
   const [storeName, setStoreName] = useState<string>("");
   const [avatar, setAvatar] = useState<FormData | null>(null);
-  const [acceptedCurrencies, setAcceptedCurrencies] = useState<
-    AcceptedChains[]
-  >([]);
+  const [acceptedCurrencies, setAcceptedCurrencies] = useState<AcceptedChain[]>(
+    [],
+  );
   const [pricingToken, setPricingCurrency] = useState<ShopCurrencies | null>(
     null,
   );
@@ -53,14 +47,16 @@ function StoreProfile() {
   const [validationError, setValidationError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [manifest, setManifest] = useState<ShopManifest | null>(null);
-  const [displayedChains, setRenderChains] = useState<DisplayedChains[]>([]);
+  const [displayedChains, setRenderChains] = useState<CurrencyChainOption[]>(
+    [],
+  );
 
   const debug = debugLib("frontend:storeProfile");
   const chains = useChains();
 
   useEffect(() => {
     if (chains) {
-      const chainsToRender: DisplayedChains[] = [];
+      const chainsToRender: CurrencyChainOption[] = [];
       Promise.all(
         chains.map(async (c) => {
           const ethTokenAddress = await getTokenAddress("ETH", c.id);
@@ -205,7 +201,7 @@ function StoreProfile() {
       );
     }
   }
-  async function handlePricingCurrency(option: Option) {
+  async function handlePricingCurrency(option: CurrencyChainOption) {
     const v = option.value as string;
     const [addr, chainId] = v.split("/");
     const address = addr as Address;
@@ -293,7 +289,7 @@ function StoreProfile() {
                   Accepted currency
                 </label>
                 <div className="flex flex-col gap-1 mt-1">
-                  {displayedChains &&
+                  {displayedChains.length &&
                     displayedChains.map((c) => {
                       return (
                         <div key={c.value}>
@@ -310,7 +306,7 @@ function StoreProfile() {
                                     !currency.removed &&
                                     currency.chainId === c.chainId &&
                                     currency.address ===
-                                      c.address.toLowerCase(),
+                                      c.address!.toLowerCase(),
                                 ),
                               )}
                             />
@@ -343,7 +339,7 @@ function StoreProfile() {
                       callback={handlePricingCurrency}
                       selected={displayedChains.find(
                         (c) =>
-                          c.address.toLowerCase() === pricingToken?.address &&
+                          c.address!.toLowerCase() === pricingToken?.address &&
                           c.chainId === pricingToken?.chainId,
                       )}
                     />

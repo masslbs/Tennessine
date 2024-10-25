@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2024 Mass Labs
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
+
 import {
   Item,
   Order,
@@ -82,7 +83,10 @@ export interface ShopDetails {
   name: string;
   profilePictureUrl: string;
 }
-export interface Option {
+
+export interface CurrencyChainOption {
   label: string;
   value: string | number;
+  address?: `0x${string}`;
+  chainId?: number;
 }

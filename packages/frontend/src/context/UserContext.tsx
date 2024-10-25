@@ -23,6 +23,7 @@ import * as abi from "@massmarket/contracts";
 import { useAuth } from "@/context/AuthContext";
 import { type ClientContext } from "@/context/types";
 import { Status, ShopId } from "@/types";
+import { ClientWithStateManager } from "@/app/ClientWithStateManager";
 
 export const UserContext = createContext<ClientContext>({
   walletAddress: null,
@@ -33,10 +34,6 @@ export const UserContext = createContext<ClientContext>({
   shopPublicClient: null,
   inviteSecret: null,
   clientWallet: null,
-  createNewRelayClient: () =>
-    new Promise(() => {
-      return null;
-    }),
   setShopId: () => {},
   setInviteSecret: () => {},
   setRelayClient: () => {},
@@ -46,13 +43,14 @@ export const UserContext = createContext<ClientContext>({
       return false;
     }),
   upgradeGuestToCustomer: () => new Promise(() => {}),
+  relayEndpoint: null,
 });
 
-export const MyContextProvider = (
+export const UserContextProvider = (
   props: React.HTMLAttributes<HTMLDivElement>,
 ) => {
-  const debug = debugLib("frontend: UserContext");
-  const log = debugLib("log: UserContext");
+  const debug = debugLib("frontend:UserContext");
+  const log = debugLib("log:UserContext");
   log.color = "242";
 
   const [walletAddress, setWalletAddress] = useState<`0x${string}` | null>(
@@ -83,8 +81,10 @@ export const MyContextProvider = (
     null,
   );
   const [guestCheckoutKC, setGuestKC] = useState<`0x${string}` | null>(null);
-
   const [relayClient, setRelayClient] = useState<RelayClient | null>(null);
+  const [clientWithStateManager, setClientStateManager] =
+    useState<ClientWithStateManager | null>(null);
+
   const [relayEndpoint, setRelayEndpoint] = useState<RelayEndpoint | null>(
     null,
   );
@@ -112,7 +112,6 @@ export const MyContextProvider = (
     if (isMerchantPath) {
       localStorage.removeItem("merchantKeyCard");
       localStorage.removeItem("guestCheckoutKC");
-      localStorage.removeItem("seqNo");
     }
     //If shopId is provided as a query, set it as shopId, otherwise check for storeId in localStorage.
     const _shopId =
@@ -168,7 +167,6 @@ export const MyContextProvider = (
 
   useEffect(() => {
     if (isMerchantPath || !shopId || !relayEndpoint) return;
-    const seqNo = localStorage.getItem("seqNo") || 0;
     //If merchantKeyCard is cached, double check that the KC has permission, then connect & authenticate.
     if (
       merchantKeyCard &&
@@ -186,8 +184,8 @@ export const MyContextProvider = (
           setIsMerchantView(true);
           rc.connect().then(() => {
             rc.authenticate().then(() => {
-              rc.sendMerchantSubscriptionRequest(shopId, Number(seqNo)).then(
-                () => setIsConnected(Status.Complete),
+              rc.sendMerchantSubscriptionRequest(shopId).then(() =>
+                setIsConnected(Status.Complete),
               );
             });
           });
@@ -198,7 +196,7 @@ export const MyContextProvider = (
       createNewRelayClient().then((rc) => {
         setRelayClient(rc);
         rc.connect().then(() => {
-          rc.sendGuestSubscriptionRequest(shopId, Number(seqNo)).then(() =>
+          rc.sendGuestSubscriptionRequest(shopId).then(() =>
             setIsConnected(Status.Complete),
           );
         });
@@ -213,11 +211,9 @@ export const MyContextProvider = (
       setRelayClient(rc);
       rc.connect().then(() => {
         rc.authenticate().then(() => {
-          rc.sendGuestCheckoutSubscriptionRequest(shopId, Number(seqNo)).then(
-            () => {
-              setIsConnected(Status.Complete);
-            },
-          );
+          rc.sendGuestCheckoutSubscriptionRequest(shopId).then(() => {
+            setIsConnected(Status.Complete);
+          });
         });
       });
     }
@@ -294,8 +290,10 @@ export const MyContextProvider = (
     setShopId,
     checkPermissions,
     setRelayClient,
-    createNewRelayClient,
     upgradeGuestToCustomer,
+    relayEndpoint,
+    clientWithStateManager,
+    setClientStateManager,
   };
 
   return (

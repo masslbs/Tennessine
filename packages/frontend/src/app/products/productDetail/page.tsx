@@ -4,41 +4,44 @@
 
 "use client";
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import debugLib from "debug";
+import { privateKeyToAccount } from "viem/accounts";
 
+import { formatUnitsFromString } from "@massmarket/utils";
+import { createQueryString } from "@/app/utils";
 import Button from "@/app/common/components/Button";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import BackButton from "@/app/common/components/BackButton";
 import { Item, ItemId, OrderId, Tag, Order } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
-import { formatUnitsFromString } from "@massmarket/utils";
-import { privateKeyToAccount } from "viem/accounts";
+import { useAuth } from "@/context/AuthContext";
 
 const ProductDetail = () => {
   const { stateManager, getOrderId, getBaseTokenInfo } = useStoreContext();
   const { upgradeGuestToCustomer } = useUserContext();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isMerchantView } = useAuth();
+  const debug = debugLib("frontend:productDetail");
   const itemId = searchParams.get("itemId") as ItemId;
+
   const [quantity, setQuantity] = useState<number>(0);
   const [item, setItem] = useState<Item | null>(null);
-
   const [addedToCart, setAddedToCart] = useState<boolean>(false);
-  const [buttonState, setButton] = useState<"Success" | "Review" | "Update">(
-    "Review",
-  );
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [allTags, setAllTags] = useState(new Map());
   const [orderId, setOrderId] = useState<OrderId | null>(null);
+  const [price, setPrice] = useState("");
+  const [buttonState, setButton] = useState<"Success" | "Review" | "Update">(
+    "Review",
+  );
   const [currentCartItems, setCurrentCart] = useState<Order["items"] | null>(
     null,
   );
-  const [price, setPrice] = useState("");
-  const debug = debugLib("frontend:productDetail");
-
   useEffect(() => {
     getOrderId()
       .then((id) => {
@@ -211,8 +214,17 @@ const ProductDetail = () => {
         />
         <div className="m-4">
           <BackButton href="/products" />
-          <div className="my-3">
+          <div className="my-3 flex">
             <h1 data-testid="title">{item.metadata.title}</h1>
+            <div className={`ml-auto ${isMerchantView ? "" : "hidden"}`}>
+              <Button>
+                <Link
+                  href={`/products/edit?${createQueryString("itemId", item.id, searchParams)}`}
+                >
+                  Edit
+                </Link>
+              </Button>
+            </div>
           </div>
           <div>
             <Image
@@ -266,7 +278,7 @@ const ProductDetail = () => {
                 width={24}
                 height={24}
                 unoptimized={true}
-                className="w-auto h-auto max-h-6"
+                className="w-6 h-6 max-h-6"
               />
               <h1 data-testid="price">{Number(price).toFixed(2)}</h1>
             </div>
