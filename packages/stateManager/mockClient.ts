@@ -2,28 +2,17 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { hexToBytes, PublicClient } from "viem";
-import { MemoryLevel } from "memory-level";
+import { hexToBytes } from "viem";
+import { privateKeyToAccount, type PrivateKeyAccount } from "viem/accounts";
+import Long from "long";
 
-import schema, {
-  type PBObject,
-  testVectors,
-  type TestVectors,
-} from "@massmarket/schema";
+import schema, { testVectors, type TestVectors } from "@massmarket/schema";
 import { ReadableEventStream } from "@massmarket/client/stream";
-import { RelayClient } from "@massmarket/client";
-import {
-  IRelayClient,
-  Item,
-  Order,
-  KeyCard,
-  ShopManifest,
-  Tag,
-} from "../types";
-import { StateManager } from "../index";
+
+import { IRelayClient } from "./types.ts";
 
 export type IncomingEvent = {
-  request: schema.EventPushRequest;
+  request: schema.SubscriptionPushRequest;
   done: () => void;
 };
 export class MockClientStateManager {
@@ -86,75 +75,98 @@ export class MockClientStateManager {
 export class MockClient implements IRelayClient {
   vectors: TestVectors;
   private eventStream: ReadableEventStream;
-  keyCardWallet: { address: `0x${string}` };
+  keyCardWallet: PrivateKeyAccount;
   private requestCounter;
-
+  private lastSeqNo: number;
   constructor() {
     this.vectors = testVectors;
     this.eventStream = new ReadableEventStream(this);
-    this.keyCardWallet = {
-      address: this.vectors.signatures.signer_address as `0x${string}`,
-    };
-
-    this.requestCounter = 1;
-  }
-  encodeAndSendNoWait(object: PBObject = {}) {
-    object.requestId = { raw: this.requestCounter };
-    this.requestCounter++;
-    return object.requestId.raw;
-  }
-
-  connect() {
-    const events: schema.EventPushRequest = [];
-
-    for (let index = 0; index < this.vectors.events.length; index++) {
-      const evt = this.vectors.events[index];
-      events.push({
-        event: {
-          signature: { raw: hexToBytes(evt.signature as `0x${string}`) },
-          event: {
-            type_url: "type.googleapis.com/market.mass.ShopEvent",
-            value: hexToBytes(evt.encoded as `0x${string}`),
-          },
-        },
-      });
-    }
-
-    const pushReq = new schema.SubscriptionPushRequest({
-      events,
-    });
-    this.eventStream.enqueue(pushReq);
-    return new Promise((resolve) => {
-      resolve;
-    });
-  }
-  authenticate() {
-    return new Promise((resolve) => {
-      resolve;
-    });
-  }
-  sendShopEvent(shopEvent: schema.IShopEvent) {
-    const requestId = this.encodeAndSendNoWait();
-    this.eventStream.outgoingEnqueue(
-      shopEvent,
-      //Pass in test signer address for event verification
-      this.keyCardWallet.address,
-      requestId,
+    this.keyCardWallet = privateKeyToAccount(
+      this.vectors.signatures.signer.key as `0x${string}`,
     );
+    this.requestCounter = 1;
+    this.lastSeqNo = 0;
+  }
+  encodeAndSendNoWait(envelope: schema.IEnvelope = {}): schema.RequestId {
+    const requestId = { raw: this.requestCounter };
+    this.requestCounter++;
+    return schema.RequestId.create(requestId);
+  }
+
+  connect(): Promise<Event | string> {
+    return new Promise((resolve, reject) => {
+      if (this.lastSeqNo > 0) {
+        reject("already connected");
+      }
+      const events: schema.SubscriptionPushRequest.SequencedEvent[] = [];
+
+      for (let index = 0; index < this.vectors.events.length; index++) {
+        const evt = this.vectors.events[index];
+        events.push(
+          schema.SubscriptionPushRequest.SequencedEvent.create({
+            seqNo: Long.fromNumber(index),
+            event: {
+              signature: { raw: hexToBytes(evt.signature as `0x${string}`) },
+              event: {
+                type_url: "type.googleapis.com/market.mass.ShopEvent",
+                value: hexToBytes(evt.encoded as `0x${string}`),
+              },
+            },
+          }),
+        );
+        this.lastSeqNo = index;
+      }
+
+      this.eventStream.enqueue({
+        requestId: schema.RequestId.create({ raw: 1 }),
+        events,
+      });
+
+      resolve("done");
+    });
+  }
+
+  async authenticate(): Promise<schema.Envelope> {
+    throw new Error("not implemented");
+  }
+
+  async sendShopEvent(shopEvent: schema.IShopEvent): Promise<schema.RequestId> {
+    const requestId = this.encodeAndSendNoWait();
+    const shopEventBytes = schema.ShopEvent.encode(shopEvent).finish();
+
+    const sig = await this.keyCardWallet.signMessage({
+      message: { raw: shopEventBytes },
+    });
+    this.eventStream.enqueue({
+      requestId,
+      events: [
+        schema.SubscriptionPushRequest.SequencedEvent.create({
+          seqNo: Long.fromNumber(this.lastSeqNo),
+          event: {
+            signature: { raw: hexToBytes(sig) },
+            event: {
+              type_url: "type.googleapis.com/market.mass.ShopEvent",
+              value: shopEventBytes,
+            },
+          },
+        }),
+      ],
+    });
+    this.lastSeqNo++;
     return requestId;
   }
 
-  async listing(item: schema.ICreateItem) {
+  async listing(item: schema.IListing) {
     return this.sendShopEvent({
       listing: item,
     });
   }
-  async updateListing(item: schema.IUpdateItem) {
+  async updateListing(item: schema.IUpdateListing) {
     return this.sendShopEvent({
       updateListing: item,
     });
   }
-  async tag(tag: schema.ICreateTag) {
+  async tag(tag: schema.ITag) {
     return this.sendShopEvent({
       tag: tag,
     });
@@ -164,19 +176,19 @@ export class MockClient implements IRelayClient {
       updateTag: tag,
     });
   }
-  async shopManifest(manifest: schema.IShopManifest, shopId: `0x${string}`) {
+  async shopManifest(manifest: schema.IManifest, shopId: `0x${string}`) {
     manifest.tokenId = { raw: hexToBytes(shopId) };
     return this.sendShopEvent({
       manifest: manifest,
     });
   }
-  async updateShopManifest(update: schema.IUpdateShopManifest) {
+  async updateShopManifest(update: schema.IUpdateManifest) {
     return this.sendShopEvent({
       updateManifest: update,
     });
   }
 
-  async changeInventory(stock: schema.IChangeStock) {
+  async changeInventory(stock: schema.IChangeInventory) {
     return this.sendShopEvent({
       changeInventory: stock,
     });
@@ -208,9 +220,9 @@ export class MockClient implements IRelayClient {
     return this.sendShopEvent({
       updateOrder: {
         id: { raw: hexToBytes(orderId) },
-        eventId: hexToBytes(
-          "0x32b36377007de4ab0fcc3eabb1ef3a7096c42004c14babc3638f81b9d0982625",
-        ),
+        // eventId: hexToBytes(
+        //   "0x32b36377007de4ab0fcc3eabb1ef3a7096c42004c14babc3638f81b9d0982625",
+        // ),
         setPaymentDetails: {
           paymentId: {
             raw: hexToBytes(

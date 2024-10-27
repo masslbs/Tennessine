@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { defineConfig } from "vitest/config";
-import path from "path";
+import path from "node:path";
 import dotenv from "dotenv";
 
 dotenv.config({ path: path.resolve(__dirname, ".env.development") });

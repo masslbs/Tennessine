@@ -12,6 +12,7 @@ export { google };
 
 import testVectors from "./testVectors.json" with { type: "json" };
 export { testVectors };
+
 /**
  * Define the test vector's types
  */
@@ -68,7 +69,10 @@ export type VectorOrderDetails = {
 export interface TestVectors {
   signatures: {
     shop_id: string;
-    signer_address: string;
+    signer: {
+      address: string;
+      key: string;
+    };
   };
   events: any;
   reduced: {
@@ -132,6 +136,9 @@ export interface TestVectors {
     }[];
   };
 }
+
+// schema check
+const _schemaCheck: TestVectors = testVectors;
 
 // a few concrete fields we need to handle in the client.
 // these are not generated from the proto files.

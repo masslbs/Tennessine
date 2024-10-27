@@ -256,7 +256,12 @@ const StoreCreation = () => {
 
   async function createShopManifest() {
     try {
-      await clientWithStateManager!.stateManager!.manifest.create(
+      log("adding relays to keycards");
+      await client.stateManager!.addRelaysToKeycards();
+      log("sending merchant subscription request");
+      await client.sendMerchantSubscriptionRequest();
+      log("creating manifest");
+      await client.stateManager!.manifest.create(
         {
           pricingCurrency: pricingCurrency as ShopCurrencies,
           acceptedCurrencies,
