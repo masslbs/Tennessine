@@ -1,33 +1,34 @@
 {
-    "name": "@massmarket/client",
-    "version": "0.0.1",
-    "description": "",
-    "keywords": [],
-    "author": "",
-    "exports": {
-        ".": {
-            "default": "./mod.ts"
-        },
+  "name": "@massmarket/client",
+  "version": "0.0.1",
+  "description": "",
+  "keywords": [],
+  "author": "",
+  "exports": {
+    ".": {
+      "default": "./mod.ts"
+    },
 
-        "./stream": {
-            "default": "./stream.ts"
-        }
-    },
-    "dependencies": {
-        "@massmarket/blockchain": "workspace:*",
-        "@massmarket/contracts": "workspace:*",
-        "@massmarket/utils": "workspace:*",
-        "@massmarket/schema": "workspace:*",
-        "abitype": "^1.0.1",
-        "buffer": "^6.0.3",
-        "isows": "^1.0.3",
-        "viem": "^2.16.3",
-        "web-streams-polyfill": "^4.0.0"
-    },
-    "devDependencies": {
-        "@types/node": "^20.11.19",
-        "@types/ws": "^8.5.10",
-        "memfs": "^4.7.7"
-    },
-    "type": "module"
+    "./stream": {
+      "default": "./stream.ts"
+    }
+  },
+  "dependencies": {
+    "@massmarket/blockchain": "workspace:*",
+    "@massmarket/contracts": "workspace:*",
+    "@massmarket/schema": "workspace:*",
+    "@massmarket/utils": "workspace:*",
+    "abitype": "^1.0.1",
+    "buffer": "^6.0.3",
+    "isows": "^1.0.3",
+    "long": "^5.2.3",
+    "viem": "^2.16.3",
+    "web-streams-polyfill": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.19",
+    "@types/ws": "^8.5.10",
+    "memfs": "^4.7.7"
+  },
+  "type": "module"
 }

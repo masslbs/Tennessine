@@ -8,7 +8,7 @@
   "imports": {
     "events": "node:events",
     "buffer": "node:buffer",
-    "assert": "node:assert"
+    "assert": "node:assert",
   }
 }
 

@@ -275,17 +275,17 @@
     "schema": {
       "flake": false,
       "locked": {
-        "lastModified": 1727777812,
-        "narHash": "sha256-FsTEKmC5L8ZXlOqBZLJMRjr2YP/2f8JUzarKliDPTBU=",
+        "lastModified": 1730225600,
+        "narHash": "sha256-iWrUP1UeNmiTGuh3DrhKqCYf62+yoDt+Pu64pzM/uEU=",
         "owner": "masslbs",
         "repo": "network-schema",
-        "rev": "8c69c384bab94dce187894ddce82451fcb0956b2",
+        "rev": "327c7a8896e6d41ca137f9e92038047141982dc4",
         "type": "github"
       },
       "original": {
         "owner": "masslbs",
-        "ref": "v3.2-alpha6",
         "repo": "network-schema",
+        "rev": "327c7a8896e6d41ca137f9e92038047141982dc4",
         "type": "github"
       }
     },

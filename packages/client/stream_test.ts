@@ -9,11 +9,9 @@ import { expect } from "jsr:@std/expect";
 import { privateKeyToAccount } from "jsr:@wevm/viem/accounts";
 import { hexToBytes } from "jsr:@wevm/viem";
 import schema, {
-  type PBInstance,
-  type PBObject,
   testVectors,
 } from "@massmarket/schema";
-import { anvilPrivateKey, objectId, priceToUint256 } from "@massmarket/utils";
+import { anvilPrivateKey, objectId, priceToUint256, randomBytes } from "@massmarket/utils";
 import { ReadableEventStream } from "./stream.ts";
 
 const account = privateKeyToAccount(anvilPrivateKey);
@@ -35,9 +33,9 @@ async function signMessage(message: schema.IShopEvent) {
   return signedEvent;
 }
 
-class MockClient {
-  encodeAndSendNoWait(_: schema.IEnvelope) {
-    return 0;
+class StubClient {
+  encodeAndSendNoWait(_: schema.IEnvelope = {}): schema.RequestId {
+    return schema.RequestId.create({ raw: 0 });
   }
 }
 
@@ -47,7 +45,7 @@ describe("Stream", () => {
   test("Stream Creation", async () => {
     const testCreateItem = {
       listing: {
-        id: objectId(),
+        id: { raw: objectId() },
         price: {
           raw: price,
         },
@@ -60,16 +58,19 @@ describe("Stream", () => {
     };
     const signedMessage = await signMessage(testCreateItem);
     const pushEvent = {
-      events: [signedMessage],
+      requestId: schema.RequestId.create({ raw: 0 }),
+      events: [
+        schema.SubscriptionPushRequest.SequencedEvent.create(signedMessage)
+      ],
     };
-    const client = new MockClient();
+    const client = new StubClient();
     const stream = new ReadableEventStream(client);
     const testItem = schema.Listing.create(testCreateItem.listing);
     stream.enqueue(pushEvent);
     for await (const evt of stream.stream) {
       assert.deepEqual(evt.event.listing.metadata, testItem.metadata);
       expect(Buffer.from(evt.event.listing.price.raw)).toEqual(
-        Buffer.from(testItem.price.raw),
+        Buffer.from(testItem.price!.raw!),
       );
       expect(evt.signer).toEqual(account.address);
       break;
@@ -84,30 +85,35 @@ describe("Stream", () => {
 
   test("Stream with lots of events", async () => {
     const testCreateItem = {
-      createItem: {
-        price: price,
+      listing: {
+        price: {
+          raw: price,
+        },
         metadata: {
           title: "",
           description: "",
-          image: "",
+          images: [""],
         },
       },
     };
 
     const signedMessage = await signMessage(testCreateItem);
-    const events = [];
+    const events: schema.SubscriptionPushRequest.SequencedEvent[] = [];
 
     for (let index = 0; index < 50; index++) {
-      events.push(signedMessage);
+      events.push(
+        schema.SubscriptionPushRequest.SequencedEvent.create(signedMessage)
+      );
     }
     const pushEvent = {
+      requestId: schema.RequestId.create({ raw: 0 }),
       events,
     };
-    const client = new MockClient();
+    const client = new StubClient();
     const stream = new ReadableEventStream(client);
     stream.enqueue(pushEvent);
     let count = 0;
-    for await (const evt of stream.stream) {
+    for await (const _ of stream.stream) {
       count++;
       if (count === pushEvent.events.length) break;
     }
@@ -117,7 +123,7 @@ describe("Stream", () => {
     const events = [];
     for (let index = 0; index < testVectors.events.length; index++) {
       const evt = testVectors.events[index];
-      events.push({
+      events.push(schema.SubscriptionPushRequest.SequencedEvent.create({
         event: {
           signature: { raw: hexToBytes(evt.signature as `0x${string}`) },
           event: {
@@ -125,14 +131,16 @@ describe("Stream", () => {
             value: hexToBytes(evt.encoded as `0x${string}`),
           },
         },
-      });
+        seqNo: index,
+      }));
     }
 
-    const pushReq = new schema.SubscriptionPushRequest({
+    const pushReq = {
+      requestId: schema.RequestId.create({ raw: 0 }),
       events,
-    });
+    };
 
-    const client = new MockClient();
+    const client = new StubClient();
     const stream = new ReadableEventStream(client);
     stream.enqueue(pushReq);
     // TODO: we need a way to close the stream once all requests have been pushed
@@ -153,20 +161,22 @@ describe("Stream", () => {
     assert.doesNotThrow(async () => {
       const testCreateItem = {
         updateListing: {
-          eventId: Buffer.from([1, 2, 3, 4]),
-          price: Buffer.from([1, 2, 3, 4]),
+          id: { raw: objectId() },
+          price: { raw: priceToUint256("10.99") },
           metadata: {
             title: "",
             description: "",
-            image: "",
+            images: [""],
           },
         },
       };
       const signedMessage = await signMessage(testCreateItem);
+      const sequencedEvent = schema.SubscriptionPushRequest.SequencedEvent.create(signedMessage);
       const pushEvent = {
-        events: [signedMessage, signedMessage],
+        requestId: schema.RequestId.create({ raw: 0 }),
+        events: [sequencedEvent, sequencedEvent],
       };
-      const client = new MockClient();
+      const client = new StubClient();
       const stream = new ReadableEventStream(client);
       stream.enqueue(pushEvent);
       const reader = stream.stream.getReader();
@@ -178,27 +188,35 @@ describe("Stream", () => {
   test("Stream error should bubble up", async () => {
     const signedMessage = await signMessage({
       updateListing: {
-        eventId: Buffer.from([1, 2, 3, 4]),
-        price: Buffer.from([1, 2, 3, 4]),
+        id: { raw: objectId() },
+        price: { raw: priceToUint256("10.99") },
         metadata: {
           title: "",
           description: "",
-          image: "",
+          images: [""],
         },
       },
     });
     const pushEvent = {
+      requestId: schema.RequestId.create({ raw: 0 }),
       events: [signedMessage],
     };
-    const client = new MockClient();
+    const client = new StubClient();
     const stream = new ReadableEventStream(client);
-    stream.enqueue(pushEvent);
+    const sequencedEvent = schema.SubscriptionPushRequest.SequencedEvent.create(signedMessage); 
+    stream.enqueue({
+      requestId: pushEvent.requestId,
+      events: [sequencedEvent],
+    });
+    let called = false;
     try {
-      for await (const evt of stream.stream) {
+      for await (const _ of stream.stream) {
         throw new Error("Store update failed");
       }
     } catch (e) {
-      expect(e.message).toEqual("Store update failed");
+      expect((e as Error).message).toEqual("Store update failed");
+      called = true;
     }
+    assert(called);
   });
 });

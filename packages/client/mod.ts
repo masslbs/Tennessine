@@ -16,7 +16,6 @@ import { hexToBase64, decodeBufferToString } from "@massmarket/utils";
 
 import { ReadableEventStream } from "./stream.ts";
 
-
 export type RelayEndpoint = {
   url: URL; // the websocket URL to talk to
   tokenId: `0x${string}`;
@@ -53,33 +52,26 @@ export class RelayClient extends EventEmitter {
     return this.eventStream.stream;
   }
 
-  #handlePingRequest(ping: schema.Envelope) {
-    // relay ends connection if ping is not responded to 3 times.
-    this.encodeAndSendNoWait({
-      requestId: ping.requestId,
-      response: {},
-    });
-  }
 
   // like encodeAndSend but doesn't wait for a response.
-  encodeAndSendNoWait(object: schema.IEnvelope = {}): schema.RequestId {
-    if (!object.requestId) {
-      object.requestId = { raw: this.requestCounter };
+  encodeAndSendNoWait(envelope: schema.IEnvelope = {}): schema.RequestId {
+    if (!envelope.requestId) {
+      envelope.requestId = { raw: this.requestCounter };
     }
-    const err = schema.Envelope.verify(object);
+    const err = schema.Envelope.verify(envelope);
     if (err) {
       throw new Error(err);
     }
     // Turns json into binary
-    const payload = schema.Envelope.encode(object).finish();
+    const payload = schema.Envelope.encode(envelope).finish();
     this.connection.send(payload);
     this.requestCounter++;
-    return schema.RequestId.create(object.requestId);
+    return schema.RequestId.create(envelope.requestId);
   }
 
   // encode and send a message and then wait for a response
-  encodeAndSend(object: schema.IEnvelope = {}): Promise<schema.Envelope> {
-    const id = this.encodeAndSendNoWait(object);
+  encodeAndSend(envelope: schema.IEnvelope = {}): Promise<schema.Envelope> {
+    const id = this.encodeAndSendNoWait(envelope);
     return new Promise((resolve, reject) => {
       this.once(id.raw.toString(), (response: schema.Envelope) => {
         if (response.response?.error) {
@@ -93,9 +85,7 @@ export class RelayClient extends EventEmitter {
     });
   }
 
-  async sendShopEvent(
-    shopEvent: schema.IShopEvent,
-  ): Promise<schema.RequestId> {
+  async sendShopEvent(shopEvent: schema.IShopEvent): Promise<schema.RequestId> {
     await this.connect();
 
     // prepare for signing
@@ -122,12 +112,6 @@ export class RelayClient extends EventEmitter {
     };
     const { requestId } = await this.encodeAndSend(envelope);
     assert(requestId, "requestId is required");
-    //Passing current KC address as signer for event verification.
-    this.eventStream.outgoingEnqueue(
-      shopEvent,
-      this.keyCardWallet.address,
-     requestId!,
-    );
     return schema.RequestId.create(requestId);
   }
 
@@ -194,22 +178,43 @@ export class RelayClient extends EventEmitter {
     const payload = new Uint8Array(_data);
 
     const envelope = schema.Envelope.decode(payload);
+    assert(envelope.requestId?.raw, "requestId is required");
     switch (envelope.message) {
       case EnvelopMessageTypes.PingRequest:
         this.#handlePingRequest(envelope);
         break;
       case EnvelopMessageTypes.SubscriptionPushRequest:
-        assert(envelope.subscriptionPushRequest, "subscriptionPushRequest is required");
-        this.eventStream.enqueue({
-          requestId: envelope.requestId,
-          events: envelope.subscriptionPushRequest.events,
-        });
+        assert(
+          envelope.subscriptionPushRequest,
+          "subscriptionPushRequest is required",
+        );
+        {
+          const events = envelope.subscriptionPushRequest.events!.map((evt) =>
+            schema.SubscriptionPushRequest.SequencedEvent.create(evt),
+          );
+          console.log(`pushing ${events.length} events to event stream`);
+          this.eventStream.enqueue({
+            requestId: schema.RequestId.create(envelope.requestId),
+            events,
+          });
+        }
         break;
       default:
-        this.emit(envelope.requestId!.raw.toString(), envelope);
+        this.emit(envelope.requestId.raw.toString(), envelope);
     }
   }
+
+  #handlePingRequest(ping: schema.Envelope) {
+    // relay ends connection if ping is not responded to 3 times.
+    this.encodeAndSendNoWait({
+      requestId: ping.requestId,
+      response: {},
+    });
+  }
+
+
   async sendMerchantSubscriptionRequest(shopId: `0x${string}`, seqNo = 0) {
+    assert(this.subscriptionId == null, "subscriptionId is already set. cancel first.");
     const filters = [
       { objectType: schema.ObjectType.OBJECT_TYPE_LISTING },
       { objectType: schema.ObjectType.OBJECT_TYPE_TAG },
@@ -230,6 +235,7 @@ export class RelayClient extends EventEmitter {
     this.subscriptionId = response.payload;
   }
   async sendGuestCheckoutSubscriptionRequest(shopId: `0x${string}`, seqNo = 0) {
+    assert(this.subscriptionId == null, "subscriptionId is already set. cancel first.");
     const filters = [
       { objectType: schema.ObjectType.OBJECT_TYPE_LISTING },
       { objectType: schema.ObjectType.OBJECT_TYPE_TAG },
@@ -249,6 +255,7 @@ export class RelayClient extends EventEmitter {
   }
 
   async sendGuestSubscriptionRequest(shopId: `0x${string}`, seqNo = 0) {
+    assert(this.subscriptionId == null, "subscriptionId is already set. cancel first.");
     const filters = [
       { objectType: schema.ObjectType.OBJECT_TYPE_LISTING },
       { objectType: schema.ObjectType.OBJECT_TYPE_TAG },
@@ -265,12 +272,14 @@ export class RelayClient extends EventEmitter {
     assert(response?.payload, "response.payload is required");
     this.subscriptionId = response.payload;
   }
+
   async cancelSubscriptionRequest() {
-    this.encodeAndSend({
+    await this.encodeAndSend({
       subscriptionCancelRequest: {
         subscriptionId: this.subscriptionId,
       },
     });
+    this.subscriptionId = null;
   }
 
   async authenticate() {
@@ -295,9 +304,7 @@ export class RelayClient extends EventEmitter {
   }
 
   // TODO: make an enum of the possible events
-  async connect(): Promise<
-    Event | string
-  > {
+  connect(): Promise<Event | string> {
     if (
       !this.connection ||
       this.connection.readyState === WebSocket.CLOSING ||
@@ -319,7 +326,7 @@ export class RelayClient extends EventEmitter {
       } else {
         this.connection.addEventListener("open", (evt: Event) => {
           // TODO: unbox event to concrete values
-          resolve(evt)
+          resolve(evt);
         });
       }
     });
@@ -388,7 +395,7 @@ export class RelayClient extends EventEmitter {
     assert(envelope.response, "envelope.response is required");
 
     if (envelope.response.error) {
-      const {code, message} = envelope.response.error
+      const { code, message } = envelope.response.error;
       throw new Error(
         `Failed to get blob upload URL - code: ${code} message: ${message}`,
       );
