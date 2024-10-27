@@ -31,7 +31,6 @@ import {
 import * as abi from "@massmarket/contracts";
 import {
   BlockchainClient,
-  WalletClientWithAccount,
 } from "@massmarket/blockchain";
 
 import { RelayClient, discoverRelay } from "./mod.ts";
@@ -45,7 +44,7 @@ const wallet = createWalletClient({
   account,
   chain: hardhat,
   transport: http(),
-}) as WalletClientWithAccount;
+});
 
 const publicClient = createPublicClient({
   chain: hardhat,
@@ -54,8 +53,7 @@ const publicClient = createPublicClient({
 
 const shopId = random32BytesHex();
 let blockchain: BlockchainClient;
-const relayURL =
-  (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v3";
+const relayURL = Deno.env.get("RELAY_ENDPOINT") || "ws://localhost:4444/v3";
 const relayEndpoint = await discoverRelay(relayURL);
 
 function createRelayClient(pk = random32BytesHex()) {
@@ -110,7 +108,7 @@ describe({
           account: acc2,
           chain: hardhat,
           transport: http(),
-        }) as WalletClientWithAccount;
+        });
 
         const relayClient2 = new RelayClient({
           relayEndpoint,
@@ -163,14 +161,17 @@ describe({
         expect(response.status).toBe(201);
       });
 
-      test("should connect and disconnect", { retry: 3 }, async () => {
+      test("should connect and disconnect",  async () => {
         await relayClient.connect();
         const authenticated = await relayClient.authenticate();
-        console.log(authenticated);
-        expect(authenticated.response.error).toBeNull();
-        const closeEvent = await relayClient.disconnect();
-        const r = closeEvent as CloseEvent;
-        expect(r.wasClean).toBe(true);
+        expect(relayClient.connection.readyState).toBe(WebSocket.OPEN);
+        expect(authenticated.response?.error).toBeNull();
+        await relayClient.disconnect();
+        expect(relayClient.connection.readyState).toBe(WebSocket.CLOSED);
+        // check connection can be reopened
+        await relayClient.connect();
+        await relayClient.authenticate();
+        expect(relayClient.connection.readyState).toBe(WebSocket.OPEN);
       });
 
       test("should reconnect", async () => {
@@ -319,14 +320,14 @@ describe({
           });
           expect(requestId).not.toBeNull();
         });
-        test("should update stock", { timeout: 10000 }, async () => {
+        test("should update stock", async () => {
           await relayClient.changeInventory({
             id,
-            diff: [10],
+            diff: 10,
           });
         });
 
-        test("client commits an order", { timeout: 20000 }, async () => {
+        test("client commits an order", async () => {
           const orderId = { raw: objectId() };
 
           await relayClient.createOrder({ id: orderId });
@@ -344,7 +345,6 @@ describe({
               country: "test country",
               postalCode: "test postal",
               city: "test city",
-              orderPriceModifiers: [],
               phoneNumber: "0103330524",
               emailAddress: "arakkis@dune.planet",
             },
@@ -354,7 +354,6 @@ describe({
               country: "test country",
               postalCode: "test postal",
               city: "test city",
-              orderPriceModifiers: [],
               phoneNumber: "0103330524",
               emailAddress: "arakkis@dune.planet",
             },
@@ -397,7 +396,7 @@ describe({
                 abi: abi.PaymentsByAddress,
                 functionName: "getPaymentId",
                 args: [args],
-              })) as BigInt;
+              })) as bigint;
 
               // TODO: toHex is not padding BigInt coerrect, so this cause random test
               // failures
@@ -420,7 +419,7 @@ describe({
         });
       });
 
-      describe("invite another user", { retry: 3 }, () => {
+      describe("invite another user", () => {
         let client2Wallet;
         let relayClient2: RelayClient;
         beforeEach(async () => {
@@ -549,20 +548,25 @@ describe({
           shopId,
         );
 
+
+        const updatePromise = client.updateShopManifest({
+          addAcceptedCurrencies: [
+            {
+              chainId: 31337,
+              address: { raw: hexToBytes("0xbad") },
+            },
+          ],
+        });
+        let called = false;
         try {
-          await client.updateShopManifest({
-            addAcceptedCurrencies: [
-              {
-                chainId: 31337,
-                address: "bad address",
-              },
-            ],
-          });
+          await updatePromise;
         } catch (e) {
-          expect(e.message).toBe(
-            "Field `add_accepted_currency[0].addr` must have correct amount of bytes, got 0",
+          expect((e as Error).message).toEqual(
+            "Field `add_accepted_currency[0].addr` must have correct amount of bytes, got 2",
           );
+          called = true;
         }
+        expect(called).toBe(true);
 
         // const manifest = await stateManager.manifest.get();
         // expect(manifest.addAcceptedCurrencies.length).toEqual(0);

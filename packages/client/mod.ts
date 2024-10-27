@@ -62,24 +62,24 @@ export class RelayClient extends EventEmitter {
   }
 
   // like encodeAndSend but doesn't wait for a response.
-  encodeAndSendNoWait(object: schema.IEnvelope = {}): schema.RequestId {
-    if (!object.requestId) {
-      object.requestId = { raw: this.requestCounter };
+  encodeAndSendNoWait(envelope: schema.IEnvelope = {}): schema.RequestId {
+    if (!envelope.requestId) {
+      envelope.requestId = { raw: this.requestCounter };
     }
-    const err = schema.Envelope.verify(object);
+    const err = schema.Envelope.verify(envelope);
     if (err) {
       throw new Error(err);
     }
     // Turns json into binary
-    const payload = schema.Envelope.encode(object).finish();
+    const payload = schema.Envelope.encode(envelope).finish();
     this.connection.send(payload);
     this.requestCounter++;
-    return schema.RequestId.create(object.requestId);
+    return schema.RequestId.create(envelope.requestId);
   }
 
   // encode and send a message and then wait for a response
-  encodeAndSend(object: schema.IEnvelope = {}): Promise<schema.Envelope> {
-    const id = this.encodeAndSendNoWait(object);
+  encodeAndSend(envelope: schema.IEnvelope = {}): Promise<schema.Envelope> {
+    const id = this.encodeAndSendNoWait(envelope);
     return new Promise((resolve, reject) => {
       this.once(id.raw.toString(), (response: schema.Envelope) => {
         if (response.response?.error) {
@@ -122,12 +122,6 @@ export class RelayClient extends EventEmitter {
     };
     const { requestId } = await this.encodeAndSend(envelope);
     assert(requestId, "requestId is required");
-    //Passing current KC address as signer for event verification.
-    this.eventStream.outgoingEnqueue(
-      shopEvent,
-      this.keyCardWallet.address,
-     requestId!,
-    );
     return schema.RequestId.create(requestId);
   }
 
@@ -194,19 +188,23 @@ export class RelayClient extends EventEmitter {
     const payload = new Uint8Array(_data);
 
     const envelope = schema.Envelope.decode(payload);
+    assert(envelope.requestId?.raw, "requestId is required");
     switch (envelope.message) {
       case EnvelopMessageTypes.PingRequest:
         this.#handlePingRequest(envelope);
         break;
       case EnvelopMessageTypes.SubscriptionPushRequest:
         assert(envelope.subscriptionPushRequest, "subscriptionPushRequest is required");
-        this.eventStream.enqueue({
-          requestId: envelope.requestId,
-          events: envelope.subscriptionPushRequest.events,
-        });
+        {
+          const events = envelope.subscriptionPushRequest.events!.map((evt) => schema.SubscriptionPushRequest.SequencedEvent.create(evt));
+          this.eventStream.enqueue({
+            requestId: schema.RequestId.create(envelope.requestId),
+            events,
+          });
+        }
         break;
       default:
-        this.emit(envelope.requestId!.raw.toString(), envelope);
+        this.emit(envelope.requestId.raw.toString(), envelope);
     }
   }
   async sendMerchantSubscriptionRequest(shopId: `0x${string}`, seqNo = 0) {
@@ -265,7 +263,7 @@ export class RelayClient extends EventEmitter {
     assert(response?.payload, "response.payload is required");
     this.subscriptionId = response.payload;
   }
-  async cancelSubscriptionRequest() {
+  cancelSubscriptionRequest() {
     this.encodeAndSend({
       subscriptionCancelRequest: {
         subscriptionId: this.subscriptionId,
@@ -295,9 +293,7 @@ export class RelayClient extends EventEmitter {
   }
 
   // TODO: make an enum of the possible events
-  async connect(): Promise<
-    Event | string
-  > {
+  connect(): Promise<Event | string> {
     if (
       !this.connection ||
       this.connection.readyState === WebSocket.CLOSING ||

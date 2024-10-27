@@ -4,8 +4,23 @@
 
 import { recoverMessageAddress } from "viem";
 import schema from "@massmarket/schema";
-import { RelayClient } from "./mod.ts";
+import {type RelayClient } from "./mod.ts";
 import { ReadableStream } from "web-streams-polyfill";
+import assert from "assert";
+
+
+// TODO: better name. it's basically a push request but with class values instead of interfaces
+type SequencedEventsWithRequestId = {
+  requestId: schema.RequestId;
+  events: schema.SubscriptionPushRequest.SequencedEvent[];
+};
+
+import Long from "npm:long";
+type EventWithRecoveredSigner = {
+  event: schema.ShopEvent;
+  seqNo: number | Long; // TODO: i dont like this
+  signer: `0x${string}`;
+};
 
 /**
  * This class is a Simple wrapper around a ReadableStream that expose the controller
@@ -13,20 +28,20 @@ import { ReadableStream } from "web-streams-polyfill";
  */
 export class ReadableEventStream {
   public stream;
-  public requestId: Uint8Array | null = null;
-  private controller!: ReadableStreamDefaultController<schema.ShopEvent>;
+  // public requestId: Uint8Array | null = null;
+  private controller!: ReadableStreamDefaultController<EventWithRecoveredSigner>;
   private resolve!: (val: any) => void;
-  private nextPushReq: Promise<void>;
-  private queue: schema.EventPushRequest[] = [];
+  private nextPushReq: Promise<schema.SubscriptionPushRequest.ISequencedEvent>;
+  private queue: SequencedEventsWithRequestId[] = [];
 
   constructor(public client: Pick<RelayClient, "encodeAndSendNoWait">) {
     const self = this;
 
-    this.nextPushReq = new Promise<schema.EventPushRequest>((resolve) => {
+    this.nextPushReq = new Promise<schema.SubscriptionPushRequest.ISequencedEvent>((resolve) => {
       this.resolve = resolve;
     });
 
-    this.stream = new ReadableStream({
+    this.stream = new ReadableStream<EventWithRecoveredSigner>({
       start(controller) {
         self.controller = controller;
       },
@@ -38,13 +53,20 @@ export class ReadableEventStream {
         if (pushReq) {
           const requestId = pushReq.requestId;
           for (const anyEvt of pushReq.events) {
+            assert(anyEvt.event, "event is required");
+            if (anyEvt.seqNo === undefined) {
+              throw new Error(`seqNo is required ${JSON.stringify(anyEvt)}`);
+            }
+            //assert(anyEvt.seqNo, `seqNo is required ${JSON.stringify(anyEvt)}`);
+            assert(anyEvt.event.event, "event.event is required");
+            assert(anyEvt.event.signature, "event.signature is required");
+            assert(anyEvt.event.event.value, "event.event.value is required");
             const event = schema.ShopEvent.decode(anyEvt.event.event.value);
-            event.seqNo = anyEvt.seqNo;
             const signer = await recoverMessageAddress({
-              message: { raw: anyEvt.event.event.value },
-              signature: anyEvt.event.signature.raw,
+              message: { raw: anyEvt.event!.event!.value },
+              signature: anyEvt.event!.signature!.raw!,
             });
-            self.controller.enqueue({ event, signer });
+            self.controller.enqueue({ event, seqNo: anyEvt.seqNo, signer });
           }
           // Send a response to the relay to indicate that we have processed the events
           self.client.encodeAndSendNoWait({
@@ -60,23 +82,13 @@ export class ReadableEventStream {
   }
 
   // This method is meant to be used by the client to enqueue events into the stream
-  enqueue(pushReq: schema.SubscriptionPushRequest) {
+  enqueue(pushReq: SequencedEventsWithRequestId) {
     this.queue.push(pushReq);
     this.resolve(null);
-    this.nextPushReq = new Promise<schema.SubscriptionPushRequest>(
+    this.nextPushReq = new Promise<schema.SubscriptionPushRequest.ISequencedEvent>(
       (resolve) => {
         this.resolve = resolve;
       },
     );
-  }
-  //This method enqueues events created by the client, since these are not sent back from the relay.
-  async outgoingEnqueue(
-    event: schema.IShopEvent,
-    signer: `0x${string}`,
-    //Since outgoing enrollKeycard is not a eventWriteRequest, it will not be attached a requestId
-    requestId?: schema.RequestId,
-  ) {
-    event.requestId = requestId;
-    this.controller.enqueue({ event, signer });
   }
 }

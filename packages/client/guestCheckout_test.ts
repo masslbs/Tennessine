@@ -13,11 +13,10 @@ import {
   http,
   type Address,
   type Account,
-  toBytes,
 } from "viem";
 import { hardhat } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
-import { random32BytesHex, zeroAddress } from "@massmarket/utils";
+import { random32BytesHex } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 import {
   randomAddress,
@@ -27,7 +26,7 @@ import {
 } from "@massmarket/utils";
 import {
   BlockchainClient,
-  WalletClientWithAccount,
+  type ConcreteWalletClient,
 } from "@massmarket/blockchain";
 import { RelayClient, discoverRelay } from "./mod.ts";
 
@@ -43,7 +42,7 @@ describe({
       account,
       chain: hardhat,
       transport: http(),
-    }) as WalletClientWithAccount;
+    });
 
     const publicClient = createPublicClient({
       chain: hardhat,
@@ -51,8 +50,7 @@ describe({
     });
 
     let blockchain: BlockchainClient;
-    const relayURL =
-      (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v3";
+    const relayURL = Deno.env.get("RELAY_ENDPOINT") || "ws://localhost:4444/v3";
 
     async function createRelayClient(pk = random32BytesHex()) {
       const relayEndpoint = await discoverRelay(relayURL);
@@ -65,7 +63,7 @@ describe({
     const shopId = random32BytesHex();
     blockchain = new BlockchainClient(shopId);
 
-    test("create shop", { timeout: 10000 }, async () => {
+    test("create shop", async () => {
       // create a shop
       const transactionHash = await blockchain.createShop(wallet);
       // wait for the transaction to be included in the blockchain
@@ -76,7 +74,7 @@ describe({
     });
 
     let relayClient: RelayClient;
-    test("enroll keycard", { timeout: 10000 }, async () => {
+    test("enroll keycard", async () => {
       relayClient = await createRelayClient();
       const windowLocation =
         typeof window == "undefined"
@@ -95,7 +93,7 @@ describe({
     let payee: Uint8Array = hexToBytes(randomAddress());
     let currency: Uint8Array = hexToBytes(abi.addresses.Eddies as Address);
 
-    test("write shop manifest", { timeout: 10000 }, async () => {
+    test("write shop manifest", async () => {
       await relayClient.connect();
       await relayClient.authenticate();
       await relayClient.shopManifest(
@@ -134,7 +132,7 @@ describe({
       );
     });
 
-    test("update shop manifest", { timeout: 10000 }, async () => {
+    test("update shop manifest", async () => {
       // tell the relay to accept our money
       await relayClient.updateShopManifest({
         addAcceptedCurrencies: [
@@ -153,7 +151,7 @@ describe({
     });
 
     let itemId = { raw: objectId() };
-    test("should create a item", { timeout: 10000 }, async () => {
+    test("should create a item", async () => {
       const metadata = {
         title: "guestCheckout test item",
         description: "test",
@@ -170,8 +168,8 @@ describe({
 
     let guestAccount: Account;
     let guestRelayClient: RelayClient;
-    let guestWallet: WalletClientWithAccount;
-    test("create and enroll guest", { timeout: 10000 }, async () => {
+    let guestWallet: ConcreteWalletClient;
+    test("create and enroll guest", async () => {
       // generate a random guest
       const sk = random32BytesHex();
       guestAccount = privateKeyToAccount(sk);
@@ -180,7 +178,7 @@ describe({
         to: guestAccount.address,
         value: BigInt("250000000000000000"),
       });
-      guestWallet = createWalletClient({
+      const w = createWalletClient({
         account: guestAccount,
         chain: hardhat,
         transport: http(),
@@ -193,7 +191,7 @@ describe({
           ? undefined
           : new URL(window.location.href);
       const response = await guestRelayClient.enrollKeycard(
-        guestWallet,
+        w,
         true,
         shopId,
         windowLocation,
@@ -202,15 +200,16 @@ describe({
       await guestRelayClient.authenticate();
 
       expect(response.status).toBe(201);
+      guestWallet = w;
     });
 
-    let orderId = { raw: objectId() };
-    test("guest creating an order", { timeout: 10000 }, async () => {
+    const orderId = { raw: objectId() };
+    test("guest creating an order", async () => {
       // create an order
       await guestRelayClient.createOrder({ id: orderId });
     });
 
-    test("guest updating an order", { timeout: 10000 }, async () => {
+    test("guest updating an order", async () => {
       await guestRelayClient.updateOrder({
         id: orderId,
         changeItems: {
@@ -221,7 +220,6 @@ describe({
 
     Deno.test.ignore(
       "single item checkout with a guest",
-      { timeout: 10000 },
       async () => {
         // give the guest account some money to spend
         const txHash = await wallet.writeContract({
@@ -278,12 +276,13 @@ describe({
             // need to wait for the minting of eddies to be done before sending them
             await mintComplete;
             // call the pay function
-            guestWallet.writeContract({
-              address: abi.addresses.Payments as Address,
-              abi: abi.PaymentsByAddress,
-              functionName: "payTokenPreApproved",
-              args: [args],
-            });
+            throw new Error("not implemented");
+            // guestWallet.writeContract({
+            //   address: abi.addresses.Payments as Address,
+            //   abi: abi.PaymentsByAddress,
+            //   functionName: "payTokenPreApproved",
+            //   args: [args],
+            // });
           } else if (event.changeInventory) {
             expect(toHex(event.changeInventory.itemIds[0])).toEqual(
               toHex(itemId.raw),
