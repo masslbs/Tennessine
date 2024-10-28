@@ -192,7 +192,7 @@ test("create and enroll guest", { timeout: 10000 }, async () => {
   );
   await guestRelayClient.connect();
   await guestRelayClient.authenticate();
-
+  await guestRelayClient.sendGuestCheckoutSubscriptionRequest(shopId);
   expect(response.status).toBe(201);
 });
 
@@ -202,13 +202,73 @@ test("guest creating an order", { timeout: 10000 }, async () => {
   await guestRelayClient.createOrder({ id: orderId });
 });
 
-test("guest updating an order", { timeout: 10000 }, async () => {
+test("guest updating an order", async () => {
   await guestRelayClient.updateOrder({
     id: orderId,
     changeItems: {
       adds: [{ listingId: itemId, quantity: 1 }],
     },
   });
+});
+test("guest checkout", { timeout: 20000 }, async () => {
+  await relayClient.changeInventory({
+    id: itemId,
+    diff: [10],
+  });
+  await guestRelayClient.updateOrder({
+    id: orderId,
+    changeItems: {
+      adds: [{ listingId: itemId, quantity: 1 }],
+    },
+  });
+  await guestRelayClient.updateOrder({
+    id: orderId,
+    setInvoiceAddress: {
+      name: "test",
+      address1: "100 Colomb Street",
+      city: "Arakkis",
+      postalCode: "SE10 9EZ",
+      country: "Dune",
+      orderPriceModifiers: [],
+      phoneNumber: "0103330524",
+      emailAddress: "arakkis@dune.planet",
+    },
+    setShippingAddress: {
+      name: "test",
+      address1: "100 Colomb Street",
+      city: "Arakkis",
+      postalCode: "SE10 9EZ",
+      country: "Dune",
+      orderPriceModifiers: [],
+      phoneNumber: "0103330524",
+      emailAddress: "arakkis@dune.planet",
+    },
+  });
+  await guestRelayClient.updateOrder({ id: orderId, commitItems: {} });
+  await relayClient.updateOrder({
+    id: orderId,
+    choosePayment: {
+      currency: {
+        chainId: 31337,
+        address: { raw: currency },
+      },
+      payee: {
+        address: { raw: payee },
+        callAsContract: false,
+        chainId: 31337,
+        name: "test",
+      },
+    },
+  });
+  const stream = guestRelayClient.createEventStream();
+  for await (const { event } of stream) {
+    //FIXME: not getting payment details currently for guests. use payTokenPreApproved here once paymentdetails comes through.
+    console.log("event inside stream", event.updateOrder);
+    if (event.updateOrder?.setPaymentDetails) {
+      console.log("event.updateOrder", event.updateOrder);
+      return;
+    }
+  }
 });
 
 test.skip("single item checkout with a guest", { timeout: 10000 }, async () => {
