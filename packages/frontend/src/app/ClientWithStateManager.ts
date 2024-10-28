@@ -1,5 +1,6 @@
-import { privateKeyToAccount } from "viem/accounts";
 import { PublicClient } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { Level } from "level";
 
 import { RelayClient, type RelayEndpoint } from "@massmarket/client";
 import { StateManager } from "@massmarket/stateManager";
@@ -25,7 +26,6 @@ export class ClientWithStateManager {
   }
 
   async createStateManager() {
-    const { Level } = await import("level");
     const merchantKC = localStorage.getItem("merchantKeyCard");
     const guestKC = localStorage.getItem("guestCheckoutKC");
     const dbName = `${this.shopId.slice(0, 7)}${merchantKC ? merchantKC.slice(0, 5) : guestKC ? guestKC.slice(0, 5) : "-guest"}`;
