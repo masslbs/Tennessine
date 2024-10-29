@@ -1,30 +1,48 @@
 import { EventEmitter } from "events";
-import schema from "@massmarket/schema";
 import { bytesToHex, hexToBytes, PublicClient, fromBytes } from "viem";
-import { priceToUint256, addressToUint256, objectId } from "@massmarket/utils";
-import {
-  IRelayClient,
-  Item,
-  Tag,
-  KeyCard,
-  ShippingDetails,
-  Order,
-  ShopCurrencies,
-  ShopManifest,
-  CreateShopManifest,
-  UpdateShopManifest,
-  ShopObjectTypes,
-  IError,
-  OrdersByStatus,
-  ListingViewState,
-  Payee,
-  OrderState,
-  ShippingRegion,
-  OrderPriceModifier,
-  ChoosePayment,
-} from "./types.ts";
+
 import { Address } from "@ethereumjs/util";
+
+import {
+  type Listing,
+  type IRelayClient,
+  type Tag,
+  type KeyCard,
+  type ShippingDetails,
+  type Order,
+  type ShopCurrencies,
+  type ShopManifest,
+  type CreateShopManifest,
+  type UpdateShopManifest,
+  type ShopObjectTypes,
+  type IError,
+  type OrdersByStatus,
+  ListingViewState,
+  OrderState,
+  type OrderPriceModifier,
+  type ChoosePayment,
+} from "./types.ts";
 import * as abi from "@massmarket/contracts";
+import schema from "@massmarket/schema";
+
+import {
+  priceToUint256,
+  objectId,
+  addressToUint256,
+  addressesToUint256,
+  assert,
+  assertField,
+} from "@massmarket/utils";
+
+// TODO: needs a better place
+import Long from "npm:long";
+type EventWithRecoveredSigner = {
+  event: schema.ShopEvent;
+  seqNo: number | Long; // TODO: i dont like this
+  signer: `0x${string}`;
+  requestId: schema.RequestId;
+};
+//</TODO>
 
 // This is an interface that is used to retrieve and store objects from a persistant layer
 export type Store<T extends ShopObjectTypes> = {
@@ -33,16 +51,16 @@ export type Store<T extends ShopObjectTypes> = {
   iterator(): AsyncIterable<[string | `0x${string}` | OrderState, T]>;
 };
 
-// Given an eventId which is the returned value of the network event
+// Given an requestId which is the returned value of the network event
 // This returns a promise that resolves once the event has been emitted as js event
 function eventListenAndResolve<T = ShopObjectTypes>(
-  eventId: number,
+  requestId: schema.RequestId,
   em: EventEmitter,
   eventName: string,
 ): Promise<T> {
   return new Promise((resolve, _) => {
-    function onUpdate(update: T, eId: number) {
-      if (eId === eventId) {
+    function onUpdate(update: T, eId: schema.RequestId) {
+      if (eId.raw === requestId.raw) {
         resolve(update);
         em.removeListener(eventName, onUpdate);
       }
@@ -79,7 +97,11 @@ abstract class PublicObjectManager<
   ) {
     super();
   }
-  abstract _processEvent(event: schema.ShopEvents): Promise<void>;
+
+  abstract _processEvent(
+    event: schema.ShopEvent,
+    requestID: schema.RequestId,
+  ): Promise<void>;
   abstract get(key?: string | `0x${string}`): Promise<T>;
   get iterator() {
     return this.store.iterator.bind(this.store);
@@ -88,79 +110,115 @@ abstract class PublicObjectManager<
 class SeqNoEmitter extends EventEmitter {}
 
 //We should always make sure the network call is successful before updating the store with store.put
-class ListingManager extends PublicObjectManager<Item> {
-  constructor(store: Store<Item>, client: IRelayClient) {
+class ListingManager extends PublicObjectManager<Listing> {
+  constructor(store: Store<Listing>, client: IRelayClient) {
     super(store, client);
   }
   // Process all events for listings.
-  // Convert bytes to hex and save item object to listings store.
-  async _processEvent(event: schema.ShopEvents): Promise<void> {
+  // Convert bytes to hex and save l object to listings store.
+  async _processEvent(
+    event: schema.ShopEvent,
+    requestID: schema.RequestId,
+  ): Promise<void> {
     if (event.listing) {
       const cl = event.listing;
+      assertField(cl.id, "listing.id");
+      assertField(cl.price, "listing.price");
+      assert(cl.metadata, `listing.metadata ${bytesToHex(cl.id.raw)}`);
+      assert(cl.metadata.title, "listing.metadata.title");
+      assert(cl.metadata.description, "listing.metadata.description");
+      assert((cl.metadata.images ?? []).length > 0, "listing.metadata.images");
+      assert(cl.viewState, "listing.viewState");
       const id = bytesToHex(cl.id.raw);
-      const item = {
-        id: id,
+      const l = {
+        id,
         price: fromBytes(cl.price.raw, "bigint").toString(),
-        metadata: cl.metadata,
+        metadata: {
+          title: cl.metadata.title,
+          description: cl.metadata.description,
+          images: cl.metadata.images ?? [],
+        },
         tags: [],
         quantity: 0,
         viewState: cl.viewState,
       };
-      await this.store.put(id, item);
-      this.emit("create", item, event.requestId);
+      await this.store.put(id, l);
+      this.emit("create", l, requestID);
       return;
     } else if (event.updateListing) {
       const ul = event.updateListing;
+      assertField(ul.id, "updateListing.id");
       const id = bytesToHex(ul.id.raw);
-      const item = await this.store.get(id);
+      const l = await this.store.get(id);
       if (ul.metadata) {
-        item.metadata = ul.metadata;
+        assert(ul.metadata, "updateListing.metadata");
+        assert(ul.metadata.title, "updateListing.metadata.title");
+        assert(ul.metadata.description, "updateListing.metadata.description");
+        assert(ul.metadata.images, "updateListing.metadata.images");
+        assert(
+          (ul.metadata.images ?? []).length > 0,
+          "updateListing.metadata.images",
+        );
+        l.metadata = {
+          title: ul.metadata.title,
+          description: ul.metadata.description,
+          images: ul.metadata.images,
+        };
       }
       if (ul.price) {
-        item.price = fromBytes(ul.price.raw, "bigint").toString();
+        assertField(ul.price, "updateListing.price");
+        l.price = fromBytes(ul.price.raw, "bigint").toString();
       }
-      if (Object.values(ListingViewState).includes(ul.viewState)) {
-        item.viewState = ul.viewState;
+      if (ul.viewState) {
+        // assert is valid value for viewState
+        if (!Object.values(ListingViewState).includes(ul.viewState)) {
+          throw new Error("Invalid viewState");
+        }
+        l.viewState = ul.viewState;
       }
-      await this.store.put(id, item);
-      this.emit("update", item, event.requestId);
+      await this.store.put(id, l);
+      this.emit("update", l, requestID);
       return;
     } else if (event.changeInventory) {
       const cs = event.changeInventory;
-      const itemId = bytesToHex(cs.id.raw);
-      const item = await this.store.get(itemId);
-      item.quantity = item.quantity + cs.diff;
-      await this.store.put(itemId, item);
-      this.emit("changeInventory", itemId, event.requestId);
+      assertField(cs.id, "changeInventory.id");
+      assert(cs.diff, "changeInventory.diff");
+      const lId = bytesToHex(cs.id.raw);
+      const l = await this.store.get(lId);
+      l.quantity = l.quantity + cs.diff;
+      await this.store.put(lId, l);
+      this.emit("changeInventory", lId, requestID);
       return;
     } else if (event.updateTag) {
-      // Add or remove tagId to item
+      // Add or remove tagId to l
       const ut = event.updateTag;
+      assertField(ut.id, "updateTag.id");
       const tagId = bytesToHex(ut.id.raw);
       if (ut.addListingIds) {
-        const itemIds = ut.addListingIds;
+        const lIds = ut.addListingIds;
         await Promise.all(
-          itemIds.map(async (itemId: { raw: Uint8Array }) => {
-            const iid = bytesToHex(itemId.raw);
-            const item = await this.store.get(iid);
-            item.tags.push(tagId);
-            this.emit("addItemId", iid, event.requestId);
-            return await this.store.put(iid, item);
+          lIds.map(async (lId) => {
+            assertField(lId, "updateTag.addListingIds");
+            const iid = bytesToHex(lId.raw);
+            const l = await this.store.get(iid);
+            l.tags.push(tagId);
+            this.emit("addListingId", iid, requestID);
+            return await this.store.put(iid, l);
           }),
         );
         return;
-      } else if (ut.removeListingIds) {
-        const itemIds = ut.removeListingIds;
+      }
+      if (ut.removeListingIds) {
+        const lIds = ut.removeListingIds;
         await Promise.all(
-          itemIds.map(async (itemId: { raw: Uint8Array }) => {
-            const iid = bytesToHex(itemId.raw);
-            const item = await this.store.get(iid);
-            // remove `tagId` from item.tags array
-            item.tags = [
-              ...item.tags.filter((id: `0x${string}`) => id !== tagId),
-            ];
-            this.emit("removeItemId", tagId, event.requestId);
-            await this.store.put(iid, item);
+          lIds.map(async (lId) => {
+            assertField(lId, "updateTag.removeListingIds");
+            const iid = bytesToHex(lId.raw);
+            const l = await this.store.get(iid);
+            // remove `tagId` from l.tags array
+            l.tags = [...l.tags.filter((id: `0x${string}`) => id !== tagId)];
+            this.emit("removeListingId", tagId, requestID);
+            await this.store.put(iid, l);
           }),
         );
         return;
@@ -168,21 +226,22 @@ class ListingManager extends PublicObjectManager<Item> {
     }
   }
 
-  async create(item: Partial<Item>, decimals?: number) {
-    const eventId = await this.client.listing({
+  async create(l: Partial<Listing>, decimals?: number) {
+    const requestId = await this.client.listing({
       id: { raw: objectId() },
-      price: { raw: priceToUint256(item.price!, decimals) },
-      metadata: item.metadata,
-      viewState: item.viewState,
+      price: { raw: priceToUint256(l.price!, decimals) },
+      metadata: l.metadata,
+      viewState: l.viewState,
     });
     // resolves after the `listing` event has been fired in _processEvent, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve<Item>(eventId, this, "create");
+    return eventListenAndResolve<Listing>(requestId, this, "create");
   }
+
   //update argument passed here will only contain the fields to update.
-  async update(update: Partial<Item>, decimals?: number) {
+  async update(update: Partial<Listing>, decimals?: number) {
     //ui object to be passed to the network with converted network data types.
-    //we are declaring the update object as type schema.IUpdateItem since we are changing values from hex to bytes and is no longer a interface Item
-    const ui: schema.IUpdateItem = {
+    //we are declaring the update object as type schema.IUpdateListing since we are changing values from hex to bytes and is no longer a interface l
+    const ui: schema.IUpdateListing = {
       id: { raw: hexToBytes(update.id!) },
     };
     if (update.price) {
@@ -194,33 +253,33 @@ class ListingManager extends PublicObjectManager<Item> {
     if (Object.values(ListingViewState).includes(update.viewState!)) {
       ui.viewState = update.viewState;
     }
-    const eventId = await this.client.updateListing(ui);
+    const requestId = await this.client.updateListing(ui);
     // resolves after the `updateListing` event has been fired, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve<Item>(eventId, this, "update");
+    return eventListenAndResolve<Listing>(requestId, this, "update");
   }
 
-  async addItemToTag(tagId: `0x${string}`, itemId: `0x${string}`) {
-    const eventId = await this.client.updateTag({
+  async addListingToTag(tagId: `0x${string}`, lId: `0x${string}`) {
+    const requestId = await this.client.updateTag({
       id: { raw: hexToBytes(tagId) },
-      addListingIds: [{ raw: hexToBytes(itemId) }],
+      addListingIds: [{ raw: hexToBytes(lId) }],
     });
-    return eventListenAndResolve<Item>(eventId, this, "addItemId");
+    return eventListenAndResolve<Listing>(requestId, this, "addlId");
   }
 
-  async removeItemFromTag(tagId: `0x${string}`, itemId: `0x${string}`) {
-    const eventId = await this.client.updateTag({
+  async removeListingFromTag(tagId: `0x${string}`, lId: `0x${string}`) {
+    const requestId = await this.client.updateTag({
       id: { raw: hexToBytes(tagId) },
-      removeListingIds: [{ raw: hexToBytes(itemId) }],
+      removeListingIds: [{ raw: hexToBytes(lId) }],
     });
-    return eventListenAndResolve<Item>(eventId, this, "removeItemId");
+    return eventListenAndResolve<Listing>(requestId, this, "removelId");
   }
 
-  async changeInventory(itemId: `0x${string}`, diff: number) {
-    const eventId = await this.client.changeInventory({
-      id: { raw: hexToBytes(itemId) },
+  async changeInventory(lId: `0x${string}`, diff: number) {
+    const requestId = await this.client.changeInventory({
+      id: { raw: hexToBytes(lId) },
       diff,
     });
-    return eventListenAndResolve<Item>(eventId, this, "changeInventory");
+    return eventListenAndResolve<Listing>(requestId, this, "changeInventory");
   }
   get(key: `0x${string}`) {
     return this.store.get(key);
@@ -232,22 +291,20 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
     super(store, client);
   }
   //Process all manifest events. Convert bytes to hex, wait for database update, then emit event name
-  async _processEvent(event: schema.ShopEvents) {
+  async _processEvent(event: schema.ShopEvent, requestID: schema.RequestId) {
     if (event.manifest) {
       const sm = event.manifest;
+      assertField(sm.tokenId, "manifest.tokenId");
       const manifest: ShopManifest = {
         tokenId: bytesToHex(sm.tokenId.raw),
         acceptedCurrencies: [],
-        pricingCurrency: {
-          address: null,
-          chainId: null,
-        },
         payees: [],
         shippingRegions: [],
       };
       if (sm.acceptedCurrencies) {
         manifest.acceptedCurrencies = sm.acceptedCurrencies.map(
           (a: schema.IShopCurrency) => {
+            assertField(a.address, "manifest.acceptedCurrencies.address");
             return {
               address: bytesToHex(a.address.raw),
               chainId: Number(a.chainId),
@@ -256,6 +313,10 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
         );
       }
       if (sm.pricingCurrency) {
+        assertField(
+          sm.pricingCurrency.address,
+          "manifest.pricingCurrency.address",
+        );
         manifest.pricingCurrency = {
           chainId: Number(sm.pricingCurrency.chainId),
           address: bytesToHex(sm.pricingCurrency.address.raw),
@@ -263,8 +324,13 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
       }
       if (sm.payees) {
         manifest.payees = sm.payees.map((p: schema.IPayee) => {
+          assert(p.callAsContract, "manifest.payees.callAsContract");
+          assert(p.name, "manifest.payees.name");
+          assertField(p.address, "manifest.payees.address");
+          // TODO: sadly can't use ...p because of the weak type inference
           return {
-            ...p,
+            name: p.name,
+            callAsContract: p.callAsContract,
             chainId: Number(p.chainId),
             address: bytesToHex(p.address.raw),
           };
@@ -273,20 +339,47 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
       if (sm.shippingRegions) {
         manifest.shippingRegions = sm.shippingRegions.map(
           (sr: schema.IShippingRegion) => {
+            assert(
+              sr.orderPriceModifiers,
+              "manifest.shippingRegions.orderPriceModifiers",
+            );
+            assert(sr.name, "manifest.shippingRegions.name");
+            assert(sr.country, "manifest.shippingRegions.country");
+            assert(sr.postalCode, "manifest.shippingRegions.postalCode");
+            assert(sr.city, "manifest.shippingRegions.city");
             return {
-              ...sr,
+              name: sr.name,
+              country: sr.country,
+              postalCode: sr.postalCode,
+              city: sr.city,
               orderPriceModifiers: sr.orderPriceModifiers.map(
                 (pm: schema.IOrderPriceModifier) => {
+                  assert(
+                    pm.title,
+                    "manifest.shippingRegions.orderPriceModifiers.title",
+                  );
                   const m: OrderPriceModifier = {
                     title: pm.title,
                   };
                   if (pm.percentage) {
+                    assertField(
+                      pm.percentage,
+                      "manifest.shippingRegions.orderPriceModifiers.percentage",
+                    );
                     m.percentage = bytesToHex(pm.percentage.raw);
                   }
                   if (pm.absolute) {
+                    assertField(
+                      pm.absolute.diff,
+                      "manifest.shippingRegions.orderPriceModifiers.absolute.diff",
+                    );
+                    assert(
+                      pm.absolute.plusSign,
+                      "manifest.shippingRegions.orderPriceModifiers.absolute.plusSign",
+                    );
                     m.absolute = {
-                      ...pm.absolute,
-                      diff: bytesToHex(pm.absolute?.diff.raw),
+                      plusSign: pm.absolute.plusSign,
+                      diff: bytesToHex(pm.absolute.diff.raw),
                     };
                   }
                   return m;
@@ -298,12 +391,16 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
       }
 
       await this.store.put("shopManifest", manifest);
-      this.emit("create", manifest, event.requestId);
+      this.emit("create", manifest, requestID);
       return;
     } else if (event.updateManifest) {
       const um = event.updateManifest;
       const manifest = await this.store.get("shopManifest");
       if (um.setPricingCurrency) {
+        assertField(
+          um.setPricingCurrency.address,
+          "manifest.setPricingCurrency.address",
+        );
         manifest.pricingCurrency = {
           chainId: Number(um.setPricingCurrency.chainId),
           address: bytesToHex(um.setPricingCurrency.address.raw),
@@ -312,6 +409,7 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
       if (um.addAcceptedCurrencies) {
         const currencies = [...manifest.acceptedCurrencies];
         um.addAcceptedCurrencies.forEach((a: schema.IShopCurrency) => {
+          assertField(a.address, "manifest.addAcceptedCurrencies.address");
           currencies.push({
             address: bytesToHex(a.address.raw),
             chainId: Number(a.chainId),
@@ -322,43 +420,87 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
       if (um.removeAcceptedCurrencies) {
         let filtered = [...manifest.acceptedCurrencies!];
         for (const rm of um.removeAcceptedCurrencies) {
-          filtered = manifest.acceptedCurrencies!.filter(
-            (cur) =>
+          filtered = manifest.acceptedCurrencies!.filter((cur, idx) => {
+            assertField(
+              rm.address,
+              `manifest.removeAcceptedCurrencies[${idx}].address`,
+            );
+            return (
               cur.address !== bytesToHex(rm.address.raw) ||
-              cur.chainId !== rm.chainId,
-          );
+              cur.chainId !== Number(rm.chainId)
+            );
+          });
         }
 
         manifest.acceptedCurrencies = filtered;
       }
       if (um.addPayee) {
+        assert(um.addPayee.callAsContract, "manifest.addPayee.callAsContract");
+        assert(um.addPayee.name, "manifest.addPayee.name");
+        assertField(um.addPayee.address, "manifest.addPayee.address");
         manifest.payees.push({
-          ...um.addPayee,
+          name: um.addPayee.name,
+          callAsContract: um.addPayee.callAsContract,
           chainId: Number(um.addPayee.chainId),
           address: bytesToHex(um.addPayee.address.raw),
         });
       }
       if (um.removePayee) {
-        manifest.payees = manifest.payees.filter(
-          (p) => p.address !== bytesToHex(um.removePayee.address.raw),
-        );
+        const ur = um.removePayee;
+        assertField(ur.address, "manifest.removePayee.address");
+        assert(ur.chainId, "manifest.removePayee.chainId");
+        const wantAddr = bytesToHex(ur.address!.raw!);
+        manifest.payees = manifest.payees.filter((p) => {
+          // TODO: this doesn't complain about ur.chainId being Long sometimes!
+          const isEqual =
+            p.address.toLowerCase() === wantAddr.toLowerCase() &&
+            p.chainId === Number(ur.chainId);
+          return !isEqual;
+        });
       }
       if (um.addShippingRegions) {
         um.addShippingRegions.forEach((sr: schema.IShippingRegion) => {
+          assert(
+            sr.orderPriceModifiers,
+            "manifest.addShippingRegions.orderPriceModifiers",
+          );
+          assert(sr.name, "manifest.addShippingRegions.name");
+          assert(sr.country, "manifest.addShippingRegions.country");
+          assert(sr.postalCode, "manifest.addShippingRegions.postalCode");
+          assert(sr.city, "manifest.addShippingRegions.city");
           manifest.shippingRegions.push({
-            ...sr,
+            name: sr.name,
+            country: sr.country,
+            postalCode: sr.postalCode,
+            city: sr.city,
             orderPriceModifiers: sr.orderPriceModifiers.map(
               (pm: schema.IOrderPriceModifier) => {
+                assert(
+                  pm.title,
+                  "manifest.addShippingRegions.orderPriceModifiers.title",
+                );
                 const m: OrderPriceModifier = {
                   title: pm.title,
                 };
                 if (pm.percentage) {
+                  assertField(
+                    pm.percentage,
+                    "manifest.addShippingRegions.orderPriceModifiers.percentage",
+                  );
                   m.percentage = bytesToHex(pm.percentage.raw);
                 }
                 if (pm.absolute) {
+                  assertField(
+                    pm.absolute.diff,
+                    "manifest.addShippingRegions.orderPriceModifiers.absolute.diff",
+                  );
+                  assert(
+                    pm.absolute.plusSign,
+                    "manifest.addShippingRegions.orderPriceModifiers.absolute.plusSign",
+                  );
                   m.absolute = {
-                    ...pm.absolute,
-                    diff: bytesToHex(pm.absolute?.diff.raw),
+                    plusSign: pm.absolute.plusSign,
+                    diff: bytesToHex(pm.absolute.diff.raw),
                   };
                 }
                 return m;
@@ -368,73 +510,125 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest> {
         });
       }
       await this.store.put("shopManifest", manifest);
-      this.emit("update", manifest, event.requestId);
-
+      this.emit("update", manifest, requestID);
       return;
     }
   }
-  async create(manifest: CreateShopManifest, shopId: `0x${string}`) {
-    const m: schema.IShopManifest = manifest;
-    if (manifest.pricingCurrency) {
-      m.pricingCurrency = addressToUint256(
-        manifest.pricingCurrency as ShopCurrencies,
-      );
-    }
-    if (manifest.acceptedCurrencies) {
-      m.acceptedCurrencies = addressToUint256(manifest.acceptedCurrencies);
-    }
-    if (manifest.payees) {
-      m.payees = addressToUint256(manifest.payees);
-    }
-    if (manifest.shippingRegions) {
-      m.shippingRegions = manifest.shippingRegions.map((sr) => {
-        return {
-          ...sr,
-          orderPriceModifiers: sr.orderPriceModifiers.map(
-            (pm: OrderPriceModifier) => {
-              const priceMod: schema.IOrderPriceModifier = {
-                title: pm.title,
-              };
-              if (pm.percentage) {
-                priceMod.percentage = { raw: hexToBytes(pm.percentage) };
-              }
-              if (pm.absolute) {
-                priceMod.absolute = {
-                  ...pm.absolute,
-                  diff: { raw: hexToBytes(pm.absolute.diff) },
-                };
-              }
-              return priceMod;
-            },
-          ),
-        };
-      });
-    }
 
-    const eventId = await this.client.shopManifest(m, shopId);
+  async create(manifest: CreateShopManifest, shopId: `0x${string}`) {
+    const m: schema.Manifest = schema.Manifest.create({});
+    assert(manifest.pricingCurrency, "manifest.pricingCurrency is required");
+    m.pricingCurrency = addressToUint256(
+      manifest.pricingCurrency as ShopCurrencies,
+    );
+
+    assert(
+      manifest.acceptedCurrencies,
+      "manifest.acceptedCurrencies is required",
+    );
+    m.acceptedCurrencies = addressesToUint256(manifest.acceptedCurrencies);
+
+    assert(manifest.payees, "manifest.payees is required");
+    m.payees = addressesToUint256(manifest.payees);
+
+    assert(manifest.shippingRegions, "manifest.shippingRegions is required");
+    m.shippingRegions = manifest.shippingRegions.map((sr) => {
+      assert(sr.name, "shippingRegion.name is required");
+      assert(sr.country, "shippingRegion.country is required");
+      assert(sr.postalCode, "shippingRegion.postalCode is required");
+      assert(sr.city, "shippingRegion.city is required");
+      assert(
+        sr.orderPriceModifiers,
+        "shippingRegion.orderPriceModifiers is required",
+      );
+      return {
+        ...sr,
+        orderPriceModifiers: sr.orderPriceModifiers.map(
+          (pm: OrderPriceModifier) => {
+            assert(pm.title, "orderPriceModifier.title is required");
+            const priceMod: schema.IOrderPriceModifier = {
+              title: pm.title,
+            };
+            if (pm.percentage) {
+              assert(
+                pm.percentage,
+                "orderPriceModifier.percentage is required",
+              );
+              priceMod.percentage = { raw: hexToBytes(pm.percentage) };
+            } else if (pm.absolute) {
+              assert(pm.absolute, "orderPriceModifier.absolute is required");
+              assert(
+                pm.absolute.plusSign !== undefined,
+                "orderPriceModifier.absolute.plusSign is required",
+              );
+              assert(
+                pm.absolute.diff,
+                "orderPriceModifier.absolute.diff is required",
+              );
+              priceMod.absolute = {
+                ...pm.absolute,
+                diff: { raw: hexToBytes(pm.absolute.diff) },
+              };
+            } else {
+              throw new Error(
+                "Either percentage or absolute must be provided for orderPriceModifier",
+              );
+            }
+            return priceMod;
+          },
+        ),
+      };
+    });
+
+    const requestId = await this.client.shopManifest(m, shopId);
     // resolves after the `createShopManifest` event has been fired above in _processEvent, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve<ShopManifest>(eventId, this, "create");
+    return eventListenAndResolve<ShopManifest>(requestId, this, "create");
   }
 
   async update(um: UpdateShopManifest) {
+    const update: schema.IUpdateManifest = {};
     //Convert address to bytes before sending to client.
     //We have to explicitly declare the update object as type schema.IUpdateShopManifest since we are changing hex to bytes and is no longer a type ShopManifest
-    const updateShopManifest: schema.IUpdateShopManifest = um;
-    for (const [key, _] of Object.entries(updateShopManifest)) {
-      const keys = [
-        "addAcceptedCurrencies",
-        "removeAcceptedCurrencies",
-        "setPricingCurrency",
-        "addPayee",
-        "removePayee",
-      ];
-      if (keys.includes(key)) {
-        updateShopManifest[key] = addressToUint256(updateShopManifest[key]);
-      }
+    if (um.addPayee) {
+      update.addPayee = addressToUint256(um.addPayee);
     }
-    // resolves after the `updateShopManifest` event has been fired above in _processEvent, which happens after the relay accepts the update and has written to the database.
-    const eventId = await this.client.updateShopManifest(updateShopManifest);
-    return eventListenAndResolve<ShopManifest>(eventId, this, "update");
+    if (um.removePayee) {
+      update.removePayee = addressToUint256(um.removePayee);
+    }
+    if (um.setPricingCurrency) {
+      update.setPricingCurrency = addressToUint256(um.setPricingCurrency);
+    }
+    if (um.addAcceptedCurrencies) {
+      update.addAcceptedCurrencies = addressesToUint256(
+        um.addAcceptedCurrencies,
+      );
+    }
+    if (um.removeAcceptedCurrencies) {
+      update.removeAcceptedCurrencies = addressesToUint256(
+        um.removeAcceptedCurrencies,
+      );
+    }
+    if (um.addShippingRegions) {
+      update.addShippingRegions = um.addShippingRegions.map((sr) => ({
+        ...sr,
+        orderPriceModifiers: sr.orderPriceModifiers.map((pm) => ({
+          ...pm,
+          absolute: pm.absolute
+            ? {
+                ...pm.absolute,
+                diff: { raw: hexToBytes(pm.absolute.diff) },
+              }
+            : undefined,
+          percentage: pm.percentage
+            ? { raw: hexToBytes(pm.percentage) }
+            : undefined,
+        })),
+      }));
+    }
+
+    // resolves after the `update` event has been fired above in _processEvent, which happens after the relay accepts the update and has written to the database.
+    const requestId = await this.client.updateShopManifest(update);
+    return eventListenAndResolve<ShopManifest>(requestId, this, "update");
   }
 
   get() {
@@ -446,9 +640,15 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
     super(store, client);
   }
   //Process all Order events. Convert bytes to hex, waits for database update, then emits event
-  async _processEvent(event: schema.ShopEvents): Promise<void> {
+  async _processEvent(
+    event: schema.ShopEvent,
+    requestID: schema.RequestId,
+  ): Promise<void> {
     if (event.createOrder) {
+      // console.log("createOrder");
       const co = event.createOrder;
+      // console.log(co);
+      assertField(co.id, "createOrder.id");
       const id = bytesToHex(co.id.raw);
       const o = {
         id: id,
@@ -457,35 +657,49 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       };
       await this.store.put(id, o);
       await storeOrdersByStatus(id, this.store, OrderState.STATE_OPEN);
-      this.emit("create", o, event.requestId);
+      this.emit("create", o, requestID);
       return;
     } else if (event.updateOrder) {
-      const uo: schema.IUpdateOrder = event.updateOrder;
+      // console.log("updateOrder");
+      const uo = event.updateOrder;
+      // console.log(uo);
+      assertField(uo.id, "updateOrder.id");
       const id = bytesToHex(uo.id.raw);
       const order = (await this.store.get(id)) as Order;
       if (uo.changeItems) {
         const ci = uo.changeItems;
         if (ci.adds) {
-          ci.adds.map((orderItem: schema.IOrderedItem) => {
-            const listingId = bytesToHex(orderItem.listingId.raw);
-            //Check if item is already selected. If it is, add quantity to already selected quantity.
-            if (order.items[listingId]) {
-              order.items[listingId] =
-                orderItem.quantity + order.items[listingId];
+          ci.adds.map((orderl: schema.IOrderedItem) => {
+            assertField(
+              orderl.listingId,
+              "updateOrder.changeItems.adds.listingId",
+            );
+            assert(orderl.quantity, "updateOrder.changeItems.adds.quantity");
+            const listingId = bytesToHex(orderl.listingId.raw);
+            //Check if l is already selected. If it is, add quantity to already selected quantity.
+            const currentQuantity = order.items[listingId] ?? 0;
+            if (currentQuantity) {
+              order.items[listingId] = (orderl.quantity ?? 0) + currentQuantity;
             } else {
-              order.items[listingId] = orderItem.quantity;
+              order.items[listingId] = orderl.quantity ?? 0;
             }
           });
         }
         if (ci.removes) {
-          ci.removes.map((orderItem: schema.IOrderedItem) => {
-            const listingId = bytesToHex(orderItem.listingId.raw);
-            order.items[listingId] =
-              order.items[listingId] - orderItem.quantity;
+          ci.removes.map((orderl: schema.IOrderedItem) => {
+            assertField(
+              orderl.listingId,
+              "updateOrder.changeItems.removes.listingId",
+            );
+            const listingId = bytesToHex(orderl.listingId.raw);
+            const currentQuantity = order.items[listingId] ?? 0;
+            if (currentQuantity) {
+              order.items[listingId] = currentQuantity - (orderl.quantity ?? 0);
+            }
           });
         }
         await this.store.put(id, order);
-        this.emit("changeItems", order, event.requestId);
+        this.emit("changeItems", order, requestID);
         return;
       } else if (uo.cancel) {
         const currentState = order.status;
@@ -497,7 +711,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         let orders = (await this.store.get(currentState)) as OrdersByStatus;
         orders = orders.filter((oId) => oId !== id);
         await this.store.put(currentState, orders);
-        this.emit("orderCanceled", order, event.requestId);
+        this.emit("orderCanceled", order, requestID);
         return;
       } else if (uo.setInvoiceAddress) {
         const update = uo.setInvoiceAddress;
@@ -535,7 +749,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         }
         order.invoiceAddress = sd;
         await this.store.put(id, order);
-        this.emit("invoiceAddress", order, event.requestId);
+        this.emit("invoiceAddress", order, requestID);
         return;
       } else if (uo.setShippingAddress) {
         const update = uo.setShippingAddress;
@@ -574,7 +788,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         }
         order.shippingDetails = sd;
         await this.store.put(id, order);
-        this.emit("shippingAddress", order, event.requestId);
+        this.emit("shippingAddress", order, requestID);
         return;
       } else if (uo.commitItems) {
         const currentState = order.status;
@@ -585,28 +799,50 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         let orders = (await this.store.get(currentState)) as OrdersByStatus;
         orders = orders.filter((oId) => oId !== id);
         await this.store.put(currentState, orders);
-        this.emit("commitItems", order, event.requestId);
+        this.emit("commitItems", order, requestID);
         return;
       } else if (uo.choosePayment) {
-        const { chainId, address } = uo.choosePayment.currency;
-        const { payee } = uo.choosePayment;
+        const cp = uo.choosePayment;
+        assert(
+          cp.currency?.chainId,
+          "updateOrder.choosePayment.currency.chainId",
+        );
+        assertField(
+          cp.currency?.address,
+          "updateOrder.choosePayment.currency.address",
+        );
+        assert(cp.payee, "updateOrder.choosePayment.payee");
+        assert(cp.payee.name, "updateOrder.choosePayment.payee.name");
+        assert(cp.payee.chainId, "updateOrder.choosePayment.payee.chainId");
+        assertField(
+          cp.payee.address,
+          "updateOrder.choosePayment.payee.address",
+        );
+        const { chainId, address } = cp.currency;
         const choosePayment = {
           currency: {
             chainId: Number(chainId),
             address: bytesToHex(address.raw),
           },
           payee: {
-            name: payee.name,
-            address: bytesToHex(payee.address.raw),
-            chainId: Number(payee.chainId),
+            name: cp.payee.name,
+            address: bytesToHex(cp.payee.address.raw),
+            chainId: Number(cp.payee.chainId),
           },
         };
         order.choosePayment = choosePayment;
         await this.store.put(id, order);
 
-        this.emit("choosePayment", order, event.requestId);
+        this.emit("choosePayment", order, requestID);
       } else if (uo.setPaymentDetails) {
         const pd = uo.setPaymentDetails;
+        assertField(pd.paymentId, "updateOrder.setPaymentDetails.paymentId");
+        assertField(pd.total, "updateOrder.setPaymentDetails.total");
+        assertField(
+          pd.shopSignature,
+          "updateOrder.setPaymentDetails.shopSignature",
+        );
+        assert(pd.ttl, "updateOrder.setPaymentDetails.ttl");
         const paymentDetails = {
           paymentId: bytesToHex(pd.paymentId.raw),
           total: fromBytes(pd.total.raw, "bigint").toString(),
@@ -615,10 +851,12 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         };
         order.paymentDetails = paymentDetails;
         await this.store.put(id, order);
-        this.emit("paymentDetails", order, event.requestId);
+        this.emit("paymentDetails", order, requestID);
       } else if (uo.addPaymentTx) {
+        assertField(uo.addPaymentTx.txHash, "updateOrder.addPaymentTx.txHash");
         const currentState = order.status;
         order.status = OrderState.STATE_PAYMENT_TX;
+        // TODO: might want to change to blockHash
         order.txHash = bytesToHex(uo.addPaymentTx.txHash.raw);
         await this.store.put(id, order);
         await storeOrdersByStatus(id, this.store, OrderState.STATE_PAYMENT_TX);
@@ -626,7 +864,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         let orders = (await this.store.get(currentState)) as OrdersByStatus;
         orders = orders.filter((oId) => oId !== id);
         await this.store.put(currentState, orders);
-        this.emit("addPaymentTx", order);
+        this.emit("addPaymentTx", order, requestID);
         return;
       }
     }
@@ -650,33 +888,35 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
   }
 
   async create() {
-    const eventId = await this.client.createOrder({ id: { raw: objectId() } });
+    const requestId = await this.client.createOrder({
+      id: { raw: objectId() },
+    });
     // resolves after the `createOrder` event has been fired in processEvent, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve<Order>(eventId, this, "create");
+    return eventListenAndResolve<Order>(requestId, this, "create");
   }
 
   async addsItems(
     orderId: `0x${string}`,
-    itemId: `0x${string}`,
+    lId: `0x${string}`,
     quantity: number,
   ) {
-    const eventId = await this.client.updateOrder({
+    const requestId = await this.client.updateOrder({
       id: { raw: hexToBytes(orderId) },
       changeItems: {
-        adds: [{ listingId: { raw: hexToBytes(itemId) }, quantity }],
+        adds: [{ listingId: { raw: hexToBytes(lId) }, quantity }],
       },
     });
     // resolves after the `changeItems` event has been fired, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve<Order>(eventId, this, "changeItems");
+    return eventListenAndResolve<Order>(requestId, this, "changeItems");
   }
-  async removesItems(
+  async removeItems(
     orderId: `0x${string}`,
-    items: { listingId: `0x${string}`; quantity: number }[],
+    ls: { listingId: `0x${string}`; quantity: number }[],
   ) {
-    const eventId = await this.client.updateOrder({
+    const requestId = await this.client.updateOrder({
       id: { raw: hexToBytes(orderId) },
       changeItems: {
-        removes: items.map((i) => {
+        removes: ls.map((i) => {
           return {
             listingId: { raw: hexToBytes(i.listingId) },
             quantity: i.quantity,
@@ -685,52 +925,52 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       },
     });
     // resolves after the `changeItems` event has been fired, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve<Order>(eventId, this, "changeItems");
+    return eventListenAndResolve<Order>(requestId, this, "changeItems");
   }
   async updateShippingDetails(
     orderId: `0x${string}`,
     update: Partial<ShippingDetails>,
   ) {
-    const eventId = await this.client.updateOrder({
+    const requestId = await this.client.updateOrder({
       id: { raw: hexToBytes(orderId) },
       setShippingAddress: update,
     });
-    return eventListenAndResolve<Order>(eventId, this, "shippingAddress");
+    return eventListenAndResolve<Order>(requestId, this, "shippingAddress");
   }
   async updateInvoiceAddress(
     orderId: `0x${string}`,
     update: Partial<ShippingDetails>,
   ) {
-    const eventId = await this.client.updateOrder({
+    const requestId = await this.client.updateOrder({
       id: { raw: hexToBytes(orderId) },
       setInvoiceAddress: update,
     });
-    return eventListenAndResolve<Order>(eventId, this, "invoiceAddress");
+    return eventListenAndResolve<Order>(requestId, this, "invoiceAddress");
   }
 
   async cancel(orderId: `0x${string}`, timestamp: number = 0) {
-    const eventId = await this.client.updateOrder({
+    const requestId = await this.client.updateOrder({
       id: { raw: hexToBytes(orderId) },
       cancel: {},
     });
-    return eventListenAndResolve<Order>(eventId, this, "orderCanceled");
+    return eventListenAndResolve<Order>(requestId, this, "orderCanceled");
   }
   async choosePayment(orderId: `0x${string}`, payment: ChoosePayment) {
-    const eventId = await this.client.updateOrder({
+    const requestId = await this.client.updateOrder({
       id: { raw: hexToBytes(orderId) },
       choosePayment: {
         currency: addressToUint256(payment.currency),
         payee: addressToUint256(payment.payee),
       },
     });
-    return eventListenAndResolve<Order>(eventId, this, "choosePayment");
+    return eventListenAndResolve<Order>(requestId, this, "choosePayment");
   }
   async commit(orderId: `0x${string}`) {
-    const eventId = await this.client.updateOrder({
+    const requestId = await this.client.updateOrder({
       id: { raw: hexToBytes(orderId) },
       commitItems: {},
     });
-    return eventListenAndResolve<Order>(eventId, this, "commitItems");
+    return eventListenAndResolve<Order>(requestId, this, "commitItems");
   }
 }
 class TagManager extends PublicObjectManager<Tag> {
@@ -738,26 +978,42 @@ class TagManager extends PublicObjectManager<Tag> {
     super(store, client);
   }
 
-  async _processEvent(event: schema.ShopEvents): Promise<void> {
+  async _processEvent(
+    event: schema.ShopEvent,
+    requestID: schema.RequestId,
+  ): Promise<void> {
     if (event.tag) {
       const ct = event.tag;
+      assert(ct.name, "tag.name");
+      assertField(ct.id, "tag.id");
       const id = bytesToHex(ct.id.raw);
       const tag = {
         id: id,
         name: ct.name,
       };
       await this.store.put(id, tag);
-      this.emit("create", tag, event.requestId);
+      this.emit("create", tag, requestID);
       return;
+    }
+    if (event.updateTag) {
+      const ut = event.updateTag;
+      assertField(ut.id, "updateTag.id");
+      const id = bytesToHex(ut.id.raw);
+      const tag = await this.store.get(id);
+      if (ut.rename) {
+        tag.name = ut.rename;
+      }
+      await this.store.put(id, tag);
+      this.emit("update", tag, requestID);
     }
   }
   async create(name: string) {
-    const eventId = await this.client.tag({
+    const requestId = await this.client.tag({
       id: { raw: objectId() },
       name,
     });
     // resolves after the `tag` event has been fired, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve<Tag>(eventId, this, "create");
+    return eventListenAndResolve<Tag>(requestId, this, "create");
   }
 
   get(key: `0x${string}`) {
@@ -770,28 +1026,21 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
     super(store, client);
   }
 
-  async _processEvent(event: schema.ShopEvents): Promise<void> {
+  async _processEvent(
+    event: schema.ShopEvent,
+    requestID: schema.RequestId,
+  ): Promise<void> {
     if (event.account) {
       const a = event.account;
-      let publicKeys: `0x${string}`[] = [];
+      assertField(
+        a.enrollKeycard?.keycardPubkey,
+        "account.enrollKeycard.keycardPubkey",
+      );
       const addressFromPubKey = Address.fromPublicKey(
         a.enrollKeycard.keycardPubkey.raw,
       ).toString() as `0x${string}`;
-      try {
-        publicKeys = await this.store.get("cardPublicKey");
-        if (!publicKeys.includes(addressFromPubKey)) {
-          publicKeys.push(addressFromPubKey);
-        }
-      } catch (error) {
-        const e = error as IError;
-        if (e.notFound) {
-          publicKeys.push(addressFromPubKey);
-        } else {
-          throw new Error(e.code);
-        }
-      }
-      await this.store.put("cardPublicKey", publicKeys);
-      this.emit("newKeyCard", addressFromPubKey);
+      await this.addAddress(addressFromPubKey);
+      this.emit("newKeyCard", addressFromPubKey, requestID);
       return;
     }
   }
@@ -799,18 +1048,22 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
   get() {
     return this.store.get("cardPublicKey");
   }
+
   async verify(address: `0x${string}`) {
     const keys = await this.store.get("cardPublicKey");
-    if (keys.includes(address)) {
+    if (keys.includes(address.toLowerCase() as `0x${string}`)) {
       return;
     } else throw new Error(`Unverified Event: verifying address ${address}`);
   }
+
   async addAddress(key: `0x${string}`) {
     const k = key.toLowerCase() as `0x${string}`;
     let publicKeys: `0x${string}`[] = [];
     try {
       publicKeys = await this.store.get("cardPublicKey");
-      publicKeys.push(k);
+      if (!publicKeys.includes(k)) {
+        publicKeys.push(k);
+      }
     } catch (error) {
       const e = error as IError;
       if (e.notFound) {
@@ -826,7 +1079,7 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
 // It also handles the states persistence, retrieval and updates
 
 export class StateManager {
-  readonly items;
+  readonly listings;
   readonly tags;
   readonly manifest;
   readonly orders;
@@ -834,10 +1087,10 @@ export class StateManager {
   readonly shopId;
   readonly publicClient;
   readonly seqNo;
-  eventStreamProcessing;
+  readonly eventStreamProcessing: Promise<void>;
   constructor(
     public client: IRelayClient,
-    listingStore: Store<Item>,
+    listingStore: Store<Listing>,
     tagStore: Store<Tag>,
     shopManifestStore: Store<ShopManifest>,
     orderStore: Store<Order | OrdersByStatus>,
@@ -845,7 +1098,7 @@ export class StateManager {
     shopId: `0x${string}`,
     publicClient: PublicClient,
   ) {
-    this.items = new ListingManager(listingStore, client);
+    this.listings = new ListingManager(listingStore, client);
     this.tags = new TagManager(tagStore, client);
     this.manifest = new ShopManifestManager(shopManifestStore, client);
     this.orders = new OrderManager(orderStore, client);
@@ -855,14 +1108,11 @@ export class StateManager {
     this.seqNo = new SeqNoEmitter();
 
     this.eventStreamProcessing = this.#start();
-    this.eventStreamProcessing.catch((err) => {
-      console.log("Error something bad happened in the stream", err);
-    });
   }
 
   async #start() {
     const storeObjects = [
-      this.items,
+      this.listings,
       this.tags,
       this.manifest,
       this.orders,
@@ -873,6 +1123,7 @@ export class StateManager {
     //When we inititally create a shop, we are saving the relay tokenId => shopId.
     //Here, we are retrieving all the relay addresses associated with the shopId and saving them to keycards store.
     //Since some shopEvents are signed by a relay, we need to include these addresses when verifying the event signer.
+    // TODO: i think this should be moved outside of the event stream handling and just call addAddress on the keyCardManager
     const count = (await this.publicClient.readContract({
       address: abi.addresses.ShopReg as `0x${string}`,
       abi: abi.ShopReg,
@@ -896,16 +1147,24 @@ export class StateManager {
         await this.keycards.addAddress(ownerAdd);
       }
     }
+
     //Each event will go through all the storeObjects and update the relevant stores.
-    for await (const event of stream) {
-      if (event.event.seqNo) {
-        this.seqNo.emit("seqNo", event.event.seqNo);
+    let event: EventWithRecoveredSigner;
+    for await (event of stream) {
+      assert(event.seqNo, "event.seqNo missing");
+      assert(event.signer, "event.signer missing");
+      // console.log();
+      // console.log();
+      // console.log({seqNo: event.seqNo.toString(), requestId: event.requestId});
+      if (event.seqNo) {
+        this.seqNo.emit("seqNo", event.seqNo);
       }
       //fromPublicKey in KeyCard manager returns the address from public key as all lowercase.
-      await this.keycards.verify(event.signer.toLowerCase());
+      await this.keycards.verify(event.signer);
       for (const storeObject of storeObjects) {
-        await storeObject._processEvent(event.event);
+        await storeObject._processEvent(event.event, event.requestId);
       }
+      // console.log({seqNo: event.seqNo.toString(), requestId: event.requestId});
     }
   }
 }

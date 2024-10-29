@@ -12,6 +12,29 @@ import {
   formatUnits,
 } from "viem";
 
+// Type predicate to narrow undefined | null | T to T
+function isDefined<T>(value: T | undefined | null): value is T {
+  return value !== undefined && value !== null;
+}
+
+// Custom assert function for protobuf optional fields
+export function assert(value: unknown, message: string): asserts value {
+  if (!isDefined(value)) {
+      throw new Error(message);
+  }
+}
+
+// For nested optional fields, you can create a more specific version
+export function assertField<T>(
+  value: { raw?: T | null } | undefined | null, 
+  fieldName: string
+): asserts value is { raw: T } {
+  if (!isDefined(value) || !isDefined(value.raw)) {
+      throw new Error(`${fieldName} is required`);
+  }
+}
+
+
 export function objectId() {
   return randomBytes(8);
 }
@@ -55,30 +78,37 @@ export function priceToUint256(priceString: string, decimals = 18) {
   // Convert bigint to 32 byte directly
   return numberToBytes(priceInSmallestUnit, { size: 32 });
 }
+
 //Since we are currently storing price as a string, convert string to bigint, then calculate the decimal point.
 export function formatUnitsFromString(price: string, decimal: number) {
   return formatUnits(BigInt(price), decimal);
 }
+
 interface AdressObj {
   address: `0x${string}`;
   chainId: number;
   callAsContract?: boolean;
   name?: string;
 }
-export function addressToUint256(addressObject: AdressObj | AdressObj[]) {
-  if (Array.isArray(addressObject)) {
-    return addressObject.map((c) => {
-      return {
-        ...c,
-        address: { raw: hexToBytes(c.address) },
-      };
-    });
-  } else {
-    return {
-      ...addressObject,
-      address: { raw: hexToBytes(addressObject.address) },
-    };
+
+// TODO: what does this do?
+export function addressToUint256(addressObject: AdressObj) {
+  return {
+    ...addressObject,
+    address: { raw: hexToBytes(addressObject.address) },
   }
+}
+
+export function addressesToUint256(addressObject: AdressObj[]) {
+  if (!Array.isArray(addressObject)) {
+    throw new Error("addressesToUint256 expects an array of AdressObj");
+  }
+  return addressObject.map((c) => {
+    return {
+      ...c,
+      address: { raw: hexToBytes(c.address) },
+    };
+  });
 }
 
 export const zeroAddress: `0x${string}` =

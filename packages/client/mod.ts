@@ -16,7 +16,6 @@ import { hexToBase64, decodeBufferToString } from "@massmarket/utils";
 
 import { ReadableEventStream } from "./stream.ts";
 
-
 export type RelayEndpoint = {
   url: URL; // the websocket URL to talk to
   tokenId: `0x${string}`;
@@ -53,13 +52,6 @@ export class RelayClient extends EventEmitter {
     return this.eventStream.stream;
   }
 
-  #handlePingRequest(ping: schema.Envelope) {
-    // relay ends connection if ping is not responded to 3 times.
-    this.encodeAndSendNoWait({
-      requestId: ping.requestId,
-      response: {},
-    });
-  }
 
   // like encodeAndSend but doesn't wait for a response.
   encodeAndSendNoWait(envelope: schema.IEnvelope = {}): schema.RequestId {
@@ -93,9 +85,7 @@ export class RelayClient extends EventEmitter {
     });
   }
 
-  async sendShopEvent(
-    shopEvent: schema.IShopEvent,
-  ): Promise<schema.RequestId> {
+  async sendShopEvent(shopEvent: schema.IShopEvent): Promise<schema.RequestId> {
     await this.connect();
 
     // prepare for signing
@@ -107,7 +97,7 @@ export class RelayClient extends EventEmitter {
     const sig = await this.keyCardWallet.signMessage({
       message: { raw: shopEventBytes },
     });
-    
+
     const signedEvent = {
       signature: { raw: hexToBytes(sig) },
       event: {
@@ -194,9 +184,14 @@ export class RelayClient extends EventEmitter {
         this.#handlePingRequest(envelope);
         break;
       case EnvelopMessageTypes.SubscriptionPushRequest:
-        assert(envelope.subscriptionPushRequest, "subscriptionPushRequest is required");
+        assert(
+          envelope.subscriptionPushRequest,
+          "subscriptionPushRequest is required",
+        );
         {
-          const events = envelope.subscriptionPushRequest.events!.map((evt) => schema.SubscriptionPushRequest.SequencedEvent.create(evt));
+          const events = envelope.subscriptionPushRequest.events!.map((evt) =>
+            schema.SubscriptionPushRequest.SequencedEvent.create(evt),
+          );
           this.eventStream.enqueue({
             requestId: schema.RequestId.create(envelope.requestId),
             events,
@@ -207,6 +202,16 @@ export class RelayClient extends EventEmitter {
         this.emit(envelope.requestId.raw.toString(), envelope);
     }
   }
+
+  #handlePingRequest(ping: schema.Envelope) {
+    // relay ends connection if ping is not responded to 3 times.
+    this.encodeAndSendNoWait({
+      requestId: ping.requestId,
+      response: {},
+    });
+  }
+
+
   async sendMerchantSubscriptionRequest(shopId: `0x${string}`, seqNo = 0) {
     const filters = [
       { objectType: schema.ObjectType.OBJECT_TYPE_LISTING },
@@ -263,8 +268,9 @@ export class RelayClient extends EventEmitter {
     assert(response?.payload, "response.payload is required");
     this.subscriptionId = response.payload;
   }
-  cancelSubscriptionRequest() {
-    this.encodeAndSend({
+
+  async cancelSubscriptionRequest() {
+    await this.encodeAndSend({
       subscriptionCancelRequest: {
         subscriptionId: this.subscriptionId,
       },
@@ -315,7 +321,7 @@ export class RelayClient extends EventEmitter {
       } else {
         this.connection.addEventListener("open", (evt: Event) => {
           // TODO: unbox event to concrete values
-          resolve(evt)
+          resolve(evt);
         });
       }
     });
@@ -382,9 +388,9 @@ export class RelayClient extends EventEmitter {
       getBlobUploadUrlRequest: {},
     });
     assert(envelope.response, "envelope.response is required");
- 
+
     if (envelope.response.error) {
-      const {code, message} = envelope.response.error
+      const { code, message } = envelope.response.error;
       throw new Error(
         `Failed to get blob upload URL - code: ${code} message: ${message}`,
       );

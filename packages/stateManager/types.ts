@@ -1,4 +1,5 @@
 import { type RelayClient } from "@massmarket/client";
+
 /**
  * Define the Store Objects that are reified from the event stream
  */
@@ -41,7 +42,7 @@ export interface Metadata {
   description: string;
   images: string[];
 }
-export interface Item {
+export interface Listing {
   id: `0x${string}`;
   price: string;
   metadata: Metadata;
@@ -121,9 +122,9 @@ export interface OrderPriceModifier {
 }
 //This interface is only for create manifest.
 export interface CreateShopManifest {
-  pricingCurrency: {
-    address: `0x${string}` | null;
-    chainId: number | null;
+  pricingCurrency?: {
+    address: `0x${string}`;
+    chainId: number;
   };
   acceptedCurrencies: ShopCurrencies[];
   payees: Payee[];
@@ -143,8 +144,8 @@ export type ShopManifest = CreateShopManifest & {
 //These UpdateShopManifest properties are only for updating the manifest and not properties on the store state.
 //i.e. payees in type ShopManifest stores the actual state, while these update properties are for the update client request.
 export interface UpdateShopManifest {
-  removePayee?: Payee;
   addPayee?: Payee;
+  removePayee?: Payee;
   addAcceptedCurrencies?: ShopCurrencies[];
   removeAcceptedCurrencies?: ShopCurrencies[];
   setPricingCurrency?: ShopCurrencies | null;
@@ -152,7 +153,7 @@ export interface UpdateShopManifest {
   removeShippingRegions?: string[];
 }
 export type ShopObjectTypes =
-  | Item
+  | Listing
   | Tag
   | KeyCard
   | Order

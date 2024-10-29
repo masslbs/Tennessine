@@ -16,10 +16,12 @@ type SequencedEventsWithRequestId = {
 };
 
 import Long from "npm:long";
+import { assertField } from "../utils/mod.ts";
 type EventWithRecoveredSigner = {
   event: schema.ShopEvent;
   seqNo: number | Long; // TODO: i dont like this
   signer: `0x${string}`;
+  requestId: schema.RequestId;
 };
 
 /**
@@ -29,7 +31,7 @@ type EventWithRecoveredSigner = {
 export class ReadableEventStream {
   public stream;
   // public requestId: Uint8Array | null = null;
-  private controller!: ReadableStreamDefaultController<EventWithRecoveredSigner>;
+  // private controller!: ReadableStreamDefaultController<EventWithRecoveredSigner>;
   private resolve!: (val: any) => void;
   private nextPushReq: Promise<schema.SubscriptionPushRequest.ISequencedEvent>;
   private queue: SequencedEventsWithRequestId[] = [];
@@ -43,7 +45,7 @@ export class ReadableEventStream {
 
     this.stream = new ReadableStream<EventWithRecoveredSigner>({
       start(controller) {
-        self.controller = controller;
+        // self.controller = controller;
       },
       // if pull returns a promise it will not be called again untill the promise is resolved regardless of the highwatermark
       // here we are using a recursive pull that will never resolve so that we have full control over when it is being called
@@ -54,19 +56,17 @@ export class ReadableEventStream {
           const requestId = pushReq.requestId;
           for (const anyEvt of pushReq.events) {
             assert(anyEvt.event, "event is required");
-            if (anyEvt.seqNo === undefined) {
-              throw new Error(`seqNo is required ${JSON.stringify(anyEvt)}`);
-            }
-            //assert(anyEvt.seqNo, `seqNo is required ${JSON.stringify(anyEvt)}`);
+            const seqNo = anyEvt.seqNo ?? Long.fromNumber(0); // this is stupid. protobuf zero value is not 0. it's undefined
             assert(anyEvt.event.event, "event.event is required");
             assert(anyEvt.event.signature, "event.signature is required");
             assert(anyEvt.event.event.value, "event.event.value is required");
+            assertField(anyEvt.event.signature, "event.signature");
             const event = schema.ShopEvent.decode(anyEvt.event.event.value);
             const signer = await recoverMessageAddress({
-              message: { raw: anyEvt.event!.event!.value },
-              signature: anyEvt.event!.signature!.raw!,
+              message: { raw: anyEvt.event.event.value },
+              signature: anyEvt.event.signature.raw,
             });
-            self.controller.enqueue({ event, seqNo: anyEvt.seqNo, signer });
+            controller.enqueue({ event, seqNo, signer, requestId });
           }
           // Send a response to the relay to indicate that we have processed the events
           self.client.encodeAndSendNoWait({
