@@ -85,7 +85,6 @@ export default function ChoosePayment({
   useEffect(() => {
     //Listen for client to send paymentDetails event.
     function onPaymentDetails(order: Order) {
-      console.log("paymentDetails", order);
       if (order.id === orderId) {
         log("paymentDetails found for order");
         getDetails(orderId)
@@ -93,7 +92,6 @@ export default function ChoosePayment({
           .catch((e) => debug(e));
       }
     }
-    console.log({ orderId });
     orderId &&
       clientWithStateManager!.stateManager!.orders.on(
         "paymentDetails",

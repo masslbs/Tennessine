@@ -25,8 +25,8 @@ export class ClientWithStateManager {
     this.relayEndpoint = relayEndpoint;
   }
 
-  async createStateManager() {
-    const merchantKC = localStorage.getItem("merchantKeyCard");
+  createStateManager() {
+    const merchantKC = localStorage.getItem("merchantKC");
     const guestKC = localStorage.getItem("guestCheckoutKC");
     const dbName = `${this.shopId.slice(0, 7)}${merchantKC ? merchantKC.slice(0, 5) : guestKC ? guestKC.slice(0, 5) : "-guest"}`;
     console.log("using level db:", { dbName });
@@ -64,12 +64,19 @@ export class ClientWithStateManager {
       this.shopId,
       this.publicClient,
     );
+
+    if (window && db) {
+      window.addEventListener("beforeunload", () => {
+        db.close();
+      });
+    }
+
     return this.stateManager;
   }
-  async createNewRelayClient() {
-    if (!this.relayEndpoint) throw new Error("Relay endpoint not set");
-    if (!this.relayEndpoint.url) throw new Error("Relay endpoint URL not set");
-    if (!this.relayEndpoint.tokenId)
+
+  createNewRelayClient() {
+    if (!this.relayEndpoint?.url) throw new Error("Relay endpoint URL not set");
+    if (!this.relayEndpoint?.tokenId)
       throw new Error("Relay endpoint tokenId not set");
     const keyCard = random32BytesHex();
     const keyCardWallet = privateKeyToAccount(keyCard);
@@ -80,11 +87,44 @@ export class ClientWithStateManager {
     });
     return this.relayClient;
   }
+
+  async setClientAndConnect(kc: `0x${string}`) {
+    if (!this.relayEndpoint?.url) throw new Error("Relay endpoint URL not set");
+    if (!this.relayEndpoint?.tokenId)
+      throw new Error("Relay endpoint tokenId not set");
+
+    const keyCardWallet = privateKeyToAccount(kc);
+    this.relayClient = new RelayClient({
+      relayEndpoint: this.relayEndpoint!,
+      keyCardWallet,
+    });
+    this.createStateManager();
+    await this.relayClient.connect();
+    await this.relayClient.authenticate();
+    return this.relayClient;
+  }
+
   async sendMerchantSubscriptionRequest() {
     const seqNo = await this.stateManager!.manifest.getSeqNo();
     return this.relayClient!.sendMerchantSubscriptionRequest(
       this.shopId,
       seqNo,
     );
+  }
+
+  async sendGuestCheckoutSubscriptionRequest() {
+    const seqNo = await this.stateManager!.manifest.getSeqNo();
+    return this.relayClient!.sendGuestCheckoutSubscriptionRequest(
+      this.shopId,
+      seqNo,
+    );
+  }
+
+  async sendGuestSubscriptionRequest() {
+    this.createNewRelayClient();
+    await this.relayClient!.connect();
+    this.createStateManager();
+    const seqNo = await this.stateManager!.manifest.getSeqNo();
+    return this.relayClient!.sendGuestSubscriptionRequest(this.shopId, seqNo);
   }
 }

@@ -86,7 +86,7 @@ const StoreCreation = () => {
 
   useEffect(() => {
     if (!randomShopIdHasBeenSet.current) {
-      localStorage.removeItem("merchantKeyCard");
+      localStorage.removeItem("merchantKC");
       localStorage.removeItem("guestKeyCard");
 
       randomShopIdHasBeenSet.current = true;
@@ -175,7 +175,7 @@ const StoreCreation = () => {
       );
       setClientStateManager(clientStateManager);
 
-      const rc = await clientStateManager.createNewRelayClient();
+      const rc = clientStateManager.createNewRelayClient();
       const blockchainClient = new BlockchainClient(shopId!);
       const hash = await blockchainClient.createShop(clientWallet!);
       setStoreRegistrationStatus("Waiting to confirm mint transaction...");
@@ -228,14 +228,14 @@ const StoreCreation = () => {
         throw Error("Failed to enroll keycard");
       }
       enrollKeycard.current = true;
-      // Replace keyCardToEnroll to merchantKeyCard for future refreshes
+      // Replace keyCardToEnroll to merchantKC for future refreshes
       const keycard = localStorage.getItem("keyCardToEnroll") as `0x${string}`;
-      localStorage.setItem("merchantKeyCard", keycard);
+      localStorage.setItem("merchantKC", keycard);
       localStorage.removeItem("keyCardToEnroll");
 
       // FIXME: for now we are instantiating sm after kc enroll. The reason is because we want to create a unique db name based on keycard.
       // TODO: see if it would be cleaner to pass the KC as a param
-      await client.createStateManager();
+      client.createStateManager();
       log("StateManager created");
 
       //Add address of current kc wallet for all outgoing event verification.

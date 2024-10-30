@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 import { useDisconnect } from "wagmi";
 import debugLib from "debug";
 
-import { OrderId, Status } from "@/types";
+import { Order, OrderId, Status } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useAuth } from "@/context/AuthContext";
 import { useUserContext } from "@/context/UserContext";
@@ -51,7 +51,7 @@ function Navigation() {
   log.color = "242";
 
   useEffect(() => {
-    function onChangeItems(order) {
+    function onChangeItems(order: Order) {
       const values = Object.values(order.items);
       let length = 0;
       values.map((qty) => (length += Number(qty)));
@@ -82,6 +82,7 @@ function Navigation() {
   function menuSwitch() {
     setMenuOpen(!menuOpen);
   }
+
   async function onCheckout(orderId: OrderId) {
     try {
       if (!orderId) {
@@ -101,6 +102,7 @@ function Navigation() {
       throw new Error("Failed to commit order");
     }
   }
+
   function renderMenuItems() {
     const menuItems = isMerchantView ? merchantMenu : customerMenu;
     return menuItems.map((opt, i) => {

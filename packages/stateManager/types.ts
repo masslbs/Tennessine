@@ -97,6 +97,7 @@ export interface Order {
   shippingDetails?: ShippingDetails;
   invoiceAddress?: ShippingDetails;
   txHash?: string;
+  blockHash?: string;
   choosePayment?: ChoosePayment;
   paymentDetails?: PaymentDetails;
 }

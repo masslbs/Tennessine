@@ -26,7 +26,6 @@ const MerchantConnectWallet = () => {
     shopPublicClient,
     clientWallet,
     setShopId,
-    setRelayClient,
     setClientStateManager,
     relayEndpoint,
   } = useUserContext();
@@ -100,7 +99,7 @@ const MerchantConnectWallet = () => {
         relayEndpoint!,
       );
       setClientStateManager(clientStateManager);
-      const rc = await clientStateManager.createNewRelayClient();
+      const rc = clientStateManager.createNewRelayClient();
       const keyCardToEnroll = localStorage.getItem(
         "keyCardToEnroll",
       ) as `0x${string}`;
@@ -112,15 +111,13 @@ const MerchantConnectWallet = () => {
       );
       if (res.ok) {
         enrollKeycard.current = true;
+        keyCardToEnroll && localStorage.setItem("merchantKC", keyCardToEnroll);
         log(`Keycard enrolled: ${keyCardToEnroll}`);
         await rc.connect();
         await rc.authenticate();
-        await clientStateManager.createStateManager();
+        clientStateManager.createStateManager();
         log("StateManager created");
         await clientStateManager.sendMerchantSubscriptionRequest();
-        setRelayClient(rc);
-        keyCardToEnroll &&
-          localStorage.setItem("merchantKeyCard", keyCardToEnroll);
         setIsConnected(Status.Complete);
         setIsMerchantView(true);
         setStep("confirmation");

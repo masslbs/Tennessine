@@ -6,10 +6,8 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import debugLib from "debug";
 
-import { OrderState, Order, OrderId } from "@/types";
-import { useStoreContext } from "@/context/StoreContext";
+import { OrderState, Order } from "@/types";
 import { useUserContext } from "@/context/UserContext";
 import Cart from "@/app/cart/Cart";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
@@ -17,9 +15,7 @@ import ShippingDetails from "@/app/components/checkout/ShippingDetails";
 import ChoosePayment from "@/app/components/checkout/ChoosePayment";
 
 const CheckoutFlow = () => {
-  const { getOrderId } = useStoreContext();
   const { clientWithStateManager } = useUserContext();
-  const debug = debugLib("frontend:checkout");
 
   const [step, setStep] = useState<
     "cart" | "shipping details" | "payment details" | "confirmation"
@@ -28,33 +24,13 @@ const CheckoutFlow = () => {
   const [confirmedTxHash, setConfirmedTxHash] = useState<null | `0x${string}`>(
     null,
   );
-  const [orderId, setOrderId] = useState<OrderId | null>(null);
-  const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
-
-  useEffect(() => {
-    getOrderId()
-      .then((id) => {
-        if (id) {
-          setOrderId(id);
-          clientWithStateManager!
-            .stateManager!.orders.get(id)
-            .then((order) => {
-              setCurrentOrder(order);
-            })
-            .catch((e) => {
-              debug(e);
-            });
-        }
-      })
-      .catch((e) => {
-        debug(e);
-      });
-  }, []);
 
   useEffect(() => {
     const txHashDetected = (order: Order) => {
-      if (order.id === orderId) {
-        setCurrentOrder(order);
+      if (order.status === OrderState.STATE_PAYMENT_TX) {
+        const h = order.txHash as `0x${string}`;
+        setConfirmedTxHash(h);
+        setStep("confirmation");
       }
     };
 
@@ -71,20 +47,9 @@ const CheckoutFlow = () => {
     };
   });
 
-  useEffect(() => {
-    if (currentOrder && currentOrder.status === OrderState.STATE_PAYMENT_TX) {
-      const h = currentOrder.txHash as `0x${string}`;
-      setOrderId(null);
-      setConfirmedTxHash(h);
-      setStep("confirmation");
-    }
-  }, [currentOrder]);
-
-  async function checkout(orderId: OrderId) {}
-
   function renderContent() {
     if (step === "cart") {
-      return <Cart onCheckout={checkout} />;
+      return <Cart />;
     }
     if (step === "shipping details") {
       return <ShippingDetails setStep={setStep} />;

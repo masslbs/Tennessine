@@ -10,12 +10,11 @@ import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import debugLib from "debug";
 
-import Button from "@/app/common/components/Button";
-import { createQueryString } from "@/app/utils";
 import { formatUnitsFromString } from "@massmarket/utils";
-import { useStoreContext } from "@/context/StoreContext";
-
 import { Item, ListingViewState } from "@/types";
+import { createQueryString } from "@/app/utils";
+import { useStoreContext } from "@/context/StoreContext";
+import Button from "@/app/common/components/Button";
 
 function MerchantViewProducts({ products }: { products: Item[] | null }) {
   const debug = debugLib("frontend: MerchantViewProducts");

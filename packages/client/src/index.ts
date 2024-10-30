@@ -25,7 +25,7 @@ export type RelayEndpoint = {
 export class RelayClient extends EventEmitter {
   connection!: WebSocket;
   private keyCardWallet;
-  public readonly relayEndpoint: RelayEndpoint;
+  private relayEndpoint: RelayEndpoint;
   private useTLS;
   private eventStream;
   private requestCounter;

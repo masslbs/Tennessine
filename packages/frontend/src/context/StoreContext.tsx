@@ -2,11 +2,12 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import debugLib from "debug";
 import { useChains } from "wagmi";
-import { createPublicClient, http } from "viem";
+import { createPublicClient, http, Address } from "viem";
 
+import * as abi from "@massmarket/contracts";
 import { OrderId, OrderState } from "@/types";
 import { StoreContent } from "@/context/types";
 import { useUserContext } from "@/context/UserContext";
@@ -18,7 +19,8 @@ export const StoreContext = createContext<StoreContent>({});
 export const StoreContextProvider = (
   props: React.HTMLAttributes<HTMLDivElement>,
 ) => {
-  const { clientWithStateManager } = useUserContext();
+  const chains = useChains();
+  const { clientWithStateManager, shopPublicClient, shopId } = useUserContext();
   const debug = debugLib("frontend:StoreContext");
   const log = debugLib("log:StoreContext");
   log.color = "242";
@@ -27,40 +29,31 @@ export const StoreContextProvider = (
     name: "",
     profilePictureUrl: "",
   });
-  const chains = useChains();
 
-  // useEffect(() => {
-  //       shopPublicClient
-  //         .readContract({
-  //           address: abi.addresses.ShopReg as Address,
-  //           abi: abi.ShopReg,
-  //           functionName: "tokenURI",
-  //           args: [BigInt(shopId)],
-  //         })
-  //         .then((uri) => {
-  //           const url = uri as string;
-  //           if (url.length) {
-  //             fetch(url).then((res) => {
-  //               res.json().then((data) => {
-  //                 setShopDetails({
-  //                   name: data.name,
-  //                   profilePictureUrl: data.image,
-  //                 });
-  //               });
-  //             });
-  //           }
-  //         });
-
-  //       //close db connection on unload
-  //       if (window && db) {
-  //         window.addEventListener("beforeunload", () => {
-  //           console.log("closing db connection");
-  //           db.close();
-  //         });
-  //       }
-  //     })();
-  //   }
-  // }, [relayClient]);
+  useEffect(() => {
+    if (shopPublicClient && shopId) {
+      shopPublicClient
+        .readContract({
+          address: abi.addresses.ShopReg as Address,
+          abi: abi.ShopReg,
+          functionName: "tokenURI",
+          args: [BigInt(shopId)],
+        })
+        .then((uri) => {
+          const url = uri as string;
+          if (url.length) {
+            fetch(url).then((res) => {
+              res.json().then((data) => {
+                setShopDetails({
+                  name: data.name,
+                  profilePictureUrl: data.image,
+                });
+              });
+            });
+          }
+        });
+    }
+  }, [shopPublicClient, shopId]);
 
   async function getBaseTokenInfo() {
     //Get base token decimal and symbol.

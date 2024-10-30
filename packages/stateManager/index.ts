@@ -637,7 +637,12 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       } else if (uo.addPaymentTx) {
         const currentState = order.status;
         order.status = OrderState.STATE_PAYMENT_TX;
-        order.txHash = bytesToHex(uo.addPaymentTx.txHash.raw);
+        if (uo.addPaymentTx.blockHash) {
+          order.blockHash = bytesToHex(uo.addPaymentTx.blockHash.raw);
+        }
+        if (uo.addPaymentTx.txHash) {
+          order.txHash = bytesToHex(uo.addPaymentTx.txHash.raw);
+        }
         await this.store.put(id, order);
         await storeOrdersByStatus(id, this.store, OrderState.STATE_PAYMENT_TX);
         //remove the orderId from state of orders before this event.

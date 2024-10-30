@@ -90,6 +90,7 @@ function Cart({
       debug(error);
     }
   }
+
   function calculateTotal() {
     const values = cartItemsMap.values();
     let total = 0;
@@ -101,6 +102,7 @@ function Cart({
     });
     return total;
   }
+
   function renderItems() {
     if (!orderId || !cartItemsMap.size) return <p>No items in cart</p>;
 

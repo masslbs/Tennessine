@@ -4,9 +4,10 @@
 
 import React from "react";
 import Image from "next/image";
-import Button from "@/app/common/components/Button";
-import { useStoreContext } from "@/context/StoreContext";
 import { useRouter } from "next/navigation";
+
+import { useStoreContext } from "@/context/StoreContext";
+import Button from "@/app/common/components/Button";
 
 const Confirmation = () => {
   const { shopDetails } = useStoreContext();

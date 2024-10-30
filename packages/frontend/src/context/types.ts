@@ -5,14 +5,8 @@
 import { Dispatch, SetStateAction } from "react";
 import { type PublicClient } from "viem";
 
+import { WalletClientWithAccount, RelayEndpoint } from "@massmarket/client";
 import { ShopId, OrderId, ShopDetails } from "@/types";
-import {
-  RelayClient,
-  WalletClientWithAccount,
-  RelayEndpoint,
-} from "@massmarket/client";
-import { LoadingStateManager } from "./initialLoadingState";
-import { StateManager } from "@massmarket/stateManager";
 import { ClientWithStateManager } from "@/app/ClientWithStateManager";
 
 //Types for Contexts only
@@ -21,7 +15,6 @@ export type ClientContext = {
   avatar: string | null;
   ensName: string | null;
   clientWallet: WalletClientWithAccount | null;
-  relayClient: RelayClient | null;
   shopPublicClient: PublicClient | null;
   inviteSecret: `0x${string}` | null;
   shopId: ShopId | null;
@@ -31,7 +24,6 @@ export type ClientContext = {
   setInviteSecret: Dispatch<SetStateAction<`0x${string}` | null>>;
   setShopId: Dispatch<SetStateAction<ShopId | null>>;
   checkPermissions: () => Promise<boolean>;
-  setRelayClient: Dispatch<SetStateAction<RelayClient | null>>;
   upgradeGuestToCustomer: () => Promise<void>;
   setClientStateManager: Dispatch<
     SetStateAction<ClientWithStateManager | null>

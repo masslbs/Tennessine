@@ -4,12 +4,13 @@
 
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { Metadata } from "@/types";
-import { ReadonlyURLSearchParams } from "next/navigation";
 import { PublicClient } from "viem";
+import { sepolia, hardhat } from "wagmi/chains";
+import { ReadonlyURLSearchParams } from "next/navigation";
+
 import { zeroAddress, usdcAddress } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
-import { sepolia, hardhat } from "wagmi/chains";
+import { Metadata } from "@/types";
 
 export const cn = (...inputs: ClassValue[]) => {
   return twMerge(clsx(inputs));

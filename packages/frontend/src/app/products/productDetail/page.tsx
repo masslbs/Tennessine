@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, ChangeEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -19,6 +19,7 @@ import { Item, ItemId, OrderId, Tag, Order } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
 import { useAuth } from "@/context/AuthContext";
+import SuccessToast from "@/app/common/components/SuccessToast";
 
 const ProductDetail = () => {
   const { getOrderId, getBaseTokenInfo } = useStoreContext();
@@ -42,6 +43,8 @@ const ProductDetail = () => {
   const [currentCartItems, setCurrentCart] = useState<Order["items"] | null>(
     null,
   );
+  const [successMsg, setMsg] = useState<string | null>(null);
+
   useEffect(() => {
     getOrderId()
       .then((id) => {
@@ -152,7 +155,7 @@ const ProductDetail = () => {
     let order_id = orderId;
     if (
       !order_id &&
-      (localStorage.getItem("merchantKeyCard") ||
+      (localStorage.getItem("merchantKC") ||
         localStorage.getItem("guestCheckoutKC"))
     ) {
       order_id = (await clientWithStateManager!.stateManager!.orders.create())
@@ -192,6 +195,7 @@ const ProductDetail = () => {
           ],
         );
       }
+      setMsg("Added to cart");
       setButton("Review");
     } catch (error) {
       debug(error);
@@ -224,6 +228,13 @@ const ProductDetail = () => {
       );
     }
   };
+
+  function handlePurchaseQty(e: ChangeEvent<HTMLInputElement>) {
+    if (typeof Number(e.target.value) !== "number") {
+      return;
+    }
+    setQuantity(Number(e.target.value));
+  }
 
   return (
     <main className="pt-under-nav h-screen bg-gray-100">
@@ -288,7 +299,6 @@ const ProductDetail = () => {
               </div>
             ) : null}
           </div>
-
           <section className="flex gap-4 flex-col bg-white mt-5 rounded-md p-5">
             <div>
               <h2 className="font-sans text-gray-700">Description</h2>
@@ -309,21 +319,22 @@ const ProductDetail = () => {
               <div className="">
                 <p className="text-xs text-primary-gray mb-2">Quantity</p>
                 <input
-                  className="border-2 border-solid p-2 rounded-md max-w-12"
+                  className="border-2 border-solid p-3 rounded-md max-w-14"
                   id="quantity"
                   name="quantity"
                   value={quantity}
                   data-testid="purchaseQty"
-                  onChange={(e) => setQuantity(Number(e.target.value))}
+                  onChange={(e) => handlePurchaseQty(e)}
                 />
               </div>
-              <div className="">
+              <div>
                 <h5 className="text-xs text-primary-gray mb-2">
                   Add to basket
                 </h5>
                 <div>{getCtaButton()}</div>
               </div>
             </div>
+            <SuccessToast message={successMsg} onClose={() => setMsg(null)} />
           </section>
         </div>
       </section>
