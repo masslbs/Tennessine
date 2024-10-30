@@ -1,4 +1,10 @@
-import { afterAll, beforeEach, describe, test } from "jsr:@std/testing/bdd";
+import {
+  afterAll,
+  beforeEach,
+  beforeAll,
+  describe,
+  it,
+} from "jsr:@std/testing/bdd";
 import { assert } from "jsr:@std/assert";
 import { expect } from "jsr:@std/expect";
 import { MemoryLevel } from "memory-level";
@@ -96,95 +102,110 @@ const publicClient = createPublicClient({
   transport: http(),
 });
 
-test("should create an event for every shop event", async () => {
-  const client = new MockClient();
-  const {
-    db,
-    listingStore,
-    tagStore,
-    shopManifestStore,
-    orderStore,
-    keycardStore,
-  } = setupStateManagerStores();
-  const stateManager = new StateManager(
-    client,
-    listingStore,
-    tagStore,
-    shopManifestStore,
-    orderStore,
-    keycardStore,
-    randomAddress(),
-    publicClient,
-  );
-  expect(client.keyCardWallet.address).toEqual(
-    client.vectors.signatures.signer.address,
-  );
-  await stateManager.keycards.addAddress(client.keyCardWallet.address);
-  //Store test vector address to db for event verification
-  let count = 0;
-  // console.log("vector count", client.vectors.events.length);
+describe("Fill state manager with test vectors", () => {
+  it("should create an event for every shop event", async () => {
+    const client = new MockClient();
+    const {
+      db,
+      listingStore,
+      tagStore,
+      shopManifestStore,
+      orderStore,
+      keycardStore,
+    } = setupStateManagerStores();
+    const stateManager = new StateManager(
+      client,
+      listingStore,
+      tagStore,
+      shopManifestStore,
+      orderStore,
+      keycardStore,
+      randomAddress(),
+      publicClient,
+    );
+    expect(client.keyCardWallet.address).toEqual(
+      client.vectors.signatures.signer.address,
+    );
+    await stateManager.keycards.addAddress(client.keyCardWallet.address);
+    //Store test vector address to db for event verification
+    let count = 0;
+    // console.log("vector count", client.vectors.events.length);
 
-  const isDone = new Promise<void>((resolve, reject) => {
-    // let timeout: number = 0;
-    function updateCount() {
-      count++;
-      if (count === client.vectors.events.length) {
-        // console.log("done");
-        // clearTimeout(timeout);
-        resolve();
-      } else if (count > client.vectors.events.length) {
-        reject(new Error("Overflow"));
-      } else {
-        // console.log("progress", count);
+    const isDone = new Promise<void>((resolve, reject) => {
+      // let timeout: number = 0;
+      function updateCount() {
+        count++;
+        if (count === client.vectors.events.length) {
+          // console.log("done");
+          // clearTimeout(timeout);
+          resolve();
+        } else if (count > client.vectors.events.length) {
+          reject(new Error("Overflow"));
+        } else {
+          // console.log("progress", count);
+        }
       }
-    }
 
-    // timeout = setTimeout(() => {
-    //   reject(new Error("Timeout"));
-    // }, 5000);
+      // timeout = setTimeout(() => {
+      //   reject(new Error("Timeout"));
+      // }, 5000);
 
-    stateManager.manifest.on("create", updateCount);
-    stateManager.manifest.on("update", updateCount);
-    stateManager.keycards.on("newKeyCard", updateCount);
-    stateManager.listings.on("create", updateCount);
-    stateManager.listings.on("update", updateCount);
-    stateManager.listings.on("changeInventory", updateCount);
-    stateManager.listings.on("addItemId", updateCount);
-    stateManager.listings.on("removeItemId", updateCount);
-    stateManager.tags.on("create", updateCount);
-    stateManager.tags.on("update", updateCount);
-    stateManager.tags.on("addListingId", updateCount);
-    stateManager.tags.on("removeListingIds", updateCount);
-    stateManager.orders.on("create", updateCount);
-    stateManager.orders.on("orderCanceled", updateCount);
-    stateManager.orders.on("orderPaid", updateCount);
-    stateManager.orders.on("shippingAddress", updateCount);
-    stateManager.orders.on("invoiceAddress", updateCount);
-    stateManager.orders.on("changeItems", updateCount);
-    stateManager.orders.on("commitItems", updateCount);
-    stateManager.orders.on("choosePayment", updateCount);
-    stateManager.orders.on("paymentDetails", updateCount);
-    stateManager.orders.on("addPaymentTx", updateCount);
+      stateManager.manifest.on("create", updateCount);
+      stateManager.manifest.on("update", updateCount);
+      stateManager.keycards.on("newKeyCard", updateCount);
+      stateManager.listings.on("create", updateCount);
+      stateManager.listings.on("update", updateCount);
+      stateManager.listings.on("changeInventory", updateCount);
+      stateManager.listings.on("addItemId", updateCount);
+      stateManager.listings.on("removeItemId", updateCount);
+      stateManager.tags.on("create", updateCount);
+      stateManager.tags.on("update", updateCount);
+      stateManager.tags.on("addListingId", updateCount);
+      stateManager.tags.on("removeListingIds", updateCount);
+      stateManager.orders.on("create", updateCount);
+      stateManager.orders.on("orderCanceled", updateCount);
+      stateManager.orders.on("orderPaid", updateCount);
+      stateManager.orders.on("shippingAddress", updateCount);
+      stateManager.orders.on("invoiceAddress", updateCount);
+      stateManager.orders.on("changeItems", updateCount);
+      stateManager.orders.on("commitItems", updateCount);
+      stateManager.orders.on("choosePayment", updateCount);
+      stateManager.orders.on("paymentDetails", updateCount);
+      stateManager.orders.on("addPaymentTx", updateCount);
+    });
+
+    await client.connect();
+    await isDone;
+    await Promise.all([
+      db.close(),
+      listingStore.close(),
+      tagStore.close(),
+      shopManifestStore.close(),
+      orderStore.close(),
+      keycardStore.close(),
+    ]);
   });
-
-  await client.connect();
-  await isDone;
-  await db.close();
 });
 
-
-describe("Fill state manager with test vectors", () => {
+describe("basic state manager tests", () => {
   let client: MockClient;
   let stateManager: StateManager;
-  const {
-    db,
-    listingStore,
-    tagStore,
-    shopManifestStore,
-    orderStore,
-    keycardStore,
-  } = setupStateManagerStores();
-  beforeEach(async () => {
+  let db: any;
+  let listingStore: any;
+  let tagStore: any;
+  let shopManifestStore: any;
+  let orderStore: any;
+  let keycardStore: any;
+
+  beforeAll(async () => {
+    ({
+      db,
+      listingStore,
+      tagStore,
+      shopManifestStore,
+      orderStore,
+      keycardStore,
+    } = setupStateManagerStores());
     await db.clear();
     client = new MockClient();
     stateManager = new StateManager(
@@ -200,28 +221,29 @@ describe("Fill state manager with test vectors", () => {
     await stateManager.keycards.addAddress(client.keyCardWallet.address);
     await client.connect();
     const isDone = new Promise<void>((resolve, reject) => {
-      // krudge because we dont have a callback for seqNo updates
-      const interval = setInterval(() => {
-        stateManager.manifest.getSeqNo().then((seqNo) => {
-          // toString because of Long type
-          if (seqNo === client.vectors.events.length - 1) {
-            clearInterval(interval);
-            resolve();
-          }
-        });
-      }, 250);
-      // setTimeout(() => {
-      //   clearInterval(interval);
-      //   reject(new Error("Timeout"));
-      // }, 1000);
+      stateManager.seqNo.on("seqNo", (seqNo) => {
+        // toString because of Long type
+        if (
+          seqNo.toString() === (client.vectors.events.length - 1).toString()
+        ) {
+          resolve();
+        }
+      });
     });
     await isDone;
   });
   afterAll(async () => {
-    await db.close();
+    await Promise.all([
+      db.close(),
+      listingStore.close(),
+      tagStore.close(),
+      shopManifestStore.close(),
+      orderStore.close(),
+      keycardStore.close(),
+    ]);
   });
 
-  test("ShopManifest - adds and updates shop manifest events", async () => {
+  it("ShopManifest - adds and updates shop manifest events", async () => {
     const vectorState = client.vectors.reduced;
     const shop = await stateManager.manifest.get();
     const vm = vectorState.manifest;
@@ -248,7 +270,7 @@ describe("Fill state manager with test vectors", () => {
     //TODO: need test vectors for Shipping Region/Order Price Modififers
   });
 
-  test("KeycardManager - updates keycard events", async () => {
+  it("KeycardManager - updates keycard events", async () => {
     const vectorState = client.vectors.reduced;
     const keys = await stateManager.keycards.get();
     expect(vectorState.keycards.length).toEqual(keys.length);
@@ -258,7 +280,7 @@ describe("Fill state manager with test vectors", () => {
     }
   });
 
-  test("ListingManager - adds and updates item events", async () => {
+  it("ListingManager - adds and updates item events", async () => {
     const vectorState = client.vectors.reduced;
     let itemCount = 0;
     for await (const [key, item] of stateManager.listings.iterator()) {
@@ -277,7 +299,7 @@ describe("Fill state manager with test vectors", () => {
     expect(itemCount).toEqual(Object.keys(vectorState.listings).length);
   });
 
-  test("TagManager - adds and updates tag events", async () => {
+  it("TagManager - adds and updates tag events", async () => {
     const vectorState = client.vectors.reduced;
     const { tags } = vectorState;
     let tagCount = 0;
@@ -288,7 +310,7 @@ describe("Fill state manager with test vectors", () => {
     expect(tagCount).toEqual(Object.keys(vectorState.tags).length);
   });
 
-  test("OrderManager - adds and updates order events", async () => {
+  it("OrderManager - adds and updates order events", async () => {
     const vectorState = client.vectors.reduced;
     //Orders with witnessed Tx should have properties: txHash, paymentDetails, and choosePayment,
     const vectorOrders = vectorState.orders;
@@ -338,7 +360,7 @@ describe("Fill state manager with test vectors", () => {
 });
 
 describe("Unverified events should be caught in error", () => {
-  test("catches error", async () => {
+  it("catches error", async () => {
     const {
       db,
       listingStore,
@@ -361,13 +383,7 @@ describe("Unverified events should be caught in error", () => {
     );
     // not adding keycard address to test unverified event error
     // await stateManager.keycards.addAddress(client.keyCardWallet.address);
-    let called = false;
-    stateManager.eventStreamProcessing.catch((e) => {
-      // TODO: assert error type
-      expect(e).toBeTruthy();
-      called = true;
-    });
-    await stateManager.manifest.create(
+    stateManager.manifest.create(
       {
         acceptedCurrencies: currencies,
         pricingCurrency: {
@@ -380,40 +396,67 @@ describe("Unverified events should be caught in error", () => {
 
       randomAddress(),
     );
-    console.log("create resolved ");
-    expect(called).toBeTruthy();
-    await db.close();
+
+    try {
+      await stateManager.eventStreamProcessing;
+    } catch (e) {
+      expect(e).toBeTruthy();
+    }
+    await Promise.all([
+      db.close(),
+      listingStore.close(),
+      tagStore.close(),
+      shopManifestStore.close(),
+      orderStore.close(),
+      keycardStore.close(),
+    ]);
   });
 });
 
 describe("CRUD functions update stores", () => {
-  const {
-    db,
-    listingStore,
-    tagStore,
-    shopManifestStore,
-    orderStore,
-    keycardStore,
-  } = setupStateManagerStores();
-  const client = new MockClient();
-  const stateManager = new StateManager(
-    client,
-    listingStore,
-    tagStore,
-    shopManifestStore,
-    orderStore,
-    keycardStore,
-    randomAddress(),
-    publicClient,
-  );
-  stateManager.eventStreamProcessing().then();
+  let db: any;
+  let listingStore: any;
+  let tagStore: any;
+  let shopManifestStore: any;
+  let orderStore: any;
+  let keycardStore: any;
+  let client: any;
+  let stateManager: any;
+
   beforeEach(async () => {
+    ({
+      db,
+      listingStore,
+      tagStore,
+      shopManifestStore,
+      orderStore,
+      keycardStore,
+    } = setupStateManagerStores());
+    client = new MockClient();
+    stateManager = new StateManager(
+      client,
+      listingStore,
+      tagStore,
+      shopManifestStore,
+      orderStore,
+      keycardStore,
+      randomAddress(),
+      publicClient,
+    );
     await db.clear();
     //Store test vector address to db for event verification
     await stateManager.keycards.addAddress(client.keyCardWallet.address);
+    stateManager.eventStreamProcessing().then();
   });
   afterAll(async () => {
-    await db.close();
+    await Promise.all([
+      db.close(),
+      listingStore.close(),
+      tagStore.close(),
+      shopManifestStore.close(),
+      orderStore.close(),
+      keycardStore.close(),
+    ]);
   });
   describe("ShopManifest", () => {
     beforeEach(async () => {
@@ -440,7 +483,7 @@ describe("CRUD functions update stores", () => {
       expect(shop.shippingRegions).toEqual(shippingRegions);
     });
 
-    test("UpdateManifest - setPricingCurrency", async () => {
+    it("UpdateManifest - setPricingCurrency", async () => {
       const newBase = {
         chainId: 100,
         address: eddies,
@@ -451,7 +494,7 @@ describe("CRUD functions update stores", () => {
       const { pricingCurrency } = await stateManager.manifest.get();
       expect(pricingCurrency).toEqual(newBase);
     });
-    test("UpdateManifest - adds/removes acceptedCurrencies", async () => {
+    it("UpdateManifest - adds/removes acceptedCurrencies", async () => {
       const newCurrencies = [
         {
           chainId: 10,
@@ -475,11 +518,11 @@ describe("CRUD functions update stores", () => {
       expect(removed.acceptedCurrencies.length).toEqual(3);
       //Make sure the correct currency is removed
       const found = removed.acceptedCurrencies.find(
-        (c) => c.address === zeroAddress,
+        (c: any) => c.address === zeroAddress,
       );
       expect(found).toBe(undefined);
     });
-    test("UpdateManifest - addPayee/removePayee", async () => {
+    it("UpdateManifest - addPayee/removePayee", async () => {
       const newPayee = {
         address: randomAddress(),
         callAsContract: false,
@@ -531,10 +574,10 @@ describe("CRUD functions update stores", () => {
       );
     });
 
-    test("update + changeInventory", async () => {
+    it("update + changeInventory", async () => {
       const updatedMetadata = {
         title: "Updated Test Item 1",
-        description: "Updated test description 1",
+        description: "Updated it description 1",
         images: ["https://http.cat/images/205.jpg"],
       };
       await stateManager.listings.update(
@@ -551,7 +594,7 @@ describe("CRUD functions update stores", () => {
     });
 
     /*
-    test("update - changeViewState", async () => {
+    it("update - changeViewState", async () => {
       await stateManager.listings.update(
         {
           id,
@@ -566,14 +609,14 @@ describe("CRUD functions update stores", () => {
     });
     */
 
-    test("changeInventory", async () => {
+    it("changeInventory", async () => {
       await stateManager.listings.changeInventory(id, 60);
       await stateManager.listings.changeInventory(id, -2);
       const item = await stateManager.listings.get(id);
       expect(item.quantity).toEqual(58);
     });
 
-    test("add/remove item to/from tag", async () => {
+    it("add/remove item to/from tag", async () => {
       const tag = await stateManager.tags.create("Test Create Tag");
       const tag2 = await stateManager.tags.create("Test Create Tag 2");
       await stateManager.listings.addListingToTag(tag.id, id);
@@ -601,7 +644,7 @@ describe("CRUD functions update stores", () => {
       });
       itemId = item.id;
     });
-    test("Create and changeItems", async () => {
+    it("Create and changeItems", async () => {
       const order1 = await stateManager.orders.create();
       const order2 = await stateManager.orders.create();
       await stateManager.orders.addsItems(order1.id, itemId, 4);
@@ -629,7 +672,7 @@ describe("CRUD functions update stores", () => {
       expect(changedOrder.items[itemId]).toEqual(6);
     });
 
-    test("updateOrder - updateShippingDetails/updateInvoiceAddress", async () => {
+    it("updateOrder - updateShippingDetails/updateInvoiceAddress", async () => {
       const { id } = await stateManager.orders.create();
       const shippingInfo = {
         name: "Paul Atreides",
@@ -667,7 +710,7 @@ describe("CRUD functions update stores", () => {
       expect(order.invoiceAddress).toEqual(shippingInfo);
     });
 
-    test("updateOrder - cancel", async () => {
+    it("updateOrder - cancel", async () => {
       const { id } = await stateManager.orders.create();
       await stateManager.orders.cancel(id, 0);
       const cancelled = await stateManager.orders.get(id);
@@ -682,16 +725,10 @@ describe("CRUD functions update stores", () => {
       const openOrders = await stateManager.orders.getStatus(
         OrderState.STATE_OPEN,
       );
-      expect(openOrders.find((oId) => oId === id)).toBe(undefined);
+      expect(openOrders.find((oId: any) => oId === id)).toBe(undefined);
     });
 
-    test("Update Order - commit/choosePayment", async () => {
-      // const wait = new Promise<void>((resolve) => {
-      //   setTimeout(() => {
-      //     console.log("-> timeout");
-      //     resolve();
-      //   }, 5000);
-      // })
+    it("Update Order - commit/choosePayment", async () => {
       const { id } = await stateManager.orders.create();
       const order = await stateManager.orders.get(id);
       const payee = {
@@ -716,7 +753,7 @@ describe("CRUD functions update stores", () => {
       const committedOrders = await stateManager.orders.getStatus(
         OrderState.STATE_COMMITED,
       );
-      const o = committedOrders.find((oId) => oId === id);
+      const o = committedOrders.find((oId: any) => oId === id);
       expect(o).toBeTruthy();
 
       //Mimic client event paymentDetails once commit is called.
@@ -724,13 +761,12 @@ describe("CRUD functions update stores", () => {
 
       await new Promise<void>((resolve) => {
         // TODO: check the orders
-        stateManager.orders.on("paymentDetails", (order) => {
+        stateManager.orders.on("paymentDetails", () => {
           resolve();
         });
       });
       const committed = await stateManager.orders.get(id);
       expect(committed.paymentDetails).toBeTruthy();
-      // await wait;
     });
   });
 });

@@ -116,7 +116,7 @@ jobs:
         working-directory: Tennessine/
 
       - name: build frontend
-        run: nix develop -c bash -c "deno run -A  --unstable-unsafe-proto build --no-lint"
+        run: nix develop -c bash -c "deno run -A --unstable-unsafe-proto npm:next build --no-lint"
         working-directory: Tennessine/packages/frontend
 
       - name: Upload frontend to Pinata
