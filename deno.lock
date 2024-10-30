@@ -16,7 +16,6 @@
     "npm:@testing-library/react@^14.2.1": "14.3.1_react@18.3.1_react-dom@18.3.1__react@18.3.1",
     "npm:@testing-library/user-event@^14.5.2": "14.5.2_@testing-library+dom@9.3.4",
     "npm:@types/debug@^4.1.12": "4.1.12",
-    "npm:@types/events@^3.0.3": "3.0.3",
     "npm:@types/node@^20.10.4": "20.16.14",
     "npm:@types/node@^20.11.19": "20.16.14",
     "npm:@types/qrcode@^1.5.5": "1.5.5",
@@ -3560,9 +3559,6 @@
     },
     "@types/estree@1.0.6": {
       "integrity": "sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw=="
-    },
-    "@types/events@3.0.3": {
-      "integrity": "sha512-trOc4AAUThEz9hapPtSd7wf5tiQKvTtu5b371UxXdTuqzIh0ArcRspRP0i0Viu+LXstIQ1z96t1nsPxT9ol01g=="
     },
     "@types/graceful-fs@4.1.9": {
       "integrity": "sha512-olP3sd1qOEe5dXTSaFvQG+02VdRXcdytWLAZsAq1PecU8uqQAhkrnbli7DagjtXKW/Bl7YJbUsa8MPcuc8LHEQ==",
@@ -10790,11 +10786,9 @@
         "packageJson": {
           "dependencies": [
             "npm:@ethereumjs/util@^9.0.3",
-            "npm:@types/events@^3.0.3",
             "npm:events@^3.3.0",
             "npm:memory-level@1",
-            "npm:viem@^2.16.3",
-            "npm:vitest@^2.0.4"
+            "npm:viem@^2.16.3"
           ]
         }
       },
