@@ -24,9 +24,7 @@ import {
 } from "./types.ts";
 import * as abi from "@massmarket/contracts";
 import schema from "@massmarket/schema";
-
-import { type EventWithRecoveredSigner } from "../client/stream.ts";
-
+import { type EventWithRecoveredSigner } from "@massmarket/client/stream";
 import {
   priceToUint256,
   objectId,
@@ -35,7 +33,6 @@ import {
   assert,
   assertField,
 } from "@massmarket/utils";
-
 
 // This is an interface that is used to retrieve and store objects from a persistant layer
 export type Store<T extends ShopObjectTypes> = {
@@ -100,7 +97,6 @@ abstract class PublicObjectManager<
     return this.store.iterator.bind(this.store);
   }
 }
-class SeqNoEmitter extends EventEmitter {}
 
 //We should always make sure the network call is successful before updating the store with store.put
 class ListingManager extends PublicObjectManager<Listing> {
@@ -1118,6 +1114,8 @@ export class StateManager {
   readonly keycards;
   readonly shopId;
   readonly publicClient;
+  readonly seqNo;
+  readonly stream;
   readonly eventStreamProcessing: Promise<void>;
   constructor(
     public client: IRelayClient,
@@ -1136,7 +1134,8 @@ export class StateManager {
     this.keycards = new KeyCardManager(keycardStore, client);
     this.shopId = shopId;
     this.publicClient = publicClient;
-
+    this.seqNo = new EventEmitter();
+    this.stream = this.client.createEventStream();
     this.eventStreamProcessing = this.#start();
   }
 
@@ -1148,7 +1147,6 @@ export class StateManager {
       this.orders,
       this.keycards,
     ];
-    const stream = this.client.createEventStream();
 
     //Each event will go through all the storeObjects and update the relevant stores.
     let event: EventWithRecoveredSigner;
