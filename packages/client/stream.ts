@@ -3,11 +3,13 @@
 // SPDX-License-Identifier: MIT
 
 import { recoverMessageAddress } from "viem";
-import schema from "@massmarket/schema";
-import {type RelayClient } from "./mod.ts";
 import { ReadableStream } from "web-streams-polyfill";
-import assert from "assert";
+import Long from "long";
 
+import schema from "@massmarket/schema";
+
+import { type RelayClient } from "./mod.ts";
+import { assert, assertField } from "../utils/mod.ts";
 
 // TODO: better name. it's basically a push request but with class values instead of interfaces
 type SequencedEventsWithRequestId = {
@@ -15,11 +17,9 @@ type SequencedEventsWithRequestId = {
   events: schema.SubscriptionPushRequest.SequencedEvent[];
 };
 
-import Long from "npm:long";
-import { assertField } from "../utils/mod.ts";
-type EventWithRecoveredSigner = {
+export type EventWithRecoveredSigner = {
   event: schema.ShopEvent;
-  seqNo: number | Long; // TODO: i dont like this
+  seqNo: number;
   signer: `0x${string}`;
   requestId: schema.RequestId;
 };
@@ -30,8 +30,6 @@ type EventWithRecoveredSigner = {
  */
 export class ReadableEventStream {
   public stream;
-  // public requestId: Uint8Array | null = null;
-  // private controller!: ReadableStreamDefaultController<EventWithRecoveredSigner>;
   private resolve!: (val: any) => void;
   private nextPushReq: Promise<schema.SubscriptionPushRequest.ISequencedEvent>;
   private queue: SequencedEventsWithRequestId[] = [];
@@ -45,7 +43,6 @@ export class ReadableEventStream {
 
     this.stream = new ReadableStream<EventWithRecoveredSigner>({
       start(controller) {
-        // self.controller = controller;
       },
       // if pull returns a promise it will not be called again untill the promise is resolved regardless of the highwatermark
       // here we are using a recursive pull that will never resolve so that we have full control over when it is being called
@@ -56,7 +53,11 @@ export class ReadableEventStream {
           const requestId = pushReq.requestId;
           for (const anyEvt of pushReq.events) {
             assert(anyEvt.event, "event is required");
-            const seqNo = anyEvt.seqNo ?? Long.fromNumber(0); // this is stupid. protobuf zero value is not 0. it's undefined
+            assert(
+              anyEvt.seqNo < Long.fromNumber(Number.MAX_SAFE_INTEGER),
+              "seqNo is required",
+            );
+            const seqNo = Number(anyEvt.seqNo ?? 0); // this is stupid. protobuf zero value is not 0. it's undefined
             assert(anyEvt.event.event, "event.event is required");
             assert(anyEvt.event.signature, "event.signature is required");
             assert(anyEvt.event.event.value, "event.event.value is required");
@@ -74,7 +75,6 @@ export class ReadableEventStream {
             response: {},
           });
         }
-
         await self.nextPushReq;
         return this.pull!(controller);
       },

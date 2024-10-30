@@ -28,29 +28,23 @@ import { hardhat } from "viem/chains";
 import * as abi from "@massmarket/contracts";
 
 function setupStateManagerStores() {
-  const db = new MemoryLevel({
+  const opts = {
     valueEncoding: "json",
-  });
+  };
+  const db = new MemoryLevel(opts);
 
-  const listingStore = db.sublevel<string, Listing>("listingStore", {
-    valueEncoding: "json",
-  });
-  const tagStore = db.sublevel<string, Tag>("tagStore", {
-    valueEncoding: "json",
-  });
+  const listingStore = db.sublevel<string, Listing>("listingStore", opts);
+  const tagStore = db.sublevel<string, Tag>("tagStore", opts);
   const shopManifestStore = db.sublevel<string, ShopManifest>(
     "shopManifestStore",
-    {
-      valueEncoding: "json",
-    },
+    opts,
   );
-  const orderStore = db.sublevel<string, Order | OrdersByStatus>("orderStore", {
-    valueEncoding: "json",
-  });
+  const orderStore = db.sublevel<string, Order | OrdersByStatus>(
+    "orderStore",
+    opts,
+  );
 
-  const keycardStore = db.sublevel<string, KeyCard>("keycardStore", {
-    valueEncoding: "json",
-  });
+  const keycardStore = db.sublevel<string, KeyCard>("keycardStore", opts);
   return {
     db,
     listingStore,

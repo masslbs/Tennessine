@@ -24,6 +24,7 @@ import {
 } from "./types.ts";
 import * as abi from "@massmarket/contracts";
 import schema from "@massmarket/schema";
+import { type EventWithRecoveredSigner } from "../client/stream.ts";
 
 import {
   priceToUint256,
@@ -34,15 +35,6 @@ import {
   assertField,
 } from "@massmarket/utils";
 
-// TODO: needs a better place
-import Long from "npm:long";
-type EventWithRecoveredSigner = {
-  event: schema.ShopEvent;
-  seqNo: number | Long; // TODO: i dont like this
-  signer: `0x${string}`;
-  requestId: schema.RequestId;
-};
-//</TODO>
 
 // This is an interface that is used to retrieve and store objects from a persistant layer
 export type Store<T extends ShopObjectTypes> = {
