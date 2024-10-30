@@ -27,23 +27,25 @@ import { ClientWithStateManager } from "@/app/ClientWithStateManager";
 
 export const UserContext = createContext<ClientContext>({
   walletAddress: null,
-  ensName: null,
-  shopId: "0x",
   avatar: null,
+  ensName: null,
+  clientWallet: null,
   relayClient: null,
   shopPublicClient: null,
   inviteSecret: null,
-  clientWallet: null,
-  setShopId: () => {},
-  setInviteSecret: () => {},
-  setRelayClient: () => {},
+  shopId: "0x",
+  relayEndpoint: null,
+  clientWithStateManager: null,
   setWallet: () => {},
+  setInviteSecret: () => {},
+  setShopId: () => {},
   checkPermissions: () =>
     new Promise(() => {
       return false;
     }),
+  setRelayClient: () => {},
   upgradeGuestToCustomer: () => new Promise(() => {}),
-  relayEndpoint: null,
+  setClientStateManager: () => {},
 });
 
 export const UserContextProvider = (
@@ -280,19 +282,19 @@ export const UserContextProvider = (
     walletAddress,
     avatar,
     ensName,
+    clientWallet,
     relayClient,
     shopPublicClient,
     inviteSecret,
-    clientWallet,
-    setInviteSecret,
-    setWallet,
     shopId,
+    relayEndpoint,
+    clientWithStateManager,
+    setWallet,
+    setInviteSecret,
     setShopId,
     checkPermissions,
     setRelayClient,
     upgradeGuestToCustomer,
-    relayEndpoint,
-    clientWithStateManager,
     setClientStateManager,
   };
 

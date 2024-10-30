@@ -3,15 +3,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import React, { createContext, useContext, useState } from "react";
-import { OrderId, OrderState } from "@/types";
-import { useUserContext } from "./UserContext";
-import { StoreContent } from "@/context/types";
-import { LoadingStateManager } from "@/context/initialLoadingState";
-import { StateManager } from "@massmarket/stateManager";
-import { createPublicClient, http } from "viem";
-import { getTokenInformation } from "@/app/utils";
 import debugLib from "debug";
 import { useChains } from "wagmi";
+import { createPublicClient, http } from "viem";
+
+import { OrderId, OrderState } from "@/types";
+import { StoreContent } from "@/context/types";
+import { useUserContext } from "@/context/UserContext";
+import { getTokenInformation } from "@/app/utils";
 
 // @ts-expect-error FIXME
 export const StoreContext = createContext<StoreContent>({});
@@ -21,9 +20,8 @@ export const StoreContextProvider = (
 ) => {
   const { clientWithStateManager } = useUserContext();
   const debug = debugLib("frontend:StoreContext");
-  const [stateManager, setStateManager] = useState<
-    StateManager | LoadingStateManager
-  >(new LoadingStateManager());
+  const log = debugLib("log:StoreContext");
+  log.color = "242";
 
   const [shopDetails, setShopDetails] = useState({
     name: "",
@@ -67,7 +65,8 @@ export const StoreContextProvider = (
   async function getBaseTokenInfo() {
     //Get base token decimal and symbol.
     try {
-      const manifest = await clientWithStateManager.stateManager.manifest.get();
+      const manifest =
+        await clientWithStateManager!.stateManager!.manifest.get();
       const { chainId, address } = manifest.pricingCurrency;
       const chain = chains.find((chain) => chainId === chain.id);
       const baseTokenPublicClient = createPublicClient({
@@ -83,19 +82,26 @@ export const StoreContextProvider = (
   }
 
   const getOrderId = async () => {
-    const openOrders =
-      await clientWithStateManager.stateManager.orders.getStatus(
-        OrderState.STATE_OPEN,
-      );
-    if (openOrders && openOrders.length) {
-      return openOrders[0] as OrderId;
-    } else return null;
+    try {
+      const openOrders =
+        await clientWithStateManager!.stateManager!.orders.getStatus(
+          OrderState.STATE_OPEN,
+        );
+      if (openOrders.length > 1) {
+        debug("Multiple open orders found");
+      }
+      if (openOrders && openOrders.length) {
+        return openOrders[0] as OrderId;
+      }
+    } catch (error) {
+      log("No open orders found");
+      return null;
+    }
   };
 
   const value = {
-    getOrderId,
-    stateManager,
     shopDetails,
+    getOrderId,
     setShopDetails,
     getBaseTokenInfo,
   };

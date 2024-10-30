@@ -6,7 +6,7 @@
 import React, { useState, Dispatch, SetStateAction } from "react";
 import debugLib from "debug";
 import Button from "@/app/common/components/Button";
-import { useStoreContext } from "@/context/StoreContext";
+import { useUserContext } from "@/context/UserContext";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import { OrderState } from "@/types";
 import BackButton from "@/app/common/components/BackButton";
@@ -20,7 +20,8 @@ function ShippingDetails({
     >
   >;
 }) {
-  const { stateManager } = useStoreContext();
+  const { clientWithStateManager } = useUserContext();
+
   const debug = debugLib("frontend:ShippingDetails");
   const log = debugLib("log:ShippingDetails");
   log.color = "242";
@@ -35,24 +36,28 @@ function ShippingDetails({
 
   async function onUpdateShipping() {
     try {
-      const committed = await stateManager?.orders.getStatus(
-        OrderState.STATE_COMMITED,
-      );
+      const committed =
+        await clientWithStateManager!.stateManager!.orders.getStatus(
+          OrderState.STATE_COMMITED,
+        );
       if (!committed?.length) {
         throw new Error("Committed order not found");
       } else if (committed?.length > 1) {
         throw new Error("Multiple committed orders");
       }
-      await stateManager.orders.updateShippingDetails(committed[0], {
-        name,
-        address1: address,
-        country,
-        city,
-        postalCode,
-        phoneNumber,
-        //TOOD: user input for email.
-        emailAddress: "example@example.com",
-      });
+      await clientWithStateManager!.stateManager!.orders.updateShippingDetails(
+        committed[0],
+        {
+          name,
+          address1: address,
+          country,
+          city,
+          postalCode,
+          phoneNumber,
+          //TOOD: user input for email.
+          emailAddress: "example@example.com",
+        },
+      );
       log("Shipping details updated");
       setStep("payment details");
     } catch (error) {

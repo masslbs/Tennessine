@@ -43,9 +43,9 @@ const StoreCreation = () => {
     shopPublicClient,
     clientWallet,
     shopId,
+    relayEndpoint,
     setShopId,
     checkPermissions,
-    relayEndpoint,
     setClientStateManager,
   } = useUserContext();
 
@@ -169,9 +169,9 @@ const StoreCreation = () => {
         throw new Error("Keycard already enrolled");
       }
       clientStateManager = new ClientWithStateManager(
-        shopPublicClient,
-        shopId,
-        relayEndpoint,
+        shopPublicClient!,
+        shopId!,
+        relayEndpoint!,
       );
       setClientStateManager(clientStateManager);
 
@@ -192,7 +192,7 @@ const StoreCreation = () => {
       setStoreRegistrationStatus("Adding relay token ID...");
       // Add relay tokenId for event verification.
       const tx = await blockchainClient.addRelay(
-        clientWallet,
+        clientWallet!,
         rc.relayEndpoint.tokenId,
       );
       log(`Added relay token ID:${rc.relayEndpoint.tokenId}`);
@@ -207,10 +207,10 @@ const StoreCreation = () => {
       debug(`Error: mintShop:`, err);
     }
 
-    await enrollConnectAuthenticate(clientStateManager);
+    await enrollConnectAuthenticate(clientStateManager!);
   }
 
-  async function enrollConnectAuthenticate(client) {
+  async function enrollConnectAuthenticate(client: ClientWithStateManager) {
     setStoreRegistrationStatus("Checking permissions...");
     try {
       const hasAccess = await checkPermissions();
@@ -218,8 +218,8 @@ const StoreCreation = () => {
         throw new Error("Access denied.");
       }
       setStoreRegistrationStatus("Enrolling keycard...");
-      const res = await client.relayClient.enrollKeycard(
-        clientWallet,
+      const res = await client.relayClient!.enrollKeycard(
+        clientWallet!,
         false,
         shopId!,
         process.env.TEST ? undefined : new URL(window.location.href),
@@ -240,7 +240,7 @@ const StoreCreation = () => {
 
       //Add address of current kc wallet for all outgoing event verification.
       const keyCardWallet = privateKeyToAccount(keycard);
-      await client.stateManager.keycards.addAddress(keyCardWallet.address);
+      await client.stateManager!.keycards.addAddress(keyCardWallet.address);
       log(
         `keycard wallet address added: ${keyCardWallet.address.toLowerCase()}`,
       );
@@ -249,8 +249,8 @@ const StoreCreation = () => {
       setStoreRegistrationStatus(
         "Connecting and authenticating Relay Client...",
       );
-      await client.relayClient.connect();
-      await client.relayClient.authenticate();
+      await client.relayClient!.connect();
+      await client.relayClient!.authenticate();
     } catch (error) {
       debug(`Error:enrollConnectAuthenticate ${error}`);
       setErrorMsg("Error connecting to client");
@@ -258,9 +258,9 @@ const StoreCreation = () => {
     await createShopManifest(client);
   }
 
-  async function createShopManifest(client) {
+  async function createShopManifest(client: ClientWithStateManager) {
     try {
-      await client.stateManager.manifest.create(
+      await client.stateManager!.manifest.create(
         {
           pricingCurrency: pricingCurrency as ShopCurrencies,
           acceptedCurrencies,
@@ -294,7 +294,7 @@ const StoreCreation = () => {
     await uploadMetadata(client);
   }
 
-  async function uploadMetadata(client) {
+  async function uploadMetadata(client: ClientWithStateManager) {
     setStoreRegistrationStatus("Setting shop metadata...");
     let metadataPath;
     let imgPath;
@@ -307,7 +307,7 @@ const StoreCreation = () => {
         imgPath = { url: "/" };
       } else {
         imgPath = avatar
-          ? await client.relayClient.uploadBlob(avatar as FormData)
+          ? await client.relayClient!.uploadBlob(avatar as FormData)
           : { url: null };
         const metadata = {
           name: storeName,
@@ -319,7 +319,7 @@ const StoreCreation = () => {
         const file = new File([blob], "file.json");
         const formData = new FormData();
         formData.append("file", file);
-        metadataPath = await client.relayClient.uploadBlob(formData);
+        metadataPath = await client.relayClient!.uploadBlob(formData);
       }
 
       const blockchainClient = new BlockchainClient(shopId!);
@@ -355,7 +355,7 @@ const StoreCreation = () => {
 
   if (step === "manifest form") {
     return (
-      <main className="pt-under-nav h-screen p-4 mt-5">
+      <main className="pt-under-nav h-screen p-4 mt-2">
         <ValidationWarning
           warning={validationError}
           onClose={() => {
@@ -487,8 +487,7 @@ const StoreCreation = () => {
               }}
             />
           </div>
-
-          <div className="mt-6">
+          <div>
             <Button onClick={goToConnectWallet}>
               <h6>Connect Wallet</h6>
             </Button>

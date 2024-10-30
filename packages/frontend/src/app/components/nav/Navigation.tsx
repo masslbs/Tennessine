@@ -4,7 +4,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -14,6 +14,7 @@ import debugLib from "debug";
 import { OrderId, Status } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useAuth } from "@/context/AuthContext";
+import { useUserContext } from "@/context/UserContext";
 import Cart from "@/app/cart/Cart";
 
 const merchantMenu = [
@@ -38,14 +39,37 @@ const customerMenu = [
 function Navigation() {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const [basketOpen, setBasketOpen] = useState<boolean>(false);
-
+  const [cartLength, setLength] = useState<number>(0);
   const { clientConnected, setIsConnected, isMerchantView } = useAuth();
-  const { shopDetails, stateManager } = useStoreContext();
+  const { shopDetails } = useStoreContext();
+  const { clientWithStateManager } = useUserContext();
+
   const router = useRouter();
   const { disconnect } = useDisconnect();
   const debug = debugLib("frontend:Navigation");
   const log = debugLib("log:Navigation");
   log.color = "242";
+
+  useEffect(() => {
+    function onChangeItems(order) {
+      const values = Object.values(order.items);
+      let length = 0;
+      values.map((qty) => (length += Number(qty)));
+      setLength(length);
+    }
+    if (clientWithStateManager?.stateManager) {
+      clientWithStateManager.stateManager.orders.on(
+        "changeItems",
+        onChangeItems,
+      );
+      return () => {
+        clientWithStateManager!.stateManager!.orders.removeListener(
+          "changeItems",
+          onChangeItems,
+        );
+      };
+    }
+  }, [clientWithStateManager?.stateManager]);
 
   function onDisconnect() {
     setMenuOpen(false);
@@ -64,7 +88,7 @@ function Navigation() {
         debug("orderId not found");
         throw new Error("No order found");
       }
-      await stateManager!.orders.commit(orderId);
+      await clientWithStateManager!.stateManager!.orders.commit(orderId);
       setBasketOpen(false);
       log(`Order ID: ${orderId} committed`);
       router.push("/checkout");
@@ -175,7 +199,10 @@ function Navigation() {
         <section
           className={`flex gap-6 p-2 ${clientConnected === Status.Complete ? "" : "hidden"}`}
         >
-          <button onClick={() => setBasketOpen(!basketOpen)}>
+          <button
+            className="relative"
+            onClick={() => setBasketOpen(!basketOpen)}
+          >
             <Image
               src="/icons/menu-basket.svg"
               width={20}
@@ -184,6 +211,11 @@ function Navigation() {
               unoptimized={true}
               className="w-5 h-5"
             />
+            <div
+              className={`${!cartLength ? "hidden" : ""} bg-red-700 rounded-full absolute top-0 left-3 w-4 h-4 flex justify-center items-center`}
+            >
+              <p className="text-white text-[10px]">{cartLength}</p>
+            </div>
           </button>
           <button onClick={menuSwitch}>
             <Image

@@ -21,8 +21,8 @@ import { useUserContext } from "@/context/UserContext";
 import { useAuth } from "@/context/AuthContext";
 
 const ProductDetail = () => {
-  const { stateManager, getOrderId, getBaseTokenInfo } = useStoreContext();
-  const { upgradeGuestToCustomer } = useUserContext();
+  const { getOrderId, getBaseTokenInfo } = useStoreContext();
+  const { upgradeGuestToCustomer, clientWithStateManager } = useUserContext();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isMerchantView } = useAuth();
@@ -47,8 +47,8 @@ const ProductDetail = () => {
       .then((id) => {
         if (id) {
           setOrderId(id);
-          stateManager.orders
-            .get(id)
+          clientWithStateManager!
+            .stateManager!.orders.get(id)
             .then((order) => {
               const orderItems = order.items;
               setCurrentCart(orderItems);
@@ -69,10 +69,16 @@ const ProductDetail = () => {
           setCurrentCart(order.items);
         }
       };
-      stateManager.orders.on("changeItems", onChangeItems);
+      clientWithStateManager!.stateManager!.orders.on(
+        "changeItems",
+        onChangeItems,
+      );
       return () => {
         // Cleanup listeners on unmount
-        stateManager.orders.removeListener("changeItems", onChangeItems);
+        clientWithStateManager!.stateManager!.orders.removeListener(
+          "changeItems",
+          onChangeItems,
+        );
       };
     }
   });
@@ -82,8 +88,8 @@ const ProductDetail = () => {
       //set item details
       getBaseTokenInfo()
         .then((baseTokenInfo) => {
-          stateManager.items
-            .get(itemId)
+          clientWithStateManager!
+            .stateManager!.items.get(itemId)
             .then((item) => {
               setItem(item);
               const price = formatUnitsFromString(
@@ -108,7 +114,10 @@ const ProductDetail = () => {
 
   const getAllTags = async () => {
     const tags = new Map();
-    for await (const [id, tag] of stateManager.tags.iterator()) {
+    for await (const [
+      id,
+      tag,
+    ] of clientWithStateManager!.stateManager!.tags.iterator()) {
       tags.set(id, tag);
     }
     return tags;
@@ -128,11 +137,14 @@ const ProductDetail = () => {
       });
 
     // Listen to future events
-    stateManager.tags.on("create", onCreateTag);
+    clientWithStateManager!.stateManager!.tags.on("create", onCreateTag);
 
     return () => {
       // Cleanup listeners on unmount
-      stateManager.items.removeListener("create", onCreateTag);
+      clientWithStateManager!.stateManager!.items.removeListener(
+        "create",
+        onCreateTag,
+      );
     };
   }, []);
 
@@ -143,15 +155,19 @@ const ProductDetail = () => {
       (localStorage.getItem("merchantKeyCard") ||
         localStorage.getItem("guestCheckoutKC"))
     ) {
-      order_id = (await stateManager.orders.create()).id;
+      order_id = (await clientWithStateManager!.stateManager!.orders.create())
+        .id;
       setOrderId(order_id);
     } else if (!order_id) {
       //For users with no enrolled KC: upgrade subscription when adding an item to cart.
       await upgradeGuestToCustomer();
       const kc = localStorage.getItem("guestCheckoutKC") as `0x${string}`;
       const keyCardWallet = privateKeyToAccount(kc);
-      await stateManager.keycards.addAddress(keyCardWallet.address);
-      order_id = (await stateManager.orders.create()).id;
+      await clientWithStateManager!.stateManager!.keycards.addAddress(
+        keyCardWallet.address,
+      );
+      order_id = (await clientWithStateManager!.stateManager!.orders.create())
+        .id;
       setOrderId(order_id);
     }
     try {
@@ -160,14 +176,21 @@ const ProductDetail = () => {
         : quantity - currentCartItems![itemId];
 
       if (diff > 0) {
-        await stateManager!.orders.addsItems(order_id, itemId, diff);
+        await clientWithStateManager!.stateManager!.orders.addsItems(
+          order_id,
+          itemId,
+          diff,
+        );
       } else {
-        await stateManager!.orders.removesItems(order_id, [
-          {
-            listingId: itemId,
-            quantity: currentCartItems![itemId]! - quantity,
-          },
-        ]);
+        await clientWithStateManager!.stateManager!.orders.removesItems(
+          order_id,
+          [
+            {
+              listingId: itemId,
+              quantity: currentCartItems![itemId]! - quantity,
+            },
+          ],
+        );
       }
       setButton("Review");
     } catch (error) {

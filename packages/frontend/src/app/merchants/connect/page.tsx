@@ -14,11 +14,12 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import * as abi from "@massmarket/contracts";
 import { Status, ShopId } from "@/types";
 import { isValidHex } from "@/app/utils";
-import ErrorMessage from "@/app/common/components/ErrorMessage";
-import Button from "@/app/common/components/Button";
 import { useAuth } from "@/context/AuthContext";
 import { useUserContext } from "@/context/UserContext";
-import Confirmation from "./Confirmation";
+import ErrorMessage from "@/app/common/components/ErrorMessage";
+import Button from "@/app/common/components/Button";
+import { ClientWithStateManager } from "@/app/ClientWithStateManager";
+import Confirmation from "@/app/merchants/connect/Confirmation";
 
 const MerchantConnectWallet = () => {
   const {
@@ -26,11 +27,11 @@ const MerchantConnectWallet = () => {
     clientWallet,
     setShopId,
     setRelayClient,
-    createNewRelayClient,
+    setClientStateManager,
+    relayEndpoint,
   } = useUserContext();
   const { clientConnected, setIsConnected, setIsMerchantView } = useAuth();
   const enrollKeycard = useRef(false);
-
   const { status } = useAccount();
   const debug = debugLib("frontend: Connect Merchant");
   const log = debugLib("frontend: log - Connect Merchant");
@@ -52,7 +53,90 @@ const MerchantConnectWallet = () => {
     setErrorMsg(null);
   }, [clientWallet?.account.address]);
 
-  const getButton = () => {
+  function handleClearShopIdInput() {
+    setSearchShopId("");
+    setStep("search");
+  }
+  async function handleSearchForShop() {
+    if (!isValidHex(searchShopId)) {
+      setErrorMsg("Enter a valid shop ID");
+      return;
+    }
+    try {
+      const uri = (await shopPublicClient!.readContract({
+        address: abi.addresses.ShopReg as Address,
+        abi: abi.ShopReg,
+        functionName: "tokenURI",
+        args: [searchShopId],
+      })) as string;
+      if (uri) {
+        const res = await fetch(uri);
+        const data = await res.json();
+        setShopData(data);
+        setStep("connect");
+        return;
+      }
+      setErrorMsg("Shop not found");
+    } catch (error) {
+      setErrorMsg("Error finding shop");
+      debug(error);
+    }
+  }
+
+  async function enroll() {
+    try {
+      if (clientConnected !== Status.Pending) {
+        throw new Error(`Client not pending. Status: ${clientConnected}`);
+      }
+      if (enrollKeycard.current) {
+        throw new Error("Keycard already enrolled");
+      }
+      const id = searchShopId as ShopId;
+      setShopId(id);
+      localStorage.setItem("shopId", id);
+      const clientStateManager = new ClientWithStateManager(
+        shopPublicClient!,
+        id,
+        relayEndpoint!,
+      );
+      setClientStateManager(clientStateManager);
+      const rc = await clientStateManager.createNewRelayClient();
+      const keyCardToEnroll = localStorage.getItem(
+        "keyCardToEnroll",
+      ) as `0x${string}`;
+      const res = await rc.enrollKeycard(
+        clientWallet!,
+        false,
+        id,
+        new URL(window.location.href),
+      );
+      if (res.ok) {
+        enrollKeycard.current = true;
+        log(`Keycard enrolled: ${keyCardToEnroll}`);
+        await rc.connect();
+        await rc.authenticate();
+        await clientStateManager.createStateManager();
+        log("StateManager created");
+        await clientStateManager.sendMerchantSubscriptionRequest();
+        setRelayClient(rc);
+        keyCardToEnroll &&
+          localStorage.setItem("merchantKeyCard", keyCardToEnroll);
+        setIsConnected(Status.Complete);
+        setIsMerchantView(true);
+        setStep("confirmation");
+      } else {
+        enrollKeycard.current = false;
+        setIsConnected(Status.Failed);
+        throw new Error("Failed to enroll keycard");
+      }
+      localStorage.removeItem("keyCardToEnroll");
+    } catch (error) {
+      setErrorMsg(`Something went wrong. ${error}`);
+      debug(error);
+    }
+  }
+
+  function getButton() {
     if (step === "search") {
       return <Button onClick={handleSearchForShop}>Search for shop</Button>;
     } else if (shopData) {
@@ -78,85 +162,7 @@ const MerchantConnectWallet = () => {
         </div>
       );
     }
-  };
-  const handleClearShopIdInput = () => {
-    setSearchShopId("");
-    setStep("search");
-  };
-  const handleSearchForShop = async () => {
-    if (!isValidHex(searchShopId)) {
-      setErrorMsg("Enter a valid shop ID");
-      return;
-    }
-    const uri = (await shopPublicClient!.readContract({
-      address: abi.addresses.ShopReg as Address,
-      abi: abi.ShopReg,
-      functionName: "tokenURI",
-      args: [searchShopId],
-    })) as string;
-    if (uri) {
-      const res = await fetch(uri);
-      const data = await res.json();
-      setShopData(data);
-      setStep("connect");
-      return;
-    }
-
-    setErrorMsg("Shop not found");
-  };
-
-  const enroll = async () => {
-    if (clientConnected !== Status.Pending) {
-      setErrorMsg(`Client not pending. Status: ${clientConnected}`);
-      return;
-    }
-    if (enrollKeycard.current) {
-      setErrorMsg("Keycard already enrolled");
-      return;
-    }
-    enrollKeycard.current = true;
-    const id = searchShopId as ShopId;
-    setShopId(id);
-    localStorage.setItem("shopId", id);
-
-    (async () => {
-      try {
-        const _relayClient = await createNewRelayClient();
-        if (!_relayClient) return;
-        const keyCardToEnroll = localStorage.getItem(
-          "keyCardToEnroll",
-        ) as `0x${string}`;
-        const res = await _relayClient.enrollKeycard(
-          clientWallet!,
-          false,
-          id,
-          new URL(window.location.href),
-        );
-        if (res.ok) {
-          log(`Keycard enrolled: ${keyCardToEnroll}`);
-          //Once merchant keycard is enrolled, connect and authenticate.
-          await _relayClient.connect();
-          await _relayClient.authenticate();
-          await _relayClient!.sendMerchantSubscriptionRequest(id);
-          setRelayClient(_relayClient);
-          setIsMerchantView(true);
-          keyCardToEnroll &&
-            localStorage.setItem("merchantKeyCard", keyCardToEnroll);
-          setIsConnected(Status.Complete);
-          setStep("confirmation");
-        } else {
-          enrollKeycard.current = false;
-          setIsConnected(Status.Failed);
-          throw new Error("Failed to enroll keycard");
-        }
-        localStorage.removeItem("keyCardToEnroll");
-      } catch (error) {
-        setErrorMsg(`Something went wrong. ${error}`);
-        debug(error);
-      }
-    })();
-  };
-
+  }
   if (step === "confirmation") {
     return <Confirmation />;
   }

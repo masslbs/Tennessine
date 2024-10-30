@@ -10,8 +10,8 @@ import { Item, Order, KeyCard, ShopManifest, Tag, ShopId } from "@/types";
 export class ClientWithStateManager {
   readonly publicClient: PublicClient;
   readonly shopId: ShopId;
-  public stateManager: StateManager;
-  public relayClient: RelayClient;
+  public stateManager: StateManager | null;
+  public relayClient: RelayClient | null;
 
   constructor(
     publicClient: PublicClient,
@@ -55,7 +55,7 @@ export class ClientWithStateManager {
     });
 
     this.stateManager = new StateManager(
-      this.relayClient,
+      this.relayClient!,
       listingStore,
       tagStore,
       shopManifestStore,
@@ -81,7 +81,10 @@ export class ClientWithStateManager {
     return this.relayClient;
   }
   async sendMerchantSubscriptionRequest() {
-    const seqNo = await this.stateManager.manifest.getSeqNo();
-    return this.relayClient.sendMerchantSubscriptionRequest(this.shopId, seqNo);
+    const seqNo = await this.stateManager!.manifest.getSeqNo();
+    return this.relayClient!.sendMerchantSubscriptionRequest(
+      this.shopId,
+      seqNo,
+    );
   }
 }

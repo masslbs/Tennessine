@@ -24,7 +24,7 @@ const MerchantDashboard = () => {
     for await (const [
       id,
       o,
-    ] of clientWithStateManager.stateManager.orders.iterator()) {
+    ] of clientWithStateManager!.stateManager!.orders.iterator()) {
       if (Object.values(OrderState).includes(id)) {
         allOrders.set(id, o);
       }
@@ -44,8 +44,14 @@ const MerchantDashboard = () => {
     getAllOrders()
       .then((allOrders) => {
         setOrders(allOrders);
-        clientWithStateManager.stateManager.orders.on("create", onCreateOrder);
-        clientWithStateManager.stateManager.orders.on("update", onUpdateOrder);
+        clientWithStateManager!.stateManager!.orders.on(
+          "create",
+          onCreateOrder,
+        );
+        clientWithStateManager!.stateManager!.orders.on(
+          "update",
+          onUpdateOrder,
+        );
       })
       .catch((e) => {
         debug(e);
@@ -53,11 +59,11 @@ const MerchantDashboard = () => {
 
     return () => {
       // Cleanup listeners on unmount
-      clientWithStateManager.stateManager.orders.removeListener(
+      clientWithStateManager!.stateManager!.orders.removeListener(
         "create",
         onCreateOrder,
       );
-      clientWithStateManager.stateManager.orders.removeListener(
+      clientWithStateManager!.stateManager!.orders.removeListener(
         "update",
         onUpdateOrder,
       );

@@ -374,22 +374,6 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
       return;
     }
   }
-  async addSeqNo(no: number) {
-    return this.store.put("seqNo", no);
-  }
-
-  async getSeqNo() {
-    let no = 0;
-    try {
-      no = (await this.store.get("seqNo")) as number;
-    } catch (error) {
-      const e = error as IError;
-      if (!e.notFound) {
-        throw new Error(e.code);
-      }
-    }
-    return no;
-  }
 
   async create(manifest: CreateShopManifest, shopId: `0x${string}`) {
     const m: schema.IShopManifest = manifest;
@@ -455,8 +439,24 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
     return eventListenAndResolve<ShopManifest>(eventId, this, "update");
   }
 
-  get() {
-    return this.store.get("shopManifest");
+  get(): Promise<ShopManifest> {
+    return this.store.get("shopManifest") as Promise<ShopManifest>;
+  }
+  async addSeqNo(no: number) {
+    return this.store.put("seqNo", no);
+  }
+
+  async getSeqNo() {
+    let no = 0;
+    try {
+      no = (await this.store.get("seqNo")) as number;
+    } catch (error) {
+      const e = error as IError;
+      if (!e.notFound) {
+        throw new Error(e.code);
+      }
+    }
+    return no;
   }
 }
 class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {

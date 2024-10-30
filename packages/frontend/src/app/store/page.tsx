@@ -33,8 +33,9 @@ interface AcceptedChain {
 }
 
 function StoreProfile() {
-  const { stateManager, shopDetails } = useStoreContext();
-  const { shopId, relayClient, clientWallet } = useUserContext();
+  const { shopDetails } = useStoreContext();
+  const { shopId, relayClient, clientWallet, clientWithStateManager } =
+    useUserContext();
   const [storeName, setStoreName] = useState<string>("");
   const [avatar, setAvatar] = useState<FormData | null>(null);
   const [acceptedCurrencies, setAcceptedCurrencies] = useState<AcceptedChain[]>(
@@ -91,8 +92,8 @@ function StoreProfile() {
       });
     };
 
-    stateManager.manifest
-      .get()
+    clientWithStateManager!
+      .stateManager!.manifest.get()
       .then((shopManifest) => {
         const { pricingCurrency, acceptedCurrencies } = shopManifest;
         setManifest(shopManifest);
@@ -106,11 +107,14 @@ function StoreProfile() {
         debug(e);
       });
 
-    stateManager.manifest.on("update", onUpdateEvent);
+    clientWithStateManager!.stateManager!.manifest.on("update", onUpdateEvent);
 
     return () => {
       // Cleanup listeners on unmount
-      stateManager.manifest.removeListener("update", onUpdateEvent);
+      clientWithStateManager!.stateManager!.manifest.removeListener(
+        "update",
+        onUpdateEvent,
+      );
     };
   }, []);
 

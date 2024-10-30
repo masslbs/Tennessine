@@ -17,10 +17,11 @@ import {
   CurrencyChainOption,
 } from "@/types";
 import { getTokenInformation } from "@/app/utils";
-import { useStoreContext } from "@/context/StoreContext";
+import { useUserContext } from "@/context/UserContext";
 import Dropdown from "@/app/common/components/CurrencyDropdown";
 import { ConnectWalletButton } from "@/app/common/components/ConnectWalletButton";
 import BackButton from "@/app/common/components/BackButton";
+import QRScan from "./QRScan";
 
 export default function ChoosePayment({
   setStep,
@@ -31,6 +32,12 @@ export default function ChoosePayment({
     >
   >;
 }) {
+  const { clientWithStateManager } = useUserContext();
+  const chains = useChains();
+  const debug = debugLib("frontend:ChoosePayment");
+  const log = debugLib("frontend:ChoosePayment");
+  log.color = "242";
+
   const [displayedChains, setChains] = useState<CurrencyChainOption[] | null>(
     null,
   );
@@ -41,16 +48,11 @@ export default function ChoosePayment({
   const [erc20Amount, setErc20Amount] = useState<null | string>(null);
   const [imgSrc, setSrc] = useState<null | string>(null);
   const [orderId, setOrderId] = useState<OrderId | null>(null);
-
-  const { stateManager } = useStoreContext();
-  const chains = useChains();
-  const debug = debugLib("frontend:ChoosePayment");
-  const log = debugLib("frontend:ChoosePayment");
-  log.color = "242";
+  const [qrOpen, setQrOpen] = useState<boolean>(false);
 
   useEffect(() => {
-    stateManager.orders
-      .getStatus(OrderState.STATE_COMMITED)
+    clientWithStateManager!
+      .stateManager!.orders.getStatus(OrderState.STATE_COMMITED)
       // @ts-expect-error FIXME: frontend currently cannot infer type from stateManager. Is this fixed with Deno?
       .then((committed: OrderId[]) => {
         if (!committed) {
@@ -67,8 +69,8 @@ export default function ChoosePayment({
   }, []);
 
   useEffect(() => {
-    stateManager.manifest
-      .get()
+    clientWithStateManager!
+      .stateManager!.manifest.get()
       .then((manifest: ShopManifest) => {
         getDisplayedChains(manifest)
           .then((arr) => {
@@ -92,17 +94,25 @@ export default function ChoosePayment({
       }
     }
     console.log({ orderId });
-    orderId && stateManager.orders.on("paymentDetails", onPaymentDetails);
+    orderId &&
+      clientWithStateManager!.stateManager!.orders.on(
+        "paymentDetails",
+        onPaymentDetails,
+      );
 
     return () => {
       // Cleanup listeners on unmount
-      stateManager.items.removeListener("paymentDetails", onPaymentDetails);
+      clientWithStateManager!.stateManager!.items.removeListener(
+        "paymentDetails",
+        onPaymentDetails,
+      );
     };
   }, [orderId]);
 
   async function getDetails(oId: OrderId) {
     try {
-      const committedOrder = await stateManager.orders.get(oId!);
+      const committedOrder =
+        await clientWithStateManager!.stateManager!.orders.get(oId!);
       if (!committedOrder?.choosePayment) {
         throw new Error("No chosen payment found");
       }
@@ -131,7 +141,8 @@ export default function ChoosePayment({
         chain: payeeChain,
         transport: http(),
       });
-      const manifest = await stateManager.manifest.get();
+      const manifest =
+        await clientWithStateManager!.stateManager!.manifest.get();
       //FIXME: get orderHash from paymentDetails.
       const zeros32Bytes = pad(zeroAddress, { size: 32 });
 
@@ -193,9 +204,10 @@ export default function ChoosePayment({
   }
   async function onSelectPaymentCurrency(selected: CurrencyChainOption) {
     try {
-      const committed = await stateManager?.orders.getStatus(
-        OrderState.STATE_COMMITED,
-      );
+      const committed =
+        await clientWithStateManager!.stateManager!.orders.getStatus(
+          OrderState.STATE_COMMITED,
+        );
       if (!committed) {
         throw new Error("No committed order found");
       }
@@ -209,18 +221,31 @@ export default function ChoosePayment({
       if (!payee) {
         throw new Error("No payee found in shop manifest");
       }
-      await stateManager!.orders.choosePayment(committedOrderId, {
-        currency: {
-          address: selected.address!,
-          chainId: selected.chainId!,
+      await clientWithStateManager!.stateManager!.orders.choosePayment(
+        committedOrderId,
+        {
+          currency: {
+            address: selected.address!,
+            chainId: selected.chainId!,
+          },
+          payee,
         },
-        payee,
-      });
+      );
       log("Chosen payment set");
     } catch (error) {
       debug(error);
     }
   }
+  if (qrOpen)
+    return (
+      <QRScan
+        imgSrc={imgSrc}
+        purchaseAddress={purchaseAddress!}
+        erc20Amount={erc20Amount}
+        symbol={symbol}
+        goBack={() => setQrOpen(false)}
+      />
+    );
 
   return (
     <section>
@@ -253,7 +278,7 @@ export default function ChoosePayment({
               unoptimized={true}
               className="w-6 h-6 max-h-6"
             />
-            <h1>total</h1>
+            <h1>{erc20Amount}</h1>
           </div>
         </div>
         <div className="flex justify-between">
@@ -264,6 +289,7 @@ export default function ChoosePayment({
             <button
               data-testid="connect-wallet"
               className="rounded-lg flex flex-col items-center gap-2"
+              onClick={() => setQrOpen(true)}
             >
               <Image
                 src="/icons/wallet-icon.svg"
