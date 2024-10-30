@@ -1,8 +1,6 @@
 import { EventEmitter } from "events";
 import { bytesToHex, hexToBytes, PublicClient, fromBytes } from "viem";
-
 import { Address } from "@ethereumjs/util";
-
 import {
   type Listing,
   type IRelayClient,
@@ -24,8 +22,7 @@ import {
 } from "./types.ts";
 import * as abi from "@massmarket/contracts";
 import schema from "@massmarket/schema";
-import { type EventWithRecoveredSigner } from "../client/stream.ts";
-
+import { type EventWithRecoveredSigner } from "@massmarket/client/stream";
 import {
   priceToUint256,
   objectId,
@@ -34,7 +31,6 @@ import {
   assert,
   assertField,
 } from "@massmarket/utils";
-
 
 // This is an interface that is used to retrieve and store objects from a persistant layer
 export type Store<T extends ShopObjectTypes> = {
@@ -99,7 +95,6 @@ abstract class PublicObjectManager<
     return this.store.iterator.bind(this.store);
   }
 }
-class SeqNoEmitter extends EventEmitter {}
 
 //We should always make sure the network call is successful before updating the store with store.put
 class ListingManager extends PublicObjectManager<Listing> {
@@ -1092,6 +1087,7 @@ export class StateManager {
   readonly shopId;
   readonly publicClient;
   readonly seqNo;
+  readonly stream;
   readonly eventStreamProcessing: Promise<void>;
   constructor(
     public client: IRelayClient,
@@ -1110,8 +1106,8 @@ export class StateManager {
     this.keycards = new KeyCardManager(keycardStore, client);
     this.shopId = shopId;
     this.publicClient = publicClient;
-    this.seqNo = new SeqNoEmitter();
-
+    this.seqNo = new EventEmitter();
+    this.stream = this.client.createEventStream();
     this.eventStreamProcessing = this.#start();
   }
 
@@ -1123,7 +1119,6 @@ export class StateManager {
       this.orders,
       this.keycards,
     ];
-    const stream = this.client.createEventStream();
 
     //When we inititally create a shop, we are saving the relay tokenId => shopId.
     //Here, we are retrieving all the relay addresses associated with the shopId and saving them to keycards store.
@@ -1157,7 +1152,7 @@ export class StateManager {
 
     //Each event will go through all the storeObjects and update the relevant stores.
     let event: EventWithRecoveredSigner;
-    for await (event of stream) {
+    for await (event of this.stream) {
       assert(event.seqNo, "event.seqNo missing");
       assert(event.signer, "event.signer missing");
       if (event.seqNo) {
