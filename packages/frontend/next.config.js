@@ -16,8 +16,7 @@ export default {
   trailingSlash: true,
   webpack: (config) => {
     config.resolve.fallback = { fs: false, net: false, tls: false };
-    config.externals.push("pino-pretty");
-
+    // config.externals.push("pino-pretty");
     return config;
   },
 };

@@ -64,6 +64,15 @@ jobs:
         run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
         id: extract_branch
 
+      - name: Installing deps 
+        run: nix develop -c bash -c "deno install"
+        working-directory: Tennessine/
+    
+      # TODO: add frontend to this
+      - name: Type Check packages
+        run: nix develop -c bash -c "deno check packages/{blockchain,client,contracts,schema,stateManager,utils}"
+        working-directory: Tennessine/
+
       - name: git clone relay
         uses: ./Tennessine/.github/actions/checkout
         with:
@@ -102,18 +111,13 @@ jobs:
           curl http://localhost:5001/api/v0/version -X POST
           curl http://localhost:8545/ -X POST -H 'content-type: application/json' --data-raw '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":0}'
 
-      - name: Installing deps 
-        run: nix develop -c bash -c "deno install"
-        working-directory: Tennessine/
-
       - name: Run tests
-        run: nix develop -c bash -c "deno test  --no-check --allow-env --allow-net"
+        run: nix develop -c bash -c "deno test --allow-env --allow-net"
         working-directory: Tennessine/
 
       - name: build frontend
         run: nix develop -c bash -c "deno run -A  --unstable-unsafe-proto build --no-lint"
         working-directory: Tennessine/packages/frontend
-
 
       - name: Upload frontend to Pinata
         run: |
