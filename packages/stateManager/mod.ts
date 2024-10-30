@@ -206,7 +206,6 @@ class ListingManager extends PublicObjectManager<Listing> {
             return await this.store.put(iid, l);
           }),
         );
-        return;
       }
       if (ut.removeListingIds) {
         const lIds = ut.removeListingIds;
@@ -221,7 +220,6 @@ class ListingManager extends PublicObjectManager<Listing> {
             await this.store.put(iid, l);
           }),
         );
-        return;
       }
     }
   }
@@ -250,7 +248,11 @@ class ListingManager extends PublicObjectManager<Listing> {
     if (update.metadata) {
       ui.metadata = update.metadata;
     }
-    if (Object.values(ListingViewState).includes(update.viewState!)) {
+    if (update.viewState !== undefined) {
+      assert(
+        Object.values(ListingViewState).includes(update.viewState),
+        `update.viewState ${update.viewState} must be a valid ListingViewState`,
+      );
       ui.viewState = update.viewState;
     }
     const requestId = await this.client.updateListing(ui);
@@ -263,7 +265,7 @@ class ListingManager extends PublicObjectManager<Listing> {
       id: { raw: hexToBytes(tagId) },
       addListingIds: [{ raw: hexToBytes(lId) }],
     });
-    return eventListenAndResolve<Listing>(requestId, this, "addlId");
+    return eventListenAndResolve<Listing>(requestId, this, "addListingId");
   }
 
   async removeListingFromTag(tagId: `0x${string}`, lId: `0x${string}`) {
@@ -271,7 +273,7 @@ class ListingManager extends PublicObjectManager<Listing> {
       id: { raw: hexToBytes(tagId) },
       removeListingIds: [{ raw: hexToBytes(lId) }],
     });
-    return eventListenAndResolve<Listing>(requestId, this, "removelId");
+    return eventListenAndResolve<Listing>(requestId, this, "removeListingId");
   }
 
   async changeInventory(lId: `0x${string}`, diff: number) {
@@ -1050,10 +1052,21 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
   }
 
   async verify(address: `0x${string}`) {
-    const keys = await this.store.get("cardPublicKey");
+    let keys: `0x${string}`[];
+    try {
+      keys = await this.store.get("cardPublicKey");
+    } catch (error) {
+      const e = error as IError;
+      if (e.notFound) {
+        keys = [];
+      } else {
+        throw new Error(e.code);
+      }
+    }
     if (keys.includes(address.toLowerCase() as `0x${string}`)) {
       return;
-    } else throw new Error(`Unverified Event: verifying address ${address}`);
+    }
+    throw new Error(`Unverified Event: signed by unknown address ${address}`);
   }
 
   async addAddress(key: `0x${string}`) {
@@ -1124,6 +1137,7 @@ export class StateManager {
     //Here, we are retrieving all the relay addresses associated with the shopId and saving them to keycards store.
     //Since some shopEvents are signed by a relay, we need to include these addresses when verifying the event signer.
     // TODO: i think this should be moved outside of the event stream handling and just call addAddress on the keyCardManager
+    /*
     const count = (await this.publicClient.readContract({
       address: abi.addresses.ShopReg as `0x${string}`,
       abi: abi.ShopReg,
@@ -1147,15 +1161,13 @@ export class StateManager {
         await this.keycards.addAddress(ownerAdd);
       }
     }
+    */
 
     //Each event will go through all the storeObjects and update the relevant stores.
     let event: EventWithRecoveredSigner;
     for await (event of stream) {
       assert(event.seqNo, "event.seqNo missing");
       assert(event.signer, "event.signer missing");
-      // console.log();
-      // console.log();
-      // console.log({seqNo: event.seqNo.toString(), requestId: event.requestId});
       if (event.seqNo) {
         this.seqNo.emit("seqNo", event.seqNo);
       }
@@ -1164,7 +1176,6 @@ export class StateManager {
       for (const storeObject of storeObjects) {
         await storeObject._processEvent(event.event, event.requestId);
       }
-      // console.log({seqNo: event.seqNo.toString(), requestId: event.requestId});
     }
   }
 }

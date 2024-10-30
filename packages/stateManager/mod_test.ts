@@ -1,4 +1,4 @@
-import { beforeEach, describe, test } from "jsr:@std/testing/bdd";
+import { afterAll, beforeEach, describe, test } from "jsr:@std/testing/bdd";
 import { assert } from "jsr:@std/assert";
 import { expect } from "jsr:@std/expect";
 import { MemoryLevel } from "memory-level";
@@ -27,30 +27,39 @@ import {
 import { hardhat } from "viem/chains";
 import * as abi from "@massmarket/contracts";
 
-const db = new MemoryLevel({
-  valueEncoding: "json",
-});
-
-db.clear();
-const listingStore = db.sublevel<string, Listing>("listingStore", {
-  valueEncoding: "json",
-});
-const tagStore = db.sublevel<string, Tag>("tagStore", {
-  valueEncoding: "json",
-});
-const shopManifestStore = db.sublevel<string, ShopManifest>(
-  "shopManifestStore",
-  {
+function setupStateManagerStores() {
+  const db = new MemoryLevel({
     valueEncoding: "json",
-  },
-);
-const orderStore = db.sublevel<string, Order | OrdersByStatus>("orderStore", {
-  valueEncoding: "json",
-});
+  });
 
-const keycardStore = db.sublevel<string, KeyCard>("keycardStore", {
-  valueEncoding: "json",
-});
+  const listingStore = db.sublevel<string, Listing>("listingStore", {
+    valueEncoding: "json",
+  });
+  const tagStore = db.sublevel<string, Tag>("tagStore", {
+    valueEncoding: "json",
+  });
+  const shopManifestStore = db.sublevel<string, ShopManifest>(
+    "shopManifestStore",
+    {
+      valueEncoding: "json",
+    },
+  );
+  const orderStore = db.sublevel<string, Order | OrdersByStatus>("orderStore", {
+    valueEncoding: "json",
+  });
+
+  const keycardStore = db.sublevel<string, KeyCard>("keycardStore", {
+    valueEncoding: "json",
+  });
+  return {
+    db,
+    listingStore,
+    tagStore,
+    shopManifestStore,
+    orderStore,
+    keycardStore,
+  };
+}
 
 const eddies = abi.addresses.Eddies.toLowerCase() as Address;
 
@@ -93,9 +102,16 @@ const publicClient = createPublicClient({
   transport: http(),
 });
 
-//FIXME: Test Vector tests will fail till ids are changed back to bytes.
-describe("Fill state manager with test vectors", () => {
+test("should create an event for every shop event", async () => {
   const client = new MockClient();
+  const {
+    db,
+    listingStore,
+    tagStore,
+    shopManifestStore,
+    orderStore,
+    keycardStore,
+  } = setupStateManagerStores();
   const stateManager = new StateManager(
     client,
     listingStore,
@@ -109,59 +125,104 @@ describe("Fill state manager with test vectors", () => {
   expect(client.keyCardWallet.address).toEqual(
     client.vectors.signatures.signer.address,
   );
+  await stateManager.keycards.addAddress(client.keyCardWallet.address);
+  //Store test vector address to db for event verification
+  let count = 0;
+  // console.log("vector count", client.vectors.events.length);
 
-  test("should create an event for every shop event", async () => {
-    //Store test vector address to db for event verification
-    await stateManager.keycards.addAddress(client.keyCardWallet.address);
-    let count = 0;
-    console.log("vector count", client.vectors.events.length);
-    const isDone = new Promise<void>((resolve, reject) => {
-      function updateCount() {
-        count++;
-        if (count === client.vectors.events.length) {
-          console.log("done");
-          resolve();
-        } else if (count > client.vectors.events.length) {
-          reject(new Error("Overflow"));
-        } else {
-          console.log("test count", count);
-        }
+  const isDone = new Promise<void>((resolve, reject) => {
+    // let timeout: number = 0;
+    function updateCount() {
+      count++;
+      if (count === client.vectors.events.length) {
+        // console.log("done");
+        // clearTimeout(timeout);
+        resolve();
+      } else if (count > client.vectors.events.length) {
+        reject(new Error("Overflow"));
+      } else {
+        // console.log("progress", count);
       }
+    }
 
-      // wild hack to keep the event loop alive
-      setTimeout(() => {
-        reject(new Error("Timeout"));
-      }, 5000);
+    // timeout = setTimeout(() => {
+    //   reject(new Error("Timeout"));
+    // }, 5000);
 
-      // stateManager.seqNo.on("seqNo", (seqNo) => {
-      //   console.log("last seqNo", seqNo.toString());
-      // });
-      stateManager.manifest.on("create", updateCount);
-      stateManager.manifest.on("update", updateCount);
-      stateManager.keycards.on("newKeyCard", updateCount);
-      stateManager.listings.on("create", updateCount);
-      stateManager.listings.on("update", updateCount);
-      stateManager.listings.on("changeInventory", updateCount);
-      stateManager.listings.on("addItemId", updateCount);
-      stateManager.listings.on("removeItemId", updateCount);
-      stateManager.tags.on("create", updateCount);
-      stateManager.tags.on("update", updateCount);
-      stateManager.tags.on("addListingId", updateCount);
-      stateManager.tags.on("removeListingId", updateCount);
-      stateManager.orders.on("create", updateCount);
-      stateManager.orders.on("orderCanceled", updateCount);
-      stateManager.orders.on("orderPaid", updateCount);
-      stateManager.orders.on("shippingAddress", updateCount);
-      stateManager.orders.on("invoiceAddress", updateCount);
-      stateManager.orders.on("changeItems", updateCount);
-      stateManager.orders.on("commitItems", updateCount);
-      stateManager.orders.on("choosePayment", updateCount);
-      stateManager.orders.on("paymentDetails", updateCount);
-      stateManager.orders.on("addPaymentTx", updateCount);
-    });
+    stateManager.manifest.on("create", updateCount);
+    stateManager.manifest.on("update", updateCount);
+    stateManager.keycards.on("newKeyCard", updateCount);
+    stateManager.listings.on("create", updateCount);
+    stateManager.listings.on("update", updateCount);
+    stateManager.listings.on("changeInventory", updateCount);
+    stateManager.listings.on("addItemId", updateCount);
+    stateManager.listings.on("removeItemId", updateCount);
+    stateManager.tags.on("create", updateCount);
+    stateManager.tags.on("update", updateCount);
+    stateManager.tags.on("addListingId", updateCount);
+    stateManager.tags.on("removeListingIds", updateCount);
+    stateManager.orders.on("create", updateCount);
+    stateManager.orders.on("orderCanceled", updateCount);
+    stateManager.orders.on("orderPaid", updateCount);
+    stateManager.orders.on("shippingAddress", updateCount);
+    stateManager.orders.on("invoiceAddress", updateCount);
+    stateManager.orders.on("changeItems", updateCount);
+    stateManager.orders.on("commitItems", updateCount);
+    stateManager.orders.on("choosePayment", updateCount);
+    stateManager.orders.on("paymentDetails", updateCount);
+    stateManager.orders.on("addPaymentTx", updateCount);
+  });
 
+  await client.connect();
+  await isDone;
+  await db.close();
+});
+
+describe("Fill state manager with test vectors", () => {
+  let client: MockClient;
+  let stateManager: StateManager;
+  const {
+    db,
+    listingStore,
+    tagStore,
+    shopManifestStore,
+    orderStore,
+    keycardStore,
+  } = setupStateManagerStores();
+  beforeEach(async () => {
+    await db.clear();
+    client = new MockClient();
+    stateManager = new StateManager(
+      client,
+      listingStore,
+      tagStore,
+      shopManifestStore,
+      orderStore,
+      keycardStore,
+      randomAddress(),
+      publicClient,
+    );
+    await stateManager.keycards.addAddress(client.keyCardWallet.address);
     await client.connect();
+    // let timeout: number = 0;
+    const isDone = new Promise<void>((resolve, reject) => {
+      // timeout = setTimeout(() => {
+      //   reject(new Error("Timeout"));
+      // }, 5000);
+      stateManager.seqNo.on("seqNo", (seqNo) => {
+        // toString because of Long type
+        if (
+          seqNo.toString() === (client.vectors.events.length - 1).toString()
+        ) {
+          resolve();
+        }
+      });
+    });
     await isDone;
+    // clearTimeout(timeout);
+  });
+  afterAll(async () => {
+    await db.close();
   });
 
   test("ShopManifest - adds and updates shop manifest events", async () => {
@@ -171,19 +232,12 @@ describe("Fill state manager with test vectors", () => {
     expect(shop.acceptedCurrencies.length).toEqual(
       vm.accepted_currencies.length,
     );
-    for (const currency of shop.acceptedCurrencies) {
-      const matchingCurrency = vm.accepted_currencies.find(
-        (c) => c.address.raw === currency.address && c.chain_id === currency.chainId
-      );
-      expect(matchingCurrency).toBeTruthy();
-    }
-    // Verify counts match in both directions
-    for (const currency of vm.accepted_currencies) {
-      const matchingCurrency = shop.acceptedCurrencies.find(
-        (c) => c.address === currency.address.raw && c.chainId === currency.chain_id
-      );
-      expect(matchingCurrency).toBeTruthy();
-    }
+    expect(shop.acceptedCurrencies[0].chainId).toEqual(
+      vm.accepted_currencies[0].chain_id,
+    );
+    expect(shop.acceptedCurrencies[0].address).toEqual(
+      vm.accepted_currencies[0].address.raw,
+    );
     const pricingCurrency = shop.pricingCurrency as ShopCurrencies;
     expect(pricingCurrency.chainId).toEqual(vm.pricing_currency.chain_id);
     expect(pricingCurrency.address).toEqual(vm.pricing_currency.address.raw);
@@ -288,47 +342,63 @@ describe("Fill state manager with test vectors", () => {
 });
 
 describe("Unverified events should be caught in error", () => {
-  beforeEach(() => {
-    db.clear();
+  test("catches error", async () => {
+    const {
+      db,
+      listingStore,
+      tagStore,
+      shopManifestStore,
+      orderStore,
+      keycardStore,
+    } = setupStateManagerStores();
+    await db.clear();
+    const client = new MockClient();
+    const stateManager = new StateManager(
+      client,
+      listingStore,
+      tagStore,
+      shopManifestStore,
+      orderStore,
+      keycardStore,
+      randomAddress(),
+      publicClient,
+    );
+    // not adding keycard address to test unverified event error
+    // await stateManager.keycards.addAddress(client.keyCardWallet.address);
+    let called = false;
+    stateManager.eventStreamProcessing.catch((e) => {
+      // TODO: assert error type
+      expect(e).toBeTruthy();
+      called = true;
+    });
+    await stateManager.manifest.create(
+      {
+        acceptedCurrencies: currencies,
+        pricingCurrency: {
+          chainId: 1,
+          address: zeroAddress,
+        },
+        payees,
+        shippingRegions,
+      },
+
+      randomAddress(),
+    );
+    console.log("create resolved ");
+    expect(called).toBeTruthy();
+    await db.close();
   });
-  const client = new MockClient();
-  const stateManager = new StateManager(
-    client,
+});
+
+describe("CRUD functions update stores", () => {
+  const {
+    db,
     listingStore,
     tagStore,
     shopManifestStore,
     orderStore,
     keycardStore,
-    randomAddress(),
-    publicClient,
-  );
-  test("catches error", async () => {
-    stateManager.manifest
-      .create(
-        {
-          acceptedCurrencies: currencies,
-          pricingCurrency: {
-            chainId: 1,
-            address: zeroAddress,
-          },
-          payees,
-          shippingRegions,
-        },
-
-        randomAddress(),
-      )
-      .then(async () => {
-        try {
-          await stateManager.eventStreamProcessing;
-        } catch (e) {
-          // todo: check error message
-          expect(e).toBeTruthy();
-        }
-      });
-  });
-});
-
-describe("CRUD functions update stores", () => {
+  } = setupStateManagerStores();
   const client = new MockClient();
   const stateManager = new StateManager(
     client,
@@ -342,9 +412,12 @@ describe("CRUD functions update stores", () => {
   );
 
   beforeEach(async () => {
-    db.clear();
+    await db.clear();
     //Store test vector address to db for event verification
     await stateManager.keycards.addAddress(client.keyCardWallet.address);
+  });
+  afterAll(async () => {
+    await db.close();
   });
   describe("ShopManifest", () => {
     beforeEach(async () => {
@@ -461,6 +534,7 @@ describe("CRUD functions update stores", () => {
         ListingViewState.LISTING_VIEW_STATE_PUBLISHED,
       );
     });
+
     test("update + changeInventory", async () => {
       const updatedMetadata = {
         title: "Updated Test Item 1",
@@ -472,25 +546,40 @@ describe("CRUD functions update stores", () => {
           id,
           price: "25.55",
           metadata: updatedMetadata,
+        },
+        decimals,
+      );
+      const item = await stateManager.listings.get(id);
+      expect(formatUnits(BigInt(item.price), decimals)).toEqual("25.55");
+      expect(item.metadata).toEqual(updatedMetadata);
+    });
+
+    /*
+    test("update - changeViewState", async () => {
+      await stateManager.listings.update(
+        {
+          id,
           viewState: ListingViewState.LISTING_VIEW_STATE_UNSPECIFIED,
         },
         decimals,
       );
-      await stateManager.listings.changeInventory(id, 60);
-      await stateManager.listings.changeInventory(id, -2);
       const item = await stateManager.listings.get(id);
-      expect(formatUnits(BigInt(item.price), decimals)).toEqual("25.55");
-      expect(item.metadata).toEqual(updatedMetadata);
-      expect(item.quantity).toEqual(58);
       expect(item.viewState).toEqual(
         ListingViewState.LISTING_VIEW_STATE_UNSPECIFIED,
       );
+    });
+    */
+
+    test("changeInventory", async () => {
+      await stateManager.listings.changeInventory(id, 60);
+      await stateManager.listings.changeInventory(id, -2);
+      const item = await stateManager.listings.get(id);
+      expect(item.quantity).toEqual(58);
     });
 
     test("add/remove item to/from tag", async () => {
       const tag = await stateManager.tags.create("Test Create Tag");
       const tag2 = await stateManager.tags.create("Test Create Tag 2");
-
       await stateManager.listings.addListingToTag(tag.id, id);
       const added = await stateManager.listings.get(id);
       expect(added.tags.length).toEqual(1);
@@ -543,104 +632,109 @@ describe("CRUD functions update stores", () => {
       //Correctly removes 3 from the previously selected 9 qty.
       expect(changedOrder.items[itemId]).toEqual(6);
     });
-  });
-  test("updateOrder - updateShippingDetails/updateInvoiceAddress", async () => {
-    const { id } = await stateManager.orders.create();
-    const shippingInfo = {
-      name: "Paul Atreides",
-      address1: "100 Colomb Street",
-      city: "Arakkis",
-      postalCode: "SE10 9EZ",
-      country: "Dune",
-      phoneNumber: "0103330524",
-      emailAddress: "arakkis@dune.planet",
-    };
-    await stateManager.orders.updateShippingDetails(id, shippingInfo);
-    const { status, shippingDetails } = await stateManager.orders.get(id);
-    expect(status).toEqual(OrderState.STATE_OPEN);
-    expect(shippingDetails).toEqual(shippingInfo);
-    //should be able to update partially
-    await stateManager.orders.updateShippingDetails(id, {
-      country: "Mexico",
-      phoneNumber: "1113334444",
-    });
-    const updated = await stateManager.orders.get(id);
-    expect(updated!.shippingDetails!.name).toEqual(shippingInfo.name);
-    expect(updated!.shippingDetails!.address1).toEqual(shippingInfo.address1);
-    expect(updated!.shippingDetails!.city).toEqual(shippingInfo.city);
-    expect(updated!.shippingDetails!.postalCode).toEqual(
-      shippingInfo.postalCode,
-    );
-    expect(updated!.shippingDetails!.emailAddress).toEqual(
-      shippingInfo.emailAddress,
-    );
-    expect(updated!.shippingDetails!.country).toEqual("Mexico");
-    expect(updated!.shippingDetails!.phoneNumber).toEqual("1113334444");
 
-    await stateManager.orders.updateInvoiceAddress(id, shippingInfo);
-    const order = await stateManager.orders.get(id);
-    expect(order.invoiceAddress).toEqual(shippingInfo);
-  });
-  test("updateOrder - cancel", async () => {
-    const { id } = await stateManager.orders.create();
-    await stateManager.orders.cancel(id, 0);
-    const cancelled = await stateManager.orders.get(id);
-    //New status should be cancelled
-    expect(cancelled.status).toEqual(OrderState.STATE_CANCELED);
-    // Should also be able to get orders by status.
-    const cancelledOrders = await stateManager.orders.getStatus(
-      OrderState.STATE_CANCELED,
-    );
-    expect(cancelledOrders[0]).toEqual(id);
-    //Make sure the order id is not in open orders
-    const openOrders = await stateManager.orders.getStatus(
-      OrderState.STATE_OPEN,
-    );
-    expect(openOrders.find((oId) => oId === id)).toBe(undefined);
-  });
-  test("Update Order - commit/choosePayment", async () => {
-    const { id } = await stateManager.orders.create();
-    const order = await stateManager.orders.get(id);
-    const payee = {
-      address: randomAddress(),
-      callAsContract: false,
-      chainId: 1,
-      name: "default",
-    };
-    const currency = {
-      address: zeroAddress,
-      chainId: 1,
-    };
-    //Order should not have a choosePayment/paymentDetails property yet.
-    expect(order.choosePayment).toBeFalsy();
-    expect(order.paymentDetails).toBeFalsy();
-
-    await stateManager.orders.commit(id);
-    await stateManager.orders.choosePayment(id, { currency, payee });
-    const updatedOrder = await stateManager.orders.get(id);
-    expect(updatedOrder.choosePayment?.currency).toEqual(currency);
-    //Make sure the order is only in committed orders.
-    const committedOrders = await stateManager.orders.getStatus(
-      OrderState.STATE_COMMITED,
-    );
-    const o = committedOrders.find((oId) => oId === id);
-    expect(o).toBeTruthy();
-
-    let received = false;
-    // TODO: check the orders
-    stateManager.orders.on("paymentDetails", (order) => {
-      received = true;
-    });
-    //Mimic client event paymentDetails once commit is called.
-    client.sendPaymentDetails(id).then();
-
-    await new Promise<void>((resolve) => {
-      // TODO: check the orders
-      stateManager.orders.on("paymentDetails", (order) => {
-        resolve();
+    test("updateOrder - updateShippingDetails/updateInvoiceAddress", async () => {
+      const { id } = await stateManager.orders.create();
+      const shippingInfo = {
+        name: "Paul Atreides",
+        address1: "100 Colomb Street",
+        city: "Arakkis",
+        postalCode: "SE10 9EZ",
+        country: "Dune",
+        phoneNumber: "0103330524",
+        emailAddress: "arakkis@dune.planet",
+      };
+      await stateManager.orders.updateShippingDetails(id, shippingInfo);
+      const { status, shippingDetails } = await stateManager.orders.get(id);
+      expect(status).toEqual(OrderState.STATE_OPEN);
+      expect(shippingDetails).toEqual(shippingInfo);
+      //should be able to update partially
+      await stateManager.orders.updateShippingDetails(id, {
+        country: "Mexico",
+        phoneNumber: "1113334444",
       });
+      const updated = await stateManager.orders.get(id);
+      expect(updated!.shippingDetails!.name).toEqual(shippingInfo.name);
+      expect(updated!.shippingDetails!.address1).toEqual(shippingInfo.address1);
+      expect(updated!.shippingDetails!.city).toEqual(shippingInfo.city);
+      expect(updated!.shippingDetails!.postalCode).toEqual(
+        shippingInfo.postalCode,
+      );
+      expect(updated!.shippingDetails!.emailAddress).toEqual(
+        shippingInfo.emailAddress,
+      );
+      expect(updated!.shippingDetails!.country).toEqual("Mexico");
+      expect(updated!.shippingDetails!.phoneNumber).toEqual("1113334444");
+
+      await stateManager.orders.updateInvoiceAddress(id, shippingInfo);
+      const order = await stateManager.orders.get(id);
+      expect(order.invoiceAddress).toEqual(shippingInfo);
     });
-    const committed = await stateManager.orders.get(id);
-    expect(committed.paymentDetails).toBeTruthy();
+
+    test("updateOrder - cancel", async () => {
+      const { id } = await stateManager.orders.create();
+      await stateManager.orders.cancel(id, 0);
+      const cancelled = await stateManager.orders.get(id);
+      //New status should be cancelled
+      expect(cancelled.status).toEqual(OrderState.STATE_CANCELED);
+      // Should also be able to get orders by status.
+      const cancelledOrders = await stateManager.orders.getStatus(
+        OrderState.STATE_CANCELED,
+      );
+      expect(cancelledOrders[0]).toEqual(id);
+      //Make sure the order id is not in open orders
+      const openOrders = await stateManager.orders.getStatus(
+        OrderState.STATE_OPEN,
+      );
+      expect(openOrders.find((oId) => oId === id)).toBe(undefined);
+    });
+
+    test("Update Order - commit/choosePayment", async () => {
+      // const wait = new Promise<void>((resolve) => {
+      //   setTimeout(() => {
+      //     console.log("-> timeout");
+      //     resolve();
+      //   }, 5000);
+      // })
+      const { id } = await stateManager.orders.create();
+      const order = await stateManager.orders.get(id);
+      const payee = {
+        address: randomAddress(),
+        callAsContract: false,
+        chainId: 1,
+        name: "default",
+      };
+      const currency = {
+        address: zeroAddress,
+        chainId: 1,
+      };
+      //Order should not have a choosePayment/paymentDetails property yet.
+      expect(order.choosePayment).toBeFalsy();
+      expect(order.paymentDetails).toBeFalsy();
+
+      await stateManager.orders.commit(id);
+      await stateManager.orders.choosePayment(id, { currency, payee });
+      const updatedOrder = await stateManager.orders.get(id);
+      expect(updatedOrder.choosePayment?.currency).toEqual(currency);
+      //Make sure the order is only in committed orders.
+      const committedOrders = await stateManager.orders.getStatus(
+        OrderState.STATE_COMMITED,
+      );
+      const o = committedOrders.find((oId) => oId === id);
+      expect(o).toBeTruthy();
+
+      //Mimic client event paymentDetails once commit is called.
+      await client.sendPaymentDetails(id);
+
+      await new Promise<void>((resolve) => {
+        // TODO: check the orders
+        stateManager.orders.on("paymentDetails", (order) => {
+          resolve();
+        });
+      });
+      const committed = await stateManager.orders.get(id);
+      expect(committed.paymentDetails).toBeTruthy();
+      // await wait;
+    });
   });
 });

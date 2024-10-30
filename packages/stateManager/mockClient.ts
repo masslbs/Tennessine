@@ -21,7 +21,7 @@ export class MockClient implements IRelayClient {
   private eventStream: ReadableEventStream;
   keyCardWallet: PrivateKeyAccount;
   private requestCounter;
-
+  private lastSeqNo: number;
   constructor() {
     this.vectors = testVectors;
     this.eventStream = new ReadableEventStream(this);
@@ -29,6 +29,7 @@ export class MockClient implements IRelayClient {
       this.vectors.signatures.signer.key as `0x${string}`,
     );
     this.requestCounter = 1;
+    this.lastSeqNo = 0;
   }
   encodeAndSendNoWait(envelope: schema.IEnvelope = {}): schema.RequestId {
     const requestId = { raw: this.requestCounter };
@@ -37,7 +38,10 @@ export class MockClient implements IRelayClient {
   }
 
   connect(): Promise<Event | string> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
+      if (this.lastSeqNo > 0) {
+        reject("already connected");
+      }
       const events: schema.SubscriptionPushRequest.SequencedEvent[] = [];
 
       for (let index = 0; index < this.vectors.events.length; index++) {
@@ -54,6 +58,7 @@ export class MockClient implements IRelayClient {
             },
           }),
         );
+        this.lastSeqNo = index;
       }
 
       this.eventStream.enqueue({
@@ -80,7 +85,7 @@ export class MockClient implements IRelayClient {
       requestId,
       events: [
         schema.SubscriptionPushRequest.SequencedEvent.create({
-          seqNo: Long.fromNumber(666), // TODO: fix this
+          seqNo: Long.fromNumber(this.lastSeqNo),
           event: {
             signature: { raw: hexToBytes(sig) },
             event: {
@@ -91,6 +96,7 @@ export class MockClient implements IRelayClient {
         }),
       ],
     });
+    this.lastSeqNo++;
     return requestId;
   }
 
