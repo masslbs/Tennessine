@@ -58,7 +58,7 @@ const AddProductView = () => {
     if (editView && itemId) {
       getBaseTokenInfo().then((res: [string, number]) => {
         clientWithStateManager!
-          .stateManager!.items.get(itemId)
+          .stateManager!.listings.get(itemId)
           .then((item) => {
             setProductInView(item);
             setTitle(item.metadata.title);
@@ -135,7 +135,7 @@ const AddProductView = () => {
 
   const handleDelete = async () => {
     try {
-      await clientWithStateManager!.stateManager!.items.update({
+      await clientWithStateManager!.stateManager!.listings.update({
         id: productInView!.id,
         viewState: ListingViewState.LISTING_VIEW_STATE_DELETED,
       });
@@ -148,17 +148,17 @@ const AddProductView = () => {
 
   const create = async (newItem: Partial<Item>) => {
     try {
-      const { id } = await clientWithStateManager!.stateManager!.items.create(
+      const { id } = await clientWithStateManager!.stateManager!.listings.create(
         newItem,
         baseDecimal!,
       );
-      await clientWithStateManager!.stateManager!.items.changeInventory(
+      await clientWithStateManager!.stateManager!.listings.changeInventory(
         id,
         units,
       );
       if (selectedTags.length) {
         selectedTags.map(async (t) => {
-          await clientWithStateManager!.stateManager!.items.addItemToTag(
+          await clientWithStateManager!.stateManager!.listings.addItemToTag(
             t.id,
             id,
           );
@@ -194,7 +194,7 @@ const AddProductView = () => {
       );
       if (newTags.length) {
         newTags.map(async ({ id }) => {
-          await clientWithStateManager!.stateManager!.items.addItemToTag(
+          await clientWithStateManager!.stateManager!.listings.addItemToTag(
             id,
             itemId as ItemId,
           );
@@ -207,19 +207,19 @@ const AddProductView = () => {
       );
       if (removedTags?.length) {
         removedTags.map(async (id: TagId) => {
-          await clientWithStateManager!.stateManager!.items.removeItemFromTag(
+          await clientWithStateManager!.stateManager!.listings.removeItemFromTag(
             id,
             itemId as ItemId,
           );
         });
       }
       if (Object.keys(diff).length === 1) return;
-      await clientWithStateManager!.stateManager!.items.update(
+      await clientWithStateManager!.stateManager!.listings.update(
         diff,
         baseDecimal!,
       );
       if (units !== productInView?.quantity) {
-        await clientWithStateManager!.stateManager!.items.changeInventory(
+        await clientWithStateManager!.stateManager!.listings.changeInventory(
           itemId as ItemId,
           units - productInView!.quantity,
         );

@@ -101,7 +101,7 @@ export default function ChoosePayment({
 
     return () => {
       // Cleanup listeners on unmount
-      clientWithStateManager!.stateManager!.items.removeListener(
+      clientWithStateManager!.stateManager!.listings.removeListener(
         "paymentDetails",
         onPaymentDetails,
       );

@@ -98,7 +98,7 @@ const ProductDetail = () => {
       getBaseTokenInfo()
         .then((baseTokenInfo) => {
           clientWithStateManager!
-            .stateManager!.items.get(itemId)
+            .stateManager!.listings.get(itemId)
             .then((item) => {
               setItem(item);
               const price = formatUnitsFromString(
@@ -150,7 +150,7 @@ const ProductDetail = () => {
 
     return () => {
       // Cleanup listeners on unmount
-      clientWithStateManager!.stateManager!.items.removeListener(
+      clientWithStateManager!.stateManager!.listings.removeListener(
         "create",
         onCreateTag,
       );
