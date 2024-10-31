@@ -64,9 +64,11 @@ export class RelayClient extends EventEmitter {
   constructor({
     relayEndpoint,
     keyCardWallet,
+    eventNonceCounter = 1,
   }: {
     relayEndpoint: RelayEndpoint;
     keyCardWallet: PrivateKeyAccount;
+    eventNonceCounter?: number;
   }) {
     super();
     this.keyCardWallet = keyCardWallet;
@@ -74,7 +76,7 @@ export class RelayClient extends EventEmitter {
     this.useTLS = relayEndpoint.url.protocol == "wss";
     this.eventStream = new ReadableEventStream(this);
     this.requestCounter = 1;
-    this.eventNonceCounter = 1;
+    this.eventNonceCounter = eventNonceCounter;
     this.subscriptionId = null;
   }
 

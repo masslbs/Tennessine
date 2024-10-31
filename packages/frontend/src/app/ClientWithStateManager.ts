@@ -1,11 +1,15 @@
+import debugLib from "debug";
+import { Level } from "level";
 import { PublicClient } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { Level } from "level";
 
 import { RelayClient, type RelayEndpoint } from "@massmarket/client";
 import { StateManager } from "@massmarket/stateManager";
 import { random32BytesHex } from "@massmarket/utils";
+
 import { Item, Order, KeyCard, ShopManifest, Tag, ShopId } from "@/types";
+
+const debug = debugLib("frontend:ClientWithStateManager");
 
 export class ClientWithStateManager {
   readonly publicClient: PublicClient;
@@ -71,6 +75,10 @@ export class ClientWithStateManager {
       });
     }
 
+    this.stateManager.eventStreamProcessing.catch((e) => {
+      debug(e)
+      console.error("error processing event stream", e);
+    });
     return this.stateManager;
   }
 
@@ -90,13 +98,16 @@ export class ClientWithStateManager {
 
   async setClientAndConnect(kc: `0x${string}`) {
     if (!this.relayEndpoint?.url) throw new Error("Relay endpoint URL not set");
-    if (!this.relayEndpoint?.tokenId)
+    if (!this.relayEndpoint?.tokenId) {
       throw new Error("Relay endpoint tokenId not set");
-
+    }
     const keyCardWallet = privateKeyToAccount(kc);
+    const eventNonceCounter = Number(localStorage.getItem("eventNonceCounter")) || 1;
+    debug("eventNonceCounter", eventNonceCounter);
     this.relayClient = new RelayClient({
       relayEndpoint: this.relayEndpoint!,
       keyCardWallet,
+      eventNonceCounter,
     });
     this.createStateManager();
     await this.relayClient.connect();
