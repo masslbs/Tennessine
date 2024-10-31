@@ -1,9 +1,4 @@
-import {
-  afterAll,
-  beforeEach,
-  describe,
-  it,
-} from "jsr:@std/testing/bdd";
+import { afterAll, beforeEach, describe, it } from "jsr:@std/testing/bdd";
 import { expect } from "jsr:@std/expect";
 import { MemoryLevel } from "memory-level";
 import { hardhat } from "viem/chains";

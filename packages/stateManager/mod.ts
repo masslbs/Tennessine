@@ -20,11 +20,15 @@ import {
   OrderState,
   type OrderPriceModifier,
   type ChoosePayment,
-  SeqNo
+  SeqNo,
 } from "./types.ts";
 import * as abi from "@massmarket/contracts";
 import schema from "@massmarket/schema";
-import { SequencedEventWithRecoveredSigner, type EventId, eventIdEqual } from "@massmarket/client";
+import {
+  SequencedEventWithRecoveredSigner,
+  type EventId,
+  eventIdEqual,
+} from "@massmarket/client";
 import {
   priceToUint256,
   objectId,
@@ -88,7 +92,9 @@ abstract class PublicObjectManager<
     super();
   }
 
-  abstract _processEvent(event: SequencedEventWithRecoveredSigner): Promise<void>;
+  abstract _processEvent(
+    event: SequencedEventWithRecoveredSigner,
+  ): Promise<void>;
   abstract get(key?: string | `0x${string}`): Promise<T>;
   get iterator() {
     return this.store.iterator.bind(this.store);
@@ -102,7 +108,9 @@ class ListingManager extends PublicObjectManager<Listing> {
   }
   // Process all events for listings.
   // Convert bytes to hex and save l object to listings store.
-  async _processEvent(seqEvt: SequencedEventWithRecoveredSigner): Promise<void> {
+  async _processEvent(
+    seqEvt: SequencedEventWithRecoveredSigner,
+  ): Promise<void> {
     const event = seqEvt.event;
     if (event.listing) {
       const cl = event.listing;
@@ -502,7 +510,6 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
     }
   }
 
-
   async create(manifest: CreateShopManifest, shopId: `0x${string}`) {
     const m: schema.Manifest = schema.Manifest.create({});
     assert(manifest.pricingCurrency, "manifest.pricingCurrency is required");
@@ -649,7 +656,9 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
     super(store, client);
   }
   //Process all Order events. Convert bytes to hex, waits for database update, then emits event
-  async _processEvent(seqEvt: SequencedEventWithRecoveredSigner): Promise<void> {
+  async _processEvent(
+    seqEvt: SequencedEventWithRecoveredSigner,
+  ): Promise<void> {
     const event = seqEvt.event;
     if (event.createOrder) {
       // console.log("createOrder");
@@ -860,7 +869,10 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         await this.store.put(id, order);
         this.emit("paymentDetails", order, seqEvt.id());
       } else if (uo.addPaymentTx) {
-        assertField(uo.addPaymentTx.blockHash, "updateOrder.addPaymentTx.blockHash");
+        assertField(
+          uo.addPaymentTx.blockHash,
+          "updateOrder.addPaymentTx.blockHash",
+        );
         const currentState = order.status;
         order.status = OrderState.STATE_PAYMENT_TX;
         if (uo.addPaymentTx.blockHash) {
@@ -990,7 +1002,7 @@ class TagManager extends PublicObjectManager<Tag> {
   }
 
   async _processEvent(
-    seqEvt: SequencedEventWithRecoveredSigner
+    seqEvt: SequencedEventWithRecoveredSigner,
   ): Promise<void> {
     const event = seqEvt.event;
     if (event.tag) {
@@ -1038,7 +1050,7 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
   }
 
   async _processEvent(
-    seqEvt: SequencedEventWithRecoveredSigner
+    seqEvt: SequencedEventWithRecoveredSigner,
   ): Promise<void> {
     const event = seqEvt.event;
     if (event.account) {

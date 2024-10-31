@@ -12,7 +12,6 @@ import schema, { testVectors, type TestVectors } from "@massmarket/schema";
 
 import type { IRelayClient } from "./types.ts";
 
-
 export class MockClient implements IRelayClient {
   vectors: TestVectors;
   private eventStream: ReadableEventStream;
@@ -78,16 +77,18 @@ export class MockClient implements IRelayClient {
     const sig = await this.keyCardWallet.signMessage({
       message: { raw: shopEventBytes },
     });
-    const sequencedEvent = schema.SubscriptionPushRequest.SequencedEvent.create({
-      seqNo: Long.fromNumber(this.lastSeqNo),
-      event: {
-        signature: { raw: hexToBytes(sig) },
+    const sequencedEvent = schema.SubscriptionPushRequest.SequencedEvent.create(
+      {
+        seqNo: Long.fromNumber(this.lastSeqNo),
         event: {
-          type_url: "type.googleapis.com/market.mass.ShopEvent",
-          value: shopEventBytes,
+          signature: { raw: hexToBytes(sig) },
+          event: {
+            type_url: "type.googleapis.com/market.mass.ShopEvent",
+            value: shopEventBytes,
+          },
         },
       },
-    });
+    );
 
     this.eventStream.enqueue({
       requestId,
