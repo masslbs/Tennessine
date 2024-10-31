@@ -348,8 +348,6 @@ const StoreCreation = () => {
         profilePictureUrl: imgPath.url,
       });
 
-      await client.sendMerchantSubscriptionRequest();
-
       setIsMerchantView(true);
       setIsConnected(Status.Complete);
       setStep("confirmation");

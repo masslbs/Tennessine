@@ -6,15 +6,12 @@ import { hexToBytes } from "viem";
 import { privateKeyToAccount, type PrivateKeyAccount } from "viem/accounts";
 import Long from "long";
 
-import schema, { testVectors, type TestVectors } from "@massmarket/schema";
+import type { EventId } from "@massmarket/client";
 import { ReadableEventStream } from "@massmarket/client/stream";
+import schema, { testVectors, type TestVectors } from "@massmarket/schema";
 
-import { IRelayClient } from "./types.ts";
+import type { IRelayClient } from "./types.ts";
 
-export type IncomingEvent = {
-  request: schema.SubscriptionPushRequest;
-  done: () => void;
-};
 
 export class MockClient implements IRelayClient {
   vectors: TestVectors;
@@ -62,7 +59,7 @@ export class MockClient implements IRelayClient {
       }
 
       this.eventStream.enqueue({
-        requestId: schema.RequestId.create({ raw: 1 }),
+        requestId: schema.RequestId.create({ raw: this.requestCounter++ }),
         events,
       });
 
@@ -74,30 +71,33 @@ export class MockClient implements IRelayClient {
     throw new Error("not implemented");
   }
 
-  async sendShopEvent(shopEvent: schema.IShopEvent): Promise<schema.RequestId> {
+  async sendShopEvent(props: schema.IShopEvent): Promise<EventId> {
+    props.nonce = this.lastSeqNo; // reusing seqNo as nonce since this is just a single-writer implementation
     const requestId = this.encodeAndSendNoWait();
-    const shopEventBytes = schema.ShopEvent.encode(shopEvent).finish();
-
+    const shopEventBytes = schema.ShopEvent.encode(props).finish();
     const sig = await this.keyCardWallet.signMessage({
       message: { raw: shopEventBytes },
     });
+    const sequencedEvent = schema.SubscriptionPushRequest.SequencedEvent.create({
+      seqNo: Long.fromNumber(this.lastSeqNo),
+      event: {
+        signature: { raw: hexToBytes(sig) },
+        event: {
+          type_url: "type.googleapis.com/market.mass.ShopEvent",
+          value: shopEventBytes,
+        },
+      },
+    });
+
     this.eventStream.enqueue({
       requestId,
-      events: [
-        schema.SubscriptionPushRequest.SequencedEvent.create({
-          seqNo: Long.fromNumber(this.lastSeqNo),
-          event: {
-            signature: { raw: hexToBytes(sig) },
-            event: {
-              type_url: "type.googleapis.com/market.mass.ShopEvent",
-              value: shopEventBytes,
-            },
-          },
-        }),
-      ],
+      events: [sequencedEvent],
     });
     this.lastSeqNo++;
-    return requestId;
+    return {
+      signer: this.keyCardWallet.address,
+      nonce: Number(props.nonce),
+    };
   }
 
   async listing(item: schema.IListing) {

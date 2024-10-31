@@ -21,6 +21,36 @@ export type RelayEndpoint = {
   tokenId: `0x${string}`;
 };
 
+export type EventId = {
+  signer: `0x${string}`;
+  nonce: number;
+
+};
+
+export function eventIdEqual(a: EventId, b: EventId) {
+  return a.signer === b.signer && a.nonce === b.nonce;
+}
+
+
+export class SequencedEventWithRecoveredSigner {
+  readonly shopSeqNo: number;
+  readonly event: schema.ShopEvent;
+  readonly signer: `0x${string}`;
+
+  constructor(shopSeqNo: number, event: schema.ShopEvent, signer: `0x${string}`) {
+    this.shopSeqNo = shopSeqNo;
+    this.event = event;
+    this.signer = signer;
+  }
+
+  id(): EventId {
+    return {
+      signer: this.signer,
+      nonce: Number(this.event.nonce),
+    };
+  }
+};
+
 export class RelayClient extends EventEmitter {
   connection!: WebSocket;
   private keyCardWallet: PrivateKeyAccount;
@@ -76,8 +106,10 @@ export class RelayClient extends EventEmitter {
       this.once(id.raw.toString(), (response: schema.Envelope) => {
         if (response.response?.error) {
           const { code, message } = response.response.error;
+          assert(code, "code is required");
+          assert(message, "message is required");
           console.error(`network error[${code}]: ${message}`);
-          reject(response.response.error);
+          reject(new Error(message));
         } else {
           resolve(response);
         }
@@ -85,7 +117,7 @@ export class RelayClient extends EventEmitter {
     });
   }
 
-  async sendShopEvent(shopEvent: schema.IShopEvent): Promise<schema.RequestId> {
+  async sendShopEvent(shopEvent: schema.IShopEvent): Promise<EventId> {
     await this.connect();
 
     // prepare for signing
@@ -110,9 +142,11 @@ export class RelayClient extends EventEmitter {
         events: [signedEvent],
       },
     };
-    const { requestId } = await this.encodeAndSend(envelope);
-    assert(requestId, "requestId is required");
-    return schema.RequestId.create(requestId);
+    await this.encodeAndSend(envelope);
+    return {
+      signer: this.keyCardWallet.address,
+      nonce: shopEvent.nonce,
+    };
   }
 
   shopManifest(manifest: schema.IManifest, shopId: `0x${string}`) {

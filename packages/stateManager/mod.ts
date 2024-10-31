@@ -24,7 +24,7 @@ import {
 } from "./types.ts";
 import * as abi from "@massmarket/contracts";
 import schema from "@massmarket/schema";
-import { type EventWithRecoveredSigner } from "@massmarket/client/stream";
+import { SequencedEventWithRecoveredSigner, type EventId, eventIdEqual } from "@massmarket/client";
 import {
   priceToUint256,
   objectId,
@@ -44,13 +44,13 @@ export type Store<T extends ShopObjectTypes> = {
 // Given an requestId which is the returned value of the network event
 // This returns a promise that resolves once the event has been emitted as js event
 function eventListenAndResolve<T = ShopObjectTypes>(
-  requestId: schema.RequestId,
+  waitingForId: EventId,
   em: EventEmitter,
   eventName: string,
 ): Promise<T> {
   return new Promise((resolve, _) => {
-    function onUpdate(update: T, eId: schema.RequestId) {
-      if (eId.raw === requestId.raw) {
+    function onUpdate(update: T, updatedId: EventId) {
+      if (eventIdEqual(waitingForId, updatedId)) {
         resolve(update);
         em.removeListener(eventName, onUpdate);
       }
@@ -88,10 +88,7 @@ abstract class PublicObjectManager<
     super();
   }
 
-  abstract _processEvent(
-    event: schema.ShopEvent,
-    requestID: schema.RequestId,
-  ): Promise<void>;
+  abstract _processEvent(event: SequencedEventWithRecoveredSigner): Promise<void>;
   abstract get(key?: string | `0x${string}`): Promise<T>;
   get iterator() {
     return this.store.iterator.bind(this.store);
@@ -105,10 +102,8 @@ class ListingManager extends PublicObjectManager<Listing> {
   }
   // Process all events for listings.
   // Convert bytes to hex and save l object to listings store.
-  async _processEvent(
-    event: schema.ShopEvent,
-    requestID: schema.RequestId,
-  ): Promise<void> {
+  async _processEvent(seqEvt: SequencedEventWithRecoveredSigner): Promise<void> {
+    const event = seqEvt.event;
     if (event.listing) {
       const cl = event.listing;
       assertField(cl.id, "listing.id");
@@ -132,7 +127,7 @@ class ListingManager extends PublicObjectManager<Listing> {
         viewState: cl.viewState,
       };
       await this.store.put(id, l);
-      this.emit("create", l, requestID);
+      this.emit("create", l, seqEvt.id());
       return;
     } else if (event.updateListing) {
       const ul = event.updateListing;
@@ -166,7 +161,7 @@ class ListingManager extends PublicObjectManager<Listing> {
         l.viewState = ul.viewState;
       }
       await this.store.put(id, l);
-      this.emit("update", l, requestID);
+      this.emit("update", l, seqEvt.id());
       return;
     } else if (event.changeInventory) {
       const cs = event.changeInventory;
@@ -176,7 +171,7 @@ class ListingManager extends PublicObjectManager<Listing> {
       const l = await this.store.get(lId);
       l.quantity = l.quantity + cs.diff;
       await this.store.put(lId, l);
-      this.emit("changeInventory", lId, requestID);
+      this.emit("changeInventory", lId, seqEvt.id());
       return;
     } else if (event.updateTag) {
       // Add or remove tagId to l
@@ -191,7 +186,7 @@ class ListingManager extends PublicObjectManager<Listing> {
             const iid = bytesToHex(lId.raw);
             const l = await this.store.get(iid);
             l.tags.push(tagId);
-            this.emit("addListingId", iid, requestID);
+            this.emit("addListingId", iid, seqEvt.id());
             return await this.store.put(iid, l);
           }),
         );
@@ -205,7 +200,7 @@ class ListingManager extends PublicObjectManager<Listing> {
             const l = await this.store.get(iid);
             // remove `tagId` from l.tags array
             l.tags = [...l.tags.filter((id: `0x${string}`) => id !== tagId)];
-            this.emit("removeListingId", tagId, requestID);
+            this.emit("removeListingId", tagId, seqEvt.id());
             await this.store.put(iid, l);
           }),
         );
@@ -214,14 +209,14 @@ class ListingManager extends PublicObjectManager<Listing> {
   }
 
   async create(l: Partial<Listing>, decimals?: number) {
-    const requestId = await this.client.listing({
+    const eventId = await this.client.listing({
       id: { raw: objectId() },
       price: { raw: priceToUint256(l.price!, decimals) },
       metadata: l.metadata,
       viewState: l.viewState,
     });
     // resolves after the `listing` event has been fired in _processEvent, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve<Listing>(requestId, this, "create");
+    return eventListenAndResolve<Listing>(eventId, this, "create");
   }
 
   //update argument passed here will only contain the fields to update.
@@ -282,7 +277,8 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
     super(store, client);
   }
   //Process all manifest events. Convert bytes to hex, wait for database update, then emit event name
-  async _processEvent(event: schema.ShopEvent, requestID: schema.RequestId) {
+  async _processEvent(seqEvt: SequencedEventWithRecoveredSigner) {
+    const event = seqEvt.event;
     if (event.manifest) {
       const sm = event.manifest;
       assertField(sm.tokenId, "manifest.tokenId");
@@ -382,7 +378,7 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
       }
 
       await this.store.put("shopManifest", manifest);
-      this.emit("create", manifest, requestID);
+      this.emit("create", manifest, seqEvt.id());
       return;
     } else if (event.updateManifest) {
       const um = event.updateManifest;
@@ -501,7 +497,7 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
         });
       }
       await this.store.put("shopManifest", manifest);
-      this.emit("update", manifest, requestID);
+      this.emit("update", manifest, seqEvt.id());
       return;
     }
   }
@@ -576,9 +572,9 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
         ),
       };
     });
-    const requestId = await this.client.shopManifest(m, shopId);
+    const eventId = await this.client.shopManifest(m, shopId);
     // resolves after the `createShopManifest` event has been fired above in _processEvent, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve<ShopManifest>(requestId, this, "create");
+    return eventListenAndResolve<ShopManifest>(eventId, this, "create");
   }
 
   async update(um: UpdateShopManifest) {
@@ -653,10 +649,8 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
     super(store, client);
   }
   //Process all Order events. Convert bytes to hex, waits for database update, then emits event
-  async _processEvent(
-    event: schema.ShopEvent,
-    requestID: schema.RequestId,
-  ): Promise<void> {
+  async _processEvent(seqEvt: SequencedEventWithRecoveredSigner): Promise<void> {
+    const event = seqEvt.event;
     if (event.createOrder) {
       // console.log("createOrder");
       const co = event.createOrder;
@@ -670,7 +664,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       };
       await this.store.put(id, o);
       await storeOrdersByStatus(id, this.store, OrderState.STATE_OPEN);
-      this.emit("create", o, requestID);
+      this.emit("create", o, seqEvt.id());
       return;
     } else if (event.updateOrder) {
       // console.log("updateOrder");
@@ -712,7 +706,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
           });
         }
         await this.store.put(id, order);
-        this.emit("changeItems", order, requestID);
+        this.emit("changeItems", order, seqEvt.id());
         return;
       } else if (uo.cancel) {
         const currentState = order.status;
@@ -724,7 +718,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         let orders = (await this.store.get(currentState)) as OrdersByStatus;
         orders = orders.filter((oId) => oId !== id);
         await this.store.put(currentState, orders);
-        this.emit("orderCanceled", order, requestID);
+        this.emit("orderCanceled", order, seqEvt.id());
         return;
       } else if (uo.setInvoiceAddress) {
         const update = uo.setInvoiceAddress;
@@ -762,7 +756,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         }
         order.invoiceAddress = sd;
         await this.store.put(id, order);
-        this.emit("invoiceAddress", order, requestID);
+        this.emit("invoiceAddress", order, seqEvt.id());
         return;
       } else if (uo.setShippingAddress) {
         const update = uo.setShippingAddress;
@@ -801,7 +795,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         }
         order.shippingDetails = sd;
         await this.store.put(id, order);
-        this.emit("shippingAddress", order, requestID);
+        this.emit("shippingAddress", order, seqEvt.id());
         return;
       } else if (uo.commitItems) {
         const currentState = order.status;
@@ -812,7 +806,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         let orders = (await this.store.get(currentState)) as OrdersByStatus;
         orders = orders.filter((oId) => oId !== id);
         await this.store.put(currentState, orders);
-        this.emit("commitItems", order, requestID);
+        this.emit("commitItems", order, seqEvt.id());
         return;
       } else if (uo.choosePayment) {
         const cp = uo.choosePayment;
@@ -846,7 +840,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         order.choosePayment = choosePayment;
         await this.store.put(id, order);
 
-        this.emit("choosePayment", order, requestID);
+        this.emit("choosePayment", order, seqEvt.id());
       } else if (uo.setPaymentDetails) {
         const pd = uo.setPaymentDetails;
         assertField(pd.paymentId, "updateOrder.setPaymentDetails.paymentId");
@@ -864,7 +858,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         };
         order.paymentDetails = paymentDetails;
         await this.store.put(id, order);
-        this.emit("paymentDetails", order, requestID);
+        this.emit("paymentDetails", order, seqEvt.id());
       } else if (uo.addPaymentTx) {
         assertField(uo.addPaymentTx.blockHash, "updateOrder.addPaymentTx.blockHash");
         const currentState = order.status;
@@ -881,7 +875,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         let orders = (await this.store.get(currentState)) as OrdersByStatus;
         orders = orders.filter((oId) => oId !== id);
         await this.store.put(currentState, orders);
-        this.emit("addPaymentTx", order, requestID);
+        this.emit("addPaymentTx", order, seqEvt.id());
         return;
       }
     }
@@ -905,11 +899,11 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
   }
 
   async create() {
-    const requestId = await this.client.createOrder({
+    const eventId = await this.client.createOrder({
       id: { raw: objectId() },
     });
     // resolves after the `createOrder` event has been fired in processEvent, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve<Order>(requestId, this, "create");
+    return eventListenAndResolve<Order>(eventId, this, "create");
   }
 
   async addsItems(
@@ -917,20 +911,20 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
     lId: `0x${string}`,
     quantity: number,
   ) {
-    const requestId = await this.client.updateOrder({
+    const eventId = await this.client.updateOrder({
       id: { raw: hexToBytes(orderId) },
       changeItems: {
         adds: [{ listingId: { raw: hexToBytes(lId) }, quantity }],
       },
     });
     // resolves after the `changeItems` event has been fired, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve<Order>(requestId, this, "changeItems");
+    return eventListenAndResolve<Order>(eventId, this, "changeItems");
   }
   async removeItems(
     orderId: `0x${string}`,
     ls: { listingId: `0x${string}`; quantity: number }[],
   ) {
-    const requestId = await this.client.updateOrder({
+    const eventId = await this.client.updateOrder({
       id: { raw: hexToBytes(orderId) },
       changeItems: {
         removes: ls.map((i) => {
@@ -942,52 +936,52 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       },
     });
     // resolves after the `changeItems` event has been fired, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve<Order>(requestId, this, "changeItems");
+    return eventListenAndResolve<Order>(eventId, this, "changeItems");
   }
   async updateShippingDetails(
     orderId: `0x${string}`,
     update: Partial<ShippingDetails>,
   ) {
-    const requestId = await this.client.updateOrder({
+    const eventId = await this.client.updateOrder({
       id: { raw: hexToBytes(orderId) },
       setShippingAddress: update,
     });
-    return eventListenAndResolve<Order>(requestId, this, "shippingAddress");
+    return eventListenAndResolve<Order>(eventId, this, "shippingAddress");
   }
   async updateInvoiceAddress(
     orderId: `0x${string}`,
     update: Partial<ShippingDetails>,
   ) {
-    const requestId = await this.client.updateOrder({
+    const eventId = await this.client.updateOrder({
       id: { raw: hexToBytes(orderId) },
       setInvoiceAddress: update,
     });
-    return eventListenAndResolve<Order>(requestId, this, "invoiceAddress");
+    return eventListenAndResolve<Order>(eventId, this, "invoiceAddress");
   }
 
   async cancel(orderId: `0x${string}`, timestamp: number = 0) {
-    const requestId = await this.client.updateOrder({
+    const eventId = await this.client.updateOrder({
       id: { raw: hexToBytes(orderId) },
       cancel: {},
     });
-    return eventListenAndResolve<Order>(requestId, this, "orderCanceled");
+    return eventListenAndResolve<Order>(eventId, this, "orderCanceled");
   }
   async choosePayment(orderId: `0x${string}`, payment: ChoosePayment) {
-    const requestId = await this.client.updateOrder({
+    const eventId = await this.client.updateOrder({
       id: { raw: hexToBytes(orderId) },
       choosePayment: {
         currency: addressToUint256(payment.currency),
         payee: addressToUint256(payment.payee),
       },
     });
-    return eventListenAndResolve<Order>(requestId, this, "choosePayment");
+    return eventListenAndResolve<Order>(eventId, this, "choosePayment");
   }
   async commit(orderId: `0x${string}`) {
-    const requestId = await this.client.updateOrder({
+    const eventId = await this.client.updateOrder({
       id: { raw: hexToBytes(orderId) },
       commitItems: {},
     });
-    return eventListenAndResolve<Order>(requestId, this, "commitItems");
+    return eventListenAndResolve<Order>(eventId, this, "commitItems");
   }
 }
 class TagManager extends PublicObjectManager<Tag> {
@@ -996,9 +990,9 @@ class TagManager extends PublicObjectManager<Tag> {
   }
 
   async _processEvent(
-    event: schema.ShopEvent,
-    requestID: schema.RequestId,
+    seqEvt: SequencedEventWithRecoveredSigner
   ): Promise<void> {
+    const event = seqEvt.event;
     if (event.tag) {
       const ct = event.tag;
       assert(ct.name, "tag.name");
@@ -1009,7 +1003,7 @@ class TagManager extends PublicObjectManager<Tag> {
         name: ct.name,
       };
       await this.store.put(id, tag);
-      this.emit("create", tag, requestID);
+      this.emit("create", tag, seqEvt.id());
       return;
     }
     if (event.updateTag) {
@@ -1021,16 +1015,16 @@ class TagManager extends PublicObjectManager<Tag> {
         tag.name = ut.rename;
       }
       await this.store.put(id, tag);
-      this.emit("update", tag, requestID);
+      this.emit("update", tag, seqEvt.id());
     }
   }
   async create(name: string) {
-    const requestId = await this.client.tag({
+    const eventId = await this.client.tag({
       id: { raw: objectId() },
       name,
     });
     // resolves after the `tag` event has been fired, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve<Tag>(requestId, this, "create");
+    return eventListenAndResolve<Tag>(eventId, this, "create");
   }
 
   get(key: `0x${string}`) {
@@ -1044,9 +1038,9 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
   }
 
   async _processEvent(
-    event: schema.ShopEvent,
-    requestID: schema.RequestId,
+    seqEvt: SequencedEventWithRecoveredSigner
   ): Promise<void> {
+    const event = seqEvt.event;
     if (event.account) {
       const a = event.account;
       assertField(
@@ -1057,7 +1051,7 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
         a.enrollKeycard.keycardPubkey.raw,
       ).toString() as `0x${string}`;
       await this.addAddress(addressFromPubKey);
-      this.emit("newKeyCard", addressFromPubKey, requestID);
+      this.emit("newKeyCard", addressFromPubKey, seqEvt.id());
       return;
     }
   }
@@ -1149,17 +1143,14 @@ export class StateManager {
     ];
 
     //Each event will go through all the storeObjects and update the relevant stores.
-    let event: EventWithRecoveredSigner;
+    let event: SequencedEventWithRecoveredSigner;
     for await (event of this.stream) {
-      assert(event.seqNo, "event.seqNo missing");
-      assert(event.signer, "event.signer missing");
-      if (event.seqNo) {
-        await this.manifest.addSeqNo(event.seqNo);
-      }
+      await this.manifest.addSeqNo(event.shopSeqNo);
+
       //fromPublicKey in KeyCard manager returns the address from public key as all lowercase.
       await this.keycards.verify(event.signer);
       for (const storeObject of storeObjects) {
-        await storeObject._processEvent(event.event, event.requestId);
+        await storeObject._processEvent(event);
       }
     }
   }
