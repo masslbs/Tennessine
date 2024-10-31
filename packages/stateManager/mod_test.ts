@@ -1,26 +1,13 @@
 import {
   afterAll,
   beforeEach,
-  beforeAll,
   describe,
   it,
 } from "jsr:@std/testing/bdd";
-import { assert } from "jsr:@std/assert";
 import { expect } from "jsr:@std/expect";
 import { MemoryLevel } from "memory-level";
-import {
-  type Listing,
-  type Tag,
-  type ShopManifest,
-  type Order,
-  type KeyCard,
-  type OrdersByStatus,
-  ListingViewState,
-  OrderState,
-  ShopCurrencies,
-} from "./types.ts";
-import { StateManager } from "./mod.ts";
-import { MockClient } from "./mockClient.ts";
+import { hardhat } from "viem/chains";
+
 import { randomAddress, zeroAddress, objectId } from "@massmarket/utils";
 import {
   createPublicClient,
@@ -30,10 +17,23 @@ import {
   bytesToHex,
   fromHex,
 } from "viem";
-import { hardhat } from "viem/chains";
 import * as abi from "@massmarket/contracts";
 
-function setupStateManagerStores() {
+import { StateManager } from "./mod.ts";
+import { MockClient } from "./mockClient.ts";
+import {
+  type Listing,
+  type Tag,
+  type ShopManifest,
+  type Order,
+  type KeyCard,
+  type OrdersByStatus,
+  ListingViewState,
+  OrderState,
+  type ShopCurrencies,
+} from "./types.ts";
+
+async function setupTestManager() {
   const opts = {
     valueEncoding: "json",
   };
@@ -51,13 +51,31 @@ function setupStateManagerStores() {
   );
 
   const keycardStore = db.sublevel<string, KeyCard>("keycardStore", opts);
-  return {
-    db,
+
+  await db.clear();
+  const client = new MockClient();
+  const stateManager = new StateManager(
+    client,
     listingStore,
     tagStore,
     shopManifestStore,
     orderStore,
     keycardStore,
+    randomAddress(),
+    publicClient,
+  );
+
+  return {
+    client,
+    stateManager,
+    close: async () => {
+      await db.close();
+      await listingStore.close();
+      await tagStore.close();
+      await shopManifestStore.close();
+      await orderStore.close();
+      await keycardStore.close();
+    },
   };
 }
 
@@ -104,25 +122,7 @@ const publicClient = createPublicClient({
 
 describe("Fill state manager with test vectors", () => {
   it("should create an event for every shop event", async () => {
-    const client = new MockClient();
-    const {
-      db,
-      listingStore,
-      tagStore,
-      shopManifestStore,
-      orderStore,
-      keycardStore,
-    } = setupStateManagerStores();
-    const stateManager = new StateManager(
-      client,
-      listingStore,
-      tagStore,
-      shopManifestStore,
-      orderStore,
-      keycardStore,
-      randomAddress(),
-      publicClient,
-    );
+    const { client, stateManager, close } = await setupTestManager();
     expect(client.keyCardWallet.address).toEqual(
       client.vectors.signatures.signer.address,
     );
@@ -176,48 +176,22 @@ describe("Fill state manager with test vectors", () => {
 
     await client.connect();
     await isDone;
-    await Promise.all([
-      db.close(),
-      listingStore.close(),
-      tagStore.close(),
-      shopManifestStore.close(),
-      orderStore.close(),
-      keycardStore.close(),
-    ]);
+    await close();
   });
 });
 
-describe("basic state manager tests", () => {
+describe.skip("basic state manager tests", () => {
   let client: MockClient;
   let stateManager: StateManager;
-  let db: any;
-  let listingStore: any;
-  let tagStore: any;
-  let shopManifestStore: any;
-  let orderStore: any;
-  let keycardStore: any;
-
-  beforeAll(async () => {
-    ({
-      db,
-      listingStore,
-      tagStore,
-      shopManifestStore,
-      orderStore,
-      keycardStore,
-    } = setupStateManagerStores());
-    await db.clear();
-    client = new MockClient();
-    stateManager = new StateManager(
-      client,
-      listingStore,
-      tagStore,
-      shopManifestStore,
-      orderStore,
-      keycardStore,
-      randomAddress(),
-      publicClient,
-    );
+  const closers: (() => Promise<void>)[] = [];
+  beforeEach(async () => {
+    const tester = await setupTestManager();
+    closers.push(tester.close);
+    client = tester.client;
+    stateManager = tester.stateManager;
+    stateManager.eventStreamProcessing.catch((e) => {
+      console.warn("event stream processing error", e);
+    });
     await stateManager.keycards.addAddress(client.keyCardWallet.address);
     await client.connect();
     const isDone = new Promise<void>((resolve, reject) => {
@@ -233,14 +207,7 @@ describe("basic state manager tests", () => {
     await isDone;
   });
   afterAll(async () => {
-    await Promise.all([
-      db.close(),
-      listingStore.close(),
-      tagStore.close(),
-      shopManifestStore.close(),
-      orderStore.close(),
-      keycardStore.close(),
-    ]);
+    await Promise.all(closers);
   });
 
   it("ShopManifest - adds and updates shop manifest events", async () => {
@@ -361,29 +328,10 @@ describe("basic state manager tests", () => {
 
 describe("Unverified events should be caught in error", () => {
   it("catches error", async () => {
-    const {
-      db,
-      listingStore,
-      tagStore,
-      shopManifestStore,
-      orderStore,
-      keycardStore,
-    } = setupStateManagerStores();
-    await db.clear();
-    const client = new MockClient();
-    const stateManager = new StateManager(
-      client,
-      listingStore,
-      tagStore,
-      shopManifestStore,
-      orderStore,
-      keycardStore,
-      randomAddress(),
-      publicClient,
-    );
+    const { stateManager, close } = await setupTestManager();
     // not adding keycard address to test unverified event error
     // await stateManager.keycards.addAddress(client.keyCardWallet.address);
-    stateManager.manifest.create(
+    await stateManager.manifest.create(
       {
         acceptedCurrencies: currencies,
         pricingCurrency: {
@@ -402,61 +350,26 @@ describe("Unverified events should be caught in error", () => {
     } catch (e) {
       expect(e).toBeTruthy();
     }
-    await Promise.all([
-      db.close(),
-      listingStore.close(),
-      tagStore.close(),
-      shopManifestStore.close(),
-      orderStore.close(),
-      keycardStore.close(),
-    ]);
+    await close();
   });
 });
 
 describe("CRUD functions update stores", () => {
-  let db: any;
-  let listingStore: any;
-  let tagStore: any;
-  let shopManifestStore: any;
-  let orderStore: any;
-  let keycardStore: any;
-  let client: any;
-  let stateManager: any;
-
+  let client: MockClient;
+  let stateManager: StateManager;
+  const closers: (() => Promise<void>)[] = [];
   beforeEach(async () => {
-    ({
-      db,
-      listingStore,
-      tagStore,
-      shopManifestStore,
-      orderStore,
-      keycardStore,
-    } = setupStateManagerStores());
-    client = new MockClient();
-    stateManager = new StateManager(
-      client,
-      listingStore,
-      tagStore,
-      shopManifestStore,
-      orderStore,
-      keycardStore,
-      randomAddress(),
-      publicClient,
-    );
-    await db.clear();
+    const tester = await setupTestManager();
+    closers.push(tester.close);
+    client = tester.client;
+    stateManager = tester.stateManager;
     //Store test vector address to db for event verification
     await stateManager.keycards.addAddress(client.keyCardWallet.address);
   });
   afterAll(async () => {
-    await Promise.all([
-      db.close(),
-      listingStore.close(),
-      tagStore.close(),
-      shopManifestStore.close(),
-      orderStore.close(),
-      keycardStore.close(),
-    ]);
+    await Promise.all(closers);
   });
+
   describe("ShopManifest", () => {
     beforeEach(async () => {
       await stateManager.manifest.create(

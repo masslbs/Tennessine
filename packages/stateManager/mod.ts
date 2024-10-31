@@ -1150,7 +1150,7 @@ export class StateManager {
 
     //Each event will go through all the storeObjects and update the relevant stores.
     let event: EventWithRecoveredSigner;
-    for await (event of stream) {
+    for await (event of this.stream) {
       assert(event.seqNo, "event.seqNo missing");
       assert(event.signer, "event.signer missing");
       if (event.seqNo) {
