@@ -8,10 +8,13 @@ import { describe, test } from "jsr:@std/testing/bdd";
 import { expect } from "jsr:@std/expect";
 import { privateKeyToAccount } from "jsr:@wevm/viem/accounts";
 import { hexToBytes } from "jsr:@wevm/viem";
-import schema, {
-  testVectors,
-} from "@massmarket/schema";
-import { anvilPrivateKey, objectId, priceToUint256, randomBytes } from "@massmarket/utils";
+import schema, { testVectors } from "@massmarket/schema";
+import {
+  anvilPrivateKey,
+  objectId,
+  priceToUint256,
+  randomBytes,
+} from "@massmarket/utils";
 import { ReadableEventStream } from "./stream.ts";
 
 const account = privateKeyToAccount(anvilPrivateKey);
@@ -60,7 +63,7 @@ describe("Stream", () => {
     const pushEvent = {
       requestId: schema.RequestId.create({ raw: 0 }),
       events: [
-        schema.SubscriptionPushRequest.SequencedEvent.create(signedMessage)
+        schema.SubscriptionPushRequest.SequencedEvent.create(signedMessage),
       ],
     };
     const client = new StubClient();
@@ -102,7 +105,7 @@ describe("Stream", () => {
 
     for (let index = 0; index < 50; index++) {
       events.push(
-        schema.SubscriptionPushRequest.SequencedEvent.create(signedMessage)
+        schema.SubscriptionPushRequest.SequencedEvent.create(signedMessage),
       );
     }
     const pushEvent = {
@@ -123,16 +126,18 @@ describe("Stream", () => {
     const events = [];
     for (let index = 0; index < testVectors.events.length; index++) {
       const evt = testVectors.events[index];
-      events.push(schema.SubscriptionPushRequest.SequencedEvent.create({
-        event: {
-          signature: { raw: hexToBytes(evt.signature as `0x${string}`) },
+      events.push(
+        schema.SubscriptionPushRequest.SequencedEvent.create({
           event: {
-            type_url: "type.googleapis.com/market.mass.ShopEvent",
-            value: hexToBytes(evt.encoded as `0x${string}`),
+            signature: { raw: hexToBytes(evt.signature as `0x${string}`) },
+            event: {
+              type_url: "type.googleapis.com/market.mass.ShopEvent",
+              value: hexToBytes(evt.encoded as `0x${string}`),
+            },
           },
-        },
-        seqNo: index,
-      }));
+          seqNo: index,
+        }),
+      );
     }
 
     const pushReq = {
@@ -171,7 +176,8 @@ describe("Stream", () => {
         },
       };
       const signedMessage = await signMessage(testCreateItem);
-      const sequencedEvent = schema.SubscriptionPushRequest.SequencedEvent.create(signedMessage);
+      const sequencedEvent =
+        schema.SubscriptionPushRequest.SequencedEvent.create(signedMessage);
       const pushEvent = {
         requestId: schema.RequestId.create({ raw: 0 }),
         events: [sequencedEvent, sequencedEvent],
@@ -203,7 +209,8 @@ describe("Stream", () => {
     };
     const client = new StubClient();
     const stream = new ReadableEventStream(client);
-    const sequencedEvent = schema.SubscriptionPushRequest.SequencedEvent.create(signedMessage); 
+    const sequencedEvent =
+      schema.SubscriptionPushRequest.SequencedEvent.create(signedMessage);
     stream.enqueue({
       requestId: pushEvent.requestId,
       events: [sequencedEvent],

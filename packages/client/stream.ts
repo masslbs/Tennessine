@@ -31,9 +31,10 @@ export class ReadableEventStream {
   constructor(public client: Pick<RelayClient, "encodeAndSendNoWait">) {
     const self = this;
 
-    this.nextPushReq = new Promise<schema.SubscriptionPushRequest.ISequencedEvent>((resolve) => {
-      this.resolve = resolve;
-    });
+    this.nextPushReq =
+      new Promise<schema.SubscriptionPushRequest.ISequencedEvent>((resolve) => {
+        this.resolve = resolve;
+      });
 
     this.stream = new ReadableStream<SequencedEventWithRecoveredSigner>({
       start(_controller) {},
@@ -60,7 +61,9 @@ export class ReadableEventStream {
               message: { raw: anyEvt.event.event.value },
               signature: anyEvt.event.signature.raw,
             });
-            controller.enqueue(new SequencedEventWithRecoveredSigner(shopSeqNo, event, signer));
+            controller.enqueue(
+              new SequencedEventWithRecoveredSigner(shopSeqNo, event, signer),
+            );
           }
           // Send a response to the relay to indicate that we have processed the events
           self.client.encodeAndSendNoWait({
@@ -78,10 +81,9 @@ export class ReadableEventStream {
   enqueue(pushReq: SequencedEventsWithRequestId) {
     this.queue.push(pushReq);
     this.resolve(null);
-    this.nextPushReq = new Promise<schema.SubscriptionPushRequest.ISequencedEvent>(
-      (resolve) => {
+    this.nextPushReq =
+      new Promise<schema.SubscriptionPushRequest.ISequencedEvent>((resolve) => {
         this.resolve = resolve;
-      },
-    );
+      });
   }
 }

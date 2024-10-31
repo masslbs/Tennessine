@@ -29,9 +29,7 @@ import {
   randomBytes,
 } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
-import {
-  BlockchainClient,
-} from "@massmarket/blockchain";
+import { BlockchainClient } from "@massmarket/blockchain";
 
 import { RelayClient, discoverRelay } from "./mod.ts";
 
@@ -161,7 +159,7 @@ describe({
         expect(response.status).toBe(201);
       });
 
-      test("should connect and disconnect",  async () => {
+      test("should connect and disconnect", async () => {
         await relayClient.connect();
         const authenticated = await relayClient.authenticate();
         expect(relayClient.connection.readyState).toBe(WebSocket.OPEN);
@@ -546,7 +544,6 @@ describe({
           },
           shopId,
         );
-
 
         const updatePromise = client.updateShopManifest({
           addAcceptedCurrencies: [

@@ -24,20 +24,22 @@ export type RelayEndpoint = {
 export type EventId = {
   signer: `0x${string}`;
   nonce: number;
-
 };
 
 export function eventIdEqual(a: EventId, b: EventId) {
   return a.signer === b.signer && a.nonce === b.nonce;
 }
 
-
 export class SequencedEventWithRecoveredSigner {
   readonly shopSeqNo: number;
   readonly event: schema.ShopEvent;
   readonly signer: `0x${string}`;
 
-  constructor(shopSeqNo: number, event: schema.ShopEvent, signer: `0x${string}`) {
+  constructor(
+    shopSeqNo: number,
+    event: schema.ShopEvent,
+    signer: `0x${string}`,
+  ) {
     this.shopSeqNo = shopSeqNo;
     this.event = event;
     this.signer = signer;
@@ -49,7 +51,7 @@ export class SequencedEventWithRecoveredSigner {
       nonce: Number(this.event.nonce),
     };
   }
-};
+}
 
 export class RelayClient extends EventEmitter {
   connection!: WebSocket;
@@ -83,7 +85,6 @@ export class RelayClient extends EventEmitter {
   createEventStream() {
     return this.eventStream.stream;
   }
-
 
   // like encodeAndSend but doesn't wait for a response.
   encodeAndSendNoWait(envelope: schema.IEnvelope = {}): schema.RequestId {
@@ -248,9 +249,11 @@ export class RelayClient extends EventEmitter {
     });
   }
 
-
   async sendMerchantSubscriptionRequest(shopId: `0x${string}`, seqNo = 0) {
-    assert(this.subscriptionId == null, "subscriptionId is already set. cancel first.");
+    assert(
+      this.subscriptionId == null,
+      "subscriptionId is already set. cancel first.",
+    );
     const filters = [
       { objectType: schema.ObjectType.OBJECT_TYPE_LISTING },
       { objectType: schema.ObjectType.OBJECT_TYPE_TAG },
@@ -271,7 +274,10 @@ export class RelayClient extends EventEmitter {
     this.subscriptionId = response.payload;
   }
   async sendGuestCheckoutSubscriptionRequest(shopId: `0x${string}`, seqNo = 0) {
-    assert(this.subscriptionId == null, "subscriptionId is already set. cancel first.");
+    assert(
+      this.subscriptionId == null,
+      "subscriptionId is already set. cancel first.",
+    );
     const filters = [
       { objectType: schema.ObjectType.OBJECT_TYPE_LISTING },
       { objectType: schema.ObjectType.OBJECT_TYPE_TAG },
@@ -291,7 +297,10 @@ export class RelayClient extends EventEmitter {
   }
 
   async sendGuestSubscriptionRequest(shopId: `0x${string}`, seqNo = 0) {
-    assert(this.subscriptionId == null, "subscriptionId is already set. cancel first.");
+    assert(
+      this.subscriptionId == null,
+      "subscriptionId is already set. cancel first.",
+    );
     const filters = [
       { objectType: schema.ObjectType.OBJECT_TYPE_LISTING },
       { objectType: schema.ObjectType.OBJECT_TYPE_TAG },
