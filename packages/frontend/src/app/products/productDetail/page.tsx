@@ -118,7 +118,7 @@ const ProductDetail = () => {
       getBaseTokenInfo()
         .then((baseTokenInfo) => {
           clientWithStateManager!
-            .stateManager!.items.get(itemId)
+            .stateManager!.listings.get(itemId)
             .then((item) => {
               setItem(item);
               const price = formatUnitsFromString(
@@ -170,7 +170,7 @@ const ProductDetail = () => {
 
     return () => {
       // Cleanup listeners on unmount
-      clientWithStateManager!.stateManager!.items.removeListener(
+      clientWithStateManager!.stateManager!.listings.removeListener(
         "create",
         onCreateTag,
       );
@@ -205,13 +205,13 @@ const ProductDetail = () => {
         : quantity - currentCartItems![itemId];
 
       if (diff > 0) {
-        await clientWithStateManager!.stateManager!.orders.addsItems(
+        await clientWithStateManager!.stateManager!.orders.addItems(
           order_id,
           itemId,
           diff,
         );
       } else {
-        await clientWithStateManager!.stateManager!.orders.removesItems(
+        await clientWithStateManager!.stateManager!.orders.removeItems(
           order_id,
           [
             {

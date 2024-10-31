@@ -7,7 +7,7 @@ import { Providers } from "./providers";
 import "./globals.css";
 import Navigation from "./components/nav/Navigation";
 export const metadata = {
-  title: "wagmi",
+  title: "Mass Market",
 };
 
 export default function RootLayout({

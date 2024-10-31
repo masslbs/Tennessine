@@ -1,11 +1,24 @@
+"use client";
+import debugLib from "debug";
 import { PublicClient } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { Level } from "level";
+
+import type { Level } from 'level';
+let LevelDB: typeof Level | Error = new Error("Level not available in node");
+if (typeof window !== "undefined") {
+  void (async () => {
+    const { Level } = await import('level');
+    LevelDB = Level;
+  })();
+}
 
 import { RelayClient, type RelayEndpoint } from "@massmarket/client";
 import { StateManager } from "@massmarket/stateManager";
 import { random32BytesHex } from "@massmarket/utils";
+
 import { Item, Order, KeyCard, ShopManifest, Tag, ShopId } from "@/types";
+
+const debug = debugLib("frontend:ClientWithStateManager");
 
 export class ClientWithStateManager {
   readonly publicClient: PublicClient;
@@ -26,10 +39,13 @@ export class ClientWithStateManager {
   }
 
   async createStateManager() {
+    if (LevelDB instanceof Error) {
+      throw new Error("LevelDB not available - are you running in Node?");
+    }
     const merchantKC = localStorage.getItem("merchantKC");
     const dbName = `${this.shopId.slice(0, 7)}${merchantKC ? merchantKC.slice(0, 5) : "-guest"}`;
     console.log("using level db:", { dbName });
-    const db = new Level(`./${dbName}`, {
+    const db = new LevelDB(`./${dbName}`, {
       valueEncoding: "json",
     });
     // Set up all the stores via sublevel
@@ -63,6 +79,7 @@ export class ClientWithStateManager {
       this.shopId,
       this.publicClient,
     );
+
     // Wait for relay address to be added to verified addresses before we return stateManager
     await this.stateManager.addRelayOwnerAddress();
 
@@ -71,6 +88,7 @@ export class ClientWithStateManager {
       .eventStreamProcessing()
       .then()
       .catch((err) => {
+        debug(err)
         console.log("Error something bad happened in the stream", err);
       });
 
@@ -99,13 +117,16 @@ export class ClientWithStateManager {
 
   async setClientAndConnect(kc: `0x${string}`) {
     if (!this.relayEndpoint?.url) throw new Error("Relay endpoint URL not set");
-    if (!this.relayEndpoint?.tokenId)
+    if (!this.relayEndpoint?.tokenId) {
       throw new Error("Relay endpoint tokenId not set");
-
+    }
     const keyCardWallet = privateKeyToAccount(kc);
+    const eventNonceCounter = Number(localStorage.getItem("eventNonceCounter")) || 1;
+    debug("eventNonceCounter", eventNonceCounter);
     this.relayClient = new RelayClient({
       relayEndpoint: this.relayEndpoint!,
       keyCardWallet,
+      eventNonceCounter,
     });
     await this.createStateManager();
     await this.relayClient.connect();

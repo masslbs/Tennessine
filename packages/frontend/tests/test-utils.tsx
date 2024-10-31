@@ -1,5 +1,14 @@
 import React, { ReactElement } from "react";
 import { WagmiProvider } from "wagmi";
+import { config } from "../src/wagmi";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  anvilPrivateKey,
+  random32BytesHex,
+  randomAddress,
+} from "@massmarket/utils";
+import { RelayClient, discoverRelay } from "@massmarket/client";
+import { privateKeyToAccount } from "viem/accounts";
 import { createWalletClient, http, createPublicClient } from "viem";
 import { hardhat } from "viem/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";

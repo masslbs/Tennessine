@@ -74,7 +74,7 @@ export interface TestVectors {
       key: string;
     };
   };
-  events: any;
+  events: any[];
   reduced: {
     manifest: {
       token_id: { raw: string };

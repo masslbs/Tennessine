@@ -58,7 +58,7 @@ function ShippingDetails({
       log("Shipping details updated");
       setStep(CheckoutStep.paymentDetails);
     } catch (error) {
-      debug(error);
+      debug("error updating shipping details %o", error);
       setErrorMsg("Error updating shipping details");
     }
   }

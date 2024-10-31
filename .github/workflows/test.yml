@@ -80,6 +80,7 @@ jobs:
           ssh-key: ${{ secrets.SSH_CHECKOUT_RELAY }}
           ref: ${{ steps.extract_branch.outputs.branch }}
           path: relay
+          fallback-branch: no-event-deduplication
 
       - name: Compile relay
         run: nix build '.#relay'

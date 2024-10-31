@@ -8,20 +8,13 @@ import Long from "long";
 
 import schema from "@massmarket/schema";
 
-import { type RelayClient } from "./mod.ts";
+import { type RelayClient, SequencedEventWithRecoveredSigner } from "./mod.ts";
 import { assert, assertField } from "../utils/mod.ts";
 
 // TODO: better name. it's basically a push request but with class values instead of interfaces
 type SequencedEventsWithRequestId = {
   requestId: schema.RequestId;
   events: schema.SubscriptionPushRequest.SequencedEvent[];
-};
-
-export type EventWithRecoveredSigner = {
-  event: schema.ShopEvent;
-  seqNo: number;
-  signer: `0x${string}`;
-  requestId: schema.RequestId;
 };
 
 /**
@@ -38,11 +31,12 @@ export class ReadableEventStream {
   constructor(public client: Pick<RelayClient, "encodeAndSendNoWait">) {
     const self = this;
 
-    this.nextPushReq = new Promise<schema.SubscriptionPushRequest.ISequencedEvent>((resolve) => {
-      this.resolve = resolve;
-    });
+    this.nextPushReq =
+      new Promise<schema.SubscriptionPushRequest.ISequencedEvent>((resolve) => {
+        this.resolve = resolve;
+      });
 
-    this.stream = new ReadableStream<EventWithRecoveredSigner>({
+    this.stream = new ReadableStream<SequencedEventWithRecoveredSigner>({
       start(_controller) {},
       // if pull returns a promise it will not be called again untill the promise is resolved regardless of the highwatermark
       // here we are using a recursive pull that will never resolve so that we have full control over when it is being called
@@ -57,7 +51,7 @@ export class ReadableEventStream {
               anyEvt.seqNo < Long.fromNumber(Number.MAX_SAFE_INTEGER),
               "seqNo is required",
             );
-            const seqNo = Number(anyEvt.seqNo ?? 0); // this is stupid. protobuf zero value is not 0. it's undefined
+            const shopSeqNo = Number(anyEvt.seqNo ?? 0); // this is stupid. protobuf zero value is not 0. it's undefined
             assert(anyEvt.event.event, "event.event is required");
             assert(anyEvt.event.signature, "event.signature is required");
             assert(anyEvt.event.event.value, "event.event.value is required");
@@ -67,7 +61,9 @@ export class ReadableEventStream {
               message: { raw: anyEvt.event.event.value },
               signature: anyEvt.event.signature.raw,
             });
-            controller.enqueue({ event, seqNo, signer, requestId });
+            controller.enqueue(
+              new SequencedEventWithRecoveredSigner(shopSeqNo, event, signer),
+            );
           }
           // Send a response to the relay to indicate that we have processed the events
           self.client.encodeAndSendNoWait({
@@ -85,10 +81,9 @@ export class ReadableEventStream {
   enqueue(pushReq: SequencedEventsWithRequestId) {
     this.queue.push(pushReq);
     this.resolve(null);
-    this.nextPushReq = new Promise<schema.SubscriptionPushRequest.ISequencedEvent>(
-      (resolve) => {
+    this.nextPushReq =
+      new Promise<schema.SubscriptionPushRequest.ISequencedEvent>((resolve) => {
         this.resolve = resolve;
-      },
-    );
+      });
   }
 }

@@ -32,7 +32,7 @@ const Products = () => {
     for await (const [
       id,
       item,
-    ] of clientWithStateManager!.stateManager!.items.iterator()) {
+    ] of clientWithStateManager!.stateManager!.listings.iterator()) {
       listings.set(id, item);
     }
     return listings;
@@ -44,7 +44,7 @@ const Products = () => {
       for await (const [
         id,
         item,
-      ] of clientWithStateManager!.stateManager!.items.iterator()) {
+      ] of clientWithStateManager!.stateManager!.listings.iterator()) {
         l.set(id, item);
       }
       setProducts(l);
@@ -54,7 +54,7 @@ const Products = () => {
       for await (const [
         id,
         item,
-      ] of clientWithStateManager!.stateManager!.items.iterator()) {
+      ] of clientWithStateManager!.stateManager!.listings.iterator()) {
         l.set(id, item);
       }
       setProducts(l);
@@ -76,29 +76,29 @@ const Products = () => {
       });
 
     // Listen to future events
-    clientWithStateManager!.stateManager!.items.on("create", onCreateEvent);
-    clientWithStateManager!.stateManager!.items.on("update", onUpdateEvent);
-    clientWithStateManager!.stateManager!.items.on("addItemId", onAddItemId);
-    clientWithStateManager!.stateManager!.items.on(
+    clientWithStateManager!.stateManager!.listings.on("create", onCreateEvent);
+    clientWithStateManager!.stateManager!.listings.on("update", onUpdateEvent);
+    clientWithStateManager!.stateManager!.listings.on("addItemId", onAddItemId);
+    clientWithStateManager!.stateManager!.listings.on(
       "removeItemId",
       onRemoveItemId,
     );
 
     return () => {
       // Cleanup listeners on unmount
-      clientWithStateManager!.stateManager!.items.removeListener(
+      clientWithStateManager!.stateManager!.listings.removeListener(
         "create",
         onCreateEvent,
       );
-      clientWithStateManager!.stateManager!.items.removeListener(
+      clientWithStateManager!.stateManager!.listings.removeListener(
         "update",
         onUpdateEvent,
       );
-      clientWithStateManager!.stateManager!.items.removeListener(
+      clientWithStateManager!.stateManager!.listings.removeListener(
         "addItemId",
         onAddItemId,
       );
-      clientWithStateManager!.stateManager!.items.removeListener(
+      clientWithStateManager!.stateManager!.listings.removeListener(
         "removeItemId",
         onRemoveItemId,
       );
@@ -115,7 +115,7 @@ const Products = () => {
 
     return () => {
       // Cleanup listeners on unmount
-      clientWithStateManager!.stateManager!.items.removeListener(
+      clientWithStateManager!.stateManager!.listings.removeListener(
         "create",
         onCreateEvent,
       );
