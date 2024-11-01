@@ -4,7 +4,7 @@
 
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { PublicClient } from "viem";
+import { Address, PublicClient } from "viem";
 import { sepolia, hardhat } from "wagmi/chains";
 import { ReadonlyURLSearchParams } from "next/navigation";
 
@@ -42,7 +42,7 @@ export const createQueryString = (
   value: string,
   searchParams: ReadonlyURLSearchParams,
 ) => {
-  const params = new URLSearchParams(searchParams);
+  const params = new URLSearchParams(searchParams.toString());
   params.set(name, value);
 
   return params.toString();
@@ -85,9 +85,14 @@ export const getTokenInformation = (
   return Promise.all([symbol, decimal]);
 };
 
-export const getTokenAddress = (symbol: string, chainId: string) => {
+export const getTokenAddress = (symbol: string, chainId: string): Address => {
   if (symbol === "ETH") return zeroAddress;
-  const tokenAddress = abi.tokenAddresses[chainId][symbol];
+  const addresses: {
+    [key: string]: {
+      [key: string]: string;
+    };
+  } = abi.tokenAddresses;
+  const tokenAddress = addresses[chainId][symbol] as Address;
 
   if (!tokenAddress) {
     throw new Error(`Token not found for ${symbol} on chainId: ${chainId}`);

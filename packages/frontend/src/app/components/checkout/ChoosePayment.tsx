@@ -51,7 +51,6 @@ export default function ChoosePayment({
   const [imgSrc, setSrc] = useState<null | string>(null);
   const [orderId, setOrderId] = useState<OrderId | null>(null);
   const [qrOpen, setQrOpen] = useState<boolean>(false);
-
   useEffect(() => {
     clientWithStateManager!
       .stateManager!.orders.getStatus(OrderState.STATE_COMMITED)
@@ -170,6 +169,9 @@ export default function ChoosePayment({
       setPurchaseAddr(purchaseAdd as `0x${string}`);
       setSrc(payLink);
       setCryptoTotal(amount);
+      // TODO: pass cryptoTotal to walletConnect
+      console.log(cryptoTotal);
+
       setDisplayedAmount(`${formatUnitsFromString(total, decimal)} ${symbol}`);
       setStep("payment details");
     } catch (error) {

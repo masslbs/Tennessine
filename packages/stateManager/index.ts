@@ -17,9 +17,7 @@ import {
   IError,
   OrdersByStatus,
   ListingViewState,
-  Payee,
   OrderState,
-  ShippingRegion,
   OrderPriceModifier,
   ChoosePayment,
   SeqNo,
@@ -69,7 +67,7 @@ async function storeOrdersByStatus(
       throw new Error(e.code);
     }
   }
-  await store.put(status, orders);
+  return store.put(status, orders);
 }
 abstract class PublicObjectManager<
   T extends ShopObjectTypes,
@@ -326,7 +324,7 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
           filtered = manifest.acceptedCurrencies!.filter(
             (cur) =>
               cur.address !== bytesToHex(rm.address.raw) ||
-              cur.chainId !== rm.chainId,
+              cur.chainId !== Number(rm.chainId),
           );
         }
 
@@ -856,7 +854,7 @@ export class StateManager {
   readonly keycards;
   readonly shopId;
   readonly publicClient;
-  eventStreamProcessing;
+
   constructor(
     public client: IRelayClient,
     listingStore: Store<Item>,
@@ -874,23 +872,9 @@ export class StateManager {
     this.keycards = new KeyCardManager(keycardStore, client);
     this.shopId = shopId;
     this.publicClient = publicClient;
-
-    this.eventStreamProcessing = this.#start();
-    this.eventStreamProcessing.catch((err) => {
-      console.log("Error something bad happened in the stream", err);
-    });
   }
 
-  async #start() {
-    const storeObjects = [
-      this.items,
-      this.tags,
-      this.manifest,
-      this.orders,
-      this.keycards,
-    ];
-    const stream = this.client.createEventStream();
-
+  async addRelayOwnerAddress() {
     //When we inititally create a shop, we are saving the relay tokenId => shopId.
     //Here, we are retrieving all the relay addresses associated with the shopId and saving them to keycards store.
     //Since some shopEvents are signed by a relay, we need to include these addresses when verifying the event signer.
@@ -900,6 +884,7 @@ export class StateManager {
       functionName: "getRelayCount",
       args: [this.shopId],
     })) as number;
+
     if (count > 0) {
       const tokenIds = (await this.publicClient.readContract({
         address: abi.addresses.ShopReg as `0x${string}`,
@@ -917,6 +902,19 @@ export class StateManager {
         await this.keycards.addAddress(ownerAdd);
       }
     }
+  }
+
+  async eventStreamProcessing() {
+    const storeObjects = [
+      this.items,
+      this.tags,
+      this.manifest,
+      this.orders,
+      this.keycards,
+    ];
+
+    const stream = this.client.createEventStream();
+
     //Each event will go through all the storeObjects and update the relevant stores.
     for await (const event of stream) {
       if (event.event.seqNo) {

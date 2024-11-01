@@ -9,16 +9,16 @@ import {
   random32BytesHex,
 } from "@massmarket/utils";
 import StoreProfile from "@/app/store/page";
-import { merchantsWrapper, getStateManager } from "./test-utils";
+import { MerchantsRender, getMockClient } from "./test-utils";
 
 export const usdcAddress = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 
 describe("StoreProfile Component", async () => {
-  const sm = await getStateManager();
+  const client = await getMockClient();
   const user = userEvent.setup();
 
   beforeAll(async () => {
-    await sm.manifest.create(
+    await client!.stateManager!.manifest.create(
       {
         payees: [
           {
@@ -60,14 +60,13 @@ describe("StoreProfile Component", async () => {
       randomAddress(),
     );
   });
-  const order = await sm.orders.create();
 
   beforeEach(async () => {
-    merchantsWrapper(<StoreProfile />, sm, order.id);
+    MerchantsRender(<StoreProfile />, client);
   });
 
   test("Shop Manifest data is rendered correctly", async () => {
-    merchantsWrapper(<StoreProfile />, sm, order.id);
+    MerchantsRender(<StoreProfile />, client);
     await waitFor(async () => {
       const displayedSelections = await screen.findAllByTestId(
         "displayed-accepted-currencies",
@@ -102,7 +101,7 @@ describe("StoreProfile Component", async () => {
     });
     await waitFor(async () => {
       //Test that removing currency via UI updated the store.
-      const manifest = await sm.manifest.get();
+      const manifest = await client!.stateManager!.manifest.get();
       expect(manifest.acceptedCurrencies.length).toEqual(1);
       expect(manifest.acceptedCurrencies[0].address).toEqual(zeroAddress);
       expect(manifest.acceptedCurrencies[0].chainId).toEqual(hardhat.id);
@@ -116,7 +115,7 @@ describe("StoreProfile Component", async () => {
     });
     await waitFor(async () => {
       //Test that adding new currency via UI updated the store.
-      const manifest = await sm.manifest.get();
+      const manifest = await client!.stateManager!.manifest.get();
       expect(manifest.acceptedCurrencies.length).toEqual(2);
       expect(manifest.acceptedCurrencies[1].address).toEqual(
         usdcAddress.toLowerCase(),
@@ -141,7 +140,7 @@ describe("StoreProfile Component", async () => {
       await user.click(screen.getByRole("button", { name: /Update/i }));
     });
     await waitFor(async () => {
-      const { pricingCurrency } = await sm.manifest.get();
+      const { pricingCurrency } = await client!.stateManager!.manifest.get();
       expect(pricingCurrency.chainId).toEqual(sepolia.id);
       expect(pricingCurrency.address).toEqual(usdcAddress.toLowerCase());
     });

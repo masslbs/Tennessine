@@ -1,22 +1,26 @@
 import React from "react";
-import { describe, expect, test } from "vitest";
-import { screen, fireEvent, waitFor, act } from "@testing-library/react";
-import AddProductView from "@/app/products/edit/page";
-import { formatUnitsFromString } from "@massmarket/utils";
-import userEvent from "@testing-library/user-event";
-import { getStateManager, merchantsWrapper } from "./test-utils";
-import mockRouter from "next-router-mock";
+import { beforeAll, describe, expect, test } from "vitest";
 import { formatUnits } from "viem";
+import { screen, fireEvent, waitFor, act } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import mockRouter from "next-router-mock";
+
+import { formatUnitsFromString } from "@massmarket/utils";
+import { MockClientStateManager } from "@massmarket/stateManager/tests/mockClient";
+import AddProductView from "@/app/products/edit/page";
+import { getMockClient, MerchantsRender } from "./test-utils";
 
 describe("Add New Product", async () => {
-  const sm = await getStateManager();
+  let client: MockClientStateManager;
+  beforeAll(async () => {
+    client = await getMockClient();
+    MerchantsRender(<AddProductView />, client);
+  });
   const user = userEvent.setup();
-  const order = await sm.orders.create();
   const decimals = 18;
 
   test("Create new product", async () => {
     mockRouter.push("?itemId=new");
-    merchantsWrapper(<AddProductView />, sm, order.id);
     const file = new File(["hello"], "hello.png", { type: "image/png" });
 
     await act(async () => {
@@ -36,10 +40,11 @@ describe("Add New Product", async () => {
     await act(async () => {
       await user.click(screen.getByRole("button", { name: "create product" }));
     });
+
     await waitFor(async () => {
       let count = 0;
 
-      for await (const [id, item] of sm.items.iterator()) {
+      for await (const [id, item] of client!.stateManager!.items.iterator()) {
         count++;
         expect(item.metadata.title).toEqual("Brand New Item");
         expect(formatUnitsFromString(item.price, decimals)).toEqual("4");
@@ -50,7 +55,7 @@ describe("Add New Product", async () => {
     });
   });
   test("Edit product", async () => {
-    const { id } = await sm.items.create({
+    const { id } = await client!.stateManager!.items.create({
       price: "12.00",
       metadata: {
         title: "Test Item 1",
@@ -59,7 +64,7 @@ describe("Add New Product", async () => {
       },
     });
     mockRouter.push(`?itemId=${id}`);
-    merchantsWrapper(<AddProductView />, sm, order.id);
+    MerchantsRender(<AddProductView />, client);
     //Test stored fields are correctly populated.
     await waitFor(async () => {
       const title = screen.getByDisplayValue("Test Item 1");
@@ -91,7 +96,7 @@ describe("Add New Product", async () => {
       await user.click(screen.getByRole("button", { name: /update/i }));
     });
     await waitFor(async () => {
-      const item = await sm.items.get(id);
+      const item = await client!.stateManager!.items.get(id);
       expect(item.quantity).toEqual(10);
       expect(item.metadata.title).toEqual("Updated Store Name");
       expect(item.metadata.description).toEqual("Updated description");

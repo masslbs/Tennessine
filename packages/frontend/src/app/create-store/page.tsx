@@ -13,20 +13,18 @@ import { useChains, useAccount } from "wagmi";
 import { BlockchainClient } from "@massmarket/blockchain";
 import { random32BytesHex, zeroAddress } from "@massmarket/utils";
 
+import { CurrencyChainOption, Payee, ShopCurrencies, Status } from "@/types";
+import { getTokenAddress, isValidHex } from "@/app/utils";
+import { useAuth } from "@/context/AuthContext";
+import { useStoreContext } from "@/context/StoreContext";
+import { useUserContext } from "@/context/UserContext";
 import AvatarUpload from "@/app/common/components/AvatarUpload";
 import Button from "@/app/common/components/Button";
 import Dropdown from "@/app/common/components/CurrencyDropdown";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import { ConnectWalletButton } from "@/app/common/components/ConnectWalletButton";
-import { getTokenAddress, isValidHex } from "@/app/utils";
 import ValidationWarning from "@/app/common/components/ValidationWarning";
-import { useAuth } from "@/context/AuthContext";
-import { useStoreContext } from "@/context/StoreContext";
-import { useUserContext } from "@/context/UserContext";
-import { CurrencyChainOption, Payee, ShopCurrencies, Status } from "@/types";
-
-import Confirmation from "./Confirmation";
-import { ClientWithStateManager } from "@/app/ClientWithStateManager";
+import Confirmation from "@/app/create-store/Confirmation";
 
 // When create shop CTA is clicked, these functions are called:
 // 1. mintShop
@@ -43,10 +41,9 @@ const StoreCreation = () => {
     shopPublicClient,
     clientWallet,
     shopId,
-    relayEndpoint,
+    clientWithStateManager,
     setShopId,
     checkPermissions,
-    setClientStateManager,
   } = useUserContext();
 
   const { setShopDetails } = useStoreContext();
@@ -164,19 +161,12 @@ const StoreCreation = () => {
   async function mintShop() {
     log(`creating shop for ${shopId}`);
     setStoreRegistrationStatus("Minting shop...");
-    let clientStateManager;
     try {
       if (enrollKeycard.current) {
         throw new Error("Keycard already enrolled");
       }
-      clientStateManager = new ClientWithStateManager(
-        shopPublicClient!,
-        shopId!,
-        relayEndpoint!,
-      );
-      setClientStateManager(clientStateManager);
+      const rc = clientWithStateManager!.createNewRelayClient();
 
-      const rc = clientStateManager.createNewRelayClient();
       const blockchainClient = new BlockchainClient(shopId!);
       const hash = await blockchainClient.createShop(clientWallet!);
       setStoreRegistrationStatus("Waiting to confirm mint transaction...");
@@ -206,12 +196,13 @@ const StoreCreation = () => {
     } catch (err) {
       setErrorMsg(`Error minting store ${err}`);
       debug(`Error: mintShop:`, err);
+      return;
     }
 
-    await enrollConnectAuthenticate(clientStateManager!);
+    await enrollConnectAuthenticate();
   }
 
-  async function enrollConnectAuthenticate(client: ClientWithStateManager) {
+  async function enrollConnectAuthenticate() {
     setStoreRegistrationStatus("Checking permissions...");
     try {
       const hasAccess = await checkPermissions();
@@ -219,7 +210,7 @@ const StoreCreation = () => {
         throw new Error("Access denied.");
       }
       setStoreRegistrationStatus("Enrolling keycard...");
-      const res = await client.relayClient!.enrollKeycard(
+      const res = await clientWithStateManager!.relayClient!.enrollKeycard(
         clientWallet!,
         false,
         shopId!,
@@ -236,12 +227,15 @@ const StoreCreation = () => {
 
       // FIXME: for now we are instantiating sm after kc enroll. The reason is because we want to create a unique db name based on keycard.
       // TODO: see if it would be cleaner to pass the KC as a param
-      client.createStateManager();
+      await clientWithStateManager!.createStateManager();
       log("StateManager created");
 
       //Add address of current kc wallet for all outgoing event verification.
       const keyCardWallet = privateKeyToAccount(keycard);
-      await client.stateManager!.keycards.addAddress(keyCardWallet.address);
+      await clientWithStateManager!.stateManager!.keycards.addAddress(
+        keyCardWallet.address.toLowerCase() as `0x${string}`,
+      );
+
       log(
         `keycard wallet address added: ${keyCardWallet.address.toLowerCase()}`,
       );
@@ -250,18 +244,19 @@ const StoreCreation = () => {
       setStoreRegistrationStatus(
         "Connecting and authenticating Relay Client...",
       );
-      await client.relayClient!.connect();
-      await client.relayClient!.authenticate();
+      await clientWithStateManager!.relayClient!.connect();
+      await clientWithStateManager!.relayClient!.authenticate();
     } catch (error) {
       debug(`Error:enrollConnectAuthenticate ${error}`);
       setErrorMsg("Error connecting to client");
+      return;
     }
-    await createShopManifest(client);
+    await createShopManifest();
   }
 
-  async function createShopManifest(client: ClientWithStateManager) {
+  async function createShopManifest() {
     try {
-      await client.stateManager!.manifest.create(
+      await clientWithStateManager!.stateManager!.manifest.create(
         {
           pricingCurrency: pricingCurrency as ShopCurrencies,
           acceptedCurrencies,
@@ -290,12 +285,13 @@ const StoreCreation = () => {
     } catch (error) {
       debug(`Error:createShopManifest ${error}`);
       setErrorMsg("Error creating shop manifest");
+      return;
     }
 
-    await uploadMetadata(client);
+    await uploadMetadata();
   }
 
-  async function uploadMetadata(client: ClientWithStateManager) {
+  async function uploadMetadata() {
     setStoreRegistrationStatus("Setting shop metadata...");
     let metadataPath;
     let imgPath;
@@ -308,7 +304,9 @@ const StoreCreation = () => {
         imgPath = { url: "/" };
       } else {
         imgPath = avatar
-          ? await client.relayClient!.uploadBlob(avatar as FormData)
+          ? await clientWithStateManager!.relayClient!.uploadBlob(
+              avatar as FormData,
+            )
           : { url: null };
         const metadata = {
           name: storeName,
@@ -320,15 +318,16 @@ const StoreCreation = () => {
         const file = new File([blob], "file.json");
         const formData = new FormData();
         formData.append("file", file);
-        metadataPath = await client.relayClient!.uploadBlob(formData);
+        metadataPath =
+          await clientWithStateManager!.relayClient!.uploadBlob(formData);
       }
-
       const blockchainClient = new BlockchainClient(shopId!);
       //Write shop metadata to blockchain client.
       const metadataHash = await blockchainClient.setShopMetadataURI(
         clientWallet!,
         metadataPath.url,
       );
+
       const transaction = await shopPublicClient!.waitForTransactionReceipt({
         hash: metadataHash,
         retryCount: 10,
@@ -342,8 +341,7 @@ const StoreCreation = () => {
         name: storeName,
         profilePictureUrl: imgPath.url,
       });
-
-      await client.sendMerchantSubscriptionRequest();
+      await clientWithStateManager!.sendMerchantSubscriptionRequest();
 
       setIsMerchantView(true);
       setIsConnected(Status.Complete);

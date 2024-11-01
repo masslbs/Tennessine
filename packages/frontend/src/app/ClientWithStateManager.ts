@@ -1,6 +1,7 @@
 import { PublicClient } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { Level } from "level";
+import { MemoryLevel } from "memory-level";
 
 import { RelayClient, type RelayEndpoint } from "@massmarket/client";
 import { StateManager } from "@massmarket/stateManager";
@@ -25,14 +26,18 @@ export class ClientWithStateManager {
     this.relayEndpoint = relayEndpoint;
   }
 
-  createStateManager() {
+  async createStateManager() {
     const merchantKC = localStorage.getItem("merchantKC");
     const guestKC = localStorage.getItem("guestCheckoutKC");
     const dbName = `${this.shopId.slice(0, 7)}${merchantKC ? merchantKC.slice(0, 5) : guestKC ? guestKC.slice(0, 5) : "-guest"}`;
     console.log("using level db:", { dbName });
-    const db = new Level(`./${dbName}`, {
-      valueEncoding: "json",
-    });
+    const db = process.env.TEST
+      ? new MemoryLevel({
+          valueEncoding: "json",
+        })
+      : new Level(`./${dbName}`, {
+          valueEncoding: "json",
+        });
     // Set up all the stores via sublevel
     const listingStore = db.sublevel<string, Item>("listingStore", {
       valueEncoding: "json",
@@ -64,6 +69,16 @@ export class ClientWithStateManager {
       this.shopId,
       this.publicClient,
     );
+    // Wait for relay address to be added to verified addresses before we return stateManager
+    await this.stateManager.addRelayOwnerAddress();
+
+    // Only start the stream once relay address is added
+    this.stateManager
+      .eventStreamProcessing()
+      .then()
+      .catch((err) => {
+        console.log("Error something bad happened in the stream", err);
+      });
 
     if (window && db) {
       window.addEventListener("beforeunload", () => {

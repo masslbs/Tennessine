@@ -162,14 +162,16 @@ export const UserContextProvider = (
   }, [clientWallet, ensAvatar]);
 
   useEffect(() => {
-    if (isMerchantPath || !shopId || !relayEndpoint) return;
-    //If merchantKC is cached, double check that the KC has permission, then connect & authenticate.
     const clientStateManager = new ClientWithStateManager(
       shopPublicClient!,
       shopId!,
       relayEndpoint!,
     );
     setClientStateManager(clientStateManager);
+
+    if (isMerchantPath || !shopId || !relayEndpoint) return;
+
+    //If merchantKC is cached, double check that the KC has permission, then connect & authenticate.
     if (merchantKC && walletAddress && clientConnected === Status.Pending) {
       clientStateManager
         .setClientAndConnect(merchantKC)

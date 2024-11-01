@@ -2,19 +2,86 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { hexToBytes } from "viem";
+import { hexToBytes, PublicClient } from "viem";
+import { MemoryLevel } from "memory-level";
+
 import schema, {
   type PBObject,
   testVectors,
   type TestVectors,
 } from "@massmarket/schema";
 import { ReadableEventStream } from "@massmarket/client/stream";
-import { IRelayClient } from "../types";
+import { RelayClient } from "@massmarket/client";
+import {
+  IRelayClient,
+  Item,
+  Order,
+  KeyCard,
+  ShopManifest,
+  Tag,
+} from "../types";
+import { StateManager } from "../index";
 
 export type IncomingEvent = {
   request: schema.EventPushRequest;
   done: () => void;
 };
+export class MockClientStateManager {
+  readonly publicClient;
+  readonly shopId;
+  public stateManager: StateManager | null;
+  public relayClient: RelayClient | MockClient | null;
+
+  constructor(publicClient: PublicClient, shopId: `0x${string}`) {
+    this.stateManager = null;
+    this.relayClient = null;
+    this.publicClient = publicClient;
+    this.shopId = shopId;
+  }
+  createStateManager() {
+    const db = new MemoryLevel({
+      valueEncoding: "json",
+    });
+    // Set up all the stores via sublevel
+    const listingStore = db.sublevel<string, Item>("listingStore", {
+      valueEncoding: "json",
+    });
+    const tagStore = db.sublevel<string, Tag>("tagStore", {
+      valueEncoding: "json",
+    });
+    const shopManifestStore = db.sublevel<string, ShopManifest>(
+      "shopManifestStore",
+      {
+        valueEncoding: "json",
+      },
+    );
+    const orderStore = db.sublevel<string, Order>("orderStore", {
+      valueEncoding: "json",
+    });
+
+    const keycardStore = db.sublevel<string, KeyCard>("keycardStore", {
+      valueEncoding: "json",
+    });
+
+    this.stateManager = new StateManager(
+      this.relayClient!,
+      listingStore,
+      tagStore,
+      shopManifestStore,
+      orderStore,
+      keycardStore,
+      this.shopId,
+      this.publicClient,
+    );
+
+    return this.stateManager;
+  }
+
+  async setClientAndConnect() {
+    this.relayClient = new MockClient();
+    return this.relayClient;
+  }
+}
 
 export class MockClient implements IRelayClient {
   vectors: TestVectors;

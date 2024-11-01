@@ -2,22 +2,21 @@ import React from "react";
 import { describe, test, expect } from "vitest";
 import { waitFor, screen, act, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { merchantsWrapper, getStateManager } from "./test-utils";
+import { MerchantsRender, getMockClient } from "./test-utils";
 import ProductDetail from "@/app/products/productDetail/page";
 import mockRouter from "next-router-mock";
-import { OrderId, OrderState, ItemId } from "@/types";
+import { OrderState, ItemId } from "@/types";
 
 describe("Product Detail Component", async () => {
   const user = userEvent.setup();
-  const sm = await getStateManager();
+  const client = await getMockClient();
 
   let itemId: ItemId;
-  let orderId: OrderId;
 
   test("Product Detail renders product data ", async () => {
     await act(async () => {
-      const order = await sm.orders.create();
-      const { id } = await sm.items.create({
+      await client!.stateManager!.orders.create();
+      const { id } = await client!.stateManager!.items.create({
         price: "12.00",
         metadata: {
           title: "Meow meow",
@@ -26,13 +25,12 @@ describe("Product Detail Component", async () => {
         },
       });
       itemId = id;
-      orderId = order.id;
       mockRouter.push(`?itemId=${itemId}`);
-      await sm.items.changeInventory(itemId, 5);
+      await client!.stateManager!.items.changeInventory(itemId, 5);
     });
 
     await waitFor(async () => {
-      merchantsWrapper(<ProductDetail />, sm, orderId);
+      MerchantsRender(<ProductDetail />, client);
     });
 
     await waitFor(async () => {
@@ -52,8 +50,10 @@ describe("Product Detail Component", async () => {
       await user.click(screen.getByTestId("addToCart"));
     });
     // Check that the item (2qty) we added to cart above is saved in stateManager
-    const openOrder = await sm.orders.getStatus(OrderState.STATE_OPEN);
-    const orderDetails = await sm.orders.get(openOrder[0]);
+    const openOrder = await client!.stateManager!.orders.getStatus(
+      OrderState.STATE_OPEN,
+    );
+    const orderDetails = await client!.stateManager!.orders.get(openOrder[0]);
     expect(orderDetails.items[itemId]).toEqual(2);
 
     //addsItems
@@ -68,15 +68,19 @@ describe("Product Detail Component", async () => {
     await waitFor(
       async () => {
         await user.click(await screen.findByTestId("updateQty"));
-        const o = await sm.orders.getStatus(OrderState.STATE_OPEN);
-        const d = await sm.orders.get(o[0]);
+        const o = await client!.stateManager!.orders.getStatus(
+          OrderState.STATE_OPEN,
+        );
+        const d = await client!.stateManager!.orders.get(o[0]);
         expect(d.items[itemId]).toEqual(3);
       },
       { timeout: 20000 },
     );
 
-    const o = await sm.orders.getStatus(OrderState.STATE_OPEN);
-    const d = await sm.orders.get(o[0]);
+    const o = await client!.stateManager!.orders.getStatus(
+      OrderState.STATE_OPEN,
+    );
+    const d = await client!.stateManager!.orders.get(o[0]);
     expect(d.items[itemId]).toEqual(3);
 
     //removesItems
@@ -88,8 +92,10 @@ describe("Product Detail Component", async () => {
       });
       await user.click(await screen.findByTestId("updateQty"));
     });
-    const ro = await sm.orders.getStatus(OrderState.STATE_OPEN);
-    const b = await sm.orders.get(ro[0]);
+    const order = await client!.stateManager!.orders.getStatus(
+      OrderState.STATE_OPEN,
+    );
+    const b = await client!.stateManager!.orders.get(order[0]);
     expect(b.items[itemId]).toEqual(1);
   });
 });
