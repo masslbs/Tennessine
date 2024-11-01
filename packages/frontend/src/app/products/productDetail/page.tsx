@@ -185,13 +185,13 @@ const ProductDetail = () => {
         : quantity - currentCartItems![itemId];
 
       if (diff > 0) {
-        await clientWithStateManager!.stateManager!.orders.addsItems(
+        await clientWithStateManager!.stateManager!.orders.addItems(
           order_id,
           itemId,
           diff,
         );
       } else {
-        await clientWithStateManager!.stateManager!.orders.removesItems(
+        await clientWithStateManager!.stateManager!.orders.removeItems(
           order_id,
           [
             {

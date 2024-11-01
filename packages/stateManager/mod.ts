@@ -918,7 +918,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
     return eventListenAndResolve<Order>(eventId, this, "create");
   }
 
-  async addsItems(
+  async addItems(
     orderId: `0x${string}`,
     lId: `0x${string}`,
     quantity: number,
@@ -1113,14 +1113,14 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
 // It also handles the states persistence, retrieval and updates
 
 export class StateManager {
-  readonly listings;
-  readonly tags;
-  readonly manifest;
-  readonly orders;
-  readonly keycards;
+  readonly listings: ListingManager;
+  readonly tags: TagManager;
+  readonly manifest: ShopManifestManager;
+  readonly orders: OrderManager;
+  readonly keycards: KeyCardManager;
   readonly shopId;
-  readonly publicClient;
-  readonly seqNo;
+  readonly publicClient: PublicClient;
+  readonly seqNo: EventEmitter;
   readonly stream;
   readonly eventStreamProcessing: Promise<void>;
   constructor(

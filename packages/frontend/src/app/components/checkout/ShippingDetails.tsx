@@ -62,7 +62,7 @@ function ShippingDetails({
       log("Shipping details updated");
       setStep("payment details");
     } catch (error) {
-      debug(error);
+      debug("error updating shipping details %o", error);
       setErrorMsg("Error updating shipping details");
     }
   }

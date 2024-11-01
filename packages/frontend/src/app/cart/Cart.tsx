@@ -36,7 +36,7 @@ function Cart({
         res && setBaseDecimal(res[1]);
         res && setBaseSymbol(res[0]);
       })
-      .catch((e) => debug(e));
+      .catch((e) => debug("error getting base token info %o", e));
   }, []);
 
   useEffect(() => {
@@ -66,16 +66,16 @@ function Cart({
                         selectedQty: ci[id as ItemId],
                       });
                     })
-                    .catch((e) => debug(e));
+                    .catch((e) => debug("error getting item %o", e));
                 }),
               );
               setCartMap(cartObjects);
             })
-            .catch((e) => debug(`Error getting order: ${e}`));
+            .catch((e) => debug("error getting order %o", e));
         }
       })
       .catch((e) => {
-        debug(`Error getting open order: ${e}`);
+        debug("error getting open order %o", e);
       });
   }, [orderId]);
 
@@ -89,14 +89,14 @@ function Cart({
           quantity: item.selectedQty,
         };
       });
-      await clientWithStateManager!.stateManager!.orders.removesItems(
+      await clientWithStateManager!.stateManager!.orders.removeItems(
         orderId!,
         map,
       );
       setCartMap(new Map());
       log("cart cleared");
     } catch (error) {
-      debug(error);
+      debug("error clearing cart %o", error);
     }
   }
 
