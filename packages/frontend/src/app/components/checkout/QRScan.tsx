@@ -10,14 +10,12 @@ import BackButton from "@/app/common/components/BackButton";
 function QRScan({
   imgSrc,
   purchaseAddress,
-  erc20Amount,
-  symbol,
+  displayedAmount,
   goBack,
 }: {
-  imgSrc: string | null;
+  imgSrc: string;
   purchaseAddress: string;
-  erc20Amount: string | null;
-  symbol: string | null;
+  displayedAmount: string;
   goBack: () => void;
 }) {
   const [src, setQr] = useState<string | null>(null);
@@ -41,9 +39,7 @@ function QRScan({
             unoptimized={true}
           />
           <h1>Pay by QR code</h1>
-          <h1>
-            {erc20Amount} {symbol}
-          </h1>
+          <h1>{displayedAmount}</h1>
           {src && <Image src={src} width={215} height={215} alt="QR-code" />}
         </div>
       </section>
@@ -57,9 +53,7 @@ function QRScan({
             unoptimized={true}
           />
           <h1>Pay by transfer</h1>
-          <h1>
-            {erc20Amount} {symbol}
-          </h1>
+          <h1>{displayedAmount}</h1>
           <div className="flex text-center justify-center border-2 p-2 rounded-xl shadow-xl">
             <p>{purchaseAddress.slice(0, 20)}...</p>
             <button className="ml-4" onClick={copyToClipboard}>

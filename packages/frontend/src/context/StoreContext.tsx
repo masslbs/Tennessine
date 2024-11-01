@@ -15,14 +15,15 @@ import { getTokenInformation } from "@/app/utils";
 // @ts-expect-error FIXME
 export const StoreContext = createContext<StoreContent>({});
 
+const debug = debugLib("frontend:StoreContext");
+const log = debugLib("log:StoreContext");
+log.color = "242";
+
 export const StoreContextProvider = (
   props: React.HTMLAttributes<HTMLDivElement>,
 ) => {
   const chains = useChains();
   const { clientWithStateManager, shopPublicClient, shopId } = useUserContext();
-  const debug = debugLib("frontend:StoreContext");
-  const log = debugLib("log:StoreContext");
-  log.color = "242";
 
   const [shopDetails, setShopDetails] = useState({
     name: "",

@@ -25,12 +25,16 @@ import QRScan from "./QRScan";
 
 export default function ChoosePayment({
   setStep,
+  displayedAmount,
+  setDisplayedAmount,
 }: {
   setStep: Dispatch<
     SetStateAction<
       "cart" | "shipping details" | "payment details" | "confirmation"
     >
   >;
+  displayedAmount: string | null;
+  setDisplayedAmount: Dispatch<SetStateAction<string | null>>;
 }) {
   const { clientWithStateManager } = useUserContext();
   const chains = useChains();
@@ -42,10 +46,8 @@ export default function ChoosePayment({
     null,
   );
   const [manifest, setManifest] = useState<null | ShopManifest>(null);
-  const [symbol, setSymbol] = useState<null | string>(null);
   const [cryptoTotal, setCryptoTotal] = useState<bigint | null>(null);
   const [purchaseAddress, setPurchaseAddr] = useState<string | null>(null);
-  const [erc20Amount, setErc20Amount] = useState<null | string>(null);
   const [imgSrc, setSrc] = useState<null | string>(null);
   const [orderId, setOrderId] = useState<OrderId | null>(null);
   const [qrOpen, setQrOpen] = useState<boolean>(false);
@@ -131,7 +133,6 @@ export default function ChoosePayment({
         chosenPaymentPublicClient,
         currency.address,
       );
-      setSymbol(symbol);
 
       const payeeChain = chains.find((chain) => payee.chainId === chain.id);
       const paymentRPC = createPublicClient({
@@ -162,7 +163,6 @@ export default function ChoosePayment({
       });
       if (!purchaseAdd) throw new Error("No purchase address found");
       const amount = BigInt(total);
-      const displayedErc20 = formatUnitsFromString(total, decimal);
       const payLink =
         currency.address === zeroAddress
           ? `ethereum:${purchaseAdd}?value=${amount}`
@@ -170,7 +170,7 @@ export default function ChoosePayment({
       setPurchaseAddr(purchaseAdd as `0x${string}`);
       setSrc(payLink);
       setCryptoTotal(amount);
-      setErc20Amount(displayedErc20);
+      setDisplayedAmount(`${formatUnitsFromString(total, decimal)} ${symbol}`);
       setStep("payment details");
     } catch (error) {
       debug(error);
@@ -236,10 +236,9 @@ export default function ChoosePayment({
   if (qrOpen)
     return (
       <QRScan
-        imgSrc={imgSrc}
+        imgSrc={imgSrc!}
         purchaseAddress={purchaseAddress!}
-        erc20Amount={erc20Amount}
-        symbol={symbol}
+        displayedAmount={displayedAmount!}
         goBack={() => setQrOpen(false)}
       />
     );
@@ -275,7 +274,7 @@ export default function ChoosePayment({
               unoptimized={true}
               className="w-6 h-6 max-h-6"
             />
-            <h1>{erc20Amount}</h1>
+            <h1>{displayedAmount}</h1>
           </div>
         </div>
         <div className="flex justify-between">
@@ -294,15 +293,17 @@ export default function ChoosePayment({
                 height={40}
                 alt="wallet-icon"
                 unoptimized={true}
+                className="w-10 h-10 "
               />
-              <div className="flex gap-2">
+              <div className="flex gap-2 items-center">
                 <p>Pay by QR code</p>
                 <Image
                   src="/icons/chevron-right.svg"
-                  width={5}
-                  height={5}
+                  width={12}
+                  height={12}
                   alt="chevron"
                   unoptimized={true}
+                  className="w-3 h-3"
                 />
               </div>
             </button>

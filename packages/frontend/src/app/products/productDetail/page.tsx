@@ -21,13 +21,16 @@ import { useUserContext } from "@/context/UserContext";
 import { useAuth } from "@/context/AuthContext";
 import SuccessToast from "@/app/common/components/SuccessToast";
 
+const debug = debugLib("frontend:productDetail");
+const log = debugLib("log:productDetail");
+log.color = "242";
+
 const ProductDetail = () => {
   const { getBaseTokenInfo } = useStoreContext();
   const { upgradeGuestToCustomer, clientWithStateManager } = useUserContext();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isMerchantView } = useAuth();
-  const debug = debugLib("frontend:productDetail");
   const itemId = searchParams.get("itemId") as ItemId;
 
   const [quantity, setQuantity] = useState<number>(0);
@@ -51,8 +54,6 @@ const ProductDetail = () => {
       .then((res) => {
         if (res.length > 1) {
           debug("Multiple open orders found");
-        } else if (!res.length) {
-          log("No open order found");
         } else {
           setOrderId(res[0]);
           clientWithStateManager!
@@ -64,8 +65,8 @@ const ProductDetail = () => {
             .catch((e) => debug(e));
         }
       })
-      .catch((e) => {
-        debug(e);
+      .catch(() => {
+        log("No current open orders.");
       });
   }, []);
 

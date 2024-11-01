@@ -12,6 +12,10 @@ import Button from "@/app/common/components/Button";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import BackButton from "@/app/common/components/BackButton";
 
+const debug = debugLib("frontend:ShippingDetails");
+const log = debugLib("log:ShippingDetails");
+log.color = "242";
+
 function ShippingDetails({
   setStep,
 }: {
@@ -22,10 +26,6 @@ function ShippingDetails({
   >;
 }) {
   const { clientWithStateManager } = useUserContext();
-
-  const debug = debugLib("frontend:ShippingDetails");
-  const log = debugLib("log:ShippingDetails");
-  log.color = "242";
 
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");

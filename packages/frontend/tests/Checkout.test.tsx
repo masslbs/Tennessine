@@ -68,8 +68,8 @@ describe.skip("Checkout", async () => {
         const copy = await screen.findByTestId("copyAddress");
         await user.click(copy);
         //Renders correct price and symbol.
-        const erc20Amount = await screen.findByTestId("erc20Amount");
-        expect(erc20Amount.textContent).toEqual("Send 65 ETH");
+        const displayedAmount = await screen.findByTestId("displayedAmount");
+        expect(displayedAmount.textContent).toEqual("Send 65 ETH");
 
         //Make a payment
         const { total, shopSignature, ttl } = o.paymentDetails!;
