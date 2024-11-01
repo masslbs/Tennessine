@@ -59,7 +59,7 @@ function Cart({
               await Promise.all(
                 keys.map(async (id) => {
                   return clientWithStateManager!
-                    .stateManager!.items.get(id as ItemId)
+                    .stateManager!.listings.get(id as ItemId)
                     .then((item) => {
                       cartObjects.set(id, {
                         ...item,
