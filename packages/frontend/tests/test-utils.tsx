@@ -21,7 +21,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   anvilPrivateKey,
   random32BytesHex,
-  zeroAddress,
   randomAddress,
 } from "@massmarket/utils";
 import { RelayClient, discoverRelay } from "@massmarket/client";
@@ -119,7 +118,6 @@ const Wrapper = ({
               we need to access the SM so we can test that the UI updates the state correctly. */}
               <StoreContext.Provider
                 value={{
-                  stateManager: stateManager,
                   getBaseTokenInfo: async () => {
                     return ["ETH", 18];
                   },
@@ -128,9 +126,6 @@ const Wrapper = ({
                     profilePictureUrl: "",
                   },
                   setShopDetails: () => {},
-                  getOrderId: async () => {
-                    return orderId;
-                  },
                 }}
               >
                 {children}
@@ -169,7 +164,6 @@ const MerchantsWrapper = ({
           >
             <StoreContext.Provider
               value={{
-                stateManager: stateManager,
                 getBaseTokenInfo: async () => {
                   return ["ETH", 18];
                 },
@@ -178,9 +172,6 @@ const MerchantsWrapper = ({
                   profilePictureUrl: "",
                 },
                 setShopDetails: () => {},
-                getOrderId: async () => {
-                  return orderId;
-                },
               }}
             >
               {children}

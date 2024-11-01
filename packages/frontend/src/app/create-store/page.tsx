@@ -106,7 +106,7 @@ const StoreCreation = () => {
     if (e.target.checked) {
       setAcceptedCurrencies([
         ...acceptedCurrencies,
-        { address, chainId: Number(chainId) },
+        { address: address as `0x${string}`, chainId: Number(chainId) },
       ]);
     } else {
       setAcceptedCurrencies(
@@ -121,7 +121,10 @@ const StoreCreation = () => {
     const v = option.value as string;
     const [sym, chainId] = v.split("/");
     const address = getTokenAddress(sym, chainId);
-    setPricingCurrency({ address, chainId: Number(chainId) });
+    setPricingCurrency({
+      address: address as `0x${string}`,
+      chainId: Number(chainId),
+    });
   }
 
   function checkRequiredFields() {
@@ -180,12 +183,12 @@ const StoreCreation = () => {
       const blockchainClient = new BlockchainClient(shopId!);
       const hash = await blockchainClient.createShop(clientWallet!);
       setStoreRegistrationStatus("Waiting to confirm mint transaction...");
-      const transaction = await shopPublicClient!.waitForTransactionReceipt({
+      let receipt = await shopPublicClient!.waitForTransactionReceipt({
         hash,
-        retryCount: 10,
+        confirmations: 2,
+        retryCount: 5,
       });
-
-      if (transaction!.status !== "success") {
+      if (receipt!.status !== "success") {
         throw new Error("Mint shop: transaction failed");
       }
       localStorage.setItem("shopId", shopId!);
@@ -197,8 +200,10 @@ const StoreCreation = () => {
         rc.relayEndpoint.tokenId,
       );
       log(`Added relay token ID:${rc.relayEndpoint.tokenId}`);
-      const receipt = await shopPublicClient!.waitForTransactionReceipt({
+      receipt = await shopPublicClient!.waitForTransactionReceipt({
         hash: tx,
+        confirmations: 2,
+        retryCount: 5,
       });
       if (receipt.status !== "success") {
         throw new Error("Error: addRelay");

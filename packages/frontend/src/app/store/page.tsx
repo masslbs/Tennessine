@@ -70,7 +70,7 @@ function StoreProfile() {
           chainsToRender.push({
             label: `USDC/${c.name}`,
             value: `${usdcTokenAddress}/${c.id}`,
-            address: usdcTokenAddress,
+            address: usdcTokenAddress as `0x${string}`,
             chainId: c.id,
           });
         }),

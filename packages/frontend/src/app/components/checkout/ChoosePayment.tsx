@@ -46,7 +46,6 @@ export default function ChoosePayment({
     null,
   );
   const [manifest, setManifest] = useState<null | ShopManifest>(null);
-  const [cryptoTotal, setCryptoTotal] = useState<bigint | null>(null);
   const [purchaseAddress, setPurchaseAddr] = useState<string | null>(null);
   const [imgSrc, setSrc] = useState<null | string>(null);
   const [orderId, setOrderId] = useState<OrderId | null>(null);
@@ -169,7 +168,6 @@ export default function ChoosePayment({
           : `ethereum:${currency.address}/transfer?address=${purchaseAdd}&uint256=${amount}`;
       setPurchaseAddr(purchaseAdd as `0x${string}`);
       setSrc(payLink);
-      setCryptoTotal(amount);
       setDisplayedAmount(`${formatUnitsFromString(total, decimal)} ${symbol}`);
       setStep("payment details");
     } catch (error) {

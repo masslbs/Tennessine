@@ -1,7 +1,16 @@
+"use client";
 import debugLib from "debug";
-import { Level } from "level";
 import { PublicClient } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
+
+import type { Level } from 'level';
+let LevelDB: typeof Level | Error = new Error("Level not available in node");
+if (typeof window !== "undefined") {
+  void (async () => {
+    const { Level } = await import('level');
+    LevelDB = Level;
+  })();
+} 
 
 import { RelayClient, type RelayEndpoint } from "@massmarket/client";
 import { StateManager } from "@massmarket/stateManager";
@@ -28,13 +37,16 @@ export class ClientWithStateManager {
     this.shopId = shopId;
     this.relayEndpoint = relayEndpoint;
   }
-
+ 
   createStateManager() {
+    if (LevelDB instanceof Error) {
+      throw new Error("LevelDB not available - are you running in Node?");
+    }
     const merchantKC = localStorage.getItem("merchantKC");
     const guestKC = localStorage.getItem("guestCheckoutKC");
     const dbName = `${this.shopId.slice(0, 7)}${merchantKC ? merchantKC.slice(0, 5) : guestKC ? guestKC.slice(0, 5) : "-guest"}`;
     console.log("using level db:", { dbName });
-    const db = new Level(`./${dbName}`, {
+    const db = new LevelDB(`./${dbName}`, {
       valueEncoding: "json",
     });
     // Set up all the stores via sublevel
@@ -68,7 +80,6 @@ export class ClientWithStateManager {
       this.shopId,
       this.publicClient,
     );
-
     if (window && db) {
       window.addEventListener("beforeunload", () => {
         db.close();

@@ -87,8 +87,8 @@ export const getTokenInformation = (
 
 export const getTokenAddress = (symbol: string, chainId: string) => {
   if (symbol === "ETH") return zeroAddress;
-  const tokenAddress = abi.tokenAddresses[chainId][symbol];
-
+  const tokenAddress = abi.tokenAddresses[chainId as keyof typeof abi.tokenAddresses][symbol as keyof typeof abi.tokenAddresses[keyof typeof abi.tokenAddresses]];
+  
   if (!tokenAddress) {
     throw new Error(`Token not found for ${symbol} on chainId: ${chainId}`);
   }
