@@ -101,7 +101,8 @@ const StoreCreation = () => {
 
   async function handleAcceptedCurrencies(e: ChangeEvent<HTMLInputElement>) {
     const [sym, chainId] = e.target.value.split("/");
-    const address = await getTokenAddress(sym, Number(chainId));
+    const address = getTokenAddress(sym, chainId);
+
     if (e.target.checked) {
       setAcceptedCurrencies([
         ...acceptedCurrencies,
@@ -119,7 +120,7 @@ const StoreCreation = () => {
   async function handlePricingCurrency(option: CurrencyChainOption) {
     const v = option.value as string;
     const [sym, chainId] = v.split("/");
-    const address = await getTokenAddress(sym, Number(chainId));
+    const address = getTokenAddress(sym, chainId);
     setPricingCurrency({ address, chainId: Number(chainId) });
   }
 

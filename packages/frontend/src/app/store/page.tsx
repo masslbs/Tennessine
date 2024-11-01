@@ -24,6 +24,7 @@ import ErrorMessage from "@/app/common/components/ErrorMessage";
 import SuccessToast from "@/app/common/components/SuccessToast";
 import BackButton from "@/app/common/components/BackButton";
 import Dropdown from "@/app/common/components/CurrencyDropdown";
+import { zeroAddress } from "@massmarket/utils";
 
 interface AcceptedChain {
   address: Address;
@@ -59,15 +60,13 @@ function StoreProfile() {
       const chainsToRender: CurrencyChainOption[] = [];
       Promise.all(
         chains.map(async (c) => {
-          const ethTokenAddress = await getTokenAddress("ETH", c.id);
           chainsToRender.push({
             label: `ETH/${c.name}`,
-            value: `${ethTokenAddress}/${c.id}`,
-            address: ethTokenAddress,
+            value: `${zeroAddress}/${c.id}`,
+            address: zeroAddress,
             chainId: c.id,
           });
-          const usdcTokenAddress = await getTokenAddress("USDC", c.id);
-
+          const usdcTokenAddress = getTokenAddress("USDC", String(c.id));
           chainsToRender.push({
             label: `USDC/${c.name}`,
             value: `${usdcTokenAddress}/${c.id}`,

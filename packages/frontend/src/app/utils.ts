@@ -8,8 +8,9 @@ import { PublicClient } from "viem";
 import { sepolia, hardhat } from "wagmi/chains";
 import { ReadonlyURLSearchParams } from "next/navigation";
 
-import { zeroAddress, usdcAddress } from "@massmarket/utils";
+import { zeroAddress } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
+
 import { Metadata } from "@/types";
 
 export const cn = (...inputs: ClassValue[]) => {
@@ -83,27 +84,13 @@ export const getTokenInformation = (
 
   return Promise.all([symbol, decimal]);
 };
-export const getTokenAddress = async (
-  symbol: string,
-  chainId: number,
-): Promise<`0x${string}`> => {
-  const testChains = chainId === hardhat.id || chainId === sepolia.id;
 
-  // Token list from uniswap does not carry test chain token data, so directly return token addresses for ETH/USDC if selected chain is sepolia/hardhat.
+export const getTokenAddress = (symbol: string, chainId: string) => {
   if (symbol === "ETH") return zeroAddress;
-  if (symbol === "USDC" && testChains) return usdcAddress;
+  const tokenAddress = abi.tokenAddresses[chainId][symbol];
 
-  const response = await fetch("https://tokens.uniswap.org/");
-  const tokenList = await response.json();
-
-  const token = tokenList.tokens.find(
-    (t: { symbol: string; chainId: number }) =>
-      t.symbol === symbol && t.chainId === chainId,
-  );
-
-  if (token) {
-    return token.address;
+  if (!tokenAddress) {
+    throw new Error(`Token not found for ${symbol} on chainId: ${chainId}`);
   }
-
-  throw new Error(`Token not found for ${symbol} on chainId: ${chainId}`);
+  return tokenAddress;
 };
