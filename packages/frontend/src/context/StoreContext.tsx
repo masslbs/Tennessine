@@ -8,7 +8,6 @@ import { useChains } from "wagmi";
 import { createPublicClient, http, Address } from "viem";
 
 import * as abi from "@massmarket/contracts";
-import { OrderId, OrderState } from "@/types";
 import { StoreContent } from "@/context/types";
 import { useUserContext } from "@/context/UserContext";
 import { getTokenInformation } from "@/app/utils";
@@ -74,27 +73,8 @@ export const StoreContextProvider = (
     }
   }
 
-  const getOrderId = async () => {
-    try {
-      const openOrders =
-        await clientWithStateManager!.stateManager!.orders.getStatus(
-          OrderState.STATE_OPEN,
-        );
-      if (openOrders.length > 1) {
-        debug("Multiple open orders found");
-      }
-      if (openOrders && openOrders.length) {
-        return openOrders[0] as OrderId;
-      }
-    } catch (error) {
-      log("No open orders found");
-      return null;
-    }
-  };
-
   const value = {
     shopDetails,
-    getOrderId,
     setShopDetails,
     getBaseTokenInfo,
   };

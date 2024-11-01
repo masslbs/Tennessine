@@ -7,7 +7,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import debugLib from "debug";
 import { formatUnitsFromString } from "@massmarket/utils";
-import { ItemId, OrderId } from "@/types";
+import { ItemId, OrderId, OrderState } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
 import Button from "@/app/common/components/Button";
@@ -18,7 +18,7 @@ function Cart({
 }: {
   onCheckout?: (orderId: OrderId) => Promise<void>;
 }) {
-  const { getBaseTokenInfo, getOrderId } = useStoreContext();
+  const { getBaseTokenInfo } = useStoreContext();
   const { clientWithStateManager } = useUserContext();
 
   const debug = debugLib("frontend:Cart");
@@ -41,33 +41,42 @@ function Cart({
 
   useEffect(() => {
     const cartObjects = new Map();
-    getOrderId().then(async (orderId) => {
-      if (orderId) {
-        setOrderId(orderId);
-        clientWithStateManager!
-          .stateManager!.orders.get(orderId)
-          .then(async (o) => {
-            const ci = o.items;
-            // Get price and metadata for all the selected items in the order.
-            const keys = Object.keys(ci);
-            await Promise.all(
-              keys.map(async (id) => {
-                return clientWithStateManager!
-                  .stateManager!.items.get(id as ItemId)
-                  .then((item) => {
-                    cartObjects.set(id, {
-                      ...item,
-                      selectedQty: ci[id as ItemId],
-                    });
-                  })
-                  .catch((e) => debug(e));
-              }),
-            );
-            setCartMap(cartObjects);
-          })
-          .catch((e) => debug(e));
-      }
-    });
+    clientWithStateManager!
+      .stateManager!.orders.getStatus(OrderState.STATE_OPEN)
+      .then((res) => {
+        if (res.length > 1) {
+          debug("Multiple open orders found");
+        } else if (!res.length) {
+          log("No open order found");
+        } else {
+          setOrderId(res[0]);
+          clientWithStateManager!
+            .stateManager!.orders.get(res[0])
+            .then(async (o) => {
+              const ci = o.items;
+              // Get price and metadata for all the selected items in the order.
+              const keys = Object.keys(ci);
+              await Promise.all(
+                keys.map(async (id) => {
+                  return clientWithStateManager!
+                    .stateManager!.items.get(id as ItemId)
+                    .then((item) => {
+                      cartObjects.set(id, {
+                        ...item,
+                        selectedQty: ci[id as ItemId],
+                      });
+                    })
+                    .catch((e) => debug(e));
+                }),
+              );
+              setCartMap(cartObjects);
+            })
+            .catch((e) => debug(`Error getting order: ${e}`));
+        }
+      })
+      .catch((e) => {
+        debug(`Error getting open order: ${e}`);
+      });
   }, [orderId]);
 
   async function clearCart() {

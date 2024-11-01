@@ -15,14 +15,14 @@ import { createQueryString } from "@/app/utils";
 import Button from "@/app/common/components/Button";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import BackButton from "@/app/common/components/BackButton";
-import { Item, ItemId, OrderId, Tag, Order } from "@/types";
+import { Item, ItemId, OrderId, Tag, Order, OrderState } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
 import { useAuth } from "@/context/AuthContext";
 import SuccessToast from "@/app/common/components/SuccessToast";
 
 const ProductDetail = () => {
-  const { getOrderId, getBaseTokenInfo } = useStoreContext();
+  const { getBaseTokenInfo } = useStoreContext();
   const { upgradeGuestToCustomer, clientWithStateManager } = useUserContext();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -46,12 +46,17 @@ const ProductDetail = () => {
   const [successMsg, setMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    getOrderId()
-      .then((id) => {
-        if (id) {
-          setOrderId(id);
+    clientWithStateManager!
+      .stateManager!.orders.getStatus(OrderState.STATE_OPEN)
+      .then((res) => {
+        if (res.length > 1) {
+          debug("Multiple open orders found");
+        } else if (!res.length) {
+          log("No open order found");
+        } else {
+          setOrderId(res[0]);
           clientWithStateManager!
-            .stateManager!.orders.get(id)
+            .stateManager!.orders.get(res[0])
             .then((order) => {
               const orderItems = order.items;
               setCurrentCart(orderItems);

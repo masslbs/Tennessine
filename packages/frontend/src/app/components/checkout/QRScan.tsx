@@ -16,7 +16,6 @@ function QRScan({
 }: {
   imgSrc: string | null;
   purchaseAddress: string;
-  showModal: string | null;
   erc20Amount: string | null;
   symbol: string | null;
   goBack: () => void;

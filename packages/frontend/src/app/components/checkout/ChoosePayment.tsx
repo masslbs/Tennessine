@@ -53,7 +53,6 @@ export default function ChoosePayment({
   useEffect(() => {
     clientWithStateManager!
       .stateManager!.orders.getStatus(OrderState.STATE_COMMITED)
-      // @ts-expect-error FIXME: frontend currently cannot infer type from stateManager. Is this fixed with Deno?
       .then((committed: OrderId[]) => {
         if (!committed) {
           throw new Error("No committed order found");

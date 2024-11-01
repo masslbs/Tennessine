@@ -34,8 +34,7 @@ interface AcceptedChain {
 
 function StoreProfile() {
   const { shopDetails } = useStoreContext();
-  const { shopId, relayClient, clientWallet, clientWithStateManager } =
-    useUserContext();
+  const { shopId, clientWallet, clientWithStateManager } = useUserContext();
   const [storeName, setStoreName] = useState<string>("");
   const [avatar, setAvatar] = useState<FormData | null>(null);
   const [acceptedCurrencies, setAcceptedCurrencies] = useState<AcceptedChain[]>(
@@ -152,7 +151,7 @@ function StoreProfile() {
         setValidationError("No changes found");
         return;
       }
-      await stateManager!.manifest.update(um);
+      await clientWithStateManager!.stateManager!.manifest.update(um);
 
       //If avatar or store name changed, setShopMetadataURI.
       if (avatar || storeName !== shopDetails.name) {
@@ -160,7 +159,11 @@ function StoreProfile() {
           name: storeName,
           //If new avatar was uploaded, upload the image, otherwise use previous image.
           image: avatar
-            ? (await relayClient!.uploadBlob(avatar as FormData)).url
+            ? (
+                await clientWithStateManager!.relayClient!.uploadBlob(
+                  avatar as FormData,
+                )
+              ).url
             : shopDetails.profilePictureUrl,
         };
         const jsn = JSON.stringify(metadata);
@@ -168,13 +171,15 @@ function StoreProfile() {
         const file = new File([blob], "file.json");
         const formData = new FormData();
         formData.append("file", file);
-        relayClient!.uploadBlob(formData).then(({ url }) => {
-          const blockchainClient = new BlockchainClient(shopId!);
-          blockchainClient
-            .setShopMetadataURI(clientWallet!, url)
-            .then()
-            .catch((e) => debug(e));
-        });
+        clientWithStateManager!
+          .relayClient!.uploadBlob(formData)
+          .then(({ url }) => {
+            const blockchainClient = new BlockchainClient(shopId!);
+            blockchainClient
+              .setShopMetadataURI(clientWallet!, url)
+              .then()
+              .catch((e) => debug(e));
+          });
       }
       setSuccess("Changes saved.");
     } catch (error) {
