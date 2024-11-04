@@ -137,7 +137,7 @@ function Cart({
     }
   }
 
-  async function addItem(id: ItemId) {
+  async function addQuantity(id: ItemId) {
     try {
       await clientWithStateManager!.stateManager!.orders.addsItems(
         orderId!,
@@ -145,11 +145,11 @@ function Cart({
         1,
       );
     } catch (error) {
-      debug(`Error:addItem ${error}`);
+      debug(`Error:addQuantity ${error}`);
     }
   }
 
-  async function removeItem(id: ItemId) {
+  async function removeQuantity(id: ItemId) {
     try {
       await clientWithStateManager!.stateManager!.orders.removesItems(
         orderId!,
@@ -161,10 +161,25 @@ function Cart({
         ],
       );
     } catch (error) {
-      debug(`Error:removeItem ${error}`);
+      debug(`Error:removeQuantity ${error}`);
     }
   }
 
+  async function removeItem(id: ItemId, selectedQty: number) {
+    try {
+      await clientWithStateManager!.stateManager!.orders.removesItems(
+        orderId!,
+        [
+          {
+            listingId: id,
+            quantity: selectedQty,
+          },
+        ],
+      );
+    } catch (error) {
+      debug(`Error:removeItem ${error}`);
+    }
+  }
   function calculateTotal() {
     const values = cartItemsMap.values();
     let total = 0;
@@ -201,12 +216,27 @@ function Cart({
             />
           </div>
           <div className="bg-background-gray w-full rounded-lg px-5 py-4">
-            <h3 data-testid="title" className="leading-4">
-              {item.metadata.title}
-            </h3>
+            <div className="flex">
+              <h3 data-testid="title" className="leading-4">
+                {item.metadata.title}
+              </h3>
+              <button
+                onClick={() => removeItem(item.id, item.selectedQty)}
+                className="ml-auto"
+              >
+                <Image
+                  src="/icons/close-icon.svg"
+                  alt="close-icon"
+                  width={12}
+                  height={12}
+                  className="w-3 h-3"
+                />
+              </button>
+            </div>
+
             <div className="flex gap-2 items-center mt-10">
               <div className="flex gap-2 items-center">
-                <button onClick={() => removeItem(item.id)}>
+                <button onClick={() => removeQuantity(item.id)}>
                   <Image
                     src="/icons/minus.svg"
                     alt="minus"
@@ -217,7 +247,7 @@ function Cart({
                   />
                 </button>
                 <p>{item.selectedQty}</p>
-                <button onClick={() => addItem(item.id)}>
+                <button onClick={() => addQuantity(item.id)}>
                   <Image
                     src="/icons/plus.svg"
                     alt="plus"
