@@ -64,7 +64,7 @@ export const StoreContextProvider = (
       const chain = chains.find((chain) => chainId === chain.id);
       const baseTokenPublicClient = createPublicClient({
         chain,
-        transport: http(),
+        transport: http("https://1rpc.io/sepolia"),
       });
       const res = await getTokenInformation(baseTokenPublicClient, address!);
       return res;

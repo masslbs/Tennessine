@@ -123,7 +123,7 @@ export default function ChoosePayment({
       //Create public client with correct chainId.
       const chosenPaymentPublicClient = createPublicClient({
         chain: chosenPaymentChain,
-        transport: http(),
+        transport: http("https://1rpc.io/sepolia"),
       });
 
       const [symbol, decimal] = await getTokenInformation(
@@ -134,7 +134,7 @@ export default function ChoosePayment({
       const payeeChain = chains.find((chain) => payee.chainId === chain.id);
       const paymentRPC = createPublicClient({
         chain: payeeChain,
-        transport: http(),
+        transport: http("https://1rpc.io/sepolia"),
       });
       const manifest =
         await clientWithStateManager!.stateManager!.manifest.get();
@@ -187,7 +187,7 @@ export default function ChoosePayment({
         }
         const tokenPublicClient = createPublicClient({
           chain,
-          transport: http(),
+          transport: http("https://1rpc.io/sepolia"),
         });
         const res = await getTokenInformation(tokenPublicClient, ac.address);
         return {

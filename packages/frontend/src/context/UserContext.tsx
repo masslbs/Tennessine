@@ -142,7 +142,7 @@ export const UserContextProvider = (
 
   const shopPublicClient = createPublicClient({
     chain: getUsedChain(),
-    transport: http(),
+    transport: http("https://1rpc.io/sepolia"),
   });
 
   useEffect(() => {
@@ -228,7 +228,7 @@ export const UserContextProvider = (
     const guestWallet = createWalletClient({
       account: privateKeyToAccount(random32BytesHex()),
       chain: getUsedChain(),
-      transport: http(),
+      transport: http("https://1rpc.io/sepolia"),
     });
     const keyCard = localStorage.getItem("keyCardToEnroll");
     log(`Enrolling KC ${keyCard}`);
