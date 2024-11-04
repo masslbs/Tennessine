@@ -79,6 +79,7 @@ jobs:
       - name: git clone relay
         uses: ./Tennessine/.github/actions/checkout
         with:
+          fallback-branch: bench
           repository: masslbs/relay
           ssh-key: ${{ secrets.SSH_CHECKOUT_RELAY }}
           ref: ${{ steps.extract_branch.outputs.branch }}
