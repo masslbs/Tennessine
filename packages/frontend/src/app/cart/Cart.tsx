@@ -45,20 +45,34 @@ function Cart({
         setOrderId(null);
       }
     }
+
+    function onChangeItems(order: Order) {
+      getCartItemDetails(order).then((itemDetails) => {
+        setCartMap(itemDetails);
+      });
+    }
+
     clientWithStateManager!.stateManager!.orders.on(
       "addPaymentTx",
       txHashDetected,
+    );
+    clientWithStateManager!.stateManager!.orders.on(
+      "changeItems",
+      onChangeItems,
     );
     return () => {
       clientWithStateManager!.stateManager!.orders.removeListener(
         "addPaymentTx",
         txHashDetected,
       );
+      clientWithStateManager!.stateManager!.orders.removeListener(
+        "changeItems",
+        onChangeItems,
+      );
     };
   }, []);
 
   useEffect(() => {
-    const cartObjects = new Map();
     clientWithStateManager!
       .stateManager!.orders.getStatus(OrderState.STATE_OPEN)
       .then((res) => {
@@ -72,23 +86,8 @@ function Cart({
           clientWithStateManager!
             .stateManager!.orders.get(res[0])
             .then(async (o) => {
-              const ci = o.items;
-              // Get price and metadata for all the selected items in the order.
-              const keys = Object.keys(ci);
-              await Promise.all(
-                keys.map(async (id) => {
-                  return clientWithStateManager!
-                    .stateManager!.items.get(id as ItemId)
-                    .then((item) => {
-                      cartObjects.set(id, {
-                        ...item,
-                        selectedQty: ci[id as ItemId],
-                      });
-                    })
-                    .catch((e) => debug(e));
-                }),
-              );
-              setCartMap(cartObjects);
+              const itemDetails = await getCartItemDetails(o);
+              setCartMap(itemDetails);
             })
             .catch((e) => debug(`Error getting order: ${e}`));
         }
@@ -97,6 +96,25 @@ function Cart({
         debug(`Error getting open order: ${e}`);
       });
   }, [orderId]);
+
+  async function getCartItemDetails(order: Order) {
+    const ci = order.items;
+    const cartObjects = new Map();
+    // Get price and metadata for all the selected items in the order.
+    const itemIds = Object.keys(ci);
+    await Promise.all(
+      itemIds.map(async (id) => {
+        const item = await clientWithStateManager!.stateManager!.items.get(
+          id as ItemId,
+        );
+        cartObjects.set(id, {
+          ...item,
+          selectedQty: ci[id as ItemId],
+        });
+      }),
+    );
+    return cartObjects;
+  }
 
   async function clearCart() {
     try {
@@ -116,6 +134,34 @@ function Cart({
       log("cart cleared");
     } catch (error) {
       debug(error);
+    }
+  }
+
+  async function addItem(id: ItemId) {
+    try {
+      await clientWithStateManager!.stateManager!.orders.addsItems(
+        orderId!,
+        id,
+        1,
+      );
+    } catch (error) {
+      debug(`Error:addItem ${error}`);
+    }
+  }
+
+  async function removeItem(id: ItemId) {
+    try {
+      await clientWithStateManager!.stateManager!.orders.removesItems(
+        orderId!,
+        [
+          {
+            listingId: id,
+            quantity: 1,
+          },
+        ],
+      );
+    } catch (error) {
+      debug(`Error:removeItem ${error}`);
     }
   }
 
@@ -160,23 +206,27 @@ function Cart({
             </h3>
             <div className="flex gap-2 items-center mt-10">
               <div className="flex gap-2 items-center">
-                <Image
-                  src="/icons/minus.svg"
-                  alt="minus"
-                  width={10}
-                  height={10}
-                  unoptimized={true}
-                  className="w-5 h-5 max-h-5"
-                />
+                <button onClick={() => removeItem(item.id)}>
+                  <Image
+                    src="/icons/minus.svg"
+                    alt="minus"
+                    width={10}
+                    height={10}
+                    unoptimized={true}
+                    className="w-5 h-5 max-h-5"
+                  />
+                </button>
                 <p>{item.selectedQty}</p>
-                <Image
-                  src="/icons/plus.svg"
-                  alt="plus"
-                  width={10}
-                  height={10}
-                  unoptimized={true}
-                  className="w-5 h-5 max-h-5"
-                />
+                <button onClick={() => addItem(item.id)}>
+                  <Image
+                    src="/icons/plus.svg"
+                    alt="plus"
+                    width={10}
+                    height={10}
+                    unoptimized={true}
+                    className="w-5 h-5 max-h-5"
+                  />
+                </button>
               </div>
               <div className="flex gap-2 items-center ml-auto">
                 <Image
