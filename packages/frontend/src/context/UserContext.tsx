@@ -200,10 +200,10 @@ export const UserContextProvider = (
         } else if (guestCheckoutKC) {
           //If guestCheckout keycard is cached, connect, authenticate, and subscribe to orders.
           log("Connecting with guest checkout keycard");
+          setIsConnected(Status.Complete);
           await clientStateManager.setClientAndConnect(guestCheckoutKC);
           await clientStateManager.sendGuestCheckoutSubscriptionRequest();
           log("Success: sendGuestCheckoutSubscriptionRequest");
-          setIsConnected(Status.Complete);
         }
       })();
     } catch (error) {

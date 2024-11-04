@@ -338,6 +338,7 @@ const ProductDetail = () => {
                   name="quantity"
                   value={quantity}
                   data-testid="purchaseQty"
+                  type="number"
                   onChange={(e) => handlePurchaseQty(e)}
                 />
               </div>

@@ -11,7 +11,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useDisconnect } from "wagmi";
 import debugLib from "debug";
 
-import { Order, OrderId, Status } from "@/types";
+import { Order, OrderId, OrderState, Status } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useAuth } from "@/context/AuthContext";
 import { useUserContext } from "@/context/UserContext";
@@ -60,12 +60,26 @@ function Navigation() {
       values.map((qty) => (length += Number(qty)));
       setLength(length);
     }
+    function txHashDetected(order: Order) {
+      if (order.status === OrderState.STATE_PAYMENT_TX) {
+        setLength(0);
+      }
+    }
     if (clientWithStateManager?.stateManager) {
       clientWithStateManager.stateManager.orders.on(
         "changeItems",
         onChangeItems,
       );
+
+      clientWithStateManager!.stateManager.orders.on(
+        "addPaymentTx",
+        txHashDetected,
+      );
       return () => {
+        clientWithStateManager!.stateManager!.orders.removeListener(
+          "addPaymentTx",
+          txHashDetected,
+        );
         clientWithStateManager!.stateManager!.orders.removeListener(
           "changeItems",
           onChangeItems,

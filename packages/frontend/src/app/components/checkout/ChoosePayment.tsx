@@ -20,9 +20,9 @@ import {
 import { getTokenInformation } from "@/app/utils";
 import { useUserContext } from "@/context/UserContext";
 import Dropdown from "@/app/common/components/CurrencyDropdown";
-import { ConnectWalletButton } from "@/app/common/components/ConnectWalletButton";
 import BackButton from "@/app/common/components/BackButton";
 import QRScan from "./QRScan";
+import SendTransaction from "@/app/components/transactions/SendTransaction";
 
 export default function ChoosePayment({
   setStep,
@@ -48,6 +48,7 @@ export default function ChoosePayment({
   const [imgSrc, setSrc] = useState<null | string>(null);
   const [orderId, setOrderId] = useState<OrderId | null>(null);
   const [qrOpen, setQrOpen] = useState<boolean>(false);
+
   useEffect(() => {
     clientWithStateManager!
       .stateManager!.orders.getStatus(OrderState.STATE_COMMITED)
@@ -262,7 +263,7 @@ export default function ChoosePayment({
             />
           )}
         </div>
-        <div>
+        <div className={displayedAmount ? "" : "hidden"}>
           <p>Total Price</p>
           <div className="flex items-center gap-2">
             <Image
@@ -276,11 +277,14 @@ export default function ChoosePayment({
             <h1>{displayedAmount}</h1>
           </div>
         </div>
-        <div className="flex justify-between">
+        <div>
           <div className="bg-background-gray p-5 rounded-lg">
-            <ConnectWalletButton />
+            <SendTransaction
+              purchaseAddress={purchaseAddress}
+              cryptoTotal={cryptoTotal}
+            />
           </div>
-          <div className="bg-background-gray p-5 rounded-lg">
+          <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg mt-5">
             <button
               data-testid="connect-wallet"
               className="rounded-lg flex flex-col items-center gap-2"
