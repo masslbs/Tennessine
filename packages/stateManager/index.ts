@@ -873,7 +873,7 @@ export class StateManager {
     this.shopId = shopId;
     this.publicClient = publicClient;
   }
-
+  //TODO: Watch for new relays being added. We also need to invalidate addresses from old relay.
   async addRelayOwnerAddress() {
     //When we inititally create a shop, we are saving the relay tokenId => shopId.
     //Here, we are retrieving all the relay addresses associated with the shopId and saving them to keycards store.

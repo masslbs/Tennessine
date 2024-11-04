@@ -27,8 +27,7 @@ export class ClientWithStateManager {
 
   async createStateManager() {
     const merchantKC = localStorage.getItem("merchantKC");
-    const guestKC = localStorage.getItem("guestCheckoutKC");
-    const dbName = `${this.shopId.slice(0, 7)}${merchantKC ? merchantKC.slice(0, 5) : guestKC ? guestKC.slice(0, 5) : "-guest"}`;
+    const dbName = `${this.shopId.slice(0, 7)}${merchantKC ? merchantKC.slice(0, 5) : "-guest"}`;
     console.log("using level db:", { dbName });
     const db = new Level(`./${dbName}`, {
       valueEncoding: "json",

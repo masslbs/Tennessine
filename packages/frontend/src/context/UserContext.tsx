@@ -52,38 +52,36 @@ export const UserContextProvider = (
   const log = debugLib("log:UserContext");
   log.color = "242";
 
+  const pathname = usePathname();
+  const { data: _wallet, status: walletStatus } = useWalletClient();
+  const { setIsConnected, setIsMerchantView, clientConnected } = useAuth();
+  const searchParams = useSearchParams();
+
   const [walletAddress, setWalletAddress] = useState<`0x${string}` | null>(
     null,
   );
-
   const [avatar, setAvatar] = useState<string | null>(null);
   const [ensName, setEnsName] = useState<string | null>(null);
   const [clientWallet, setWallet] = useState<WalletClientWithAccount | null>(
     null,
   );
   const [inviteSecret, setInviteSecret] = useState<`0x${string}` | null>(null);
+  const [shopId, setShopId] = useState<ShopId | null>(null);
+  const [merchantKC, setmerchantKC] = useState<`0x${string}` | null>(null);
+  const [guestCheckoutKC, setGuestKC] = useState<`0x${string}` | null>(null);
+  const [clientWithStateManager, setClientStateManager] =
+    useState<ClientWithStateManager | null>(null);
+  const [relayEndpoint, setRelayEndpoint] = useState<RelayEndpoint | null>(
+    null,
+  );
+  const [authenticated, setAuthenticated] = useState(false);
 
   const ensAvatar = useEnsAvatar({ name: ensName! })?.data;
-  const { data: _wallet, status: walletStatus } = useWalletClient();
-  const { setIsConnected, setIsMerchantView, clientConnected } = useAuth();
-  const searchParams = useSearchParams();
-
-  const [shopId, setShopId] = useState<ShopId | null>(null);
-  const pathname = usePathname();
   const isMerchantPath = [
     "/merchants/",
     "/create-store/",
     "/merchants/connect/",
   ].includes(pathname);
-
-  const [merchantKC, setmerchantKC] = useState<`0x${string}` | null>(null);
-  const [guestCheckoutKC, setGuestKC] = useState<`0x${string}` | null>(null);
-  const [clientWithStateManager, setClientStateManager] =
-    useState<ClientWithStateManager | null>(null);
-
-  const [relayEndpoint, setRelayEndpoint] = useState<RelayEndpoint | null>(
-    null,
-  );
 
   useEffect(() => {
     if (process && process.env["NEXT_PUBLIC_RELAY_TOKEN_ID"]) {
@@ -128,7 +126,7 @@ export const UserContextProvider = (
     }
   }, []);
 
-  const getUsedChain = () => {
+  function getUsedChain() {
     const chainName = process.env.NEXT_PUBLIC_CHAIN_NAME!;
     switch (chainName) {
       case "hardhat":
@@ -140,7 +138,7 @@ export const UserContextProvider = (
       default:
         throw new Error(`unhandled chain name ${chainName}`);
     }
-  };
+  }
 
   const shopPublicClient = createPublicClient({
     chain: getUsedChain(),
@@ -162,12 +160,13 @@ export const UserContextProvider = (
   }, [clientWallet, ensAvatar]);
 
   useEffect(() => {
-    //If it's the connect merchant page we return, because this useEffect will rerun after setShopId is called in that component and reset the ClientWithStateManager, which we don't want.
     if (
       !shopId ||
       !relayEndpoint ||
+      //If it's the connect merchant page we return, because this useEffect will rerun after setShopId is called in that component and reset the ClientWithStateManager, which we don't want.
       pathname === "/merchants/connect/" ||
-      clientConnected !== Status.Pending
+      clientConnected !== Status.Pending ||
+      authenticated
     )
       return;
 
@@ -199,11 +198,12 @@ export const UserContextProvider = (
           setIsConnected(Status.Complete);
         } else if (guestCheckoutKC) {
           //If guestCheckout keycard is cached, connect, authenticate, and subscribe to orders.
-          log("Connecting with guest checkout keycard");
-          setIsConnected(Status.Complete);
+          log(`Connecting with guest checkout keycard ${guestCheckoutKC}`);
+          setAuthenticated(true);
           await clientStateManager.setClientAndConnect(guestCheckoutKC);
           await clientStateManager.sendGuestCheckoutSubscriptionRequest();
           log("Success: sendGuestCheckoutSubscriptionRequest");
+          setIsConnected(Status.Complete);
         }
       })();
     } catch (error) {
@@ -211,7 +211,7 @@ export const UserContextProvider = (
     }
   }, [relayEndpoint, walletAddress, shopId, merchantKC, guestCheckoutKC]);
 
-  const checkPermissions = async () => {
+  async function checkPermissions() {
     if (walletAddress) {
       const hasAccess = (await shopPublicClient.readContract({
         address: abi.addresses.ShopReg as `0x${string}`,
@@ -221,9 +221,9 @@ export const UserContextProvider = (
       })) as boolean;
       return hasAccess;
     } else return false;
-  };
+  }
 
-  const upgradeGuestToCustomer = async () => {
+  async function upgradeGuestToCustomer() {
     //Enroll KC with guest wallet.
     const guestWallet = createWalletClient({
       account: privateKeyToAccount(random32BytesHex()),
@@ -231,6 +231,8 @@ export const UserContextProvider = (
       transport: http(),
     });
     const keyCard = localStorage.getItem("keyCardToEnroll");
+    log(`Enrolling KC ${keyCard}`);
+
     const res = await clientWithStateManager!.relayClient!.enrollKeycard(
       guestWallet,
       true,
@@ -252,7 +254,7 @@ export const UserContextProvider = (
     } else {
       debug("Failed to enroll keycard while upgrading subscription");
     }
-  };
+  }
 
   const value = {
     walletAddress,

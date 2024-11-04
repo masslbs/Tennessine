@@ -22,7 +22,7 @@ export default function SendTransaction({
   console.log({ hash });
 
   function send() {
-    log({ purchaseAddress, cryptoTotal });
+    log(`Sending ${cryptoTotal} to: ${purchaseAddress}`);
     sendTransaction({
       to: purchaseAddress as `0x${string}`,
       value: cryptoTotal!,

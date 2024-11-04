@@ -8,6 +8,7 @@ describe("Products Component", async () => {
   const client = await getMockClient();
 
   test("All listings are displayed", async () => {
+    //TODO: turn this into promise.all and see if it correctly saves concurrently.
     for (let index = 0; index < 50; index++) {
       await client!.stateManager!.items.create({
         price: `${index + 1}.00`,
@@ -20,7 +21,7 @@ describe("Products Component", async () => {
     }
 
     MerchantsRender(<Products />, client);
-
+    //TODO: Do we need this waitfor for the rerender?
     await waitFor(async () => {
       const items = await screen.findAllByTestId("product-name");
       expect(items.length).toEqual(50);

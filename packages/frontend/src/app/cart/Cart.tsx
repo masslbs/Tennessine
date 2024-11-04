@@ -13,6 +13,10 @@ import { useUserContext } from "@/context/UserContext";
 import Button from "@/app/common/components/Button";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
 
+const debug = debugLib("frontend:Cart");
+const log = debugLib("log:Cart");
+log.color = "242";
+
 function Cart({
   onCheckout,
 }: {
@@ -20,10 +24,6 @@ function Cart({
 }) {
   const { getBaseTokenInfo } = useStoreContext();
   const { clientWithStateManager } = useUserContext();
-
-  const debug = debugLib("frontend:Cart");
-  const log = debugLib("log:Cart");
-  log.color = "242";
 
   const [cartItemsMap, setCartMap] = useState(new Map());
   const [orderId, setOrderId] = useState<OrderId | null>(null);
@@ -49,6 +49,7 @@ function Cart({
         } else if (!res.length) {
           log("No open order found");
         } else {
+          log(`Open orderID:${res[0]}`);
           setOrderId(res[0]);
           clientWithStateManager!
             .stateManager!.orders.get(res[0])
