@@ -64,12 +64,8 @@ const ProductDetail = () => {
               const orderItems = order.items;
               setCurrentCart(orderItems);
             })
-            .catch((e) => debug(`Error getting open order: ${e}`));
         }
       })
-      .catch(() => {
-        log("No current open orders.");
-      });
   }, []);
 
   useEffect(() => {
@@ -133,11 +129,8 @@ const ProductDetail = () => {
                 setQuantity(currentCartItems[itemId]);
               }
             })
-            .catch((e) => {
-              debug(`Error getting item ${e}`);
-            });
         })
-        .catch((e) => debug(e));
+        
     }
   }, [currentCartItems, itemId]);
 
@@ -161,9 +154,6 @@ const ProductDetail = () => {
       .then((tags) => {
         setAllTags(tags);
       })
-      .catch((e) => {
-        debug(e);
-      });
 
     // Listen to future events
     clientWithStateManager!.stateManager!.tags.on("create", onCreateTag);

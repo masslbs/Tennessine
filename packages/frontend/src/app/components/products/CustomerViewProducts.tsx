@@ -26,7 +26,6 @@ function CustomerViewProducts({ products }: { products: Item[] | null }) {
       .then((res: [string, number]) => {
         res && setBaseDecimal(res[1]);
       })
-      .catch((e) => debug(e));
   }, []);
 
   function renderProducts() {

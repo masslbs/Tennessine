@@ -63,7 +63,6 @@ export default function ChoosePayment({
         }
         setOrderId(committed[0]);
       })
-      .catch((e) => debug(e));
   }, []);
 
   useEffect(() => {
@@ -75,9 +74,7 @@ export default function ChoosePayment({
             setManifest(manifest);
             setChains(arr);
           })
-          .catch((e) => debug(e));
       })
-      .catch((e) => debug(e));
   }, []);
 
   useEffect(() => {
@@ -87,7 +84,7 @@ export default function ChoosePayment({
         log("paymentDetails found for order");
         getDetails(orderId)
           .then()
-          .catch((e) => debug(e));
+  
       }
     }
     orderId &&

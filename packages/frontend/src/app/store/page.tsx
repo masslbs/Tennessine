@@ -101,9 +101,6 @@ function StoreProfile() {
           chainId: pricingCurrency.chainId!,
         });
       })
-      .catch((e) => {
-        debug(e);
-      });
 
     clientWithStateManager!.stateManager!.manifest.on("update", onUpdateEvent);
 
@@ -177,7 +174,7 @@ function StoreProfile() {
             blockchainClient
               .setShopMetadataURI(clientWallet!, url)
               .then()
-              .catch((e) => debug(e));
+              
           });
       }
       setSuccess("Changes saved.");

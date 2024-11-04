@@ -51,7 +51,7 @@ const AddProductView = () => {
       .then((res: [string, number]) => {
         res && setBaseDecimal(res[1]);
       })
-      .catch((e) => debug(e));
+      
   }, []);
 
   useEffect(() => {
@@ -91,7 +91,7 @@ const AddProductView = () => {
           .then((tag: Tag) => {
             selected.push(tag);
           })
-          .catch((e) => debug(e));
+          
       }
       setSelectedTags(selected);
     }

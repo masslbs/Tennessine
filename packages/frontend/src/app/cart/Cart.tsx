@@ -38,7 +38,6 @@ function Cart({
         res && setBaseDecimal(res[1]);
         res && setBaseSymbol(res[0]);
       })
-      .catch((e) => debug(e));
   }, []);
 
   useEffect(() => {
@@ -87,16 +86,12 @@ function Cart({
           setOrderId(res[0]);
           clientWithStateManager!
             .stateManager!.orders.get(res[0])
-            .then(async (o) => {
+            .then(async (o: Order) => {
               const itemDetails = await getCartItemDetails(o);
               setCartMap(itemDetails);
             })
-            .catch((e) => debug(`Error getting order: ${e}`));
         }
       })
-      .catch((e) => {
-        debug(`Error getting open order: ${e}`);
-      });
   }, [orderId]);
 
   async function getCartItemDetails(order: Order) {
