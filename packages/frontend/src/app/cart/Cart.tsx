@@ -7,7 +7,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import debugLib from "debug";
 import { formatUnitsFromString } from "@massmarket/utils";
-import { ItemId, OrderId, OrderState } from "@/types";
+import { ItemId, OrderId, OrderState, Order } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
 import Button from "@/app/common/components/Button";
@@ -37,6 +37,24 @@ function Cart({
         res && setBaseSymbol(res[0]);
       })
       .catch((e) => debug(e));
+  }, []);
+
+  useEffect(() => {
+    function txHashDetected(order: Order) {
+      if (order.status === OrderState.STATE_PAYMENT_TX) {
+        setOrderId(null);
+      }
+    }
+    clientWithStateManager!.stateManager!.orders.on(
+      "addPaymentTx",
+      txHashDetected,
+    );
+    return () => {
+      clientWithStateManager!.stateManager!.orders.removeListener(
+        "addPaymentTx",
+        txHashDetected,
+      );
+    };
   }, []);
 
   useEffect(() => {

@@ -54,6 +54,8 @@ const ProductDetail = () => {
       .then((res) => {
         if (res.length > 1) {
           debug("Multiple open orders found");
+        } else if (!res.length) {
+          log("No open order found");
         } else {
           setOrderId(res[0]);
           clientWithStateManager!
@@ -62,12 +64,30 @@ const ProductDetail = () => {
               const orderItems = order.items;
               setCurrentCart(orderItems);
             })
-            .catch((e) => debug(e));
+            .catch((e) => debug(`Error getting open order: ${e}`));
         }
       })
       .catch(() => {
         log("No current open orders.");
       });
+  }, []);
+
+  useEffect(() => {
+    function txHashDetected(order: Order) {
+      if (order.status === OrderState.STATE_PAYMENT_TX) {
+        setOrderId(null);
+      }
+    }
+    clientWithStateManager!.stateManager!.orders.on(
+      "addPaymentTx",
+      txHashDetected,
+    );
+    return () => {
+      clientWithStateManager!.stateManager!.orders.removeListener(
+        "addPaymentTx",
+        txHashDetected,
+      );
+    };
   }, []);
 
   useEffect(() => {
@@ -114,14 +134,14 @@ const ProductDetail = () => {
               }
             })
             .catch((e) => {
-              debug(e);
+              debug(`Error getting item ${e}`);
             });
         })
         .catch((e) => debug(e));
     }
   }, [currentCartItems, itemId]);
 
-  const getAllTags = async () => {
+  async function getAllTags() {
     const tags = new Map();
     for await (const [
       id,
@@ -130,7 +150,7 @@ const ProductDetail = () => {
       tags.set(id, tag);
     }
     return tags;
-  };
+  }
 
   useEffect(() => {
     const onCreateTag = (tag: Tag) => {
@@ -157,7 +177,7 @@ const ProductDetail = () => {
     };
   }, []);
 
-  const changeItems = async () => {
+  async function changeItems() {
     let order_id = orderId;
     if (
       !order_id &&
@@ -204,14 +224,14 @@ const ProductDetail = () => {
       setMsg("Added to cart");
       setButton("Review");
     } catch (error) {
-      debug(error);
+      debug(`Error: changeItems ${error}`);
       setErrorMsg("There was an error updating cart");
     }
-  };
+  }
 
   if (!item) return null;
 
-  const getCtaButton = () => {
+  function getCtaButton() {
     if (!addedToCart) {
       return (
         <Button
@@ -241,7 +261,7 @@ const ProductDetail = () => {
         </Button>
       );
     }
-  };
+  }
 
   function handlePurchaseQty(e: ChangeEvent<HTMLInputElement>) {
     if (typeof Number(e.target.value) !== "number") {
