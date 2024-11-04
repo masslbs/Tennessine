@@ -6,20 +6,27 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
+import debugLib from "debug";
 
-import { OrderState, Order } from "@/types";
+import { OrderState, Order, CheckoutStep, OrderId } from "@/types";
 import { useUserContext } from "@/context/UserContext";
 import Cart from "@/app/cart/Cart";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import ShippingDetails from "@/app/components/checkout/ShippingDetails";
 import ChoosePayment from "@/app/components/checkout/ChoosePayment";
 
+const debug = debugLib("frontend:Checkout");
+const log = debugLib("log:Checkout");
+log.color = "242";
+
 const CheckoutFlow = () => {
   const { clientWithStateManager } = useUserContext();
+  const searchParams = useSearchParams();
+  const stepParam = searchParams.get("step") as CheckoutStep;
+  log("Starting checkout flow", stepParam);
 
-  const [step, setStep] = useState<
-    "cart" | "shipping details" | "payment details" | "confirmation"
-  >("shipping details");
+  const [step, setStep] = useState<CheckoutStep>(stepParam || "cart");
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [txHash, setTxHash] = useState<null | `0x${string}`>(null);
   const [blockHash, setBlockHash] = useState<null | `0x${string}`>(null);
@@ -32,7 +39,7 @@ const CheckoutFlow = () => {
         const bh = order.blockHash as `0x${string}`;
         tx && setTxHash(tx);
         bh && setBlockHash(bh);
-        setStep("confirmation");
+        setStep(CheckoutStep.confirmation);
       }
     };
 
@@ -49,13 +56,40 @@ const CheckoutFlow = () => {
     };
   });
 
-  function renderContent() {
-    if (step === "cart") {
-      return <Cart />;
+  function copyToClipboard() {
+    navigator.clipboard.writeText(txHash || blockHash || "");
+  }
+
+  async function onCheckout(orderId: OrderId) {
+    try {
+      if (!orderId) {
+        debug("orderId not found");
+        throw new Error("No order found");
+      }
+      await clientWithStateManager!.stateManager!.orders.commit(orderId);
+      log(`Order ID: ${orderId} committed`);
+      setStep(CheckoutStep.shippingDetails);
+    } catch (error) {
+      if (error instanceof Error && error.message === "not enough stock") {
+        log("Not enough stock");
+        return;
+      }
+      debug(error);
+      throw new Error("Failed to commit order");
     }
-    if (step === "shipping details") {
+  }
+
+  function renderContent() {
+    if (step === CheckoutStep.cart) {
+      return (
+        <section>
+          <Cart onCheckout={onCheckout} />
+        </section>
+      );
+    }
+    if (step === CheckoutStep.shippingDetails) {
       return <ShippingDetails setStep={setStep} />;
-    } else if (step === "payment details") {
+    } else if (step === CheckoutStep.paymentDetails) {
       return (
         <ChoosePayment
           setStep={setStep}
@@ -90,8 +124,25 @@ const CheckoutFlow = () => {
             <p>Your order has been completed.</p>
             <div className="flex-col items-center gap-2 flex">
               {txHash ? <p>Tx hash:</p> : <p>Block hash:</p>}
-              <div className="bg-white w-fit p-2 border-2 rounded-xl shadow-lg flex gap-2">
-                <p data-testid="hash">{txHash ? txHash : blockHash}</p>
+              <div className="flex gap-2">
+                <input
+                  className="border-2 border-solid mt-1 p-2 rounded"
+                  id="txHash"
+                  name="txHash"
+                  value={txHash || blockHash || ""}
+                  onChange={() => {
+                    console.log("hash copied");
+                  }}
+                />
+                <button className="mr-4" onClick={copyToClipboard}>
+                  <Image
+                    src="/icons/copy-icon.svg"
+                    width={14}
+                    height={14}
+                    alt="copy-icon"
+                    className="w-auto h-auto"
+                  />
+                </button>
               </div>
             </div>
           </section>

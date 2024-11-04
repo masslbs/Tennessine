@@ -15,6 +15,7 @@ import {
   OrderId,
   Order,
   CurrencyChainOption,
+  CheckoutStep,
 } from "@/types";
 import { getTokenInformation } from "@/app/utils";
 import { useUserContext } from "@/context/UserContext";
@@ -28,11 +29,7 @@ export default function ChoosePayment({
   displayedAmount,
   setDisplayedAmount,
 }: {
-  setStep: Dispatch<
-    SetStateAction<
-      "cart" | "shipping details" | "payment details" | "confirmation"
-    >
-  >;
+  setStep: Dispatch<SetStateAction<CheckoutStep>>;
   displayedAmount: string | null;
   setDisplayedAmount: Dispatch<SetStateAction<string | null>>;
 }) {
@@ -173,7 +170,7 @@ export default function ChoosePayment({
       console.log(cryptoTotal);
 
       setDisplayedAmount(`${formatUnitsFromString(total, decimal)} ${symbol}`);
-      setStep("payment details");
+      setStep(CheckoutStep.paymentDetails);
     } catch (error) {
       debug(error);
     }
@@ -249,7 +246,7 @@ export default function ChoosePayment({
     <section>
       <BackButton
         onClick={() => {
-          setStep("shipping details");
+          setStep(CheckoutStep.shippingDetails);
         }}
       />
       <div className="flex">

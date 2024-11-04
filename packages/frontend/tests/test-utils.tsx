@@ -20,11 +20,11 @@ import { config } from "../src/wagmi";
 import { ClientWithStateManager } from "@/app/ClientWithStateManager";
 
 const mockClient = new MockClient();
-const randomShopId = random32BytesHex();
 const shopPublicClient = createPublicClient({
   chain: hardhat,
   transport: http(),
 });
+export const randomShopId = random32BytesHex();
 export function getWallet() {
   // this key is from one of anvil's default keypairs
   const account = privateKeyToAccount(anvilPrivateKey);

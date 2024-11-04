@@ -162,44 +162,52 @@ export const UserContextProvider = (
   }, [clientWallet, ensAvatar]);
 
   useEffect(() => {
+    //If it's the connect merchant page we return, because this useEffect will rerun after setShopId is called in that component and reset the ClientWithStateManager, which we don't want.
+    if (
+      !shopId ||
+      !relayEndpoint ||
+      pathname === "/merchants/connect/" ||
+      clientConnected !== Status.Pending
+    )
+      return;
+
     const clientStateManager = new ClientWithStateManager(
-      shopPublicClient!,
-      shopId!,
-      relayEndpoint!,
+      shopPublicClient,
+      shopId,
+      relayEndpoint,
     );
+    log("ClientWithStateManager set");
     setClientStateManager(clientStateManager);
 
-    if (isMerchantPath || !shopId || !relayEndpoint) return;
-
-    //If merchantKC is cached, double check that the KC has permission, then connect & authenticate.
-    if (merchantKC && walletAddress && clientConnected === Status.Pending) {
-      clientStateManager
-        .setClientAndConnect(merchantKC)
-        .then(() => {
-          checkPermissions().then((hasAccess) => {
-            if (hasAccess) {
-              setIsMerchantView(true);
-              clientStateManager
-                .sendMerchantSubscriptionRequest()
-                .then(() => setIsConnected(Status.Complete));
-            }
-          });
-        })
-        .catch((e) => {
-          debug(e);
-        });
-    } else if (!merchantKC && !guestCheckoutKC) {
-      //If no keycards are cached, create relayClient with guest wallet, then connect without enrolling a kc or authenticating.
-      clientStateManager
-        .sendGuestSubscriptionRequest()
-        .then(() => setIsConnected(Status.Complete));
-    } else if (guestCheckoutKC && clientConnected === Status.Pending) {
-      //If already enrolled with guestCheckout keycard, connect, authenticate, and subscribe to orders.
-      clientStateManager.setClientAndConnect(guestCheckoutKC).then(() => {
-        clientStateManager.sendGuestCheckoutSubscriptionRequest().then(() => {
+    if (isMerchantPath) return;
+    try {
+      (async () => {
+        //If merchantKC is cached, double check that the KC has permission, then connect & authenticate.
+        if (merchantKC && walletAddress) {
+          log("Connecting with merchant keycard");
+          await clientStateManager.setClientAndConnect(merchantKC);
+          const hasAccess = await checkPermissions();
+          if (hasAccess) {
+            setIsMerchantView(true);
+            await clientStateManager.sendMerchantSubscriptionRequest();
+            setIsConnected(Status.Complete);
+          }
+        } else if (!merchantKC && !guestCheckoutKC) {
+          //If no keycards are cached, create relayClient with guest wallet, then connect without enrolling a kc or authenticating.
+          log("Connecting without keycard");
+          await clientStateManager.sendGuestSubscriptionRequest();
           setIsConnected(Status.Complete);
-        });
-      });
+        } else if (guestCheckoutKC) {
+          //If guestCheckout keycard is cached, connect, authenticate, and subscribe to orders.
+          log("Connecting with guest checkout keycard");
+          await clientStateManager.setClientAndConnect(guestCheckoutKC);
+          await clientStateManager.sendGuestCheckoutSubscriptionRequest();
+          log("Success: sendGuestCheckoutSubscriptionRequest");
+          setIsConnected(Status.Complete);
+        }
+      })();
+    } catch (error) {
+      debug(error);
     }
   }, [relayEndpoint, walletAddress, shopId, merchantKC, guestCheckoutKC]);
 
@@ -238,9 +246,7 @@ export const UserContextProvider = (
         debug(response.error);
         throw new Error("Error while authenticating");
       }
-      await clientWithStateManager!.relayClient!.sendGuestCheckoutSubscriptionRequest(
-        shopId!,
-      );
+      await clientWithStateManager!.sendGuestCheckoutSubscriptionRequest();
       localStorage.setItem("guestCheckoutKC", keyCard!);
       setIsConnected(Status.Complete);
     } else {

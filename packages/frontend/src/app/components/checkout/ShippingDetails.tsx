@@ -6,7 +6,7 @@
 import React, { useState, Dispatch, SetStateAction } from "react";
 import debugLib from "debug";
 
-import { OrderState } from "@/types";
+import { OrderState, CheckoutStep } from "@/types";
 import { useUserContext } from "@/context/UserContext";
 import Button from "@/app/common/components/Button";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
@@ -19,11 +19,7 @@ log.color = "242";
 function ShippingDetails({
   setStep,
 }: {
-  setStep: Dispatch<
-    SetStateAction<
-      "cart" | "shipping details" | "payment details" | "confirmation"
-    >
-  >;
+  setStep: Dispatch<SetStateAction<CheckoutStep>>;
 }) {
   const { clientWithStateManager } = useUserContext();
 
@@ -60,7 +56,7 @@ function ShippingDetails({
         },
       );
       log("Shipping details updated");
-      setStep("payment details");
+      setStep(CheckoutStep.paymentDetails);
     } catch (error) {
       debug(error);
       setErrorMsg("Error updating shipping details");
@@ -69,7 +65,7 @@ function ShippingDetails({
 
   return (
     <section>
-      <BackButton onClick={() => setStep("cart")} />
+      <BackButton onClick={() => setStep(CheckoutStep.cart)} />
       <ErrorMessage
         errorMessage={errorMsg}
         onClose={() => {

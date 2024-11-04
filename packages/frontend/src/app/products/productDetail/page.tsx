@@ -230,7 +230,15 @@ const ProductDetail = () => {
       );
     } else if (buttonState === "Review") {
       return (
-        <Button onClick={() => router.push("/checkout")}>Review Sale</Button>
+        <Button
+          onClick={() =>
+            router.push(
+              `/checkout?${createQueryString("step", "cart", searchParams)}`,
+            )
+          }
+        >
+          Review Sale
+        </Button>
       );
     }
   };

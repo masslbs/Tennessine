@@ -7,7 +7,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useDisconnect } from "wagmi";
 import debugLib from "debug";
 
@@ -16,6 +16,7 @@ import { useStoreContext } from "@/context/StoreContext";
 import { useAuth } from "@/context/AuthContext";
 import { useUserContext } from "@/context/UserContext";
 import Cart from "@/app/cart/Cart";
+import { createQueryString } from "@/app/utils";
 
 const merchantMenu = [
   {
@@ -36,6 +37,10 @@ const customerMenu = [
   { title: "Share", img: "menu-share.svg", href: "/" },
 ];
 
+const debug = debugLib("frontend:Navigation");
+const log = debugLib("log:Navigation");
+log.color = "242";
+
 function Navigation() {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const [basketOpen, setBasketOpen] = useState<boolean>(false);
@@ -43,12 +48,10 @@ function Navigation() {
   const { clientConnected, setIsConnected, isMerchantView } = useAuth();
   const { shopDetails } = useStoreContext();
   const { clientWithStateManager } = useUserContext();
+  const searchParams = useSearchParams();
 
   const router = useRouter();
   const { disconnect } = useDisconnect();
-  const debug = debugLib("frontend:Navigation");
-  const log = debugLib("log:Navigation");
-  log.color = "242";
 
   useEffect(() => {
     function onChangeItems(order: Order) {
@@ -92,7 +95,9 @@ function Navigation() {
       await clientWithStateManager!.stateManager!.orders.commit(orderId);
       setBasketOpen(false);
       log(`Order ID: ${orderId} committed`);
-      router.push("/checkout");
+      router.push(
+        `/checkout?${createQueryString("step", "shippingDetails", searchParams)}`,
+      );
     } catch (error) {
       if (error instanceof Error && error.message === "not enough stock") {
         log("Not enough stock");
@@ -241,7 +246,10 @@ function Navigation() {
       ) : null}
       {basketOpen ? (
         <section>
-          <Cart onCheckout={onCheckout} />
+          <span className="fixed bg-black w-full h-full opacity-60" />
+          <div className="fixed bg-background-gray z-10 w-full flex flex-col gap-5 rounded-b-lg p-5">
+            <Cart onCheckout={onCheckout} />
+          </div>
         </section>
       ) : null}
     </section>

@@ -13,6 +13,7 @@ import { ClientWithStateManager } from "@/app/ClientWithStateManager";
 import { MerchantsRender, getClient } from "./test-utils";
 
 beforeEach(async () => {
+  // @ts-expect-error FIXME
   vi.mock(import("wagmi"), async (importOriginal) => {
     const mod = await importOriginal(); // type is inferred
     return {

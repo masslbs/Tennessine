@@ -32,8 +32,8 @@ const MerchantConnectWallet = () => {
   const { clientConnected, setIsConnected, setIsMerchantView } = useAuth();
   const enrollKeycard = useRef(false);
   const { status } = useAccount();
-  const debug = debugLib("frontend: Connect Merchant");
-  const log = debugLib("frontend: log - Connect Merchant");
+  const debug = debugLib("log: connect merchant");
+  const log = debugLib("log: connect merchant");
   log.color = "242";
 
   const [searchShopId, setSearchShopId] = useState<string>("");
@@ -113,9 +113,10 @@ const MerchantConnectWallet = () => {
         enrollKeycard.current = true;
         keyCardToEnroll && localStorage.setItem("merchantKC", keyCardToEnroll);
         log(`Keycard enrolled: ${keyCardToEnroll}`);
+        await clientStateManager.createStateManager();
+
         await rc.connect();
         await rc.authenticate();
-        clientStateManager.createStateManager();
         log("StateManager created");
         await clientStateManager.sendMerchantSubscriptionRequest();
         setIsConnected(Status.Complete);

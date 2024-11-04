@@ -1,7 +1,6 @@
 import { PublicClient } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { Level } from "level";
-import { MemoryLevel } from "memory-level";
 
 import { RelayClient, type RelayEndpoint } from "@massmarket/client";
 import { StateManager } from "@massmarket/stateManager";
@@ -31,13 +30,9 @@ export class ClientWithStateManager {
     const guestKC = localStorage.getItem("guestCheckoutKC");
     const dbName = `${this.shopId.slice(0, 7)}${merchantKC ? merchantKC.slice(0, 5) : guestKC ? guestKC.slice(0, 5) : "-guest"}`;
     console.log("using level db:", { dbName });
-    const db = process.env.TEST
-      ? new MemoryLevel({
-          valueEncoding: "json",
-        })
-      : new Level(`./${dbName}`, {
-          valueEncoding: "json",
-        });
+    const db = new Level(`./${dbName}`, {
+      valueEncoding: "json",
+    });
     // Set up all the stores via sublevel
     const listingStore = db.sublevel<string, Item>("listingStore", {
       valueEncoding: "json",
@@ -113,7 +108,7 @@ export class ClientWithStateManager {
       relayEndpoint: this.relayEndpoint!,
       keyCardWallet,
     });
-    this.createStateManager();
+    await this.createStateManager();
     await this.relayClient.connect();
     await this.relayClient.authenticate();
     return this.relayClient;
@@ -137,8 +132,8 @@ export class ClientWithStateManager {
 
   async sendGuestSubscriptionRequest() {
     this.createNewRelayClient();
+    await this.createStateManager();
     await this.relayClient!.connect();
-    this.createStateManager();
     const seqNo = await this.stateManager!.manifest.getSeqNo();
     return this.relayClient!.sendGuestSubscriptionRequest(this.shopId, seqNo);
   }

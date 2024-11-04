@@ -275,8 +275,8 @@ function StoreProfile() {
                   <div className="flex gap-2">
                     <input
                       className="border-2 border-solid mt-1 p-2 rounded"
-                      id="fname"
-                      name="fname"
+                      id="shopId"
+                      name="shopId"
                       value={shopId!}
                       onChange={() => {}}
                     />

@@ -179,39 +179,33 @@ function Cart({
   }
 
   return (
-    <section>
-      <span className="fixed bg-black w-full h-full opacity-60" />
-      <div className="fixed bg-background-gray z-10 w-full flex flex-col gap-5 rounded-b-lg p-5">
-        <div className="bg-white rounded-lg p-5">
-          {renderItems()}
-          <div className="mt-2">
-            <p>Total Price:</p>
-            <div className="flex items-center gap-2">
-              <Image
-                src="/icons/usdc-coin.png"
-                alt="coin"
-                width={20}
-                height={20}
-                unoptimized={true}
-                className="w-5 h-5 max-h-5"
-              />
-              <h1>{calculateTotal()}</h1>
-            </div>
-          </div>
-          <div className="flex gap-4 mt-2">
-            {onCheckout && (
-              <Button
-                disabled={!orderId || !cartItemsMap.size}
-                onClick={() => onCheckout(orderId!)}
-              >
-                Checkout
-              </Button>
-            )}
-            <SecondaryButton onClick={clearCart}>Clear basket</SecondaryButton>
-          </div>
+    <div className="bg-white rounded-lg p-5">
+      {renderItems()}
+      <div className="mt-2">
+        <p>Total Price:</p>
+        <div className="flex items-center gap-2">
+          <Image
+            src="/icons/usdc-coin.png"
+            alt="coin"
+            width={20}
+            height={20}
+            unoptimized={true}
+            className="w-5 h-5 max-h-5"
+          />
+          <h1>{calculateTotal()}</h1>
         </div>
       </div>
-    </section>
+      <div className="flex gap-4 mt-2">
+        <Button
+          disabled={!orderId || !cartItemsMap.size}
+          onClick={() => onCheckout && onCheckout(orderId!)}
+        >
+          Checkout
+        </Button>
+
+        <SecondaryButton onClick={clearCart}>Clear basket</SecondaryButton>
+      </div>
+    </div>
   );
 }
 

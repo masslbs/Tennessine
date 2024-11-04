@@ -90,3 +90,9 @@ export interface CurrencyChainOption {
   address?: `0x${string}`;
   chainId?: number;
 }
+export enum CheckoutStep {
+  cart = "cart",
+  shippingDetails = "shippingDetails",
+  paymentDetails = "paymentDetails",
+  confirmation = "confirmation",
+}
