@@ -3,7 +3,7 @@ import { useChains } from "wagmi";
 import { createPublicClient, http, pad } from "viem";
 import Image from "next/image";
 import debugLib from "debug";
-
+import * as Sentry from "@sentry/nextjs";
 import { formatUnitsFromString } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 import { zeroAddress } from "@massmarket/contracts";
@@ -21,6 +21,7 @@ import { getTokenInformation } from "@/app/utils";
 import { useUserContext } from "@/context/UserContext";
 import Dropdown from "@/app/common/components/CurrencyDropdown";
 import BackButton from "@/app/common/components/BackButton";
+import ErrorMessage from "@/app/common/components/ErrorMessage";
 import QRScan from "./QRScan";
 import SendTransaction from "@/app/components/transactions/SendTransaction";
 
@@ -39,6 +40,7 @@ export default function ChoosePayment({
   const log = debugLib("frontend:ChoosePayment");
   log.color = "242";
 
+  const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [displayedChains, setChains] = useState<CurrencyChainOption[] | null>(
     null,
   );
@@ -82,9 +84,7 @@ export default function ChoosePayment({
     function onPaymentDetails(order: Order) {
       if (order.id === orderId) {
         log("paymentDetails found for order");
-        getDetails(orderId)
-          .then()
-  
+        getDetails(orderId).then()
       }
     }
     orderId &&
@@ -171,6 +171,8 @@ export default function ChoosePayment({
       setStep(CheckoutStep.paymentDetails);
     } catch (error) {
       debug(error);
+      Sentry.captureException(error);
+      setErrorMsg("Error getting payment details");
     }
   }
 
@@ -228,6 +230,8 @@ export default function ChoosePayment({
       log("Chosen payment set");
     } catch (error) {
       debug(error);
+      Sentry.captureException(error);
+      setErrorMsg("Error choosing payment");
     }
   }
   if (qrOpen)
@@ -245,6 +249,12 @@ export default function ChoosePayment({
       <BackButton
         onClick={() => {
           setStep(CheckoutStep.shippingDetails);
+        }}
+      />
+      <ErrorMessage
+        errorMessage={errorMsg}
+        onClose={() => {
+          setErrorMsg(null);
         }}
       />
       <div className="flex">

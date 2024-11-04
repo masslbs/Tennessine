@@ -5,6 +5,7 @@
 "use client";
 import React, { useState, Dispatch, SetStateAction } from "react";
 import debugLib from "debug";
+import * as Sentry from "@sentry/nextjs";
 
 import { OrderState, CheckoutStep } from "@/types";
 import { useUserContext } from "@/context/UserContext";
@@ -59,6 +60,7 @@ function ShippingDetails({
       setStep(CheckoutStep.paymentDetails);
     } catch (error) {
       debug("error updating shipping details %o", error);
+      Sentry.captureException(error);
       setErrorMsg("Error updating shipping details");
     }
   }

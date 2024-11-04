@@ -5,16 +5,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import debugLib from "debug";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
-import { Status, Order, OrderState } from "@/types";
+import { Order, OrderState } from "@/types";
 import { createQueryString } from "@/app/utils";
 import { useUserContext } from "@/context/UserContext";
-
-const debug = debugLib("frontend: merchantDashboard");
 
 const MerchantDashboard = () => {
   const { clientWithStateManager } = useUserContext();

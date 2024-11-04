@@ -2,6 +2,7 @@
 import debugLib from "debug";
 import { PublicClient } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
+import * as Sentry from "@sentry/nextjs";
 
 import type { Level } from "level";
 let LevelDB: typeof Level | Error = new Error("Level not available in node");
@@ -45,7 +46,7 @@ export class ClientWithStateManager {
     }
     const merchantKC = localStorage.getItem("merchantKC");
     const dbName = `${this.shopId.slice(0, 7)}${merchantKC ? merchantKC.slice(0, 5) : "-guest"}`;
-    console.log("using level db:", { dbName });
+    debug("using level db: %o", { dbName });
     const db = new LevelDB(`./${dbName}`, {
       valueEncoding: "json",
     });
@@ -94,7 +95,8 @@ export class ClientWithStateManager {
       .eventStreamProcessing()
       .then()
       .catch((err) => {
-        debug("Error something bad happened in the stream", err);
+        debug("Error something bad happened in the stream: %o", err);
+        Sentry.captureException(err);
       });
 
     if (window && db) {

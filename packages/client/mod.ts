@@ -73,7 +73,6 @@ export class RelayClient extends EventEmitter {
     this.keyCardWallet = keyCardWallet;
     this.relayEndpoint = relayEndpoint;
     this.useTLS = relayEndpoint.url.protocol === "wss:" || relayEndpoint.url.protocol === "https:";
-    console.log({relayEndpoint, "useTLS": this.useTLS});
     this.eventStream = new ReadableEventStream(this);
     this.requestCounter = 1;
     this.eventNonceCounter = 1;

@@ -10,11 +10,11 @@ import { hardhat, mainnet, sepolia } from "viem/chains";
 import { usePathname } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import debugLib from "debug";
+import * as Sentry from "@sentry/nextjs";
 
 import {
   discoverRelay,
   type RelayEndpoint,
-  type WalletClientWithAccount,
 } from "@massmarket/client";
 import { random32BytesHex } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
@@ -179,36 +179,32 @@ export const UserContextProvider = (
     setClientStateManager(clientStateManager);
 
     if (isMerchantPath) return;
-    try {
-      (async () => {
-        //If merchantKC is cached, double check that the KC has permission, then connect & authenticate.
-        if (merchantKC && walletAddress) {
-          log("Connecting with merchant keycard");
-          await clientStateManager.setClientAndConnect(merchantKC);
-          const hasAccess = await checkPermissions();
-          if (hasAccess) {
-            setIsMerchantView(true);
-            await clientStateManager.sendMerchantSubscriptionRequest();
-            setIsConnected(Status.Complete);
-          }
-        } else if (!merchantKC && !guestCheckoutKC) {
-          //If no keycards are cached, create relayClient with guest wallet, then connect without enrolling a kc or authenticating.
-          log("Connecting without keycard");
-          await clientStateManager.sendGuestSubscriptionRequest();
-          setIsConnected(Status.Complete);
-        } else if (guestCheckoutKC) {
-          //If guestCheckout keycard is cached, connect, authenticate, and subscribe to orders.
-          log(`Connecting with guest checkout keycard ${guestCheckoutKC}`);
-          setAuthenticated(true);
-          await clientStateManager.setClientAndConnect(guestCheckoutKC);
-          await clientStateManager.sendGuestCheckoutSubscriptionRequest();
-          log("Success: sendGuestCheckoutSubscriptionRequest");
+    (async () => {
+      //If merchantKC is cached, double check that the KC has permission, then connect & authenticate.
+      if (merchantKC && walletAddress) {
+        log("Connecting with merchant keycard");
+        await clientStateManager.setClientAndConnect(merchantKC);
+        const hasAccess = await checkPermissions();
+        if (hasAccess) {
+          setIsMerchantView(true);
+          await clientStateManager.sendMerchantSubscriptionRequest();
           setIsConnected(Status.Complete);
         }
-      })();
-    } catch (error) {
-      debug(error);
-    }
+      } else if (!merchantKC && !guestCheckoutKC) {
+        //If no keycards are cached, create relayClient with guest wallet, then connect without enrolling a kc or authenticating.
+        log("Connecting without keycard");
+        await clientStateManager.sendGuestSubscriptionRequest();
+        setIsConnected(Status.Complete);
+      } else if (guestCheckoutKC) {
+        //If guestCheckout keycard is cached, connect, authenticate, and subscribe to orders.
+        log(`Connecting with guest checkout keycard ${guestCheckoutKC}`);
+        setAuthenticated(true);
+        await clientStateManager.setClientAndConnect(guestCheckoutKC);
+        await clientStateManager.sendGuestCheckoutSubscriptionRequest();
+        log("Success: sendGuestCheckoutSubscriptionRequest");
+        setIsConnected(Status.Complete);
+      }
+    })();
   }, [relayEndpoint, walletAddress, shopId, merchantKC, guestCheckoutKC]);
 
   async function checkPermissions() {
@@ -252,7 +248,9 @@ export const UserContextProvider = (
       localStorage.setItem("guestCheckoutKC", keyCard!);
       setIsConnected(Status.Complete);
     } else {
-      debug("Failed to enroll keycard while upgrading subscription");
+      const err = new Error("Failed to enroll keycard while upgrading subscription")
+      debug(err);
+      Sentry.captureException(err);
     }
   }
 
