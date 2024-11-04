@@ -92,12 +92,12 @@ export const UserContextProvider = (
       setRelayEndpoint(re);
       log("using environment variables for relay endpoint %o", re);
     } else {
-      discoverRelay("ws://localhost:4444/v3").then((relayEndpoint) => {
-        if (!relayEndpoint.url) throw new Error("Relay endpoint URL not set");
-        if (!relayEndpoint.tokenId)
+      discoverRelay("ws://localhost:4444/v3").then((diccovered) => {
+        if (!diccovered.url) throw new Error("Relay endpoint URL not set");
+        if (!diccovered.tokenId)
           throw new Error("Relay endpoint tokenId not set");
-        setRelayEndpoint(relayEndpoint);
-        log("using testing relay endpoint %o", relayEndpoint);
+        setRelayEndpoint(diccovered);
+        log("using testing relay endpoint %o", diccovered);
       });
     }
   }, []);

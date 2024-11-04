@@ -8,11 +8,10 @@ import { WebSocket } from "isows";
 import { hexToBytes, hexToBigInt, toBytes } from "viem";
 import { PrivateKeyAccount } from "viem/accounts";
 import { createSiweMessage } from "viem/siwe";
-import assert from "assert";
 
 import schema, { EnvelopMessageTypes } from "@massmarket/schema";
 import { type ConcreteWalletClient } from "@massmarket/blockchain";
-import { hexToBase64, decodeBufferToString } from "@massmarket/utils";
+import { hexToBase64, decodeBufferToString, assert } from "@massmarket/utils";
 
 import { ReadableEventStream } from "./stream.ts";
 
@@ -73,7 +72,8 @@ export class RelayClient extends EventEmitter {
     super();
     this.keyCardWallet = keyCardWallet;
     this.relayEndpoint = relayEndpoint;
-    this.useTLS = relayEndpoint.url.protocol == "wss";
+    this.useTLS = relayEndpoint.url.protocol === "wss:" || relayEndpoint.url.protocol === "https:";
+    console.log({relayEndpoint, "useTLS": this.useTLS});
     this.eventStream = new ReadableEventStream(this);
     this.requestCounter = 1;
     this.eventNonceCounter = 1;
