@@ -3,11 +3,11 @@ import debugLib from "debug";
 import { PublicClient } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
-import type { Level } from 'level';
+import type { Level } from "level";
 let LevelDB: typeof Level | Error = new Error("Level not available in node");
 if (typeof window !== "undefined") {
   void (async () => {
-    const { Level } = await import('level');
+    const { Level } = await import("level");
     LevelDB = Level;
   })();
 }
@@ -19,7 +19,8 @@ import { random32BytesHex } from "@massmarket/utils";
 import { Item, Order, KeyCard, ShopManifest, Tag, ShopId } from "@/types";
 
 const debug = debugLib("frontend:ClientWithStateManager");
-
+const log = debugLib("log:ClientWithStateManager");
+log.color = "242";
 export class ClientWithStateManager {
   readonly publicClient: PublicClient;
   readonly shopId: ShopId;
@@ -69,6 +70,10 @@ export class ClientWithStateManager {
       valueEncoding: "json",
     });
 
+    const keycardNonceStore = db.sublevel<string, number>("keycardNonceStore", {
+      valueEncoding: "json",
+    });
+
     this.stateManager = new StateManager(
       this.relayClient!,
       listingStore,
@@ -76,20 +81,20 @@ export class ClientWithStateManager {
       shopManifestStore,
       orderStore,
       keycardStore,
+      keycardNonceStore,
       this.shopId,
       this.publicClient,
     );
 
     // Wait for relay address to be added to verified addresses before we return stateManager
-    await this.stateManager.addRelayOwnerAddress();
+    await this.stateManager.addRelaysToKeycards();
 
     // Only start the stream once relay address is added
     this.stateManager
       .eventStreamProcessing()
       .then()
       .catch((err) => {
-        debug(err)
-        console.log("Error something bad happened in the stream", err);
+        debug("Error something bad happened in the stream", err);
       });
 
     if (window && db) {
@@ -121,14 +126,16 @@ export class ClientWithStateManager {
       throw new Error("Relay endpoint tokenId not set");
     }
     const keyCardWallet = privateKeyToAccount(kc);
-    const eventNonceCounter = Number(localStorage.getItem("eventNonceCounter")) || 1;
-    debug("eventNonceCounter", eventNonceCounter);
     this.relayClient = new RelayClient({
       relayEndpoint: this.relayEndpoint!,
       keyCardWallet,
-      eventNonceCounter,
     });
     await this.createStateManager();
+    const eventNonceCounter = await this.stateManager!.keycardNonce.get(
+      keyCardWallet.address,
+    );
+    log(`Setting nonce counter to: ${eventNonceCounter + 1}`);
+    this.relayClient.nonce = eventNonceCounter + 1;
     await this.relayClient.connect();
     await this.relayClient.authenticate();
     return this.relayClient;

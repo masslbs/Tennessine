@@ -879,7 +879,10 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
           order.blockHash = bytesToHex(uo.addPaymentTx.blockHash.raw);
         }
         if (uo.addPaymentTx.txHash) {
-          assertField(uo.addPaymentTx.txHash, "updateOrder.addPaymentTx.txHash");
+          assertField(
+            uo.addPaymentTx.txHash,
+            "updateOrder.addPaymentTx.txHash",
+          );
           order.txHash = bytesToHex(uo.addPaymentTx.txHash.raw);
         }
         await this.store.put(id, order);
@@ -919,11 +922,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
     return eventListenAndResolve<Order>(eventId, this, "create");
   }
 
-  async addItems(
-    orderId: `0x${string}`,
-    lId: `0x${string}`,
-    quantity: number,
-  ) {
+  async addItems(orderId: `0x${string}`, lId: `0x${string}`, quantity: number) {
     const eventId = await this.client.updateOrder({
       id: { raw: hexToBytes(orderId) },
       changeItems: {
@@ -1110,15 +1109,32 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
     return this.store.put("cardPublicKey", publicKeys);
   }
 }
+
+class KeycardNonceManager extends PublicObjectManager<number> {
+  constructor(store: Store<number>, client: IRelayClient) {
+    super(store, client);
+  }
+
+  async _processEvent(
+    seqEvt: SequencedEventWithRecoveredSigner,
+  ): Promise<void> {
+    await this.store.put(seqEvt.signer, Number(seqEvt.event.nonce));
+  }
+
+  get(key: `0x${string}`) {
+    return this.store.get(key);
+  }
+}
+
 // This class creates the state of a store from an event stream
 // It also handles the states persistence, retrieval and updates
-
 export class StateManager {
   readonly listings: ListingManager;
   readonly tags: TagManager;
   readonly manifest: ShopManifestManager;
   readonly orders: OrderManager;
   readonly keycards: KeyCardManager;
+  readonly keycardNonce: KeycardNonceManager;
   readonly shopId;
   readonly publicClient;
   constructor(
@@ -1128,6 +1144,7 @@ export class StateManager {
     shopManifestStore: Store<ShopManifest | SeqNo>,
     orderStore: Store<Order | OrdersByStatus>,
     keycardStore: Store<KeyCard>,
+    keycardNonceStore: Store<number>,
     shopId: `0x${string}`,
     publicClient: PublicClient,
   ) {
@@ -1136,12 +1153,13 @@ export class StateManager {
     this.manifest = new ShopManifestManager(shopManifestStore, client);
     this.orders = new OrderManager(orderStore, client);
     this.keycards = new KeyCardManager(keycardStore, client);
+    this.keycardNonce = new KeycardNonceManager(keycardNonceStore, client);
     this.shopId = shopId;
     this.publicClient = publicClient;
   }
 
   //TODO: Watch for new relays being added. We also need to invalidate addresses from old relay.
-  async addRelayOwnerAddress() {
+  async addRelaysToKeycards() {
     //When we inititally create a shop, we are saving the relay tokenId => shopId.
     //Here, we are retrieving all the relay addresses associated with the shopId and saving them to keycards store.
     //Since some shopEvents are signed by a relay, we need to include these addresses when verifying the event signer.
@@ -1179,6 +1197,7 @@ export class StateManager {
       this.manifest,
       this.orders,
       this.keycards,
+      this.keycardNonce,
     ];
 
     const stream = this.client.createEventStream();

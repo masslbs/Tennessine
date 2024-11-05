@@ -61,6 +61,10 @@ export class MockClientStateManager {
       valueEncoding: "json",
     });
 
+    const keycardNonceStore = db.sublevel<string, number>("keycardNonceStore", {
+      valueEncoding: "json",
+    });
+
     this.stateManager = new StateManager(
       this.relayClient!,
       listingStore,
@@ -68,6 +72,7 @@ export class MockClientStateManager {
       shopManifestStore,
       orderStore,
       keycardStore,
+      keycardNonceStore,
       this.shopId,
       this.publicClient,
     );

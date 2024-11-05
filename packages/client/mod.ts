@@ -66,11 +66,9 @@ export class RelayClient extends EventEmitter {
   constructor({
     relayEndpoint,
     keyCardWallet,
-    eventNonceCounter = 1,
   }: {
     relayEndpoint: RelayEndpoint;
     keyCardWallet: PrivateKeyAccount;
-    eventNonceCounter?: number;
   }) {
     super();
     this.keyCardWallet = keyCardWallet;
@@ -78,7 +76,7 @@ export class RelayClient extends EventEmitter {
     this.useTLS = relayEndpoint.url.protocol == "wss";
     this.eventStream = new ReadableEventStream(this);
     this.requestCounter = 1;
-    this.eventNonceCounter = eventNonceCounter;
+    this.eventNonceCounter = 1;
     this.subscriptionId = null;
   }
 
@@ -150,6 +148,10 @@ export class RelayClient extends EventEmitter {
       signer: this.keyCardWallet.address,
       nonce: shopEvent.nonce,
     };
+  }
+
+  set nonce(counter: number) {
+    this.eventNonceCounter = counter;
   }
 
   shopManifest(manifest: schema.IManifest, shopId: `0x${string}`) {

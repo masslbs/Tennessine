@@ -43,6 +43,7 @@ export default function ChoosePayment({
     null,
   );
   const [manifest, setManifest] = useState<null | ShopManifest>(null);
+  const [cryptoTotal, setCryptoTotal] = useState<bigint | null>(null);
   const [purchaseAddress, setPurchaseAddr] = useState<string | null>(null);
   const [imgSrc, setSrc] = useState<null | string>(null);
   const [orderId, setOrderId] = useState<OrderId | null>(null);

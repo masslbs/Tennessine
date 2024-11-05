@@ -44,9 +44,10 @@ async function setupTestManager() {
     "orderStore",
     opts,
   );
-
   const keycardStore = db.sublevel<string, KeyCard>("keycardStore", opts);
-
+  const keycardNonceStore = db.sublevel<string, number>("keycardNonceStore", {
+    valueEncoding: "json",
+  });
   await db.clear();
   const client = new MockClient();
   const stateManager = new StateManager(
@@ -56,10 +57,12 @@ async function setupTestManager() {
     shopManifestStore,
     orderStore,
     keycardStore,
+    keycardNonceStore,
     randomAddress(),
     publicClient,
   );
 
+  
   return {
     client,
     stateManager,
@@ -70,6 +73,7 @@ async function setupTestManager() {
       await shopManifestStore.close();
       await orderStore.close();
       await keycardStore.close();
+      await keycardNonceStore.close()
     },
   };
 }

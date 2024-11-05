@@ -16,10 +16,8 @@ export default function SendTransaction({
   purchaseAddress: string | null;
   cryptoTotal: bigint | null;
 }) {
-  const { data: hash, sendTransaction } = useSendTransaction();
+  const { sendTransaction } = useSendTransaction();
   const { status } = useAccount();
-
-  console.log({ hash });
 
   function send() {
     log(`Sending ${cryptoTotal} to: ${purchaseAddress}`);

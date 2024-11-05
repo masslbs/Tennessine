@@ -39,6 +39,7 @@ const CheckoutFlow = () => {
         const bh = order.blockHash as `0x${string}`;
         tx && setTxHash(tx);
         bh && setBlockHash(bh);
+        log(`Hash received: ${tx ?? bh}`);
         setStep(CheckoutStep.confirmation);
       }
     };
@@ -70,12 +71,8 @@ const CheckoutFlow = () => {
       log(`Order ID: ${orderId} committed`);
       setStep(CheckoutStep.shippingDetails);
     } catch (error) {
-      if (error instanceof Error && error.message === "not enough stock") {
-        log("Not enough stock");
-        return;
-      }
       debug(error);
-      throw new Error("Failed to commit order");
+      throw error;
     }
   }
 

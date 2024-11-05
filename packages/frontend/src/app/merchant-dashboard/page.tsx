@@ -14,11 +14,12 @@ import { Status, Order, OrderState } from "@/types";
 import { createQueryString } from "@/app/utils";
 import { useUserContext } from "@/context/UserContext";
 
+const debug = debugLib("frontend: merchantDashboard");
+
 const MerchantDashboard = () => {
   const { clientWithStateManager } = useUserContext();
   const searchParams = useSearchParams();
   const [orders, setOrders] = useState(new Map());
-  const debug = debugLib("frontend:merchantDashboard");
 
   const getAllOrders = async () => {
     const allOrders = new Map();
@@ -26,9 +27,11 @@ const MerchantDashboard = () => {
       id,
       o,
     ] of clientWithStateManager!.stateManager!.orders.iterator()) {
+      // Exclude orders by status
       if (Object.values(OrderState).includes(id)) {
-        allOrders.set(id, o);
+        return;
       }
+      allOrders.set(id, o);
     }
     return allOrders;
   };
@@ -77,22 +80,32 @@ const MerchantDashboard = () => {
       transactions.map((entry) => {
         const cartId = entry[0];
         const value = entry[1];
-        const transactionHash = value?.txHash || null;
-        if (!value?.items) return null;
-        const len = Object.keys(value.items).length;
-        const status =
-          value.status === Status.Complete
-            ? "green"
-            : value.status === Status.Failed
-              ? "red"
-              : "yellow";
+        const transactionHash = value?.txHash || value?.blockHash;
+        let status;
+        switch (value.status) {
+          case OrderState.STATE_CANCELED:
+            status = "Cancelled";
+            break;
+          case OrderState.STATE_OPEN:
+            status = "Open";
+            break;
+          case OrderState.STATE_COMMITED:
+            status = "Committed";
+            break;
+          case OrderState.STATE_PAYMENT_TX:
+          case OrderState.STATE_PAID:
+            status = "Paid";
+            break;
+          default:
+            status = "Unspecified";
+        }
         return (
-          <div key={cartId}>
-            <div className="bg-white border-2 rounded-xl p-3 flex justify-between">
-              <p className={`text-${status}-500`}>{value.status}</p>
-              <p>{transactionHash?.slice(0, 10)}...</p>
-              <p>{len} item(s)</p>
-            </div>
+          <div
+            key={cartId}
+            className="bg-white border-2  p-3 flex justify-between"
+          >
+            <p>{transactionHash?.slice(0, 10)}...</p>
+            <p>{status}</p>
           </div>
         );
       })
@@ -155,7 +168,11 @@ const MerchantDashboard = () => {
           </div>
         </div>
         <div className="transactions-container">
-          <h2 className="my-4">Transactions</h2>
+          <h2 className="my-4">Latest orders</h2>
+          <div className="bg-primary-dark-green flex text-white p-4 rounded-t-xl">
+            <p>Order</p>
+            <p className="ml-auto">Status</p>
+          </div>
           {renderTransactions()}
         </div>
       </div>

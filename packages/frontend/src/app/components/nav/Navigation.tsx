@@ -113,12 +113,8 @@ function Navigation() {
         `/checkout?${createQueryString("step", "shippingDetails", searchParams)}`,
       );
     } catch (error) {
-      if (error instanceof Error && error.message === "not enough stock") {
-        log("Not enough stock");
-        return;
-      }
       debug(error);
-      throw new Error("Failed to commit order");
+      throw error;
     }
   }
 

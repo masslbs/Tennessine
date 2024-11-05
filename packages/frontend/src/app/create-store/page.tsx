@@ -168,6 +168,9 @@ const StoreCreation = () => {
       if (enrollKeycard.current) {
         throw new Error("Keycard already enrolled");
       }
+      if (!shopPublicClient) {
+        throw new Error("shopPublicClient not found");
+      }
       const rc = clientWithStateManager!.createNewRelayClient();
 
       const blockchainClient = new BlockchainClient(shopId!);
@@ -175,7 +178,7 @@ const StoreCreation = () => {
       setStoreRegistrationStatus("Waiting to confirm mint transaction...");
       let receipt = await shopPublicClient!.waitForTransactionReceipt({
         hash,
-        confirmations: 2,
+        // confirmations: 2,
         retryCount: 5,
       });
       if (receipt!.status !== "success") {
@@ -192,7 +195,7 @@ const StoreCreation = () => {
       log(`Added relay token ID:${rc.relayEndpoint.tokenId}`);
       receipt = await shopPublicClient!.waitForTransactionReceipt({
         hash: tx,
-        confirmations: 2,
+        // confirmations: 2,
         retryCount: 5,
       });
       if (receipt.status !== "success") {
@@ -261,12 +264,11 @@ const StoreCreation = () => {
 
   async function createShopManifest() {
     try {
-      log("adding relays to keycards");
-      await client.stateManager!.addRelaysToKeycards();
       log("sending merchant subscription request");
-      await client.sendMerchantSubscriptionRequest();
+      await clientWithStateManager!.sendMerchantSubscriptionRequest();
+
       log("creating manifest");
-      await client.stateManager!.manifest.create(
+      await clientWithStateManager!.stateManager!.manifest.create(
         {
           pricingCurrency: pricingCurrency as ShopCurrencies,
           acceptedCurrencies,
@@ -351,7 +353,7 @@ const StoreCreation = () => {
         name: storeName,
         profilePictureUrl: imgPath.url,
       });
-      await clientWithStateManager!.sendMerchantSubscriptionRequest();
+
       setIsMerchantView(true);
       setIsConnected(Status.Complete);
       setStep("confirmation");

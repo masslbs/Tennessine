@@ -12,6 +12,7 @@ import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
 import Button from "@/app/common/components/Button";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
+import ErrorMessage from "@/app/common/components/ErrorMessage";
 
 const debug = debugLib("frontend:Cart");
 const log = debugLib("log:Cart");
@@ -29,6 +30,7 @@ function Cart({
   const [orderId, setOrderId] = useState<OrderId | null>(null);
   const [baseDecimal, setBaseDecimal] = useState<null | number>(null);
   const [baseSymbol, setBaseSymbol] = useState<null | string>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     getBaseTokenInfo()
@@ -36,7 +38,7 @@ function Cart({
         res && setBaseDecimal(res[1]);
         res && setBaseSymbol(res[0]);
       })
-      .catch((e) => debug("error getting base token info %o", e));
+      .catch((e) => debug(e));
   }, []);
 
   useEffect(() => {
@@ -45,20 +47,34 @@ function Cart({
         setOrderId(null);
       }
     }
+
+    function onChangeItems(order: Order) {
+      getCartItemDetails(order).then((itemDetails) => {
+        setCartMap(itemDetails);
+      });
+    }
+
     clientWithStateManager!.stateManager!.orders.on(
       "addPaymentTx",
       txHashDetected,
+    );
+    clientWithStateManager!.stateManager!.orders.on(
+      "changeItems",
+      onChangeItems,
     );
     return () => {
       clientWithStateManager!.stateManager!.orders.removeListener(
         "addPaymentTx",
         txHashDetected,
       );
+      clientWithStateManager!.stateManager!.orders.removeListener(
+        "changeItems",
+        onChangeItems,
+      );
     };
   }, []);
 
   useEffect(() => {
-    const cartObjects = new Map();
     clientWithStateManager!
       .stateManager!.orders.getStatus(OrderState.STATE_OPEN)
       .then((res) => {
@@ -72,31 +88,51 @@ function Cart({
           clientWithStateManager!
             .stateManager!.orders.get(res[0])
             .then(async (o) => {
-              const ci = o.items;
-              // Get price and metadata for all the selected items in the order.
-              const keys = Object.keys(ci);
-              await Promise.all(
-                keys.map(async (id) => {
-                  return clientWithStateManager!
-                    .stateManager!.listings.get(id as ItemId)
-                    .then((item) => {
-                      cartObjects.set(id, {
-                        ...item,
-                        selectedQty: ci[id as ItemId],
-                      });
-                    })
-                    .catch((e) => debug("error getting item %o", e));
-                }),
-              );
-              setCartMap(cartObjects);
+              const itemDetails = await getCartItemDetails(o);
+              setCartMap(itemDetails);
             })
-            .catch((e) => debug("error getting order %o", e));
+            .catch((e) => debug(`Error getting order: ${e}`));
         }
       })
       .catch((e) => {
-        debug("error getting open order %o", e);
+        debug(`Error getting open order: ${e}`);
       });
   }, [orderId]);
+
+  async function getCartItemDetails(order: Order) {
+    const ci = order.items;
+    const cartObjects = new Map();
+    // Get price and metadata for all the selected items in the order.
+    const itemIds = Object.keys(ci);
+    await Promise.all(
+      itemIds.map(async (id) => {
+        const item = await clientWithStateManager!.stateManager!.listings.get(
+          id as ItemId,
+        );
+        cartObjects.set(id, {
+          ...item,
+          selectedQty: ci[id as ItemId],
+        });
+      }),
+    );
+    return cartObjects;
+  }
+
+  async function handleCheckout(orderId: OrderId) {
+    try {
+      await onCheckout!(orderId);
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === "not enough items in stock for order"
+      ) {
+        setErrorMsg("Not enough stock. Cart cleared.");
+        await clearCart();
+        return;
+      }
+      debug(error);
+    }
+  }
 
   async function clearCart() {
     try {
@@ -115,10 +151,47 @@ function Cart({
       setCartMap(new Map());
       log("cart cleared");
     } catch (error) {
-      debug("error clearing cart %o", error);
+      debug(error);
     }
   }
 
+  async function addQuantity(id: ItemId) {
+    try {
+      await clientWithStateManager!.stateManager!.orders.addItems(
+        orderId!,
+        id,
+        1,
+      );
+    } catch (error) {
+      debug(`Error:addQuantity ${error}`);
+    }
+  }
+
+  async function removeQuantity(id: ItemId) {
+    try {
+      await clientWithStateManager!.stateManager!.orders.removeItems(orderId!, [
+        {
+          listingId: id,
+          quantity: 1,
+        },
+      ]);
+    } catch (error) {
+      debug(`Error:removeQuantity ${error}`);
+    }
+  }
+
+  async function removeItem(id: ItemId, selectedQty: number) {
+    try {
+      await clientWithStateManager!.stateManager!.orders.removeItems(orderId!, [
+        {
+          listingId: id,
+          quantity: selectedQty,
+        },
+      ]);
+    } catch (error) {
+      debug(`Error:removeItem ${error}`);
+    }
+  }
   function calculateTotal() {
     const values = cartItemsMap.values();
     let total = 0;
@@ -155,28 +228,47 @@ function Cart({
             />
           </div>
           <div className="bg-background-gray w-full rounded-lg px-5 py-4">
-            <h3 data-testid="title" className="leading-4">
-              {item.metadata.title}
-            </h3>
+            <div className="flex">
+              <h3 data-testid="title" className="leading-4">
+                {item.metadata.title}
+              </h3>
+              <button
+                onClick={() => removeItem(item.id, item.selectedQty)}
+                className="ml-auto"
+              >
+                <Image
+                  src="/icons/close-icon.svg"
+                  alt="close-icon"
+                  width={12}
+                  height={12}
+                  className="w-3 h-3"
+                />
+              </button>
+            </div>
+
             <div className="flex gap-2 items-center mt-10">
               <div className="flex gap-2 items-center">
-                <Image
-                  src="/icons/minus.svg"
-                  alt="minus"
-                  width={10}
-                  height={10}
-                  unoptimized={true}
-                  className="w-5 h-5 max-h-5"
-                />
+                <button onClick={() => removeQuantity(item.id)}>
+                  <Image
+                    src="/icons/minus.svg"
+                    alt="minus"
+                    width={10}
+                    height={10}
+                    unoptimized={true}
+                    className="w-5 h-5 max-h-5"
+                  />
+                </button>
                 <p>{item.selectedQty}</p>
-                <Image
-                  src="/icons/plus.svg"
-                  alt="plus"
-                  width={10}
-                  height={10}
-                  unoptimized={true}
-                  className="w-5 h-5 max-h-5"
-                />
+                <button onClick={() => addQuantity(item.id)}>
+                  <Image
+                    src="/icons/plus.svg"
+                    alt="plus"
+                    width={10}
+                    height={10}
+                    unoptimized={true}
+                    className="w-5 h-5 max-h-5"
+                  />
+                </button>
               </div>
               <div className="flex gap-2 items-center ml-auto">
                 <Image
@@ -199,6 +291,12 @@ function Cart({
 
   return (
     <div className="bg-white rounded-lg p-5">
+      <ErrorMessage
+        errorMessage={errorMsg}
+        onClose={() => {
+          setErrorMsg(null);
+        }}
+      />
       {renderItems()}
       <div className="mt-2">
         <p>Total Price:</p>
@@ -216,12 +314,11 @@ function Cart({
       </div>
       <div className="flex gap-4 mt-2">
         <Button
-          disabled={!orderId || !cartItemsMap.size}
-          onClick={() => onCheckout && onCheckout(orderId!)}
+          disabled={!orderId || !cartItemsMap.size || !onCheckout}
+          onClick={() => handleCheckout(orderId!)}
         >
           Checkout
         </Button>
-
         <SecondaryButton onClick={clearCart}>Clear basket</SecondaryButton>
       </div>
     </div>
