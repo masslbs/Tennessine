@@ -7,10 +7,9 @@ import React, { useState, useEffect, ChangeEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import debugLib from "debug";
 import { privateKeyToAccount } from "viem/accounts";
-
-import { formatUnitsFromString } from "@massmarket/utils";
+import * as Sentry from "@sentry/nextjs";
+import { formatUnitsFromString, logger } from "@massmarket/utils";
 import { createQueryString } from "@/app/utils";
 import Button from "@/app/common/components/Button";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
@@ -21,9 +20,9 @@ import { useUserContext } from "@/context/UserContext";
 import { useAuth } from "@/context/AuthContext";
 import SuccessToast from "@/app/common/components/SuccessToast";
 
-const debug = debugLib("frontend:productDetail");
-const log = debugLib("log:productDetail");
-log.color = "242";
+const namespace = "frontend:product-detail";
+const debug = logger(namespace);
+const log = logger(namespace, "info");
 
 const ProductDetail = () => {
   const { getBaseTokenInfo } = useStoreContext();
@@ -53,9 +52,9 @@ const ProductDetail = () => {
       .stateManager!.orders.getStatus(OrderState.STATE_OPEN)
       .then((res) => {
         if (res.length > 1) {
-          debug("Multiple open orders found");
+          warn("Multiple open orders found");
         } else if (!res.length) {
-          log("No open order found");
+          warn("No open order found");
         } else {
           setOrderId(res[0]);
           clientWithStateManager!
@@ -214,7 +213,7 @@ const ProductDetail = () => {
       setMsg("Added to cart");
       setButton("Review");
     } catch (error) {
-      debug(`Error: changeItems ${error}`);
+      Sentry.captureException(error);
       setErrorMsg("There was an error updating cart");
     }
   }

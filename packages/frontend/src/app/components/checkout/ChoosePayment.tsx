@@ -2,9 +2,8 @@ import React, { useState, useEffect, Dispatch, SetStateAction } from "react";
 import { useChains } from "wagmi";
 import { pad } from "viem";
 import Image from "next/image";
-import debugLib from "debug";
 import * as Sentry from "@sentry/nextjs";
-import { formatUnitsFromString } from "@massmarket/utils";
+import { formatUnitsFromString, logger } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 import { zeroAddress } from "@massmarket/contracts";
 
@@ -25,6 +24,10 @@ import ErrorMessage from "@/app/common/components/ErrorMessage";
 import QRScan from "./QRScan";
 import SendTransaction from "@/app/components/transactions/SendTransaction";
 
+const debug = logger("frontend:ChoosePayment");
+const log = logger("log:ChoosePayment", "info");
+const warn = logger("warn:ChoosePayment", "warn");
+
 export default function ChoosePayment({
   setStep,
   displayedAmount,
@@ -36,9 +39,6 @@ export default function ChoosePayment({
 }) {
   const { clientWithStateManager } = useUserContext();
   const chains = useChains();
-  const debug = debugLib("frontend:ChoosePayment");
-  const log = debugLib("frontend:ChoosePayment");
-  log.color = "242";
 
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [displayedChains, setChains] = useState<CurrencyChainOption[] | null>(
@@ -168,7 +168,7 @@ export default function ChoosePayment({
       setDisplayedAmount(`${formatUnitsFromString(total, decimal)} ${symbol}`);
       setStep(CheckoutStep.paymentDetails);
     } catch (error) {
-      debug(error);
+      warn("Error getting payment details");
       Sentry.captureException(error);
       setErrorMsg("Error getting payment details");
     }
@@ -222,10 +222,10 @@ export default function ChoosePayment({
           payee,
         },
       );
-      log("Chosen payment set");
+      debug("chosen payment set");
     } catch (error) {
-      debug(error);
       Sentry.captureException(error);
+      warn("Error choosing payment");
       setErrorMsg("Error choosing payment");
     }
   }

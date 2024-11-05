@@ -6,11 +6,12 @@
 
 import React, { ChangeEvent, useRef, useState, useEffect } from "react";
 import Image from "next/image";
-import debugLib from "debug";
 import { useRouter, useSearchParams } from "next/navigation";
+import * as Sentry from "@sentry/nextjs";
+
+import { formatUnitsFromString, logger } from "@massmarket/utils";
 
 import { Tag, ItemId, Item, TagId, ListingViewState } from "@/types";
-import { formatUnitsFromString } from "@massmarket/utils";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
 // import ProductsTags from "@/app/components/products/ProductTags";
@@ -20,6 +21,10 @@ import SecondaryButton from "@/app/common/components/SecondaryButton";
 import ValidationWarning from "@/app/common/components/ValidationWarning";
 import BackButton from "@/app/common/components/BackButton";
 
+const namespace = "frontend:edit-product";
+// const debug = logger(namespace);
+const warn = logger(namespace, "warn");
+
 const AddProductView = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -27,7 +32,6 @@ const AddProductView = () => {
   const editView = itemId !== "new";
   const { getBaseTokenInfo } = useStoreContext();
   const { clientWithStateManager } = useUserContext();
-  const debug = debugLib("frontend:edit product");
 
   const [productInView, setProductInView] = useState<Item | null>(null);
   const [price, setPrice] = useState<string>("");
@@ -51,7 +55,6 @@ const AddProductView = () => {
       .then((res: [string, number]) => {
         res && setBaseDecimal(res[1]);
       })
-      
   }, []);
 
   useEffect(() => {
@@ -75,7 +78,8 @@ const AddProductView = () => {
           })
           .catch((e) => {
             setErrorMsg("Error fetching listing");
-            debug("Error fetching listing", e);
+            warn("Error fetching listing");
+            Sentry.captureException(e);
           });
       });
     }
@@ -125,7 +129,8 @@ const AddProductView = () => {
         e.target.value = "";
       }
     } catch (error) {
-      debug("Error at handleUpload", error);
+      setErrorMsg("Error during image upload");
+      Sentry.captureException(error);
     }
   };
 
@@ -141,8 +146,8 @@ const AddProductView = () => {
       });
       router.push("/products");
     } catch (error) {
-      debug("Error deleting listing", error);
       setErrorMsg("Error deleting listing");
+      Sentry.captureException(error);
     }
   };
 
@@ -166,7 +171,7 @@ const AddProductView = () => {
       }
     } catch (error) {
       setErrorMsg("Error creating listing");
-      debug("Error creating listing", error);
+      Sentry.captureException(error);
     }
   };
 
@@ -226,7 +231,7 @@ const AddProductView = () => {
       }
     } catch (error) {
       setErrorMsg("Error updating listing");
-      debug("Error updating listing", error);
+      Sentry.captureException(error);
     }
   };
 
@@ -266,7 +271,7 @@ const AddProductView = () => {
           : await create(newItem);
         router.push(`/products`);
       } catch (error) {
-        debug("Error publishing listing", error);
+        Sentry.captureException(error);
         setErrorMsg("Error publishing listing");
       }
     }

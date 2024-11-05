@@ -7,7 +7,8 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import debugLib from "debug";
+
+import { logger } from "@massmarket/utils";
 
 import { OrderState, Order, CheckoutStep, OrderId } from "@/types";
 import { useUserContext } from "@/context/UserContext";
@@ -16,15 +17,14 @@ import ErrorMessage from "@/app/common/components/ErrorMessage";
 import ShippingDetails from "@/app/components/checkout/ShippingDetails";
 import ChoosePayment from "@/app/components/checkout/ChoosePayment";
 
-const debug = debugLib("frontend:Checkout");
-const log = debugLib("log:Checkout");
-log.color = "242";
+const debug = logger("frontend:Checkout");
+const log = logger("log:Checkout", "info");
 
 const CheckoutFlow = () => {
   const { clientWithStateManager } = useUserContext();
   const searchParams = useSearchParams();
   const stepParam = searchParams.get("step") as CheckoutStep;
-  log("Starting checkout flow", stepParam);
+  log(`Starting checkout flow: ${stepParam}`);
 
   const [step, setStep] = useState<CheckoutStep>(stepParam || "cart");
   const [errorMsg, setErrorMsg] = useState<null | string>(null);

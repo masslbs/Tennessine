@@ -558,7 +558,7 @@ describe({
           await updatePromise;
         } catch (e) {
           expect((e as Error).message).toEqual(
-            "Field `add_accepted_currency[0].addr` must have correct amount of bytes, got 2",
+            "network request 4 failed with error[2]: Field `add_accepted_currency[0].addr` must have correct amount of bytes, got 2",
           );
           called = true;
         }

@@ -11,7 +11,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { useChains, useAccount } from "wagmi";
 
 import { BlockchainClient } from "@massmarket/blockchain";
-import { random32BytesHex, zeroAddress } from "@massmarket/utils";
+import { random32BytesHex, zeroAddress, logger } from "@massmarket/utils";
 
 import { CurrencyChainOption, Payee, ShopCurrencies, Status } from "@/types";
 import { getTokenAddress, isValidHex } from "@/app/utils";
@@ -32,9 +32,8 @@ import Confirmation from "@/app/create-store/Confirmation";
 // 3. createShopManifest
 // 4. uploadMetadata
 
-const debug = debugLib("frontend:create-store");
-const log = debugLib("log:create-store");
-log.color = "242";
+const debug = logger("frontend:create-store");
+const log = logger("log:create-store", "info");
 
 const StoreCreation = () => {
   const {

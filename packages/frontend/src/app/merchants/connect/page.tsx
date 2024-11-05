@@ -6,12 +6,13 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import debugLib from "debug";
 import { useAccount } from "wagmi";
 import { Address } from "viem";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 import * as abi from "@massmarket/contracts";
+import { logger } from "@massmarket/utils";
+
 import { Status, ShopId } from "@/types";
 import { isValidHex } from "@/app/utils";
 import { useAuth } from "@/context/AuthContext";
@@ -20,6 +21,10 @@ import ErrorMessage from "@/app/common/components/ErrorMessage";
 import Button from "@/app/common/components/Button";
 import { ClientWithStateManager } from "@/app/ClientWithStateManager";
 import Confirmation from "@/app/merchants/connect/Confirmation";
+
+const namespace = "frontend:connect-merchant";
+const debug = logger(namespace);
+const log = logger(namespace, "info");
 
 const MerchantConnectWallet = () => {
   const {
@@ -32,9 +37,6 @@ const MerchantConnectWallet = () => {
   const { clientConnected, setIsConnected, setIsMerchantView } = useAuth();
   const enrollKeycard = useRef(false);
   const { status } = useAccount();
-  const debug = debugLib("log: connect merchant");
-  const log = debugLib("log: connect merchant");
-  log.color = "242";
 
   const [searchShopId, setSearchShopId] = useState<string>("");
   const [step, setStep] = useState<"search" | "connect" | "confirmation">(

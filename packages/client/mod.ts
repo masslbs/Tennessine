@@ -8,15 +8,14 @@ import { WebSocket } from "isows";
 import { hexToBytes, hexToBigInt, toBytes } from "viem";
 import type { PrivateKeyAccount } from "viem/accounts";
 import { createSiweMessage } from "viem/siwe";
-import debugLib from "debug";
 
 import schema, { EnvelopMessageTypes } from "@massmarket/schema";
 import type { ConcreteWalletClient } from "@massmarket/blockchain";
-import { hexToBase64, decodeBufferToString, assert } from "@massmarket/utils";
+import { hexToBase64, decodeBufferToString, assert, logger } from "@massmarket/utils";
 
 import { ReadableEventStream } from "./stream.ts";
 
-const debug = debugLib("client");
+const debug = logger("relayClient");
 
 export type RelayEndpoint = {
   url: URL; // the websocket URL to talk to
@@ -236,7 +235,7 @@ export class RelayClient extends EventEmitter {
           const events = envelope.subscriptionPushRequest.events!.map((evt) =>
             schema.SubscriptionPushRequest.SequencedEvent.create(evt),
           );
-          console.log(`pushing ${events.length} events to event stream`);
+          debug(`pushing ${events.length} events to event stream`);
           this.eventStream.enqueue({
             requestId: schema.RequestId.create(envelope.requestId),
             events,

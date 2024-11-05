@@ -9,7 +9,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDisconnect } from "wagmi";
-import debugLib from "debug";
+
+import { logger } from "@massmarket/utils";
 
 import { Order, OrderId, OrderState, Status } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
@@ -37,9 +38,8 @@ const customerMenu = [
   { title: "Share", img: "menu-share.svg", href: "/" },
 ];
 
-const debug = debugLib("frontend:Navigation");
-const log = debugLib("log:Navigation");
-log.color = "242";
+const debug = logger("frontend:Navigation");
+const log = logger("log:Navigation", "info");
 
 function Navigation() {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);

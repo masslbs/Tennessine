@@ -11744,7 +11744,6 @@
             "npm:@walletconnect/types@^2.13.0",
             "npm:autoprefixer@^10.4.16",
             "npm:clsx@^2.1.0",
-            "npm:debug@^4.3.6",
             "npm:dotenv@^16.4.5",
             "npm:encoding@~0.1.13",
             "npm:eslint-plugin-react@^7.33.2",
@@ -11795,6 +11794,7 @@
       "packages/utils": {
         "packageJson": {
           "dependencies": [
+            "npm:@sentry/nextjs@^8.36.0",
             "npm:buffer@^6.0.3",
             "npm:viem@^2.16.3"
           ]

@@ -4,10 +4,7 @@
 
 "use client";
 
-import debugLib from "debug";
-import React from "react";
-import { useState, type ReactNode } from "react";
-
+import React, { useState, type ReactNode } from "react";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -21,9 +18,6 @@ import { MerchantProvider } from "@/context/MerchantContext";
 
 export function Providers(props: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
-  if (process.env.NEXT_PUBLIC_DEBUG) {
-    debugLib.enable(process.env.NEXT_PUBLIC_DEBUG);
-  }
 
   return (
     <WagmiProvider config={config}>

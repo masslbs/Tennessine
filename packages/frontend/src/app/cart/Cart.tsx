@@ -5,8 +5,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import debugLib from "debug";
-import { formatUnitsFromString } from "@massmarket/utils";
+import { formatUnitsFromString, logger } from "@massmarket/utils";
 import { ItemId, OrderId, OrderState, Order } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
@@ -14,9 +13,8 @@ import Button from "@/app/common/components/Button";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 
-const debug = debugLib("frontend:Cart");
-const log = debugLib("log:Cart");
-log.color = "242";
+const debug = logger("frontend:Cart");
+const log = logger("log:Cart", "info");
 
 function Cart({
   onCheckout,

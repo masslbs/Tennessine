@@ -1,13 +1,13 @@
 import React from "react";
-import debugLib from "debug";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useSendTransaction, useAccount } from "wagmi";
+
+import { logger } from "@massmarket/utils";
 
 import { ConnectWalletButton } from "@/app/common/components/ConnectWalletButton";
 import Button from "@/app/common/components/Button";
 
-const log = debugLib("log:Checkout");
-log.color = "242";
+const log = logger("log:SendTransaction", "info");
 
 export default function SendTransaction({
   purchaseAddress,

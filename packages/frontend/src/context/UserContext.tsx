@@ -9,14 +9,13 @@ import { privateKeyToAccount } from "viem/accounts";
 import { hardhat, mainnet, sepolia } from "viem/chains";
 import { usePathname } from "next/navigation";
 import { useSearchParams } from "next/navigation";
-import debugLib from "debug";
 import * as Sentry from "@sentry/nextjs";
 
 import {
   discoverRelay,
   type RelayEndpoint,
 } from "@massmarket/client";
-import { random32BytesHex } from "@massmarket/utils";
+import { random32BytesHex, logger } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 
 import { createPublicClientForChain, createWalletClientForChain } from "@/app/utils";
@@ -46,13 +45,14 @@ export const UserContext = createContext<ClientContext>({
   setClientStateManager: () => {},
 });
 
+const namespace = "frontend:user-context";
+const debug = logger(namespace);
+const log = logger(namespace, "info");
+const warn = logger(namespace, "warn");
+
 export const UserContextProvider = (
   props: React.HTMLAttributes<HTMLDivElement>,
 ) => {
-  const debug = debugLib("frontend:UserContext");
-  const log = debugLib("log:UserContext");
-  log.color = "242";
-
   const pathname = usePathname();
   const { data: _wallet, status: walletStatus } = useWalletClient();
   const { setIsConnected, setIsMerchantView, clientConnected } = useAuth();
@@ -91,14 +91,14 @@ export const UserContextProvider = (
         tokenId: process.env["NEXT_PUBLIC_RELAY_TOKEN_ID"] as `0x${string}`,
       };
       setRelayEndpoint(re);
-      log("using environment variables for relay endpoint %o", re);
+      debug(`using environment variables for relay endpoint ${re.url}`);
     } else {
-      discoverRelay("ws://localhost:4444/v3").then((diccovered) => {
-        if (!diccovered.url) throw new Error("Relay endpoint URL not set");
-        if (!diccovered.tokenId)
+      discoverRelay("ws://localhost:4444/v3").then((discovered) => {
+        if (!discovered.url) throw new Error("Relay endpoint URL not set");
+        if (!discovered.tokenId)
           throw new Error("Relay endpoint tokenId not set");
-        setRelayEndpoint(diccovered);
-        log("using testing relay endpoint %o", diccovered);
+        setRelayEndpoint(discovered);
+        debug(`using testing relay endpoint ${discovered.url}`);
       });
     }
   }, []);
@@ -173,7 +173,7 @@ export const UserContextProvider = (
       shopId,
       relayEndpoint,
     );
-    log("ClientWithStateManager set");
+    debug("ClientWithStateManager set");
     setClientStateManager(clientStateManager);
 
     if (isMerchantPath) return;
@@ -221,7 +221,7 @@ export const UserContextProvider = (
     //Enroll KC with guest wallet.
     const guestWallet = createGuestWalletClientForChain(getUsedChain());
     const keyCard = localStorage.getItem("keyCardToEnroll");
-    log(`Enrolling KC ${keyCard}`);
+    debug(`Enrolling KC ${keyCard}`);
 
     const res = await clientWithStateManager!.relayClient!.enrollKeycard(
       guestWallet,
@@ -235,16 +235,16 @@ export const UserContextProvider = (
       const { response } =
         await clientWithStateManager!.relayClient!.authenticate();
       if (response.error) {
-        debug(response.error);
+        warn(response.error);
         throw new Error("Error while authenticating");
       }
       await clientWithStateManager!.sendGuestCheckoutSubscriptionRequest();
       localStorage.setItem("guestCheckoutKC", keyCard!);
       setIsConnected(Status.Complete);
     } else {
-      const err = new Error("Failed to enroll keycard while upgrading subscription")
-      debug(err);
-      Sentry.captureException(err);
+      const msg = `Failed to enroll keycard: ${res.error}`;
+      warn(msg);
+      Sentry.captureException(new Error(msg));
     }
   }
 

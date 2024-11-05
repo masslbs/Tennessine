@@ -1,9 +1,9 @@
 "use client";
-import debugLib from "debug";
 import { PublicClient } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import * as Sentry from "@sentry/nextjs";
 
+// conditional import to avoid problemsn during next pre-prendering
 import type { Level } from "level";
 let LevelDB: typeof Level | Error = new Error("Level not available in node");
 if (typeof window !== "undefined") {
@@ -15,13 +15,14 @@ if (typeof window !== "undefined") {
 
 import { RelayClient, type RelayEndpoint } from "@massmarket/client";
 import { StateManager } from "@massmarket/stateManager";
-import { random32BytesHex } from "@massmarket/utils";
+import { random32BytesHex, logger } from "@massmarket/utils";
 
 import { Item, Order, KeyCard, ShopManifest, Tag, ShopId } from "@/types";
 
-const debug = debugLib("frontend:ClientWithStateManager");
-const log = debugLib("log:ClientWithStateManager");
-log.color = "242";
+const debug = logger("frontend:ClientWithStateManager");
+const log = logger("log:ClientWithStateManager", "info");
+const warn = logger("warn:ClientWithStateManager", "warn");
+
 export class ClientWithStateManager {
   readonly publicClient: PublicClient;
   readonly shopId: ShopId;
@@ -42,11 +43,11 @@ export class ClientWithStateManager {
 
   async createStateManager() {
     if (LevelDB instanceof Error) {
-      throw new Error("LevelDB not available - are you running in Node?");
+      throw new Error("LevelDB not available");
     }
     const merchantKC = localStorage.getItem("merchantKC");
     const dbName = `${this.shopId.slice(0, 7)}${merchantKC ? merchantKC.slice(0, 5) : "-guest"}`;
-    debug("using level db: %o", { dbName });
+    debug(`using level db: ${dbName}`);
     const encOption = { valueEncoding: "json" };
 
     const db = new LevelDB(`./${dbName}`, encOption);
@@ -84,13 +85,15 @@ export class ClientWithStateManager {
       .eventStreamProcessing()
       .then()
       .catch((err) => {
-        debug("Error something bad happened in the stream: %o", err);
+        warn(`Error something bad happened in the stream: ${err}`);
         Sentry.captureException(err);
       });
 
     if (window && db) {
       window.addEventListener("beforeunload", () => {
-        db.close();
+        db.close().then(() => {
+          debug("level db closed");
+        });
       });
     }
 

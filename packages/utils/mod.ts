@@ -11,6 +11,38 @@ import {
   hexToBytes,
   formatUnits,
 } from "viem";
+import * as Sentry from "@sentry/nextjs";
+
+// TODO: type case first argument to captureException
+// TODO: add extras arguments (https://docs.sentry.io/platforms/javascript/guides/nextjs/enriching-events/)
+export function logger(namespace: string, level: "debug" | "info" | "warn" | "error" = "debug") {
+  return (message: string) => {
+    if (level !== "debug") {
+      Sentry.captureMessage(message, {
+        level: level as Sentry.SeverityLevel,
+        extra: {
+          namespace,
+        },
+      });
+    }
+    switch (level) {
+      case "debug":
+        console.debug(`[${namespace}] ${message}`);
+        break;
+      case "info":
+        console.info(`[${namespace}] ${message}`);
+        break;
+      case "warn":
+        console.warn(`[${namespace}] ${message}`);
+        break;
+      case "error":
+        console.error(`[${namespace}] ${message}`);
+        break;
+      default:
+        console.log(`[${namespace}] ${message}`);
+    }
+  }
+}
 
 // Type predicate to narrow undefined | null | T to T
 function isDefined<T>(value: T | undefined | null): value is T {

@@ -7,11 +7,11 @@
 import React, { useEffect, useState, ChangeEvent } from "react";
 import Image from "next/image";
 import { useChains } from "wagmi";
-import debugLib from "debug";
 import { Address } from "viem";
 
 import { UpdateShopManifest } from "@massmarket/stateManager/types";
 import { BlockchainClient } from "@massmarket/blockchain";
+import { zeroAddress, logger } from "@massmarket/utils";
 
 import { ShopManifest, ShopCurrencies, CurrencyChainOption } from "@/types";
 import { getTokenAddress } from "@/app/utils";
@@ -24,7 +24,6 @@ import ErrorMessage from "@/app/common/components/ErrorMessage";
 import SuccessToast from "@/app/common/components/SuccessToast";
 import BackButton from "@/app/common/components/BackButton";
 import Dropdown from "@/app/common/components/CurrencyDropdown";
-import { zeroAddress } from "@massmarket/utils";
 
 interface AcceptedChain {
   address: Address;
@@ -32,6 +31,8 @@ interface AcceptedChain {
   removed?: boolean;
   added?: boolean;
 }
+
+const debug = logger("frontend:storeProfile");
 
 function StoreProfile() {
   const { shopDetails } = useStoreContext();
@@ -52,7 +53,6 @@ function StoreProfile() {
     [],
   );
 
-  const debug = debugLib("frontend:storeProfile");
   const chains = useChains();
 
   useEffect(() => {
@@ -81,7 +81,7 @@ function StoreProfile() {
   }, []);
 
   useEffect(() => {
-    const onUpdateEvent = async (updatedManifest: ShopManifest) => {
+    const onUpdateEvent = (updatedManifest: ShopManifest) => {
       const { pricingCurrency, acceptedCurrencies } = updatedManifest;
       setAcceptedCurrencies(acceptedCurrencies);
       setPricingCurrency({

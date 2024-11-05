@@ -4,8 +4,9 @@
 
 "use client";
 import React, { useState, Dispatch, SetStateAction } from "react";
-import debugLib from "debug";
 import * as Sentry from "@sentry/nextjs";
+
+import { logger } from "@massmarket/utils";
 
 import { OrderState, CheckoutStep } from "@/types";
 import { useUserContext } from "@/context/UserContext";
@@ -13,9 +14,8 @@ import Button from "@/app/common/components/Button";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import BackButton from "@/app/common/components/BackButton";
 
-const debug = debugLib("frontend:ShippingDetails");
-const log = debugLib("log:ShippingDetails");
-log.color = "242";
+const debug = logger("frontend:ShippingDetails");
+const log = logger("log:ShippingDetails", "info");
 
 function ShippingDetails({
   setStep,
