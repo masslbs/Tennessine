@@ -1121,8 +1121,16 @@ class KeycardNonceManager extends PublicObjectManager<number> {
     await this.store.put(seqEvt.signer, Number(seqEvt.event.nonce));
   }
 
-  get(key: `0x${string}`) {
-    return this.store.get(key);
+  async get(key: `0x${string}`) {
+    try {
+      return await this.store.get(key);
+    } catch (error) {
+      const e = error as IError;
+      if (e.notFound) {
+        return 1;
+      }
+      throw new Error(e.code);
+    }
   }
 }
 

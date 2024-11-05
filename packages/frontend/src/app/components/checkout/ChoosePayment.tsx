@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Dispatch, SetStateAction } from "react";
 import { useChains } from "wagmi";
-import { createPublicClient, http, pad } from "viem";
+import { pad } from "viem";
 import Image from "next/image";
 import debugLib from "debug";
 import * as Sentry from "@sentry/nextjs";
@@ -17,7 +17,7 @@ import {
   CurrencyChainOption,
   CheckoutStep,
 } from "@/types";
-import { getTokenInformation } from "@/app/utils";
+import { getTokenInformation, createPublicClientForChain } from "@/app/utils";
 import { useUserContext } from "@/context/UserContext";
 import Dropdown from "@/app/common/components/CurrencyDropdown";
 import BackButton from "@/app/common/components/BackButton";
@@ -113,26 +113,24 @@ export default function ChoosePayment({
         throw new Error("No payment details found");
       }
       const { currency, payee } = committedOrder.choosePayment;
+      if (currency.chainId !== payee.chainId) {
+        throw new Error("Currency and payee chainId mismatch");
+      }
       const { total, shopSignature, ttl } = committedOrder.paymentDetails;
       const chosenPaymentChain = chains.find(
         (chain) => currency.chainId === chain.id,
       );
+      if (!chosenPaymentChain) {
+        throw new Error("No chosen payment chain found");
+      }
       //Create public client with correct chainId.
-      const chosenPaymentPublicClient = createPublicClient({
-        chain: chosenPaymentChain,
-        transport: http("https://1rpc.io/sepolia"),
-      });
+      const paymentRPC = createPublicClientForChain(chosenPaymentChain);
 
       const [symbol, decimal] = await getTokenInformation(
-        chosenPaymentPublicClient,
+        paymentRPC,
         currency.address,
       );
 
-      const payeeChain = chains.find((chain) => payee.chainId === chain.id);
-      const paymentRPC = createPublicClient({
-        chain: payeeChain,
-        transport: http("https://1rpc.io/sepolia"),
-      });
       const manifest =
         await clientWithStateManager!.stateManager!.manifest.get();
       //FIXME: get orderHash from paymentDetails.
@@ -184,10 +182,7 @@ export default function ChoosePayment({
         if (!chain) {
           throw new Error("Chain not found");
         }
-        const tokenPublicClient = createPublicClient({
-          chain,
-          transport: http("https://1rpc.io/sepolia"),
-        });
+        const tokenPublicClient = createPublicClientForChain(chain);
         const res = await getTokenInformation(tokenPublicClient, ac.address);
         return {
           address: ac.address,

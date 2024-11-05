@@ -4,7 +4,7 @@
 
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { Address, PublicClient } from "viem";
+import { Address, PublicClient, createPublicClient, http, type Chain  } from "viem";
 import { sepolia, hardhat } from "wagmi/chains";
 import { ReadonlyURLSearchParams } from "next/navigation";
 
@@ -51,6 +51,23 @@ export const createQueryString = (
 export const isValidHex = (hex: string) => {
   return Boolean(hex.match(/^0x[0-9a-f]+$/i));
 };
+
+let defaultRPC = (process && process.env && process.env.NEXT_PUBLIC_ETH_RPC_URL) || "http://localhost:8545";
+
+export function createPublicClientForChain(chain: Chain) {
+  return createPublicClient({
+    chain,
+    transport: http(defaultRPC),
+  });
+}
+
+export function createGuestWalletClientForChain(chain: Chain) {
+  return createWalletClient({
+    account: random32BytesHex(),
+    chain,
+    transport: http(defaultRPC),
+  });
+}
 
 export const getTokenInformation = (
   publicClient: PublicClient,

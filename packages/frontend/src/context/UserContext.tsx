@@ -4,7 +4,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useEnsAvatar, useWalletClient } from "wagmi";
-import { http, createPublicClient, createWalletClient } from "viem";
+import { http, createWalletClient } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { hardhat, mainnet, sepolia } from "viem/chains";
 import { usePathname } from "next/navigation";
@@ -19,6 +19,7 @@ import {
 import { random32BytesHex } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 
+import { createPublicClientForChain, createWalletClientForChain } from "@/app/utils";
 import { useAuth } from "@/context/AuthContext";
 import { type ClientContext } from "@/context/types";
 import { Status, ShopId } from "@/types";
@@ -140,10 +141,7 @@ export const UserContextProvider = (
     }
   }
 
-  const shopPublicClient = createPublicClient({
-    chain: getUsedChain(),
-    transport: http("https://1rpc.io/sepolia"),
-  });
+  const shopPublicClient = createPublicClientForChain(getUsedChain());
 
   useEffect(() => {
     if (_wallet && walletStatus == "success") {
@@ -221,11 +219,7 @@ export const UserContextProvider = (
 
   async function upgradeGuestToCustomer() {
     //Enroll KC with guest wallet.
-    const guestWallet = createWalletClient({
-      account: privateKeyToAccount(random32BytesHex()),
-      chain: getUsedChain(),
-      transport: http("https://1rpc.io/sepolia"),
-    });
+    const guestWallet = createGuestWalletClientForChain(getUsedChain());
     const keyCard = localStorage.getItem("keyCardToEnroll");
     log(`Enrolling KC ${keyCard}`);
 

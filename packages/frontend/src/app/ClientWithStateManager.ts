@@ -47,33 +47,22 @@ export class ClientWithStateManager {
     const merchantKC = localStorage.getItem("merchantKC");
     const dbName = `${this.shopId.slice(0, 7)}${merchantKC ? merchantKC.slice(0, 5) : "-guest"}`;
     debug("using level db: %o", { dbName });
-    const db = new LevelDB(`./${dbName}`, {
-      valueEncoding: "json",
-    });
+    const encOption = { valueEncoding: "json" };
+
+    const db = new LevelDB(`./${dbName}`, encOption);
     // Set up all the stores via sublevel
-    const listingStore = db.sublevel<string, Item>("listingStore", {
-      valueEncoding: "json",
-    });
-    const tagStore = db.sublevel<string, Tag>("tagStore", {
-      valueEncoding: "json",
-    });
+    const listingStore = db.sublevel<string, Item>("listingStore", encOption);
+    const tagStore = db.sublevel<string, Tag>("tagStore", encOption);
     const shopManifestStore = db.sublevel<string, ShopManifest>(
       "shopManifestStore",
-      {
-        valueEncoding: "json",
-      },
+      encOption,
     );
-    const orderStore = db.sublevel<string, Order>("orderStore", {
-      valueEncoding: "json",
-    });
-
-    const keycardStore = db.sublevel<string, KeyCard>("keycardStore", {
-      valueEncoding: "json",
-    });
-
-    const keycardNonceStore = db.sublevel<string, number>("keycardNonceStore", {
-      valueEncoding: "json",
-    });
+    const orderStore = db.sublevel<string, Order>("orderStore", encOption);
+    const keycardStore = db.sublevel<string, KeyCard>("keycardStore", encOption);
+    const keycardNonceStore = db.sublevel<string, number>(
+      "keycardNonceStore",
+      encOption,
+    );
 
     this.stateManager = new StateManager(
       this.relayClient!,

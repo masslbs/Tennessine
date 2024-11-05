@@ -4,12 +4,12 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useChains } from "wagmi";
-import { createPublicClient, http, Address } from "viem";
+import { Address } from "viem";
 
 import * as abi from "@massmarket/contracts";
 import { StoreContent } from "@/context/types";
 import { useUserContext } from "@/context/UserContext";
-import { getTokenInformation } from "@/app/utils";
+import { getTokenInformation, createPublicClientForChain } from "@/app/utils";
 
 // @ts-expect-error FIXME
 export const StoreContext = createContext<StoreContent>({});
@@ -53,10 +53,10 @@ export const StoreContextProvider = (
       await clientWithStateManager!.stateManager!.manifest.get();
     const { chainId, address } = manifest.pricingCurrency;
     const chain = chains.find((chain) => chainId === chain.id);
-    const baseTokenPublicClient = createPublicClient({
-      chain,
-      transport: http("https://1rpc.io/sepolia"),
-    });
+    if (!chain) {
+      throw new Error("No chain found");
+    }
+    const baseTokenPublicClient = createPublicClientForChain(chain);
     const res = await getTokenInformation(baseTokenPublicClient, address!);
     return res;
   }

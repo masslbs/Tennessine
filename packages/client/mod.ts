@@ -6,14 +6,17 @@ import { EventEmitter } from "events";
 import { Buffer } from "buffer";
 import { WebSocket } from "isows";
 import { hexToBytes, hexToBigInt, toBytes } from "viem";
-import { PrivateKeyAccount } from "viem/accounts";
+import type { PrivateKeyAccount } from "viem/accounts";
 import { createSiweMessage } from "viem/siwe";
+import debugLib from "debug";
 
 import schema, { EnvelopMessageTypes } from "@massmarket/schema";
-import { type ConcreteWalletClient } from "@massmarket/blockchain";
+import type { ConcreteWalletClient } from "@massmarket/blockchain";
 import { hexToBase64, decodeBufferToString, assert } from "@massmarket/utils";
 
 import { ReadableEventStream } from "./stream.ts";
+
+const debug = debugLib("client");
 
 export type RelayEndpoint = {
   url: URL; // the websocket URL to talk to
@@ -90,11 +93,12 @@ export class RelayClient extends EventEmitter {
     }
     const err = schema.Envelope.verify(envelope);
     if (err) {
-      throw new Error(err);
+      throw new Error(`unable to verify envelope: ${err}`);
     }
     // Turns json into binary
     const payload = schema.Envelope.encode(envelope).finish();
     this.connection.send(payload);
+    debug(`network request ${envelope.requestId!.raw} sent - type: ${Object.keys(envelope)}`);
     this.requestCounter++;
     return schema.RequestId.create(envelope.requestId);
   }
@@ -108,9 +112,11 @@ export class RelayClient extends EventEmitter {
           const { code, message } = response.response.error;
           assert(code, "code is required");
           assert(message, "message is required");
-          console.error(`network error[${code}]: ${message}`);
-          reject(new Error(message));
+          const errorMessage = `network request ${id.raw} failed with error[${code}]: ${message}`;
+          console.error(errorMessage);
+          reject(new Error(errorMessage));
         } else {
+          debug(`network request ${id.raw} received response - type: ${Object.keys(response)}`);
           resolve(response);
         }
       });
