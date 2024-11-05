@@ -45,7 +45,11 @@ function CustomerViewProducts({ products }: { products: Item[] | null }) {
         <Link
           key={item.id}
           data-testid="product-container"
-          href={`/products/productDetail?${createQueryString("itemId", item.id, searchParams)}`}
+          href={`/products/productDetail?${createQueryString(
+            "itemId",
+            item.id,
+            searchParams,
+          )}`}
           className={`${!visible ? "opacity-50" : ""}`}
         >
           <div>
@@ -58,10 +62,10 @@ function CustomerViewProducts({ products }: { products: Item[] | null }) {
                 unoptimized={true}
                 placeholder="empty"
                 priority={true}
-                className="h-36 w-44 rounded-t-lg object-cover object-center"
+                className="h-36 w-44 rounded-t-lg object-cover object-center xxs:w-40"
               />
             </div>
-            <div className="bg-white flex flex-col gap-2 rounded-b-lg p-3 min-h-24 max-h-24 h-24 w-44">
+            <div className="bg-white flex flex-col gap-2 rounded-b-lg p-3 min-h-24 max-h-24 h-24 w-44 xxs:w-40">
               <div className="min-h-8">
                 <h3 data-testid="product-name" className="leading-4">
                   {item.metadata.title}

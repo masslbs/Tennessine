@@ -287,13 +287,13 @@ const ProductDetail = () => {
             <Image
               src={item.metadata.images[0]}
               alt="product-detail-image"
-              width={390}
+              width={380}
               height={250}
               className="border rounded-lg"
               unoptimized={true}
               style={{
                 maxHeight: "250px",
-                maxWidth: "390px",
+                width: "full",
                 objectFit: "cover",
                 objectPosition: "center",
               }}

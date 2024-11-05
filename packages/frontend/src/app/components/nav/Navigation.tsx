@@ -31,12 +31,6 @@ const merchantMenu = [
   { title: "Shop Settings", img: "menu-settings.svg", href: "/store" },
   { title: "Disconnect", img: "menu-disconnect.svg" },
 ];
-const customerMenu = [
-  { title: "Shop", img: "menu-products.svg", href: "/products" },
-  { title: "Basket", img: "menu-basket.svg", href: "/" },
-  { title: "Contact", img: "menu-contact.svg", href: "/" },
-  { title: "Share", img: "menu-share.svg", href: "/" },
-];
 
 const debug = logger("frontend:Navigation");
 const log = logger("log:Navigation", "info");
@@ -53,6 +47,13 @@ function Navigation() {
   const router = useRouter();
   const { disconnect } = useDisconnect();
 
+  const customerMenu = [
+    { title: "Shop", img: "menu-products.svg", href: "/products" },
+    { title: "Basket", img: "menu-basket.svg", href:  `/checkout?${createQueryString("step", "cart", searchParams)}` },
+    { title: "Contact", img: "menu-contact.svg", href: "/" },
+    { title: "Share", img: "menu-share.svg", href: "/" },
+  ];
+  
   useEffect(() => {
     function onChangeItems(order: Order) {
       const values = Object.values(order.items);
@@ -98,6 +99,7 @@ function Navigation() {
 
   function menuSwitch() {
     setMenuOpen(!menuOpen);
+    basketOpen && setBasketOpen(false)
   }
 
   async function onCheckout(orderId: OrderId) {
