@@ -8,9 +8,9 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { privateKeyToAccount } from "viem/accounts";
 
-import { assert, formatUnitsFromString, logger } from "@massmarket/utils";
+import { formatUnitsFromString, logger } from "@massmarket/utils";
 
-import { Listing, ListingId, Order, OrderId, Tag } from "@/types";
+import { Listing, ListingId, Tag } from "@/types";
 import { createQueryString } from "@/app/utils";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
@@ -37,73 +37,33 @@ const ProductDetail = () => {
   const [item, setItem] = useState<Listing | null>(null);
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [allTags, setAllTags] = useState(new Map());
-  const [orderId, setOrderId] = useState<OrderId | null>(null);
   const [price, setPrice] = useState("");
-  const [currentCartItems, setCurrentCart] = useState<Order["items"] | null>(
-    null,
-  );
   const [successMsg, setMsg] = useState<string | null>(null);
-
-  useEffect(() => {
-    getOpenOrderId().then((oId: OrderId | null) => {
-      oId && setOrderId(oId);
-    });
-  }, []);
-
-  useEffect(() => {
-    // If order ID changes in storeContext from event listeners change the order ID here.
-    setOrderId(openOrderId);
-  }, [openOrderId]);
-
-  useEffect(() => {
-    // Set up changeItems event listener.
-    if (orderId) {
-      const onChangeItems = (order: Order) => {
-        if (order.id === orderId) {
-          setCurrentCart(order.items);
-        }
-      };
-      clientWithStateManager!.stateManager!.orders.on(
-        "changeItems",
-        onChangeItems,
-      );
-      return () => {
-        // Cleanup listeners on unmount
-        clientWithStateManager!.stateManager!.orders.removeListener(
-          "changeItems",
-          onChangeItems,
-        );
-      };
-    }
-  });
 
   useEffect(() => {
     if (itemId) {
       //set item details
-      getBaseTokenInfo()
-        .then((baseTokenInfo) => {
-          clientWithStateManager!
-            .stateManager!.listings.get(itemId)
-            .then((item) => {
-              setItem(item);
-              const price = formatUnitsFromString(
-                item.price,
-                baseTokenInfo?.[1] || 0,
-              );
-              setPrice(price);
-            });
-        });
+      getBaseTokenInfo().then((baseTokenInfo) => {
+        clientWithStateManager.stateManager.listings
+          .get(itemId)
+          .then((item) => {
+            setItem(item);
+            const price = formatUnitsFromString(
+              item.price,
+              baseTokenInfo?.[1] || 0,
+            );
+            setPrice(price);
+          });
+      });
     }
-  }, [currentCartItems, itemId]);
+  }, [itemId]);
 
   async function getAllTags() {
     const tags = new Map();
-    for await (
-      const [
-        id,
-        tag,
-      ] of clientWithStateManager!.stateManager!.tags.iterator()
-    ) {
+    for await (const [
+      id,
+      tag,
+    ] of clientWithStateManager.stateManager.tags.iterator()) {
       tags.set(id, tag);
     }
     return tags;
@@ -114,17 +74,16 @@ const ProductDetail = () => {
       allTags.set(tag.id, tag);
       setAllTags(allTags);
     };
-    getAllTags()
-      .then((tags) => {
-        setAllTags(tags);
-      });
+    getAllTags().then((tags) => {
+      setAllTags(tags);
+    });
 
     // Listen to future events
-    clientWithStateManager!.stateManager!.tags.on("create", onCreateTag);
+    clientWithStateManager.stateManager.tags.on("create", onCreateTag);
 
     return () => {
       // Cleanup listeners on unmount
-      clientWithStateManager!.stateManager!.listings.removeListener(
+      clientWithStateManager.stateManager.listings.removeListener(
         "create",
         onCreateTag,
       );
@@ -132,39 +91,33 @@ const ProductDetail = () => {
   }, []);
 
   async function changeItems() {
-    let order_id = orderId;
+    let orderId = await getOpenOrderId();
     if (
-      !order_id &&
+      !orderId &&
       (localStorage.getItem("merchantKC") ||
         localStorage.getItem("guestCheckoutKC"))
     ) {
-      order_id = (await clientWithStateManager!.stateManager!.orders.create())
-        .id;
-      setOrderId(order_id);
-    } else if (!order_id) {
-      try {
-        //For users with no enrolled KC: upgrade subscription when adding an item to cart.
-        await upgradeGuestToCustomer();
-        const kc = localStorage.getItem("guestCheckoutKC") as `0x${string}`;
-        const keyCardWallet = privateKeyToAccount(kc);
-        await clientWithStateManager!.stateManager!.keycards.addAddress(
-          keyCardWallet.address,
-        );
-        order_id = (await clientWithStateManager!.stateManager!.orders.create())
-          .id;
-        setOrderId(order_id);
-
-        await clientWithStateManager!.stateManager!.orders.addItems(order_id, [
-          { listingId: itemId, quantity },
-        ]);
-        debug(`Added ${quantity} listing(s) to cart`);
-        setQuantity(0); // TODO: why zero?
-        setMsg("Added to cart");
-      } catch (error: unknown) {
-        assert(error instanceof Error, "Error is not an instance of Error");
-        errlog("Error updating cart", error);
-        setErrorMsg("There was an error updating cart");
-      }
+      // If no open order, but already enrolled with a keycard, just create new order.
+      orderId = (await clientWithStateManager.stateManager.orders.create()).id;
+    } else if (!orderId) {
+      //For users with no enrolled KC: upgrade subscription when adding an item to cart.
+      await upgradeGuestToCustomer();
+      const kc = localStorage.getItem("guestCheckoutKC") as `0x${string}`;
+      const keyCardWallet = privateKeyToAccount(kc);
+      await clientWithStateManager.stateManager.keycards.addAddress(
+        keyCardWallet.address,
+      );
+      orderId = (await clientWithStateManager.stateManager.orders.create()).id;
+    }
+    try {
+      await clientWithStateManager.stateManager.orders.addItems(orderId, [
+        { listingId: itemId, quantity },
+      ]);
+      setQuantity(0);
+      setMsg("Added to cart");
+    } catch (error) {
+      debug(`Error: changeItems ${error}`);
+      setErrorMsg("There was an error updating cart");
     }
   }
 
@@ -194,13 +147,11 @@ const ProductDetail = () => {
             <div className={`ml-auto ${isMerchantView ? "" : "hidden"}`}>
               <Button>
                 <Link
-                  href={`/products/edit?${
-                    createQueryString(
-                      "itemId",
-                      item.id,
-                      searchParams,
-                    )
-                  }`}
+                  href={`/products/edit?${createQueryString(
+                    "itemId",
+                    item.id,
+                    searchParams,
+                  )}`}
                 >
                   Edit
                 </Link>
@@ -222,31 +173,29 @@ const ProductDetail = () => {
                 objectPosition: "center",
               }}
             />
-            {item.metadata.images.length > 1
-              ? (
-                <div className="flex mt-2 gap-2">
-                  {item.metadata.images.map((image, i) => {
-                    return (
-                      <img
-                        key={i}
-                        src={image}
-                        alt="product-detail-image"
-                        width={90}
-                        height={81}
-                        className="border rounded-lg"
-                        unoptimized={true}
-                        style={{
-                          maxHeight: "81px",
-                          maxWidth: "90px",
-                          objectFit: "cover",
-                          objectPosition: "center",
-                        }}
-                      />
-                    );
-                  })}
-                </div>
-              )
-              : null}
+            {item.metadata.images.length > 1 ? (
+              <div className="flex mt-2 gap-2">
+                {item.metadata.images.map((image, i) => {
+                  return (
+                    <img
+                      key={i}
+                      src={image}
+                      alt="product-detail-image"
+                      width={90}
+                      height={81}
+                      className="border rounded-lg"
+                      unoptimized={true}
+                      style={{
+                        maxHeight: "81px",
+                        maxWidth: "90px",
+                        objectFit: "cover",
+                        objectPosition: "center",
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            ) : null}
           </div>
           <section className="flex gap-4 flex-col bg-white mt-5 rounded-md p-5">
             <div>
@@ -282,7 +231,17 @@ const ProductDetail = () => {
                   Add to basket
                 </h5>
                 <Button onClick={changeItems} disabled={!quantity}>
-                  Add to basket
+                  <div className="flex items-center gap-2">
+                    <p>Add to basket</p>
+                    <Image
+                      src="/icons/white-arrow.svg"
+                      alt="white-arrow"
+                      width={7}
+                      height={12}
+                      unoptimized={true}
+                      style={{ display: quantity ? "" : "none" }}
+                    />
+                  </div>
                 </Button>
               </div>
             </div>

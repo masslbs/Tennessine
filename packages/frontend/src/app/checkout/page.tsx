@@ -16,6 +16,7 @@ import Cart from "@/app/cart/Cart";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import ShippingDetails from "@/app/components/checkout/ShippingDetails";
 import ChoosePayment from "@/app/components/checkout/ChoosePayment";
+import TimerExpiration from "@/app/components/checkout/TimerExpiration";
 
 const namespace = "frontend:Checkout";
 const debug = logger(namespace);
@@ -27,7 +28,6 @@ const CheckoutFlow = () => {
 
   const searchParams = useSearchParams();
   const stepParam = searchParams.get("step") as CheckoutStep;
-  debug(`Starting checkout flow: ${stepParam}`);
 
   const [step, setStep] = useState<CheckoutStep>(
     stepParam ?? CheckoutStep.cart,
@@ -36,6 +36,24 @@ const CheckoutFlow = () => {
   const [txHash, setTxHash] = useState<null | `0x${string}`>(null);
   const [blockHash, setBlockHash] = useState<null | `0x${string}`>(null);
   const [displayedAmount, setDisplayedAmount] = useState<null | string>(null);
+  const [countdown, setCountdown] = useState(60);
+  const [isRunning, setIsRunning] = useState(false);
+
+  useEffect(() => {
+    let intervalId;
+
+    if (isRunning && countdown > 0) {
+      intervalId = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+    } else if (countdown === 0) {
+      setStep(CheckoutStep.expired);
+    }
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [isRunning, countdown]);
 
   useEffect(() => {
     const txHashDetected = (order: Order) => {
@@ -62,6 +80,10 @@ const CheckoutFlow = () => {
       );
     };
   });
+
+  function startTimer() {
+    setIsRunning(true);
+  }
 
   function copyToClipboard() {
     navigator.clipboard.writeText(txHash || blockHash || "");
@@ -91,7 +113,13 @@ const CheckoutFlow = () => {
       );
     }
     if (step === CheckoutStep.shippingDetails) {
-      return <ShippingDetails setStep={setStep} />;
+      return (
+        <ShippingDetails
+          setStep={setStep}
+          startTimer={startTimer}
+          countdown={countdown}
+        />
+      );
     } else if (step === CheckoutStep.paymentDetails) {
       return (
         <ChoosePayment
@@ -100,6 +128,8 @@ const CheckoutFlow = () => {
           displayedAmount={displayedAmount}
         />
       );
+    } else if (step === CheckoutStep.expired) {
+      return <TimerExpiration />;
     } else {
       return (
         <section>

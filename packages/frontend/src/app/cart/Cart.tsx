@@ -6,7 +6,7 @@
 import React, { useEffect, useState } from "react";
 import { formatUnitsFromString, logger } from "@massmarket/utils";
 
-import { ListingId, Order, OrderId, OrderState } from "@/types";
+import { ListingId, Order, OrderId } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
 import Button from "@/app/common/components/Button";
@@ -32,11 +32,10 @@ function Cart({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    getBaseTokenInfo()
-      .then((res: [string, number]) => {
-        res && setBaseDecimal(res[1]);
-        res && setBaseSymbol(res[0]);
-      });
+    getBaseTokenInfo().then((res: [string, number]) => {
+      res && setBaseDecimal(res[1]);
+      res && setBaseSymbol(res[0]);
+    });
   }, []);
 
   useEffect(() => {
@@ -105,7 +104,8 @@ function Cart({
       if (
         (error instanceof Error &&
           error.message === "not enough items in stock for order") ||
-        error.message == "not enough stock"
+        error.message == "not enough stock" ||
+        "not in stock"
       ) {
         setErrorMsg("Not enough stock. Cart cleared.");
         await clearCart();
@@ -205,7 +205,6 @@ function Cart({
               width={127}
               height={112}
               alt="product-thumb"
-              unoptimized={true}
               className="w-32 h-28 object-cover object-center rounded-l-lg"
             />
           </div>
@@ -236,7 +235,6 @@ function Cart({
                     alt="minus"
                     width={10}
                     height={10}
-                    unoptimized={true}
                     className="w-5 h-5 max-h-5"
                   />
                 </button>
@@ -247,7 +245,6 @@ function Cart({
                     alt="plus"
                     width={10}
                     height={10}
-                    unoptimized={true}
                     className="w-5 h-5 max-h-5"
                   />
                 </button>
@@ -258,7 +255,6 @@ function Cart({
                   alt="coin"
                   width={20}
                   height={20}
-                  unoptimized={true}
                   className="w-5 h-5 max-h-5"
                 />
                 <p data-testid="price">{price}</p>
@@ -288,7 +284,6 @@ function Cart({
             alt="coin"
             width={20}
             height={20}
-            unoptimized={true}
             className="w-5 h-5 max-h-5"
           />
           <h1>{calculateTotal()}</h1>
@@ -299,7 +294,19 @@ function Cart({
           disabled={!orderId || !cartItemsMap.size || !onCheckout}
           onClick={() => handleCheckout(orderId!)}
         >
-          Checkout
+          <div className="flex items-center gap-2">
+            <p>Checkout</p>
+            <img
+              src="/icons/white-arrow.svg"
+              alt="white-arrow"
+              width={7}
+              height={12}
+              style={{
+                display:
+                  !orderId || !cartItemsMap.size || !onCheckout ? "none" : "",
+              }}
+            />
+          </div>
         </Button>
         <SecondaryButton
           disabled={!orderId || !cartItemsMap.size}

@@ -39,27 +39,18 @@ export const StoreContextProvider = (
   useEffect(() => {
     // If there is a committed order outside of the checkout flow, cancel committed order.
     if (pathname !== "/checkout/" && committedOrderId) {
-      const sm = clientWithStateManager.stateManager;
-      debug("Exited out of checkout flow after committing order.");
-      (async () => {
-        const cancelledOrder = await sm.orders.cancel(committedOrderId);
-        debug("Cancelled committed order");
-        // Once order is cancelled, create a new order and add the same items.
-        const newOrder = await sm.orders.create();
-        debug("New order created");
-        const listingsToAdd = Object.entries(cancelledOrder.items).map(
-          ([listingId, quantity]) => {
-            return {
-              listingId: listingId as ListingId,
-              quantity,
-            };
-          },
-        );
-        await sm.orders.addItems(newOrder.id, listingsToAdd);
-        debug("Listings added to new order.");
-      })();
+      cancelAndCreateOrder().then();
     }
   }, [pathname, clientWithStateManager?.stateManager]);
+
+  useEffect(() => {
+    if (committedOrderId) {
+      window.addEventListener("beforeunload", cancelAndCreateOrder);
+    }
+    return () => {
+      window.removeEventListener("beforeunload", cancelAndCreateOrder);
+    };
+  }, []);
 
   useEffect(() => {
     if (shopPublicClient && shopId) {
@@ -128,10 +119,25 @@ export const StoreContextProvider = (
     }
   }, [clientWithStateManager]);
 
+  async function cancelAndCreateOrder() {
+    const sm = clientWithStateManager.stateManager;
+    const cancelledOrder = await sm.orders.cancel(committedOrderId);
+    // Once order is cancelled, create a new order and add the same items.
+    const newOrder = await sm.orders.create();
+    const listingsToAdd = Object.entries(cancelledOrder.items).map(
+      ([listingId, quantity]) => {
+        return {
+          listingId: listingId as ListingId,
+          quantity,
+        };
+      },
+    );
+    await sm.orders.addItems(newOrder.id, listingsToAdd);
+  }
+
   async function getBaseTokenInfo() {
     //Get base token decimal and symbol.
-    const manifest =
-      await clientWithStateManager!.stateManager!.manifest.get();
+    const manifest = await clientWithStateManager!.stateManager!.manifest.get();
     const { chainId, address } = manifest.pricingCurrency;
     const chain = chains.find((chain) => chainId === chain.id);
     if (!chain) {
@@ -146,8 +152,8 @@ export const StoreContextProvider = (
       return openOrderId;
     }
     if (!clientWithStateManager) {
-      warn("stateManager not ready")
-      return null
+      warn("stateManager not ready");
+      return null;
     }
     try {
       // TODO: this still has the problem of faulting/blocking over a previous stuck order

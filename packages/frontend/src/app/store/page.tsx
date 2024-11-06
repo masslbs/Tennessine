@@ -34,9 +34,9 @@ interface AcceptedChain {
 const debug = logger("frontend:storeProfile");
 
 function StoreProfile() {
-  const { shopDetails } = useStoreContext();
+  const { shopDetails, setShopDetails } = useStoreContext();
   const { shopId, clientWallet, clientWithStateManager } = useUserContext();
-  const [storeName, setStoreName] = useState<string>("");
+  const [storeName, setStoreName] = useState<string>(shopDetails.name || "");
   const [avatar, setAvatar] = useState<FormData | null>(null);
   const [acceptedCurrencies, setAcceptedCurrencies] = useState<AcceptedChain[]>(
     [],
@@ -57,25 +57,22 @@ function StoreProfile() {
   useEffect(() => {
     if (chains) {
       const chainsToRender: CurrencyChainOption[] = [];
-      Promise.all(
-        chains.map(async (c) => {
-          chainsToRender.push({
-            label: `ETH/${c.name}`,
-            value: `${zeroAddress}/${c.id}`,
-            address: zeroAddress,
-            chainId: c.id,
-          });
-          const usdcTokenAddress = getTokenAddress("USDC", String(c.id));
-          chainsToRender.push({
-            label: `USDC/${c.name}`,
-            value: `${usdcTokenAddress}/${c.id}`,
-            address: usdcTokenAddress as `0x${string}`,
-            chainId: c.id,
-          });
-        }),
-      ).then(() => {
-        setRenderChains(chainsToRender);
+      chains.map((c) => {
+        chainsToRender.push({
+          label: `ETH/${c.name}`,
+          value: `${zeroAddress}/${c.id}`,
+          address: zeroAddress,
+          chainId: c.id,
+        });
+        const usdcTokenAddress = getTokenAddress("USDC", String(c.id));
+        chainsToRender.push({
+          label: `USDC/${c.name}`,
+          value: `${usdcTokenAddress}/${c.id}`,
+          address: usdcTokenAddress as `0x${string}`,
+          chainId: c.id,
+        });
       });
+      setRenderChains(chainsToRender);
     }
   }, []);
 
@@ -142,23 +139,21 @@ function StoreProfile() {
       um.addAcceptedCurrencies = add;
     }
     try {
-      if (!Object.keys(um).length) {
-        setValidationError("No changes found");
-        return;
+      if (Object.keys(um).length) {
+        await clientWithStateManager!.stateManager!.manifest.update(um);
       }
-      await clientWithStateManager!.stateManager!.manifest.update(um);
 
       //If avatar or store name changed, setShopMetadataURI.
       if (avatar || storeName !== shopDetails.name) {
         const metadata = {
-          name: storeName,
+          name: storeName.length ? storeName : shopDetails.name,
           //If new avatar was uploaded, upload the image, otherwise use previous image.
           image: avatar
             ? (
-              await clientWithStateManager!.relayClient!.uploadBlob(
-                avatar as FormData,
-              )
-            ).url
+                await clientWithStateManager!.relayClient!.uploadBlob(
+                  avatar as FormData,
+                )
+              ).url
             : shopDetails.profilePictureUrl,
         };
         const jsn = JSON.stringify(metadata);
@@ -166,14 +161,15 @@ function StoreProfile() {
         const file = new File([blob], "file.json");
         const formData = new FormData();
         formData.append("file", file);
-        clientWithStateManager!
-          .relayClient!.uploadBlob(formData)
-          .then(({ url }) => {
-            const blockchainClient = new BlockchainClient(shopId!);
-            blockchainClient
-              .setShopMetadataURI(clientWallet!, url)
-              .then();
-          });
+        const { url } = await clientWithStateManager!.relayClient!.uploadBlob(
+          formData,
+        );
+        const blockchainClient = new BlockchainClient(shopId!);
+        await blockchainClient.setShopMetadataURI(clientWallet!, url);
+        setShopDetails({
+          name: storeName,
+          profilePictureUrl: url,
+        });
       }
       setSuccess("Changes saved.");
     } catch (error) {
@@ -204,7 +200,7 @@ function StoreProfile() {
       );
     }
   }
-  async function handlePricingCurrency(option: CurrencyChainOption) {
+  function handlePricingCurrency(option: CurrencyChainOption) {
     const v = option.value as string;
     const [addr, chainId] = v.split("/");
     const address = addr as Address;
@@ -304,13 +300,14 @@ function StoreProfile() {
                               className="form-checkbox h-4 w-4"
                               value={c.value}
                               checked={Boolean(
-                                acceptedCurrencies.find(
-                                  (currency) =>
-                                    !currency.removed &&
+                                acceptedCurrencies.find((currency) => {
+                                  return (
+                                    (!currency.removed || currency.added) &&
                                     currency.chainId === c.chainId &&
-                                    currency.address ===
-                                      c.address!.toLowerCase(),
-                                ),
+                                    currency.address.toLowerCase() ===
+                                      c.address.toLowerCase()
+                                  );
+                                }),
                               )}
                             />
                             <span>{c.label}</span>

@@ -54,8 +54,8 @@ function Navigation() {
       img: "menu-basket.svg",
       href: `/checkout?${createQueryString("step", "cart", searchParams)}`,
     },
-    { title: "Contact", img: "menu-contact.svg", href: "/" },
-    { title: "Share", img: "menu-share.svg", href: "/" },
+    { title: "Contact", img: "menu-contact.svg", href: "/contact" },
+    { title: "Share", img: "menu-share.svg", href: "/share" },
   ];
 
   useEffect(() => {
