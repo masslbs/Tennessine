@@ -1,16 +1,12 @@
 "use client";
 import { PublicClient } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import * as Sentry from "@sentry/nextjs";
 
 // conditional import to avoid problemsn during next pre-prendering
 import type { Level } from "level";
-let LevelDB: typeof Level | Error = new Error("Level not available in node");
+let LevelDB: Promise<typeof Level> = Promise.reject(new Error("Level not available in node"));
 if (typeof window !== "undefined") {
-  void (async () => {
-    const { Level } = await import("level");
-    LevelDB = Level;
-  })();
+  LevelDB = import("level").then((m) => m.Level as typeof Level);
 }
 
 import { RelayClient, type RelayEndpoint } from "@massmarket/client";
@@ -42,15 +38,12 @@ export class ClientWithStateManager {
   }
 
   async createStateManager() {
-    if (LevelDB instanceof Error) {
-      throw new Error("LevelDB not available");
-    }
     const merchantKC = localStorage.getItem("merchantKC");
     const dbName = `${this.shopId.slice(0, 7)}${merchantKC ? merchantKC.slice(0, 5) : "-guest"}`;
     debug(`using level db: ${dbName}`);
     const encOption = { valueEncoding: "json" };
-
-    const db = new LevelDB(`./${dbName}`, encOption);
+    const ldb = await LevelDB;
+    const db = new ldb(`./${dbName}`, encOption);
     // Set up all the stores via sublevel
     const listingStore = db.sublevel<string, Item>("listingStore", encOption);
     const tagStore = db.sublevel<string, Tag>("tagStore", encOption);
