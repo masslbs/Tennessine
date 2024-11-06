@@ -11,12 +11,25 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useClient } from "@/context/AuthContext";
 import { Status } from "../types";
 
+// add _mtm to global for matomo
+declare global {
+    interface Window { _mtm: any; }
+}
+
 function Homepage() {
   const { setInviteSecret } = useUserContext();
   const { clientConnected } = useClient();
   const searchParams = useSearchParams();
   const inviteSecret = searchParams!.get("inviteSecret") as `0x${string}`;
   const router = useRouter();
+
+  // setup matomo
+  useEffect(() => {
+      const _mtm = window._mtm = window._mtm || [];
+      _mtm.push({'mtm.startTime': (new Date().getTime()), 'event': 'mtm.Start'});
+      var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+      g.async=true; g.src='https://cdn.matomo.cloud/massmarket.matomo.cloud/container_zdG0MnXu.js'; s.parentNode.insertBefore(g,s);
+  }, [])
 
   useEffect(() => {
     if (clientConnected === Status.Complete) {
