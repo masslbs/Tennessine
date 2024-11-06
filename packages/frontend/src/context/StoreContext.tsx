@@ -6,14 +6,20 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { useChains } from "wagmi";
 import { Address } from "viem";
 import { usePathname } from "next/navigation";
+
 import * as abi from "@massmarket/contracts";
+import { logger } from "@massmarket/utils";
+
 import { StoreContent } from "@/context/types";
 import { useUserContext } from "@/context/UserContext";
 import { getTokenInformation, createPublicClientForChain } from "@/app/utils";
 import { ListingId, Order, OrderState } from "@/types";
 
+const namespace = "frontend:StoreContext";
+const debug = logger(namespace);
+const warn = logger(namespace, "warn");
+const errlog = logger(namespace, "error");
 
-// @ts-expect-error FIXME
 export const StoreContext = createContext<StoreContent>({});
 
 export const StoreContextProvider = (
@@ -34,24 +40,24 @@ export const StoreContextProvider = (
     // If there is a committed order outside of the checkout flow, cancel committed order.
     if (pathname !== "/checkout/" && committedOrderId) {
       const sm = clientWithStateManager.stateManager;
-      log("Exited out of checkout flow after committing order.");
-      sm.orders.cancel(committedOrderId).then((cancelledOrder: Order) => {
-        log("Cancelled committed order");
+      debug("Exited out of checkout flow after committing order.");
+      (async () => {
+        const cancelledOrder = await sm.orders.cancel(committedOrderId);
+        debug("Cancelled committed order");
         // Once order is cancelled, create a new order and add the same items.
-        sm.orders.create().then((newOrder: Order) => {
-          log("New order created");
-          const listingsToAdd = Object.entries(cancelledOrder.items).map(
-            ([listingId, quantity]) => {
-              return {
-                listingId: listingId as ListingId,
-                quantity,
-              };
-            },
-          );
-          sm.orders.addItems(newOrder.id, listingsToAdd);
-          log("Listings added to new order.");
-        });
-      });
+        const newOrder = await sm.orders.create();
+        debug("New order created");
+        const listingsToAdd = Object.entries(cancelledOrder.items).map(
+          ([listingId, quantity]) => {
+            return {
+              listingId: listingId as ListingId,
+              quantity,
+            };
+          },
+        );
+        await sm.orders.addItems(newOrder.id, listingsToAdd);
+        debug("Listings added to new order.");
+      })();
     }
   }, [pathname, clientWithStateManager?.stateManager]);
 
@@ -140,7 +146,7 @@ export const StoreContextProvider = (
       return openOrderId;
     }
     if (!clientWithStateManager) {
-      log("stateManager not ready")
+      warn("stateManager not ready")
       return null
     }
     try {
@@ -151,17 +157,17 @@ export const StoreContextProvider = (
       if (res.length > 1) {
         debug("Multiple open orders found");
       } else if (!res.length) {
-        log("No open order found");
+        debug("No open order found");
       } else {
         setOpenOrderId(res[0]);
         return res[0];
       }
     } catch (error) {
       if (error.notFound) {
-        log("No open orders yet");
+        debug("No open orders yet");
         return null;
       }
-      throw error
+      errlog("Error getting open order", error);
     }
   }
 

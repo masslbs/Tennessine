@@ -8,8 +8,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { privateKeyToAccount } from "viem/accounts";
-import * as Sentry from "@sentry/nextjs";
-import { formatUnitsFromString, logger } from "@massmarket/utils";
+
+import { formatUnitsFromString, logger, assert } from "@massmarket/utils";
 
 import { Listing, ListingId, OrderId, Tag, Order } from "@/types";
 import { createQueryString } from "@/app/utils";
@@ -24,7 +24,7 @@ import SuccessToast from "@/app/common/components/SuccessToast";
 
 const namespace = "frontend:product-detail";
 const debug = logger(namespace);
-const log = logger(namespace, "info");
+const errlog = logger(namespace, "error");
 
 const ProductDetail = () => {
   const { getBaseTokenInfo, openOrderId, getOpenOrderId } = useStoreContext();
@@ -142,27 +142,29 @@ const ProductDetail = () => {
         .id;
       setOrderId(order_id);
     } else if (!order_id) {
-      //For users with no enrolled KC: upgrade subscription when adding an item to cart.
-      await upgradeGuestToCustomer();
-      const kc = localStorage.getItem("guestCheckoutKC") as `0x${string}`;
-      const keyCardWallet = privateKeyToAccount(kc);
-      await clientWithStateManager!.stateManager!.keycards.addAddress(
-        keyCardWallet.address,
-      );
-      order_id = (await clientWithStateManager!.stateManager!.orders.create())
-        .id;
-      setOrderId(order_id);
-    }
-    try {
-      await clientWithStateManager!.stateManager!.orders.addItems(order_id, [
-        { listingId: itemId, quantity },
-      ]);
-      log(`Added ${quantity} listing(s) to cart`);
-      setQuantity(0);
-      setMsg("Added to cart");
-    } catch (error) {
-      Sentry.captureException(error);
-      setErrorMsg("There was an error updating cart");
+      try {
+        //For users with no enrolled KC: upgrade subscription when adding an item to cart.
+        await upgradeGuestToCustomer();
+        const kc = localStorage.getItem("guestCheckoutKC") as `0x${string}`;
+        const keyCardWallet = privateKeyToAccount(kc);
+        await clientWithStateManager!.stateManager!.keycards.addAddress(
+          keyCardWallet.address,
+        );
+        order_id = (await clientWithStateManager!.stateManager!.orders.create())
+          .id;
+        setOrderId(order_id);
+
+        await clientWithStateManager!.stateManager!.orders.addItems(order_id, [
+          { listingId: itemId, quantity },
+        ]);
+        debug(`Added ${quantity} listing(s) to cart`);
+        setQuantity(0); // TODO: why zero?
+        setMsg("Added to cart");
+      } catch (error: unknown) {
+        assert(error instanceof Error, "Error is not an instance of Error");
+        errlog("Error updating cart", error);
+        setErrorMsg("There was an error updating cart");
+      }
     }
   }
 

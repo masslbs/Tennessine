@@ -18,8 +18,9 @@ import ErrorMessage from "@/app/common/components/ErrorMessage";
 import ShippingDetails from "@/app/components/checkout/ShippingDetails";
 import ChoosePayment from "@/app/components/checkout/ChoosePayment";
 
-const debug = logger("frontend:Checkout");
-const log = logger("log:Checkout", "info");
+const namespace = "frontend:Checkout";
+const debug = logger(namespace);
+const logerr = logger(namespace, "error");
 
 const CheckoutFlow = () => {
   const { clientWithStateManager } = useUserContext();
@@ -27,7 +28,7 @@ const CheckoutFlow = () => {
 
   const searchParams = useSearchParams();
   const stepParam = searchParams.get("step") as CheckoutStep;
-  log(`Starting checkout flow: ${stepParam}`);
+  debug(`Starting checkout flow: ${stepParam}`);
 
   const [step, setStep] = useState<CheckoutStep>(
     stepParam ?? CheckoutStep.cart,
@@ -44,7 +45,7 @@ const CheckoutFlow = () => {
         const bh = order.blockHash as `0x${string}`;
         tx && setTxHash(tx);
         bh && setBlockHash(bh);
-        log(`Hash received: ${tx ?? bh}`);
+        debug(`Hash received: ${tx ?? bh}`);
         setCommittedOrderId(null);
         setStep(CheckoutStep.confirmation);
       }
@@ -68,17 +69,16 @@ const CheckoutFlow = () => {
   }
 
   async function onCheckout(orderId: OrderId) {
+    if (!orderId) {
+      throw new Error("No orderId");
+    }
     try {
-      if (!orderId) {
-        debug("orderId not found");
-        throw new Error("No order found");
-      }
       await clientWithStateManager!.stateManager!.orders.commit(orderId);
-      log(`Order ID: ${orderId} committed`);
+      debug(`Order ID: ${orderId} committed`);
       setCommittedOrderId(orderId);
       setStep(CheckoutStep.shippingDetails);
     } catch (error) {
-      debug(error);
+      logerr("Error during checkout", error);
       throw error;
     }
   }

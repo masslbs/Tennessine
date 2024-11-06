@@ -10,7 +10,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDisconnect } from "wagmi";
 
-import { logger } from "@massmarket/utils";
+import { logger, assert } from "@massmarket/utils";
 
 import { Order, OrderId, OrderState, Status } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
@@ -32,8 +32,9 @@ const merchantMenu = [
   { title: "Disconnect", img: "menu-disconnect.svg" },
 ];
 
-const debug = logger("frontend:Navigation");
-const log = logger("log:Navigation", "info");
+const namespace = "frontend:Navigation";
+const debug = logger(namespace);
+const errlog = logger(namespace, "error");
 
 function Navigation() {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
@@ -114,7 +115,7 @@ function Navigation() {
       }
       await clientWithStateManager!.stateManager!.orders.commit(orderId);
       setBasketOpen(false);
-      log(`Order ID: ${orderId} committed`);
+      debug(`Order ID: ${orderId} committed`);
       setCommittedOrderId(orderId);
       router.push(
         `/checkout?${createQueryString(
@@ -123,9 +124,10 @@ function Navigation() {
           searchParams,
         )}`,
       );
-    } catch (error) {
-      debug(error);
-      throw error;
+    } catch (error: unknown) {
+      assert(error instanceof Error, "Error is not an instance of Error");
+      errlog("error committing order", error);
+      // TODO: show error to user
     }
   }
 

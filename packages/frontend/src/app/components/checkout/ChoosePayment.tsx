@@ -3,7 +3,8 @@ import { useChains } from "wagmi";
 import { pad } from "viem";
 import Image from "next/image";
 import * as Sentry from "@sentry/nextjs";
-import { formatUnitsFromString, logger } from "@massmarket/utils";
+
+import { formatUnitsFromString, logger, assert } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 import { zeroAddress } from "@massmarket/contracts";
 
@@ -24,9 +25,9 @@ import ErrorMessage from "@/app/common/components/ErrorMessage";
 import SendTransaction from "@/app/components/transactions/SendTransaction";
 import QRScan from "./QRScan";
 
-const debug = logger("frontend:ChoosePayment");
-const log = logger("frontend:ChoosePayment", "info");
-const warn = logger("frontend:ChoosePayment", "warn");
+const namespace = "frontend:ChoosePayment";
+const debug = logger(namespace);
+const errlog= logger(namespace, "error");
 
 export default function ChoosePayment({
   setStep,
@@ -56,7 +57,7 @@ export default function ChoosePayment({
       .stateManager!.manifest.get()
       .then((manifest: ShopManifest) => {
         getDisplayedChains(manifest)
-          .then((arr) => {
+        .then((arr) => {
             setManifest(manifest);
             setChains(arr);
           })
@@ -69,7 +70,7 @@ export default function ChoosePayment({
       if (order.id === committedOrderId) {
         getDetails(committedOrderId)
           .then(() => {
-            log("paymentDetails found for order");
+            debug("paymentDetails found for order");
           })
       }
     }
@@ -141,18 +142,22 @@ export default function ChoosePayment({
       });
       if (!purchaseAdd) throw new Error("No purchase address found");
       const amount = BigInt(total);
+      debug(`amount: ${amount}`);
       const payLink =
         currency.address === zeroAddress
           ? `ethereum:${purchaseAdd}?value=${amount}`
           : `ethereum:${currency.address}/transfer?address=${purchaseAdd}&uint256=${amount}`;
       setPurchaseAddr(purchaseAdd as `0x${string}`);
+      debug(`purchase address: ${purchaseAdd}`);
       setSrc(payLink);
       setCryptoTotal(amount);
-      setDisplayedAmount(`${formatUnitsFromString(total, decimal)} ${symbol}`);
+      const displayedAmount = `${formatUnitsFromString(total, decimal)} ${symbol}`;
+      debug(`displayed amount: ${displayedAmount}`);
+      setDisplayedAmount(displayedAmount);
       setStep(CheckoutStep.paymentDetails);
-    } catch (error) {
-      warn("Error getting payment details");
-      Sentry.captureException(error);
+    } catch (error: unknown) {
+      assert(error instanceof Error, "Error is not an instance of Error");
+      errlog("Error getting payment details", error as Error);
       setErrorMsg("Error getting payment details");
     }
   }
@@ -195,9 +200,9 @@ export default function ChoosePayment({
         },
       );
       debug("chosen payment set");
-    } catch (error) {
-      Sentry.captureException(error);
-      warn("Error choosing payment");
+    } catch (error: unknown) {
+      assert(error instanceof Error, "Error is not an instance of Error");
+      errlog("Error setting chosen payment", error);
       setErrorMsg("Error setting chosen payment");
     }
   }

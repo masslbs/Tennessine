@@ -4,9 +4,8 @@
 
 "use client";
 import React, { useState, Dispatch, SetStateAction } from "react";
-import * as Sentry from "@sentry/nextjs";
 
-import { logger } from "@massmarket/utils";
+import { logger, assert } from "@massmarket/utils";
 
 import { CheckoutStep } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
@@ -15,8 +14,9 @@ import Button from "@/app/common/components/Button";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import BackButton from "@/app/common/components/BackButton";
 
-const debug = logger("frontend:ShippingDetails");
-const log = logger("log:ShippingDetails", "info");
+const namespace = "frontend:ShippingDetails";
+const debug = logger(namespace);
+const errlog = logger(namespace, "error");
 
 function ShippingDetails({
   setStep,
@@ -52,11 +52,11 @@ function ShippingDetails({
           emailAddress: "example@example.com",
         },
       );
-      log("Shipping details updated");
+      debug("Shipping details updated");
       setStep(CheckoutStep.paymentDetails);
-    } catch (error) {
-      debug("error updating shipping details %o", error);
-      Sentry.captureException(error);
+    } catch (error: unknown) {
+      assert(error instanceof Error, "Error is not an instance of Error");
+      errlog("error updating shipping details", error);
       setErrorMsg("Error updating shipping details");
     }
   }

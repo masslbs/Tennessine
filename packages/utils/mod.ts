@@ -16,30 +16,52 @@ import * as Sentry from "@sentry/nextjs";
 // TODO: type case first argument to captureException
 // TODO: add extras arguments (https://docs.sentry.io/platforms/javascript/guides/nextjs/enriching-events/)
 export function logger(namespace: string, level: "debug" | "info" | "warn" | "error" = "debug") {
-  return (message: string) => {
-    if (level !== "debug") {
-      Sentry.captureMessage(message, {
+  return (message: string, error?: Error) => {
+    // Sentry handling
+    // ===============
+    if (level === "debug") {
+      // https://docs.sentry.io/platforms/javascript/guides/nextjs/enriching-events/breadcrumbs/
+      // > Sentry uses breadcrumbs to create a trail of events that happened prior to an issue. These events are very similar to traditional logs, but can record more rich structured data.
+      Sentry.addBreadcrumb({
         level: level as Sentry.SeverityLevel,
-        extra: {
-          namespace,
-        },
+        category: namespace,
+        message,
       });
+    } else { // everything but debug get's reported directly
+      if (error) { // if we have an error, we capture that and add the message and namespace as extras
+        Sentry.captureException(error, {
+          extra: {
+            message,
+            namespace,
+          },
+        });
+      } else { // if we don't have an error, we just capture the message
+        Sentry.captureMessage(message, {
+          level: level as Sentry.SeverityLevel,
+          extra: {
+            namespace,
+          },
+        });
+      }
     }
+    // standard console logging
+    // ========================
+    const stmt = `[${namespace}] ${message}` + (error ? `: ${error}` : "");
     switch (level) {
       case "debug":
-        console.debug(`[${namespace}] ${message}`);
+        console.debug(stmt);
         break;
       case "info":
-        console.info(`[${namespace}] ${message}`);
+        console.info(stmt);
         break;
       case "warn":
-        console.warn(`[${namespace}] ${message}`);
+        console.warn(stmt);
         break;
       case "error":
-        console.error(`[${namespace}] ${message}`);
+        console.error(stmt);
         break;
       default:
-        console.log(`[${namespace}] ${message}`);
+        console.log(stmt);
     }
   }
 }

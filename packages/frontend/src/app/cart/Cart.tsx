@@ -15,8 +15,9 @@ import Button from "@/app/common/components/Button";
 import SecondaryButton from "@/app/common/components/SecondaryButton";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 
-const debug = logger("frontend:Cart");
-const log = logger("log:Cart", "info");
+const namespace = "frontend:Cart";
+const debug = logger(namespace);
+const logerr = logger(namespace, "error");
 
 function Cart({
   onCheckout,
@@ -63,7 +64,7 @@ function Cart({
     // TODO: i think these functions maybe should be useState-like variables
     getOpenOrderId().then((oId: OrderId | null) => {
       if (oId) {
-        log(`Open order ID: ${oId}`);
+        debug(`Open order ID: ${oId}`);
         setOrderId(oId);
         clientWithStateManager!
           .stateManager!.orders.get(oId)
@@ -112,7 +113,7 @@ function Cart({
         await clearCart();
         return;
       }
-      debug(error);
+      logerr("Error during checkout", error);
     }
   }
 
@@ -131,9 +132,9 @@ function Cart({
         map,
       );
       setCartMap(new Map());
-      log("cart cleared");
+      debug("cart cleared");
     } catch (error) {
-      debug("Error clearing cart", error);
+      logerr("Error clearing cart", error);
     }
   }
 

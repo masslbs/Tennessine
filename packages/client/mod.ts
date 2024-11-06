@@ -97,7 +97,8 @@ export class RelayClient extends EventEmitter {
     // Turns json into binary
     const payload = schema.Envelope.encode(envelope).finish();
     this.connection.send(payload);
-    debug(`network request ${envelope.requestId!.raw} sent - type: ${Object.keys(envelope)}`);
+    const requestType = Object.keys(envelope).filter(k => k !== "requestId")[0];
+    debug(`network request ${requestType} sent id: ${envelope.requestId!.raw}`);
     this.requestCounter++;
     return schema.RequestId.create(envelope.requestId);
   }
@@ -107,15 +108,15 @@ export class RelayClient extends EventEmitter {
     const id = this.encodeAndSendNoWait(envelope);
     return new Promise((resolve, reject) => {
       this.once(id.raw.toString(), (response: schema.Envelope) => {
+        const requestType = Object.keys(response).filter(k => k !== "requestId")[0];
         if (response.response?.error) {
           const { code, message } = response.response.error;
           assert(code, "code is required");
           assert(message, "message is required");
-          const errorMessage = `network request ${id.raw} failed with error[${code}]: ${message}`;
-          console.error(errorMessage);
-          reject(new Error(errorMessage));
+          debug(`network request ${requestType} id: ${id.raw} failed with error[${code}]: ${message}`);
+          reject(new Error(message));
         } else {
-          debug(`network request ${id.raw} received response - type: ${Object.keys(response)}`);
+          debug(`network request ${requestType} id: ${id.raw} received response`);
           resolve(response);
         }
       });
@@ -222,6 +223,8 @@ export class RelayClient extends EventEmitter {
 
     const envelope = schema.Envelope.decode(payload);
     assert(envelope.requestId?.raw, "requestId is required");
+    const requestType = Object.keys(envelope).filter(k => k !== "requestId")[0];
+    debug(`network request ${requestType} id: ${envelope.requestId!.raw} received`);
     switch (envelope.message) {
       case EnvelopMessageTypes.PingRequest:
         this.#handlePingRequest(envelope);

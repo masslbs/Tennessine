@@ -9,7 +9,7 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import * as Sentry from "@sentry/nextjs";
 
-import { formatUnitsFromString, logger } from "@massmarket/utils";
+import { formatUnitsFromString, logger, assert } from "@massmarket/utils";
 
 import { Tag, ListingId, Listing, TagId, ListingViewState } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
@@ -22,8 +22,8 @@ import ValidationWarning from "@/app/common/components/ValidationWarning";
 import BackButton from "@/app/common/components/BackButton";
 
 const namespace = "frontend:edit-product";
-// const debug = logger(namespace);
-const warn = logger(namespace, "warn");
+const debug = logger(namespace);
+const errlog = logger(namespace, "error");
 
 const AddProductView = () => {
   const router = useRouter();
@@ -76,10 +76,10 @@ const AddProductView = () => {
             setUnits(item.quantity);
             setViewState(item.viewState);
           })
-          .catch((e) => {
+          .catch((e: unknown) => {
+            assert(e instanceof Error, "Error is not an instance of Error");
             setErrorMsg("Error fetching listing");
-            warn("Error fetching listing");
-            Sentry.captureException(e);
+            errlog("Error fetching listing", e);
           });
       });
     }
@@ -128,9 +128,10 @@ const AddProductView = () => {
         //manually reset value for subsequent uploads in the same session.
         e.target.value = "";
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      assert(error instanceof Error, "Error is not an instance of Error");
+      errlog("Error during image upload", error);
       setErrorMsg("Error during image upload");
-      Sentry.captureException(error);
     }
   };
 
@@ -145,9 +146,10 @@ const AddProductView = () => {
         viewState: ListingViewState.LISTING_VIEW_STATE_DELETED,
       });
       router.push("/products");
-    } catch (error) {
+    } catch (error: unknown) {
+      assert(error instanceof Error, "Error is not an instance of Error");
+      errlog("Error deleting listing", error);
       setErrorMsg("Error deleting listing");
-      Sentry.captureException(error);
     }
   };
 
@@ -170,9 +172,10 @@ const AddProductView = () => {
           );
         });
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      assert(error instanceof Error, "Error is not an instance of Error");
+      errlog("Error creating listing", error);
       setErrorMsg("Error creating listing");
-      Sentry.captureException(error);
     }
   };
 
@@ -230,9 +233,10 @@ const AddProductView = () => {
           units - productInView!.quantity,
         );
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      assert(error instanceof Error, "Error is not an instance of Error");
+      errlog("Error updating listing", error);
       setErrorMsg("Error updating listing");
-      Sentry.captureException(error);
     }
   };
 
@@ -271,8 +275,9 @@ const AddProductView = () => {
           ? await update(newItem)
           : await create(newItem);
         router.push(`/products`);
-      } catch (error) {
-        Sentry.captureException(error);
+      } catch (error: unknown) {
+        assert(error instanceof Error, "Error is not an instance of Error");
+        errlog("Error publishing listing", error);
         setErrorMsg("Error publishing listing");
       }
     }

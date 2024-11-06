@@ -19,9 +19,9 @@ import { random32BytesHex, logger } from "@massmarket/utils";
 
 import { Item, Order, KeyCard, ShopManifest, Tag, ShopId } from "@/types";
 
-const debug = logger("frontend:ClientWithStateManager");
-const log = logger("log:ClientWithStateManager", "info");
-const warn = logger("warn:ClientWithStateManager", "warn");
+const namespace = "frontend:ClientWithStateManager";
+const debug = logger(namespace);
+const logerr = logger(namespace, "error");
 
 export class ClientWithStateManager {
   readonly publicClient: PublicClient;
@@ -83,10 +83,9 @@ export class ClientWithStateManager {
     // Only start the stream once relay address is added
     this.stateManager
       .eventStreamProcessing()
-      .then()
-      .catch((err) => {
-        warn(`Error something bad happened in the stream: ${err}`);
-        Sentry.captureException(err);
+      .then(/* infinite loop*/)
+      .catch((err: Error) => {
+        logerr("Error something bad happened in the stream", err);
       });
 
     if (window && db) {
@@ -128,7 +127,7 @@ export class ClientWithStateManager {
     const eventNonceCounter = await this.stateManager!.keycardNonce.get(
       keyCardWallet.address,
     );
-    log(`Setting nonce counter to: ${eventNonceCounter + 1}`);
+    debug(`Setting nonce counter to: ${eventNonceCounter + 1}`);
     this.relayClient.nonce = eventNonceCounter + 1;
     await this.relayClient.connect();
     await this.relayClient.authenticate();

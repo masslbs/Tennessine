@@ -7,7 +7,8 @@ import { logger } from "@massmarket/utils";
 import { ConnectWalletButton } from "@/app/common/components/ConnectWalletButton";
 import Button from "@/app/common/components/Button";
 
-const log = logger("log:SendTransaction", "info");
+const namespace = "frontend:SendTransaction";
+const debug = logger(namespace);
 
 export default function SendTransaction({
   purchaseAddress,
@@ -20,7 +21,7 @@ export default function SendTransaction({
   const { status } = useAccount();
 
   function send() {
-    log(`Sending ${cryptoTotal} to: ${purchaseAddress}`);
+    debug(`Sending ${cryptoTotal} to: ${purchaseAddress}`);
     sendTransaction({
       to: purchaseAddress as `0x${string}`,
       value: cryptoTotal!,

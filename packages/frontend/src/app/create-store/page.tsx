@@ -5,13 +5,12 @@
 "use client";
 
 import React, { useState, useEffect, useRef, ChangeEvent } from "react";
-import debugLib from "debug";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { privateKeyToAccount } from "viem/accounts";
 import { useChains, useAccount } from "wagmi";
 
 import { BlockchainClient } from "@massmarket/blockchain";
-import { random32BytesHex, zeroAddress, logger } from "@massmarket/utils";
+import { random32BytesHex, zeroAddress, logger, assert } from "@massmarket/utils";
 
 import { CurrencyChainOption, Payee, ShopCurrencies, Status } from "@/types";
 import { getTokenAddress, isValidHex } from "@/app/utils";
@@ -32,8 +31,9 @@ import Confirmation from "@/app/create-store/Confirmation";
 // 3. createShopManifest
 // 4. uploadMetadata
 
-const debug = logger("frontend:create-store");
-const log = logger("log:create-store", "info");
+const namespace = "frontend:create-store";
+const debug = logger(namespace);
+const errlog = logger(namespace, "error");
 
 const StoreCreation = () => {
   const {
@@ -158,7 +158,7 @@ const StoreCreation = () => {
   }
 
   async function mintShop() {
-    log(`creating shop for ${shopId}`);
+    debug(`creating shop for ${shopId}`);
     setStoreRegistrationStatus("Minting shop...");
     try {
       if (enrollKeycard.current) {
@@ -188,7 +188,7 @@ const StoreCreation = () => {
         clientWallet!,
         rc.relayEndpoint.tokenId,
       );
-      log(`Added relay token ID:${rc.relayEndpoint.tokenId}`);
+      debug(`Added relay token ID:${rc.relayEndpoint.tokenId}`);
       receipt = await shopPublicClient!.waitForTransactionReceipt({
         hash: tx,
         // confirmations: 2,
@@ -197,9 +197,10 @@ const StoreCreation = () => {
       if (receipt.status !== "success") {
         throw new Error("Error: addRelay");
       }
-    } catch (err) {
-      setErrorMsg(`Error minting store ${err}`);
-      debug(`Error: mintShop:`, err);
+    } catch (err: unknown) {
+      assert(err instanceof Error, "Error is not an instance of Error");
+      errlog("Error minting store", err);
+      setErrorMsg(`Error minting store`);
       return;
     }
 
@@ -232,7 +233,7 @@ const StoreCreation = () => {
       // FIXME: for now we are instantiating sm after kc enroll. The reason is because we want to create a unique db name based on keycard.
       // TODO: see if it would be cleaner to pass the KC as a param
       await clientWithStateManager!.createStateManager();
-      log("StateManager created");
+      debug("StateManager created");
 
       //Add address of current kc wallet for all outgoing event verification.
       const keyCardWallet = privateKeyToAccount(keycard);
@@ -240,7 +241,7 @@ const StoreCreation = () => {
         keyCardWallet.address.toLowerCase() as `0x${string}`,
       );
 
-      log(
+      debug(
         `keycard wallet address added: ${keyCardWallet.address.toLowerCase()}`,
       );
 
@@ -250,8 +251,9 @@ const StoreCreation = () => {
       );
       await clientWithStateManager!.relayClient!.connect();
       await clientWithStateManager!.relayClient!.authenticate();
-    } catch (error) {
-      debug(`Error:enrollConnectAuthenticate ${error}`);
+    } catch (error: unknown) {
+      assert(error instanceof Error, "Error is not an instance of Error");
+      errlog("enrollConnectAuthenticate failed", error);
       setErrorMsg("Error connecting to client");
       return;
     }
@@ -260,10 +262,9 @@ const StoreCreation = () => {
 
   async function createShopManifest() {
     try {
-      log("sending merchant subscription request");
       await clientWithStateManager!.sendMerchantSubscriptionRequest();
+      debug("sent merchant subscription request");
 
-      log("creating manifest");
       const uniqueByChainId = [
         ...new Set(acceptedCurrencies.map((cur) => cur.chainId)),
       ];
@@ -294,9 +295,10 @@ const StoreCreation = () => {
         },
         shopId!,
       );
-      log("Manifest created");
-    } catch (error) {
-      debug(`Error:createShopManifest ${error}`);
+      debug("Manifest created");
+    } catch (error: unknown) {
+      assert(error instanceof Error, "Error is not an instance of Error");
+      errlog("Error creating shop manifest", error);
       setErrorMsg("Error creating shop manifest");
       return;
     }
@@ -348,19 +350,19 @@ const StoreCreation = () => {
       });
 
       if (transaction.status !== "success") {
-        debug("Error: setShopMetadataURI");
         throw new Error("Error: setShopMetadataURI");
       }
       setShopDetails({
         name: storeName,
         profilePictureUrl: imgPath.url,
       });
-
+      debug("Shop created");
       setIsMerchantView(true);
       setIsConnected(Status.Complete);
       setStep("confirmation");
-    } catch (error) {
-      debug(`Error:uploadMetadata ${error}`);
+    } catch (error: unknown) {
+      assert(error instanceof Error, "Error is not an instance of Error");
+      errlog("Error uploading metadata", error);
       setErrorMsg("Error uploading metadata");
     }
   }

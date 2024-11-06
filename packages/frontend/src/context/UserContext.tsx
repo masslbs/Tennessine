@@ -4,8 +4,6 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useEnsAvatar, useWalletClient } from "wagmi";
-import { http, createWalletClient } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
 import { hardhat, mainnet, sepolia } from "viem/chains";
 import { usePathname, useSearchParams } from "next/navigation";
 import * as Sentry from "@sentry/nextjs";
@@ -17,7 +15,10 @@ import {
 import { random32BytesHex, logger } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 
-import { createPublicClientForChain, createWalletClientForChain } from "@/app/utils";
+import { 
+  createPublicClientForChain, 
+  createGuestWalletClientForChain 
+} from "@/app/utils";
 import { useClient } from "@/context/AuthContext";
 import { type ClientContext } from "@/context/types";
 import { Status, ShopId } from "@/types";
@@ -46,8 +47,6 @@ export const UserContext = createContext<ClientContext>({
 
 const namespace = "frontend:user-context";
 const debug = logger(namespace);
-const log = logger(namespace, "info");
-const warn = logger(namespace, "warn");
 
 export const UserContextProvider = (
   props: React.HTMLAttributes<HTMLDivElement>,
@@ -142,6 +141,18 @@ export const UserContextProvider = (
 
   const shopPublicClient = createPublicClientForChain(getUsedChain());
 
+  async function checkPermissions() {
+    if (walletAddress) {
+      const hasAccess = (await shopPublicClient.readContract({
+        address: abi.addresses.ShopReg as `0x${string}`,
+        abi: abi.ShopReg,
+        functionName: "hasPermission",
+        args: [shopId, walletAddress, abi.permissions.updateRootHash],
+      })) as boolean;
+      return hasAccess;
+    } else return false;
+  }
+ 
   useEffect(() => {
     if (_wallet && walletStatus == "success") {
       setWallet(_wallet);
@@ -179,7 +190,7 @@ export const UserContextProvider = (
     (async () => {
       //If merchantKC is cached, double check that the KC has permission, then connect & authenticate.
       if (merchantKC && walletAddress) {
-        log("Connecting with merchant keycard");
+        debug("Connecting with merchant keycard");
         await clientStateManager.setClientAndConnect(merchantKC);
         const hasAccess = await checkPermissions();
         if (hasAccess) {
@@ -189,62 +200,45 @@ export const UserContextProvider = (
         }
       } else if (!merchantKC && !guestCheckoutKC) {
         //If no keycards are cached, create relayClient with guest wallet, then connect without enrolling a kc or authenticating.
-        log("Connecting without keycard");
         await clientStateManager.sendGuestSubscriptionRequest();
+        debug("connected without keycard");
         setIsConnected(Status.Complete);
       } else if (guestCheckoutKC) {
         //If guestCheckout keycard is cached, connect, authenticate, and subscribe to orders.
-        log(`Connecting with guest checkout keycard ${guestCheckoutKC}`);
-        setAuthenticated(true);
         await clientStateManager.setClientAndConnect(guestCheckoutKC);
         await clientStateManager.sendGuestCheckoutSubscriptionRequest();
-        log("Success: sendGuestCheckoutSubscriptionRequest");
+        setAuthenticated(true);
+        debug(`connected with guest checkout keycard ${guestCheckoutKC}`);
         setIsConnected(Status.Complete);
       }
     })();
   }, [relayEndpoint, walletAddress, shopId, merchantKC, guestCheckoutKC]);
-
-  async function checkPermissions() {
-    if (walletAddress) {
-      const hasAccess = (await shopPublicClient.readContract({
-        address: abi.addresses.ShopReg as `0x${string}`,
-        abi: abi.ShopReg,
-        functionName: "hasPermission",
-        args: [shopId, walletAddress, abi.permissions.updateRootHash],
-      })) as boolean;
-      return hasAccess;
-    } else return false;
-  }
 
   async function upgradeGuestToCustomer() {
     //Enroll KC with guest wallet.
     const guestWallet = createGuestWalletClientForChain(getUsedChain());
     const keyCard = localStorage.getItem("keyCardToEnroll");
     debug(`Enrolling KC ${keyCard}`);
-
     const res = await clientWithStateManager!.relayClient!.enrollKeycard(
       guestWallet,
       true,
       shopId!,
       new URL(window.location.href),
     );
-    if (res.ok) {
-      //Cancel and renew subscription with orders
-      await clientWithStateManager!.relayClient!.cancelSubscriptionRequest();
-      const { response } =
-        await clientWithStateManager!.relayClient!.authenticate();
-      if (response.error) {
-        warn(response.error);
-        throw new Error("Error while authenticating");
-      }
-      await clientWithStateManager!.sendGuestCheckoutSubscriptionRequest();
-      localStorage.setItem("guestCheckoutKC", keyCard!);
-      setIsConnected(Status.Complete);
-    } else {
-      const msg = `Failed to enroll keycard: ${res.error}`;
-      warn(msg);
-      Sentry.captureException(new Error(msg));
+    if (!res.ok) {
+      throw new Error(`Failed to enroll keycard: ${res.error}`);
     }
+    //Cancel and renew subscription with orders
+    await clientWithStateManager!.relayClient!.cancelSubscriptionRequest();
+    const { response } =
+      await clientWithStateManager!.relayClient!.authenticate();
+    if (response.error) {
+      throw new Error(`Error while authenticating: ${response.error}`);
+    }
+    await clientWithStateManager!.sendGuestCheckoutSubscriptionRequest();
+    localStorage.setItem("guestCheckoutKC", keyCard!);
+    debug("Success: upgradeGuestToCustomer");
+    setIsConnected(Status.Complete);
   }
 
   const value = {

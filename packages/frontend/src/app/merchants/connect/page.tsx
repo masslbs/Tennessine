@@ -11,7 +11,7 @@ import { Address } from "viem";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 import * as abi from "@massmarket/contracts";
-import { logger } from "@massmarket/utils";
+import { logger, assert } from "@massmarket/utils";
 
 import { Status, ShopId } from "@/types";
 import { isValidHex } from "@/app/utils";
@@ -24,7 +24,7 @@ import Confirmation from "@/app/merchants/connect/Confirmation";
 
 const namespace = "frontend:connect-merchant";
 const debug = logger(namespace);
-const log = logger(namespace, "info");
+const errlog = logger(namespace, "error");
 
 const MerchantConnectWallet = () => {
   const {
@@ -73,14 +73,16 @@ const MerchantConnectWallet = () => {
       if (uri) {
         const res = await fetch(uri);
         const data = await res.json();
+        debug("Shop found");
         setShopData(data);
         setStep("connect");
         return;
       }
       setErrorMsg("Shop not found");
-    } catch (error) {
+    } catch (error: unknown) {
+      assert(error instanceof Error, "Error is not an instance of Error");
+      errlog("Error finding shop", error);
       setErrorMsg("Error finding shop");
-      debug(error);
     }
   }
 
@@ -114,13 +116,14 @@ const MerchantConnectWallet = () => {
       if (res.ok) {
         enrollKeycard.current = true;
         keyCardToEnroll && localStorage.setItem("merchantKC", keyCardToEnroll);
-        log(`Keycard enrolled: ${keyCardToEnroll}`);
+        debug(`Keycard enrolled: ${keyCardToEnroll}`);
         await clientStateManager.createStateManager();
+        debug("StateManager created");
 
         await rc.connect();
         await rc.authenticate();
-        log("StateManager created");
         await clientStateManager.sendMerchantSubscriptionRequest();
+        debug("relayClient connected");
         setIsConnected(Status.Complete);
         setIsMerchantView(true);
         setStep("confirmation");
@@ -130,9 +133,10 @@ const MerchantConnectWallet = () => {
         throw new Error("Failed to enroll keycard");
       }
       localStorage.removeItem("keyCardToEnroll");
-    } catch (error) {
+    } catch (error: unknown) {
+      assert(error instanceof Error, "Error is not an instance of Error");
+      errlog("Error enrolling keycard", error);
       setErrorMsg(`Something went wrong. ${error}`);
-      debug(error);
     }
   }
 

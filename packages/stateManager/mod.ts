@@ -40,7 +40,6 @@ import {
 } from "@massmarket/utils";
 
 const debug = logger("stateManager");
-const info = logger("stateManager", "info");
 
 // This is an interface that is used to retrieve and store objects from a persistant layer
 export type Store<T extends ShopObjectTypes> = {
@@ -1201,7 +1200,7 @@ export class StateManager {
           functionName: "ownerOf",
           args: [tokenId],
         })) as `0x${string}`;
-        info(`adding relay: ${ownerAdd}`);
+        debug(`adding relay: ${ownerAdd}`);
         await this.keycards.addAddress(ownerAdd);
       }
     }
