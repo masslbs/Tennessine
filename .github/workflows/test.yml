@@ -113,7 +113,8 @@ jobs:
           curl http://localhost:8545/ -X POST -H 'content-type: application/json' --data-raw '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":0}'
 
       - name: Run tests
-        run: nix develop -c bash -c "deno test --allow-env --allow-net"
+        # sentry logger needs homedir
+        run: nix develop -c bash -c "deno test --allow-env --allow-net --allow-sys"
         working-directory: Tennessine/
 
       - name: build frontend
