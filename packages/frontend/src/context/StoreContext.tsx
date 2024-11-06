@@ -95,27 +95,28 @@ export const StoreContextProvider = (
         setOpenOrderId(null);
       }
     }
+
     if (clientWithStateManager?.stateManager) {
-      clientWithStateManager!.stateManager!.orders.on(
+      clientWithStateManager.stateManager.orders.on(
         "addPaymentTx",
         txHashDetected,
       );
-      clientWithStateManager!.stateManager!.orders.on("create", orderCreated);
-      clientWithStateManager!.stateManager!.orders.on(
+      clientWithStateManager.stateManager.orders.on("create", orderCreated);
+      clientWithStateManager.stateManager.orders.on(
         "orderCanceled",
         orderCancel,
       );
 
       return () => {
-        clientWithStateManager!.stateManager!.orders.removeListener(
+        clientWithStateManager.stateManager.orders.removeListener(
           "addPaymentTx",
           txHashDetected,
         );
-        clientWithStateManager!.stateManager!.orders.removeListener(
+        clientWithStateManager.stateManager.orders.removeListener(
           "create",
           orderCreated,
         );
-        clientWithStateManager!.stateManager!.orders.removeListener(
+        clientWithStateManager.stateManager.orders.removeListener(
           "orderCanceled",
           orderCancel,
         );
@@ -139,28 +140,30 @@ export const StoreContextProvider = (
   async function getOpenOrderId() {
     if (openOrderId) {
       return openOrderId;
-    } else if (clientWithStateManager) {
-      try {
-        const res =
-          await clientWithStateManager!.stateManager!.orders.getStatus(
-            OrderState.STATE_OPEN,
-          );
-        if (res.length > 1) {
-          debug("Multiple open orders found");
-        } else if (!res.length) {
-          log("No open order found");
-        } else {
-          setOpenOrderId(res[0]);
-          return res[0];
-        }
-      } catch (error) {
-        if (error.notFound) {
-          log("No open orders yet");
-          return null;
-        } else {
-          debug("Error: getOpenOrderId", error);
-        }
+    }
+    if (!clientWithStateManager) {
+      log("stateManager not ready")
+      return null
+    }
+    try {
+      // TODO: this still has the problem of faulting/blocking over a previous stuck order
+      const res = await clientWithStateManager.stateManager.orders.getStatus(
+        OrderState.STATE_OPEN,
+      );
+      if (res.length > 1) {
+        debug("Multiple open orders found");
+      } else if (!res.length) {
+        log("No open order found");
+      } else {
+        setOpenOrderId(res[0]);
+        return res[0];
       }
+    } catch (error) {
+      if (error.notFound) {
+        log("No open orders yet");
+        return null;
+      }
+      throw error
     }
   }
 

@@ -14,7 +14,7 @@ import { logger } from "@massmarket/utils";
 
 import { Order, OrderId, OrderState, Status } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
-import { useAuth } from "@/context/AuthContext";
+import { useClient } from "@/context/AuthContext";
 import { useUserContext } from "@/context/UserContext";
 import Cart from "@/app/cart/Cart";
 import { createQueryString } from "@/app/utils";
@@ -39,7 +39,7 @@ function Navigation() {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const [basketOpen, setBasketOpen] = useState<boolean>(false);
   const [cartLength, setLength] = useState<number>(0);
-  const { clientConnected, setIsConnected, isMerchantView } = useAuth();
+  const { clientConnected, setIsConnected, isMerchantView } = useClient();
   const { shopDetails, setCommittedOrderId } = useStoreContext();
   const { clientWithStateManager } = useUserContext();
   const searchParams = useSearchParams();

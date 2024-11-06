@@ -10,14 +10,16 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { privateKeyToAccount } from "viem/accounts";
 import * as Sentry from "@sentry/nextjs";
 import { formatUnitsFromString, logger } from "@massmarket/utils";
+
+import { Listing, ListingId, OrderId, Tag, Order } from "@/types";
 import { createQueryString } from "@/app/utils";
+import { useStoreContext } from "@/context/StoreContext";
+import { useUserContext } from "@/context/UserContext";
+import { useClient } from "@/context/AuthContext";
+import withClient from "@/app/components/withClient";
 import Button from "@/app/common/components/Button";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import BackButton from "@/app/common/components/BackButton";
-import { Listing, ListingId, OrderId, Tag, Order, OrderState } from "@/types";
-import { useStoreContext } from "@/context/StoreContext";
-import { useUserContext } from "@/context/UserContext";
-import { useAuth } from "@/context/AuthContext";
 import SuccessToast from "@/app/common/components/SuccessToast";
 
 const namespace = "frontend:product-detail";
@@ -29,7 +31,7 @@ const ProductDetail = () => {
   const { upgradeGuestToCustomer, clientWithStateManager } = useUserContext();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isMerchantView } = useAuth();
+  const { isMerchantView } = useClient();
   const itemId = searchParams.get("itemId") as ListingId;
 
   const [quantity, setQuantity] = useState<number>(0);
@@ -285,4 +287,4 @@ const ProductDetail = () => {
     </main>
   );
 };
-export default ProductDetail;
+export default withClient(ProductDetail);

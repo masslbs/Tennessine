@@ -15,7 +15,7 @@ import { random32BytesHex, zeroAddress, logger } from "@massmarket/utils";
 
 import { CurrencyChainOption, Payee, ShopCurrencies, Status } from "@/types";
 import { getTokenAddress, isValidHex } from "@/app/utils";
-import { useAuth } from "@/context/AuthContext";
+import { useClient } from "@/context/AuthContext";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
 import AvatarUpload from "@/app/common/components/AvatarUpload";
@@ -46,7 +46,7 @@ const StoreCreation = () => {
   } = useUserContext();
 
   const { setShopDetails } = useStoreContext();
-  const { setIsConnected, setIsMerchantView } = useAuth();
+  const { setIsConnected, setIsMerchantView } = useClient();
   const chains = useChains();
   const { status } = useAccount();
 

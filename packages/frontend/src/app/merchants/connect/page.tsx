@@ -15,7 +15,7 @@ import { logger } from "@massmarket/utils";
 
 import { Status, ShopId } from "@/types";
 import { isValidHex } from "@/app/utils";
-import { useAuth } from "@/context/AuthContext";
+import { useClient } from "@/context/AuthContext";
 import { useUserContext } from "@/context/UserContext";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import Button from "@/app/common/components/Button";
@@ -34,7 +34,7 @@ const MerchantConnectWallet = () => {
     setClientStateManager,
     relayEndpoint,
   } = useUserContext();
-  const { clientConnected, setIsConnected, setIsMerchantView } = useAuth();
+  const { clientConnected, setIsConnected, setIsMerchantView } = useClient();
   const enrollKeycard = useRef(false);
   const { status } = useAccount();
 

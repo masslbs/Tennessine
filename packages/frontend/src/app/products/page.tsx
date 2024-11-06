@@ -7,10 +7,10 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 
-import { Item, Tag } from "@/types";
+import { Listing, Tag } from "@/types";
 import { useUserContext } from "@/context/UserContext";
-import { useAuth } from "@/context/AuthContext";
-import withAuth from "@/app/components/withAuth";
+import { useClient } from "@/context/AuthContext";
+import withClient from "@/app/components/withClient";
 import SuccessMessage from "@/app/common/components/SuccessMessage";
 import MerchantViewProducts from "@/app/components/products/MerchantViewProducts";
 import CustomerViewProducts from "@/app/components/products/CustomerViewProducts";
@@ -19,7 +19,7 @@ const Products = () => {
   const searchParams = useSearchParams();
   const { clientWithStateManager } = useUserContext();
   const success = searchParams?.get("success");
-  const { isMerchantView } = useAuth();
+  const { isMerchantView } = useClient();
 
   const [showSuccessMsg, setMsg] = useState<boolean>(success !== null);
   const [products, setProducts] = useState(new Map());
@@ -57,11 +57,11 @@ const Products = () => {
       }
       setProducts(l);
     };
-    const onAddItemId = (item: Item) => {
+    const onAddItemId = (item: Listing) => {
       products.set(item.id, item);
       setProducts(products);
     };
-    const onRemoveItemId = (item: Item) => {
+    const onRemoveItemId = (item: Listing) => {
       products.set(item.id, item);
       setProducts(products);
     };
@@ -129,4 +129,4 @@ const Products = () => {
   );
 };
 
-export default withAuth(Products);
+export default withClient(Products);

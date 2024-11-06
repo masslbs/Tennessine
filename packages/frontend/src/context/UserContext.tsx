@@ -18,7 +18,7 @@ import { random32BytesHex, logger } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 
 import { createPublicClientForChain, createWalletClientForChain } from "@/app/utils";
-import { useAuth } from "@/context/AuthContext";
+import { useClient } from "@/context/AuthContext";
 import { type ClientContext } from "@/context/types";
 import { Status, ShopId } from "@/types";
 import { ClientWithStateManager } from "@/app/ClientWithStateManager";
@@ -54,7 +54,7 @@ export const UserContextProvider = (
 ) => {
   const pathname = usePathname();
   const { data: _wallet, status: walletStatus } = useWalletClient();
-  const { setIsConnected, setIsMerchantView, clientConnected } = useAuth();
+  const { setIsConnected, setIsMerchantView, clientConnected } = useClient();
   const searchParams = useSearchParams();
 
   const [walletAddress, setWalletAddress] = useState<`0x${string}` | null>(

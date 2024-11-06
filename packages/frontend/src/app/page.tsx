@@ -8,12 +8,12 @@ import React, { useEffect } from "react";
 
 import { useUserContext } from "@/context/UserContext";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { useClient } from "@/context/AuthContext";
 import { Status } from "../types";
 
 function Homepage() {
   const { setInviteSecret } = useUserContext();
-  const { clientConnected } = useAuth();
+  const { clientConnected } = useClient();
   const searchParams = useSearchParams();
   const inviteSecret = searchParams!.get("inviteSecret") as `0x${string}`;
   const router = useRouter();
