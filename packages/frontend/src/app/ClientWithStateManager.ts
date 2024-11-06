@@ -4,9 +4,13 @@ import { privateKeyToAccount } from "viem/accounts";
 
 // conditional import to avoid problemsn during next pre-prendering
 import type { Level } from "level";
-let LevelDB: Promise<typeof Level> = Promise.reject(new Error("Level not available in node"));
+let LevelDbAvailable = false;
+let LevelDB: Promise<typeof Level>;
 if (typeof window !== "undefined") {
-  LevelDB = import("level").then((m) => m.Level as typeof Level);
+  LevelDB = import("level").then((m) => {
+    return m.Level as typeof Level;
+  });
+  LevelDbAvailable = true;
 }
 
 import { RelayClient, type RelayEndpoint } from "@massmarket/client";
@@ -38,6 +42,10 @@ export class ClientWithStateManager {
   }
 
   async createStateManager() {
+    if (!LevelDbAvailable) {
+      debug("Level db not available");
+      return null;
+    }
     const merchantKC = localStorage.getItem("merchantKC");
     const dbName = `${this.shopId.slice(0, 7)}${merchantKC ? merchantKC.slice(0, 5) : "-guest"}`;
     debug(`using level db: ${dbName}`);
@@ -52,7 +60,10 @@ export class ClientWithStateManager {
       encOption,
     );
     const orderStore = db.sublevel<string, Order>("orderStore", encOption);
-    const keycardStore = db.sublevel<string, KeyCard>("keycardStore", encOption);
+    const keycardStore = db.sublevel<string, KeyCard>(
+      "keycardStore",
+      encOption,
+    );
     const keycardNonceStore = db.sublevel<string, number>(
       "keycardNonceStore",
       encOption,
