@@ -118,8 +118,9 @@ function Cart({
       await onCheckout!(orderId);
     } catch (error) {
       if (
-        error instanceof Error &&
-        error.message === "not enough items in stock for order"
+        (error instanceof Error &&
+          error.message === "not enough items in stock for order") ||
+        error.message == "not enough stock"
       ) {
         setErrorMsg("Not enough stock. Cart cleared.");
         await clearCart();
@@ -146,7 +147,7 @@ function Cart({
       setCartMap(new Map());
       log("cart cleared");
     } catch (error) {
-      debug(error);
+      debug("Error clearing cart", error);
     }
   }
 

@@ -6,7 +6,7 @@ import { Dispatch, SetStateAction } from "react";
 import { type PublicClient } from "viem";
 
 import { WalletClientWithAccount, RelayEndpoint } from "@massmarket/client";
-import { ShopId, ShopDetails } from "@/types";
+import { ShopId, ShopDetails, OrderId } from "@/types";
 import { ClientWithStateManager } from "@/app/ClientWithStateManager";
 
 //Types for Contexts only
@@ -34,4 +34,6 @@ export type StoreContent = {
   shopDetails: ShopDetails;
   setShopDetails: Dispatch<ShopDetails>;
   getBaseTokenInfo: () => Promise<[string, number]>;
+  setCommittedOrderId: Dispatch<OrderId>;
+  committedOrderId: OrderId;
 };

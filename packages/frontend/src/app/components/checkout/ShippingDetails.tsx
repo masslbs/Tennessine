@@ -8,7 +8,8 @@ import * as Sentry from "@sentry/nextjs";
 
 import { logger } from "@massmarket/utils";
 
-import { OrderState, CheckoutStep } from "@/types";
+import { CheckoutStep } from "@/types";
+import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
 import Button from "@/app/common/components/Button";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
@@ -23,6 +24,7 @@ function ShippingDetails({
   setStep: Dispatch<SetStateAction<CheckoutStep>>;
 }) {
   const { clientWithStateManager } = useUserContext();
+  const { committedOrderId } = useStoreContext();
 
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
@@ -34,17 +36,11 @@ function ShippingDetails({
 
   async function onUpdateShipping() {
     try {
-      const committed =
-        await clientWithStateManager!.stateManager!.orders.getStatus(
-          OrderState.STATE_COMMITED,
-        );
-      if (!committed?.length) {
-        throw new Error("Committed order not found");
-      } else if (committed?.length > 1) {
-        throw new Error("Multiple committed orders");
+      if (!committedOrderId) {
+        throw new Error("No committed order ID found");
       }
       await clientWithStateManager!.stateManager!.orders.updateShippingDetails(
-        committed[0],
+        committedOrderId,
         {
           name,
           address1: address,

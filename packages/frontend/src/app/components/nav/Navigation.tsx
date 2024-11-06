@@ -40,7 +40,7 @@ function Navigation() {
   const [basketOpen, setBasketOpen] = useState<boolean>(false);
   const [cartLength, setLength] = useState<number>(0);
   const { clientConnected, setIsConnected, isMerchantView } = useAuth();
-  const { shopDetails } = useStoreContext();
+  const { shopDetails, setCommittedOrderId } = useStoreContext();
   const { clientWithStateManager } = useUserContext();
   const searchParams = useSearchParams();
 
@@ -49,11 +49,15 @@ function Navigation() {
 
   const customerMenu = [
     { title: "Shop", img: "menu-products.svg", href: "/products" },
-    { title: "Basket", img: "menu-basket.svg", href:  `/checkout?${createQueryString("step", "cart", searchParams)}` },
+    {
+      title: "Basket",
+      img: "menu-basket.svg",
+      href: `/checkout?${createQueryString("step", "cart", searchParams)}`,
+    },
     { title: "Contact", img: "menu-contact.svg", href: "/" },
     { title: "Share", img: "menu-share.svg", href: "/" },
   ];
-  
+
   useEffect(() => {
     function onChangeItems(order: Order) {
       const values = Object.values(order.items);
@@ -99,7 +103,7 @@ function Navigation() {
 
   function menuSwitch() {
     setMenuOpen(!menuOpen);
-    basketOpen && setBasketOpen(false)
+    basketOpen && setBasketOpen(false);
   }
 
   async function onCheckout(orderId: OrderId) {
@@ -111,8 +115,13 @@ function Navigation() {
       await clientWithStateManager!.stateManager!.orders.commit(orderId);
       setBasketOpen(false);
       log(`Order ID: ${orderId} committed`);
+      setCommittedOrderId(orderId);
       router.push(
-        `/checkout?${createQueryString("step", "shippingDetails", searchParams)}`,
+        `/checkout?${createQueryString(
+          "step",
+          "shippingDetails",
+          searchParams,
+        )}`,
       );
     } catch (error) {
       debug(error);
@@ -216,7 +225,9 @@ function Navigation() {
           <h2 className="flex items-center">{shopDetails.name}</h2>
         </div>
         <section
-          className={`flex gap-6 p-2 ${clientConnected === Status.Complete ? "" : "hidden"}`}
+          className={`flex gap-6 p-2 ${
+            clientConnected === Status.Complete ? "" : "hidden"
+          }`}
         >
           <button
             className="relative"
@@ -231,7 +242,9 @@ function Navigation() {
               className="w-5 h-5"
             />
             <div
-              className={`${!cartLength ? "hidden" : ""} bg-red-700 rounded-full absolute top-0 left-3 w-4 h-4 flex justify-center items-center`}
+              className={`${
+                !cartLength ? "hidden" : ""
+              } bg-red-700 rounded-full absolute top-0 left-3 w-4 h-4 flex justify-center items-center`}
             >
               <p className="text-white text-[10px]">{cartLength}</p>
             </div>

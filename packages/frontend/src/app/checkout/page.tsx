@@ -12,6 +12,7 @@ import { logger } from "@massmarket/utils";
 
 import { OrderState, Order, CheckoutStep, OrderId } from "@/types";
 import { useUserContext } from "@/context/UserContext";
+import { useStoreContext } from "@/context/StoreContext";
 import Cart from "@/app/cart/Cart";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import ShippingDetails from "@/app/components/checkout/ShippingDetails";
@@ -22,11 +23,15 @@ const log = logger("log:Checkout", "info");
 
 const CheckoutFlow = () => {
   const { clientWithStateManager } = useUserContext();
+  const { setCommittedOrderId } = useStoreContext();
+
   const searchParams = useSearchParams();
   const stepParam = searchParams.get("step") as CheckoutStep;
   log(`Starting checkout flow: ${stepParam}`);
 
-  const [step, setStep] = useState<CheckoutStep>(stepParam || "cart");
+  const [step, setStep] = useState<CheckoutStep>(
+    stepParam ?? CheckoutStep.cart,
+  );
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [txHash, setTxHash] = useState<null | `0x${string}`>(null);
   const [blockHash, setBlockHash] = useState<null | `0x${string}`>(null);
@@ -40,6 +45,7 @@ const CheckoutFlow = () => {
         tx && setTxHash(tx);
         bh && setBlockHash(bh);
         log(`Hash received: ${tx ?? bh}`);
+        setCommittedOrderId(null);
         setStep(CheckoutStep.confirmation);
       }
     };
@@ -69,6 +75,7 @@ const CheckoutFlow = () => {
       }
       await clientWithStateManager!.stateManager!.orders.commit(orderId);
       log(`Order ID: ${orderId} committed`);
+      setCommittedOrderId(orderId);
       setStep(CheckoutStep.shippingDetails);
     } catch (error) {
       debug(error);

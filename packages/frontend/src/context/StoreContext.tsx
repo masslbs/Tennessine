@@ -5,11 +5,15 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useChains } from "wagmi";
 import { Address } from "viem";
+import { usePathname } from "next/navigation";
 
 import * as abi from "@massmarket/contracts";
 import { StoreContent } from "@/context/types";
 import { useUserContext } from "@/context/UserContext";
 import { getTokenInformation, createPublicClientForChain } from "@/app/utils";
+import { getTokenInformation } from "@/app/utils";
+import { ListingId, Order } from "@/types";
+
 
 // @ts-expect-error FIXME
 export const StoreContext = createContext<StoreContent>({});
@@ -19,11 +23,38 @@ export const StoreContextProvider = (
 ) => {
   const chains = useChains();
   const { clientWithStateManager, shopPublicClient, shopId } = useUserContext();
+  const pathname = usePathname();
 
   const [shopDetails, setShopDetails] = useState({
     name: "",
     profilePictureUrl: "",
   });
+  const [committedOrderId, setCommittedOrderId] = useState(null);
+
+  useEffect(() => {
+    // If there is a committed order outside of the checkout flow, cancel committed order.
+    if (pathname !== "/checkout/" && committedOrderId) {
+      const sm = clientWithStateManager.stateManager;
+      log("Exited out of checkout flow after committing order.");
+      sm.orders.cancel(committedOrderId).then((cancelledOrder: Order) => {
+        log("Cancelled committed order");
+        // Once order is cancelled, create a new order and add the same items.
+        sm.orders.create().then((newOrder: Order) => {
+          log("New order created");
+          const listingsToAdd = Object.entries(cancelledOrder.items).map(
+            ([listingId, quantity]) => {
+              return {
+                listingId: listingId as ListingId,
+                quantity,
+              };
+            },
+          );
+          sm.orders.addItems(newOrder.id, listingsToAdd);
+          log("Listings added to new order.");
+        });
+      });
+    }
+  }, [pathname, clientWithStateManager?.stateManager]);
 
   useEffect(() => {
     if (shopPublicClient && shopId) {
@@ -65,6 +96,8 @@ export const StoreContextProvider = (
     shopDetails,
     setShopDetails,
     getBaseTokenInfo,
+    setCommittedOrderId,
+    committedOrderId,
   };
 
   return (

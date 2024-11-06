@@ -34,14 +34,10 @@ const ProductDetail = () => {
 
   const [quantity, setQuantity] = useState<number>(0);
   const [item, setItem] = useState<Listing | null>(null);
-  const [addedToCart, setAddedToCart] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [allTags, setAllTags] = useState(new Map());
   const [orderId, setOrderId] = useState<OrderId | null>(null);
   const [price, setPrice] = useState("");
-  const [buttonState, setButton] = useState<"Success" | "Review" | "Update">(
-    "Review",
-  );
   const [currentCartItems, setCurrentCart] = useState<Order["items"] | null>(
     null,
   );
@@ -57,12 +53,6 @@ const ProductDetail = () => {
           warn("No open order found");
         } else {
           setOrderId(res[0]);
-          clientWithStateManager!
-            .stateManager!.orders.get(res[0])
-            .then((order) => {
-              const orderItems = order.items;
-              setCurrentCart(orderItems);
-            })
         }
       })
   }, []);
@@ -73,14 +63,24 @@ const ProductDetail = () => {
         setOrderId(null);
       }
     }
+    function orderCreated(order: Order) {
+      setOrderId(order.id);
+    }
+
     clientWithStateManager!.stateManager!.orders.on(
       "addPaymentTx",
       txHashDetected,
     );
+    clientWithStateManager!.stateManager!.orders.on("create", orderCreated);
+
     return () => {
       clientWithStateManager!.stateManager!.orders.removeListener(
         "addPaymentTx",
         txHashDetected,
+      );
+      clientWithStateManager!.stateManager!.orders.removeListener(
+        "create",
+        orderCreated,
       );
     };
   }, []);
@@ -121,15 +121,9 @@ const ProductDetail = () => {
                 baseTokenInfo?.[1] || 0,
               );
               setPrice(price);
-              if (!currentCartItems) return;
-              //Check if item is already added to cart
-              if (itemId in currentCartItems) {
-                setAddedToCart(true);
-                setQuantity(currentCartItems[itemId]);
-              }
             })
         })
-        
+
     }
   }, [currentCartItems, itemId]);
 
@@ -189,27 +183,12 @@ const ProductDetail = () => {
       setOrderId(order_id);
     }
     try {
-      const diff = !addedToCart
-        ? quantity
-        : quantity - currentCartItems![itemId];
-
-      if (diff > 0) {
-        await clientWithStateManager!.stateManager!.orders.addItems(order_id, [
-          { listingId: itemId, quantity: diff },
-        ]);
-      } else {
-        await clientWithStateManager!.stateManager!.orders.removeItems(
-          order_id,
-          [
-            {
-              listingId: itemId,
-              quantity: currentCartItems![itemId]! - quantity,
-            },
-          ],
-        );
-      }
+      await clientWithStateManager!.stateManager!.orders.addItems(order_id, [
+        { listingId: itemId, quantity },
+      ]);
+      log(`Added ${quantity} listing(s) to cart`);
+      setQuantity(0);
       setMsg("Added to cart");
-      setButton("Review");
     } catch (error) {
       Sentry.captureException(error);
       setErrorMsg("There was an error updating cart");
@@ -217,38 +196,6 @@ const ProductDetail = () => {
   }
 
   if (!item) return null;
-
-  function getCtaButton() {
-    if (!addedToCart) {
-      return (
-        <Button
-          data-testid="addToCart"
-          disabled={!quantity}
-          onClick={changeItems}
-        >
-          {(Number(price) * quantity).toFixed(2)}
-        </Button>
-      );
-    } else if (quantity !== currentCartItems?.[itemId]) {
-      return (
-        <Button data-testid="updateQty" onClick={changeItems}>
-          Update Sale
-        </Button>
-      );
-    } else if (buttonState === "Review") {
-      return (
-        <Button
-          onClick={() =>
-            router.push(
-              `/checkout?${createQueryString("step", "cart", searchParams)}`,
-            )
-          }
-        >
-          Review Sale
-        </Button>
-      );
-    }
-  }
 
   function handlePurchaseQty(e: ChangeEvent<HTMLInputElement>) {
     if (typeof Number(e.target.value) !== "number") {
@@ -357,7 +304,9 @@ const ProductDetail = () => {
                 <h5 className="text-xs text-primary-gray mb-2">
                   Add to basket
                 </h5>
-                <div>{getCtaButton()}</div>
+                <Button onClick={changeItems} disabled={!quantity}>
+                  Add to basket
+                </Button>
               </div>
             </div>
             <SuccessToast message={successMsg} onClose={() => setMsg(null)} />

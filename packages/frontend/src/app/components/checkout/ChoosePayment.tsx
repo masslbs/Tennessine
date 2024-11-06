@@ -18,6 +18,7 @@ import {
 } from "@/types";
 import { getTokenInformation, createPublicClientForChain } from "@/app/utils";
 import { useUserContext } from "@/context/UserContext";
+import { useStoreContext } from "@/context/StoreContext";
 import Dropdown from "@/app/common/components/CurrencyDropdown";
 import BackButton from "@/app/common/components/BackButton";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
@@ -25,8 +26,8 @@ import QRScan from "./QRScan";
 import SendTransaction from "@/app/components/transactions/SendTransaction";
 
 const debug = logger("frontend:ChoosePayment");
-const log = logger("log:ChoosePayment", "info");
-const warn = logger("warn:ChoosePayment", "warn");
+const log = logger("frontend:ChoosePayment", "info");
+const warn = logger("frontend:ChoosePayment", "warn");
 
 export default function ChoosePayment({
   setStep,
@@ -38,6 +39,7 @@ export default function ChoosePayment({
   setDisplayedAmount: Dispatch<SetStateAction<string | null>>;
 }) {
   const { clientWithStateManager } = useUserContext();
+  const { committedOrderId } = useStoreContext();
   const chains = useChains();
 
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
@@ -48,24 +50,7 @@ export default function ChoosePayment({
   const [cryptoTotal, setCryptoTotal] = useState<bigint | null>(null);
   const [purchaseAddress, setPurchaseAddr] = useState<string | null>(null);
   const [imgSrc, setSrc] = useState<null | string>(null);
-  const [orderId, setOrderId] = useState<OrderId | null>(null);
   const [qrOpen, setQrOpen] = useState<boolean>(false);
-
-  useEffect(() => {
-    clientWithStateManager!
-      .stateManager!.orders.getStatus(OrderState.STATE_COMMITED)
-      .then((committed: OrderId[]) => {
-        if (!committed) {
-          throw new Error("No committed order found");
-        }
-        if (!committed.length) {
-          throw new Error("Committed order not found");
-        } else if (committed.length > 1) {
-          throw new Error("Multiple committed orders");
-        }
-        setOrderId(committed[0]);
-      })
-  }, []);
 
   useEffect(() => {
     clientWithStateManager!
@@ -82,12 +67,14 @@ export default function ChoosePayment({
   useEffect(() => {
     //Listen for client to send paymentDetails event.
     function onPaymentDetails(order: Order) {
-      if (order.id === orderId) {
-        log("paymentDetails found for order");
-        getDetails(orderId).then()
+      if (order.id === committedOrderId) {
+        getDetails(committedOrderId)
+          .then(() => {
+            log("paymentDetails found for order");
+          })
       }
     }
-    orderId &&
+    committedOrderId &&
       clientWithStateManager!.stateManager!.orders.on(
         "paymentDetails",
         onPaymentDetails,
@@ -100,7 +87,7 @@ export default function ChoosePayment({
         onPaymentDetails,
       );
     };
-  }, [orderId]);
+  }, [committedOrderId]);
 
   async function getDetails(oId: OrderId) {
     try {
