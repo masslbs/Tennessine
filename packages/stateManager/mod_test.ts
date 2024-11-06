@@ -62,7 +62,6 @@ async function setupTestManager() {
     publicClient,
   );
 
-  
   return {
     client,
     stateManager,
@@ -73,7 +72,7 @@ async function setupTestManager() {
       await shopManifestStore.close();
       await orderStore.close();
       await keycardStore.close();
-      await keycardNonceStore.close()
+      await keycardNonceStore.close();
     },
   };
 }
@@ -561,10 +560,17 @@ describe("CRUD functions update stores", () => {
     it("Create and changeItems", async () => {
       const order1 = await stateManager.orders.create();
       const order2 = await stateManager.orders.create();
-      await stateManager.orders.addItems(order1.id, itemId, 4);
+      await stateManager.orders.addItems(order1.id, [
+        {
+          listingId: itemId,
+          quantity: 4,
+        },
+      ]);
       const uo = await stateManager.orders.get(order1.id);
       expect(uo.items[itemId]).toEqual(4);
-      await stateManager.orders.addItems(order1.id, itemId, 5);
+      await stateManager.orders.addItems(order1.id, [
+        { listingId: itemId, quantity: 5 },
+      ]);
       const uo2 = await stateManager.orders.get(order1.id);
       expect(uo2.items[itemId]).toEqual(9);
 

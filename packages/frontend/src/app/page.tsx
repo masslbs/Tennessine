@@ -7,8 +7,7 @@
 import React, { useEffect } from "react";
 
 import { useUserContext } from "@/context/UserContext";
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Status } from "../types";
 

@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import {
-  Item,
+  Listing,
   Order,
   Metadata,
   Tag,
@@ -16,7 +16,7 @@ import {
 } from "@massmarket/stateManager/types";
 
 export {
-  type Item,
+  type Listing,
   type Order,
   type Metadata,
   type Tag,
@@ -27,7 +27,7 @@ export {
   OrderState,
   ListingViewState,
 };
-export type ItemId = `0x${string}`;
+export type ListingId = `0x${string}`;
 export type TagId = `0x${string}`;
 export type OrderId = `0x${string}`;
 export type TokenAddr = `0x${string}`;

@@ -11,7 +11,7 @@ import * as Sentry from "@sentry/nextjs";
 
 import { formatUnitsFromString, logger } from "@massmarket/utils";
 
-import { Tag, ItemId, Item, TagId, ListingViewState } from "@/types";
+import { Tag, ListingId, Listing, TagId, ListingViewState } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
 // import ProductsTags from "@/app/components/products/ProductTags";
@@ -28,12 +28,12 @@ const warn = logger(namespace, "warn");
 const AddProductView = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const itemId = searchParams.get("itemId") as ItemId | "new";
+  const itemId = searchParams.get("itemId") as ListingId | "new";
   const editView = itemId !== "new";
   const { getBaseTokenInfo } = useStoreContext();
   const { clientWithStateManager } = useUserContext();
 
-  const [productInView, setProductInView] = useState<Item | null>(null);
+  const [productInView, setProductInView] = useState<Listing | null>(null);
   const [price, setPrice] = useState<string>("");
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
@@ -95,7 +95,7 @@ const AddProductView = () => {
           .then((tag: Tag) => {
             selected.push(tag);
           })
-          
+
       }
       setSelectedTags(selected);
     }
@@ -151,19 +151,20 @@ const AddProductView = () => {
     }
   };
 
-  const create = async (newItem: Partial<Item>) => {
+  const create = async (newItem: Partial<Listing>) => {
     try {
-      const { id } = await clientWithStateManager!.stateManager!.listings.create(
-        newItem,
-        baseDecimal!,
-      );
+      const { id } =
+        await clientWithStateManager!.stateManager!.listings.create(
+          newItem,
+          baseDecimal!,
+        );
       await clientWithStateManager!.stateManager!.listings.changeInventory(
         id,
         units,
       );
       if (selectedTags.length) {
         selectedTags.map(async (t) => {
-          await clientWithStateManager!.stateManager!.listings.addItemToTag(
+          await clientWithStateManager!.stateManager!.listings.addListingToTag(
             t.id,
             id,
           );
@@ -175,11 +176,11 @@ const AddProductView = () => {
     }
   };
 
-  const update = async (newItem: Partial<Item>) => {
+  const update = async (newItem: Partial<Listing>) => {
     try {
       //compare the edited fields against the original object.
-      const diff: Partial<Item> = {
-        id: itemId as ItemId,
+      const diff: Partial<Listing> = {
+        id: itemId as ListingId,
         viewState,
       };
       if (
@@ -199,9 +200,9 @@ const AddProductView = () => {
       );
       if (newTags.length) {
         newTags.map(async ({ id }) => {
-          await clientWithStateManager!.stateManager!.listings.addItemToTag(
+          await clientWithStateManager!.stateManager!.listings.addListingToTag(
             id,
-            itemId as ItemId,
+            itemId as ListingId,
           );
         });
       }
@@ -214,7 +215,7 @@ const AddProductView = () => {
         removedTags.map(async (id: TagId) => {
           await clientWithStateManager!.stateManager!.listings.removeItemFromTag(
             id,
-            itemId as ItemId,
+            itemId as ListingId,
           );
         });
       }
@@ -225,7 +226,7 @@ const AddProductView = () => {
       );
       if (units !== productInView?.quantity) {
         await clientWithStateManager!.stateManager!.listings.changeInventory(
-          itemId as ItemId,
+          itemId as ListingId,
           units - productInView!.quantity,
         );
       }

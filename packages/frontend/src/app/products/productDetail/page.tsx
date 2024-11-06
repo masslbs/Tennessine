@@ -14,7 +14,7 @@ import { createQueryString } from "@/app/utils";
 import Button from "@/app/common/components/Button";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import BackButton from "@/app/common/components/BackButton";
-import { Item, ItemId, OrderId, Tag, Order, OrderState } from "@/types";
+import { Listing, ListingId, OrderId, Tag, Order, OrderState } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
 import { useAuth } from "@/context/AuthContext";
@@ -30,10 +30,10 @@ const ProductDetail = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isMerchantView } = useAuth();
-  const itemId = searchParams.get("itemId") as ItemId;
+  const itemId = searchParams.get("itemId") as ListingId;
 
   const [quantity, setQuantity] = useState<number>(0);
-  const [item, setItem] = useState<Item | null>(null);
+  const [item, setItem] = useState<Listing | null>(null);
   const [addedToCart, setAddedToCart] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [allTags, setAllTags] = useState(new Map());
@@ -194,11 +194,9 @@ const ProductDetail = () => {
         : quantity - currentCartItems![itemId];
 
       if (diff > 0) {
-        await clientWithStateManager!.stateManager!.orders.addItems(
-          order_id,
-          itemId,
-          diff,
-        );
+        await clientWithStateManager!.stateManager!.orders.addItems(order_id, [
+          { listingId: itemId, quantity: diff },
+        ]);
       } else {
         await clientWithStateManager!.stateManager!.orders.removeItems(
           order_id,
@@ -276,7 +274,11 @@ const ProductDetail = () => {
             <div className={`ml-auto ${isMerchantView ? "" : "hidden"}`}>
               <Button>
                 <Link
-                  href={`/products/edit?${createQueryString("itemId", item.id, searchParams)}`}
+                  href={`/products/edit?${createQueryString(
+                    "itemId",
+                    item.id,
+                    searchParams,
+                  )}`}
                 >
                   Edit
                 </Link>

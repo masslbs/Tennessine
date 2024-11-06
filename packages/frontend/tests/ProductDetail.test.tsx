@@ -5,13 +5,13 @@ import userEvent from "@testing-library/user-event";
 import { MerchantsRender, getMockClient } from "./test-utils";
 import ProductDetail from "@/app/products/productDetail/page";
 import mockRouter from "next-router-mock";
-import { OrderState, ItemId } from "@/types";
+import { OrderState, ListingId } from "@/types";
 
 describe("Product Detail Component", async () => {
   const user = userEvent.setup();
   const client = await getMockClient();
 
-  let itemId: ItemId;
+  let itemId: ListingId;
 
   test("Product Detail renders product data ", async () => {
     await act(async () => {

@@ -93,6 +93,7 @@ export interface PaymentDetails {
 }
 export interface Order {
   id: `0x${string}`;
+  //key: listingId; value: selected quantity
   items: { [key: `0x${string}`]: number };
   status: OrderState;
   shippingDetails?: ShippingDetails;

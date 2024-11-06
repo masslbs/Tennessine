@@ -89,10 +89,7 @@ async function storeOrdersByStatus(
 abstract class PublicObjectManager<
   T extends ShopObjectTypes,
 > extends EventEmitter {
-  constructor(
-    protected store: Store<T>,
-    protected client: IRelayClient,
-  ) {
+  constructor(protected store: Store<T>, protected client: IRelayClient) {
     super();
   }
 
@@ -926,11 +923,19 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
     return eventListenAndResolve<Order>(eventId, this, "create");
   }
 
-  async addItems(orderId: `0x${string}`, lId: `0x${string}`, quantity: number) {
+  async addItems(
+    orderId: `0x${string}`,
+    ls: { listingId: `0x${string}`; quantity: number }[],
+  ) {
     const eventId = await this.client.updateOrder({
       id: { raw: hexToBytes(orderId) },
       changeItems: {
-        adds: [{ listingId: { raw: hexToBytes(lId) }, quantity }],
+        adds: ls.map((i) => {
+          return {
+            listingId: { raw: hexToBytes(i.listingId) },
+            quantity: i.quantity,
+          };
+        }),
       },
     });
     // resolves after the `changeItems` event has been fired, which happens after the relay accepts the update and has written to the database.

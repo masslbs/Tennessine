@@ -7,8 +7,7 @@ import { useEnsAvatar, useWalletClient } from "wagmi";
 import { http, createWalletClient } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { hardhat, mainnet, sepolia } from "viem/chains";
-import { usePathname } from "next/navigation";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import * as Sentry from "@sentry/nextjs";
 
 import {

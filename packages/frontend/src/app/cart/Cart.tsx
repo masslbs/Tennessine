@@ -5,8 +5,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+
 import { formatUnitsFromString, logger } from "@massmarket/utils";
-import { ItemId, OrderId, OrderState, Order } from "@/types";
+
+import { ListingId, OrderId, OrderState, Order } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
 import Button from "@/app/common/components/Button";
@@ -100,11 +102,11 @@ function Cart({
     await Promise.all(
       itemIds.map(async (id) => {
         const item = await clientWithStateManager!.stateManager!.listings.get(
-          id as ItemId,
+          id as ListingId,
         );
         cartObjects.set(id, {
           ...item,
-          selectedQty: ci[id as ItemId],
+          selectedQty: ci[id as ListingId],
         });
       }),
     );
@@ -148,19 +150,20 @@ function Cart({
     }
   }
 
-  async function addQuantity(id: ItemId) {
+  async function addQuantity(id: ListingId) {
     try {
-      await clientWithStateManager!.stateManager!.orders.addItems(
-        orderId!,
-        id,
-        1,
-      );
+      await clientWithStateManager!.stateManager!.orders.addItems(orderId!, [
+        {
+          listingId: id,
+          quantity: 1,
+        },
+      ]);
     } catch (error) {
       debug(`Error:addQuantity ${error}`);
     }
   }
 
-  async function removeQuantity(id: ItemId) {
+  async function removeQuantity(id: ListingId) {
     try {
       await clientWithStateManager!.stateManager!.orders.removeItems(orderId!, [
         {
@@ -173,7 +176,7 @@ function Cart({
     }
   }
 
-  async function removeItem(id: ItemId, selectedQty: number) {
+  async function removeItem(id: ListingId, selectedQty: number) {
     try {
       await clientWithStateManager!.stateManager!.orders.removeItems(orderId!, [
         {
