@@ -41,7 +41,6 @@ export default function ChoosePayment({
   const { committedOrderId } = useStoreContext();
   const chains = useChains();
 
-  const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [displayedChains, setChains] = useState<CurrencyChainOption[] | null>(
     null,
   );

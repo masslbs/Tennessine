@@ -6,12 +6,10 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { useChains } from "wagmi";
 import { Address } from "viem";
 import { usePathname } from "next/navigation";
-
 import * as abi from "@massmarket/contracts";
 import { StoreContent } from "@/context/types";
 import { useUserContext } from "@/context/UserContext";
 import { getTokenInformation, createPublicClientForChain } from "@/app/utils";
-import { getTokenInformation } from "@/app/utils";
 import { ListingId, Order, OrderState } from "@/types";
 
 
