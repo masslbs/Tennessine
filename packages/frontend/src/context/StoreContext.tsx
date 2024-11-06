@@ -12,7 +12,7 @@ import { StoreContent } from "@/context/types";
 import { useUserContext } from "@/context/UserContext";
 import { getTokenInformation, createPublicClientForChain } from "@/app/utils";
 import { getTokenInformation } from "@/app/utils";
-import { ListingId, Order } from "@/types";
+import { ListingId, Order, OrderState } from "@/types";
 
 
 // @ts-expect-error FIXME
@@ -30,6 +30,7 @@ export const StoreContextProvider = (
     profilePictureUrl: "",
   });
   const [committedOrderId, setCommittedOrderId] = useState(null);
+  const [openOrderId, setOpenOrderId] = useState(null);
 
   useEffect(() => {
     // If there is a committed order outside of the checkout flow, cancel committed order.
@@ -78,6 +79,50 @@ export const StoreContextProvider = (
     }
   }, [shopPublicClient, shopId]);
 
+  useEffect(() => {
+    function txHashDetected(order: Order) {
+      if (order.status === OrderState.STATE_PAYMENT_TX) {
+        setOpenOrderId(null);
+      }
+    }
+    function orderCreated(order: Order) {
+      if (order.status === OrderState.STATE_OPEN) {
+        setOpenOrderId(order.id);
+      }
+    }
+    function orderCancel(order: Order) {
+      if (order.status === OrderState.STATE_CANCELED) {
+        setOpenOrderId(null);
+      }
+    }
+    if (clientWithStateManager?.stateManager) {
+      clientWithStateManager!.stateManager!.orders.on(
+        "addPaymentTx",
+        txHashDetected,
+      );
+      clientWithStateManager!.stateManager!.orders.on("create", orderCreated);
+      clientWithStateManager!.stateManager!.orders.on(
+        "orderCanceled",
+        orderCancel,
+      );
+
+      return () => {
+        clientWithStateManager!.stateManager!.orders.removeListener(
+          "addPaymentTx",
+          txHashDetected,
+        );
+        clientWithStateManager!.stateManager!.orders.removeListener(
+          "create",
+          orderCreated,
+        );
+        clientWithStateManager!.stateManager!.orders.removeListener(
+          "orderCanceled",
+          orderCancel,
+        );
+      };
+    }
+  }, [clientWithStateManager]);
+
   async function getBaseTokenInfo() {
     //Get base token decimal and symbol.
     const manifest =
@@ -91,6 +136,33 @@ export const StoreContextProvider = (
     const res = await getTokenInformation(baseTokenPublicClient, address!);
     return res;
   }
+  async function getOpenOrderId() {
+    if (openOrderId) {
+      return openOrderId;
+    } else if (clientWithStateManager) {
+      try {
+        const res =
+          await clientWithStateManager!.stateManager!.orders.getStatus(
+            OrderState.STATE_OPEN,
+          );
+        if (res.length > 1) {
+          debug("Multiple open orders found");
+        } else if (!res.length) {
+          log("No open order found");
+        } else {
+          setOpenOrderId(res[0]);
+          return res[0];
+        }
+      } catch (error) {
+        if (error.notFound) {
+          log("No open orders yet");
+          return null;
+        } else {
+          debug("Error: getOpenOrderId", error);
+        }
+      }
+    }
+  }
 
   const value = {
     shopDetails,
@@ -98,6 +170,8 @@ export const StoreContextProvider = (
     getBaseTokenInfo,
     setCommittedOrderId,
     committedOrderId,
+    openOrderId,
+    getOpenOrderId,
   };
 
   return (

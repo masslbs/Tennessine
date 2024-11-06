@@ -32,8 +32,10 @@ export type ClientContext = {
 
 export type StoreContent = {
   shopDetails: ShopDetails;
+  committedOrderId: OrderId;
+  openOrderId: OrderId;
+  getOpenOrderId: () => Promise<OrderId>;
   setShopDetails: Dispatch<ShopDetails>;
   getBaseTokenInfo: () => Promise<[string, number]>;
   setCommittedOrderId: Dispatch<OrderId>;
-  committedOrderId: OrderId;
 };

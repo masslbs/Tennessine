@@ -10,7 +10,6 @@ import { zeroAddress } from "@massmarket/contracts";
 import {
   ShopCurrencies,
   ShopManifest,
-  OrderState,
   OrderId,
   Order,
   CurrencyChainOption,
@@ -22,8 +21,8 @@ import { useStoreContext } from "@/context/StoreContext";
 import Dropdown from "@/app/common/components/CurrencyDropdown";
 import BackButton from "@/app/common/components/BackButton";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
-import QRScan from "./QRScan";
 import SendTransaction from "@/app/components/transactions/SendTransaction";
+import QRScan from "./QRScan";
 
 const debug = logger("frontend:ChoosePayment");
 const log = logger("frontend:ChoosePayment", "info");
@@ -51,6 +50,7 @@ export default function ChoosePayment({
   const [purchaseAddress, setPurchaseAddr] = useState<string | null>(null);
   const [imgSrc, setSrc] = useState<null | string>(null);
   const [qrOpen, setQrOpen] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<null | string>(null);
 
   useEffect(() => {
     clientWithStateManager!
@@ -149,9 +149,6 @@ export default function ChoosePayment({
       setPurchaseAddr(purchaseAdd as `0x${string}`);
       setSrc(payLink);
       setCryptoTotal(amount);
-      // TODO: pass cryptoTotal to walletConnect
-      console.log(cryptoTotal);
-
       setDisplayedAmount(`${formatUnitsFromString(total, decimal)} ${symbol}`);
       setStep(CheckoutStep.paymentDetails);
     } catch (error) {
@@ -182,20 +179,9 @@ export default function ChoosePayment({
   }
   async function onSelectPaymentCurrency(selected: CurrencyChainOption) {
     try {
-      const committed =
-        await clientWithStateManager!.stateManager!.orders.getStatus(
-          OrderState.STATE_COMMITED,
-        );
-      if (!committed) {
-        throw new Error("No committed order found");
-      }
-      if (!committed.length) {
-        throw new Error("Committed order not found");
-      } else if (committed.length > 1) {
-        throw new Error("Multiple committed orders found");
-      }
-      const committedOrderId = committed[0];
-      const payee = manifest!.payees[0];
+      const payee = manifest!.payees.find(
+        (p) => p.chainId === selected.chainId,
+      );
       if (!payee) {
         throw new Error("No payee found in shop manifest");
       }
@@ -213,7 +199,7 @@ export default function ChoosePayment({
     } catch (error) {
       Sentry.captureException(error);
       warn("Error choosing payment");
-      setErrorMsg("Error choosing payment");
+      setErrorMsg("Error setting chosen payment");
     }
   }
   if (qrOpen)

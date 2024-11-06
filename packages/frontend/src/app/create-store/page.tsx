@@ -62,7 +62,6 @@ const StoreCreation = () => {
   const [acceptedCurrencies, setAcceptedCurrencies] = useState<
     ShopCurrencies[]
   >([]);
-  const [payeeChain, setPayeeChain] = useState<number | null>(null);
   const [payeeAddress, setPayeeAddress] = useState<`0x${string}` | null>(
     clientWallet?.account.address || null,
   );
@@ -126,8 +125,6 @@ const StoreCreation = () => {
   function checkRequiredFields() {
     if (!payeeAddress) {
       return "Payee address is required.";
-    } else if (!payeeChain) {
-      return "Payee chain is required.";
     } else if (!pricingCurrency?.address) {
       return "Pricing currency address is required.";
     } else if (!pricingCurrency?.chainId) {
@@ -267,18 +264,23 @@ const StoreCreation = () => {
       await clientWithStateManager!.sendMerchantSubscriptionRequest();
 
       log("creating manifest");
+      const uniqueByChainId = [
+        ...new Set(acceptedCurrencies.map((cur) => cur.chainId)),
+      ];
+      // Get all unique chain IDs for selected accepted currencies and add payee for each chain.
+      const payees = uniqueByChainId.map((chainId) => {
+        return {
+          address: payeeAddress,
+          callAsContract: false,
+          chainId,
+          name: `default - ${chainId}`,
+        };
+      });
       await clientWithStateManager!.stateManager!.manifest.create(
         {
           pricingCurrency: pricingCurrency as ShopCurrencies,
           acceptedCurrencies,
-          payees: [
-            {
-              address: payeeAddress,
-              callAsContract: false,
-              chainId: payeeChain,
-              name: "default",
-            } as Payee,
-          ],
+          payees,
           //TODO: UI for inputting shipping regions.
           shippingRegions: [
             {
@@ -329,8 +331,9 @@ const StoreCreation = () => {
         const file = new File([blob], "file.json");
         const formData = new FormData();
         formData.append("file", file);
-        metadataPath =
-          await clientWithStateManager!.relayClient!.uploadBlob(formData);
+        metadataPath = await clientWithStateManager!.relayClient!.uploadBlob(
+          formData,
+        );
       }
       const blockchainClient = new BlockchainClient(shopId!);
       //Write shop metadata to blockchain client.
@@ -487,14 +490,6 @@ const StoreCreation = () => {
                 }
               />
             </form>
-            <Dropdown
-              options={chains.map((c) => {
-                return { label: c.name, value: c.id };
-              })}
-              callback={(selected) => {
-                setPayeeChain(selected.value as number);
-              }}
-            />
           </div>
           <div>
             <Button onClick={goToConnectWallet}>

@@ -25,7 +25,7 @@ const debug = logger(namespace);
 const log = logger(namespace, "info");
 
 const ProductDetail = () => {
-  const { getBaseTokenInfo } = useStoreContext();
+  const { getBaseTokenInfo, openOrderId, getOpenOrderId } = useStoreContext();
   const { upgradeGuestToCustomer, clientWithStateManager } = useUserContext();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -44,46 +44,15 @@ const ProductDetail = () => {
   const [successMsg, setMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    clientWithStateManager!
-      .stateManager!.orders.getStatus(OrderState.STATE_OPEN)
-      .then((res) => {
-        if (res.length > 1) {
-          warn("Multiple open orders found");
-        } else if (!res.length) {
-          warn("No open order found");
-        } else {
-          setOrderId(res[0]);
-        }
-      })
+    getOpenOrderId().then((oId: OrderId | null) => {
+      oId && setOrderId(oId);
+    });
   }, []);
 
   useEffect(() => {
-    function txHashDetected(order: Order) {
-      if (order.status === OrderState.STATE_PAYMENT_TX) {
-        setOrderId(null);
-      }
-    }
-    function orderCreated(order: Order) {
-      setOrderId(order.id);
-    }
-
-    clientWithStateManager!.stateManager!.orders.on(
-      "addPaymentTx",
-      txHashDetected,
-    );
-    clientWithStateManager!.stateManager!.orders.on("create", orderCreated);
-
-    return () => {
-      clientWithStateManager!.stateManager!.orders.removeListener(
-        "addPaymentTx",
-        txHashDetected,
-      );
-      clientWithStateManager!.stateManager!.orders.removeListener(
-        "create",
-        orderCreated,
-      );
-    };
-  }, []);
+    // If order ID changes in storeContext from event listeners change the order ID here.
+    setOrderId(openOrderId);
+  }, [openOrderId]);
 
   useEffect(() => {
     // Set up changeItems event listener.

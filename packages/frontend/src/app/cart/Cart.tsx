@@ -23,7 +23,7 @@ function Cart({
 }: {
   onCheckout?: (orderId: OrderId) => Promise<void>;
 }) {
-  const { getBaseTokenInfo } = useStoreContext();
+  const { getBaseTokenInfo, getOpenOrderId, openOrderId } = useStoreContext();
   const { clientWithStateManager } = useUserContext();
 
   const [cartItemsMap, setCartMap] = useState(new Map());
@@ -41,12 +41,6 @@ function Cart({
   }, []);
 
   useEffect(() => {
-    function txHashDetected(order: Order) {
-      if (order.status === OrderState.STATE_PAYMENT_TX) {
-        setOrderId(null);
-      }
-    }
-
     function onChangeItems(order: Order) {
       getCartItemDetails(order).then((itemDetails) => {
         setCartMap(itemDetails);
@@ -54,18 +48,10 @@ function Cart({
     }
 
     clientWithStateManager!.stateManager!.orders.on(
-      "addPaymentTx",
-      txHashDetected,
-    );
-    clientWithStateManager!.stateManager!.orders.on(
       "changeItems",
       onChangeItems,
     );
     return () => {
-      clientWithStateManager!.stateManager!.orders.removeListener(
-        "addPaymentTx",
-        txHashDetected,
-      );
       clientWithStateManager!.stateManager!.orders.removeListener(
         "changeItems",
         onChangeItems,
@@ -74,25 +60,25 @@ function Cart({
   }, []);
 
   useEffect(() => {
-    clientWithStateManager!
-      .stateManager!.orders.getStatus(OrderState.STATE_OPEN)
-      .then((res) => {
-        if (res.length > 1) {
-          debug("Multiple open orders found");
-        } else if (!res.length) {
-          log("No open order found");
-        } else {
-          log(`Open orderID:${res[0]}`);
-          setOrderId(res[0]);
-          clientWithStateManager!
-            .stateManager!.orders.get(res[0])
-            .then(async (o: Order) => {
-              const itemDetails = await getCartItemDetails(o);
-              setCartMap(itemDetails);
-            })
-        }
-      })
-  }, [orderId]);
+    // TODO: i think these functions maybe should be useState-like variables
+    getOpenOrderId().then((oId: OrderId | null) => {
+      if (oId) {
+        log(`Open order ID: ${oId}`);
+        setOrderId(oId);
+        clientWithStateManager!
+          .stateManager!.orders.get(oId)
+          .then(async (o) => {
+            const itemDetails = await getCartItemDetails(o);
+            setCartMap(itemDetails);
+          })
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    // If order ID changes in storeContext from event listeners change the order ID here.
+    setOrderId(openOrderId);
+  }, []);
 
   async function getCartItemDetails(order: Order) {
     const ci = order.items;
@@ -316,7 +302,12 @@ function Cart({
         >
           Checkout
         </Button>
-        <SecondaryButton onClick={clearCart}>Clear basket</SecondaryButton>
+        <SecondaryButton
+          disabled={!orderId || !cartItemsMap.size}
+          onClick={clearCart}
+        >
+          Clear basket
+        </SecondaryButton>
       </div>
     </div>
   );
