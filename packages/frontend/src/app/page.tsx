@@ -24,12 +24,13 @@ function Homepage() {
   const router = useRouter();
 
   // setup matomo
+  const matomoUrl = process.env.NEXT_PUBLIC_MATOMO_URL || null;
   useEffect(() => {
       const _mtm = window._mtm = window._mtm || [];
       _mtm.push({'mtm.startTime': (new Date().getTime()), 'event': 'mtm.Start'});
       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-      g.async=true; g.src='https://cdn.matomo.cloud/massmarket.matomo.cloud/container_zdG0MnXu.js'; s.parentNode.insertBefore(g,s);
-  }, [])
+      g.async=true; g.src=matomoUrl; s.parentNode.insertBefore(g,s);
+  }, [matomoUrl !== null]);
 
   useEffect(() => {
     if (clientConnected === Status.Complete) {
