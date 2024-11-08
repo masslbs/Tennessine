@@ -5,13 +5,18 @@
 import { EventEmitter } from "events";
 import { Buffer } from "buffer";
 import { WebSocket } from "isows";
-import { hexToBytes, hexToBigInt, toBytes } from "viem";
+import { hexToBigInt, hexToBytes, toBytes } from "viem";
 import type { PrivateKeyAccount } from "viem/accounts";
 import { createSiweMessage } from "viem/siwe";
 
 import schema, { EnvelopMessageTypes } from "@massmarket/schema";
 import type { ConcreteWalletClient } from "@massmarket/blockchain";
-import { hexToBase64, decodeBufferToString, assert, logger } from "@massmarket/utils";
+import {
+  assert,
+  decodeBufferToString,
+  hexToBase64,
+  logger,
+} from "@massmarket/utils";
 
 import { ReadableEventStream } from "./stream.ts";
 
@@ -74,7 +79,8 @@ export class RelayClient extends EventEmitter {
     super();
     this.keyCardWallet = keyCardWallet;
     this.relayEndpoint = relayEndpoint;
-    this.useTLS = relayEndpoint.url.protocol === "wss:" || relayEndpoint.url.protocol === "https:";
+    this.useTLS = relayEndpoint.url.protocol === "wss:" ||
+      relayEndpoint.url.protocol === "https:";
     this.eventStream = new ReadableEventStream(this);
     this.requestCounter = 1;
     this.eventNonceCounter = 1;
@@ -97,7 +103,8 @@ export class RelayClient extends EventEmitter {
     // Turns json into binary
     const payload = schema.Envelope.encode(envelope).finish();
     this.connection.send(payload);
-    const requestType = Object.keys(envelope).filter(k => k !== "requestId")[0];
+    const requestType =
+      Object.keys(envelope).filter((k) => k !== "requestId")[0];
     debug(`network request ${requestType} sent id: ${envelope.requestId!.raw}`);
     this.requestCounter++;
     return schema.RequestId.create(envelope.requestId);
@@ -108,15 +115,21 @@ export class RelayClient extends EventEmitter {
     const id = this.encodeAndSendNoWait(envelope);
     return new Promise((resolve, reject) => {
       this.once(id.raw.toString(), (response: schema.Envelope) => {
-        const requestType = Object.keys(response).filter(k => k !== "requestId")[0];
+        const requestType = Object.keys(response).filter((k) =>
+          k !== "requestId"
+        )[0];
         if (response.response?.error) {
           const { code, message } = response.response.error;
           assert(code, "code is required");
           assert(message, "message is required");
-          debug(`network request ${requestType} id: ${id.raw} failed with error[${code}]: ${message}`);
+          debug(
+            `network request ${requestType} id: ${id.raw} failed with error[${code}]: ${message}`,
+          );
           reject(new Error(message));
         } else {
-          debug(`network request ${requestType} id: ${id.raw} received response`);
+          debug(
+            `network request ${requestType} id: ${id.raw} received response`,
+          );
           resolve(response);
         }
       });
@@ -215,16 +228,18 @@ export class RelayClient extends EventEmitter {
   }
 
   async #decodeMessage(me: MessageEvent) {
-    const _data =
-      me.data instanceof Blob
-        ? await new Response(me.data).arrayBuffer()
-        : me.data;
+    const _data = me.data instanceof Blob
+      ? await new Response(me.data).arrayBuffer()
+      : me.data;
     const payload = new Uint8Array(_data);
 
     const envelope = schema.Envelope.decode(payload);
     assert(envelope.requestId?.raw, "requestId is required");
-    const requestType = Object.keys(envelope).filter(k => k !== "requestId")[0];
-    debug(`network request ${requestType} id: ${envelope.requestId!.raw} received`);
+    const requestType =
+      Object.keys(envelope).filter((k) => k !== "requestId")[0];
+    debug(
+      `network request ${requestType} id: ${envelope.requestId!.raw} received`,
+    );
     switch (envelope.message) {
       case EnvelopMessageTypes.PingRequest:
         this.#handlePingRequest(envelope);
@@ -236,7 +251,7 @@ export class RelayClient extends EventEmitter {
         );
         {
           const events = envelope.subscriptionPushRequest.events!.map((evt) =>
-            schema.SubscriptionPushRequest.SequencedEvent.create(evt),
+            schema.SubscriptionPushRequest.SequencedEvent.create(evt)
           );
           debug(`pushing ${events.length} events to event stream`);
           this.eventStream.enqueue({
@@ -411,7 +426,6 @@ export class RelayClient extends EventEmitter {
     endpointURL.protocol = this.useTLS ? "https" : "http";
     endpointURL.pathname += `/enroll_key_card`;
     endpointURL.search = `guest=${isGuest ? 1 : 0}`;
-    console.log(`posting to ${endpointURL.href}`);
     const signInURL: URL = location ?? endpointURL;
 
     const message = createSiweMessage({

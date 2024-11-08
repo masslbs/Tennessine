@@ -4,13 +4,12 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
-import Image from "next/image";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDisconnect } from "wagmi";
 
-import { logger, assert } from "@massmarket/utils";
+import { assert, logger } from "@massmarket/utils";
 
 import { Order, OrderId, OrderState, Status } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
@@ -118,11 +117,13 @@ function Navigation() {
       debug(`Order ID: ${orderId} committed`);
       setCommittedOrderId(orderId);
       router.push(
-        `/checkout?${createQueryString(
-          "step",
-          "shippingDetails",
-          searchParams,
-        )}`,
+        `/checkout?${
+          createQueryString(
+            "step",
+            "shippingDetails",
+            searchParams,
+          )
+        }`,
       );
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
@@ -138,7 +139,7 @@ function Navigation() {
         return (
           <button key={i} onClick={onDisconnect}>
             <div className="flex gap-3 items-center">
-              <Image
+              <img
                 src={`/icons/${opt.img}`}
                 width={20}
                 height={20}
@@ -148,7 +149,7 @@ function Navigation() {
                 className="w-5 h-5"
               />
               <h2 className="font-normal">{opt.title}</h2>
-              <Image
+              <img
                 src="/icons/chevron-right.svg"
                 width={12}
                 height={12}
@@ -169,7 +170,7 @@ function Navigation() {
           onClick={() => setMenuOpen(false)}
         >
           <div className="flex gap-3 items-center">
-            <Image
+            <img
               src={`/icons/${opt.img}`}
               width={20}
               height={20}
@@ -181,7 +182,7 @@ function Navigation() {
             <Link href={opt.href!} key={opt.title}>
               <h2 className="font-normal">{opt.title}</h2>
             </Link>
-            <Image
+            <img
               src="/icons/chevron-right.svg"
               width={12}
               height={12}
@@ -200,29 +201,31 @@ function Navigation() {
     <section className={`absolute left-0 top-0 right-0`}>
       <section className="w-full p-2 text-base flex justify-between bg-white">
         <div className="flex gap-2">
-          {shopDetails.profilePictureUrl ? (
-            <div className="overflow-hidden	rounded-full w-12 h-12">
-              <Image
-                src={shopDetails.profilePictureUrl}
-                width={50}
-                height={50}
-                alt="profile-avatar"
+          {shopDetails.profilePictureUrl
+            ? (
+              <div className="overflow-hidden	rounded-full w-12 h-12">
+                <img
+                  src={shopDetails.profilePictureUrl}
+                  width={50}
+                  height={50}
+                  alt="profile-avatar"
+                  unoptimized={true}
+                  priority={true}
+                  className="w-12 h-12"
+                />
+              </div>
+            )
+            : (
+              <img
+                src={`/icons/mass-labs-logo.svg`}
+                width={40}
+                height={40}
+                alt="mass-labs-logo"
                 unoptimized={true}
                 priority={true}
-                className="w-12 h-12"
+                className="w-10 h-10"
               />
-            </div>
-          ) : (
-            <Image
-              src={`/icons/mass-labs-logo.svg`}
-              width={40}
-              height={40}
-              alt="mass-labs-logo"
-              unoptimized={true}
-              priority={true}
-              className="w-10 h-10"
-            />
-          )}
+            )}
 
           <h2 className="flex items-center">{shopDetails.name}</h2>
         </div>
@@ -235,7 +238,7 @@ function Navigation() {
             className="relative"
             onClick={() => setBasketOpen(!basketOpen)}
           >
-            <Image
+            <img
               src="/icons/menu-basket.svg"
               width={20}
               height={20}
@@ -252,7 +255,7 @@ function Navigation() {
             </div>
           </button>
           <button onClick={menuSwitch}>
-            <Image
+            <img
               src={menuOpen ? "/icons/close-icon.svg" : "/icons/hamburger.svg"}
               width={20}
               height={20}
@@ -263,22 +266,26 @@ function Navigation() {
           </button>
         </section>
       </section>
-      {menuOpen ? (
-        <section>
-          <span className="fixed bg-black w-full h-full opacity-60" />
-          <div className="fixed bg-background-gray z-10 w-full flex flex-col gap-5 rounded-b-lg p-5">
-            {renderMenuItems()}
-          </div>
-        </section>
-      ) : null}
-      {basketOpen ? (
-        <section>
-          <span className="fixed bg-black w-full h-full opacity-60" />
-          <div className="fixed bg-background-gray z-10 w-full flex flex-col gap-5 rounded-b-lg p-5">
-            <Cart onCheckout={onCheckout} />
-          </div>
-        </section>
-      ) : null}
+      {menuOpen
+        ? (
+          <section>
+            <span className="fixed bg-black w-full h-full opacity-60" />
+            <div className="fixed bg-background-gray z-10 w-full flex flex-col gap-5 rounded-b-lg p-5">
+              {renderMenuItems()}
+            </div>
+          </section>
+        )
+        : null}
+      {basketOpen
+        ? (
+          <section>
+            <span className="fixed bg-black w-full h-full opacity-60" />
+            <div className="fixed bg-background-gray z-10 w-full flex flex-col gap-5 rounded-b-lg p-5">
+              <Cart onCheckout={onCheckout} />
+            </div>
+          </section>
+        )
+        : null}
     </section>
   );
 }

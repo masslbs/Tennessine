@@ -12,7 +12,6 @@
 //   Dispatch,
 //   SetStateAction,
 // } from "react";
-// import Image from "next/image";
 // import TagSection from "./Tag";
 // import { Tag, TagId } from "@/types";
 // import { useStoreContext } from "@/context/StoreContext";
@@ -187,7 +186,7 @@
 //           }}
 //           className="self-center absolute right-0 top-0.5 bottom-0"
 //         >
-//           <Image
+//           <img
 //             src="/icons/close-icon.svg"
 //             alt="close-icon"
 //             width={10}

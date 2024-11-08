@@ -4,14 +4,13 @@
 
 "use client";
 
-import React, { ChangeEvent, useRef, useState, useEffect } from "react";
-import Image from "next/image";
+import React, { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import * as Sentry from "@sentry/nextjs";
 
-import { formatUnitsFromString, logger, assert } from "@massmarket/utils";
+import { assert, formatUnitsFromString, logger } from "@massmarket/utils";
 
-import { Tag, ListingId, Listing, TagId, ListingViewState } from "@/types";
+import { Listing, ListingId, ListingViewState, Tag, TagId } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
 // import ProductsTags from "@/app/components/products/ProductTags";
@@ -54,7 +53,7 @@ const AddProductView = () => {
     getBaseTokenInfo()
       .then((res: [string, number]) => {
         res && setBaseDecimal(res[1]);
-      })
+      });
   }, []);
 
   useEffect(() => {
@@ -94,8 +93,7 @@ const AddProductView = () => {
           .stateManager!.tags.get(id)
           .then((tag: Tag) => {
             selected.push(tag);
-          })
-
+          });
       }
       setSelectedTags(selected);
     }
@@ -155,8 +153,8 @@ const AddProductView = () => {
 
   const create = async (newItem: Partial<Listing>) => {
     try {
-      const { id } =
-        await clientWithStateManager!.stateManager!.listings.create(
+      const { id } = await clientWithStateManager!.stateManager!.listings
+        .create(
           newItem,
           baseDecimal!,
         );
@@ -188,9 +186,9 @@ const AddProductView = () => {
       };
       if (
         newItem.price !==
-        Number(
-          formatUnitsFromString(productInView!.price, baseDecimal!),
-        ).toFixed(2)
+          Number(
+            formatUnitsFromString(productInView!.price, baseDecimal!),
+          ).toFixed(2)
       ) {
         diff["price"] = newItem.price;
       }
@@ -216,10 +214,11 @@ const AddProductView = () => {
       );
       if (removedTags?.length) {
         removedTags.map(async (id: TagId) => {
-          await clientWithStateManager!.stateManager!.listings.removeItemFromTag(
-            id,
-            itemId as ListingId,
-          );
+          await clientWithStateManager!.stateManager!.listings
+            .removeItemFromTag(
+              id,
+              itemId as ListingId,
+            );
         });
       }
       if (Object.keys(diff).length === 1) return;
@@ -254,8 +253,8 @@ const AddProductView = () => {
         const uploaded = await Promise.all(
           images.map(async (i) => {
             if (i.blob) {
-              const { url } =
-                await clientWithStateManager!.relayClient!.uploadBlob(i.blob);
+              const { url } = await clientWithStateManager!.relayClient!
+                .uploadBlob(i.blob);
               return url;
             } else {
               return i.url;
@@ -366,7 +365,7 @@ const AddProductView = () => {
                 className="p-5 w-full text-white"
               >
                 <div className="flex flex-col items-center gap-2">
-                  <Image
+                  <img
                     src={"/icons/picture.svg"}
                     width={25}
                     height={25}
@@ -384,7 +383,7 @@ const AddProductView = () => {
               {images.map((img, i) => {
                 return (
                   <div key={i} className="relative mb-2">
-                    <Image
+                    <img
                       src={img.url}
                       width={105}
                       height={95}
@@ -399,7 +398,7 @@ const AddProductView = () => {
                       className="rounded-md"
                     />
                     <div className="p-1 bg-black absolute top-1 right-2 rounded-full">
-                      <Image
+                      <img
                         src="/icons/remove-icon.svg"
                         width={8}
                         height={8}
@@ -460,11 +459,13 @@ const AddProductView = () => {
             <div className="flex">
               <p>Tags</p>
             </div>
-            {/* <ProductsTags
+            {
+              /* <ProductsTags
               selectedTags={selectedTags}
               setSelectedTags={setSelectedTags}
               setError={setErrorMsg}
-            /> */}
+            /> */
+            }
           </section>
         </section>
         <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
@@ -474,9 +475,8 @@ const AddProductView = () => {
               name="published"
               type="checkbox"
               className="form-checkbox h-4 w-4"
-              checked={
-                viewState === ListingViewState.LISTING_VIEW_STATE_PUBLISHED
-              }
+              checked={viewState ===
+                ListingViewState.LISTING_VIEW_STATE_PUBLISHED}
               onChange={(e) => {
                 const { checked } = e.target;
                 setViewState(
@@ -488,21 +488,21 @@ const AddProductView = () => {
             />
             <label htmlFor="published">Publish product</label>
           </div>
-          {editView ? (
-            <div className="flex gap-1">
-              <Button custom="w-full" onClick={onPublish}>
-                Update
-              </Button>
-              <SecondaryButton
-                custom="w-full"
-                onClick={() => setDeleteConfirm(true)}
-              >
-                Delete product
-              </SecondaryButton>
-            </div>
-          ) : (
-            <Button onClick={onPublish}>create product</Button>
-          )}
+          {editView
+            ? (
+              <div className="flex gap-1">
+                <Button custom="w-full" onClick={onPublish}>
+                  Update
+                </Button>
+                <SecondaryButton
+                  custom="w-full"
+                  onClick={() => setDeleteConfirm(true)}
+                >
+                  Delete product
+                </SecondaryButton>
+              </div>
+            )
+            : <Button onClick={onPublish}>create product</Button>}
         </section>
       </section>
       <section className={`mt-2 ${!deleteConfirmation ? "hidden" : ""}`}>

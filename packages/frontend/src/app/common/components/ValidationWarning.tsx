@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import React from "react";
-import Image from "next/image";
 
 interface ValidationWarningProps {
   warning: string | null;
@@ -21,7 +20,7 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
       <p>{warning}</p>
       <button onClick={() => onClose()} className="ml-auto">
         <div className="bg-white rounded-full w-4 h-4 flex justify-center items-center">
-          <Image
+          <img
             src="/icons/close-icon.svg"
             alt="close-icon"
             width={8}

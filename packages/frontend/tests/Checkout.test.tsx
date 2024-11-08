@@ -1,11 +1,11 @@
 import React from "react";
-import { describe, test, expect } from "vitest";
-import { waitFor, screen, act } from "@testing-library/react";
+import { describe, expect, test } from "vitest";
+import { act, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {
   getClient,
-  MerchantsRender,
   getWallet,
+  MerchantsRender,
   randomShopId,
 } from "./test-utils";
 import { createPublicClient, http } from "viem";
@@ -34,7 +34,6 @@ describe.skip("Checkout", async () => {
   test("Update shipping details and commit items.", async () => {
     expect(receipt.status).equals("success");
     const here = client.createNewRelayClient();
-    console.log({ here });
     const res = await client.relayClient!.enrollKeycard(
       wallet,
       false,

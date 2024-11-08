@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import React from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 import { useStoreContext } from "@/context/StoreContext";
@@ -16,7 +15,7 @@ const Confirmation = () => {
   return (
     <main className="pt-under-nav h-screen p-4 mt-5">
       <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg items-center">
-        <Image
+        <img
           src="/icons/smiley.svg"
           width={80}
           height={80}

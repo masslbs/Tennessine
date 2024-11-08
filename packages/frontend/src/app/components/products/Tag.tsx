@@ -5,7 +5,6 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import { Tag } from "@/types";
 
 const TagSection = ({
@@ -28,15 +27,17 @@ const TagSection = ({
       onClick={() => handleSelectTag(tag as Tag)}
     >
       <p className="mr-1">{tag.name}</p>
-      {removeFn ? (
-        <Image
-          src="/icons/close-icon.svg"
-          alt="close-icon"
-          width={10}
-          height={10}
-          onClick={removeFn}
-        />
-      ) : null}
+      {removeFn
+        ? (
+          <img
+            src="/icons/close-icon.svg"
+            alt="close-icon"
+            width={10}
+            height={10}
+            onClick={removeFn}
+          />
+        )
+        : null}
     </div>
   );
 };

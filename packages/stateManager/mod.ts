@@ -1,42 +1,42 @@
 import { EventEmitter } from "events";
 import { Address } from "@ethereumjs/util";
-import { bytesToHex, hexToBytes, PublicClient, fromBytes } from "viem";
+import { bytesToHex, fromBytes, hexToBytes, PublicClient } from "viem";
 
 import {
-  type Listing,
+  type ChoosePayment,
+  type CreateShopManifest,
+  type IError,
   type IRelayClient,
-  type Tag,
   type KeyCard,
-  type ShippingDetails,
+  type Listing,
+  ListingViewState,
   type Order,
+  type OrderPriceModifier,
+  type OrdersByStatus,
+  OrderState,
+  SeqNo,
+  type ShippingDetails,
   type ShopCurrencies,
   type ShopManifest,
-  type CreateShopManifest,
-  type UpdateShopManifest,
   type ShopObjectTypes,
-  type IError,
-  type OrdersByStatus,
-  ListingViewState,
-  OrderState,
-  type OrderPriceModifier,
-  type ChoosePayment,
-  SeqNo,
+  type Tag,
+  type UpdateShopManifest,
 } from "./types.ts";
 import * as abi from "@massmarket/contracts";
 import schema from "@massmarket/schema";
 import {
-  SequencedEventWithRecoveredSigner,
   type EventId,
   eventIdEqual,
+  SequencedEventWithRecoveredSigner,
 } from "@massmarket/client";
 import {
-  priceToUint256,
-  objectId,
-  addressToUint256,
   addressesToUint256,
+  addressToUint256,
   assert,
   assertField,
   logger,
+  objectId,
+  priceToUint256,
 } from "@massmarket/utils";
 
 const debug = logger("stateManager");
@@ -73,7 +73,7 @@ async function storeOrdersByStatus(
   let orders: OrdersByStatus = [];
 
   try {
-    orders = (await store.get(status)) as OrdersByStatus;
+    orders = await store.get(status) as OrdersByStatus;
     orders.push(orderId);
   } catch (error) {
     const e = error as IError;
@@ -85,6 +85,7 @@ async function storeOrdersByStatus(
   }
   return store.put(status, orders);
 }
+
 abstract class PublicObjectManager<
   T extends ShopObjectTypes,
 > extends EventEmitter {
@@ -447,8 +448,7 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
         const wantAddr = bytesToHex(ur.address!.raw!);
         manifest.payees = manifest.payees.filter((p) => {
           // TODO: this doesn't complain about ur.chainId being Long sometimes!
-          const isEqual =
-            p.address.toLowerCase() === wantAddr.toLowerCase() &&
+          const isEqual = p.address.toLowerCase() === wantAddr.toLowerCase() &&
             p.chainId === Number(ur.chainId);
           return !isEqual;
         });
@@ -614,9 +614,9 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
           ...pm,
           absolute: pm.absolute
             ? {
-                ...pm.absolute,
-                diff: { raw: hexToBytes(pm.absolute.diff) },
-              }
+              ...pm.absolute,
+              diff: { raw: hexToBytes(pm.absolute.diff) },
+            }
             : undefined,
           percentage: pm.percentage
             ? { raw: hexToBytes(pm.percentage) }
@@ -624,7 +624,6 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
         })),
       }));
     }
-
     // resolves after the `update` event has been fired above in _processEvent, which happens after the relay accepts the update and has written to the database.
     const requestId = await this.client.updateShopManifest(update);
     return eventListenAndResolve<ShopManifest>(requestId, this, "update");
@@ -633,7 +632,7 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
   get(): Promise<ShopManifest> {
     return this.store.get("shopManifest") as Promise<ShopManifest>;
   }
-  async addSeqNo(no: number) {
+  addSeqNo(no: number) {
     return this.store.put("seqNo", no);
   }
 
@@ -661,9 +660,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
   ): Promise<void> {
     const event = seqEvt.event;
     if (event.createOrder) {
-      // console.log("createOrder");
       const co = event.createOrder;
-      // console.log(co);
       assertField(co.id, "createOrder.id");
       const id = bytesToHex(co.id.raw);
       const o = {
@@ -676,12 +673,10 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       this.emit("create", o, seqEvt.id());
       return;
     } else if (event.updateOrder) {
-      // console.log("updateOrder");
       const uo = event.updateOrder;
-      // console.log(uo);
       assertField(uo.id, "updateOrder.id");
       const id = bytesToHex(uo.id.raw);
-      const order = (await this.store.get(id)) as Order;
+      const order = await this.store.get(id) as Order;
       if (uo.changeItems) {
         const ci = uo.changeItems;
         if (ci.adds) {
@@ -731,17 +726,15 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         return;
       } else if (uo.setInvoiceAddress) {
         const update = uo.setInvoiceAddress;
-        const sd = order.invoiceAddress
-          ? order.invoiceAddress
-          : {
-              name: "",
-              address1: "",
-              city: "",
-              postalCode: "",
-              country: "",
-              phoneNumber: "",
-              emailAddress: "",
-            };
+        const sd = order.invoiceAddress ? order.invoiceAddress : {
+          name: "",
+          address1: "",
+          city: "",
+          postalCode: "",
+          country: "",
+          phoneNumber: "",
+          emailAddress: "",
+        };
         if (update.name) {
           sd.name = update.name;
         }
@@ -770,17 +763,15 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       } else if (uo.setShippingAddress) {
         const update = uo.setShippingAddress;
         // shippingDetails may be null. If null, create an initial shipping details object to update.
-        const sd = order.shippingDetails
-          ? order.shippingDetails
-          : {
-              name: "",
-              address1: "",
-              city: "",
-              postalCode: "",
-              country: "",
-              phoneNumber: "",
-              emailAddress: "",
-            };
+        const sd = order.shippingDetails ? order.shippingDetails : {
+          name: "",
+          address1: "",
+          city: "",
+          postalCode: "",
+          country: "",
+          phoneNumber: "",
+          emailAddress: "",
+        };
         if (update.name) {
           sd.name = update.name;
         }
@@ -1131,7 +1122,7 @@ class KeycardNonceManager extends PublicObjectManager<number> {
 
   async get(key: `0x${string}`) {
     try {
-      return await this.store.get(key);
+      return this.store.get(key);
     } catch (error) {
       const e = error as IError;
       if (e.notFound) {
@@ -1222,7 +1213,6 @@ export class StateManager {
     let event: SequencedEventWithRecoveredSigner;
     for await (event of stream) {
       await this.manifest.addSeqNo(event.shopSeqNo);
-
       //fromPublicKey in KeyCard manager returns the address from public key as all lowercase.
       await this.keycards.verify(event.signer);
       for (const storeObject of storeObjects) {

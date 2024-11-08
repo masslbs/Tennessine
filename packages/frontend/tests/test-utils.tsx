@@ -1,32 +1,34 @@
+import "./global-jsdom.ts";
 import React, { ReactElement } from "react";
 import { WagmiProvider } from "wagmi";
-import { config } from "../src/wagmi";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { config } from "../src/wagmi.ts";
 import {
   anvilPrivateKey,
   random32BytesHex,
   randomAddress,
 } from "@massmarket/utils";
-import { RelayClient, discoverRelay } from "@massmarket/client";
-import { privateKeyToAccount } from "viem/accounts";
-import { createWalletClient, http, createPublicClient } from "viem";
+import { discoverRelay } from "@massmarket/client";
+import { createPublicClient, createWalletClient, http } from "viem";
 import { hardhat } from "viem/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react";
 import { privateKeyToAccount } from "viem/accounts";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
-
-import { anvilPrivateKey, random32BytesHex } from "@massmarket/utils";
-import { MockClientStateManager } from "@massmarket/stateManager/tests/mockClient";
-import { MockClient } from "@massmarket/stateManager/tests/mockClient";
-import { discoverRelay } from "@massmarket/client";
-
+import { MockClientStateManager } from "@massmarket/stateManager/mockClient";
+import { MockClient } from "@massmarket/stateManager/mockClient";
 import { Status } from "@/types";
 import { StoreContext } from "@/context/StoreContext";
-import { UserContext } from "../src/context/UserContext";
-import { AuthContext } from "../src/context/AuthContext";
-import { config } from "../src/wagmi";
+import { UserContext } from "../src/context/UserContext.tsx";
+import { AuthContext } from "../src/context/AuthContext.tsx";
 import { ClientWithStateManager } from "@/app/ClientWithStateManager";
+
+window.matchMedia = window.matchMedia || function () {
+  return {
+    matches: false,
+    addListener: function () {},
+    removeListener: function () {},
+  };
+};
 
 const mockClient = new MockClient();
 const shopPublicClient = createPublicClient({
@@ -45,6 +47,7 @@ export function getWallet() {
   return wallet;
 }
 
+// This does not return a client, its a ClientStateManager!
 export async function getMockClient() {
   const client = new MockClientStateManager(
     shopPublicClient,
@@ -67,8 +70,8 @@ export async function getClient() {
     chain: hardhat,
     transport: http(),
   });
-  const relayURL =
-    (process && process.env["RELAY_ENDPOINT"]) || "ws://localhost:4444/v3";
+  const relayURL = (process && process.env["RELAY_ENDPOINT"]) ||
+    "ws://localhost:4444/v3";
   const relayEndpoint = await discoverRelay(relayURL);
   const client = new ClientWithStateManager(
     shopClient,

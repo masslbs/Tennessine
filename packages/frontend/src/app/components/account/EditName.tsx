@@ -40,11 +40,14 @@ const EditName = ({
 
   return (
     <section className="pt-under-nav h-screen">
-      {showSuccessMsg ? (
-        <SuccessMessage show={!!showSuccessMsg} onClose={closeSuccessMessage} />
-      ) : (
-        <ModalHeader goBack={closeEditName} headerText="Edit Name" />
-      )}
+      {showSuccessMsg
+        ? (
+          <SuccessMessage
+            show={!!showSuccessMsg}
+            onClose={closeSuccessMessage}
+          />
+        )
+        : <ModalHeader goBack={closeEditName} headerText="Edit Name" />}
       <section className="flex flex-col justify-between h-5/6 mx-4">
         <section className="mt-10">
           <form
@@ -69,14 +72,16 @@ const EditName = ({
           <Button disabled={disabled} onClick={saveName}>
             Update Name
           </Button>
-          {/* <button className="flex justify-center bg-green-600 w-full text-white px-4 py-4 rounded-md">
-                <Image
+          {
+            /* <button className="flex justify-center bg-green-600 w-full text-white px-4 py-4 rounded-md">
+                <img
                   src="/assets/checkmark.svg"
                   alt="checkmark-icon"
                   width={24}
                   height={24}
                 />
-              </button> */}
+              </button> */
+          }
         </div>
       </section>
     </section>

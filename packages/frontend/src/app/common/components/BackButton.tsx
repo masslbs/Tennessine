@@ -6,7 +6,6 @@
 
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
 
 function BackButton({
   href,
@@ -18,7 +17,7 @@ function BackButton({
   if (href) {
     return (
       <Link href={href} className="flex gap-1 items-center">
-        <Image
+        <img
           src={"/icons/chevron-left.svg"}
           width={8}
           height={8}
@@ -32,7 +31,7 @@ function BackButton({
   } else if (onClick) {
     return (
       <button onClick={onClick} className="flex items-center gap-1">
-        <Image
+        <img
           src={"/icons/chevron-left.svg"}
           width={8}
           height={8}

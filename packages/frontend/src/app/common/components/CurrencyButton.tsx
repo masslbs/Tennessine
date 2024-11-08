@@ -5,7 +5,6 @@
 "use client";
 
 import React, { useState } from "react";
-import Image from "next/image";
 import Chevron from "./Chevron";
 
 const CurrencyButton = ({ toggle }: { toggle: () => void }) => {
@@ -20,7 +19,7 @@ const CurrencyButton = ({ toggle }: { toggle: () => void }) => {
           setOpen(!open);
         }}
       >
-        <Image
+        <img
           src="/assets/Ethereum.svg"
           width={19}
           height={19}

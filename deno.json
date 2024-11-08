@@ -1,8 +1,5 @@
 {
     "nodeModulesDir": "manual",
-    "test": {
-        "exclude": ["packages/frontend"]
-    },
     "workspace":  [
         "./packages/utils",
         "./packages/schema",

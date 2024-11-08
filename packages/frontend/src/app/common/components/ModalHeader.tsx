@@ -5,7 +5,6 @@
 "use client";
 
 import React, { ReactNode } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 export type Header = {
@@ -20,7 +19,7 @@ const ModalHeader = ({ goBack, headerText, rightIcon }: Header) => {
     return (
       <div className="py-4 mx-4">
         <div id="container" className="flex relative">
-          <Image
+          <img
             id="overlay"
             src="/assets/back-button.svg"
             width={24}
@@ -42,7 +41,7 @@ const ModalHeader = ({ goBack, headerText, rightIcon }: Header) => {
   return (
     <div className="mx-4">
       <div className="flex">
-        <Image
+        <img
           src="/assets/chevron-left.svg"
           width={24}
           height={24}

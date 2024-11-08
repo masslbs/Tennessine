@@ -5,12 +5,11 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 
 import { logger } from "@massmarket/utils";
 
-import { OrderState, Order, CheckoutStep, OrderId } from "@/types";
+import { CheckoutStep, Order, OrderId, OrderState } from "@/types";
 import { useUserContext } from "@/context/UserContext";
 import { useStoreContext } from "@/context/StoreContext";
 import Cart from "@/app/cart/Cart";
@@ -105,7 +104,7 @@ const CheckoutFlow = () => {
       return (
         <section>
           <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg items-center">
-            <Image
+            <img
               src="/icons/smiley.svg"
               width={80}
               height={80}
@@ -115,7 +114,7 @@ const CheckoutFlow = () => {
             />
             <h1>Payment Successful</h1>
             <div className="flex gap-2 items-center">
-              <Image
+              <img
                 src="/icons/usdc-coin.png"
                 alt="coin"
                 width={24}
@@ -139,7 +138,7 @@ const CheckoutFlow = () => {
                   }}
                 />
                 <button className="mr-4" onClick={copyToClipboard}>
-                  <Image
+                  <img
                     src="/icons/copy-icon.svg"
                     width={14}
                     height={14}

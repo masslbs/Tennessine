@@ -1,22 +1,21 @@
-import React, { useState, useEffect, Dispatch, SetStateAction } from "react";
+import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useChains } from "wagmi";
 import { pad } from "viem";
-import Image from "next/image";
 import * as Sentry from "@sentry/nextjs";
 
-import { formatUnitsFromString, logger, assert } from "@massmarket/utils";
+import { assert, formatUnitsFromString, logger } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 import { zeroAddress } from "@massmarket/contracts";
 
 import {
+  CheckoutStep,
+  CurrencyChainOption,
+  Order,
+  OrderId,
   ShopCurrencies,
   ShopManifest,
-  OrderId,
-  Order,
-  CurrencyChainOption,
-  CheckoutStep,
 } from "@/types";
-import { getTokenInformation, createPublicClientForChain } from "@/app/utils";
+import { createPublicClientForChain, getTokenInformation } from "@/app/utils";
 import { useUserContext } from "@/context/UserContext";
 import { useStoreContext } from "@/context/StoreContext";
 import Dropdown from "@/app/common/components/CurrencyDropdown";
@@ -27,7 +26,7 @@ import QRScan from "./QRScan";
 
 const namespace = "frontend:ChoosePayment";
 const debug = logger(namespace);
-const errlog= logger(namespace, "error");
+const errlog = logger(namespace, "error");
 
 export default function ChoosePayment({
   setStep,
@@ -57,11 +56,11 @@ export default function ChoosePayment({
       .stateManager!.manifest.get()
       .then((manifest: ShopManifest) => {
         getDisplayedChains(manifest)
-        .then((arr) => {
+          .then((arr) => {
             setManifest(manifest);
             setChains(arr);
-          })
-      })
+          });
+      });
   }, []);
 
   useEffect(() => {
@@ -71,7 +70,7 @@ export default function ChoosePayment({
         getDetails(committedOrderId)
           .then(() => {
             debug("paymentDetails found for order");
-          })
+          });
       }
     }
     committedOrderId &&
@@ -91,8 +90,8 @@ export default function ChoosePayment({
 
   async function getDetails(oId: OrderId) {
     try {
-      const committedOrder =
-        await clientWithStateManager!.stateManager!.orders.get(oId!);
+      const committedOrder = await clientWithStateManager!.stateManager!.orders
+        .get(oId!);
       if (!committedOrder?.choosePayment) {
         throw new Error("No chosen payment found");
       }
@@ -118,8 +117,8 @@ export default function ChoosePayment({
         currency.address,
       );
 
-      const manifest =
-        await clientWithStateManager!.stateManager!.manifest.get();
+      const manifest = await clientWithStateManager!.stateManager!.manifest
+        .get();
       //FIXME: get orderHash from paymentDetails.
       const zeros32Bytes = pad(zeroAddress, { size: 32 });
 
@@ -143,15 +142,16 @@ export default function ChoosePayment({
       if (!purchaseAdd) throw new Error("No purchase address found");
       const amount = BigInt(total);
       debug(`amount: ${amount}`);
-      const payLink =
-        currency.address === zeroAddress
-          ? `ethereum:${purchaseAdd}?value=${amount}`
-          : `ethereum:${currency.address}/transfer?address=${purchaseAdd}&uint256=${amount}`;
+      const payLink = currency.address === zeroAddress
+        ? `ethereum:${purchaseAdd}?value=${amount}`
+        : `ethereum:${currency.address}/transfer?address=${purchaseAdd}&uint256=${amount}`;
       setPurchaseAddr(purchaseAdd as `0x${string}`);
       debug(`purchase address: ${purchaseAdd}`);
       setSrc(payLink);
       setCryptoTotal(amount);
-      const displayedAmount = `${formatUnitsFromString(total, decimal)} ${symbol}`;
+      const displayedAmount = `${
+        formatUnitsFromString(total, decimal)
+      } ${symbol}`;
       debug(`displayed amount: ${displayedAmount}`);
       setDisplayedAmount(displayedAmount);
       setStep(CheckoutStep.paymentDetails);
@@ -206,7 +206,7 @@ export default function ChoosePayment({
       setErrorMsg("Error setting chosen payment");
     }
   }
-  if (qrOpen)
+  if (qrOpen) {
     return (
       <QRScan
         imgSrc={imgSrc!}
@@ -215,6 +215,7 @@ export default function ChoosePayment({
         goBack={() => setQrOpen(false)}
       />
     );
+  }
 
   return (
     <section>
@@ -245,7 +246,7 @@ export default function ChoosePayment({
         <div className={displayedAmount ? "" : "hidden"}>
           <p>Total Price</p>
           <div className="flex items-center gap-2">
-            <Image
+            <img
               src="/icons/usdc-coin.png"
               alt="coin"
               width={24}
@@ -269,7 +270,7 @@ export default function ChoosePayment({
               className="rounded-lg flex flex-col items-center gap-2"
               onClick={() => setQrOpen(true)}
             >
-              <Image
+              <img
                 src="/icons/wallet-icon.svg"
                 width={40}
                 height={40}
@@ -279,7 +280,7 @@ export default function ChoosePayment({
               />
               <div className="flex gap-2 items-center">
                 <p>Pay by QR code</p>
-                <Image
+                <img
                   src="/icons/chevron-right.svg"
                   width={12}
                   height={12}

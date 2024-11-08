@@ -6,31 +6,31 @@
 import { expect } from "jsr:@std/expect";
 import { describe, it } from "jsr:@std/testing/bdd";
 import {
-  hexToBytes,
-  toHex,
-  createWalletClient,
+  type Account,
+  type Address,
   createPublicClient,
+  createWalletClient,
+  hexToBytes,
   http,
   pad,
-  type Address,
-  type Account,
+  toHex,
 } from "viem";
 import { hardhat } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 import { random32BytesHex } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 import {
-  randomAddress,
   anvilPrivateKey2,
-  priceToUint256,
   objectId,
+  priceToUint256,
+  randomAddress,
   zeroAddress,
 } from "@massmarket/utils";
 import {
   BlockchainClient,
   type ConcreteWalletClient,
 } from "@massmarket/blockchain";
-import { RelayClient, discoverRelay } from "./mod.ts";
+import { discoverRelay, RelayClient } from "./mod.ts";
 import type schema from "../schema/mod.ts";
 
 describe({
@@ -79,10 +79,9 @@ describe({
     let relayClient: RelayClient;
     it("enroll keycard", async () => {
       relayClient = await createRelayClient();
-      const windowLocation =
-        typeof window == "undefined"
-          ? undefined
-          : new URL(window.location.href);
+      const windowLocation = typeof window == "undefined"
+        ? undefined
+        : new URL(window.location.href);
       const enrolledResponse = await relayClient.enrollKeycard(
         wallet,
         false,
@@ -170,10 +169,9 @@ describe({
 
       guestRelayClient = await createRelayClient(sk);
       // enroll the guest client
-      const windowLocation =
-        typeof window == "undefined"
-          ? undefined
-          : new URL(window.location.href);
+      const windowLocation = typeof window == "undefined"
+        ? undefined
+        : new URL(window.location.href);
       const response = await guestRelayClient.enrollKeycard(
         w,
         true,
@@ -200,16 +198,13 @@ describe({
         id: itemId,
         diff: 10,
       });
-      console.log("inventory changed", itemId);
       await guestRelayClient.updateOrder({
         id: orderId,
         changeItems: {
           adds: [{ listingId: itemId, quantity: 1 }],
         },
       });
-      console.log("items changed", orderId);
       await guestRelayClient.updateOrder({ id: orderId, commitItems: {} });
-      console.log("items committed", orderId);
       await guestRelayClient.updateOrder({
         id: orderId,
         setInvoiceAddress: {
@@ -231,7 +226,6 @@ describe({
           emailAddress: "arakkis@dune.planet",
         },
       });
-      console.log("address updated", orderId);
       await guestRelayClient.updateOrder({
         id: orderId,
         choosePayment: {
@@ -247,13 +241,10 @@ describe({
           },
         },
       });
-      console.log("payment chosen", orderId);
       const stream = guestRelayClient.createEventStream();
       for await (const { event } of stream) {
         //FIXME: not getting payment details currently for guests. use payTokenPreApproved here once paymentdetails comes through.
-        console.log("event inside stream", event.updateOrder);
         if (event.updateOrder?.setPaymentDetails) {
-          console.log("event.updateOrder", event.updateOrder);
           return;
         }
       }
@@ -295,7 +286,6 @@ describe({
       });
       expect(receipt.status).toEqual("success");
 
-
       const stream = guestRelayClient.createEventStream();
       for await (const { event } of stream) {
         if (event.updateOrder?.setPaymentDetails) {
@@ -318,7 +308,7 @@ describe({
             args: [args],
           })) as bigint;
           expect(toHex(order.paymentId.raw)).toEqual(toHex(paymentId));
-    
+
           // TODO: call the pay function
           // const hash = await guestWallet.writeContract({
           //   address: abi.addresses.Payments as Address,

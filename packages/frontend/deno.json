@@ -1,0 +1,16 @@
+{
+  "imports": {
+    "@/types": "./src/types/index.ts",
+    "@/context/types": "./src/context/types.ts",
+    "@/app/utils": "./src/app/utils.ts",
+    "@/app/common/components/BackButton": "./src/app/common/components/BackButton.tsx",
+    "@/app/common/components/ValidationWarning": "./src/app/common/components/ValidationWarning.tsx",
+    "@/app/common/components/SecondaryButton": "./src/app/common/components/SecondaryButton.tsx",
+    "@/app/common/components/Button": "./src/app/common/components/Button.tsx",
+    "@/app/common/components/ErrorMessage": "./src/app/common/components/ErrorMessage.tsx",
+    "@/app/ClientWithStateManager": "./src/app/ClientWithStateManager.ts",
+    "@/context/UserContext": "./src/context/UserContext.tsx",
+    "@/context/StoreContext": "./src/context/StoreContext.tsx",
+    "@/context/AuthContext": "./src/context/AuthContext.tsx"
+  }
+}

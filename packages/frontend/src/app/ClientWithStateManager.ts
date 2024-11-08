@@ -1,23 +1,12 @@
 "use client";
 import { PublicClient } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-
-// conditional import to avoid problemsn during next pre-prendering
-import type { Level } from "level";
-let LevelDbAvailable = false;
-let LevelDB: Promise<typeof Level>;
-if (typeof window !== "undefined") {
-  LevelDB = import("level").then((m) => {
-    return m.Level as typeof Level;
-  });
-  LevelDbAvailable = true;
-}
-
+import { BrowserLevel } from "browser-level";
 import { RelayClient, type RelayEndpoint } from "@massmarket/client";
 import { StateManager } from "@massmarket/stateManager";
-import { random32BytesHex, logger } from "@massmarket/utils";
+import { logger, random32BytesHex } from "@massmarket/utils";
 
-import { Item, Order, KeyCard, ShopManifest, Tag, ShopId } from "@/types";
+import { KeyCard, Order, ShopId, ShopManifest, Tag } from "@/types";
 
 const namespace = "frontend:ClientWithStateManager";
 const debug = logger(namespace);
@@ -42,16 +31,13 @@ export class ClientWithStateManager {
   }
 
   async createStateManager() {
-    if (!LevelDbAvailable) {
-      debug("Level db not available");
-      return null;
-    }
     const merchantKC = localStorage.getItem("merchantKC");
-    const dbName = `${this.shopId.slice(0, 7)}${merchantKC ? merchantKC.slice(0, 5) : "-guest"}`;
+    const dbName = `${this.shopId.slice(0, 7)}${
+      merchantKC ? merchantKC.slice(0, 5) : "-guest"
+    }`;
     debug(`using level db: ${dbName}`);
     const encOption = { valueEncoding: "json" };
-    const ldb = await LevelDB;
-    const db = new ldb(`./${dbName}`, encOption);
+    const db = new BrowserLevel(`./${dbName}`, encOption);
     // Set up all the stores via sublevel
     const listingStore = db.sublevel<string, Item>("listingStore", encOption);
     const tagStore = db.sublevel<string, Tag>("tagStore", encOption);
@@ -87,7 +73,8 @@ export class ClientWithStateManager {
     // Only start the stream once relay address is added
     this.stateManager
       .eventStreamProcessing()
-      .then(/* infinite loop*/)
+      .then()
+      /* infinite loop*/
       .catch((err: Error) => {
         logerr("Error something bad happened in the stream", err);
       });
@@ -105,8 +92,9 @@ export class ClientWithStateManager {
 
   createNewRelayClient() {
     if (!this.relayEndpoint?.url) throw new Error("Relay endpoint URL not set");
-    if (!this.relayEndpoint?.tokenId)
+    if (!this.relayEndpoint?.tokenId) {
       throw new Error("Relay endpoint tokenId not set");
+    }
     const keyCard = random32BytesHex();
     const keyCardWallet = privateKeyToAccount(keyCard);
     localStorage.setItem("keyCardToEnroll", keyCard);

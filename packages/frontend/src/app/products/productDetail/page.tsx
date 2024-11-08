@@ -3,15 +3,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 "use client";
-import React, { useState, useEffect, ChangeEvent } from "react";
+import React, { ChangeEvent, useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { privateKeyToAccount } from "viem/accounts";
 
-import { formatUnitsFromString, logger, assert } from "@massmarket/utils";
+import { assert, formatUnitsFromString, logger } from "@massmarket/utils";
 
-import { Listing, ListingId, OrderId, Tag, Order } from "@/types";
+import { Listing, ListingId, Order, OrderId, Tag } from "@/types";
 import { createQueryString } from "@/app/utils";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
@@ -92,18 +91,19 @@ const ProductDetail = () => {
                 baseTokenInfo?.[1] || 0,
               );
               setPrice(price);
-            })
-        })
-
+            });
+        });
     }
   }, [currentCartItems, itemId]);
 
   async function getAllTags() {
     const tags = new Map();
-    for await (const [
-      id,
-      tag,
-    ] of clientWithStateManager!.stateManager!.tags.iterator()) {
+    for await (
+      const [
+        id,
+        tag,
+      ] of clientWithStateManager!.stateManager!.tags.iterator()
+    ) {
       tags.set(id, tag);
     }
     return tags;
@@ -117,7 +117,7 @@ const ProductDetail = () => {
     getAllTags()
       .then((tags) => {
         setAllTags(tags);
-      })
+      });
 
     // Listen to future events
     clientWithStateManager!.stateManager!.tags.on("create", onCreateTag);
@@ -194,11 +194,13 @@ const ProductDetail = () => {
             <div className={`ml-auto ${isMerchantView ? "" : "hidden"}`}>
               <Button>
                 <Link
-                  href={`/products/edit?${createQueryString(
-                    "itemId",
-                    item.id,
-                    searchParams,
-                  )}`}
+                  href={`/products/edit?${
+                    createQueryString(
+                      "itemId",
+                      item.id,
+                      searchParams,
+                    )
+                  }`}
                 >
                   Edit
                 </Link>
@@ -206,7 +208,7 @@ const ProductDetail = () => {
             </div>
           </div>
           <div>
-            <Image
+            <img
               src={item.metadata.images[0]}
               alt="product-detail-image"
               width={380}
@@ -220,29 +222,31 @@ const ProductDetail = () => {
                 objectPosition: "center",
               }}
             />
-            {item.metadata.images.length > 1 ? (
-              <div className="flex mt-2 gap-2">
-                {item.metadata.images.map((image, i) => {
-                  return (
-                    <Image
-                      key={i}
-                      src={image}
-                      alt="product-detail-image"
-                      width={90}
-                      height={81}
-                      className="border rounded-lg"
-                      unoptimized={true}
-                      style={{
-                        maxHeight: "81px",
-                        maxWidth: "90px",
-                        objectFit: "cover",
-                        objectPosition: "center",
-                      }}
-                    />
-                  );
-                })}
-              </div>
-            ) : null}
+            {item.metadata.images.length > 1
+              ? (
+                <div className="flex mt-2 gap-2">
+                  {item.metadata.images.map((image, i) => {
+                    return (
+                      <img
+                        key={i}
+                        src={image}
+                        alt="product-detail-image"
+                        width={90}
+                        height={81}
+                        className="border rounded-lg"
+                        unoptimized={true}
+                        style={{
+                          maxHeight: "81px",
+                          maxWidth: "90px",
+                          objectFit: "cover",
+                          objectPosition: "center",
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+              )
+              : null}
           </div>
           <section className="flex gap-4 flex-col bg-white mt-5 rounded-md p-5">
             <div>
@@ -250,7 +254,7 @@ const ProductDetail = () => {
               <p data-testid="description">{item.metadata.description}</p>
             </div>
             <div className="flex gap-2 items-center">
-              <Image
+              <img
                 src="/icons/usdc-coin.png"
                 alt="coin"
                 width={24}

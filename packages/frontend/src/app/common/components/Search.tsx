@@ -4,8 +4,7 @@
 
 "use client";
 
-import React, { Dispatch, SetStateAction, FormEvent, ChangeEvent } from "react";
-import Image from "next/image";
+import React, { ChangeEvent, Dispatch, FormEvent, SetStateAction } from "react";
 
 const Search = ({
   setSearchPhrase,
@@ -27,23 +26,25 @@ const Search = ({
           e.preventDefault();
         }}
       >
-        {searchPhrase && searchPhrase.length ? (
-          <Image
-            src="/assets/arrow-left.svg"
-            width={19}
-            height={19}
-            alt="search-icon"
-            className="absolute m-2 mt-4 ml-3"
-          />
-        ) : (
-          <Image
-            src="/icons/search-icon.svg"
-            width={19}
-            height={19}
-            alt="search-icon"
-            className="absolute m-2 mt-4 ml-3"
-          />
-        )}
+        {searchPhrase && searchPhrase.length
+          ? (
+            <img
+              src="/assets/arrow-left.svg"
+              width={19}
+              height={19}
+              alt="search-icon"
+              className="absolute m-2 mt-4 ml-3"
+            />
+          )
+          : (
+            <img
+              src="/icons/search-icon.svg"
+              width={19}
+              height={19}
+              alt="search-icon"
+              className="absolute m-2 mt-4 ml-3"
+            />
+          )}
         <input
           className="border-2 border-solid mt-1 p-2 pl-9 w-full rounded"
           id="products"
