@@ -52,7 +52,6 @@ describe({
       transport: http(),
     });
 
-    let blockchain: BlockchainClient;
     const relayURL = Deno.env.get("RELAY_ENDPOINT") || "ws://localhost:4444/v3";
 
     async function createRelayClient(pk = random32BytesHex()) {
@@ -64,7 +63,7 @@ describe({
     }
 
     const shopId = random32BytesHex();
-    blockchain = new BlockchainClient(shopId);
+    const blockchain = new BlockchainClient(shopId);
 
     it("create shop", async () => {
       // create a shop
@@ -295,11 +294,11 @@ describe({
             order.ttl,
             pad(zeroAddress, { size: 32 }), //orderHash
             toHex(currency), //currency address
-            toHex(order.total.raw),
+            toHex(order.total!.raw!),
             toHex(payee), //payee address
             false, // is paymentendpoint?
             shopId,
-            toHex(order.shopSignature.raw),
+            toHex(order.shopSignature!.raw!),
           ];
           const paymentId = (await publicClient.readContract({
             address: abi.addresses.Payments as Address,
@@ -307,7 +306,7 @@ describe({
             functionName: "getPaymentId",
             args: [args],
           })) as bigint;
-          expect(toHex(order.paymentId.raw)).toEqual(toHex(paymentId));
+          expect(toHex(order.paymentId!.raw!)).toEqual(toHex(paymentId));
 
           // TODO: call the pay function
           // const hash = await guestWallet.writeContract({

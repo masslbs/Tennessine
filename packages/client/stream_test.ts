@@ -71,8 +71,8 @@ describe("Stream", () => {
     const testItem = schema.Listing.create(testCreateItem.listing);
     stream.enqueue(pushEvent);
     for await (const evt of stream.stream) {
-      assert.deepEqual(evt.event.listing.metadata, testItem.metadata);
-      expect(Buffer.from(evt.event.listing.price.raw)).toEqual(
+      assert.deepEqual(evt.event.listing!.metadata, testItem.metadata);
+      expect(Buffer.from(evt.event.listing!.price!.raw!)).toEqual(
         Buffer.from(testItem.price!.raw!),
       );
       expect(evt.signer).toEqual(account.address);
@@ -176,8 +176,8 @@ describe("Stream", () => {
         },
       };
       const signedMessage = await signMessage(testCreateItem);
-      const sequencedEvent =
-        schema.SubscriptionPushRequest.SequencedEvent.create(signedMessage);
+      const sequencedEvent = schema.SubscriptionPushRequest.SequencedEvent
+        .create(signedMessage);
       const pushEvent = {
         requestId: schema.RequestId.create({ raw: 0 }),
         events: [sequencedEvent, sequencedEvent],
@@ -209,8 +209,9 @@ describe("Stream", () => {
     };
     const client = new StubClient();
     const stream = new ReadableEventStream(client);
-    const sequencedEvent =
-      schema.SubscriptionPushRequest.SequencedEvent.create(signedMessage);
+    const sequencedEvent = schema.SubscriptionPushRequest.SequencedEvent.create(
+      signedMessage,
+    );
     stream.enqueue({
       requestId: pushEvent.requestId,
       events: [sequencedEvent],

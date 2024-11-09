@@ -4,14 +4,14 @@
 
 import { WebSocket } from "isows";
 import {
-  hexToBytes,
-  createWalletClient,
-  createPublicClient,
-  http,
-  toBytes,
   type Address,
-  toHex,
+  createPublicClient,
+  createWalletClient,
+  hexToBytes,
+  http,
   pad,
+  toBytes,
+  toHex,
 } from "viem";
 import { hardhat } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
@@ -20,21 +20,22 @@ import { expect } from "jsr:@std/expect";
 import schema from "@massmarket/schema";
 
 import {
-  random32BytesHex,
-  zeroAddress,
-  priceToUint256,
   anvilAddress,
   anvilPrivateKey,
   objectId,
+  priceToUint256,
+  random32BytesHex,
   randomBytes,
+  zeroAddress,
 } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 import { BlockchainClient } from "@massmarket/blockchain";
 
-import { RelayClient, discoverRelay } from "./mod.ts";
+import { discoverRelay, RelayClient } from "./mod.ts";
 
-const windowLocation =
-  typeof window == "undefined" ? undefined : new URL(window.location.href);
+const windowLocation = typeof window == "undefined"
+  ? undefined
+  : new URL(window.location.href);
 // this key is from one of anvil's default keypairs
 const account = privateKeyToAccount(anvilPrivateKey);
 
@@ -382,11 +383,11 @@ describe({
                 paymentDetails.ttl,
                 zeros32Bytes,
                 zeroAddress,
-                toHex(paymentDetails.total.raw),
+                toHex(paymentDetails.total!.raw!),
                 anvilAddress,
                 false, // is paymentendpoint?
                 shopId,
-                toHex(paymentDetails.shopSignature.raw),
+                toHex(paymentDetails.shopSignature!.raw!),
               ];
               const paymentId = (await publicClient.readContract({
                 address: abi.addresses.Payments as Address,
@@ -397,7 +398,7 @@ describe({
 
               // TODO: toHex is not padding BigInt coerrect, so this cause random test
               // failures
-              expect(toHex(paymentDetails.paymentId.raw)).toEqual(
+              expect(toHex(paymentDetails.paymentId!.raw!)).toEqual(
                 toHex(paymentId),
               );
               const hash = await wallet.writeContract({

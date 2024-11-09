@@ -71,6 +71,7 @@ export class ReadableEventStream {
             response: {},
           });
         }
+        console.log("pull");
         await self.nextPushReq;
         return this.pull!(controller);
       },
@@ -80,6 +81,7 @@ export class ReadableEventStream {
   // This method is meant to be used by the client to enqueue events into the stream
   enqueue(pushReq: SequencedEventsWithRequestId) {
     this.queue.push(pushReq);
+    console.log("Enqueued", this.queue);
     this.resolve(null);
     this.nextPushReq = new Promise<
       schema.SubscriptionPushRequest.ISequencedEvent
