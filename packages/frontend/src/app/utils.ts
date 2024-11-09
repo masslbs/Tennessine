@@ -4,11 +4,11 @@
 
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { Address, PublicClient, createPublicClient, http, type Chain  } from "viem";
+import { Address, PublicClient, createWalletClient, createPublicClient, http, type Chain  } from "viem";
 import { sepolia, hardhat } from "wagmi/chains";
 import { ReadonlyURLSearchParams } from "next/navigation";
 
-import { zeroAddress } from "@massmarket/utils";
+import { zeroAddress, random32BytesHex } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 
 import { Metadata } from "@/types";
