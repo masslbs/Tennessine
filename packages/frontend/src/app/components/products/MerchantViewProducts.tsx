@@ -6,7 +6,6 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 
 import { formatUnitsFromString } from "@massmarket/utils";
 import { Listing, ListingViewState } from "@/types";
@@ -16,7 +15,6 @@ import Button from "@/app/common/components/Button";
 
 function MerchantViewProducts({ products }: { products: Listing[] | null }) {
   const { getBaseTokenInfo } = useStoreContext();
-  const searchParams = useSearchParams();
   const [baseDecimal, setBaseDecimal] = useState<null | number>(null);
 
   useEffect(() => {
@@ -46,7 +44,6 @@ function MerchantViewProducts({ products }: { products: Listing[] | null }) {
           href={`/products/productDetail?${createQueryString(
             "itemId",
             item.id,
-            searchParams,
           )}`}
           className={`${!visible ? "opacity-50" : ""} flex w-full h-auto mb-4`}
         >
@@ -92,13 +89,7 @@ function MerchantViewProducts({ products }: { products: Listing[] | null }) {
       <div className="flex">
         <h1 className="grow flex items-center">Manage Products</h1>
         <Button custom="w-30">
-          <Link
-            href={`/products/edit?${createQueryString(
-              "itemId",
-              "new",
-              searchParams,
-            )}`}
-          >
+          <Link href={`/products/edit?${createQueryString("itemId", "new")}`}>
             Add new +
           </Link>
         </Button>

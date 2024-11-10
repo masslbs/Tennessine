@@ -6,7 +6,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useDisconnect } from "wagmi";
 
 import { assert, logger } from "@massmarket/utils";
@@ -43,7 +43,6 @@ function Navigation() {
   const { shopDetails, setCommittedOrderId, getOpenOrderId } =
     useStoreContext();
   const { clientWithStateManager } = useUserContext();
-  const searchParams = useSearchParams();
 
   const router = useRouter();
   const { disconnect } = useDisconnect();
@@ -53,10 +52,18 @@ function Navigation() {
     {
       title: "Basket",
       img: "menu-basket.svg",
-      href: `/checkout?${createQueryString("step", "cart", searchParams)}`,
+      href: `/checkout?${createQueryString("step", "cart")}`,
     },
-    { title: "Contact", img: "menu-contact.svg", href: "/contact" },
-    { title: "Share", img: "menu-share.svg", href: "/share" },
+    {
+      title: "Contact",
+      img: "menu-contact.svg",
+      href: `/contact?${createQueryString("page", "contact")}`,
+    },
+    {
+      title: "Share",
+      img: "menu-share.svg",
+      href: `/contact?${createQueryString("page", "share")}`,
+    },
   ];
 
   useEffect(() => {
@@ -138,13 +145,7 @@ function Navigation() {
       setBasketOpen(false);
       debug(`Order ID: ${orderId} committed`);
       setCommittedOrderId(orderId);
-      router.push(
-        `/checkout?${createQueryString(
-          "step",
-          "shippingDetails",
-          searchParams,
-        )}`,
-      );
+      router.push(`/checkout?${createQueryString("step", "shippingDetails")}`);
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
       errlog("error committing order", error);

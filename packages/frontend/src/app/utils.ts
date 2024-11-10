@@ -45,12 +45,8 @@ export const decodeMetadata = (metadata: Uint8Array) => {
   return textDecoder.decode(metadata);
 };
 
-export const createQueryString = (
-  name: string,
-  value: string,
-  searchParams: ReadonlyURLSearchParams,
-) => {
-  const params = new URLSearchParams(searchParams.toString());
+export const createQueryString = (name: string, value: string) => {
+  const params = new URLSearchParams();
   params.set(name, value);
 
   return params.toString();

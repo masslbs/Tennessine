@@ -123,7 +123,6 @@ const ProductDetail = () => {
                   href={`/products/edit?${createQueryString(
                     "itemId",
                     item.id,
-                    searchParams,
                   )}`}
                 >
                   Edit

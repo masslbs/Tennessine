@@ -11,10 +11,13 @@ import { useSearchParams } from "next/navigation";
 import { Order, OrderState } from "@/types";
 import { createQueryString } from "@/app/utils";
 import { useUserContext } from "@/context/UserContext";
+import OrderDetails from "@/app/components/orders/OrderDetails";
 
 const MerchantDashboard = () => {
   const { clientWithStateManager } = useUserContext();
   const searchParams = useSearchParams();
+  const page = searchParams.get("page");
+
   const [orders, setOrders] = useState(new Map());
 
   const getAllOrders = async () => {
@@ -102,6 +105,10 @@ const MerchantDashboard = () => {
     );
   };
 
+  if (page === "orders") {
+    return <OrderDetails />;
+  }
+
   return (
     <main className="pt-under-nav h-screen">
       <div className="flex flex-col justify-between mx-4 mt-4">
@@ -123,11 +130,7 @@ const MerchantDashboard = () => {
             </Link>
             <Link
               className="flex items-center gap-1 p-3 bg-white rounded-md"
-              href={`/products/edit?${createQueryString(
-                "itemId",
-                "new",
-                searchParams,
-              )}`}
+              href={`/products/edit?${createQueryString("itemId", "new")}`}
             >
               Add new product
               <img

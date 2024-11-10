@@ -5,9 +5,18 @@
 "use client";
 
 import React from "react";
+import { useSearchParams } from "next/navigation";
+
 import BackButton from "@/app/common/components/BackButton";
+import Share from "@/app/components/contact/Share";
 
 function Contact() {
+  const searchParams = useSearchParams();
+  const page = searchParams.get("page");
+
+  if (page === "share") {
+    return <Share />;
+  }
   return (
     <main className="pt-under-nav h-screen bg-gray-100">
       <section className="m-4">

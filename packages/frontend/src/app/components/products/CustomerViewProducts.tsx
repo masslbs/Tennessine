@@ -6,7 +6,6 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 
 import { formatUnitsFromString, logger } from "@massmarket/utils";
 import { Listing, ListingViewState } from "@/types";
@@ -17,7 +16,6 @@ const debug = logger("frontend:CustomerViewProducts");
 
 function CustomerViewProducts({ products }: { products: Listing[] | null }) {
   const { getBaseTokenInfo } = useStoreContext();
-  const searchParams = useSearchParams();
   const [baseDecimal, setBaseDecimal] = useState<null | number>(null);
   const [tokenIcon, setIcon] = useState<string>("/icons/usdc-coin.png");
 
@@ -51,7 +49,6 @@ function CustomerViewProducts({ products }: { products: Listing[] | null }) {
           href={`/products/productDetail?${createQueryString(
             "itemId",
             item.id,
-            searchParams,
           )}`}
           className={`${!visible ? "opacity-50" : ""}`}
         >
