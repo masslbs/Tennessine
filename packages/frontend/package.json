@@ -26,6 +26,7 @@
     "@walletconnect/modal": "^2.6.2",
     "@walletconnect/sign-client": "^2.13.0",
     "@walletconnect/types": "^2.13.0",
+    "browser-level": "^1.0.1",
     "encoding": "^0.1.13",
     "events": "^3.3.0",
     "level": "^8.0.1",
