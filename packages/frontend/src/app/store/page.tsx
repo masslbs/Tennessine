@@ -4,16 +4,15 @@
 
 "use client";
 
-import React, { useEffect, useState, ChangeEvent } from "react";
-import Image from "next/image";
+import React, { ChangeEvent, useEffect, useState } from "react";
 import { useChains } from "wagmi";
 import { Address } from "viem";
 
 import { UpdateShopManifest } from "@massmarket/stateManager/types";
 import { BlockchainClient } from "@massmarket/blockchain";
-import { zeroAddress, logger } from "@massmarket/utils";
+import { logger, zeroAddress } from "@massmarket/utils";
 
-import { ShopManifest, ShopCurrencies, CurrencyChainOption } from "@/types";
+import { CurrencyChainOption, ShopCurrencies, ShopManifest } from "@/types";
 import { getTokenAddress } from "@/app/utils";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
@@ -100,7 +99,7 @@ function StoreProfile() {
           address: pricingCurrency.address!,
           chainId: pricingCurrency.chainId!,
         });
-      })
+      });
 
     clientWithStateManager!.stateManager!.manifest.on("update", onUpdateEvent);
 
@@ -156,10 +155,10 @@ function StoreProfile() {
           //If new avatar was uploaded, upload the image, otherwise use previous image.
           image: avatar
             ? (
-                await clientWithStateManager!.relayClient!.uploadBlob(
-                  avatar as FormData,
-                )
-              ).url
+              await clientWithStateManager!.relayClient!.uploadBlob(
+                avatar as FormData,
+              )
+            ).url
             : shopDetails.profilePictureUrl,
         };
         const jsn = JSON.stringify(metadata);
@@ -173,8 +172,7 @@ function StoreProfile() {
             const blockchainClient = new BlockchainClient(shopId!);
             blockchainClient
               .setShopMetadataURI(clientWallet!, url)
-              .then()
-              
+              .then();
           });
       }
       setSuccess("Changes saved.");
@@ -278,7 +276,7 @@ function StoreProfile() {
                       onChange={() => {}}
                     />
                     <button className="mr-4" onClick={copyToClipboard}>
-                      <Image
+                      <img
                         src="/icons/copy-icon.svg"
                         width={14}
                         height={14}

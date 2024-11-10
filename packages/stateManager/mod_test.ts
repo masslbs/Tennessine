@@ -3,29 +3,29 @@ import { expect } from "jsr:@std/expect";
 import { MemoryLevel } from "memory-level";
 import { hardhat } from "viem/chains";
 
-import { randomAddress, zeroAddress, objectId } from "@massmarket/utils";
+import { objectId, randomAddress, zeroAddress } from "@massmarket/utils";
 import {
-  createPublicClient,
-  http,
-  formatUnits,
   Address,
   bytesToHex,
+  createPublicClient,
+  formatUnits,
   fromHex,
+  http,
 } from "viem";
 import * as abi from "@massmarket/contracts";
 
 import { StateManager } from "./mod.ts";
 import { MockClient } from "./mockClient.ts";
 import {
-  type Listing,
-  type Tag,
-  type ShopManifest,
-  type Order,
   type KeyCard,
-  type OrdersByStatus,
+  type Listing,
   ListingViewState,
+  type Order,
+  type OrdersByStatus,
   OrderState,
   type ShopCurrencies,
+  type ShopManifest,
+  type Tag,
 } from "./types.ts";
 
 async function setupTestManager() {
@@ -341,7 +341,8 @@ describe({ name: "global test settings", sanitizeResources: false }, () => {
       let called = false;
       stateManager
         .eventStreamProcessing()
-        .then(/*infinitely pending*/)
+        .then()
+        /*infinitely pending*/
         .catch((e) => {
           expect(e).toBeTruthy();
           expect(e.message).toContain(
@@ -360,12 +361,9 @@ describe({ name: "global test settings", sanitizeResources: false }, () => {
           payees,
           shippingRegions,
         },
-
         randomAddress(),
       );
-      console.log("waiting for close");
       await close();
-      console.log("closed");
       expect(called).toBeTruthy();
     });
   });
@@ -399,7 +397,6 @@ describe({ name: "global test settings", sanitizeResources: false }, () => {
             payees,
             shippingRegions,
           },
-
           randomAddress(),
         );
         const shop = await stateManager.manifest.get();

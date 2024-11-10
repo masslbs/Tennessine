@@ -1,5 +1,4 @@
 import React from "react";
-import Image from "next/image";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 
 export function ConnectWalletButton() {
@@ -11,7 +10,7 @@ export function ConnectWalletButton() {
       className="rounded-lg flex flex-col items-center gap-2"
       onClick={openConnectModal}
     >
-      <Image
+      <img
         src="/icons/wallet-icon.svg"
         width={40}
         height={40}
@@ -21,7 +20,7 @@ export function ConnectWalletButton() {
       />
       <div className="flex gap-2 items-center">
         <p>Connect wallet</p>
-        <Image
+        <img
           src="/icons/chevron-right.svg"
           width={12}
           height={12}

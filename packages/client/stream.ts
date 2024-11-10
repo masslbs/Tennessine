@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: MIT
 
 import { recoverMessageAddress } from "viem";
-import { ReadableStream } from "web-streams-polyfill";
 import Long from "long";
 
 import schema from "@massmarket/schema";
@@ -31,10 +30,11 @@ export class ReadableEventStream {
   constructor(public client: Pick<RelayClient, "encodeAndSendNoWait">) {
     const self = this;
 
-    this.nextPushReq =
-      new Promise<schema.SubscriptionPushRequest.ISequencedEvent>((resolve) => {
-        this.resolve = resolve;
-      });
+    this.nextPushReq = new Promise<
+      schema.SubscriptionPushRequest.ISequencedEvent
+    >((resolve) => {
+      this.resolve = resolve;
+    });
 
     this.stream = new ReadableStream<SequencedEventWithRecoveredSigner>({
       start(_controller) {},
@@ -71,6 +71,7 @@ export class ReadableEventStream {
             response: {},
           });
         }
+        console.log("pull");
         await self.nextPushReq;
         return this.pull!(controller);
       },
@@ -80,10 +81,12 @@ export class ReadableEventStream {
   // This method is meant to be used by the client to enqueue events into the stream
   enqueue(pushReq: SequencedEventsWithRequestId) {
     this.queue.push(pushReq);
+    console.log("Enqueued", this.queue);
     this.resolve(null);
-    this.nextPushReq =
-      new Promise<schema.SubscriptionPushRequest.ISequencedEvent>((resolve) => {
-        this.resolve = resolve;
-      });
+    this.nextPushReq = new Promise<
+      schema.SubscriptionPushRequest.ISequencedEvent
+    >((resolve) => {
+      this.resolve = resolve;
+    });
   }
 }

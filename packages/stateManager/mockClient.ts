@@ -3,27 +3,28 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { hexToBytes, type PublicClient } from "viem";
-import { privateKeyToAccount, type PrivateKeyAccount } from "viem/accounts";
+import { type PrivateKeyAccount, privateKeyToAccount } from "viem/accounts";
 import Long from "long";
 import { MemoryLevel } from "memory-level";
 
 import type { EventId } from "@massmarket/client";
 import { ReadableEventStream } from "@massmarket/client/stream";
-import schema, { testVectors, type TestVectors } from "@massmarket/schema";
+import schema, { type TestVectors, testVectors } from "@massmarket/schema";
 import { StateManager } from "./mod.ts";
 import type {
+  IRelayClient,
+  KeyCard,
   Listing,
   Order,
-  KeyCard,
   ShopManifest,
   Tag,
-  IRelayClient,
 } from "./types.ts";
 
 export type IncomingEvent = {
   request: schema.SubscriptionPushRequest;
   done: () => void;
 };
+// this is not a mock Client, move to a different file
 export class MockClientStateManager {
   readonly publicClient;
   readonly shopId;
@@ -80,7 +81,7 @@ export class MockClientStateManager {
     return this.stateManager;
   }
 
-  async setClientAndConnect() {
+  setClientAndConnect() {
     this.relayClient = new MockClient();
     return this.relayClient;
   }
@@ -140,7 +141,7 @@ export class MockClient implements IRelayClient {
     });
   }
 
-  async authenticate(): Promise<schema.Envelope> {
+  authenticate(): Promise<schema.Envelope> {
     throw new Error("not implemented");
   }
 
@@ -175,56 +176,56 @@ export class MockClient implements IRelayClient {
     };
   }
 
-  async listing(item: schema.IListing) {
+  listing(item: schema.IListing) {
     return this.sendShopEvent({
       listing: item,
     });
   }
-  async updateListing(item: schema.IUpdateListing) {
+  updateListing(item: schema.IUpdateListing) {
     return this.sendShopEvent({
       updateListing: item,
     });
   }
-  async tag(tag: schema.ITag) {
+  tag(tag: schema.ITag) {
     return this.sendShopEvent({
       tag: tag,
     });
   }
-  async updateTag(tag: schema.IUpdateTag) {
+  updateTag(tag: schema.IUpdateTag) {
     return this.sendShopEvent({
       updateTag: tag,
     });
   }
-  async shopManifest(manifest: schema.IManifest, shopId: `0x${string}`) {
+  shopManifest(manifest: schema.IManifest, shopId: `0x${string}`) {
     manifest.tokenId = { raw: hexToBytes(shopId) };
     return this.sendShopEvent({
       manifest: manifest,
     });
   }
-  async updateShopManifest(update: schema.IUpdateManifest) {
+  updateShopManifest(update: schema.IUpdateManifest) {
     return this.sendShopEvent({
       updateManifest: update,
     });
   }
 
-  async changeInventory(stock: schema.IChangeInventory) {
+  changeInventory(stock: schema.IChangeInventory) {
     return this.sendShopEvent({
       changeInventory: stock,
     });
   }
 
-  async createOrder(order: schema.ICreateOrder) {
+  createOrder(order: schema.ICreateOrder) {
     return this.sendShopEvent({
       createOrder: order,
     });
   }
 
-  async updateOrder(order: schema.IUpdateOrder) {
+  updateOrder(order: schema.IUpdateOrder) {
     return this.sendShopEvent({
       updateOrder: order,
     });
   }
-  async uploadBlob(blob: FormData) {
+  uploadBlob(blob: FormData) {
     const file = blob.get(`file`) as { name: string };
     return { url: file.name };
   }

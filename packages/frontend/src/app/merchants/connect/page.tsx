@@ -4,16 +4,15 @@
 
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import Image from "next/image";
+import React, { useEffect, useRef, useState } from "react";
 import { useAccount } from "wagmi";
 import { Address } from "viem";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 import * as abi from "@massmarket/contracts";
-import { logger, assert } from "@massmarket/utils";
+import { assert, logger } from "@massmarket/utils";
 
-import { Status, ShopId } from "@/types";
+import { ShopId, Status } from "@/types";
 import { isValidHex } from "@/app/utils";
 import { useClient } from "@/context/AuthContext";
 import { useUserContext } from "@/context/UserContext";
@@ -43,10 +42,12 @@ const MerchantConnectWallet = () => {
     "search",
   );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [shopData, setShopData] = useState<{
-    name: string;
-    image: string;
-  } | null>(null);
+  const [shopData, setShopData] = useState<
+    {
+      name: string;
+      image: string;
+    } | null
+  >(null);
 
   useEffect(() => {
     //If user connects different wallet, set client connection back to pending.
@@ -148,7 +149,7 @@ const MerchantConnectWallet = () => {
         <div className="flex flex-col gap-4">
           <div className="flex gap-3">
             <div className="overflow-hidden	rounded-full w-12 h-12">
-              <Image
+              <img
                 src={shopData.image || "/icons/mass-labs-logo.svg"}
                 width={50}
                 height={50}
@@ -193,7 +194,7 @@ const MerchantConnectWallet = () => {
               onChange={(e) => setSearchShopId(e.target.value)}
             />
             <button onClick={handleClearShopIdInput}>
-              <Image
+              <img
                 src={`/icons/close-icon.svg`}
                 width={15}
                 height={15}

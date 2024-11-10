@@ -3,8 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 "use client";
-import React, { Dispatch, SetStateAction, useRef, ChangeEvent } from "react";
-import Image from "next/image";
+import React, { ChangeEvent, Dispatch, SetStateAction, useRef } from "react";
 
 const PhotoUpload = ({
   img,
@@ -41,34 +40,37 @@ const PhotoUpload = ({
 
   return (
     <section>
-      {!img ? (
-        <div id="container" className="flex justify-center relative">
-          <div id="background" className="flex">
-            <span className="rounded-full inline-block stroke-gray-950 w-24 h-24 bg-gray-100"></span>
+      {!img
+        ? (
+          <div id="container" className="flex justify-center relative">
+            <div id="background" className="flex">
+              <span className="rounded-full inline-block stroke-gray-950 w-24 h-24 bg-gray-100">
+              </span>
+            </div>
+            <div
+              id="overlay"
+              className="absolute margin-auto top-0 bottom-0 left-0 right-0 flex justify-center items-center"
+            >
+              <img
+                src="/assets/no-photo.svg"
+                width={42}
+                height={42}
+                alt="no-photo"
+              />
+            </div>
           </div>
-          <div
-            id="overlay"
-            className="absolute margin-auto top-0 bottom-0 left-0 right-0 flex justify-center items-center"
-          >
-            <Image
-              src="/assets/no-photo.svg"
-              width={42}
-              height={42}
-              alt="no-photo"
-            />
-          </div>
-        </div>
-      ) : (
-        <section className="flex flex-col justify-center items-center">
-          <Image src={img} width={96} height={96} alt="eclipse-avatar" />
-        </section>
-      )}
+        )
+        : (
+          <section className="flex flex-col justify-center items-center">
+            <img src={img} width={96} height={96} alt="eclipse-avatar" />
+          </section>
+        )}
       <div className="flex justify-center mt-6">
         <button
           onClick={triggerFileInput}
           className="flex items-center px-4 py-2 border-2 border-gray-700 rounded gap-1"
         >
-          <Image
+          <img
             src="/assets/camera-icon.svg"
             width={16}
             height={16}

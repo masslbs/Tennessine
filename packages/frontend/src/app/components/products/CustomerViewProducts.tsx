@@ -4,9 +4,8 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 
 import { formatUnitsFromString, logger } from "@massmarket/utils";
@@ -25,16 +24,17 @@ function CustomerViewProducts({ products }: { products: Item[] | null }) {
     getBaseTokenInfo()
       .then((res: [string, number]) => {
         res && setBaseDecimal(res[1]);
-      })
+      });
   }, []);
 
   function renderProducts() {
-    if (!products?.length)
+    if (!products?.length) {
       return (
         <div className="flex justify-center w-full mb-4">
           <p>No Products</p>
         </div>
       );
+    }
     return products.map((item) => {
       const { metadata } = item;
       if (!metadata) return null;
@@ -45,16 +45,18 @@ function CustomerViewProducts({ products }: { products: Item[] | null }) {
         <Link
           key={item.id}
           data-testid="product-container"
-          href={`/products/productDetail?${createQueryString(
-            "itemId",
-            item.id,
-            searchParams,
-          )}`}
+          href={`/products/productDetail?${
+            createQueryString(
+              "itemId",
+              item.id,
+              searchParams,
+            )
+          }`}
           className={`${!visible ? "opacity-50" : ""}`}
         >
           <div>
             <div className="flex justify-center" data-testid={`product-img`}>
-              <Image
+              <img
                 src={metadata.images[0] || "/assets/no-image.png"}
                 width={176}
                 height={144}
@@ -72,7 +74,7 @@ function CustomerViewProducts({ products }: { products: Item[] | null }) {
                 </h3>
               </div>
               <div className="flex gap-2 items-center">
-                <Image
+                <img
                   src="/icons/usdc-coin.png"
                   alt="coin"
                   width={20}

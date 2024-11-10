@@ -4,13 +4,12 @@
 
 "use client";
 import React, {
-  useState,
+  ChangeEvent,
   Dispatch,
   SetStateAction,
   useRef,
-  ChangeEvent,
+  useState,
 } from "react";
-import Image from "next/image";
 
 const AvatarUpload = ({
   setImgBlob,
@@ -52,27 +51,29 @@ const AvatarUpload = ({
     <section>
       <div className="flex">
         <button onClick={triggerFileInput}>
-          {localImg ? (
-            <div className="overflow-hidden rounded-full w-12 h-12">
-              <Image
-                src={localImg}
-                width={50}
-                height={50}
-                alt="upload"
-                className="w-12 h-12"
-              />
-            </div>
-          ) : (
-            <div className="bg-background-gray rounded-full p-3">
-              <Image
-                src={"/icons/picture-upload.svg"}
-                width={27}
-                height={21}
-                alt="upload"
-                className="w-auto h-auto"
-              />
-            </div>
-          )}
+          {localImg
+            ? (
+              <div className="overflow-hidden rounded-full w-12 h-12">
+                <img
+                  src={localImg}
+                  width={50}
+                  height={50}
+                  alt="upload"
+                  className="w-12 h-12"
+                />
+              </div>
+            )
+            : (
+              <div className="bg-background-gray rounded-full p-3">
+                <img
+                  src={"/icons/picture-upload.svg"}
+                  width={27}
+                  height={21}
+                  alt="upload"
+                  className="w-auto h-auto"
+                />
+              </div>
+            )}
         </button>
         <div className="hidden">
           <input

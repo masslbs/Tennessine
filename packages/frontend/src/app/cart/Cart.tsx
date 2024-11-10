@@ -3,12 +3,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 "use client";
-import React, { useState, useEffect } from "react";
-import Image from "next/image";
-
+import React, { useEffect, useState } from "react";
 import { formatUnitsFromString, logger } from "@massmarket/utils";
 
-import { ListingId, OrderId, OrderState, Order } from "@/types";
+import { ListingId, Order, OrderId, OrderState } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
 import Button from "@/app/common/components/Button";
@@ -38,7 +36,7 @@ function Cart({
       .then((res: [string, number]) => {
         res && setBaseDecimal(res[1]);
         res && setBaseSymbol(res[0]);
-      })
+      });
   }, []);
 
   useEffect(() => {
@@ -71,7 +69,7 @@ function Cart({
           .then(async (o) => {
             const itemDetails = await getCartItemDetails(o);
             setCartMap(itemDetails);
-          })
+          });
       }
     });
   }, []);
@@ -202,7 +200,7 @@ function Cart({
       return (
         <div key={item.id} className="flex">
           <div className="flex justify-center h-28" data-testid={`product-img`}>
-            <Image
+            <img
               src={item.metadata.images[0] || "/assets/no-image.png"}
               width={127}
               height={112}
@@ -220,7 +218,7 @@ function Cart({
                 onClick={() => removeItem(item.id, item.selectedQty)}
                 className="ml-auto"
               >
-                <Image
+                <img
                   src="/icons/close-icon.svg"
                   alt="close-icon"
                   width={12}
@@ -233,7 +231,7 @@ function Cart({
             <div className="flex gap-2 items-center mt-10">
               <div className="flex gap-2 items-center">
                 <button onClick={() => removeQuantity(item.id)}>
-                  <Image
+                  <img
                     src="/icons/minus.svg"
                     alt="minus"
                     width={10}
@@ -244,7 +242,7 @@ function Cart({
                 </button>
                 <p>{item.selectedQty}</p>
                 <button onClick={() => addQuantity(item.id)}>
-                  <Image
+                  <img
                     src="/icons/plus.svg"
                     alt="plus"
                     width={10}
@@ -255,7 +253,7 @@ function Cart({
                 </button>
               </div>
               <div className="flex gap-2 items-center ml-auto">
-                <Image
+                <img
                   src="/icons/usdc-coin.png"
                   alt="coin"
                   width={20}
@@ -285,7 +283,7 @@ function Cart({
       <div className="mt-2">
         <p>Total Price:</p>
         <div className="flex items-center gap-2">
-          <Image
+          <img
             src="/icons/usdc-coin.png"
             alt="coin"
             width={20}
