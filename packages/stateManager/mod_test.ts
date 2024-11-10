@@ -23,6 +23,7 @@ import {
   type Order,
   type OrdersByStatus,
   OrderState,
+  OrderEventTypes,
   type ShopCurrencies,
   type ShopManifest,
   type Tag,
@@ -690,8 +691,8 @@ describe({ name: "global test settings", sanitizeResources: false }, () => {
 
         await new Promise<void>((resolve) => {
           // TODO: check the orders
-          stateManager.orders.on("paymentDetails", () => {
-            resolve();
+          stateManager.orders.on("update", (res) => {
+            if (res[0] === OrderEventTypes.PAYMENT_DETAILS) resolve();
           });
         });
         const committed = await stateManager.orders.get(id);

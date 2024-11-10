@@ -856,7 +856,6 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
           "updateOrder.setPaymentDetails.shopSignature",
         );
         assert(pd.ttl, "updateOrder.setPaymentDetails.ttl");
-        console.log("PD", pd);
         const paymentDetails = {
           paymentId: bytesToHex(pd.paymentId.raw),
           total: fromBytes(pd.total.raw, "bigint").toString(),
