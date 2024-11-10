@@ -37,6 +37,16 @@ export enum ListingViewState {
   LISTING_VIEW_STATE_PUBLISHED = 1,
   LISTING_VIEW_STATE_DELETED = 2,
 }
+export enum OrderEventTypes {
+  CANCELLED = "orderCanceled",
+  CHANGE_ITEMS = "changeItems",
+  INVOICE_ADDRESS = "invoiceAddress",
+  SHIPPING_ADDRESS = "shippingAddress",
+  COMMIT_ITEMS = "commitItems",
+  CHOOSE_PAYMENT = "choosePayment",
+  PAYMENT_DETAILS = "paymentDetails",
+  PAYMENT_TX = "addPaymentTx",
+}
 export interface Metadata {
   title: string;
   description: string;

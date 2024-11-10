@@ -14,6 +14,7 @@ import {
   ListingViewState,
   Payee,
   ShippingDetails,
+  OrderEventTypes,
 } from "@massmarket/stateManager/types";
 
 export {
@@ -26,6 +27,7 @@ export {
   type KeyCard,
   type Payee,
   type ShippingDetails,
+  OrderEventTypes,
   OrderState,
   ListingViewState,
 };

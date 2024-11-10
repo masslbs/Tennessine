@@ -6,7 +6,7 @@
 import React, { useEffect, useState } from "react";
 import { formatUnitsFromString, logger } from "@massmarket/utils";
 
-import { ListingId, Order, OrderId } from "@/types";
+import { ListingId, Order, OrderEventTypes, OrderId } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
 import Button from "@/app/common/components/Button";
@@ -39,16 +39,18 @@ function Cart({
   }, []);
 
   useEffect(() => {
-    function onChangeItems(order: Order) {
-      getCartItemDetails(order).then((itemDetails) => {
-        setCartMap(itemDetails);
-      });
+    function onChangeItems(res: [OrderEventTypes, Order]) {
+      if (res[0] === OrderEventTypes.CHANGE_ITEMS) {
+        getCartItemDetails(res[1]).then((itemDetails) => {
+          setCartMap(itemDetails);
+        });
+      }
     }
 
-    clientWithStateManager.stateManager.orders.on("changeItems", onChangeItems);
+    clientWithStateManager.stateManager.orders.on("update", onChangeItems);
     return () => {
       clientWithStateManager.stateManager.orders.removeListener(
-        "changeItems",
+        "update",
         onChangeItems,
       );
     };
@@ -142,7 +144,7 @@ function Cart({
         },
       ]);
     } catch (error) {
-      debug(`Error:addQuantity ${error}`);
+      logerr(`Error:addQuantity ${error}`);
     }
   }
 
@@ -155,7 +157,7 @@ function Cart({
         },
       ]);
     } catch (error) {
-      debug(`Error:removeQuantity ${error}`);
+      logerr(`Error:removeQuantity ${error}`);
     }
   }
 
@@ -168,7 +170,7 @@ function Cart({
         },
       ]);
     } catch (error) {
-      debug(`Error:removeItem ${error}`);
+      logerr(`Error:removeItem ${error}`);
     }
   }
   function calculateTotal() {

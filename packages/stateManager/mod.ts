@@ -11,6 +11,7 @@ import {
   type Listing,
   ListingViewState,
   type Order,
+  OrderEventTypes,
   type OrderPriceModifier,
   type OrdersByStatus,
   OrderState,
@@ -73,7 +74,7 @@ async function storeOrdersByStatus(
   let orders: OrdersByStatus = [];
 
   try {
-    orders = await store.get(status) as OrdersByStatus;
+    orders = (await store.get(status)) as OrdersByStatus;
     orders.push(orderId);
   } catch (error) {
     const e = error as IError;
@@ -385,7 +386,6 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
           },
         );
       }
-
       await this.store.put("shopManifest", manifest);
       this.emit("create", manifest, seqEvt.id());
       return;
@@ -448,7 +448,8 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
         const wantAddr = bytesToHex(ur.address!.raw!);
         manifest.payees = manifest.payees.filter((p) => {
           // TODO: this doesn't complain about ur.chainId being Long sometimes!
-          const isEqual = p.address.toLowerCase() === wantAddr.toLowerCase() &&
+          const isEqual =
+            p.address.toLowerCase() === wantAddr.toLowerCase() &&
             p.chainId === Number(ur.chainId);
           return !isEqual;
         });
@@ -614,9 +615,9 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
           ...pm,
           absolute: pm.absolute
             ? {
-              ...pm.absolute,
-              diff: { raw: hexToBytes(pm.absolute.diff) },
-            }
+                ...pm.absolute,
+                diff: { raw: hexToBytes(pm.absolute.diff) },
+              }
             : undefined,
           percentage: pm.percentage
             ? { raw: hexToBytes(pm.percentage) }
@@ -676,7 +677,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       const uo = event.updateOrder;
       assertField(uo.id, "updateOrder.id");
       const id = bytesToHex(uo.id.raw);
-      const order = await this.store.get(id) as Order;
+      const order = (await this.store.get(id)) as Order;
       if (uo.changeItems) {
         const ci = uo.changeItems;
         if (ci.adds) {
@@ -710,7 +711,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
           });
         }
         await this.store.put(id, order);
-        this.emit("changeItems", order, seqEvt.id());
+        this.emit("update", ["changeItems", order], seqEvt.id());
         return;
       } else if (uo.cancel) {
         const currentState = order.status;
@@ -722,19 +723,22 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         let orders = (await this.store.get(currentState)) as OrdersByStatus;
         orders = orders.filter((oId) => oId !== id);
         await this.store.put(currentState, orders);
-        this.emit("orderCanceled", order, seqEvt.id());
+        this.emit("update", ["orderCanceled", order], seqEvt.id());
+
         return;
       } else if (uo.setInvoiceAddress) {
         const update = uo.setInvoiceAddress;
-        const sd = order.invoiceAddress ? order.invoiceAddress : {
-          name: "",
-          address1: "",
-          city: "",
-          postalCode: "",
-          country: "",
-          phoneNumber: "",
-          emailAddress: "",
-        };
+        const sd = order.invoiceAddress
+          ? order.invoiceAddress
+          : {
+              name: "",
+              address1: "",
+              city: "",
+              postalCode: "",
+              country: "",
+              phoneNumber: "",
+              emailAddress: "",
+            };
         if (update.name) {
           sd.name = update.name;
         }
@@ -758,20 +762,22 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         }
         order.invoiceAddress = sd;
         await this.store.put(id, order);
-        this.emit("invoiceAddress", order, seqEvt.id());
+        this.emit("update", ["invoiceAddress", order], seqEvt.id());
         return;
       } else if (uo.setShippingAddress) {
         const update = uo.setShippingAddress;
         // shippingDetails may be null. If null, create an initial shipping details object to update.
-        const sd = order.shippingDetails ? order.shippingDetails : {
-          name: "",
-          address1: "",
-          city: "",
-          postalCode: "",
-          country: "",
-          phoneNumber: "",
-          emailAddress: "",
-        };
+        const sd = order.shippingDetails
+          ? order.shippingDetails
+          : {
+              name: "",
+              address1: "",
+              city: "",
+              postalCode: "",
+              country: "",
+              phoneNumber: "",
+              emailAddress: "",
+            };
         if (update.name) {
           sd.name = update.name;
         }
@@ -795,7 +801,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         }
         order.shippingDetails = sd;
         await this.store.put(id, order);
-        this.emit("shippingAddress", order, seqEvt.id());
+        this.emit("update", ["shippingAddress", order], seqEvt.id());
         return;
       } else if (uo.commitItems) {
         const currentState = order.status;
@@ -806,7 +812,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         let orders = (await this.store.get(currentState)) as OrdersByStatus;
         orders = orders.filter((oId) => oId !== id);
         await this.store.put(currentState, orders);
-        this.emit("commitItems", order, seqEvt.id());
+        this.emit("update", ["commitItems", order], seqEvt.id());
         return;
       } else if (uo.choosePayment) {
         const cp = uo.choosePayment;
@@ -839,8 +845,8 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         };
         order.choosePayment = choosePayment;
         await this.store.put(id, order);
-
-        this.emit("choosePayment", order, seqEvt.id());
+        this.emit("update", ["choosePayment", order], seqEvt.id());
+        return;
       } else if (uo.setPaymentDetails) {
         const pd = uo.setPaymentDetails;
         assertField(pd.paymentId, "updateOrder.setPaymentDetails.paymentId");
@@ -850,6 +856,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
           "updateOrder.setPaymentDetails.shopSignature",
         );
         assert(pd.ttl, "updateOrder.setPaymentDetails.ttl");
+        console.log("PD", pd);
         const paymentDetails = {
           paymentId: bytesToHex(pd.paymentId.raw),
           total: fromBytes(pd.total.raw, "bigint").toString(),
@@ -858,7 +865,8 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         };
         order.paymentDetails = paymentDetails;
         await this.store.put(id, order);
-        this.emit("paymentDetails", order, seqEvt.id());
+        this.emit("update", ["paymentDetails", order], seqEvt.id());
+        return;
       } else if (uo.addPaymentTx) {
         assertField(
           uo.addPaymentTx.blockHash,
@@ -882,7 +890,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         let orders = (await this.store.get(currentState)) as OrdersByStatus;
         orders = orders.filter((oId) => oId !== id);
         await this.store.put(currentState, orders);
-        this.emit("addPaymentTx", order, seqEvt.id());
+        this.emit("update", ["addPaymentTx", order], seqEvt.id());
         return;
       }
     }
@@ -929,7 +937,11 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       },
     });
     // resolves after the `changeItems` event has been fired, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve<Order>(eventId, this, "changeItems");
+    return eventListenAndResolve<[OrderEventTypes, Order]>(
+      eventId,
+      this,
+      "update",
+    );
   }
   async removeItems(
     orderId: `0x${string}`,
@@ -947,7 +959,11 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       },
     });
     // resolves after the `changeItems` event has been fired, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve<Order>(eventId, this, "changeItems");
+    return eventListenAndResolve<[OrderEventTypes, Order]>(
+      eventId,
+      this,
+      "update",
+    );
   }
   async updateShippingDetails(
     orderId: `0x${string}`,
@@ -957,7 +973,11 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       id: { raw: hexToBytes(orderId) },
       setShippingAddress: update,
     });
-    return eventListenAndResolve<Order>(eventId, this, "shippingAddress");
+    return eventListenAndResolve<[OrderEventTypes, Order]>(
+      eventId,
+      this,
+      "update",
+    );
   }
   async updateInvoiceAddress(
     orderId: `0x${string}`,
@@ -967,7 +987,11 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       id: { raw: hexToBytes(orderId) },
       setInvoiceAddress: update,
     });
-    return eventListenAndResolve<Order>(eventId, this, "invoiceAddress");
+    return eventListenAndResolve<[OrderEventTypes, Order]>(
+      eventId,
+      this,
+      "update",
+    );
   }
 
   async cancel(orderId: `0x${string}`, timestamp: number = 0) {
@@ -975,7 +999,11 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       id: { raw: hexToBytes(orderId) },
       cancel: {},
     });
-    return eventListenAndResolve<Order>(eventId, this, "orderCanceled");
+    return eventListenAndResolve<[OrderEventTypes, Order]>(
+      eventId,
+      this,
+      "update",
+    );
   }
   async choosePayment(orderId: `0x${string}`, payment: ChoosePayment) {
     const eventId = await this.client.updateOrder({
@@ -985,14 +1013,22 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         payee: addressToUint256(payment.payee),
       },
     });
-    return eventListenAndResolve<Order>(eventId, this, "choosePayment");
+    return eventListenAndResolve<[OrderEventTypes, Order]>(
+      eventId,
+      this,
+      "update",
+    );
   }
   async commit(orderId: `0x${string}`) {
     const eventId = await this.client.updateOrder({
       id: { raw: hexToBytes(orderId) },
       commitItems: {},
     });
-    return eventListenAndResolve<Order>(eventId, this, "commitItems");
+    return eventListenAndResolve<[OrderEventTypes, Order]>(
+      eventId,
+      this,
+      "update",
+    );
   }
 }
 class TagManager extends PublicObjectManager<Tag> {

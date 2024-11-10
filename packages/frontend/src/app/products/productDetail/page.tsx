@@ -70,6 +70,7 @@ const ProductDetail = () => {
     ) {
       // If no open order, but already enrolled with a keycard, just create new order.
       orderId = (await clientWithStateManager.stateManager.orders.create()).id;
+      debug("New order created");
     } else if (!orderId) {
       //For users with no enrolled KC: upgrade subscription when adding an item to cart.
       await upgradeGuestToCustomer();
@@ -79,6 +80,7 @@ const ProductDetail = () => {
         keyCardWallet.address,
       );
       orderId = (await clientWithStateManager.stateManager.orders.create()).id;
+      debug("New order created");
     }
     try {
       await clientWithStateManager.stateManager.orders.addItems(orderId, [

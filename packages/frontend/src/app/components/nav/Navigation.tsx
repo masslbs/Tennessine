@@ -11,7 +11,7 @@ import { useDisconnect } from "wagmi";
 
 import { assert, logger } from "@massmarket/utils";
 
-import { Order, OrderId, OrderState, Status } from "@/types";
+import { Order, OrderEventTypes, OrderId, OrderState, Status } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useClient } from "@/context/AuthContext";
 import { useUserContext } from "@/context/UserContext";
@@ -60,17 +60,33 @@ function Navigation() {
   ];
 
   useEffect(() => {
+    function onOrderUpdate(res: [OrderEventTypes, Order]) {
+      const order = res[1];
+      const type = res[0];
+      switch (type) {
+        case OrderEventTypes.CHANGE_ITEMS:
+          onChangeItems(order);
+          break;
+        case OrderEventTypes.PAYMENT_TX:
+          txHashDetected(order);
+        default:
+          break;
+      }
+    }
+
     function onChangeItems(order: Order) {
       const values = Object.values(order.items);
       let length = 0;
       values.map((qty) => (length += Number(qty)));
       setLength(length);
     }
+
     function txHashDetected(order: Order) {
       if (order.status === OrderState.STATE_PAYMENT_TX) {
         setLength(0);
       }
     }
+
     if (clientWithStateManager?.stateManager) {
       getOpenOrderId().then((oId: OrderId | null) => {
         if (oId) {
@@ -83,23 +99,17 @@ function Navigation() {
         }
       });
 
-      clientWithStateManager.stateManager.orders.on(
-        "changeItems",
-        onChangeItems,
-      );
+      clientWithStateManager.stateManager.orders.on("update", onOrderUpdate);
 
-      clientWithStateManager!.stateManager.orders.on(
-        "addPaymentTx",
-        txHashDetected,
-      );
+      clientWithStateManager!.stateManager.orders.on("update", onOrderUpdate);
       return () => {
         clientWithStateManager!.stateManager!.orders.removeListener(
-          "addPaymentTx",
-          txHashDetected,
+          "update",
+          onOrderUpdate,
         );
         clientWithStateManager!.stateManager!.orders.removeListener(
-          "changeItems",
-          onChangeItems,
+          "update",
+          onOrderUpdate,
         );
       };
     }
@@ -124,7 +134,7 @@ function Navigation() {
         debug("orderId not found");
         throw new Error("No order found");
       }
-      await clientWithStateManager!.stateManager!.orders.commit(orderId);
+      await clientWithStateManager.stateManager.orders.commit(orderId);
       setBasketOpen(false);
       debug(`Order ID: ${orderId} committed`);
       setCommittedOrderId(orderId);

@@ -10,6 +10,7 @@ import {
   CheckoutStep,
   CurrencyChainOption,
   Order,
+  OrderEventTypes,
   OrderId,
   ShopCurrencies,
   ShopManifest,
@@ -66,23 +67,25 @@ export default function ChoosePayment({
 
   useEffect(() => {
     //Listen for client to send paymentDetails event.
-    function onPaymentDetails(order: Order) {
-      if (order.id === committedOrderId) {
+    function onPaymentDetails(res: [OrderEventTypes, Order]) {
+      const order = res[1];
+      const type = res[0];
+      if (
+        order.id === committedOrderId &&
+        type === OrderEventTypes.PAYMENT_DETAILS
+      ) {
         getDetails(committedOrderId).then(() => {
           debug("paymentDetails found for order");
         });
       }
     }
     committedOrderId &&
-      clientWithStateManager.stateManager.orders.on(
-        "paymentDetails",
-        onPaymentDetails,
-      );
+      clientWithStateManager.stateManager.orders.on("update", onPaymentDetails);
 
     return () => {
       // Cleanup listeners on unmount
       clientWithStateManager.stateManager.listings.removeListener(
-        "paymentDetails",
+        "update",
         onPaymentDetails,
       );
     };

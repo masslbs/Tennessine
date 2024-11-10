@@ -13,7 +13,7 @@ import { logger } from "@massmarket/utils";
 import { StoreContent } from "@/context/types";
 import { useUserContext } from "@/context/UserContext";
 import { getTokenInformation, createPublicClientForChain } from "@/app/utils";
-import { ListingId, Order, OrderState } from "@/types";
+import { ListingId, Order, OrderState, OrderEventTypes } from "@/types";
 
 const namespace = "frontend:StoreContext";
 const debug = logger(namespace);
@@ -75,16 +75,31 @@ export const StoreContextProvider = (
   }, [shopPublicClient, shopId]);
 
   useEffect(() => {
+    function onOrderCreate(order: Order) {
+      if (order.status === OrderState.STATE_OPEN) {
+        setOpenOrderId(order.id);
+      }
+    }
+    function onOrderUpdate(res: [OrderEventTypes, Order]) {
+      const order = res[1];
+      const type = res[0];
+
+      switch (type) {
+        case OrderEventTypes.CANCELLED:
+          orderCancel(order);
+          break;
+        case OrderEventTypes.PAYMENT_TX:
+          txHashDetected(order);
+        default:
+          break;
+      }
+    }
     function txHashDetected(order: Order) {
       if (order.status === OrderState.STATE_PAYMENT_TX) {
         setOpenOrderId(null);
       }
     }
-    function orderCreated(order: Order) {
-      if (order.status === OrderState.STATE_OPEN) {
-        setOpenOrderId(order.id);
-      }
-    }
+
     function orderCancel(order: Order) {
       if (order.status === OrderState.STATE_CANCELED) {
         setOpenOrderId(null);
@@ -92,28 +107,17 @@ export const StoreContextProvider = (
     }
 
     if (clientWithStateManager?.stateManager) {
-      clientWithStateManager.stateManager.orders.on(
-        "addPaymentTx",
-        txHashDetected,
-      );
-      clientWithStateManager.stateManager.orders.on("create", orderCreated);
-      clientWithStateManager.stateManager.orders.on(
-        "orderCanceled",
-        orderCancel,
-      );
+      clientWithStateManager.stateManager.orders.on("create", onOrderCreate);
+      clientWithStateManager.stateManager.orders.on("update", onOrderUpdate);
 
       return () => {
         clientWithStateManager.stateManager.orders.removeListener(
-          "addPaymentTx",
-          txHashDetected,
-        );
-        clientWithStateManager.stateManager.orders.removeListener(
           "create",
-          orderCreated,
+          onOrderCreate,
         );
         clientWithStateManager.stateManager.orders.removeListener(
-          "orderCanceled",
-          orderCancel,
+          "update",
+          onOrderUpdate,
         );
       };
     }
@@ -121,9 +125,11 @@ export const StoreContextProvider = (
 
   async function cancelAndCreateOrder() {
     const sm = clientWithStateManager.stateManager;
-    const cancelledOrder = await sm.orders.cancel(committedOrderId);
+    debug(`Cancelling order ID: ${committedOrderId}`);
+    const [type, cancelledOrder] = await sm.orders.cancel(committedOrderId);
     // Once order is cancelled, create a new order and add the same items.
     const newOrder = await sm.orders.create();
+    debug("New order created");
     const listingsToAdd = Object.entries(cancelledOrder.items).map(
       ([listingId, quantity]) => {
         return {
@@ -133,6 +139,7 @@ export const StoreContextProvider = (
       },
     );
     await sm.orders.addItems(newOrder.id, listingsToAdd);
+    debug("Listings added to new order");
   }
 
   async function getBaseTokenInfo() {

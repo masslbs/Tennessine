@@ -9,7 +9,7 @@ import { useSearchParams } from "next/navigation";
 
 import { logger } from "@massmarket/utils";
 
-import { CheckoutStep, Order, OrderId, OrderState } from "@/types";
+import { CheckoutStep, Order, OrderEventTypes, OrderId } from "@/types";
 import { useUserContext } from "@/context/UserContext";
 import { useStoreContext } from "@/context/StoreContext";
 import Cart from "@/app/cart/Cart";
@@ -57,8 +57,9 @@ const CheckoutFlow = () => {
   }, [isRunning, countdown]);
 
   useEffect(() => {
-    const txHashDetected = (order: Order) => {
-      if (order.status === OrderState.STATE_PAYMENT_TX) {
+    const txHashDetected = (res: [OrderEventTypes, Order]) => {
+      if (res[0] === OrderEventTypes.PAYMENT_TX) {
+        const order = res[1];
         const tx = order.txHash as `0x${string}`;
         const bh = order.blockHash as `0x${string}`;
         tx && setTxHash(tx);
@@ -69,14 +70,11 @@ const CheckoutFlow = () => {
       }
     };
 
-    clientWithStateManager.stateManager.orders.on(
-      "addPaymentTx",
-      txHashDetected,
-    );
+    clientWithStateManager.stateManager.orders.on("update", txHashDetected);
     return () => {
       // Cleanup listeners on unmount
       clientWithStateManager.stateManager.orders.removeListener(
-        "addPaymentTx",
+        "update",
         txHashDetected,
       );
     };

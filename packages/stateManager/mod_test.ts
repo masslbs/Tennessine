@@ -154,15 +154,7 @@ function waitForFill(client: MockClient, stateManager: StateManager) {
     stateManager.tags.on("addListingId", updateCount);
     stateManager.tags.on("removeListingIds", updateCount);
     stateManager.orders.on("create", updateCount);
-    stateManager.orders.on("orderCanceled", updateCount);
-    stateManager.orders.on("orderPaid", updateCount);
-    stateManager.orders.on("shippingAddress", updateCount);
-    stateManager.orders.on("invoiceAddress", updateCount);
-    stateManager.orders.on("changeItems", updateCount);
-    stateManager.orders.on("commitItems", updateCount);
-    stateManager.orders.on("choosePayment", updateCount);
-    stateManager.orders.on("paymentDetails", updateCount);
-    stateManager.orders.on("addPaymentTx", updateCount);
+    stateManager.orders.on("update", updateCount);
   });
 }
 
