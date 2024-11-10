@@ -149,7 +149,7 @@ function Navigation() {
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
       errlog("error committing order", error);
-      // TODO: show error to user
+      throw error;
     }
   }
 
