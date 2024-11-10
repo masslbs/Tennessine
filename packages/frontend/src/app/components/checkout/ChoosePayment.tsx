@@ -74,14 +74,14 @@ export default function ChoosePayment({
       }
     }
     committedOrderId &&
-      clientWithStateManager!.stateManager!.orders.on(
+      clientWithStateManager.stateManager.orders.on(
         "paymentDetails",
         onPaymentDetails,
       );
 
     return () => {
       // Cleanup listeners on unmount
-      clientWithStateManager!.stateManager!.listings.removeListener(
+      clientWithStateManager.stateManager.listings.removeListener(
         "paymentDetails",
         onPaymentDetails,
       );
@@ -91,7 +91,7 @@ export default function ChoosePayment({
   async function getDetails(oId: OrderId) {
     try {
       const committedOrder =
-        await clientWithStateManager!.stateManager!.orders.get(oId!);
+        await clientWithStateManager.stateManager.orders.get(oId!);
       if (!committedOrder?.choosePayment) {
         throw new Error("No chosen payment found");
       }
@@ -116,8 +116,7 @@ export default function ChoosePayment({
         paymentRPC,
         currency.address,
       );
-      const manifest =
-        await clientWithStateManager!.stateManager!.manifest.get();
+      const manifest = await clientWithStateManager.stateManager.manifest.get();
       //FIXME: get orderHash from paymentDetails.
       const zeros32Bytes = pad(zeroAddress, { size: 32 });
 
@@ -155,6 +154,8 @@ export default function ChoosePayment({
       )} ${symbol}`;
       if (symbol === "ETH") {
         setIcon("/icons/eth-coin.svg");
+      } else {
+        setIcon("/icons/usdc-coin.png");
       }
       debug(`displayed amount: ${displayedAmount}`);
       setDisplayedAmount(displayedAmount);
@@ -193,7 +194,7 @@ export default function ChoosePayment({
       if (!payee) {
         throw new Error("No payee found in shop manifest");
       }
-      await clientWithStateManager!.stateManager!.orders.choosePayment(
+      await clientWithStateManager.stateManager.orders.choosePayment(
         committedOrderId,
         {
           currency: {
@@ -272,6 +273,7 @@ export default function ChoosePayment({
               data-testid="connect-wallet"
               className="rounded-lg flex flex-col items-center gap-2"
               onClick={() => setQrOpen(true)}
+              disabled={!displayedAmount}
             >
               <img
                 src="/icons/wallet-icon.svg"

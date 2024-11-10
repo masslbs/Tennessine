@@ -40,7 +40,8 @@ function Navigation() {
   const [basketOpen, setBasketOpen] = useState<boolean>(false);
   const [cartLength, setLength] = useState<number>(0);
   const { clientConnected, setIsConnected, isMerchantView } = useClient();
-  const { shopDetails, setCommittedOrderId } = useStoreContext();
+  const { shopDetails, setCommittedOrderId, getOpenOrderId } =
+    useStoreContext();
   const { clientWithStateManager } = useUserContext();
   const searchParams = useSearchParams();
 
@@ -71,6 +72,17 @@ function Navigation() {
       }
     }
     if (clientWithStateManager?.stateManager) {
+      getOpenOrderId().then((oId: OrderId | null) => {
+        if (oId) {
+          debug(`Open order ID: ${oId}`);
+          clientWithStateManager!
+            .stateManager!.orders.get(oId)
+            .then(async (o) => {
+              onChangeItems(o);
+            });
+        }
+      });
+
       clientWithStateManager.stateManager.orders.on(
         "changeItems",
         onChangeItems,

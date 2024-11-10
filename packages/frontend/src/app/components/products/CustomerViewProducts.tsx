@@ -94,8 +94,6 @@ function CustomerViewProducts({ products }: { products: Listing[] | null }) {
     <section className="mx-5 mt-2">
       <div className="flex">
         <h1 className="grow flex items-center">Shop</h1>
-        <button>Search</button>
-        <button className="ml-2">Filter</button>
       </div>
       <section className="flex flex-wrap justify-between gap-3 mt-3">
         {renderProducts()}

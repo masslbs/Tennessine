@@ -98,11 +98,11 @@ function StoreProfile() {
         });
       });
 
-    clientWithStateManager!.stateManager!.manifest.on("update", onUpdateEvent);
+    clientWithStateManager.stateManager.manifest.on("update", onUpdateEvent);
 
     return () => {
       // Cleanup listeners on unmount
-      clientWithStateManager!.stateManager!.manifest.removeListener(
+      clientWithStateManager.stateManager.manifest.removeListener(
         "update",
         onUpdateEvent,
       );
@@ -140,7 +140,7 @@ function StoreProfile() {
     }
     try {
       if (Object.keys(um).length) {
-        await clientWithStateManager!.stateManager!.manifest.update(um);
+        await clientWithStateManager.stateManager.manifest.update(um);
       }
 
       //If avatar or store name changed, setShopMetadataURI.

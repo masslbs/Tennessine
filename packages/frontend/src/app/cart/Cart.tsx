@@ -45,12 +45,9 @@ function Cart({
       });
     }
 
-    clientWithStateManager!.stateManager!.orders.on(
-      "changeItems",
-      onChangeItems,
-    );
+    clientWithStateManager.stateManager.orders.on("changeItems", onChangeItems);
     return () => {
-      clientWithStateManager!.stateManager!.orders.removeListener(
+      clientWithStateManager.stateManager.orders.removeListener(
         "changeItems",
         onChangeItems,
       );
@@ -85,7 +82,7 @@ function Cart({
     const itemIds = Object.keys(ci);
     await Promise.all(
       itemIds.map(async (id) => {
-        const item = await clientWithStateManager!.stateManager!.listings.get(
+        const item = await clientWithStateManager.stateManager.listings.get(
           id as ListingId,
         );
         cartObjects.set(id, {
@@ -125,7 +122,7 @@ function Cart({
           quantity: item.selectedQty,
         };
       });
-      await clientWithStateManager!.stateManager!.orders.removeItems(
+      await clientWithStateManager.stateManager.orders.removeItems(
         orderId!,
         map,
       );
@@ -138,7 +135,7 @@ function Cart({
 
   async function addQuantity(id: ListingId) {
     try {
-      await clientWithStateManager!.stateManager!.orders.addItems(orderId!, [
+      await clientWithStateManager.stateManager.orders.addItems(orderId!, [
         {
           listingId: id,
           quantity: 1,
@@ -151,7 +148,7 @@ function Cart({
 
   async function removeQuantity(id: ListingId) {
     try {
-      await clientWithStateManager!.stateManager!.orders.removeItems(orderId!, [
+      await clientWithStateManager.stateManager.orders.removeItems(orderId!, [
         {
           listingId: id,
           quantity: 1,
@@ -164,7 +161,7 @@ function Cart({
 
   async function removeItem(id: ListingId, selectedQty: number) {
     try {
-      await clientWithStateManager!.stateManager!.orders.removeItems(orderId!, [
+      await clientWithStateManager.stateManager.orders.removeItems(orderId!, [
         {
           listingId: id,
           quantity: selectedQty,
@@ -179,8 +176,7 @@ function Cart({
     let total = 0;
     Array.from(values).forEach((item) => {
       total += baseDecimal
-        ? Number(formatUnitsFromString(item.price, baseDecimal)) *
-          item.selectedQty
+        ? formatUnitsFromString(item.price, baseDecimal) * item.selectedQty
         : 0;
     });
     return total;
@@ -194,8 +190,7 @@ function Cart({
     const values = cartItemsMap.values();
     return Array.from(values).map((item) => {
       const price = baseDecimal
-        ? Number(formatUnitsFromString(item.price, baseDecimal)) *
-          item.selectedQty
+        ? formatUnitsFromString(item.price, baseDecimal) * item.selectedQty
         : 0;
       if (!item.selectedQty) return null;
 
