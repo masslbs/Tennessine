@@ -5,22 +5,17 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
 
 import { useUserContext } from "@/context/UserContext";
 import { useClient } from "@/context/AuthContext";
 import withClient from "@/app/components/withClient";
-import SuccessMessage from "@/app/common/components/SuccessMessage";
 import MerchantViewProducts from "@/app/components/products/MerchantViewProducts";
 import CustomerViewProducts from "@/app/components/products/CustomerViewProducts";
 
 const Products = () => {
-  const searchParams = useSearchParams();
   const { clientWithStateManager } = useUserContext();
-  const success = searchParams?.get("success");
   const { isMerchantView } = useClient();
 
-  const [showSuccessMsg, setMsg] = useState<boolean>(success !== null);
   const [products, setProducts] = useState(new Map());
 
   const getAllListings = async () => {
@@ -79,7 +74,6 @@ const Products = () => {
 
   return (
     <main className="bg-background-gray pt-under-nav h-screen">
-      <SuccessMessage show={showSuccessMsg} onClose={() => setMsg(false)} />
       {isMerchantView ? (
         <MerchantViewProducts products={Array.from([...products.values()])} />
       ) : (

@@ -1,24 +1,11 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useSearchParams } from "next/navigation";
-import { OrderId } from "@/types";
-import { useUserContext } from "@/context/UserContext";
+
 import BackButton from "@/app/common/components/BackButton";
 
-export default function OrderDetails() {
-  const { clientWithStateManager } = useUserContext();
-
-  const searchParams = useSearchParams();
-  const orderId = searchParams.get("orderId") as OrderId;
-
-  useEffect(() => {
-    orderId &&
-      clientWithStateManager?.stateManager.orders.get(orderId).then((order) => {
-        //TODO: render order details
-      });
-  }, [orderId]);
-
+export default function OrderDetails({ order }) {
+  console.log({ order });
   return (
     <main className="pt-under-nav h-screen p-4 mt-5">
       <BackButton href="/merchant-dashboard" />

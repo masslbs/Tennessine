@@ -6,19 +6,18 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 
 import { Order, OrderState } from "@/types";
 import { createQueryString } from "@/app/utils";
 import { useUserContext } from "@/context/UserContext";
 import OrderDetails from "@/app/components/orders/OrderDetails";
+import withClient from "@/app/components/withClient";
 
 const MerchantDashboard = () => {
   const { clientWithStateManager } = useUserContext();
-  const searchParams = useSearchParams();
-  const page = searchParams.get("page");
 
   const [orders, setOrders] = useState(new Map());
+  const [viewOrderDetails, setOrderDetails] = useState(null);
 
   const getAllOrders = async () => {
     const allOrders = new Map();
@@ -92,6 +91,7 @@ const MerchantDashboard = () => {
           <div
             key={cartId}
             className="bg-white border-2  p-3 flex justify-between"
+            onClick={() => setOrderDetails(cartId)}
           >
             <p>{transactionHash?.slice(0, 10)}...</p>
             <p>{status}</p>
@@ -105,8 +105,8 @@ const MerchantDashboard = () => {
     );
   };
 
-  if (page === "orders") {
-    return <OrderDetails />;
+  if (viewOrderDetails) {
+    return <OrderDetails order={orders.get(viewOrderDetails)} />;
   }
 
   return (
@@ -170,4 +170,4 @@ const MerchantDashboard = () => {
   );
 };
 
-export default MerchantDashboard;
+export default withClient(MerchantDashboard);

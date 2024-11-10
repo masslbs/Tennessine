@@ -4,6 +4,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import { useStoreContext } from "@/context/StoreContext";
 import Button from "@/app/common/components/Button";
@@ -26,12 +27,8 @@ const Confirmation = () => {
       </section>
       <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg ">
         <h2 className="font-bold">{shopDetails.name}</h2>
-        <Button
-          onClick={() => {
-            router.push("/merchant-dashboard");
-          }}
-        >
-          Shop Dashboard
+        <Button>
+          <Link href="/merchant-dashboard">Shop Dashboard</Link>
         </Button>
       </section>
     </main>
