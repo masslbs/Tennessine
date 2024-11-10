@@ -1,7 +1,6 @@
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useChains } from "wagmi";
 import { pad } from "viem";
-import * as Sentry from "@sentry/nextjs";
 
 import { assert, formatUnitsFromString, logger } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";

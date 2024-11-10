@@ -7,7 +7,7 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 
-import { Listing, Tag } from "@/types";
+import { Listing } from "@/types";
 import { useUserContext } from "@/context/UserContext";
 import { useClient } from "@/context/AuthContext";
 import withClient from "@/app/components/withClient";
@@ -23,14 +23,13 @@ const Products = () => {
 
   const [showSuccessMsg, setMsg] = useState<boolean>(success !== null);
   const [products, setProducts] = useState(new Map());
-  const [allTags, setAllTags] = useState(new Map());
 
   const getAllListings = async () => {
     const listings = new Map();
     for await (const [
       id,
       item,
-    ] of clientWithStateManager!.stateManager!.listings.iterator()) {
+    ] of clientWithStateManager.stateManager.listings.iterator()) {
       listings.set(id, item);
     }
     return listings;
@@ -42,7 +41,7 @@ const Products = () => {
       for await (const [
         id,
         item,
-      ] of clientWithStateManager!.stateManager!.listings.iterator()) {
+      ] of clientWithStateManager.stateManager.listings.iterator()) {
         l.set(id, item);
       }
       setProducts(l);
@@ -52,7 +51,7 @@ const Products = () => {
       for await (const [
         id,
         item,
-      ] of clientWithStateManager!.stateManager!.listings.iterator()) {
+      ] of clientWithStateManager.stateManager.listings.iterator()) {
         l.set(id, item);
       }
       setProducts(l);
@@ -65,54 +64,36 @@ const Products = () => {
       products.set(item.id, item);
       setProducts(products);
     };
-    getAllListings()
-      .then((listings) => {
-        setProducts(listings);
-      })
+    getAllListings().then((listings) => {
+      setProducts(listings);
+    });
 
     // Listen to future events
-    clientWithStateManager!.stateManager!.listings.on("create", onCreateEvent);
-    clientWithStateManager!.stateManager!.listings.on("update", onUpdateEvent);
-    clientWithStateManager!.stateManager!.listings.on("addItemId", onAddItemId);
-    clientWithStateManager!.stateManager!.listings.on(
+    clientWithStateManager.stateManager.listings.on("create", onCreateEvent);
+    clientWithStateManager.stateManager.listings.on("update", onUpdateEvent);
+    clientWithStateManager.stateManager.listings.on("addItemId", onAddItemId);
+    clientWithStateManager.stateManager.listings.on(
       "removeItemId",
       onRemoveItemId,
     );
 
     return () => {
       // Cleanup listeners on unmount
-      clientWithStateManager!.stateManager!.listings.removeListener(
+      clientWithStateManager.stateManager.listings.removeListener(
         "create",
         onCreateEvent,
       );
-      clientWithStateManager!.stateManager!.listings.removeListener(
+      clientWithStateManager.stateManager.listings.removeListener(
         "update",
         onUpdateEvent,
       );
-      clientWithStateManager!.stateManager!.listings.removeListener(
+      clientWithStateManager.stateManager.listings.removeListener(
         "addItemId",
         onAddItemId,
       );
-      clientWithStateManager!.stateManager!.listings.removeListener(
+      clientWithStateManager.stateManager.listings.removeListener(
         "removeItemId",
         onRemoveItemId,
-      );
-    };
-  }, []);
-
-  useEffect(() => {
-    const onCreateEvent = (tag: Tag) => {
-      allTags.set(tag.id, tag);
-      setAllTags(allTags);
-    };
-    // Listen to future events
-    clientWithStateManager!.stateManager!.tags.on("create", onCreateEvent);
-
-    return () => {
-      // Cleanup listeners on unmount
-      clientWithStateManager!.stateManager!.listings.removeListener(
-        "create",
-        onCreateEvent,
       );
     };
   }, []);

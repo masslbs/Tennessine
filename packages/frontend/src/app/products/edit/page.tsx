@@ -6,7 +6,6 @@
 
 import React, { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import * as Sentry from "@sentry/nextjs";
 
 import { assert, formatUnitsFromString, logger } from "@massmarket/utils";
 
@@ -48,6 +47,7 @@ const AddProductView = () => {
   const [images, setImages] = useState<
     { blob: null | FormData; url: string }[]
   >([]);
+  const [publishing, setPublishing] = useState(false);
 
   useEffect(() => {
     getBaseTokenInfo().then((res: [string, number]) => {
@@ -246,6 +246,7 @@ const AddProductView = () => {
       setValidationError("Product id is missing.");
     } else {
       try {
+        setPublishing(true);
         const uploaded = await Promise.all(
           images.map(async (i) => {
             if (i.blob) {
@@ -269,6 +270,8 @@ const AddProductView = () => {
         editView && productInView
           ? await update(newItem)
           : await create(newItem);
+
+        setPublishing(false);
         router.push(`/products`);
       } catch (error: unknown) {
         assert(error instanceof Error, "Error is not an instance of Error");
@@ -483,7 +486,7 @@ const AddProductView = () => {
           </div>
           {editView ? (
             <div className="flex gap-1">
-              <Button custom="w-full" onClick={onPublish}>
+              <Button disabled={publishing} custom="w-full" onClick={onPublish}>
                 Update
               </Button>
               <SecondaryButton
@@ -494,7 +497,9 @@ const AddProductView = () => {
               </SecondaryButton>
             </div>
           ) : (
-            <Button onClick={onPublish}>create product</Button>
+            <Button disabled={publishing} onClick={onPublish}>
+              create product
+            </Button>
           )}
         </section>
       </section>

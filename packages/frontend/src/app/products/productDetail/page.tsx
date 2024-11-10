@@ -10,7 +10,7 @@ import { privateKeyToAccount } from "viem/accounts";
 
 import { formatUnitsFromString, logger } from "@massmarket/utils";
 
-import { Listing, ListingId, Tag } from "@/types";
+import { Listing, ListingId } from "@/types";
 import { createQueryString } from "@/app/utils";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
@@ -36,7 +36,6 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState<number>(0);
   const [item, setItem] = useState<Listing | null>(null);
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
-  const [allTags, setAllTags] = useState(new Map());
   const [price, setPrice] = useState("");
   const [tokenIcon, setIcon] = useState("/icons/usdc-coin.png");
   const [successMsg, setMsg] = useState<string | null>(null);
@@ -61,38 +60,6 @@ const ProductDetail = () => {
       });
     }
   }, [itemId]);
-
-  async function getAllTags() {
-    const tags = new Map();
-    for await (const [
-      id,
-      tag,
-    ] of clientWithStateManager.stateManager.tags.iterator()) {
-      tags.set(id, tag);
-    }
-    return tags;
-  }
-
-  useEffect(() => {
-    const onCreateTag = (tag: Tag) => {
-      allTags.set(tag.id, tag);
-      setAllTags(allTags);
-    };
-    getAllTags().then((tags) => {
-      setAllTags(tags);
-    });
-
-    // Listen to future events
-    clientWithStateManager.stateManager.tags.on("create", onCreateTag);
-
-    return () => {
-      // Cleanup listeners on unmount
-      clientWithStateManager.stateManager.listings.removeListener(
-        "create",
-        onCreateTag,
-      );
-    };
-  }, []);
 
   async function changeItems() {
     let orderId = await getOpenOrderId();

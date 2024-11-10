@@ -36,7 +36,8 @@ const CheckoutFlow = () => {
   const [txHash, setTxHash] = useState<null | `0x${string}`>(null);
   const [blockHash, setBlockHash] = useState<null | `0x${string}`>(null);
   const [displayedAmount, setDisplayedAmount] = useState<null | string>(null);
-  const [countdown, setCountdown] = useState(60);
+  //Setting timer for 15 minutes
+  const [countdown, setCountdown] = useState(900);
   const [isRunning, setIsRunning] = useState(false);
 
   useEffect(() => {
@@ -68,13 +69,13 @@ const CheckoutFlow = () => {
       }
     };
 
-    clientWithStateManager!.stateManager!.orders.on(
+    clientWithStateManager.stateManager.orders.on(
       "addPaymentTx",
       txHashDetected,
     );
     return () => {
       // Cleanup listeners on unmount
-      clientWithStateManager!.stateManager!.orders.removeListener(
+      clientWithStateManager.stateManager.orders.removeListener(
         "addPaymentTx",
         txHashDetected,
       );
@@ -94,7 +95,7 @@ const CheckoutFlow = () => {
       throw new Error("No orderId");
     }
     try {
-      await clientWithStateManager!.stateManager!.orders.commit(orderId);
+      await clientWithStateManager.stateManager.orders.commit(orderId);
       debug(`Order ID: ${orderId} committed`);
       setCommittedOrderId(orderId);
       setStep(CheckoutStep.shippingDetails);

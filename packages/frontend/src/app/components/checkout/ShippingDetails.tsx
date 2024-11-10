@@ -43,7 +43,8 @@ function ShippingDetails({
   const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (countdown === 60) {
+    if (countdown === 900) {
+      // Start checkout timer as soon as user lands on this screen, which is immediately after items are committed.
       startTimer();
       console.log("Timer started.");
     }
@@ -88,7 +89,7 @@ function ShippingDetails({
       if (email.length) {
         update.emailAddress = email;
       }
-      await clientWithStateManager!.stateManager!.orders.updateShippingDetails(
+      await clientWithStateManager.stateManager.orders.updateShippingDetails(
         committedOrderId,
         update,
       );
@@ -103,7 +104,6 @@ function ShippingDetails({
 
   return (
     <main>
-      <BackButton onClick={() => setStep(CheckoutStep.cart)} />
       <ErrorMessage
         errorMessage={errorMsg}
         onClose={() => {
