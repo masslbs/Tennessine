@@ -4,7 +4,7 @@
 {
   description = "massmarket-typescript";
   inputs = {
-    nixpkgs.url = "nixpkgs/nixos-unstable";
+    nixpkgs.url = "nixpkgs/nixpkgs-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
@@ -59,9 +59,9 @@
             buildInputs =
               [
                 # frontend dependencies
+                deno
                 typescript
                 nodejs_latest
-                deno
                 nodePackages.typescript-language-server
                 contracts.packages.${system}.default
                 reuse
