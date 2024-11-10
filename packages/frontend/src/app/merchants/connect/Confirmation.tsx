@@ -20,7 +20,6 @@ const Confirmation = () => {
           width={80}
           height={80}
           alt="smiley-icon"
-          unoptimized={true}
           className="w-auto h-auto"
         />
         <h1 className="font-bold">Welcome Back</h1>

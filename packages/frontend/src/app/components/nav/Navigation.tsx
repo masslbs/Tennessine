@@ -117,13 +117,11 @@ function Navigation() {
       debug(`Order ID: ${orderId} committed`);
       setCommittedOrderId(orderId);
       router.push(
-        `/checkout?${
-          createQueryString(
-            "step",
-            "shippingDetails",
-            searchParams,
-          )
-        }`,
+        `/checkout?${createQueryString(
+          "step",
+          "shippingDetails",
+          searchParams,
+        )}`,
       );
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
@@ -144,8 +142,6 @@ function Navigation() {
                 width={20}
                 height={20}
                 alt="menu-item"
-                unoptimized={true}
-                priority={true}
                 className="w-5 h-5"
               />
               <h2 className="font-normal">{opt.title}</h2>
@@ -154,8 +150,6 @@ function Navigation() {
                 width={12}
                 height={12}
                 alt="chevron-right"
-                unoptimized={true}
-                priority={true}
                 className="ml-auto w-3 h-3"
               />
             </div>
@@ -175,8 +169,6 @@ function Navigation() {
               width={20}
               height={20}
               alt="menu-item"
-              unoptimized={true}
-              priority={true}
               className="w-5 h-5"
             />
             <Link href={opt.href!} key={opt.title}>
@@ -187,8 +179,6 @@ function Navigation() {
               width={12}
               height={12}
               alt="chevron-right"
-              unoptimized={true}
-              priority={true}
               className="ml-auto w-3 h-3"
             />
           </div>
@@ -201,31 +191,25 @@ function Navigation() {
     <section className={`absolute left-0 top-0 right-0`}>
       <section className="w-full p-2 text-base flex justify-between bg-white">
         <div className="flex gap-2">
-          {shopDetails.profilePictureUrl
-            ? (
-              <div className="overflow-hidden	rounded-full w-12 h-12">
-                <img
-                  src={shopDetails.profilePictureUrl}
-                  width={50}
-                  height={50}
-                  alt="profile-avatar"
-                  unoptimized={true}
-                  priority={true}
-                  className="w-12 h-12"
-                />
-              </div>
-            )
-            : (
+          {shopDetails.profilePictureUrl ? (
+            <div className="overflow-hidden	rounded-full w-12 h-12">
               <img
-                src={`/icons/mass-labs-logo.svg`}
-                width={40}
-                height={40}
-                alt="mass-labs-logo"
-                unoptimized={true}
-                priority={true}
-                className="w-10 h-10"
+                src={shopDetails.profilePictureUrl}
+                width={50}
+                height={50}
+                alt="profile-avatar"
+                className="w-12 h-12"
               />
-            )}
+            </div>
+          ) : (
+            <img
+              src={`/icons/mass-labs-logo.svg`}
+              width={40}
+              height={40}
+              alt="mass-labs-logo"
+              className="w-10 h-10"
+            />
+          )}
 
           <h2 className="flex items-center">{shopDetails.name}</h2>
         </div>
@@ -243,7 +227,6 @@ function Navigation() {
               width={20}
               height={20}
               alt="basket-icon"
-              unoptimized={true}
               className="w-5 h-5"
             />
             <div
@@ -260,32 +243,27 @@ function Navigation() {
               width={20}
               height={20}
               alt="menu-icon"
-              unoptimized={true}
               className="w-5 h-5"
             />
           </button>
         </section>
       </section>
-      {menuOpen
-        ? (
-          <section>
-            <span className="fixed bg-black w-full h-full opacity-60" />
-            <div className="fixed bg-background-gray z-10 w-full flex flex-col gap-5 rounded-b-lg p-5">
-              {renderMenuItems()}
-            </div>
-          </section>
-        )
-        : null}
-      {basketOpen
-        ? (
-          <section>
-            <span className="fixed bg-black w-full h-full opacity-60" />
-            <div className="fixed bg-background-gray z-10 w-full flex flex-col gap-5 rounded-b-lg p-5">
-              <Cart onCheckout={onCheckout} />
-            </div>
-          </section>
-        )
-        : null}
+      {menuOpen ? (
+        <section>
+          <span className="fixed bg-black w-full h-full opacity-60" />
+          <div className="fixed bg-background-gray z-10 w-full flex flex-col gap-5 rounded-b-lg p-5">
+            {renderMenuItems()}
+          </div>
+        </section>
+      ) : null}
+      {basketOpen ? (
+        <section>
+          <span className="fixed bg-black w-full h-full opacity-60" />
+          <div className="fixed bg-background-gray z-10 w-full flex flex-col gap-5 rounded-b-lg p-5">
+            <Cart onCheckout={onCheckout} />
+          </div>
+        </section>
+      ) : null}
     </section>
   );
 }

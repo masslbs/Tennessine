@@ -50,16 +50,18 @@ export default function ChoosePayment({
   const [imgSrc, setSrc] = useState<null | string>(null);
   const [qrOpen, setQrOpen] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
+  const [chosenPaymentTokenIcon, setIcon] = useState<string>(
+    "/icons/usdc-coin.png",
+  );
 
   useEffect(() => {
     clientWithStateManager!
       .stateManager!.manifest.get()
       .then((manifest: ShopManifest) => {
-        getDisplayedChains(manifest)
-          .then((arr) => {
-            setManifest(manifest);
-            setChains(arr);
-          });
+        getDisplayedChains(manifest).then((arr) => {
+          setManifest(manifest);
+          setChains(arr);
+        });
       });
   }, []);
 
@@ -67,10 +69,9 @@ export default function ChoosePayment({
     //Listen for client to send paymentDetails event.
     function onPaymentDetails(order: Order) {
       if (order.id === committedOrderId) {
-        getDetails(committedOrderId)
-          .then(() => {
-            debug("paymentDetails found for order");
-          });
+        getDetails(committedOrderId).then(() => {
+          debug("paymentDetails found for order");
+        });
       }
     }
     committedOrderId &&
@@ -90,8 +91,8 @@ export default function ChoosePayment({
 
   async function getDetails(oId: OrderId) {
     try {
-      const committedOrder = await clientWithStateManager!.stateManager!.orders
-        .get(oId!);
+      const committedOrder =
+        await clientWithStateManager!.stateManager!.orders.get(oId!);
       if (!committedOrder?.choosePayment) {
         throw new Error("No chosen payment found");
       }
@@ -116,9 +117,8 @@ export default function ChoosePayment({
         paymentRPC,
         currency.address,
       );
-
-      const manifest = await clientWithStateManager!.stateManager!.manifest
-        .get();
+      const manifest =
+        await clientWithStateManager!.stateManager!.manifest.get();
       //FIXME: get orderHash from paymentDetails.
       const zeros32Bytes = pad(zeroAddress, { size: 32 });
 
@@ -142,16 +142,21 @@ export default function ChoosePayment({
       if (!purchaseAdd) throw new Error("No purchase address found");
       const amount = BigInt(total);
       debug(`amount: ${amount}`);
-      const payLink = currency.address === zeroAddress
-        ? `ethereum:${purchaseAdd}?value=${amount}`
-        : `ethereum:${currency.address}/transfer?address=${purchaseAdd}&uint256=${amount}`;
+      const payLink =
+        currency.address === zeroAddress
+          ? `ethereum:${purchaseAdd}?value=${amount}`
+          : `ethereum:${currency.address}/transfer?address=${purchaseAdd}&uint256=${amount}`;
       setPurchaseAddr(purchaseAdd as `0x${string}`);
       debug(`purchase address: ${purchaseAdd}`);
       setSrc(payLink);
       setCryptoTotal(amount);
-      const displayedAmount = `${
-        formatUnitsFromString(total, decimal)
-      } ${symbol}`;
+      const displayedAmount = `${formatUnitsFromString(
+        total,
+        decimal,
+      )} ${symbol}`;
+      if (symbol === "ETH") {
+        setIcon("/icons/eth-coin.svg");
+      }
       debug(`displayed amount: ${displayedAmount}`);
       setDisplayedAmount(displayedAmount);
       setStep(CheckoutStep.paymentDetails);
@@ -247,11 +252,10 @@ export default function ChoosePayment({
           <p>Total Price</p>
           <div className="flex items-center gap-2">
             <img
-              src="/icons/usdc-coin.png"
+              src={chosenPaymentTokenIcon}
               alt="coin"
               width={24}
               height={24}
-              unoptimized={true}
               className="w-6 h-6 max-h-6"
             />
             <h1>{displayedAmount}</h1>
@@ -275,7 +279,6 @@ export default function ChoosePayment({
                 width={40}
                 height={40}
                 alt="wallet-icon"
-                unoptimized={true}
                 className="w-10 h-10 "
               />
               <div className="flex gap-2 items-center">
@@ -285,7 +288,6 @@ export default function ChoosePayment({
                   width={12}
                   height={12}
                   alt="chevron"
-                  unoptimized={true}
                   className="w-3 h-3"
                 />
               </div>

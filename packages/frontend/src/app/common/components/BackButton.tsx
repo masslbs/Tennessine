@@ -22,7 +22,6 @@ function BackButton({
           width={8}
           height={8}
           alt="chevron-left"
-          unoptimized={true}
           className="w-3 h-3"
         />
         Back
@@ -36,7 +35,6 @@ function BackButton({
           width={8}
           height={8}
           alt="chevron-left"
-          unoptimized={true}
           className="w-3 h-3"
         />
         Back

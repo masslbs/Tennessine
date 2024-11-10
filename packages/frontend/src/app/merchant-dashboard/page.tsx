@@ -19,12 +19,10 @@ const MerchantDashboard = () => {
 
   const getAllOrders = async () => {
     const allOrders = new Map();
-    for await (
-      const [
-        id,
-        o,
-      ] of clientWithStateManager!.stateManager!.orders.iterator()
-    ) {
+    for await (const [
+      id,
+      o,
+    ] of clientWithStateManager!.stateManager!.orders.iterator()) {
       // Exclude orders by status
       if (Object.values(OrderState).includes(id)) {
         return;
@@ -43,18 +41,11 @@ const MerchantDashboard = () => {
       orders.set(order.id, order);
       setOrders(orders);
     };
-    getAllOrders()
-      .then((allOrders) => {
-        setOrders(allOrders);
-        clientWithStateManager!.stateManager!.orders.on(
-          "create",
-          onCreateOrder,
-        );
-        clientWithStateManager!.stateManager!.orders.on(
-          "update",
-          onUpdateOrder,
-        );
-      });
+    getAllOrders().then((allOrders) => {
+      setOrders(allOrders);
+      clientWithStateManager!.stateManager!.orders.on("create", onCreateOrder);
+      clientWithStateManager!.stateManager!.orders.on("update", onUpdateOrder);
+    });
 
     return () => {
       // Cleanup listeners on unmount
@@ -71,46 +62,44 @@ const MerchantDashboard = () => {
 
   const renderTransactions = () => {
     const transactions = Array.from([...orders.entries()]);
-    return transactions?.length
-      ? (
-        transactions.map((entry) => {
-          const cartId = entry[0];
-          const value = entry[1];
-          const transactionHash = value?.txHash || value?.blockHash;
-          let status;
-          switch (value.status) {
-            case OrderState.STATE_CANCELED:
-              status = "Cancelled";
-              break;
-            case OrderState.STATE_OPEN:
-              status = "Open";
-              break;
-            case OrderState.STATE_COMMITED:
-              status = "Committed";
-              break;
-            case OrderState.STATE_PAYMENT_TX:
-            case OrderState.STATE_PAID:
-              status = "Paid";
-              break;
-            default:
-              status = "Unspecified";
-          }
-          return (
-            <div
-              key={cartId}
-              className="bg-white border-2  p-3 flex justify-between"
-            >
-              <p>{transactionHash?.slice(0, 10)}...</p>
-              <p>{status}</p>
-            </div>
-          );
-        })
-      )
-      : (
-        <div>
-          <p>no transactions</p>
-        </div>
-      );
+    return transactions?.length ? (
+      transactions.map((entry) => {
+        const cartId = entry[0];
+        const value = entry[1];
+        const transactionHash = value?.txHash || value?.blockHash;
+        let status;
+        switch (value.status) {
+          case OrderState.STATE_CANCELED:
+            status = "Cancelled";
+            break;
+          case OrderState.STATE_OPEN:
+            status = "Open";
+            break;
+          case OrderState.STATE_COMMITED:
+            status = "Committed";
+            break;
+          case OrderState.STATE_PAYMENT_TX:
+          case OrderState.STATE_PAID:
+            status = "Paid";
+            break;
+          default:
+            status = "Unspecified";
+        }
+        return (
+          <div
+            key={cartId}
+            className="bg-white border-2  p-3 flex justify-between"
+          >
+            <p>{transactionHash?.slice(0, 10)}...</p>
+            <p>{status}</p>
+          </div>
+        );
+      })
+    ) : (
+      <div>
+        <p>no transactions</p>
+      </div>
+    );
   };
 
   return (
@@ -129,15 +118,16 @@ const MerchantDashboard = () => {
                 width={8}
                 height={8}
                 alt="chevron-right"
-                unoptimized={true}
                 className="w-2 h-2 ml-auto"
               />
             </Link>
             <Link
               className="flex items-center gap-1 p-3 bg-white rounded-md"
-              href={`/products/edit?${
-                createQueryString("itemId", "new", searchParams)
-              }`}
+              href={`/products/edit?${createQueryString(
+                "itemId",
+                "new",
+                searchParams,
+              )}`}
             >
               Add new product
               <img
@@ -145,7 +135,6 @@ const MerchantDashboard = () => {
                 width={8}
                 height={8}
                 alt="chevron-right"
-                unoptimized={true}
                 className="w-2 h-2 ml-auto"
               />
             </Link>
@@ -160,7 +149,6 @@ const MerchantDashboard = () => {
                 width={8}
                 height={8}
                 alt="chevron-right"
-                unoptimized={true}
                 className="w-2 h-2 ml-auto"
               />
             </Link>

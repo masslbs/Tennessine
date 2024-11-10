@@ -26,7 +26,7 @@ const debug = logger(namespace);
 const errlog = logger(namespace, "error");
 
 const ProductDetail = () => {
-  const { getBaseTokenInfo, openOrderId, getOpenOrderId } = useStoreContext();
+  const { getBaseTokenInfo, getOpenOrderId } = useStoreContext();
   const { upgradeGuestToCustomer, clientWithStateManager } = useUserContext();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -38,6 +38,7 @@ const ProductDetail = () => {
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [allTags, setAllTags] = useState(new Map());
   const [price, setPrice] = useState("");
+  const [tokenIcon, setIcon] = useState("/icons/usdc-coin.png");
   const [successMsg, setMsg] = useState<string | null>(null);
 
   useEffect(() => {
@@ -52,6 +53,9 @@ const ProductDetail = () => {
               item.price,
               baseTokenInfo?.[1] || 0,
             );
+            if (baseTokenInfo?.[0] === "ETH") {
+              setIcon("/icons/eth-coin.svg");
+            }
             setPrice(price);
           });
       });
@@ -165,7 +169,6 @@ const ProductDetail = () => {
               width={380}
               height={250}
               className="border rounded-lg"
-              unoptimized={true}
               style={{
                 maxHeight: "250px",
                 width: "full",
@@ -184,7 +187,6 @@ const ProductDetail = () => {
                       width={90}
                       height={81}
                       className="border rounded-lg"
-                      unoptimized={true}
                       style={{
                         maxHeight: "81px",
                         maxWidth: "90px",
@@ -204,11 +206,10 @@ const ProductDetail = () => {
             </div>
             <div className="flex gap-2 items-center">
               <img
-                src="/icons/usdc-coin.png"
+                src={tokenIcon}
                 alt="coin"
                 width={24}
                 height={24}
-                unoptimized={true}
                 className="w-6 h-6 max-h-6"
               />
               <h1 data-testid="price">{Number(price).toFixed(2)}</h1>
@@ -233,12 +234,11 @@ const ProductDetail = () => {
                 <Button onClick={changeItems} disabled={!quantity}>
                   <div className="flex items-center gap-2">
                     <p>Add to basket</p>
-                    <Image
+                    <img
                       src="/icons/white-arrow.svg"
                       alt="white-arrow"
                       width={7}
                       height={12}
-                      unoptimized={true}
                       style={{ display: quantity ? "" : "none" }}
                     />
                   </div>

@@ -8,16 +8,13 @@ import { hardhat, mainnet, sepolia } from "viem/chains";
 import { usePathname, useSearchParams } from "next/navigation";
 import * as Sentry from "@sentry/nextjs";
 
-import {
-  discoverRelay,
-  type RelayEndpoint,
-} from "@massmarket/client";
-import { random32BytesHex, logger } from "@massmarket/utils";
+import { discoverRelay, type RelayEndpoint } from "@massmarket/client";
+import { logger } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 
-import { 
-  createPublicClientForChain, 
-  createGuestWalletClientForChain 
+import {
+  createPublicClientForChain,
+  createGuestWalletClientForChain,
 } from "@/app/utils";
 import { useClient } from "@/context/AuthContext";
 import { type ClientContext } from "@/context/types";
@@ -152,7 +149,7 @@ export const UserContextProvider = (
       return hasAccess;
     } else return false;
   }
- 
+
   useEffect(() => {
     if (_wallet && walletStatus == "success") {
       setWallet(_wallet);
@@ -228,6 +225,7 @@ export const UserContextProvider = (
     if (!res.ok) {
       throw new Error(`Failed to enroll keycard: ${res.error}`);
     }
+    debug("Keycard enrolled");
     //Cancel and renew subscription with orders
     await clientWithStateManager!.relayClient!.cancelSubscriptionRequest();
     const { response } =

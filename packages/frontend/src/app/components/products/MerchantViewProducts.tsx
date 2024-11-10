@@ -9,21 +9,20 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
 import { formatUnitsFromString } from "@massmarket/utils";
-import { Item, ListingViewState } from "@/types";
+import { Listing, ListingViewState } from "@/types";
 import { createQueryString } from "@/app/utils";
 import { useStoreContext } from "@/context/StoreContext";
 import Button from "@/app/common/components/Button";
 
-function MerchantViewProducts({ products }: { products: Item[] | null }) {
+function MerchantViewProducts({ products }: { products: Listing[] | null }) {
   const { getBaseTokenInfo } = useStoreContext();
   const searchParams = useSearchParams();
   const [baseDecimal, setBaseDecimal] = useState<null | number>(null);
 
   useEffect(() => {
-    getBaseTokenInfo()
-      .then((res: [string, number]) => {
-        res && setBaseDecimal(res[1]);
-      });
+    getBaseTokenInfo().then((res: [string, number]) => {
+      res && setBaseDecimal(res[1]);
+    });
   }, []);
 
   function renderProducts() {
@@ -44,9 +43,11 @@ function MerchantViewProducts({ products }: { products: Item[] | null }) {
         <Link
           key={item.id}
           data-testid="product-container"
-          href={`/products/productDetail?${
-            createQueryString("itemId", item.id, searchParams)
-          }`}
+          href={`/products/productDetail?${createQueryString(
+            "itemId",
+            item.id,
+            searchParams,
+          )}`}
           className={`${!visible ? "opacity-50" : ""} flex w-full h-auto mb-4`}
         >
           <div className="flex justify-center" data-testid="product-img">
@@ -54,10 +55,7 @@ function MerchantViewProducts({ products }: { products: Item[] | null }) {
               src={metadata.images[0] || "/assets/no-image.png"}
               width={127}
               height={112}
-              placeholder="empty"
-              priority={true}
               alt="product-thumb"
-              unoptimized={true}
               className="w-32 h-28 object-cover object-center rounded-l-lg"
             />
           </div>
@@ -71,7 +69,6 @@ function MerchantViewProducts({ products }: { products: Item[] | null }) {
                 width={7}
                 height={4}
                 alt="chevron-right"
-                unoptimized={true}
                 className="w-auto h-auto ml-auto"
               />
             </div>
@@ -96,9 +93,11 @@ function MerchantViewProducts({ products }: { products: Item[] | null }) {
         <h1 className="grow flex items-center">Manage Products</h1>
         <Button custom="w-30">
           <Link
-            href={`/products/edit?${
-              createQueryString("itemId", "new", searchParams)
-            }`}
+            href={`/products/edit?${createQueryString(
+              "itemId",
+              "new",
+              searchParams,
+            )}`}
           >
             Add new +
           </Link>
@@ -106,12 +105,10 @@ function MerchantViewProducts({ products }: { products: Item[] | null }) {
       </div>
       <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
         <div className="flex gap-2 text-sm">
-          {
-            /* <Search
+          {/* <Search
             setSearchPhrase={setSearchPhrase}
             searchPhrase={searchPhrase}
-          /> */
-          }
+          /> */}
           <button className="ml-auto flex items-center gap-2">
             <p>Filter</p>
             <img
@@ -119,7 +116,6 @@ function MerchantViewProducts({ products }: { products: Item[] | null }) {
               width={12}
               height={12}
               alt="filter-icon"
-              unoptimized={true}
               className="w-3 h-3"
             />
           </button>

@@ -185,6 +185,8 @@ function Cart({
     });
     return total;
   }
+  const icon =
+    baseSymbol === "ETH" ? "/icons/eth-coin.svg" : "/icons/usdc-coin.png";
 
   function renderItems() {
     if (!orderId || !cartItemsMap.size) return <p>No items in cart</p>;
@@ -251,7 +253,7 @@ function Cart({
               </div>
               <div className="flex gap-2 items-center ml-auto">
                 <img
-                  src="/icons/usdc-coin.png"
+                  src={icon}
                   alt="coin"
                   width={20}
                   height={20}
@@ -280,7 +282,7 @@ function Cart({
         <p>Total Price:</p>
         <div className="flex items-center gap-2">
           <img
-            src="/icons/usdc-coin.png"
+            src={icon}
             alt="coin"
             width={20}
             height={20}

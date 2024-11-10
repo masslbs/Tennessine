@@ -139,7 +139,6 @@ const CheckoutFlow = () => {
               width={80}
               height={80}
               alt="smiley-icon"
-              unoptimized={true}
               className="w-20 h-20"
             />
             <h1>Payment Successful</h1>
@@ -149,7 +148,6 @@ const CheckoutFlow = () => {
                 alt="coin"
                 width={24}
                 height={24}
-                unoptimized={true}
                 className="w-6 h-6 max-h-6"
               />
               <h1>{displayedAmount}</h1>
