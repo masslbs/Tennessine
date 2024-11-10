@@ -42,12 +42,10 @@ const MerchantConnectWallet = () => {
     "search",
   );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [shopData, setShopData] = useState<
-    {
-      name: string;
-      image: string;
-    } | null
-  >(null);
+  const [shopData, setShopData] = useState<{
+    name: string;
+    image: string;
+  } | null>(null);
 
   useEffect(() => {
     //If user connects different wallet, set client connection back to pending.
@@ -154,7 +152,6 @@ const MerchantConnectWallet = () => {
                 width={50}
                 height={50}
                 alt="mass-labs-logo"
-                unoptimized={true}
                 className="w-12 h-12"
               />
             </div>
@@ -199,7 +196,6 @@ const MerchantConnectWallet = () => {
                 width={15}
                 height={15}
                 alt="close-icon"
-                unoptimized={true}
                 className="w-4 h-4"
               />
             </button>

@@ -1,7 +1,6 @@
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useChains } from "wagmi";
 import { pad } from "viem";
-import * as Sentry from "@sentry/nextjs";
 
 import { assert, formatUnitsFromString, logger } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
@@ -11,6 +10,7 @@ import {
   CheckoutStep,
   CurrencyChainOption,
   Order,
+  OrderEventTypes,
   OrderId,
   ShopCurrencies,
   ShopManifest,
@@ -50,39 +50,42 @@ export default function ChoosePayment({
   const [imgSrc, setSrc] = useState<null | string>(null);
   const [qrOpen, setQrOpen] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
+  const [chosenPaymentTokenIcon, setIcon] = useState<string>(
+    "/icons/usdc-coin.png",
+  );
 
   useEffect(() => {
     clientWithStateManager!
       .stateManager!.manifest.get()
       .then((manifest: ShopManifest) => {
-        getDisplayedChains(manifest)
-          .then((arr) => {
-            setManifest(manifest);
-            setChains(arr);
-          });
+        getDisplayedChains(manifest).then((arr) => {
+          setManifest(manifest);
+          setChains(arr);
+        });
       });
   }, []);
 
   useEffect(() => {
     //Listen for client to send paymentDetails event.
-    function onPaymentDetails(order: Order) {
-      if (order.id === committedOrderId) {
-        getDetails(committedOrderId)
-          .then(() => {
-            debug("paymentDetails found for order");
-          });
+    function onPaymentDetails(res: [OrderEventTypes, Order]) {
+      const order = res[1];
+      const type = res[0];
+      if (
+        order.id === committedOrderId &&
+        type === OrderEventTypes.PAYMENT_DETAILS
+      ) {
+        getDetails(committedOrderId).then(() => {
+          debug("paymentDetails found for order");
+        });
       }
     }
     committedOrderId &&
-      clientWithStateManager!.stateManager!.orders.on(
-        "paymentDetails",
-        onPaymentDetails,
-      );
+      clientWithStateManager.stateManager.orders.on("update", onPaymentDetails);
 
     return () => {
       // Cleanup listeners on unmount
-      clientWithStateManager!.stateManager!.listings.removeListener(
-        "paymentDetails",
+      clientWithStateManager.stateManager.listings.removeListener(
+        "update",
         onPaymentDetails,
       );
     };
@@ -90,8 +93,8 @@ export default function ChoosePayment({
 
   async function getDetails(oId: OrderId) {
     try {
-      const committedOrder = await clientWithStateManager!.stateManager!.orders
-        .get(oId!);
+      const committedOrder =
+        await clientWithStateManager.stateManager.orders.get(oId!);
       if (!committedOrder?.choosePayment) {
         throw new Error("No chosen payment found");
       }
@@ -116,9 +119,7 @@ export default function ChoosePayment({
         paymentRPC,
         currency.address,
       );
-
-      const manifest = await clientWithStateManager!.stateManager!.manifest
-        .get();
+      const manifest = await clientWithStateManager.stateManager.manifest.get();
       //FIXME: get orderHash from paymentDetails.
       const zeros32Bytes = pad(zeroAddress, { size: 32 });
 
@@ -142,16 +143,23 @@ export default function ChoosePayment({
       if (!purchaseAdd) throw new Error("No purchase address found");
       const amount = BigInt(total);
       debug(`amount: ${amount}`);
-      const payLink = currency.address === zeroAddress
-        ? `ethereum:${purchaseAdd}?value=${amount}`
-        : `ethereum:${currency.address}/transfer?address=${purchaseAdd}&uint256=${amount}`;
+      const payLink =
+        currency.address === zeroAddress
+          ? `ethereum:${purchaseAdd}?value=${amount}`
+          : `ethereum:${currency.address}/transfer?address=${purchaseAdd}&uint256=${amount}`;
       setPurchaseAddr(purchaseAdd as `0x${string}`);
       debug(`purchase address: ${purchaseAdd}`);
       setSrc(payLink);
       setCryptoTotal(amount);
-      const displayedAmount = `${
-        formatUnitsFromString(total, decimal)
-      } ${symbol}`;
+      const displayedAmount = `${formatUnitsFromString(
+        total,
+        decimal,
+      )} ${symbol}`;
+      if (symbol === "ETH") {
+        setIcon("/icons/eth-coin.svg");
+      } else {
+        setIcon("/icons/usdc-coin.png");
+      }
       debug(`displayed amount: ${displayedAmount}`);
       setDisplayedAmount(displayedAmount);
       setStep(CheckoutStep.paymentDetails);
@@ -189,7 +197,7 @@ export default function ChoosePayment({
       if (!payee) {
         throw new Error("No payee found in shop manifest");
       }
-      await clientWithStateManager!.stateManager!.orders.choosePayment(
+      await clientWithStateManager.stateManager.orders.choosePayment(
         committedOrderId,
         {
           currency: {
@@ -247,11 +255,10 @@ export default function ChoosePayment({
           <p>Total Price</p>
           <div className="flex items-center gap-2">
             <img
-              src="/icons/usdc-coin.png"
+              src={chosenPaymentTokenIcon}
               alt="coin"
               width={24}
               height={24}
-              unoptimized={true}
               className="w-6 h-6 max-h-6"
             />
             <h1>{displayedAmount}</h1>
@@ -269,13 +276,13 @@ export default function ChoosePayment({
               data-testid="connect-wallet"
               className="rounded-lg flex flex-col items-center gap-2"
               onClick={() => setQrOpen(true)}
+              disabled={!displayedAmount}
             >
               <img
                 src="/icons/wallet-icon.svg"
                 width={40}
                 height={40}
                 alt="wallet-icon"
-                unoptimized={true}
                 className="w-10 h-10 "
               />
               <div className="flex gap-2 items-center">
@@ -285,7 +292,6 @@ export default function ChoosePayment({
                   width={12}
                   height={12}
                   alt="chevron"
-                  unoptimized={true}
                   className="w-3 h-3"
                 />
               </div>

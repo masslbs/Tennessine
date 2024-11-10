@@ -9,13 +9,14 @@ import { useSearchParams } from "next/navigation";
 
 import { logger } from "@massmarket/utils";
 
-import { CheckoutStep, Order, OrderId, OrderState } from "@/types";
+import { CheckoutStep, Order, OrderEventTypes, OrderId } from "@/types";
 import { useUserContext } from "@/context/UserContext";
 import { useStoreContext } from "@/context/StoreContext";
 import Cart from "@/app/cart/Cart";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import ShippingDetails from "@/app/components/checkout/ShippingDetails";
 import ChoosePayment from "@/app/components/checkout/ChoosePayment";
+import TimerExpiration from "@/app/components/checkout/TimerExpiration";
 
 const namespace = "frontend:Checkout";
 const debug = logger(namespace);
@@ -27,7 +28,6 @@ const CheckoutFlow = () => {
 
   const searchParams = useSearchParams();
   const stepParam = searchParams.get("step") as CheckoutStep;
-  debug(`Starting checkout flow: ${stepParam}`);
 
   const [step, setStep] = useState<CheckoutStep>(
     stepParam ?? CheckoutStep.cart,
@@ -36,10 +36,30 @@ const CheckoutFlow = () => {
   const [txHash, setTxHash] = useState<null | `0x${string}`>(null);
   const [blockHash, setBlockHash] = useState<null | `0x${string}`>(null);
   const [displayedAmount, setDisplayedAmount] = useState<null | string>(null);
+  //Setting timer for 15 minutes
+  const [countdown, setCountdown] = useState(900);
+  const [isRunning, setIsRunning] = useState(false);
 
   useEffect(() => {
-    const txHashDetected = (order: Order) => {
-      if (order.status === OrderState.STATE_PAYMENT_TX) {
+    let intervalId;
+
+    if (isRunning && countdown > 0) {
+      intervalId = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+    } else if (countdown === 0) {
+      setStep(CheckoutStep.expired);
+    }
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [isRunning, countdown]);
+
+  useEffect(() => {
+    const txHashDetected = (res: [OrderEventTypes, Order]) => {
+      if (res[0] === OrderEventTypes.PAYMENT_TX) {
+        const order = res[1];
         const tx = order.txHash as `0x${string}`;
         const bh = order.blockHash as `0x${string}`;
         tx && setTxHash(tx);
@@ -50,18 +70,19 @@ const CheckoutFlow = () => {
       }
     };
 
-    clientWithStateManager!.stateManager!.orders.on(
-      "addPaymentTx",
-      txHashDetected,
-    );
+    clientWithStateManager.stateManager.orders.on("update", txHashDetected);
     return () => {
       // Cleanup listeners on unmount
-      clientWithStateManager!.stateManager!.orders.removeListener(
-        "addPaymentTx",
+      clientWithStateManager.stateManager.orders.removeListener(
+        "update",
         txHashDetected,
       );
     };
   });
+
+  function startTimer() {
+    setIsRunning(true);
+  }
 
   function copyToClipboard() {
     navigator.clipboard.writeText(txHash || blockHash || "");
@@ -72,7 +93,7 @@ const CheckoutFlow = () => {
       throw new Error("No orderId");
     }
     try {
-      await clientWithStateManager!.stateManager!.orders.commit(orderId);
+      await clientWithStateManager.stateManager.orders.commit(orderId);
       debug(`Order ID: ${orderId} committed`);
       setCommittedOrderId(orderId);
       setStep(CheckoutStep.shippingDetails);
@@ -91,7 +112,13 @@ const CheckoutFlow = () => {
       );
     }
     if (step === CheckoutStep.shippingDetails) {
-      return <ShippingDetails setStep={setStep} />;
+      return (
+        <ShippingDetails
+          setStep={setStep}
+          startTimer={startTimer}
+          countdown={countdown}
+        />
+      );
     } else if (step === CheckoutStep.paymentDetails) {
       return (
         <ChoosePayment
@@ -100,6 +127,8 @@ const CheckoutFlow = () => {
           displayedAmount={displayedAmount}
         />
       );
+    } else if (step === CheckoutStep.expired) {
+      return <TimerExpiration />;
     } else {
       return (
         <section>
@@ -109,7 +138,6 @@ const CheckoutFlow = () => {
               width={80}
               height={80}
               alt="smiley-icon"
-              unoptimized={true}
               className="w-20 h-20"
             />
             <h1>Payment Successful</h1>
@@ -119,7 +147,6 @@ const CheckoutFlow = () => {
                 alt="coin"
                 width={24}
                 height={24}
-                unoptimized={true}
                 className="w-6 h-6 max-h-6"
               />
               <h1>{displayedAmount}</h1>

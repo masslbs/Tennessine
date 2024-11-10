@@ -13,6 +13,8 @@ import {
   OrderState,
   ListingViewState,
   Payee,
+  ShippingDetails,
+  OrderEventTypes,
 } from "@massmarket/stateManager/types";
 
 export {
@@ -24,6 +26,8 @@ export {
   type ShopManifest,
   type KeyCard,
   type Payee,
+  type ShippingDetails,
+  OrderEventTypes,
   OrderState,
   ListingViewState,
 };
@@ -95,4 +99,5 @@ export enum CheckoutStep {
   shippingDetails = "shippingDetails",
   paymentDetails = "paymentDetails",
   confirmation = "confirmation",
+  expired = "expired",
 }

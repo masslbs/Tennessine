@@ -10,7 +10,12 @@ import { privateKeyToAccount } from "viem/accounts";
 import { useChains, useAccount } from "wagmi";
 
 import { BlockchainClient } from "@massmarket/blockchain";
-import { random32BytesHex, zeroAddress, logger, assert } from "@massmarket/utils";
+import {
+  random32BytesHex,
+  zeroAddress,
+  logger,
+  assert,
+} from "@massmarket/utils";
 
 import { CurrencyChainOption, Payee, ShopCurrencies, Status } from "@/types";
 import { getTokenAddress, isValidHex } from "@/app/utils";
@@ -167,7 +172,7 @@ const StoreCreation = () => {
       if (!shopPublicClient) {
         throw new Error("shopPublicClient not found");
       }
-      const rc = clientWithStateManager!.createNewRelayClient();
+      const rc = clientWithStateManager.createNewRelayClient();
 
       const blockchainClient = new BlockchainClient(shopId!);
       const hash = await blockchainClient.createShop(clientWallet!);

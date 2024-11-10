@@ -16,6 +16,8 @@ export default (WrappedComponent: FunctionComponent<PageProps>) => {
     const { clientConnected } = useClient();
     if (clientConnected === Status.Complete) {
       return <WrappedComponent {...props} />;
+    } else {
+      return <main></main>;
     }
   };
 };

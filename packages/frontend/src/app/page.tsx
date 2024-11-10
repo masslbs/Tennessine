@@ -5,15 +5,17 @@
 "use client";
 
 import React, { useEffect } from "react";
-
-import { useUserContext } from "@/context/UserContext";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useUserContext } from "@/context/UserContext";
 import { useClient } from "@/context/AuthContext";
 import { Status } from "../types";
+import "web-streams-polyfill";
 
 // add _mtm to global for matomo
 declare global {
-    interface Window { _mtm: any; }
+  interface Window {
+    _mtm: any;
+  }
 }
 
 function Homepage() {
@@ -26,11 +28,17 @@ function Homepage() {
   // setup matomo
   const matomoUrl = process.env.NEXT_PUBLIC_MATOMO_URL || null;
   useEffect(() => {
-      const _mtm = window._mtm = window._mtm || [];
-      _mtm.push({'mtm.startTime': (new Date().getTime()), 'event': 'mtm.Start'});
-      var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-      g.async=true; g.src=matomoUrl; s.parentNode.insertBefore(g,s);
-  }, [matomoUrl !== null]);
+    if (matomoUrl) {
+      const _mtm = (window._mtm = window._mtm || []);
+      _mtm.push({ "mtm.startTime": new Date().getTime(), event: "mtm.Start" });
+      var d = document,
+        g = d.createElement("script"),
+        s = d.getElementsByTagName("script")[0];
+      g.async = true;
+      g.src = matomoUrl;
+      s.parentNode.insertBefore(g, s);
+    }
+  }, [matomoUrl]);
 
   useEffect(() => {
     if (clientConnected === Status.Complete) {

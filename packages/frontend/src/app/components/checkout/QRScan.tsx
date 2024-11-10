@@ -35,7 +35,6 @@ function QRScan({
             width={78}
             height={100}
             alt="pay-by-qr"
-            unoptimized={true}
           />
           <h1>Pay by QR code</h1>
           <h1>{displayedAmount}</h1>
@@ -49,7 +48,6 @@ function QRScan({
             width={93}
             height={43}
             alt="pay-by-transfer"
-            unoptimized={true}
           />
           <h1>Pay by transfer</h1>
           <h1>{displayedAmount}</h1>

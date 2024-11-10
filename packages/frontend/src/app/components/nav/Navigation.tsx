@@ -6,12 +6,12 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useDisconnect } from "wagmi";
 
 import { assert, logger } from "@massmarket/utils";
 
-import { Order, OrderId, OrderState, Status } from "@/types";
+import { Order, OrderEventTypes, OrderId, OrderState, Status } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useClient } from "@/context/AuthContext";
 import { useUserContext } from "@/context/UserContext";
@@ -40,9 +40,9 @@ function Navigation() {
   const [basketOpen, setBasketOpen] = useState<boolean>(false);
   const [cartLength, setLength] = useState<number>(0);
   const { clientConnected, setIsConnected, isMerchantView } = useClient();
-  const { shopDetails, setCommittedOrderId } = useStoreContext();
+  const { shopDetails, setCommittedOrderId, getOpenOrderId } =
+    useStoreContext();
   const { clientWithStateManager } = useUserContext();
-  const searchParams = useSearchParams();
 
   const router = useRouter();
   const { disconnect } = useDisconnect();
@@ -52,42 +52,71 @@ function Navigation() {
     {
       title: "Basket",
       img: "menu-basket.svg",
-      href: `/checkout?${createQueryString("step", "cart", searchParams)}`,
+      href: `/checkout?${createQueryString("step", "cart")}`,
     },
-    { title: "Contact", img: "menu-contact.svg", href: "/" },
-    { title: "Share", img: "menu-share.svg", href: "/" },
+    {
+      title: "Contact",
+      img: "menu-contact.svg",
+      href: `/contact?${createQueryString("page", "contact")}`,
+    },
+    {
+      title: "Share",
+      img: "menu-share.svg",
+      href: `/contact?${createQueryString("page", "share")}`,
+    },
   ];
 
   useEffect(() => {
+    function onOrderUpdate(res: [OrderEventTypes, Order]) {
+      const order = res[1];
+      const type = res[0];
+      switch (type) {
+        case OrderEventTypes.CHANGE_ITEMS:
+          onChangeItems(order);
+          break;
+        case OrderEventTypes.PAYMENT_TX:
+          txHashDetected(order);
+        default:
+          break;
+      }
+    }
+
     function onChangeItems(order: Order) {
       const values = Object.values(order.items);
       let length = 0;
       values.map((qty) => (length += Number(qty)));
       setLength(length);
     }
+
     function txHashDetected(order: Order) {
       if (order.status === OrderState.STATE_PAYMENT_TX) {
         setLength(0);
       }
     }
-    if (clientWithStateManager?.stateManager) {
-      clientWithStateManager.stateManager.orders.on(
-        "changeItems",
-        onChangeItems,
-      );
 
-      clientWithStateManager!.stateManager.orders.on(
-        "addPaymentTx",
-        txHashDetected,
-      );
+    if (clientWithStateManager?.stateManager) {
+      getOpenOrderId().then((oId: OrderId | null) => {
+        if (oId) {
+          debug(`Open order ID: ${oId}`);
+          clientWithStateManager!
+            .stateManager!.orders.get(oId)
+            .then(async (o) => {
+              onChangeItems(o);
+            });
+        }
+      });
+
+      clientWithStateManager.stateManager.orders.on("update", onOrderUpdate);
+
+      clientWithStateManager!.stateManager.orders.on("update", onOrderUpdate);
       return () => {
         clientWithStateManager!.stateManager!.orders.removeListener(
-          "addPaymentTx",
-          txHashDetected,
+          "update",
+          onOrderUpdate,
         );
         clientWithStateManager!.stateManager!.orders.removeListener(
-          "changeItems",
-          onChangeItems,
+          "update",
+          onOrderUpdate,
         );
       };
     }
@@ -112,23 +141,15 @@ function Navigation() {
         debug("orderId not found");
         throw new Error("No order found");
       }
-      await clientWithStateManager!.stateManager!.orders.commit(orderId);
+      await clientWithStateManager.stateManager.orders.commit(orderId);
       setBasketOpen(false);
       debug(`Order ID: ${orderId} committed`);
       setCommittedOrderId(orderId);
-      router.push(
-        `/checkout?${
-          createQueryString(
-            "step",
-            "shippingDetails",
-            searchParams,
-          )
-        }`,
-      );
+      router.push(`/checkout?${createQueryString("step", "shippingDetails")}`);
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
       errlog("error committing order", error);
-      // TODO: show error to user
+      throw error;
     }
   }
 
@@ -144,8 +165,6 @@ function Navigation() {
                 width={20}
                 height={20}
                 alt="menu-item"
-                unoptimized={true}
-                priority={true}
                 className="w-5 h-5"
               />
               <h2 className="font-normal">{opt.title}</h2>
@@ -154,8 +173,6 @@ function Navigation() {
                 width={12}
                 height={12}
                 alt="chevron-right"
-                unoptimized={true}
-                priority={true}
                 className="ml-auto w-3 h-3"
               />
             </div>
@@ -175,8 +192,6 @@ function Navigation() {
               width={20}
               height={20}
               alt="menu-item"
-              unoptimized={true}
-              priority={true}
               className="w-5 h-5"
             />
             <Link href={opt.href!} key={opt.title}>
@@ -187,8 +202,6 @@ function Navigation() {
               width={12}
               height={12}
               alt="chevron-right"
-              unoptimized={true}
-              priority={true}
               className="ml-auto w-3 h-3"
             />
           </div>
@@ -201,31 +214,25 @@ function Navigation() {
     <section className={`absolute left-0 top-0 right-0`}>
       <section className="w-full p-2 text-base flex justify-between bg-white">
         <div className="flex gap-2">
-          {shopDetails.profilePictureUrl
-            ? (
-              <div className="overflow-hidden	rounded-full w-12 h-12">
-                <img
-                  src={shopDetails.profilePictureUrl}
-                  width={50}
-                  height={50}
-                  alt="profile-avatar"
-                  unoptimized={true}
-                  priority={true}
-                  className="w-12 h-12"
-                />
-              </div>
-            )
-            : (
+          {shopDetails.profilePictureUrl ? (
+            <div className="overflow-hidden	rounded-full w-12 h-12">
               <img
-                src={`/icons/mass-labs-logo.svg`}
-                width={40}
-                height={40}
-                alt="mass-labs-logo"
-                unoptimized={true}
-                priority={true}
-                className="w-10 h-10"
+                src={shopDetails.profilePictureUrl}
+                width={50}
+                height={50}
+                alt="profile-avatar"
+                className="w-12 h-12"
               />
-            )}
+            </div>
+          ) : (
+            <img
+              src={`/icons/mass-labs-logo.svg`}
+              width={40}
+              height={40}
+              alt="mass-labs-logo"
+              className="w-10 h-10"
+            />
+          )}
 
           <h2 className="flex items-center">{shopDetails.name}</h2>
         </div>
@@ -243,7 +250,6 @@ function Navigation() {
               width={20}
               height={20}
               alt="basket-icon"
-              unoptimized={true}
               className="w-5 h-5"
             />
             <div
@@ -260,32 +266,27 @@ function Navigation() {
               width={20}
               height={20}
               alt="menu-icon"
-              unoptimized={true}
               className="w-5 h-5"
             />
           </button>
         </section>
       </section>
-      {menuOpen
-        ? (
-          <section>
-            <span className="fixed bg-black w-full h-full opacity-60" />
-            <div className="fixed bg-background-gray z-10 w-full flex flex-col gap-5 rounded-b-lg p-5">
-              {renderMenuItems()}
-            </div>
-          </section>
-        )
-        : null}
-      {basketOpen
-        ? (
-          <section>
-            <span className="fixed bg-black w-full h-full opacity-60" />
-            <div className="fixed bg-background-gray z-10 w-full flex flex-col gap-5 rounded-b-lg p-5">
-              <Cart onCheckout={onCheckout} />
-            </div>
-          </section>
-        )
-        : null}
+      {menuOpen ? (
+        <section>
+          <span className="fixed bg-black w-full h-full opacity-60" />
+          <div className="fixed bg-background-gray z-10 w-full flex flex-col gap-5 rounded-b-lg p-5">
+            {renderMenuItems()}
+          </div>
+        </section>
+      ) : null}
+      {basketOpen ? (
+        <section>
+          <span className="fixed bg-black w-full h-full opacity-60" />
+          <div className="fixed bg-background-gray z-10 w-full flex flex-col gap-5 rounded-b-lg p-5">
+            <Cart onCheckout={onCheckout} />
+          </div>
+        </section>
+      ) : null}
     </section>
   );
 }

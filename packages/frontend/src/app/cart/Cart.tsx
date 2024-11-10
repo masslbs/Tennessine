@@ -6,7 +6,7 @@
 import React, { useEffect, useState } from "react";
 import { formatUnitsFromString, logger } from "@massmarket/utils";
 
-import { ListingId, Order, OrderId, OrderState } from "@/types";
+import { ListingId, Order, OrderEventTypes, OrderId } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
 import Button from "@/app/common/components/Button";
@@ -32,27 +32,25 @@ function Cart({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    getBaseTokenInfo()
-      .then((res: [string, number]) => {
-        res && setBaseDecimal(res[1]);
-        res && setBaseSymbol(res[0]);
-      });
+    getBaseTokenInfo().then((res: [string, number]) => {
+      res && setBaseDecimal(res[1]);
+      res && setBaseSymbol(res[0]);
+    });
   }, []);
 
   useEffect(() => {
-    function onChangeItems(order: Order) {
-      getCartItemDetails(order).then((itemDetails) => {
-        setCartMap(itemDetails);
-      });
+    function onChangeItems(res: [OrderEventTypes, Order]) {
+      if (res[0] === OrderEventTypes.CHANGE_ITEMS) {
+        getCartItemDetails(res[1]).then((itemDetails) => {
+          setCartMap(itemDetails);
+        });
+      }
     }
 
-    clientWithStateManager!.stateManager!.orders.on(
-      "changeItems",
-      onChangeItems,
-    );
+    clientWithStateManager.stateManager.orders.on("update", onChangeItems);
     return () => {
-      clientWithStateManager!.stateManager!.orders.removeListener(
-        "changeItems",
+      clientWithStateManager.stateManager.orders.removeListener(
+        "update",
         onChangeItems,
       );
     };
@@ -86,7 +84,7 @@ function Cart({
     const itemIds = Object.keys(ci);
     await Promise.all(
       itemIds.map(async (id) => {
-        const item = await clientWithStateManager!.stateManager!.listings.get(
+        const item = await clientWithStateManager.stateManager.listings.get(
           id as ListingId,
         );
         cartObjects.set(id, {
@@ -105,7 +103,8 @@ function Cart({
       if (
         (error instanceof Error &&
           error.message === "not enough items in stock for order") ||
-        error.message == "not enough stock"
+        error.message == "not enough stock" ||
+        error.message == "not in stock"
       ) {
         setErrorMsg("Not enough stock. Cart cleared.");
         await clearCart();
@@ -125,7 +124,7 @@ function Cart({
           quantity: item.selectedQty,
         };
       });
-      await clientWithStateManager!.stateManager!.orders.removeItems(
+      await clientWithStateManager.stateManager.orders.removeItems(
         orderId!,
         map,
       );
@@ -138,40 +137,40 @@ function Cart({
 
   async function addQuantity(id: ListingId) {
     try {
-      await clientWithStateManager!.stateManager!.orders.addItems(orderId!, [
+      await clientWithStateManager.stateManager.orders.addItems(orderId!, [
         {
           listingId: id,
           quantity: 1,
         },
       ]);
     } catch (error) {
-      debug(`Error:addQuantity ${error}`);
+      logerr(`Error:addQuantity ${error}`);
     }
   }
 
   async function removeQuantity(id: ListingId) {
     try {
-      await clientWithStateManager!.stateManager!.orders.removeItems(orderId!, [
+      await clientWithStateManager.stateManager.orders.removeItems(orderId!, [
         {
           listingId: id,
           quantity: 1,
         },
       ]);
     } catch (error) {
-      debug(`Error:removeQuantity ${error}`);
+      logerr(`Error:removeQuantity ${error}`);
     }
   }
 
   async function removeItem(id: ListingId, selectedQty: number) {
     try {
-      await clientWithStateManager!.stateManager!.orders.removeItems(orderId!, [
+      await clientWithStateManager.stateManager.orders.removeItems(orderId!, [
         {
           listingId: id,
           quantity: selectedQty,
         },
       ]);
     } catch (error) {
-      debug(`Error:removeItem ${error}`);
+      logerr(`Error:removeItem ${error}`);
     }
   }
   function calculateTotal() {
@@ -179,12 +178,13 @@ function Cart({
     let total = 0;
     Array.from(values).forEach((item) => {
       total += baseDecimal
-        ? Number(formatUnitsFromString(item.price, baseDecimal)) *
-          item.selectedQty
+        ? formatUnitsFromString(item.price, baseDecimal) * item.selectedQty
         : 0;
     });
     return total;
   }
+  const icon =
+    baseSymbol === "ETH" ? "/icons/eth-coin.svg" : "/icons/usdc-coin.png";
 
   function renderItems() {
     if (!orderId || !cartItemsMap.size) return <p>No items in cart</p>;
@@ -192,8 +192,7 @@ function Cart({
     const values = cartItemsMap.values();
     return Array.from(values).map((item) => {
       const price = baseDecimal
-        ? Number(formatUnitsFromString(item.price, baseDecimal)) *
-          item.selectedQty
+        ? formatUnitsFromString(item.price, baseDecimal) * item.selectedQty
         : 0;
       if (!item.selectedQty) return null;
 
@@ -205,7 +204,6 @@ function Cart({
               width={127}
               height={112}
               alt="product-thumb"
-              unoptimized={true}
               className="w-32 h-28 object-cover object-center rounded-l-lg"
             />
           </div>
@@ -236,7 +234,6 @@ function Cart({
                     alt="minus"
                     width={10}
                     height={10}
-                    unoptimized={true}
                     className="w-5 h-5 max-h-5"
                   />
                 </button>
@@ -247,18 +244,16 @@ function Cart({
                     alt="plus"
                     width={10}
                     height={10}
-                    unoptimized={true}
                     className="w-5 h-5 max-h-5"
                   />
                 </button>
               </div>
               <div className="flex gap-2 items-center ml-auto">
                 <img
-                  src="/icons/usdc-coin.png"
+                  src={icon}
                   alt="coin"
                   width={20}
                   height={20}
-                  unoptimized={true}
                   className="w-5 h-5 max-h-5"
                 />
                 <p data-testid="price">{price}</p>
@@ -284,11 +279,10 @@ function Cart({
         <p>Total Price:</p>
         <div className="flex items-center gap-2">
           <img
-            src="/icons/usdc-coin.png"
+            src={icon}
             alt="coin"
             width={20}
             height={20}
-            unoptimized={true}
             className="w-5 h-5 max-h-5"
           />
           <h1>{calculateTotal()}</h1>
@@ -299,7 +293,19 @@ function Cart({
           disabled={!orderId || !cartItemsMap.size || !onCheckout}
           onClick={() => handleCheckout(orderId!)}
         >
-          Checkout
+          <div className="flex items-center gap-2">
+            <p>Checkout</p>
+            <img
+              src="/icons/white-arrow.svg"
+              alt="white-arrow"
+              width={7}
+              height={12}
+              style={{
+                display:
+                  !orderId || !cartItemsMap.size || !onCheckout ? "none" : "",
+              }}
+            />
+          </div>
         </Button>
         <SecondaryButton
           disabled={!orderId || !cartItemsMap.size}

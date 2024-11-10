@@ -6,7 +6,7 @@ import { RelayClient, type RelayEndpoint } from "@massmarket/client";
 import { StateManager } from "@massmarket/stateManager";
 import { logger, random32BytesHex } from "@massmarket/utils";
 
-import { KeyCard, Order, ShopId, ShopManifest, Tag } from "@/types";
+import { KeyCard, Order, ShopId, ShopManifest, Tag, Listing } from "@/types";
 
 const namespace = "frontend:ClientWithStateManager";
 const debug = logger(namespace);
@@ -39,7 +39,10 @@ export class ClientWithStateManager {
     const encOption = { valueEncoding: "json" };
     const db = new BrowserLevel(`./${dbName}`, encOption);
     // Set up all the stores via sublevel
-    const listingStore = db.sublevel<string, Item>("listingStore", encOption);
+    const listingStore = db.sublevel<string, Listing>(
+      "listingStore",
+      encOption,
+    );
     const tagStore = db.sublevel<string, Tag>("tagStore", encOption);
     const shopManifestStore = db.sublevel<string, ShopManifest>(
       "shopManifestStore",

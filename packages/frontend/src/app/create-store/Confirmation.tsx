@@ -23,7 +23,6 @@ const Confirmation = () => {
           width={80}
           height={80}
           alt="smiley-icon"
-          unoptimized={true}
           className="w-auto h-auto"
         />
         <h1 className="font-bold" data-testid="confirmation">
@@ -49,7 +48,6 @@ const Confirmation = () => {
               width={20}
               height={20}
               alt="copy-icon"
-              unoptimized={true}
               className="w-auto h-auto ml-auto"
             />
           </button>

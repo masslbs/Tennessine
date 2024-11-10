@@ -23,6 +23,7 @@ import {
   type Order,
   type OrdersByStatus,
   OrderState,
+  OrderEventTypes,
   type ShopCurrencies,
   type ShopManifest,
   type Tag,
@@ -154,15 +155,7 @@ function waitForFill(client: MockClient, stateManager: StateManager) {
     stateManager.tags.on("addListingId", updateCount);
     stateManager.tags.on("removeListingIds", updateCount);
     stateManager.orders.on("create", updateCount);
-    stateManager.orders.on("orderCanceled", updateCount);
-    stateManager.orders.on("orderPaid", updateCount);
-    stateManager.orders.on("shippingAddress", updateCount);
-    stateManager.orders.on("invoiceAddress", updateCount);
-    stateManager.orders.on("changeItems", updateCount);
-    stateManager.orders.on("commitItems", updateCount);
-    stateManager.orders.on("choosePayment", updateCount);
-    stateManager.orders.on("paymentDetails", updateCount);
-    stateManager.orders.on("addPaymentTx", updateCount);
+    stateManager.orders.on("update", updateCount);
   });
 }
 
@@ -698,8 +691,8 @@ describe({ name: "global test settings", sanitizeResources: false }, () => {
 
         await new Promise<void>((resolve) => {
           // TODO: check the orders
-          stateManager.orders.on("paymentDetails", () => {
-            resolve();
+          stateManager.orders.on("update", (res) => {
+            if (res[0] === OrderEventTypes.PAYMENT_DETAILS) resolve();
           });
         });
         const committed = await stateManager.orders.get(id);

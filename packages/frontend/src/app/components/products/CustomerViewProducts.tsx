@@ -6,25 +6,26 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 
 import { formatUnitsFromString, logger } from "@massmarket/utils";
-import { Item, ListingViewState } from "@/types";
+import { Listing, ListingViewState } from "@/types";
 import { createQueryString } from "@/app/utils";
 import { useStoreContext } from "@/context/StoreContext";
 
 const debug = logger("frontend:CustomerViewProducts");
 
-function CustomerViewProducts({ products }: { products: Item[] | null }) {
+function CustomerViewProducts({ products }: { products: Listing[] | null }) {
   const { getBaseTokenInfo } = useStoreContext();
-  const searchParams = useSearchParams();
   const [baseDecimal, setBaseDecimal] = useState<null | number>(null);
+  const [tokenIcon, setIcon] = useState<string>("/icons/usdc-coin.png");
 
   useEffect(() => {
-    getBaseTokenInfo()
-      .then((res: [string, number]) => {
-        res && setBaseDecimal(res[1]);
-      });
+    getBaseTokenInfo().then((res: [string, number]) => {
+      res && setBaseDecimal(res[1]);
+      if (res[0] === "ETH") {
+        setIcon("/icons/eth-coin.svg");
+      }
+    });
   }, []);
 
   function renderProducts() {
@@ -45,13 +46,10 @@ function CustomerViewProducts({ products }: { products: Item[] | null }) {
         <Link
           key={item.id}
           data-testid="product-container"
-          href={`/products/productDetail?${
-            createQueryString(
-              "itemId",
-              item.id,
-              searchParams,
-            )
-          }`}
+          href={`/products/productDetail?${createQueryString(
+            "itemId",
+            item.id,
+          )}`}
           className={`${!visible ? "opacity-50" : ""}`}
         >
           <div>
@@ -61,9 +59,6 @@ function CustomerViewProducts({ products }: { products: Item[] | null }) {
                 width={176}
                 height={144}
                 alt="product-thumb"
-                unoptimized={true}
-                placeholder="empty"
-                priority={true}
                 className="h-36 w-44 rounded-t-lg object-cover object-center xxs:w-40"
               />
             </div>
@@ -75,11 +70,10 @@ function CustomerViewProducts({ products }: { products: Item[] | null }) {
               </div>
               <div className="flex gap-2 items-center">
                 <img
-                  src="/icons/usdc-coin.png"
+                  src={tokenIcon}
                   alt="coin"
                   width={20}
                   height={20}
-                  unoptimized={true}
                   className="w-5 h-5"
                 />
                 <p>
@@ -97,8 +91,6 @@ function CustomerViewProducts({ products }: { products: Item[] | null }) {
     <section className="mx-5 mt-2">
       <div className="flex">
         <h1 className="grow flex items-center">Shop</h1>
-        <button>Search</button>
-        <button className="ml-2">Filter</button>
       </div>
       <section className="flex flex-wrap justify-between gap-3 mt-3">
         {renderProducts()}

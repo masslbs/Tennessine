@@ -2,22 +2,24 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useRef,
+} from "react";
 import { useEnsAvatar, useWalletClient } from "wagmi";
 import { hardhat, mainnet, sepolia } from "viem/chains";
 import { usePathname, useSearchParams } from "next/navigation";
-import * as Sentry from "@sentry/nextjs";
 
-import {
-  discoverRelay,
-  type RelayEndpoint,
-} from "@massmarket/client";
-import { random32BytesHex, logger } from "@massmarket/utils";
+import { discoverRelay, type RelayEndpoint } from "@massmarket/client";
+import { logger } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 
-import { 
-  createPublicClientForChain, 
-  createGuestWalletClientForChain 
+import {
+  createPublicClientForChain,
+  createGuestWalletClientForChain,
 } from "@/app/utils";
 import { useClient } from "@/context/AuthContext";
 import { type ClientContext } from "@/context/types";
@@ -61,9 +63,7 @@ export const UserContextProvider = (
   );
   const [avatar, setAvatar] = useState<string | null>(null);
   const [ensName, setEnsName] = useState<string | null>(null);
-  const [clientWallet, setWallet] = useState<WalletClientWithAccount | null>(
-    null,
-  );
+  const [clientWallet, setWallet] = useState(null);
   const [inviteSecret, setInviteSecret] = useState<`0x${string}` | null>(null);
   const [shopId, setShopId] = useState<ShopId | null>(null);
   const [merchantKC, setmerchantKC] = useState<`0x${string}` | null>(null);
@@ -73,7 +73,7 @@ export const UserContextProvider = (
   const [relayEndpoint, setRelayEndpoint] = useState<RelayEndpoint | null>(
     null,
   );
-  const [authenticated, setAuthenticated] = useState(false);
+  const authenticated = useRef(false);
 
   const ensAvatar = useEnsAvatar({ name: ensName! })?.data;
   const isMerchantPath = [
@@ -152,7 +152,7 @@ export const UserContextProvider = (
       return hasAccess;
     } else return false;
   }
- 
+
   useEffect(() => {
     if (_wallet && walletStatus == "success") {
       setWallet(_wallet);
@@ -174,10 +174,9 @@ export const UserContextProvider = (
       //If it's the connect merchant page we return, because this useEffect will rerun after setShopId is called in that component and reset the ClientWithStateManager, which we don't want.
       pathname === "/merchants/connect/" ||
       clientConnected !== Status.Pending ||
-      authenticated
+      authenticated.current
     )
       return;
-
     const clientStateManager = new ClientWithStateManager(
       shopPublicClient,
       shopId,
@@ -204,10 +203,11 @@ export const UserContextProvider = (
         debug("connected without keycard");
         setIsConnected(Status.Complete);
       } else if (guestCheckoutKC) {
+        authenticated.current = true;
+
         //If guestCheckout keycard is cached, connect, authenticate, and subscribe to orders.
         await clientStateManager.setClientAndConnect(guestCheckoutKC);
         await clientStateManager.sendGuestCheckoutSubscriptionRequest();
-        setAuthenticated(true);
         debug(`connected with guest checkout keycard ${guestCheckoutKC}`);
         setIsConnected(Status.Complete);
       }
@@ -228,6 +228,7 @@ export const UserContextProvider = (
     if (!res.ok) {
       throw new Error(`Failed to enroll keycard: ${res.error}`);
     }
+    debug("Keycard enrolled");
     //Cancel and renew subscription with orders
     await clientWithStateManager!.relayClient!.cancelSubscriptionRequest();
     const { response } =

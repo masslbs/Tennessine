@@ -13,7 +13,7 @@ import { logger } from "@massmarket/utils";
 import { StoreContent } from "@/context/types";
 import { useUserContext } from "@/context/UserContext";
 import { getTokenInformation, createPublicClientForChain } from "@/app/utils";
-import { ListingId, Order, OrderState } from "@/types";
+import { ListingId, Order, OrderState, OrderEventTypes } from "@/types";
 
 const namespace = "frontend:StoreContext";
 const debug = logger(namespace);
@@ -39,27 +39,18 @@ export const StoreContextProvider = (
   useEffect(() => {
     // If there is a committed order outside of the checkout flow, cancel committed order.
     if (pathname !== "/checkout/" && committedOrderId) {
-      const sm = clientWithStateManager.stateManager;
-      debug("Exited out of checkout flow after committing order.");
-      (async () => {
-        const cancelledOrder = await sm.orders.cancel(committedOrderId);
-        debug("Cancelled committed order");
-        // Once order is cancelled, create a new order and add the same items.
-        const newOrder = await sm.orders.create();
-        debug("New order created");
-        const listingsToAdd = Object.entries(cancelledOrder.items).map(
-          ([listingId, quantity]) => {
-            return {
-              listingId: listingId as ListingId,
-              quantity,
-            };
-          },
-        );
-        await sm.orders.addItems(newOrder.id, listingsToAdd);
-        debug("Listings added to new order.");
-      })();
+      cancelAndCreateOrder().then();
     }
   }, [pathname, clientWithStateManager?.stateManager]);
+
+  useEffect(() => {
+    if (committedOrderId) {
+      window.addEventListener("beforeunload", cancelAndCreateOrder);
+    }
+    return () => {
+      window.removeEventListener("beforeunload", cancelAndCreateOrder);
+    };
+  }, []);
 
   useEffect(() => {
     if (shopPublicClient && shopId) {
@@ -84,16 +75,31 @@ export const StoreContextProvider = (
   }, [shopPublicClient, shopId]);
 
   useEffect(() => {
+    function onOrderCreate(order: Order) {
+      if (order.status === OrderState.STATE_OPEN) {
+        setOpenOrderId(order.id);
+      }
+    }
+    function onOrderUpdate(res: [OrderEventTypes, Order]) {
+      const order = res[1];
+      const type = res[0];
+
+      switch (type) {
+        case OrderEventTypes.CANCELLED:
+          orderCancel(order);
+          break;
+        case OrderEventTypes.PAYMENT_TX:
+          txHashDetected(order);
+        default:
+          break;
+      }
+    }
     function txHashDetected(order: Order) {
       if (order.status === OrderState.STATE_PAYMENT_TX) {
         setOpenOrderId(null);
       }
     }
-    function orderCreated(order: Order) {
-      if (order.status === OrderState.STATE_OPEN) {
-        setOpenOrderId(order.id);
-      }
-    }
+
     function orderCancel(order: Order) {
       if (order.status === OrderState.STATE_CANCELED) {
         setOpenOrderId(null);
@@ -101,37 +107,44 @@ export const StoreContextProvider = (
     }
 
     if (clientWithStateManager?.stateManager) {
-      clientWithStateManager.stateManager.orders.on(
-        "addPaymentTx",
-        txHashDetected,
-      );
-      clientWithStateManager.stateManager.orders.on("create", orderCreated);
-      clientWithStateManager.stateManager.orders.on(
-        "orderCanceled",
-        orderCancel,
-      );
+      clientWithStateManager.stateManager.orders.on("create", onOrderCreate);
+      clientWithStateManager.stateManager.orders.on("update", onOrderUpdate);
 
       return () => {
         clientWithStateManager.stateManager.orders.removeListener(
-          "addPaymentTx",
-          txHashDetected,
-        );
-        clientWithStateManager.stateManager.orders.removeListener(
           "create",
-          orderCreated,
+          onOrderCreate,
         );
         clientWithStateManager.stateManager.orders.removeListener(
-          "orderCanceled",
-          orderCancel,
+          "update",
+          onOrderUpdate,
         );
       };
     }
   }, [clientWithStateManager]);
 
+  async function cancelAndCreateOrder() {
+    const sm = clientWithStateManager.stateManager;
+    debug(`Cancelling order ID: ${committedOrderId}`);
+    const [type, cancelledOrder] = await sm.orders.cancel(committedOrderId);
+    // Once order is cancelled, create a new order and add the same items.
+    const newOrder = await sm.orders.create();
+    debug("New order created");
+    const listingsToAdd = Object.entries(cancelledOrder.items).map(
+      ([listingId, quantity]) => {
+        return {
+          listingId: listingId as ListingId,
+          quantity,
+        };
+      },
+    );
+    await sm.orders.addItems(newOrder.id, listingsToAdd);
+    debug("Listings added to new order");
+  }
+
   async function getBaseTokenInfo() {
     //Get base token decimal and symbol.
-    const manifest =
-      await clientWithStateManager!.stateManager!.manifest.get();
+    const manifest = await clientWithStateManager!.stateManager!.manifest.get();
     const { chainId, address } = manifest.pricingCurrency;
     const chain = chains.find((chain) => chainId === chain.id);
     if (!chain) {
@@ -146,8 +159,8 @@ export const StoreContextProvider = (
       return openOrderId;
     }
     if (!clientWithStateManager) {
-      warn("stateManager not ready")
-      return null
+      warn("stateManager not ready");
+      return null;
     }
     try {
       // TODO: this still has the problem of faulting/blocking over a previous stuck order
