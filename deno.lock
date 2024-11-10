@@ -11778,7 +11778,8 @@
             "npm:typescript@^5.6.3",
             "npm:viem@^2.16.3",
             "npm:vitest@^2.0.4",
-            "npm:wagmi@^2.10.6"
+            "npm:wagmi@^2.10.6",
+            "npm:web-streams-polyfill@4"
           ]
         }
       },

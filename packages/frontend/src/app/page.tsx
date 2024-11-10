@@ -5,11 +5,11 @@
 "use client";
 
 import React, { useEffect } from "react";
-
-import { useUserContext } from "@/context/UserContext";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useUserContext } from "@/context/UserContext";
 import { useClient } from "@/context/AuthContext";
 import { Status } from "../types";
+import "web-streams-polyfill";
 
 // add _mtm to global for matomo
 declare global {
