@@ -6,17 +6,17 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import {
   Address,
-  PublicClient,
-  createPublicClient,
-  http,
-  createWalletClient,
   type Chain,
+  createPublicClient,
+  createWalletClient,
+  http,
+  PublicClient,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { sepolia, hardhat } from "wagmi/chains";
+import { hardhat, sepolia } from "wagmi/chains";
 import { ReadonlyURLSearchParams } from "next/navigation";
 
-import { zeroAddress, random32BytesHex } from "@massmarket/utils";
+import { random32BytesHex, zeroAddress } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 
 import { Metadata } from "@/types";

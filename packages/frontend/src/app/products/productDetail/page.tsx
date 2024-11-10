@@ -120,10 +120,12 @@ const ProductDetail = () => {
             <div className={`ml-auto ${isMerchantView ? "" : "hidden"}`}>
               <Button>
                 <Link
-                  href={`/products/edit?${createQueryString(
-                    "itemId",
-                    item.id,
-                  )}`}
+                  href={`/products/edit?${
+                    createQueryString(
+                      "itemId",
+                      item.id,
+                    )
+                  }`}
                 >
                   Edit
                 </Link>
@@ -144,28 +146,30 @@ const ProductDetail = () => {
                 objectPosition: "center",
               }}
             />
-            {item.metadata.images.length > 1 ? (
-              <div className="flex mt-2 gap-2">
-                {item.metadata.images.map((image, i) => {
-                  return (
-                    <img
-                      key={i}
-                      src={image}
-                      alt="product-detail-image"
-                      width={90}
-                      height={81}
-                      className="border rounded-lg"
-                      style={{
-                        maxHeight: "81px",
-                        maxWidth: "90px",
-                        objectFit: "cover",
-                        objectPosition: "center",
-                      }}
-                    />
-                  );
-                })}
-              </div>
-            ) : null}
+            {item.metadata.images.length > 1
+              ? (
+                <div className="flex mt-2 gap-2">
+                  {item.metadata.images.map((image, i) => {
+                    return (
+                      <img
+                        key={i}
+                        src={image}
+                        alt="product-detail-image"
+                        width={90}
+                        height={81}
+                        className="border rounded-lg"
+                        style={{
+                          maxHeight: "81px",
+                          maxWidth: "90px",
+                          objectFit: "cover",
+                          objectPosition: "center",
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+              )
+              : null}
           </div>
           <section className="flex gap-4 flex-col bg-white mt-5 rounded-md p-5">
             <div>

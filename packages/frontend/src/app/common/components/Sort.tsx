@@ -4,7 +4,7 @@
 
 "use client";
 
-import React, { Dispatch, SetStateAction, useState, ChangeEvent } from "react";
+import React, { ChangeEvent, Dispatch, SetStateAction, useState } from "react";
 import HalfModal from "./HalfModal";
 import Button from "./Button";
 
@@ -72,9 +72,7 @@ const Sort = ({
         </fieldset>
         <div className="mt-6">
           <Button
-            color={
-              "bg-gradient-to-r from-button-gradient-start to-button-gradient-end"
-            }
+            color={"bg-gradient-to-r from-button-gradient-start to-button-gradient-end"}
             onClick={() => {
               setCheck(selected as SortOption);
               close();

@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { useChains } from "wagmi";
 import { Address } from "viem";
 import { usePathname } from "next/navigation";
@@ -12,8 +12,8 @@ import { logger } from "@massmarket/utils";
 
 import { StoreContent } from "@/context/types";
 import { useUserContext } from "@/context/UserContext";
-import { getTokenInformation, createPublicClientForChain } from "@/app/utils";
-import { ListingId, Order, OrderState, OrderEventTypes } from "@/types";
+import { createPublicClientForChain, getTokenInformation } from "@/app/utils";
+import { ListingId, Order, OrderEventTypes, OrderState } from "@/types";
 
 const namespace = "frontend:StoreContext";
 const debug = logger(namespace);

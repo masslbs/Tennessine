@@ -150,10 +150,10 @@ function StoreProfile() {
           //If new avatar was uploaded, upload the image, otherwise use previous image.
           image: avatar
             ? (
-                await clientWithStateManager!.relayClient!.uploadBlob(
-                  avatar as FormData,
-                )
-              ).url
+              await clientWithStateManager!.relayClient!.uploadBlob(
+                avatar as FormData,
+              )
+            ).url
             : shopDetails.profilePictureUrl,
         };
         const jsn = JSON.stringify(metadata);

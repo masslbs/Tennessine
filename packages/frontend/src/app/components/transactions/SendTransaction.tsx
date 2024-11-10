@@ -1,6 +1,6 @@
 import React from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useSendTransaction, useAccount } from "wagmi";
+import { useAccount, useSendTransaction } from "wagmi";
 
 import { logger } from "@massmarket/utils";
 
@@ -30,18 +30,20 @@ export default function SendTransaction({
 
   return (
     <div>
-      {status === "connected" ? (
-        <div className="flex flex-col gap-4">
-          <ConnectButton chainStatus="name" />
-          <Button onClick={send} disabled={!purchaseAddress || !cryptoTotal}>
-            <h6>Pay</h6>
-          </Button>
-        </div>
-      ) : (
-        <div className="flex justify-center">
-          <ConnectWalletButton />
-        </div>
-      )}
+      {status === "connected"
+        ? (
+          <div className="flex flex-col gap-4">
+            <ConnectButton chainStatus="name" />
+            <Button onClick={send} disabled={!purchaseAddress || !cryptoTotal}>
+              <h6>Pay</h6>
+            </Button>
+          </div>
+        )
+        : (
+          <div className="flex justify-center">
+            <ConnectWalletButton />
+          </div>
+        )}
     </div>
   );
 }

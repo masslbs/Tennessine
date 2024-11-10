@@ -145,4 +145,4 @@ const _schemaCheck: TestVectors = testVectors;
 export const EnvelopMessageTypes = {
   PingRequest: "pingRequest",
   SubscriptionPushRequest: "subscriptionPushRequest",
-}
+};

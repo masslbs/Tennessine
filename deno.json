@@ -1,12 +1,21 @@
 {
-    "nodeModulesDir": "manual",
-    "workspace":  [
-        "./packages/utils",
-        "./packages/schema",
-        "./packages/stateManager",
-        "./packages/client",
-        "./packages/contracts",
-        "./packages/frontend",
-        "./packages/blockchain"
+  "nodeModulesDir": "manual",
+  "workspace": [
+    "./packages/utils",
+    "./packages/schema",
+    "./packages/stateManager",
+    "./packages/client",
+    "./packages/contracts",
+    "./packages/frontend",
+    "./packages/blockchain"
+  ],
+  "fmt": {
+    "include": ["."],
+    "exclude": [
+      ".direnv",
+      "packages/frontend/out/",
+      "node_modules",
+      ".pre-commit-config.yaml"
     ]
+  }
 }
