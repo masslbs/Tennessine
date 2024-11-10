@@ -5,6 +5,7 @@
   description = "massmarket-typescript";
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
+    deno-overlay.url = "github:haruki7049/deno-overlay";
     flake-parts.url = "github:hercules-ci/flake-parts";
     pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
     pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
@@ -23,6 +24,7 @@
     contracts,
     pre-commit-hooks,
     self,
+    deno-overlay,
     ...
   }:
     flake-parts.lib.mkFlake {inherit inputs;} {
@@ -37,6 +39,13 @@
         self',
         ...
       }: {
+        _module.args.pkgs = import inputs.nixpkgs {
+            inherit system;
+            overlays = [
+              deno-overlay.overlays.deno-overlay
+            ];
+             config = { };
+        };
         pre-commit.settings = {
           src = ./.;
           hooks = {
@@ -59,9 +68,9 @@
             buildInputs =
               [
                 # frontend dependencies
+                deno."2.0.6"
                 typescript
                 nodejs_latest
-                deno
                 nodePackages.typescript-language-server
                 contracts.packages.${system}.default
                 reuse
