@@ -4,7 +4,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 import { useUserContext } from "@/context/UserContext";
 import { useClient } from "@/context/AuthContext";
@@ -20,10 +20,12 @@ const Products = () => {
 
   const getAllListings = async () => {
     const listings = new Map();
-    for await (const [
-      id,
-      item,
-    ] of clientWithStateManager.stateManager.listings.iterator()) {
+    for await (
+      const [
+        id,
+        item,
+      ] of clientWithStateManager.stateManager.listings.iterator()
+    ) {
       listings.set(id, item);
     }
     return listings;
@@ -32,20 +34,24 @@ const Products = () => {
   useEffect(() => {
     const onCreateEvent = async () => {
       const l = new Map();
-      for await (const [
-        id,
-        item,
-      ] of clientWithStateManager.stateManager.listings.iterator()) {
+      for await (
+        const [
+          id,
+          item,
+        ] of clientWithStateManager.stateManager.listings.iterator()
+      ) {
         l.set(id, item);
       }
       setProducts(l);
     };
     const onUpdateEvent = async () => {
       const l = new Map();
-      for await (const [
-        id,
-        item,
-      ] of clientWithStateManager.stateManager.listings.iterator()) {
+      for await (
+        const [
+          id,
+          item,
+        ] of clientWithStateManager.stateManager.listings.iterator()
+      ) {
         l.set(id, item);
       }
       setProducts(l);
@@ -74,11 +80,13 @@ const Products = () => {
 
   return (
     <main className="bg-background-gray pt-under-nav h-screen">
-      {isMerchantView ? (
-        <MerchantViewProducts products={Array.from([...products.values()])} />
-      ) : (
-        <CustomerViewProducts products={Array.from([...products.values()])} />
-      )}
+      {isMerchantView
+        ? <MerchantViewProducts products={Array.from([...products.values()])} />
+        : (
+          <CustomerViewProducts
+            products={Array.from([...products.values()])}
+          />
+        )}
     </main>
   );
 };

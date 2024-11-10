@@ -42,10 +42,12 @@ const MerchantConnectWallet = () => {
     "search",
   );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [shopData, setShopData] = useState<{
-    name: string;
-    image: string;
-  } | null>(null);
+  const [shopData, setShopData] = useState<
+    {
+      name: string;
+      image: string;
+    } | null
+  >(null);
 
   useEffect(() => {
     //If user connects different wallet, set client connection back to pending.

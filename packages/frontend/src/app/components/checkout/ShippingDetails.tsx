@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 "use client";
-import React, { useState, useEffect, Dispatch, SetStateAction } from "react";
+import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 
-import { logger, assert } from "@massmarket/utils";
+import { assert, logger } from "@massmarket/utils";
 
 import { CheckoutStep, type ShippingDetails } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";

@@ -3,33 +3,33 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import {
-  Listing,
-  Order,
-  Metadata,
-  Tag,
-  ShopCurrencies,
-  ShopManifest,
   KeyCard,
-  OrderState,
+  Listing,
   ListingViewState,
+  Metadata,
+  Order,
+  OrderEventTypes,
+  OrderState,
   Payee,
   ShippingDetails,
-  OrderEventTypes,
+  ShopCurrencies,
+  ShopManifest,
+  Tag,
 } from "@massmarket/stateManager/types";
 
 export {
-  type Listing,
-  type Order,
-  type Metadata,
-  type Tag,
-  type ShopCurrencies,
-  type ShopManifest,
   type KeyCard,
-  type Payee,
-  type ShippingDetails,
+  type Listing,
+  ListingViewState,
+  type Metadata,
+  type Order,
   OrderEventTypes,
   OrderState,
-  ListingViewState,
+  type Payee,
+  type ShippingDetails,
+  type ShopCurrencies,
+  type ShopManifest,
+  type Tag,
 };
 export type ListingId = `0x${string}`;
 export type TagId = `0x${string}`;

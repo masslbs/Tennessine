@@ -8,7 +8,9 @@ import tokenAddresses from "./tokenAddresses.json" with { type: "json" };
 export { tokenAddresses };
 import Payments from "./abi/Payments.json" with { type: "json" };
 export { Payments };
-import PaymentsByAddress from "./abi/PaymentsByAddress.json" with { type: "json" };
+import PaymentsByAddress from "./abi/PaymentsByAddress.json" with {
+  type: "json",
+};
 export { PaymentsByAddress };
 import RelayReg from "./abi/RelayReg.json" with { type: "json" };
 export { RelayReg };

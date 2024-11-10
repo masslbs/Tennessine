@@ -1,11 +1,11 @@
 import React from "react";
-import { describe, test, expect } from "vitest";
-import { waitFor, screen, act, fireEvent } from "@testing-library/react";
+import { describe, expect, test } from "vitest";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MerchantsRender, getMockClient } from "./test-utils";
+import { getMockClient, MerchantsRender } from "./test-utils";
 import ProductDetail from "@/app/products/productDetail/page";
 import mockRouter from "next-router-mock";
-import { OrderState, ListingId } from "@/types";
+import { ListingId, OrderState } from "@/types";
 
 describe("Product Detail Component", async () => {
   const user = userEvent.setup();

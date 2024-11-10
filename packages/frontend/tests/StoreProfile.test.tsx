@@ -1,15 +1,15 @@
 import React from "react";
-import { screen, waitFor, act, within } from "@testing-library/react";
+import { act, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, test, beforeAll, beforeEach } from "vitest";
-import { sepolia, hardhat, mainnet } from "wagmi/chains";
+import { beforeAll, beforeEach, describe, expect, test } from "vitest";
+import { hardhat, mainnet, sepolia } from "wagmi/chains";
 import {
+  random32BytesHex,
   randomAddress,
   zeroAddress,
-  random32BytesHex,
 } from "@massmarket/utils";
 import StoreProfile from "@/app/store/page";
-import { MerchantsRender, getMockClient } from "./test-utils";
+import { getMockClient, MerchantsRender } from "./test-utils";
 
 export const usdcAddress = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 

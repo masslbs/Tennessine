@@ -5,7 +5,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useUserContext } from "@/context/UserContext";
 import { useClient } from "@/context/AuthContext";
 import { Status } from "../types";

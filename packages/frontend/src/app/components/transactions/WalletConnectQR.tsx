@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { SignClient } from "@walletconnect/sign-client";
 import { WalletConnectModal } from "@walletconnect/modal";
-import { sepolia, mainnet, hardhat } from "viem/chains";
+import { hardhat, mainnet, sepolia } from "viem/chains";
 import { SignClient as ISignClient } from "@walletconnect/sign-client/dist/types/client";
 import { SessionTypes } from "@walletconnect/types";
 import Button from "@/app/common/components/Button";
@@ -21,12 +21,11 @@ function WalletConnectQR({
   const [session, setSession] = useState<SessionTypes.Struct | null>(null);
   const [account, setAccount] = useState<[] | string>([]);
   const chainName = process.env.NEXT_PUBLIC_CHAIN_NAME!;
-  const usedChain: number =
-    chainName === "sepolia"
-      ? sepolia.id
-      : chainName === "hardhat"
-        ? hardhat.id
-        : mainnet.id;
+  const usedChain: number = chainName === "sepolia"
+    ? sepolia.id
+    : chainName === "hardhat"
+    ? hardhat.id
+    : mainnet.id;
   const walletConnectModal = new WalletConnectModal({
     projectId: "6c432edcd930e0fa2c87a8d940ae5b91",
     chains: [`eip155:${usedChain}`],

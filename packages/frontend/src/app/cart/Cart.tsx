@@ -183,8 +183,9 @@ function Cart({
     });
     return total;
   }
-  const icon =
-    baseSymbol === "ETH" ? "/icons/eth-coin.svg" : "/icons/usdc-coin.png";
+  const icon = baseSymbol === "ETH"
+    ? "/icons/eth-coin.svg"
+    : "/icons/usdc-coin.png";
 
   function renderItems() {
     if (!orderId || !cartItemsMap.size) return <p>No items in cart</p>;
@@ -301,8 +302,9 @@ function Cart({
               width={7}
               height={12}
               style={{
-                display:
-                  !orderId || !cartItemsMap.size || !onCheckout ? "none" : "",
+                display: !orderId || !cartItemsMap.size || !onCheckout
+                  ? "none"
+                  : "",
               }}
             />
           </div>

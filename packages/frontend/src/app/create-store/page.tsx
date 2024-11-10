@@ -4,17 +4,17 @@
 
 "use client";
 
-import React, { useState, useEffect, useRef, ChangeEvent } from "react";
+import React, { ChangeEvent, useEffect, useRef, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { privateKeyToAccount } from "viem/accounts";
-import { useChains, useAccount } from "wagmi";
+import { useAccount, useChains } from "wagmi";
 
 import { BlockchainClient } from "@massmarket/blockchain";
 import {
+  assert,
+  logger,
   random32BytesHex,
   zeroAddress,
-  logger,
-  assert,
 } from "@massmarket/utils";
 
 import { CurrencyChainOption, Payee, ShopCurrencies, Status } from "@/types";
@@ -75,8 +75,9 @@ const StoreCreation = () => {
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [storeRegistrationStatus, setStoreRegistrationStatus] =
-    useState<string>("");
+  const [storeRegistrationStatus, setStoreRegistrationStatus] = useState<
+    string
+  >("");
 
   useEffect(() => {
     if (clientWallet?.account) {
@@ -325,8 +326,8 @@ const StoreCreation = () => {
       } else {
         imgPath = avatar
           ? await clientWithStateManager!.relayClient!.uploadBlob(
-              avatar as FormData,
-            )
+            avatar as FormData,
+          )
           : { url: null };
         const metadata = {
           name: storeName,
@@ -493,8 +494,7 @@ const StoreCreation = () => {
                 name="payee"
                 value={payeeAddress || ""}
                 onChange={(e) =>
-                  setPayeeAddress(e.target.value as `0x${string}`)
-                }
+                  setPayeeAddress(e.target.value as `0x${string}`)}
               />
             </form>
           </div>
@@ -523,17 +523,17 @@ const StoreCreation = () => {
         />
         <h1>Connect your wallet</h1>
         <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
-          {status === "connected" ? (
-            <div className="flex flex-col gap-4">
-              <ConnectButton chainStatus="name" />
-              <p>{storeRegistrationStatus}</p>
-              <Button onClick={mintShop} disabled={!clientWallet}>
-                <h6>Mint Shop</h6>
-              </Button>
-            </div>
-          ) : (
-            <ConnectWalletButton />
-          )}
+          {status === "connected"
+            ? (
+              <div className="flex flex-col gap-4">
+                <ConnectButton chainStatus="name" />
+                <p>{storeRegistrationStatus}</p>
+                <Button onClick={mintShop} disabled={!clientWallet}>
+                  <h6>Mint Shop</h6>
+                </Button>
+              </div>
+            )
+            : <ConnectWalletButton />}
         </section>
       </main>
     );

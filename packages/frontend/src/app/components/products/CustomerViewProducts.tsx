@@ -46,10 +46,12 @@ function CustomerViewProducts({ products }: { products: Listing[] | null }) {
         <Link
           key={item.id}
           data-testid="product-container"
-          href={`/products/productDetail?${createQueryString(
-            "itemId",
-            item.id,
-          )}`}
+          href={`/products/productDetail?${
+            createQueryString(
+              "itemId",
+              item.id,
+            )
+          }`}
           className={`${!visible ? "opacity-50" : ""}`}
         >
           <div>
