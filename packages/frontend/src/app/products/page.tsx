@@ -12,7 +12,7 @@ import withClient from "@/app/components/withClient";
 import MerchantViewProducts from "@/app/components/products/MerchantViewProducts";
 import CustomerViewProducts from "@/app/components/products/CustomerViewProducts";
 
-const Products = () => {
+function Products() {
   const { clientWithStateManager } = useUserContext();
   const { isMerchantView } = useClient();
 
@@ -89,6 +89,6 @@ const Products = () => {
         )}
     </main>
   );
-};
+}
 
 export default withClient(Products);
