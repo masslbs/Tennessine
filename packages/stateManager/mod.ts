@@ -66,26 +66,6 @@ function eventListenAndResolve<T = ShopObjectTypes>(
     em.on(eventName, onUpdate);
   });
 }
-async function storeOrdersByStatus(
-  orderId: `0x${string}`,
-  store: Store<Order | OrdersByStatus>,
-  status: OrderState,
-) {
-  let orders: OrdersByStatus = [];
-
-  try {
-    orders = (await store.get(status)) as OrdersByStatus;
-    orders.push(orderId);
-  } catch (error) {
-    const e = error as IError;
-    if (e.notFound) {
-      orders.push(orderId);
-    } else {
-      throw new Error(e.code);
-    }
-  }
-  return store.put(status, orders);
-}
 
 abstract class PublicObjectManager<
   T extends ShopObjectTypes,
@@ -654,6 +634,28 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
   constructor(store: Store<Order | OrdersByStatus>, client: IRelayClient) {
     super(store, client);
   }
+
+  async #saveOrderAndStatus(
+    orderId: `0x${string}`,
+    order: Order,
+    status: OrderState,
+  ) {
+    let orders: OrdersByStatus = [];
+    try {
+      orders = (await this.store.get(status)) as OrdersByStatus;
+    } catch (e) {
+      const error = e as IError;
+      if (!error.notFound) {
+        throw new Error(error.code);
+      }
+    } finally {
+      orders.push(orderId);
+    }
+    return Promise.all([
+      this.store.put(status, orders),
+      this.store.put(orderId, order),
+    ]);
+  }
   //Process all Order events. Convert bytes to hex, waits for database update, then emits event
   async _processEvent(
     seqEvt: SequencedEventWithRecoveredSigner,
@@ -668,8 +670,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         items: {},
         status: OrderState.STATE_OPEN,
       };
-      await this.store.put(id, o);
-      await storeOrdersByStatus(id, this.store, OrderState.STATE_OPEN);
+      await this.#saveOrderAndStatus(id, o, OrderState.STATE_OPEN);
       this.emit("create", o, seqEvt.id());
       return;
     } else if (event.updateOrder) {
@@ -716,14 +717,12 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         const currentState = order.status;
         order.status = OrderState.STATE_CANCELED;
         //Save status as cancelled
-        await this.store.put(id, order);
-        await storeOrdersByStatus(id, this.store, OrderState.STATE_CANCELED);
+        await this.#saveOrderAndStatus(id, order, OrderState.STATE_CANCELED);
         //remove the orderId from state of orders before this event.
         let orders = (await this.store.get(currentState)) as OrdersByStatus;
         orders = orders.filter((oId) => oId !== id);
         await this.store.put(currentState, orders);
         this.emit("update", ["orderCanceled", order], seqEvt.id());
-
         return;
       } else if (uo.setInvoiceAddress) {
         const update = uo.setInvoiceAddress;
@@ -801,8 +800,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       } else if (uo.commitItems) {
         const currentState = order.status;
         order.status = OrderState.STATE_COMMITED;
-        await this.store.put(id, order);
-        await storeOrdersByStatus(id, this.store, OrderState.STATE_COMMITED);
+        await this.#saveOrderAndStatus(id, order, OrderState.STATE_COMMITED);
         //remove the orderId from state of orders before this event.
         let orders = (await this.store.get(currentState)) as OrdersByStatus;
         orders = orders.filter((oId) => oId !== id);
@@ -878,8 +876,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
           );
           order.txHash = bytesToHex(uo.addPaymentTx.txHash.raw);
         }
-        await this.store.put(id, order);
-        await storeOrdersByStatus(id, this.store, OrderState.STATE_PAYMENT_TX);
+        await this.#saveOrderAndStatus(id, order, OrderState.STATE_PAYMENT_TX);
         //remove the orderId from state of orders before this event.
         let orders = (await this.store.get(currentState)) as OrdersByStatus;
         orders = orders.filter((oId) => oId !== id);

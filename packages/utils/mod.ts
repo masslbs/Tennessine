@@ -114,10 +114,6 @@ export function hexToBase64(hex: string) {
   return Buffer.from(u8).toString("base64");
 }
 
-export function bufferToJSON(metadata: Uint8Array) {
-  return JSON.parse(new TextDecoder().decode(metadata));
-}
-
 //This is used to get the string value from an array buffer
 export function decodeBufferToString(buffer: Uint8Array) {
   const textDecoder = new TextDecoder();
@@ -155,12 +151,7 @@ export function addressesToUint256(addressObject: AdressObj[]) {
   if (!Array.isArray(addressObject)) {
     throw new Error("addressesToUint256 expects an array of AdressObj");
   }
-  return addressObject.map((c) => {
-    return {
-      ...c,
-      address: { raw: hexToBytes(c.address) },
-    };
-  });
+  return addressObject.map(addressToUint256);
 }
 
 export const zeroAddress: `0x${string}` =
