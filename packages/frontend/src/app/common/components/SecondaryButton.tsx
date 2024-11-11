@@ -15,7 +15,9 @@ const SecondaryButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ ...props }, ref) => {
     return (
       <button
-        className={`flex justify-center px-5 py-3 rounded-md text-lg bg-background-gray disabled:bg-gray-200 disabled:text-gray-500 ${props.custom ? props.custom : ""}`}
+        className={`flex justify-center px-5 py-3 rounded-md text-lg bg-background-gray disabled:bg-gray-200 disabled:text-gray-500 ${
+          props.custom ? props.custom : ""
+        }`}
         ref={ref}
         {...props}
       />

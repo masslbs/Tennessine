@@ -1,5 +1,5 @@
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
-import { mainnet, optimism, sepolia, hardhat } from "wagmi/chains";
+import { hardhat, mainnet, optimism, sepolia } from "wagmi/chains";
 import { http } from "wagmi";
 
 export const config = getDefaultConfig({

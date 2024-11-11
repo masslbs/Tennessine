@@ -23,7 +23,8 @@ const HalfModal: React.FC<HalfModalProps> = ({ isOpen, onClose, children }) => {
         className="fixed inset-0 bg-black opacity-50"
         onClick={onClose}
         role="presentation"
-      ></div>
+      >
+      </div>
       <div className="bg-white p-6 rounded-3xl w-full min-w-full relative">
         <div>{children}</div>
       </div>

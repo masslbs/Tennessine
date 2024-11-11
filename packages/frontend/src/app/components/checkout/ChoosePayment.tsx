@@ -93,8 +93,8 @@ export default function ChoosePayment({
 
   async function getDetails(oId: OrderId) {
     try {
-      const committedOrder =
-        await clientWithStateManager.stateManager.orders.get(oId!);
+      const committedOrder = await clientWithStateManager.stateManager.orders
+        .get(oId!);
       if (!committedOrder?.choosePayment) {
         throw new Error("No chosen payment found");
       }
@@ -143,18 +143,19 @@ export default function ChoosePayment({
       if (!purchaseAdd) throw new Error("No purchase address found");
       const amount = BigInt(total);
       debug(`amount: ${amount}`);
-      const payLink =
-        currency.address === zeroAddress
-          ? `ethereum:${purchaseAdd}?value=${amount}`
-          : `ethereum:${currency.address}/transfer?address=${purchaseAdd}&uint256=${amount}`;
+      const payLink = currency.address === zeroAddress
+        ? `ethereum:${purchaseAdd}?value=${amount}`
+        : `ethereum:${currency.address}/transfer?address=${purchaseAdd}&uint256=${amount}`;
       setPurchaseAddr(purchaseAdd as `0x${string}`);
       debug(`purchase address: ${purchaseAdd}`);
       setSrc(payLink);
       setCryptoTotal(amount);
-      const displayedAmount = `${formatUnitsFromString(
-        total,
-        decimal,
-      )} ${symbol}`;
+      const displayedAmount = `${
+        formatUnitsFromString(
+          total,
+          decimal,
+        )
+      } ${symbol}`;
       if (symbol === "ETH") {
         setIcon("/icons/eth-coin.svg");
       } else {

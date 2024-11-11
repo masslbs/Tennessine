@@ -3,13 +3,13 @@
 // SPDX-License-Identifier: MIT
 
 import {
-  bytesToHex,
-  hexToBytes,
-  Address,
-  type WalletClient,
-  type Transport,
   type Account,
+  Address,
+  bytesToHex,
   type Chain,
+  hexToBytes,
+  type Transport,
+  type WalletClient,
 } from "viem";
 
 import { randomBytes } from "@massmarket/utils";

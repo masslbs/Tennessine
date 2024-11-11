@@ -17,7 +17,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         className={`flex justify-center text-white px-5 py-3 rounded-md text-lg	
-          bg-primary-dark-green disabled:bg-gray-200 disabled:text-gray-500 ${props.custom ? props.custom : ""}`}
+          bg-primary-dark-green disabled:bg-gray-200 disabled:text-gray-500 ${
+          props.custom ? props.custom : ""
+        }`}
         ref={ref}
         {...props}
       />

@@ -1,11 +1,11 @@
 import React from "react";
-import { describe, test, expect, beforeAll } from "vitest";
-import { waitFor, screen, act } from "@testing-library/react";
+import { beforeAll, describe, expect, test } from "vitest";
+import { act, screen, waitFor } from "@testing-library/react";
 
 import { MockClientStateManager } from "@massmarket/stateManager/tests/mockClient";
 import { Order } from "@/types";
 import Cart from "@/app/cart/Cart";
-import { MerchantsRender, getMockClient } from "./test-utils";
+import { getMockClient, MerchantsRender } from "./test-utils";
 
 describe("Cart component", async () => {
   let client: MockClientStateManager;

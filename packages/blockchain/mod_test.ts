@@ -1,10 +1,10 @@
 import { expect } from "jsr:@std/expect";
 import { describe, it } from "jsr:@std/testing/bdd";
 import {
-  createWalletClient,
-  createPublicClient,
-  http,
   type Address,
+  createPublicClient,
+  createWalletClient,
+  http,
 } from "viem";
 
 import { privateKeyToAccount } from "viem/accounts";

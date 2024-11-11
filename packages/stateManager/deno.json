@@ -2,11 +2,11 @@
   "name": "@massmarket/stateManager",
   "version": "0.0.1",
   "exports": {
-      ".": "./mod.ts",
-      "./mockClient": "./mockClient.ts",
-      "./types": "./types.ts" 
+    ".": "./mod.ts",
+    "./mockClient": "./mockClient.ts",
+    "./types": "./types.ts"
   },
   "imports": {
-    "events": "node:events",
+    "events": "node:events"
   }
 }

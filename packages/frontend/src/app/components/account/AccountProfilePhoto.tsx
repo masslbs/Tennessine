@@ -34,14 +34,19 @@ const AccountProfilePhoto = ({
 
   return (
     <section className="pt-under-nav h-screen">
-      {showSuccessMsg ? (
-        <SuccessMessage show={!!showSuccessMsg} onClose={closeSuccessMessage} />
-      ) : (
-        <ModalHeader
-          headerText="Edit Profile Photo"
-          goBack={closePhotoUpload}
-        />
-      )}
+      {showSuccessMsg
+        ? (
+          <SuccessMessage
+            show={!!showSuccessMsg}
+            onClose={closeSuccessMessage}
+          />
+        )
+        : (
+          <ModalHeader
+            headerText="Edit Profile Photo"
+            goBack={closePhotoUpload}
+          />
+        )}
       <section className="mx-4 h-5/6 flex flex-col">
         <section className="flex flex-col justify-center items-center mt-20">
           <PhotoUpload img={imgSrc} setImgSrc={setImgSrc} />

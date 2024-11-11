@@ -41,10 +41,12 @@ function MerchantViewProducts({ products }: { products: Listing[] | null }) {
         <Link
           key={item.id}
           data-testid="product-container"
-          href={`/products/productDetail?${createQueryString(
-            "itemId",
-            item.id,
-          )}`}
+          href={`/products/productDetail?${
+            createQueryString(
+              "itemId",
+              item.id,
+            )
+          }`}
           className={`${!visible ? "opacity-50" : ""} flex w-full h-auto mb-4`}
         >
           <div className="flex justify-center" data-testid="product-img">
@@ -96,10 +98,12 @@ function MerchantViewProducts({ products }: { products: Listing[] | null }) {
       </div>
       <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
         <div className="flex gap-2 text-sm">
-          {/* <Search
+          {
+            /* <Search
             setSearchPhrase={setSearchPhrase}
             searchPhrase={searchPhrase}
-          /> */}
+          /> */
+          }
           <button className="ml-auto flex items-center gap-2">
             <p>Filter</p>
             <img
