@@ -124,10 +124,6 @@ export function decodeBufferToString(buffer: Uint8Array) {
   return textDecoder.decode(buffer);
 }
 
-export function stringifyToBuffer(data: any) {
-  return new TextEncoder().encode(JSON.stringify(data));
-}
-
 export function priceToUint256(priceString: string, decimals = 18) {
   // Parse the price string to a bigint
   const priceInSmallestUnit = parseUnits(priceString, decimals);

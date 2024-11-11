@@ -178,7 +178,7 @@ function StoreProfile() {
     }
   }
 
-  async function handleAcceptedCurrencies(e: ChangeEvent<HTMLInputElement>) {
+  function handleAcceptedCurrencies(e: ChangeEvent<HTMLInputElement>) {
     const [addr, chainId] = e.target.value.split("/");
     const address = addr as Address;
     if (e.target.checked) {

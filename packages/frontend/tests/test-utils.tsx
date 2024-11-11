@@ -2,11 +2,7 @@ import "./global-jsdom.ts";
 import React, { ReactElement } from "react";
 import { WagmiProvider } from "wagmi";
 import { config } from "../src/wagmi.ts";
-import {
-  anvilPrivateKey,
-  random32BytesHex,
-  randomAddress,
-} from "@massmarket/utils";
+import { anvilPrivateKey, random32BytesHex } from "@massmarket/utils";
 import { discoverRelay } from "@massmarket/client";
 import { createPublicClient, createWalletClient, http } from "viem";
 import { hardhat } from "viem/chains";
@@ -22,7 +18,7 @@ import { UserContext } from "../src/context/UserContext.tsx";
 import { AuthContext } from "../src/context/AuthContext.tsx";
 import { ClientWithStateManager } from "@/app/ClientWithStateManager";
 
-window.matchMedia = window.matchMedia || function () {
+globalThis.matchMedia = globalThis.matchMedia || function () {
   return {
     matches: false,
     addListener: function () {},
@@ -108,15 +104,15 @@ const MerchantsWrapper = ({
                 shopId: randomShopId,
                 shopPublicClient,
                 setShopId: () => {},
-                checkPermissions: async () => {
+                checkPermissions: () => {
                   return true;
                 },
               }}
             >
               <StoreContext.Provider
                 value={{
-                  getBaseTokenInfo: async () => {
-                    return ["ETH", 18];
+                  getBaseTokenInfo: () => {
+                    return Promise.resolve(["ETH", 18]);
                   },
                   shopDetails: {
                     name: "test store",

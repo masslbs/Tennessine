@@ -7,7 +7,7 @@ import { Order } from "@/types";
 import Cart from "@/app/cart/Cart";
 import { getMockClient, MerchantsRender } from "./test-utils";
 
-describe("Cart component", async () => {
+describe("Cart component", () => {
   let client: MockClientStateManager;
   let order: Order;
   beforeAll(async () => {

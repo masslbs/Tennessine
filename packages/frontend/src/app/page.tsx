@@ -8,36 +8,18 @@ import React, { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUserContext } from "@/context/UserContext";
 import { useClient } from "@/context/AuthContext";
+import Matomo from "./matomo.ts";
 import { Status } from "../types";
 
 // add _mtm to global for matomo
-declare global {
-  interface Window {
-    _mtm: any;
-  }
-}
 
 function Homepage() {
+  Matomo();
   const { setInviteSecret } = useUserContext();
   const { clientConnected } = useClient();
   const searchParams = useSearchParams();
   const inviteSecret = searchParams!.get("inviteSecret") as `0x${string}`;
   const router = useRouter();
-
-  // setup matomo
-  const matomoUrl = process.env.NEXT_PUBLIC_MATOMO_URL || null;
-  useEffect(() => {
-    if (matomoUrl) {
-      const _mtm = (window._mtm = window._mtm || []);
-      _mtm.push({ "mtm.startTime": new Date().getTime(), event: "mtm.Start" });
-      var d = document,
-        g = d.createElement("script"),
-        s = d.getElementsByTagName("script")[0];
-      g.async = true;
-      g.src = matomoUrl;
-      s.parentNode.insertBefore(g, s);
-    }
-  }, [matomoUrl]);
 
   useEffect(() => {
     if (clientConnected === Status.Complete) {

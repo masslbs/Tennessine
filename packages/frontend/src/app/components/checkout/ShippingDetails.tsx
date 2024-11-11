@@ -12,7 +12,6 @@ import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
 import Button from "@/app/common/components/Button";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
-import BackButton from "@/app/common/components/BackButton";
 import TimerToast from "@/app/components/checkout/TimerToast";
 import ValidationWarning from "@/app/common/components/ValidationWarning";
 

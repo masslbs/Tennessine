@@ -1,6 +1,6 @@
 import { EventEmitter } from "events";
 import { Address } from "@ethereumjs/util";
-import { bytesToHex, fromBytes, hexToBytes, PublicClient } from "viem";
+import { bytesToHex, fromBytes, hexToBytes, type PublicClient } from "viem";
 
 import {
   type ChoosePayment,
@@ -11,11 +11,11 @@ import {
   type Listing,
   ListingViewState,
   type Order,
-  OrderEventTypes,
+  type OrderEventTypes,
   type OrderPriceModifier,
   type OrdersByStatus,
   OrderState,
-  SeqNo,
+  type SeqNo,
   type ShippingDetails,
   type ShopCurrencies,
   type ShopManifest,
@@ -28,7 +28,7 @@ import schema from "@massmarket/schema";
 import {
   type EventId,
   eventIdEqual,
-  SequencedEventWithRecoveredSigner,
+  type SequencedEventWithRecoveredSigner,
 } from "@massmarket/client";
 import {
   addressesToUint256,
@@ -894,13 +894,13 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
     return this.store.get(key) as Promise<Order>;
   }
 
-  async getStatus(key: OrderState): Promise<OrdersByStatus> {
+  getStatus(key: OrderState): Promise<OrdersByStatus> {
     try {
       return this.store.get(key) as Promise<OrdersByStatus>;
     } catch (error) {
       const e = error as IError;
       if (e.notFound) {
-        return [];
+        return Promise.resolve([]);
       } else {
         throw new Error(e.code);
       }
@@ -988,7 +988,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
     );
   }
 
-  async cancel(orderId: `0x${string}`, timestamp: number = 0) {
+  async cancel(orderId: `0x${string}`) {
     const eventId = await this.client.updateOrder({
       id: { raw: hexToBytes(orderId) },
       cancel: {},
@@ -1029,7 +1029,6 @@ class TagManager extends PublicObjectManager<Tag> {
   constructor(store: Store<Tag>, client: IRelayClient) {
     super(store, client);
   }
-
   async _processEvent(
     seqEvt: SequencedEventWithRecoveredSigner,
   ): Promise<void> {
@@ -1070,6 +1069,12 @@ class TagManager extends PublicObjectManager<Tag> {
 
   get(key: `0x${string}`) {
     return this.store.get(key);
+  }
+
+  override get iterator() {
+    return this.store.iterator.bind(this.store) as () => AsyncIterable<
+      [string, Tag]
+    >;
   }
 }
 
@@ -1150,13 +1155,14 @@ class KeycardNonceManager extends PublicObjectManager<number> {
     await this.store.put(seqEvt.signer, Number(seqEvt.event.nonce));
   }
 
-  async get(key: `0x${string}`) {
+  get(key: `0x${string}`) {
     try {
       return this.store.get(key);
     } catch (error) {
       const e = error as IError;
       if (e.notFound) {
-        return 1;
+        // ?
+        return Promise.resolve(1);
       }
       throw new Error(e.code);
     }

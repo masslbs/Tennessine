@@ -17,7 +17,6 @@ import { hardhat } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 import { beforeAll, beforeEach, describe, test } from "jsr:@std/testing/bdd";
 import { expect } from "jsr:@std/expect";
-import schema from "@massmarket/schema";
 
 import {
   anvilAddress,
@@ -35,7 +34,7 @@ import { discoverRelay, RelayClient } from "./mod.ts";
 
 const windowLocation = typeof window == "undefined"
   ? undefined
-  : new URL(window.location.href);
+  : new URL(globalThis.location.href);
 // this key is from one of anvil's default keypairs
 const account = privateKeyToAccount(anvilPrivateKey);
 
@@ -67,7 +66,7 @@ describe({
   sanitizeResources: false,
   sanitizeOps: false,
   fn() {
-    beforeEach(async () => {
+    beforeEach(() => {
       blockchain = new BlockchainClient(shopId);
     });
     describe("RelayClient", () => {
@@ -253,7 +252,7 @@ describe({
       });
 
       describe("editing listing + tag", () => {
-        let id = { raw: objectId() };
+        const id = { raw: objectId() };
         beforeAll(async () => {
           const metadata = {
             title: "test",
@@ -282,7 +281,7 @@ describe({
           });
           expect(requestId).not.toBeNull();
         });
-        let tagId = { raw: objectId() };
+        const tagId = { raw: objectId() };
 
         test("create tag", async () => {
           const requestId = await relayClient.tag({
@@ -300,7 +299,7 @@ describe({
         });
       });
       describe("merchant checkout", () => {
-        let id = { raw: objectId() };
+        const id = { raw: objectId() };
         beforeAll(async () => {
           const metadata = {
             title: "test",
@@ -470,7 +469,7 @@ describe({
         test("client 2 receives events created by client 1", async () => {
           const getStream = async () => {
             const stream = relayClient2.createEventStream();
-            for await (const evt of stream) {
+            for await (const _ of stream) {
               return 1;
             }
           };
@@ -493,7 +492,7 @@ describe({
     describe("If there is a network error, state manager should not change the state.", () => {
       const client = createRelayClient();
       const shopId = random32BytesHex();
-      let blockchain = new BlockchainClient(shopId);
+      const blockchain = new BlockchainClient(shopId);
 
       test("Bad network calls should not change state data", async () => {
         const transactionHash = await blockchain.createShop(wallet);

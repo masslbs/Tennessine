@@ -33,8 +33,7 @@ describe.skip("Checkout", async () => {
 
   test("Update shipping details and commit items.", async () => {
     expect(receipt.status).equals("success");
-    const here = client.createNewRelayClient();
-    const res = await client.relayClient!.enrollKeycard(
+    await client.relayClient!.enrollKeycard(
       wallet,
       false,
       randomShopId,

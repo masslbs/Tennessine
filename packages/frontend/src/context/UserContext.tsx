@@ -225,7 +225,7 @@ export const UserContextProvider = (
       guestWallet,
       true,
       shopId!,
-      new URL(window.location.href),
+      new URL(globalThis.location.href),
     );
     if (!res.ok) {
       throw new Error(`Failed to enroll keycard: ${res.error}`);

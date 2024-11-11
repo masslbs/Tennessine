@@ -20,7 +20,6 @@ import ValidationWarning from "@/app/common/components/ValidationWarning";
 import BackButton from "@/app/common/components/BackButton";
 
 const namespace = "frontend:edit-product";
-const debug = logger(namespace);
 const errlog = logger(namespace, "error");
 
 const AddProductView = () => {

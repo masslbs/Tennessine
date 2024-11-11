@@ -17,7 +17,7 @@ import {
   zeroAddress,
 } from "@massmarket/utils";
 
-import { CurrencyChainOption, Payee, ShopCurrencies, Status } from "@/types";
+import { CurrencyChainOption, ShopCurrencies, Status } from "@/types";
 import { getTokenAddress, isValidHex } from "@/app/utils";
 import { useClient } from "@/context/AuthContext";
 import { useStoreContext } from "@/context/StoreContext";
@@ -100,7 +100,7 @@ const StoreCreation = () => {
     };
   }, []);
 
-  async function handleAcceptedCurrencies(e: ChangeEvent<HTMLInputElement>) {
+  function handleAcceptedCurrencies(e: ChangeEvent<HTMLInputElement>) {
     const [sym, chainId] = e.target.value.split("/");
     const address = getTokenAddress(sym, chainId);
 
@@ -118,7 +118,7 @@ const StoreCreation = () => {
     }
   }
 
-  async function handlePricingCurrency(option: CurrencyChainOption) {
+  function handlePricingCurrency(option: CurrencyChainOption) {
     const v = option.value as string;
     const [sym, chainId] = v.split("/");
     const address = getTokenAddress(sym, chainId);
@@ -225,7 +225,7 @@ const StoreCreation = () => {
         clientWallet!,
         false,
         shopId!,
-        process.env.TEST ? undefined : new URL(window.location.href),
+        process.env.TEST ? undefined : new URL(globalThis.location.href),
       );
       if (!res.ok) {
         throw Error("Failed to enroll keycard");

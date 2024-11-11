@@ -1,4 +1,4 @@
-import { type RelayClient } from "@massmarket/client";
+import type { RelayClient } from "@massmarket/client";
 
 /**
  * Define the Store Objects that are reified from the event stream
@@ -71,7 +71,6 @@ export interface IError {
   code: string;
 }
 export type OrdersByStatus = `0x${string}`[];
-
 export type KeyCard = `0x${string}`[];
 export interface ShippingDetails {
   name: string;

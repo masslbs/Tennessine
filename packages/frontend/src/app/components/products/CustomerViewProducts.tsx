@@ -7,12 +7,10 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 
-import { formatUnitsFromString, logger } from "@massmarket/utils";
+import { formatUnitsFromString } from "@massmarket/utils";
 import { Listing, ListingViewState } from "@/types";
 import { createQueryString } from "@/app/utils";
 import { useStoreContext } from "@/context/StoreContext";
-
-const debug = logger("frontend:CustomerViewProducts");
 
 function CustomerViewProducts({ products }: { products: Listing[] | null }) {
   const { getBaseTokenInfo } = useStoreContext();

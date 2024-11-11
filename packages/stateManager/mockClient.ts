@@ -9,7 +9,7 @@ import { MemoryLevel } from "memory-level";
 
 import type { EventId } from "@massmarket/client";
 import { ReadableEventStream } from "@massmarket/client/stream";
-import schema, { type TestVectors, testVectors } from "@massmarket/schema";
+import schema, { testVectors } from "@massmarket/schema";
 import { StateManager } from "./mod.ts";
 import type {
   IRelayClient,
@@ -88,7 +88,7 @@ export class MockClientStateManager {
 }
 
 export class MockClient implements IRelayClient {
-  vectors: TestVectors;
+  vectors;
   private eventStream: ReadableEventStream;
   keyCardWallet: PrivateKeyAccount;
   private requestCounter;
@@ -102,7 +102,7 @@ export class MockClient implements IRelayClient {
     this.requestCounter = 1;
     this.lastSeqNo = 0;
   }
-  encodeAndSendNoWait(envelope: schema.IEnvelope = {}): schema.RequestId {
+  encodeAndSendNoWait(_envelope: schema.IEnvelope = {}): schema.RequestId {
     const requestId = { raw: this.requestCounter };
     this.requestCounter++;
     return schema.RequestId.create(requestId);
@@ -229,14 +229,14 @@ export class MockClient implements IRelayClient {
     const file = blob.get(`file`) as { name: string };
     return { url: file.name };
   }
-  async sendGuestSubscriptionRequest(shopId: `0x${string}`, seqNo = 0) {}
+  async sendGuestSubscriptionRequest(_shopId: `0x${string}`, _seqNo = 0) {}
   async sendGuestCheckoutSubscriptionRequest(
-    shopId: `0x${string}`,
-    seqNo = 0,
+    _shopId: `0x${string}`,
+    _seqNo = 0,
   ) {}
-  async sendMerchantSubscriptionRequest(shopId: `0x${string}`, seqNo = 0) {}
+  async sendMerchantSubscriptionRequest(_shopId: `0x${string}`, _seqNo = 0) {}
   //Mimics client-fired event paymentDetails after commit event - for testing paymentDetails gets stored correctly in stateManager.
-  async sendPaymentDetails(orderId: `0x${string}`) {
+  sendPaymentDetails(orderId: `0x${string}`) {
     return this.sendShopEvent({
       updateOrder: {
         id: { raw: hexToBytes(orderId) },

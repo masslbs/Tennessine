@@ -80,7 +80,7 @@ describe({
       relayClient = await createRelayClient();
       const windowLocation = typeof window == "undefined"
         ? undefined
-        : new URL(window.location.href);
+        : new URL(globalThis.location.href);
       const enrolledResponse = await relayClient.enrollKeycard(
         wallet,
         false,
@@ -91,8 +91,8 @@ describe({
     });
 
     // create a random address to pay to
-    let payee: Uint8Array = hexToBytes(randomAddress());
-    let currency: Uint8Array = hexToBytes(abi.addresses.Eddies as Address);
+    const payee: Uint8Array = hexToBytes(randomAddress());
+    const currency: Uint8Array = hexToBytes(abi.addresses.Eddies as Address);
 
     it("write shop manifest", async () => {
       await relayClient.connect();
@@ -131,7 +131,7 @@ describe({
       );
     });
 
-    let itemId = { raw: objectId() };
+    const itemId = { raw: objectId() };
     it("should create a item", async () => {
       const metadata = {
         title: "guestCheckout test item",
@@ -170,7 +170,7 @@ describe({
       // enroll the guest client
       const windowLocation = typeof window == "undefined"
         ? undefined
-        : new URL(window.location.href);
+        : new URL(globalThis.location.href);
       const response = await guestRelayClient.enrollKeycard(
         w,
         true,
@@ -266,24 +266,29 @@ describe({
 
     it("single item checkout with a guest", async () => {
       // give the guest account some money to spend
-      const txHash = await wallet.writeContract({
+      const txHash1 = await wallet.writeContract({
         address: abi.addresses.Eddies as Address,
         abi: abi.Eddies,
         functionName: "mint",
         args: [guestAccount.address, 999999999999],
       });
 
+      const receipt1 = await publicClient.waitForTransactionReceipt({
+        hash: txHash1,
+      });
+      expect(receipt1.status).toEqual("success");
+
       // allow the payment contract to transfer on behalf of the guest user
-      const hash = await guestWallet.writeContract({
+      const txHash2 = await guestWallet.writeContract({
         address: abi.addresses.Eddies as Address,
         abi: abi.Eddies,
         functionName: "approve",
         args: [abi.addresses.Payments, 9999999999],
       });
-      const receipt = await publicClient.waitForTransactionReceipt({
-        hash,
+      const receipt2 = await publicClient.waitForTransactionReceipt({
+        hash: txHash2,
       });
-      expect(receipt.status).toEqual("success");
+      expect(receipt2.status).toEqual("success");
 
       const stream = guestRelayClient.createEventStream();
       for await (const { event } of stream) {

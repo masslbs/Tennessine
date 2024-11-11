@@ -4,7 +4,7 @@
 
 import {
   type Account,
-  Address,
+  type Address,
   bytesToHex,
   type Chain,
   hexToBytes,

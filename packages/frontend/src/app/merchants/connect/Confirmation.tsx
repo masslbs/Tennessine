@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import React from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 import { useStoreContext } from "@/context/StoreContext";
@@ -11,7 +10,6 @@ import Button from "@/app/common/components/Button";
 
 const Confirmation = () => {
   const { shopDetails } = useStoreContext();
-  const router = useRouter();
 
   return (
     <main className="pt-under-nav h-screen p-4 mt-5">

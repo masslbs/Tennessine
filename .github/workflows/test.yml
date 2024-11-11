@@ -68,6 +68,14 @@ jobs:
         run: nix develop -c bash -c "deno install"
         working-directory: Tennessine/
 
+      - name: Run Lint
+        run: nix develop -c bash -c "deno lint"
+        working-directory: Tennessine/
+
+      - name: Run fomating check
+        run: nix develop -c bash -c "deno fmt --check"
+        working-directory: Tennessine/
+
       # TODO: add frontend to this
       - name: Type Check packages
         run: nix develop -c bash -c "deno check packages/{blockchain,client,contracts,schema,stateManager,utils}"
