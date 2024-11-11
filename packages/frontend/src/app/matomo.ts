@@ -1,6 +1,5 @@
 // deno-lint-ignore-file
 import { useEffect } from "react";
-import process from "node:process";
 // setup matomo
 const matomoUrl = process.env.NEXT_PUBLIC_MATOMO_URL || null;
 useEffect(() => {

@@ -28,6 +28,7 @@ export class ReadableEventStream {
   private queue: SequencedEventsWithRequestId[] = [];
 
   constructor(public client: Pick<RelayClient, "encodeAndSendNoWait">) {
+    // deno-lint-ignore no-this-alias
     const parent = this;
 
     this.nextPushReq = new Promise((resolve) => {
