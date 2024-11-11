@@ -13,7 +13,7 @@ import {
   PublicClient,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { hardhat, sepolia } from "wagmi/chains";
+import { hardhat } from "wagmi/chains";
 
 import { assert, random32BytesHex, zeroAddress } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
