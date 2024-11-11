@@ -20,11 +20,13 @@ const SuccessMessage: React.FC<SuccessMessageProps> = ({ show, onClose }) => {
     }
   }, [show, onClose]);
 
-  return show ? (
-    <div className="pl-4 py-2 bg-green-200">
-      <p>Your changes have been saved.</p>
-    </div>
-  ) : null;
+  return show
+    ? (
+      <div className="pl-4 py-2 bg-green-200">
+        <p>Your changes have been saved.</p>
+      </div>
+    )
+    : null;
 };
 
 export default SuccessMessage;

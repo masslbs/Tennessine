@@ -5,8 +5,8 @@
 import { Dispatch, SetStateAction } from "react";
 import { type PublicClient } from "viem";
 
-import { WalletClientWithAccount, RelayEndpoint } from "@massmarket/client";
-import { ShopId, ShopDetails, OrderId } from "@/types";
+import { RelayEndpoint, WalletClientWithAccount } from "@massmarket/client";
+import { OrderId, ShopDetails, ShopId } from "@/types";
 import { ClientWithStateManager } from "@/app/ClientWithStateManager";
 
 //Types for Contexts only

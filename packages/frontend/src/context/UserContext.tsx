@@ -6,8 +6,8 @@ import React, {
   createContext,
   useContext,
   useEffect,
-  useState,
   useRef,
+  useState,
 } from "react";
 import { useEnsAvatar, useWalletClient } from "wagmi";
 import { hardhat, mainnet, sepolia } from "viem/chains";
@@ -18,12 +18,12 @@ import { logger } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 
 import {
-  createPublicClientForChain,
   createGuestWalletClientForChain,
+  createPublicClientForChain,
 } from "@/app/utils";
 import { useClient } from "@/context/AuthContext";
 import { type ClientContext } from "@/context/types";
-import { Status, ShopId } from "@/types";
+import { ShopId, Status } from "@/types";
 import { ClientWithStateManager } from "@/app/ClientWithStateManager";
 
 export const UserContext = createContext<ClientContext>({
@@ -68,8 +68,9 @@ export const UserContextProvider = (
   const [shopId, setShopId] = useState<ShopId | null>(null);
   const [merchantKC, setmerchantKC] = useState<`0x${string}` | null>(null);
   const [guestCheckoutKC, setGuestKC] = useState<`0x${string}` | null>(null);
-  const [clientWithStateManager, setClientStateManager] =
-    useState<ClientWithStateManager | null>(null);
+  const [clientWithStateManager, setClientStateManager] = useState<
+    ClientWithStateManager | null
+  >(null);
   const [relayEndpoint, setRelayEndpoint] = useState<RelayEndpoint | null>(
     null,
   );
@@ -93,8 +94,9 @@ export const UserContextProvider = (
     } else {
       discoverRelay("ws://localhost:4444/v3").then((discovered) => {
         if (!discovered.url) throw new Error("Relay endpoint URL not set");
-        if (!discovered.tokenId)
+        if (!discovered.tokenId) {
           throw new Error("Relay endpoint tokenId not set");
+        }
         setRelayEndpoint(discovered);
         debug(`using testing relay endpoint ${discovered.url}`);
       });
@@ -107,8 +109,7 @@ export const UserContextProvider = (
       localStorage.removeItem("guestCheckoutKC");
     }
     //If shopId is provided as a query, set it as shopId, otherwise check for storeId in localStorage.
-    const _shopId =
-      (searchParams!.get("shopId") as `0x${string}`) ||
+    const _shopId = (searchParams!.get("shopId") as `0x${string}`) ||
       localStorage.getItem("shopId");
     if (_shopId && !isMerchantPath) {
       localStorage.setItem("shopId", _shopId);
@@ -175,8 +176,9 @@ export const UserContextProvider = (
       pathname === "/merchants/connect/" ||
       clientConnected !== Status.Pending ||
       authenticated.current
-    )
+    ) {
       return;
+    }
     const clientStateManager = new ClientWithStateManager(
       shopPublicClient,
       shopId,
@@ -231,8 +233,8 @@ export const UserContextProvider = (
     debug("Keycard enrolled");
     //Cancel and renew subscription with orders
     await clientWithStateManager!.relayClient!.cancelSubscriptionRequest();
-    const { response } =
-      await clientWithStateManager!.relayClient!.authenticate();
+    const { response } = await clientWithStateManager!.relayClient!
+      .authenticate();
     if (response.error) {
       throw new Error(`Error while authenticating: ${response.error}`);
     }

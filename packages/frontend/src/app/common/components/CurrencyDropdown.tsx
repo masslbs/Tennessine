@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Chevron from "./Chevron";
 import { CurrencyChainOption } from "@/types";
 
@@ -12,8 +12,9 @@ const Dropdown = ({
   selected?: null | CurrencyChainOption;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedOption, setSelectedOption] =
-    useState<CurrencyChainOption | null>(selected);
+  const [selectedOption, setSelectedOption] = useState<
+    CurrencyChainOption | null
+  >(selected);
 
   const toggleDropdown = () => setIsOpen(!isOpen);
 

@@ -4,7 +4,7 @@
 
 "use client";
 
-import React, { useState, type ReactNode } from "react";
+import React, { type ReactNode, useState } from "react";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";

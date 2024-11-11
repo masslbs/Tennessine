@@ -2,7 +2,7 @@ import React from "react";
 import { describe, expect, test } from "vitest";
 import { screen, waitFor, within } from "@testing-library/react";
 import Products from "../src/app/products/page";
-import { MerchantsRender, getMockClient } from "./test-utils";
+import { getMockClient, MerchantsRender } from "./test-utils";
 
 describe("Products Component", async () => {
   const client = await getMockClient();

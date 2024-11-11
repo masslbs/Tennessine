@@ -2869,10 +2869,14 @@ export namespace market {
       public subscriptionRequest?: market.mass.ISubscriptionRequest | null;
 
       /** Envelope subscriptionCancelRequest. */
-      public subscriptionCancelRequest?: market.mass.ISubscriptionCancelRequest | null;
+      public subscriptionCancelRequest?:
+        | market.mass.ISubscriptionCancelRequest
+        | null;
 
       /** Envelope subscriptionPushRequest. */
-      public subscriptionPushRequest?: market.mass.ISubscriptionPushRequest | null;
+      public subscriptionPushRequest?:
+        | market.mass.ISubscriptionPushRequest
+        | null;
 
       /** Envelope syncStatusRequest. */
       public syncStatusRequest?: market.mass.ISyncStatusRequest | null;
@@ -2881,13 +2885,17 @@ export namespace market {
       public pingRequest?: market.mass.IPingRequest | null;
 
       /** Envelope getBlobUploadUrlRequest. */
-      public getBlobUploadUrlRequest?: market.mass.IGetBlobUploadURLRequest | null;
+      public getBlobUploadUrlRequest?:
+        | market.mass.IGetBlobUploadURLRequest
+        | null;
 
       /** Envelope authRequest. */
       public authRequest?: market.mass.IAuthenticateRequest | null;
 
       /** Envelope challengeSolutionRequest. */
-      public challengeSolutionRequest?: market.mass.IChallengeSolvedRequest | null;
+      public challengeSolutionRequest?:
+        | market.mass.IChallengeSolvedRequest
+        | null;
 
       /** Envelope message. */
       public message?:
@@ -6071,7 +6079,9 @@ export namespace market {
       public setShippingAddress?: market.mass.IAddressDetails | null;
 
       /** UpdateOrder choosePayment. */
-      public choosePayment?: market.mass.UpdateOrder.IChoosePaymentMethod | null;
+      public choosePayment?:
+        | market.mass.UpdateOrder.IChoosePaymentMethod
+        | null;
 
       /** UpdateOrder setPaymentDetails. */
       public setPaymentDetails?: market.mass.IPaymentDetails | null;

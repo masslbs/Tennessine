@@ -1,8 +1,8 @@
 import React from "react";
-import { describe, expect, test, vi, beforeEach, afterEach } from "vitest";
-import { screen, waitFor, act, within } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { act, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { createPublicClient, http, Address } from "viem";
+import { Address, createPublicClient, http } from "viem";
 import { hardhat } from "viem/chains";
 
 import { randomAddress, zeroAddress } from "@massmarket/utils";
@@ -10,7 +10,7 @@ import * as abi from "@massmarket/contracts";
 import { ShopId } from "@/types";
 import CreateStore from "@/app/create-store/page";
 import { ClientWithStateManager } from "@/app/ClientWithStateManager";
-import { MerchantsRender, getClient } from "./test-utils";
+import { getClient, MerchantsRender } from "./test-utils";
 
 beforeEach(async () => {
   vi.mock(import("wagmi"), async (importOriginal) => {

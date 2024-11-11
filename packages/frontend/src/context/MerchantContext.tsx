@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import React, { SetStateAction, Dispatch } from "react";
+import React, { Dispatch, SetStateAction } from "react";
 import { createContext, useContext, useState } from "react";
 import { ShopId } from "@/types";
 

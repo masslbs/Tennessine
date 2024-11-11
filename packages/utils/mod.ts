@@ -5,17 +5,20 @@
 import { Buffer } from "buffer";
 import {
   bytesToHex,
-  toBytes,
-  parseUnits,
-  numberToBytes,
-  hexToBytes,
   formatUnits,
+  hexToBytes,
+  numberToBytes,
+  parseUnits,
+  toBytes,
 } from "viem";
 import * as Sentry from "@sentry/nextjs";
 
 // TODO: type case first argument to captureException
 // TODO: add extras arguments (https://docs.sentry.io/platforms/javascript/guides/nextjs/enriching-events/)
-export function logger(namespace: string, level: "debug" | "info" | "warn" | "error" = "debug") {
+export function logger(
+  namespace: string,
+  level: "debug" | "info" | "warn" | "error" = "debug",
+) {
   return (message: string, error?: Error) => {
     // Sentry handling
     // ===============
@@ -63,7 +66,7 @@ export function logger(namespace: string, level: "debug" | "info" | "warn" | "er
       default:
         console.log(stmt);
     }
-  }
+  };
 }
 
 // Type predicate to narrow undefined | null | T to T
@@ -74,20 +77,19 @@ function isDefined<T>(value: T | undefined | null): value is T {
 // Custom assert function for protobuf optional fields
 export function assert(value: unknown, message: string): asserts value {
   if (!isDefined(value)) {
-      throw new Error(message);
+    throw new Error(message);
   }
 }
 
 // For nested optional fields, you can create a more specific version
 export function assertField<T>(
-  value: { raw?: T | null } | undefined | null, 
-  fieldName: string
+  value: { raw?: T | null } | undefined | null,
+  fieldName: string,
 ): asserts value is { raw: T } {
   if (!isDefined(value) || !isDefined(value.raw)) {
-      throw new Error(`${fieldName} is required`);
+    throw new Error(`${fieldName} is required`);
   }
 }
-
 
 export function objectId() {
   return randomBytes(8);
@@ -150,7 +152,7 @@ export function addressToUint256(addressObject: AdressObj) {
   return {
     ...addressObject,
     address: { raw: hexToBytes(addressObject.address) },
-  }
+  };
 }
 
 export function addressesToUint256(addressObject: AdressObj[]) {

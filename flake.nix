@@ -6,7 +6,7 @@
   inputs = {
     nixpkgs.url = "nixpkgs/nixpkgs-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
+    pre-commit-hooks.url = "github:cachix/git-hooks.nix";
     pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
     contracts.url = "github:masslbs/contracts";
     contracts.inputs.nixpkgs.follows = "nixpkgs";
@@ -34,35 +34,39 @@
         config,
         pkgs,
         system,
-        self',
         ...
       }: {
-        pre-commit.settings = {
-          src = ./.;
-          hooks = {
-            alejandra.enable = true;
-            prettier.enable = true;
-            prettier.settings.write = true;
+        pre-commit = {
+          check.enable = true;
+          settings = {
+            src = ./.;
+            hooks = {
+              alejandra.enable = true;
+              denofmt = {
+                verbose = true;
+                enable = true;
+                settings.configPath = "./deno.json";
+              };
+            };
           };
         };
         devShells.default = with pkgs;
           nixpkgs.legacyPackages.${system}.mkShell {
             shellHook = ''
-              # these fail if 'nix develop' isnt run from the root of the project
-              if [ -d ./packages ]; then
-                cp ${schema}/testVectors.json ./packages/schema/testVectors.json
-                cp $MASS_CONTRACTS_PATH/abi/*.json ./packages/contracts/abi/
-                cp $MASS_CONTRACTS_PATH/deploymentAddresses.json ./packages/contracts/
-              fi
+              ${config.pre-commit.settings.installationScript}
+               # these fail if 'nix develop' isnt run from the root of the project
+               if [ -d ./packages ]; then
+                 cp ${schema}/testVectors.json ./packages/schema/testVectors.json
+                 cp $MASS_CONTRACTS_PATH/abi/*.json ./packages/contracts/abi/
+                 cp $MASS_CONTRACTS_PATH/deploymentAddresses.json ./packages/contracts/
+               fi
             '';
 
             buildInputs =
               [
-                # frontend dependencies
+                # lsp for nix
+                nixd
                 deno
-                typescript
-                nodejs_latest
-                nodePackages.typescript-language-server
                 contracts.packages.${system}.default
                 reuse
               ]
