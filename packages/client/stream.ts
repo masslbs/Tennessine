@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2024 Mass Labs
 //
 // SPDX-License-Identifier: MIT
-
+import { ReadableStream } from "web-streams-polyfill";
 import { recoverMessageAddress } from "viem";
 import Long from "long";
 
