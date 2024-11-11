@@ -19,7 +19,6 @@ import { random32BytesHex, zeroAddress } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 
 import { Metadata } from "@/types";
-import process from "node:process";
 
 export const cn = (...inputs: ClassValue[]) => {
   return twMerge(clsx(inputs));

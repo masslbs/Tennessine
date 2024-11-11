@@ -8,12 +8,13 @@ import React, { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUserContext } from "@/context/UserContext";
 import { useClient } from "@/context/AuthContext";
-import "./matomo.ts";
+import Matomo from "./matomo.ts";
 import { Status } from "../types";
 
 // add _mtm to global for matomo
 
 function Homepage() {
+  Matomo();
   const { setInviteSecret } = useUserContext();
   const { clientConnected } = useClient();
   const searchParams = useSearchParams();

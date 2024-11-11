@@ -29,7 +29,6 @@ import ErrorMessage from "@/app/common/components/ErrorMessage";
 import { ConnectWalletButton } from "@/app/common/components/ConnectWalletButton";
 import ValidationWarning from "@/app/common/components/ValidationWarning";
 import Confirmation from "@/app/create-store/Confirmation";
-import process from "node:process";
 
 // When create shop CTA is clicked, these functions are called:
 // 1. mintShop

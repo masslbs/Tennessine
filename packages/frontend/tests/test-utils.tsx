@@ -17,7 +17,6 @@ import { StoreContext } from "@/context/StoreContext";
 import { UserContext } from "../src/context/UserContext.tsx";
 import { AuthContext } from "../src/context/AuthContext.tsx";
 import { ClientWithStateManager } from "@/app/ClientWithStateManager";
-import process from "node:process";
 
 globalThis.matchMedia = globalThis.matchMedia || function () {
   return {

@@ -1,4 +1,9 @@
 {
+  "lint": {
+    "rules": {
+      "exclude": ["no-process-globals"]
+    }
+  },
   "imports": {
     "@/types": "./src/types/index.ts",
     "@/context/types": "./src/context/types.ts",

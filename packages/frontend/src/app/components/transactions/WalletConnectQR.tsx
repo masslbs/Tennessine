@@ -9,7 +9,6 @@ import { hardhat, mainnet, sepolia } from "viem/chains";
 import { SignClient as ISignClient } from "@walletconnect/sign-client/dist/types/client";
 import { SessionTypes } from "@walletconnect/types";
 import Button from "@/app/common/components/Button";
-import process from "node:process";
 
 function WalletConnectQR({
   purchaseAddress,
