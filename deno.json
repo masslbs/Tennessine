@@ -10,17 +10,11 @@
     "./packages/blockchain"
   ],
   "lint": {
-    "exclude": ["packages/frontend/out/", "packages/frontend/.next/"],
     "rules": {
       "exclude": ["no-slow-types"]
     }
   },
   "fmt": {
-    "exclude": [
-      ".direnv",
-      "packages/frontend/out/",
-      "node_modules",
-      ".pre-commit-config.yaml"
-    ]
+    "exclude": [".direnv", "node_modules", ".pre-commit-config.yaml"]
   }
 }

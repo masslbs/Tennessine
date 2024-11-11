@@ -1,5 +1,9 @@
 {
+  "fmt": {
+    "exclude": ["./out", "./.next"]
+  },
   "lint": {
+    "exclude": ["./out", "./.next"],
     "rules": {
       "exclude": ["no-process-globals"]
     }

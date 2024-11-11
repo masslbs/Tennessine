@@ -7,6 +7,9 @@
     "pbts-build": "npm exec --package=protobufjs-cli -c 'pbts -r market.mass -o ./compiled.d.ts ./compiled.js'",
     "build": "deno task pbjs-build && deno task pbts-build"
   },
+  "fmt": {
+    "exclude": ["./compiled.*", "./testVectors.json"]
+  },
   "lint": {
     "exclude": ["./compiled.*"],
     "rules": {
