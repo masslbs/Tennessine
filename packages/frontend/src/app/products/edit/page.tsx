@@ -56,29 +56,32 @@ const AddProductView = () => {
 
   useEffect(() => {
     if (editView && itemId) {
-      getBaseTokenInfo().then((res: [string, number]) => {
-        clientWithStateManager!
-          .stateManager!.listings.get(itemId)
-          .then((item) => {
-            setProductInView(item);
-            setTitle(item.metadata.title);
-            const price = formatUnitsFromString(item.price, res?.[1] || 0);
-            setPrice(price);
-            setImages(
-              item.metadata.images.map((img) => {
-                return { blob: null, url: img };
-              }),
-            );
-            setDescription(item.metadata.description);
-            setUnits(item.quantity);
-            setViewState(item.viewState);
-          })
-          .catch((e: unknown) => {
-            assert(e instanceof Error, "Error is not an instance of Error");
-            setErrorMsg("Error fetching listing");
-            errlog("Error fetching listing", e);
-          });
-      });
+      getBaseTokenInfo()
+        .then((tokenInfo: [string, number]) => {
+          assert(tokenInfo?.[1], "tokenInfo[1] is undefined");
+          const decimals = tokenInfo[1];
+          debug(`pricingCurrency.decimals: ${decimals}`);
+          return clientWithStateManager!.stateManager!.listings.get(itemId)
+            .then((item) => {
+              setProductInView(item);
+              setTitle(item.metadata.title);
+              const price = formatUnitsFromString(item.price, decimals);
+              setPrice(price);
+              setImages(
+                item.metadata.images.map((img) => {
+                  return { blob: null, url: img };
+                }),
+              );
+              setDescription(item.metadata.description);
+              setUnits(item.quantity);
+              setViewState(item.viewState);
+            });
+        })
+        .catch((e: unknown) => {
+          assert(e instanceof Error, "Error is not an instance of Error");
+          setErrorMsg("Error fetching listing");
+          errlog("Error fetching listing", e);
+        });
     }
   }, []);
 

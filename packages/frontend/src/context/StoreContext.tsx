@@ -8,7 +8,7 @@ import { Address } from "viem";
 import { usePathname } from "next/navigation";
 
 import * as abi from "@massmarket/contracts";
-import { logger } from "@massmarket/utils";
+import { assert, logger } from "@massmarket/utils";
 
 import { StoreContent } from "@/context/types";
 import { useUserContext } from "@/context/UserContext";
@@ -142,8 +142,9 @@ export const StoreContextProvider = (
   }
 
   async function getBaseTokenInfo() {
+    assert(clientWithStateManager, "clientWithStateManager not ready");
     //Get base token decimal and symbol.
-    const manifest = await clientWithStateManager!.stateManager!.manifest.get();
+    const manifest = await clientWithStateManager.stateManager.manifest.get();
     const { chainId, address } = manifest.pricingCurrency;
     const chain = chains.find((chain) => chainId === chain.id);
     if (!chain) {
@@ -151,8 +152,10 @@ export const StoreContextProvider = (
     }
     const baseTokenPublicClient = createPublicClientForChain(chain);
     const res = await getTokenInformation(baseTokenPublicClient, address!);
+    debug(`getBaseTokenInfo: name: ${res[0]} | decimals:${res[1]}`);
     return res;
   }
+
   async function getOpenOrderId() {
     if (openOrderId) {
       return openOrderId;
