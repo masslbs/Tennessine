@@ -25,6 +25,7 @@ import { useClient } from "@/context/AuthContext";
 import { type ClientContext } from "@/context/types";
 import { ShopId, Status } from "@/types";
 import { ClientWithStateManager } from "@/app/ClientWithStateManager";
+import process from "node:process";
 
 export const UserContext = createContext<ClientContext>({
   walletAddress: null,
@@ -225,7 +226,7 @@ export const UserContextProvider = (
       guestWallet,
       true,
       shopId!,
-      new URL(window.location.href),
+      new URL(globalThis.location.href),
     );
     if (!res.ok) {
       throw new Error(`Failed to enroll keycard: ${res.error}`);

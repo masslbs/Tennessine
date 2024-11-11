@@ -5,7 +5,7 @@ import { hardhat } from "viem/chains";
 
 import { objectId, randomAddress, zeroAddress } from "@massmarket/utils";
 import {
-  Address,
+  type Address,
   bytesToHex,
   createPublicClient,
   formatUnits,
@@ -267,7 +267,7 @@ describe({ name: "global test settings", sanitizeResources: false }, () => {
 
     it("TagManager - adds and updates tag events", async () => {
       const vectorState = client.vectors.reduced;
-      const { tags } = vectorState;
+      const tags = vectorState.tags as Record<string, { name: string }>;
       let tagCount = 0;
       for await (const [id, tag] of stateManager.tags.iterator()) {
         tagCount++;
@@ -437,7 +437,7 @@ describe({ name: "global test settings", sanitizeResources: false }, () => {
         expect(removed.acceptedCurrencies.length).toEqual(3);
         //Make sure the correct currency is removed
         const found = removed.acceptedCurrencies.find(
-          (c: any) => c.address === zeroAddress,
+          (c) => c.address === zeroAddress,
         );
         expect(found).toBe(undefined);
       });
@@ -655,7 +655,7 @@ describe({ name: "global test settings", sanitizeResources: false }, () => {
         const openOrders = await stateManager.orders.getStatus(
           OrderState.STATE_OPEN,
         );
-        expect(openOrders.find((oId: any) => oId === id)).toBe(undefined);
+        expect(openOrders.find((oId) => oId === id)).toBe(undefined);
       });
 
       it("Update Order - commit/choosePayment", async () => {
@@ -683,7 +683,7 @@ describe({ name: "global test settings", sanitizeResources: false }, () => {
         const committedOrders = await stateManager.orders.getStatus(
           OrderState.STATE_COMMITED,
         );
-        const o = committedOrders.find((oId: any) => oId === id);
+        const o = committedOrders.find((oId) => oId === id);
         expect(o).toBeTruthy();
 
         //Mimic client event paymentDetails once commit is called.

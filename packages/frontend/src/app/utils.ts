@@ -14,12 +14,12 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { hardhat, sepolia } from "wagmi/chains";
-import { ReadonlyURLSearchParams } from "next/navigation";
 
 import { random32BytesHex, zeroAddress } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 
 import { Metadata } from "@/types";
+import process from "node:process";
 
 export const cn = (...inputs: ClassValue[]) => {
   return twMerge(clsx(inputs));
@@ -56,7 +56,7 @@ export const isValidHex = (hex: string) => {
   return Boolean(hex.match(/^0x[0-9a-f]+$/i));
 };
 
-let defaultRPC =
+const defaultRPC =
   (process && process.env && process.env.NEXT_PUBLIC_ETH_RPC_URL) ||
   "http://localhost:8545";
 

@@ -83,7 +83,7 @@ export class ClientWithStateManager {
       });
 
     if (window && db) {
-      window.addEventListener("beforeunload", () => {
+      globalThis.addEventListener("beforeunload", () => {
         db.close().then(() => {
           debug("level db closed");
         });

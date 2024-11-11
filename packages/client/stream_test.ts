@@ -9,12 +9,7 @@ import { expect } from "jsr:@std/expect";
 import { privateKeyToAccount } from "jsr:@wevm/viem/accounts";
 import { hexToBytes } from "jsr:@wevm/viem";
 import schema, { testVectors } from "@massmarket/schema";
-import {
-  anvilPrivateKey,
-  objectId,
-  priceToUint256,
-  randomBytes,
-} from "@massmarket/utils";
+import { anvilPrivateKey, objectId, priceToUint256 } from "@massmarket/utils";
 import { ReadableEventStream } from "./stream.ts";
 
 const account = privateKeyToAccount(anvilPrivateKey);
@@ -120,6 +115,8 @@ describe("Stream", () => {
       count++;
       if (count === pushEvent.events.length) break;
     }
+    expect(count).toEqual(pushEvent.events.length);
+    console.log("here");
   });
 
   test("Stream filled with test vectors", async () => {
@@ -150,7 +147,7 @@ describe("Stream", () => {
     stream.enqueue(pushReq);
     // TODO: we need a way to close the stream once all requests have been pushed
     let count = 0;
-    for await (const evt of stream.stream) {
+    for await (const _ of stream.stream) {
       count++;
       // this might never happen if events are omitted by ReadableEventStream
       // TODO: this might also exit to early if events would be duplicated...
@@ -161,7 +158,6 @@ describe("Stream", () => {
 
   // TODO: should add version of the test above that creates random chunking of the test vectors
   // and assert that they are all returned in order as individual events
-
   test("Stream Cancel ", () => {
     assert.doesNotThrow(async () => {
       const testCreateItem = {
@@ -219,6 +215,7 @@ describe("Stream", () => {
     let called = false;
     try {
       for await (const _ of stream.stream) {
+        console.log("here!");
         throw new Error("Store update failed");
       }
     } catch (e) {

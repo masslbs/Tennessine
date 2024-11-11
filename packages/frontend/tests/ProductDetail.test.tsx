@@ -29,7 +29,7 @@ describe("Product Detail Component", async () => {
       await client!.stateManager!.items.changeInventory(itemId, 5);
     });
 
-    await waitFor(async () => {
+    await waitFor(() => {
       MerchantsRender(<ProductDetail />, client);
     });
 
@@ -57,7 +57,7 @@ describe("Product Detail Component", async () => {
     expect(orderDetails.items[itemId]).toEqual(2);
 
     //addsItems
-    await act(async () => {
+    act(() => {
       const qtyInput = screen.getByTestId("purchaseQty");
       user.clear(qtyInput);
       fireEvent.change(qtyInput, {

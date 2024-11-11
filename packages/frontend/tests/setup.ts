@@ -1,6 +1,6 @@
 import { beforeEach, vi } from "vitest";
 
-beforeEach(async () => {
+beforeEach(() => {
   vi.mock("next/navigation", async (importOriginal) => {
     const actual = await importOriginal<typeof import("next/navigation")>();
     const { useRouter } = await vi.importActual<

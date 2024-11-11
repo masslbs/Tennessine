@@ -8,7 +8,7 @@ import Long from "long";
 import schema from "@massmarket/schema";
 
 import { type RelayClient, SequencedEventWithRecoveredSigner } from "./mod.ts";
-import { assert, assertField } from "../utils/mod.ts";
+import { assert, assertField } from "@massmarket/utils";
 
 // TODO: better name. it's basically a push request but with class values instead of interfaces
 type SequencedEventsWithRequestId = {
@@ -22,17 +22,15 @@ type SequencedEventsWithRequestId = {
  */
 export class ReadableEventStream {
   public stream;
-  private resolve!: (val: any) => void;
-  private nextPushReq: Promise<schema.SubscriptionPushRequest.ISequencedEvent>;
+  private resolve!: () => void;
+  private nextPushReq: Promise<void>;
   // TODO: this isn't thread safe
   private queue: SequencedEventsWithRequestId[] = [];
 
   constructor(public client: Pick<RelayClient, "encodeAndSendNoWait">) {
-    const self = this;
+    const parent = this;
 
-    this.nextPushReq = new Promise<
-      schema.SubscriptionPushRequest.ISequencedEvent
-    >((resolve) => {
+    this.nextPushReq = new Promise((resolve) => {
       this.resolve = resolve;
     });
 
@@ -42,7 +40,7 @@ export class ReadableEventStream {
       // here we are using a recursive pull that will never resolve so that we have full control over when it is being called
       // and when to ask for the next chunk of data
       async pull(controller) {
-        const pushReq = self.queue.shift();
+        const pushReq = parent.queue.shift();
         if (pushReq) {
           const requestId = pushReq.requestId;
           for (const anyEvt of pushReq.events) {
@@ -66,13 +64,12 @@ export class ReadableEventStream {
             );
           }
           // Send a response to the relay to indicate that we have processed the events
-          self.client.encodeAndSendNoWait({
+          parent.client.encodeAndSendNoWait({
             requestId,
             response: {},
           });
         }
-        console.log("pull");
-        await self.nextPushReq;
+        await parent.nextPushReq;
         return this.pull!(controller);
       },
     });
@@ -81,11 +78,8 @@ export class ReadableEventStream {
   // This method is meant to be used by the client to enqueue events into the stream
   enqueue(pushReq: SequencedEventsWithRequestId) {
     this.queue.push(pushReq);
-    console.log("Enqueued", this.queue);
-    this.resolve(null);
-    this.nextPushReq = new Promise<
-      schema.SubscriptionPushRequest.ISequencedEvent
-    >((resolve) => {
+    this.resolve();
+    this.nextPushReq = new Promise((resolve) => {
       this.resolve = resolve;
     });
   }

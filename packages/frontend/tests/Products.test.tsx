@@ -97,7 +97,7 @@ describe("Products Component", async () => {
       },
     });
 
-    await waitFor(async () => {
+    await waitFor(() => {
       const items = screen.getAllByTestId("product-container");
       expect(items.length).toEqual(52);
       const productMap = new Map();

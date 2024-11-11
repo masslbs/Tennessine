@@ -45,10 +45,10 @@ export const StoreContextProvider = (
 
   useEffect(() => {
     if (committedOrderId) {
-      window.addEventListener("beforeunload", cancelAndCreateOrder);
+      globalThis.addEventListener("beforeunload", cancelAndCreateOrder);
     }
     return () => {
-      window.removeEventListener("beforeunload", cancelAndCreateOrder);
+      globalThis.removeEventListener("beforeunload", cancelAndCreateOrder);
     };
   }, []);
 
@@ -90,7 +90,6 @@ export const StoreContextProvider = (
           break;
         case OrderEventTypes.PAYMENT_TX:
           txHashDetected(order);
-        default:
           break;
       }
     }
@@ -126,7 +125,7 @@ export const StoreContextProvider = (
   async function cancelAndCreateOrder() {
     const sm = clientWithStateManager.stateManager;
     debug(`Cancelling order ID: ${committedOrderId}`);
-    const [type, cancelledOrder] = await sm.orders.cancel(committedOrderId);
+    const [_type, cancelledOrder] = await sm.orders.cancel(committedOrderId);
     // Once order is cancelled, create a new order and add the same items.
     const newOrder = await sm.orders.create();
     debug("New order created");

@@ -1,5 +1,5 @@
-import * as $protobuf from "npm:protobufjs";
-import Long from "npm:long";
+import type * as $protobuf from "npm:protobufjs";
+import type Long from "npm:long";
 /** Namespace market. */
 export namespace market {
   /** Namespace mass. */

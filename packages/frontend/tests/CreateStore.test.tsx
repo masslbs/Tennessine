@@ -12,7 +12,7 @@ import CreateStore from "@/app/create-store/page";
 import { ClientWithStateManager } from "@/app/ClientWithStateManager";
 import { getClient, MerchantsRender } from "./test-utils";
 
-beforeEach(async () => {
+beforeEach(() => {
   vi.mock(import("wagmi"), async (importOriginal) => {
     const mod = await importOriginal(); // type is inferred
     return {
@@ -26,11 +26,11 @@ beforeEach(async () => {
   });
 });
 
-afterEach(async () => {
+afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("Create Store", async () => {
+describe("Create Store", () => {
   let client: ClientWithStateManager;
 
   const user = userEvent.setup();

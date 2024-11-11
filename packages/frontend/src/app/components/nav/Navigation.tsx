@@ -76,7 +76,6 @@ function Navigation() {
           break;
         case OrderEventTypes.PAYMENT_TX:
           txHashDetected(order);
-        default:
           break;
       }
     }
@@ -100,7 +99,7 @@ function Navigation() {
           debug(`Open order ID: ${oId}`);
           clientWithStateManager!
             .stateManager!.orders.get(oId)
-            .then(async (o) => {
+            .then((o) => {
               onChangeItems(o);
             });
         }

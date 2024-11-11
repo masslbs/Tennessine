@@ -23,7 +23,6 @@ import SuccessToast from "@/app/common/components/SuccessToast";
 
 const namespace = "frontend:product-detail";
 const debug = logger(namespace);
-const errlog = logger(namespace, "error");
 
 const ProductDetail = () => {
   const { getBaseTokenInfo, getOpenOrderId } = useStoreContext();

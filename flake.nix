@@ -42,6 +42,7 @@
             src = ./.;
             hooks = {
               alejandra.enable = true;
+              denolint.enable = true;
               denofmt = {
                 verbose = true;
                 enable = true;

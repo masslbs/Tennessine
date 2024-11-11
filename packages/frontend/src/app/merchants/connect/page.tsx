@@ -112,7 +112,7 @@ const MerchantConnectWallet = () => {
         clientWallet!,
         false,
         id,
-        new URL(window.location.href),
+        new URL(globalThis.location.href),
       );
       if (res.ok) {
         enrollKeycard.current = true;

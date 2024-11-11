@@ -61,7 +61,7 @@ describe("StoreProfile Component", async () => {
     );
   });
 
-  beforeEach(async () => {
+  beforeEach(() => {
     MerchantsRender(<StoreProfile />, client);
   });
 

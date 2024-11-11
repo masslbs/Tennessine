@@ -9,6 +9,12 @@
     "./packages/frontend",
     "./packages/blockchain"
   ],
+  "lint": {
+    "exclude": ["packages/frontend/out/", "packages/frontend/.next/"],
+    "rules": {
+      "exclude": ["no-slow-types"]
+    }
+  },
   "fmt": {
     "exclude": [
       ".direnv",
