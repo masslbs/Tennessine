@@ -642,7 +642,7 @@ describe({ name: "global test settings", sanitizeResources: false }, () => {
 
       it("updateOrder - cancel", async () => {
         const { id } = await stateManager.orders.create();
-        await stateManager.orders.cancel(id, 0);
+        await stateManager.orders.cancel(id);
         const cancelled = await stateManager.orders.get(id);
         //New status should be cancelled
         expect(cancelled.status).toEqual(OrderState.STATE_CANCELED);

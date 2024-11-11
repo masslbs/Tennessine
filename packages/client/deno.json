@@ -9,10 +9,5 @@
     "events": "node:events",
     "buffer": "node:buffer",
     "assert": "node:assert"
-  },
-  "lint": {
-    "rules": {
-      "exclude": ["no-this-alias"]
-    }
   }
 }
