@@ -16,7 +16,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { hardhat, sepolia } from "wagmi/chains";
 import { ReadonlyURLSearchParams } from "next/navigation";
 
-import { random32BytesHex, zeroAddress } from "@massmarket/utils";
+import { assert, random32BytesHex, zeroAddress } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 
 import { Metadata } from "@/types";
@@ -79,15 +79,13 @@ export const getTokenInformation = (
   publicClient: PublicClient,
   tokenAddress: `0x${string}`,
 ): Promise<[string, number]> => {
+  assert(publicClient.chain, "publicClient.chain is undefined");
+  const chainId = publicClient.chain.id;
   if (tokenAddress === zeroAddress) {
     return new Promise((resolve) => {
       resolve(["ETH", 18]);
     });
-  } else if (
-    // FIXME: Cannot get symbol/decimal functions from contract for test chains.
-    publicClient.chain?.id === hardhat.id ||
-    publicClient.chain?.id === sepolia.id
-  ) {
+  } else if (chainId === hardhat.id) {
     return new Promise((resolve) => {
       resolve(["USDC", 6]);
     });
@@ -104,7 +102,6 @@ export const getTokenInformation = (
     functionName: "decimals",
     args: [],
   }) as Promise<number>;
-
   return Promise.all([symbol, decimal]);
 };
 
