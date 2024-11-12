@@ -20,6 +20,7 @@ import ValidationWarning from "@/app/common/components/ValidationWarning";
 import BackButton from "@/app/common/components/BackButton";
 
 const namespace = "frontend:edit-product";
+const debug = logger(namespace);
 const errlog = logger(namespace, "error");
 
 const AddProductView = () => {
@@ -61,7 +62,8 @@ const AddProductView = () => {
           assert(tokenInfo?.[1], "tokenInfo[1] is undefined");
           const decimals = tokenInfo[1];
           debug(`pricingCurrency.decimals: ${decimals}`);
-          return clientWithStateManager!.stateManager!.listings.get(itemId)
+          return clientWithStateManager!
+            .stateManager!.listings.get(itemId)
             .then((item) => {
               setProductInView(item);
               setTitle(item.metadata.title);

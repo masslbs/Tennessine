@@ -5,7 +5,7 @@
 "use client";
 import React, { ChangeEvent, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { privateKeyToAccount } from "viem/accounts";
 
 import { formatUnitsFromString, logger } from "@massmarket/utils";
@@ -27,11 +27,10 @@ const debug = logger(namespace);
 const ProductDetail = () => {
   const { getBaseTokenInfo, getOpenOrderId } = useStoreContext();
   const { upgradeGuestToCustomer, clientWithStateManager } = useUserContext();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { isMerchantView } = useClient();
   const itemId = searchParams.get("itemId") as ListingId;
-
+  debug(`item ID: ${itemId}`);
   const [quantity, setQuantity] = useState<number>(0);
   const [item, setItem] = useState<Listing | null>(null);
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
@@ -109,7 +108,6 @@ const ProductDetail = () => {
           errorMessage={errorMsg}
           onClose={() => {
             setErrorMsg(null);
-            router.push("/products");
           }}
         />
         <div className="m-4">

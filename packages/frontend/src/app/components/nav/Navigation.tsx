@@ -97,11 +97,9 @@ function Navigation() {
       getOpenOrderId().then((oId: OrderId | null) => {
         if (oId) {
           debug(`Open order ID: ${oId}`);
-          clientWithStateManager!
-            .stateManager!.orders.get(oId)
-            .then((o) => {
-              onChangeItems(o);
-            });
+          clientWithStateManager!.stateManager!.orders.get(oId).then((o) => {
+            onChangeItems(o);
+          });
         }
       });
 
@@ -243,7 +241,7 @@ function Navigation() {
           }`}
         >
           <button
-            className="relative"
+            className={`relative ${isMerchantView ? "hidden" : ""}`}
             onClick={() => setBasketOpen(!basketOpen)}
           >
             <img

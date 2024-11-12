@@ -72,7 +72,12 @@ const MerchantDashboard = () => {
           const cartId = entry[0];
           const value = entry[1];
           const transactionHash = value?.txHash || value?.blockHash;
-          let status;
+          let status: string;
+          // If not an actual order, but orders by statuses, don't display
+          if (cartId.length === 1) {
+            return null;
+          }
+
           switch (value.status) {
             case OrderState.STATE_CANCELED:
               status = "Cancelled";
@@ -110,7 +115,12 @@ const MerchantDashboard = () => {
   };
 
   if (viewOrderDetails) {
-    return <OrderDetails order={orders.get(viewOrderDetails)} />;
+    return (
+      <OrderDetails
+        order={orders.get(viewOrderDetails)}
+        onBack={() => setOrderDetails(null)}
+      />
+    );
   }
 
   return (
