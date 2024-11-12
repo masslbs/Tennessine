@@ -1,11 +1,14 @@
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useChains } from "wagmi";
 import { Address, pad } from "viem";
-
-import { assert, formatUnitsFromString, logger } from "@massmarket/utils";
+import {
+  assert,
+  formatUnitsFromString,
+  logger,
+  zeroAddress,
+} from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
-import { type PaymentArgs, zeroAddress } from "@massmarket/contracts";
-
+import { getPaymentAddress, type PaymentArgs } from "@massmarket/blockchain";
 import {
   CheckoutStep,
   CurrencyChainOption,
@@ -52,7 +55,9 @@ export default function ChoosePayment({
   const [chosenPaymentTokenIcon, setIcon] = useState<string>(
     "/icons/usdc-coin.png",
   );
-  const [paymentArgs, setPaymentArgs] = useState<null | PaymentArgs>(null);
+  const [paymentArgs, setPaymentArgs] = useState<
+    null | Omit<PaymentArgs, "wallet">
+  >(null);
 
   useEffect(() => {
     clientWithStateManager!
@@ -120,26 +125,24 @@ export default function ChoosePayment({
         currency.address,
       );
       //FIXME: get orderHash from paymentDetails.
-      const zeros32Bytes = pad(zeroAddress, { size: 32 });
+      const zeros32Bytes = pad(abi.zeroAddress, { size: 32 });
       //FIXME: separate this into a function that constructs the arg.
-      const arg = [
-        currency.chainId,
-        ttl,
-        zeros32Bytes,
-        currency.address,
-        BigInt(total),
-        payee.address,
-        false, //isPaymentEndpoint
-        shopId,
+      const arg = {
+        chainId: currency.chainId,
+        ttl: Number(ttl), // is this correct?
+        orderHash: zeros32Bytes,
+        currencyAddress: currency.address,
+        total: BigInt(total),
+        payeeAddress: payee.address,
+        isPaymentEndpoint: false, //isPaymentEndpoint
+        shopId: shopId!,
         shopSignature,
-      ];
+      };
       setPaymentArgs(arg);
-      const purchaseAdd = (await paymentRPC.readContract({
-        address: abi.addresses.Payments as `0x${string}`,
-        abi: abi.PaymentsByAddress,
-        functionName: "getPaymentAddress",
-        args: [arg, payee.address],
-      })) as Address;
+      const purchaseAdd = await getPaymentAddress(
+        { wallet: paymentRPC, refundAddress: arg.payeeAddress, ...arg },
+      );
+
       if (!purchaseAdd) throw new Error("No purchase address found");
       const amount = BigInt(total);
       debug(`amount: ${amount}`);
