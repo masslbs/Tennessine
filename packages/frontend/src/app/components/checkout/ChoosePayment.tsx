@@ -12,6 +12,7 @@ import {
   Order,
   OrderEventTypes,
   OrderId,
+  PaymentArgs,
   ShopCurrencies,
   ShopManifest,
 } from "@/types";
@@ -52,7 +53,7 @@ export default function ChoosePayment({
   const [chosenPaymentTokenIcon, setIcon] = useState<string>(
     "/icons/usdc-coin.png",
   );
-  const [paymentArgs, setPaymentArgs] = useState(null);
+  const [paymentArgs, setPaymentArgs] = useState<null | PaymentArgs>(null);
 
   useEffect(() => {
     clientWithStateManager!
@@ -93,8 +94,8 @@ export default function ChoosePayment({
 
   async function getDetails(oId: OrderId) {
     try {
-      const committedOrder =
-        await clientWithStateManager.stateManager.orders.get(oId!);
+      const committedOrder = await clientWithStateManager.stateManager.orders
+        .get(oId!);
       if (!committedOrder?.choosePayment) {
         throw new Error("No chosen payment found");
       }
@@ -121,7 +122,7 @@ export default function ChoosePayment({
       );
       //FIXME: get orderHash from paymentDetails.
       const zeros32Bytes = pad(zeroAddress, { size: 32 });
-
+      //FIXME: separate this into a function that constructs the arg.
       const arg = [
         currency.chainId,
         ttl,
@@ -143,17 +144,18 @@ export default function ChoosePayment({
       if (!purchaseAdd) throw new Error("No purchase address found");
       const amount = BigInt(total);
       debug(`amount: ${amount}`);
-      const payLink =
-        currency.address === zeroAddress
-          ? `ethereum:${purchaseAdd}?value=${amount}`
-          : `ethereum:${currency.address}/transfer?address=${purchaseAdd}&uint256=${amount}`;
+      const payLink = currency.address === zeroAddress
+        ? `ethereum:${purchaseAdd}?value=${amount}`
+        : `ethereum:${currency.address}/transfer?address=${purchaseAdd}&uint256=${amount}`;
       setPurchaseAddr(purchaseAdd);
       debug(`purchase address: ${purchaseAdd}`);
       setSrc(payLink);
-      const displayedAmount = `${formatUnitsFromString(
-        total,
-        decimal,
-      )} ${symbol}`;
+      const displayedAmount = `${
+        formatUnitsFromString(
+          total,
+          decimal,
+        )
+      } ${symbol}`;
       if (symbol === "ETH") {
         setIcon("/icons/eth-coin.svg");
       } else {

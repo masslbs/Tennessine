@@ -5,16 +5,16 @@ import { useAccount } from "wagmi";
 import { logger, zeroAddress } from "@massmarket/utils";
 import { BlockchainClient } from "@massmarket/blockchain";
 
+import { PaymentArgs } from "@/types";
 import { useUserContext } from "@/context/UserContext";
 import { ConnectWalletButton } from "@/app/common/components/ConnectWalletButton";
 import Button from "@/app/common/components/Button";
-import { ShopCurrencies } from "@/types";
 
 const namespace = "frontend:Pay";
 const debug = logger(namespace);
 const errlog = logger(namespace, "error");
 
-export default function Pay({ paymentArgs }: { paymentArgs: any }) {
+export default function Pay({ paymentArgs }: { paymentArgs: PaymentArgs }) {
   const { status } = useAccount();
   const { shopId, clientWallet } = useUserContext();
 
@@ -23,7 +23,7 @@ export default function Pay({ paymentArgs }: { paymentArgs: any }) {
       const blockchainClient = new BlockchainClient(shopId);
       let isERC20Payment = false;
       if (paymentArgs[3] !== zeroAddress) {
-        debug("Approve ERC20 contract call", paymentArgs);
+        debug("Approve ERC20 contract call");
         await blockchainClient.preApproveERC20(
           clientWallet,
           paymentArgs[3], //chosen currency address
@@ -45,21 +45,23 @@ export default function Pay({ paymentArgs }: { paymentArgs: any }) {
 
   return (
     <div>
-      {status === "connected" ? (
-        <div className="flex flex-col gap-4">
-          <ConnectButton chainStatus="name" />
-          <Button
-            onClick={sendPayment}
-            disabled={!paymentArgs || !clientWallet}
-          >
-            <h6>Pay</h6>
-          </Button>
-        </div>
-      ) : (
-        <div className="flex justify-center">
-          <ConnectWalletButton />
-        </div>
-      )}
+      {status === "connected"
+        ? (
+          <div className="flex flex-col gap-4">
+            <ConnectButton chainStatus="name" />
+            <Button
+              onClick={sendPayment}
+              disabled={!paymentArgs || !clientWallet}
+            >
+              <h6>Pay</h6>
+            </Button>
+          </div>
+        )
+        : (
+          <div className="flex justify-center">
+            <ConnectWalletButton />
+          </div>
+        )}
     </div>
   );
 }
