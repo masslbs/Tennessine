@@ -8,55 +8,110 @@ import {
   bytesToHex,
   type Chain,
   hexToBytes,
+  type PublicClient,
   type Transport,
   type WalletClient,
 } from "viem";
-
-import { randomBytes } from "@massmarket/utils";
-import type { PaymentArgs } from "@massmarket/contracts";
-
-import * as abi from "@massmarket/contracts";
 import { privateKeyToAccount } from "viem/accounts";
+import { randomBytes } from "@massmarket/utils";
+import * as abi from "@massmarket/contracts";
 
 export type ConcreteWalletClient = WalletClient<Transport, Chain, Account>;
 
+export interface PaymentArgs {
+  wallet: ConcreteWalletClient;
+  chainId: number;
+  ttl: number;
+  orderHash: `0x${string}`;
+  currencyAddress: Address;
+  total: bigint;
+  payeeAddress: Address;
+  isPaymentEndpoint: boolean;
+  shopId: `0x${string}`;
+  shopSignature: `0x${string}`;
+}
+
+export function payTokenPreApproved(args: PaymentArgs) {
+  return args.wallet.writeContract({
+    address: abi.addresses.Payments as Address,
+    abi: abi.PaymentsByAddress,
+    functionName: "payTokenPreApproved",
+    args: [
+      args.chainId,
+      args.ttl,
+      args.orderHash,
+      args.currencyAddress,
+      args.total,
+      args.payeeAddress,
+      args.isPaymentEndpoint,
+      args.shopId,
+      args.shopSignature,
+    ],
+  });
+}
+
+export function payNative(args: PaymentArgs) {
+  return args.wallet.writeContract({
+    address: abi.addresses.Payments as Address,
+    abi: abi.PaymentsByAddress,
+    functionName: "payNative",
+    value: args.total,
+    args: [
+      args.chainId,
+      args.ttl,
+      args.orderHash,
+      args.currencyAddress,
+      args.total,
+      args.payeeAddress,
+      args.isPaymentEndpoint,
+      args.shopId,
+      args.shopSignature,
+    ],
+  });
+}
+
+export function getPaymentAddress(
+  args: Omit<PaymentArgs, "wallet"> & {
+    refundAddress: Address;
+    wallet: PublicClient;
+  },
+) {
+  return args.wallet.readContract({
+    address: abi.addresses.Payments as Address,
+    abi: abi.PaymentsByAddress,
+    functionName: "getPaymentAddress",
+    args: [
+      args.chainId,
+      args.ttl,
+      args.orderHash,
+      args.currencyAddress,
+      args.total,
+      args.payeeAddress,
+      args.isPaymentEndpoint,
+      args.shopId,
+      args.shopSignature,
+      args.refundAddress,
+    ],
+  }) as Promise<Address>;
+}
+
+export function approveERC20(
+  args: {
+    wallet: ConcreteWalletClient;
+    currencyAddress: Address;
+    total: bigint;
+  },
+) {
+  return args.wallet.writeContract({
+    address: args.currencyAddress,
+    abi: abi.ERC20,
+    functionName: "approve",
+    args: [abi.addresses.Payments, args.total],
+  });
+}
+
 export class BlockchainClient {
   constructor(public shopId = bytesToHex(randomBytes(32))) {}
-
-  transferTokens(
-    wallet: ConcreteWalletClient,
-    paymentArgs: PaymentArgs,
-    isERC20Payment: boolean,
-  ) {
-    // Pass value parameter only if sending ETH
-    return isERC20Payment
-      ? wallet.writeContract({
-        address: abi.addresses.Payments as Address,
-        abi: abi.PaymentsByAddress,
-        functionName: "pay",
-        args: [paymentArgs],
-      })
-      : wallet.writeContract({
-        address: abi.addresses.Payments as Address,
-        abi: abi.PaymentsByAddress,
-        functionName: "pay",
-        args: [paymentArgs],
-        value: paymentArgs[4],
-      });
-  }
-
-  preApproveERC20(
-    wallet: ConcreteWalletClient,
-    tokenAddress: Address,
-    total: bigint,
-  ) {
-    return wallet.writeContract({
-      address: tokenAddress,
-      abi: abi.ERC20,
-      functionName: "approve",
-      args: [abi.addresses.Payments, total],
-    });
-  }
 
   addRelay(wallet: ConcreteWalletClient, tokenId: `0x${string}`) {
     return wallet.writeContract({
