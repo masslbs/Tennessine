@@ -291,6 +291,7 @@ describe({
       expect(receipt2.status).toEqual("success");
 
       const stream = guestRelayClient.createEventStream();
+      let paymentHash: `0x${string}` | undefined;
       for await (const { event } of stream) {
         if (event.updateOrder?.setPaymentDetails) {
           const order = event.updateOrder.setPaymentDetails;
@@ -313,17 +314,26 @@ describe({
           })) as bigint;
           expect(toHex(order.paymentId!.raw!)).toEqual(toHex(paymentId));
 
-          // TODO: call the pay function
-          // const hash = await guestWallet.writeContract({
-          //   address: abi.addresses.Payments as Address,
-          //   abi: abi.PaymentsByAddress,
-          //   functionName: "payTokenPreApproved",
-          //   args: [args],
-          // });
-          // const receipt = await publicClient.waitForTransactionReceipt({
-          //   hash,
-          // });
-          // expect(receipt.status).toEqual("success");
+          // call the pay function
+          const hash = await guestWallet.writeContract({
+            address: abi.addresses.Payments as Address,
+            abi: abi.PaymentsByAddress,
+            functionName: "pay",
+            args: [args],
+          });
+          const receipt = await publicClient.waitForTransactionReceipt({
+            hash,
+          });
+          expect(receipt.status).toEqual("success");
+          paymentHash = hash;
+        }
+        // check for payment confirmation by the relay before exiting
+        // TODO: add timeout
+        if (event.updateOrder?.addPaymentTx) {
+          expect(event.updateOrder.id).toEqual(orderId);
+          expect(toHex(event.updateOrder.addPaymentTx.txHash.raw)).toEqual(
+            paymentHash,
+          );
           return;
         }
       }
