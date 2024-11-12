@@ -5,7 +5,7 @@ import { mainnet, optimism, sepolia } from "wagmi/chains";
 
 import BackButton from "@/app/common/components/BackButton";
 import { useUserContext } from "@/context/UserContext";
-import { ListingId, Order } from "@/types";
+import { ListingId, Order, OrderState } from "@/types";
 
 export default function OrderDetails({ order, onBack }) {
   const { clientWithStateManager } = useUserContext();
@@ -15,7 +15,7 @@ export default function OrderDetails({ order, onBack }) {
   const [etherScanLink, setLink] = useState("");
 
   useEffect(() => {
-    if (order.choosePayment) {
+    if (order.status === OrderState.STATE_PAID) {
       const id = order.choosePayment.currency.chainId;
       const hash = order.txHash || order.blockHash;
       setHash(hash);

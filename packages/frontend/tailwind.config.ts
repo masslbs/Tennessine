@@ -14,7 +14,7 @@ const config: Config = {
   theme: {
     extend: {
       screens: {
-        xxs: { max: "390px" }, // for screens smaller than 360px
+        xxs: { max: "390px" }, // for screens smaller than 390px
       },
       padding: {
         "under-nav": "70px",
