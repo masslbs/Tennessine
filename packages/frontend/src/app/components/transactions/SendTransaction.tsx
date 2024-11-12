@@ -1,6 +1,6 @@
 import React from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useAccount, useSendTransaction, useWriteContract } from "wagmi";
+import { useAccount, useSendTransaction } from "wagmi";
 
 import { logger, zeroAddress } from "@massmarket/utils";
 import { BlockchainClient } from "@massmarket/blockchain";
@@ -25,7 +25,6 @@ export default function SendTransaction({
 }) {
   const { sendTransaction } = useSendTransaction();
   const { status } = useAccount();
-  const { writeContract } = useWriteContract();
   const { shopId, clientWallet } = useUserContext();
 
   async function send() {
@@ -58,21 +57,23 @@ export default function SendTransaction({
 
   return (
     <div>
-      {status === "connected" ? (
-        <div className="flex flex-col gap-4">
-          <ConnectButton chainStatus="name" />
-          <Button
-            onClick={send}
-            disabled={!purchaseAddress || !cryptoTotal || !clientWallet}
-          >
-            <h6>Pay</h6>
-          </Button>
-        </div>
-      ) : (
-        <div className="flex justify-center">
-          <ConnectWalletButton />
-        </div>
-      )}
+      {status === "connected"
+        ? (
+          <div className="flex flex-col gap-4">
+            <ConnectButton chainStatus="name" />
+            <Button
+              onClick={send}
+              disabled={!purchaseAddress || !cryptoTotal || !clientWallet}
+            >
+              <h6>Pay</h6>
+            </Button>
+          </div>
+        )
+        : (
+          <div className="flex justify-center">
+            <ConnectWalletButton />
+          </div>
+        )}
     </div>
   );
 }
