@@ -37,7 +37,7 @@ export default function ChoosePayment({
   displayedAmount: string | null;
   setDisplayedAmount: Dispatch<SetStateAction<string | null>>;
 }) {
-  const { clientWithStateManager } = useUserContext();
+  const { clientWithStateManager, shopId } = useUserContext();
   const { committedOrderId } = useStoreContext();
   const chains = useChains();
 
@@ -119,7 +119,6 @@ export default function ChoosePayment({
         paymentRPC,
         currency.address,
       );
-      const manifest = await clientWithStateManager.stateManager.manifest.get();
       //FIXME: get orderHash from paymentDetails.
       const zeros32Bytes = pad(zeroAddress, { size: 32 });
 
@@ -131,7 +130,7 @@ export default function ChoosePayment({
         BigInt(total),
         payee.address,
         false, //isPaymentEndpoint
-        manifest.tokenId,
+        shopId,
         shopSignature,
       ];
       setPaymentArgs(arg);
