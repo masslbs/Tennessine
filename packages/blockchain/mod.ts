@@ -26,7 +26,7 @@ export class BlockchainClient {
     wallet: ConcreteWalletClient,
     tokenAddress: Address,
     purchaseAddress: Address,
-    cryptoTotal: BigInt,
+    cryptoTotal: bigint,
   ) {
     return wallet.writeContract({
       address: tokenAddress,
