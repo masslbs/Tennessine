@@ -7,7 +7,6 @@ import BackButton from "@/app/common/components/BackButton";
 import { useUserContext } from "@/context/UserContext";
 import { ListingId, Order, OrderState } from "@/types";
 
-
 export default function OrderDetails({ order, onBack }) {
   const { clientWithStateManager } = useUserContext();
 
