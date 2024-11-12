@@ -17,14 +17,25 @@ import { randomBytes } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 import { privateKeyToAccount } from "viem/accounts";
 
-export type ConcreteWalletClient = WalletClient<
-  Transport,
-  Chain,
-  Account
->;
+export type ConcreteWalletClient = WalletClient<Transport, Chain, Account>;
 
 export class BlockchainClient {
   constructor(public shopId = bytesToHex(randomBytes(32))) {}
+
+  transferERC20(
+    wallet: ConcreteWalletClient,
+    tokenAddress: Address,
+    purchaseAddress: Address,
+    cryptoTotal: BigInt,
+  ) {
+    return wallet.writeContract({
+      address: tokenAddress,
+      abi: abi.ERC20,
+      functionName: "transfer",
+      args: [purchaseAddress, cryptoTotal],
+    });
+  }
+
   addRelay(wallet: ConcreteWalletClient, tokenId: `0x${string}`) {
     return wallet.writeContract({
       address: abi.addresses.ShopReg as Address,
