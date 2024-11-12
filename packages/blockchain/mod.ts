@@ -13,6 +13,7 @@ import {
 } from "viem";
 
 import { randomBytes } from "@massmarket/utils";
+import type { PaymentArgs } from "@massmarket/contracts";
 
 import * as abi from "@massmarket/contracts";
 import { privateKeyToAccount } from "viem/accounts";
@@ -24,7 +25,7 @@ export class BlockchainClient {
 
   transferTokens(
     wallet: ConcreteWalletClient,
-    paymentArgs,
+    paymentArgs: PaymentArgs,
     isERC20Payment: boolean,
   ) {
     // Pass value parameter only if sending ETH
@@ -44,7 +45,11 @@ export class BlockchainClient {
       });
   }
 
-  preApproveERC20(wallet: ConcreteWalletClient, tokenAddress, total) {
+  preApproveERC20(
+    wallet: ConcreteWalletClient,
+    tokenAddress: Address,
+    total: bigint,
+  ) {
     return wallet.writeContract({
       address: tokenAddress,
       abi: abi.ERC20,
