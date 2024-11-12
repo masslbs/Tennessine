@@ -3,8 +3,9 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount, useSendTransaction, useWriteContract } from "wagmi";
 
 import { logger, zeroAddress } from "@massmarket/utils";
-import * as abi from "@massmarket/contracts";
+import { BlockchainClient } from "@massmarket/blockchain";
 
+import { useUserContext } from "@/context/UserContext";
 import { ConnectWalletButton } from "@/app/common/components/ConnectWalletButton";
 import Button from "@/app/common/components/Button";
 import { ShopCurrencies } from "@/types";
@@ -25,8 +26,9 @@ export default function SendTransaction({
   const { sendTransaction } = useSendTransaction();
   const { status } = useAccount();
   const { writeContract } = useWriteContract();
+  const { shopId, clientWallet } = useUserContext();
 
-  function send() {
+  async function send() {
     try {
       debug(`Sending ${cryptoTotal} to: ${purchaseAddress}`);
       debug(
@@ -34,13 +36,13 @@ export default function SendTransaction({
       );
       if (chosenCurrency.address !== zeroAddress) {
         debug("ERC20 payment");
-        writeContract({
-          chainId: chosenCurrency.chainId,
-          abi: abi.ERC20,
-          address: chosenCurrency.address,
-          functionName: "transfer",
-          args: [purchaseAddress as `0x${string}`, cryptoTotal],
-        });
+        const blockchainClient = new BlockchainClient(shopId);
+        await blockchainClient.transferERC20(
+          clientWallet,
+          chosenCurrency.address,
+          purchaseAddress,
+          cryptoTotal,
+        );
       } else {
         debug("ETH payment");
         sendTransaction({
@@ -59,7 +61,10 @@ export default function SendTransaction({
       {status === "connected" ? (
         <div className="flex flex-col gap-4">
           <ConnectButton chainStatus="name" />
-          <Button onClick={send} disabled={!purchaseAddress || !cryptoTotal}>
+          <Button
+            onClick={send}
+            disabled={!purchaseAddress || !cryptoTotal || !clientWallet}
+          >
             <h6>Pay</h6>
           </Button>
         </div>
