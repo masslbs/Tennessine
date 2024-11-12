@@ -59,10 +59,10 @@ function CustomerViewProducts({ products }: { products: Listing[] | null }) {
                 width={176}
                 height={144}
                 alt="product-thumb"
-                className="h-36 w-44 rounded-t-lg object-cover object-center xxs:w-40"
+                className="h-36 w-44 rounded-t-lg object-cover object-center xxs:w-36"
               />
             </div>
-            <div className="bg-white flex flex-col gap-2 rounded-b-lg p-3 min-h-24 max-h-24 h-24 w-44 xxs:w-40">
+            <div className="bg-white flex flex-col gap-2 rounded-b-lg p-3 min-h-24 max-h-24 h-24 w-44 xxs:w-36">
               <div className="min-h-8">
                 <h3 data-testid="product-name" className="leading-4">
                   {item.metadata.title}
