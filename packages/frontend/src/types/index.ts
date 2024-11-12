@@ -16,7 +16,6 @@ import {
   ShopManifest,
   Tag,
 } from "@massmarket/stateManager/types";
-import { Address } from "viem";
 
 export {
   type KeyCard,
@@ -102,15 +101,3 @@ export enum CheckoutStep {
   confirmation = "confirmation",
   expired = "expired",
 }
-
-export type PaymentArgs = [
-  number, //chainID
-  number, //ttl
-  `0x${string}`, //orderHash
-  Address, //currency address
-  bigint, //total
-  Address, //payee address
-  boolean, //isPaymentEndpoint
-  ShopId,
-  `0x${string}`, // shopSig
-];
