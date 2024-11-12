@@ -3,8 +3,12 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 
 import { logger, zeroAddress } from "@massmarket/utils";
-import { BlockchainClient } from "@massmarket/blockchain";
-import type { PaymentArgs } from "@massmarket/contracts";
+import {
+  approveERC20,
+  type PaymentArgs,
+  payNative,
+  payTokenPreApproved,
+} from "@massmarket/blockchain";
 
 import { useUserContext } from "@/context/UserContext";
 import { ConnectWalletButton } from "@/app/common/components/ConnectWalletButton";
@@ -14,30 +18,27 @@ const namespace = "frontend:Pay";
 const debug = logger(namespace);
 const errlog = logger(namespace, "error");
 
-export default function Pay({ paymentArgs }: { paymentArgs: PaymentArgs }) {
+export default function Pay(paymentArgs: Omit<PaymentArgs, "wallet">) {
   const { status } = useAccount();
-  const { shopId, clientWallet } = useUserContext();
+  const { clientWallet } = useUserContext();
 
   async function sendPayment() {
+    const paymentArgsWallet = { wallet: clientWallet, ...paymentArgs };
     try {
-      const blockchainClient = new BlockchainClient(shopId!);
-      let isERC20Payment = false;
-      if (paymentArgs[3] !== zeroAddress) {
+      if (paymentArgs.currencyAddress !== zeroAddress) {
         debug("Approve ERC20 contract call");
-        await blockchainClient.preApproveERC20(
-          clientWallet,
-          paymentArgs[3], //chosen currency address
-          paymentArgs[4], //total in crypto
+        // TODO: should do this if we have already approved the contract
+        await approveERC20(paymentArgsWallet);
+        await payTokenPreApproved(
+          paymentArgsWallet,
         );
-        isERC20Payment = true;
+      } else {
+        //ETH payments do not need to be approved.
+        debug("Pay native contract call");
+        await payNative(
+          paymentArgsWallet,
+        );
       }
-      debug(`isERC20Payment: ${isERC20Payment}`);
-      //ETH payments do not need to be approved.
-      await blockchainClient.transferTokens(
-        clientWallet,
-        paymentArgs,
-        isERC20Payment,
-      );
     } catch (error) {
       errlog("Error sending payment", error);
     }
