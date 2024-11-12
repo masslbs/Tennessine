@@ -7,6 +7,7 @@ import {
   type Address,
   createPublicClient,
   createWalletClient,
+  hexToBigInt,
   hexToBytes,
   http,
   pad,
@@ -372,17 +373,18 @@ describe({
             },
           });
           const stream = relayClient.createEventStream();
+          let paymentHash: `0x${string}` | undefined;
           for await (const { event } of stream) {
             if (event.updateOrder?.setPaymentDetails) {
               const paymentDetails = event.updateOrder.setPaymentDetails;
               const zeros32Bytes = pad(zeroAddress, { size: 32 });
-
+              const total = toHex(paymentDetails.total!.raw!);
               const args = [
                 31337, // chainid
                 paymentDetails.ttl,
                 zeros32Bytes,
                 zeroAddress,
-                toHex(paymentDetails.total!.raw!),
+                total,
                 anvilAddress,
                 false, // is paymentendpoint?
                 shopId,
@@ -403,13 +405,23 @@ describe({
               const hash = await wallet.writeContract({
                 address: abi.addresses.Payments as Address,
                 abi: abi.PaymentsByAddress,
-                functionName: "payTokenPreApproved",
+                functionName: "pay",
                 args: [args],
+                value: hexToBigInt(total),
               });
               const receipt = await publicClient.waitForTransactionReceipt({
                 hash,
               });
               expect(receipt.status).toEqual("success");
+              paymentHash = hash;
+            }
+            // check for payment confirmation by the relay before exiting
+            // TODO: add timeout
+            if (event.updateOrder?.addPaymentTx) {
+              expect(event.updateOrder.id).toEqual(orderId);
+              expect(toHex(event.updateOrder.addPaymentTx.txHash.raw)).toEqual(
+                paymentHash,
+              );
               return;
             }
           }
