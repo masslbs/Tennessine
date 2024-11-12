@@ -21,7 +21,7 @@ import { useStoreContext } from "@/context/StoreContext";
 import Dropdown from "@/app/common/components/CurrencyDropdown";
 import BackButton from "@/app/common/components/BackButton";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
-import SendTransaction from "@/app/components/transactions/SendTransaction";
+import Pay from "@/app/components/transactions/Pay";
 import QRScan from "./QRScan";
 
 const namespace = "frontend:ChoosePayment";
@@ -45,15 +45,14 @@ export default function ChoosePayment({
     null,
   );
   const [manifest, setManifest] = useState<null | ShopManifest>(null);
-  const [cryptoTotal, setCryptoTotal] = useState<bigint | null>(null);
   const [purchaseAddress, setPurchaseAddr] = useState<Address | null>(null);
-  const [chosenCurrency, setChosenCurrency] = useState(null);
   const [imgSrc, setSrc] = useState<null | string>(null);
   const [qrOpen, setQrOpen] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [chosenPaymentTokenIcon, setIcon] = useState<string>(
     "/icons/usdc-coin.png",
   );
+  const [paymentArgs, setPaymentArgs] = useState(null);
 
   useEffect(() => {
     clientWithStateManager!
@@ -94,8 +93,8 @@ export default function ChoosePayment({
 
   async function getDetails(oId: OrderId) {
     try {
-      const committedOrder = await clientWithStateManager.stateManager.orders
-        .get(oId!);
+      const committedOrder =
+        await clientWithStateManager.stateManager.orders.get(oId!);
       if (!committedOrder?.choosePayment) {
         throw new Error("No chosen payment found");
       }
@@ -135,6 +134,7 @@ export default function ChoosePayment({
         manifest.tokenId,
         shopSignature,
       ];
+      setPaymentArgs(arg);
       const purchaseAdd = (await paymentRPC.readContract({
         address: abi.addresses.Payments as `0x${string}`,
         abi: abi.PaymentsByAddress,
@@ -144,20 +144,17 @@ export default function ChoosePayment({
       if (!purchaseAdd) throw new Error("No purchase address found");
       const amount = BigInt(total);
       debug(`amount: ${amount}`);
-      const payLink = currency.address === zeroAddress
-        ? `ethereum:${purchaseAdd}?value=${amount}`
-        : `ethereum:${currency.address}/transfer?address=${purchaseAdd}&uint256=${amount}`;
+      const payLink =
+        currency.address === zeroAddress
+          ? `ethereum:${purchaseAdd}?value=${amount}`
+          : `ethereum:${currency.address}/transfer?address=${purchaseAdd}&uint256=${amount}`;
       setPurchaseAddr(purchaseAdd);
-      setChosenCurrency(currency);
       debug(`purchase address: ${purchaseAdd}`);
       setSrc(payLink);
-      setCryptoTotal(amount);
-      const displayedAmount = `${
-        formatUnitsFromString(
-          total,
-          decimal,
-        )
-      } ${symbol}`;
+      const displayedAmount = `${formatUnitsFromString(
+        total,
+        decimal,
+      )} ${symbol}`;
       if (symbol === "ETH") {
         setIcon("/icons/eth-coin.svg");
       } else {
@@ -269,11 +266,7 @@ export default function ChoosePayment({
         </div>
         <div>
           <div className="bg-background-gray p-5 rounded-lg">
-            <SendTransaction
-              purchaseAddress={purchaseAddress}
-              cryptoTotal={cryptoTotal}
-              chosenCurrency={chosenCurrency}
-            />
+            <Pay paymentArgs={paymentArgs} />
           </div>
           <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg mt-5">
             <button

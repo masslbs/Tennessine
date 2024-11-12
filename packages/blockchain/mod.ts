@@ -22,17 +22,34 @@ export type ConcreteWalletClient = WalletClient<Transport, Chain, Account>;
 export class BlockchainClient {
   constructor(public shopId = bytesToHex(randomBytes(32))) {}
 
-  transferERC20(
+  transferTokens(
     wallet: ConcreteWalletClient,
-    tokenAddress: Address,
-    purchaseAddress: Address,
-    cryptoTotal: bigint,
+    paymentArgs,
+    isERC20Payment: boolean,
   ) {
+    // Pass value parameter only if sending ETH
+    return isERC20Payment
+      ? wallet.writeContract({
+        address: abi.addresses.Payments as Address,
+        abi: abi.PaymentsByAddress,
+        functionName: "pay",
+        args: [paymentArgs],
+      })
+      : wallet.writeContract({
+        address: abi.addresses.Payments as Address,
+        abi: abi.PaymentsByAddress,
+        functionName: "pay",
+        args: [paymentArgs],
+        value: paymentArgs[4],
+      });
+  }
+
+  preApproveERC20(wallet: ConcreteWalletClient, tokenAddress, total) {
     return wallet.writeContract({
       address: tokenAddress,
       abi: abi.ERC20,
-      functionName: "transfer",
-      args: [purchaseAddress, cryptoTotal],
+      functionName: "approve",
+      args: [abi.addresses.Payments, total],
     });
   }
 
