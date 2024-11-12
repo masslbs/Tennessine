@@ -1,6 +1,6 @@
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useChains } from "wagmi";
-import { pad } from "viem";
+import { Address, pad } from "viem";
 
 import { assert, formatUnitsFromString, logger } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
@@ -46,7 +46,8 @@ export default function ChoosePayment({
   );
   const [manifest, setManifest] = useState<null | ShopManifest>(null);
   const [cryptoTotal, setCryptoTotal] = useState<bigint | null>(null);
-  const [purchaseAddress, setPurchaseAddr] = useState<string | null>(null);
+  const [purchaseAddress, setPurchaseAddr] = useState<Address | null>(null);
+  const [chosenCurrency, setChosenCurrency] = useState(null);
   const [imgSrc, setSrc] = useState<null | string>(null);
   const [qrOpen, setQrOpen] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
@@ -93,8 +94,8 @@ export default function ChoosePayment({
 
   async function getDetails(oId: OrderId) {
     try {
-      const committedOrder = await clientWithStateManager.stateManager.orders
-        .get(oId!);
+      const committedOrder =
+        await clientWithStateManager.stateManager.orders.get(oId!);
       if (!committedOrder?.choosePayment) {
         throw new Error("No chosen payment found");
       }
@@ -134,28 +135,28 @@ export default function ChoosePayment({
         manifest.tokenId,
         shopSignature,
       ];
-      const purchaseAdd = await paymentRPC.readContract({
+      const purchaseAdd = (await paymentRPC.readContract({
         address: abi.addresses.Payments as `0x${string}`,
         abi: abi.PaymentsByAddress,
         functionName: "getPaymentAddress",
         args: [arg, payee.address],
-      });
+      })) as Address;
       if (!purchaseAdd) throw new Error("No purchase address found");
       const amount = BigInt(total);
       debug(`amount: ${amount}`);
-      const payLink = currency.address === zeroAddress
-        ? `ethereum:${purchaseAdd}?value=${amount}`
-        : `ethereum:${currency.address}/transfer?address=${purchaseAdd}&uint256=${amount}`;
-      setPurchaseAddr(purchaseAdd as `0x${string}`);
+      const payLink =
+        currency.address === zeroAddress
+          ? `ethereum:${purchaseAdd}?value=${amount}`
+          : `ethereum:${currency.address}/transfer?address=${purchaseAdd}&uint256=${amount}`;
+      setPurchaseAddr(purchaseAdd);
+      setChosenCurrency(currency);
       debug(`purchase address: ${purchaseAdd}`);
       setSrc(payLink);
       setCryptoTotal(amount);
-      const displayedAmount = `${
-        formatUnitsFromString(
-          total,
-          decimal,
-        )
-      } ${symbol}`;
+      const displayedAmount = `${formatUnitsFromString(
+        total,
+        decimal,
+      )} ${symbol}`;
       if (symbol === "ETH") {
         setIcon("/icons/eth-coin.svg");
       } else {
@@ -270,6 +271,7 @@ export default function ChoosePayment({
             <SendTransaction
               purchaseAddress={purchaseAddress}
               cryptoTotal={cryptoTotal}
+              chosenCurrency={chosenCurrency}
             />
           </div>
           <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg mt-5">
