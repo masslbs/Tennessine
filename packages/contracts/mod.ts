@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2024 Mass Labs
 //
 // SPDX-License-Identifier: Unlicense
+import type { Address } from "viem";
 
 import addresses from "./deploymentAddresses.json" with { type: "json" };
 export { addresses };
@@ -8,6 +9,20 @@ import tokenAddresses from "./tokenAddresses.json" with { type: "json" };
 export { tokenAddresses };
 import Payments from "./abi/Payments.json" with { type: "json" };
 export { Payments };
+
+// FIXME: this _should_ be generated from the abi
+export type PaymentArgs = [
+  number, //chainID
+  number, //ttl
+  `0x${string}`, //orderHash
+  Address, //currency address
+  bigint, //total
+  Address, //payee address
+  boolean, //isPaymentEndpoint
+  `0x${string}`, //shopId
+  `0x${string}`, // shopSig
+];
+
 import PaymentsByAddress from "./abi/PaymentsByAddress.json" with {
   type: "json",
 };

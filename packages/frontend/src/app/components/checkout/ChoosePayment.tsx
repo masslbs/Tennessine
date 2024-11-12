@@ -4,7 +4,7 @@ import { Address, pad } from "viem";
 
 import { assert, formatUnitsFromString, logger } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
-import { zeroAddress } from "@massmarket/contracts";
+import { type PaymentArgs, zeroAddress } from "@massmarket/contracts";
 
 import {
   CheckoutStep,
@@ -12,7 +12,6 @@ import {
   Order,
   OrderEventTypes,
   OrderId,
-  PaymentArgs,
   ShopCurrencies,
   ShopManifest,
 } from "@/types";

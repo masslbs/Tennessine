@@ -4,8 +4,8 @@ import { useAccount } from "wagmi";
 
 import { logger, zeroAddress } from "@massmarket/utils";
 import { BlockchainClient } from "@massmarket/blockchain";
+import type { PaymentArgs } from "@massmarket/contracts";
 
-import { PaymentArgs } from "@/types";
 import { useUserContext } from "@/context/UserContext";
 import { ConnectWalletButton } from "@/app/common/components/ConnectWalletButton";
 import Button from "@/app/common/components/Button";
@@ -20,7 +20,7 @@ export default function Pay({ paymentArgs }: { paymentArgs: PaymentArgs }) {
 
   async function sendPayment() {
     try {
-      const blockchainClient = new BlockchainClient(shopId);
+      const blockchainClient = new BlockchainClient(shopId!);
       let isERC20Payment = false;
       if (paymentArgs[3] !== zeroAddress) {
         debug("Approve ERC20 contract call");
