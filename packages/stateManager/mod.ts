@@ -677,6 +677,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       assertField(uo.id, "updateOrder.id");
       const id = bytesToHex(uo.id.raw);
       const order = (await this.store.get(id)) as Order;
+      order.timestamp = event.timestamp?.seconds as number;
       if (uo.changeItems) {
         const ci = uo.changeItems;
         if (ci.adds) {

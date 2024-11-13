@@ -111,6 +111,7 @@ export interface Order {
   blockHash?: string;
   choosePayment?: ChoosePayment;
   paymentDetails?: PaymentDetails;
+  timestamp?: number;
 }
 export interface ShopCurrencies {
   address: `0x${string}`;
