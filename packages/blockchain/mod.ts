@@ -32,41 +32,43 @@ export interface PaymentArgs {
 }
 
 export function payTokenPreApproved(args: PaymentArgs) {
+  const paymentArgs = [
+    args.chainId,
+    args.ttl,
+    args.orderHash,
+    args.currencyAddress,
+    args.total,
+    args.payeeAddress,
+    args.isPaymentEndpoint,
+    args.shopId,
+    args.shopSignature,
+  ];
   return args.wallet.writeContract({
     address: abi.addresses.Payments as Address,
     abi: abi.PaymentsByAddress,
     functionName: "payTokenPreApproved",
-    args: [
-      args.chainId,
-      args.ttl,
-      args.orderHash,
-      args.currencyAddress,
-      args.total,
-      args.payeeAddress,
-      args.isPaymentEndpoint,
-      args.shopId,
-      args.shopSignature,
-    ],
+    args: [paymentArgs],
   });
 }
 
 export function payNative(args: PaymentArgs) {
+  const paymentArgs = [
+    args.chainId,
+    args.ttl,
+    args.orderHash,
+    args.currencyAddress,
+    args.total,
+    args.payeeAddress,
+    args.isPaymentEndpoint,
+    args.shopId,
+    args.shopSignature,
+  ];
   return args.wallet.writeContract({
     address: abi.addresses.Payments as Address,
     abi: abi.PaymentsByAddress,
     functionName: "payNative",
     value: args.total,
-    args: [
-      args.chainId,
-      args.ttl,
-      args.orderHash,
-      args.currencyAddress,
-      args.total,
-      args.payeeAddress,
-      args.isPaymentEndpoint,
-      args.shopId,
-      args.shopSignature,
-    ],
+    args: [paymentArgs],
   });
 }
 
@@ -76,37 +78,71 @@ export function getPaymentAddress(
     wallet: PublicClient;
   },
 ) {
+  const paymentArgs = [
+    args.chainId,
+    args.ttl,
+    args.orderHash,
+    args.currencyAddress,
+    args.total,
+    args.payeeAddress,
+    args.isPaymentEndpoint,
+    args.shopId,
+    args.shopSignature,
+  ];
   return args.wallet.readContract({
     address: abi.addresses.Payments as Address,
     abi: abi.PaymentsByAddress,
     functionName: "getPaymentAddress",
-    args: [
-      args.chainId,
-      args.ttl,
-      args.orderHash,
-      args.currencyAddress,
-      args.total,
-      args.payeeAddress,
-      args.isPaymentEndpoint,
-      args.shopId,
-      args.shopSignature,
-      args.refundAddress,
-    ],
+    args: [paymentArgs, args.refundAddress],
   }) as Promise<Address>;
 }
 
-export function approveERC20(
-  args: {
-    wallet: ConcreteWalletClient;
-    currencyAddress: Address;
-    total: bigint;
+export function getPaymentId(
+  args: Omit<PaymentArgs, "wallet"> & {
+    wallet: PublicClient;
   },
 ) {
-  return args.wallet.writeContract({
-    address: args.currencyAddress,
+  const paymentArgs = [
+    args.chainId,
+    args.ttl,
+    args.orderHash,
+    args.currencyAddress,
+    args.total,
+    args.payeeAddress,
+    args.isPaymentEndpoint,
+    args.shopId,
+    args.shopSignature,
+  ];
+  return args.wallet.readContract({
+    address: abi.addresses.Payments as Address,
+    abi: abi.PaymentsByAddress,
+    functionName: "getPaymentId",
+    args: [paymentArgs],
+  }) as Promise<bigint>;
+}
+
+export async function getPaymentAddressAndID(
+  args: Omit<PaymentArgs, "wallet"> & {
+    refundAddress: Address;
+    wallet: PublicClient;
+  },
+) {
+  return {
+    address: await getPaymentAddress(args),
+    id: await getPaymentId(args),
+  };
+}
+
+export function approveERC20(
+  wallet: ConcreteWalletClient,
+  currencyAddress: Address,
+  amount: bigint,
+) {
+  return wallet.writeContract({
+    address: currencyAddress,
     abi: abi.ERC20,
     functionName: "approve",
-    args: [abi.addresses.Payments, args.total],
+    args: [abi.addresses.Payments, amount],
   });
 }
 
