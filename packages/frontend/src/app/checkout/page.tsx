@@ -57,7 +57,7 @@ const CheckoutFlow = () => {
   }, [isRunning, countdown]);
 
   useEffect(() => {
-    const txHashDetected = (res: [OrderEventTypes, Order]) => {
+    function txHashDetected(res: [OrderEventTypes, Order]) {
       if (res[0] === OrderEventTypes.PAYMENT_TX) {
         const order = res[1];
         const tx = order.txHash as `0x${string}`;
@@ -68,7 +68,7 @@ const CheckoutFlow = () => {
         setCommittedOrderId(null);
         setStep(CheckoutStep.confirmation);
       }
-    };
+    }
 
     clientWithStateManager.stateManager.orders.on("update", txHashDetected);
     return () => {

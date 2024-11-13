@@ -31,7 +31,7 @@ function QRScan({
       <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
         <div className="rounded-lg p-2 flex flex-col items-center gap-4">
           <img
-            src="/icons/pay-by-qr.svg"
+            src="/icons/pay-by-QR.svg"
             width={78}
             height={100}
             alt="pay-by-qr"
