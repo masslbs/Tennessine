@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 
@@ -18,15 +18,36 @@ const namespace = "frontend:Pay";
 const debug = logger(namespace);
 const errlog = logger(namespace, "error");
 
-export default function Pay(
-  { paymentArgs }: { paymentArgs: Omit<PaymentArgs, "wallet"> },
-) {
+export default function Pay({
+  paymentArgs,
+  paymentCurrencyLoading,
+}: {
+  paymentArgs: Omit<PaymentArgs, "wallet">;
+  paymentCurrencyLoading: boolean;
+}) {
   const { status } = useAccount();
-  const { clientWallet } = useUserContext();
+  const { clientWallet, clientWithStateManager } = useUserContext();
+
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    function txHashDetected() {
+      setLoading(false);
+    }
+    clientWithStateManager.stateManager.orders.on("update", txHashDetected);
+
+    return () => {
+      clientWithStateManager.stateManager.orders.removeListener(
+        "update",
+        txHashDetected,
+      );
+    };
+  }, []);
 
   async function sendPayment() {
     const paymentArgsWallet = { wallet: clientWallet, ...paymentArgs };
     try {
+      setLoading(true);
       if (paymentArgs.currencyAddress !== zeroAddress) {
         debug("Approve ERC20 contract call");
         // TODO: should do this if we have already approved the contract
@@ -55,9 +76,10 @@ export default function Pay(
             <ConnectButton chainStatus="name" />
             <Button
               onClick={sendPayment}
-              disabled={!paymentArgs || !clientWallet}
+              disabled={!paymentArgs || !clientWallet || loading ||
+                paymentCurrencyLoading}
             >
-              <h6>Pay</h6>
+              {loading ? <h6>Waiting for transaction...</h6> : <h6>Pay</h6>}
             </Button>
           </div>
         )
