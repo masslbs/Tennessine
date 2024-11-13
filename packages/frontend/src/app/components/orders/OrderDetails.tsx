@@ -11,21 +11,23 @@ export default function OrderDetails({ order, onBack }) {
   const { clientWithStateManager } = useUserContext();
 
   const [allOrderItems, setAllItems] = useState(new Map());
-  const [transactionHash, setHash] = useState(null);
+  const [txHash, setTxHash] = useState(null);
+  const [blockHash, setBlockHash] = useState(null);
   const [etherScanLink, setLink] = useState("");
 
   useEffect(() => {
-    if (order.status === OrderState.STATE_PAID) {
+    if (order.status === OrderState.STATE_PAYMENT_TX) {
       const id = order.choosePayment.currency.chainId;
-      const hash = order.txHash || order.blockHash;
-      setHash(hash);
+      order.txHash && setTxHash(order.txHash);
+      order.blockHash && setBlockHash(order.blockHash);
+
       //FIXME: clean this up to dynamically attach chain name.
       if (id === optimism.id) {
-        setLink(`https://optimism.etherscan.io/tx/${order.hash}`);
+        setLink(`https://optimism.etherscan.io`);
       } else if (id === sepolia.id) {
-        setLink(`https://sepolia.etherscan.io/tx/${order.hash}`);
+        setLink(`https://sepolia.etherscan.io`);
       } else if (id === mainnet.id) {
-        setLink(`https://etherscan.io/tx/${order.hash}`);
+        setLink(`https://etherscan.io`);
       }
     }
     getCartItemDetails(order).then((allItems) => {
@@ -33,9 +35,13 @@ export default function OrderDetails({ order, onBack }) {
     });
   }, [order]);
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(transactionHash);
-  };
+  function copyTxHash() {
+    navigator.clipboard.writeText(txHash);
+  }
+
+  function copyBlockHash() {
+    navigator.clipboard.writeText(blockHash);
+  }
 
   async function getCartItemDetails(order: Order) {
     const ci = order.items;
@@ -86,41 +92,45 @@ export default function OrderDetails({ order, onBack }) {
         <h2>Order items</h2>
         {renderItems()}
       </section>
+      {order.shippingDetails
+        ? (
+          <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
+            <h2>Shipping Details</h2>
+            <div className="flex gap-2">
+              <h3>Name</h3>
+              <p>{order.shippingDetails.name}</p>
+            </div>
+            <div className="flex gap-2">
+              <h3>Address</h3>
+              <div>
+                <p>{order.shippingDetails.address1}</p>
+                <p>{order.shippingDetails.city}</p>
+                <p>{order.shippingDetails.country}</p>
+                <p>{order.shippingDetails.postalCode}</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <h3>Email</h3>
+              <p>{order.shippingDetails.emailAddress}</p>
+            </div>
+            <div className="flex gap-2">
+              <h3>Phone</h3>
+              <p>{order.shippingDetails.phoneNumber}</p>
+            </div>
+          </section>
+        )
+        : null}
       <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
-        <h2>Shipping Details</h2>
-        <div className="flex gap-2">
-          <h3>Name</h3>
-          <p>{order.shippingDetails.name}</p>
-        </div>
-        <div className="flex gap-2">
-          <h3>Address</h3>
-          <div>
-            <p>{order.shippingDetails.address1}</p>
-            <p>{order.shippingDetails.city}</p>
-            <p>{order.shippingDetails.country}</p>
-            <p>{order.shippingDetails.postalCode}</p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <h3>Email</h3>
-          <p>{order.shippingDetails.emailAddress}</p>
-        </div>
-        <div className="flex gap-2">
-          <h3>Phone</h3>
-          <p>{order.shippingDetails.phoneNumber}</p>
-        </div>
-      </section>
-      <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
-        <h2>Transaction Hash</h2>
+        <h2>Tx Hash</h2>
         <div className="flex gap-2">
           <div
             className={`bg-background-gray p-2 rounded-md overflow-x-auto w-40 ${
-              transactionHash ? "" : "hiden"
+              txHash ? "" : "hiden"
             }`}
           >
-            <p>{transactionHash}</p>
+            <p>{txHash}</p>
           </div>
-          <button onClick={copyToClipboard}>
+          <button onClick={copyTxHash}>
             <img
               src="/icons/copy-icon.svg"
               width={20}
@@ -130,8 +140,36 @@ export default function OrderDetails({ order, onBack }) {
             />
           </button>
         </div>
-        <a href={etherScanLink} className={etherScanLink ? "" : "hidden"}>
-          View transaction
+        <h2>Block Hash</h2>
+        <div className="flex gap-2">
+          <div
+            className={`bg-background-gray p-2 rounded-md overflow-x-auto w-40 ${
+              blockHash ? "" : "hiden"
+            }`}
+          >
+            <p>{blockHash}</p>
+          </div>
+          <button onClick={copyBlockHash}>
+            <img
+              src="/icons/copy-icon.svg"
+              width={20}
+              height={20}
+              alt="copy-icon"
+              className="w-auto h-auto ml-auto"
+            />
+          </button>
+        </div>
+        <a
+          href={`${etherScanLink}/tx/${txHash}`}
+          className={etherScanLink && txHash ? "" : "hidden"}
+        >
+          View TX
+        </a>
+        <a
+          href={`${etherScanLink}/block/${blockHash}`}
+          className={etherScanLink && blockHash ? "" : "hidden"}
+        >
+          View block
         </a>
       </section>
     </main>

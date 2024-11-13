@@ -174,7 +174,7 @@ const MerchantDashboard = () => {
         <div className="transactions-container">
           <h2 className="my-4">Latest orders</h2>
           <div className="bg-primary-dark-green flex text-white p-4 rounded-t-xl">
-            <p>Order</p>
+            <p>Order ID</p>
             <p className="ml-auto">Status</p>
           </div>
           {renderTransactions()}
