@@ -187,7 +187,7 @@ function ShippingDetails({
               data-testid="email"
               onChange={(e) => setEmail(e.target.value)}
             />
-            <label htmlFor="phoneNumber">Phone Number</label>
+            <label htmlFor="phoneNumber">Phone Number (optional)</label>
             <input
               className="border-2 border-solid mt-1 p-3 rounded-2xl"
               id="phone"
