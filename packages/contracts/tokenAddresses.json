@@ -14,5 +14,9 @@
   "11155111": {
     "chainName": "Sepolia",
     "USDC": "0x822585D682B973e4b1B47C0311f162b29586DD02"
+  },
+  "11155420": {
+    "chainName": "Optimism Sepolia",
+    "USDC": "0x5fd84259d66Cd46123540766Be93DFE6D43130D7"
   }
 }
