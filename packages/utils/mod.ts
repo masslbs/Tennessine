@@ -8,6 +8,7 @@ import {
   formatUnits,
   hexToBytes,
   numberToBytes,
+  pad,
   parseUnits,
   toBytes,
 } from "viem";
@@ -105,6 +106,16 @@ export function randomBytes(n: number) {
   const b = new Uint8Array(n);
   crypto.getRandomValues(b);
   return b;
+}
+
+// Pad a value to 32 bytes, useful for uint256
+export function pad32Bytes(value: Uint8Array) {
+  // return padBytes(value, 32, false);
+  return pad(value, { dir: "right", size: 32 });
+}
+
+export function padUint256(value: bigint) {
+  return numberToBytes(value, { size: 32 });
 }
 
 export function random32BytesHex() {

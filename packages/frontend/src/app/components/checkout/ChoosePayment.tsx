@@ -1,10 +1,11 @@
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useChains } from "wagmi";
-import { Address, pad, toHex } from "viem";
+import { Address, bytesToBigInt, pad, toHex } from "viem";
 import {
   assert,
   formatUnitsFromString,
   logger,
+  padUint256,
   zeroAddress,
 } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
@@ -156,7 +157,7 @@ export default function ChoosePayment({
       if (!calculatedPaymentInfo.address) {
         throw new Error("No payment address found");
       }
-      if (toHex(calculatedPaymentInfo.id) !== paymentId) {
+      if (padUint256(bytesToBigInt(calculatedPaymentInfo.id)) !== paymentId) {
         debug(`received payment Id: ${paymentId}`);
         debug(`calculated payment Id: ${toHex(calculatedPaymentInfo.id)}`);
         throw new Error("Payment ID mismatch");

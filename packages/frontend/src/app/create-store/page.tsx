@@ -276,6 +276,7 @@ const StoreCreation = () => {
       ];
       // Get all unique chain IDs for selected accepted currencies and add payee for each chain.
       const payees = uniqueByChainId.map((chainId) => {
+        assert(payeeAddress, "payeeAddress is required");
         return {
           address: payeeAddress,
           callAsContract: false,

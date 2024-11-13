@@ -5,9 +5,9 @@
 import { WebSocket } from "isows";
 import {
   type Address,
+  bytesToBigInt,
   createPublicClient,
   createWalletClient,
-  hexToBigInt,
   hexToBytes,
   http,
   pad,
@@ -29,7 +29,11 @@ import {
   zeroAddress,
 } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
-import { BlockchainClient } from "@massmarket/blockchain";
+import {
+  BlockchainClient,
+  getPaymentAddressAndID,
+  payNative,
+} from "@massmarket/blockchain";
 
 import { discoverRelay, RelayClient } from "./mod.ts";
 
@@ -377,37 +381,30 @@ describe({
           for await (const { event } of stream) {
             if (event.updateOrder?.setPaymentDetails) {
               const paymentDetails = event.updateOrder.setPaymentDetails;
-              const zeros32Bytes = pad(zeroAddress, { size: 32 });
-              const total = toHex(paymentDetails.total!.raw!);
-              const args = [
-                31337, // chainid
-                paymentDetails.ttl,
-                zeros32Bytes,
-                zeroAddress,
-                total,
-                anvilAddress,
-                false, // is paymentendpoint?
+              const zeros32Bytes = pad(zeroAddress);
+              const total = bytesToBigInt(paymentDetails.total!.raw!);
+              const args = {
+                chainId: 31337,
+                ttl: paymentDetails.ttl,
+                orderHash: zeros32Bytes,
+                currencyAddress: zeroAddress,
+                total: total,
+                payeeAddress: anvilAddress as `0x${string}`,
+                isPaymentEndpoint: false,
                 shopId,
-                toHex(paymentDetails.shopSignature!.raw!),
-              ];
-              const paymentId = (await publicClient.readContract({
-                address: abi.addresses.Payments as Address,
-                abi: abi.PaymentsByAddress,
-                functionName: "getPaymentId",
-                args: [args],
-              })) as bigint;
-
-              // TODO: toHex is not padding BigInt coerrect, so this cause random test
-              // failures
-              expect(toHex(paymentDetails.paymentId!.raw!)).toEqual(
-                toHex(paymentId),
+                shopSignature: toHex(paymentDetails.shopSignature!.raw!),
+              };
+              const calculatedPaymentInfo = await getPaymentAddressAndID({
+                wallet: publicClient,
+                refundAddress: args.payeeAddress,
+                ...args,
+              });
+              expect(toHex(calculatedPaymentInfo.id)).toEqual(
+                toHex(paymentDetails.paymentId!.raw!),
               );
-              const hash = await wallet.writeContract({
-                address: abi.addresses.Payments as Address,
-                abi: abi.PaymentsByAddress,
-                functionName: "pay",
-                args: [args],
-                value: hexToBigInt(total),
+              const hash = await payNative({
+                wallet,
+                ...args,
               });
               const receipt = await publicClient.waitForTransactionReceipt({
                 hash,

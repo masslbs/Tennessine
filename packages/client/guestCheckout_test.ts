@@ -8,6 +8,7 @@ import { describe, it } from "jsr:@std/testing/bdd";
 import {
   type Account,
   type Address,
+  bytesToBigInt,
   createPublicClient,
   createWalletClient,
   hexToBytes,
@@ -29,6 +30,8 @@ import {
 import {
   BlockchainClient,
   type ConcreteWalletClient,
+  getPaymentId,
+  payTokenPreApproved,
 } from "@massmarket/blockchain";
 import { discoverRelay, RelayClient } from "./mod.ts";
 import type schema from "../schema/mod.ts";
@@ -295,31 +298,29 @@ describe({
       for await (const { event } of stream) {
         if (event.updateOrder?.setPaymentDetails) {
           const order = event.updateOrder.setPaymentDetails;
-          const args = [
-            31337,
-            order.ttl,
-            pad(zeroAddress, { size: 32 }), //orderHash
-            toHex(currency), //currency address
-            toHex(order.total!.raw!),
-            toHex(payee), //payee address
-            false, // is paymentendpoint?
+          expect(order.total).toBeDefined();
+          expect(order.ttl).toBeDefined();
+          expect(order.shopSignature).toBeDefined();
+          const args = {
+            chainId: 31337,
+            ttl: order.ttl,
+            orderHash: pad(zeroAddress, { size: 32 }),
+            currencyAddress: toHex(currency),
+            total: bytesToBigInt(order.total!.raw!),
+            payeeAddress: toHex(payee),
+            isPaymentEndpoint: false,
             shopId,
-            toHex(order.shopSignature!.raw!),
-          ];
-          const paymentId = (await publicClient.readContract({
-            address: abi.addresses.Payments as Address,
-            abi: abi.PaymentsByAddress,
-            functionName: "getPaymentId",
-            args: [args],
-          })) as bigint;
-          expect(toHex(order.paymentId!.raw!)).toEqual(toHex(paymentId));
-
+            shopSignature: toHex(order.shopSignature!.raw!),
+          };
+          const paymentId = await getPaymentId({
+            wallet: publicClient,
+            ...args,
+          });
+          expect(toHex(paymentId)).toEqual(toHex(order.paymentId!.raw!));
           // call the pay function
-          const hash = await guestWallet.writeContract({
-            address: abi.addresses.Payments as Address,
-            abi: abi.PaymentsByAddress,
-            functionName: "pay",
-            args: [args],
+          const hash = await payTokenPreApproved({
+            wallet: guestWallet,
+            ...args,
           });
           const receipt = await publicClient.waitForTransactionReceipt({
             hash,

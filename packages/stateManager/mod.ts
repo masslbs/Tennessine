@@ -1,6 +1,13 @@
 import { EventEmitter } from "events";
 import { Address } from "@ethereumjs/util";
-import { bytesToHex, fromBytes, hexToBytes, type PublicClient } from "viem";
+import {
+  bytesToBigInt,
+  bytesToHex,
+  fromBytes,
+  hexToBytes,
+  type PublicClient,
+  toHex,
+} from "viem";
 
 import {
   type ChoosePayment,
@@ -37,6 +44,7 @@ import {
   assertField,
   logger,
   objectId,
+  padUint256,
   priceToUint256,
 } from "@massmarket/utils";
 
@@ -853,7 +861,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         );
         assert(pd.ttl, "updateOrder.setPaymentDetails.ttl");
         const paymentDetails = {
-          paymentId: bytesToHex(pd.paymentId.raw, { size: 32 }),
+          paymentId: toHex(padUint256(bytesToBigInt(pd.paymentId.raw))),
           total: fromBytes(pd.total.raw, "bigint").toString(),
           shopSignature: bytesToHex(pd.shopSignature.raw),
           ttl: pd.ttl,
