@@ -14,6 +14,7 @@ export default function OrderDetails({ order, onBack }) {
   const [txHash, setTxHash] = useState(null);
   const [blockHash, setBlockHash] = useState(null);
   const [etherScanLink, setLink] = useState("");
+  const [date, setDate] = useState("N/A");
 
   useEffect(() => {
     if (order.status === OrderState.STATE_PAYMENT_TX) {
@@ -29,7 +30,18 @@ export default function OrderDetails({ order, onBack }) {
       } else if (id === mainnet.id) {
         setLink(`https://etherscan.io`);
       }
+      if (order.timestamp) {
+        const d = new Intl.DateTimeFormat("en-US", {
+          year: "numeric",
+          month: "numeric",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }).format(order.timestamp * 1000);
+        setDate(d);
+      }
     }
+
     getCartItemDetails(order).then((allItems) => {
       setAllItems(allItems);
     });
@@ -87,6 +99,7 @@ export default function OrderDetails({ order, onBack }) {
       </div>
       <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
         <p>Order ID: {order.id}</p>
+        <p>Last updated: {date}</p>
       </section>
       <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
         <h2>Order items</h2>
