@@ -50,7 +50,7 @@ function CustomerViewProducts({ products }: { products: Listing[] | null }) {
               item.id,
             )
           }`}
-          className={`${!visible ? "opacity-50" : ""}`}
+          className={`${!visible ? "hidden" : ""}`}
         >
           <div>
             <div className="flex justify-center" data-testid={`product-img`}>
