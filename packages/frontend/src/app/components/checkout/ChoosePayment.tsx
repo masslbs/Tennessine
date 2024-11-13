@@ -59,8 +59,13 @@ export default function ChoosePayment({
     "/icons/usdc-coin.png",
   );
   const [paymentArgs, setPaymentArgs] = useState<
-    null | Omit<PaymentArgs, "wallet">
+    | null
+    | Omit<
+      PaymentArgs,
+      "wallet"
+    >
   >(null);
+  const [paymentCurrencyLoading, setPaymentCurrencyLoading] = useState(false);
 
   useEffect(() => {
     clientWithStateManager!
@@ -84,6 +89,7 @@ export default function ChoosePayment({
       ) {
         getDetails(committedOrderId).then(() => {
           debug("paymentDetails found for order");
+          setPaymentCurrencyLoading(false);
         });
       }
     }
@@ -142,9 +148,11 @@ export default function ChoosePayment({
         shopId: shopId!,
         shopSignature,
       };
-      const calculatedPaymentInfo = await getPaymentAddressAndID(
-        { wallet: paymentRPC, refundAddress: arg.payeeAddress, ...arg },
-      );
+      const calculatedPaymentInfo = await getPaymentAddressAndID({
+        wallet: paymentRPC,
+        refundAddress: arg.payeeAddress,
+        ...arg,
+      });
       if (!calculatedPaymentInfo.address) {
         throw new Error("No payment address found");
       }
@@ -205,6 +213,7 @@ export default function ChoosePayment({
   }
   async function onSelectPaymentCurrency(selected: CurrencyChainOption) {
     try {
+      setPaymentCurrencyLoading(true);
       const payee = manifest!.payees.find(
         (p) => p.chainId === selected.chainId,
       );
@@ -278,9 +287,15 @@ export default function ChoosePayment({
             <h1>{displayedAmount}</h1>
           </div>
         </div>
+        <div className={paymentCurrencyLoading ? "" : "hidden"}>
+          <p>Getting payment details...</p>
+        </div>
         <div>
           <div className="bg-background-gray p-5 rounded-lg">
-            <Pay paymentArgs={paymentArgs} />
+            <Pay
+              paymentArgs={paymentArgs}
+              paymentCurrencyLoading={paymentCurrencyLoading}
+            />
           </div>
           <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg mt-5">
             <button
