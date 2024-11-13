@@ -49,23 +49,29 @@ export function logger(
     }
     // standard console logging
     // ========================
-    const stmt = `[${namespace}] ${message}` + (error ? `: ${error}` : "");
+    const stmt = `[${namespace}] ${message}`;
+    let fn = console.debug;
     switch (level) {
       case "debug":
-        console.debug(stmt);
+        fn = console.debug;
         break;
       case "info":
-        console.info(stmt);
+        fn = console.info;
         break;
       case "warn":
-        console.warn(stmt);
+        fn = console.warn;
         break;
       case "error":
-        console.error(stmt);
+        fn = console.error;
         break;
       default:
-        console.log(stmt);
+        fn = console.log;
     }
+    const args: [string, Error?] = [stmt];
+    if (error) {
+      args.push(error);
+    }
+    fn.call(console, ...args);
   };
 }
 
