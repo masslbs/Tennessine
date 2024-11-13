@@ -56,13 +56,13 @@ function CustomerViewProducts({ products }: { products: Listing[] | null }) {
             <div className="flex justify-center" data-testid={`product-img`}>
               <img
                 src={metadata.images[0] || "/assets/no-image.png"}
-                width={176}
+                width={160}
                 height={144}
                 alt="product-thumb"
-                className="h-36 w-44 rounded-t-lg object-cover object-center xxs:w-36"
+                className="h-36 w-40 rounded-t-lg object-cover object-center xxs:w-36"
               />
             </div>
-            <div className="bg-white flex flex-col gap-2 rounded-b-lg p-3 min-h-24 max-h-24 h-24 w-44 xxs:w-36">
+            <div className="bg-white flex flex-col gap-2 rounded-b-lg p-3 min-h-24 max-h-24 h-24 w-40 xxs:w-36">
               <div className="min-h-8">
                 <h3 data-testid="product-name" className="leading-4">
                   {item.metadata.title}
@@ -88,12 +88,14 @@ function CustomerViewProducts({ products }: { products: Listing[] | null }) {
     });
   }
   return (
-    <section className="mx-5 mt-2">
+    <section className="mt-2">
       <div className="flex">
-        <h1 className="grow flex items-center">Shop</h1>
+        <h1 className="grow flex items-center px-6">Shop</h1>
       </div>
-      <section className="flex flex-wrap justify-between gap-3 mt-3">
-        {renderProducts()}
+      <section className="flex justify-center">
+        <section className="flex flex-wrap justify-between gap-3 mt-3 w-5/6 max-w-screen-sm">
+          {renderProducts()}
+        </section>
       </section>
     </section>
   );
