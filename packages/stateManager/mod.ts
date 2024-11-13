@@ -852,7 +852,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         );
         assert(pd.ttl, "updateOrder.setPaymentDetails.ttl");
         const paymentDetails = {
-          paymentId: bytesToHex(pd.paymentId.raw),
+          paymentId: bytesToHex(pd.paymentId.raw, { size: 32 }),
           total: fromBytes(pd.total.raw, "bigint").toString(),
           shopSignature: bytesToHex(pd.shopSignature.raw),
           ttl: pd.ttl,

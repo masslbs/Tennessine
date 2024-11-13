@@ -1,6 +1,6 @@
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useChains } from "wagmi";
-import { Address, pad } from "viem";
+import { Address, pad, toHex } from "viem";
 import {
   assert,
   formatUnitsFromString,
@@ -8,7 +8,10 @@ import {
   zeroAddress,
 } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
-import { getPaymentAddress, type PaymentArgs } from "@massmarket/blockchain";
+import {
+  getPaymentAddressAndID,
+  type PaymentArgs,
+} from "@massmarket/blockchain";
 import {
   CheckoutStep,
   CurrencyChainOption,
@@ -48,7 +51,7 @@ export default function ChoosePayment({
     null,
   );
   const [manifest, setManifest] = useState<null | ShopManifest>(null);
-  const [purchaseAddress, setPurchaseAddr] = useState<Address | null>(null);
+  const [paymentAddress, setPaymentAddress] = useState<Address | null>(null);
   const [imgSrc, setSrc] = useState<null | string>(null);
   const [qrOpen, setQrOpen] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
@@ -110,7 +113,8 @@ export default function ChoosePayment({
       if (currency.chainId !== payee.chainId) {
         throw new Error("Currency and payee chainId mismatch");
       }
-      const { total, shopSignature, ttl } = committedOrder.paymentDetails;
+      const { total, shopSignature, ttl, paymentId } =
+        committedOrder.paymentDetails;
       const chosenPaymentChain = chains.find(
         (chain) => currency.chainId === chain.id,
       );
@@ -138,19 +142,26 @@ export default function ChoosePayment({
         shopId: shopId!,
         shopSignature,
       };
-      setPaymentArgs(arg);
-      const purchaseAdd = await getPaymentAddress(
+      const calculatedPaymentInfo = await getPaymentAddressAndID(
         { wallet: paymentRPC, refundAddress: arg.payeeAddress, ...arg },
       );
-
-      if (!purchaseAdd) throw new Error("No purchase address found");
+      if (!calculatedPaymentInfo.address) {
+        throw new Error("No payment address found");
+      }
+      if (toHex(calculatedPaymentInfo.id) !== paymentId) {
+        debug(`received payment Id: ${paymentId}`);
+        debug(`calculated payment Id: ${toHex(calculatedPaymentInfo.id)}`);
+        throw new Error("Payment ID mismatch");
+      }
+      setPaymentArgs(arg);
+      const paymentAddr = calculatedPaymentInfo.address;
       const amount = BigInt(total);
       debug(`amount: ${amount}`);
       const payLink = currency.address === zeroAddress
-        ? `ethereum:${purchaseAdd}?value=${amount}`
-        : `ethereum:${currency.address}/transfer?address=${purchaseAdd}&uint256=${amount}`;
-      setPurchaseAddr(purchaseAdd);
-      debug(`purchase address: ${purchaseAdd}`);
+        ? `ethereum:${paymentAddr}?value=${amount}`
+        : `ethereum:${currency.address}/transfer?address=${paymentAddr}&uint256=${amount}`;
+      setPaymentAddress(paymentAddr);
+      debug(`payment address: ${paymentAddr}`);
       setSrc(payLink);
       const displayedAmount = `${
         formatUnitsFromString(
@@ -221,7 +232,7 @@ export default function ChoosePayment({
     return (
       <QRScan
         imgSrc={imgSrc!}
-        purchaseAddress={purchaseAddress!}
+        purchaseAddress={paymentAddress!}
         displayedAmount={displayedAmount!}
         goBack={() => setQrOpen(false)}
       />
