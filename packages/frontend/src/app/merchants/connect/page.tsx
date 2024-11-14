@@ -6,7 +6,6 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useAccount } from "wagmi";
-import { Address } from "viem";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 import * as abi from "@massmarket/contracts";
@@ -66,8 +65,8 @@ const MerchantConnectWallet = () => {
     }
     try {
       const uri = (await shopPublicClient!.readContract({
-        address: abi.addresses.ShopReg as Address,
-        abi: abi.ShopReg,
+        address: abi.addresses.ShopReg,
+        abi: abi.shopRegAbi,
         functionName: "tokenURI",
         args: [searchShopId],
       })) as string;

@@ -8,30 +8,30 @@ import { describe, it } from "jsr:@std/testing/bdd";
 import {
   type Account,
   type Address,
+  bytesToBigInt,
   createPublicClient,
   createWalletClient,
   hexToBytes,
   http,
-  pad,
   toHex,
-} from "viem";
-import { hardhat } from "viem/chains";
-import { privateKeyToAccount } from "viem/accounts";
-import { random32BytesHex } from "@massmarket/utils";
-import * as abi from "@massmarket/contracts";
+} from "npm:viem";
+import { hardhat } from "npm:viem/chains";
+import { privateKeyToAccount } from "npm:viem/accounts";
+import { random256BigInt, random32BytesHex } from "@massmarket/utils";
 import {
+  addresses,
   anvilPrivateKey2,
-  objectId,
-  priceToUint256,
-  randomAddress,
-  zeroAddress,
-} from "@massmarket/utils";
+  eddiesAbi,
+  paymentsByAddressAbi,
+} from "@massmarket/contracts";
+import { objectId, priceToUint256, randomAddress } from "@massmarket/utils";
 import {
   BlockchainClient,
   type ConcreteWalletClient,
 } from "@massmarket/blockchain";
 import { discoverRelay, RelayClient } from "./mod.ts";
 import type schema from "../schema/mod.ts";
+import { bytesToHex } from "jsr:@wevm/viem/utils";
 
 describe({
   name: "guestCheckout",
@@ -62,7 +62,7 @@ describe({
       });
     }
 
-    const shopId = random32BytesHex();
+    const shopId = random256BigInt();
     const blockchain = new BlockchainClient(shopId);
 
     it("create shop", async () => {
@@ -92,7 +92,7 @@ describe({
 
     // create a random address to pay to
     const payee: Uint8Array = hexToBytes(randomAddress());
-    const currency: Uint8Array = hexToBytes(abi.addresses.Eddies as Address);
+    const currency: Uint8Array = hexToBytes(addresses.Eddies as Address);
 
     it("write shop manifest", async () => {
       await relayClient.connect();
@@ -158,7 +158,7 @@ describe({
       await wallet.sendTransaction({
         account,
         to: guestAccount.address,
-        value: BigInt("250000000000000000"),
+        value: 250000000000000000n,
       });
       const w = createWalletClient({
         account: guestAccount,
@@ -242,6 +242,7 @@ describe({
       });
       const stream = guestRelayClient.createEventStream();
       for await (const { event } of stream) {
+        console.log("here!!", event);
         //FIXME: not getting payment details currently for guests. use payTokenPreApproved here once paymentdetails comes through.
         if (event.updateOrder?.setPaymentDetails) {
           return;
@@ -267,10 +268,10 @@ describe({
     it("single item checkout with a guest", async () => {
       // give the guest account some money to spend
       const txHash1 = await wallet.writeContract({
-        address: abi.addresses.Eddies as Address,
-        abi: abi.Eddies,
+        address: addresses.Eddies as Address,
+        abi: eddiesAbi,
         functionName: "mint",
-        args: [guestAccount.address, 999999999999],
+        args: [guestAccount.address, 999999999999n],
       });
 
       const receipt1 = await publicClient.waitForTransactionReceipt({
@@ -280,10 +281,10 @@ describe({
 
       // allow the payment contract to transfer on behalf of the guest user
       const txHash2 = await guestWallet.writeContract({
-        address: abi.addresses.Eddies as Address,
-        abi: abi.Eddies,
+        address: addresses.Eddies as Address,
+        abi: eddiesAbi,
         functionName: "approve",
-        args: [abi.addresses.Payments, 9999999999],
+        args: [addresses.Payments, 9999999999n],
       });
       const receipt2 = await publicClient.waitForTransactionReceipt({
         hash: txHash2,
@@ -295,20 +296,20 @@ describe({
       for await (const { event } of stream) {
         if (event.updateOrder?.setPaymentDetails) {
           const order = event.updateOrder.setPaymentDetails;
-          const args = [
-            31337,
-            order.ttl,
-            pad(zeroAddress, { size: 32 }), //orderHash
-            toHex(currency), //currency address
-            toHex(order.total!.raw!),
-            toHex(payee), //payee address
-            false, // is paymentendpoint?
-            shopId,
-            toHex(order.shopSignature!.raw!),
-          ];
+          const args = {
+            chainId: 31337n,
+            ttl: BigInt(order.ttl!),
+            order: bytesToHex(new Uint8Array(32)),
+            currency: toHex(currency), //currency address
+            amount: bytesToBigInt(order.total!.raw!),
+            payeeAddress: toHex(payee), //payee address
+            isPaymentEndpoint: false, // is paymentendpoint?
+            shopId: shopId,
+            shopSignature: toHex(order.shopSignature!.raw!),
+          };
           const paymentId = (await publicClient.readContract({
-            address: abi.addresses.Payments as Address,
-            abi: abi.PaymentsByAddress,
+            address: addresses.Payments as Address,
+            abi: paymentsByAddressAbi,
             functionName: "getPaymentId",
             args: [args],
           })) as bigint;
@@ -316,8 +317,8 @@ describe({
 
           // call the pay function
           const hash = await guestWallet.writeContract({
-            address: abi.addresses.Payments as Address,
-            abi: abi.PaymentsByAddress,
+            address: addresses.Payments as Address,
+            abi: paymentsByAddressAbi,
             functionName: "pay",
             args: [args],
           });
@@ -331,7 +332,7 @@ describe({
         // TODO: add timeout
         if (event.updateOrder?.addPaymentTx) {
           expect(event.updateOrder.id).toEqual(orderId);
-          expect(toHex(event.updateOrder.addPaymentTx.txHash.raw)).toEqual(
+          expect(toHex(event.updateOrder!.addPaymentTx!.txHash!.raw!)).toEqual(
             paymentHash,
           );
           return;

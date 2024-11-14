@@ -1,188 +1,168 @@
 // SPDX-FileCopyrightText: 2024 Mass Labs
 //
 // SPDX-License-Identifier: MIT
-
 import {
+  type Abi,
   type Account,
   type Address,
   bytesToHex,
   type Chain,
+  type ContractFunctionArgs,
+  type ContractFunctionName,
+  type ContractFunctionReturnType,
   hexToBytes,
   type PublicClient,
   type Transport,
   type WalletClient,
+  type WriteContractParameters,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { randomBytes } from "@massmarket/utils";
+import { random256BigInt } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 
 export type ConcreteWalletClient = WalletClient<Transport, Chain, Account>;
 
-export interface PaymentArgs {
-  wallet: ConcreteWalletClient;
-  chainId: number;
-  ttl: number;
-  orderHash: `0x${string}`;
-  currencyAddress: Address;
-  total: bigint;
-  payeeAddress: Address;
-  isPaymentEndpoint: boolean;
-  shopId: `0x${string}`;
-  shopSignature: `0x${string}`;
-}
+type Mutable = "nonpayable" | "payable";
+type ReadOnly = "view" | "pure";
 
-export function payTokenPreApproved(args: PaymentArgs) {
-  const paymentArgs = [
-    args.chainId,
-    args.ttl,
-    args.orderHash,
-    args.currencyAddress,
-    args.total,
-    args.payeeAddress,
-    args.isPaymentEndpoint,
-    args.shopId,
-    args.shopSignature,
-  ];
-  return args.wallet.writeContract({
-    address: abi.addresses.Payments as Address,
-    abi: abi.PaymentsByAddress,
-    functionName: "payTokenPreApproved",
-    args: [paymentArgs],
-  });
-}
-
-export function payNative(args: PaymentArgs) {
-  const paymentArgs = [
-    args.chainId,
-    args.ttl,
-    args.orderHash,
-    args.currencyAddress,
-    args.total,
-    args.payeeAddress,
-    args.isPaymentEndpoint,
-    args.shopId,
-    args.shopSignature,
-  ];
-  return args.wallet.writeContract({
-    address: abi.addresses.Payments as Address,
-    abi: abi.PaymentsByAddress,
-    functionName: "payNative",
-    value: args.total,
-    args: [paymentArgs],
-  });
-}
-
-export function getPaymentAddress(
-  args: Omit<PaymentArgs, "wallet"> & {
-    refundAddress: Address;
-    wallet: PublicClient;
-  },
-) {
-  const paymentArgs = [
-    args.chainId,
-    args.ttl,
-    args.orderHash,
-    args.currencyAddress,
-    args.total,
-    args.payeeAddress,
-    args.isPaymentEndpoint,
-    args.shopId,
-    args.shopSignature,
-  ];
-  return args.wallet.readContract({
-    address: abi.addresses.Payments as Address,
-    abi: abi.PaymentsByAddress,
-    functionName: "getPaymentAddress",
-    args: [paymentArgs, args.refundAddress],
-  }) as Promise<Address>;
-}
-
-export function getPaymentId(
-  args: Omit<PaymentArgs, "wallet"> & {
-    wallet: PublicClient;
-  },
-) {
-  const paymentArgs = [
-    args.chainId,
-    args.ttl,
-    args.orderHash,
-    args.currencyAddress,
-    args.total,
-    args.payeeAddress,
-    args.isPaymentEndpoint,
-    args.shopId,
-    args.shopSignature,
-  ];
-  return args.wallet.readContract({
-    address: abi.addresses.Payments as Address,
-    abi: abi.PaymentsByAddress,
-    functionName: "getPaymentId",
-    args: [paymentArgs],
-  }) as Promise<bigint>;
-}
-
-export async function getPaymentAddressAndID(
-  args: Omit<PaymentArgs, "wallet"> & {
-    refundAddress: Address;
-    wallet: PublicClient;
-  },
-) {
-  return {
-    address: await getPaymentAddress(args),
-    id: await getPaymentId(args),
+export function genericWriteContract<
+  const abiT extends Abi,
+  const FuncName extends ContractFunctionName<abiT, Mutable>,
+>(abi: abiT, functionName: FuncName, address: Address) {
+  return (
+    wallet: ConcreteWalletClient,
+    args: ContractFunctionArgs<
+      abiT,
+      Mutable,
+      FuncName
+    >,
+  ) => {
+    return wallet.writeContract({
+      chain: wallet.chain,
+      account: wallet.account,
+      address,
+      abi,
+      functionName,
+      args,
+    } as WriteContractParameters);
   };
 }
 
-export function approveERC20(
-  wallet: ConcreteWalletClient,
-  currencyAddress: Address,
-  amount: bigint,
-) {
-  return wallet.writeContract({
-    address: currencyAddress,
-    abi: abi.ERC20,
-    functionName: "approve",
-    args: [abi.addresses.Payments, amount],
-  });
+export function genericReadContract<
+  const abiT extends Abi,
+  const FuncName extends ContractFunctionName<abiT, ReadOnly>,
+>(abi: abiT, functionName: FuncName, address: Address) {
+  return (
+    wallet: PublicClient,
+    args: ContractFunctionArgs<
+      abiT,
+      ReadOnly,
+      FuncName
+    >,
+  ): Promise<
+    ContractFunctionReturnType<
+      abiT,
+      ReadOnly,
+      FuncName,
+      ContractFunctionArgs<abiT, ReadOnly, FuncName>
+    >
+  > => {
+    return wallet.readContract({
+      address,
+      abi,
+      functionName,
+      args,
+    });
+  };
 }
 
-export class BlockchainClient {
-  constructor(public shopId = bytesToHex(randomBytes(32))) {}
+export const payTokenPreApproved = genericWriteContract(
+  abi.paymentsByAddressAbi,
+  "payTokenPreApproved",
+  abi.addresses.Payments,
+);
 
-  addRelay(wallet: ConcreteWalletClient, tokenId: `0x${string}`) {
-    return wallet.writeContract({
-      address: abi.addresses.ShopReg as Address,
-      abi: abi.ShopReg,
-      functionName: "addRelay",
-      args: [BigInt(this.shopId), tokenId],
-    });
+export const payNative = genericWriteContract(
+  abi.paymentsByAddressAbi,
+  "payNative",
+  abi.addresses.Payments,
+);
+
+export const getPaymentAddress = genericReadContract(
+  abi.paymentsByAddressAbi,
+  "getPaymentAddress",
+  abi.addresses.Payments,
+);
+
+export const getPaymentId = genericReadContract(
+  abi.paymentsByAddressAbi,
+  "getPaymentId",
+  abi.addresses.Payments,
+);
+
+export function approveERC20(
+  wallet: ConcreteWalletClient,
+  address: Address,
+  args: ContractFunctionArgs<
+    typeof abi.eddiesAbi,
+    "nonpayable" | "payable",
+    "approve"
+  >,
+) {
+  return wallet.writeContract({
+    address,
+    abi: abi.eddiesAbi,
+    functionName: "approve",
+    args,
+  });
+}
+export const addRelay = genericWriteContract(
+  abi.shopRegAbi,
+  "addRelay",
+  abi.addresses.ShopReg,
+);
+
+export const setTokenURI = genericWriteContract(
+  abi.shopRegAbi,
+  "setTokenURI",
+  abi.addresses.ShopReg,
+);
+
+export const publishInviteVerifier = genericWriteContract(
+  abi.shopRegAbi,
+  "publishInviteVerifier",
+  abi.addresses.ShopReg,
+);
+
+export const redeemInvite = genericWriteContract(
+  abi.shopRegAbi,
+  "redeemInvite",
+  abi.addresses.ShopReg,
+);
+
+export const mintShop = genericWriteContract(
+  abi.shopRegAbi,
+  "mint",
+  abi.addresses.ShopReg,
+);
+
+export class BlockchainClient {
+  constructor(public shopId = random256BigInt()) {}
+
+  addRelay(wallet: ConcreteWalletClient, tokenId: bigint) {
+    return addRelay(wallet, [this.shopId, tokenId]);
   }
   createShop(wallet: ConcreteWalletClient) {
-    return wallet.writeContract({
-      address: abi.addresses.ShopReg as Address,
-      abi: abi.ShopReg,
-      functionName: "mint",
-      args: [BigInt(this.shopId), wallet.account.address],
-    });
+    return mintShop(wallet, [this.shopId, wallet.account.address]);
   }
 
   setShopMetadataURI(wallet: ConcreteWalletClient, uri: string) {
-    return wallet.writeContract({
-      address: abi.addresses.ShopReg as Address,
-      abi: abi.ShopReg,
-      functionName: "setTokenURI",
-      args: [BigInt(this.shopId), uri],
-    });
+    return setTokenURI(wallet, [this.shopId, uri]);
   }
 
   createInviteSecret(wallet: ConcreteWalletClient, token: Address) {
     // Save the public key onchain
-    return wallet.writeContract({
-      address: abi.addresses.ShopReg as Address,
-      abi: abi.ShopReg,
-      functionName: "publishInviteVerifier",
-      args: [BigInt(this.shopId), token],
-    });
+    return publishInviteVerifier(wallet, [this.shopId, token]);
   }
 
   async redeemInviteSecret(secret: Address, wallet: ConcreteWalletClient) {
@@ -195,11 +175,6 @@ export class BlockchainClient {
     const v = sigBytes[64];
     const r = bytesToHex(sigBytes.slice(0, 32));
     const s = bytesToHex(sigBytes.slice(32, 64));
-    return wallet.writeContract({
-      address: abi.addresses.ShopReg as Address,
-      abi: abi.ShopReg,
-      functionName: "redeemInvite",
-      args: [BigInt(this.shopId), v, r, s, wallet.account.address],
-    });
+    return redeemInvite(wallet, [this.shopId, v, r, s, wallet.account.address]);
   }
 }

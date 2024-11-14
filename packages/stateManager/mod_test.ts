@@ -1,17 +1,15 @@
 import { afterAll, beforeEach, describe, it } from "jsr:@std/testing/bdd";
 import { expect } from "jsr:@std/expect";
-import { MemoryLevel } from "memory-level";
-import { hardhat } from "viem/chains";
-
-import { objectId, randomAddress, zeroAddress } from "@massmarket/utils";
+import { MemoryLevel } from "npm:memory-level";
+import { hardhat } from "npm:viem/chains";
+import { objectId, random256BigInt, randomAddress } from "@massmarket/utils";
 import {
-  type Address,
   bytesToHex,
   createPublicClient,
   formatUnits,
   fromHex,
   http,
-} from "viem";
+} from "npm:viem";
 import * as abi from "@massmarket/contracts";
 
 import { StateManager } from "./mod.ts";
@@ -59,7 +57,7 @@ async function setupTestManager() {
     orderStore,
     keycardStore,
     keycardNonceStore,
-    randomAddress(),
+    random256BigInt(),
     publicClient,
   );
 
@@ -78,7 +76,7 @@ async function setupTestManager() {
   };
 }
 
-const eddies = abi.addresses.Eddies.toLowerCase() as Address;
+const eddies = abi.addresses.Eddies.toLowerCase() as `0x${string}`;
 
 const currencies = [
   {
@@ -87,7 +85,7 @@ const currencies = [
   },
   {
     chainId: 12,
-    address: zeroAddress,
+    address: abi.addresses.zeroAddress,
   },
 ];
 const payees = [
@@ -349,12 +347,12 @@ describe({ name: "global test settings", sanitizeResources: false }, () => {
           acceptedCurrencies: currencies,
           pricingCurrency: {
             chainId: 1,
-            address: zeroAddress,
+            address: abi.addresses.zeroAddress,
           },
           payees,
           shippingRegions,
         },
-        randomAddress(),
+        random256BigInt(),
       );
       await close();
       expect(called).toBeTruthy();
@@ -385,18 +383,18 @@ describe({ name: "global test settings", sanitizeResources: false }, () => {
             acceptedCurrencies: currencies,
             pricingCurrency: {
               chainId: 1,
-              address: zeroAddress,
+              address: abi.addresses.zeroAddress,
             },
             payees,
             shippingRegions,
           },
-          randomAddress(),
+          random256BigInt(),
         );
         const shop = await stateManager.manifest.get();
         expect(shop.acceptedCurrencies).toEqual(currencies);
         expect(shop.pricingCurrency).toEqual({
           chainId: 1,
-          address: zeroAddress,
+          address: abi.addresses.zeroAddress,
         });
         expect(shop.payees).toEqual(payees);
         expect(shop.shippingRegions).toEqual(shippingRegions);
@@ -437,7 +435,7 @@ describe({ name: "global test settings", sanitizeResources: false }, () => {
         expect(removed.acceptedCurrencies.length).toEqual(3);
         //Make sure the correct currency is removed
         const found = removed.acceptedCurrencies.find(
-          (c) => c.address === zeroAddress,
+          (c) => c.address === abi.addresses.zeroAddress,
         );
         expect(found).toBe(undefined);
       });
@@ -668,7 +666,7 @@ describe({ name: "global test settings", sanitizeResources: false }, () => {
           name: "default",
         };
         const currency = {
-          address: zeroAddress,
+          address: abi.addresses.zeroAddress,
           chainId: 1,
         };
         //Order should not have a choosePayment/paymentDetails property yet.
