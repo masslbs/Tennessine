@@ -8,6 +8,7 @@ import React, { ChangeEvent, useEffect, useRef, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { privateKeyToAccount } from "viem/accounts";
 import { useAccount, useChains } from "wagmi";
+import { useSearchParams } from "next/navigation";
 
 import { BlockchainClient } from "@massmarket/blockchain";
 import {
@@ -49,7 +50,7 @@ const StoreCreation = () => {
     setShopId,
     checkPermissions,
   } = useUserContext();
-
+  const searchParams = useSearchParams();
   const { setShopDetails } = useStoreContext();
   const { setIsConnected, setIsMerchantView } = useClient();
   const chains = useChains();
@@ -91,9 +92,14 @@ const StoreCreation = () => {
       localStorage.removeItem("guestKeyCard");
 
       randomShopIdHasBeenSet.current = true;
-      const randomShopId = random32BytesHex();
+
+      let randomShopId = searchParams.get("shopId");
+      if (!randomShopId) {
+        randomShopId = random32BytesHex();
+      }
       setIsConnected(Status.Pending);
-      setShopId(randomShopId);
+      setShopId(randomShopId as `0x${string}`);
+      debug(`Shop ID set to: ${randomShopId}`);
     }
     return () => {
       randomShopIdHasBeenSet.current = false;
