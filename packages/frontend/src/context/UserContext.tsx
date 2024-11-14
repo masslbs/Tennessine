@@ -146,7 +146,7 @@ export const UserContextProvider = (
     if (walletAddress) {
       const hasAccess = (await shopPublicClient.readContract({
         address: abi.addresses.ShopReg as `0x${string}`,
-        abi: abi.ShopReg,
+        abi: abi.shopRegAbi,
         functionName: "hasPermission",
         args: [shopId, walletAddress, abi.permissions.updateRootHash],
       })) as boolean;

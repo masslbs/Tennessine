@@ -17,7 +17,6 @@
   "dependencies": {
     "@massmarket/contracts": "workspace:*",
     "@massmarket/utils": "workspace:*",
-    "viem": "^2.16.3",
-    "vitest": "^1.6.0"
+    "viem": "2.21.44"
   }
 }

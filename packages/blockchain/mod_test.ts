@@ -10,7 +10,7 @@ import {
 import { privateKeyToAccount } from "viem/accounts";
 import { hardhat } from "viem/chains";
 import * as abi from "@massmarket/contracts";
-import { random32BytesHex } from "@massmarket/utils";
+import { random256BigInt } from "@massmarket/utils";
 import { BlockchainClient } from "./mod.ts";
 
 const account = privateKeyToAccount(
@@ -18,7 +18,7 @@ const account = privateKeyToAccount(
 );
 
 let blockChainClient: BlockchainClient;
-const shopId = random32BytesHex();
+const shopId = random256BigInt();
 
 describe({
   name: "blockChain Client",
@@ -45,11 +45,18 @@ describe({
     it("setShopMetadataURI", async () => {
       blockChainClient = new BlockchainClient(shopId);
       const test_uri = "/testing/path";
-      await blockChainClient.setShopMetadataURI(wallet, test_uri);
+      const transactionHash = await blockChainClient.setShopMetadataURI(
+        wallet,
+        test_uri,
+      );
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash: transactionHash,
+      });
+      expect(receipt.status).toBe("success");
 
       const uri = await publicClient.readContract({
         address: abi.addresses.ShopReg as Address,
-        abi: abi.ShopReg,
+        abi: abi.shopRegAbi,
         functionName: "tokenURI",
         args: [shopId],
       });

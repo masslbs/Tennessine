@@ -4,5 +4,8 @@
   "exports": "./mod.ts",
   "fmt": {
     "exclude": ["./deploymentAddresses.json"]
+  },
+  "tasks": {
+    "build": "deno run --allow-run --allow-sys --allow-env --allow-read  --allow-write npm:@wagmi/cli generate"
   }
 }

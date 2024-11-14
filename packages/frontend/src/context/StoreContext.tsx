@@ -4,7 +4,6 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useChains } from "wagmi";
-import { Address } from "viem";
 import { usePathname } from "next/navigation";
 
 import * as abi from "@massmarket/contracts";
@@ -56,8 +55,8 @@ export const StoreContextProvider = (
     if (shopPublicClient && shopId) {
       (async () => {
         const uri = await shopPublicClient.readContract({
-          address: abi.addresses.ShopReg as Address,
-          abi: abi.ShopReg,
+          address: abi.addresses.ShopReg,
+          abi: abi.shopRegAbi,
           functionName: "tokenURI",
           args: [BigInt(shopId)],
         });

@@ -8,6 +8,7 @@ import { WebSocket } from "isows";
 import { hexToBigInt, hexToBytes, toBytes } from "viem";
 import type { PrivateKeyAccount } from "viem/accounts";
 import { createSiweMessage } from "viem/siwe";
+import { bigIntToBytes } from "@ethereumjs/util";
 
 import schema, { EnvelopMessageTypes } from "@massmarket/schema";
 import type { ConcreteWalletClient } from "@massmarket/blockchain";
@@ -172,8 +173,8 @@ export class RelayClient extends EventEmitter {
     this.eventNonceCounter = counter;
   }
 
-  shopManifest(manifest: schema.IManifest, shopId: `0x${string}`) {
-    manifest.tokenId = { raw: hexToBytes(shopId) };
+  shopManifest(manifest: schema.IManifest, shopId: bigint) {
+    manifest.tokenId = { raw: bigIntToBytes(shopId) };
     return this.sendShopEvent({
       manifest: manifest,
     });
@@ -273,7 +274,7 @@ export class RelayClient extends EventEmitter {
     });
   }
 
-  async sendMerchantSubscriptionRequest(shopId: `0x${string}`, seqNo = 0) {
+  async sendMerchantSubscriptionRequest(shopId: bigint, seqNo = 0) {
     assert(
       this.subscriptionId == null,
       "subscriptionId is already set. cancel first.",
@@ -289,15 +290,14 @@ export class RelayClient extends EventEmitter {
     const { response } = await this.encodeAndSend({
       subscriptionRequest: {
         startShopSeqNo: seqNo,
-        shopId: { raw: hexToBytes(shopId) },
+        shopId: { raw: bigIntToBytes(shopId) },
         filters,
       },
     });
-    assert(response, "response is required");
-    assert(response.payload, "response.payload is required");
+    assert(response?.payload, "response.payload is required");
     this.subscriptionId = response.payload;
   }
-  async sendGuestCheckoutSubscriptionRequest(shopId: `0x${string}`, seqNo = 0) {
+  async sendGuestCheckoutSubscriptionRequest(shopId: bigint, seqNo = 0) {
     assert(
       this.subscriptionId == null,
       "subscriptionId is already set. cancel first.",
@@ -312,7 +312,7 @@ export class RelayClient extends EventEmitter {
     const { response } = await this.encodeAndSend({
       subscriptionRequest: {
         startShopSeqNo: seqNo,
-        shopId: { raw: hexToBytes(shopId) },
+        shopId: { raw: bigIntToBytes(shopId) },
         filters,
       },
     });
@@ -320,7 +320,7 @@ export class RelayClient extends EventEmitter {
     this.subscriptionId = response.payload;
   }
 
-  async sendGuestSubscriptionRequest(shopId: `0x${string}`, seqNo = 0) {
+  async sendGuestSubscriptionRequest(shopId: bigint, seqNo = 0) {
     assert(
       this.subscriptionId == null,
       "subscriptionId is already set. cancel first.",
@@ -334,7 +334,7 @@ export class RelayClient extends EventEmitter {
     const { response } = await this.encodeAndSend({
       subscriptionRequest: {
         startShopSeqNo: seqNo,
-        shopId: { raw: hexToBytes(shopId) },
+        shopId: { raw: bigIntToBytes(shopId) },
         filters,
       },
     });
@@ -418,7 +418,7 @@ export class RelayClient extends EventEmitter {
   async enrollKeycard(
     wallet: ConcreteWalletClient,
     isGuest: boolean = true,
-    shopId: `0x${string}`,
+    shopId: bigint,
     location?: URL,
   ) {
     const publicKey = toBytes(this.keyCardWallet.publicKey).slice(1);
@@ -437,7 +437,7 @@ export class RelayClient extends EventEmitter {
       version: "1",
       resources: [
         `mass-relayid:${hexToBigInt(this.relayEndpoint.tokenId)}`,
-        `mass-shopid:${hexToBigInt(shopId)}`,
+        `mass-shopid:${shopId}`,
         `mass-keycard:${Buffer.from(publicKey).toString("hex")}`,
       ],
     });

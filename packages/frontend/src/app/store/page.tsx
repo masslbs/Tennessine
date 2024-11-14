@@ -10,7 +10,8 @@ import { Address } from "viem";
 
 import { UpdateShopManifest } from "@massmarket/stateManager/types";
 import { BlockchainClient } from "@massmarket/blockchain";
-import { logger, zeroAddress } from "@massmarket/utils";
+import { logger } from "@massmarket/utils";
+import { addresses } from "@massmarket/contracts";
 
 import { CurrencyChainOption, ShopCurrencies, ShopManifest } from "@/types";
 import { getTokenAddress } from "@/app/utils";
@@ -60,8 +61,8 @@ function StoreProfile() {
       chains.map((c) => {
         chainsToRender.push({
           label: `ETH/${c.name}`,
-          value: `${zeroAddress}/${c.id}`,
-          address: zeroAddress,
+          value: `${addresses.zeroAddress}/${c.id}`,
+          address: addresses.zeroAddress,
           chainId: c.id,
         });
         const usdcTokenAddress = getTokenAddress("USDC", String(c.id));

@@ -10,12 +10,8 @@ import { privateKeyToAccount } from "viem/accounts";
 import { useAccount, useChains } from "wagmi";
 
 import { BlockchainClient } from "@massmarket/blockchain";
-import {
-  assert,
-  logger,
-  random32BytesHex,
-  zeroAddress,
-} from "@massmarket/utils";
+import { assert, logger, random32BytesHex } from "@massmarket/utils";
+import { addresses } from "@massmarket/contracts";
 
 import { CurrencyChainOption, ShopCurrencies, Status } from "@/types";
 import { getTokenAddress, isValidHex } from "@/app/utils";
@@ -63,7 +59,7 @@ const StoreCreation = () => {
   const [avatar, setAvatar] = useState<FormData | null>(null);
   const [pricingCurrency, setPricingCurrency] = useState<
     Partial<ShopCurrencies>
-  >({ address: zeroAddress });
+  >({ address: addresses.zeroAddress });
   const [acceptedCurrencies, setAcceptedCurrencies] = useState<
     ShopCurrencies[]
   >([]);

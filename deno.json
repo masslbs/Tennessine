@@ -16,5 +16,8 @@
   },
   "fmt": {
     "exclude": [".direnv", "node_modules", ".pre-commit-config.yaml"]
+  },
+  "compilerOptions": {
+    "noErrorTruncation": true
   }
 }
