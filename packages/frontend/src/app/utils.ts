@@ -56,8 +56,7 @@ export const isValidHex = (hex: string) => {
 };
 
 const defaultRPC =
-  (process && process.env && process.env.NEXT_PUBLIC_ETH_RPC_URL) ||
-  "http://localhost:8545";
+  (process && process.env && process.env.NEXT_PUBLIC_ETH_RPC_URL) || undefined;
 
 export function createPublicClientForChain(chain: Chain) {
   return createPublicClient({
