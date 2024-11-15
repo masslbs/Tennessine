@@ -11,7 +11,11 @@ import { assert, logger } from "@massmarket/utils";
 
 import { StoreContent } from "@/context/types";
 import { useUserContext } from "@/context/UserContext";
-import { createPublicClientForChain, getTokenInformation } from "@/app/utils";
+import {
+  createPublicClientForChain,
+  getTokenInformation,
+  isMerchantPath,
+} from "@/app/utils";
 import { ListingId, Order, OrderEventTypes, OrderState } from "@/types";
 
 const namespace = "frontend:StoreContext";
@@ -52,7 +56,7 @@ export const StoreContextProvider = (
   }, []);
 
   useEffect(() => {
-    if (shopPublicClient && shopId) {
+    if (shopPublicClient && shopId && !isMerchantPath(pathname)) {
       (async () => {
         const uri = await shopPublicClient.readContract({
           address: abi.addresses.ShopReg,

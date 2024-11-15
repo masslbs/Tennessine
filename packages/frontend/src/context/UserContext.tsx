@@ -20,6 +20,7 @@ import * as abi from "@massmarket/contracts";
 import {
   createGuestWalletClientForChain,
   createPublicClientForChain,
+  isMerchantPath,
 } from "@/app/utils";
 import { useClient } from "@/context/AuthContext";
 import { type ClientContext } from "@/context/types";
@@ -77,11 +78,7 @@ export const UserContextProvider = (
   const authenticated = useRef(false);
 
   const ensAvatar = useEnsAvatar({ name: ensName! })?.data;
-  const isMerchantPath = [
-    "/merchants/",
-    "/create-store/",
-    "/merchants/connect/",
-  ].includes(pathname);
+  const merchantPath = isMerchantPath(pathname);
 
   useEffect(() => {
     if (process && process.env["NEXT_PUBLIC_RELAY_TOKEN_ID"]) {
@@ -104,14 +101,14 @@ export const UserContextProvider = (
   }, []);
 
   useEffect(() => {
-    if (isMerchantPath) {
+    if (merchantPath) {
       localStorage.removeItem("merchantKC");
       localStorage.removeItem("guestCheckoutKC");
     }
     //If shopId is provided as a query, set it as shopId, otherwise check for storeId in localStorage.
     const _shopId = (searchParams!.get("shopId") as `0x${string}`) ||
       localStorage.getItem("shopId");
-    if (_shopId && !isMerchantPath) {
+    if (_shopId && !merchantPath) {
       localStorage.setItem("shopId", _shopId);
       setShopId(_shopId);
     }
@@ -187,7 +184,7 @@ export const UserContextProvider = (
     debug("ClientWithStateManager set");
     setClientStateManager(clientStateManager);
 
-    if (isMerchantPath) return;
+    if (merchantPath) return;
     (async () => {
       //If merchantKC is cached, double check that the KC has permission, then connect & authenticate.
       if (merchantKC && walletAddress) {
