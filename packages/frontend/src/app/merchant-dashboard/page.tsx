@@ -11,7 +11,6 @@ import { Order, OrderState } from "@/types";
 import { createQueryString } from "@/app/utils";
 import { useUserContext } from "@/context/UserContext";
 import OrderDetails from "@/app/components/orders/OrderDetails";
-import withClient from "@/app/components/withClient";
 
 const MerchantDashboard = () => {
   const { clientWithStateManager } = useUserContext();
@@ -184,4 +183,4 @@ const MerchantDashboard = () => {
   );
 };
 
-export default withClient(MerchantDashboard);
+export default MerchantDashboard;
