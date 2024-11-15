@@ -131,20 +131,25 @@ export default function ChoosePayment({
       //FIXME: separate this into a function that constructs the arg.
       const arg = {
         chainId: currency.chainId,
-        ttl: Number(ttl), // is this correct?
-        orderHash: zeros32Bytes,
-        currencyAddress: currency.address,
-        total: BigInt(total),
+        ttl: BigInt(ttl),
+        order: zeros32Bytes,
+        currency: currency.address,
+        amount: BigInt(total),
         payeeAddress: payee.address,
         isPaymentEndpoint: false, //isPaymentEndpoint
         shopId: shopId,
         shopSignature,
       };
-      const paymentAddr = await getPaymentAddress(paymentRPC, arg);
-      const id = await getPaymentId(paymentRPC, arg);
+
+      const paymentAddr = await getPaymentAddress(paymentRPC, [
+        arg,
+        payee.address,
+      ]);
       if (!paymentAddr) {
         throw new Error("No payment address found");
       }
+      const id = await getPaymentId(paymentRPC, [arg]);
+
       if (toHex(id) !== paymentId) {
         debug(`received payment Id: ${paymentId}`);
         debug(`calculated payment Id: ${toHex(id)}`);
@@ -153,7 +158,7 @@ export default function ChoosePayment({
       setPaymentArgs(arg);
       const amount = BigInt(total);
       debug(`amount: ${amount}`);
-      const payLink = currency.address === zeroAddress
+      const payLink = currency.address === abi.addresses.zeroAddress
         ? `ethereum:${paymentAddr}?value=${amount}`
         : `ethereum:${currency.address}/transfer?address=${paymentAddr}&uint256=${amount}`;
       setPaymentAddress(paymentAddr);
