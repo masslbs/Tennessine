@@ -34,7 +34,7 @@ interface AcceptedChain {
 
 const debug = logger("frontend:storeProfile");
 
-function StoreProfile() {
+export default function StoreProfile() {
   const { shopDetails, setShopDetails } = useStoreContext();
   const { shopId, clientWallet, clientWithStateManager } = useUserContext();
   const [storeName, setStoreName] = useState<string>(shopDetails.name || "");
@@ -78,14 +78,14 @@ function StoreProfile() {
   }, []);
 
   useEffect(() => {
-    const onUpdateEvent = (updatedManifest: ShopManifest) => {
+    function onUpdateEvent(updatedManifest: ShopManifest) {
       const { pricingCurrency, acceptedCurrencies } = updatedManifest;
       setAcceptedCurrencies(acceptedCurrencies);
       setPricingCurrency({
         address: pricingCurrency.address!,
         chainId: pricingCurrency.chainId!,
       });
-    };
+    }
 
     clientWithStateManager!
       .stateManager!.manifest.get()
@@ -358,5 +358,3 @@ function StoreProfile() {
     </main>
   );
 }
-
-export default StoreProfile;

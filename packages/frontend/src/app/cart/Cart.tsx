@@ -17,7 +17,7 @@ const namespace = "frontend:Cart";
 const debug = logger(namespace);
 const logerr = logger(namespace, "error");
 
-function Cart({
+export default function Cart({
   onCheckout,
 }: {
   onCheckout?: (orderId: OrderId) => Promise<void>;
@@ -319,5 +319,3 @@ function Cart({
     </div>
   );
 }
-
-export default Cart;

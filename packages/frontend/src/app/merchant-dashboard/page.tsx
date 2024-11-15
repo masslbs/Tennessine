@@ -12,13 +12,13 @@ import { createQueryString } from "@/app/utils";
 import { useUserContext } from "@/context/UserContext";
 import OrderDetails from "@/app/components/orders/OrderDetails";
 
-const MerchantDashboard = () => {
+export default function MerchantDashboard() {
   const { clientWithStateManager } = useUserContext();
 
   const [orders, setOrders] = useState(new Map());
   const [viewOrderDetails, setOrderDetails] = useState(null);
 
-  const getAllOrders = async () => {
+  async function getAllOrders() {
     const allOrders = new Map();
     for await (
       const [
@@ -33,17 +33,17 @@ const MerchantDashboard = () => {
       allOrders.set(id, o);
     }
     return allOrders;
-  };
+  }
 
   useEffect(() => {
-    const onCreateOrder = (order: Order) => {
+    function onCreateOrder(order: Order) {
       orders.set(order.id, order);
       setOrders(orders);
-    };
-    const onUpdateOrder = (order: Order) => {
+    }
+    function onUpdateOrder(order: Order) {
       orders.set(order.id, order);
       setOrders(orders);
-    };
+    }
     getAllOrders().then((allOrders) => {
       setOrders(allOrders);
       clientWithStateManager.stateManager.orders.on("create", onCreateOrder);
@@ -63,7 +63,7 @@ const MerchantDashboard = () => {
     };
   }, []);
 
-  const renderTransactions = () => {
+  function renderTransactions() {
     const transactions = Array.from([...orders.entries()]);
     return transactions?.length
       ? (
@@ -111,7 +111,7 @@ const MerchantDashboard = () => {
           <p>no transactions</p>
         </div>
       );
-  };
+  }
 
   if (viewOrderDetails) {
     return (
@@ -181,6 +181,4 @@ const MerchantDashboard = () => {
       </div>
     </main>
   );
-};
-
-export default MerchantDashboard;
+}
