@@ -241,7 +241,6 @@ describe({
           },
         },
       });
-      const stream = guestRelayClient.createEventStream();
     });
 
     it("single item checkout with a guest", async () => {
@@ -257,18 +256,6 @@ describe({
         hash: txHash1,
       });
       expect(receipt1.status).toEqual("success");
-
-      // allow the payment contract to transfer on behalf of the guest user
-      const txHash2 = await guestWallet.writeContract({
-        address: addresses.Eddies as Address,
-        abi: eddiesAbi,
-        functionName: "approve",
-        args: [addresses.Payments, 3980000000000000000n],
-      });
-      const receipt2 = await publicClient.waitForTransactionReceipt({
-        hash: txHash2,
-      });
-      expect(receipt2.status).toEqual("success");
 
       const stream = guestRelayClient.createEventStream();
       let paymentHash: `0x${string}` | undefined;
@@ -297,6 +284,18 @@ describe({
           expect(toHex(paymentDetails.paymentId!.raw!)).toEqual(
             toHex(paymentId),
           );
+          // allow the payment contract to transfer on behalf of the guest user
+          const txHash2 = await guestWallet.writeContract({
+            address: addresses.Eddies as Address,
+            abi: eddiesAbi,
+            functionName: "approve",
+            args: [addresses.Payments, bytesToBigInt(total)],
+          });
+          const receipt2 = await publicClient.waitForTransactionReceipt({
+            hash: txHash2,
+          });
+          expect(receipt2.status).toEqual("success");
+
           // call the pay function
           const hash = await guestWallet.writeContract({
             address: addresses.Payments as Address,
