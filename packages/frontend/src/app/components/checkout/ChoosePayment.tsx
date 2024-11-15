@@ -137,7 +137,7 @@ export default function ChoosePayment({
         total: BigInt(total),
         payeeAddress: payee.address,
         isPaymentEndpoint: false, //isPaymentEndpoint
-        shopId: shopId!,
+        shopId: shopId,
         shopSignature,
       };
       const paymentAddr = await getPaymentAddress(paymentRPC, arg);

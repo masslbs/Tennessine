@@ -34,7 +34,7 @@ export const UserContext = createContext<ClientContext>({
   clientWallet: null,
   shopPublicClient: null,
   inviteSecret: null,
-  shopId: "0x",
+  shopId: null,
   relayEndpoint: null,
   clientWithStateManager: null,
   setWallet: () => {},
@@ -106,11 +106,12 @@ export const UserContextProvider = (
       localStorage.removeItem("guestCheckoutKC");
     }
     //If shopId is provided as a query, set it as shopId, otherwise check for storeId in localStorage.
-    const _shopId = (searchParams!.get("shopId") as `0x${string}`) ||
+    const _shopId = searchParams!.get("shopId") ||
       localStorage.getItem("shopId");
+
     if (_shopId && !merchantPath) {
       localStorage.setItem("shopId", _shopId);
-      setShopId(_shopId);
+      setShopId(BigInt(_shopId));
     }
 
     //Load cached keycards
