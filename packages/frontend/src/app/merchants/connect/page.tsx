@@ -23,7 +23,7 @@ const namespace = "frontend:connect-merchant";
 const debug = logger(namespace);
 const errlog = logger(namespace, "error");
 
-const MerchantConnectWallet = () => {
+export default function MerchantConnectWallet() {
   const {
     shopPublicClient,
     clientWallet,
@@ -207,6 +207,4 @@ const MerchantConnectWallet = () => {
       </section>
     </main>
   );
-};
-
-export default MerchantConnectWallet;
+}

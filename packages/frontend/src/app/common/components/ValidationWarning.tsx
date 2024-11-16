@@ -9,10 +9,10 @@ interface ValidationWarningProps {
   onClose: () => void;
 }
 
-const ValidationWarning: React.FC<ValidationWarningProps> = ({
+export default function ValidationWarning({
   warning,
   onClose,
-}) => {
+}: ValidationWarningProps) {
   if (!warning) return null;
 
   return (
@@ -31,6 +31,4 @@ const ValidationWarning: React.FC<ValidationWarningProps> = ({
       </button>
     </div>
   );
-};
-
-export default ValidationWarning;
+}

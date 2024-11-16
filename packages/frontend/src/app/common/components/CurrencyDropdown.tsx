@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Chevron from "./Chevron";
 import { CurrencyChainOption } from "@/types";
 
-const Dropdown = ({
+export default function Dropdown({
   options,
   callback,
   selected = null,
@@ -10,23 +10,25 @@ const Dropdown = ({
   options: CurrencyChainOption[];
   callback: (option: CurrencyChainOption) => void | Promise<void>;
   selected?: null | CurrencyChainOption;
-}) => {
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState<
     CurrencyChainOption | null
   >(selected);
 
-  const toggleDropdown = () => setIsOpen(!isOpen);
+  function toggleDropdown() {
+    setIsOpen(!isOpen);
+  }
 
   useEffect(() => {
     selected && setSelectedOption(selected);
   }, [selected]);
 
-  const handleOptionClick = (option: CurrencyChainOption) => {
+  function handleOptionClick(option: CurrencyChainOption) {
     setSelectedOption(option);
     setIsOpen(false);
     callback(option);
-  };
+  }
 
   return (
     <div className="text-left">
@@ -69,6 +71,4 @@ const Dropdown = ({
       )}
     </div>
   );
-};
-
-export default Dropdown;
+}

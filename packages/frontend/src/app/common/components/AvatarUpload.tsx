@@ -11,11 +11,11 @@ import React, {
   useState,
 } from "react";
 
-const AvatarUpload = ({
+export default function AvatarUpload({
   setImgBlob,
 }: {
   setImgBlob: Dispatch<SetStateAction<FormData | null>>;
-}) => {
+}) {
   const [localImg, setLocalImg] = useState<null | string>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -88,6 +88,4 @@ const AvatarUpload = ({
       </div>
     </section>
   );
-};
-
-export default AvatarUpload;
+}

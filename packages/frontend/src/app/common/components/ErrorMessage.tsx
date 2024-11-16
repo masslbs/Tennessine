@@ -8,10 +8,10 @@ interface ErrorMessageProps {
   onClose: () => void;
 }
 
-const ErrorMessage: React.FC<ErrorMessageProps> = ({
+export default function ErrorMessage({
   errorMessage,
   onClose,
-}) => {
+}: ErrorMessageProps) {
   if (!errorMessage) return null;
 
   return (
@@ -30,6 +30,4 @@ const ErrorMessage: React.FC<ErrorMessageProps> = ({
       </button>
     </div>
   );
-};
-
-export default ErrorMessage;
+}

@@ -9,7 +9,7 @@ interface SuccessToastProps {
   onClose: () => void;
 }
 
-const SuccessToast: React.FC<SuccessToastProps> = ({ message, onClose }) => {
+export default function SuccessToast({ message, onClose }: SuccessToastProps) {
   if (!message) return null;
 
   return (
@@ -28,6 +28,4 @@ const SuccessToast: React.FC<SuccessToastProps> = ({ message, onClose }) => {
       </button>
     </div>
   );
-};
-
-export default SuccessToast;
+}
