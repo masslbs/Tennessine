@@ -11,9 +11,9 @@ import Button from "@/app/common/components/Button";
 export default function Confirmation() {
   const { shopId } = useUserContext();
 
-  const copyToClipboard = () => {
+  function copyToClipboard() {
     navigator.clipboard.writeText(String(shopId));
-  };
+  }
 
   return (
     <main className="pt-under-nav h-screen p-4 mt-5">

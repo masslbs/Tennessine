@@ -23,7 +23,7 @@ import SuccessToast from "@/app/common/components/SuccessToast";
 const namespace = "frontend:product-detail";
 const debug = logger(namespace);
 
-const ProductDetail = () => {
+export default function ProductDetail() {
   const { getBaseTokenInfo, getOpenOrderId } = useStoreContext();
   const { upgradeGuestToCustomer, clientWithStateManager } = useUserContext();
   const searchParams = useSearchParams();
@@ -219,5 +219,4 @@ const ProductDetail = () => {
       </section>
     </main>
   );
-};
-export default ProductDetail;
+}

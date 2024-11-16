@@ -13,7 +13,11 @@ import { createQueryString } from "@/app/utils";
 import { useStoreContext } from "@/context/StoreContext";
 import Button from "@/app/common/components/Button";
 
-function MerchantViewProducts({ products }: { products: Listing[] | null }) {
+export default function MerchantViewProducts({
+  products,
+}: {
+  products: Listing[] | null;
+}) {
   const { getBaseTokenInfo } = useStoreContext();
   const [baseDecimal, setBaseDecimal] = useState<null | number>(null);
 
@@ -122,4 +126,3 @@ function MerchantViewProducts({ products }: { products: Listing[] | null }) {
     </section>
   );
 }
-export default MerchantViewProducts;

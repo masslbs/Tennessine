@@ -12,13 +12,13 @@ import { createQueryString } from "@/app/utils";
 import { useUserContext } from "@/context/UserContext";
 import OrderDetails from "@/app/components/orders/OrderDetails";
 
-const MerchantDashboard = () => {
+export default function MerchantDashboard() {
   const { clientWithStateManager } = useUserContext();
 
   const [orders, setOrders] = useState(new Map());
   const [viewOrderDetails, setOrderDetails] = useState(null);
 
-  const getAllOrders = async () => {
+  async function getAllOrders() {
     const allOrders = new Map();
     for await (
       const [
@@ -33,17 +33,17 @@ const MerchantDashboard = () => {
       allOrders.set(id, o);
     }
     return allOrders;
-  };
+  }
 
   useEffect(() => {
-    const onCreateOrder = (order: Order) => {
+    function onCreateOrder(order: Order) {
       orders.set(order.id, order);
       setOrders(orders);
-    };
-    const onUpdateOrder = (order: Order) => {
+    }
+    function onUpdateOrder(order: Order) {
       orders.set(order.id, order);
       setOrders(orders);
-    };
+    }
     getAllOrders().then((allOrders) => {
       setOrders(allOrders);
       clientWithStateManager.stateManager.orders.on("create", onCreateOrder);
@@ -63,68 +63,55 @@ const MerchantDashboard = () => {
     };
   }, []);
 
-  const renderTransactions = () => {
-    // filter out any orders by statuses, then sort by timestamp
-    const transactions = Array.from([...orders.entries()])
-      // This checks that orderId is an actual hash, not type OrderState
-      .filter((o) => o[0].length > 1)
-      .map((entry) => {
-        const orderId = entry[0];
-        const value = entry[1];
-        let date = "";
-        if (value.timestamp) {
-          date = new Intl.DateTimeFormat("en-US", {
-            year: "numeric",
-            month: "numeric",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false,
-          }).format(value.timestamp * 1000);
-        }
-        let status: string;
+  function renderTransactions() {
+    const transactions = Array.from([...orders.entries()]);
+    return transactions?.length
+      ? (
+        transactions.map((entry) => {
+          const cartId = entry[0];
+          const value = entry[1];
+          const transactionHash = value?.txHash || value?.blockHash;
+          let status: string;
+          // If not an actual order, but orders by statuses, don't display
+          if (cartId.length === 1) {
+            return null;
+          }
 
-        switch (value.status) {
-          case OrderState.STATE_CANCELED:
-            status = "Cancelled";
-            break;
-          case OrderState.STATE_OPEN:
-            status = "Open";
-            break;
-          case OrderState.STATE_COMMITED:
-            status = "Committed";
-            break;
-          case OrderState.STATE_PAYMENT_TX:
-          case OrderState.STATE_PAID:
-            status = "Paid";
-            break;
-          default:
-            status = "Unspecified";
-        }
-        return { orderId, date, status, timestamp: value.timestamp ?? 0 };
-      })
-      .sort((a, b) => b.timestamp - a.timestamp);
-    if (!transactions.length) {
-      return (
+          switch (value.status) {
+            case OrderState.STATE_CANCELED:
+              status = "Cancelled";
+              break;
+            case OrderState.STATE_OPEN:
+              status = "Open";
+              break;
+            case OrderState.STATE_COMMITED:
+              status = "Committed";
+              break;
+            case OrderState.STATE_PAYMENT_TX:
+            case OrderState.STATE_PAID:
+              status = "Paid";
+              break;
+            default:
+              status = "Unspecified";
+          }
+          return (
+            <div
+              key={cartId}
+              className="bg-white border-2  p-3 flex justify-between"
+              onClick={() => setOrderDetails(cartId)}
+            >
+              <p>{transactionHash?.slice(0, 10)}...</p>
+              <p>{status}</p>
+            </div>
+          );
+        })
+      )
+      : (
         <div>
           <p>no transactions</p>
         </div>
       );
-    }
-    return transactions.map((o) => {
-      return (
-        <div
-          key={o.orderId}
-          className="bg-white border-2  p-3 flex justify-between"
-          onClick={() => setOrderDetails(o.orderId)}
-        >
-          <p>{o.orderId?.slice(0, 10)}...</p>
-          <p>{o.date}</p>
-          <p>{o.status}</p>
-        </div>
-      );
-    });
-  };
+  }
 
   if (viewOrderDetails) {
     return (
@@ -194,6 +181,4 @@ const MerchantDashboard = () => {
       </div>
     </main>
   );
-};
-
-export default MerchantDashboard;
+}

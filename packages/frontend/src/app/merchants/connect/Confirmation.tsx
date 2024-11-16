@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useStoreContext } from "@/context/StoreContext";
 import Button from "@/app/common/components/Button";
 
-const Confirmation = () => {
+export default function Confirmation() {
   const { shopDetails } = useStoreContext();
 
   return (
@@ -31,6 +31,4 @@ const Confirmation = () => {
       </section>
     </main>
   );
-};
-
-export default Confirmation;
+}

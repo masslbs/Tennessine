@@ -23,7 +23,7 @@ const namespace = "frontend:edit-product";
 const debug = logger(namespace);
 const errlog = logger(namespace, "error");
 
-const AddProductView = () => {
+export default function AddProductView() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const itemId = searchParams.get("itemId") as ListingId | "new";
@@ -103,13 +103,13 @@ const AddProductView = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const hed = editView && productInView ? "Edit product" : "Add Product";
 
-  const triggerFileInput = () => {
+  function triggerFileInput() {
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
-  };
+  }
 
-  const handleUpload = (e: ChangeEvent<HTMLInputElement>) => {
+  function handleUpload(e: ChangeEvent<HTMLInputElement>) {
     try {
       const fileInput = e.target;
       if (fileInput.files && fileInput.files[0]) {
@@ -132,13 +132,13 @@ const AddProductView = () => {
       errlog("Error during image upload", error);
       setErrorMsg("Error during image upload");
     }
-  };
+  }
 
-  const removeImg = (img: { blob: null | FormData; url: string }) => {
+  function removeImg(img: { blob: null | FormData; url: string }) {
     setImages(images.filter((i) => img.url !== i.url));
-  };
+  }
 
-  const handleDelete = async () => {
+  async function handleDelete() {
     try {
       await clientWithStateManager!.stateManager!.listings.update({
         id: productInView!.id,
@@ -150,9 +150,9 @@ const AddProductView = () => {
       errlog("Error deleting listing", error);
       setErrorMsg("Error deleting listing");
     }
-  };
+  }
 
-  const create = async (newItem: Partial<Listing>) => {
+  async function create(newItem: Partial<Listing>) {
     try {
       const { id } = await clientWithStateManager!.stateManager!.listings
         .create(
@@ -176,9 +176,9 @@ const AddProductView = () => {
       errlog("Error creating listing", error);
       setErrorMsg("Error creating listing");
     }
-  };
+  }
 
-  const update = async (newItem: Partial<Listing>) => {
+  async function update(newItem: Partial<Listing>) {
     try {
       //compare the edited fields against the original object.
       const diff: Partial<Listing> = {
@@ -238,9 +238,9 @@ const AddProductView = () => {
       errlog("Error updating listing", error);
       setErrorMsg("Error updating listing");
     }
-  };
+  }
 
-  const onPublish = async () => {
+  async function onPublish() {
     if (!price) {
       setValidationError("Product must include price.");
     } else if (!title) {
@@ -284,32 +284,33 @@ const AddProductView = () => {
         setErrorMsg("Error publishing listing");
       }
     }
-  };
+  }
 
-  const handleTitleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  function handleTitleChange(e: ChangeEvent<HTMLInputElement>) {
     setTitle(e.target.value);
-  };
-  const handleDescriptionChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setDescription(e.target.value);
-  };
+  }
 
-  const handlePriceChange = (e: ChangeEvent<HTMLInputElement>) => {
+  function handleDescriptionChange(e: ChangeEvent<HTMLInputElement>) {
+    setDescription(e.target.value);
+  }
+
+  function handlePriceChange(e: ChangeEvent<HTMLInputElement>) {
     const _price = e.target.value;
     if (_price && !Number(_price)) {
       setPrice("");
     } else {
       setPrice(_price);
     }
-  };
+  }
 
-  const handleStockChange = (e: ChangeEvent<HTMLInputElement>) => {
+  function handleStockChange(e: ChangeEvent<HTMLInputElement>) {
     const units = e.target.value;
     if (units && !Number(units)) {
       setUnits(0);
     } else {
       setUnits(Number(e.target.value) || 0);
     }
-  };
+  }
 
   return (
     <main className="pt-under-nav h-screen px-4 mt-3">
@@ -527,5 +528,4 @@ const AddProductView = () => {
       </section>
     </main>
   );
-};
-export default AddProductView;
+}

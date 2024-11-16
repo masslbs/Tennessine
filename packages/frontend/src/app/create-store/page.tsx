@@ -36,7 +36,7 @@ const namespace = "frontend:create-store";
 const debug = logger(namespace);
 const errlog = logger(namespace, "error");
 
-const StoreCreation = () => {
+export default function StoreCreation() {
   const {
     shopPublicClient,
     clientWallet,
@@ -536,6 +536,4 @@ const StoreCreation = () => {
   } else if (step === "confirmation") {
     return <Confirmation />;
   }
-};
-
-export default StoreCreation;
+}

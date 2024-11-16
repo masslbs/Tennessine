@@ -22,7 +22,7 @@ const namespace = "frontend:Checkout";
 const debug = logger(namespace);
 const logerr = logger(namespace, "error");
 
-const CheckoutFlow = () => {
+export default function CheckoutFlow() {
   const { clientWithStateManager } = useUserContext();
   const { setCommittedOrderId } = useStoreContext();
 
@@ -192,6 +192,4 @@ const CheckoutFlow = () => {
       {renderContent()}
     </main>
   );
-};
-
-export default CheckoutFlow;
+}
