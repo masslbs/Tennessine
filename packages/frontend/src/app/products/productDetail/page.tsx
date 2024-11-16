@@ -15,7 +15,6 @@ import { createQueryString } from "@/app/utils";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
 import { useClient } from "@/context/AuthContext";
-import withClient from "@/app/components/withClient";
 import Button from "@/app/common/components/Button";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import BackButton from "@/app/common/components/BackButton";
@@ -221,4 +220,4 @@ const ProductDetail = () => {
     </main>
   );
 };
-export default withClient(ProductDetail);
+export default ProductDetail;

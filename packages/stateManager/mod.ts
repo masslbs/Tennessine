@@ -1,6 +1,12 @@
 import { EventEmitter } from "events";
 import { Address } from "@ethereumjs/util";
-import { bytesToHex, fromBytes, hexToBytes, type PublicClient } from "viem";
+import {
+  bytesToBigInt,
+  bytesToHex,
+  fromBytes,
+  hexToBytes,
+  type PublicClient,
+} from "viem";
 
 import {
   type ChoosePayment,
@@ -293,7 +299,8 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
       const sm = event.manifest;
       assertField(sm.tokenId, "manifest.tokenId");
       const manifest: ShopManifest = {
-        tokenId: bytesToHex(sm.tokenId.raw),
+        //LevelDB cannot serialize BigInts, so stringify shop ID
+        tokenId: String(bytesToBigInt(sm.tokenId.raw)),
         acceptedCurrencies: [],
         payees: [],
         shippingRegions: [],

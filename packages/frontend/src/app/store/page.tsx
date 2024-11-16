@@ -111,7 +111,7 @@ function StoreProfile() {
   }, []);
 
   function copyToClipboard() {
-    navigator.clipboard.writeText(shopId!);
+    navigator.clipboard.writeText(String(shopId));
   }
   async function updateShopManifest() {
     const um: Partial<UpdateShopManifest> = {};
@@ -269,7 +269,7 @@ function StoreProfile() {
                       className="border-2 border-solid mt-1 p-2 rounded"
                       id="shopId"
                       name="shopId"
-                      value={shopId!}
+                      value={String(shopId)}
                       onChange={() => {}}
                     />
                     <button className="mr-4" onClick={copyToClipboard}>

@@ -118,3 +118,9 @@ export const getTokenAddress = (symbol: string, chainId: string): Address => {
   }
   return tokenAddress;
 };
+
+export function isMerchantPath(pathname: string) {
+  return ["/merchants/", "/create-store/", "/merchants/connect/"].includes(
+    pathname,
+  );
+}
