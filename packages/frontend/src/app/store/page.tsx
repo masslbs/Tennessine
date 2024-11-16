@@ -9,7 +9,7 @@ import { useChains } from "wagmi";
 import { Address } from "viem";
 
 import { UpdateShopManifest } from "@massmarket/stateManager/types";
-import { BlockchainClient } from "@massmarket/blockchain";
+import { setTokenURI } from "@massmarket/blockchain";
 import { logger } from "@massmarket/utils";
 import { addresses } from "@massmarket/contracts";
 
@@ -165,8 +165,7 @@ export default function StoreProfile() {
         const { url } = await clientWithStateManager!.relayClient!.uploadBlob(
           formData,
         );
-        const blockchainClient = new BlockchainClient(shopId!);
-        await blockchainClient.setShopMetadataURI(clientWallet!, url);
+        await setTokenURI(clientWallet, [shopId, url]);
         setShopDetails({
           name: storeName,
           profilePictureUrl: url,

@@ -11,13 +11,12 @@ import { privateKeyToAccount } from "viem/accounts";
 import { hardhat } from "viem/chains";
 import * as abi from "@massmarket/contracts";
 import { random256BigInt } from "@massmarket/utils";
-import { BlockchainClient } from "./mod.ts";
+import { mintShop, setTokenURI } from "./mod.ts";
 
 const account = privateKeyToAccount(
   "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d",
 );
 
-let blockChainClient: BlockchainClient;
 const shopId = random256BigInt();
 
 describe({
@@ -34,21 +33,19 @@ describe({
       chain: hardhat,
       transport: http(),
     });
-    it("createShop", async () => {
-      blockChainClient = new BlockchainClient(shopId);
-      const transactionHash = await blockChainClient.createShop(wallet);
+    it("mintShop", async () => {
+      const transactionHash = await mintShop(wallet, [
+        shopId,
+        wallet.account.address,
+      ]);
       const receipt = await publicClient.waitForTransactionReceipt({
         hash: transactionHash,
       });
       expect(receipt.status).toBe("success");
     });
-    it("setShopMetadataURI", async () => {
-      blockChainClient = new BlockchainClient(shopId);
+    it("setTokenURI", async () => {
       const test_uri = "/testing/path";
-      const transactionHash = await blockChainClient.setShopMetadataURI(
-        wallet,
-        test_uri,
-      );
+      const transactionHash = await setTokenURI(wallet, [shopId, test_uri]);
       const receipt = await publicClient.waitForTransactionReceipt({
         hash: transactionHash,
       });
