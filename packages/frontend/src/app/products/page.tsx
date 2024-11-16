@@ -8,7 +8,6 @@ import React, { useEffect, useState } from "react";
 
 import { useUserContext } from "@/context/UserContext";
 import { useClient } from "@/context/AuthContext";
-import withClient from "@/app/components/withClient";
 import MerchantViewProducts from "@/app/components/products/MerchantViewProducts";
 import CustomerViewProducts from "@/app/components/products/CustomerViewProducts";
 
@@ -91,4 +90,4 @@ function Products() {
   );
 }
 
-export default withClient(Products);
+export default Products;

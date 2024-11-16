@@ -10,7 +10,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { useAccount, useChains } from "wagmi";
 
 import { BlockchainClient } from "@massmarket/blockchain";
-import { assert, logger, random32BytesHex } from "@massmarket/utils";
+import { assert, logger, random256BigInt } from "@massmarket/utils";
 import { addresses } from "@massmarket/contracts";
 
 import { CurrencyChainOption, ShopCurrencies, Status } from "@/types";
@@ -87,7 +87,7 @@ const StoreCreation = () => {
       localStorage.removeItem("guestKeyCard");
 
       randomShopIdHasBeenSet.current = true;
-      const randomShopId = random32BytesHex();
+      const randomShopId = random256BigInt();
       setIsConnected(Status.Pending);
       setShopId(randomShopId);
     }
@@ -171,7 +171,7 @@ const StoreCreation = () => {
       }
       const rc = clientWithStateManager.createNewRelayClient();
 
-      const blockchainClient = new BlockchainClient(shopId!);
+      const blockchainClient = new BlockchainClient(shopId);
       const hash = await blockchainClient.createShop(clientWallet!);
       setStoreRegistrationStatus("Waiting to confirm mint transaction...");
       let receipt = await shopPublicClient!.waitForTransactionReceipt({
@@ -182,7 +182,7 @@ const StoreCreation = () => {
       if (receipt!.status !== "success") {
         throw new Error("Mint shop: transaction failed");
       }
-      localStorage.setItem("shopId", shopId!);
+      localStorage.setItem("shopId", String(shopId));
 
       setStoreRegistrationStatus("Adding relay token ID...");
       // Add relay tokenId for event verification.
@@ -220,7 +220,7 @@ const StoreCreation = () => {
       const res = await clientWithStateManager!.relayClient!.enrollKeycard(
         clientWallet!,
         false,
-        shopId!,
+        shopId,
         process.env.TEST ? undefined : new URL(globalThis.location.href),
       );
       if (!res.ok) {
@@ -295,7 +295,7 @@ const StoreCreation = () => {
             },
           ],
         },
-        shopId!,
+        shopId,
       );
       debug("Manifest created");
     } catch (error: unknown) {
@@ -339,7 +339,7 @@ const StoreCreation = () => {
           formData,
         );
       }
-      const blockchainClient = new BlockchainClient(shopId!);
+      const blockchainClient = new BlockchainClient(shopId);
       //Write shop metadata to blockchain client.
       const metadataHash = await blockchainClient.setShopMetadataURI(
         clientWallet!,

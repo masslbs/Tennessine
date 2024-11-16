@@ -8,11 +8,12 @@ import React from "react";
 import BackButton from "@/app/common/components/BackButton";
 import { useUserContext } from "@/context/UserContext";
 
-function Share() {
+export default function Share() {
   const { shopId } = useUserContext();
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(shopId!);
-  };
+
+  function copyToClipboard() {
+    navigator.clipboard.writeText(String(shopId));
+  }
 
   return (
     <main className="pt-under-nav h-screen bg-gray-100">
@@ -43,5 +44,3 @@ function Share() {
     </main>
   );
 }
-
-export default Share;
