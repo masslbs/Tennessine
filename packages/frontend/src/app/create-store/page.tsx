@@ -9,9 +9,8 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { privateKeyToAccount } from "viem/accounts";
 import { useAccount, useChains } from "wagmi";
 
-import { BlockchainClient } from "@massmarket/blockchain";
+import { addRelay, mintShop, setTokenURI } from "@massmarket/blockchain";
 import { assert, logger, random256BigInt } from "@massmarket/utils";
-import { addresses } from "@massmarket/contracts";
 
 import { CurrencyChainOption, ShopCurrencies, Status } from "@/types";
 import { getTokenAddress, isValidHex } from "@/app/utils";
@@ -159,7 +158,7 @@ export default function StoreCreation() {
     setStep("connect wallet");
   }
 
-  async function mintShop() {
+  async function mint() {
     debug(`creating shop for ${shopId}`);
     setStoreRegistrationStatus("Minting shop...");
     try {
@@ -171,8 +170,10 @@ export default function StoreCreation() {
       }
       const rc = clientWithStateManager.createNewRelayClient();
 
-      const blockchainClient = new BlockchainClient(shopId);
-      const hash = await blockchainClient.createShop(clientWallet!);
+      const hash = await mintShop(clientWallet, [
+        shopId,
+        clientWallet.account.address,
+      ]);
       setStoreRegistrationStatus("Waiting to confirm mint transaction...");
       let receipt = await shopPublicClient!.waitForTransactionReceipt({
         hash,
@@ -186,10 +187,10 @@ export default function StoreCreation() {
 
       setStoreRegistrationStatus("Adding relay token ID...");
       // Add relay tokenId for event verification.
-      const tx = await blockchainClient.addRelay(
-        clientWallet!,
+      const tx = await addRelay(clientWallet, [
+        shopId,
         rc.relayEndpoint.tokenId,
-      );
+      ]);
       debug(`Added relay token ID:${rc.relayEndpoint.tokenId}`);
       receipt = await shopPublicClient!.waitForTransactionReceipt({
         hash: tx,
@@ -339,12 +340,11 @@ export default function StoreCreation() {
           formData,
         );
       }
-      const blockchainClient = new BlockchainClient(shopId);
       //Write shop metadata to blockchain client.
-      const metadataHash = await blockchainClient.setShopMetadataURI(
-        clientWallet!,
+      const metadataHash = await setTokenURI(clientWallet, [
+        shopId,
         metadataPath.url,
-      );
+      ]);
 
       const transaction = await shopPublicClient!.waitForTransactionReceipt({
         hash: metadataHash,
@@ -524,7 +524,7 @@ export default function StoreCreation() {
               <div className="flex flex-col gap-4">
                 <ConnectButton chainStatus="name" />
                 <p>{storeRegistrationStatus}</p>
-                <Button onClick={mintShop} disabled={!clientWallet}>
+                <Button onClick={mint} disabled={!clientWallet}>
                   <h6>Mint Shop</h6>
                 </Button>
               </div>

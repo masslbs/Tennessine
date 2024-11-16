@@ -31,11 +31,7 @@ export function genericWriteContract<
 >(abi: abiT, functionName: FuncName, address: Address) {
   return (
     wallet: ConcreteWalletClient,
-    args: ContractFunctionArgs<
-      abiT,
-      Mutable,
-      FuncName
-    >,
+    args: ContractFunctionArgs<abiT, Mutable, FuncName>,
   ) => {
     return wallet.writeContract({
       chain: wallet.chain,
@@ -54,11 +50,7 @@ export function genericReadContract<
 >(abi: abiT, functionName: FuncName, address: Address) {
   return (
     wallet: PublicClient,
-    args: ContractFunctionArgs<
-      abiT,
-      ReadOnly,
-      FuncName
-    >,
+    args: ContractFunctionArgs<abiT, ReadOnly, FuncName>,
   ): Promise<
     ContractFunctionReturnType<
       abiT,
@@ -148,17 +140,6 @@ export const mintShop = genericWriteContract(
 
 export class BlockchainClient {
   constructor(public shopId = random256BigInt()) {}
-
-  addRelay(wallet: ConcreteWalletClient, tokenId: bigint) {
-    return addRelay(wallet, [this.shopId, tokenId]);
-  }
-  createShop(wallet: ConcreteWalletClient) {
-    return mintShop(wallet, [this.shopId, wallet.account.address]);
-  }
-
-  setShopMetadataURI(wallet: ConcreteWalletClient, uri: string) {
-    return setTokenURI(wallet, [this.shopId, uri]);
-  }
 
   createInviteSecret(wallet: ConcreteWalletClient, token: Address) {
     // Save the public key onchain
