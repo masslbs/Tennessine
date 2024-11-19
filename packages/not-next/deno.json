@@ -8,6 +8,9 @@
   "lint": {
     "exclude": ["./.vite"]
   },
+  "fmt": {
+    "exclude": ["./.vite"]
+  },
   "imports": {
     "@deno/vite-plugin": "npm:@deno/vite-plugin@^1.0.0",
     "@rainbow-me/rainbowkit": "npm:@rainbow-me/rainbowkit@^2.2.0",
