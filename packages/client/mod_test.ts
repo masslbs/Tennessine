@@ -30,7 +30,11 @@ import {
   permissions,
   shopRegAbi,
 } from "@massmarket/contracts";
-import { BlockchainClient, mintShop } from "@massmarket/blockchain";
+import {
+  mintShop,
+  publishInviteVerifier,
+  redeemInviteSecret,
+} from "@massmarket/blockchain";
 
 import { discoverRelay, RelayClient } from "./mod.ts";
 
@@ -52,7 +56,6 @@ const publicClient = createPublicClient({
 });
 
 const shopId = random256BigInt();
-let blockchain: BlockchainClient;
 const relayURL = Deno.env.get("RELAY_ENDPOINT") || "ws://localhost:4444/v3";
 const relayEndpoint = await discoverRelay(relayURL);
 
@@ -68,9 +71,6 @@ describe({
   sanitizeResources: false,
   sanitizeOps: false,
   fn() {
-    beforeEach(() => {
-      blockchain = new BlockchainClient(shopId);
-    });
     describe("RelayClient", () => {
       const relayClient = createRelayClient();
       test("should create a shop", async () => {
@@ -91,7 +91,10 @@ describe({
         // if we knew that before hand, we could just call registerUser(acc2.address, Clerk)
         const sk = random32BytesHex();
         const token = privateKeyToAccount(sk);
-        const hash = await blockchain.createInviteSecret(wallet, token.address);
+        const hash = await publishInviteVerifier(wallet, [
+          shopId,
+          token.address,
+        ]);
 
         // wait for the transaction to be included in the blockchain
         const receipt = await publicClient.waitForTransactionReceipt({
@@ -116,7 +119,7 @@ describe({
           keyCardWallet: privateKeyToAccount(sk),
         });
 
-        const hash2 = await blockchain.redeemInviteSecret(sk, client2Wallet);
+        const hash2 = await redeemInviteSecret(sk, client2Wallet, shopId);
         // wait for the transaction to be included in the blockchain
         const transaction = await publicClient.waitForTransactionReceipt({
           hash: hash2,
@@ -128,18 +131,14 @@ describe({
           address: addresses.ShopReg,
           abi: shopRegAbi,
           functionName: "hasPermission",
-          args: [
-            blockchain.shopId,
-            acc2.address,
-            permissions.updateRootHash,
-          ],
+          args: [shopId, acc2.address, permissions.updateRootHash],
         });
         expect(canUpdateRootHash).toBe(true);
         const canRemoveUser = await publicClient.readContract({
           address: addresses.ShopReg,
           abi: shopRegAbi,
           functionName: "hasPermission",
-          args: [blockchain.shopId, acc2.address, permissions.removeUser],
+          args: [shopId, acc2.address, permissions.removeUser],
         });
         expect(canRemoveUser).toBe(false);
         await Promise.all([
@@ -422,10 +421,9 @@ describe({
             // TODO: add timeout
             if (event.updateOrder?.addPaymentTx) {
               expect(event.updateOrder.id).toEqual(orderId);
-              expect(toHex(event!.updateOrder!.addPaymentTx!.txHash!.raw!))
-                .toEqual(
-                  paymentHash,
-                );
+              expect(
+                toHex(event!.updateOrder!.addPaymentTx!.txHash!.raw!),
+              ).toEqual(paymentHash);
               return;
             }
           }
@@ -438,10 +436,10 @@ describe({
         beforeEach(async () => {
           const sk = random32BytesHex();
           const token = privateKeyToAccount(sk);
-          const hash = await blockchain.createInviteSecret(
-            wallet,
+          const hash = await publishInviteVerifier(wallet, [
+            shopId,
             token.address,
-          );
+          ]);
           // wait for the transaction to be included in the blockchain
           const receipt = await publicClient.waitForTransactionReceipt({
             hash,
@@ -460,9 +458,10 @@ describe({
             transport: http(),
           });
           relayClient2 = createRelayClient(sk);
-          const redeemHash = await blockchain.redeemInviteSecret(
+          const redeemHash = await redeemInviteSecret(
             sk,
             client2Wallet,
+            shopId,
           );
           // wait for the transaction to be included in the blockchain
           const redeemReceipt = await publicClient.waitForTransactionReceipt({
@@ -508,10 +507,12 @@ describe({
     describe("If there is a network error, state manager should not change the state.", () => {
       const client = createRelayClient();
       const shopId = random256BigInt();
-      const blockchain = new BlockchainClient(shopId);
 
       test("Bad network calls should not change state data", async () => {
-        const transactionHash = await blockchain.createShop(wallet);
+        const transactionHash = await mintShop(wallet, [
+          shopId,
+          wallet.account.address,
+        ]);
         const receipt = await publicClient.waitForTransactionReceipt({
           hash: transactionHash,
         });
