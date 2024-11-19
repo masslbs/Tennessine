@@ -2,7 +2,7 @@ import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useChains } from "wagmi";
 import { Address, pad, toHex } from "viem";
 import { assert, formatUnitsFromString, logger } from "@massmarket/utils";
-import * as abi from "@massmarket/contracts";
+import { addresses } from "@massmarket/contracts";
 import { getPaymentAddress, getPaymentId } from "@massmarket/blockchain";
 import {
   CheckoutStep,
@@ -127,7 +127,7 @@ export default function ChoosePayment({
         currency.address,
       );
       //FIXME: get orderHash from paymentDetails.
-      const zeros32Bytes = pad(abi.addresses.zeroAddress, { size: 32 });
+      const zeros32Bytes = pad(addresses.zeroAddress, { size: 32 });
       //FIXME: separate this into a function that constructs the arg.
       const arg = {
         chainId: currency.chainId,
@@ -158,7 +158,7 @@ export default function ChoosePayment({
       setPaymentArgs(arg);
       const amount = BigInt(total);
       debug(`amount: ${amount}`);
-      const payLink = currency.address === abi.addresses.zeroAddress
+      const payLink = currency.address === addresses.zeroAddress
         ? `ethereum:${paymentAddr}?value=${amount}`
         : `ethereum:${currency.address}/transfer?address=${paymentAddr}&uint256=${amount}`;
       setPaymentAddress(paymentAddr);

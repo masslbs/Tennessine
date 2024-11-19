@@ -17,7 +17,6 @@ import {
   type WriteContractParameters,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { random256BigInt } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 
 export type ConcreteWalletClient = WalletClient<Transport, Chain, Account>;
@@ -31,11 +30,7 @@ export function genericWriteContract<
 >(abi: abiT, functionName: FuncName, address: Address) {
   return (
     wallet: ConcreteWalletClient,
-    args: ContractFunctionArgs<
-      abiT,
-      Mutable,
-      FuncName
-    >,
+    args: ContractFunctionArgs<abiT, Mutable, FuncName>,
   ) => {
     return wallet.writeContract({
       chain: wallet.chain,
@@ -54,11 +49,7 @@ export function genericReadContract<
 >(abi: abiT, functionName: FuncName, address: Address) {
   return (
     wallet: PublicClient,
-    args: ContractFunctionArgs<
-      abiT,
-      ReadOnly,
-      FuncName
-    >,
+    args: ContractFunctionArgs<abiT, ReadOnly, FuncName>,
   ): Promise<
     ContractFunctionReturnType<
       abiT,
@@ -145,36 +136,19 @@ export const mintShop = genericWriteContract(
   "mint",
   abi.addresses.ShopReg,
 );
-
-export class BlockchainClient {
-  constructor(public shopId = random256BigInt()) {}
-
-  addRelay(wallet: ConcreteWalletClient, tokenId: bigint) {
-    return addRelay(wallet, [this.shopId, tokenId]);
-  }
-  createShop(wallet: ConcreteWalletClient) {
-    return mintShop(wallet, [this.shopId, wallet.account.address]);
-  }
-
-  setShopMetadataURI(wallet: ConcreteWalletClient, uri: string) {
-    return setTokenURI(wallet, [this.shopId, uri]);
-  }
-
-  createInviteSecret(wallet: ConcreteWalletClient, token: Address) {
-    // Save the public key onchain
-    return publishInviteVerifier(wallet, [this.shopId, token]);
-  }
-
-  async redeemInviteSecret(secret: Address, wallet: ConcreteWalletClient) {
-    const message = "enrolling:" + wallet.account.address.toLowerCase();
-    const tokenAccount = privateKeyToAccount(secret);
-    const sig = await tokenAccount.signMessage({
-      message,
-    });
-    const sigBytes = hexToBytes(sig);
-    const v = sigBytes[64];
-    const r = bytesToHex(sigBytes.slice(0, 32));
-    const s = bytesToHex(sigBytes.slice(32, 64));
-    return redeemInvite(wallet, [this.shopId, v, r, s, wallet.account.address]);
-  }
+export async function redeemInviteSecret(
+  secret: Address,
+  wallet: ConcreteWalletClient,
+  shopId: bigint,
+) {
+  const message = "enrolling:" + wallet.account.address.toLowerCase();
+  const tokenAccount = privateKeyToAccount(secret);
+  const sig = await tokenAccount.signMessage({
+    message,
+  });
+  const sigBytes = hexToBytes(sig);
+  const v = sigBytes[64];
+  const r = bytesToHex(sigBytes.slice(0, 32));
+  const s = bytesToHex(sigBytes.slice(32, 64));
+  return redeemInvite(wallet, [shopId, v, r, s, wallet.account.address]);
 }

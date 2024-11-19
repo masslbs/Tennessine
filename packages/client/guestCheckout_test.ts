@@ -25,10 +25,7 @@ import {
   paymentsByAddressAbi,
 } from "@massmarket/contracts";
 import { objectId, priceToUint256 } from "@massmarket/utils";
-import {
-  BlockchainClient,
-  type ConcreteWalletClient,
-} from "@massmarket/blockchain";
+import { type ConcreteWalletClient, mintShop } from "@massmarket/blockchain";
 import { discoverRelay, RelayClient } from "./mod.ts";
 import type schema from "../schema/mod.ts";
 import { bytesToHex } from "jsr:@wevm/viem/utils";
@@ -63,12 +60,13 @@ describe({
     }
 
     const shopId = random256BigInt();
-    const blockchain = new BlockchainClient(shopId);
 
     it("create shop", async () => {
       // create a shop
-      const transactionHash = await blockchain.createShop(wallet);
-      // wait for the transaction to be included in the blockchain
+      const transactionHash = await mintShop(wallet, [
+        shopId,
+        wallet.account.address,
+      ]); // wait for the transaction to be included in the blockchain
       const receipt = await publicClient.waitForTransactionReceipt({
         hash: transactionHash,
       });
