@@ -4,6 +4,7 @@
 
 import { Buffer } from "buffer";
 import {
+  bytesToBigInt,
   bytesToHex,
   formatUnits,
   hexToBytes,
@@ -12,7 +13,6 @@ import {
   toBytes,
 } from "viem";
 import * as Sentry from "@sentry/nextjs";
-import { bytesToBigInt } from "@ethereumjs/util";
 
 // TODO: type case first argument to captureException
 // TODO: add extras arguments (https://docs.sentry.io/platforms/javascript/guides/nextjs/enriching-events/)
