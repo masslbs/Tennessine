@@ -15,6 +15,7 @@
     "@massmarket/utils": "workspace:*",
     "@massmarket/contracts": "workspace:*",
     "events": "^3.3.0",
+    "long": "^5.2.3",
     "viem": "2.21.44"
   },
   "exports": {

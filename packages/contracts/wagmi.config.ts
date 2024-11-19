@@ -1,7 +1,3 @@
-// @ts-check
-
-/** @type {import('@wagmi/cli').Config} */
-
 import { actions, react } from "npm:@wagmi/cli/plugins";
 import PaymentsByAddress from "./abi/PaymentsByAddress.json" with {
   type: "json",
