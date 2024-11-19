@@ -14,6 +14,7 @@ import { assert, logger, random256BigInt } from "@massmarket/utils";
 
 import { CurrencyChainOption, ShopCurrencies, Status } from "@/types";
 import { getTokenAddress, isValidHex } from "@/app/utils";
+import { addresses } from "@massmarket/contracts";
 import { useClient } from "@/context/AuthContext";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";

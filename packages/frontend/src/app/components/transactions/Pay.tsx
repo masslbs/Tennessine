@@ -49,18 +49,18 @@ export default function Pay({
     try {
       setLoading(true);
       if (paymentArgs.currencyAddress !== addresses.zeroAddress) {
-        debug("Approve ERC20 contract call");
+        debug("Pending ERC20 contract call approval");
         // TODO: should do this if we have already approved the contract
-        await approveERC20(
-          clientWallet,
-          paymentArgsWallet.currencyAddress,
-          paymentArgsWallet.total,
-        );
-        await payTokenPreApproved(paymentArgsWallet);
+        await approveERC20(clientWallet, paymentArgsWallet.currency, [
+          paymentArgsWallet.payeeAddress,
+          paymentArgsWallet.amount,
+        ]);
+        debug("ERC20 contract call approved");
+        await payTokenPreApproved(clientWallet, [paymentArgsWallet]);
       } else {
         //ETH payments do not need to be approved.
         debug("Pay native contract call");
-        await payNative(paymentArgsWallet);
+        await payNative(clientWallet, [paymentArgsWallet]);
       }
     } catch (error) {
       assert(error instanceof Error, "Error is not an instance of Error");
