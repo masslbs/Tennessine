@@ -9,8 +9,9 @@ import { useChains } from "wagmi";
 import { Address } from "viem";
 
 import { UpdateShopManifest } from "@massmarket/stateManager/types";
-import { BlockchainClient } from "@massmarket/blockchain";
-import { logger, zeroAddress } from "@massmarket/utils";
+import { setTokenURI } from "@massmarket/blockchain";
+import { logger } from "@massmarket/utils";
+import { addresses } from "@massmarket/contracts";
 
 import { CurrencyChainOption, ShopCurrencies, ShopManifest } from "@/types";
 import { getTokenAddress } from "@/app/utils";
@@ -33,7 +34,7 @@ interface AcceptedChain {
 
 const debug = logger("frontend:storeProfile");
 
-function StoreProfile() {
+export default function StoreProfile() {
   const { shopDetails, setShopDetails } = useStoreContext();
   const { shopId, clientWallet, clientWithStateManager } = useUserContext();
   const [storeName, setStoreName] = useState<string>(shopDetails.name || "");
@@ -60,8 +61,8 @@ function StoreProfile() {
       chains.map((c) => {
         chainsToRender.push({
           label: `ETH/${c.name}`,
-          value: `${zeroAddress}/${c.id}`,
-          address: zeroAddress,
+          value: `${addresses.zeroAddress}/${c.id}`,
+          address: addresses.zeroAddress,
           chainId: c.id,
         });
         const usdcTokenAddress = getTokenAddress("USDC", String(c.id));
@@ -77,14 +78,14 @@ function StoreProfile() {
   }, []);
 
   useEffect(() => {
-    const onUpdateEvent = (updatedManifest: ShopManifest) => {
+    function onUpdateEvent(updatedManifest: ShopManifest) {
       const { pricingCurrency, acceptedCurrencies } = updatedManifest;
       setAcceptedCurrencies(acceptedCurrencies);
       setPricingCurrency({
         address: pricingCurrency.address!,
         chainId: pricingCurrency.chainId!,
       });
-    };
+    }
 
     clientWithStateManager!
       .stateManager!.manifest.get()
@@ -110,7 +111,7 @@ function StoreProfile() {
   }, []);
 
   function copyToClipboard() {
-    navigator.clipboard.writeText(shopId!);
+    navigator.clipboard.writeText(String(shopId));
   }
   async function updateShopManifest() {
     const um: Partial<UpdateShopManifest> = {};
@@ -164,8 +165,7 @@ function StoreProfile() {
         const { url } = await clientWithStateManager!.relayClient!.uploadBlob(
           formData,
         );
-        const blockchainClient = new BlockchainClient(shopId!);
-        await blockchainClient.setShopMetadataURI(clientWallet!, url);
+        await setTokenURI(clientWallet, [shopId, url]);
         setShopDetails({
           name: storeName,
           profilePictureUrl: url,
@@ -268,7 +268,7 @@ function StoreProfile() {
                       className="border-2 border-solid mt-1 p-2 rounded"
                       id="shopId"
                       name="shopId"
-                      value={shopId!}
+                      value={String(shopId)}
                       onChange={() => {}}
                     />
                     <button className="mr-4" onClick={copyToClipboard}>
@@ -357,5 +357,3 @@ function StoreProfile() {
     </main>
   );
 }
-
-export default StoreProfile;

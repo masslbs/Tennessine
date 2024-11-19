@@ -1,17 +1,9 @@
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useChains } from "wagmi";
 import { Address, pad, toHex } from "viem";
-import {
-  assert,
-  formatUnitsFromString,
-  logger,
-  zeroAddress,
-} from "@massmarket/utils";
-import * as abi from "@massmarket/contracts";
-import {
-  getPaymentAddressAndID,
-  type PaymentArgs,
-} from "@massmarket/blockchain";
+import { assert, formatUnitsFromString, logger } from "@massmarket/utils";
+import { addresses } from "@massmarket/contracts";
+import { getPaymentAddress, getPaymentId } from "@massmarket/blockchain";
 import {
   CheckoutStep,
   CurrencyChainOption,
@@ -135,37 +127,38 @@ export default function ChoosePayment({
         currency.address,
       );
       //FIXME: get orderHash from paymentDetails.
-      const zeros32Bytes = pad(abi.zeroAddress, { size: 32 });
+      const zeros32Bytes = pad(addresses.zeroAddress, { size: 32 });
       //FIXME: separate this into a function that constructs the arg.
       const arg = {
         chainId: currency.chainId,
-        ttl: Number(ttl), // is this correct?
-        orderHash: zeros32Bytes,
-        currencyAddress: currency.address,
-        total: BigInt(total),
+        ttl: BigInt(ttl),
+        order: zeros32Bytes,
+        currency: currency.address,
+        amount: BigInt(total),
         payeeAddress: payee.address,
         isPaymentEndpoint: false, //isPaymentEndpoint
-        shopId: shopId!,
+        shopId: shopId,
         shopSignature,
       };
-      const calculatedPaymentInfo = await getPaymentAddressAndID({
-        wallet: paymentRPC,
-        refundAddress: arg.payeeAddress,
-        ...arg,
-      });
-      if (!calculatedPaymentInfo.address) {
+
+      const paymentAddr = await getPaymentAddress(paymentRPC, [
+        arg,
+        payee.address,
+      ]);
+      if (!paymentAddr) {
         throw new Error("No payment address found");
       }
-      if (toHex(calculatedPaymentInfo.id) !== paymentId) {
+      const id = await getPaymentId(paymentRPC, [arg]);
+
+      if (toHex(id) !== paymentId) {
         debug(`received payment Id: ${paymentId}`);
-        debug(`calculated payment Id: ${toHex(calculatedPaymentInfo.id)}`);
+        debug(`calculated payment Id: ${toHex(id)}`);
         throw new Error("Payment ID mismatch");
       }
       setPaymentArgs(arg);
-      const paymentAddr = calculatedPaymentInfo.address;
       const amount = BigInt(total);
       debug(`amount: ${amount}`);
-      const payLink = currency.address === zeroAddress
+      const payLink = currency.address === addresses.zeroAddress
         ? `ethereum:${paymentAddr}?value=${amount}`
         : `ethereum:${currency.address}/transfer?address=${paymentAddr}&uint256=${amount}`;
       setPaymentAddress(paymentAddr);

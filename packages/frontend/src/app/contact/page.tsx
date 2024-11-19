@@ -10,7 +10,7 @@ import { useSearchParams } from "next/navigation";
 import BackButton from "@/app/common/components/BackButton";
 import Share from "@/app/components/contact/Share";
 
-function Contact() {
+export default function Contact() {
   const searchParams = useSearchParams();
   const page = searchParams.get("page");
 
@@ -60,5 +60,3 @@ function Contact() {
     </main>
   );
 }
-
-export default Contact;

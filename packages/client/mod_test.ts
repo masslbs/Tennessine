@@ -2,34 +2,39 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { WebSocket } from "isows";
+import { WebSocket } from "npm:isows";
 import {
-  type Address,
+  bytesToBigInt,
+  bytesToHex,
   createPublicClient,
   createWalletClient,
-  hexToBigInt,
   hexToBytes,
   http,
-  pad,
-  toBytes,
   toHex,
-} from "viem";
-import { hardhat } from "viem/chains";
-import { privateKeyToAccount } from "viem/accounts";
+} from "npm:viem";
+import { hardhat } from "npm:viem/chains";
+import { privateKeyToAccount } from "npm:viem/accounts";
 import { beforeAll, beforeEach, describe, test } from "jsr:@std/testing/bdd";
 import { expect } from "jsr:@std/expect";
-
 import {
-  anvilAddress,
-  anvilPrivateKey,
   objectId,
   priceToUint256,
+  random256BigInt,
   random32BytesHex,
   randomBytes,
-  zeroAddress,
 } from "@massmarket/utils";
-import * as abi from "@massmarket/contracts";
-import { BlockchainClient } from "@massmarket/blockchain";
+import {
+  addresses,
+  anvilPrivateKey,
+  paymentsByAddressAbi,
+  permissions,
+  shopRegAbi,
+} from "@massmarket/contracts";
+import {
+  mintShop,
+  publishInviteVerifier,
+  redeemInviteSecret,
+} from "@massmarket/blockchain";
 
 import { discoverRelay, RelayClient } from "./mod.ts";
 
@@ -50,8 +55,7 @@ const publicClient = createPublicClient({
   transport: http(),
 });
 
-const shopId = random32BytesHex();
-let blockchain: BlockchainClient;
+const shopId = random256BigInt();
 const relayURL = Deno.env.get("RELAY_ENDPOINT") || "ws://localhost:4444/v3";
 const relayEndpoint = await discoverRelay(relayURL);
 
@@ -67,15 +71,13 @@ describe({
   sanitizeResources: false,
   sanitizeOps: false,
   fn() {
-    beforeEach(() => {
-      blockchain = new BlockchainClient(shopId);
-    });
     describe("RelayClient", () => {
       const relayClient = createRelayClient();
-
       test("should create a shop", async () => {
-        const transactionHash = await blockchain.createShop(wallet);
-        // wait for the transaction to be included in the blockchain
+        const transactionHash = await mintShop(wallet, [
+          shopId,
+          wallet.account.address,
+        ]); // wait for the transaction to be included in the blockchain
         const receipt = await publicClient.waitForTransactionReceipt({
           hash: transactionHash,
         });
@@ -89,7 +91,10 @@ describe({
         // if we knew that before hand, we could just call registerUser(acc2.address, Clerk)
         const sk = random32BytesHex();
         const token = privateKeyToAccount(sk);
-        const hash = await blockchain.createInviteSecret(wallet, token.address);
+        const hash = await publishInviteVerifier(wallet, [
+          shopId,
+          token.address,
+        ]);
 
         // wait for the transaction to be included in the blockchain
         const receipt = await publicClient.waitForTransactionReceipt({
@@ -114,7 +119,7 @@ describe({
           keyCardWallet: privateKeyToAccount(sk),
         });
 
-        const hash2 = await blockchain.redeemInviteSecret(sk, client2Wallet);
+        const hash2 = await redeemInviteSecret(sk, client2Wallet, shopId);
         // wait for the transaction to be included in the blockchain
         const transaction = await publicClient.waitForTransactionReceipt({
           hash: hash2,
@@ -123,26 +128,23 @@ describe({
 
         // verify access level
         const canUpdateRootHash = await publicClient.readContract({
-          address: abi.addresses.ShopReg as Address,
-          abi: abi.ShopReg,
+          address: addresses.ShopReg,
+          abi: shopRegAbi,
           functionName: "hasPermission",
-          args: [
-            blockchain.shopId,
-            acc2.address,
-            abi.permissions.updateRootHash,
-          ],
+          args: [shopId, acc2.address, permissions.updateRootHash],
         });
         expect(canUpdateRootHash).toBe(true);
         const canRemoveUser = await publicClient.readContract({
-          address: abi.addresses.ShopReg as Address,
-          abi: abi.ShopReg,
+          address: addresses.ShopReg,
+          abi: shopRegAbi,
           functionName: "hasPermission",
-          args: [blockchain.shopId, acc2.address, abi.permissions.removeUser],
+          args: [shopId, acc2.address, permissions.removeUser],
         });
         expect(canRemoveUser).toBe(false);
-
-        await relayClient2.disconnect();
-        await relayClient.disconnect();
+        await Promise.all([
+          relayClient2.disconnect(),
+          relayClient.disconnect(),
+        ]);
       });
     });
 
@@ -187,7 +189,7 @@ describe({
             payees: [
               {
                 address: {
-                  raw: toBytes(anvilAddress),
+                  raw: hexToBytes(addresses.anvilAddress),
                 },
                 callAsContract: false,
                 chainId: 31337,
@@ -197,12 +199,12 @@ describe({
             acceptedCurrencies: [
               {
                 chainId: 10,
-                address: { raw: hexToBytes(zeroAddress) },
+                address: { raw: hexToBytes(addresses.zeroAddress) },
               },
             ],
             pricingCurrency: {
               chainId: 10,
-              address: { raw: hexToBytes(zeroAddress) },
+              address: { raw: hexToBytes(addresses.zeroAddress) },
             },
             shippingRegions: [
               {
@@ -221,11 +223,11 @@ describe({
         await relayClient.updateShopManifest({
           addAcceptedCurrencies: [
             {
-              address: { raw: hexToBytes(abi.addresses.Eddies as Address) },
+              address: { raw: hexToBytes(addresses.Eddies) },
               chainId: 31337,
             },
             {
-              address: { raw: hexToBytes(zeroAddress) },
+              address: { raw: hexToBytes(addresses.zeroAddress) },
               chainId: 31337,
             },
           ],
@@ -233,7 +235,7 @@ describe({
         await relayClient.updateShopManifest({
           removeAcceptedCurrencies: [
             {
-              address: { raw: hexToBytes(abi.addresses.Eddies as Address) },
+              address: { raw: hexToBytes(addresses.Eddies) },
               chainId: 31337,
             },
           ],
@@ -357,15 +359,16 @@ describe({
             },
           });
           await relayClient.updateOrder({ id: orderId, commitItems: {} });
+          console.log("he#####");
           await relayClient.updateOrder({
             id: orderId,
             choosePayment: {
               currency: {
                 chainId: 31337,
-                address: { raw: hexToBytes(zeroAddress) },
+                address: { raw: hexToBytes(addresses.zeroAddress) },
               },
               payee: {
-                address: { raw: toBytes(anvilAddress) },
+                address: { raw: hexToBytes(addresses.anvilAddress) },
                 callAsContract: false,
                 chainId: 31337,
                 name: "default",
@@ -377,25 +380,24 @@ describe({
           for await (const { event } of stream) {
             if (event.updateOrder?.setPaymentDetails) {
               const paymentDetails = event.updateOrder.setPaymentDetails;
-              const zeros32Bytes = pad(zeroAddress, { size: 32 });
-              const total = toHex(paymentDetails.total!.raw!);
-              const args = [
-                31337, // chainid
-                paymentDetails.ttl,
-                zeros32Bytes,
-                zeroAddress,
-                total,
-                anvilAddress,
-                false, // is paymentendpoint?
-                shopId,
-                toHex(paymentDetails.shopSignature!.raw!),
-              ];
-              const paymentId = (await publicClient.readContract({
-                address: abi.addresses.Payments as Address,
-                abi: abi.PaymentsByAddress,
+              const total = paymentDetails.total!.raw!;
+              const args = {
+                chainId: 31337n,
+                ttl: BigInt(paymentDetails.ttl!),
+                order: bytesToHex(new Uint8Array(32)),
+                currency: addresses.zeroAddress, //currency address
+                amount: bytesToBigInt(total),
+                payeeAddress: addresses.anvilAddress, //payee address
+                isPaymentEndpoint: false, // is paymentendpoint?
+                shopId: shopId,
+                shopSignature: toHex(paymentDetails.shopSignature!.raw!),
+              };
+              const paymentId = await publicClient.readContract({
+                address: addresses.Payments,
+                abi: paymentsByAddressAbi,
                 functionName: "getPaymentId",
                 args: [args],
-              })) as bigint;
+              });
 
               // TODO: toHex is not padding BigInt coerrect, so this cause random test
               // failures
@@ -403,11 +405,11 @@ describe({
                 toHex(paymentId),
               );
               const hash = await wallet.writeContract({
-                address: abi.addresses.Payments as Address,
-                abi: abi.PaymentsByAddress,
+                address: addresses.Payments,
+                abi: paymentsByAddressAbi,
                 functionName: "pay",
                 args: [args],
-                value: hexToBigInt(total),
+                value: bytesToBigInt(total),
               });
               const receipt = await publicClient.waitForTransactionReceipt({
                 hash,
@@ -419,9 +421,9 @@ describe({
             // TODO: add timeout
             if (event.updateOrder?.addPaymentTx) {
               expect(event.updateOrder.id).toEqual(orderId);
-              expect(toHex(event.updateOrder.addPaymentTx.txHash.raw)).toEqual(
-                paymentHash,
-              );
+              expect(
+                toHex(event!.updateOrder!.addPaymentTx!.txHash!.raw!),
+              ).toEqual(paymentHash);
               return;
             }
           }
@@ -434,10 +436,10 @@ describe({
         beforeEach(async () => {
           const sk = random32BytesHex();
           const token = privateKeyToAccount(sk);
-          const hash = await blockchain.createInviteSecret(
-            wallet,
+          const hash = await publishInviteVerifier(wallet, [
+            shopId,
             token.address,
-          );
+          ]);
           // wait for the transaction to be included in the blockchain
           const receipt = await publicClient.waitForTransactionReceipt({
             hash,
@@ -448,7 +450,7 @@ describe({
           await wallet.sendTransaction({
             account,
             to: acc2.address,
-            value: BigInt("250000000000000000"),
+            value: 250000000000000000n,
           });
           client2Wallet = createWalletClient({
             account: acc2,
@@ -456,9 +458,10 @@ describe({
             transport: http(),
           });
           relayClient2 = createRelayClient(sk);
-          const redeemHash = await blockchain.redeemInviteSecret(
+          const redeemHash = await redeemInviteSecret(
             sk,
             client2Wallet,
+            shopId,
           );
           // wait for the transaction to be included in the blockchain
           const redeemReceipt = await publicClient.waitForTransactionReceipt({
@@ -503,11 +506,13 @@ describe({
 
     describe("If there is a network error, state manager should not change the state.", () => {
       const client = createRelayClient();
-      const shopId = random32BytesHex();
-      const blockchain = new BlockchainClient(shopId);
+      const shopId = random256BigInt();
 
       test("Bad network calls should not change state data", async () => {
-        const transactionHash = await blockchain.createShop(wallet);
+        const transactionHash = await mintShop(wallet, [
+          shopId,
+          wallet.account.address,
+        ]);
         const receipt = await publicClient.waitForTransactionReceipt({
           hash: transactionHash,
         });
@@ -527,7 +532,7 @@ describe({
             payees: [
               {
                 address: {
-                  raw: toBytes(anvilAddress),
+                  raw: hexToBytes(addresses.anvilAddress),
                 },
                 callAsContract: false,
                 chainId: 1,
@@ -537,12 +542,12 @@ describe({
             acceptedCurrencies: [
               {
                 chainId: 10,
-                address: { raw: hexToBytes(zeroAddress) },
+                address: { raw: hexToBytes(addresses.anvilAddress) },
               },
             ],
             pricingCurrency: {
               chainId: 10,
-              address: { raw: hexToBytes(zeroAddress) },
+              address: { raw: hexToBytes(addresses.anvilAddress) },
             },
             shippingRegions: [
               {

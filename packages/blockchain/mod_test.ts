@@ -10,15 +10,14 @@ import {
 import { privateKeyToAccount } from "viem/accounts";
 import { hardhat } from "viem/chains";
 import * as abi from "@massmarket/contracts";
-import { random32BytesHex } from "@massmarket/utils";
-import { BlockchainClient } from "./mod.ts";
+import { random256BigInt } from "@massmarket/utils";
+import { mintShop, setTokenURI } from "./mod.ts";
 
 const account = privateKeyToAccount(
   "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d",
 );
 
-let blockChainClient: BlockchainClient;
-const shopId = random32BytesHex();
+const shopId = random256BigInt();
 
 describe({
   name: "blockChain Client",
@@ -34,22 +33,27 @@ describe({
       chain: hardhat,
       transport: http(),
     });
-    it("createShop", async () => {
-      blockChainClient = new BlockchainClient(shopId);
-      const transactionHash = await blockChainClient.createShop(wallet);
+    it("mintShop", async () => {
+      const transactionHash = await mintShop(wallet, [
+        shopId,
+        wallet.account.address,
+      ]);
       const receipt = await publicClient.waitForTransactionReceipt({
         hash: transactionHash,
       });
       expect(receipt.status).toBe("success");
     });
-    it("setShopMetadataURI", async () => {
-      blockChainClient = new BlockchainClient(shopId);
+    it("setTokenURI", async () => {
       const test_uri = "/testing/path";
-      await blockChainClient.setShopMetadataURI(wallet, test_uri);
+      const transactionHash = await setTokenURI(wallet, [shopId, test_uri]);
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash: transactionHash,
+      });
+      expect(receipt.status).toBe("success");
 
       const uri = await publicClient.readContract({
         address: abi.addresses.ShopReg as Address,
-        abi: abi.ShopReg,
+        abi: abi.shopRegAbi,
         functionName: "tokenURI",
         args: [shopId],
       });

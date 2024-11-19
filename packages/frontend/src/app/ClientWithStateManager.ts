@@ -32,7 +32,7 @@ export class ClientWithStateManager {
 
   async createStateManager() {
     const merchantKC = localStorage.getItem("merchantKC");
-    const dbName = `${this.shopId.slice(0, 7)}${
+    const dbName = `${String(this.shopId).slice(0, 7)}${
       merchantKC ? merchantKC.slice(0, 5) : "-guest"
     }`;
     debug(`using level db: ${dbName}`);

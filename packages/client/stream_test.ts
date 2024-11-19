@@ -9,7 +9,8 @@ import { expect } from "jsr:@std/expect";
 import { privateKeyToAccount } from "jsr:@wevm/viem/accounts";
 import { hexToBytes } from "jsr:@wevm/viem";
 import schema, { testVectors } from "@massmarket/schema";
-import { anvilPrivateKey, objectId, priceToUint256 } from "@massmarket/utils";
+import { objectId, priceToUint256 } from "@massmarket/utils";
+import { anvilPrivateKey } from "@massmarket/contracts";
 import { ReadableEventStream } from "./stream.ts";
 
 const account = privateKeyToAccount(anvilPrivateKey);

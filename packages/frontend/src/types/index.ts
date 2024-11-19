@@ -35,7 +35,7 @@ export type ListingId = `0x${string}`;
 export type TagId = `0x${string}`;
 export type OrderId = `0x${string}`;
 export type TokenAddr = `0x${string}`;
-export type ShopId = `0x${string}`;
+export type ShopId = bigint;
 
 export enum RelayStatus {
   Available = "AVAILABLE",

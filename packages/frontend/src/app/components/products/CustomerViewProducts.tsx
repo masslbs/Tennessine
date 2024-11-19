@@ -12,7 +12,11 @@ import { Listing, ListingViewState } from "@/types";
 import { createQueryString } from "@/app/utils";
 import { useStoreContext } from "@/context/StoreContext";
 
-function CustomerViewProducts({ products }: { products: Listing[] | null }) {
+export default function CustomerViewProducts({
+  products,
+}: {
+  products: Listing[] | null;
+}) {
   const { getBaseTokenInfo } = useStoreContext();
   const [baseDecimal, setBaseDecimal] = useState<null | number>(null);
   const [tokenIcon, setIcon] = useState<string>("/icons/usdc-coin.png");
@@ -100,4 +104,3 @@ function CustomerViewProducts({ products }: { products: Listing[] | null }) {
     </section>
   );
 }
-export default CustomerViewProducts;

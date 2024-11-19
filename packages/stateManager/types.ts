@@ -150,7 +150,7 @@ export interface Payee {
 }
 //This type is used to store and retrieve the manifest from db. All the fields are required in this case.
 export type ShopManifest = CreateShopManifest & {
-  tokenId: `0x${string}` | null;
+  tokenId: string;
 };
 
 //These UpdateShopManifest properties are only for updating the manifest and not properties on the store state.

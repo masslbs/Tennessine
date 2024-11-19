@@ -8,17 +8,16 @@ import React, { useEffect, useState } from "react";
 
 import { useUserContext } from "@/context/UserContext";
 import { useClient } from "@/context/AuthContext";
-import withClient from "@/app/components/withClient";
 import MerchantViewProducts from "@/app/components/products/MerchantViewProducts";
 import CustomerViewProducts from "@/app/components/products/CustomerViewProducts";
 
-function Products() {
+export default function Products() {
   const { clientWithStateManager } = useUserContext();
   const { isMerchantView } = useClient();
 
   const [products, setProducts] = useState(new Map());
 
-  const getAllListings = async () => {
+  async function getAllListings() {
     const listings = new Map();
     for await (
       const [
@@ -29,10 +28,10 @@ function Products() {
       listings.set(id, item);
     }
     return listings;
-  };
+  }
 
   useEffect(() => {
-    const onCreateEvent = async () => {
+    async function onCreateEvent() {
       const l = new Map();
       for await (
         const [
@@ -43,8 +42,8 @@ function Products() {
         l.set(id, item);
       }
       setProducts(l);
-    };
-    const onUpdateEvent = async () => {
+    }
+    async function onUpdateEvent() {
       const l = new Map();
       for await (
         const [
@@ -55,7 +54,7 @@ function Products() {
         l.set(id, item);
       }
       setProducts(l);
-    };
+    }
 
     getAllListings().then((listings) => {
       setProducts(listings);
@@ -90,5 +89,3 @@ function Products() {
     </main>
   );
 }
-
-export default withClient(Products);

@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { hexToBytes, type PublicClient } from "viem";
+import { hexToBytes, numberToBytes, type PublicClient } from "viem";
 import { type PrivateKeyAccount, privateKeyToAccount } from "viem/accounts";
 import Long from "long";
 import { MemoryLevel } from "memory-level";
@@ -31,7 +31,7 @@ export class MockClientStateManager {
   public stateManager: StateManager | null;
   public relayClient: IRelayClient | null;
 
-  constructor(publicClient: PublicClient, shopId: `0x${string}`) {
+  constructor(publicClient: PublicClient, shopId: bigint) {
     this.stateManager = null;
     this.relayClient = null;
     this.publicClient = publicClient;
@@ -196,8 +196,8 @@ export class MockClient implements IRelayClient {
       updateTag: tag,
     });
   }
-  shopManifest(manifest: schema.IManifest, shopId: `0x${string}`) {
-    manifest.tokenId = { raw: hexToBytes(shopId) };
+  shopManifest(manifest: schema.IManifest, shopId: bigint) {
+    manifest.tokenId = { raw: numberToBytes(shopId) };
     return this.sendShopEvent({
       manifest: manifest,
     });
@@ -229,12 +229,12 @@ export class MockClient implements IRelayClient {
     const file = blob.get(`file`) as { name: string };
     return { url: file.name };
   }
-  async sendGuestSubscriptionRequest(_shopId: `0x${string}`, _seqNo = 0) {}
+  async sendGuestSubscriptionRequest(_shopId: bigint, _seqNo = 0) {}
   async sendGuestCheckoutSubscriptionRequest(
-    _shopId: `0x${string}`,
+    _shopId: bigint,
     _seqNo = 0,
   ) {}
-  async sendMerchantSubscriptionRequest(_shopId: `0x${string}`, _seqNo = 0) {}
+  async sendMerchantSubscriptionRequest(_shopId: bigint, _seqNo = 0) {}
   //Mimics client-fired event paymentDetails after commit event - for testing paymentDetails gets stored correctly in stateManager.
   sendPaymentDetails(orderId: `0x${string}`) {
     return this.sendShopEvent({

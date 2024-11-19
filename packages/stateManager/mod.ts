@@ -1,6 +1,12 @@
 import { EventEmitter } from "events";
 import { Address } from "@ethereumjs/util";
-import { bytesToHex, fromBytes, hexToBytes, type PublicClient } from "viem";
+import {
+  bytesToBigInt,
+  bytesToHex,
+  fromBytes,
+  hexToBytes,
+  type PublicClient,
+} from "viem";
 
 import {
   type ChoosePayment,
@@ -293,7 +299,8 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
       const sm = event.manifest;
       assertField(sm.tokenId, "manifest.tokenId");
       const manifest: ShopManifest = {
-        tokenId: bytesToHex(sm.tokenId.raw),
+        //LevelDB cannot serialize BigInts, so stringify shop ID
+        tokenId: String(bytesToBigInt(sm.tokenId.raw)),
         acceptedCurrencies: [],
         payees: [],
         shippingRegions: [],
@@ -510,7 +517,7 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
     }
   }
 
-  async create(manifest: CreateShopManifest, shopId: `0x${string}`) {
+  async create(manifest: CreateShopManifest, shopId: bigint) {
     const m: schema.Manifest = schema.Manifest.create({});
     assert(manifest.pricingCurrency, "manifest.pricingCurrency is required");
     m.pricingCurrency = addressToUint256(
@@ -1191,7 +1198,7 @@ export class StateManager {
     orderStore: Store<Order | OrdersByStatus>,
     keycardStore: Store<KeyCard>,
     keycardNonceStore: Store<number>,
-    shopId: `0x${string}`,
+    shopId: bigint,
     publicClient: PublicClient,
   ) {
     this.listings = new ListingManager(listingStore, client);
@@ -1209,27 +1216,27 @@ export class StateManager {
     //When we inititally create a shop, we are saving the relay tokenId => shopId.
     //Here, we are retrieving all the relay addresses associated with the shopId and saving them to keycards store.
     //Since some shopEvents are signed by a relay, we need to include these addresses when verifying the event signer.
-    const count = (await this.publicClient.readContract({
-      address: abi.addresses.ShopReg as `0x${string}`,
-      abi: abi.ShopReg,
+    const count = await this.publicClient.readContract({
+      address: abi.addresses.ShopReg,
+      abi: abi.shopRegAbi,
       functionName: "getRelayCount",
       args: [this.shopId],
-    })) as number;
+    });
 
     if (count > 0) {
-      const tokenIds = (await this.publicClient.readContract({
+      const tokenIds = await this.publicClient.readContract({
         address: abi.addresses.ShopReg as `0x${string}`,
-        abi: abi.ShopReg,
+        abi: abi.shopRegAbi,
         functionName: "getAllRelays",
         args: [this.shopId],
-      })) as `0x${string}`[];
+      });
       for await (const tokenId of tokenIds) {
-        const ownerAdd = (await this.publicClient!.readContract({
+        const ownerAdd = await this.publicClient!.readContract({
           address: abi.addresses.RelayReg as `0x${string}`,
-          abi: abi.RelayReg,
+          abi: abi.shopRegAbi,
           functionName: "ownerOf",
           args: [tokenId],
-        })) as `0x${string}`;
+        });
         debug(`adding relay: ${ownerAdd}`);
         await this.keycards.addAddress(ownerAdd);
       }

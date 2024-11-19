@@ -4,7 +4,6 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useChains } from "wagmi";
-import { Address } from "viem";
 import { usePathname } from "next/navigation";
 
 import * as abi from "@massmarket/contracts";
@@ -12,8 +11,13 @@ import { assert, logger } from "@massmarket/utils";
 
 import { StoreContent } from "@/context/types";
 import { useUserContext } from "@/context/UserContext";
-import { createPublicClientForChain, getTokenInformation } from "@/app/utils";
-import { ListingId, Order, OrderEventTypes, OrderState } from "@/types";
+import {
+  createPublicClientForChain,
+  getTokenInformation,
+  isMerchantPath,
+} from "@/app/utils";
+import { ListingId, Order, OrderEventTypes, OrderState, Status } from "@/types";
+import { useClient } from "@/context/AuthContext";
 
 const namespace = "frontend:StoreContext";
 const debug = logger(namespace);
@@ -28,6 +32,7 @@ export const StoreContextProvider = (
   const chains = useChains();
   const { clientWithStateManager, shopPublicClient, shopId } = useUserContext();
   const pathname = usePathname();
+  const { clientConnected } = useClient();
 
   const [shopDetails, setShopDetails] = useState({
     name: "",
@@ -53,11 +58,12 @@ export const StoreContextProvider = (
   }, []);
 
   useEffect(() => {
-    if (shopPublicClient && shopId) {
+    // clientConnected check is to make sure during store creation, we are not trying to get tokenURI before we even set it.
+    if (shopPublicClient && shopId && clientConnected === Status.Complete) {
       (async () => {
         const uri = await shopPublicClient.readContract({
-          address: abi.addresses.ShopReg as Address,
-          abi: abi.ShopReg,
+          address: abi.addresses.ShopReg,
+          abi: abi.shopRegAbi,
           functionName: "tokenURI",
           args: [BigInt(shopId)],
         });
@@ -72,7 +78,7 @@ export const StoreContextProvider = (
         }
       })();
     }
-  }, [shopPublicClient, shopId]);
+  }, [shopPublicClient && shopId && clientConnected === Status.Complete]);
 
   useEffect(() => {
     function onOrderCreate(order: Order) {
@@ -195,6 +201,11 @@ export const StoreContextProvider = (
     openOrderId,
     getOpenOrderId,
   };
+  // clientConnected is set to Complete only after ClientWithStateManager is instantiated and store db is created.
+  // since all the children components need stateManager, don't return the children until we have stateManager is loaded in UserContext.
+  if (clientConnected !== Status.Complete && !isMerchantPath(pathname)) {
+    return <main></main>;
+  }
 
   return (
     <StoreContext.Provider value={value}>

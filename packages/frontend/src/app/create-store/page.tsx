@@ -9,16 +9,12 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { privateKeyToAccount } from "viem/accounts";
 import { useAccount, useChains } from "wagmi";
 
-import { BlockchainClient } from "@massmarket/blockchain";
-import {
-  assert,
-  logger,
-  random32BytesHex,
-  zeroAddress,
-} from "@massmarket/utils";
+import { addRelay, mintShop, setTokenURI } from "@massmarket/blockchain";
+import { assert, logger, random256BigInt } from "@massmarket/utils";
 
 import { CurrencyChainOption, ShopCurrencies, Status } from "@/types";
 import { getTokenAddress, isValidHex } from "@/app/utils";
+import { addresses } from "@massmarket/contracts";
 import { useClient } from "@/context/AuthContext";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
@@ -40,7 +36,7 @@ const namespace = "frontend:create-store";
 const debug = logger(namespace);
 const errlog = logger(namespace, "error");
 
-const StoreCreation = () => {
+export default function StoreCreation() {
   const {
     shopPublicClient,
     clientWallet,
@@ -63,7 +59,7 @@ const StoreCreation = () => {
   const [avatar, setAvatar] = useState<FormData | null>(null);
   const [pricingCurrency, setPricingCurrency] = useState<
     Partial<ShopCurrencies>
-  >({ address: zeroAddress });
+  >({ address: addresses.zeroAddress });
   const [acceptedCurrencies, setAcceptedCurrencies] = useState<
     ShopCurrencies[]
   >([]);
@@ -91,7 +87,7 @@ const StoreCreation = () => {
       localStorage.removeItem("guestKeyCard");
 
       randomShopIdHasBeenSet.current = true;
-      const randomShopId = random32BytesHex();
+      const randomShopId = random256BigInt();
       setIsConnected(Status.Pending);
       setShopId(randomShopId);
     }
@@ -163,7 +159,7 @@ const StoreCreation = () => {
     setStep("connect wallet");
   }
 
-  async function mintShop() {
+  async function mint() {
     debug(`creating shop for ${shopId}`);
     setStoreRegistrationStatus("Minting shop...");
     try {
@@ -175,8 +171,10 @@ const StoreCreation = () => {
       }
       const rc = clientWithStateManager.createNewRelayClient();
 
-      const blockchainClient = new BlockchainClient(shopId!);
-      const hash = await blockchainClient.createShop(clientWallet!);
+      const hash = await mintShop(clientWallet, [
+        shopId,
+        clientWallet.account.address,
+      ]);
       setStoreRegistrationStatus("Waiting to confirm mint transaction...");
       let receipt = await shopPublicClient!.waitForTransactionReceipt({
         hash,
@@ -186,14 +184,14 @@ const StoreCreation = () => {
       if (receipt!.status !== "success") {
         throw new Error("Mint shop: transaction failed");
       }
-      localStorage.setItem("shopId", shopId!);
+      localStorage.setItem("shopId", String(shopId));
 
       setStoreRegistrationStatus("Adding relay token ID...");
       // Add relay tokenId for event verification.
-      const tx = await blockchainClient.addRelay(
-        clientWallet!,
+      const tx = await addRelay(clientWallet, [
+        shopId,
         rc.relayEndpoint.tokenId,
-      );
+      ]);
       debug(`Added relay token ID:${rc.relayEndpoint.tokenId}`);
       receipt = await shopPublicClient!.waitForTransactionReceipt({
         hash: tx,
@@ -224,7 +222,7 @@ const StoreCreation = () => {
       const res = await clientWithStateManager!.relayClient!.enrollKeycard(
         clientWallet!,
         false,
-        shopId!,
+        shopId,
         process.env.TEST ? undefined : new URL(globalThis.location.href),
       );
       if (!res.ok) {
@@ -299,7 +297,7 @@ const StoreCreation = () => {
             },
           ],
         },
-        shopId!,
+        shopId,
       );
       debug("Manifest created");
     } catch (error: unknown) {
@@ -343,12 +341,11 @@ const StoreCreation = () => {
           formData,
         );
       }
-      const blockchainClient = new BlockchainClient(shopId!);
       //Write shop metadata to blockchain client.
-      const metadataHash = await blockchainClient.setShopMetadataURI(
-        clientWallet!,
+      const metadataHash = await setTokenURI(clientWallet, [
+        shopId,
         metadataPath.url,
-      );
+      ]);
 
       const transaction = await shopPublicClient!.waitForTransactionReceipt({
         hash: metadataHash,
@@ -528,7 +525,7 @@ const StoreCreation = () => {
               <div className="flex flex-col gap-4">
                 <ConnectButton chainStatus="name" />
                 <p>{storeRegistrationStatus}</p>
-                <Button onClick={mintShop} disabled={!clientWallet}>
+                <Button onClick={mint} disabled={!clientWallet}>
                   <h6>Mint Shop</h6>
                 </Button>
               </div>
@@ -540,6 +537,4 @@ const StoreCreation = () => {
   } else if (step === "confirmation") {
     return <Confirmation />;
   }
-};
-
-export default StoreCreation;
+}

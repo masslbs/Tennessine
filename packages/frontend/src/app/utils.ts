@@ -15,7 +15,7 @@ import {
 import { privateKeyToAccount } from "viem/accounts";
 import { hardhat } from "wagmi/chains";
 
-import { assert, random32BytesHex, zeroAddress } from "@massmarket/utils";
+import { assert, random32BytesHex } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 
 import { Metadata } from "@/types";
@@ -80,7 +80,7 @@ export const getTokenInformation = (
 ): Promise<[string, number]> => {
   assert(publicClient.chain, "publicClient.chain is undefined");
   const chainId = publicClient.chain.id;
-  if (tokenAddress === zeroAddress) {
+  if (tokenAddress === abi.addresses.zeroAddress) {
     return new Promise((resolve) => {
       resolve(["ETH", 18]);
     });
@@ -91,13 +91,13 @@ export const getTokenInformation = (
   }
   const symbol = publicClient.readContract({
     address: tokenAddress,
-    abi: abi.ERC20,
+    abi: abi.eddiesAbi,
     functionName: "symbol",
     args: [],
   }) as Promise<string>;
   const decimal = publicClient.readContract({
     address: tokenAddress,
-    abi: abi.ERC20,
+    abi: abi.eddiesAbi,
     functionName: "decimals",
     args: [],
   }) as Promise<number>;
@@ -105,7 +105,7 @@ export const getTokenInformation = (
 };
 
 export const getTokenAddress = (symbol: string, chainId: string): Address => {
-  if (symbol === "ETH") return zeroAddress;
+  if (symbol === "ETH") return abi.addresses.zeroAddress;
   const addresses: {
     [key: string]: {
       [key: string]: string;
@@ -118,3 +118,9 @@ export const getTokenAddress = (symbol: string, chainId: string): Address => {
   }
   return tokenAddress;
 };
+
+export function isMerchantPath(pathname: string) {
+  return ["/merchants/", "/create-store/", "/merchants/connect/"].includes(
+    pathname,
+  );
+}

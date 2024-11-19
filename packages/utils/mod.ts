@@ -12,6 +12,7 @@ import {
   toBytes,
 } from "viem";
 import * as Sentry from "@sentry/nextjs";
+import { bytesToBigInt } from "@ethereumjs/util";
 
 // TODO: type case first argument to captureException
 // TODO: add extras arguments (https://docs.sentry.io/platforms/javascript/guides/nextjs/enriching-events/)
@@ -169,10 +170,6 @@ export function addressesToUint256(addressObject: AdressObj[]) {
   });
 }
 
-export const zeroAddress: `0x${string}` =
-  "0x0000000000000000000000000000000000000000";
-export const anvilPrivateKey =
-  "0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6";
-export const anvilPrivateKey2 =
-  "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
-export const anvilAddress = "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
+export function random256BigInt() {
+  return bytesToBigInt(randomBytes(32));
+}

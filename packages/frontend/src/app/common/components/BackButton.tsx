@@ -7,7 +7,7 @@
 import React from "react";
 import Link from "next/link";
 
-function BackButton({
+export default function BackButton({
   href,
   onClick,
 }: {
@@ -42,4 +42,3 @@ function BackButton({
     );
   }
 }
-export default BackButton;

@@ -6,14 +6,12 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useAccount } from "wagmi";
-import { Address } from "viem";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 import * as abi from "@massmarket/contracts";
 import { assert, logger } from "@massmarket/utils";
 
 import { ShopId, Status } from "@/types";
-import { isValidHex } from "@/app/utils";
 import { useClient } from "@/context/AuthContext";
 import { useUserContext } from "@/context/UserContext";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
@@ -25,7 +23,7 @@ const namespace = "frontend:connect-merchant";
 const debug = logger(namespace);
 const errlog = logger(namespace, "error");
 
-const MerchantConnectWallet = () => {
+export default function MerchantConnectWallet() {
   const {
     shopPublicClient,
     clientWallet,
@@ -60,16 +58,16 @@ const MerchantConnectWallet = () => {
     setStep("search");
   }
   async function handleSearchForShop() {
-    if (!isValidHex(searchShopId)) {
+    if (!BigInt(searchShopId)) {
       setErrorMsg("Enter a valid shop ID");
       return;
     }
     try {
       const uri = (await shopPublicClient!.readContract({
-        address: abi.addresses.ShopReg as Address,
-        abi: abi.ShopReg,
+        address: abi.addresses.ShopReg,
+        abi: abi.shopRegAbi,
         functionName: "tokenURI",
-        args: [searchShopId],
+        args: [BigInt(searchShopId)],
       })) as string;
       if (uri) {
         const res = await fetch(uri);
@@ -95,13 +93,13 @@ const MerchantConnectWallet = () => {
       if (enrollKeycard.current) {
         throw new Error("Keycard already enrolled");
       }
-      const id = searchShopId as ShopId;
+      const id = BigInt(searchShopId) as ShopId;
       setShopId(id);
-      localStorage.setItem("shopId", id);
+      localStorage.setItem("shopId", String(id));
       const clientStateManager = new ClientWithStateManager(
-        shopPublicClient!,
+        shopPublicClient,
         id,
-        relayEndpoint!,
+        relayEndpoint,
       );
       setClientStateManager(clientStateManager);
       const rc = clientStateManager.createNewRelayClient();
@@ -190,6 +188,7 @@ const MerchantConnectWallet = () => {
               data-testid="storeName"
               name="storeName"
               value={searchShopId}
+              type="number"
               onChange={(e) => setSearchShopId(e.target.value)}
             />
             <button onClick={handleClearShopIdInput}>
@@ -208,6 +207,4 @@ const MerchantConnectWallet = () => {
       </section>
     </main>
   );
-};
-
-export default MerchantConnectWallet;
+}

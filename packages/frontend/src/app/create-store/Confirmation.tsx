@@ -8,12 +8,12 @@ import Link from "next/link";
 import { useUserContext } from "@/context/UserContext";
 import Button from "@/app/common/components/Button";
 
-const Confirmation = () => {
+export default function Confirmation() {
   const { shopId } = useUserContext();
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(shopId!);
-  };
+  function copyToClipboard() {
+    navigator.clipboard.writeText(String(shopId));
+  }
 
   return (
     <main className="pt-under-nav h-screen p-4 mt-5">
@@ -40,7 +40,7 @@ const Confirmation = () => {
         </p>
         <div className="flex gap-2">
           <div className="bg-background-gray p-2 rounded-md overflow-x-auto w-40">
-            <p>{shopId}</p>
+            <p>{String(shopId)}</p>
           </div>
           <button onClick={copyToClipboard}>
             <img
@@ -61,6 +61,4 @@ const Confirmation = () => {
       </section>
     </main>
   );
-};
-
-export default Confirmation;
+}

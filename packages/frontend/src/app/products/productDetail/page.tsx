@@ -15,7 +15,6 @@ import { createQueryString } from "@/app/utils";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
 import { useClient } from "@/context/AuthContext";
-import withClient from "@/app/components/withClient";
 import Button from "@/app/common/components/Button";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import BackButton from "@/app/common/components/BackButton";
@@ -24,7 +23,7 @@ import SuccessToast from "@/app/common/components/SuccessToast";
 const namespace = "frontend:product-detail";
 const debug = logger(namespace);
 
-const ProductDetail = () => {
+export default function ProductDetail() {
   const { getBaseTokenInfo, getOpenOrderId } = useStoreContext();
   const { upgradeGuestToCustomer, clientWithStateManager } = useUserContext();
   const searchParams = useSearchParams();
@@ -220,5 +219,4 @@ const ProductDetail = () => {
       </section>
     </main>
   );
-};
-export default withClient(ProductDetail);
+}

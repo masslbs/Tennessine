@@ -19,7 +19,7 @@ const namespace = "frontend:ShippingDetails";
 const debug = logger(namespace);
 const errlog = logger(namespace, "error");
 
-function ShippingDetails({
+export default function ShippingDetails({
   setStep,
   startTimer,
   countdown,
@@ -202,5 +202,3 @@ function ShippingDetails({
     </main>
   );
 }
-
-export default ShippingDetails;

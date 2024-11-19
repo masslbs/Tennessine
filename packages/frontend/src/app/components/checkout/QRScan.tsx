@@ -6,7 +6,7 @@ import React, { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import BackButton from "@/app/common/components/BackButton";
 
-function QRScan({
+export default function QRScan({
   imgSrc,
   purchaseAddress,
   displayedAmount,
@@ -18,9 +18,9 @@ function QRScan({
   goBack: () => void;
 }) {
   const [src, setQr] = useState<string | null>(null);
-  const copyToClipboard = () => {
+  function copyToClipboard() {
     navigator.clipboard.writeText(purchaseAddress!);
-  };
+  }
   useEffect(() => {
     imgSrc && QRCode.toDataURL(imgSrc).then(setQr);
   }, [imgSrc]);
@@ -67,5 +67,3 @@ function QRScan({
     </section>
   );
 }
-
-export default QRScan;
