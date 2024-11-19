@@ -1,12 +1,11 @@
 {
-  "nodeModulesDir": "manual",
   "workspace": [
     "./packages/utils",
     "./packages/schema",
     "./packages/stateManager",
     "./packages/client",
     "./packages/contracts",
-    "./packages/frontend",
+    "./packages/not-next",
     "./packages/blockchain"
   ],
   "lint": {
@@ -18,6 +17,10 @@
     "exclude": [".direnv", "node_modules", ".pre-commit-config.yaml"]
   },
   "compilerOptions": {
-    "noErrorTruncation": true
+    "noErrorTruncation": true,
+    "lib": ["ES2020", "dom", "dom.iterable", "dom.asynciterable", "deno.ns"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "jsxImportSourceTypes": "@types/react"
   }
 }
