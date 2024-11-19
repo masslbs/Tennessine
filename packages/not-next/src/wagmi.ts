@@ -1,6 +1,14 @@
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
 import { hardhat, mainnet, optimism, sepolia } from "wagmi/chains";
-import { http } from "wagmi";
+import { fallback, http, unstable_connector } from "wagmi";
+import { injected } from "wagmi/connectors";
+
+// First we try to connect to the block using window.ethereum
+// if that does not exist (metamask is not installed) we try to connect using the http provider
+const transport = fallback([
+  unstable_connector(injected),
+  http(),
+]);
 
 export const config = getDefaultConfig({
   appName: "Mass Labs",
@@ -8,9 +16,9 @@ export const config = getDefaultConfig({
   chains: [mainnet, optimism, sepolia, hardhat],
   ssr: false,
   transports: {
-    [mainnet.id]: http(),
-    [sepolia.id]: http(),
-    [hardhat.id]: http(),
-    [optimism.id]: http(),
+    [mainnet.id]: transport,
+    [sepolia.id]: transport,
+    [hardhat.id]: transport,
+    [optimism.id]: transport,
   },
 });
