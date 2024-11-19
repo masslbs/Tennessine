@@ -10,5 +10,8 @@
     ".": {
       "default": "./mod.ts"
     }
+  },
+  "dependencies": {
+    "wagmi": "^2.12.33"
   }
 }
