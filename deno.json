@@ -9,6 +9,7 @@
     "./packages/blockchain"
   ],
   "lint": {
+    "exclude": ["./packages/frontend"],
     "rules": {
       "exclude": ["no-slow-types"]
     }

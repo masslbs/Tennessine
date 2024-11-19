@@ -26,6 +26,7 @@
     "npm:react-dom@^18.3.1": "18.3.1_react@18.3.1",
     "npm:react@^18.3.1": "18.3.1",
     "npm:viem@2.21.44": "2.21.44_ws@8.18.0",
+    "npm:vite@*": "5.4.11_@types+node@20.17.6",
     "npm:vite@^5.4.9": "5.4.11_@types+node@20.17.6",
     "npm:wagmi@^2.12.33": "2.12.33_@tanstack+react-query@5.60.6__react@18.3.1_react@18.3.1_viem@2.21.44__ws@8.18.0_@wagmi+core@2.14.6__viem@2.21.44___ws@8.18.0__@types+react@18.3.12__react@18.3.1__use-sync-external-store@1.2.0___react@18.3.1_react-dom@18.3.1__react@18.3.1_@types+react@18.3.12_use-sync-external-store@1.2.0__react@18.3.1",
     "npm:web-streams-polyfill@4": "4.0.0"
