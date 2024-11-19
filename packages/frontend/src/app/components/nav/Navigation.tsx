@@ -15,7 +15,7 @@ import { Order, OrderEventTypes, OrderId, OrderState, Status } from "@/types";
 import { useStoreContext } from "@/context/StoreContext";
 import { useClient } from "@/context/AuthContext";
 import { useUserContext } from "@/context/UserContext";
-import Cart from "@/app/cart/Cart";
+import Cart from "@/app/components/checkout/Cart";
 import { createQueryString } from "@/app/utils";
 
 const merchantMenu = [
@@ -40,8 +40,7 @@ function Navigation() {
   const [basketOpen, setBasketOpen] = useState<boolean>(false);
   const [cartLength, setLength] = useState<number>(0);
   const { clientConnected, setIsConnected, isMerchantView } = useClient();
-  const { shopDetails, setCommittedOrderId, getOpenOrderId } =
-    useStoreContext();
+  const { shopDetails, getCurrentOrder } = useStoreContext();
   const { clientWithStateManager } = useUserContext();
 
   const router = useRouter();
@@ -94,7 +93,7 @@ function Navigation() {
     }
 
     if (clientWithStateManager?.stateManager) {
-      getOpenOrderId().then((oId: OrderId | null) => {
+      getCurrentOrder().then((oId: OrderId | null) => {
         if (oId) {
           debug(`Open order ID: ${oId}`);
           clientWithStateManager!.stateManager!.orders.get(oId).then((o) => {
@@ -141,7 +140,6 @@ function Navigation() {
       await clientWithStateManager.stateManager.orders.commit(orderId);
       setBasketOpen(false);
       debug(`Order ID: ${orderId} committed`);
-      setCommittedOrderId(orderId);
       router.push(`/checkout?${createQueryString("step", "shippingDetails")}`);
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");

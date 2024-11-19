@@ -24,7 +24,7 @@ const namespace = "frontend:product-detail";
 const debug = logger(namespace);
 
 export default function ProductDetail() {
-  const { getBaseTokenInfo, getOpenOrderId } = useStoreContext();
+  const { getBaseTokenInfo, getCurrentOrder } = useStoreContext();
   const { upgradeGuestToCustomer, clientWithStateManager } = useUserContext();
   const searchParams = useSearchParams();
   const { isMerchantView } = useClient();
@@ -59,7 +59,7 @@ export default function ProductDetail() {
   }, [itemId]);
 
   async function changeItems() {
-    let orderId = await getOpenOrderId();
+    let orderId = await getCurrentOrder();
     if (
       !orderId &&
       (localStorage.getItem("merchantKC") ||
