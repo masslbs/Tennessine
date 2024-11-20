@@ -20,7 +20,6 @@ export type ClientContext = {
   shopId: ShopId | null;
   relayEndpoint: RelayEndpoint | null;
   clientWithStateManager: ClientWithStateManager | null;
-  setWallet: Dispatch<SetStateAction<WalletClientWithAccount | null>>;
   setInviteSecret: Dispatch<SetStateAction<`0x${string}` | null>>;
   setShopId: Dispatch<SetStateAction<ShopId | null>>;
   checkPermissions: () => Promise<boolean>;

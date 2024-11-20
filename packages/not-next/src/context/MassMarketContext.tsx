@@ -1,7 +1,3 @@
-// SPDX-FileCopyrightText: 2024 Mass Labs
-//
-// SPDX-License-Identifier: GPL-3.0-or-later
-
 import React, {
   createContext,
   useContext,
@@ -27,32 +23,12 @@ import { type ClientContext } from "@/context/types";
 import { ShopId, Status } from "@/types";
 import { ClientWithStateManager } from "@/app/ClientWithStateManager";
 
-export const UserContext = createContext<ClientContext>({
-  walletAddress: null,
-  avatar: null,
-  ensName: null,
-  clientWallet: null,
-  shopPublicClient: null,
-  inviteSecret: null,
-  shopId: null,
-  relayEndpoint: null,
-  clientWithStateManager: null,
-  setInviteSecret: () => {},
-  setShopId: () => {},
-  checkPermissions: () =>
-    new Promise(() => {
-      return false;
-    }),
-  upgradeGuestToCustomer: () => new Promise(() => {}),
-  setClientStateManager: () => {},
-});
+export const MassMarketContext = createContext({});
 
-const namespace = "frontend:user-context";
+const namespace = "frontend: massMarketContext";
 const debug = logger(namespace);
 
-export const UserContextProvider = (
-  props: React.HTMLAttributes<HTMLDivElement>,
-) => {
+export function MassMarketContextProvider() {
   const pathname = usePathname();
   const { data: _wallet, status: walletStatus } = useWalletClient();
   const { setIsConnected, setIsMerchantView, clientConnected } = useClient();
@@ -61,10 +37,7 @@ export const UserContextProvider = (
   const [walletAddress, setWalletAddress] = useState<`0x${string}` | null>(
     null,
   );
-  const [avatar, setAvatar] = useState<string | null>(null);
-  const [ensName, setEnsName] = useState<string | null>(null);
   const [clientWallet, setWallet] = useState(null);
-  const [inviteSecret, setInviteSecret] = useState<`0x${string}` | null>(null);
   const [shopId, setShopId] = useState<ShopId | null>(null);
   const [merchantKC, setmerchantKC] = useState<`0x${string}` | null>(null);
   const [guestCheckoutKC, setGuestKC] = useState<`0x${string}` | null>(null);
@@ -138,6 +111,7 @@ export const UserContextProvider = (
 
   const shopPublicClient = createPublicClientForChain(getUsedChain());
 
+  //FIXME: import useReadShopRegHasPermission from contracts/mod
   async function checkPermissions() {
     if (walletAddress) {
       const hasAccess = (await shopPublicClient.readContract({
@@ -212,6 +186,7 @@ export const UserContextProvider = (
     })();
   }, [relayEndpoint, walletAddress, shopId, merchantKC, guestCheckoutKC]);
 
+  //FIXME: move this to productDetail component where we are using this.
   async function upgradeGuestToCustomer() {
     //Enroll KC with guest wallet.
     const guestWallet = createGuestWalletClientForChain(getUsedChain());
@@ -241,25 +216,13 @@ export const UserContextProvider = (
   }
 
   const value = {
-    walletAddress,
-    avatar,
-    ensName,
-    clientWallet,
     shopPublicClient,
-    inviteSecret,
-    shopId,
     relayEndpoint,
-    clientWithStateManager,
-    setInviteSecret,
-    setShopId,
-    checkPermissions,
-    upgradeGuestToCustomer,
-    setClientStateManager,
   };
 
   return (
-    <UserContext.Provider value={value}>{props.children}</UserContext.Provider>
+    <MassMarketContext.Provider value={value}>
+      {props.children}
+    </MassMarketContext.Provider>
   );
-};
-
-export const useUserContext = () => useContext(UserContext);
+}
