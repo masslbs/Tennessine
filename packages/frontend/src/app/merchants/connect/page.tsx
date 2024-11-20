@@ -16,8 +16,8 @@ import { useClient } from "@/context/AuthContext";
 import { useUserContext } from "@/context/UserContext";
 import ErrorMessage from "@/app/common/components/ErrorMessage";
 import Button from "@/app/common/components/Button";
-import { ClientWithStateManager } from "@/app/ClientWithStateManager";
-import Confirmation from "@/app/merchants/connect/Confirmation";
+import Coimport {useClientStateManager} from ''
+nfirmation from "@/app/merchants/connect/Confirmation";
 
 const namespace = "frontend:connect-merchant";
 const debug = logger(namespace);
@@ -40,12 +40,10 @@ export default function MerchantConnectWallet() {
     "search",
   );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [shopData, setShopData] = useState<
-    {
-      name: string;
-      image: string;
-    } | null
-  >(null);
+  const [shopData, setShopData] = useState<{
+    name: string;
+    image: string;
+  } | null>(null);
 
   useEffect(() => {
     //If user connects different wallet, set client connection back to pending.
@@ -96,11 +94,7 @@ export default function MerchantConnectWallet() {
       const id = BigInt(searchShopId) as ShopId;
       setShopId(id);
       localStorage.setItem("shopId", String(id));
-      const clientStateManager = new ClientWithStateManager(
-        shopPublicClient,
-        id,
-        relayEndpoint,
-      );
+      const clientStateManager = useClientWithStateManager();
       setClientStateManager(clientStateManager);
       const rc = clientStateManager.createNewRelayClient();
       const keyCardToEnroll = localStorage.getItem(
