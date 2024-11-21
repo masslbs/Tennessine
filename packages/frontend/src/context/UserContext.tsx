@@ -68,8 +68,9 @@ export const UserContextProvider = (
   const [shopId, setShopId] = useState<ShopId | null>(null);
   const [merchantKC, setmerchantKC] = useState<`0x${string}` | null>(null);
   const [guestCheckoutKC, setGuestKC] = useState<`0x${string}` | null>(null);
-  const [clientWithStateManager, setClientStateManager] =
-    useState<ClientWithStateManager | null>(null);
+  const [clientWithStateManager, setClientStateManager] = useState<
+    ClientWithStateManager | null
+  >(null);
   const [relayEndpoint, setRelayEndpoint] = useState<RelayEndpoint | null>(
     null,
   );
@@ -104,8 +105,8 @@ export const UserContextProvider = (
       localStorage.removeItem("guestCheckoutKC");
     }
     //If shopId is provided as a query, set it as shopId, otherwise check for storeId in localStorage.
-    const _shopId =
-      searchParams!.get("shopId") || localStorage.getItem("shopId");
+    const _shopId = searchParams!.get("shopId") ||
+      localStorage.getItem("shopId");
 
     if (_shopId && !merchantPath) {
       localStorage.setItem("shopId", _shopId);
@@ -229,8 +230,8 @@ export const UserContextProvider = (
     debug("Keycard enrolled");
     //Cancel and renew subscription with orders
     await clientWithStateManager!.relayClient!.cancelSubscriptionRequest();
-    const { response } =
-      await clientWithStateManager!.relayClient!.authenticate();
+    const { response } = await clientWithStateManager!.relayClient!
+      .authenticate();
     if (response.error) {
       throw new Error(`Error while authenticating: ${response.error}`);
     }
