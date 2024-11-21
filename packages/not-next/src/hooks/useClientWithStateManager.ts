@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { ClientWithStateManager } from "../ClientWithStateManager";
-import useShopPublicClient from "/hooks";
-import useRelayEndpoint from "/hooks";
-import useShopId from "";
+import useShopPublicClient from "../hooks/useShopPublicClient";
+import useRelayEndpoint from "../hooks/useRelayEndpoint";
+import useShopId from "../hooks/useShopId";
 
-export function useClientWithStateManager() {
-  const [clientStateManager, setClientStateManager] = useState(null);
+export default function useClientWithStateManager() {
+  const [clientStateManager, setClientStateManager] = useState<
+    ClientWithStateManager | null
+  >(null);
   const shopId = useShopId();
+  const shopPublicClient = useShopPublicClient();
+  const relayEndpoint = useRelayEndpoint();
 
   useEffect(() => {
-    const shopPublicClient = useShopPublicClient();
-    const relayEndpoint = useRelayEndpoint();
     if (shopId && relayEndpoint && shopPublicClient) {
       const csm = new ClientWithStateManager(
         shopPublicClient,
@@ -21,5 +23,5 @@ export function useClientWithStateManager() {
     }
   }, [shopId]);
 
-  return clientStateManager;
+  return { clientStateManager, setClientStateManager };
 }
