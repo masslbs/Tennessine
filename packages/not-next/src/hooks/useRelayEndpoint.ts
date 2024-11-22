@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { logger } from "@massmarket/utils";
 import { discoverRelay, type RelayEndpoint } from "@massmarket/client";
+import process from "node:process";
 
 const namespace = "frontend:useRelayEnpoint";
 const debug = logger(namespace);

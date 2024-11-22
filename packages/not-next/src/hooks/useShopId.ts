@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearch } from "@tanstack/react-router";
-import { ShopId } from "@/types";
+// import { ShopId } from "@/types";
 
 export default function useShopId() {
-  const [shopId, setShopId] = useState<null | ShopId>(null);
+  const [shopId, setShopId] = useState(null);
   // Get the search params
   const search = useSearch({
     from: "/",
@@ -11,10 +11,9 @@ export default function useShopId() {
 
   useEffect(() => {
     //If shopId is provided as a query, set it as shopId, otherwise check for storeId in localStorage.
-    const id = search.shopId || localStorage.getItem("shopId");
+    const id = search.shopId;
 
     if (id) {
-      localStorage.setItem("shopId", id);
       setShopId(BigInt(id));
     }
   }, []);

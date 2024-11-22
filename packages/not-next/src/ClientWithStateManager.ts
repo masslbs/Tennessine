@@ -1,12 +1,12 @@
 "use client";
-import { PublicClient } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
-import { BrowserLevel } from "browser-level";
+import { PublicClient } from "npm:viem";
+import { privateKeyToAccount } from "npm:viem/accounts";
+import { BrowserLevel } from "npm:browser-level";
 import { RelayClient, type RelayEndpoint } from "@massmarket/client";
 import { StateManager } from "@massmarket/stateManager";
 import { logger, random32BytesHex } from "@massmarket/utils";
 
-import { KeyCard, Listing, Order, ShopId, ShopManifest, Tag } from "@/types";
+import { KeyCard, Listing, Order, ShopId, ShopManifest, Tag } from "./types.ts";
 
 const namespace = "frontend:ClientWithStateManager";
 const debug = logger(namespace);

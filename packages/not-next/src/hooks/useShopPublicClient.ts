@@ -1,11 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { createPublicClientForChain } from "../utils/chain";
-import { type ClientContext } from "@/context/types";
+import { useEffect, useState } from "react";
+import { createPublicClientForChain } from "../utils/chain.ts";
+// import { type ClientContext } from "@/context/types";
 
 export default function useShopPublicClient() {
-  const [shopPublicClient, setShopPublicClient] = useState<
-    ClientContext | null
-  >(null);
+  const [shopPublicClient, setShopPublicClient] = useState(null);
 
   useEffect(() => {
     const pc = createPublicClientForChain();

@@ -78,7 +78,7 @@ jobs:
 
       # TODO: add frontend to this
       - name: Type Check packages
-        run: nix develop -c bash -c "deno check packages/{blockchain,client,contracts,schema,stateManager,utils}"
+        run: nix develop -c bash -c "deno check packages/{blockchain,client,contracts,schema,stateManager,utils,not-next}"
         working-directory: Tennessine/
 
       - name: git clone relay
@@ -126,8 +126,8 @@ jobs:
         working-directory: Tennessine/
 
       - name: build frontend
-        run: nix develop -c bash -c "deno run -A --unstable-unsafe-proto npm:next build --no-lint"
-        working-directory: Tennessine/packages/frontend
+        run: nix develop -c bash -c "deno run build"
+        working-directory: Tennessine/packages/not-next
 
       - name: Upload frontend to Pinata
         run: |
