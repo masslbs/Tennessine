@@ -36,7 +36,7 @@ export default function ChoosePayment({
   setDisplayedAmount: Dispatch<SetStateAction<string | null>>;
 }) {
   const { clientWithStateManager, shopId } = useUserContext();
-  const { committedOrderId } = useStoreContext();
+  const { currentOrder } = useStoreContext();
   const chains = useChains();
 
   const [displayedChains, setChains] = useState<CurrencyChainOption[] | null>(
@@ -76,16 +76,17 @@ export default function ChoosePayment({
       const order = res[1];
       const type = res[0];
       if (
-        order.id === committedOrderId &&
+        order.id === currentOrder.orderId &&
         type === OrderEventTypes.PAYMENT_DETAILS
       ) {
-        getDetails(committedOrderId).then(() => {
+        getDetails(currentOrder.orderId).then(() => {
           debug("paymentDetails found for order");
           setPaymentCurrencyLoading(false);
         });
       }
     }
-    committedOrderId &&
+
+    currentOrder.orderId &&
       clientWithStateManager.stateManager.orders.on("update", onPaymentDetails);
 
     return () => {
@@ -95,7 +96,7 @@ export default function ChoosePayment({
         onPaymentDetails,
       );
     };
-  }, [committedOrderId]);
+  }, [currentOrder]);
 
   async function getDetails(oId: OrderId) {
     try {
@@ -213,8 +214,9 @@ export default function ChoosePayment({
       if (!payee) {
         throw new Error("No payee found in shop manifest");
       }
+
       await clientWithStateManager.stateManager.orders.choosePayment(
-        committedOrderId,
+        currentOrder.orderId,
         {
           currency: {
             address: selected.address!,

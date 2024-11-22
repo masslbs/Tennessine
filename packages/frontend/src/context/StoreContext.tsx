@@ -16,7 +16,7 @@ import {
   getTokenInformation,
   isMerchantPath,
 } from "@/app/utils";
-import { ListingId, Order, OrderEventTypes, OrderState, Status } from "@/types";
+import { Order, OrderEventTypes, OrderId, OrderState, Status } from "@/types";
 import { useClient } from "@/context/AuthContext";
 
 const namespace = "frontend:StoreContext";
@@ -38,24 +38,12 @@ export const StoreContextProvider = (
     name: "",
     profilePictureUrl: "",
   });
-  const [committedOrderId, setCommittedOrderId] = useState(null);
-  const [openOrderId, setOpenOrderId] = useState(null);
-
-  useEffect(() => {
-    // If there is a committed order outside of the checkout flow, cancel committed order.
-    if (pathname !== "/checkout/" && committedOrderId) {
-      cancelAndCreateOrder().then();
-    }
-  }, [pathname, clientWithStateManager?.stateManager]);
-
-  useEffect(() => {
-    if (committedOrderId) {
-      globalThis.addEventListener("beforeunload", cancelAndCreateOrder);
-    }
-    return () => {
-      globalThis.removeEventListener("beforeunload", cancelAndCreateOrder);
-    };
-  }, []);
+  const [currentOrder, setCurrentOrderId] = useState<
+    {
+      orderId: OrderId;
+      status: OrderState;
+    } | null
+  >(null);
 
   useEffect(() => {
     // clientConnected check is to make sure during store creation, we are not trying to get tokenURI before we even set it.
@@ -83,7 +71,7 @@ export const StoreContextProvider = (
   useEffect(() => {
     function onOrderCreate(order: Order) {
       if (order.status === OrderState.STATE_OPEN) {
-        setOpenOrderId(order.id);
+        setCurrentOrderId({ orderId: order.id, status: OrderState.STATE_OPEN });
       }
     }
     function onOrderUpdate(res: [OrderEventTypes, Order]) {
@@ -97,17 +85,29 @@ export const StoreContextProvider = (
         case OrderEventTypes.PAYMENT_TX:
           txHashDetected(order);
           break;
+        case OrderEventTypes.COMMIT_ITEMS:
+          onCommit(order);
+          break;
+      }
+    }
+
+    function onCommit(order: Order) {
+      if (order.status === OrderState.STATE_COMMITED) {
+        setCurrentOrderId({
+          orderId: order.id,
+          status: OrderState.STATE_COMMITED,
+        });
       }
     }
     function txHashDetected(order: Order) {
       if (order.status === OrderState.STATE_PAYMENT_TX) {
-        setOpenOrderId(null);
+        setCurrentOrderId(null);
       }
     }
 
     function orderCancel(order: Order) {
       if (order.status === OrderState.STATE_CANCELED) {
-        setOpenOrderId(null);
+        setCurrentOrderId(null);
       }
     }
 
@@ -120,6 +120,7 @@ export const StoreContextProvider = (
           "create",
           onOrderCreate,
         );
+
         clientWithStateManager.stateManager.orders.removeListener(
           "update",
           onOrderUpdate,
@@ -127,25 +128,6 @@ export const StoreContextProvider = (
       };
     }
   }, [clientWithStateManager]);
-
-  async function cancelAndCreateOrder() {
-    const sm = clientWithStateManager.stateManager;
-    debug(`Cancelling order ID: ${committedOrderId}`);
-    const [_type, cancelledOrder] = await sm.orders.cancel(committedOrderId);
-    // Once order is cancelled, create a new order and add the same items.
-    const newOrder = await sm.orders.create();
-    debug("New order created");
-    const listingsToAdd = Object.entries(cancelledOrder.items).map(
-      ([listingId, quantity]) => {
-        return {
-          listingId: listingId as ListingId,
-          quantity,
-        };
-      },
-    );
-    await sm.orders.addItems(newOrder.id, listingsToAdd);
-    debug("Listings added to new order");
-  }
 
   async function getBaseTokenInfo() {
     assert(clientWithStateManager, "clientWithStateManager not ready");
@@ -162,33 +144,52 @@ export const StoreContextProvider = (
     return res;
   }
 
-  async function getOpenOrderId() {
-    if (openOrderId) {
-      return openOrderId;
+  async function getCurrentOrder() {
+    // Return existing order if available
+    if (currentOrder) {
+      return currentOrder;
     }
+
+    // Check if state manager is ready
     if (!clientWithStateManager) {
       warn("stateManager not ready");
       return null;
     }
-    try {
-      // TODO: this still has the problem of faulting/blocking over a previous stuck order
-      const res = await clientWithStateManager.stateManager.orders.getStatus(
-        OrderState.STATE_OPEN,
+
+    const orderManager = clientWithStateManager.stateManager.orders;
+
+    // First try to find an open order
+    const openOrders = await orderManager.getStatus(OrderState.STATE_OPEN);
+
+    if (openOrders.length === 1) {
+      setCurrentOrderId({
+        orderId: openOrders[0],
+        status: OrderState.STATE_OPEN,
+      });
+      return openOrders[0];
+    } else if (openOrders.length > 1) {
+      errlog("Multiple open orders found");
+      return null;
+    } else {
+      // If no open order, look for committed order
+      debug("No open order found, looking for committed order");
+      const committedOrders = await orderManager.getStatus(
+        OrderState.STATE_COMMITED,
       );
-      if (res.length > 1) {
-        debug("Multiple open orders found");
-      } else if (!res.length) {
-        debug("No open order found");
+
+      if (committedOrders.length === 1) {
+        setCurrentOrderId({
+          orderId: committedOrders[0],
+          status: OrderState.STATE_COMMITED,
+        });
+        return committedOrders[0];
+      } else if (committedOrders.length > 1) {
+        errlog("Multiple committed orders found");
+        return null;
       } else {
-        setOpenOrderId(res[0]);
-        return res[0];
-      }
-    } catch (error) {
-      if (error.notFound) {
-        debug("No open orders yet");
+        debug("No order yet");
         return null;
       }
-      errlog("Error getting open order", error);
     }
   }
 
@@ -196,10 +197,8 @@ export const StoreContextProvider = (
     shopDetails,
     setShopDetails,
     getBaseTokenInfo,
-    setCommittedOrderId,
-    committedOrderId,
-    openOrderId,
-    getOpenOrderId,
+    currentOrder,
+    getCurrentOrder,
   };
   // clientConnected is set to Complete only after ClientWithStateManager is instantiated and store db is created.
   // since all the children components need stateManager, don't return the children until we have stateManager is loaded in UserContext.

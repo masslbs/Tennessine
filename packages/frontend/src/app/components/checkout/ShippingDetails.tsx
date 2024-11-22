@@ -29,7 +29,7 @@ export default function ShippingDetails({
   countdown: number;
 }) {
   const { clientWithStateManager } = useUserContext();
-  const { committedOrderId } = useStoreContext();
+  const { currentOrder } = useStoreContext();
 
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
@@ -71,7 +71,7 @@ export default function ShippingDetails({
       if (warning) {
         return setValidationError(warning);
       }
-      if (!committedOrderId) {
+      if (!currentOrder) {
         throw new Error("No committed order ID found");
       }
       const update: Partial<ShippingDetails> = {
@@ -89,7 +89,7 @@ export default function ShippingDetails({
         update.emailAddress = email;
       }
       await clientWithStateManager.stateManager.orders.updateShippingDetails(
-        committedOrderId,
+        currentOrder.orderId,
         update,
       );
       debug("Shipping details updated");

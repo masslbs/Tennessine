@@ -902,17 +902,20 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
     return this.store.get(key) as Promise<Order>;
   }
 
-  getStatus(key: OrderState): Promise<OrdersByStatus> {
+  async getStatus(key: OrderState): Promise<OrdersByStatus> {
+    let result: OrdersByStatus;
     try {
-      return this.store.get(key) as Promise<OrdersByStatus>;
+      // awaiting here so if not found, it does not throw an error but returns an empty array instead.
+      result = (await this.store.get(key)) as OrdersByStatus;
     } catch (error) {
       const e = error as IError;
       if (e.notFound) {
-        return Promise.resolve([]);
+        return [];
       } else {
         throw new Error(e.code);
       }
     }
+    return result;
   }
 
   async create() {
