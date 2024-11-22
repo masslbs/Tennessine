@@ -33,6 +33,7 @@ export function MassMarketProvider(
     clientStateManager,
     setClientStateManager,
   };
+
   return (
     <MassMarketContext.Provider value={value}>
       {parameters.children}
