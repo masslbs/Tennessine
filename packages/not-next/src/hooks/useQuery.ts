@@ -1,5 +1,8 @@
-import { useContext, useState } from "react";
-import { MassMarketContext } from "../MassMarketContext.tsx";
+import { useState } from "react";
+import { hashMessage } from "@wevm/viem";
+
+// global cache
+const queryCache = new Map();
 
 export function useQuery<T>(
   query: () => Promise<T>,
@@ -7,18 +10,21 @@ export function useQuery<T>(
 ) {
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState(false);
-  const { queryCache } = useContext(
-    MassMarketContext,
-  );
+  const [result, setResult] = useState(undefined);
+  const queryCacheKey = hashMessage(JSON.stringify(deps) + query.toString());
 
-  let { promise, deps: cachedDeps } = queryCache.get(query.toString());
-  const depsChanged = cachedDeps.every((elem: unknown, index: number) => {
+  let { promise, deps: cachedDeps } = queryCache.get(queryCacheKey) ??
+    { promise: undefined, deps: [] };
+  const depsAreSame = cachedDeps.every((elem: unknown, index: number) => {
     return Object.is(elem, deps[index]);
   });
-  if (!promise || depsChanged) {
+  if (!promise || !depsAreSame) {
     promise = query();
-    queryCache.set(promise);
+    queryCache.set(queryCacheKey, { promise, deps });
   }
-  promise.then(() => setIsConnected(true)).catch(setError);
-  return { isConnected, error };
+  promise.then((r: T) => {
+    setIsConnected(true);
+    setResult(r);
+  }).catch(setError);
+  return { isConnected, error, result };
 }

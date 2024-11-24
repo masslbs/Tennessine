@@ -1,9 +1,9 @@
 import { type Config, WagmiProvider } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
-import { MassMarketProvider } from "./MassMarketContext.tsx";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { MassMarketProvider } from "./MassMarketContext.tsx";
 import { getConfig } from "./wagmi.ts";
 import { routeTree } from "./routeTree.gen.ts";
 
@@ -20,7 +20,7 @@ export default function App(
         <QueryClientProvider client={queryClient}>
           <MassMarketProvider>
             <RainbowKitProvider>
-              <ConnectButton /> */
+              <ConnectButton />
               <div data-testid="hello">hello!</div>
             </RainbowKitProvider>
           </MassMarketProvider>

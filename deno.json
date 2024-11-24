@@ -26,7 +26,7 @@
     "noErrorTruncation": true,
     "lib": ["ES2020", "dom", "dom.iterable", "dom.asynciterable", "deno.ns"],
     "jsx": "react-jsx",
-    "jsxImportSource": "react",
-    "jsxImportSourceTypes": "@types/react"
+    "jsxImportSource": "npm:react",
+    "jsxImportSourceTypes": "npm:@types/react"
   }
 }

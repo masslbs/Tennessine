@@ -1,16 +1,19 @@
 import React, { createContext, useState } from "react";
+import { ClientWithStateManager } from "./ClientWithStateManager.ts";
 
 export const MassMarketContext = createContext();
 
 export function MassMarketProvider(
-  parameters: React.PropsWithChildren,
+  parameters: React.PropsWithChildren & {
+    clientStateManager: ClientWithStateManager | undefined;
+  },
 ) {
-  //
-  const [clientStateManager, setClientStateManager] = useState();
+  const [clientStateManager, setClientStateManager] = useState(
+    parameters.clientStateManager,
+  );
   const value = {
     clientStateManager,
     setClientStateManager,
-    queryCache: new Map(),
   };
   return (
     <MassMarketContext.Provider value={value}>
