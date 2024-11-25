@@ -3,7 +3,7 @@ import { logger } from "@massmarket/utils";
 
 import { MassMarketContext } from "../MassMarketContext";
 import useClientWithStateManager from "./useClientWithStateManager";
-import { OrderState } from "@/types";
+import { Order, OrderEventTypes, OrderState } from "@/types";
 
 const namespace = "frontend:useCurrentOrder";
 const errlog = logger(namespace, "error");
@@ -14,7 +14,50 @@ export default function useCurrentOrder() {
   const { clientStateManager } = useClientWithStateManager();
   const orderManager = clientStateManager.stateManager.orders;
 
+  function onOrderCreate(order: Order) {
+    if (order.status === OrderState.STATE_OPEN) {
+      setCurrentOrderId({ orderId: order.id, status: OrderState.STATE_OPEN });
+    }
+  }
+  function onOrderUpdate(res: [OrderEventTypes, Order]) {
+    const order = res[1];
+    const type = res[0];
+
+    switch (type) {
+      case OrderEventTypes.CANCELLED:
+        orderCancel(order);
+        break;
+      case OrderEventTypes.PAYMENT_TX:
+        txHashDetected(order);
+        break;
+      case OrderEventTypes.COMMIT_ITEMS:
+        onCommit(order);
+        break;
+    }
+  }
+
+  function onCommit(order: Order) {
+    if (order.status === OrderState.STATE_COMMITED) {
+      setCurrentOrderId({
+        orderId: order.id,
+        status: OrderState.STATE_COMMITED,
+      });
+    }
+  }
+  function txHashDetected(order: Order) {
+    if (order.status === OrderState.STATE_PAYMENT_TX) {
+      setCurrentOrderId(null);
+    }
+  }
+
+  function orderCancel(order: Order) {
+    if (order.status === OrderState.STATE_CANCELED) {
+      setCurrentOrderId(null);
+    }
+  }
+
   useEffect(() => {
+    if (currentOrder) return;
     (async () => {
       // First try to find an open order
       const openOrders = await orderManager.getStatus(OrderState.STATE_OPEN);
@@ -50,6 +93,14 @@ export default function useCurrentOrder() {
         }
       }
     })();
+    orderManager.on("create", onOrderCreate);
+    orderManager.on("update", onOrderUpdate);
+
+    return () => {
+      orderManager.removeListener("create", onOrderCreate);
+
+      orderManager.removeListener("update", onOrderUpdate);
+    };
   }, []);
 
   return { currentOrder, setCurrentOrderId };
