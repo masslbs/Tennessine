@@ -130,7 +130,7 @@ export const redeemInvite = genericWriteContract(
   "redeemInvite",
   abi.addresses.ShopReg,
 );
-export const hasPermission = genericReadContract(
+export const checkPermissions = genericReadContract(
   abi.shopRegAbi,
   "hasPermission",
   abi.addresses.ShopReg,
