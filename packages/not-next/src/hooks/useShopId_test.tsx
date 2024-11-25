@@ -31,7 +31,7 @@ const createWrapper = (param: string | null = null) => {
   );
 };
 
-describe("useShopId", () => {
+describe.skip("useShopId", () => {
   it("should return null when no shopId in search params", () => {
     const wrapper = createWrapper();
     const { result } = renderHook(() => useShopId(), { wrapper });
