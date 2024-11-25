@@ -16,10 +16,19 @@ import { Route as rootRoute } from "./routes/__root.tsx";
 
 // Create Virtual Routes
 
+const CreateShopLazyImport = createFileRoute("/create-shop")();
 const AboutLazyImport = createFileRoute("/about")();
 const IndexLazyImport = createFileRoute("/")();
 
 // Create/Update Routes
+
+const CreateShopLazyRoute = CreateShopLazyImport.update({
+  id: "/create-shop",
+  path: "/create-shop",
+  getParentRoute: () => rootRoute,
+} as any).lazy(() =>
+  import("./routes/create-shop.lazy.tsx").then((d) => d.Route)
+);
 
 const AboutLazyRoute = AboutLazyImport.update({
   id: "/about",
@@ -51,6 +60,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AboutLazyImport;
       parentRoute: typeof rootRoute;
     };
+    "/create-shop": {
+      id: "/create-shop";
+      path: "/create-shop";
+      fullPath: "/create-shop";
+      preLoaderRoute: typeof CreateShopLazyImport;
+      parentRoute: typeof rootRoute;
+    };
   }
 }
 
@@ -59,36 +75,41 @@ declare module "@tanstack/react-router" {
 export interface FileRoutesByFullPath {
   "/": typeof IndexLazyRoute;
   "/about": typeof AboutLazyRoute;
+  "/create-shop": typeof CreateShopLazyRoute;
 }
 
 export interface FileRoutesByTo {
   "/": typeof IndexLazyRoute;
   "/about": typeof AboutLazyRoute;
+  "/create-shop": typeof CreateShopLazyRoute;
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute;
   "/": typeof IndexLazyRoute;
   "/about": typeof AboutLazyRoute;
+  "/create-shop": typeof CreateShopLazyRoute;
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
-  fullPaths: "/" | "/about";
+  fullPaths: "/" | "/about" | "/create-shop";
   fileRoutesByTo: FileRoutesByTo;
-  to: "/" | "/about";
-  id: "__root__" | "/" | "/about";
+  to: "/" | "/about" | "/create-shop";
+  id: "__root__" | "/" | "/about" | "/create-shop";
   fileRoutesById: FileRoutesById;
 }
 
 export interface RootRouteChildren {
   IndexLazyRoute: typeof IndexLazyRoute;
   AboutLazyRoute: typeof AboutLazyRoute;
+  CreateShopLazyRoute: typeof CreateShopLazyRoute;
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexLazyRoute: IndexLazyRoute,
   AboutLazyRoute: AboutLazyRoute,
+  CreateShopLazyRoute: CreateShopLazyRoute,
 };
 
 export const routeTree = rootRoute
@@ -102,7 +123,8 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/about"
+        "/about",
+        "/create-shop"
       ]
     },
     "/": {
@@ -110,6 +132,9 @@ export const routeTree = rootRoute
     },
     "/about": {
       "filePath": "about.lazy.tsx"
+    },
+    "/create-shop": {
+      "filePath": "create-shop.lazy.tsx"
     }
   }
 }
