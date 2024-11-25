@@ -1,12 +1,12 @@
 import React from "react";
 
 import { createLazyFileRoute } from "@tanstack/react-router";
-import CreateStore from "../components/merchants/CreateStore";
+import CreateShop from "../components/merchants/CreateShop";
 
-export const Route = createLazyFileRoute("/create-store")({
+export const Route = createLazyFileRoute("/create-shop")({
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  return <CreateStore />;
+  return <CreateShop />;
 }

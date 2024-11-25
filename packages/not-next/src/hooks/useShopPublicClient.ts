@@ -14,5 +14,5 @@ export default function useShopPublicClient() {
     setShopPublicClient(pc);
   }, []);
 
-  return shopPublicClient;
+  return { shopPublicClient };
 }
