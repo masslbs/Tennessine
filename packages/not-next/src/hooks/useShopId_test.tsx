@@ -1,5 +1,5 @@
 import React from "react";
-
+import { describe, it } from "jsr:@std/testing/bdd";
 import { assertEquals } from "jsr:@std/assert";
 import { renderHook } from "@testing-library/react-hooks";
 import {
@@ -31,16 +31,16 @@ const createWrapper = (param: string | null = null) => {
   );
 };
 
-Deno.test("should return null when no shopId in search params", () => {
-  const wrapper = createWrapper();
-  // result.current field returned by renderHook always contains the latest values returned by the hook passed in.
-  const { result } = renderHook(() => useShopId(), { wrapper });
-  assertEquals(result.current.shopId, null);
-});
+describe("useShopId", () => {
+  it("should return null when no shopId in search params", () => {
+    const wrapper = createWrapper();
+    const { result } = renderHook(() => useShopId(), { wrapper });
+    assertEquals(result.current.shopId, null);
+  });
 
-Deno.test("should take shopId from search params", () => {
-  const wrapper = createWrapper("123");
-  const { result } = renderHook(() => useShopId(), { wrapper });
-  // Test that returned shopId is a bigint
-  assertEquals(result.current.shopId, BigInt(123));
+  it("should take shopId from search params", () => {
+    const wrapper = createWrapper("123");
+    const { result } = renderHook(() => useShopId(), { wrapper });
+    assertEquals(result.current.shopId, BigInt(123));
+  });
 });
