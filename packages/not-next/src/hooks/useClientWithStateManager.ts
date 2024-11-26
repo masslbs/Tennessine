@@ -7,7 +7,7 @@
 // import useKeycard from "./useKeycard";
 // import useRelayEndpoint from "./useRelayEndpoint";
 
-export function useClientWithStateManager() {
+export default function useClientWithStateManager() {
   // const { clientStateManager, setClientStateManager } = useContext(
   //   MassMarketContext,
   // );
