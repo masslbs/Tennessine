@@ -1,12 +1,12 @@
 // import { useContext, useEffect } from "react";
 // import * as abi from "@massmarket/contracts";
 // import { MassMarketContext } from "../MassMarketContext.tsx";
-// import useShopPublicClient from "./useShopPublicClient.ts";
+// import usePublicClientByChainId from "./usePublicClientByChainId";
 // import useShopId from "./useShopId.ts";
 
 // export default function useShopDetails() {
 //   const { shopDetails, setShopDetails } = useContext(MassMarketContext);
-//   const shopPublicClient = useShopPublicClient();
+//   const shopPublicClient = usePublicClientByChainId();
 //   const { shopId } = useShopId();
 
 //   useEffect(() => {
