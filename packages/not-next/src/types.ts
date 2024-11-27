@@ -101,3 +101,7 @@ export enum CheckoutStep {
   confirmation = "confirmation",
   expired = "expired",
 }
+export interface CurrentOrder {
+  orderId: OrderId;
+  status: OrderState;
+}
