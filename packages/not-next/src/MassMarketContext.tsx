@@ -5,7 +5,6 @@ import React, {
   useState,
 } from "react";
 import { ClientWithStateManager } from "./ClientWithStateManager.ts";
-import { OrderId, OrderState } from "./types.ts";
 
 type MassMarketContextType = {
   clientStateManager: ClientWithStateManager | null;
@@ -19,13 +18,6 @@ type MassMarketContextType = {
   setShopDetails: Dispatch<
     SetStateAction<{ name: string; profilePictureUrl: string }>
   >;
-  currentOrder: {
-    orderId: OrderId;
-    status: OrderState;
-  } | null;
-  setCurrentOrderId: Dispatch<
-    SetStateAction<{ orderId: OrderId; status: OrderState } | null>
-  >;
 };
 
 export const MassMarketContext = createContext<MassMarketContextType>({
@@ -37,8 +29,6 @@ export const MassMarketContext = createContext<MassMarketContextType>({
     profilePictureUrl: "",
   },
   setShopDetails: () => {},
-  currentOrder: null,
-  setCurrentOrderId: () => {},
 });
 
 export function MassMarketProvider(
@@ -53,20 +43,12 @@ export function MassMarketProvider(
     name: "",
     profilePictureUrl: "",
   });
-  const [currentOrder, setCurrentOrderId] = useState<
-    {
-      orderId: OrderId;
-      status: OrderState;
-    } | null
-  >(null);
 
   const value = {
     clientStateManager,
     setClientStateManager,
     shopDetails,
     setShopDetails,
-    currentOrder,
-    setCurrentOrderId,
   };
 
   return (
