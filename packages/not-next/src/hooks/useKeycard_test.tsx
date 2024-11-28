@@ -1,39 +1,26 @@
-// import { afterEach, beforeEach, describe, it } from "jsr:@std/testing/bdd";
-// import { assertEquals } from "jsr:@std/assert";
-// import { renderHook } from "@testing-library/react-hooks";
-// import { random32BytesHex } from "@massmarket/utils";
-// import useKeycard from "./useKeycard.ts";
+import { assertEquals } from "jsr:@std/assert";
+import { cleanup, renderHook } from "@testing-library/react-hooks";
+import { random32BytesHex } from "@massmarket/utils";
+import { useKeycard } from "./useKeycard.ts";
+import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
 
-// describe("useKeycard", () => {
-//   afterEach(() => localStorage.clear());
-//   const randomKC = random32BytesHex();
-//   describe("merchant keycard", () => {
-//     beforeEach(() => {
-//       localStorage.setItem("merchantKC", randomKC);
-//     });
+Deno.test("useKeycard", async (t) => {
+  GlobalRegistrator.register({});
+  const randomKC = random32BytesHex();
+  t.step("should set and get keycards", () => {
+    const { rerender, result, unmount } = renderHook(() =>
+      useKeycard(randomKC)
+    );
+    const [keycard, setKeycard] = result.current;
+    assertEquals(randomKC, keycard);
+    const randomKC2 = random32BytesHex();
+    setKeycard(randomKC2);
+    rerender();
+    const [keycard2] = result.current;
+    assertEquals(randomKC2, keycard2);
+    unmount();
+  });
 
-//     it("should return correct keycard states", () => {
-//       const { result } = renderHook(() => useKeycard());
-//       const { keycard, isMerchantKeycard, isGuestKeycard } = result.current;
-
-//       assertEquals(keycard, randomKC);
-//       assertEquals(isMerchantKeycard, true);
-//       assertEquals(isGuestKeycard, false);
-//     });
-//   });
-
-//   describe("guest keycard", () => {
-//     beforeEach(() => {
-//       localStorage.setItem("guestCheckoutKC", random32BytesHex());
-//     });
-
-//     it("should return correct keycard states", () => {
-//       const { result } = renderHook(() => useKeycard());
-//       const { keycard, isMerchantKeycard, isGuestKeycard } = result.current;
-
-//       assertEquals(keycard, randomKC);
-//       assertEquals(isMerchantKeycard, false);
-//       assertEquals(isGuestKeycard, true);
-//     });
-//   });
-// });
+  cleanup();
+  await GlobalRegistrator.unregister();
+});
