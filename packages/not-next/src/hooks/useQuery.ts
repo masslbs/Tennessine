@@ -4,10 +4,7 @@ import { hashMessage } from "@wevm/viem";
 // global cache
 const queryCache = new Map();
 
-export default function useQuery<T>(
-  query: () => Promise<T>,
-  deps: unknown[] = [],
-) {
+export function useQuery<T>(query: () => Promise<T>, deps: unknown[] = []) {
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState(false);
   const [result, setResult] = useState(undefined);

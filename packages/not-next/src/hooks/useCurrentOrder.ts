@@ -9,7 +9,7 @@
 // const errlog = logger(namespace, "error");
 // const debug = logger(namespace);
 
-// export default function useCurrentOrder() {
+// export function useCurrentOrder() {
 //   const { clientStateManager } = useClientWithStateManager();
 //   const { shopId } = useShopId();
 //   const [currentOrder, setCurrentOrder] = useState<CurrentOrder | null>(null);

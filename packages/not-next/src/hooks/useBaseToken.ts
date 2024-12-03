@@ -12,7 +12,7 @@
 // const namespace = "frontend:useBaseToken";
 // const debug = logger(namespace);
 
-// export default function useBaseToken() {
+// export function useBaseToken() {
 //   const [baseToken, setBaseToken] = useState<BaseToken | null>(null);
 //   const { clientStateManager } = useClientWithStateManager();
 //   const chains = useChains();

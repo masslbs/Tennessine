@@ -29,7 +29,7 @@
 // import Dropdown from "../common/CurrencyDropdown";
 // import ConnectWalletButton from "../common/ConnectWalletButton";
 // import { useClientWithStateManager } from "../../hooks/useClientWithStateManager";
-// import usePublicClientByChainId from "../../hooks/usePublicClientByChainId";
+// import usePublicClientForRegistry from "../../hooks/usePublicClientForRegistry";
 
 // // When create shop CTA is clicked, these functions are called:
 // // 1. mintShop
@@ -45,7 +45,7 @@
 //   const chains = useChains();
 //   const { status } = useAccount();
 
-//   const shopPublicClient = usePublicClientByChainId();
+//   const shopPublicClient = usePublicClientForRegistry();
 //   const { shopId, setShopId } = useShopId();
 //   const { clientStateManager } = useClientWithStateManager();
 //   const { data: wallet } = useWalletClient();

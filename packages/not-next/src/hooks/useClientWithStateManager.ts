@@ -1,19 +1,19 @@
 // import { useContext, useEffect } from "react";
 // import { ClientWithStateManager } from "../ClientWithStateManager.ts";
 // import { MassMarketContext } from "../MassMarketContext.tsx";
-// import usePublicClientByChainId from "./usePublicClientByChainId";
+// import usePublicClientForRegistry from "./usePublicClientForRegistry";
 // import useShopId from "./useShopId";
 // import useQuery from "./useQuery";
 // import useKeycard from "./useKeycard";
 // import useRelayEndpoint from "./useRelayEndpoint";
 
-export default function useClientWithStateManager() {
+export function useClientWithStateManager() {
   // const { clientStateManager, setClientStateManager } = useContext(
   //   MassMarketContext,
   // );
   // const { isMerchantKeyCard, isGuestKeyCard, keycard } = useKeycard();
   // const shopId = useShopId();
-  // const shopPublicClient = usePublicClientByChainId();
+  // const shopPublicClient = usePublicClientForRegistry();
   // const relayEndpoint = useRelayEndpoint();
   // //Create a new ClientWithStateManager instance when shopId changes
   // useEffect(() => {
