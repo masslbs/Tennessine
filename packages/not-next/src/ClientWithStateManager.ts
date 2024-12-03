@@ -30,7 +30,8 @@ export class ClientWithStateManager {
     this.relayEndpoint = relayEndpoint;
   }
 
-  async createStateManager() {
+  createStateManager() {
+    //FIXME: use hook useKeycard
     const merchantKC = localStorage.getItem("merchantKC");
     const dbName = `${String(this.shopId).slice(0, 7)}${
       merchantKC ? merchantKC.slice(0, 5) : "-guest"
@@ -70,10 +71,6 @@ export class ClientWithStateManager {
       this.publicClient,
     );
 
-    // Wait for relay address to be added to verified addresses before we return stateManager
-    await this.stateManager.addRelaysToKeycards();
-
-    // Only start the stream once relay address is added
     this.stateManager
       .eventStreamProcessing()
       .then()
