@@ -173,3 +173,5 @@ export type ShopObjectTypes =
   | OrdersByStatus
   | ShopManifest
   | SeqNo;
+
+export type StoreKey = string | `0x${string}` | OrderState;

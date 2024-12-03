@@ -1,4 +1,6 @@
 import { EventEmitter } from "events";
+import { Mutex } from "async-mutex";
+
 import { Address } from "@ethereumjs/util";
 import {
   bytesToBigInt,
@@ -26,6 +28,7 @@ import {
   type ShopCurrencies,
   type ShopManifest,
   type ShopObjectTypes,
+  type StoreKey,
   type Tag,
   type UpdateShopManifest,
 } from "./types.ts";
@@ -50,8 +53,8 @@ const debug = logger("stateManager");
 
 // This is an interface that is used to retrieve and store objects from a persistant layer
 export type Store<T extends ShopObjectTypes> = {
-  put(key: string | `0x${string}` | OrderState, value: T): Promise<void>;
-  get(key: string | `0x${string}` | OrderState): Promise<T>;
+  put(key: StoreKey, value: T): Promise<void>;
+  get(key: StoreKey): Promise<T>;
   iterator(): AsyncIterable<[string | `0x${string}` | OrderState, T]>;
 };
 
@@ -92,6 +95,26 @@ async function storeOrdersByStatus(
   }
   return store.put(status, orders);
 }
+// Synchronize db operations to prevent race conditions.
+const lockAndRelease = <T extends ShopObjectTypes>(
+  store: Store<T>,
+): Store<T> => {
+  const dbMutex = new Mutex();
+  return {
+    put: async (key: StoreKey, value: T) => {
+      return dbMutex.runExclusive(async () => {
+        debug(`DB Write: ${String(key)}`);
+        return store.put(key, value);
+      });
+    },
+    get: async (key: StoreKey) => {
+      return dbMutex.runExclusive(async () => {
+        return store.get(key);
+      });
+    },
+    iterator: store.iterator,
+  };
+};
 
 abstract class PublicObjectManager<
   T extends ShopObjectTypes,
@@ -1204,12 +1227,18 @@ export class StateManager {
     shopId: bigint,
     publicClient: PublicClient,
   ) {
-    this.listings = new ListingManager(listingStore, client);
-    this.tags = new TagManager(tagStore, client);
-    this.manifest = new ShopManifestManager(shopManifestStore, client);
-    this.orders = new OrderManager(orderStore, client);
-    this.keycards = new KeyCardManager(keycardStore, client);
-    this.keycardNonce = new KeycardNonceManager(keycardNonceStore, client);
+    this.listings = new ListingManager(lockAndRelease(listingStore), client);
+    this.tags = new TagManager(lockAndRelease(tagStore), client);
+    this.manifest = new ShopManifestManager(
+      lockAndRelease(shopManifestStore),
+      client,
+    );
+    this.orders = new OrderManager(lockAndRelease(orderStore), client);
+    this.keycards = new KeyCardManager(lockAndRelease(keycardStore), client);
+    this.keycardNonce = new KeycardNonceManager(
+      lockAndRelease(keycardNonceStore),
+      client,
+    );
     this.shopId = shopId;
     this.publicClient = publicClient;
   }
@@ -1245,7 +1274,6 @@ export class StateManager {
       }
     }
   }
-
   async eventStreamProcessing() {
     const storeObjects = [
       this.listings,
@@ -1258,6 +1286,7 @@ export class StateManager {
 
     const stream = this.client.createEventStream();
 
+    await this.addRelaysToKeycards();
     //Each event will go through all the storeObjects and update the relevant stores.
     let event: SequencedEventWithRecoveredSigner;
     for await (event of stream) {

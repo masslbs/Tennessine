@@ -1,8 +1,14 @@
 {
   "version": "4",
   "specifiers": {
-    "jsr:@std/assert@*": "1.0.6",
     "jsr:@std/internal@^1.0.4": "1.0.4",
+    "jsr:@std/assert@*": "1.0.8",
+    "jsr:@std/assert@^1.0.6": "1.0.8",
+    "jsr:@std/assert@^1.0.7": "1.0.8",
+    "jsr:@std/expect@*": "1.0.7",
+    "jsr:@std/internal@^1.0.5": "1.0.5",
+    "jsr:@std/testing@*": "1.0.3",
+    "jsr:@wevm/viem@*": "2.21.50",
     "jsr:@wevm/viem@^2.21.50": "2.21.50",
     "npm:@deno/vite-plugin@1": "1.0.0_vite@5.4.11__@types+node@20.17.7_@types+node@20.17.7",
     "npm:@ethereumjs/util@^9.0.3": "9.1.0",
@@ -12,6 +18,7 @@
     "npm:@noble/hashes@1.5.0": "1.5.0",
     "npm:@rainbow-me/rainbowkit@^2.2.0": "2.2.0_@tanstack+react-query@5.61.3__react@18.3.1_react@18.3.1_react-dom@18.3.1__react@18.3.1_viem@2.21.44__ws@8.18.0_wagmi@2.13.0__@tanstack+react-query@5.61.3___react@18.3.1__react@18.3.1__viem@2.21.44___ws@8.18.0__@wagmi+core@2.15.0___viem@2.21.44____ws@8.18.0___@types+react@18.3.12___react@18.3.1___use-sync-external-store@1.2.0____react@18.3.1__react-dom@18.3.1___react@18.3.1__@types+react@18.3.12__use-sync-external-store@1.2.0___react@18.3.1_@vanilla-extract+css@1.15.5_@types+react@18.3.12",
     "npm:@scure/bip32@1.5.0": "1.5.0",
+    "npm:@scure/bip39@1.4.0": "1.4.0",
     "npm:@sentry/nextjs@^8.36.0": "8.40.0_next@15.0.3__@opentelemetry+api@1.9.0__react@18.3.1__react-dom@18.3.1___react@18.3.1_@opentelemetry+api@1.9.0_rollup@3.29.5_@opentelemetry+semantic-conventions@1.28.0_react@18.3.1_react-dom@18.3.1__react@18.3.1",
     "npm:@tanstack/react-query@^5.60.6": "5.61.3_react@18.3.1",
     "npm:@tanstack/react-router@*": "1.82.8_react@18.3.1_react-dom@18.3.1__react@18.3.1",
@@ -28,13 +35,16 @@
     "npm:@types/ws@^8.5.10": "8.5.13",
     "npm:@vitejs/plugin-react@^4.3.3": "4.3.3_vite@5.4.11__@types+node@20.17.7_@babel+core@7.26.0_@types+node@20.17.7",
     "npm:abitype@1.0.6": "1.0.6",
+    "npm:async-mutex@0.5": "0.5.0",
     "npm:browser-level@*": "1.0.1",
     "npm:buffer@^6.0.3": "6.0.3",
     "npm:events@^3.3.0": "3.3.0",
+    "npm:isows@*": "1.0.6_ws@8.18.0",
     "npm:isows@1.0.6": "1.0.6_ws@8.18.0",
     "npm:isows@^1.0.3": "1.0.6_ws@8.18.0",
     "npm:long@*": "5.2.3",
     "npm:long@^5.2.3": "5.2.3",
+    "npm:memory-level@*": "1.0.0",
     "npm:memory-level@1": "1.0.0",
     "npm:protobufjs-cli@^1.1.2": "1.1.3_protobufjs@7.4.0",
     "npm:protobufjs@*": "7.4.0",
@@ -56,7 +66,20 @@
     "@std/assert@1.0.6": {
       "integrity": "1904c05806a25d94fe791d6d883b685c9e2dcd60e4f9fc30f4fc5cf010c72207",
       "dependencies": [
-        "jsr:@std/internal"
+        "jsr:@std/internal@^1.0.4"
+      ]
+    },
+    "@std/assert@1.0.8": {
+      "integrity": "ebe0bd7eb488ee39686f77003992f389a06c3da1bbd8022184804852b2fa641b",
+      "dependencies": [
+        "jsr:@std/internal@^1.0.5"
+      ]
+    },
+    "@std/expect@1.0.7": {
+      "integrity": "3904afa77cfe5c45dd2cd2c476e6fc5b6f57103d712890f0783d74c19d4b05a9",
+      "dependencies": [
+        "jsr:@std/assert@^1.0.7",
+        "jsr:@std/internal@^1.0.5"
       ]
     },
     "@std/internal@1.0.4": {
@@ -68,6 +91,7 @@
         "npm:@noble/curves",
         "npm:@noble/hashes",
         "npm:@scure/bip32",
+        "npm:@scure/bip39",
         "npm:abitype",
         "npm:isows@1.0.6",
         "npm:webauthn-p256"
@@ -3730,6 +3754,12 @@
         "tslib@2.8.1"
       ]
     },
+    "async-mutex@0.5.0": {
+      "integrity": "sha512-1A94B18jkJ3DYq284ohPxoXbfTA5HsQ7/Mf4DEhcyLx3Bz27Rh59iScbB6EPiP+B+joue6YCxcMXSbFC1tZKwA==",
+      "dependencies": [
+        "tslib@2.8.1"
+      ]
+    },
     "atomic-sleep@1.0.0": {
       "integrity": "sha512-kNOjDqAh7px0XWNI+4QbzoiR/nTkHAWNud2uvnJquD1/x5a7EQZMJT0AczqK0Qn67oY/TTQ1LbUKajZpp3I9tQ=="
     },
@@ -4543,7 +4573,7 @@
       "integrity": "sha512-ITJTvqoCw6OVMLs7pI8f4gG92n/St6x80ACtHodeS+IXmO0w+t1T5OOzfSt7KLSMLRkVUoexV7tztLgDxg+iig==",
       "dependencies": [
         "@metamask/safe-event-emitter@3.1.2",
-        "async-mutex",
+        "async-mutex@0.2.6",
         "eth-query",
         "json-rpc-engine",
         "pify@5.0.0"
@@ -7657,6 +7687,7 @@
         "packageJson": {
           "dependencies": [
             "npm:@ethereumjs/util@^9.0.3",
+            "npm:async-mutex@0.5",
             "npm:events@^3.3.0",
             "npm:long@^5.2.3",
             "npm:memory-level@1",
