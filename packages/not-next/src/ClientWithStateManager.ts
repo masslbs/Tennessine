@@ -1,6 +1,5 @@
-"use client";
-import { PublicClient } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
+import { PublicClient } from "npm:viem";
+import { privateKeyToAccount } from "npm:viem/accounts";
 import { BrowserLevel } from "npm:browser-level";
 import { RelayClient, type RelayEndpoint } from "@massmarket/client";
 import { StateManager } from "@massmarket/stateManager";

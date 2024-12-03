@@ -6,7 +6,7 @@ import process from "node:process";
 const namespace = "frontend:useRelayEnpoint";
 const debug = logger(namespace);
 
-export default function useRelayEndpoint() {
+export function useRelayEndpoint() {
   const [relayEndpoint, setRelayEndpoint] = useState<RelayEndpoint | null>(
     null,
   );
