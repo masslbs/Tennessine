@@ -1,11 +1,11 @@
 // import { useContext, useEffect } from "react";
 // import { ClientWithStateManager } from "../ClientWithStateManager.ts";
 // import { MassMarketContext } from "../MassMarketContext.tsx";
-// import usePublicClientForRegistry from "./usePublicClientForRegistry";
-// import useShopId from "./useShopId";
-// import useQuery from "./useQuery";
-// import useKeycard from "./useKeycard";
-// import useRelayEndpoint from "./useRelayEndpoint";
+// import { usePublicClientForRegistry } from "./usePublicClientForRegistry";
+// import { useShopId } from "./useShopId";
+// import { useQuery } from "./useQuery";
+// import { useKeycard } from "./useKeycard";
+// import { useRelayEndpoint } from "./useRelayEndpoint";
 
 export function useClientWithStateManager() {
   // const { clientStateManager, setClientStateManager } = useContext(
