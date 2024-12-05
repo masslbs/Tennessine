@@ -231,7 +231,7 @@ export default function StoreCreation() {
       enrollKeycard.current = true;
       // Replace keyCardToEnroll to merchantKC for future refreshes
       const keycard = localStorage.getItem("keyCardToEnroll") as `0x${string}`;
-      localStorage.setItem("merchantKC", keycard);
+      localStorage.setItem("userRole:" + keycard + id, "merchat");
       localStorage.removeItem("keyCardToEnroll");
 
       // FIXME: for now we are instantiating sm after kc enroll. The reason is because we want to create a unique db name based on keycard.

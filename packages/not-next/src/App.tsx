@@ -10,9 +10,11 @@ import { routeTree } from "./routeTree.gen.ts";
 const queryClient = new QueryClient();
 const router = createRouter({ routeTree });
 
-export default function App(
-  { wagmiConfig = getConfig() }: { wagmiConfig?: Config },
-) {
+export default function App({
+  wagmiConfig = getConfig(),
+}: {
+  wagmiConfig?: Config;
+}) {
   return (
     <>
       <RouterProvider router={router} />

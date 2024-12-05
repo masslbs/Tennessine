@@ -2,8 +2,7 @@
 // import { useChains } from "wagmi";
 
 // import { logger } from "@massmarket/utils";
-// import useClientWithStateManager from "./useClientWithStateManager";
-// import useShopId from "./useShopId";
+// import useClientWithStateManager from "../useClientWithStateManager.ts";
 
 // interface BaseToken {
 //   symbol: string;
@@ -12,11 +11,10 @@
 // const namespace = "frontend:useBaseToken";
 // const debug = logger(namespace);
 
-// export function useBaseToken() {
+// export default function useBaseToken() {
 //   const [baseToken, setBaseToken] = useState<BaseToken | null>(null);
 //   const { clientStateManager } = useClientWithStateManager();
 //   const chains = useChains();
-//   const shopId = useShopId();
 
 //   useEffect(() => {
 //     (async () => {
@@ -36,7 +34,7 @@
 //         decimals: res[1],
 //       });
 //     })();
-//   }, [shopId]);
+//   }, []);
 
 //   return { baseToken };
 // }
