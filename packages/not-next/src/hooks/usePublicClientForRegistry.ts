@@ -1,5 +1,6 @@
 import { usePublicClient } from "wagmi";
 import * as chains from "viem/chains";
+import process from "node:process";
 
 export function usePublicClientForRegistry(id?: number) {
   const chainName = process.env.NEXT_PUBLIC_CHAIN_NAME!;

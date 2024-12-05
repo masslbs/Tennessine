@@ -30,7 +30,7 @@ export class ClientWithStateManager {
     this.relayEndpoint = relayEndpoint;
   }
 
-  async createStateManager() {
+  createStateManager() {
     //FIXME: use hook useKeycard
     const merchantKC = localStorage.getItem("merchantKC");
     const dbName = `${String(this.shopId).slice(0, 7)}${

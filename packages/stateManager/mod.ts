@@ -101,14 +101,14 @@ const lockAndRelease = <T extends ShopObjectTypes>(
 ): Store<T> => {
   const dbMutex = new Mutex();
   return {
-    put: async (key: StoreKey, value: T) => {
-      return dbMutex.runExclusive(async () => {
+    put: (key: StoreKey, value: T) => {
+      return dbMutex.runExclusive(() => {
         debug(`DB Write: ${String(key)}`);
         return store.put(key, value);
       });
     },
-    get: async (key: StoreKey) => {
-      return dbMutex.runExclusive(async () => {
+    get: (key: StoreKey) => {
+      return dbMutex.runExclusive(() => {
         return store.get(key);
       });
     },

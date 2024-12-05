@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import React from "react";
 import Link from "next/link";
 
 import { useUserContext } from "@/context/UserContext";

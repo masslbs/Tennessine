@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Chevron from "./Chevron";
 import { CurrencyChainOption } from "@/types";
 

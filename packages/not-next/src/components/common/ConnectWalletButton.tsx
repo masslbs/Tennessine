@@ -1,4 +1,3 @@
-import React from "react";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 
 export default function ConnectWalletButton() {
