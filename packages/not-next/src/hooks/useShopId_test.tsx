@@ -7,7 +7,7 @@ import {
   createRouter,
   RouterProvider,
 } from "@tanstack/react-router";
-import useShopId from "./useShopId.ts";
+import { useShopId } from "./useShopId.ts";
 import { routeTree } from "../routeTree.gen.ts";
 
 const createTestRouter = (param: string | null) => {

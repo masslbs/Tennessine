@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import Link from "next/link";
+import Link from "npm:next/link";
 
 import { useShopId } from "../../hooks/useShopId.ts";
 import Button from "../common/Button.tsx";
