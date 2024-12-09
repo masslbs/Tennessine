@@ -4,11 +4,11 @@
 
 import Link from "next/link";
 
-import { useUserContext } from "@/context/UserContext";
-import Button from "@/app/common/components/Button";
+import { useShopId } from "../../hooks/useShopId.ts";
+import Button from "../common/Button.tsx";
 
 export default function Confirmation() {
-  const { shopId } = useUserContext();
+  const { shopId } = useShopId();
 
   function copyToClipboard() {
     navigator.clipboard.writeText(String(shopId));

@@ -2,8 +2,6 @@
 // //
 // // SPDX-License-Identifier: GPL-3.0-or-later
 
-// "use client";
-
 // import React, { ChangeEvent, useEffect, useRef, useState } from "react";
 // import { ConnectButton } from "@rainbow-me/rainbowkit";
 // import { privateKeyToAccount } from "viem/accounts";

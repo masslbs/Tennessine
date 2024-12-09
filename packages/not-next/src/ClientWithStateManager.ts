@@ -1,4 +1,3 @@
-"use client";
 import { PublicClient } from "npm:viem";
 import { privateKeyToAccount } from "npm:viem/accounts";
 import { BrowserLevel } from "npm:browser-level";

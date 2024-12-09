@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-"use client";
 import { ChangeEvent, Dispatch, SetStateAction, useRef, useState } from "react";
 
 export default function AvatarUpload({

@@ -2,8 +2,6 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-"use client";
-
 import React from "react";
 
 export interface ButtonProps
