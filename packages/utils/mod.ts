@@ -12,7 +12,7 @@ import {
   parseUnits,
   toBytes,
 } from "viem";
-import * as Sentry from "@sentry/nextjs";
+import * as Sentry from "@sentry/browser";
 
 // TODO: type case first argument to captureException
 // TODO: add extras arguments (https://docs.sentry.io/platforms/javascript/guides/nextjs/enriching-events/)
@@ -31,15 +31,18 @@ export function logger(
         category: namespace,
         message,
       });
-    } else { // everything but debug get's reported directly
-      if (error) { // if we have an error, we capture that and add the message and namespace as extras
+    } else {
+      // everything but debug get's reported directly
+      if (error) {
+        // if we have an error, we capture that and add the message and namespace as extras
         Sentry.captureException(error, {
           extra: {
             message,
             namespace,
           },
         });
-      } else { // if we don't have an error, we just capture the message
+      } else {
+        // if we don't have an error, we just capture the message
         Sentry.captureMessage(message, {
           level: level as Sentry.SeverityLevel,
           extra: {

@@ -5,6 +5,6 @@
   "imports": {
     "buffer": "node:buffer",
     "viem": "npm:viem@2.21.44",
-    "@sentry/nextjs": "npm:@sentry/nextjs@8.36.0"
+    "@sentry/browser": "npm:@sentry/browser@8.36.0" // Use browser SDK instead
   }
 }
