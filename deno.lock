@@ -20,7 +20,9 @@
     "npm:long@5.2.3": "5.2.3",
     "npm:protobufjs-cli@1.1.2": "1.1.2_protobufjs@7.2.6",
     "npm:protobufjs@7.2.6": "7.2.6",
+    "npm:react-dom@*": "19.0.0_react@19.0.0",
     "npm:react-dom@^18.3.1": "18.3.1_react@18.3.1",
+    "npm:react@*": "19.0.0",
     "npm:react@^18.3.1": "18.3.1",
     "npm:viem@2.21.44": "2.21.44_ws@8.18.0",
     "npm:vite@^5.4.9": "5.4.11_@types+node@22.10.1",
@@ -1613,7 +1615,7 @@
         "i18next",
         "qr-code-styling",
         "react@18.3.1",
-        "react-dom"
+        "react-dom@18.3.1_react@18.3.1"
       ]
     },
     "@metamask/sdk-install-modal-web@0.31.1": {
@@ -1641,7 +1643,7 @@
         "pump",
         "qrcode-terminal-nooctal",
         "react@18.3.1",
-        "react-dom",
+        "react-dom@18.3.1_react@18.3.1",
         "react-native-webview",
         "readable-stream@3.6.2",
         "socket.io-client@4.8.1",
@@ -2272,7 +2274,7 @@
         "clsx@2.1.1",
         "qrcode@1.5.4",
         "react@18.3.1",
-        "react-dom",
+        "react-dom@18.3.1_react@18.3.1",
         "react-remove-scroll",
         "ua-parser-js",
         "viem",
@@ -2935,7 +2937,7 @@
         "@tanstack/react-store",
         "jsesc",
         "react@18.3.1",
-        "react-dom",
+        "react-dom@18.3.1_react@18.3.1",
         "tiny-invariant",
         "tiny-warning"
       ]
@@ -2945,7 +2947,7 @@
       "dependencies": [
         "@tanstack/store",
         "react@18.3.1",
-        "react-dom",
+        "react-dom@18.3.1_react@18.3.1",
         "use-sync-external-store@1.4.0_react@18.3.1"
       ]
     },
@@ -2956,7 +2958,7 @@
         "clsx@2.1.1",
         "goober",
         "react@18.3.1",
-        "react-dom"
+        "react-dom@18.3.1_react@18.3.1"
       ]
     },
     "@tanstack/router-generator@1.86.0": {
@@ -3180,7 +3182,7 @@
       "integrity": "sha512-1I+RwWyS+kdv3Mv0Vmc+p0dPYH0DTRAo04HLyXReYBL9AeseDWUJyi4THuksBJcu9F0Pih69Ak150VDnqbVnXg==",
       "dependencies": [
         "react@18.3.1",
-        "react-dom"
+        "react-dom@18.3.1_react@18.3.1"
       ]
     },
     "@vanilla-extract/css@1.15.5": {
@@ -5902,7 +5904,7 @@
         "caniuse-lite",
         "postcss@8.4.31",
         "react@18.3.1",
-        "react-dom",
+        "react-dom@18.3.1_react@18.3.1",
         "sharp",
         "styled-jsx"
       ]
@@ -6404,6 +6406,13 @@
         "scheduler@0.23.2"
       ]
     },
+    "react-dom@19.0.0_react@19.0.0": {
+      "integrity": "sha512-4GV5sHFG0e/0AD4X+ySy6UJd3jVl1iNsNHdpad0qhABJ11twS3TTBnseqsKurKcsNqCEFeGL3uLpVChpIO3QfQ==",
+      "dependencies": [
+        "react@19.0.0",
+        "scheduler@0.25.0"
+      ]
+    },
     "react-error-boundary@3.1.4_react@17.0.2": {
       "integrity": "sha512-uM9uPzZJTF6wRQORmSrvOIgt4lJ9MC1sNgEOj2XGsDTRE4kmpWxg7ENK9EWNKJRMAOY9z0MuF4yIfl6gp4sotA==",
       "dependencies": [
@@ -6517,6 +6526,9 @@
       "dependencies": [
         "loose-envify"
       ]
+    },
+    "react@19.0.0": {
+      "integrity": "sha512-V8AVnmPIICiWpGfm6GLzCR/W5FXLchHop40W4nXBmdlEceh16rCN8O8LNWm5bh5XUX91fh7KpA+W0TgMKmgTpQ=="
     },
     "readable-stream@2.3.8": {
       "integrity": "sha512-8p0AUk4XODgIewSi0l8Epjs+EVnWiK7NoDIEGU0HhE7+ZyY8D1IMY7odu5lRrFXGg71L15KG8QrPmum45RTtdA==",
@@ -6701,6 +6713,9 @@
       "dependencies": [
         "loose-envify"
       ]
+    },
+    "scheduler@0.25.0": {
+      "integrity": "sha512-xFVuu11jh+xcO7JOAGJNOXld8/TcEHK/4CituBUeUb5hqxJLj9YuemAEuvm9gQ/+pgXYfbQuqAkiYu+u7YEsNA=="
     },
     "schema-utils@3.3.0_ajv@6.12.6": {
       "integrity": "sha512-pN/yOAvcC+5rQ5nERGuwrjLlYvLTbCibnZ1I7B1LaiAz9BRBlE9GMgE/eqV30P7aJQUf7Ddimy/RsbYO/GrVGg==",
@@ -7588,6 +7603,10 @@
     }
   },
   "workspace": {
+    "dependencies": [
+      "npm:react-dom@*",
+      "npm:react@*"
+    ],
     "members": {
       "packages/blockchain": {
         "dependencies": [
