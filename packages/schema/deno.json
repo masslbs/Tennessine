@@ -15,5 +15,10 @@
     "rules": {
       "exclude": ["no-slow-types"]
     }
+  },
+  "imports": {
+    "protobufjs": "npm:protobufjs@7.2.6",
+    "long": "npm:long@5.2.3",
+    "protobufjs-cli": "npm:protobufjs-cli@1.1.2"
   }
 }

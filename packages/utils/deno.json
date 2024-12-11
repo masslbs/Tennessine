@@ -3,6 +3,8 @@
   "version": "0.0.1",
   "exports": "./mod.ts",
   "imports": {
-    "buffer": "node:buffer"
+    "buffer": "node:buffer",
+    "viem": "npm:viem@2.21.44",
+    "@sentry/nextjs": "npm:@sentry/nextjs@8.36.0"
   }
 }
