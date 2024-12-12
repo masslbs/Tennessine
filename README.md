@@ -25,20 +25,4 @@ Enter the development environment
 nix develop
 ```
 
-Install TS dependencies
 
-```bash
-pnpm install
-```
-
-Build the packages
-
-```bash
-pnpm build
-```
-
-Fomat the code
-
-```bash
-pnpm format
-```
