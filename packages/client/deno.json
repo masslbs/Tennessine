@@ -6,8 +6,13 @@
     "./stream": "./stream.ts"
   },
   "imports": {
+    "@ethereumjs/util": "npm:@ethereumjs/util",
     "events": "node:events",
     "buffer": "node:buffer",
-    "assert": "node:assert"
+    "assert": "node:assert",
+    "isows": "npm:isows",
+    "long": "npm:long",
+    "viem": "jsr:@wevm/viem",
+    "web-streams-polyfill": "npm:web-streams-polyfill"
   }
 }

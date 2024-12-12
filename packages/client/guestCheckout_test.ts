@@ -14,9 +14,10 @@ import {
   hexToBytes,
   http,
   toHex,
-} from "npm:viem";
-import { hardhat } from "npm:viem/chains";
-import { privateKeyToAccount } from "npm:viem/accounts";
+} from "viem";
+import { hardhat } from "viem/chains";
+import { bytesToHex } from "viem/utils";
+import { privateKeyToAccount } from "viem/accounts";
 import { random256BigInt, random32BytesHex } from "@massmarket/utils";
 import {
   addresses,
@@ -26,9 +27,8 @@ import {
 } from "@massmarket/contracts";
 import { objectId, priceToUint256 } from "@massmarket/utils";
 import { type ConcreteWalletClient, mintShop } from "@massmarket/blockchain";
+import type schema from "@massmarket/schema";
 import { discoverRelay, RelayClient } from "./mod.ts";
-import type schema from "../schema/mod.ts";
-import { bytesToHex } from "jsr:@wevm/viem/utils";
 
 describe({
   name: "guestCheckout",

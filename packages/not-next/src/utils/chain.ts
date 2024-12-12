@@ -1,5 +1,5 @@
-import * as Chains from "@wevm/viem/chains";
-import { createPublicClient, http } from "@wevm/viem";
+import * as Chains from "viem/chains";
+import { createPublicClient, http } from "viem";
 import process from "node:process";
 
 const defaultRPC =

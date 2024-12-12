@@ -1,5 +1,5 @@
 import * as abi from "@massmarket/contracts";
-import { Address } from "@wevm/viem";
+import { Address } from "viem";
 
 // Any utility functions for tokens
 

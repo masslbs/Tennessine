@@ -3,6 +3,8 @@
   "version": "0.0.1",
   "exports": "./mod.ts",
   "imports": {
-    "buffer": "node:buffer"
+    "buffer": "node:buffer",
+    "viem": "jsr:@wevm/viem",
+    "@sentry/browser": "npm:@sentry/browser"
   }
 }
