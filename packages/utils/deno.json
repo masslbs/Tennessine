@@ -4,7 +4,7 @@
   "exports": "./mod.ts",
   "imports": {
     "buffer": "node:buffer",
-    "viem": "npm:viem@2.21.44",
-    "@sentry/browser": "npm:@sentry/browser@8.36.0" // Use browser SDK instead
+    "viem": "jsr:@wevm/viem",
+    "@sentry/browser": "npm:@sentry/browser"
   }
 }

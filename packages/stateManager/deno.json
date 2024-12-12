@@ -7,14 +7,9 @@
     "./types": "./types.ts"
   },
   "imports": {
-    "@ethereumjs/util": "npm:@ethereumjs/util@9.0.3",
-    "@massmarket/client": "../client/mod.ts",
-    "@massmarket/schema": "../schema/mod.ts",
-    "@massmarket/utils": "../utils/mod.ts",
-    "@massmarket/contracts": "../contracts/mod.ts",
+    "@ethereumjs/util": "npm:@ethereumjs/util",
     "events": "node:events",
-    "long": "npm:long@5.2.3",
-    "viem": "npm:viem@2.21.44",
-    "@massmarket/blockchain": "../blockchain/mod.ts"
+    "long": "npm:long",
+    "viem": "jsr:@wevm/viem"
   }
 }

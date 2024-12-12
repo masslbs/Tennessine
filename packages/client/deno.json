@@ -6,17 +6,13 @@
     "./stream": "./stream.ts"
   },
   "imports": {
-    "@ethereumjs/util": "npm:@ethereumjs/util@9.1.0",
-    "@massmarket/blockchain": "../blockchain/mod.ts",
-    "@massmarket/contracts": "../contracts/mod.ts",
-    "@massmarket/schema": "../schema/mod.ts",
-    "@massmarket/utils": "../utils/mod.ts",
+    "@ethereumjs/util": "npm:@ethereumjs/util",
     "events": "node:events",
     "buffer": "node:buffer",
     "assert": "node:assert",
-    "isows": "npm:isows@1.0.3",
-    "long": "npm:long@5.2.3",
-    "viem": "npm:viem@2.21.44",
-    "web-streams-polyfill": "npm:web-streams-polyfill@4.0.0"
+    "isows": "npm:isows",
+    "long": "npm:long",
+    "viem": "jsr:@wevm/viem",
+    "web-streams-polyfill": "npm:web-streams-polyfill"
   }
 }

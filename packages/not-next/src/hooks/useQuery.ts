@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { hashMessage } from "@wevm/viem";
+import { hashMessage } from "viem";
 
 // global cache
 const queryCache = new Map();
