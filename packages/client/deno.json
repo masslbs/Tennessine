@@ -12,7 +12,7 @@
     "assert": "node:assert",
     "isows": "npm:isows",
     "long": "npm:long",
-    "viem": "jsr:@wevm/viem",
+    "viem": "npm:viem@^2.21.55",
     "web-streams-polyfill": "npm:web-streams-polyfill"
   }
 }
