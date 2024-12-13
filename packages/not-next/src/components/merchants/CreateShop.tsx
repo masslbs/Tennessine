@@ -2,8 +2,6 @@
 // //
 // // SPDX-License-Identifier: GPL-3.0-or-later
 
-// "use client";
-
 // import React, { ChangeEvent, useEffect, useRef, useState } from "react";
 // import { ConnectButton } from "@rainbow-me/rainbowkit";
 // import { privateKeyToAccount } from "viem/accounts";
@@ -21,7 +19,6 @@
 // import { CurrencyChainOption, ShopCurrencies } from "../../types";
 // import { getTokenAddress, isValidHex } from "../../utils/mod";
 // import useShopId from "../../hooks/useShopId";
-// import useShopPublicClient from "../../hooks/useShopPublicClient";
 // import ValidationWarning from "../common/ValidationWarning";
 // import ErrorMessage from "../common/ErrorMessage";
 // import Button from "../common/Button";
@@ -29,7 +26,8 @@
 // import AvatarUpload from "../common/AvatarUpload";
 // import Dropdown from "../common/CurrencyDropdown";
 // import ConnectWalletButton from "../common/ConnectWalletButton";
-// import useClientWithStateManager from "../../hooks/useClientWithStateManager";
+// import { useClientWithStateManager } from "../../hooks/useClientWithStateManager";
+// import usePublicClientForRegistry from "../../hooks/usePublicClientForRegistry";
 
 // // When create shop CTA is clicked, these functions are called:
 // // 1. mintShop
@@ -37,7 +35,7 @@
 // // 3. createShopManifest
 // // 4. uploadMetadata
 
-// const namespace = "frontend:create-store";
+// const namespace = "frontend: CreateShop";
 // const debug = logger(namespace);
 // const errlog = logger(namespace, "error");
 
@@ -45,7 +43,7 @@
 //   const chains = useChains();
 //   const { status } = useAccount();
 
-//   const { shopPublicClient } = useShopPublicClient();
+//   const shopPublicClient = usePublicClientForRegistry();
 //   const { shopId, setShopId } = useShopId();
 //   const { clientStateManager } = useClientWithStateManager();
 //   const { data: wallet } = useWalletClient();
@@ -58,7 +56,7 @@
 //   const [avatar, setAvatar] = useState<FormData | null>(null);
 //   const [pricingCurrency, setPricingCurrency] = useState<
 //     Partial<ShopCurrencies>
-//   >({ address: addresses.zeroAddress });
+//   >({ address: abi.addresses.zeroAddress });
 //   const [acceptedCurrencies, setAcceptedCurrencies] = useState<
 //     ShopCurrencies[]
 //   >([]);
@@ -70,9 +68,8 @@
 
 //   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 //   const [validationError, setValidationError] = useState<string | null>(null);
-//   const [storeRegistrationStatus, setStoreRegistrationStatus] = useState<
-//     string
-//   >("");
+//   const [storeRegistrationStatus, setStoreRegistrationStatus] =
+//     useState<string>("");
 
 //   useEffect(() => {
 //     if (wallet?.account) {
@@ -480,7 +477,8 @@
 //                 name="payee"
 //                 value={payeeAddress || ""}
 //                 onChange={(e) =>
-//                   setPayeeAddress(e.target.value as `0x${string}`)}
+//                   setPayeeAddress(e.target.value as `0x${string}`)
+//                 }
 //               />
 //             </form>
 //           </div>
@@ -509,17 +507,17 @@
 //         />
 //         <h1>Connect your wallet</h1>
 //         <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
-//           {status === "connected"
-//             ? (
-//               <div className="flex flex-col gap-4">
-//                 <ConnectButton chainStatus="name" />
-//                 <p>{storeRegistrationStatus}</p>
-//                 <Button onClick={mint} disabled={!wallet}>
-//                   <h6>Mint Shop</h6>
-//                 </Button>
-//               </div>
-//             )
-//             : <ConnectWalletButton />}
+//           {status === "connected" ? (
+//             <div className="flex flex-col gap-4">
+//               <ConnectButton chainStatus="name" />
+//               <p>{storeRegistrationStatus}</p>
+//               <Button onClick={mint} disabled={!wallet}>
+//                 <h6>Mint Shop</h6>
+//               </Button>
+//             </div>
+//           ) : (
+//             <ConnectWalletButton />
+//           )}
 //         </section>
 //       </main>
 //     );

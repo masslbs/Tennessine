@@ -1,22 +1,24 @@
-// import { useContext, useEffect } from "react";
+// import { useEffect, useState } from "react";
 // import { logger } from "@massmarket/utils";
 
-// import { MassMarketContext } from "../MassMarketContext";
 // import useClientWithStateManager from "./useClientWithStateManager";
-// import { Order, OrderEventTypes, OrderState } from "@/types";
+// import { CurrentOrder, Order, OrderEventTypes, OrderState } from "../types";
+// import useShopId from "./useShopId";
 
 // const namespace = "frontend:useCurrentOrder";
 // const errlog = logger(namespace, "error");
 // const debug = logger(namespace);
 
-// export default function useCurrentOrder() {
-//   const { currentOrder, setCurrentOrderId } = useState(MassMarketContext);
+// export function useCurrentOrder() {
 //   const { clientStateManager } = useClientWithStateManager();
+//   const { shopId } = useShopId();
+//   const [currentOrder, setCurrentOrder] = useState<CurrentOrder | null>(null);
+//   const [isDone, setIsDone] = useState<boolean>(false);
 //   const orderManager = clientStateManager.stateManager.orders;
 
 //   function onOrderCreate(order: Order) {
 //     if (order.status === OrderState.STATE_OPEN) {
-//       setCurrentOrderId({ orderId: order.id, status: OrderState.STATE_OPEN });
+//       setCurrentOrder({ orderId: order.id, status: OrderState.STATE_OPEN });
 //     }
 //   }
 //   function onOrderUpdate(res: [OrderEventTypes, Order]) {
@@ -38,7 +40,7 @@
 
 //   function onCommit(order: Order) {
 //     if (order.status === OrderState.STATE_COMMITED) {
-//       setCurrentOrderId({
+//       setCurrentOrder({
 //         orderId: order.id,
 //         status: OrderState.STATE_COMMITED,
 //       });
@@ -46,61 +48,67 @@
 //   }
 //   function txHashDetected(order: Order) {
 //     if (order.status === OrderState.STATE_PAYMENT_TX) {
-//       setCurrentOrderId(null);
+//       setCurrentOrder(null);
 //     }
 //   }
 
 //   function orderCancel(order: Order) {
 //     if (order.status === OrderState.STATE_CANCELED) {
-//       setCurrentOrderId(null);
+//       setCurrentOrder(null);
+//     }
+//   }
+
+//   async function orderFetcher() {
+//     // First try to find an open order
+//     const openOrders = await orderManager.getStatus(OrderState.STATE_OPEN);
+
+//     if (openOrders.length === 1) {
+//       setCurrentOrder({
+//         orderId: openOrders[0],
+//         status: OrderState.STATE_OPEN,
+//       });
+//       return;
+//     } else if (openOrders.length > 1) {
+//       errlog("Multiple open orders found");
+//       return;
+//     } else {
+//       // If no open order, look for committed order
+//       debug("No open order found, looking for committed order");
+//       const committedOrders = await orderManager.getStatus(
+//         OrderState.STATE_COMMITED,
+//       );
+
+//       if (committedOrders.length === 1) {
+//         setCurrentOrder({
+//           orderId: committedOrders[0],
+//           status: OrderState.STATE_COMMITED,
+//         });
+//         return;
+//       } else if (committedOrders.length > 1) {
+//         errlog("Multiple committed orders found");
+//         return;
+//       } else {
+//         debug("No order yet");
+//         return;
+//       }
 //     }
 //   }
 
 //   useEffect(() => {
-//     async function orderFetcher() {
-//       // First try to find an open order
-//       const openOrders = await orderManager.getStatus(OrderState.STATE_OPEN);
-
-//       if (openOrders.length === 1) {
-//         setCurrentOrderId({
-//           orderId: openOrders[0],
-//           status: OrderState.STATE_OPEN,
-//         });
-//         return;
-//       } else if (openOrders.length > 1) {
-//         errlog("Multiple open orders found");
-//         return;
-//       } else {
-//         // If no open order, look for committed order
-//         debug("No open order found, looking for committed order");
-//         const committedOrders = await orderManager.getStatus(
-//           OrderState.STATE_COMMITED,
-//         );
-
-//         if (committedOrders.length === 1) {
-//           setCurrentOrderId({
-//             orderId: committedOrders[0],
-//             status: OrderState.STATE_COMMITED,
-//           });
-//           return;
-//         } else if (committedOrders.length > 1) {
-//           errlog("Multiple committed orders found");
-//           return;
-//         } else {
-//           debug("No order yet");
-//           return;
-//         }
-//       }
-//     });
-//   const promise = orderFetcher();
-//   promise.final(() => setIsDone(true)).catch((e) => setError(e))
+//     orderFetcher()
+//       .finally(() => {
+//         setIsDone(true);
+//       })
+//       .catch((e) => {
+//         errlog(e);
+//       });
 //     orderManager.on("create", onOrderCreate);
 //     orderManager.on("update", onOrderUpdate);
-
 //     return () => {
 //       orderManager.removeListener("create", onOrderCreate);
 //       orderManager.removeListener("update", onOrderUpdate);
-//     }} []);
+//     };
+//   }, [shopId]);
 
-//   return { currentOrder, setCurrentOrderId };
+//   return { currentOrder, isDone };
 // }

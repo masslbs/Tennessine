@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useSearch } from "@tanstack/react-router";
-// import { ShopId } from "@/types";
+import { ShopId } from "../types.ts";
 
-export default function useShopId() {
-  const [shopId, setShopId] = useState<bigint | null>(null);
+export function useShopId() {
+  const [shopId, setShopId] = useState<ShopId | null>(null);
   // Get the search params
   const search = useSearch({
     from: "/",
