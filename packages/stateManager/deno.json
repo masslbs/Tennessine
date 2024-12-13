@@ -10,6 +10,7 @@
     "@ethereumjs/util": "npm:@ethereumjs/util",
     "events": "node:events",
     "long": "npm:long",
-    "viem": "jsr:@wevm/viem"
+    "viem": "jsr:@wevm/viem",
+    "wagmi": "npm:wagmi@^2.14.3"
   }
 }
