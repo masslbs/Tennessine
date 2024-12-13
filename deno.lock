@@ -47,6 +47,7 @@
     "npm:vite@^5.4.9": "5.4.11_@types+node@22.10.2",
     "npm:wagmi@*": "2.14.1_@tanstack+react-query@5.62.7__react@18.3.1_react@18.3.1_viem@2.21.44__ws@8.18.0_@wagmi+core@2.16.0__viem@2.21.44___ws@8.18.0__@types+react@18.3.16__react@18.3.1__use-sync-external-store@1.2.0___react@18.3.1_@types+react@18.3.16_use-sync-external-store@1.2.0__react@18.3.1",
     "npm:wagmi@^2.13.0": "2.14.1_@tanstack+react-query@5.62.7__react@18.3.1_react@18.3.1_viem@2.21.44__ws@8.18.0_@wagmi+core@2.16.0__viem@2.21.44___ws@8.18.0__@types+react@18.3.16__react@18.3.1__use-sync-external-store@1.2.0___react@18.3.1_@types+react@18.3.16_use-sync-external-store@1.2.0__react@18.3.1",
+    "npm:wagmi@^2.14.3": "2.14.3_@tanstack+react-query@5.62.7__react@18.3.1_react@18.3.1_viem@2.21.44__ws@8.18.0_@wagmi+core@2.16.0__viem@2.21.44___ws@8.18.0__@types+react@18.3.16__react@18.3.1__use-sync-external-store@1.2.0___react@18.3.1_@types+react@18.3.16_use-sync-external-store@1.2.0__react@18.3.1",
     "npm:web-streams-polyfill@*": "4.0.0",
     "npm:webauthn-p256@0.0.10": "0.0.10"
   },
@@ -944,7 +945,7 @@
         "react-remove-scroll",
         "ua-parser-js",
         "viem@2.21.44_ws@8.18.0",
-        "wagmi"
+        "wagmi@2.14.1_@tanstack+react-query@5.62.7__react@18.3.1_react@18.3.1_viem@2.21.44__ws@8.18.0_@wagmi+core@2.16.0__viem@2.21.44___ws@8.18.0__@types+react@18.3.16__react@18.3.1__use-sync-external-store@1.2.0___react@18.3.1_@types+react@18.3.16_use-sync-external-store@1.2.0__react@18.3.1"
       ]
     },
     "@rollup/rollup-android-arm-eabi@4.28.1": {
@@ -1006,6 +1007,13 @@
     },
     "@safe-global/safe-apps-provider@0.18.4": {
       "integrity": "sha512-SWYeG3gyTO6wGHMSokfHakZ9isByn2mHsM0VohIorYFFEyGGmJ89btnTm+DqDUSoQtvWAatZB7XNy6CaYMvqtg==",
+      "dependencies": [
+        "@safe-global/safe-apps-sdk",
+        "events"
+      ]
+    },
+    "@safe-global/safe-apps-provider@0.18.5": {
+      "integrity": "sha512-9v9wjBi3TwLsEJ3C2ujYoexp3pFJ0omDLH/GX91e2QB+uwCKTBYyhxFSrTQ9qzoyQd+bfsk4gjOGW87QcJhf7g==",
       "dependencies": [
         "@safe-global/safe-apps-sdk",
         "events"
@@ -1489,7 +1497,20 @@
       "dependencies": [
         "@coinbase/wallet-sdk@4.2.3",
         "@metamask/sdk",
-        "@safe-global/safe-apps-provider",
+        "@safe-global/safe-apps-provider@0.18.4",
+        "@safe-global/safe-apps-sdk",
+        "@wagmi/core",
+        "@walletconnect/ethereum-provider",
+        "cbw-sdk@npm:@coinbase/wallet-sdk@3.9.3",
+        "viem@2.21.44_ws@8.18.0"
+      ]
+    },
+    "@wagmi/connectors@5.7.0_@wagmi+core@2.16.0__viem@2.21.44___ws@8.18.0__@types+react@18.3.16__react@18.3.1__use-sync-external-store@1.2.0___react@18.3.1_viem@2.21.44__ws@8.18.0_@types+react@18.3.16_react@18.3.1_use-sync-external-store@1.2.0__react@18.3.1": {
+      "integrity": "sha512-cPMmHBGw28fll7VQJC9iF6ngdQ17STTzspqRIjlTkz44zhjwMTf7shw+JJUmqw+0uK7DqRbf/xUHlZE2IVd2mg==",
+      "dependencies": [
+        "@coinbase/wallet-sdk@4.2.3",
+        "@metamask/sdk",
+        "@safe-global/safe-apps-provider@0.18.5",
         "@safe-global/safe-apps-sdk",
         "@wagmi/core",
         "@walletconnect/ethereum-provider",
@@ -3957,7 +3978,18 @@
       "integrity": "sha512-Lq/UFJVorjwJlFjXbU+Jtfo64PObNfUCPtwgqi+q/WGBWzG7CL0xmCsB3wPc+YZYwD8O9OqFDHfcggUi0qwcGA==",
       "dependencies": [
         "@tanstack/react-query",
-        "@wagmi/connectors",
+        "@wagmi/connectors@5.6.1_@wagmi+core@2.16.0__viem@2.21.44___ws@8.18.0__@types+react@18.3.16__react@18.3.1__use-sync-external-store@1.2.0___react@18.3.1_viem@2.21.44__ws@8.18.0_@types+react@18.3.16_react@18.3.1_use-sync-external-store@1.2.0__react@18.3.1",
+        "@wagmi/core",
+        "react@18.3.1",
+        "use-sync-external-store@1.2.0_react@18.3.1",
+        "viem@2.21.44_ws@8.18.0"
+      ]
+    },
+    "wagmi@2.14.3_@tanstack+react-query@5.62.7__react@18.3.1_react@18.3.1_viem@2.21.44__ws@8.18.0_@wagmi+core@2.16.0__viem@2.21.44___ws@8.18.0__@types+react@18.3.16__react@18.3.1__use-sync-external-store@1.2.0___react@18.3.1_@types+react@18.3.16_use-sync-external-store@1.2.0__react@18.3.1": {
+      "integrity": "sha512-sr8o7+EBw22GhieDyXLv8Zr2vgC6xKrYoSuUIpq0xOqEhvMP1q880VtR4lFG1capc2QEWvK72pJ/+jpsEQcMYQ==",
+      "dependencies": [
+        "@tanstack/react-query",
+        "@wagmi/connectors@5.7.0_@wagmi+core@2.16.0__viem@2.21.44___ws@8.18.0__@types+react@18.3.16__react@18.3.1__use-sync-external-store@1.2.0___react@18.3.1_viem@2.21.44__ws@8.18.0_@types+react@18.3.16_react@18.3.1_use-sync-external-store@1.2.0__react@18.3.1",
         "@wagmi/core",
         "react@18.3.1",
         "use-sync-external-store@1.2.0_react@18.3.1",
@@ -4154,7 +4186,8 @@
         "dependencies": [
           "jsr:@wevm/viem@*",
           "npm:@ethereumjs/util@*",
-          "npm:long@*"
+          "npm:long@*",
+          "npm:wagmi@^2.14.3"
         ]
       },
       "packages/utils": {
