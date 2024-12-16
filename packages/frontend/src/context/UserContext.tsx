@@ -37,7 +37,6 @@ export const UserContext = createContext<ClientContext>({
   shopId: null,
   relayEndpoint: null,
   clientWithStateManager: null,
-  setWallet: () => {},
   setInviteSecret: () => {},
   setShopId: () => {},
   checkPermissions: () =>
@@ -252,7 +251,6 @@ export const UserContextProvider = (
     shopId,
     relayEndpoint,
     clientWithStateManager,
-    setWallet,
     setInviteSecret,
     setShopId,
     checkPermissions,

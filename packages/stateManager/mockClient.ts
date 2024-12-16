@@ -5,7 +5,7 @@
 import { hexToBytes, numberToBytes, type PublicClient } from "viem";
 import { type PrivateKeyAccount, privateKeyToAccount } from "viem/accounts";
 import Long from "long";
-import { MemoryLevel } from "memory-level";
+import { MemoryLevel } from "npm:memory-level";
 
 import type { EventId } from "@massmarket/client";
 import { ReadableEventStream } from "@massmarket/client/stream";
@@ -230,10 +230,7 @@ export class MockClient implements IRelayClient {
     return { url: file.name };
   }
   async sendGuestSubscriptionRequest(_shopId: bigint, _seqNo = 0) {}
-  async sendGuestCheckoutSubscriptionRequest(
-    _shopId: bigint,
-    _seqNo = 0,
-  ) {}
+  async sendGuestCheckoutSubscriptionRequest(_shopId: bigint, _seqNo = 0) {}
   async sendMerchantSubscriptionRequest(_shopId: bigint, _seqNo = 0) {}
   //Mimics client-fired event paymentDetails after commit event - for testing paymentDetails gets stored correctly in stateManager.
   sendPaymentDetails(orderId: `0x${string}`) {

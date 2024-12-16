@@ -7,6 +7,9 @@
     "./types": "./types.ts"
   },
   "imports": {
-    "events": "node:events"
+    "@ethereumjs/util": "npm:@ethereumjs/util",
+    "events": "node:events",
+    "long": "npm:long",
+    "viem": "jsr:@wevm/viem"
   }
 }

@@ -6,7 +6,7 @@ import { Dispatch, SetStateAction } from "react";
 import { type PublicClient } from "viem";
 
 import { RelayEndpoint, WalletClientWithAccount } from "@massmarket/client";
-import { OrderId, ShopDetails, ShopId } from "@/types";
+import { OrderId, OrderState, ShopDetails, ShopId } from "@/types";
 import { ClientWithStateManager } from "@/app/ClientWithStateManager";
 
 //Types for Contexts only
@@ -20,7 +20,6 @@ export type ClientContext = {
   shopId: ShopId | null;
   relayEndpoint: RelayEndpoint | null;
   clientWithStateManager: ClientWithStateManager | null;
-  setWallet: Dispatch<SetStateAction<WalletClientWithAccount | null>>;
   setInviteSecret: Dispatch<SetStateAction<`0x${string}` | null>>;
   setShopId: Dispatch<SetStateAction<ShopId | null>>;
   checkPermissions: () => Promise<boolean>;
@@ -32,10 +31,8 @@ export type ClientContext = {
 
 export type StoreContent = {
   shopDetails: ShopDetails;
-  committedOrderId: OrderId;
-  openOrderId: OrderId;
-  getOpenOrderId: () => Promise<OrderId>;
+  currentOrder: { orderId: OrderId; status: OrderState };
+  getCurrentOrder: () => Promise<OrderId>;
   setShopDetails: Dispatch<ShopDetails>;
   getBaseTokenInfo: () => Promise<[string, number]>;
-  setCommittedOrderId: Dispatch<OrderId>;
 };

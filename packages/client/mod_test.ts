@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { WebSocket } from "npm:isows";
+import { WebSocket } from "isows";
 import {
   bytesToBigInt,
   bytesToHex,
@@ -11,9 +11,9 @@ import {
   hexToBytes,
   http,
   toHex,
-} from "npm:viem";
-import { hardhat } from "npm:viem/chains";
-import { privateKeyToAccount } from "npm:viem/accounts";
+} from "viem";
+import { hardhat } from "viem/chains";
+import { privateKeyToAccount } from "viem/accounts";
 import { beforeAll, beforeEach, describe, test } from "jsr:@std/testing/bdd";
 import { expect } from "jsr:@std/expect";
 import {

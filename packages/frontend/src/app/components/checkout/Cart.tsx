@@ -4,9 +4,18 @@
 
 "use client";
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
 import { formatUnitsFromString, logger } from "@massmarket/utils";
 
-import { ListingId, Order, OrderEventTypes, OrderId } from "@/types";
+import {
+  ListingId,
+  Order,
+  OrderEventTypes,
+  OrderId,
+  OrderState,
+} from "@/types";
+import { createQueryString } from "@/app/utils";
 import { useStoreContext } from "@/context/StoreContext";
 import { useUserContext } from "@/context/UserContext";
 import Button from "@/app/common/components/Button";
@@ -22,8 +31,9 @@ export default function Cart({
 }: {
   onCheckout?: (orderId: OrderId) => Promise<void>;
 }) {
-  const { getBaseTokenInfo, getOpenOrderId, openOrderId } = useStoreContext();
+  const { getBaseTokenInfo, currentOrder } = useStoreContext();
   const { clientWithStateManager } = useUserContext();
+  const router = useRouter();
 
   const [cartItemsMap, setCartMap] = useState(new Map());
   const [orderId, setOrderId] = useState<OrderId | null>(null);
@@ -57,25 +67,17 @@ export default function Cart({
   }, []);
 
   useEffect(() => {
-    // TODO: i think these functions maybe should be useState-like variables
-    getOpenOrderId().then((oId: OrderId | null) => {
-      if (oId) {
-        debug(`Open order ID: ${oId}`);
-        setOrderId(oId);
-        clientWithStateManager!
-          .stateManager!.orders.get(oId)
-          .then(async (o) => {
-            const itemDetails = await getCartItemDetails(o);
-            setCartMap(itemDetails);
-          });
-      }
-    });
-  }, []);
-
-  useEffect(() => {
-    // If order ID changes in storeContext from event listeners change the order ID here.
-    setOrderId(openOrderId);
-  }, []);
+    if (currentOrder) {
+      debug(`Showing cart items for order ID: ${currentOrder.orderId}`);
+      setOrderId(currentOrder.orderId);
+      clientWithStateManager!
+        .stateManager!.orders.get(currentOrder.orderId)
+        .then(async (o) => {
+          const itemDetails = await getCartItemDetails(o);
+          setCartMap(itemDetails);
+        });
+    }
+  }, [currentOrder]);
 
   async function getCartItemDetails(order: Order) {
     const ci = order.items;
@@ -97,6 +99,11 @@ export default function Cart({
   }
 
   async function handleCheckout(orderId: OrderId) {
+    // If the order is already committed, redirect to the shipping details page.
+    if (currentOrder.status === OrderState.STATE_COMMITED) {
+      router.push(`/checkout?${createQueryString("step", "shippingDetails")}`);
+      return;
+    }
     try {
       await onCheckout!(orderId);
     } catch (error) {

@@ -77,19 +77,8 @@ async function storeOrdersByStatus(
   store: Store<Order | OrdersByStatus>,
   status: OrderState,
 ) {
-  let orders: OrdersByStatus = [];
-
-  try {
-    orders = (await store.get(status)) as OrdersByStatus;
-    orders.push(orderId);
-  } catch (error) {
-    const e = error as IError;
-    if (e.notFound) {
-      orders.push(orderId);
-    } else {
-      throw new Error(e.code);
-    }
-  }
+  const orders = (await store.get(status)) as OrdersByStatus || [];
+  orders.push(orderId);
   return store.put(status, orders);
 }
 
@@ -902,17 +891,20 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
     return this.store.get(key) as Promise<Order>;
   }
 
-  getStatus(key: OrderState): Promise<OrdersByStatus> {
+  async getStatus(key: OrderState): Promise<OrdersByStatus> {
+    let result: OrdersByStatus;
     try {
-      return this.store.get(key) as Promise<OrdersByStatus>;
+      // awaiting here so if not found, it does not throw an error but returns an empty array instead.
+      result = (await this.store.get(key)) as OrdersByStatus;
     } catch (error) {
       const e = error as IError;
       if (e.notFound) {
-        return Promise.resolve([]);
+        return [];
       } else {
         throw new Error(e.code);
       }
     }
+    return result;
   }
 
   async create() {
@@ -1134,21 +1126,11 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
 
   async addAddress(key: `0x${string}`) {
     const k = key.toLowerCase() as `0x${string}`;
-    let publicKeys: `0x${string}`[] = [];
-    try {
-      publicKeys = await this.store.get("cardPublicKey");
-      if (!publicKeys.includes(k)) {
-        publicKeys.push(k);
-      }
-    } catch (error) {
-      const e = error as IError;
-      if (e.notFound) {
-        publicKeys.push(k);
-      } else {
-        throw new Error(e.code);
-      }
+    const publicKeys = await this.store.get("cardPublicKey") || [];
+    if (!publicKeys.includes(k)) {
+      publicKeys.push(k);
+      await this.store.put("cardPublicKey", publicKeys);
     }
-    return this.store.put("cardPublicKey", publicKeys);
   }
 }
 
