@@ -27,7 +27,7 @@ import {
   type Tag,
 } from "./types.ts";
 
-async function setupTestManager() {
+export async function setupTestManager() {
   const opts = {
     valueEncoding: "json",
   };

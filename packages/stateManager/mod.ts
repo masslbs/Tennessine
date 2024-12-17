@@ -77,7 +77,7 @@ async function storeOrdersByStatus(
   store: Store<Order | OrdersByStatus>,
   status: OrderState,
 ) {
-  const orders = (await store.get(status)) as OrdersByStatus || [];
+  const orders = ((await store.get(status)) as OrdersByStatus) || [];
   orders.push(orderId);
   return store.put(status, orders);
 }
@@ -85,6 +85,8 @@ async function storeOrdersByStatus(
 abstract class PublicObjectManager<
   T extends ShopObjectTypes,
 > extends EventEmitter {
+  private _sendingClientRequest: Promise<void | unknown> = Promise.resolve();
+
   constructor(protected store: Store<T>, protected client: IRelayClient) {
     super();
   }
@@ -92,9 +94,23 @@ abstract class PublicObjectManager<
   abstract _processEvent(
     event: SequencedEventWithRecoveredSigner,
   ): Promise<void>;
+
   abstract get(key?: string | `0x${string}`): Promise<T>;
+
   get iterator() {
     return this.store.iterator.bind(this.store);
+  }
+
+  queueClientRequest<R>(request: () => Promise<R>): Promise<R> {
+    const queuedRequest = this._sendingClientRequest
+      .then(() => request())
+      .catch((error) => {
+        throw error;
+      });
+
+    this._sendingClientRequest = queuedRequest.catch((e) => debug(e));
+
+    return queuedRequest;
   }
 }
 
@@ -213,40 +229,43 @@ class ListingManager extends PublicObjectManager<Listing> {
     }
   }
 
-  async create(l: Partial<Listing>, decimals?: number) {
-    const eventId = await this.client.listing({
-      id: { raw: objectId() },
-      price: { raw: priceToUint256(l.price!, decimals) },
-      metadata: l.metadata,
-      viewState: l.viewState,
-    });
-    // resolves after the `listing` event has been fired in _processEvent, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve<Listing>(eventId, this, "create");
-  }
+  create(l: Partial<Listing>, decimals?: number) {
+    return this.queueClientRequest(async () => {
+      const eventId = await this.client.listing({
+        id: { raw: objectId() },
+        price: { raw: priceToUint256(l.price!, decimals) },
+        metadata: l.metadata,
+        viewState: l.viewState,
+      });
 
+      // Set up event listener and wait for response after network call
+      return eventListenAndResolve<Listing>(eventId, this, "create");
+    });
+  }
   //update argument passed here will only contain the fields to update.
-  async update(update: Partial<Listing>, decimals?: number) {
-    //ui object to be passed to the network with converted network data types.
-    //we are declaring the update object as type schema.IUpdateListing since we are changing values from hex to bytes and is no longer a interface l
-    const ui: schema.IUpdateListing = {
-      id: { raw: hexToBytes(update.id!) },
-    };
-    if (update.price) {
-      ui.price = { raw: priceToUint256(update.price, decimals) };
-    }
-    if (update.metadata) {
-      ui.metadata = update.metadata;
-    }
-    if (update.viewState !== undefined) {
-      assert(
-        Object.values(ListingViewState).includes(update.viewState),
-        `update.viewState ${update.viewState} must be a valid ListingViewState`,
-      );
-      ui.viewState = update.viewState;
-    }
-    const requestId = await this.client.updateListing(ui);
-    // resolves after the `updateListing` event has been fired, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve<Listing>(requestId, this, "update");
+  update(update: Partial<Listing>, decimals?: number) {
+    return this.queueClientRequest(async () => {
+      const ui: schema.IUpdateListing = {
+        id: { raw: hexToBytes(update.id!) },
+      };
+
+      if (update.price) {
+        ui.price = { raw: priceToUint256(update.price, decimals) };
+      }
+      if (update.metadata) {
+        ui.metadata = update.metadata;
+      }
+      if (update.viewState !== undefined) {
+        assert(
+          Object.values(ListingViewState).includes(update.viewState),
+          `update.viewState ${update.viewState} must be a valid ListingViewState`,
+        );
+        ui.viewState = update.viewState;
+      }
+
+      const requestId = await this.client.updateListing(ui);
+      return eventListenAndResolve<Listing>(requestId, this, "update");
+    });
   }
 
   async addListingToTag(tagId: `0x${string}`, lId: `0x${string}`) {
@@ -1126,7 +1145,7 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
 
   async addAddress(key: `0x${string}`) {
     const k = key.toLowerCase() as `0x${string}`;
-    const publicKeys = await this.store.get("cardPublicKey") || [];
+    const publicKeys = (await this.store.get("cardPublicKey")) || [];
     if (!publicKeys.includes(k)) {
       publicKeys.push(k);
       await this.store.put("cardPublicKey", publicKeys);
