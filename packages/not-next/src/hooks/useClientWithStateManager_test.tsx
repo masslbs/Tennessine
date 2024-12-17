@@ -1,7 +1,7 @@
-import React, { StrictMode } from "react";
 import { assertEquals } from "jsr:@std/assert";
 import { cleanup, renderHook } from "npm:@testing-library/react";
 import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
+import React, { StrictMode } from "react";
 import {
   createMemoryHistory,
   createRootRoute,
@@ -10,7 +10,7 @@ import {
   Outlet,
   RouterProvider,
 } from "@tanstack/react-router";
-import { useCurrentOrder } from "./useCurrentOrder.ts";
+import { useClientWithStateManager } from "./useClientWithStateManager.ts";
 
 const createWrapper = (shopId: string | null = null) => {
   return ({ children }: { children: React.ReactNode }) => {
@@ -38,20 +38,35 @@ const createWrapper = (shopId: string | null = null) => {
   };
 };
 
-Deno.test("no order", async (t) => {
+Deno.test("useClientWithStateManager", async (t) => {
   GlobalRegistrator.register({});
 
-  await t.step("should handle no orders", () => {
+  await t.step("should return client when shopId is provided", () => {
     const wrapper = createWrapper("123");
 
-    const { result, unmount } = renderHook(() => useCurrentOrder(), {
+    const { result, unmount } = renderHook(() => useClientWithStateManager(), {
       wrapper,
     });
-    assertEquals(result.current.currentOrder, null);
-    assertEquals(result.current.isDone, false);
+
+    assertEquals(typeof result.current.client, "object");
+    assertEquals(result.current.client !== null, true);
+    assertEquals(typeof result.current.stateManager, "object");
+    assertEquals(result.current.stateManager !== null, true);
     unmount();
   });
-  cleanup();
 
+  await t.step("should return null when no shopId is provided", () => {
+    const wrapper = createWrapper();
+
+    const { result, unmount } = renderHook(() => useClientWithStateManager(), {
+      wrapper,
+    });
+
+    assertEquals(result.current.client, null);
+    assertEquals(result.current.stateManager, null);
+    unmount();
+  });
+
+  cleanup();
   await GlobalRegistrator.unregister();
 });

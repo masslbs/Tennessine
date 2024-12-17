@@ -11,9 +11,12 @@ export function useClientWithStateManager() {
   const { clientStateManager, setClientStateManager } =
     useContext(MassMarketContext);
   const [keycard] = useKeycard();
-  const { shopId } = useShopId();
-  const shopPublicClient = usePublicClient();
+  console.log({ keycard });
   const relayEndpoint = useRelayEndpoint();
+  console.log({ relayEndpoint });
+  const { shopId } = useShopId();
+  console.log("useClientWithStateManager", { shopId });
+  const shopPublicClient = usePublicClient();
 
   // Create a new ClientWithStateManager instance when shopId changes
   useEffect(() => {
