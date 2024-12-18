@@ -86,8 +86,13 @@ describe("async mutations", () => {
 
   it("queueClientRequest processes requests in order", async () => {
     const results: string[] = [];
-    const delay = (ms: number) =>
-      new Promise((resolve) => setTimeout(resolve, ms));
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
+
+    const delay = (ms: number): Promise<void> =>
+      new Promise((resolve) => {
+        const timeout = setTimeout(resolve, ms);
+        timeouts.push(timeout);
+      });
 
     const operations = [
       stateManager.listings.queueClientRequest(async () => {
@@ -107,8 +112,11 @@ describe("async mutations", () => {
       }),
     ];
 
-    await Promise.all(operations);
-
-    expect(results).toEqual(["First", "Second", "Third"]);
+    try {
+      await Promise.all(operations);
+      expect(results).toEqual(["First", "Second", "Third"]);
+    } finally {
+      timeouts.forEach((id) => clearTimeout(id));
+    }
   });
 });

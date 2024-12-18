@@ -208,7 +208,7 @@ class ListingManager extends PublicObjectManager<Listing> {
             const l = await this.store.get(iid);
             l.tags.push(tagId);
             this.emit("addListingId", iid, seqEvt.id());
-            return await this.store.put(iid, l);
+            return this.store.put(iid, l);
           }),
         );
       }
