@@ -53,7 +53,7 @@ const createWrapper = (shopId: string | null = null) => {
 Deno.test("useClientWithStateManager", async (t) => {
   GlobalRegistrator.register({});
 
-  await t.step("should return client when shopId is provided", async () => {
+  await t.step("should return client when shopId is provided", () => {
     const wrapper = createWrapper("123");
     Deno.env.set("NEXT_PUBLIC_CHAIN_NAME", "sepolia");
     Deno.env.set("NEXT_PUBLIC_RELAY_ENDPOINT", "http://example.com");
