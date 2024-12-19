@@ -1,4 +1,4 @@
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useMemo } from "react";
 import { MassMarketContext } from "../MassMarketContext.tsx";
 import { usePublicClient } from "./usePublicClient.ts";
 import { useShopId } from "./useShopId.ts";
@@ -11,41 +11,34 @@ export function useClientWithStateManager() {
   const { clientStateManager, setClientStateManager } =
     useContext(MassMarketContext);
   const [keycard] = useKeycard();
-  console.log({ keycard });
-  const relayEndpoint = useRelayEndpoint();
-  console.log({ relayEndpoint });
+  const { relayEndpoint } = useRelayEndpoint();
   const { shopId } = useShopId();
-  console.log("useClientWithStateManager", { shopId });
   const shopPublicClient = usePublicClient();
 
-  // Create a new ClientWithStateManager instance when shopId changes
-  useEffect(() => {
+  const currentClientStateManager = useMemo(() => {
     if (
       shopId &&
       relayEndpoint &&
       shopPublicClient &&
-      clientStateManager?.shopId !== shopId // make sure we are not creating a new instance with the same shopId
+      clientStateManager?.shopId !== shopId
     ) {
-      const csm = new ClientWithStateManager(
+      return new ClientWithStateManager(
+        // @ts-expect-error
         shopPublicClient,
         shopId,
         relayEndpoint,
       );
-      setClientStateManager(csm);
     }
-  }, [shopId]);
-  const result = useQuery(async () => {
-    // if (isMerchantKeyCard) {
-    //   await clientStateManager.setClientAndConnect(keycard);
-    //   await clientStateManager.sendMerchantSubscriptionRequest();
-    // } else if (!keycard) {
-    //   //If no keycards are cached, create relayClient with guest wallet, then connect without enrolling a kc or authenticating.
-    //   await clientStateManager.sendGuestSubscriptionRequest();
-    // } else if (isGuestKeyCard) {
-    //   //If guestCheckout keycard is cached, connect, authenticate, and subscribe to orders.
-    //   await clientStateManager.setClientAndConnect(keycard);
-    //   await clientStateManager.sendGuestCheckoutSubscriptionRequest();
-    // }
-  }, [keycard, clientStateManager]);
-  return { clientStateManager, ...result };
+    return clientStateManager;
+  }, [shopId, relayEndpoint, shopPublicClient, clientStateManager?.shopId]);
+
+  useEffect(() => {
+    if (currentClientStateManager !== clientStateManager) {
+      setClientStateManager(currentClientStateManager);
+    }
+  }, [currentClientStateManager, clientStateManager]);
+
+  const result = useQuery(async () => {}, [keycard, clientStateManager]);
+
+  return { clientStateManager: currentClientStateManager, ...result };
 }
