@@ -6,19 +6,20 @@ import { StateManager } from "@massmarket/stateManager";
 import { logger, random32BytesHex } from "@massmarket/utils";
 
 import { KeyCard, Listing, Order, ShopId, ShopManifest, Tag } from "./types.ts";
+import type { PublicClient } from "viem";
 
 const namespace = "frontend:ClientWithStateManager";
 const debug = logger(namespace);
 const logerr = logger(namespace, "error");
 
 export class ClientWithStateManager {
-  readonly publicClient: UsePublicClientReturnType;
+  readonly publicClient: UsePublicClientReturnType | PublicClient;
   readonly shopId: ShopId;
   public stateManager: StateManager | null;
   public relayClient: RelayClient | null;
 
   constructor(
-    publicClient: UsePublicClientReturnType,
+    publicClient: UsePublicClientReturnType | PublicClient,
     shopId: ShopId,
     public relayEndpoint: RelayEndpoint,
   ) {

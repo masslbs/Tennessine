@@ -1,6 +1,12 @@
 import { EventEmitter } from "events";
 import { Address } from "@ethereumjs/util";
-import { bytesToBigInt, bytesToHex, fromBytes, hexToBytes } from "viem";
+import {
+  bytesToBigInt,
+  bytesToHex,
+  fromBytes,
+  hexToBytes,
+  type PublicClient,
+} from "viem";
 import type { UsePublicClientReturnType } from "wagmi";
 
 import {
@@ -1176,7 +1182,7 @@ export class StateManager {
     keycardStore: Store<KeyCard>,
     keycardNonceStore: Store<number>,
     shopId: bigint,
-    publicClient: UsePublicClientReturnType,
+    publicClient: UsePublicClientReturnType | PublicClient,
   ) {
     this.listings = new ListingManager(listingStore, client);
     this.tags = new TagManager(tagStore, client);
