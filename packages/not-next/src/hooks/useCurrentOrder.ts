@@ -12,7 +12,6 @@ const debug = logger(namespace);
 export function useCurrentOrder() {
   const { clientStateManager } = useClientWithStateManager();
   const { shopId } = useShopId();
-  console.log("useCurrentOrder", { shopId });
   const [currentOrder, setCurrentOrder] = useState<CurrentOrder | null>(null);
   const [isDone, setIsDone] = useState<boolean>(false);
   const orderManager = clientStateManager.stateManager.orders;
