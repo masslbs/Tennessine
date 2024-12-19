@@ -1,7 +1,7 @@
 import { afterAll, beforeEach, describe, it } from "jsr:@std/testing/bdd";
 import { expect } from "jsr:@std/expect";
 import { MemoryLevel } from "npm:memory-level";
-import { hardhat } from "npm:viem/chains";
+import { hardhat } from "viem/chains";
 import { objectId, random256BigInt, randomAddress } from "@massmarket/utils";
 import {
   bytesToHex,
@@ -9,7 +9,7 @@ import {
   formatUnits,
   fromHex,
   http,
-} from "npm:viem";
+} from "viem";
 import * as abi from "@massmarket/contracts";
 
 import { StateManager } from "./mod.ts";

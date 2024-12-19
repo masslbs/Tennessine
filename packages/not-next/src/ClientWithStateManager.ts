@@ -5,7 +5,7 @@ import { StateManager } from "@massmarket/stateManager";
 import { logger, random32BytesHex } from "@massmarket/utils";
 
 import { KeyCard, Listing, Order, ShopId, ShopManifest, Tag } from "./types.ts";
-import type { PublicClient } from "npm:viem";
+import type { PublicClient } from "viem";
 
 const namespace = "frontend:ClientWithStateManager";
 const debug = logger(namespace);

@@ -1,4 +1,4 @@
-import { usePublicClient as usePC } from "npm:wagmi";
+import { usePublicClient as usePC } from "wagmi";
 import * as chains from "wagmi/chains";
 import process from "node:process";
 

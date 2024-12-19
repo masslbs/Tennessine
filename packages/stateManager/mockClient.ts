@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { hexToBytes, numberToBytes, type PublicClient } from "npm:viem";
+import { hexToBytes, numberToBytes, type PublicClient } from "viem";
 import { type PrivateKeyAccount, privateKeyToAccount } from "viem/accounts";
 import Long from "long";
 import { MemoryLevel } from "npm:memory-level";
