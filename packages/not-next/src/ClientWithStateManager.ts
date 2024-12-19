@@ -1,4 +1,3 @@
-import { type UsePublicClientReturnType } from "wagmi";
 import { privateKeyToAccount } from "viem/accounts";
 import { BrowserLevel } from "npm:browser-level";
 import { RelayClient, type RelayEndpoint } from "@massmarket/client";
@@ -6,20 +5,20 @@ import { StateManager } from "@massmarket/stateManager";
 import { logger, random32BytesHex } from "@massmarket/utils";
 
 import { KeyCard, Listing, Order, ShopId, ShopManifest, Tag } from "./types.ts";
-import type { PublicClient } from "viem";
+import type { PublicClient } from "npm:viem";
 
 const namespace = "frontend:ClientWithStateManager";
 const debug = logger(namespace);
 const logerr = logger(namespace, "error");
 
 export class ClientWithStateManager {
-  readonly publicClient: UsePublicClientReturnType | PublicClient;
+  readonly publicClient: PublicClient;
   readonly shopId: ShopId;
   public stateManager: StateManager | null;
   public relayClient: RelayClient | null;
 
   constructor(
-    publicClient: UsePublicClientReturnType | PublicClient,
+    publicClient: PublicClient,
     shopId: ShopId,
     public relayEndpoint: RelayEndpoint,
   ) {

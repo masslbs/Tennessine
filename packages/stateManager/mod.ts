@@ -6,8 +6,7 @@ import {
   fromBytes,
   hexToBytes,
   type PublicClient,
-} from "viem";
-import type { UsePublicClientReturnType } from "wagmi";
+} from "npm:viem";
 
 import {
   type ChoosePayment,
@@ -1182,7 +1181,7 @@ export class StateManager {
     keycardStore: Store<KeyCard>,
     keycardNonceStore: Store<number>,
     shopId: bigint,
-    publicClient: UsePublicClientReturnType | PublicClient,
+    publicClient: PublicClient,
   ) {
     this.listings = new ListingManager(listingStore, client);
     this.tags = new TagManager(tagStore, client);
@@ -1199,7 +1198,7 @@ export class StateManager {
     //When we inititally create a shop, we are saving the relay tokenId => shopId.
     //Here, we are retrieving all the relay addresses associated with the shopId and saving them to keycards store.
     //Since some shopEvents are signed by a relay, we need to include these addresses when verifying the event signer.
-    const count = await this.publicClient!.readContract({
+    const count = await this.publicClient.readContract({
       address: abi.addresses.ShopReg,
       abi: abi.shopRegAbi,
       functionName: "getRelayCount",
@@ -1207,7 +1206,7 @@ export class StateManager {
     });
 
     if (count > 0) {
-      const tokenIds = await this.publicClient!.readContract({
+      const tokenIds = await this.publicClient.readContract({
         address: abi.addresses.ShopReg as `0x${string}`,
         abi: abi.shopRegAbi,
         functionName: "getAllRelays",
