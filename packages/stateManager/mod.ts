@@ -6,7 +6,7 @@ import {
   fromBytes,
   hexToBytes,
   type PublicClient,
-} from "viem";
+} from "npm:viem";
 
 import {
   type ChoosePayment,
@@ -77,7 +77,7 @@ async function storeOrdersByStatus(
   store: Store<Order | OrdersByStatus>,
   status: OrderState,
 ) {
-  const orders = (await store.get(status)) as OrdersByStatus || [];
+  const orders = ((await store.get(status)) as OrdersByStatus) || [];
   orders.push(orderId);
   return store.put(status, orders);
 }
@@ -1126,7 +1126,7 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
 
   async addAddress(key: `0x${string}`) {
     const k = key.toLowerCase() as `0x${string}`;
-    const publicKeys = await this.store.get("cardPublicKey") || [];
+    const publicKeys = (await this.store.get("cardPublicKey")) || [];
     if (!publicKeys.includes(k)) {
       publicKeys.push(k);
       await this.store.put("cardPublicKey", publicKeys);

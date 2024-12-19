@@ -1,11 +1,10 @@
 import React, { StrictMode } from "react";
 import { assertEquals } from "jsr:@std/assert";
 import { cleanup, renderHook } from "@testing-library/react-hooks";
-import { usePublicClient } from "./usePublicClient.ts";
-import { createConfig, http } from "wagmi";
+import { createConfig, http, WagmiProvider } from "wagmi";
 import { mainnet, sepolia } from "wagmi/chains";
-import { WagmiProvider } from "wagmi";
 import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
+import { usePublicClient } from "./usePublicClient.ts";
 
 const config = createConfig({
   chains: [mainnet, sepolia],
