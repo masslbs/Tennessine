@@ -1,12 +1,7 @@
 import { EventEmitter } from "events";
 import { Address } from "@ethereumjs/util";
-import {
-  bytesToBigInt,
-  bytesToHex,
-  fromBytes,
-  hexToBytes,
-  type PublicClient,
-} from "viem";
+import { bytesToBigInt, bytesToHex, fromBytes, hexToBytes } from "viem";
+import { type UsePublicClientReturnType } from "wagmi";
 
 import {
   type ChoosePayment,
@@ -77,7 +72,7 @@ async function storeOrdersByStatus(
   store: Store<Order | OrdersByStatus>,
   status: OrderState,
 ) {
-  const orders = (await store.get(status)) as OrdersByStatus || [];
+  const orders = ((await store.get(status)) as OrdersByStatus) || [];
   orders.push(orderId);
   return store.put(status, orders);
 }
@@ -1126,7 +1121,7 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
 
   async addAddress(key: `0x${string}`) {
     const k = key.toLowerCase() as `0x${string}`;
-    const publicKeys = await this.store.get("cardPublicKey") || [];
+    const publicKeys = (await this.store.get("cardPublicKey")) || [];
     if (!publicKeys.includes(k)) {
       publicKeys.push(k);
       await this.store.put("cardPublicKey", publicKeys);
@@ -1181,7 +1176,7 @@ export class StateManager {
     keycardStore: Store<KeyCard>,
     keycardNonceStore: Store<number>,
     shopId: bigint,
-    publicClient: PublicClient,
+    publicClient: UsePublicClientReturnType,
   ) {
     this.listings = new ListingManager(listingStore, client);
     this.tags = new TagManager(tagStore, client);
@@ -1198,7 +1193,7 @@ export class StateManager {
     //When we inititally create a shop, we are saving the relay tokenId => shopId.
     //Here, we are retrieving all the relay addresses associated with the shopId and saving them to keycards store.
     //Since some shopEvents are signed by a relay, we need to include these addresses when verifying the event signer.
-    const count = await this.publicClient.readContract({
+    const count = await this.publicClient!.readContract({
       address: abi.addresses.ShopReg,
       abi: abi.shopRegAbi,
       functionName: "getRelayCount",
@@ -1206,7 +1201,7 @@ export class StateManager {
     });
 
     if (count > 0) {
-      const tokenIds = await this.publicClient.readContract({
+      const tokenIds = await this.publicClient!.readContract({
         address: abi.addresses.ShopReg as `0x${string}`,
         abi: abi.shopRegAbi,
         functionName: "getAllRelays",

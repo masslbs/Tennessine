@@ -1,5 +1,4 @@
-import { PublicClient } from "viem";
-import { usePublicClient } from "wagmi";
+import { type UsePublicClientReturnType } from "wagmi";
 import { privateKeyToAccount } from "viem/accounts";
 import { BrowserLevel } from "npm:browser-level";
 import { RelayClient, type RelayEndpoint } from "@massmarket/client";
@@ -13,13 +12,13 @@ const debug = logger(namespace);
 const logerr = logger(namespace, "error");
 
 export class ClientWithStateManager {
-  readonly publicClient: PublicClient | ReturnType<typeof usePublicClient>;
+  readonly publicClient: UsePublicClientReturnType;
   readonly shopId: ShopId;
   public stateManager: StateManager | null;
   public relayClient: RelayClient | null;
 
   constructor(
-    publicClient: PublicClient,
+    publicClient: UsePublicClientReturnType,
     shopId: ShopId,
     public relayEndpoint: RelayEndpoint,
   ) {
