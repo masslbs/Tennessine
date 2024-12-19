@@ -8,12 +8,13 @@ import { useRelayEndpoint } from "./useRelayEndpoint.ts";
 import { ClientWithStateManager } from "../ClientWithStateManager.ts";
 
 export function useClientWithStateManager() {
-  const { clientStateManager, setClientStateManager } =
-    useContext(MassMarketContext);
+  const { clientStateManager, setClientStateManager } = useContext(
+    MassMarketContext,
+  );
   const [keycard] = useKeycard();
   const { relayEndpoint } = useRelayEndpoint();
   const { shopId } = useShopId();
-  const shopPublicClient = usePublicClient();
+  const { shopPublicClient } = usePublicClient();
 
   const currentClientStateManager = useMemo(() => {
     if (
@@ -23,7 +24,6 @@ export function useClientWithStateManager() {
       clientStateManager?.shopId !== shopId
     ) {
       return new ClientWithStateManager(
-        // @ts-expect-error
         shopPublicClient,
         shopId,
         relayEndpoint,
