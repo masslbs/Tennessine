@@ -1,7 +1,7 @@
-import { assertEquals } from "jsr:@std/assert";
-import { cleanup, renderHook, act } from "npm:@testing-library/react";
-import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
 import React, { StrictMode } from "react";
+import { assertEquals } from "jsr:@std/assert";
+import { cleanup, renderHook } from "npm:@testing-library/react";
+import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
 import {
   createMemoryHistory,
   createRootRoute,
@@ -56,47 +56,17 @@ Deno.test("useClientWithStateManager", async (t) => {
   await t.step("should return client when shopId is provided", async () => {
     const wrapper = createWrapper("123");
     Deno.env.set("NEXT_PUBLIC_CHAIN_NAME", "sepolia");
-
-    const { result, unmount, rerender } = renderHook(
-      () => useClientWithStateManager(),
-      {
-        wrapper,
-      },
-    );
-
-    // Wait for all pending promises to resolve
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100)); // Add small delay since useRelayEndpoint is a network call.
+    Deno.env.set("NEXT_PUBLIC_RELAY_ENDPOINT", "http://example.com");
+    Deno.env.set("NEXT_PUBLIC_RELAY_TOKEN_ID", "0x123456");
+    const { result, unmount } = renderHook(() => useClientWithStateManager(), {
+      wrapper,
     });
-
-    rerender();
-
-    // Wait again after rerender
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100)); // Add small delay
-    });
-    console.log("result.current", result.current);
 
     assertEquals(typeof result.current.clientStateManager, "object");
     assertEquals(result.current.clientStateManager !== null, true);
-
-    // Make sure to wait for cleanup
-    await act(async () => {
-      unmount();
-    });
+    assertEquals(result.current.clientStateManager.shopId, BigInt(123));
+    unmount();
   });
-
-  //   await t.step("should return null when no shopId is provided", () => {
-  //     const wrapper = createWrapper();
-
-  //     const { result, unmount } = renderHook(() => useClientWithStateManager(), {
-  //       wrapper,
-  //     });
-
-  //     assertEquals(result.current.client, null);
-  //     assertEquals(result.current.stateManager, null);
-  //     unmount();
-  //   });
 
   cleanup();
   await GlobalRegistrator.unregister();
