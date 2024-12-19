@@ -439,8 +439,7 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
         const wantAddr = bytesToHex(ur.address!.raw!);
         manifest.payees = manifest.payees.filter((p) => {
           // TODO: this doesn't complain about ur.chainId being Long sometimes!
-          const isEqual =
-            p.address.toLowerCase() === wantAddr.toLowerCase() &&
+          const isEqual = p.address.toLowerCase() === wantAddr.toLowerCase() &&
             p.chainId === Number(ur.chainId);
           return !isEqual;
         });
@@ -606,9 +605,9 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
           ...pm,
           absolute: pm.absolute
             ? {
-                ...pm.absolute,
-                diff: { raw: hexToBytes(pm.absolute.diff) },
-              }
+              ...pm.absolute,
+              diff: { raw: hexToBytes(pm.absolute.diff) },
+            }
             : undefined,
           percentage: pm.percentage
             ? { raw: hexToBytes(pm.percentage) }
@@ -720,17 +719,15 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         return;
       } else if (uo.setInvoiceAddress) {
         const update = uo.setInvoiceAddress;
-        const sd = order.invoiceAddress
-          ? order.invoiceAddress
-          : {
-              name: "",
-              address1: "",
-              city: "",
-              postalCode: "",
-              country: "",
-              phoneNumber: "",
-              emailAddress: "",
-            };
+        const sd = order.invoiceAddress ? order.invoiceAddress : {
+          name: "",
+          address1: "",
+          city: "",
+          postalCode: "",
+          country: "",
+          phoneNumber: "",
+          emailAddress: "",
+        };
         if (update.name) {
           sd.name = update.name;
         }
@@ -759,17 +756,15 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       } else if (uo.setShippingAddress) {
         const update = uo.setShippingAddress;
         // shippingDetails may be null. If null, create an initial shipping details object to update.
-        const sd = order.shippingDetails
-          ? order.shippingDetails
-          : {
-              name: "",
-              address1: "",
-              city: "",
-              postalCode: "",
-              country: "",
-              phoneNumber: "",
-              emailAddress: "",
-            };
+        const sd = order.shippingDetails ? order.shippingDetails : {
+          name: "",
+          address1: "",
+          city: "",
+          postalCode: "",
+          country: "",
+          phoneNumber: "",
+          emailAddress: "",
+        };
         if (update.name) {
           sd.name = update.name;
         }
