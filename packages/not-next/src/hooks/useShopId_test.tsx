@@ -1,8 +1,6 @@
 import React, { StrictMode } from "react";
 import { assertEquals } from "jsr:@std/assert";
-import { cleanup } from "@testing-library/react-hooks";
-import { renderHook } from "@testing-library/react-hooks";
-
+import { cleanup, renderHook } from "@testing-library/react-hooks";
 import {
   createMemoryHistory,
   createRootRoute,

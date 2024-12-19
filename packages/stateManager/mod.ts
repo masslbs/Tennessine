@@ -6,7 +6,7 @@ import {
   fromBytes,
   hexToBytes,
   type PublicClient,
-} from "npm:viem";
+} from "viem";
 
 import {
   type ChoosePayment,
