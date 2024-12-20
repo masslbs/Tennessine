@@ -4,8 +4,8 @@ import { bytesToHex, formatUnits, fromHex } from "viem";
 import * as abi from "@massmarket/contracts";
 import { objectId, random256BigInt, randomAddress } from "@massmarket/utils";
 
-import { StateManager } from "./mod.ts";
-import { MockClient } from "./mockClient.ts";
+import type { StateManager } from "./mod.ts";
+import type { MockClient } from "./mockClient.ts";
 import {
   ListingViewState,
   OrderEventTypes,

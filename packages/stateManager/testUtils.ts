@@ -2,13 +2,13 @@ import { MemoryLevel } from "npm:memory-level";
 import { hardhat } from "viem/chains";
 import { createPublicClient, http } from "viem";
 import { random256BigInt } from "@massmarket/utils";
-import {
-  type KeyCard,
-  type Listing,
-  type Order,
-  type OrdersByStatus,
-  type ShopManifest,
-  type Tag,
+import type {
+  KeyCard,
+  Listing,
+  Order,
+  OrdersByStatus,
+  ShopManifest,
+  Tag,
 } from "./types.ts";
 import { MockClient } from "./mockClient.ts";
 import { StateManager } from "./mod.ts";
