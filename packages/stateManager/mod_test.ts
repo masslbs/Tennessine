@@ -2,7 +2,6 @@ import { afterAll, beforeEach, describe, it } from "jsr:@std/testing/bdd";
 import { expect } from "jsr:@std/expect";
 import { MemoryLevel } from "npm:memory-level";
 import { hardhat } from "viem/chains";
-import { objectId, random256BigInt, randomAddress } from "@massmarket/utils";
 import {
   bytesToHex,
   createPublicClient,
@@ -10,6 +9,7 @@ import {
   fromHex,
   http,
 } from "viem";
+import { objectId, random256BigInt, randomAddress } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 
 import { StateManager } from "./mod.ts";
@@ -28,6 +28,10 @@ import {
 } from "./types.ts";
 
 async function setupTestManager() {
+  const publicClient = createPublicClient({
+    chain: hardhat,
+    transport: http(),
+  });
   const opts = {
     valueEncoding: "json",
   };
@@ -111,11 +115,6 @@ const shippingRegions = [
     orderPriceModifiers,
   },
 ];
-
-const publicClient = createPublicClient({
-  chain: hardhat,
-  transport: http(),
-});
 
 function waitForFill(client: MockClient, stateManager: StateManager) {
   return new Promise<void>((resolve, reject) => {

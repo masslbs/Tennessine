@@ -1,9 +1,9 @@
 // import { useEffect, useState } from "react";
 // import { logger } from "@massmarket/utils";
 
-// import useClientWithStateManager from "./useClientWithStateManager";
-// import { CurrentOrder, Order, OrderEventTypes, OrderState } from "../types";
-// import useShopId from "./useShopId";
+// import { useClientWithStateManager } from "./useClientWithStateManager.ts";
+// import { CurrentOrder, Order, OrderEventTypes, OrderState } from "../types.ts";
+// import { useShopId } from "./useShopId.ts";
 
 // const namespace = "frontend:useCurrentOrder";
 // const errlog = logger(namespace, "error");

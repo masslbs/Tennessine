@@ -2,9 +2,10 @@
 // import { useChains } from "wagmi";
 
 // import { logger } from "@massmarket/utils";
-// import useClientWithStateManager from "./useClientWithStateManager";
-// import useShopId from "./useShopId";
-
+// import { useClientWithStateManager } from "./useClientWithStateManager.ts";
+// import { useShopId } from "./useShopId.ts";
+// import { usePublicClient } from "./usePublicClient.ts";
+// import { getTokenInformation } from "../utils/token.ts";
 // interface BaseToken {
 //   symbol: string;
 //   decimals: number;
@@ -22,12 +23,8 @@
 //     (async () => {
 //       const manifest = await clientStateManager.stateManager.manifest.get();
 //       const { chainId, address } = manifest.pricingCurrency;
-//       const chain = chains.find((chain) => chainId === chain.id);
-//       if (!chain) {
-//         throw new Error("No chain found");
-//       }
 
-//       const baseTokenPublicClient = createPublicClientForChain(chain);
+//       const baseTokenPublicClient = usePublicClient(chainId);
 //       //Get base token decimal and symbol.
 //       const res = await getTokenInformation(baseTokenPublicClient, address!);
 //       debug(`getBaseTokenInfo: name: ${res[0]} | decimals:${res[1]}`);

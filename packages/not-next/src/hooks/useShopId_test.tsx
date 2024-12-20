@@ -1,46 +1,57 @@
-import React from "react";
-import { describe, it } from "jsr:@std/testing/bdd";
+import React, { StrictMode } from "react";
 import { assertEquals } from "jsr:@std/assert";
-import { renderHook } from "@testing-library/react-hooks";
+import { cleanup, renderHook } from "@testing-library/react-hooks";
 import {
   createMemoryHistory,
+  createRootRoute,
+  createRoute,
   createRouter,
+  Outlet,
   RouterProvider,
 } from "@tanstack/react-router";
+import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
 import { useShopId } from "./useShopId.ts";
-import { routeTree } from "../routeTree.gen.ts";
 
-const createTestRouter = (param: string | null) => {
-  return createRouter({
-    routeTree,
-    //initializes a memory history instance with shopId param with the passed in value.
-    history: createMemoryHistory({
-      initialEntries: [`/?shopId=${param}`],
-    }),
-  });
+const createWrapper = (shopId: string | null = null) => {
+  return ({ children }: { children: React.ReactNode }) => {
+    const rootRoute = createRootRoute({
+      component: Outlet,
+    });
+    const componentRoute = createRoute({
+      getParentRoute: () => rootRoute,
+      path: "/",
+      component: () => <>{children}</>,
+    });
+    const router = createRouter({
+      routeTree: rootRoute.addChildren([componentRoute]),
+      history: createMemoryHistory({
+        initialEntries: [shopId ? `/?shopId=${shopId}` : "/"],
+      }),
+    });
+
+    return (
+      <StrictMode>
+        {/* @ts-expect-error */}
+        <RouterProvider router={router}>{children}</RouterProvider>
+      </StrictMode>
+    );
+  };
 };
 
-const createWrapper = (param: string | null = null) => {
-  const router = createTestRouter(param);
-
-  return ({ children }: { children: React.ReactNode }) => (
-    <>
-      <RouterProvider router={router} />
-      {children}
-    </>
-  );
-};
-
-describe.skip("useShopId", () => {
-  it("should return null when no shopId in search params", () => {
+Deno.test("useShopId", async (t) => {
+  GlobalRegistrator.register({});
+  await t.step("should return null if no shopId is provided", () => {
     const wrapper = createWrapper();
     const { result } = renderHook(() => useShopId(), { wrapper });
     assertEquals(result.current.shopId, null);
   });
-
-  it("should take shopId from search params", () => {
+  await t.step("should return shopId from search params", () => {
     const wrapper = createWrapper("123");
-    const { result } = renderHook(() => useShopId(), { wrapper });
-    assertEquals(result.current.shopId, BigInt(123));
+    const { result, unmount } = renderHook(() => useShopId(), { wrapper });
+    assertEquals(result.current.shopId, BigInt("123"));
+    unmount();
   });
+
+  cleanup();
+  await GlobalRegistrator.unregister();
 });
