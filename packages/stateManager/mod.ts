@@ -107,7 +107,7 @@ abstract class PublicObjectManager<
       .catch((e) => debug(e));
     this._sendingQueue = queuedRequest;
 
-    return queuedRequest;
+    return queuedRequest as Promise<R>;
   }
 }
 
