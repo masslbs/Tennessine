@@ -85,7 +85,7 @@ async function storeOrdersByStatus(
 abstract class PublicObjectManager<
   T extends ShopObjectTypes,
 > extends EventEmitter {
-  private _sendingClientRequest: Promise<void | unknown> = Promise.resolve();
+  private _sendingQueue: Promise<void | unknown> = Promise.resolve();
 
   constructor(protected store: Store<T>, protected client: IRelayClient) {
     super();
@@ -102,13 +102,10 @@ abstract class PublicObjectManager<
   }
 
   queueClientRequest<R>(request: () => Promise<R>): Promise<R> {
-    const queuedRequest = this._sendingClientRequest
+    const queuedRequest = this._sendingQueue
       .then(() => request())
-      .catch((error) => {
-        throw error;
-      });
-
-    this._sendingClientRequest = queuedRequest.catch((e) => debug(e));
+      .catch((e) => debug(e));
+    this._sendingQueue = queuedRequest;
 
     return queuedRequest;
   }
@@ -244,25 +241,24 @@ class ListingManager extends PublicObjectManager<Listing> {
   }
   //update argument passed here will only contain the fields to update.
   update(update: Partial<Listing>, decimals?: number) {
+    const ui: schema.IUpdateListing = {
+      id: { raw: hexToBytes(update.id!) },
+    };
+
+    if (update.price) {
+      ui.price = { raw: priceToUint256(update.price, decimals) };
+    }
+    if (update.metadata) {
+      ui.metadata = update.metadata;
+    }
+    if (update.viewState !== undefined) {
+      assert(
+        Object.values(ListingViewState).includes(update.viewState),
+        `update.viewState ${update.viewState} must be a valid ListingViewState`,
+      );
+      ui.viewState = update.viewState;
+    }
     return this.queueClientRequest(async () => {
-      const ui: schema.IUpdateListing = {
-        id: { raw: hexToBytes(update.id!) },
-      };
-
-      if (update.price) {
-        ui.price = { raw: priceToUint256(update.price, decimals) };
-      }
-      if (update.metadata) {
-        ui.metadata = update.metadata;
-      }
-      if (update.viewState !== undefined) {
-        assert(
-          Object.values(ListingViewState).includes(update.viewState),
-          `update.viewState ${update.viewState} must be a valid ListingViewState`,
-        );
-        ui.viewState = update.viewState;
-      }
-
       const requestId = await this.client.updateListing(ui);
       return eventListenAndResolve<Listing>(requestId, this, "update");
     });
