@@ -1,80 +1,18 @@
 import { afterAll, beforeEach, describe, it } from "jsr:@std/testing/bdd";
 import { expect } from "jsr:@std/expect";
-import { MemoryLevel } from "npm:memory-level";
-import { hardhat } from "viem/chains";
-import { objectId, random256BigInt, randomAddress } from "@massmarket/utils";
-import {
-  bytesToHex,
-  createPublicClient,
-  formatUnits,
-  fromHex,
-  http,
-} from "viem";
+import { bytesToHex, formatUnits, fromHex } from "viem";
 import * as abi from "@massmarket/contracts";
+import { objectId, random256BigInt, randomAddress } from "@massmarket/utils";
 
-import { StateManager } from "./mod.ts";
-import { MockClient } from "./mockClient.ts";
+import type { StateManager } from "./mod.ts";
+import type { MockClient } from "./mockClient.ts";
 import {
-  type KeyCard,
-  type Listing,
   ListingViewState,
-  type Order,
   OrderEventTypes,
-  type OrdersByStatus,
   OrderState,
   type ShopCurrencies,
-  type ShopManifest,
-  type Tag,
 } from "./types.ts";
-
-async function setupTestManager() {
-  const opts = {
-    valueEncoding: "json",
-  };
-  const db = new MemoryLevel(opts);
-
-  const listingStore = db.sublevel<string, Listing>("listingStore", opts);
-  const tagStore = db.sublevel<string, Tag>("tagStore", opts);
-  const shopManifestStore = db.sublevel<string, ShopManifest>(
-    "shopManifestStore",
-    opts,
-  );
-  const orderStore = db.sublevel<string, Order | OrdersByStatus>(
-    "orderStore",
-    opts,
-  );
-  const keycardStore = db.sublevel<string, KeyCard>("keycardStore", opts);
-  const keycardNonceStore = db.sublevel<string, number>("keycardNonceStore", {
-    valueEncoding: "json",
-  });
-  await db.clear();
-  const client = new MockClient();
-  const stateManager = new StateManager(
-    client,
-    listingStore,
-    tagStore,
-    shopManifestStore,
-    orderStore,
-    keycardStore,
-    keycardNonceStore,
-    random256BigInt(),
-    publicClient,
-  );
-
-  return {
-    client,
-    stateManager,
-    close: async () => {
-      await db.close();
-      await listingStore.close();
-      await tagStore.close();
-      await shopManifestStore.close();
-      await orderStore.close();
-      await keycardStore.close();
-      await keycardNonceStore.close();
-    },
-  };
-}
+import { setupTestManager } from "./testUtils.ts";
 
 const eddies = abi.addresses.Eddies.toLowerCase() as `0x${string}`;
 
@@ -111,11 +49,6 @@ const shippingRegions = [
     orderPriceModifiers,
   },
 ];
-
-const publicClient = createPublicClient({
-  chain: hardhat,
-  transport: http(),
-});
 
 function waitForFill(client: MockClient, stateManager: StateManager) {
   return new Promise<void>((resolve, reject) => {
