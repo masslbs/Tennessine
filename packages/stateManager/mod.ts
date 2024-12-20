@@ -264,7 +264,7 @@ class ListingManager extends PublicObjectManager<Listing> {
     });
   }
 
-  async addListingToTag(tagId: `0x${string}`, lId: `0x${string}`) {
+  addListingToTag(tagId: `0x${string}`, lId: `0x${string}`) {
     return this.queueClientRequest(async () => {
       const requestId = await this.client.updateTag({
         id: { raw: hexToBytes(tagId) },
@@ -274,7 +274,7 @@ class ListingManager extends PublicObjectManager<Listing> {
     });
   }
 
-  async removeListingFromTag(tagId: `0x${string}`, lId: `0x${string}`) {
+  removeListingFromTag(tagId: `0x${string}`, lId: `0x${string}`) {
     return this.queueClientRequest(async () => {
       const requestId = await this.client.updateTag({
         id: { raw: hexToBytes(tagId) },
@@ -284,7 +284,7 @@ class ListingManager extends PublicObjectManager<Listing> {
     });
   }
 
-  async changeInventory(lId: `0x${string}`, diff: number) {
+  changeInventory(lId: `0x${string}`, diff: number) {
     return this.queueClientRequest(async () => {
       const requestId = await this.client.changeInventory({
         id: { raw: hexToBytes(lId) },
@@ -465,7 +465,8 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
         const wantAddr = bytesToHex(ur.address!.raw!);
         manifest.payees = manifest.payees.filter((p) => {
           // TODO: this doesn't complain about ur.chainId being Long sometimes!
-          const isEqual = p.address.toLowerCase() === wantAddr.toLowerCase() &&
+          const isEqual =
+            p.address.toLowerCase() === wantAddr.toLowerCase() &&
             p.chainId === Number(ur.chainId);
           return !isEqual;
         });
@@ -527,7 +528,7 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
     }
   }
 
-  async create(manifest: CreateShopManifest, shopId: bigint) {
+  create(manifest: CreateShopManifest, shopId: bigint) {
     const m: schema.Manifest = schema.Manifest.create({});
     assert(manifest.pricingCurrency, "manifest.pricingCurrency is required");
     m.pricingCurrency = addressToUint256(
@@ -603,7 +604,7 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
     });
   }
 
-  async update(um: UpdateShopManifest) {
+  update(um: UpdateShopManifest) {
     const update: schema.IUpdateManifest = {};
     //Convert address to bytes before sending to client.
     //We have to explicitly declare the update object as type schema.IUpdateShopManifest since we are changing hex to bytes and is no longer a type ShopManifest
@@ -633,9 +634,9 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
           ...pm,
           absolute: pm.absolute
             ? {
-              ...pm.absolute,
-              diff: { raw: hexToBytes(pm.absolute.diff) },
-            }
+                ...pm.absolute,
+                diff: { raw: hexToBytes(pm.absolute.diff) },
+              }
             : undefined,
           percentage: pm.percentage
             ? { raw: hexToBytes(pm.percentage) }
@@ -654,7 +655,7 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
     return this.store.get("shopManifest") as Promise<ShopManifest>;
   }
   addSeqNo(no: number) {
-    return this.queueClientRequest(async () => {
+    return this.queueClientRequest(() => {
       return this.store.put("seqNo", no);
     });
   }
@@ -751,15 +752,17 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         return;
       } else if (uo.setInvoiceAddress) {
         const update = uo.setInvoiceAddress;
-        const sd = order.invoiceAddress ? order.invoiceAddress : {
-          name: "",
-          address1: "",
-          city: "",
-          postalCode: "",
-          country: "",
-          phoneNumber: "",
-          emailAddress: "",
-        };
+        const sd = order.invoiceAddress
+          ? order.invoiceAddress
+          : {
+              name: "",
+              address1: "",
+              city: "",
+              postalCode: "",
+              country: "",
+              phoneNumber: "",
+              emailAddress: "",
+            };
         if (update.name) {
           sd.name = update.name;
         }
@@ -788,15 +791,17 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       } else if (uo.setShippingAddress) {
         const update = uo.setShippingAddress;
         // shippingDetails may be null. If null, create an initial shipping details object to update.
-        const sd = order.shippingDetails ? order.shippingDetails : {
-          name: "",
-          address1: "",
-          city: "",
-          postalCode: "",
-          country: "",
-          phoneNumber: "",
-          emailAddress: "",
-        };
+        const sd = order.shippingDetails
+          ? order.shippingDetails
+          : {
+              name: "",
+              address1: "",
+              city: "",
+              postalCode: "",
+              country: "",
+              phoneNumber: "",
+              emailAddress: "",
+            };
         if (update.name) {
           sd.name = update.name;
         }
@@ -934,7 +939,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
     return result;
   }
 
-  async create() {
+  create() {
     return this.queueClientRequest(async () => {
       const eventId = await this.client.createOrder({
         id: { raw: objectId() },
@@ -944,7 +949,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
     });
   }
 
-  async addItems(
+  addItems(
     orderId: `0x${string}`,
     ls: { listingId: `0x${string}`; quantity: number }[],
   ) {
@@ -968,7 +973,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       );
     });
   }
-  async removeItems(
+  removeItems(
     orderId: `0x${string}`,
     ls: { listingId: `0x${string}`; quantity: number }[],
   ) {
@@ -992,7 +997,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       );
     });
   }
-  async updateShippingDetails(
+  updateShippingDetails(
     orderId: `0x${string}`,
     update: Partial<ShippingDetails>,
   ) {
@@ -1008,7 +1013,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       );
     });
   }
-  async updateInvoiceAddress(
+  updateInvoiceAddress(
     orderId: `0x${string}`,
     update: Partial<ShippingDetails>,
   ) {
@@ -1025,7 +1030,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
     });
   }
 
-  async cancel(orderId: `0x${string}`) {
+  cancel(orderId: `0x${string}`) {
     return this.queueClientRequest(async () => {
       const eventId = await this.client.updateOrder({
         id: { raw: hexToBytes(orderId) },
@@ -1038,7 +1043,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       );
     });
   }
-  async choosePayment(orderId: `0x${string}`, payment: ChoosePayment) {
+  choosePayment(orderId: `0x${string}`, payment: ChoosePayment) {
     return this.queueClientRequest(async () => {
       const eventId = await this.client.updateOrder({
         id: { raw: hexToBytes(orderId) },
@@ -1054,7 +1059,7 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       );
     });
   }
-  async commit(orderId: `0x${string}`) {
+  commit(orderId: `0x${string}`) {
     return this.queueClientRequest(async () => {
       const eventId = await this.client.updateOrder({
         id: { raw: hexToBytes(orderId) },
@@ -1101,7 +1106,7 @@ class TagManager extends PublicObjectManager<Tag> {
       this.emit("update", tag, seqEvt.id());
     }
   }
-  async create(name: string) {
+  create(name: string) {
     return this.queueClientRequest(async () => {
       const eventId = await this.client.tag({
         id: { raw: objectId() },
@@ -1174,7 +1179,7 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
     const publicKeys = (await this.store.get("cardPublicKey")) || [];
     if (!publicKeys.includes(k)) {
       publicKeys.push(k);
-      return this.queueClientRequest(async () => {
+      return this.queueClientRequest(() => {
         return this.store.put("cardPublicKey", publicKeys);
       });
     }
