@@ -2,7 +2,7 @@ import { afterAll, beforeEach, describe, it } from "jsr:@std/testing/bdd";
 import { expect } from "jsr:@std/expect";
 import type { StateManager } from "./mod.ts";
 import type { MockClient } from "./mockClient.ts";
-import { setupTestManager } from "./mod_test.ts";
+import { setupTestManager } from "./testUtils.ts";
 import { ListingViewState } from "./types.ts";
 
 describe("async mutations", () => {

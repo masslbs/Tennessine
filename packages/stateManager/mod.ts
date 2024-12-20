@@ -85,7 +85,7 @@ async function storeOrdersByStatus(
 abstract class PublicObjectManager<
   T extends ShopObjectTypes,
 > extends EventEmitter {
-  private _sendingClientRequest: Promise<void | unknown> = Promise.resolve();
+  private _sendingQueue: Promise<void | unknown> = Promise.resolve();
 
   constructor(protected store: Store<T>, protected client: IRelayClient) {
     super();
@@ -102,15 +102,12 @@ abstract class PublicObjectManager<
   }
 
   queueClientRequest<R>(request: () => Promise<R>): Promise<R> {
-    const queuedRequest = this._sendingClientRequest
+    const queuedRequest = this._sendingQueue
       .then(() => request())
-      .catch((error) => {
-        throw error;
-      });
+      .catch((e) => debug(e));
+    this._sendingQueue = queuedRequest;
 
-    this._sendingClientRequest = queuedRequest.catch((e) => debug(e));
-
-    return queuedRequest;
+    return queuedRequest as Promise<R>;
   }
 }
 
@@ -244,52 +241,57 @@ class ListingManager extends PublicObjectManager<Listing> {
   }
   //update argument passed here will only contain the fields to update.
   update(update: Partial<Listing>, decimals?: number) {
+    const ui: schema.IUpdateListing = {
+      id: { raw: hexToBytes(update.id!) },
+    };
+
+    if (update.price) {
+      ui.price = { raw: priceToUint256(update.price, decimals) };
+    }
+    if (update.metadata) {
+      ui.metadata = update.metadata;
+    }
+    if (update.viewState !== undefined) {
+      assert(
+        Object.values(ListingViewState).includes(update.viewState),
+        `update.viewState ${update.viewState} must be a valid ListingViewState`,
+      );
+      ui.viewState = update.viewState;
+    }
     return this.queueClientRequest(async () => {
-      const ui: schema.IUpdateListing = {
-        id: { raw: hexToBytes(update.id!) },
-      };
-
-      if (update.price) {
-        ui.price = { raw: priceToUint256(update.price, decimals) };
-      }
-      if (update.metadata) {
-        ui.metadata = update.metadata;
-      }
-      if (update.viewState !== undefined) {
-        assert(
-          Object.values(ListingViewState).includes(update.viewState),
-          `update.viewState ${update.viewState} must be a valid ListingViewState`,
-        );
-        ui.viewState = update.viewState;
-      }
-
       const requestId = await this.client.updateListing(ui);
       return eventListenAndResolve<Listing>(requestId, this, "update");
     });
   }
 
-  async addListingToTag(tagId: `0x${string}`, lId: `0x${string}`) {
-    const requestId = await this.client.updateTag({
-      id: { raw: hexToBytes(tagId) },
-      addListingIds: [{ raw: hexToBytes(lId) }],
+  addListingToTag(tagId: `0x${string}`, lId: `0x${string}`) {
+    return this.queueClientRequest(async () => {
+      const requestId = await this.client.updateTag({
+        id: { raw: hexToBytes(tagId) },
+        addListingIds: [{ raw: hexToBytes(lId) }],
+      });
+      return eventListenAndResolve<Listing>(requestId, this, "addListingId");
     });
-    return eventListenAndResolve<Listing>(requestId, this, "addListingId");
   }
 
-  async removeListingFromTag(tagId: `0x${string}`, lId: `0x${string}`) {
-    const requestId = await this.client.updateTag({
-      id: { raw: hexToBytes(tagId) },
-      removeListingIds: [{ raw: hexToBytes(lId) }],
+  removeListingFromTag(tagId: `0x${string}`, lId: `0x${string}`) {
+    return this.queueClientRequest(async () => {
+      const requestId = await this.client.updateTag({
+        id: { raw: hexToBytes(tagId) },
+        removeListingIds: [{ raw: hexToBytes(lId) }],
+      });
+      return eventListenAndResolve<Listing>(requestId, this, "removeListingId");
     });
-    return eventListenAndResolve<Listing>(requestId, this, "removeListingId");
   }
 
-  async changeInventory(lId: `0x${string}`, diff: number) {
-    const requestId = await this.client.changeInventory({
-      id: { raw: hexToBytes(lId) },
-      diff,
+  changeInventory(lId: `0x${string}`, diff: number) {
+    return this.queueClientRequest(async () => {
+      const requestId = await this.client.changeInventory({
+        id: { raw: hexToBytes(lId) },
+        diff,
+      });
+      return eventListenAndResolve<Listing>(requestId, this, "changeInventory");
     });
-    return eventListenAndResolve<Listing>(requestId, this, "changeInventory");
   }
   get(key: `0x${string}`) {
     return this.store.get(key);
@@ -525,13 +527,8 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
     }
   }
 
-  async create(manifest: CreateShopManifest, shopId: bigint) {
+  create(manifest: CreateShopManifest, shopId: bigint) {
     const m: schema.Manifest = schema.Manifest.create({});
-    assert(manifest.pricingCurrency, "manifest.pricingCurrency is required");
-    m.pricingCurrency = addressToUint256(
-      manifest.pricingCurrency as ShopCurrencies,
-    );
-
     assert(manifest.pricingCurrency, "manifest.pricingCurrency is required");
     m.pricingCurrency = addressToUint256(
       manifest.pricingCurrency as ShopCurrencies,
@@ -594,12 +591,14 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
         ),
       };
     });
-    const eventId = await this.client.shopManifest(m, shopId);
-    // resolves after the `createShopManifest` event has been fired above in _processEvent, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve<ShopManifest>(eventId, this, "create");
+    return this.queueClientRequest(async () => {
+      const eventId = await this.client.shopManifest(m, shopId);
+      // resolves after the `createShopManifest` event has been fired above in _processEvent, which happens after the relay accepts the update and has written to the database.
+      return eventListenAndResolve<ShopManifest>(eventId, this, "create");
+    });
   }
 
-  async update(um: UpdateShopManifest) {
+  update(um: UpdateShopManifest) {
     const update: schema.IUpdateManifest = {};
     //Convert address to bytes before sending to client.
     //We have to explicitly declare the update object as type schema.IUpdateShopManifest since we are changing hex to bytes and is no longer a type ShopManifest
@@ -639,9 +638,11 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
         })),
       }));
     }
-    // resolves after the `update` event has been fired above in _processEvent, which happens after the relay accepts the update and has written to the database.
-    const requestId = await this.client.updateShopManifest(update);
-    return eventListenAndResolve<ShopManifest>(requestId, this, "update");
+    return this.queueClientRequest(async () => {
+      // resolves after the `update` event has been fired above in _processEvent, which happens after the relay accepts the update and has written to the database.
+      const requestId = await this.client.updateShopManifest(update);
+      return eventListenAndResolve<ShopManifest>(requestId, this, "update");
+    });
   }
 
   get(): Promise<ShopManifest> {
@@ -926,122 +927,138 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
     return result;
   }
 
-  async create() {
-    const eventId = await this.client.createOrder({
-      id: { raw: objectId() },
+  create() {
+    return this.queueClientRequest(async () => {
+      const eventId = await this.client.createOrder({
+        id: { raw: objectId() },
+      });
+      // resolves after the `createOrder` event has been fired in processEvent, which happens after the relay accepts the update and has written to the database.
+      return eventListenAndResolve<Order>(eventId, this, "create");
     });
-    // resolves after the `createOrder` event has been fired in processEvent, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve<Order>(eventId, this, "create");
   }
 
-  async addItems(
+  addItems(
     orderId: `0x${string}`,
     ls: { listingId: `0x${string}`; quantity: number }[],
   ) {
-    const eventId = await this.client.updateOrder({
-      id: { raw: hexToBytes(orderId) },
-      changeItems: {
-        adds: ls.map((i) => {
-          return {
-            listingId: { raw: hexToBytes(i.listingId) },
-            quantity: i.quantity,
-          };
-        }),
-      },
+    return this.queueClientRequest(async () => {
+      const eventId = await this.client.updateOrder({
+        id: { raw: hexToBytes(orderId) },
+        changeItems: {
+          adds: ls.map((i) => {
+            return {
+              listingId: { raw: hexToBytes(i.listingId) },
+              quantity: i.quantity,
+            };
+          }),
+        },
+      });
+      // resolves after the `changeItems` event has been fired, which happens after the relay accepts the update and has written to the database.
+      return eventListenAndResolve<[OrderEventTypes, Order]>(
+        eventId,
+        this,
+        "update",
+      );
     });
-    // resolves after the `changeItems` event has been fired, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve<[OrderEventTypes, Order]>(
-      eventId,
-      this,
-      "update",
-    );
   }
-  async removeItems(
+  removeItems(
     orderId: `0x${string}`,
     ls: { listingId: `0x${string}`; quantity: number }[],
   ) {
-    const eventId = await this.client.updateOrder({
-      id: { raw: hexToBytes(orderId) },
-      changeItems: {
-        removes: ls.map((i) => {
-          return {
-            listingId: { raw: hexToBytes(i.listingId) },
-            quantity: i.quantity,
-          };
-        }),
-      },
+    return this.queueClientRequest(async () => {
+      const eventId = await this.client.updateOrder({
+        id: { raw: hexToBytes(orderId) },
+        changeItems: {
+          removes: ls.map((i) => {
+            return {
+              listingId: { raw: hexToBytes(i.listingId) },
+              quantity: i.quantity,
+            };
+          }),
+        },
+      });
+      // resolves after the `changeItems` event has been fired, which happens after the relay accepts the update and has written to the database.
+      return eventListenAndResolve<[OrderEventTypes, Order]>(
+        eventId,
+        this,
+        "update",
+      );
     });
-    // resolves after the `changeItems` event has been fired, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve<[OrderEventTypes, Order]>(
-      eventId,
-      this,
-      "update",
-    );
   }
-  async updateShippingDetails(
+  updateShippingDetails(
     orderId: `0x${string}`,
     update: Partial<ShippingDetails>,
   ) {
-    const eventId = await this.client.updateOrder({
-      id: { raw: hexToBytes(orderId) },
-      setShippingAddress: update,
+    return this.queueClientRequest(async () => {
+      const eventId = await this.client.updateOrder({
+        id: { raw: hexToBytes(orderId) },
+        setShippingAddress: update,
+      });
+      return eventListenAndResolve<[OrderEventTypes, Order]>(
+        eventId,
+        this,
+        "update",
+      );
     });
-    return eventListenAndResolve<[OrderEventTypes, Order]>(
-      eventId,
-      this,
-      "update",
-    );
   }
-  async updateInvoiceAddress(
+  updateInvoiceAddress(
     orderId: `0x${string}`,
     update: Partial<ShippingDetails>,
   ) {
-    const eventId = await this.client.updateOrder({
-      id: { raw: hexToBytes(orderId) },
-      setInvoiceAddress: update,
+    return this.queueClientRequest(async () => {
+      const eventId = await this.client.updateOrder({
+        id: { raw: hexToBytes(orderId) },
+        setInvoiceAddress: update,
+      });
+      return eventListenAndResolve<[OrderEventTypes, Order]>(
+        eventId,
+        this,
+        "update",
+      );
     });
-    return eventListenAndResolve<[OrderEventTypes, Order]>(
-      eventId,
-      this,
-      "update",
-    );
   }
 
-  async cancel(orderId: `0x${string}`) {
-    const eventId = await this.client.updateOrder({
-      id: { raw: hexToBytes(orderId) },
-      cancel: {},
+  cancel(orderId: `0x${string}`) {
+    return this.queueClientRequest(async () => {
+      const eventId = await this.client.updateOrder({
+        id: { raw: hexToBytes(orderId) },
+        cancel: {},
+      });
+      return eventListenAndResolve<[OrderEventTypes, Order]>(
+        eventId,
+        this,
+        "update",
+      );
     });
-    return eventListenAndResolve<[OrderEventTypes, Order]>(
-      eventId,
-      this,
-      "update",
-    );
   }
-  async choosePayment(orderId: `0x${string}`, payment: ChoosePayment) {
-    const eventId = await this.client.updateOrder({
-      id: { raw: hexToBytes(orderId) },
-      choosePayment: {
-        currency: addressToUint256(payment.currency),
-        payee: addressToUint256(payment.payee),
-      },
+  choosePayment(orderId: `0x${string}`, payment: ChoosePayment) {
+    return this.queueClientRequest(async () => {
+      const eventId = await this.client.updateOrder({
+        id: { raw: hexToBytes(orderId) },
+        choosePayment: {
+          currency: addressToUint256(payment.currency),
+          payee: addressToUint256(payment.payee),
+        },
+      });
+      return eventListenAndResolve<[OrderEventTypes, Order]>(
+        eventId,
+        this,
+        "update",
+      );
     });
-    return eventListenAndResolve<[OrderEventTypes, Order]>(
-      eventId,
-      this,
-      "update",
-    );
   }
-  async commit(orderId: `0x${string}`) {
-    const eventId = await this.client.updateOrder({
-      id: { raw: hexToBytes(orderId) },
-      commitItems: {},
+  commit(orderId: `0x${string}`) {
+    return this.queueClientRequest(async () => {
+      const eventId = await this.client.updateOrder({
+        id: { raw: hexToBytes(orderId) },
+        commitItems: {},
+      });
+      return eventListenAndResolve<[OrderEventTypes, Order]>(
+        eventId,
+        this,
+        "update",
+      );
     });
-    return eventListenAndResolve<[OrderEventTypes, Order]>(
-      eventId,
-      this,
-      "update",
-    );
   }
 }
 class TagManager extends PublicObjectManager<Tag> {
@@ -1077,13 +1094,15 @@ class TagManager extends PublicObjectManager<Tag> {
       this.emit("update", tag, seqEvt.id());
     }
   }
-  async create(name: string) {
-    const eventId = await this.client.tag({
-      id: { raw: objectId() },
-      name,
+  create(name: string) {
+    return this.queueClientRequest(async () => {
+      const eventId = await this.client.tag({
+        id: { raw: objectId() },
+        name,
+      });
+      // resolves after the `tag` event has been fired, which happens after the relay accepts the update and has written to the database.
+      return eventListenAndResolve<Tag>(eventId, this, "create");
     });
-    // resolves after the `tag` event has been fired, which happens after the relay accepts the update and has written to the database.
-    return eventListenAndResolve<Tag>(eventId, this, "create");
   }
 
   get(key: `0x${string}`) {
@@ -1148,7 +1167,9 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
     const publicKeys = (await this.store.get("cardPublicKey")) || [];
     if (!publicKeys.includes(k)) {
       publicKeys.push(k);
-      await this.store.put("cardPublicKey", publicKeys);
+      return this.queueClientRequest(() => {
+        return this.store.put("cardPublicKey", publicKeys);
+      });
     }
   }
 }
