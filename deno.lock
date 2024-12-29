@@ -4102,6 +4102,10 @@
     }
   },
   "workspace": {
+    "dependencies": [
+      "npm:@types/react@*",
+      "npm:react@*"
+    ],
     "members": {
       "packages/blockchain": {
         "dependencies": [
