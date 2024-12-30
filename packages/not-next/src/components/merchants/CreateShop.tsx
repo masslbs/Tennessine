@@ -24,8 +24,8 @@ import { getTokenAddress, isValidHex } from "../../utils/mod";
 import Button from "../common/Button.tsx";
 // import Confirmation from "./Confirmation";
 // import AvatarUpload from "../common/AvatarUpload";
-import Dropdown from "../common/CurrencyDropdown.tsx";
-// import ConnectWalletButton from "../common/ConnectWalletButton.tsx";
+import Dropdown from "../common/CurrencyDropdown";
+import ConnectWalletButton from "../common/ConnectWalletButton.tsx";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 import { usePublicClient } from "../../hooks/usePublicClient.ts";
 import { useShopId } from "../../hooks/useShopId.ts";
@@ -40,16 +40,15 @@ const namespace = "frontend: CreateShop";
 const debug = logger(namespace);
 const errlog = logger(namespace, "error");
 
-export default function CreateShop() {
-  console.log("inside createshop");
+export default function () {
   const chains = useChains();
   const { status } = useAccount();
-  const shopPublicClient = usePublicClient();
+  const { shopPublicClient } = usePublicClient();
   const { data: wallet } = useWalletClient();
   const { shopId } = useShopId();
-  console.log({ shopId });
   const navigate = useNavigate({ from: "/create-shop" });
-
+  const search = useSearch({ from: "/create-shop" });
+  const { clientStateManager } = useClientWithStateManager();
   const [step, setStep] = useState<
     "manifest form" | "connect wallet" | "confirmation"
   >("manifest form");
@@ -65,13 +64,19 @@ export default function CreateShop() {
   const [payeeAddress, setPayeeAddress] = useState<`0x${string}` | null>(
     wallet?.account.address || null,
   );
-  const enrollKeycard = useRef(false);
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
-  const [storeRegistrationStatus, setStoreRegistrationStatus] = useState<
-    string
-  >("");
+  const [storeRegistrationStatus, setStoreRegistrationStatus] =
+    useState<string>("");
+
+  useEffect(() => {
+    localStorage.removeItem("merchantKC");
+    localStorage.removeItem("guestKeyCard");
+    if (!search.shopId) {
+      navigate({ search: { shopId: random256BigInt() } });
+    }
+  }, []);
 
   useEffect(() => {
     if (wallet?.account) {
@@ -79,14 +84,6 @@ export default function CreateShop() {
     }
   }, [wallet]);
 
-  useEffect(() => {
-    localStorage.removeItem("merchantKC");
-    localStorage.removeItem("guestKeyCard");
-    navigate({ search: { shopId: random256BigInt() } });
-  }, []);
-
-  const { clientStateManager } = useClientWithStateManager();
-  console.log({ clientStateManager });
   function handleAcceptedCurrencies(e: ChangeEvent<HTMLInputElement>) {
     const [sym, chainId] = e.target.value.split("/");
     const address = getTokenAddress(sym, chainId);
@@ -141,6 +138,7 @@ export default function CreateShop() {
 
   function goToConnectWallet() {
     const warning = checkRequiredFields();
+    console.log({ warning });
     if (warning) {
       setValidationError(warning);
       throw Error(`Check all required fields:${warning}`);
@@ -154,16 +152,14 @@ export default function CreateShop() {
     debug(`creating shop for ${shopId}`);
     setStoreRegistrationStatus("Minting shop...");
     try {
-      if (enrollKeycard.current) {
-        throw new Error("Keycard already enrolled");
-      }
       if (!shopPublicClient) {
         throw new Error("shopPublicClient not found");
       }
-      const rc = clientStateManager.createNewRelayClient();
-
-      const hash = await mintShop(wallet!, [shopId, wallet!.account.address]);
+      const rc = clientStateManager!.createNewRelayClient();
+      console.log("wallet", wallet);
+      const hash = await mintShop(wallet, [shopId, wallet!.account.address]);
       setStoreRegistrationStatus("Waiting to confirm mint transaction...");
+      console.log({ hash });
       let receipt = await shopPublicClient!.waitForTransactionReceipt({
         hash,
         // confirmations: 2,
@@ -176,7 +172,7 @@ export default function CreateShop() {
 
       setStoreRegistrationStatus("Adding relay token ID...");
       // Add relay tokenId for event verification.
-      const tx = await addRelay(wallet!, [shopId, rc.relayEndpoint.tokenId]);
+      const tx = await addRelay(wallet, [shopId, rc.relayEndpoint.tokenId]);
       debug(`Added relay token ID:${rc.relayEndpoint.tokenId}`);
       receipt = await shopPublicClient!.waitForTransactionReceipt({
         hash: tx,
@@ -208,16 +204,15 @@ export default function CreateShop() {
         throw new Error("Access denied.");
       }
       setStoreRegistrationStatus("Enrolling keycard...");
-      const res = await clientStateManager.relayClient!.enrollKeycard(
-        wallet!,
+      const res = await clientStateManager!.relayClient.enrollKeycard(
+        wallet,
         false,
         shopId,
-        process.env.TEST ? undefined : new URL(globalThis.location.href),
+        new URL(globalThis.location.href),
       );
       if (!res.ok) {
         throw Error("Failed to enroll keycard");
       }
-      enrollKeycard.current = true;
       // Replace keyCardToEnroll to merchantKC for future refreshes
       const keycard = localStorage.getItem("keyCardToEnroll") as `0x${string}`;
       localStorage.setItem("merchantKC", keycard);
@@ -225,7 +220,7 @@ export default function CreateShop() {
 
       // FIXME: for now we are instantiating sm after kc enroll. The reason is because we want to create a unique db name based on keycard.
       // TODO: see if it would be cleaner to pass the KC as a param
-      await clientStateManager.createStateManager();
+      await clientStateManager!.createStateManager();
       debug("StateManager created");
 
       //Add address of current kc wallet for all outgoing event verification.
@@ -329,7 +324,7 @@ export default function CreateShop() {
         );
       }
       //Write shop metadata to blockchain client.
-      const metadataHash = await setTokenURI(wallet!, [
+      const metadataHash = await setTokenURI(wallet, [
         shopId,
         metadataPath.url,
       ]);
@@ -355,8 +350,7 @@ export default function CreateShop() {
   if (step === "manifest form") {
     return (
       <main className="pt-under-nav h-screen p-4 mt-2">
-        {
-          /* <ValidationWarning
+        {/* <ValidationWarning
           warning={validationError}
           onClose={() => {
             setValidationError(null);
@@ -367,8 +361,7 @@ export default function CreateShop() {
           onClose={() => {
             setErrorMsg(null);
           }}
-        /> */
-        }
+        /> */}
         <div className="flex">
           <h1>Create new shop</h1>
         </div>
@@ -475,13 +468,14 @@ export default function CreateShop() {
                 name="payee"
                 value={payeeAddress || ""}
                 onChange={(e) =>
-                  setPayeeAddress(e.target.value as `0x${string}`)}
+                  setPayeeAddress(e.target.value as `0x${string}`)
+                }
               />
             </form>
           </div>
           <div>
             <Button onClick={goToConnectWallet}>
-              <h6>Connect Wallet</h6>
+              <h6>Connect Wallet11</h6>
             </Button>
           </div>
         </section>
@@ -490,7 +484,7 @@ export default function CreateShop() {
   } else if (step === "connect wallet") {
     return (
       <main className="pt-under-nav h-screen p-4 mt-5">
-        <ValidationWarning
+        {/* <ValidationWarning
           warning={validationError}
           onClose={() => {
             setValidationError(null);
@@ -501,11 +495,10 @@ export default function CreateShop() {
           onClose={() => {
             setErrorMsg(null);
           }}
-        />
+        /> */}
         <h1>Connect your wallet</h1>
         <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
-          {
-            /* {status === "connected" ? (
+          {status === "connected" ? (
             <div className="flex flex-col gap-4">
               <ConnectButton chainStatus="name" />
               <p>{storeRegistrationStatus}</p>
@@ -515,8 +508,7 @@ export default function CreateShop() {
             </div>
           ) : (
             <ConnectWalletButton />
-          )} */
-          }
+          )}
         </section>
       </main>
     );
