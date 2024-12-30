@@ -252,7 +252,6 @@ describe({ name: "global test settings", sanitizeResources: false }, () => {
     });
   });
 
-  // TODO: the event loop throws and we dont get to after manifest.create()
   describe("Unverified events should be caught in error", () => {
     it("catches error", async () => {
       const { stateManager, close } = await setupTestManager();
@@ -280,6 +279,7 @@ describe({ name: "global test settings", sanitizeResources: false }, () => {
         },
         random256BigInt(),
       );
+      // The above promise will never resolve, so we are creating a timeout promise to bypass the event loop
       const timeoutPromise = new Promise((resolve) => {
         setTimeout(() => resolve("resolve promise after 1 second"), 1000);
       });
