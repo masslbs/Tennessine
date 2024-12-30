@@ -29,7 +29,7 @@ import ConnectWalletButton from "../common/ConnectWalletButton.tsx";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 import { usePublicClient } from "../../hooks/usePublicClient.ts";
 import { useShopId } from "../../hooks/useShopId.ts";
-
+import { useKeycard } from "../../hooks/useKeycard.ts";
 // When create shop CTA is clicked, these functions are called:
 // 1. mintShop
 // 2. enrollConnectAuthenticate
@@ -49,6 +49,8 @@ export default function () {
   const navigate = useNavigate({ from: "/create-shop" });
   const search = useSearch({ from: "/create-shop" });
   const { clientStateManager } = useClientWithStateManager();
+  const [keycard] = useKeycard();
+
   const [step, setStep] = useState<
     "manifest form" | "connect wallet" | "confirmation"
   >("manifest form");
@@ -64,7 +66,6 @@ export default function () {
   const [payeeAddress, setPayeeAddress] = useState<`0x${string}` | null>(
     wallet?.account.address || null,
   );
-
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [storeRegistrationStatus, setStoreRegistrationStatus] =
@@ -213,19 +214,16 @@ export default function () {
       if (!res.ok) {
         throw Error("Failed to enroll keycard");
       }
-      // Replace keyCardToEnroll to merchantKC for future refreshes
-      const keycard = localStorage.getItem("keyCardToEnroll") as `0x${string}`;
-      localStorage.setItem("merchantKC", keycard);
-      localStorage.removeItem("keyCardToEnroll");
 
       // FIXME: for now we are instantiating sm after kc enroll. The reason is because we want to create a unique db name based on keycard.
       // TODO: see if it would be cleaner to pass the KC as a param
       await clientStateManager!.createStateManager();
       debug("StateManager created");
 
-      //Add address of current kc wallet for all outgoing event verification.
-      const keyCardWallet = privateKeyToAccount(keycard);
-      await clientStateManager.stateManager!.keycards.addAddress(
+      // //Add address of current kc wallet for all outgoing event verification.
+      const keyCardWallet = privateKeyToAccount(keycard.privateKey);
+      console.log({ keyCardWallet });
+      await clientStateManager!.stateManager.keycards.addAddress(
         keyCardWallet.address.toLowerCase() as `0x${string}`,
       );
 

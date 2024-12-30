@@ -7461,8 +7461,11 @@
           "npm:@types/react@^18.3.11",
           "npm:@uidotdev/usehooks@^2.4.1",
           "npm:@vitejs/plugin-react@^4.3.3",
+          "npm:autoprefixer@^10.4.20",
+          "npm:postcss@^8.4.49",
           "npm:react-dom@^18.3.1",
           "npm:react@^18.3.1",
+          "npm:tailwindcss@^3.4.17",
           "npm:viem@2.21.55",
           "npm:vite@^5.4.9",
           "npm:wagmi@^2.14.3"
