@@ -465,7 +465,8 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
         const wantAddr = bytesToHex(ur.address!.raw!);
         manifest.payees = manifest.payees.filter((p) => {
           // TODO: this doesn't complain about ur.chainId being Long sometimes!
-          const isEqual = p.address.toLowerCase() === wantAddr.toLowerCase() &&
+          const isEqual =
+            p.address.toLowerCase() === wantAddr.toLowerCase() &&
             p.chainId === Number(ur.chainId);
           return !isEqual;
         });
@@ -628,9 +629,9 @@ class ShopManifestManager extends PublicObjectManager<ShopManifest | SeqNo> {
           ...pm,
           absolute: pm.absolute
             ? {
-              ...pm.absolute,
-              diff: { raw: hexToBytes(pm.absolute.diff) },
-            }
+                ...pm.absolute,
+                diff: { raw: hexToBytes(pm.absolute.diff) },
+              }
             : undefined,
           percentage: pm.percentage
             ? { raw: hexToBytes(pm.percentage) }
@@ -744,15 +745,17 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         return;
       } else if (uo.setInvoiceAddress) {
         const update = uo.setInvoiceAddress;
-        const sd = order.invoiceAddress ? order.invoiceAddress : {
-          name: "",
-          address1: "",
-          city: "",
-          postalCode: "",
-          country: "",
-          phoneNumber: "",
-          emailAddress: "",
-        };
+        const sd = order.invoiceAddress
+          ? order.invoiceAddress
+          : {
+              name: "",
+              address1: "",
+              city: "",
+              postalCode: "",
+              country: "",
+              phoneNumber: "",
+              emailAddress: "",
+            };
         if (update.name) {
           sd.name = update.name;
         }
@@ -781,15 +784,17 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
       } else if (uo.setShippingAddress) {
         const update = uo.setShippingAddress;
         // shippingDetails may be null. If null, create an initial shipping details object to update.
-        const sd = order.shippingDetails ? order.shippingDetails : {
-          name: "",
-          address1: "",
-          city: "",
-          postalCode: "",
-          country: "",
-          phoneNumber: "",
-          emailAddress: "",
-        };
+        const sd = order.shippingDetails
+          ? order.shippingDetails
+          : {
+              name: "",
+              address1: "",
+              city: "",
+              postalCode: "",
+              country: "",
+              phoneNumber: "",
+              emailAddress: "",
+            };
         if (update.name) {
           sd.name = update.name;
         }
@@ -1156,7 +1161,7 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
         throw new Error(e.code);
       }
     }
-    if (keys.includes(address.toLowerCase() as `0x${string}`)) {
+    if (keys?.includes(address.toLowerCase() as `0x${string}`)) {
       return;
     }
     throw new Error(`Unverified Event: signed by unknown address ${address}`);
@@ -1212,6 +1217,7 @@ export class StateManager {
   readonly keycardNonce: KeycardNonceManager;
   readonly shopId;
   readonly publicClient;
+  eventStreamProcessing;
   constructor(
     public client: IRelayClient,
     listingStore: Store<Listing>,
@@ -1231,6 +1237,11 @@ export class StateManager {
     this.keycardNonce = new KeycardNonceManager(keycardNonceStore, client);
     this.shopId = shopId;
     this.publicClient = publicClient;
+
+    this.eventStreamProcessing = this.#start();
+    this.eventStreamProcessing.catch((err) => {
+      console.log("Error something bad happened in the stream", err);
+    });
   }
 
   //TODO: Watch for new relays being added. We also need to invalidate addresses from old relay.
@@ -1265,7 +1276,7 @@ export class StateManager {
     }
   }
 
-  async eventStreamProcessing() {
+  async #start() {
     const storeObjects = [
       this.listings,
       this.tags,
@@ -1276,7 +1287,7 @@ export class StateManager {
     ];
 
     const stream = this.client.createEventStream();
-
+    await this.addRelaysToKeycards();
     //Each event will go through all the storeObjects and update the relevant stores.
     let event: SequencedEventWithRecoveredSigner;
     for await (event of stream) {
