@@ -13,6 +13,7 @@ import {
 import { createConfig, http, WagmiProvider } from "wagmi";
 import { mainnet, sepolia } from "wagmi/chains";
 import { useClientWithStateManager } from "./useClientWithStateManager.ts";
+import { MassMarketProvider } from "../MassMarketContext.tsx";
 
 const config = createConfig({
   chains: [mainnet, sepolia],
@@ -42,8 +43,14 @@ const createWrapper = (shopId: string | null = null) => {
     return (
       <StrictMode>
         <WagmiProvider config={config}>
-          {/* @ts-expect-error */}
-          <RouterProvider router={router}>{children}</RouterProvider>
+          <MassMarketProvider>
+            {
+              /* TS expects self closing RouterProvier tag. See App.tsx for how we are using it.
+          But if we use the self closing syntax in testing, the router functions don't work in testing environment. */
+            }
+            {/* @ts-expect-error  */}
+            <RouterProvider router={router}>{children}</RouterProvider>
+          </MassMarketProvider>
         </WagmiProvider>
       </StrictMode>
     );

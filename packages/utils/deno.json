@@ -5,6 +5,6 @@
   "imports": {
     "buffer": "node:buffer",
     "@sentry/browser": "npm:@sentry/browser",
-    "viem": "npm:viem@^2.21.55"
+    "viem": "npm:viem@2.21.55"
   }
 }

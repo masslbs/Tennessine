@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo } from "react";
+import { useContext, useEffect } from "react";
 import { MassMarketContext } from "../MassMarketContext.tsx";
 import { usePublicClient } from "./usePublicClient.ts";
 import { useShopId } from "./useShopId.ts";
@@ -16,30 +16,24 @@ export function useClientWithStateManager() {
   const { shopId } = useShopId();
   const { shopPublicClient } = usePublicClient();
 
-  const currentClientStateManager = useMemo(() => {
+  useEffect(() => {
     if (
       shopId &&
       relayEndpoint &&
       shopPublicClient &&
       clientStateManager?.shopId !== shopId
     ) {
-      return new ClientWithStateManager(
+      const csm = new ClientWithStateManager(
         shopPublicClient,
         shopId,
         relayEndpoint,
       );
+      setClientStateManager(csm);
     }
-    return clientStateManager;
-  }, [shopId, relayEndpoint, shopPublicClient, clientStateManager?.shopId]);
-
-  useEffect(() => {
-    if (currentClientStateManager !== clientStateManager) {
-      setClientStateManager(currentClientStateManager);
-    }
-  }, [currentClientStateManager, clientStateManager]);
+  }, [shopId, relayEndpoint, shopPublicClient]);
 
   // const result = useQuery(async () => {}, [keycard, clientStateManager]);
 
   // return { clientStateManager: currentClientStateManager, ...result };
-  return { clientStateManager: currentClientStateManager };
+  return { clientStateManager };
 }

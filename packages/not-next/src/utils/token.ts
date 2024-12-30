@@ -1,7 +1,5 @@
-import { Address, PublicClient } from "viem";
+import { Address } from "viem";
 import * as abi from "@massmarket/contracts";
-import { assert } from "@massmarket/utils";
-import { hardhat } from "wagmi/chains";
 
 // Any utility functions for tokens
 export const getTokenAddress = (symbol: string, chainId: string): Address => {
