@@ -15,6 +15,7 @@
     "npm:@noble/curves@1.7.0": "1.7.0",
     "npm:@noble/hashes@1.5.0": "1.5.0",
     "npm:@noble/hashes@1.6.1": "1.6.1",
+    "npm:@rainbow-me/rainbowkit@*": "2.2.1_@tanstack+react-query@5.62.7__react@18.3.1_react@18.3.1_react-dom@18.3.1__react@18.3.1_viem@2.21.55__ws@8.18.0_wagmi@2.14.3__@tanstack+react-query@5.62.7___react@18.3.1__react@18.3.1__viem@2.21.55___ws@8.18.0__@wagmi+core@2.16.0___viem@2.21.55____ws@8.18.0___@types+react@18.3.16___react@18.3.1___use-sync-external-store@1.2.0____react@18.3.1__@types+react@18.3.16__use-sync-external-store@1.2.0___react@18.3.1_@vanilla-extract+css@1.15.5_@types+react@18.3.16",
     "npm:@rainbow-me/rainbowkit@^2.2.0": "2.2.1_@tanstack+react-query@5.62.7__react@18.3.1_react@18.3.1_react-dom@18.3.1__react@18.3.1_viem@2.21.55__ws@8.18.0_wagmi@2.14.3__@tanstack+react-query@5.62.7___react@18.3.1__react@18.3.1__viem@2.21.55___ws@8.18.0__@wagmi+core@2.16.0___viem@2.21.55____ws@8.18.0___@types+react@18.3.16___react@18.3.1___use-sync-external-store@1.2.0____react@18.3.1__@types+react@18.3.16__use-sync-external-store@1.2.0___react@18.3.1_@vanilla-extract+css@1.15.5_@types+react@18.3.16",
     "npm:@scure/bip32@1.5.0": "1.5.0",
     "npm:@scure/bip32@1.6.0": "1.6.0",

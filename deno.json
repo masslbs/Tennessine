@@ -28,5 +28,13 @@
     "jsx": "react-jsx",
     "jsxImportSource": "npm:react",
     "jsxImportSourceTypes": "npm:@types/react"
+  },
+  "imports": {
+    "@massmarket/blockchain": "./packages/blockchain/mod.ts",
+    "@massmarket/contracts": "./packages/contracts/mod.ts",
+    "@massmarket/stateManager": "./packages/stateManager/mod.ts",
+    "@massmarket/client": "./packages/client/mod.ts",
+    "@massmarket/schema": "./packages/schema/mod.ts",
+    "@massmarket/utils": "./packages/utils/mod.ts"
   }
 }
