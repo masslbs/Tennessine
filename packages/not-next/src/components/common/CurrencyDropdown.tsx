@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 // import Chevron from "./Chevron";
-import { CurrencyChainOption } from "../../types";
+import { CurrencyChainOption } from "../../types.ts";
 
 export default function Dropdown({
   options,

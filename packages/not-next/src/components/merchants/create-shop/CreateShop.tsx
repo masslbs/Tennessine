@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { privateKeyToAccount } from "viem/accounts";
@@ -17,19 +17,20 @@ import {
 import { assert, logger, random256BigInt } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 
-import { CurrencyChainOption, ShopCurrencies, ShopId } from "../../types";
-import { getTokenAddress, isValidHex } from "../../utils/mod";
-// import ValidationWarning from "../common/ValidationWarning";
-// import ErrorMessage from "../common/ErrorMessage";
-import Button from "../common/Button.tsx";
-// import Confirmation from "./Confirmation";
-// import AvatarUpload from "../common/AvatarUpload";
-import Dropdown from "../common/CurrencyDropdown";
-import ConnectWalletButton from "../common/ConnectWalletButton.tsx";
-import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
-import { usePublicClient } from "../../hooks/usePublicClient.ts";
-import { useShopId } from "../../hooks/useShopId.ts";
-import { useKeycard } from "../../hooks/useKeycard.ts";
+import Confirmation from "./CreateShopConfirmation.tsx";
+import ValidationWarning from "../../common/ValidationWarning.tsx";
+import ErrorMessage from "../../common/ErrorMessage.tsx";
+import Button from "../../common/Button.tsx";
+import AvatarUpload from "../../common/AvatarUpload.tsx";
+import Dropdown from "../../common/CurrencyDropdown.tsx";
+import ConnectWalletButton from "../../common/ConnectWalletButton.tsx";
+import { useClientWithStateManager } from "../../../hooks/useClientWithStateManager.ts";
+import { usePublicClient } from "../../../hooks/usePublicClient.ts";
+import { useShopId } from "../../../hooks/useShopId.ts";
+import { useKeycard } from "../../../hooks/useKeycard.ts";
+import { CurrencyChainOption, ShopCurrencies } from "../../../types.ts";
+import { getTokenAddress, isValidHex } from "../../../utils/mod.ts";
+
 // When create shop CTA is clicked, these functions are called:
 // 1. mintShop
 // 2. enrollConnectAuthenticate
@@ -73,8 +74,6 @@ export default function () {
   >("");
 
   useEffect(() => {
-    localStorage.removeItem("merchantKC");
-    localStorage.removeItem("guestKeyCard");
     if (!search.shopId) {
       navigate({ search: { shopId: random256BigInt() } });
     }
@@ -219,7 +218,7 @@ export default function () {
       await clientStateManager!.createStateManager();
       debug("StateManager created");
 
-      // //Add address of current kc wallet for all outgoing event verification.
+      // Add address of current kc wallet for all outgoing event verification.
       const keyCardWallet = privateKeyToAccount(keycard.privateKey);
       await clientStateManager!.stateManager.keycards.addAddress(
         keyCardWallet.address.toLowerCase() as `0x${string}`,
@@ -336,9 +335,8 @@ export default function () {
 
   if (step === "manifest form") {
     return (
-      <main className="pt-under-nav h-screen p-4 mt-2">
-        {
-          /* <ValidationWarning
+      <main className="pt-under-nav  p-4 mt-2">
+        <ValidationWarning
           warning={validationError}
           onClose={() => {
             setValidationError(null);
@@ -349,8 +347,7 @@ export default function () {
           onClose={() => {
             setErrorMsg(null);
           }}
-        /> */
-        }
+        />
         <div className="flex">
           <h1>Create new shop</h1>
         </div>
@@ -371,7 +368,7 @@ export default function () {
             />
           </form>
           <div className="flex gap-2">
-            {/* <AvatarUpload setImgBlob={setAvatar} /> */}
+            <AvatarUpload setImgBlob={setAvatar} />
             <p className="flex items-center">Upload PFP</p>
           </div>
           <form className="flex flex-col" onSubmit={(e) => e.preventDefault()}>
@@ -463,7 +460,7 @@ export default function () {
           </div>
           <div>
             <Button onClick={goToConnectWallet}>
-              <h6>Connect Wallet11</h6>
+              <h6>Connect Wallet</h6>
             </Button>
           </div>
         </section>
@@ -471,9 +468,8 @@ export default function () {
     );
   } else if (step === "connect wallet") {
     return (
-      <main className="pt-under-nav h-screen p-4 mt-5">
-        {
-          /* <ValidationWarning
+      <main className="pt-under-nav p-4 mt-5">
+        <ValidationWarning
           warning={validationError}
           onClose={() => {
             setValidationError(null);
@@ -484,8 +480,7 @@ export default function () {
           onClose={() => {
             setErrorMsg(null);
           }}
-        /> */
-        }
+        />
         <h1>Connect your wallet</h1>
         <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
           {status === "connected"
@@ -503,7 +498,6 @@ export default function () {
       </main>
     );
   } else if (step === "confirmation") {
-    console.log("confirmation");
-    // return <Confirmation />;
+    return <Confirmation />;
   }
 }
