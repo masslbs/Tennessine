@@ -1164,18 +1164,9 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
 
   async addAddress(key: `0x${string}`) {
     const k = key.toLowerCase() as `0x${string}`;
-    let publicKeys: `0x${string}`[];
-    try {
-      publicKeys = await this.store.get("cardPublicKey");
-    } catch (error) {
-      const e = error as IError;
-      if (e.notFound) {
-        publicKeys = [];
-      } else {
-        throw new Error(e.code);
-      }
-    }
-    if (!publicKeys.includes(k)) {
+    const publicKeys = (await this.store.get("cardPublicKey")) || [];
+
+    if (!publicKeys?.includes(k)) {
       publicKeys.push(k);
       return this.queueClientRequest(() => {
         return this.store.put("cardPublicKey", publicKeys);

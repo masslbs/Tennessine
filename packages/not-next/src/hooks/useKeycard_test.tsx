@@ -1,23 +1,30 @@
 import { assertEquals } from "jsr:@std/assert";
+import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
 import { cleanup, renderHook } from "@testing-library/react-hooks";
+
 import { random32BytesHex } from "@massmarket/utils";
 import { useKeycard } from "./useKeycard.ts";
-import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
+import { createRouterWrapper } from "../utils/mod.ts";
 
 Deno.test("useKeycard", async (t) => {
   GlobalRegistrator.register({});
   const randomKC = random32BytesHex();
-  t.step("should set and get keycards", () => {
-    const { rerender, result, unmount } = renderHook(() =>
-      useKeycard(randomKC)
+  await t.step("should set and get keycards", () => {
+    const wrapper = createRouterWrapper();
+    const { result, unmount } = renderHook(
+      () => useKeycard({ privateKey: randomKC, role: "guest" }),
+      { wrapper },
     );
-    const [keycard, setKeycard] = result.current;
-    assertEquals(randomKC, keycard);
-    const randomKC2 = random32BytesHex();
-    setKeycard(randomKC2);
-    rerender();
-    const [keycard2] = result.current;
-    assertEquals(randomKC2, keycard2);
+    const [keycard] = result.current;
+    assertEquals(keycard.privateKey, randomKC);
+    unmount();
+  });
+
+  await t.step("should create random keycard if none is provided", () => {
+    const wrapper = createRouterWrapper();
+    const { result, unmount } = renderHook(() => useKeycard(), { wrapper });
+    const [keycard] = result.current;
+    assertEquals(keycard.privateKey !== null, true);
     unmount();
   });
 

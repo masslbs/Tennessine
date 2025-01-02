@@ -10,10 +10,10 @@ export function useRelayEndpoint() {
     null,
   );
   function getRelayEndpoint() {
-    if (import.meta.env["VITE_RELAY_TOKEN_ID"]) {
+    if (import.meta.env?.["VITE_RELAY_TOKEN_ID"]) {
       const re = {
-        url: new URL(import.meta.env["VITE_RELAY_ENDPOINT"] as string),
-        tokenId: import.meta.env["VITE_RELAY_TOKEN_ID"] as `0x${string}`,
+        url: new URL(import.meta.env?.["VITE_RELAY_ENDPOINT"] as string),
+        tokenId: import.meta.env?.["VITE_RELAY_TOKEN_ID"] as `0x${string}`,
       };
       setRelayEndpoint(re);
       debug(`using environment variables for relay endpoint ${re.url}`);
