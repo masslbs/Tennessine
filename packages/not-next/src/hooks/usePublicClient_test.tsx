@@ -26,24 +26,19 @@ Deno.test("usePublicClient", async (t) => {
   await t.step(
     "return publicClient with correct chain when passed chainId",
     () => {
-      const { result } = renderHook(() => usePublicClient(1), {
+      const { result } = renderHook(() => usePublicClient(sepolia.id), {
         wrapper,
       });
-      assertEquals(result.current.shopPublicClient?.chain.id, 1);
+      assertEquals(result.current.shopPublicClient!.chain!.id, sepolia.id);
     },
   );
-  await t.step(
-    "should use environment chain when no chainId is provided",
-    () => {
-      Deno.env.set("NEXT_PUBLIC_CHAIN_NAME", "sepolia");
-
-      const { result, unmount } = renderHook(() => usePublicClient(), {
-        wrapper,
-      });
-      assertEquals(result.current.shopPublicClient?.chain.id, sepolia.id);
-      unmount();
-    },
-  );
+  await t.step("should use mainnet chain when no chainId is provided", () => {
+    const { result, unmount } = renderHook(() => usePublicClient(), {
+      wrapper,
+    });
+    assertEquals(result.current.shopPublicClient!.chain!.id, 1);
+    unmount();
+  });
   cleanup();
   await GlobalRegistrator.unregister();
 });

@@ -97,7 +97,8 @@ export default function () {
     } else {
       setAcceptedCurrencies(
         acceptedCurrencies.filter(
-          (c) => c.chainId !== Number(chainId) || c.address !== address,
+          (c: ShopCurrencies) =>
+            c.chainId !== Number(chainId) || c.address !== address,
         ),
       );
     }
@@ -157,7 +158,7 @@ export default function () {
         throw new Error("shopPublicClient not found");
       }
       const rc = clientStateManager!.createNewRelayClient();
-      const hash = await mintShop(wallet, [shopId, wallet!.account.address]);
+      const hash = await mintShop(wallet!, [shopId, wallet!.account.address]);
       setStoreRegistrationStatus("Waiting to confirm mint transaction...");
       let receipt = await shopPublicClient!.waitForTransactionReceipt({
         hash,
@@ -171,7 +172,7 @@ export default function () {
 
       setStoreRegistrationStatus("Adding relay token ID...");
       // Add relay tokenId for event verification.
-      const tx = await addRelay(wallet, [shopId, rc.relayEndpoint.tokenId]);
+      const tx = await addRelay(wallet!, [shopId, rc.relayEndpoint.tokenId]);
       debug(`Added relay token ID:${rc.relayEndpoint.tokenId}`);
       receipt = await shopPublicClient!.waitForTransactionReceipt({
         hash: tx,
@@ -249,7 +250,9 @@ export default function () {
       debug("sent merchant subscription request");
 
       const uniqueByChainId = [
-        ...new Set(acceptedCurrencies.map((cur) => cur.chainId)),
+        ...new Set(
+          acceptedCurrencies.map((cur: ShopCurrencies) => cur.chainId),
+        ),
       ];
       // Get all unique chain IDs for selected accepted currencies and add payee for each chain.
       const payees = uniqueByChainId.map((chainId) => {
@@ -310,7 +313,7 @@ export default function () {
       );
 
       //Write shop metadata to blockchain client.
-      const metadataHash = await setTokenURI(wallet, [
+      const metadataHash = await setTokenURI(wallet!, [
         shopId,
         metadataPath.url,
       ]);
