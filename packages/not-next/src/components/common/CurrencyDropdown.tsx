@@ -12,8 +12,9 @@ export default function Dropdown({
   selected?: null | CurrencyChainOption;
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedOption, setSelectedOption] =
-    useState<CurrencyChainOption | null>(selected);
+  const [selectedOption, setSelectedOption] = useState<
+    CurrencyChainOption | null
+  >(selected);
 
   function toggleDropdown() {
     setIsOpen(!isOpen);
