@@ -12,22 +12,15 @@ const debug = logger(namespace);
 const logerr = logger(namespace, "error");
 
 export class ClientWithStateManager {
-  readonly publicClient: PublicClient;
-  readonly shopId: ShopId;
-  public stateManager: StateManager | null;
-  public relayClient: RelayClient | null;
+  public stateManager: StateManager | null = null;
+  public relayClient: RelayClient | null = null;
 
   constructor(
-    publicClient: PublicClient,
-    shopId: ShopId,
-    public relayEndpoint: RelayEndpoint,
-  ) {
-    this.stateManager = null;
-    this.relayClient = null;
-    this.publicClient = publicClient;
-    this.shopId = shopId;
-    this.relayEndpoint = relayEndpoint;
-  }
+    public readonly keycard: `0x${string}`,
+    public readonly publicClient: PublicClient,
+    public readonly shopId: ShopId,
+    public readonly relayEndpoint: RelayEndpoint,
+  ) {}
 
   createStateManager() {
     const merchantKC = localStorage.getItem("merchantKC");
@@ -90,9 +83,7 @@ export class ClientWithStateManager {
     if (!this.relayEndpoint?.tokenId) {
       throw new Error("Relay endpoint tokenId not set");
     }
-    const keyCard = random32BytesHex();
-    const keyCardWallet = privateKeyToAccount(keyCard);
-    localStorage.setItem("keyCardToEnroll", keyCard);
+    const keyCardWallet = privateKeyToAccount(this.keycard);
     this.relayClient = new RelayClient({
       relayEndpoint: this.relayEndpoint,
       keyCardWallet,
