@@ -1,6 +1,6 @@
 import "./happyDomSetup.ts";
 import { assertEquals } from "jsr:@std/assert";
-import { cleanup, render, screen } from "npm:@testing-library/react";
+import { cleanup, render } from "npm:@testing-library/react";
 import { createConfig, http } from "npm:wagmi";
 import { mainnet, sepolia } from "npm:wagmi/chains";
 
