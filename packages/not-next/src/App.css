@@ -1,3 +1,22 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  overflow: visible;
+  color: black;
+  background-color: white;
+  color: black;
+  h1 {
+    font-size: 24px;
+    font-weight: 700;
+  }
+  h2 {
+    font-size: 20px;
+    font-weight: 700;
+  }
+  h3 {
+    font-size: 18px;
+    font-weight: 500;
+  }
+}

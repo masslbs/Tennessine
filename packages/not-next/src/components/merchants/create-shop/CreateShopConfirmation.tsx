@@ -2,21 +2,19 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import React from "react";
-import Link from "next/link";
-
-import { useUserContext } from "@/context/UserContext";
-import Button from "@/app/common/components/Button";
+import { Link } from "@tanstack/react-router";
+import Button from "../../common/Button.tsx";
+import { useShopId } from "../../../hooks/useShopId.ts";
 
 export default function Confirmation() {
-  const { shopId } = useUserContext();
+  const { shopId } = useShopId();
 
   function copyToClipboard() {
     navigator.clipboard.writeText(String(shopId));
   }
 
   return (
-    <main className="pt-under-nav h-screen p-4 mt-5">
+    <main className="pt-under-nav p-4 mt-5">
       <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg items-center">
         <img
           src="/icons/smiley.svg"
@@ -42,7 +40,7 @@ export default function Confirmation() {
           <div className="bg-background-gray p-2 rounded-md overflow-x-auto w-40">
             <p>{String(shopId)}</p>
           </div>
-          <button onClick={copyToClipboard} className="bg-white p-0">
+          <button onClick={copyToClipboard}>
             <img
               src="/icons/copy-icon.svg"
               width={20}

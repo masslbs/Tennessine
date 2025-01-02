@@ -23,10 +23,6 @@ const config: Config = {
         "background-gray": "#F3F3F3",
         "success-green": "#5B9279",
       },
-
-      fontFamily: {
-        proto: ["outfit", "sans-serif"],
-      },
     },
   },
   plugins: [],
