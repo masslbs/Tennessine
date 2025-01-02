@@ -29,7 +29,7 @@ export class ClientWithStateManager {
     this.relayEndpoint = relayEndpoint;
   }
 
-  async createStateManager() {
+  createStateManager() {
     const merchantKC = localStorage.getItem("merchantKC");
     const dbName = `${String(this.shopId).slice(0, 7)}${
       merchantKC ? merchantKC.slice(0, 5) : "-guest"
@@ -69,17 +69,10 @@ export class ClientWithStateManager {
       this.publicClient,
     );
 
-    // Wait for relay address to be added to verified addresses before we return stateManager
-    await this.stateManager.addRelaysToKeycards();
-
     // Only start the stream once relay address is added
-    this.stateManager
-      .eventStreamProcessing()
-      .then()
-      /* infinite loop*/
-      .catch((err: Error) => {
-        logerr("Error something bad happened in the stream", err);
-      });
+    this.stateManager.eventStreamProcessing.catch((err: Error) => {
+      logerr("Error something bad happened in the stream", err);
+    });
 
     if (window && db) {
       globalThis.addEventListener("beforeunload", () => {

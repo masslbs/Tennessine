@@ -16,7 +16,6 @@ describe("async mutations", () => {
     stateManager = tester.stateManager;
     //Store test vector address to db for event verification
     await stateManager.keycards.addAddress(client.keyCardWallet.address);
-    stateManager.eventStreamProcessing().then();
   });
   afterAll(async () => {
     await Promise.all(closers);

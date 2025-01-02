@@ -100,13 +100,10 @@ describe({ name: "global test settings", sanitizeResources: false }, () => {
       await stateManager.keycards.addAddress(client.keyCardWallet.address);
       //Store test vector address to db for event verification
       let closed = false;
-      stateManager
-        .eventStreamProcessing()
-        .then()
-        .catch((e) => {
-          console.error(e);
-          closed = true;
-        });
+      stateManager.eventStreamProcessing.catch(() => {
+        closed = true;
+      });
+
       const isDone = waitForFill(client, stateManager);
       expect(closed).toBeFalsy();
       await client.connect();
@@ -126,7 +123,6 @@ describe({ name: "global test settings", sanitizeResources: false }, () => {
       client = tester.client;
       stateManager = tester.stateManager;
       await stateManager.keycards.addAddress(client.keyCardWallet.address);
-      stateManager.eventStreamProcessing().then();
       const isDone = waitForFill(client, stateManager);
       await client.connect();
       await isDone;
@@ -256,26 +252,22 @@ describe({ name: "global test settings", sanitizeResources: false }, () => {
     });
   });
 
-  // TODO: the event loop throws and we dont get to after manifest.create()
-  describe.skip("Unverified events should be caught in error", () => {
+  describe("Unverified events should be caught in error", () => {
     it("catches error", async () => {
       const { stateManager, close } = await setupTestManager();
+
       // not adding keycard address to test unverified event error
       // await stateManager.keycards.addAddress(client.keyCardWallet.address);h
       let called = false;
-      stateManager
-        .eventStreamProcessing()
-        .then()
-        /*infinitely pending*/
-        .catch((e) => {
-          expect(e).toBeTruthy();
-          expect(e.message).toContain(
-            "Unverified Event: signed by unknown address 0xB8b8985e55aBEa8E36C777c28C08ECBe0104a37d",
-          );
-          called = true;
-          console.error("captured error");
-        });
-      await stateManager.manifest.create(
+      stateManager.eventStreamProcessing.catch((e) => {
+        expect(e).toBeTruthy();
+        expect(e.message).toContain(
+          "Unverified Event: signed by unknown address 0xB8b8985e55aBEa8E36C777c28C08ECBe0104a37d",
+        );
+        called = true;
+        console.error("captured error");
+      });
+      const manifestPromise = stateManager.manifest.create(
         {
           acceptedCurrencies: currencies,
           pricingCurrency: {
@@ -287,8 +279,14 @@ describe({ name: "global test settings", sanitizeResources: false }, () => {
         },
         random256BigInt(),
       );
-      await close();
+      // The above promise will never resolve, so we are creating a timeout promise to bypass the event loop
+      const timeoutPromise = new Promise((resolve) => {
+        setTimeout(() => resolve("resolve promise after 1 second"), 1000);
+      });
+
+      await Promise.race([manifestPromise, timeoutPromise]);
       expect(called).toBeTruthy();
+      await close();
     });
   });
 
@@ -303,7 +301,6 @@ describe({ name: "global test settings", sanitizeResources: false }, () => {
       stateManager = tester.stateManager;
       //Store test vector address to db for event verification
       await stateManager.keycards.addAddress(client.keyCardWallet.address);
-      stateManager.eventStreamProcessing().then();
     });
     afterAll(async () => {
       await Promise.all(closers);

@@ -1156,7 +1156,7 @@ class KeyCardManager extends PublicObjectManager<KeyCard> {
         throw new Error(e.code);
       }
     }
-    if (keys.includes(address.toLowerCase() as `0x${string}`)) {
+    if (keys?.includes(address.toLowerCase() as `0x${string}`)) {
       return;
     }
     throw new Error(`Unverified Event: signed by unknown address ${address}`);
@@ -1212,6 +1212,7 @@ export class StateManager {
   readonly keycardNonce: KeycardNonceManager;
   readonly shopId;
   readonly publicClient;
+  eventStreamProcessing;
   constructor(
     public client: IRelayClient,
     listingStore: Store<Listing>,
@@ -1231,6 +1232,11 @@ export class StateManager {
     this.keycardNonce = new KeycardNonceManager(keycardNonceStore, client);
     this.shopId = shopId;
     this.publicClient = publicClient;
+
+    this.eventStreamProcessing = this.#start();
+    this.eventStreamProcessing.catch((err) => {
+      console.log("Error something bad happened in the stream", err);
+    });
   }
 
   //TODO: Watch for new relays being added. We also need to invalidate addresses from old relay.
@@ -1265,7 +1271,7 @@ export class StateManager {
     }
   }
 
-  async eventStreamProcessing() {
+  async #start() {
     const storeObjects = [
       this.listings,
       this.tags,
@@ -1276,7 +1282,7 @@ export class StateManager {
     ];
 
     const stream = this.client.createEventStream();
-
+    await this.addRelaysToKeycards();
     //Each event will go through all the storeObjects and update the relevant stores.
     let event: SequencedEventWithRecoveredSigner;
     for await (event of stream) {
