@@ -1,8 +1,7 @@
-import * as abi from "@massmarket/contracts";
 import { Address } from "viem";
+import * as abi from "@massmarket/contracts";
 
 // Any utility functions for tokens
-
 export const getTokenAddress = (symbol: string, chainId: string): Address => {
   if (symbol === "ETH") return abi.addresses.zeroAddress;
   const addresses: {

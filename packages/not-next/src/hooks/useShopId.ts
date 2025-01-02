@@ -4,17 +4,13 @@ import { ShopId } from "../types.ts";
 
 export function useShopId() {
   const [shopId, setShopId] = useState<ShopId | null>(null);
-  // Get the search params
-  const search = useSearch({
-    from: "/",
-  });
-
+  const search = useSearch({ strict: false });
   useEffect(() => {
-    const id = search.shopId;
+    const id = search?.shopId;
     if (id) {
       setShopId(BigInt(id));
     }
-  }, []);
+  }, [search]);
 
   return { shopId, setShopId };
 }

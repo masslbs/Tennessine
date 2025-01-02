@@ -10,6 +10,6 @@
     "@ethereumjs/util": "npm:@ethereumjs/util",
     "events": "node:events",
     "long": "npm:long",
-    "viem": "jsr:@wevm/viem"
+    "viem": "npm:viem@2.21.55"
   }
 }

@@ -7,6 +7,6 @@
     "test": "deno test"
   },
   "imports": {
-    "viem": "jsr:@wevm/viem"
+    "viem": "npm:viem@2.21.55"
   }
 }
