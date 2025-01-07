@@ -45,6 +45,7 @@
     "npm:protobufjs-cli@*": "1.1.3_protobufjs@7.4.0",
     "npm:protobufjs@*": "7.4.0",
     "npm:react-dom@^18.3.1": "18.3.1_react@18.3.1",
+    "npm:react@*": "18.3.1",
     "npm:react@^18.3.1": "18.3.1",
     "npm:viem@2.21.55": "2.21.55_ws@8.18.0",
     "npm:viem@^2.21.55": "2.21.59_ws@8.18.0",
