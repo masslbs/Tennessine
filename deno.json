@@ -3,6 +3,7 @@
     "./packages/utils",
     "./packages/schema",
     "./packages/stateManager",
+    "./packages/eventTree",
     "./packages/client",
     "./packages/contracts",
     "./packages/not-next",

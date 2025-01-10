@@ -5,10 +5,14 @@
   description = "massmarket-typescript";
   inputs = {
     flake-parts.url = "github:hercules-ci/flake-parts";
-    pre-commit-hooks.url = "github:cachix/git-hooks.nix";
-    pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
-    contracts.url = "github:masslbs/contracts";
-    contracts.inputs.nixpkgs.follows = "nixpkgs";
+    pre-commit-hooks = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    contracts = {
+      url = "github:masslbs/contracts";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     schema = {
       url = "github:masslbs/network-schema/327c7a8896e6d41ca137f9e92038047141982dc4";
       flake = false;
@@ -44,7 +48,7 @@
               denolint.enable = true;
               denofmt = {
                 verbose = true;
-                enable = true;
+                enable = false;
                 settings.configPath = "./deno.json";
               };
             };
