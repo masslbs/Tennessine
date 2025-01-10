@@ -1,0 +1,6 @@
+{
+  "name": "@massmarket/eventTree",
+  "version": "0.0.1",
+  "description": "A sythentic event tree",
+  "exports": "./mod.ts"
+}
