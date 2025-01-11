@@ -38,7 +38,7 @@ export default function AvatarUpload({
         reader.readAsDataURL(fileInput.files[0]);
       }
     } catch (error) {
-      setErrorMsg("Error uploading image");
+      setErrorMsg(`Error uploading image: ${error}`);
     }
   };
 
