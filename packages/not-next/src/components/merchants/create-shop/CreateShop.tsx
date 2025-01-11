@@ -371,7 +371,7 @@ export default function () {
             />
           </form>
           <div className="flex gap-2">
-            <AvatarUpload setImgBlob={setAvatar} />
+            <AvatarUpload setImgBlob={setAvatar} setErrorMsg={setErrorMsg} />
             <p className="flex items-center">Upload PFP</p>
           </div>
           <form className="flex flex-col" onSubmit={(e) => e.preventDefault()}>

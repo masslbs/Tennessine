@@ -6,8 +6,10 @@ import { ChangeEvent, Dispatch, SetStateAction, useRef, useState } from "react";
 
 export default function AvatarUpload({
   setImgBlob,
+  setErrorMsg,
 }: {
   setImgBlob: Dispatch<SetStateAction<FormData | null>>;
+  setErrorMsg: Dispatch<SetStateAction<string | null>>;
 }) {
   const [localImg, setLocalImg] = useState<null | string>(null);
 
@@ -36,7 +38,7 @@ export default function AvatarUpload({
         reader.readAsDataURL(fileInput.files[0]);
       }
     } catch (error) {
-      console.error(error);
+      setErrorMsg(`Error uploading image: ${error}`);
     }
   };
 
