@@ -4,10 +4,10 @@ import { type PublicClient } from "viem";
 
 export function usePublicClient(
   id = chains[import.meta.env?.VITE_CHAIN_NAME as keyof typeof chains]?.id ?? 1,
-): { shopPublicClient: PublicClient } {
+) {
   const shopPublicClient = usePC({
     chainId: id,
-  }) as PublicClient;
+  })!;
 
   return { shopPublicClient };
 }
