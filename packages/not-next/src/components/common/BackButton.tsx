@@ -14,8 +14,8 @@ export default function BackButton({
   if (href) {
     return (
       <Link
-        to="/products"
-        search={(prev) => ({ ...prev })}
+        to={href}
+        search={(prev: Record<string, string>) => ({ ...prev })}
         className="flex gap-1 items-center"
       >
         <img

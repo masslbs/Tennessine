@@ -14,7 +14,7 @@ export default function Confirmation() {
   }
 
   return (
-    <main>
+    <main className="p-4">
       <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg items-center">
         <img
           src="/icons/smiley.svg"
@@ -54,7 +54,11 @@ export default function Confirmation() {
       <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg ">
         <h2 className="font-bold">Next steps</h2>
         <Button>
-          <Link to="/merchant-dashboard" search={(prev) => ({ ...prev })}>
+          <Link
+            to="/merchant-dashboard"
+            search={(prev: Record<string, string>) => ({ ...prev })}
+            className="text-white"
+          >
             View Dashboard
           </Link>
         </Button>

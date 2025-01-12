@@ -35,8 +35,11 @@ export default function MerchantViewProducts({
           key={item.id}
           data-testid="product-container"
           className={`${!visible ? "opacity-50" : ""} flex w-full h-auto mb-4`}
-          to="/product-detail"
-          search={(prev) => ({ ...prev, itemId: item.id })}
+          to="/listing-detail"
+          search={(prev: Record<string, string>) => ({
+            ...prev,
+            itemId: item.id,
+          })}
         >
           <div className="flex justify-center" data-testid="product-img">
             <img
@@ -83,8 +86,12 @@ export default function MerchantViewProducts({
         <h1 className="grow flex items-center">Manage Products</h1>
         <Button custom="w-30">
           <Link
-            to="/edit-product"
-            search={(prev) => ({ ...prev, itemId: "new" })}
+            to="/edit-listing"
+            search={(prev: Record<string, string>) => ({
+              ...prev,
+              itemId: "new",
+            })}
+            className="text-white"
           >
             Add new +
           </Link>

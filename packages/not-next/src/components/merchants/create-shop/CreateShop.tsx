@@ -338,22 +338,24 @@ export default function () {
 
   if (step === "manifest form") {
     return (
-      <main className="p-4 mt-2">
-        <ValidationWarning
-          warning={validationError}
-          onClose={() => {
-            setValidationError(null);
-          }}
-        />
-        <ErrorMessage
-          errorMessage={errorMsg}
-          onClose={() => {
-            setErrorMsg(null);
-          }}
-        />
-        <div className="flex">
-          <h1>Create new shop</h1>
-        </div>
+      <main className="p-4">
+        <section className="pt-4">
+          <ValidationWarning
+            warning={validationError}
+            onClose={() => {
+              setValidationError(null);
+            }}
+          />
+          <ErrorMessage
+            errorMessage={errorMsg}
+            onClose={() => {
+              setErrorMsg(null);
+            }}
+          />
+          <div className="flex">
+            <h1>Create new shop</h1>
+          </div>
+        </section>
         <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
           <form
             className="flex flex-col grow"

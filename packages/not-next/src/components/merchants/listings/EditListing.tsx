@@ -7,13 +7,7 @@ import { useNavigate, useSearch } from "@tanstack/react-router";
 
 import { assert, formatUnitsFromString, logger } from "@massmarket/utils";
 
-import {
-  Listing,
-  ListingId,
-  ListingViewState,
-  Tag,
-  TagId,
-} from "../../../types.ts";
+import { Listing, ListingId, ListingViewState } from "../../../types.ts";
 import ErrorMessage from "../../common/ErrorMessage.tsx";
 import ValidationWarning from "../../common/ValidationWarning.tsx";
 import { useBaseToken } from "../../../hooks/useBaseToken.ts";
@@ -22,8 +16,12 @@ import { useClientWithStateManager } from "../../../hooks/useClientWithStateMana
 import BackButton from "../../common/BackButton.tsx";
 
 const namespace = "frontend:edit-product";
-const debug = logger(namespace);
 const errlog = logger(namespace, "error");
+
+type Image = {
+  blob: null | FormData;
+  url: string;
+};
 
 export default function EditProduct() {
   const navigate = useNavigate();
@@ -41,14 +39,10 @@ export default function EditProduct() {
   const [units, setUnits] = useState<number>(0);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [viewState, setViewState] = useState(
     ListingViewState.LISTING_VIEW_STATE_UNSPECIFIED,
   );
-  const [deleteConfirmation, setDeleteConfirm] = useState(false);
-  const [images, setImages] = useState<
-    { blob: null | FormData; url: string }[]
-  >([]);
+  const [images, setImages] = useState<Image[]>([]);
   const [publishing, setPublishing] = useState(false);
 
   const hed = editView ? "Edit product" : "Add Product";
@@ -58,13 +52,13 @@ export default function EditProduct() {
     if (editView && itemId && baseToken) {
       clientStateManager!
         .stateManager!.listings.get(itemId)
-        .then((item) => {
+        .then((item: Listing) => {
           setProductInView(item);
           setTitle(item.metadata.title);
           const price = formatUnitsFromString(item.price, baseToken!.decimals);
           setPrice(price);
           setImages(
-            item.metadata.images.map((img) => {
+            item.metadata.images.map((img: string) => {
               return { blob: null, url: img };
             }),
           );
@@ -91,15 +85,8 @@ export default function EditProduct() {
         id,
         units,
       );
-      if (selectedTags.length) {
-        selectedTags.map(async (t) => {
-          await clientStateManager!.stateManager!.listings.addListingToTag(
-            t.id,
-            id,
-          );
-        });
-      }
     } catch (error: unknown) {
+      assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Error creating listing", error);
       setErrorMsg("Error creating listing");
     }
@@ -123,32 +110,7 @@ export default function EditProduct() {
       if (newItem.metadata !== productInView!.metadata) {
         diff["metadata"] = newItem.metadata;
       }
-      //checking for diff in selected tags
-      const newTags = selectedTags.filter(
-        ({ id }) => !productInView!.tags.includes(id),
-      );
-      if (newTags.length) {
-        newTags.map(async ({ id }) => {
-          await clientStateManager!.stateManager!.listings.addListingToTag(
-            id,
-            itemId as ListingId,
-          );
-        });
-      }
-      //checking for any removed tags
-      const selectTagIds = selectedTags.map((t) => t.id);
-      const removedTags = productInView?.tags.filter(
-        (id: TagId) => !selectTagIds.includes(id),
-      );
-      if (removedTags?.length) {
-        removedTags.map(async (id: TagId) => {
-          await clientStateManager!.stateManager!.listings
-            .removeListingFromTag(
-              id,
-              itemId as ListingId,
-            );
-        });
-      }
+
       if (Object.keys(diff).length === 1) return;
       await clientStateManager!.stateManager!.listings.update(
         diff,
@@ -180,7 +142,7 @@ export default function EditProduct() {
       try {
         setPublishing(true);
         const uploaded = await Promise.all(
-          images.map(async (i) => {
+          images.map(async (i: Image) => {
             if (i.blob) {
               const { url } = await clientStateManager!.relayClient!
                 .uploadBlob(i.blob);
@@ -204,8 +166,8 @@ export default function EditProduct() {
           : await create(newItem);
         setPublishing(false);
         navigate({
-          to: "/products",
-          search: (prev) => ({
+          to: "/listings",
+          search: (prev: Record<string, string>) => ({
             ...prev,
           }),
         });
@@ -275,11 +237,11 @@ export default function EditProduct() {
   }
 
   function removeImg(img: { blob: null | FormData; url: string }) {
-    setImages(images.filter((i) => img.url !== i.url));
+    setImages(images.filter((i: Image) => img.url !== i.url));
   }
 
   return (
-    <main className="h-screen">
+    <main className="pt-4 px-3">
       <ValidationWarning
         warning={validationError}
         onClose={() => {
@@ -293,7 +255,7 @@ export default function EditProduct() {
         }}
       />
       <BackButton href="/products" />
-      <section className={`mt-2 ${deleteConfirmation ? "hidden" : ""}`}>
+      <section>
         <div className="flex">
           <h2>{hed}</h2>
         </div>
@@ -350,7 +312,7 @@ export default function EditProduct() {
               </button>
             </div>
             <div className="flex flex-wrap gap-2 mt-2 justify-start">
-              {images.map((img, i) => {
+              {images.map((img: Image, i: number) => {
                 return (
                   <div key={i} className="relative mb-2">
                     <img

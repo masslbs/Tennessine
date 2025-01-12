@@ -6,14 +6,12 @@ import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 
 import { Order, OrderState } from "../../types.ts";
-// import OrderDetails from "@/app/components/orders/OrderDetails";
-import { useClientWithStateManager } from "../../hooks/useClientWithStateManager";
+import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 
 export default function MerchantDashboard() {
   const { clientStateManager } = useClientWithStateManager();
 
   const [orders, setOrders] = useState(new Map());
-  const [viewOrderDetails, setOrderDetails] = useState(null);
 
   async function getAllOrders() {
     const allOrders = new Map();
@@ -112,7 +110,6 @@ export default function MerchantDashboard() {
         <div
           key={o.orderId}
           className="bg-white border-2  p-3 flex justify-between"
-          onClick={() => setOrderDetails(o.orderId)}
         >
           <p>{o.orderId?.slice(0, 10)}...</p>
           <p>{o.date}</p>
@@ -121,23 +118,15 @@ export default function MerchantDashboard() {
       );
     });
   };
-  //   if (viewOrderDetails) {
-  //     return (
-  //       <OrderDetails
-  //         order={orders.get(viewOrderDetails)}
-  //         onBack={() => setOrderDetails(null)}
-  //       />
-  //     );
-  //   }
 
   return (
-    <main className="h-screen">
+    <main className="h-screen p-4">
       <div className="mb-4">
         <h1>Dashboard</h1>
         <div className="flex flex-col gap-1 pt-4">
           <Link
             className="flex items-center gap-1 p-3 bg-white rounded-md"
-            href="/products"
+            href="/listings"
           >
             <p>View products</p>
             <img
@@ -150,8 +139,11 @@ export default function MerchantDashboard() {
           </Link>
           <Link
             className="flex items-center gap-1 p-3 bg-white rounded-md"
-            to="/edit-product"
-            search={(prev) => ({ ...prev, itemId: "new" })}
+            to="/edit-listing"
+            search={(prev: Record<string, string>) => ({
+              ...prev,
+              itemId: "new",
+            })}
           >
             Add new product
             <img

@@ -14,10 +14,10 @@ import { useBaseToken } from "../hooks/useBaseToken.ts";
 import { useClientWithStateManager } from "../hooks/useClientWithStateManager.ts";
 import { useKeycard } from "../hooks/useKeycard.ts";
 
-const namespace = "frontend:product-detail";
+const namespace = "frontend:listing-detail";
 const debug = logger(namespace);
 
-export default function ProductDetail() {
+export default function ListingDetail() {
   const { baseToken } = useBaseToken();
   const { clientStateManager } = useClientWithStateManager();
   const [keycard] = useKeycard();
@@ -29,11 +29,11 @@ export default function ProductDetail() {
   const [tokenIcon, setIcon] = useState("/icons/usdc-coin.png");
 
   useEffect(() => {
-    if (itemId) {
+    if (itemId && baseToken) {
       //set item details
       clientStateManager!.stateManager.listings
         .get(itemId)
-        .then((item) => {
+        .then((item: Listing) => {
           setItem(item);
           const price = formatUnitsFromString(
             item.price,
@@ -45,7 +45,7 @@ export default function ProductDetail() {
           setPrice(price);
         });
     }
-  }, [itemId]);
+  }, [itemId, baseToken]);
 
   if (!item) return null;
 
@@ -53,7 +53,7 @@ export default function ProductDetail() {
     <main className="h-screen bg-gray-100">
       <section className="h-[45rem] flex flex-col">
         <div className="m-4">
-          <BackButton href="/products" />
+          <BackButton href="/listings" />
           <div className="my-3 flex flex-col">
             <h1 data-testid="title">{item.metadata.title}</h1>
             <div
@@ -63,8 +63,11 @@ export default function ProductDetail() {
             >
               <Button custom="w-6/12">
                 <Link
-                  to="/edit-product"
-                  search={(prev) => ({ ...prev, itemId: item.id })}
+                  to="/edit-listing"
+                  search={(prev: Record<string, string>) => ({
+                    ...prev,
+                    itemId: item.id,
+                  })}
                 >
                   Edit Product
                 </Link>
@@ -88,7 +91,7 @@ export default function ProductDetail() {
             {item.metadata.images.length > 1
               ? (
                 <div className="flex mt-2 gap-2">
-                  {item.metadata.images.map((image, i) => {
+                  {item.metadata.images.map((image: string, i: number) => {
                     return (
                       <img
                         key={i}

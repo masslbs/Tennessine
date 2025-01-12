@@ -1,7 +1,7 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
-import EditProduct from "../components/merchants/products/EditProduct.tsx";
+import EditProduct from "../components/merchants/listings/EditListing.tsx";
 
-export const Route = createLazyFileRoute("/edit-product")({
+export const Route = createLazyFileRoute("/edit-listing")({
   component: RouteComponent,
 });
 

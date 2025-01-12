@@ -4,12 +4,14 @@
 
 import { useEffect, useState } from "react";
 
-import { useClientWithStateManager } from "../../../hooks/useClientWithStateManager";
-import MerchantViewProducts from "./MerchantViewProducts";
+import CustomerViewProducts from "./CustomerViewListings.tsx";
+import { useKeycard } from "../hooks/useKeycard.ts";
+import { useClientWithStateManager } from "../hooks/useClientWithStateManager.ts";
+import MerchantViewProducts from "./merchants/listings/MerchantViewListings.tsx";
 
 export default function Listings() {
   const { clientStateManager } = useClientWithStateManager();
-
+  const [keycard] = useKeycard();
   const [products, setProducts] = useState(new Map());
 
   async function getAllListings() {
@@ -73,8 +75,14 @@ export default function Listings() {
   }, []);
 
   return (
-    <main className="bg-background-gray h-screen">
-      <MerchantViewProducts products={Array.from([...products.values()])} />
+    <main className="bg-background-gray h-screen pt-4">
+      {keycard.role === "merchant"
+        ? <MerchantViewProducts products={Array.from([...products.values()])} />
+        : (
+          <CustomerViewProducts
+            products={Array.from([...products.values()])}
+          />
+        )}
     </main>
   );
 }

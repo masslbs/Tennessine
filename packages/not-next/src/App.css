@@ -2,11 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
+html, body, #root {
+  width: 100%;
+}
+
+a {
+  color: white;
+}
+
+input[type="checkbox"] {
+  appearance: none;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+input[type="checkbox"]:checked::after {
+  content: url("./icons/checkmark.svg");
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 3px;
+}
+
 body {
   overflow: visible;
   color: black;
-  background-color: white;
-  color: black;
+  background-color: #f3f3f3;
   h1 {
     font-size: 24px;
     font-weight: 700;
