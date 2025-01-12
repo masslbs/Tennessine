@@ -338,7 +338,7 @@ export default function () {
 
   if (step === "manifest form") {
     return (
-      <main className="pt-under-nav p-4 mt-2">
+      <main className="p-4 mt-2">
         <ValidationWarning
           warning={validationError}
           onClose={() => {
@@ -471,7 +471,7 @@ export default function () {
     );
   } else if (step === "connect wallet") {
     return (
-      <main className="pt-under-nav p-4 mt-5">
+      <main className="h-screen p-4">
         <ValidationWarning
           warning={validationError}
           onClose={() => {

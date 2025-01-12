@@ -17,8 +17,8 @@ import { Route as rootRoute } from "./routes/__root.tsx";
 // Create Virtual Routes
 
 const MerchantDashboardLazyImport = createFileRoute("/merchant-dashboard")();
+const EditProductLazyImport = createFileRoute("/edit-product")();
 const CreateShopLazyImport = createFileRoute("/create-shop")();
-const AboutLazyImport = createFileRoute("/about")();
 const IndexLazyImport = createFileRoute("/")();
 
 // Create/Update Routes
@@ -31,6 +31,14 @@ const MerchantDashboardLazyRoute = MerchantDashboardLazyImport.update({
   import("./routes/merchant-dashboard.lazy.tsx").then((d) => d.Route)
 );
 
+const EditProductLazyRoute = EditProductLazyImport.update({
+  id: "/edit-product",
+  path: "/edit-product",
+  getParentRoute: () => rootRoute,
+} as any).lazy(() =>
+  import("./routes/edit-product.lazy.tsx").then((d) => d.Route)
+);
+
 const CreateShopLazyRoute = CreateShopLazyImport.update({
   id: "/create-shop",
   path: "/create-shop",
@@ -38,12 +46,6 @@ const CreateShopLazyRoute = CreateShopLazyImport.update({
 } as any).lazy(() =>
   import("./routes/create-shop.lazy.tsx").then((d) => d.Route)
 );
-
-const AboutLazyRoute = AboutLazyImport.update({
-  id: "/about",
-  path: "/about",
-  getParentRoute: () => rootRoute,
-} as any).lazy(() => import("./routes/about.lazy.tsx").then((d) => d.Route));
 
 const IndexLazyRoute = IndexLazyImport.update({
   id: "/",
@@ -62,18 +64,18 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof IndexLazyImport;
       parentRoute: typeof rootRoute;
     };
-    "/about": {
-      id: "/about";
-      path: "/about";
-      fullPath: "/about";
-      preLoaderRoute: typeof AboutLazyImport;
-      parentRoute: typeof rootRoute;
-    };
     "/create-shop": {
       id: "/create-shop";
       path: "/create-shop";
       fullPath: "/create-shop";
       preLoaderRoute: typeof CreateShopLazyImport;
+      parentRoute: typeof rootRoute;
+    };
+    "/edit-product": {
+      id: "/edit-product";
+      path: "/edit-product";
+      fullPath: "/edit-product";
+      preLoaderRoute: typeof EditProductLazyImport;
       parentRoute: typeof rootRoute;
     };
     "/merchant-dashboard": {
@@ -90,46 +92,51 @@ declare module "@tanstack/react-router" {
 
 export interface FileRoutesByFullPath {
   "/": typeof IndexLazyRoute;
-  "/about": typeof AboutLazyRoute;
   "/create-shop": typeof CreateShopLazyRoute;
+  "/edit-product": typeof EditProductLazyRoute;
   "/merchant-dashboard": typeof MerchantDashboardLazyRoute;
 }
 
 export interface FileRoutesByTo {
   "/": typeof IndexLazyRoute;
-  "/about": typeof AboutLazyRoute;
   "/create-shop": typeof CreateShopLazyRoute;
+  "/edit-product": typeof EditProductLazyRoute;
   "/merchant-dashboard": typeof MerchantDashboardLazyRoute;
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute;
   "/": typeof IndexLazyRoute;
-  "/about": typeof AboutLazyRoute;
   "/create-shop": typeof CreateShopLazyRoute;
+  "/edit-product": typeof EditProductLazyRoute;
   "/merchant-dashboard": typeof MerchantDashboardLazyRoute;
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
-  fullPaths: "/" | "/about" | "/create-shop" | "/merchant-dashboard";
+  fullPaths: "/" | "/create-shop" | "/edit-product" | "/merchant-dashboard";
   fileRoutesByTo: FileRoutesByTo;
-  to: "/" | "/about" | "/create-shop" | "/merchant-dashboard";
-  id: "__root__" | "/" | "/about" | "/create-shop" | "/merchant-dashboard";
+  to: "/" | "/create-shop" | "/edit-product" | "/merchant-dashboard";
+  id:
+    | "__root__"
+    | "/"
+    | "/create-shop"
+    | "/edit-product"
+    | "/merchant-dashboard";
   fileRoutesById: FileRoutesById;
 }
 
 export interface RootRouteChildren {
   IndexLazyRoute: typeof IndexLazyRoute;
-  AboutLazyRoute: typeof AboutLazyRoute;
   CreateShopLazyRoute: typeof CreateShopLazyRoute;
+  EditProductLazyRoute: typeof EditProductLazyRoute;
   MerchantDashboardLazyRoute: typeof MerchantDashboardLazyRoute;
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexLazyRoute: IndexLazyRoute,
-  AboutLazyRoute: AboutLazyRoute,
   CreateShopLazyRoute: CreateShopLazyRoute,
+  EditProductLazyRoute: EditProductLazyRoute,
   MerchantDashboardLazyRoute: MerchantDashboardLazyRoute,
 };
 
@@ -144,19 +151,19 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/about",
         "/create-shop",
+        "/edit-product",
         "/merchant-dashboard"
       ]
     },
     "/": {
       "filePath": "index.lazy.tsx"
     },
-    "/about": {
-      "filePath": "about.lazy.tsx"
-    },
     "/create-shop": {
       "filePath": "create-shop.lazy.tsx"
+    },
+    "/edit-product": {
+      "filePath": "edit-product.lazy.tsx"
     },
     "/merchant-dashboard": {
       "filePath": "merchant-dashboard.lazy.tsx"
