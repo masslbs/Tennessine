@@ -54,7 +54,9 @@ export default function Confirmation() {
       <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg ">
         <h2 className="font-bold">Next steps</h2>
         <Button>
-          <Link href="/merchant-dashboard">View Dashboard</Link>
+          <Link to="/merchant-dashboard" search={(prev) => ({ ...prev })}>
+            View Dashboard
+          </Link>
         </Button>
       </section>
     </main>
