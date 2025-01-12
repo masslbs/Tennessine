@@ -8,227 +8,250 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router'
 
 // Import Routes
 
-import { Route as rootRoute } from "./routes/__root.tsx";
+import { Route as rootRoute } from './routes/__root.tsx'
 
 // Create Virtual Routes
 
-const MerchantDashboardLazyImport = createFileRoute("/merchant-dashboard")();
-const MerchantConnectLazyImport = createFileRoute("/merchant-connect")();
-const ListingsLazyImport = createFileRoute("/listings")();
-const ListingDetailLazyImport = createFileRoute("/listing-detail")();
-const EditListingLazyImport = createFileRoute("/edit-listing")();
-const CreateShopLazyImport = createFileRoute("/create-shop")();
-const ConnectConfirmLazyImport = createFileRoute("/connect-confirm")();
-const IndexLazyImport = createFileRoute("/")();
+const MerchantDashboardLazyImport = createFileRoute('/merchant-dashboard')()
+const MerchantConnectLazyImport = createFileRoute('/merchant-connect')()
+const ListingsLazyImport = createFileRoute('/listings')()
+const ListingDetailLazyImport = createFileRoute('/listing-detail')()
+const EditProductLazyImport = createFileRoute('/edit-product')()
+const EditListingLazyImport = createFileRoute('/edit-listing')()
+const CreateShopLazyImport = createFileRoute('/create-shop')()
+const ConnectConfirmLazyImport = createFileRoute('/connect-confirm')()
+const IndexLazyImport = createFileRoute('/')()
 
 // Create/Update Routes
 
 const MerchantDashboardLazyRoute = MerchantDashboardLazyImport.update({
-  id: "/merchant-dashboard",
-  path: "/merchant-dashboard",
+  id: '/merchant-dashboard',
+  path: '/merchant-dashboard',
   getParentRoute: () => rootRoute,
 } as any).lazy(() =>
-  import("./routes/merchant-dashboard.lazy.tsx").then((d) => d.Route)
-);
+  import('./routes/merchant-dashboard.lazy.tsx').then((d) => d.Route),
+)
 
 const MerchantConnectLazyRoute = MerchantConnectLazyImport.update({
-  id: "/merchant-connect",
-  path: "/merchant-connect",
+  id: '/merchant-connect',
+  path: '/merchant-connect',
   getParentRoute: () => rootRoute,
 } as any).lazy(() =>
-  import("./routes/merchant-connect.lazy.tsx").then((d) => d.Route)
-);
+  import('./routes/merchant-connect.lazy.tsx').then((d) => d.Route),
+)
 
 const ListingsLazyRoute = ListingsLazyImport.update({
-  id: "/listings",
-  path: "/listings",
+  id: '/listings',
+  path: '/listings',
   getParentRoute: () => rootRoute,
-} as any).lazy(() => import("./routes/listings.lazy.tsx").then((d) => d.Route));
+} as any).lazy(() => import('./routes/listings.lazy.tsx').then((d) => d.Route))
 
 const ListingDetailLazyRoute = ListingDetailLazyImport.update({
-  id: "/listing-detail",
-  path: "/listing-detail",
+  id: '/listing-detail',
+  path: '/listing-detail',
   getParentRoute: () => rootRoute,
 } as any).lazy(() =>
-  import("./routes/listing-detail.lazy.tsx").then((d) => d.Route)
-);
+  import('./routes/listing-detail.lazy.tsx').then((d) => d.Route),
+)
+
+const EditProductLazyRoute = EditProductLazyImport.update({
+  id: '/edit-product',
+  path: '/edit-product',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() =>
+  import('./routes/edit-product.lazy.tsx').then((d) => d.Route),
+)
 
 const EditListingLazyRoute = EditListingLazyImport.update({
-  id: "/edit-listing",
-  path: "/edit-listing",
+  id: '/edit-listing',
+  path: '/edit-listing',
   getParentRoute: () => rootRoute,
 } as any).lazy(() =>
-  import("./routes/edit-listing.lazy.tsx").then((d) => d.Route)
-);
+  import('./routes/edit-listing.lazy.tsx').then((d) => d.Route),
+)
 
 const CreateShopLazyRoute = CreateShopLazyImport.update({
-  id: "/create-shop",
-  path: "/create-shop",
+  id: '/create-shop',
+  path: '/create-shop',
   getParentRoute: () => rootRoute,
 } as any).lazy(() =>
-  import("./routes/create-shop.lazy.tsx").then((d) => d.Route)
-);
+  import('./routes/create-shop.lazy.tsx').then((d) => d.Route),
+)
 
 const ConnectConfirmLazyRoute = ConnectConfirmLazyImport.update({
-  id: "/connect-confirm",
-  path: "/connect-confirm",
+  id: '/connect-confirm',
+  path: '/connect-confirm',
   getParentRoute: () => rootRoute,
 } as any).lazy(() =>
-  import("./routes/connect-confirm.lazy.tsx").then((d) => d.Route)
-);
+  import('./routes/connect-confirm.lazy.tsx').then((d) => d.Route),
+)
 
 const IndexLazyRoute = IndexLazyImport.update({
-  id: "/",
-  path: "/",
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRoute,
-} as any).lazy(() => import("./routes/index.lazy.tsx").then((d) => d.Route));
+} as any).lazy(() => import('./routes/index.lazy.tsx').then((d) => d.Route))
 
 // Populate the FileRoutesByPath interface
 
-declare module "@tanstack/react-router" {
+declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    "/": {
-      id: "/";
-      path: "/";
-      fullPath: "/";
-      preLoaderRoute: typeof IndexLazyImport;
-      parentRoute: typeof rootRoute;
-    };
-    "/connect-confirm": {
-      id: "/connect-confirm";
-      path: "/connect-confirm";
-      fullPath: "/connect-confirm";
-      preLoaderRoute: typeof ConnectConfirmLazyImport;
-      parentRoute: typeof rootRoute;
-    };
-    "/create-shop": {
-      id: "/create-shop";
-      path: "/create-shop";
-      fullPath: "/create-shop";
-      preLoaderRoute: typeof CreateShopLazyImport;
-      parentRoute: typeof rootRoute;
-    };
-    "/edit-listing": {
-      id: "/edit-listing";
-      path: "/edit-listing";
-      fullPath: "/edit-listing";
-      preLoaderRoute: typeof EditListingLazyImport;
-      parentRoute: typeof rootRoute;
-    };
-    "/listing-detail": {
-      id: "/listing-detail";
-      path: "/listing-detail";
-      fullPath: "/listing-detail";
-      preLoaderRoute: typeof ListingDetailLazyImport;
-      parentRoute: typeof rootRoute;
-    };
-    "/listings": {
-      id: "/listings";
-      path: "/listings";
-      fullPath: "/listings";
-      preLoaderRoute: typeof ListingsLazyImport;
-      parentRoute: typeof rootRoute;
-    };
-    "/merchant-connect": {
-      id: "/merchant-connect";
-      path: "/merchant-connect";
-      fullPath: "/merchant-connect";
-      preLoaderRoute: typeof MerchantConnectLazyImport;
-      parentRoute: typeof rootRoute;
-    };
-    "/merchant-dashboard": {
-      id: "/merchant-dashboard";
-      path: "/merchant-dashboard";
-      fullPath: "/merchant-dashboard";
-      preLoaderRoute: typeof MerchantDashboardLazyImport;
-      parentRoute: typeof rootRoute;
-    };
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/connect-confirm': {
+      id: '/connect-confirm'
+      path: '/connect-confirm'
+      fullPath: '/connect-confirm'
+      preLoaderRoute: typeof ConnectConfirmLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/create-shop': {
+      id: '/create-shop'
+      path: '/create-shop'
+      fullPath: '/create-shop'
+      preLoaderRoute: typeof CreateShopLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/edit-listing': {
+      id: '/edit-listing'
+      path: '/edit-listing'
+      fullPath: '/edit-listing'
+      preLoaderRoute: typeof EditListingLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/edit-product': {
+      id: '/edit-product'
+      path: '/edit-product'
+      fullPath: '/edit-product'
+      preLoaderRoute: typeof EditProductLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/listing-detail': {
+      id: '/listing-detail'
+      path: '/listing-detail'
+      fullPath: '/listing-detail'
+      preLoaderRoute: typeof ListingDetailLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/listings': {
+      id: '/listings'
+      path: '/listings'
+      fullPath: '/listings'
+      preLoaderRoute: typeof ListingsLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/merchant-connect': {
+      id: '/merchant-connect'
+      path: '/merchant-connect'
+      fullPath: '/merchant-connect'
+      preLoaderRoute: typeof MerchantConnectLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/merchant-dashboard': {
+      id: '/merchant-dashboard'
+      path: '/merchant-dashboard'
+      fullPath: '/merchant-dashboard'
+      preLoaderRoute: typeof MerchantDashboardLazyImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
 // Create and export the route tree
 
 export interface FileRoutesByFullPath {
-  "/": typeof IndexLazyRoute;
-  "/connect-confirm": typeof ConnectConfirmLazyRoute;
-  "/create-shop": typeof CreateShopLazyRoute;
-  "/edit-listing": typeof EditListingLazyRoute;
-  "/listing-detail": typeof ListingDetailLazyRoute;
-  "/listings": typeof ListingsLazyRoute;
-  "/merchant-connect": typeof MerchantConnectLazyRoute;
-  "/merchant-dashboard": typeof MerchantDashboardLazyRoute;
+  '/': typeof IndexLazyRoute
+  '/connect-confirm': typeof ConnectConfirmLazyRoute
+  '/create-shop': typeof CreateShopLazyRoute
+  '/edit-listing': typeof EditListingLazyRoute
+  '/edit-product': typeof EditProductLazyRoute
+  '/listing-detail': typeof ListingDetailLazyRoute
+  '/listings': typeof ListingsLazyRoute
+  '/merchant-connect': typeof MerchantConnectLazyRoute
+  '/merchant-dashboard': typeof MerchantDashboardLazyRoute
 }
 
 export interface FileRoutesByTo {
-  "/": typeof IndexLazyRoute;
-  "/connect-confirm": typeof ConnectConfirmLazyRoute;
-  "/create-shop": typeof CreateShopLazyRoute;
-  "/edit-listing": typeof EditListingLazyRoute;
-  "/listing-detail": typeof ListingDetailLazyRoute;
-  "/listings": typeof ListingsLazyRoute;
-  "/merchant-connect": typeof MerchantConnectLazyRoute;
-  "/merchant-dashboard": typeof MerchantDashboardLazyRoute;
+  '/': typeof IndexLazyRoute
+  '/connect-confirm': typeof ConnectConfirmLazyRoute
+  '/create-shop': typeof CreateShopLazyRoute
+  '/edit-listing': typeof EditListingLazyRoute
+  '/edit-product': typeof EditProductLazyRoute
+  '/listing-detail': typeof ListingDetailLazyRoute
+  '/listings': typeof ListingsLazyRoute
+  '/merchant-connect': typeof MerchantConnectLazyRoute
+  '/merchant-dashboard': typeof MerchantDashboardLazyRoute
 }
 
 export interface FileRoutesById {
-  __root__: typeof rootRoute;
-  "/": typeof IndexLazyRoute;
-  "/connect-confirm": typeof ConnectConfirmLazyRoute;
-  "/create-shop": typeof CreateShopLazyRoute;
-  "/edit-listing": typeof EditListingLazyRoute;
-  "/listing-detail": typeof ListingDetailLazyRoute;
-  "/listings": typeof ListingsLazyRoute;
-  "/merchant-connect": typeof MerchantConnectLazyRoute;
-  "/merchant-dashboard": typeof MerchantDashboardLazyRoute;
+  __root__: typeof rootRoute
+  '/': typeof IndexLazyRoute
+  '/connect-confirm': typeof ConnectConfirmLazyRoute
+  '/create-shop': typeof CreateShopLazyRoute
+  '/edit-listing': typeof EditListingLazyRoute
+  '/edit-product': typeof EditProductLazyRoute
+  '/listing-detail': typeof ListingDetailLazyRoute
+  '/listings': typeof ListingsLazyRoute
+  '/merchant-connect': typeof MerchantConnectLazyRoute
+  '/merchant-dashboard': typeof MerchantDashboardLazyRoute
 }
 
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath;
+  fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | "/"
-    | "/connect-confirm"
-    | "/create-shop"
-    | "/edit-listing"
-    | "/listing-detail"
-    | "/listings"
-    | "/merchant-connect"
-    | "/merchant-dashboard";
-  fileRoutesByTo: FileRoutesByTo;
+    | '/'
+    | '/connect-confirm'
+    | '/create-shop'
+    | '/edit-listing'
+    | '/edit-product'
+    | '/listing-detail'
+    | '/listings'
+    | '/merchant-connect'
+    | '/merchant-dashboard'
+  fileRoutesByTo: FileRoutesByTo
   to:
-    | "/"
-    | "/connect-confirm"
-    | "/create-shop"
-    | "/edit-listing"
-    | "/listing-detail"
-    | "/listings"
-    | "/merchant-connect"
-    | "/merchant-dashboard";
+    | '/'
+    | '/connect-confirm'
+    | '/create-shop'
+    | '/edit-listing'
+    | '/edit-product'
+    | '/listing-detail'
+    | '/listings'
+    | '/merchant-connect'
+    | '/merchant-dashboard'
   id:
-    | "__root__"
-    | "/"
-    | "/connect-confirm"
-    | "/create-shop"
-    | "/edit-listing"
-    | "/listing-detail"
-    | "/listings"
-    | "/merchant-connect"
-    | "/merchant-dashboard";
-  fileRoutesById: FileRoutesById;
+    | '__root__'
+    | '/'
+    | '/connect-confirm'
+    | '/create-shop'
+    | '/edit-listing'
+    | '/edit-product'
+    | '/listing-detail'
+    | '/listings'
+    | '/merchant-connect'
+    | '/merchant-dashboard'
+  fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
-  IndexLazyRoute: typeof IndexLazyRoute;
-  ConnectConfirmLazyRoute: typeof ConnectConfirmLazyRoute;
-  CreateShopLazyRoute: typeof CreateShopLazyRoute;
-  EditListingLazyRoute: typeof EditListingLazyRoute;
-  ListingDetailLazyRoute: typeof ListingDetailLazyRoute;
-  ListingsLazyRoute: typeof ListingsLazyRoute;
-  MerchantConnectLazyRoute: typeof MerchantConnectLazyRoute;
-  MerchantDashboardLazyRoute: typeof MerchantDashboardLazyRoute;
+  IndexLazyRoute: typeof IndexLazyRoute
+  ConnectConfirmLazyRoute: typeof ConnectConfirmLazyRoute
+  CreateShopLazyRoute: typeof CreateShopLazyRoute
+  EditListingLazyRoute: typeof EditListingLazyRoute
+  EditProductLazyRoute: typeof EditProductLazyRoute
+  ListingDetailLazyRoute: typeof ListingDetailLazyRoute
+  ListingsLazyRoute: typeof ListingsLazyRoute
+  MerchantConnectLazyRoute: typeof MerchantConnectLazyRoute
+  MerchantDashboardLazyRoute: typeof MerchantDashboardLazyRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -236,15 +259,16 @@ const rootRouteChildren: RootRouteChildren = {
   ConnectConfirmLazyRoute: ConnectConfirmLazyRoute,
   CreateShopLazyRoute: CreateShopLazyRoute,
   EditListingLazyRoute: EditListingLazyRoute,
+  EditProductLazyRoute: EditProductLazyRoute,
   ListingDetailLazyRoute: ListingDetailLazyRoute,
   ListingsLazyRoute: ListingsLazyRoute,
   MerchantConnectLazyRoute: MerchantConnectLazyRoute,
   MerchantDashboardLazyRoute: MerchantDashboardLazyRoute,
-};
+}
 
 export const routeTree = rootRoute
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>();
+  ._addFileTypes<FileRouteTypes>()
 
 /* ROUTE_MANIFEST_START
 {
@@ -256,6 +280,7 @@ export const routeTree = rootRoute
         "/connect-confirm",
         "/create-shop",
         "/edit-listing",
+        "/edit-product",
         "/listing-detail",
         "/listings",
         "/merchant-connect",
@@ -273,6 +298,9 @@ export const routeTree = rootRoute
     },
     "/edit-listing": {
       "filePath": "edit-listing.lazy.tsx"
+    },
+    "/edit-product": {
+      "filePath": "edit-product.lazy.tsx"
     },
     "/listing-detail": {
       "filePath": "listing-detail.lazy.tsx"
