@@ -28,20 +28,6 @@ const IndexLazyImport = createFileRoute('/')()
 
 // Create/Update Routes
 
-const ProductsLazyRoute = ProductsLazyImport.update({
-  id: "/products",
-  path: "/products",
-  getParentRoute: () => rootRoute,
-} as any).lazy(() => import("./routes/products.lazy.tsx").then((d) => d.Route));
-
-const ProductDetailLazyRoute = ProductDetailLazyImport.update({
-  id: "/product-detail",
-  path: "/product-detail",
-  getParentRoute: () => rootRoute,
-} as any).lazy(() =>
-  import("./routes/product-detail.lazy.tsx").then((d) => d.Route)
-);
-
 const MerchantDashboardLazyRoute = MerchantDashboardLazyImport.update({
   id: '/merchant-dashboard',
   path: '/merchant-dashboard',
@@ -327,12 +313,6 @@ export const routeTree = rootRoute
     },
     "/merchant-dashboard": {
       "filePath": "merchant-dashboard.lazy.tsx"
-    },
-    "/product-detail": {
-      "filePath": "product-detail.lazy.tsx"
-    },
-    "/products": {
-      "filePath": "products.lazy.tsx"
     }
   }
 }
