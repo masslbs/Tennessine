@@ -14,7 +14,7 @@ export default function Confirmation() {
   }
 
   return (
-    <main className="pt-under-nav p-4 mt-5">
+    <main>
       <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg items-center">
         <img
           src="/icons/smiley.svg"
@@ -40,7 +40,7 @@ export default function Confirmation() {
           <div className="bg-background-gray p-2 rounded-md overflow-x-auto w-40">
             <p>{String(shopId)}</p>
           </div>
-          <button onClick={copyToClipboard}>
+          <button onClick={copyToClipboard} className="bg-white p-0">
             <img
               src="/icons/copy-icon.svg"
               width={20}
