@@ -44,6 +44,14 @@ const MerchantConnectLazyRoute = MerchantConnectLazyImport.update({
   import('./routes/merchant-connect.lazy.tsx').then((d) => d.Route),
 )
 
+const MerchantConnectLazyRoute = MerchantConnectLazyImport.update({
+  id: "/merchant-connect",
+  path: "/merchant-connect",
+  getParentRoute: () => rootRoute,
+} as any).lazy(() =>
+  import("./routes/merchant-connect.lazy.tsx").then((d) => d.Route)
+);
+
 const ListingsLazyRoute = ListingsLazyImport.update({
   id: '/listings',
   path: '/listings',
@@ -89,6 +97,14 @@ const ConnectConfirmLazyRoute = ConnectConfirmLazyImport.update({
 } as any).lazy(() =>
   import('./routes/connect-confirm.lazy.tsx').then((d) => d.Route),
 )
+
+const ConnectConfirmLazyRoute = ConnectConfirmLazyImport.update({
+  id: "/connect-confirm",
+  path: "/connect-confirm",
+  getParentRoute: () => rootRoute,
+} as any).lazy(() =>
+  import("./routes/connect-confirm.lazy.tsx").then((d) => d.Route)
+);
 
 const IndexLazyRoute = IndexLazyImport.update({
   id: '/',
