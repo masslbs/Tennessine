@@ -1,6 +1,6 @@
 import React, { StrictMode } from "react";
 import { assertEquals } from "jsr:@std/assert";
-import { cleanup, renderHook } from "npm:@testing-library/react";
+import { cleanup, renderHook, waitFor } from "npm:@testing-library/react";
 import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
 import {
   createMemoryHistory,
@@ -60,18 +60,19 @@ const createWrapper = (shopId: string | null = null) => {
 Deno.test("useClientWithStateManager", async (t) => {
   GlobalRegistrator.register({});
 
-  await t.step("should return client when shopId is provided", () => {
+  await t.step("should return client when shopId is provided", async () => {
     const wrapper = createWrapper("123");
-    Deno.env.set("NEXT_PUBLIC_CHAIN_NAME", "sepolia");
-    Deno.env.set("NEXT_PUBLIC_RELAY_ENDPOINT", "http://example.com");
-    Deno.env.set("NEXT_PUBLIC_RELAY_TOKEN_ID", "0x123456");
+
     const { result, unmount } = renderHook(() => useClientWithStateManager(), {
       wrapper,
     });
 
-    assertEquals(typeof result.current.clientStateManager, "object");
-    assertEquals(result.current.clientStateManager !== null, true);
-    assertEquals(result.current.clientStateManager.shopId, BigInt(123));
+    await waitFor(() => {
+      assertEquals(typeof result.current.clientStateManager, "object");
+      assertEquals(result.current.clientStateManager !== null, true);
+      assertEquals(result.current.clientStateManager.shopId, BigInt(123));
+    });
+
     unmount();
   });
 

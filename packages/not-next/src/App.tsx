@@ -1,11 +1,7 @@
 import { type Config, WagmiProvider } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
-import {
-  ConnectButton,
-  getDefaultConfig,
-  RainbowKitProvider,
-} from "@rainbow-me/rainbowkit";
+import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { MassMarketProvider } from "./MassMarketContext.tsx";
 import { getConfig } from "./wagmi.ts";
 import { routeTree } from "./routeTree.gen.ts";
@@ -17,20 +13,20 @@ export default function App({
   wagmiConfig = getConfig(),
 }: {
   wagmiConfig?: ReturnType<typeof getDefaultConfig> | Config;
+  children?: React.ReactNode;
 }) {
   return (
-    <>
-      <RouterProvider router={router} />
+    <QueryClientProvider client={queryClient}>
       <WagmiProvider config={wagmiConfig}>
-        <QueryClientProvider client={queryClient}>
-          <MassMarketProvider>
-            <RainbowKitProvider>
-              <ConnectButton />
-              <div data-testid="hello">hello!</div>
-            </RainbowKitProvider>
-          </MassMarketProvider>
-        </QueryClientProvider>
+        <MassMarketProvider>
+          <RainbowKitProvider>
+            <RouterProvider router={router} />
+            <main>
+              <h1 data-testid="homepage" className="text-4xl">Mass Market</h1>
+            </main>
+          </RainbowKitProvider>
+        </MassMarketProvider>
       </WagmiProvider>
-    </>
+    </QueryClientProvider>
   );
 }

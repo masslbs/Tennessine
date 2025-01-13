@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { logger } from "@massmarket/utils";
 import { discoverRelay, type RelayEndpoint } from "@massmarket/client";
-import process from "node:process";
 
 const namespace = "frontend:useRelayEnpoint";
 const debug = logger(namespace);
@@ -11,10 +10,10 @@ export function useRelayEndpoint() {
     null,
   );
   function getRelayEndpoint() {
-    if (process && process.env["NEXT_PUBLIC_RELAY_TOKEN_ID"]) {
+    if (import.meta.env?.["VITE_RELAY_TOKEN_ID"]) {
       const re = {
-        url: new URL(process.env["NEXT_PUBLIC_RELAY_ENDPOINT"] as string),
-        tokenId: process.env["NEXT_PUBLIC_RELAY_TOKEN_ID"] as `0x${string}`,
+        url: new URL(import.meta.env?.["VITE_RELAY_ENDPOINT"] as string),
+        tokenId: import.meta.env?.["VITE_RELAY_TOKEN_ID"] as `0x${string}`,
       };
       setRelayEndpoint(re);
       debug(`using environment variables for relay endpoint ${re.url}`);
