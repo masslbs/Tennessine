@@ -16,7 +16,7 @@ export class ClientWithStateManager {
   public relayClient: RelayClient | null = null;
 
   constructor(
-    public readonly keycard: `0x${string}`,
+    public keycard: `0x${string}`,
     public readonly publicClient: PublicClient,
     public readonly shopId: ShopId,
     public readonly relayEndpoint: RelayEndpoint,
