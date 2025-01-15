@@ -214,8 +214,6 @@ export default function () {
         throw Error("Failed to enroll keycard");
       }
 
-      // FIXME: for now we are instantiating sm after kc enroll. The reason is because we want to create a unique db name based on keycard.
-      // TODO: see if it would be cleaner to pass the KC as a param
       await clientStateManager!.createStateManager();
       debug("StateManager created");
 

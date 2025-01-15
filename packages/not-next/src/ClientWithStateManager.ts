@@ -91,17 +91,9 @@ export class ClientWithStateManager {
     return this.relayClient;
   }
 
-  async setClientAndConnect(kc: `0x${string}`) {
-    if (!this.relayEndpoint?.url) throw new Error("Relay endpoint URL not set");
-    if (!this.relayEndpoint?.tokenId) {
-      throw new Error("Relay endpoint tokenId not set");
-    }
-    const keyCardWallet = privateKeyToAccount(kc);
-    this.relayClient = new RelayClient({
-      relayEndpoint: this.relayEndpoint!,
-      keyCardWallet,
-    });
-    await this.createStateManager();
+  async connectAndAuthenticate() {
+    const keyCardWallet = privateKeyToAccount(this.keycard);
+    this.createStateManager();
     const eventNonceCounter = await this.stateManager!.keycardNonce.get(
       keyCardWallet.address,
     );
@@ -109,7 +101,6 @@ export class ClientWithStateManager {
     this.relayClient.nonce = eventNonceCounter + 1;
     await this.relayClient.connect();
     await this.relayClient.authenticate();
-    return this.relayClient;
   }
 
   async sendMerchantSubscriptionRequest() {
@@ -126,13 +117,5 @@ export class ClientWithStateManager {
       this.shopId,
       seqNo,
     );
-  }
-
-  async sendGuestSubscriptionRequest() {
-    this.createNewRelayClient();
-    await this.createStateManager();
-    await this.relayClient!.connect();
-    const seqNo = await this.stateManager!.manifest.getSeqNo();
-    return this.relayClient!.sendGuestSubscriptionRequest(this.shopId, seqNo);
   }
 }
