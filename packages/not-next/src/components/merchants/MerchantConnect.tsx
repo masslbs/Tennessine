@@ -28,6 +28,7 @@ export default function MerchantConnect() {
   const [keycard, setKeycard] = useKeycard();
   const { clientStateManager } = useClientWithStateManager();
   const navigate = useNavigate({ from: "/merchant-connect" });
+
   const [searchShopId, setSearchShopId] = useState<string>("");
   const [step, setStep] = useState<"search" | "connect">(
     "search",

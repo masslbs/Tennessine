@@ -58,7 +58,7 @@ export function useClientWithStateManager() {
       await clientStateManager.connectAndAuthenticate();
       await clientStateManager.sendGuestCheckoutSubscriptionRequest();
     } else if (keycard?.role === "guest-new" && clientStateManager) {
-      console.log("enrolling guest keycard");
+      debug("Success: Enrolling new guest keycard");
       const guestWallet = createWalletClient({
         account: privateKeyToAccount(random32BytesHex()),
         chain,
@@ -75,13 +75,12 @@ export function useClientWithStateManager() {
       if (!res.ok) {
         throw new Error(`Failed to enroll keycard: ${res.error}`);
       }
-      debug("Success enrolling guest keycard");
+      debug("Success: Enrolled new guest keycard");
       await clientStateManager.connectAndAuthenticate();
       //Set keycard role to guest-returning so we don't try enrolling again on refresh
       setKeycard({ ...keycard, role: "guest-returning" });
       await clientStateManager.sendGuestCheckoutSubscriptionRequest();
-      console.log("success:sendGuestCheckoutSubscriptionRequest");
-      debug("Success sending guest subscription request");
+      debug("Success: sendGuestCheckoutSubscriptionRequest");
     }
     return { clientConnected: true };
   }, [clientStateManager?.keycard]);

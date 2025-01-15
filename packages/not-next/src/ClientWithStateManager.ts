@@ -23,9 +23,8 @@ export class ClientWithStateManager {
   ) {}
 
   createStateManager() {
-    const merchantKC = localStorage.getItem("merchantKC");
-    const dbName = `${String(this.shopId).slice(0, 7)}${
-      merchantKC ? merchantKC.slice(0, 5) : "-guest"
+    const dbName = `${String(this.shopId).slice(0, 5)}-${
+      this.keycard.slice(0, 5)
     }`;
     debug(`using level db: ${dbName}`);
     const encOption = { valueEncoding: "json" };
