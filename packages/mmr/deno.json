@@ -1,0 +1,6 @@
+{
+  "name": "mmr",
+  "version": "0.0.0",
+  "description": "A persistent Merkle Mountain Range (MMR) implementation for Node.js & Browser",
+  "exports": "./mod.ts"
+}

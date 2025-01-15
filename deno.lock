@@ -13,6 +13,7 @@
     "npm:@happy-dom/global-registrator@*": "15.11.7",
     "npm:@noble/curves@1.6.0": "1.6.0",
     "npm:@noble/curves@1.7.0": "1.7.0",
+    "npm:@noble/hashes@*": "1.6.1",
     "npm:@noble/hashes@1.5.0": "1.5.0",
     "npm:@noble/hashes@1.6.1": "1.6.1",
     "npm:@rainbow-me/rainbowkit@^2.2.0": "2.2.1_@tanstack+react-query@5.62.11__react@18.3.1_react@18.3.1_react-dom@18.3.1__react@18.3.1_viem@2.21.55__ws@8.18.0_wagmi@2.14.6__@tanstack+react-query@5.62.11___react@18.3.1__react@18.3.1__viem@2.21.55___ws@8.18.0__@wagmi+core@2.16.3___viem@2.21.55____ws@8.18.0___@types+react@18.3.16___react@18.3.1___use-sync-external-store@1.2.0____react@18.3.1__@types+react@18.3.16__use-sync-external-store@1.2.0___react@18.3.1_@vanilla-extract+css@1.15.5_@types+react@18.3.16",
@@ -42,6 +43,7 @@
     "npm:browser-level@*": "2.0.0",
     "npm:isows@*": "1.0.6_ws@8.18.0",
     "npm:isows@1.0.6": "1.0.6_ws@8.18.0",
+    "npm:level@*": "8.0.1",
     "npm:long@*": "5.2.3",
     "npm:memory-level@*": "2.0.0",
     "npm:postcss@^8.4.49": "8.4.49",
@@ -1777,12 +1779,24 @@
     "abitype@1.0.7": {
       "integrity": "sha512-ZfYYSktDQUwc2eduYu8C4wOs+RDPmnRYMh7zNfzeMtGGgb0U+6tLGjixUic6mXf5xKKCcgT5Qp6cv39tOARVFw=="
     },
+    "abstract-level@1.0.4": {
+      "integrity": "sha512-eUP/6pbXBkMbXFdx4IH2fVgvB7M0JvR7/lIL33zcs0IBcwjdzSSl31TOJsaCzmKSSDF9h8QYSOJux4Nd4YJqFg==",
+      "dependencies": [
+        "buffer@6.0.3",
+        "catering",
+        "is-buffer",
+        "level-supports@4.0.1",
+        "level-transcoder",
+        "module-error",
+        "queue-microtask"
+      ]
+    },
     "abstract-level@2.0.1": {
       "integrity": "sha512-Btj350DnlLiEvcEli64YG2jwoCUdoYoxELcfJBIE6QC+1Gjk+IEuqlY2TWS5eoGa5W+fCwHu3+fLLDSdOmsklg==",
       "dependencies": [
         "buffer@6.0.3",
         "is-buffer",
-        "level-supports",
+        "level-supports@6.0.0",
         "level-transcoder",
         "maybe-combine-errors",
         "module-error"
@@ -1935,10 +1949,19 @@
     "brorand@1.1.0": {
       "integrity": "sha512-cKV8tMCEpQs4hK/ik71d6LrPOnpkpGBR0wzxqr68g2m/LB2GxVYQroAjMJZRVM1Y4BCjCKc3vAamxSzOY2RP+w=="
     },
+    "browser-level@1.0.1": {
+      "integrity": "sha512-XECYKJ+Dbzw0lbydyQuJzwNXtOpbMSq737qxJN11sIRTErOMShvDpbzTlgju7orJKvx4epULolZAuJGLzCmWRQ==",
+      "dependencies": [
+        "abstract-level@1.0.4",
+        "catering",
+        "module-error",
+        "run-parallel-limit"
+      ]
+    },
     "browser-level@2.0.0": {
       "integrity": "sha512-RuYSCHG/jwFCrK+KWA3dLSUNLKHEgIYhO5ORPjJMjCt7T3e+RzpIDmYKWRHxq2pfKGXjlRuEff7y7RESAAgzew==",
       "dependencies": [
-        "abstract-level"
+        "abstract-level@2.0.1"
       ]
     },
     "browser-resolve@2.0.0": {
@@ -2081,6 +2104,9 @@
     "caniuse-lite@1.0.30001688": {
       "integrity": "sha512-Nmqpru91cuABu/DTCXbM2NSRHzM2uVHfPnhJ/1zEAJx/ILBRVmz3pzH4N7DZqbdG0gWClsCC05Oj0mJ/1AWMbA=="
     },
+    "catering@2.1.1": {
+      "integrity": "sha512-K7Qy8O9p76sL3/3m7/zLKbRkyOlSZAgzEaLhyj2mXS8PsCud2Eo4hAb8aLtZqHh0QGqLcb9dlJSu6lHRVENm1w=="
+    },
     "catharsis@0.9.0": {
       "integrity": "sha512-prMTQVpcns/tzFgFVkVp6ak6RykZyWb3gu8ckUpd6YkTlacOd3DXGJjIpD4Q6zJirizvaiAjSSHlOsA+6sNh2A==",
       "dependencies": [
@@ -2124,6 +2150,16 @@
       "dependencies": [
         "inherits",
         "safe-buffer@5.2.1"
+      ]
+    },
+    "classic-level@1.4.1": {
+      "integrity": "sha512-qGx/KJl3bvtOHrGau2WklEZuXhS3zme+jf+fsu6Ej7W7IP/C49v7KNlWIsT1jZu0YnfzSIYDGcEWpCa1wKGWXQ==",
+      "dependencies": [
+        "abstract-level@1.0.4",
+        "catering",
+        "module-error",
+        "napi-macros",
+        "node-gyp-build"
       ]
     },
     "cli-cursor@4.0.0": {
@@ -3126,6 +3162,9 @@
         "graceful-fs"
       ]
     },
+    "level-supports@4.0.1": {
+      "integrity": "sha512-PbXpve8rKeNcZ9C1mUicC9auIYFyGpkV9/i6g76tLgANwWhtG2v7I4xNBUlkn3lE2/dZF3Pi0ygYGtLc4RXXdA=="
+    },
     "level-supports@6.0.0": {
       "integrity": "sha512-UU226PsfiFWLRPmuqgB3eADtvZM8WYv+aCnAl93B/2Ca+vgn9+b7o2boA7yOY2ri7Kk5Wk4aHxl3eNimpYZnxw=="
     },
@@ -3134,6 +3173,14 @@
       "dependencies": [
         "buffer@6.0.3",
         "module-error"
+      ]
+    },
+    "level@8.0.1": {
+      "integrity": "sha512-oPBGkheysuw7DmzFQYyFe8NAia5jFLAgEnkgWnK3OXAuJr8qFT+xBQIwokAZPME2bhPFzS8hlYcL16m8UZrtwQ==",
+      "dependencies": [
+        "abstract-level@1.0.4",
+        "browser-level@1.0.1",
+        "classic-level"
       ]
     },
     "levn@0.3.0": {
@@ -3285,7 +3332,7 @@
     "memory-level@2.0.0": {
       "integrity": "sha512-0EzmXmk4vCVu7J/x+4g6yxGM7jLRAlRH0QKE5+b2XLBoNovuyDiCgmTf6MVtgiUdP51D5jgl18N7ZrD49NDOHQ==",
       "dependencies": [
-        "abstract-level",
+        "abstract-level@2.0.1",
         "functional-red-black-tree",
         "module-error"
       ]
@@ -3385,6 +3432,9 @@
     },
     "nanoid@3.3.8": {
       "integrity": "sha512-WNLf5Sd8oZxOm+TzppcYk8gVOgP+l58xNy58D0nbUnOxOWRWvlcCV4kUF7ltmI6PsrLl/BgKEyS4mqsGChFN0w=="
+    },
+    "napi-macros@2.2.2": {
+      "integrity": "sha512-hmEVtAGYzVQpCKdbQea4skABsdXW4RUh5t5mJ2zzqowJS2OyXZTU1KhDVFhx+NlWZ4ap9mqR9TcDO3LTTttd+g=="
     },
     "node-addon-api@2.0.2": {
       "integrity": "sha512-Ntyt4AIXyaLIuMHF6IOoTakB3K+RWxwtsHNRxllEoA6vPwP9o4866g6YWDLUdnucilZhmkxiHwHr11gAENw+QA=="
@@ -4100,6 +4150,12 @@
         "@rollup/rollup-win32-x64-msvc",
         "@types/estree",
         "fsevents"
+      ]
+    },
+    "run-parallel-limit@1.1.0": {
+      "integrity": "sha512-jJA7irRNM91jaKc3Hcl1npHsFLOXOoTkPCUL1JEa1R82O2miplXXRaGdjW/KM/98YQWDhJLiSs793CnXfblJUw==",
+      "dependencies": [
+        "queue-microtask"
       ]
     },
     "run-parallel@1.2.0": {
