@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useAccount, useWalletClient } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useNavigate } from "@tanstack/react-router";
@@ -22,8 +22,6 @@ const debug = logger(namespace);
 const errlog = logger(namespace, "error");
 
 export default function MerchantConnect() {
-  const enrollKeycard = useRef(false);
-
   const { status } = useAccount();
   const { shopPublicClient } = usePublicClient();
   const { data: wallet } = useWalletClient();
@@ -86,6 +84,8 @@ export default function MerchantConnect() {
         privateKey: kc,
         role: "merchant",
       });
+      // Since we are enrolling the keycard in the same function as setKeycard without waiting for the updated clientStateManager,
+      // we are setting the keycard in the clientStateManager manually.
       clientStateManager!.keycard = kc;
       const id = BigInt(searchShopId) as ShopId;
       const rc = clientStateManager!.createNewRelayClient();
@@ -96,7 +96,6 @@ export default function MerchantConnect() {
         new URL(globalThis.location.href),
       );
       if (res.ok) {
-        enrollKeycard.current = true;
         debug(`Keycard enrolled: ${keycard.privateKey}`);
         await clientStateManager!.createStateManager();
         debug("StateManager created");
@@ -111,7 +110,6 @@ export default function MerchantConnect() {
           },
         });
       } else {
-        enrollKeycard.current = false;
         throw new Error("Failed to enroll keycard");
       }
     } catch (error: unknown) {
