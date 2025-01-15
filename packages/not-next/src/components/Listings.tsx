@@ -56,7 +56,7 @@ export default function Listings() {
     };
   }, [result]);
 
-  if (!clientStateManager?.stateManager) return <main></main>;
+  if (!clientStateManager?.stateManager) return <main>Loading...</main>;
   return (
     <main className="bg-background-gray h-screen pt-4">
       {keycard.role === "merchant"

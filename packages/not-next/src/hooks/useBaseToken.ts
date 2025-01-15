@@ -18,25 +18,35 @@ export function useBaseToken() {
   const { clientStateManager } = useClientWithStateManager();
   const { shopPublicClient } = usePublicClient(pricingCurrency?.chainId);
 
+  function getManifest() {
+    clientStateManager!.stateManager.manifest.get().then((manifest) => {
+      manifest && setPricingCurrency(manifest.pricingCurrency);
+    });
+  }
+
   useEffect(() => {
-    (async () => {
-      const manifest = await clientStateManager!.stateManager.manifest.get();
-      setPricingCurrency(manifest.pricingCurrency);
-    })();
+    function onCreateEvent() {
+      getManifest();
+    }
+    function onUpdateEvent() {
+      getManifest();
+    }
+    clientStateManager!.stateManager.manifest.on("create", onCreateEvent);
+    clientStateManager!.stateManager.manifest.on("update", onUpdateEvent);
+    getManifest();
   }, []);
 
   useEffect(() => {
-    (async () => {
-      if (pricingCurrency && shopPublicClient) {
-        const { address } = pricingCurrency;
-        const res = await getTokenInformation(shopPublicClient!, address!);
+    if (pricingCurrency && shopPublicClient) {
+      const { address } = pricingCurrency;
+      getTokenInformation(shopPublicClient!, address!).then((res) => {
         debug(`getBaseTokenInfo: name: ${res[0]} | decimals:${res[1]}`);
         setBaseToken({
           symbol: res[0],
           decimals: res[1],
         });
-      }
-    })();
+      });
+    }
   }, [pricingCurrency, shopPublicClient]);
 
   return { baseToken };
