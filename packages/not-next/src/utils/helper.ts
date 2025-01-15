@@ -1,6 +1,6 @@
-export async function asyncIteratorToMap(
-  iterator: () => AsyncIterable<[string, unknown]>,
-) {
+export async function asyncIteratorToMap<K, V>(
+  iterator: () => AsyncIterable<[K, V]>,
+): Promise<Map<K, V>> {
   const items = new Map();
   for await (
     const [

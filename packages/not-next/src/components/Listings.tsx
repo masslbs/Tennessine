@@ -16,7 +16,7 @@ export default function Listings() {
   const [products, setProducts] = useState(new Map());
 
   useEffect(() => {
-    async function onCreateEvent() {
+    function onCreateEvent() {
       asyncIteratorToMap(clientStateManager!.stateManager.listings.iterator)
         .then(
           (listings) => {
@@ -24,7 +24,7 @@ export default function Listings() {
           },
         );
     }
-    async function onUpdateEvent() {
+    function onUpdateEvent() {
       asyncIteratorToMap(clientStateManager!.stateManager.listings.iterator)
         .then(
           (listings) => {
