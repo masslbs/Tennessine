@@ -119,12 +119,4 @@ export class ClientWithStateManager {
       seqNo,
     );
   }
-
-  async sendGuestSubscriptionRequest() {
-    this.createNewRelayClient();
-    await this.createStateManager();
-    await this.relayClient!.connect();
-    const seqNo = await this.stateManager!.manifest.getSeqNo();
-    return this.relayClient!.sendGuestSubscriptionRequest(this.shopId, seqNo);
-  }
 }
