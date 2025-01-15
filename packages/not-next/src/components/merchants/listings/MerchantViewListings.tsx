@@ -1,31 +1,20 @@
 // SPDX-FileCopyrightText: 2024 Mass Labs
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
-
-"use client";
-
-import React, { useEffect, useState } from "react";
-import Link from "next/link";
+import { Link } from "@tanstack/react-router";
 
 import { formatUnitsFromString } from "@massmarket/utils";
-import { Listing, ListingViewState } from "@/types";
-import { createQueryString } from "@/app/utils";
-import { useStoreContext } from "@/context/StoreContext";
-import Button from "@/app/common/components/Button";
+
+import Button from "../../common/Button.tsx";
+import { Listing, ListingViewState } from "../../../types.ts";
+import { useBaseToken } from "../../../hooks/useBaseToken.ts";
 
 export default function MerchantViewProducts({
   products,
 }: {
   products: Listing[] | null;
 }) {
-  const { getBaseTokenInfo } = useStoreContext();
-  const [baseDecimal, setBaseDecimal] = useState<null | number>(null);
-
-  useEffect(() => {
-    getBaseTokenInfo().then((res: [string, number]) => {
-      res && setBaseDecimal(res[1]);
-    });
-  }, []);
+  const { baseToken } = useBaseToken();
 
   function renderProducts() {
     if (!products?.length) {
@@ -45,13 +34,12 @@ export default function MerchantViewProducts({
         <Link
           key={item.id}
           data-testid="product-container"
-          href={`/products/productDetail?${
-            createQueryString(
-              "itemId",
-              item.id,
-            )
-          }`}
           className={`${!visible ? "opacity-50" : ""} flex w-full h-auto mb-4`}
+          to="/listing-detail"
+          search={(prev: Record<string, string>) => ({
+            ...prev,
+            itemId: item.id,
+          })}
         >
           <div className="flex justify-center" data-testid="product-img">
             <img
@@ -82,7 +70,8 @@ export default function MerchantViewProducts({
             <div className="flex justify-between">
               <p>Price</p>
               <p data-testid={`product-price`}>
-                {baseDecimal && formatUnitsFromString(item.price, baseDecimal)}
+                {baseToken &&
+                  formatUnitsFromString(item.price, baseToken.decimals)}
               </p>
             </div>
           </div>
@@ -90,25 +79,27 @@ export default function MerchantViewProducts({
       );
     });
   }
+
   return (
     <section className="mx-5">
       <div className="flex">
         <h1 className="grow flex items-center">Manage Products</h1>
         <Button custom="w-30">
-          <Link href={`/products/edit?${createQueryString("itemId", "new")}`}>
+          <Link
+            to="/edit-listing"
+            search={(prev: Record<string, string>) => ({
+              ...prev,
+              itemId: "new",
+            })}
+            className="text-white"
+          >
             Add new +
           </Link>
         </Button>
       </div>
       <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
         <div className="flex gap-2 text-sm">
-          {
-            /* <Search
-            setSearchPhrase={setSearchPhrase}
-            searchPhrase={searchPhrase}
-          /> */
-          }
-          <button className="ml-auto flex items-center gap-2 bg-white">
+          <button className="ml-auto flex items-center gap-2 bg-white p-0">
             <p>Filter</p>
             <img
               src="/icons/filter.svg"

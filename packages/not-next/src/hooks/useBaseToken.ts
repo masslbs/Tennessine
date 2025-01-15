@@ -1,39 +1,43 @@
-// import { useEffect, useState } from "react";
-// import { useChains } from "wagmi";
+import { useEffect, useState } from "react";
 
-// import { logger } from "@massmarket/utils";
-// import { useClientWithStateManager } from "./useClientWithStateManager.ts";
-// import { useShopId } from "./useShopId.ts";
-// import { usePublicClient } from "./usePublicClient.ts";
-// import { getTokenInformation } from "../utils/token.ts";
-// interface BaseToken {
-//   symbol: string;
-//   decimals: number;
-// }
-// const namespace = "frontend:useBaseToken";
-// const debug = logger(namespace);
+import { logger } from "@massmarket/utils";
 
-// export function useBaseToken() {
-//   const [baseToken, setBaseToken] = useState<BaseToken | null>(null);
-//   const { clientStateManager } = useClientWithStateManager();
-//   const chains = useChains();
-//   const shopId = useShopId();
+import { useClientWithStateManager } from "./useClientWithStateManager.ts";
+import { usePublicClient } from "./usePublicClient.ts";
+import { getTokenInformation } from "../utils/token.ts";
+import { ShopCurrencies, Token } from "../types.ts";
 
-//   useEffect(() => {
-//     (async () => {
-//       const manifest = await clientStateManager.stateManager.manifest.get();
-//       const { chainId, address } = manifest.pricingCurrency;
+const namespace = "frontend:useBaseToken";
+const debug = logger(namespace);
 
-//       const baseTokenPublicClient = usePublicClient(chainId);
-//       //Get base token decimal and symbol.
-//       const res = await getTokenInformation(baseTokenPublicClient, address!);
-//       debug(`getBaseTokenInfo: name: ${res[0]} | decimals:${res[1]}`);
-//       setBaseToken({
-//         symbol: res[0],
-//         decimals: res[1],
-//       });
-//     })();
-//   }, [shopId]);
+export function useBaseToken() {
+  const [baseToken, setBaseToken] = useState<Token | null>(null);
+  const [pricingCurrency, setPricingCurrency] = useState<ShopCurrencies | null>(
+    null,
+  );
+  const { clientStateManager } = useClientWithStateManager();
+  const { shopPublicClient } = usePublicClient(pricingCurrency?.chainId);
 
-//   return { baseToken };
-// }
+  useEffect(() => {
+    (async () => {
+      const manifest = await clientStateManager!.stateManager.manifest.get();
+      setPricingCurrency(manifest.pricingCurrency);
+    })();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      if (pricingCurrency && shopPublicClient) {
+        const { address } = pricingCurrency;
+        const res = await getTokenInformation(shopPublicClient!, address!);
+        debug(`getBaseTokenInfo: name: ${res[0]} | decimals:${res[1]}`);
+        setBaseToken({
+          symbol: res[0],
+          decimals: res[1],
+        });
+      }
+    })();
+  }, [pricingCurrency, shopPublicClient]);
+
+  return { baseToken };
+}

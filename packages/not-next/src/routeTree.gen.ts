@@ -16,11 +16,44 @@ import { Route as rootRoute } from "./routes/__root.tsx";
 
 // Create Virtual Routes
 
+const MerchantDashboardLazyImport = createFileRoute("/merchant-dashboard")();
+const ListingsLazyImport = createFileRoute("/listings")();
+const ListingDetailLazyImport = createFileRoute("/listing-detail")();
+const EditListingLazyImport = createFileRoute("/edit-listing")();
 const CreateShopLazyImport = createFileRoute("/create-shop")();
-const AboutLazyImport = createFileRoute("/about")();
 const IndexLazyImport = createFileRoute("/")();
 
 // Create/Update Routes
+
+const MerchantDashboardLazyRoute = MerchantDashboardLazyImport.update({
+  id: "/merchant-dashboard",
+  path: "/merchant-dashboard",
+  getParentRoute: () => rootRoute,
+} as any).lazy(() =>
+  import("./routes/merchant-dashboard.lazy.tsx").then((d) => d.Route)
+);
+
+const ListingsLazyRoute = ListingsLazyImport.update({
+  id: "/listings",
+  path: "/listings",
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import("./routes/listings.lazy.tsx").then((d) => d.Route));
+
+const ListingDetailLazyRoute = ListingDetailLazyImport.update({
+  id: "/listing-detail",
+  path: "/listing-detail",
+  getParentRoute: () => rootRoute,
+} as any).lazy(() =>
+  import("./routes/listing-detail.lazy.tsx").then((d) => d.Route)
+);
+
+const EditListingLazyRoute = EditListingLazyImport.update({
+  id: "/edit-listing",
+  path: "/edit-listing",
+  getParentRoute: () => rootRoute,
+} as any).lazy(() =>
+  import("./routes/edit-listing.lazy.tsx").then((d) => d.Route)
+);
 
 const CreateShopLazyRoute = CreateShopLazyImport.update({
   id: "/create-shop",
@@ -29,12 +62,6 @@ const CreateShopLazyRoute = CreateShopLazyImport.update({
 } as any).lazy(() =>
   import("./routes/create-shop.lazy.tsx").then((d) => d.Route)
 );
-
-const AboutLazyRoute = AboutLazyImport.update({
-  id: "/about",
-  path: "/about",
-  getParentRoute: () => rootRoute,
-} as any).lazy(() => import("./routes/about.lazy.tsx").then((d) => d.Route));
 
 const IndexLazyRoute = IndexLazyImport.update({
   id: "/",
@@ -53,18 +80,39 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof IndexLazyImport;
       parentRoute: typeof rootRoute;
     };
-    "/about": {
-      id: "/about";
-      path: "/about";
-      fullPath: "/about";
-      preLoaderRoute: typeof AboutLazyImport;
-      parentRoute: typeof rootRoute;
-    };
     "/create-shop": {
       id: "/create-shop";
       path: "/create-shop";
       fullPath: "/create-shop";
       preLoaderRoute: typeof CreateShopLazyImport;
+      parentRoute: typeof rootRoute;
+    };
+    "/edit-listing": {
+      id: "/edit-listing";
+      path: "/edit-listing";
+      fullPath: "/edit-listing";
+      preLoaderRoute: typeof EditListingLazyImport;
+      parentRoute: typeof rootRoute;
+    };
+    "/listing-detail": {
+      id: "/listing-detail";
+      path: "/listing-detail";
+      fullPath: "/listing-detail";
+      preLoaderRoute: typeof ListingDetailLazyImport;
+      parentRoute: typeof rootRoute;
+    };
+    "/listings": {
+      id: "/listings";
+      path: "/listings";
+      fullPath: "/listings";
+      preLoaderRoute: typeof ListingsLazyImport;
+      parentRoute: typeof rootRoute;
+    };
+    "/merchant-dashboard": {
+      id: "/merchant-dashboard";
+      path: "/merchant-dashboard";
+      fullPath: "/merchant-dashboard";
+      preLoaderRoute: typeof MerchantDashboardLazyImport;
       parentRoute: typeof rootRoute;
     };
   }
@@ -74,42 +122,76 @@ declare module "@tanstack/react-router" {
 
 export interface FileRoutesByFullPath {
   "/": typeof IndexLazyRoute;
-  "/about": typeof AboutLazyRoute;
   "/create-shop": typeof CreateShopLazyRoute;
+  "/edit-listing": typeof EditListingLazyRoute;
+  "/listing-detail": typeof ListingDetailLazyRoute;
+  "/listings": typeof ListingsLazyRoute;
+  "/merchant-dashboard": typeof MerchantDashboardLazyRoute;
 }
 
 export interface FileRoutesByTo {
   "/": typeof IndexLazyRoute;
-  "/about": typeof AboutLazyRoute;
   "/create-shop": typeof CreateShopLazyRoute;
+  "/edit-listing": typeof EditListingLazyRoute;
+  "/listing-detail": typeof ListingDetailLazyRoute;
+  "/listings": typeof ListingsLazyRoute;
+  "/merchant-dashboard": typeof MerchantDashboardLazyRoute;
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute;
   "/": typeof IndexLazyRoute;
-  "/about": typeof AboutLazyRoute;
   "/create-shop": typeof CreateShopLazyRoute;
+  "/edit-listing": typeof EditListingLazyRoute;
+  "/listing-detail": typeof ListingDetailLazyRoute;
+  "/listings": typeof ListingsLazyRoute;
+  "/merchant-dashboard": typeof MerchantDashboardLazyRoute;
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
-  fullPaths: "/" | "/about" | "/create-shop";
+  fullPaths:
+    | "/"
+    | "/create-shop"
+    | "/edit-listing"
+    | "/listing-detail"
+    | "/listings"
+    | "/merchant-dashboard";
   fileRoutesByTo: FileRoutesByTo;
-  to: "/" | "/about" | "/create-shop";
-  id: "__root__" | "/" | "/about" | "/create-shop";
+  to:
+    | "/"
+    | "/create-shop"
+    | "/edit-listing"
+    | "/listing-detail"
+    | "/listings"
+    | "/merchant-dashboard";
+  id:
+    | "__root__"
+    | "/"
+    | "/create-shop"
+    | "/edit-listing"
+    | "/listing-detail"
+    | "/listings"
+    | "/merchant-dashboard";
   fileRoutesById: FileRoutesById;
 }
 
 export interface RootRouteChildren {
   IndexLazyRoute: typeof IndexLazyRoute;
-  AboutLazyRoute: typeof AboutLazyRoute;
   CreateShopLazyRoute: typeof CreateShopLazyRoute;
+  EditListingLazyRoute: typeof EditListingLazyRoute;
+  ListingDetailLazyRoute: typeof ListingDetailLazyRoute;
+  ListingsLazyRoute: typeof ListingsLazyRoute;
+  MerchantDashboardLazyRoute: typeof MerchantDashboardLazyRoute;
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexLazyRoute: IndexLazyRoute,
-  AboutLazyRoute: AboutLazyRoute,
   CreateShopLazyRoute: CreateShopLazyRoute,
+  EditListingLazyRoute: EditListingLazyRoute,
+  ListingDetailLazyRoute: ListingDetailLazyRoute,
+  ListingsLazyRoute: ListingsLazyRoute,
+  MerchantDashboardLazyRoute: MerchantDashboardLazyRoute,
 };
 
 export const routeTree = rootRoute
@@ -123,18 +205,30 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/about",
-        "/create-shop"
+        "/create-shop",
+        "/edit-listing",
+        "/listing-detail",
+        "/listings",
+        "/merchant-dashboard"
       ]
     },
     "/": {
       "filePath": "index.lazy.tsx"
     },
-    "/about": {
-      "filePath": "about.lazy.tsx"
-    },
     "/create-shop": {
       "filePath": "create-shop.lazy.tsx"
+    },
+    "/edit-listing": {
+      "filePath": "edit-listing.lazy.tsx"
+    },
+    "/listing-detail": {
+      "filePath": "listing-detail.lazy.tsx"
+    },
+    "/listings": {
+      "filePath": "listings.lazy.tsx"
+    },
+    "/merchant-dashboard": {
+      "filePath": "merchant-dashboard.lazy.tsx"
     }
   }
 }
