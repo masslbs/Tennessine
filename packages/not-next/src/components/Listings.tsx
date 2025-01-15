@@ -8,54 +8,36 @@ import CustomerViewProducts from "./CustomerViewListings.tsx";
 import { useKeycard } from "../hooks/useKeycard.ts";
 import { useClientWithStateManager } from "../hooks/useClientWithStateManager.ts";
 import MerchantViewProducts from "./merchants/listings/MerchantViewListings.tsx";
+import { asyncIteratorToMap } from "../utils/mod.ts";
 
 export default function Listings() {
   const { clientStateManager } = useClientWithStateManager();
   const [keycard] = useKeycard();
   const [products, setProducts] = useState(new Map());
 
-  async function getAllListings() {
-    const listings = new Map();
-    for await (
-      const [
-        id,
-        item,
-      ] of clientStateManager!.stateManager.listings.iterator()
-    ) {
-      listings.set(id, item);
-    }
-    return listings;
-  }
-
   useEffect(() => {
     async function onCreateEvent() {
-      const l = new Map();
-      for await (
-        const [
-          id,
-          item,
-        ] of clientStateManager!.stateManager.listings.iterator()
-      ) {
-        l.set(id, item);
-      }
-      setProducts(l);
+      asyncIteratorToMap(clientStateManager!.stateManager.listings.iterator)
+        .then(
+          (listings) => {
+            setProducts(listings);
+          },
+        );
     }
     async function onUpdateEvent() {
-      const l = new Map();
-      for await (
-        const [
-          id,
-          item,
-        ] of clientStateManager!.stateManager.listings.iterator()
-      ) {
-        l.set(id, item);
-      }
-      setProducts(l);
+      asyncIteratorToMap(clientStateManager!.stateManager.listings.iterator)
+        .then(
+          (listings) => {
+            setProducts(listings);
+          },
+        );
     }
 
-    getAllListings().then((listings) => {
-      setProducts(listings);
-    });
+    asyncIteratorToMap(clientStateManager!.stateManager.listings.iterator).then(
+      (listings) => {
+        setProducts(listings);
+      },
+    );
 
     // Listen to future events
     clientStateManager!.stateManager.listings.on("create", onCreateEvent);

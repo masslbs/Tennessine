@@ -5,17 +5,13 @@ import { logger } from "@massmarket/utils";
 import { useClientWithStateManager } from "./useClientWithStateManager.ts";
 import { usePublicClient } from "./usePublicClient.ts";
 import { getTokenInformation } from "../utils/token.ts";
-import { ShopCurrencies } from "../types.ts";
+import { ShopCurrencies, Token } from "../types.ts";
 
-interface BaseToken {
-  symbol: string;
-  decimals: number;
-}
 const namespace = "frontend:useBaseToken";
 const debug = logger(namespace);
 
 export function useBaseToken() {
-  const [baseToken, setBaseToken] = useState<BaseToken | null>(null);
+  const [baseToken, setBaseToken] = useState<Token | null>(null);
   const [pricingCurrency, setPricingCurrency] = useState<ShopCurrencies | null>(
     null,
   );

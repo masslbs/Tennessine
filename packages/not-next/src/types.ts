@@ -105,3 +105,8 @@ export interface CurrentOrder {
   orderId: OrderId;
   status: OrderState;
 }
+
+export interface Token {
+  symbol: string;
+  decimals: number;
+}
