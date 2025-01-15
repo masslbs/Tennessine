@@ -96,7 +96,7 @@ export class ClientWithStateManager {
     this.createStateManager();
     const eventNonceCounter = await this.stateManager!.keycardNonce.get(
       keyCardWallet.address,
-    );
+    ) || 0;
     debug(`Setting nonce counter to: ${eventNonceCounter + 1}`);
     this.relayClient.nonce = eventNonceCounter + 1;
     await this.relayClient.connect();

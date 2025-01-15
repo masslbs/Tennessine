@@ -77,8 +77,8 @@ export function useClientWithStateManager() {
       }
       debug("Success enrolling guest keycard");
       await clientStateManager.connectAndAuthenticate();
-      console.log("success:authenticate");
-      // setKeycard({ ...keycard, role: "guest-returning" });
+      //Set keycard role to guest-returning so we don't try enrolling again on refresh
+      setKeycard({ ...keycard, role: "guest-returning" });
       await clientStateManager.sendGuestCheckoutSubscriptionRequest();
       console.log("success:sendGuestCheckoutSubscriptionRequest");
       debug("Success sending guest subscription request");
