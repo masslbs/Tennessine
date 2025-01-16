@@ -6,8 +6,6 @@ import { keccak_256 } from "npm:@noble/hashes/sha3";
 import { test } from "jsr:@std/testing/bdd";
 import { expect } from "jsr:@std/expect";
 
-// import { afterEach, expect, test } from "vitest";
-
 function isEqualArray(a: Uint8Array, b: Uint8Array) {
   if (a.length != b.length) return false;
   for (let i = 0; i < a.length; i++) if (a[i] != b[i]) return false;
@@ -87,7 +85,7 @@ test("push and load", async () => {
    *  3
    * 1 2
    */
-  let root = keccak_256(MMR.xorUint8Arrays(keccak_256(val1), keccak_256(val2)));
+  let root = MMR.hashNode(keccak_256(val1), keccak_256(val2));
   expect(isEqualArray(mmr.root!, root)).toBe(true);
 
   /**
@@ -98,7 +96,7 @@ test("push and load", async () => {
   const val3 = new Uint8Array(32);
   val3.fill(2);
   await mmr.push(val3);
-  root = keccak_256(MMR.xorUint8Arrays(root, keccak_256(val3)));
+  root = MMR.hashNode(root, keccak_256(val3));
   expect(isEqualArray(mmr._root!, root)).toBe(true);
 
   /**
@@ -110,11 +108,9 @@ test("push and load", async () => {
   const val4 = new Uint8Array(32);
   val4.fill(3);
   await mmr.push(val4);
-  root = keccak_256(
-    MMR.xorUint8Arrays(
-      keccak_256(MMR.xorUint8Arrays(keccak_256(val1), keccak_256(val2))),
-      keccak_256(MMR.xorUint8Arrays(keccak_256(val3), keccak_256(val4))),
-    ),
+  root =  MMR.hashNode(
+    MMR.hashNode(keccak_256(val1), keccak_256(val2)),
+    MMR.hashNode(keccak_256(val3), keccak_256(val4)),
   );
   expect(isEqualArray(mmr._root!, root)).toBe(true);
 

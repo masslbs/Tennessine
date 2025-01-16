@@ -137,7 +137,7 @@ export default class MMR {
 
   // Defines how to produce an hash of a node
   static hashNode(left: Uint8Array, right: Uint8Array): Uint8Array {
-    return keccak_256(MMR.xorUint8Arrays(left, right));
+    return keccak_256(new Uint8Array([...left, ...right]));
   }
 
   static _pathToLeaf(leafIndex: number, size: number): number[] {
