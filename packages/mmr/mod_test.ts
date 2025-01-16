@@ -6,13 +6,36 @@ import { keccak_256 } from "npm:@noble/hashes/sha3";
 import { test } from "jsr:@std/testing/bdd";
 import { expect } from "jsr:@std/expect";
 
-// import { afterEach, expect, test } from "vitest";
-
 function isEqualArray(a: Uint8Array, b: Uint8Array) {
   if (a.length != b.length) return false;
   for (let i = 0; i < a.length; i++) if (a[i] != b[i]) return false;
   return true;
 }
+
+test("dump tree", async () => {
+  const db = new MemoryLevel({
+    valueEncoding: "view",
+  }) as unknown as Level;
+  const mmr = new MMR(db);
+  await mmr.push(Uint8Array.from([0x31]));
+  await mmr.push(Uint8Array.from([0x32]));
+  await mmr.push(Uint8Array.from([0x33]));
+  await mmr.push(Uint8Array.from([0x34]));
+  await mmr.dumpTree();
+
+  /*
+------- output -------
+Tree size: 4
+Nodes:
+Position 1: c89efdaa...
+Position 2: ad7c5bef...
+Position 3: 08629ae3...
+Position 4: 2a80e1ef...
+Position 5: 13600b29...
+Position 6: 530ffcc8...
+Position 7: 0d498b4e...
+  */
+});
 
 test("next power of 2", () => {
   expect(MMR.nextPowerOf2(0)).toBe(1);
@@ -87,7 +110,7 @@ test("push and load", async () => {
    *  3
    * 1 2
    */
-  let root = keccak_256(MMR.xorUint8Arrays(keccak_256(val1), keccak_256(val2)));
+  let root = MMR.hashNode(keccak_256(val1), keccak_256(val2));
   expect(isEqualArray(mmr.root!, root)).toBe(true);
 
   /**
@@ -98,7 +121,7 @@ test("push and load", async () => {
   const val3 = new Uint8Array(32);
   val3.fill(2);
   await mmr.push(val3);
-  root = keccak_256(MMR.xorUint8Arrays(root, keccak_256(val3)));
+  root = MMR.hashNode(root, keccak_256(val3));
   expect(isEqualArray(mmr._root!, root)).toBe(true);
 
   /**
@@ -110,11 +133,9 @@ test("push and load", async () => {
   const val4 = new Uint8Array(32);
   val4.fill(3);
   await mmr.push(val4);
-  root = keccak_256(
-    MMR.xorUint8Arrays(
-      keccak_256(MMR.xorUint8Arrays(keccak_256(val1), keccak_256(val2))),
-      keccak_256(MMR.xorUint8Arrays(keccak_256(val3), keccak_256(val4))),
-    ),
+  root = MMR.hashNode(
+    MMR.hashNode(keccak_256(val1), keccak_256(val2)),
+    MMR.hashNode(keccak_256(val3), keccak_256(val4)),
   );
   expect(isEqualArray(mmr._root!, root)).toBe(true);
 
