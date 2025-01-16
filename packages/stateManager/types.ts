@@ -21,7 +21,6 @@ export type IRelayClient = Pick<
   | "updateTag"
   | "sendMerchantSubscriptionRequest"
   | "sendGuestCheckoutSubscriptionRequest"
-  | "sendGuestSubscriptionRequest"
   | "authenticate"
 >;
 export enum OrderState {

@@ -1,5 +1,5 @@
 import { useContext, useEffect } from "react";
-import { createWalletClient } from "viem";
+import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { useRouter } from "@tanstack/react-router";
 
@@ -11,9 +11,9 @@ import { useShopId } from "./useShopId.ts";
 import { useQuery } from "./useQuery.ts";
 import { useKeycard } from "./useKeycard.ts";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";
-import { http } from "viem";
 import { useChain } from "./useChain.ts";
 import { ClientWithStateManager } from "../ClientWithStateManager.ts";
+import { defaultRPC } from "../utils/mod.ts";
 
 const namespace = "frontend:useClientWithStateManager";
 const debug = logger(namespace);
@@ -63,7 +63,7 @@ export function useClientWithStateManager() {
         account: privateKeyToAccount(random32BytesHex()),
         chain,
         transport: http(
-          import.meta.env?.VITE_ETH_RPC_URL || "http://localhost:8545",
+          defaultRPC,
         ),
       });
       const res = await clientStateManager.relayClient.enrollKeycard(
@@ -78,8 +78,9 @@ export function useClientWithStateManager() {
       debug("Success: Enrolled new guest keycard");
       await clientStateManager.connectAndAuthenticate();
       //Set keycard role to guest-returning so we don't try enrolling again on refresh
-      setKeycard({ ...keycard, role: "guest-returning" });
       await clientStateManager.sendGuestCheckoutSubscriptionRequest();
+      setKeycard({ ...keycard, role: "guest-returning" });
+
       debug("Success: sendGuestCheckoutSubscriptionRequest");
     }
     return { clientConnected: true };

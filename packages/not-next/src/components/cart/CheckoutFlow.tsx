@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 import { useSearch } from "@tanstack/react-router";
 
-import { logger } from "@massmarket/utils";
+import { assert, logger } from "@massmarket/utils";
 
 import {
   CheckoutStep,
@@ -16,9 +16,9 @@ import {
 } from "../../types.ts";
 import Cart from "./Cart.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
-// import ShippingDetails from "@/app/components/checkout/ShippingDetails";
-// import ChoosePayment from "@/app/components/checkout/ChoosePayment";
-// import TimerExpiration from "@/app/components/checkout/TimerExpiration";
+import ShippingDetails from "./ShippingDetails.tsx";
+import ChoosePayment from "./ChoosePayment.tsx";
+import TimerExpiration from "./TimerExpiration.tsx";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 
@@ -50,7 +50,7 @@ export default function CheckoutFlow() {
 
     if (isRunning && countdown > 0) {
       intervalId = setInterval(() => {
-        setCountdown((prev) => prev - 1);
+        setCountdown((prev: number) => prev - 1);
       }, 1000);
     } else if (countdown === 0) {
       cancelAndCreateOrder()
@@ -125,7 +125,9 @@ export default function CheckoutFlow() {
       await clientStateManager!.stateManager.orders.commit(orderId);
       debug(`Order ID: ${orderId} committed`);
       setStep(CheckoutStep.shippingDetails);
-    } catch (error) {
+    } catch (error: unknown) {
+      assert(error instanceof Error, "Error is not an instance of Error");
+
       logerr("Error during checkout", error);
       throw error;
     }
@@ -138,26 +140,26 @@ export default function CheckoutFlow() {
           <Cart onCheckout={onCheckout} />
         </section>
       );
-    } // if (step === CheckoutStep.shippingDetails) {
-    //   return (
-    //     <ShippingDetails
-    //       setStep={setStep}
-    //       startTimer={startTimer}
-    //       countdown={countdown}
-    //     />
-    //   );
-    // } else if (step === CheckoutStep.paymentDetails) {
-    //   return (
-    //     <ChoosePayment
-    //       setStep={setStep}
-    //       setDisplayedAmount={setDisplayedAmount}
-    //       displayedAmount={displayedAmount}
-    //     />
-    //   );
-    // } else if (step === CheckoutStep.expired) {
-    //   return <TimerExpiration />;
-    // }
-    else {
+    }
+    if (step === CheckoutStep.shippingDetails) {
+      return (
+        <ShippingDetails
+          setStep={setStep}
+          startTimer={startTimer}
+          countdown={countdown}
+        />
+      );
+    } else if (step === CheckoutStep.paymentDetails) {
+      return (
+        <ChoosePayment
+          setStep={setStep}
+          setDisplayedAmount={setDisplayedAmount}
+          displayedAmount={displayedAmount}
+        />
+      );
+    } else if (step === CheckoutStep.expired) {
+      return <TimerExpiration />;
+    } else {
       return (
         <section>
           <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg items-center">

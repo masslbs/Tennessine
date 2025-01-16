@@ -91,6 +91,8 @@ export class ClientWithStateManager {
   }
 
   async connectAndAuthenticate() {
+    if (!this.relayClient) throw new Error("RelayClient not set");
+
     const keyCardWallet = privateKeyToAccount(this.keycard);
     this.createStateManager();
     const eventNonceCounter = await this.stateManager!.keycardNonce.get(

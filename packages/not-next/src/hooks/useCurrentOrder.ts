@@ -111,7 +111,7 @@ export function useCurrentOrder() {
       orderManager.removeListener("create", onOrderCreate);
       orderManager.removeListener("update", onOrderUpdate);
     };
-  }, [shopId]);
+  }, [shopId, orderManager]);
 
   return { currentOrder, orderFetched };
 }

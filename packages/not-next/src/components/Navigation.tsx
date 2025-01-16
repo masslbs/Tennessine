@@ -8,14 +8,7 @@ import { useDisconnect } from "wagmi";
 
 import { assert, logger } from "@massmarket/utils";
 
-import {
-  CheckoutStep,
-  Order,
-  OrderEventTypes,
-  OrderId,
-  OrderState,
-  Status,
-} from "../types.ts";
+import { CheckoutStep, Order, OrderEventTypes, OrderId } from "../types.ts";
 import Cart from "../components/cart/Cart.tsx";
 import { useClientWithStateManager } from "../hooks/useClientWithStateManager.ts";
 import { useShopDetails } from "../hooks/useShopDetails.ts";
@@ -99,12 +92,14 @@ function Navigation() {
     //   }
     // }
 
-    if (clientStateManager?.stateManager && currentOrder) {
-      clientStateManager.stateManager.orders.get(currentOrder.orderId).then(
-        (o) => {
-          onChangeItems(o);
-        },
-      );
+    if (clientStateManager?.stateManager) {
+      if (currentOrder) {
+        clientStateManager.stateManager.orders.get(currentOrder.orderId).then(
+          (o: Order) => {
+            onChangeItems(o);
+          },
+        );
+      }
       clientStateManager.stateManager.orders.on("update", onOrderUpdate);
       return () => {
         clientStateManager!.stateManager!.orders.removeListener(
