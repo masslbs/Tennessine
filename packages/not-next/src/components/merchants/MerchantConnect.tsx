@@ -97,12 +97,10 @@ export default function MerchantConnect() {
       );
       if (res.ok) {
         debug(`Keycard enrolled: ${keycard.privateKey}`);
-        await clientStateManager!.createStateManager();
-        debug("StateManager created");
-        await rc.connect();
-        await rc.authenticate();
+        await clientStateManager!.connectAndAuthenticate();
+        debug("RelayClient connected");
         await clientStateManager!.sendMerchantSubscriptionRequest();
-        debug("relayClient connected");
+        debug("Merchant subscription request sent");
         navigate({
           to: "/connect-confirm",
           search: {

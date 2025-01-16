@@ -214,10 +214,11 @@ export default function () {
         throw Error("Failed to enroll keycard");
       }
 
-      // FIXME: for now we are instantiating sm after kc enroll. The reason is because we want to create a unique db name based on keycard.
-      // TODO: see if it would be cleaner to pass the KC as a param
-      await clientStateManager!.createStateManager();
-      debug("StateManager created");
+      // Connect & authenticate
+      setStoreRegistrationStatus(
+        "Connecting and authenticating Relay Client...",
+      );
+      await clientStateManager!.connectAndAuthenticate();
 
       // Add address of current kc wallet for all outgoing event verification.
       const keyCardWallet = privateKeyToAccount(keycard.privateKey);
@@ -228,13 +229,6 @@ export default function () {
       debug(
         `keycard wallet address added: ${keyCardWallet.address.toLowerCase()}`,
       );
-
-      // Connect & authenticate
-      setStoreRegistrationStatus(
-        "Connecting and authenticating Relay Client...",
-      );
-      await clientStateManager!.relayClient!.connect();
-      await clientStateManager!.relayClient!.authenticate();
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
       errlog("enrollConnectAuthenticate failed", error);
