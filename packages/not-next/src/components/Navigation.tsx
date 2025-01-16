@@ -8,7 +8,13 @@ import { useDisconnect } from "wagmi";
 
 import { assert, logger } from "@massmarket/utils";
 
-import { CheckoutStep, Order, OrderEventTypes, OrderId } from "../types.ts";
+import {
+  CheckoutStep,
+  Order,
+  OrderEventTypes,
+  OrderId,
+  OrderState,
+} from "../types.ts";
 import Cart from "../components/cart/Cart.tsx";
 import { useClientWithStateManager } from "../hooks/useClientWithStateManager.ts";
 import { useShopDetails } from "../hooks/useShopDetails.ts";
@@ -39,7 +45,7 @@ function Navigation() {
   const navigate = useNavigate();
 
   const { shopDetails } = useShopDetails();
-  const { clientStateManager } = useClientWithStateManager();
+  const { clientStateManager } = useClientWithStateManager(true);
   const { currentOrder } = useCurrentOrder();
   const [keycard] = useKeycard();
   const { disconnect } = useDisconnect();
@@ -47,7 +53,7 @@ function Navigation() {
   const isMerchantView = keycard.role === "merchant";
 
   const customerMenu = [
-    { title: "Shop", img: "menu-products.svg", href: "/products" },
+    { title: "Shop", img: "menu-products.svg", href: "/listings" },
     {
       title: "Basket",
       img: "menu-basket.svg",
@@ -114,7 +120,9 @@ function Navigation() {
     setMenuOpen(false);
     localStorage.clear();
     disconnect();
-    // router.push("/merchants");
+    navigate({
+      to: "/merchant-connect",
+    });
   }
 
   function menuSwitch() {
@@ -128,14 +136,17 @@ function Navigation() {
         debug("orderId not found");
         throw new Error("No order found");
       }
-      await clientStateManager!.stateManager.orders.commit(orderId);
+      // Commit the order if it is not already committed
+      if (currentOrder!.status !== OrderState.STATE_COMMITED) {
+        await clientStateManager!.stateManager.orders.commit(orderId);
+        debug(`Order ID: ${orderId} committed`);
+      }
       setBasketOpen(false);
-      debug(`Order ID: ${orderId} committed`);
       navigate({
         to: "/checkout",
         search: (prev: Record<string, string>) => ({
           shopId: prev.shopId,
-          step: CheckoutStep.cart,
+          step: CheckoutStep.shippingDetails,
         }),
       });
     } catch (error: unknown) {
@@ -186,7 +197,13 @@ function Navigation() {
               alt="menu-item"
               className="w-5 h-5"
             />
-            <Link href={opt.href!} key={opt.title}>
+            <Link
+              to={opt.href!}
+              key={opt.title}
+              search={(prev: Record<string, string>) => ({
+                shopId: prev.shopId,
+              })}
+            >
               <h2 className="font-normal">{opt.title}</h2>
             </Link>
             <img

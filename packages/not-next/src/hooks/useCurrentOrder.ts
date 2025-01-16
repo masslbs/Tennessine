@@ -10,7 +10,7 @@ const errlog = logger(namespace, "error");
 const debug = logger(namespace);
 
 export function useCurrentOrder() {
-  const { clientStateManager } = useClientWithStateManager();
+  const { clientStateManager } = useClientWithStateManager(true);
   const { shopId } = useShopId();
   const [currentOrder, setCurrentOrder] = useState<CurrentOrder | null>(null);
   const [orderFetched, setOrderFetched] = useState<boolean>(false);

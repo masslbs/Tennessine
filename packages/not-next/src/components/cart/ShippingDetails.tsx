@@ -49,7 +49,7 @@ export default function ShippingDetails({
   }, []);
 
   function checkRequiredFields() {
-    let warning = null;
+    let warning: null | string = null;
     if (!name.length) {
       warning = "Must include name";
     } else if (!address.length) {

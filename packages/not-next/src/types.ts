@@ -107,3 +107,19 @@ export interface Token {
   symbol: string;
   decimals: number;
 }
+export interface CartItem extends Listing {
+  selectedQty: number;
+}
+
+export interface ContractPaymentArgs {
+  // chainId as bigint because chainId type is uint256 in contracts/Payments.json. If i type it as number, I will get a type error.
+  chainId: bigint;
+  ttl: bigint;
+  order: `0x${string}`;
+  currency: `0x${string}`;
+  amount: bigint;
+  payeeAddress: `0x${string}`;
+  isPaymentEndpoint: boolean;
+  shopId: bigint;
+  shopSignature: `0x${string}`;
+}

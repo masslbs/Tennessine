@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useState } from "react";
-import { useSearch } from "@tanstack/react-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 
 import { assert, logger } from "@massmarket/utils";
 
@@ -13,6 +13,7 @@ import {
   Order,
   OrderEventTypes,
   OrderId,
+  OrderState,
 } from "../../types.ts";
 import Cart from "./Cart.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
@@ -31,6 +32,7 @@ export default function CheckoutFlow() {
   const { currentOrder } = useCurrentOrder();
 
   const search = useSearch({ strict: false });
+  const navigate = useNavigate();
 
   const stepParam = search?.step as CheckoutStep;
 
@@ -46,7 +48,7 @@ export default function CheckoutFlow() {
   const [isRunning, setIsRunning] = useState(false);
 
   useEffect(() => {
-    let intervalId;
+    let intervalId: ReturnType<typeof setInterval>;
 
     if (isRunning && countdown > 0) {
       intervalId = setInterval(() => {
@@ -89,6 +91,17 @@ export default function CheckoutFlow() {
     };
   });
 
+  function onNextStep(step: CheckoutStep) {
+    setStep(step);
+    navigate({
+      to: "/checkout",
+      search: (prev: Record<string, string>) => ({
+        shopId: prev.shopId,
+        step,
+      }),
+    });
+  }
+
   async function cancelAndCreateOrder() {
     const sm = clientStateManager!.stateManager;
     debug(`Cancelling order ID: ${currentOrder!.orderId}`);
@@ -122,12 +135,14 @@ export default function CheckoutFlow() {
       throw new Error("No orderId");
     }
     try {
-      await clientStateManager!.stateManager.orders.commit(orderId);
-      debug(`Order ID: ${orderId} committed`);
+      // Commit the order if it is not already committed
+      if (currentOrder!.status !== OrderState.STATE_COMMITED) {
+        await clientStateManager!.stateManager.orders.commit(orderId);
+        debug(`Order ID: ${orderId} committed`);
+      }
       setStep(CheckoutStep.shippingDetails);
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
-
       logerr("Error during checkout", error);
       throw error;
     }
@@ -144,7 +159,7 @@ export default function CheckoutFlow() {
     if (step === CheckoutStep.shippingDetails) {
       return (
         <ShippingDetails
-          setStep={setStep}
+          setStep={onNextStep}
           startTimer={startTimer}
           countdown={countdown}
         />
@@ -152,7 +167,7 @@ export default function CheckoutFlow() {
     } else if (step === CheckoutStep.paymentDetails) {
       return (
         <ChoosePayment
-          setStep={setStep}
+          setStep={onNextStep}
           setDisplayedAmount={setDisplayedAmount}
           displayedAmount={displayedAmount}
         />
@@ -194,7 +209,10 @@ export default function CheckoutFlow() {
                     console.log("hash copied");
                   }}
                 />
-                <button className="mr-4" onClick={copyToClipboard}>
+                <button
+                  className="mr-4 p-0 bg-transparent"
+                  onClick={copyToClipboard}
+                >
                   <img
                     src="/icons/copy-icon.svg"
                     width={14}
@@ -212,7 +230,7 @@ export default function CheckoutFlow() {
   }
 
   return (
-    <main className="pt-under-nav h-screen p-4 mt-5">
+    <main className="pt-under-nav p-4 mt-5 min-h-screen">
       <ErrorMessage
         errorMessage={errorMsg}
         onClose={() => {
