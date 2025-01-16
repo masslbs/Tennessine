@@ -78,8 +78,9 @@ export function useClientWithStateManager(skipConnect: boolean = false) {
       debug("Success: Enrolled new guest keycard");
       await clientStateManager.connectAndAuthenticate();
       //Set keycard role to guest-returning so we don't try enrolling again on refresh
-      setKeycard({ ...keycard, role: "guest-returning" });
       await clientStateManager.sendGuestCheckoutSubscriptionRequest();
+      setKeycard({ ...keycard, role: "guest-returning" });
+
       debug("Success: sendGuestCheckoutSubscriptionRequest");
     }
     return { clientConnected: true };

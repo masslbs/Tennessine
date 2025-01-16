@@ -5,7 +5,7 @@ import { logger } from "@massmarket/utils";
 import { useClientWithStateManager } from "./useClientWithStateManager.ts";
 import { usePublicClient } from "./usePublicClient.ts";
 import { getTokenInformation } from "../utils/token.ts";
-import { ShopCurrencies, Token } from "../types.ts";
+import { ShopCurrencies, ShopManifest, Token } from "../types.ts";
 
 const namespace = "frontend:useBaseToken";
 const debug = logger(namespace);
@@ -19,9 +19,11 @@ export function useBaseToken() {
   const { shopPublicClient } = usePublicClient(pricingCurrency?.chainId);
 
   function getManifest() {
-    clientStateManager!.stateManager.manifest.get().then((manifest) => {
-      manifest && setPricingCurrency(manifest.pricingCurrency);
-    });
+    clientStateManager!.stateManager.manifest.get().then(
+      (manifest: ShopManifest) => {
+        manifest && setPricingCurrency(manifest.pricingCurrency);
+      },
+    );
   }
 
   useEffect(() => {

@@ -7,6 +7,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { formatUnitsFromString, logger } from "@massmarket/utils";
 
 import {
+  CheckoutStep,
   ListingId,
   Order,
   OrderEventTypes,
@@ -76,15 +77,15 @@ export default function Cart({
     // Get price and metadata for all the selected items in the order.
     const itemIds = Object.keys(ci);
     await Promise.all(
-      itemIds.map(async (id) => {
-        const item = await clientStateManager!.stateManager.listings.get(
-          id as ListingId,
-        );
-        cartObjects.set(id, {
-          ...item,
-          selectedQty: ci[id as ListingId],
-        });
-      }),
+      itemIds.map((id) =>
+        clientStateManager!.stateManager.listings.get(id as ListingId)
+          .then((item) => {
+            cartObjects.set(id, {
+              ...item,
+              selectedQty: ci[id as ListingId],
+            });
+          })
+      ),
     );
     return cartObjects;
   }
@@ -96,6 +97,7 @@ export default function Cart({
         to: "/checkout",
         search: (prev: Record<string, string>) => ({
           ...prev,
+          step: CheckoutStep.shippingDetails,
         }),
       });
       return;
