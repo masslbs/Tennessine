@@ -43,6 +43,11 @@ export function useClientWithStateManager(skipConnect: boolean = false) {
       setClientStateManager(csm);
     }
   }, [shopId, relayEndpoint, shopPublicClient]);
+  const { result } = useQuery(async () => {
+    if (
+      !clientStateManager 
+    ) return;
+    await clientStateManager.createNewRelayClient();
 
   const { result } = useQuery(async () => {
     if (
@@ -57,7 +62,7 @@ export function useClientWithStateManager(skipConnect: boolean = false) {
     } else if (keycard?.role === "guest-returning") {
       await clientStateManager.connectAndAuthenticate();
       await clientStateManager.sendGuestCheckoutSubscriptionRequest();
-    } else if (keycard?.role === "guest-new" && clientStateManager) {
+    } else if (keycard?.role === "guest-new" ) {
       debug("Success: Enrolling new guest keycard");
       const guestWallet = createWalletClient({
         account: privateKeyToAccount(random32BytesHex()),
