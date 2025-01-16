@@ -58,7 +58,7 @@ export default function Listings() {
 
   if (!clientStateManager?.stateManager) return <main>Loading...</main>;
   return (
-    <main className="bg-background-gray h-screen pt-4">
+    <main className="bg-background-gray h-screen pt-under-nav">
       {keycard.role === "merchant"
         ? <MerchantViewProducts products={Array.from([...products.values()])} />
         : (

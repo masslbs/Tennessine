@@ -79,10 +79,7 @@ export enum Status {
   Pending = "PENDING",
   Complete = "COMPLETE",
 }
-export interface BaseTokenDetails {
-  decimal: number;
-  symbol: string;
-}
+
 export interface ShopDetails {
   name: string;
   profilePictureUrl: string;
