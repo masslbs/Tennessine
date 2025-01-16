@@ -1,5 +1,6 @@
 import type { Level } from "npm:level";
 import { keccak_256 } from "npm:@noble/hashes/sha3";
+import { bytesToHex } from "npm:@noble/hashes@1.6.1/utils";
 
 /**
  * This implmenents a persistant Merkle Mountain Range backed by a leveldb instance
@@ -170,11 +171,25 @@ export default class MMR {
     return n === 1 << onesPlace ? n : 1 << (onesPlace + 1);
   }
 
-  static xorUint8Arrays(a: Uint8Array, b: Uint8Array): Uint8Array {
-    const result = new Uint8Array(32);
-    for (let i = 0; i < 32; i++) {
-      result[i] = a[i] ^ b[i];
+  async dumpTree() {
+    const nodes: Record<number, string> = {};
+
+    // Get all stored nodes
+    for (let i = 0; i < this._size * 2; i++) {
+      const value = await this.level.get(i);
+      if (value) {
+        nodes[i] = bytesToHex(value).slice(0, 8) + "...";
+      }
     }
-    return result;
+
+    // Print tree structure
+    console.log(`Tree size: ${this._size}`);
+    console.log("Nodes:");
+    Object.entries(nodes).sort((a, b) => Number(a[0]) - Number(b[0])).forEach(
+      ([pos, hash]) => {
+        console.log(`Position ${pos}: ${hash}`);
+      },
+    );
+    console.log(`Root: ${bytesToHex(this.root)}`);
   }
 }

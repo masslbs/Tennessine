@@ -48,7 +48,7 @@
               denolint.enable = true;
               denofmt = {
                 verbose = true;
-                enable = false;
+                enable = true;
                 settings.configPath = "./deno.json";
               };
             };

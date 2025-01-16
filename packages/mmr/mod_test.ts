@@ -12,6 +12,31 @@ function isEqualArray(a: Uint8Array, b: Uint8Array) {
   return true;
 }
 
+test("dump tree", async () => {
+  const db = new MemoryLevel({
+    valueEncoding: "view",
+  }) as unknown as Level;
+  const mmr = new MMR(db);
+  await mmr.push(Uint8Array.from([0x31]));
+  await mmr.push(Uint8Array.from([0x32]));
+  await mmr.push(Uint8Array.from([0x33]));
+  await mmr.push(Uint8Array.from([0x34]));
+  await mmr.dumpTree();
+
+  /*
+------- output -------
+Tree size: 4
+Nodes:
+Position 1: c89efdaa...
+Position 2: ad7c5bef...
+Position 3: 08629ae3...
+Position 4: 2a80e1ef...
+Position 5: 13600b29...
+Position 6: 530ffcc8...
+Position 7: 0d498b4e...
+  */
+});
+
 test("next power of 2", () => {
   expect(MMR.nextPowerOf2(0)).toBe(1);
   expect(MMR.nextPowerOf2(1)).toBe(1);
@@ -108,7 +133,7 @@ test("push and load", async () => {
   const val4 = new Uint8Array(32);
   val4.fill(3);
   await mmr.push(val4);
-  root =  MMR.hashNode(
+  root = MMR.hashNode(
     MMR.hashNode(keccak_256(val1), keccak_256(val2)),
     MMR.hashNode(keccak_256(val3), keccak_256(val4)),
   );
