@@ -24,6 +24,7 @@ const EditProductLazyImport = createFileRoute("/edit-product")();
 const EditListingLazyImport = createFileRoute("/edit-listing")();
 const CreateShopLazyImport = createFileRoute("/create-shop")();
 const ConnectConfirmLazyImport = createFileRoute("/connect-confirm")();
+const CheckoutLazyImport = createFileRoute("/checkout")();
 const IndexLazyImport = createFileRoute("/")();
 
 // Create/Update Routes
@@ -105,6 +106,11 @@ const ConnectConfirmLazyRoute = ConnectConfirmLazyImport.update({
 } as any).lazy(() =>
   import("./routes/connect-confirm.lazy.tsx").then((d) => d.Route)
 );
+const CheckoutLazyRoute = CheckoutLazyImport.update({
+  id: "/checkout",
+  path: "/checkout",
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import("./routes/checkout.lazy.tsx").then((d) => d.Route));
 
 const IndexLazyRoute = IndexLazyImport.update({
   id: "/",
@@ -121,6 +127,13 @@ declare module "@tanstack/react-router" {
       path: "/";
       fullPath: "/";
       preLoaderRoute: typeof IndexLazyImport;
+      parentRoute: typeof rootRoute;
+    };
+    "/checkout": {
+      id: "/checkout";
+      path: "/checkout";
+      fullPath: "/checkout";
+      preLoaderRoute: typeof CheckoutLazyImport;
       parentRoute: typeof rootRoute;
     };
     "/connect-confirm": {
@@ -186,6 +199,7 @@ declare module "@tanstack/react-router" {
 
 export interface FileRoutesByFullPath {
   "/": typeof IndexLazyRoute;
+  "/checkout": typeof CheckoutLazyRoute;
   "/connect-confirm": typeof ConnectConfirmLazyRoute;
   "/create-shop": typeof CreateShopLazyRoute;
   "/edit-listing": typeof EditListingLazyRoute;
@@ -198,6 +212,7 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   "/": typeof IndexLazyRoute;
+  "/checkout": typeof CheckoutLazyRoute;
   "/connect-confirm": typeof ConnectConfirmLazyRoute;
   "/create-shop": typeof CreateShopLazyRoute;
   "/edit-listing": typeof EditListingLazyRoute;
@@ -211,6 +226,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute;
   "/": typeof IndexLazyRoute;
+  "/checkout": typeof CheckoutLazyRoute;
   "/connect-confirm": typeof ConnectConfirmLazyRoute;
   "/create-shop": typeof CreateShopLazyRoute;
   "/edit-listing": typeof EditListingLazyRoute;
@@ -225,6 +241,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
     | "/"
+    | "/checkout"
     | "/connect-confirm"
     | "/create-shop"
     | "/edit-listing"
@@ -236,6 +253,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo;
   to:
     | "/"
+    | "/checkout"
     | "/connect-confirm"
     | "/create-shop"
     | "/edit-listing"
@@ -247,6 +265,7 @@ export interface FileRouteTypes {
   id:
     | "__root__"
     | "/"
+    | "/checkout"
     | "/connect-confirm"
     | "/create-shop"
     | "/edit-listing"
@@ -260,6 +279,7 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexLazyRoute: typeof IndexLazyRoute;
+  CheckoutLazyRoute: typeof CheckoutLazyRoute;
   ConnectConfirmLazyRoute: typeof ConnectConfirmLazyRoute;
   CreateShopLazyRoute: typeof CreateShopLazyRoute;
   EditListingLazyRoute: typeof EditListingLazyRoute;
@@ -272,6 +292,7 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexLazyRoute: IndexLazyRoute,
+  CheckoutLazyRoute: CheckoutLazyRoute,
   ConnectConfirmLazyRoute: ConnectConfirmLazyRoute,
   CreateShopLazyRoute: CreateShopLazyRoute,
   EditListingLazyRoute: EditListingLazyRoute,
@@ -293,6 +314,7 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/checkout",
         "/connect-confirm",
         "/create-shop",
         "/edit-listing",
@@ -305,6 +327,9 @@ export const routeTree = rootRoute
     },
     "/": {
       "filePath": "index.lazy.tsx"
+    },
+    "/checkout": {
+      "filePath": "checkout.lazy.tsx"
     },
     "/connect-confirm": {
       "filePath": "connect-confirm.lazy.tsx"
