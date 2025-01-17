@@ -200,7 +200,7 @@ function Navigation() {
             <Link
               to={opt.href!}
               key={opt.title}
-              search={(prev) => ({
+              search={(prev: Record<string, string>) => ({
                 shopId: prev.shopId,
               })}
             >

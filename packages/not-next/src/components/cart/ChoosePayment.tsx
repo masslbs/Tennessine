@@ -3,8 +3,8 @@ import { useChains } from "wagmi";
 import { Address, createPublicClient, http, pad, toHex } from "viem";
 
 import { assert, formatUnitsFromString, logger } from "@massmarket/utils";
-import { addresses } from "@massmarket/contracts";
 import { getPaymentAddress, getPaymentId } from "@massmarket/blockchain";
+import * as abi from "@massmarket/contracts";
 
 import {
   CheckoutStep,
@@ -20,11 +20,12 @@ import { useClientWithStateManager } from "../../hooks/useClientWithStateManager
 import { useShopId } from "../../hooks/useShopId.ts";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { defaultRPC, getTokenInformation } from "../../utils/mod.ts";
-// import Dropdown from "@/app/common/components/CurrencyDropdown";
+import Dropdown from "../common/CurrencyDropdown.tsx";
 import BackButton from "../common/BackButton.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import Pay from "./Pay.tsx";
 import QRScan from "./QRScan.tsx";
+import { ContractPaymentArgs } from "../../types.ts";
 
 const namespace = "frontend:ChoosePayment";
 const debug = logger(namespace);
@@ -40,7 +41,7 @@ export default function ChoosePayment({
   setDisplayedAmount: Dispatch<SetStateAction<string | null>>;
 }) {
   const { clientStateManager } = useClientWithStateManager();
-  const shopId = useShopId();
+  const { shopId } = useShopId();
   const { currentOrder } = useCurrentOrder();
   const chains = useChains();
 
@@ -55,7 +56,9 @@ export default function ChoosePayment({
   const [chosenPaymentTokenIcon, setIcon] = useState<string>(
     "/icons/usdc-coin.png",
   );
-  const [paymentArgs, setPaymentArgs] = useState(null);
+  const [paymentArgs, setPaymentArgs] = useState<null | ContractPaymentArgs>(
+    null,
+  );
   const [paymentCurrencyLoading, setPaymentCurrencyLoading] = useState(false);
 
   useEffect(() => {
@@ -70,6 +73,7 @@ export default function ChoosePayment({
   }, []);
 
   useEffect(() => {
+    if (!currentOrder) return;
     //Listen for client to send paymentDetails event.
     function onPaymentDetails(res: [OrderEventTypes, Order]) {
       const order = res[1];
@@ -130,8 +134,7 @@ export default function ChoosePayment({
         currency.address,
       );
       //FIXME: get orderHash from paymentDetails.
-      const zeros32Bytes = pad(addresses.zeroAddress, { size: 32 });
-      //FIXME: separate this into a function that constructs the arg.
+      const zeros32Bytes = pad(abi.addresses.zeroAddress, { size: 32 });
       const arg = {
         chainId: currency.chainId,
         ttl: BigInt(ttl),
@@ -139,8 +142,8 @@ export default function ChoosePayment({
         currency: currency.address,
         amount: BigInt(total),
         payeeAddress: payee.address,
-        isPaymentEndpoint: false, //isPaymentEndpoint
-        shopId: shopId,
+        isPaymentEndpoint: false,
+        shopId: shopId!,
         shopSignature,
       };
 
@@ -161,7 +164,7 @@ export default function ChoosePayment({
       setPaymentArgs(arg);
       const amount = BigInt(total);
       debug(`amount: ${amount}`);
-      const payLink = currency.address === addresses.zeroAddress
+      const payLink = currency.address === abi.addresses.zeroAddress
         ? `ethereum:${paymentAddr}?value=${amount}`
         : `ethereum:${currency.address}/transfer?address=${paymentAddr}&uint256=${amount}`;
       setPaymentAddress(paymentAddr);
@@ -300,7 +303,7 @@ export default function ChoosePayment({
           <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg mt-5">
             <button
               data-testid="connect-wallet"
-              className="rounded-lg flex flex-col items-center gap-2"
+              className="rounded-lg flex flex-col items-center gap-2 bg-transparent p-0"
               onClick={() => setQrOpen(true)}
               disabled={!displayedAmount}
             >

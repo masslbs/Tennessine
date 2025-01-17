@@ -48,7 +48,7 @@ export default function CheckoutFlow() {
   const [isRunning, setIsRunning] = useState(false);
 
   useEffect(() => {
-    let intervalId;
+    let intervalId: ReturnType<typeof setInterval>;
 
     if (isRunning && countdown > 0) {
       intervalId = setInterval(() => {
@@ -90,6 +90,17 @@ export default function CheckoutFlow() {
       );
     };
   });
+
+  function onNextStep(step: CheckoutStep) {
+    setStep(step);
+    navigate({
+      to: "/checkout",
+      search: (prev: Record<string, string>) => ({
+        shopId: prev.shopId,
+        step,
+      }),
+    });
+  }
 
   async function cancelAndCreateOrder() {
     const sm = clientStateManager!.stateManager;
@@ -148,7 +159,7 @@ export default function CheckoutFlow() {
     if (step === CheckoutStep.shippingDetails) {
       return (
         <ShippingDetails
-          setStep={setStep}
+          setStep={onNextStep}
           startTimer={startTimer}
           countdown={countdown}
         />
@@ -156,7 +167,7 @@ export default function CheckoutFlow() {
     } else if (step === CheckoutStep.paymentDetails) {
       return (
         <ChoosePayment
-          setStep={setStep}
+          setStep={onNextStep}
           setDisplayedAmount={setDisplayedAmount}
           displayedAmount={displayedAmount}
         />
@@ -198,7 +209,10 @@ export default function CheckoutFlow() {
                     console.log("hash copied");
                   }}
                 />
-                <button className="mr-4" onClick={copyToClipboard}>
+                <button
+                  className="mr-4 p-0 bg-transparent"
+                  onClick={copyToClipboard}
+                >
                   <img
                     src="/icons/copy-icon.svg"
                     width={14}

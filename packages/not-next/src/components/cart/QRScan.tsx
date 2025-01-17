@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useState } from "react";
-// import QRCode from "qrcode";
+import QRCode from "qrcode";
 import BackButton from "../common/BackButton.tsx";
 
 export default function QRScan({
@@ -22,7 +22,7 @@ export default function QRScan({
     navigator.clipboard.writeText(purchaseAddress!);
   }
   useEffect(() => {
-    // imgSrc && QRCode.toDataURL(imgSrc).then(setQr);
+    imgSrc && QRCode.toDataURL(imgSrc).then(setQr);
   }, [imgSrc]);
 
   return (
@@ -53,7 +53,7 @@ export default function QRScan({
           <h1>{displayedAmount}</h1>
           <div className="flex text-center justify-center border-2 p-2 rounded-xl shadow-xl">
             <p>{purchaseAddress.slice(0, 20)}...</p>
-            <button className="ml-4" onClick={copyToClipboard}>
+            <button className="ml-4 p-0 bg-white" onClick={copyToClipboard}>
               <img
                 src="/icons/copy-icon.svg"
                 width={15}

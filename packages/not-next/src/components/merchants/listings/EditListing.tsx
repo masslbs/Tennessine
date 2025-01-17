@@ -241,7 +241,7 @@ export default function EditProduct() {
   }
 
   return (
-    <main className="pt-4 px-3">
+    <main className="pt-4 px-3 pt-under-nav">
       <ValidationWarning
         warning={validationError}
         onClose={() => {

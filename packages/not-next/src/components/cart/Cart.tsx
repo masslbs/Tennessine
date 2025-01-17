@@ -3,9 +3,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useState } from "react";
 
-import { formatUnitsFromString, logger } from "@massmarket/utils";
+import { assert, logger, multiplyAndFormatUnits } from "@massmarket/utils";
 
-import { ListingId, Order, OrderEventTypes, OrderId } from "../../types";
+import {
+  CartItem,
+  Listing,
+  ListingId,
+  Order,
+  OrderEventTypes,
+  OrderId,
+} from "../../types.ts";
 
 import Button from "../common/Button.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
@@ -26,7 +33,9 @@ export default function Cart({
   const { baseToken } = useBaseToken();
   const { clientStateManager } = useClientWithStateManager();
 
-  const [cartItemsMap, setCartMap] = useState(new Map());
+  const [cartItemsMap, setCartMap] = useState<
+    Map<ListingId, CartItem>
+  >(new Map());
   const [orderId, setOrderId] = useState<OrderId | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -55,7 +64,7 @@ export default function Cart({
       setOrderId(currentOrder.orderId);
       clientStateManager!
         .stateManager!.orders.get(currentOrder.orderId)
-        .then(async (o) => {
+        .then(async (o: Order) => {
           const itemDetails = await getCartItemDetails(o);
           setCartMap(itemDetails);
         });
@@ -70,7 +79,7 @@ export default function Cart({
     await Promise.all(
       itemIds.map((id) =>
         clientStateManager!.stateManager.listings.get(id as ListingId)
-          .then((item) => {
+          .then((item: Listing) => {
             cartObjects.set(id, {
               ...item,
               selectedQty: ci[id as ListingId],
@@ -85,23 +94,25 @@ export default function Cart({
     try {
       await onCheckout!(orderId);
     } catch (error) {
+      assert(error instanceof Error, "Error is not an instance of Error");
       if (
-        (error instanceof Error &&
-          error.message === "not enough items in stock for order") ||
+        error.message === "not enough items in stock for order" ||
         error.message == "not enough stock" ||
         error.message == "not in stock"
       ) {
         setErrorMsg("Not enough stock. Cart cleared.");
         await clearCart();
-        return;
+      } else {
+        logerr("Error during checkout", error);
       }
-      logerr("Error during checkout", error);
     }
   }
 
   async function clearCart() {
     try {
-      const values = Array.from(cartItemsMap.values());
+      const values: CartItem[] = Array.from(
+        cartItemsMap.values(),
+      );
       const map = values.map((item) => {
         // We are getting the quantity to remove from the order for every item in the cart.
         return {
@@ -116,6 +127,7 @@ export default function Cart({
       setCartMap(new Map());
       debug("cart cleared");
     } catch (error) {
+      assert(error instanceof Error, "Error is not an instance of Error");
       logerr("Error clearing cart", error);
     }
   }
@@ -159,15 +171,20 @@ export default function Cart({
     }
   }
   function calculateTotal() {
-    const values = cartItemsMap.values();
-    let total = 0;
-    Array.from(values).forEach((item) => {
+    const values: CartItem[] = Array.from(cartItemsMap.values());
+    let total = BigInt(0);
+    values.forEach((item) => {
       total += baseToken?.decimals
-        ? formatUnitsFromString(item.price, baseToken?.decimals) *
-          item.selectedQty
-        : 0;
+        ? BigInt(
+          multiplyAndFormatUnits(
+            item.price,
+            item.selectedQty,
+            baseToken.decimals,
+          ),
+        )
+        : BigInt(0);
     });
-    return total;
+    return total.toString();
   }
   const icon = baseToken?.symbol === "ETH"
     ? "/icons/eth-coin.svg"
@@ -176,11 +193,14 @@ export default function Cart({
   function renderItems() {
     if (!orderId || !cartItemsMap.size) return <p>No items in cart</p>;
 
-    const values = cartItemsMap.values();
-    return Array.from(values).map((item) => {
+    const values: CartItem[] = Array.from(cartItemsMap.values());
+    return values.map((item) => {
       const price = baseToken?.decimals
-        ? formatUnitsFromString(item.price, baseToken?.decimals) *
-          item.selectedQty
+        ? multiplyAndFormatUnits(
+          item.price,
+          item.selectedQty,
+          baseToken.decimals,
+        )
         : 0;
       if (!item.selectedQty) return null;
 

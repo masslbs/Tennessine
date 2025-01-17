@@ -146,6 +146,14 @@ export function formatUnitsFromString(price: string, decimal: number) {
   return formatUnits(BigInt(price), decimal);
 }
 
+export function multiplyAndFormatUnits(
+  price: string,
+  quantity: number,
+  decimals: number,
+) {
+  return formatUnits(BigInt(price) * BigInt(quantity), decimals);
+}
+
 interface AdressObj {
   address: `0x${string}`;
   chainId: number;
