@@ -27,9 +27,11 @@ input[type="checkbox"]:checked::after {
   align-items: center;
   margin-top: 3px;
 }
-input[type="number"] {
-  background-color: white;
+
+input {
+  background-color: transparent;
 }
+
 body {
   overflow: visible;
   color: black;

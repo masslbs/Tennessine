@@ -2,18 +2,10 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
 
 import { formatUnitsFromString, logger } from "@massmarket/utils";
 
-import {
-  CheckoutStep,
-  ListingId,
-  Order,
-  OrderEventTypes,
-  OrderId,
-  OrderState,
-} from "../../types";
+import { ListingId, Order, OrderEventTypes, OrderId } from "../../types";
 
 import Button from "../common/Button.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
@@ -33,7 +25,6 @@ export default function Cart({
   const { currentOrder } = useCurrentOrder();
   const { baseToken } = useBaseToken();
   const { clientStateManager } = useClientWithStateManager();
-  const navigate = useNavigate();
 
   const [cartItemsMap, setCartMap] = useState(new Map());
   const [orderId, setOrderId] = useState<OrderId | null>(null);
@@ -91,17 +82,6 @@ export default function Cart({
   }
 
   async function handleCheckout(orderId: OrderId) {
-    // If the order is already committed, redirect to the shipping details page.
-    if (currentOrder!.status === OrderState.STATE_COMMITED) {
-      navigate({
-        to: "/checkout",
-        search: (prev: Record<string, string>) => ({
-          ...prev,
-          step: CheckoutStep.shippingDetails,
-        }),
-      });
-      return;
-    }
     try {
       await onCheckout!(orderId);
     } catch (error) {
@@ -142,7 +122,7 @@ export default function Cart({
 
   async function addQuantity(id: ListingId) {
     try {
-      await clientStateManager.stateManager.orders.addItems(orderId!, [
+      await clientStateManager!.stateManager.orders.addItems(orderId!, [
         {
           listingId: id,
           quantity: 1,

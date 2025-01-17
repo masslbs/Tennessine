@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useState } from "react";
-import { useSearch } from "@tanstack/react-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 
 import { assert, logger } from "@massmarket/utils";
 
@@ -13,6 +13,7 @@ import {
   Order,
   OrderEventTypes,
   OrderId,
+  OrderState,
 } from "../../types.ts";
 import Cart from "./Cart.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
@@ -31,6 +32,7 @@ export default function CheckoutFlow() {
   const { currentOrder } = useCurrentOrder();
 
   const search = useSearch({ strict: false });
+  const navigate = useNavigate();
 
   const stepParam = search?.step as CheckoutStep;
 
@@ -122,12 +124,14 @@ export default function CheckoutFlow() {
       throw new Error("No orderId");
     }
     try {
-      await clientStateManager!.stateManager.orders.commit(orderId);
-      debug(`Order ID: ${orderId} committed`);
+      // Commit the order if it is not already committed
+      if (currentOrder!.status !== OrderState.STATE_COMMITED) {
+        await clientStateManager!.stateManager.orders.commit(orderId);
+        debug(`Order ID: ${orderId} committed`);
+      }
       setStep(CheckoutStep.shippingDetails);
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
-
       logerr("Error during checkout", error);
       throw error;
     }
@@ -212,7 +216,7 @@ export default function CheckoutFlow() {
   }
 
   return (
-    <main className="pt-under-nav h-screen p-4 mt-5">
+    <main className="pt-under-nav p-4 mt-5 min-h-screen">
       <ErrorMessage
         errorMessage={errorMsg}
         onClose={() => {

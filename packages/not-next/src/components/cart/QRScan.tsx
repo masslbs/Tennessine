@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useState } from "react";
-import QRCode from "qrcode";
+// import QRCode from "qrcode";
 import BackButton from "../common/BackButton.tsx";
 
 export default function QRScan({
@@ -22,7 +22,7 @@ export default function QRScan({
     navigator.clipboard.writeText(purchaseAddress!);
   }
   useEffect(() => {
-    imgSrc && QRCode.toDataURL(imgSrc).then(setQr);
+    // imgSrc && QRCode.toDataURL(imgSrc).then(setQr);
   }, [imgSrc]);
 
   return (
