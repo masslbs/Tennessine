@@ -43,11 +43,6 @@ export function useClientWithStateManager(skipConnect: boolean = false) {
       setClientStateManager(csm);
     }
   }, [shopId, relayEndpoint, shopPublicClient]);
-  const { result } = useQuery(async () => {
-    if (
-      !clientStateManager 
-    ) return;
-    await clientStateManager.createNewRelayClient();
 
   const { result } = useQuery(async () => {
     if (
