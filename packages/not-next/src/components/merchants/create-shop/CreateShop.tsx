@@ -49,7 +49,8 @@ export default function () {
   const { shopId } = useShopId();
   const navigate = useNavigate({ from: "/create-shop" });
   const search = useSearch({ from: "/create-shop" });
-  const { clientStateManager } = useClientWithStateManager();
+  // Set skipConnect to true so that useQuery does not try to connect and authenticate before enrolling the keycard.
+  const { clientStateManager } = useClientWithStateManager(true);
   const [keycard] = useKeycard();
 
   const [step, setStep] = useState<
@@ -157,7 +158,6 @@ export default function () {
       if (!shopPublicClient) {
         throw new Error("shopPublicClient not found");
       }
-      const rc = clientStateManager!.createNewRelayClient();
       const hash = await mintShop(wallet!, [shopId, wallet!.account.address]);
       setStoreRegistrationStatus("Waiting to confirm mint transaction...");
       let receipt = await shopPublicClient!.waitForTransactionReceipt({
@@ -168,12 +168,18 @@ export default function () {
       if (receipt!.status !== "success") {
         throw new Error("Mint shop: transaction failed");
       }
-      localStorage.setItem("shopId", String(shopId));
 
       setStoreRegistrationStatus("Adding relay token ID...");
       // Add relay tokenId for event verification.
-      const tx = await addRelay(wallet!, [shopId, rc.relayEndpoint.tokenId]);
-      debug(`Added relay token ID:${rc.relayEndpoint.tokenId}`);
+      const tx = await addRelay(wallet!, [
+        shopId,
+        clientStateManager!.relayClient.relayEndpoint.tokenId,
+      ]);
+      debug(
+        `Added relay token ID:${
+          clientStateManager!.relayClient.relayEndpoint.tokenId
+        }`,
+      );
       receipt = await shopPublicClient!.waitForTransactionReceipt({
         hash: tx,
         // confirmations: 2,

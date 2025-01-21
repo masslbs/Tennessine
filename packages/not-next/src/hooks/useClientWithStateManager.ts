@@ -1,7 +1,6 @@
 import { useContext, useEffect } from "react";
 import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { useRouter } from "@tanstack/react-router";
 
 import { logger, random32BytesHex } from "@massmarket/utils";
 
@@ -18,7 +17,7 @@ import { defaultRPC } from "../utils/mod.ts";
 const namespace = "frontend:useClientWithStateManager";
 const debug = logger(namespace);
 
-export function useClientWithStateManager() {
+export function useClientWithStateManager(skipConnect: boolean = false) {
   const { clientStateManager, setClientStateManager } = useContext(
     MassMarketContext,
   );
@@ -27,9 +26,7 @@ export function useClientWithStateManager() {
   const { shopId } = useShopId();
   const { shopPublicClient } = usePublicClient();
   const { chain } = useChain();
-  const router = useRouter();
 
-  const currentPath = router.state.location.pathname;
   useEffect(() => {
     if (
       shopId &&
@@ -46,13 +43,14 @@ export function useClientWithStateManager() {
       setClientStateManager(csm);
     }
   }, [shopId, relayEndpoint, shopPublicClient]);
+
   const { result } = useQuery(async () => {
     if (
-      !clientStateManager || currentPath == "/merchant-connect" ||
-      currentPath == "/create-shop"
+      !clientStateManager
     ) return;
     await clientStateManager.createNewRelayClient();
-
+    // skipConnect will be true if we are on a merchant page. We don't want to try connecting and authenticating before enrolling the keycard.
+    if (skipConnect) return;
     if (keycard?.role === "merchant") {
       await clientStateManager.connectAndAuthenticate();
       await clientStateManager.sendMerchantSubscriptionRequest();
@@ -86,7 +84,11 @@ export function useClientWithStateManager() {
       debug("Success: sendGuestCheckoutSubscriptionRequest");
     }
     return { clientConnected: true };
-  }, [clientStateManager?.keycard]);
+  }, [
+    clientStateManager?.keycard,
+    String(clientStateManager?.shopId),
+    skipConnect,
+  ]);
 
   return { clientStateManager, result };
 }
