@@ -107,14 +107,8 @@ export function useCurrentOrder() {
 
   const { result } = useQuery(async () => {
     if (!orderManager) return;
-
-    orderFetcher()
-      .finally(() => {
-        setOrderFetched(true);
-      })
-      .catch((e) => {
-        errlog(e);
-      });
+    await orderFetcher();
+    setOrderFetched(true);
   });
 
   return { currentOrder, orderFetched, result };

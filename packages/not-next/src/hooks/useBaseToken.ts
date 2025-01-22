@@ -51,7 +51,7 @@ export function useBaseToken() {
       decimals,
     });
     debug("Base token set.");
-  }, [pricingCurrency.chainId, shopPublicClient.chain.id]);
+  }, [pricingCurrency?.chainId, shopPublicClient?.chain.id]);
 
   return { baseToken, result };
 }

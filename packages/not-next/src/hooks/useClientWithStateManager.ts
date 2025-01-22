@@ -70,7 +70,7 @@ export function useClientWithStateManager(skipConnect: boolean = false) {
       const res = await clientStateManager.relayClient.enrollKeycard(
         guestWallet,
         true,
-        shopId!,
+        clientStateManager.shopId,
         new URL(globalThis.location.href),
       );
       if (!res.ok) {
