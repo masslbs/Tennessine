@@ -37,7 +37,7 @@ export default function MerchantViewProducts({
           className={`${!visible ? "opacity-50" : ""} flex w-full h-auto mb-4`}
           to="/listing-detail"
           search={(prev: Record<string, string>) => ({
-            ...prev,
+            shopId: prev.shopId,
             itemId: item.id,
           })}
         >
@@ -88,7 +88,7 @@ export default function MerchantViewProducts({
           <Link
             to="/edit-listing"
             search={(prev: Record<string, string>) => ({
-              ...prev,
+              shopId: prev.shopId,
               itemId: "new",
             })}
             className="text-white"

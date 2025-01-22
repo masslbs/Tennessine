@@ -168,7 +168,7 @@ export default function EditProduct() {
         navigate({
           to: "/listings",
           search: (prev: Record<string, string>) => ({
-            ...prev,
+            shopId: prev.shopId,
           }),
         });
       } catch (error: unknown) {

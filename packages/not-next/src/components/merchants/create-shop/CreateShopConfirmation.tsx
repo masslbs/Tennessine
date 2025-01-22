@@ -56,7 +56,7 @@ export default function Confirmation() {
         <Button>
           <Link
             to="/merchant-dashboard"
-            search={(prev: Record<string, string>) => ({ ...prev })}
+            search={(prev: Record<string, string>) => ({ shopId: prev.shopId })}
             className="text-white"
           >
             View Dashboard

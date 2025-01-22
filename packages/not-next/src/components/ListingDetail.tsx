@@ -105,7 +105,7 @@ export default function ListingDetail() {
                 <Link
                   to="/edit-listing"
                   search={(prev: Record<string, string>) => ({
-                    ...prev,
+                    shopId: prev.shopId,
                     itemId: item.id,
                   })}
                 >
