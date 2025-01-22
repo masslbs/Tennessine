@@ -42,7 +42,7 @@ export function useClientWithStateManager(skipConnect: boolean = false) {
       );
       setClientStateManager(csm);
     }
-  }, [shopId, relayEndpoint, shopPublicClient]);
+  }, [shopId, relayEndpoint, shopPublicClient, keycard]);
 
   const { result } = useQuery(async () => {
     if (
@@ -58,8 +58,8 @@ export function useClientWithStateManager(skipConnect: boolean = false) {
     } else if (keycard?.role === "guest-returning") {
       await clientStateManager.connectAndAuthenticate();
       await clientStateManager.sendGuestCheckoutSubscriptionRequest();
+      debug("Success: Connected with guest keycard");
     } else if (keycard?.role === "guest-new") {
-      debug("Success: Enrolling new guest keycard");
       const guestWallet = createWalletClient({
         account: privateKeyToAccount(random32BytesHex()),
         chain,
@@ -73,13 +73,18 @@ export function useClientWithStateManager(skipConnect: boolean = false) {
         clientStateManager.shopId,
         new URL(globalThis.location.href),
       );
+      if (res.status === 409) {
+        debug("Duplicate keycard. Setting new keycard and trying again.");
+        setKeycard({ privateKey: random32BytesHex(), role: "guest-new" });
+        return;
+      }
       if (!res.ok) {
         throw new Error(`Failed to enroll keycard: ${res.error}`);
       }
       debug("Success: Enrolled new guest keycard");
       await clientStateManager.connectAndAuthenticate();
-      //Set keycard role to guest-returning so we don't try enrolling again on refresh
       await clientStateManager.sendGuestCheckoutSubscriptionRequest();
+      //Set keycard role to guest-returning so we don't try enrolling again on refresh
       setKeycard({ ...keycard, role: "guest-returning" });
       debug("Success: sendGuestCheckoutSubscriptionRequest");
     }
@@ -87,7 +92,6 @@ export function useClientWithStateManager(skipConnect: boolean = false) {
   }, [
     clientStateManager?.keycard,
     String(clientStateManager?.shopId),
-    skipConnect,
   ]);
 
   return { clientStateManager, result };

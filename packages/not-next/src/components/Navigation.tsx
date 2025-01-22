@@ -20,6 +20,7 @@ import { useClientWithStateManager } from "../hooks/useClientWithStateManager.ts
 import { useShopDetails } from "../hooks/useShopDetails.ts";
 import { useKeycard } from "../hooks/useKeycard.ts";
 import { useCurrentOrder } from "../hooks/useCurrentOrder.ts";
+import { usePathname } from "../hooks/usePathname.ts";
 
 const merchantMenu = [
   {
@@ -42,10 +43,11 @@ function Navigation() {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const [basketOpen, setBasketOpen] = useState<boolean>(false);
   const [cartLength, setLength] = useState<number>(0);
-  const navigate = useNavigate();
 
+  const navigate = useNavigate();
   const { shopDetails } = useShopDetails();
-  const { clientStateManager } = useClientWithStateManager(true);
+  const { isMerchantPath } = usePathname();
+  const { clientStateManager } = useClientWithStateManager(isMerchantPath);
   const { currentOrder } = useCurrentOrder();
   const [keycard] = useKeycard();
   const { disconnect } = useDisconnect();
@@ -251,7 +253,7 @@ function Navigation() {
           className={`flex gap-6 p-2`}
         >
           <button
-            className={`relative bg-transparent p-0${
+            className={`relative bg-transparent p-0 ${
               isMerchantView ? "hidden" : ""
             }`}
             onClick={() => setBasketOpen(!basketOpen)}

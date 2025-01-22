@@ -120,7 +120,7 @@ export default function MerchantDashboard() {
   };
 
   return (
-    <main className="h-screen p-4">
+    <main className="h-screen p-4 pt-under-nav">
       <div className="mb-4">
         <h1>Dashboard</h1>
         <div className="flex flex-col gap-1 pt-4">

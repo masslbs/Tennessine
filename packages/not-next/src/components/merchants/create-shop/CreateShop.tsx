@@ -141,7 +141,6 @@ export default function () {
 
   function goToConnectWallet() {
     const warning = checkRequiredFields();
-    console.log({ warning });
     if (warning) {
       setValidationError(warning);
       throw Error(`Check all required fields:${warning}`);
@@ -158,7 +157,7 @@ export default function () {
       if (!shopPublicClient) {
         throw new Error("shopPublicClient not found");
       }
-      const hash = await mintShop(wallet!, [shopId, wallet!.account.address]);
+      const hash = await mintShop(wallet!, [shopId!, wallet!.account.address]);
       setStoreRegistrationStatus("Waiting to confirm mint transaction...");
       let receipt = await shopPublicClient!.waitForTransactionReceipt({
         hash,
@@ -172,7 +171,7 @@ export default function () {
       setStoreRegistrationStatus("Adding relay token ID...");
       // Add relay tokenId for event verification.
       const tx = await addRelay(wallet!, [
-        shopId,
+        shopId!,
         clientStateManager!.relayClient.relayEndpoint.tokenId,
       ]);
       debug(
@@ -202,7 +201,7 @@ export default function () {
     setStoreRegistrationStatus("Checking permissions...");
     try {
       const hasAccess = await checkPermissions(shopPublicClient, [
-        shopId,
+        shopId!,
         wallet!.account.address,
         abi.permissions.updateRootHash,
       ]);
@@ -213,7 +212,7 @@ export default function () {
       const res = await clientStateManager!.relayClient.enrollKeycard(
         wallet,
         false,
-        shopId,
+        shopId!,
         new URL(globalThis.location.href),
       );
       //set keycard role to merchant
@@ -249,7 +248,7 @@ export default function () {
   async function createShopManifest() {
     try {
       await clientStateManager!.sendMerchantSubscriptionRequest();
-      debug("sent merchant subscription request");
+      debug("Sent merchant subscription request");
 
       const uniqueByChainId = [
         ...new Set(
@@ -281,7 +280,7 @@ export default function () {
             },
           ],
         },
-        shopId,
+        shopId!,
       );
       debug("Manifest created");
     } catch (error: unknown) {
@@ -316,7 +315,7 @@ export default function () {
 
       //Write shop metadata to blockchain client.
       const metadataHash = await setTokenURI(wallet!, [
-        shopId,
+        shopId!,
         metadataPath.url,
       ]);
 
@@ -341,7 +340,7 @@ export default function () {
   if (step === "manifest form") {
     return (
       <main className="p-4 pt-under-nav">
-        <section className="pt-4">
+        <section>
           <ValidationWarning
             warning={validationError}
             onClose={() => {
@@ -495,7 +494,7 @@ export default function () {
               <div className="flex flex-col gap-4">
                 <ConnectButton chainStatus="name" />
                 <p>{storeRegistrationStatus}</p>
-                <Button onClick={mint} disabled={!wallet}>
+                <Button onClick={mint} disabled={!wallet || !shopId}>
                   <h6>Mint Shop</h6>
                 </Button>
               </div>

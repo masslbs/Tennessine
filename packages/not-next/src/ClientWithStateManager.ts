@@ -102,6 +102,7 @@ export class ClientWithStateManager {
     this.relayClient.nonce = eventNonceCounter + 1;
     await this.relayClient.connect();
     await this.relayClient.authenticate();
+    debug("Success: Connected and authenticated Relay Client");
   }
 
   async sendMerchantSubscriptionRequest() {

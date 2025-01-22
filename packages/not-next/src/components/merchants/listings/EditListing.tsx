@@ -47,15 +47,14 @@ export default function EditProduct() {
 
   const hed = editView ? "Edit product" : "Add Product";
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   useEffect(() => {
-    if (editView && itemId && baseToken) {
+    if (editView && itemId && baseToken.decimals) {
       clientStateManager!
         .stateManager!.listings.get(itemId)
         .then((item: Listing) => {
           setProductInView(item);
           setTitle(item.metadata.title);
-          const price = formatUnitsFromString(item.price, baseToken!.decimals);
+          const price = formatUnitsFromString(item.price, baseToken.decimals);
           setPrice(price);
           setImages(
             item.metadata.images.map((img: string) => {
@@ -79,7 +78,7 @@ export default function EditProduct() {
       const { id } = await clientStateManager!.stateManager!.listings
         .create(
           newItem,
-          baseToken!.decimals,
+          baseToken.decimals,
         );
       await clientStateManager!.stateManager!.listings.changeInventory(
         id,
