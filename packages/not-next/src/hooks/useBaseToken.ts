@@ -6,6 +6,7 @@ import { useClientWithStateManager } from "./useClientWithStateManager.ts";
 import { usePublicClient } from "./usePublicClient.ts";
 import { getTokenInformation } from "../utils/token.ts";
 import { ShopCurrencies, ShopManifest, Token } from "../types.ts";
+import { useQuery } from "./useQuery.ts";
 
 const namespace = "frontend:useBaseToken";
 const debug = logger(namespace);
@@ -38,18 +39,19 @@ export function useBaseToken() {
     getManifest();
   }, []);
 
-  useEffect(() => {
-    if (pricingCurrency && shopPublicClient) {
-      const { address } = pricingCurrency;
-      getTokenInformation(shopPublicClient!, address!).then((res) => {
-        debug(`getBaseTokenInfo: name: ${res[0]} | decimals:${res[1]}`);
-        setBaseToken({
-          symbol: res[0],
-          decimals: res[1],
-        });
-      });
-    }
-  }, [pricingCurrency, shopPublicClient]);
+  const { result } = useQuery(async () => {
+    if (!pricingCurrency || !shopPublicClient) return;
+    const { address } = pricingCurrency;
+    const [symbol, decimals] = await getTokenInformation(
+      shopPublicClient!,
+      address!,
+    );
+    setBaseToken({
+      symbol,
+      decimals,
+    });
+    debug("Base token set.");
+  }, [pricingCurrency.chainId, shopPublicClient.chain.id]);
 
-  return { baseToken };
+  return { baseToken, result };
 }

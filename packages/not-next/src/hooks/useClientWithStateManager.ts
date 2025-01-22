@@ -58,7 +58,7 @@ export function useClientWithStateManager(skipConnect: boolean = false) {
     } else if (keycard?.role === "guest-returning") {
       await clientStateManager.connectAndAuthenticate();
       await clientStateManager.sendGuestCheckoutSubscriptionRequest();
-    } else if (keycard?.role === "guest-new" ) {
+    } else if (keycard?.role === "guest-new") {
       debug("Success: Enrolling new guest keycard");
       const guestWallet = createWalletClient({
         account: privateKeyToAccount(random32BytesHex()),

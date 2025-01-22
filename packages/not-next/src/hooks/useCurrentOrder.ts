@@ -4,6 +4,7 @@ import { logger } from "@massmarket/utils";
 import { useClientWithStateManager } from "./useClientWithStateManager.ts";
 import { CurrentOrder, Order, OrderEventTypes, OrderState } from "../types.ts";
 import { useShopId } from "./useShopId.ts";
+import { useQuery } from "./useQuery.ts";
 
 const namespace = "frontend:useCurrentOrder";
 const errlog = logger(namespace, "error");
@@ -62,7 +63,6 @@ export function useCurrentOrder() {
     // First try to find an open order
     const openOrders = await orderManager.getStatus(OrderState.STATE_OPEN) ||
       [];
-    console.log({ openOrders });
     if (openOrders.length === 1) {
       setCurrentOrder({
         orderId: openOrders[0],
@@ -96,15 +96,7 @@ export function useCurrentOrder() {
   }
 
   useEffect(() => {
-    //FIXME: wrap around useQuery
     if (!orderManager) return;
-    orderFetcher()
-      .finally(() => {
-        setOrderFetched(true);
-      })
-      .catch((e) => {
-        errlog(e);
-      });
     orderManager.on("create", onOrderCreate);
     orderManager.on("update", onOrderUpdate);
     return () => {
@@ -113,5 +105,17 @@ export function useCurrentOrder() {
     };
   }, [shopId, orderManager]);
 
-  return { currentOrder, orderFetched };
+  const { result } = useQuery(async () => {
+    if (!orderManager) return;
+
+    orderFetcher()
+      .finally(() => {
+        setOrderFetched(true);
+      })
+      .catch((e) => {
+        errlog(e);
+      });
+  });
+
+  return { currentOrder, orderFetched, result };
 }
