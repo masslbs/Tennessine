@@ -35,7 +35,7 @@ export default function CustomerViewProducts({
           data-testid="product-container"
           to="/listing-detail"
           search={(prev: Record<string, string>) => ({
-            ...prev,
+            shopId: prev.shopId,
             itemId: item.id,
           })}
           className={`${!visible ? "hidden" : ""}`}

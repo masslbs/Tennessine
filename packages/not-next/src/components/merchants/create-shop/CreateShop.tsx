@@ -51,7 +51,7 @@ export default function () {
   const search = useSearch({ from: "/create-shop" });
   // Set skipConnect to true so that useQuery does not try to connect and authenticate before enrolling the keycard.
   const { clientStateManager } = useClientWithStateManager(true);
-  const [keycard] = useKeycard();
+  const [keycard, setKeycard] = useKeycard();
 
   const [step, setStep] = useState<
     "manifest form" | "connect wallet" | "confirmation"
@@ -216,6 +216,8 @@ export default function () {
         shopId,
         new URL(globalThis.location.href),
       );
+      //set keycard role to merchant
+      setKeycard({ ...keycard, role: "merchant" });
       if (!res.ok) {
         throw Error("Failed to enroll keycard");
       }
@@ -338,7 +340,7 @@ export default function () {
 
   if (step === "manifest form") {
     return (
-      <main className="p-4">
+      <main className="p-4 pt-under-nav">
         <section className="pt-4">
           <ValidationWarning
             warning={validationError}
@@ -473,7 +475,7 @@ export default function () {
     );
   } else if (step === "connect wallet") {
     return (
-      <main className="h-screen p-4">
+      <main className="h-screen p-4 pt-under-nav">
         <ValidationWarning
           warning={validationError}
           onClose={() => {

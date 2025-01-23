@@ -141,7 +141,7 @@ export default function MerchantDashboard() {
             className="flex items-center gap-1 p-3 bg-white rounded-md"
             to="/edit-listing"
             search={(prev: Record<string, string>) => ({
-              ...prev,
+              shopId: prev.shopId,
               itemId: "new",
             })}
           >

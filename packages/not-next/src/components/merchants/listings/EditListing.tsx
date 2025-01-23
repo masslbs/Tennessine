@@ -168,7 +168,7 @@ export default function EditProduct() {
         navigate({
           to: "/listings",
           search: (prev: Record<string, string>) => ({
-            ...prev,
+            shopId: prev.shopId,
           }),
         });
       } catch (error: unknown) {
@@ -241,7 +241,7 @@ export default function EditProduct() {
   }
 
   return (
-    <main className="pt-4 px-3">
+    <main className="pt-4 px-3 pt-under-nav">
       <ValidationWarning
         warning={validationError}
         onClose={() => {

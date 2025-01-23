@@ -37,7 +37,7 @@ export default function MerchantViewProducts({
           className={`${!visible ? "opacity-50" : ""} flex w-full h-auto mb-4`}
           to="/listing-detail"
           search={(prev: Record<string, string>) => ({
-            ...prev,
+            shopId: prev.shopId,
             itemId: item.id,
           })}
         >
@@ -81,14 +81,14 @@ export default function MerchantViewProducts({
   }
 
   return (
-    <section className="mx-5">
+    <section className="mx-5 pt-3">
       <div className="flex">
         <h1 className="grow flex items-center">Manage Products</h1>
         <Button custom="w-30">
           <Link
             to="/edit-listing"
             search={(prev: Record<string, string>) => ({
-              ...prev,
+              shopId: prev.shopId,
               itemId: "new",
             })}
             className="text-white"

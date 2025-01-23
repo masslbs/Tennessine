@@ -21,8 +21,7 @@ export default function App({
         <MassMarketProvider>
           <RainbowKitProvider>
             <RouterProvider router={router} />
-            <main>
-              <h1 data-testid="homepage" className="text-4xl">Mass Market</h1>
+            <main data-testid="homepage">
             </main>
           </RainbowKitProvider>
         </MassMarketProvider>

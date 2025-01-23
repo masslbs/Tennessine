@@ -320,28 +320,6 @@ export class RelayClient extends EventEmitter {
     this.subscriptionId = response.payload;
   }
 
-  async sendGuestSubscriptionRequest(shopId: bigint, seqNo = 0) {
-    assert(
-      this.subscriptionId == null,
-      "subscriptionId is already set. cancel first.",
-    );
-    const filters = [
-      { objectType: schema.ObjectType.OBJECT_TYPE_LISTING },
-      { objectType: schema.ObjectType.OBJECT_TYPE_TAG },
-      { objectType: schema.ObjectType.OBJECT_TYPE_MANIFEST },
-      { objectType: schema.ObjectType.OBJECT_TYPE_ACCOUNT },
-    ];
-    const { response } = await this.encodeAndSend({
-      subscriptionRequest: {
-        startShopSeqNo: seqNo,
-        shopId: { raw: bigIntToBytes(shopId) },
-        filters,
-      },
-    });
-    assert(response?.payload, "response.payload is required");
-    this.subscriptionId = response.payload;
-  }
-
   async cancelSubscriptionRequest() {
     await this.encodeAndSend({
       subscriptionCancelRequest: {

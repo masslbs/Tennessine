@@ -5,7 +5,8 @@ import { logger } from "@massmarket/utils";
 import { useClientWithStateManager } from "./useClientWithStateManager.ts";
 import { usePublicClient } from "./usePublicClient.ts";
 import { getTokenInformation } from "../utils/token.ts";
-import { ShopCurrencies, Token } from "../types.ts";
+import { ShopCurrencies, ShopManifest, Token } from "../types.ts";
+import { useQuery } from "./useQuery.ts";
 
 const namespace = "frontend:useBaseToken";
 const debug = logger(namespace);
@@ -18,26 +19,39 @@ export function useBaseToken() {
   const { clientStateManager } = useClientWithStateManager();
   const { shopPublicClient } = usePublicClient(pricingCurrency?.chainId);
 
+  function getManifest() {
+    clientStateManager!.stateManager.manifest.get().then(
+      (manifest: ShopManifest) => {
+        manifest && setPricingCurrency(manifest.pricingCurrency);
+      },
+    );
+  }
+
   useEffect(() => {
-    (async () => {
-      const manifest = await clientStateManager!.stateManager.manifest.get();
-      setPricingCurrency(manifest.pricingCurrency);
-    })();
+    function onCreateEvent() {
+      getManifest();
+    }
+    function onUpdateEvent() {
+      getManifest();
+    }
+    clientStateManager!.stateManager.manifest.on("create", onCreateEvent);
+    clientStateManager!.stateManager.manifest.on("update", onUpdateEvent);
+    getManifest();
   }, []);
 
-  useEffect(() => {
-    (async () => {
-      if (pricingCurrency && shopPublicClient) {
-        const { address } = pricingCurrency;
-        const res = await getTokenInformation(shopPublicClient!, address!);
-        debug(`getBaseTokenInfo: name: ${res[0]} | decimals:${res[1]}`);
-        setBaseToken({
-          symbol: res[0],
-          decimals: res[1],
-        });
-      }
-    })();
-  }, [pricingCurrency, shopPublicClient]);
+  const { result } = useQuery(async () => {
+    if (!pricingCurrency || !shopPublicClient) return;
+    const { address } = pricingCurrency;
+    const [symbol, decimals] = await getTokenInformation(
+      shopPublicClient!,
+      address!,
+    );
+    setBaseToken({
+      symbol,
+      decimals,
+    });
+    debug("Base token set.");
+  }, [pricingCurrency?.chainId, shopPublicClient?.chain.id]);
 
-  return { baseToken };
+  return { baseToken, result };
 }

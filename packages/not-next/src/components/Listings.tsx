@@ -11,11 +11,12 @@ import MerchantViewProducts from "./merchants/listings/MerchantViewListings.tsx"
 import { asyncIteratorToMap } from "../utils/mod.ts";
 
 export default function Listings() {
-  const { clientStateManager } = useClientWithStateManager();
+  const { clientStateManager, result } = useClientWithStateManager();
   const [keycard] = useKeycard();
   const [products, setProducts] = useState(new Map());
 
   useEffect(() => {
+    if (!clientStateManager?.stateManager) return;
     function onCreateEvent() {
       asyncIteratorToMap(clientStateManager!.stateManager.listings.iterator)
         .then(
@@ -33,16 +34,15 @@ export default function Listings() {
         );
     }
 
-    asyncIteratorToMap(clientStateManager!.stateManager.listings.iterator).then(
-      (listings) => {
-        setProducts(listings);
-      },
-    );
-
     // Listen to future events
     clientStateManager!.stateManager.listings.on("create", onCreateEvent);
     clientStateManager!.stateManager.listings.on("update", onUpdateEvent);
-
+    asyncIteratorToMap(clientStateManager.stateManager.listings.iterator)
+      .then(
+        (listings) => {
+          setProducts(listings);
+        },
+      );
     return () => {
       // Cleanup listeners on unmount
       clientStateManager!.stateManager.listings.removeListener(
@@ -54,10 +54,11 @@ export default function Listings() {
         onUpdateEvent,
       );
     };
-  }, []);
+  }, [result]);
 
+  if (!clientStateManager?.stateManager) return <main>Loading...</main>;
   return (
-    <main className="bg-background-gray h-screen pt-4">
+    <main className="bg-background-gray h-screen pt-under-nav">
       {keycard.role === "merchant"
         ? <MerchantViewProducts products={Array.from([...products.values()])} />
         : (

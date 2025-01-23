@@ -29,6 +29,7 @@ export default function MerchantConnect() {
   // Set skipConnect to true so that useQuery does not try to connect and authenticate before enrolling the keycard.
   const { clientStateManager } = useClientWithStateManager(true);
   const navigate = useNavigate({ from: "/merchant-connect" });
+
   const [searchShopId, setSearchShopId] = useState<string>("");
   const [step, setStep] = useState<"search" | "connect">(
     "search",

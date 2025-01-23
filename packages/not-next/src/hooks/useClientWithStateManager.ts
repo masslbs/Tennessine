@@ -54,10 +54,11 @@ export function useClientWithStateManager(skipConnect: boolean = false) {
     if (keycard?.role === "merchant") {
       await clientStateManager.connectAndAuthenticate();
       await clientStateManager.sendMerchantSubscriptionRequest();
+      debug("Success: Connected with merchant keycard");
     } else if (keycard?.role === "guest-returning") {
       await clientStateManager.connectAndAuthenticate();
       await clientStateManager.sendGuestCheckoutSubscriptionRequest();
-    } else if (keycard?.role === "guest-new" && clientStateManager) {
+    } else if (keycard?.role === "guest-new") {
       debug("Success: Enrolling new guest keycard");
       const guestWallet = createWalletClient({
         account: privateKeyToAccount(random32BytesHex()),
@@ -69,7 +70,7 @@ export function useClientWithStateManager(skipConnect: boolean = false) {
       const res = await clientStateManager.relayClient.enrollKeycard(
         guestWallet,
         true,
-        shopId!,
+        clientStateManager.shopId,
         new URL(globalThis.location.href),
       );
       if (!res.ok) {
@@ -80,7 +81,6 @@ export function useClientWithStateManager(skipConnect: boolean = false) {
       //Set keycard role to guest-returning so we don't try enrolling again on refresh
       await clientStateManager.sendGuestCheckoutSubscriptionRequest();
       setKeycard({ ...keycard, role: "guest-returning" });
-
       debug("Success: sendGuestCheckoutSubscriptionRequest");
     }
     return { clientConnected: true };

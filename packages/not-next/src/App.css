@@ -28,6 +28,10 @@ input[type="checkbox"]:checked::after {
   margin-top: 3px;
 }
 
+input {
+  background-color: transparent;
+}
+
 body {
   overflow: visible;
   color: black;

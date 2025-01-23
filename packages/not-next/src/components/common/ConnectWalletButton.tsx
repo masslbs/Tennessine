@@ -5,7 +5,7 @@ export default function ConnectWalletButton() {
   return (
     <button
       data-testid="connect-wallet"
-      className="rounded-lg flex flex-col items-center gap-2"
+      className="rounded-lg flex flex-col items-center gap-2 p-0 bg-transparent"
       onClick={openConnectModal}
     >
       <img
