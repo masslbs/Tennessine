@@ -1,3 +1,5 @@
+import { formatUnits } from "viem";
+
 export async function asyncIteratorToMap<K, V>(
   iterator: () => AsyncIterable<[K, V]>,
 ): Promise<Map<K, V>> {
@@ -11,4 +13,12 @@ export async function asyncIteratorToMap<K, V>(
     items.set(id, item);
   }
   return items;
+}
+
+export function multiplyAndFormatUnits(
+  price: string,
+  quantity: number,
+  decimals: number,
+) {
+  return formatUnits(BigInt(price) * BigInt(quantity), decimals);
 }

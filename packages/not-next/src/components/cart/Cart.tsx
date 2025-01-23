@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useState } from "react";
 
-import { assert, logger, multiplyAndFormatUnits } from "@massmarket/utils";
+import { assert, logger } from "@massmarket/utils";
 
 import {
   CartItem,
@@ -19,6 +19,7 @@ import ErrorMessage from "../common/ErrorMessage.tsx";
 import { useBaseToken } from "../../hooks/useBaseToken.ts";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
+import { multiplyAndFormatUnits } from "../../utils/helper.ts";
 
 const namespace = "frontend:Cart";
 const debug = logger(namespace);
