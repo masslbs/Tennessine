@@ -126,7 +126,10 @@ export default function MerchantDashboard() {
         <div className="flex flex-col gap-1 pt-4">
           <Link
             className="flex items-center gap-1 p-3 bg-white rounded-md"
-            href="/listings"
+            to="/listings"
+            search={(prev: Record<string, string>) => ({
+              shopId: prev.shopId,
+            })}
           >
             <p>View products</p>
             <img
