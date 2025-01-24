@@ -32,8 +32,12 @@ export function useClientWithStateManager(skipConnect: boolean = false) {
       shopId &&
       relayEndpoint &&
       shopPublicClient &&
-      clientStateManager?.shopId !== shopId
+      // This check is so that we don't reset the clientStateManager everytime this hook is called.
+      (clientStateManager?.shopId !== shopId ||
+        // If a new keycard is set, i.e. when there is a duplicate keycard error, also reset the clientStateManager
+        clientStateManager?.keycard !== keycard.privateKey)
     ) {
+      debug("Setting ClientWithStateManager");
       const csm = new ClientWithStateManager(
         keycard.privateKey,
         shopPublicClient,
@@ -42,7 +46,7 @@ export function useClientWithStateManager(skipConnect: boolean = false) {
       );
       setClientStateManager(csm);
     }
-  }, [shopId, relayEndpoint, shopPublicClient, keycard]);
+  }, [shopId, relayEndpoint, shopPublicClient, keycard.privateKey]);
 
   const { result } = useQuery(async () => {
     if (
