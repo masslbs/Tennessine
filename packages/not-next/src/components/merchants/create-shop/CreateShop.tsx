@@ -339,7 +339,7 @@ export default function () {
 
   if (step === "manifest form") {
     return (
-      <main className="p-4 pt-under-nav">
+      <main className="p-4 pt-under-nav" data-testid="create-shop-page">
         <section>
           <ValidationWarning
             warning={validationError}
