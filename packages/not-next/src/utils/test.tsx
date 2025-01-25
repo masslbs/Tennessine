@@ -60,8 +60,8 @@ export const createRouterWrapper = (
 
     return (
       <StrictMode>
-        <WagmiProvider config={config}>
-          <QueryClientProvider client={new QueryClient()}>
+        <QueryClientProvider client={new QueryClient()}>
+          <WagmiProvider config={config}>
             <MassMarketProvider>
               {
                 /* TS expects self closing RouterProvier tag. See App.tsx for how we are using it.
@@ -70,8 +70,8 @@ export const createRouterWrapper = (
               {/* @ts-expect-error  */}
               <RouterProvider router={router}>{children}</RouterProvider>
             </MassMarketProvider>
-          </QueryClientProvider>
-        </WagmiProvider>
+          </WagmiProvider>
+        </QueryClientProvider>
       </StrictMode>
     );
   };
