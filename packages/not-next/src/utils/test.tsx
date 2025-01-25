@@ -42,8 +42,17 @@ export const createRouterWrapper = (
       path: "/create-shop",
       component: () => <>{children}</>,
     });
+    const merchantConnectRoute = createRoute({
+      getParentRoute: () => rootRoute,
+      path: "/merchant-connect",
+      component: () => <>{children}</>,
+    });
     const router = createRouter({
-      routeTree: rootRoute.addChildren([componentRoute, createShopRoute]),
+      routeTree: rootRoute.addChildren([
+        componentRoute,
+        createShopRoute,
+        merchantConnectRoute,
+      ]),
       history: createMemoryHistory({
         initialEntries: [shopId ? `${path}?shopId=${shopId}` : path],
       }),
