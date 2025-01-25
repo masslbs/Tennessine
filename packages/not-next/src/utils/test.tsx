@@ -13,17 +13,21 @@ import { mainnet, sepolia } from "wagmi/chains";
 import { MassMarketProvider } from "../MassMarketContext.tsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-const config = createConfig({
-  chains: [mainnet, sepolia],
-  transports: {
-    [mainnet.id]: http(),
-    [sepolia.id]: http(),
-  },
-});
+// export const config = createConfig({
+//   chains: [mainnet, sepolia],
+//   transports: {
+//     [mainnet.id]: http(),
+//     [sepolia.id]: http(),
+//   },
+//   // connectors: [
+//   //   injectedWallet(),
+//   // ],
+// });
 
 export const createRouterWrapper = (
   shopId: string | null = null,
   path: string = "/",
+  config,
 ) => {
   return ({ children }: { children: React.ReactNode }) => {
     function RootComponent() {
