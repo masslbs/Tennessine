@@ -1,6 +1,13 @@
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useChains } from "wagmi";
-import { Address, createPublicClient, http, pad, toHex } from "viem";
+import {
+  Address,
+  type ContractFunctionArgs,
+  createPublicClient,
+  http,
+  pad,
+  toHex,
+} from "viem";
 
 import { assert, formatUnitsFromString, logger } from "@massmarket/utils";
 import { getPaymentAddress, getPaymentId } from "@massmarket/blockchain";
@@ -25,7 +32,6 @@ import BackButton from "../common/BackButton.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import Pay from "./Pay.tsx";
 import QRScan from "./QRScan.tsx";
-import { ContractPaymentArgs } from "../../types.ts";
 
 const namespace = "frontend:ChoosePayment";
 const debug = logger(namespace);
@@ -56,7 +62,14 @@ export default function ChoosePayment({
   const [chosenPaymentTokenIcon, setIcon] = useState<string>(
     "/icons/usdc-coin.png",
   );
-  const [paymentArgs, setPaymentArgs] = useState<null | ContractPaymentArgs>(
+  const [paymentArgs, setPaymentArgs] = useState<
+    | null
+    | ContractFunctionArgs<
+      typeof abi.paymentsByAddressAbi,
+      "nonpayable",
+      "payTokenPreApproved"
+    >
+  >(
     null,
   );
   const [paymentCurrencyLoading, setPaymentCurrencyLoading] = useState(false);
