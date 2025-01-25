@@ -27,12 +27,7 @@ export const createRouterWrapper = (
 ) => {
   return ({ children }: { children: React.ReactNode }) => {
     function RootComponent() {
-      return (
-        <div>
-          <h1>My App</h1>
-          <Outlet />
-        </div>
-      );
+      return <Outlet />;
     }
     const rootRoute = createRootRoute({
       component: RootComponent,
@@ -44,7 +39,7 @@ export const createRouterWrapper = (
     });
     const createShopRoute = createRoute({
       getParentRoute: () => rootRoute,
-      path,
+      path: "/create-shop",
       component: () => <>{children}</>,
     });
     const router = createRouter({
