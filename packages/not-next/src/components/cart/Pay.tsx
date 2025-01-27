@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount, useWalletClient } from "wagmi";
+import { ContractFunctionArgs } from "viem";
 
 import * as abi from "@massmarket/contracts";
 import { assert, logger } from "@massmarket/utils";
@@ -13,7 +14,6 @@ import {
 import ConnectWalletButton from "../common/ConnectWalletButton.tsx";
 import Button from "../common/Button.tsx";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
-import { ContractPaymentArgs } from "../../types.ts";
 
 const namespace = "frontend:Pay";
 const debug = logger(namespace);
@@ -23,7 +23,11 @@ export default function Pay({
   paymentArgs,
   paymentCurrencyLoading,
 }: {
-  paymentArgs: ContractPaymentArgs;
+  paymentArgs: ContractFunctionArgs<
+    typeof abi.paymentsByAddressAbi,
+    "nonpayable",
+    "payTokenPreApproved"
+  >;
   paymentCurrencyLoading: boolean;
 }) {
   const { status } = useAccount();
@@ -47,24 +51,23 @@ export default function Pay({
   }, []);
 
   async function sendPayment() {
-    const paymentArgsWallet = { wallet, ...paymentArgs };
     try {
       setLoading(true);
       //TODO: Add test in guest checkout to use payNative. Currently we only have test to pay with ERC20.
       if (
-        paymentArgs.currency !== abi.addresses.zeroAddress
+        paymentArgs[0].currency !== abi.addresses.zeroAddress
       ) {
         debug("Pending ERC20 contract call approval");
-        await approveERC20(wallet!, paymentArgsWallet.currency, [
-          paymentArgsWallet.payeeAddress,
-          paymentArgsWallet.amount,
+        await approveERC20(wallet!, paymentArgs[0].currency, [
+          paymentArgs[0].payeeAddress,
+          paymentArgs[0].amount,
         ]);
         debug("ERC20 contract call approved");
-        await payTokenPreApproved(wallet!, [paymentArgsWallet]);
+        await payTokenPreApproved(wallet!, paymentArgs!);
       } else {
         //ETH payments do not need to be approved.
         debug("Pay native contract call");
-        await payNative(wallet!, [paymentArgsWallet]);
+        await payNative(wallet!, paymentArgs!);
       }
     } catch (error) {
       assert(error instanceof Error, "Error is not an instance of Error");
