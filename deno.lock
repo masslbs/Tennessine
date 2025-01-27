@@ -37,6 +37,8 @@
     "npm:@uidotdev/usehooks@^2.4.1": "2.4.1_react@18.3.1_react-dom@18.3.1__react@18.3.1",
     "npm:@vitejs/plugin-react@^4.3.3": "4.3.4_vite@5.4.11__@types+node@22.10.2_@babel+core@7.26.0_@types+node@22.10.2",
     "npm:@wagmi/cli@*": "2.1.18_zod@3.23.8_esbuild@0.19.12_picomatch@3.0.1",
+    "npm:@wagmi/connectors@^5.7.5": "5.7.5_@wagmi+core@2.16.3__viem@2.21.55___ws@8.18.0__@types+react@18.3.16__react@18.3.1_viem@2.21.55__ws@8.18.0_@types+react@18.3.16_react@18.3.1",
+    "npm:@wagmi/core@*": "2.16.3_viem@2.21.55__ws@8.18.0_@types+react@18.3.16_react@18.3.1",
     "npm:@wagmi/core@^2.16.3": "2.16.3_viem@2.21.55__ws@8.18.0_@types+react@18.3.16_react@18.3.1",
     "npm:abitype@1.0.6": "1.0.6_zod@3.23.8",
     "npm:abitype@1.0.7": "1.0.7",
@@ -709,6 +711,12 @@
         "@paulmillr/qr"
       ]
     },
+    "@metamask/sdk-install-modal-web@0.31.5": {
+      "integrity": "sha512-ZfrVkPAabfH4AIxcTlxQN5oyyzzVXFTLZrm1/BJ+X632d9MiyAVHNtiqa9EZpZYkZGk2icmDVP+xCpvJmVOVpQ==",
+      "dependencies": [
+        "@paulmillr/qr"
+      ]
+    },
     "@metamask/sdk@0.31.4_cross-fetch@4.1.0_eciesjs@0.4.13__@noble+ciphers@1.1.3_eventemitter2@6.4.9_readable-stream@3.6.2_socket.io-client@4.8.1": {
       "integrity": "sha512-HLUN4IZGdyiy5YeebXmXi+ndpmrl6zslCQLdR2QHplIy4JmUL/eDyKNFiK7eBLVKXVVIDYFIb6g1iSEb+i8Kew==",
       "dependencies": [
@@ -716,7 +724,31 @@
         "@metamask/onboarding",
         "@metamask/providers",
         "@metamask/sdk-communication-layer",
-        "@metamask/sdk-install-modal-web",
+        "@metamask/sdk-install-modal-web@0.31.2",
+        "@paulmillr/qr",
+        "bowser",
+        "cross-fetch@4.1.0",
+        "debug@4.4.0",
+        "eciesjs",
+        "eth-rpc-errors",
+        "eventemitter2",
+        "obj-multiplex",
+        "pump",
+        "readable-stream@3.6.2",
+        "socket.io-client@4.8.1",
+        "tslib@2.8.1",
+        "util",
+        "uuid@8.3.2"
+      ]
+    },
+    "@metamask/sdk@0.31.5_cross-fetch@4.1.0_eciesjs@0.4.13__@noble+ciphers@1.1.3_eventemitter2@6.4.9_readable-stream@3.6.2_socket.io-client@4.8.1": {
+      "integrity": "sha512-i7wteqO/fU2JWQrMZz+addHokYThHYznp4nYXviv+QysdxGVgAYvcW/PBA+wpeP3veX7QGfNqMPgSsZbBrASYw==",
+      "dependencies": [
+        "@babel/runtime",
+        "@metamask/onboarding",
+        "@metamask/providers",
+        "@metamask/sdk-communication-layer",
+        "@metamask/sdk-install-modal-web@0.31.5",
         "@paulmillr/qr",
         "bowser",
         "cross-fetch@4.1.0",
@@ -1519,10 +1551,23 @@
       "integrity": "sha512-i7Gk5M/Fc9gMvkVHbqw2kGtXvY8POsSY798/9I5npyglVjBddxoVk3xTYmcYTB1VIa4Fi0T2gLTHpQnpLrq1CQ==",
       "dependencies": [
         "@coinbase/wallet-sdk@4.2.3",
-        "@metamask/sdk",
+        "@metamask/sdk@0.31.4_cross-fetch@4.1.0_eciesjs@0.4.13__@noble+ciphers@1.1.3_eventemitter2@6.4.9_readable-stream@3.6.2_socket.io-client@4.8.1",
         "@safe-global/safe-apps-provider",
         "@safe-global/safe-apps-sdk",
         "@wagmi/core@2.16.3_viem@2.21.55__ws@8.18.0_@types+react@18.3.16_react@18.3.1_use-sync-external-store@1.2.0__react@18.3.1",
+        "@walletconnect/ethereum-provider",
+        "cbw-sdk@npm:@coinbase/wallet-sdk@3.9.3",
+        "viem@2.21.55_ws@8.18.0"
+      ]
+    },
+    "@wagmi/connectors@5.7.5_@wagmi+core@2.16.3__viem@2.21.55___ws@8.18.0__@types+react@18.3.16__react@18.3.1_viem@2.21.55__ws@8.18.0_@types+react@18.3.16_react@18.3.1": {
+      "integrity": "sha512-btqHHUSTzg4BZe9at/7SnRPv4cz8O3pisbeZBh0qxKz7PVm+9vRxY0bSala3xQPDcS0PRTB30Vn/+lM73GCjbw==",
+      "dependencies": [
+        "@coinbase/wallet-sdk@4.2.3",
+        "@metamask/sdk@0.31.5_cross-fetch@4.1.0_eciesjs@0.4.13__@noble+ciphers@1.1.3_eventemitter2@6.4.9_readable-stream@3.6.2_socket.io-client@4.8.1",
+        "@safe-global/safe-apps-provider",
+        "@safe-global/safe-apps-sdk",
+        "@wagmi/core@2.16.3_viem@2.21.55__ws@8.18.0_@types+react@18.3.16_react@18.3.1",
         "@walletconnect/ethereum-provider",
         "cbw-sdk@npm:@coinbase/wallet-sdk@3.9.3",
         "viem@2.21.55_ws@8.18.0"
@@ -4708,7 +4753,7 @@
       "integrity": "sha512-h8KDjPiXywZcKAbGttGDlZpwabZynR4lZ8eDO63tNgfxiMyhld0M5bMcB/u7XnH2xFgd0gq7PA2RVz96XMjazw==",
       "dependencies": [
         "@tanstack/react-query",
-        "@wagmi/connectors",
+        "@wagmi/connectors@5.7.3_@wagmi+core@2.16.3__viem@2.21.55___ws@8.18.0__@types+react@18.3.16__react@18.3.1__use-sync-external-store@1.2.0___react@18.3.1_viem@2.21.55__ws@8.18.0_@types+react@18.3.16_react@18.3.1_use-sync-external-store@1.2.0__react@18.3.1",
         "@wagmi/core@2.16.3_viem@2.21.55__ws@8.18.0_@types+react@18.3.16_react@18.3.1_use-sync-external-store@1.2.0__react@18.3.1",
         "react@18.3.1",
         "use-sync-external-store@1.2.0_react@18.3.1",
@@ -4882,6 +4927,18 @@
       ]
     }
   },
+  "remote": {
+    "https://deno.land/std@0.217.0/assert/_constants.ts": "a271e8ef5a573f1df8e822a6eb9d09df064ad66a4390f21b3e31f820a38e0975",
+    "https://deno.land/std@0.217.0/assert/_diff.ts": "dcc63d94ca289aec80644030cf88ccbf7acaa6fbd7b0f22add93616b36593840",
+    "https://deno.land/std@0.217.0/assert/_format.ts": "0ba808961bf678437fb486b56405b6fefad2cf87b5809667c781ddee8c32aff4",
+    "https://deno.land/std@0.217.0/assert/assert_equals.ts": "4497c56fe7d2993b0d447926702802fc0becb44e319079e8eca39b482ee01b4e",
+    "https://deno.land/std@0.217.0/assert/assert_is_error.ts": "6596f2b5ba89ba2fe9b074f75e9318cda97a2381e59d476812e30077fbdb6ed2",
+    "https://deno.land/std@0.217.0/assert/assert_rejects.ts": "e9e0c8d9c3e164c7ac962c37b3be50577c5a2010db107ed272c4c1afb1269f54",
+    "https://deno.land/std@0.217.0/assert/assertion_error.ts": "9f689a101ee586c4ce92f52fa7ddd362e86434ffdf1f848e45987dc7689976b8",
+    "https://deno.land/std@0.217.0/assert/equal.ts": "fae5e8a52a11d3ac694bbe1a53e13a7969e3f60791262312e91a3e741ae519e2",
+    "https://deno.land/std@0.217.0/fmt/colors.ts": "d239d84620b921ea520125d778947881f62c50e78deef2657073840b8af9559a",
+    "https://deno.land/std@0.217.0/testing/mock.ts": "dc9e58f88f7e746edd0c551443a39096c75895a0fdcd7db62777e47787be6226"
+  },
   "workspace": {
     "dependencies": [
       "npm:@types/react@*",
@@ -4921,6 +4978,7 @@
           "npm:@types/react@^18.3.11",
           "npm:@uidotdev/usehooks@^2.4.1",
           "npm:@vitejs/plugin-react@^4.3.3",
+          "npm:@wagmi/connectors@^5.7.5",
           "npm:@wagmi/core@^2.16.3",
           "npm:autoprefixer@^10.4.20",
           "npm:postcss@^8.4.49",
