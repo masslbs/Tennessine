@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
+
 import { logger } from "@massmarket/utils";
 
 import { useClientWithStateManager } from "./useClientWithStateManager.ts";
 import { CurrentOrder, Order, OrderEventTypes, OrderState } from "../types.ts";
 import { useShopId } from "./useShopId.ts";
 import { useQuery } from "./useQuery.ts";
+import { usePathname } from "./usePathname.ts";
 
 const namespace = "frontend:useCurrentOrder";
 const errlog = logger(namespace, "error");
 const debug = logger(namespace);
 
 export function useCurrentOrder() {
-  const { clientStateManager } = useClientWithStateManager(true);
+  const { isMerchantPath } = usePathname();
+  const { clientStateManager } = useClientWithStateManager(isMerchantPath);
   const { shopId } = useShopId();
   const [currentOrder, setCurrentOrder] = useState<CurrentOrder | null>(null);
   const [orderFetched, setOrderFetched] = useState<boolean>(false);

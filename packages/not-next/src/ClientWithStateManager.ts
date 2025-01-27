@@ -78,6 +78,7 @@ export class ClientWithStateManager {
   }
 
   createNewRelayClient() {
+    if (this.relayClient) return;
     if (!this.relayEndpoint?.url) throw new Error("Relay endpoint URL not set");
     if (!this.relayEndpoint?.tokenId) {
       throw new Error("Relay endpoint tokenId not set");
@@ -87,6 +88,7 @@ export class ClientWithStateManager {
       relayEndpoint: this.relayEndpoint,
       keyCardWallet,
     });
+    debug("RelayClient created");
     return this.relayClient;
   }
 
@@ -102,6 +104,7 @@ export class ClientWithStateManager {
     this.relayClient.nonce = eventNonceCounter + 1;
     await this.relayClient.connect();
     await this.relayClient.authenticate();
+    debug("Success: Connected and authenticated Relay Client");
   }
 
   async sendMerchantSubscriptionRequest() {

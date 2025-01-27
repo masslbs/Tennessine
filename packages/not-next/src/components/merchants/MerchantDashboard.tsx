@@ -120,13 +120,16 @@ export default function MerchantDashboard() {
   };
 
   return (
-    <main className="h-screen p-4">
+    <main className="h-screen p-4 pt-under-nav">
       <div className="mb-4">
         <h1>Dashboard</h1>
         <div className="flex flex-col gap-1 pt-4">
           <Link
             className="flex items-center gap-1 p-3 bg-white rounded-md"
-            href="/listings"
+            to="/listings"
+            search={(prev: Record<string, string>) => ({
+              shopId: prev.shopId,
+            })}
           >
             <p>View products</p>
             <img

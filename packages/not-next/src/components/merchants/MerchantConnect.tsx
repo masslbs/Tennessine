@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAccount, useWalletClient } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useNavigate } from "@tanstack/react-router";
@@ -10,12 +10,12 @@ import { useNavigate } from "@tanstack/react-router";
 import * as abi from "@massmarket/contracts";
 import { assert, logger, random32BytesHex } from "@massmarket/utils";
 
-import { ShopId } from "../../types.ts";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import Button from "../common/Button.tsx";
 import { usePublicClient } from "../../hooks/usePublicClient.ts";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 import { useKeycard } from "../../hooks/useKeycard.ts";
+import { useShopId } from "../../hooks/useShopId.ts";
 
 const namespace = "frontend:connect-merchant";
 const debug = logger(namespace);
@@ -41,6 +41,17 @@ export default function MerchantConnect() {
       image: string;
     } | null
   >(null);
+
+  const { shopId } = useShopId();
+
+  useEffect(() => {
+    if (shopId) {
+      setKeycard({
+        privateKey: random32BytesHex(),
+        role: "merchant",
+      });
+    }
+  }, [shopId]);
 
   function handleClearShopIdInput() {
     setSearchShopId("");
@@ -80,25 +91,18 @@ export default function MerchantConnect() {
 
   async function enroll() {
     try {
-      //Reset keycard in case there is a keycard already cached.
-      const kc = random32BytesHex();
-      setKeycard({
-        privateKey: kc,
-        role: "merchant",
-      });
-      // Since we are enrolling the keycard in the same function as setKeycard without waiting for the updated clientStateManager,
-      // we are setting the keycard in the clientStateManager manually.
-      clientStateManager!.keycard = kc;
-      const id = BigInt(searchShopId) as ShopId;
-      const rc = clientStateManager!.createNewRelayClient();
-      const res = await rc.enrollKeycard(
+      if (clientStateManager?.keycard !== keycard.privateKey) {
+        errlog("Keycard mismatch");
+        return;
+      }
+      const res = await clientStateManager?.relayClient.enrollKeycard(
         wallet!,
         false,
-        id,
+        shopId,
         new URL(globalThis.location.href),
       );
       if (res.ok) {
-        debug(`Keycard enrolled: ${keycard.privateKey}`);
+        debug(`Keycard enrolled: ${clientStateManager?.keycard}`);
         await clientStateManager!.connectAndAuthenticate();
         debug("RelayClient connected");
         await clientStateManager!.sendMerchantSubscriptionRequest();
@@ -106,7 +110,7 @@ export default function MerchantConnect() {
         navigate({
           to: "/connect-confirm",
           search: {
-            shopId: id,
+            shopId,
           },
         });
       } else {

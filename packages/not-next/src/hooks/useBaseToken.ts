@@ -1,18 +1,12 @@
 import { useEffect, useState } from "react";
 
-import { logger } from "@massmarket/utils";
-
 import { useClientWithStateManager } from "./useClientWithStateManager.ts";
 import { usePublicClient } from "./usePublicClient.ts";
 import { getTokenInformation } from "../utils/token.ts";
-import { ShopCurrencies, ShopManifest, Token } from "../types.ts";
+import { ShopCurrencies, ShopManifest } from "../types.ts";
 import { useQuery } from "./useQuery.ts";
 
-const namespace = "frontend:useBaseToken";
-const debug = logger(namespace);
-
 export function useBaseToken() {
-  const [baseToken, setBaseToken] = useState<Token | null>(null);
   const [pricingCurrency, setPricingCurrency] = useState<ShopCurrencies | null>(
     null,
   );
@@ -39,19 +33,15 @@ export function useBaseToken() {
     getManifest();
   }, []);
 
-  const { result } = useQuery(async () => {
+  const { result: baseToken } = useQuery(async () => {
     if (!pricingCurrency || !shopPublicClient) return;
     const { address } = pricingCurrency;
     const [symbol, decimals] = await getTokenInformation(
       shopPublicClient!,
       address!,
     );
-    setBaseToken({
-      symbol,
-      decimals,
-    });
-    debug("Base token set.");
-  }, [pricingCurrency?.chainId, shopPublicClient?.chain.id]);
+    return { symbol, decimals };
+  }, [pricingCurrency, shopPublicClient?.chain.id]);
 
-  return { baseToken, result };
+  return { baseToken: baseToken ?? { symbol: "", decimals: 0 } };
 }

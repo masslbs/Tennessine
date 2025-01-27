@@ -32,8 +32,12 @@ export function useClientWithStateManager(skipConnect: boolean = false) {
       shopId &&
       relayEndpoint &&
       shopPublicClient &&
-      clientStateManager?.shopId !== shopId
+      // This check is so that we don't reset the clientStateManager everytime this hook is called.
+      (clientStateManager?.shopId !== shopId ||
+        // If a new keycard is set, i.e. when there is a duplicate keycard error, also reset the clientStateManager
+        clientStateManager?.keycard !== keycard.privateKey)
     ) {
+      debug("Setting ClientWithStateManager");
       const csm = new ClientWithStateManager(
         keycard.privateKey,
         shopPublicClient,
@@ -42,7 +46,7 @@ export function useClientWithStateManager(skipConnect: boolean = false) {
       );
       setClientStateManager(csm);
     }
-  }, [shopId, relayEndpoint, shopPublicClient]);
+  }, [shopId, relayEndpoint, shopPublicClient, keycard.privateKey]);
 
   const { result } = useQuery(async () => {
     if (
@@ -58,8 +62,8 @@ export function useClientWithStateManager(skipConnect: boolean = false) {
     } else if (keycard?.role === "guest-returning") {
       await clientStateManager.connectAndAuthenticate();
       await clientStateManager.sendGuestCheckoutSubscriptionRequest();
+      debug("Success: Connected with guest keycard");
     } else if (keycard?.role === "guest-new") {
-      debug("Success: Enrolling new guest keycard");
       const guestWallet = createWalletClient({
         account: privateKeyToAccount(random32BytesHex()),
         chain,
@@ -73,13 +77,18 @@ export function useClientWithStateManager(skipConnect: boolean = false) {
         clientStateManager.shopId,
         new URL(globalThis.location.href),
       );
+      if (res.status === 409) {
+        debug("Duplicate keycard. Setting new keycard and trying again.");
+        setKeycard({ privateKey: random32BytesHex(), role: "guest-new" });
+        return;
+      }
       if (!res.ok) {
         throw new Error(`Failed to enroll keycard: ${res.error}`);
       }
       debug("Success: Enrolled new guest keycard");
       await clientStateManager.connectAndAuthenticate();
-      //Set keycard role to guest-returning so we don't try enrolling again on refresh
       await clientStateManager.sendGuestCheckoutSubscriptionRequest();
+      //Set keycard role to guest-returning so we don't try enrolling again on refresh
       setKeycard({ ...keycard, role: "guest-returning" });
       debug("Success: sendGuestCheckoutSubscriptionRequest");
     }
@@ -87,7 +96,6 @@ export function useClientWithStateManager(skipConnect: boolean = false) {
   }, [
     clientStateManager?.keycard,
     String(clientStateManager?.shopId),
-    skipConnect,
   ]);
 
   return { clientStateManager, result };
