@@ -159,7 +159,10 @@ export default function MerchantDashboard() {
           </Link>
 
           <Link
-            href="/store"
+            to="/settings"
+            search={(prev: Record<string, string>) => ({
+              shopId: prev.shopId,
+            })}
             className="flex items-center gap-1 p-3 bg-white rounded-md"
           >
             <p>Shop settings</p>
