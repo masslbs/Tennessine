@@ -174,7 +174,7 @@ export default function ChoosePayment({
         debug(`calculated payment Id: ${toHex(id)}`);
         throw new Error("Payment ID mismatch");
       }
-      setPaymentArgs(arg);
+      setPaymentArgs([arg]);
       const amount = BigInt(total);
       debug(`amount: ${amount}`);
       const payLink = currency.address === abi.addresses.zeroAddress

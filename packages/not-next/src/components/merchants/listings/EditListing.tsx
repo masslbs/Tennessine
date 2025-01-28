@@ -253,7 +253,7 @@ export default function EditProduct() {
           setErrorMsg(null);
         }}
       />
-      <BackButton href="/products" />
+      <BackButton href="/listings" />
       <section>
         <div className="flex">
           <h2>{hed}</h2>

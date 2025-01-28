@@ -7,7 +7,7 @@ import { Link, useSearch } from "@tanstack/react-router";
 
 import { formatUnitsFromString, logger } from "@massmarket/utils";
 
-import { Listing, ListingId } from "../types.ts";
+import { Listing, ListingId, OrderId } from "../types.ts";
 import Button from "./common/Button.tsx";
 import BackButton from "./common/BackButton.tsx";
 import { useBaseToken } from "../hooks/useBaseToken.ts";
@@ -28,7 +28,6 @@ export default function ListingDetail() {
   const search = useSearch({ strict: false });
   const { currentOrder } = useCurrentOrder();
   const itemId = search.itemId as ListingId | "new";
-  debug(`item ID: ${itemId}`);
 
   const [item, setItem] = useState<Listing | null>(null);
   const [price, setPrice] = useState("");
@@ -64,7 +63,7 @@ export default function ListingDetail() {
   }
 
   async function changeItems() {
-    let orderId = currentOrder;
+    let orderId: OrderId | null = currentOrder?.orderId || null;
     if (
       !orderId
     ) {

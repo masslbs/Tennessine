@@ -2,15 +2,13 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-"use client";
-
 import { ChangeEvent, useEffect, useState } from "react";
 import { useChains, useWalletClient } from "wagmi";
 import { Address } from "viem";
 
 import { UpdateShopManifest } from "@massmarket/stateManager/types";
 import { setTokenURI } from "@massmarket/blockchain";
-import { logger } from "@massmarket/utils";
+import { assert, logger } from "@massmarket/utils";
 import { addresses } from "@massmarket/contracts";
 
 import {
@@ -34,7 +32,9 @@ import { useShopDetails } from "../../hooks/useShopDetails.ts";
 import { useShopId } from "../../hooks/useShopId.ts";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 
-const debug = logger("frontend:storeProfile");
+const namespace = "frontend:StoreSettings";
+const debug = logger(namespace);
+const errlog = logger(namespace, "error");
 
 export default function ShopSettings() {
   const { shopDetails, setShopDetails } = useShopDetails();
@@ -45,10 +45,8 @@ export default function ShopSettings() {
 
   const [storeName, setStoreName] = useState<string>(shopDetails.name || "");
   const [avatar, setAvatar] = useState<FormData | null>(null);
-  const [acceptedCurrencies, setAcceptedCurrencies] = useState<Currency[]>(
-    [],
-  );
-  const [modifiedAcceptedCurrencies, setModifiedAcceptedCurrencies] = useState<
+
+  const [acceptedCurrencies, setAcceptedCurrencies] = useState<
     Currency[]
   >([]);
   const [pricingToken, setPricingCurrency] = useState<ShopCurrencies | null>(
@@ -58,7 +56,7 @@ export default function ShopSettings() {
   const [validationError, setValidationError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [manifest, setManifest] = useState<ShopManifest | null>(null);
-  const [displayedChains, setRenderChains] = useState<CurrencyChainOption[]>(
+  const [displayedChains, setDisplayedChains] = useState<CurrencyChainOption[]>(
     [],
   );
 
@@ -80,19 +78,18 @@ export default function ShopSettings() {
           chainId: c.id,
         });
       });
-      setRenderChains(chainsToRender);
+      setDisplayedChains(chainsToRender);
     }
   }, []);
 
   useEffect(() => {
     function onUpdateEvent(updatedManifest: ShopManifest) {
       const { pricingCurrency, acceptedCurrencies } = updatedManifest;
-      //Setting accepted currencies (original state) and modified accepted currencies to compare added/removed currencies when we update manfiest.
+      setManifest(updatedManifest);
       setAcceptedCurrencies(acceptedCurrencies);
-      setModifiedAcceptedCurrencies(acceptedCurrencies);
       setPricingCurrency({
-        address: pricingCurrency.address!,
-        chainId: pricingCurrency.chainId!,
+        address: pricingCurrency!.address!,
+        chainId: pricingCurrency!.chainId!,
       });
     }
 
@@ -102,10 +99,9 @@ export default function ShopSettings() {
         const { pricingCurrency, acceptedCurrencies } = shopManifest;
         setManifest(shopManifest);
         setAcceptedCurrencies(acceptedCurrencies);
-        setModifiedAcceptedCurrencies(acceptedCurrencies);
         setPricingCurrency({
-          address: pricingCurrency.address!,
-          chainId: pricingCurrency.chainId!,
+          address: pricingCurrency!.address!,
+          chainId: pricingCurrency!.chainId!,
         });
       });
 
@@ -132,15 +128,14 @@ export default function ShopSettings() {
     ) {
       um.setPricingCurrency = pricingToken;
     }
-    //Compare added/removed currencies and add to update manifest object.
+    //Compare added/removed currencies and apply changes to update manifest object.
     const { removed, added } = compareAddedRemovedChains(
+      manifest!.acceptedCurrencies,
       acceptedCurrencies,
-      modifiedAcceptedCurrencies,
     );
 
     if (removed.length) {
       debug(`Removing ${removed.length} chain from accepted chains`);
-      console.log("here", removed);
       um.removeAcceptedCurrencies = removed;
     }
     if (added.length) {
@@ -175,15 +170,17 @@ export default function ShopSettings() {
         const { url } = await clientStateManager!.relayClient!.uploadBlob(
           formData,
         );
-        await setTokenURI(wallet, [shopId, url]);
+        await setTokenURI(wallet!, [shopId!, url]);
         setShopDetails({
           name: storeName,
           profilePictureUrl: metadata.image,
         });
       }
       setSuccess("Changes saved.");
-    } catch (error) {
-      logger("Failed: updateShopManifest", error);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (error: unknown) {
+      assert(error instanceof Error, "Error is not an instance of Error");
+      errlog("Failed: updateShopManifest", error);
       setError("Error updating shop manifest.");
     }
   }
@@ -192,18 +189,18 @@ export default function ShopSettings() {
     const [addr, chainId] = e.target.value.split("/");
     const address = addr as Address;
     if (e.target.checked) {
-      // Add to modified accepted currencies
-      setModifiedAcceptedCurrencies([
-        ...modifiedAcceptedCurrencies,
+      // Add to accepted currencies
+      setAcceptedCurrencies([
+        ...acceptedCurrencies,
         { address, chainId: Number(chainId) },
       ]);
     } else {
-      // Remove from modified accepted currencies
-      const test = modifiedAcceptedCurrencies.filter((c) => {
+      // Remove from accepted currencies
+      const test = acceptedCurrencies.filter((c: Currency) => {
         return !(c.address.toLowerCase() === address.toLowerCase() &&
           c.chainId === Number(chainId));
       });
-      setModifiedAcceptedCurrencies(
+      setAcceptedCurrencies(
         test,
       );
     }
@@ -244,6 +241,7 @@ export default function ShopSettings() {
           <p className="flex items-center font-medium">Shop PFP</p>
           <AvatarUpload
             setImgBlob={setAvatar}
+            setErrorMsg={setError}
             currentImg={shopDetails.profilePictureUrl}
           />
           <section className="text-sm flex flex-col gap-4">
@@ -303,7 +301,7 @@ export default function ShopSettings() {
                 </label>
                 <div className="flex flex-col gap-1 mt-1">
                   {displayedChains.length &&
-                    displayedChains.map((c) => {
+                    displayedChains.map((c: CurrencyChainOption) => {
                       return (
                         <div key={c.value}>
                           <label className="flex items-center space-x-2">
@@ -314,13 +312,15 @@ export default function ShopSettings() {
                               className="form-checkbox h-4 w-4"
                               value={c.value}
                               checked={Boolean(
-                                modifiedAcceptedCurrencies.find((currency) => {
-                                  return (
-                                    currency.chainId === c.chainId &&
-                                    currency.address.toLowerCase() ===
-                                      c.address.toLowerCase()
-                                  );
-                                }),
+                                acceptedCurrencies.find(
+                                  (currency: Currency) => {
+                                    return (
+                                      currency.chainId === c.chainId &&
+                                      currency.address.toLowerCase() ===
+                                        c!.address!.toLowerCase()
+                                    );
+                                  },
+                                ),
                               )}
                             />
                             <span>{c.label}</span>
@@ -351,7 +351,7 @@ export default function ShopSettings() {
                       options={displayedChains}
                       callback={handlePricingCurrency}
                       selected={displayedChains.find(
-                        (c) =>
+                        (c: CurrencyChainOption) =>
                           c.address!.toLowerCase() === pricingToken?.address &&
                           c.chainId === pricingToken?.chainId,
                       )}
