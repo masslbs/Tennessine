@@ -2,18 +2,33 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { ChangeEvent, Dispatch, SetStateAction, useRef, useState } from "react";
+import {
+  ChangeEvent,
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 export default function AvatarUpload({
   setImgBlob,
   setErrorMsg,
+  currentImg = null,
 }: {
   setImgBlob: Dispatch<SetStateAction<FormData | null>>;
   setErrorMsg: Dispatch<SetStateAction<string | null>>;
+  currentImg?: string | null;
 }) {
   const [localImg, setLocalImg] = useState<null | string>(null);
-
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (currentImg) {
+      setLocalImg(currentImg);
+    }
+  }, [currentImg]);
+
   const triggerFileInput = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();

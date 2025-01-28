@@ -14,11 +14,15 @@ import { logger } from "@massmarket/utils";
 import { addresses } from "@massmarket/contracts";
 
 import {
+  Currency,
   CurrencyChainOption,
   ShopCurrencies,
   ShopManifest,
 } from "../../types.ts";
-import { getTokenAddress } from "../../utils/token.ts";
+import {
+  compareAddedRemovedChains,
+  getTokenAddress,
+} from "../../utils/token.ts";
 import Button from "../common/Button.tsx";
 import AvatarUpload from "../common/AvatarUpload.tsx";
 import ValidationWarning from "../common/ValidationWarning.tsx";
@@ -30,26 +34,23 @@ import { useShopDetails } from "../../hooks/useShopDetails.ts";
 import { useShopId } from "../../hooks/useShopId.ts";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 
-interface AcceptedChain {
-  address: Address;
-  chainId: number;
-  removed?: boolean;
-  added?: boolean;
-}
-
 const debug = logger("frontend:storeProfile");
 
 export default function ShopSettings() {
   const { shopDetails, setShopDetails } = useShopDetails();
-  console.log({ shopDetails });
   const { shopId } = useShopId();
   const { data: wallet } = useWalletClient();
   const { clientStateManager } = useClientWithStateManager();
+  const chains = useChains();
+
   const [storeName, setStoreName] = useState<string>(shopDetails.name || "");
   const [avatar, setAvatar] = useState<FormData | null>(null);
-  const [acceptedCurrencies, setAcceptedCurrencies] = useState<AcceptedChain[]>(
+  const [acceptedCurrencies, setAcceptedCurrencies] = useState<Currency[]>(
     [],
   );
+  const [modifiedAcceptedCurrencies, setModifiedAcceptedCurrencies] = useState<
+    Currency[]
+  >([]);
   const [pricingToken, setPricingCurrency] = useState<ShopCurrencies | null>(
     null,
   );
@@ -60,8 +61,6 @@ export default function ShopSettings() {
   const [displayedChains, setRenderChains] = useState<CurrencyChainOption[]>(
     [],
   );
-
-  const chains = useChains();
 
   useEffect(() => {
     if (chains) {
@@ -88,7 +87,9 @@ export default function ShopSettings() {
   useEffect(() => {
     function onUpdateEvent(updatedManifest: ShopManifest) {
       const { pricingCurrency, acceptedCurrencies } = updatedManifest;
+      //Setting accepted currencies (original state) and modified accepted currencies to compare added/removed currencies when we update manfiest.
       setAcceptedCurrencies(acceptedCurrencies);
+      setModifiedAcceptedCurrencies(acceptedCurrencies);
       setPricingCurrency({
         address: pricingCurrency.address!,
         chainId: pricingCurrency.chainId!,
@@ -97,21 +98,22 @@ export default function ShopSettings() {
 
     clientStateManager!
       .stateManager!.manifest.get()
-      .then((shopManifest) => {
+      .then((shopManifest: ShopManifest) => {
         const { pricingCurrency, acceptedCurrencies } = shopManifest;
         setManifest(shopManifest);
         setAcceptedCurrencies(acceptedCurrencies);
+        setModifiedAcceptedCurrencies(acceptedCurrencies);
         setPricingCurrency({
           address: pricingCurrency.address!,
           chainId: pricingCurrency.chainId!,
         });
       });
 
-    clientStateManager.stateManager.manifest.on("update", onUpdateEvent);
+    clientStateManager!.stateManager.manifest.on("update", onUpdateEvent);
 
     return () => {
       // Cleanup listeners on unmount
-      clientStateManager.stateManager.manifest.removeListener(
+      clientStateManager!.stateManager.manifest.removeListener(
         "update",
         onUpdateEvent,
       );
@@ -130,26 +132,25 @@ export default function ShopSettings() {
     ) {
       um.setPricingCurrency = pricingToken;
     }
-    const remove: ShopCurrencies[] = [];
-    const add: ShopCurrencies[] = [];
+    //Compare added/removed currencies and add to update manifest object.
+    const { removed, added } = compareAddedRemovedChains(
+      acceptedCurrencies,
+      modifiedAcceptedCurrencies,
+    );
 
-    acceptedCurrencies.map((c) => {
-      if (c.removed) {
-        remove.push({ address: c.address, chainId: c.chainId });
-      } else if (c.added) {
-        add.push({ address: c.address, chainId: c.chainId });
-      }
-      return;
-    });
-    if (remove.length) {
-      um.removeAcceptedCurrencies = remove;
+    if (removed.length) {
+      debug(`Removing ${removed.length} chain from accepted chains`);
+      console.log("here", removed);
+      um.removeAcceptedCurrencies = removed;
     }
-    if (add.length) {
-      um.addAcceptedCurrencies = add;
+    if (added.length) {
+      debug(`Adding ${added.length} chain to accepted chains`);
+      um.addAcceptedCurrencies = added;
     }
+
     try {
       if (Object.keys(um).length) {
-        await clientStateManager.stateManager.manifest.update(um);
+        await clientStateManager!.stateManager.manifest.update(um);
       }
 
       //If avatar or store name changed, setShopMetadataURI.
@@ -165,6 +166,7 @@ export default function ShopSettings() {
             ).url
             : shopDetails.profilePictureUrl,
         };
+        //Upload metadata to IPFS
         const jsn = JSON.stringify(metadata);
         const blob = new Blob([jsn], { type: "application/json" });
         const file = new File([blob], "file.json");
@@ -176,12 +178,12 @@ export default function ShopSettings() {
         await setTokenURI(wallet, [shopId, url]);
         setShopDetails({
           name: storeName,
-          profilePictureUrl: url,
+          profilePictureUrl: metadata.image,
         });
       }
       setSuccess("Changes saved.");
     } catch (error) {
-      debug("Failed: updateShopManifest", error);
+      logger("Failed: updateShopManifest", error);
       setError("Error updating shop manifest.");
     }
   }
@@ -190,21 +192,19 @@ export default function ShopSettings() {
     const [addr, chainId] = e.target.value.split("/");
     const address = addr as Address;
     if (e.target.checked) {
-      setAcceptedCurrencies([
-        ...acceptedCurrencies,
-        { address, chainId: Number(chainId), added: true, removed: false },
+      // Add to modified accepted currencies
+      setModifiedAcceptedCurrencies([
+        ...modifiedAcceptedCurrencies,
+        { address, chainId: Number(chainId) },
       ]);
     } else {
-      //remove accepted currency
-      setAcceptedCurrencies(
-        acceptedCurrencies.map((c) => {
-          if (
-            c.address === address.toLowerCase() &&
-            c.chainId === Number(chainId)
-          ) {
-            return { ...c, added: false, removed: true };
-          } else return c;
-        }),
+      // Remove from modified accepted currencies
+      const test = modifiedAcceptedCurrencies.filter((c) => {
+        return !(c.address.toLowerCase() === address.toLowerCase() &&
+          c.chainId === Number(chainId));
+      });
+      setModifiedAcceptedCurrencies(
+        test,
       );
     }
   }
@@ -216,7 +216,7 @@ export default function ShopSettings() {
   }
 
   return (
-    <main className="pt-under-nav h-screen px-4 mt-3">
+    <main className="pt-under-nav px-4 mt-3">
       <ErrorMessage
         errorMessage={error}
         onClose={() => {
@@ -235,17 +235,20 @@ export default function ShopSettings() {
           setSuccess(null);
         }}
       />
-      <BackButton href="/products" />
+      <BackButton href="/merchant-dashboard" />
       <section className="mt-2">
         <div className="flex">
           <h2>Edit shop details</h2>
         </div>
         <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
           <p className="flex items-center font-medium">Shop PFP</p>
-          <AvatarUpload setImgBlob={setAvatar} />
+          <AvatarUpload
+            setImgBlob={setAvatar}
+            currentImg={shopDetails.profilePictureUrl}
+          />
           <section className="text-sm flex flex-col gap-4">
             <div>
-              <section className="mt-4">
+              <section>
                 <form
                   className="flex flex-col"
                   onSubmit={(e) => e.preventDefault()}
@@ -311,9 +314,8 @@ export default function ShopSettings() {
                               className="form-checkbox h-4 w-4"
                               value={c.value}
                               checked={Boolean(
-                                acceptedCurrencies.find((currency) => {
+                                modifiedAcceptedCurrencies.find((currency) => {
                                   return (
-                                    (!currency.removed || currency.added) &&
                                     currency.chainId === c.chainId &&
                                     currency.address.toLowerCase() ===
                                       c.address.toLowerCase()
@@ -361,7 +363,7 @@ export default function ShopSettings() {
             <div></div>
           </section>
         </section>
-        <div className="mt-auto mx-4">
+        <div className="my-4">
           <Button onClick={updateShopManifest}>Update</Button>
         </div>
       </section>
