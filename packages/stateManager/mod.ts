@@ -103,8 +103,11 @@ abstract class PublicObjectManager<
 
   queueClientRequest<R>(request: () => Promise<R>): Promise<R> {
     const queuedRequest = this._sendingQueue
-      .then(() => request())
-      .catch((e) => debug(e));
+      .then(request)
+      .catch((e) => {
+        debug(e);
+        throw e;
+      });
     this._sendingQueue = queuedRequest;
 
     return queuedRequest as Promise<R>;

@@ -77,7 +77,7 @@ function Navigation() {
     function onOrderUpdate(res: [OrderEventTypes, Order]) {
       const order = res[1];
       const type = res[0];
-      if (!currentOrder?.orderId === order.id) return;
+      if (currentOrder?.orderId !== order.id) return;
       switch (type) {
         case OrderEventTypes.CHANGE_ITEMS:
           onChangeItems(order);

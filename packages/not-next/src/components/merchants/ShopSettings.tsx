@@ -177,7 +177,7 @@ export default function ShopSettings() {
         });
       }
       setSuccess("Changes saved.");
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      globalThis.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Failed: updateShopManifest", error);

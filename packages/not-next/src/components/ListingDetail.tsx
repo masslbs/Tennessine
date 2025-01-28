@@ -7,7 +7,7 @@ import { Link, useSearch } from "@tanstack/react-router";
 
 import { formatUnitsFromString, logger } from "@massmarket/utils";
 
-import { Listing, ListingId, OrderId } from "../types.ts";
+import { Listing, ListingId, OrderId, OrderState } from "../types.ts";
 import Button from "./common/Button.tsx";
 import BackButton from "./common/BackButton.tsx";
 import { useBaseToken } from "../hooks/useBaseToken.ts";
@@ -61,6 +61,27 @@ export default function ListingDetail() {
     const newValue = e.target.value.replace(/^0+/, "");
     setQuantity(newValue);
   }
+  async function cancelAndCreateOrder() {
+    debug(`Cancelling order ID: ${currentOrder!.orderId}`);
+    const sm = clientStateManager!.stateManager;
+    const [_type, cancelledOrder] = await sm.orders.cancel(
+      currentOrder!.orderId,
+    );
+    // Once order is cancelled, create a new order and add the same items.
+    const newOrder = await sm.orders.create();
+    debug(`New order created: ${newOrder.id}`);
+    const listingsToAdd = Object.entries(cancelledOrder.items).map(
+      ([listingId, quantity]) => {
+        return {
+          listingId: listingId as ListingId,
+          quantity,
+        };
+      },
+    );
+    await sm.orders.addItems(newOrder.id, listingsToAdd);
+    debug("Listings added to new order");
+    return newOrder.id;
+  }
 
   async function changeItems() {
     let orderId: OrderId | null = currentOrder?.orderId || null;
@@ -71,9 +92,15 @@ export default function ListingDetail() {
       debug(`New Order ID: ${orderId}`);
     }
     try {
-      await clientStateManager!.stateManager.orders.addItems(orderId, [
-        { listingId: itemId, quantity: Number(quantity) },
-      ]);
+      if (currentOrder?.status === OrderState.STATE_COMMITED) {
+        orderId = await cancelAndCreateOrder();
+      }
+      await clientStateManager!.stateManager.orders.addItems(
+        orderId,
+        [
+          { listingId: itemId, quantity: Number(quantity) },
+        ],
+      );
       setQuantity("");
       setMsg("Added to cart");
     } catch (error) {
