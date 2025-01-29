@@ -30,7 +30,7 @@ const merchantMenu = [
   },
   //TODO: href for orders, contact, share.
   { title: "Manage Products", img: "menu-products.svg", href: "/listings" },
-  { title: "Manage Orders", img: "menu-order.svg", href: "/" },
+  { title: "Manage Orders", img: "menu-order.svg", href: "/orders" },
   { title: "Shop Settings", img: "menu-settings.svg", href: "/settings" },
   { title: "Disconnect", img: "menu-disconnect.svg" },
 ];
@@ -164,7 +164,11 @@ function Navigation() {
     return menuItems.map((opt, i) => {
       if (opt.title === "Disconnect") {
         return (
-          <button className="p-0 bg-transparent" key={i} onClick={onDisconnect}>
+          <button
+            className="p-0 bg-transparent text-black"
+            key={i}
+            onClick={onDisconnect}
+          >
             <div className="flex gap-3 items-center">
               <img
                 src={`/icons/${opt.img}`}
@@ -207,7 +211,7 @@ function Navigation() {
                 shopId: prev.shopId,
               })}
             >
-              <h2 className="font-normal">{opt.title}</h2>
+              <h2 className="font-normal text-black">{opt.title}</h2>
             </Link>
             <img
               src="/icons/chevron-right.svg"
