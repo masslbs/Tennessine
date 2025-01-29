@@ -18,6 +18,7 @@ import { Route as rootRoute } from "./routes/__root.tsx";
 
 const SettingsLazyImport = createFileRoute("/settings")();
 const OrdersLazyImport = createFileRoute("/orders")();
+const OrderDetailsLazyImport = createFileRoute("/order-details")();
 const MerchantDashboardLazyImport = createFileRoute("/merchant-dashboard")();
 const MerchantConnectLazyImport = createFileRoute("/merchant-connect")();
 const ListingsLazyImport = createFileRoute("/listings")();
@@ -41,6 +42,14 @@ const OrdersLazyRoute = OrdersLazyImport.update({
   path: "/orders",
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import("./routes/orders.lazy.tsx").then((d) => d.Route));
+
+const OrderDetailsLazyRoute = OrderDetailsLazyImport.update({
+  id: "/order-details",
+  path: "/order-details",
+  getParentRoute: () => rootRoute,
+} as any).lazy(() =>
+  import("./routes/order-details.lazy.tsx").then((d) => d.Route)
+);
 
 const MerchantDashboardLazyRoute = MerchantDashboardLazyImport.update({
   id: "/merchant-dashboard",
@@ -175,6 +184,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof MerchantDashboardLazyImport;
       parentRoute: typeof rootRoute;
     };
+    "/order-details": {
+      id: "/order-details";
+      path: "/order-details";
+      fullPath: "/order-details";
+      preLoaderRoute: typeof OrderDetailsLazyImport;
+      parentRoute: typeof rootRoute;
+    };
     "/orders": {
       id: "/orders";
       path: "/orders";
@@ -204,6 +220,7 @@ export interface FileRoutesByFullPath {
   "/listings": typeof ListingsLazyRoute;
   "/merchant-connect": typeof MerchantConnectLazyRoute;
   "/merchant-dashboard": typeof MerchantDashboardLazyRoute;
+  "/order-details": typeof OrderDetailsLazyRoute;
   "/orders": typeof OrdersLazyRoute;
   "/settings": typeof SettingsLazyRoute;
 }
@@ -218,6 +235,7 @@ export interface FileRoutesByTo {
   "/listings": typeof ListingsLazyRoute;
   "/merchant-connect": typeof MerchantConnectLazyRoute;
   "/merchant-dashboard": typeof MerchantDashboardLazyRoute;
+  "/order-details": typeof OrderDetailsLazyRoute;
   "/orders": typeof OrdersLazyRoute;
   "/settings": typeof SettingsLazyRoute;
 }
@@ -233,6 +251,7 @@ export interface FileRoutesById {
   "/listings": typeof ListingsLazyRoute;
   "/merchant-connect": typeof MerchantConnectLazyRoute;
   "/merchant-dashboard": typeof MerchantDashboardLazyRoute;
+  "/order-details": typeof OrderDetailsLazyRoute;
   "/orders": typeof OrdersLazyRoute;
   "/settings": typeof SettingsLazyRoute;
 }
@@ -249,6 +268,7 @@ export interface FileRouteTypes {
     | "/listings"
     | "/merchant-connect"
     | "/merchant-dashboard"
+    | "/order-details"
     | "/orders"
     | "/settings";
   fileRoutesByTo: FileRoutesByTo;
@@ -262,6 +282,7 @@ export interface FileRouteTypes {
     | "/listings"
     | "/merchant-connect"
     | "/merchant-dashboard"
+    | "/order-details"
     | "/orders"
     | "/settings";
   id:
@@ -275,6 +296,7 @@ export interface FileRouteTypes {
     | "/listings"
     | "/merchant-connect"
     | "/merchant-dashboard"
+    | "/order-details"
     | "/orders"
     | "/settings";
   fileRoutesById: FileRoutesById;
@@ -290,6 +312,7 @@ export interface RootRouteChildren {
   ListingsLazyRoute: typeof ListingsLazyRoute;
   MerchantConnectLazyRoute: typeof MerchantConnectLazyRoute;
   MerchantDashboardLazyRoute: typeof MerchantDashboardLazyRoute;
+  OrderDetailsLazyRoute: typeof OrderDetailsLazyRoute;
   OrdersLazyRoute: typeof OrdersLazyRoute;
   SettingsLazyRoute: typeof SettingsLazyRoute;
 }
@@ -304,6 +327,7 @@ const rootRouteChildren: RootRouteChildren = {
   ListingsLazyRoute: ListingsLazyRoute,
   MerchantConnectLazyRoute: MerchantConnectLazyRoute,
   MerchantDashboardLazyRoute: MerchantDashboardLazyRoute,
+  OrderDetailsLazyRoute: OrderDetailsLazyRoute,
   OrdersLazyRoute: OrdersLazyRoute,
   SettingsLazyRoute: SettingsLazyRoute,
 };
@@ -327,6 +351,7 @@ export const routeTree = rootRoute
         "/listings",
         "/merchant-connect",
         "/merchant-dashboard",
+        "/order-details",
         "/orders",
         "/settings"
       ]
@@ -357,6 +382,9 @@ export const routeTree = rootRoute
     },
     "/merchant-dashboard": {
       "filePath": "merchant-dashboard.lazy.tsx"
+    },
+    "/order-details": {
+      "filePath": "order-details.lazy.tsx"
     },
     "/orders": {
       "filePath": "orders.lazy.tsx"

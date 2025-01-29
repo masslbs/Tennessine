@@ -111,6 +111,6 @@ export interface Token {
   symbol: string;
   decimals: number;
 }
-export interface CartItem extends Listing {
+export type CartItem = {
   selectedQty: number;
-}
+} & Listing;

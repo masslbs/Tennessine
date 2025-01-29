@@ -16,7 +16,7 @@ export default function BackButton({
       <Link
         to={href}
         search={(prev: Record<string, string>) => ({ ...prev })}
-        className="flex gap-1 items-center"
+        className="flex gap-1 items-center text-black"
       >
         <img
           src={"/icons/chevron-left.svg"}

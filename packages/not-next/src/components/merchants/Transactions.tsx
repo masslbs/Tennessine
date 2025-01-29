@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { Order, OrderState } from "../../types.ts";
 
 export default function Transactions(
@@ -52,14 +53,19 @@ export default function Transactions(
   }
   return transactions.map((o) => {
     return (
-      <div
+      <Link
         key={o.orderId}
         className="bg-white border-2  p-3 flex justify-between"
+        to="/order-details"
+        search={(prev: Record<string, string>) => ({
+          shopId: prev.shopId,
+          orderId: o.orderId,
+        })}
       >
         <p>{o.orderId?.slice(0, 10)}...</p>
         <p>{o.date}</p>
         <p>{o.status}</p>
-      </div>
+      </Link>
     );
   });
 }
