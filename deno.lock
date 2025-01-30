@@ -51,6 +51,8 @@
     "npm:protobufjs@*": "7.4.0",
     "npm:qrcode@^1.5.4": "1.5.4",
     "npm:react-dom@^18.3.1": "18.3.1_react@18.3.1",
+    "npm:react-spinners@*": "0.15.0_react@18.3.1_react-dom@18.3.1__react@18.3.1",
+    "npm:react-spinners@0.15": "0.15.0_react@18.3.1_react-dom@18.3.1__react@18.3.1",
     "npm:react@*": "18.3.1",
     "npm:react@^18.3.1": "18.3.1",
     "npm:tailwindcss@^3.4.17": "3.4.17_postcss@8.4.49",
@@ -4024,6 +4026,13 @@
         "use-sidecar"
       ]
     },
+    "react-spinners@0.15.0_react@18.3.1_react-dom@18.3.1__react@18.3.1": {
+      "integrity": "sha512-ZO3/fNB9Qc+kgpG3SfdlMnvTX6LtLmTnOogb3W6sXIaU/kZ1ydEViPfZ06kSOaEsor58C/tzXw2wROGQu3X2pA==",
+      "dependencies": [
+        "react@18.3.1",
+        "react-dom"
+      ]
+    },
     "react-style-singleton@2.2.3_@types+react@18.3.16_react@18.3.1": {
       "integrity": "sha512-b6jSvxvVnyptAiLjbkWLE/lOnR4lfTtDAl+eUC7RZy+QQWc6wRzIV2CE6xBuMmDxc2qIihtDCZD5NPOFl7fRBQ==",
       "dependencies": [
@@ -4899,6 +4908,7 @@
           "npm:postcss@^8.4.49",
           "npm:qrcode@^1.5.4",
           "npm:react-dom@^18.3.1",
+          "npm:react-spinners@0.15",
           "npm:react@^18.3.1",
           "npm:tailwindcss@^3.4.17",
           "npm:viem@2.21.55",

@@ -7,6 +7,7 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { privateKeyToAccount } from "viem/accounts";
 import { useAccount, useChains, useWalletClient } from "wagmi";
+import ClipLoader from "react-spinners/ClipLoader";
 
 import {
   addRelay,
@@ -73,6 +74,8 @@ export default function () {
   const [storeRegistrationStatus, setStoreRegistrationStatus] = useState<
     string
   >("");
+  const [mintedHash, setMintedHash] = useState<string | null>(null);
+  const [creatingShop, setCreatingShop] = useState<boolean>(false);
 
   useEffect(() => {
     if (!search.shopId) {
@@ -153,11 +156,13 @@ export default function () {
   async function mint() {
     debug(`creating shop for ${shopId}`);
     setStoreRegistrationStatus("Minting shop...");
+    setCreatingShop(true);
     try {
       if (!shopPublicClient) {
         throw new Error("shopPublicClient not found");
       }
       const hash = await mintShop(wallet!, [shopId!, wallet!.account.address]);
+      setMintedHash(hash);
       setStoreRegistrationStatus("Waiting to confirm mint transaction...");
       let receipt = await shopPublicClient!.waitForTransactionReceipt({
         hash,
@@ -329,6 +334,7 @@ export default function () {
       }
 
       debug("Shop created");
+      setCreatingShop(false);
       setStep("confirmation");
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
@@ -494,9 +500,28 @@ export default function () {
               <div className="flex flex-col gap-4">
                 <ConnectButton chainStatus="name" />
                 <p>{storeRegistrationStatus}</p>
-                <Button onClick={mint} disabled={!wallet || !shopId}>
-                  <h6>Mint Shop</h6>
-                </Button>
+                {mintedHash && (
+                  <a
+                    href={`${shopPublicClient.chain.blockExplorers?.default?.url}/tx/${mintedHash}`}
+                  >
+                    View TX
+                  </a>
+                )}
+                {creatingShop
+                  ? (
+                    <div>
+                      <ClipLoader
+                        loading={true}
+                        size={40}
+                        data-testid="loader"
+                      />
+                    </div>
+                  )
+                  : (
+                    <Button onClick={mint} disabled={!wallet || !shopId}>
+                      <h6>Mint Shop</h6>
+                    </Button>
+                  )}
               </div>
             )
             : <ConnectWalletButton />}
