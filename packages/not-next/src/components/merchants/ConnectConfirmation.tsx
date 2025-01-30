@@ -26,6 +26,7 @@ export default function ConnectConfirmation() {
           <Link
             to="/merchant-dashboard"
             search={(prev: Record<string, string>) => ({ shopId: prev.shopId })}
+            className="text-white"
           >
             Shop Dashboard
           </Link>
