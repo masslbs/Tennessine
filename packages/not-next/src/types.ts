@@ -85,12 +85,16 @@ export interface ShopDetails {
   profilePictureUrl: string;
 }
 
-export interface CurrencyChainOption {
+export interface Currency {
+  address: TokenAddr;
+  chainId: number;
+}
+
+export type CurrencyChainOption = {
   label: string;
   value: string | number;
-  address?: `0x${string}`;
-  chainId?: number;
-}
+} & Partial<Currency>;
+
 export enum CheckoutStep {
   cart = "cart",
   shippingDetails = "shippingDetails",
@@ -107,6 +111,6 @@ export interface Token {
   symbol: string;
   decimals: number;
 }
-export interface CartItem extends Listing {
+export type CartItem = {
   selectedQty: number;
-}
+} & Listing;

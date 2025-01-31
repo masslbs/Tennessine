@@ -5,7 +5,6 @@ import { logger } from "@massmarket/utils";
 import { useClientWithStateManager } from "./useClientWithStateManager.ts";
 import { CurrentOrder, Order, OrderEventTypes, OrderState } from "../types.ts";
 import { useShopId } from "./useShopId.ts";
-import { useQuery } from "./useQuery.ts";
 import { usePathname } from "./usePathname.ts";
 
 const namespace = "frontend:useCurrentOrder";
@@ -17,7 +16,6 @@ export function useCurrentOrder() {
   const { clientStateManager } = useClientWithStateManager(isMerchantPath);
   const { shopId } = useShopId();
   const [currentOrder, setCurrentOrder] = useState<CurrentOrder | null>(null);
-  const [orderFetched, setOrderFetched] = useState<boolean>(false);
   const orderManager = clientStateManager?.stateManager?.orders;
 
   function onOrderCreate(order: Order) {
@@ -102,17 +100,12 @@ export function useCurrentOrder() {
     if (!orderManager) return;
     orderManager.on("create", onOrderCreate);
     orderManager.on("update", onOrderUpdate);
+    orderFetcher().then();
     return () => {
       orderManager.removeListener("create", onOrderCreate);
       orderManager.removeListener("update", onOrderUpdate);
     };
   }, [shopId, orderManager]);
 
-  const { result } = useQuery(async () => {
-    if (!orderManager) return;
-    await orderFetcher();
-    setOrderFetched(true);
-  });
-
-  return { currentOrder, orderFetched, result };
+  return { currentOrder };
 }

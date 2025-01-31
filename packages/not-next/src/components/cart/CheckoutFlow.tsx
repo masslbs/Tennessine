@@ -52,8 +52,8 @@ export default function CheckoutFlow() {
 
     if (isRunning && countdown > 0) {
       intervalId = setInterval(() => {
-        setCountdown((prev: number) => prev - 1);
-      }, 1000);
+        setCountdown((prev: number) => prev - 10);
+      }, 10000);
     } else if (countdown === 0) {
       cancelAndCreateOrder()
         .then()
@@ -103,8 +103,8 @@ export default function CheckoutFlow() {
   }
 
   async function cancelAndCreateOrder() {
-    const sm = clientStateManager!.stateManager;
     debug(`Cancelling order ID: ${currentOrder!.orderId}`);
+    const sm = clientStateManager!.stateManager;
     const [_type, cancelledOrder] = await sm.orders.cancel(
       currentOrder!.orderId,
     );
@@ -122,6 +122,7 @@ export default function CheckoutFlow() {
     await sm.orders.addItems(newOrder.id, listingsToAdd);
     debug("Listings added to new order");
   }
+
   function startTimer() {
     setIsRunning(true);
   }

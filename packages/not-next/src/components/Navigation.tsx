@@ -30,8 +30,8 @@ const merchantMenu = [
   },
   //TODO: href for orders, contact, share.
   { title: "Manage Products", img: "menu-products.svg", href: "/listings" },
-  { title: "Manage Orders", img: "menu-order.svg", href: "/" },
-  { title: "Shop Settings", img: "menu-settings.svg", href: "/store" },
+  { title: "Manage Orders", img: "menu-order.svg", href: "/orders" },
+  { title: "Shop Settings", img: "menu-settings.svg", href: "/settings" },
   { title: "Disconnect", img: "menu-disconnect.svg" },
 ];
 
@@ -77,13 +77,14 @@ function Navigation() {
     function onOrderUpdate(res: [OrderEventTypes, Order]) {
       const order = res[1];
       const type = res[0];
+      if (currentOrder?.orderId !== order.id) return;
       switch (type) {
         case OrderEventTypes.CHANGE_ITEMS:
           onChangeItems(order);
           break;
-          // case OrderEventTypes.PAYMENT_TX:
-          //   txHashDetected(order);
-          //   break;
+        case OrderEventTypes.PAYMENT_TX:
+          txHashDetected(order);
+          break;
       }
     }
 
@@ -94,11 +95,11 @@ function Navigation() {
       setLength(length);
     }
 
-    // function txHashDetected(order: Order) {
-    //   if (order.status === OrderState.STATE_PAYMENT_TX) {
-    //     setLength(0);
-    //   }
-    // }
+    function txHashDetected(order: Order) {
+      if (order.status === OrderState.STATE_PAYMENT_TX) {
+        setLength(0);
+      }
+    }
 
     if (clientStateManager?.stateManager) {
       if (currentOrder) {
@@ -163,7 +164,11 @@ function Navigation() {
     return menuItems.map((opt, i) => {
       if (opt.title === "Disconnect") {
         return (
-          <button key={i} onClick={onDisconnect}>
+          <button
+            className="p-0 bg-transparent text-black"
+            key={i}
+            onClick={onDisconnect}
+          >
             <div className="flex gap-3 items-center">
               <img
                 src={`/icons/${opt.img}`}
@@ -206,7 +211,7 @@ function Navigation() {
                 shopId: prev.shopId,
               })}
             >
-              <h2 className="font-normal">{opt.title}</h2>
+              <h2 className="font-normal text-black">{opt.title}</h2>
             </Link>
             <img
               src="/icons/chevron-right.svg"
