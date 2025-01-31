@@ -6,7 +6,8 @@ import { ChangeEvent, useEffect, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { privateKeyToAccount } from "viem/accounts";
-import { useAccount, useChains, useWalletClient } from "wagmi";
+import { useAccount, useChains, useConfig, useWalletClient } from "wagmi";
+import { simulateContract } from "@wagmi/core";
 import { hardhat } from "wagmi/chains";
 import { ClipLoader } from "react-spinners";
 
@@ -54,6 +55,8 @@ export default function () {
   // Set skipConnect to true so that useQuery does not try to connect and authenticate before enrolling the keycard.
   const { clientStateManager } = useClientWithStateManager(true);
   const [keycard, setKeycard] = useKeycard();
+  const { connector } = useAccount();
+  const config = useConfig();
 
   const [step, setStep] = useState<
     "manifest form" | "connect wallet" | "confirmation"
@@ -162,6 +165,14 @@ export default function () {
       if (!shopPublicClient) {
         throw new Error("shopPublicClient not found");
       }
+      // This will throw error if simulate fails.
+      await simulateContract(config, {
+        abi: abi.shopRegAbi,
+        address: abi.addresses.ShopReg,
+        functionName: "mint",
+        args: [shopId!, wallet!.account.address],
+        connector,
+      });
       const hash = await mintShop(wallet!, [shopId!, wallet!.account.address]);
       setMintedHash(hash);
       setStoreRegistrationStatus("Waiting to confirm mint transaction...");
