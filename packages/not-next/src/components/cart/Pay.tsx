@@ -15,6 +15,7 @@ import ConnectWalletButton from "../common/ConnectWalletButton.tsx";
 import Button from "../common/Button.tsx";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 import { usePublicClient } from "../../hooks/usePublicClient.ts";
+import { Order, OrderState } from "../../types.ts";
 
 const namespace = "frontend:Pay";
 const debug = logger(namespace);
@@ -34,14 +35,15 @@ export default function Pay({
   const { status } = useAccount();
   const { data: wallet } = useWalletClient();
   const { clientStateManager } = useClientWithStateManager();
+  const chainId = Number(paymentArgs?.[0]?.chainId || 1);
   //Payment RPC
-  const { shopPublicClient } = usePublicClient(paymentArgs?.[0] || 1);
+  const { shopPublicClient } = usePublicClient(chainId);
 
   const [loading, setLoading] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
 
   useEffect(() => {
-    function txHashDetected(order) {
+    function txHashDetected(order: [OrderState, Order]) {
       if (order[1].txHash) {
         setTxHash(order[1].txHash);
       }

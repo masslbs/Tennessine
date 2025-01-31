@@ -2,7 +2,8 @@ import { usePublicClient as usePC } from "wagmi";
 import * as chains from "wagmi/chains";
 
 export function usePublicClient(
-  id = chains[import.meta.env?.VITE_CHAIN_NAME as keyof typeof chains]?.id ?? 1,
+  id: number =
+    chains[import.meta.env?.VITE_CHAIN_NAME as keyof typeof chains]?.id ?? 1,
 ) {
   const shopPublicClient = usePC({
     chainId: id,
