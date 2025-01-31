@@ -4,7 +4,7 @@
 
 import { useEffect, useState } from "react";
 import { useAccount, useWalletClient } from "wagmi";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+// import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useNavigate } from "@tanstack/react-router";
 
 import * as abi from "@massmarket/contracts";
@@ -31,7 +31,6 @@ export default function MerchantConnect() {
   const { status } = useAccount();
   const { shopPublicClient } = usePublicClient();
   const { data: wallet } = useWalletClient();
-  console.log({ wallet });
   const [keycard, setKeycard] = useKeycard();
   // Set skipConnect to true so that useQuery does not try to connect and authenticate before enrolling the keycard.
   // const { clientStateManager } = useClientWithStateManager(true);
@@ -149,7 +148,7 @@ export default function MerchantConnect() {
             </div>
             <p className="flex items-center">{shopData.name}</p>
           </div>
-          <ConnectButton />
+          {/* <ConnectButton /> */}
           <Button onClick={enroll}>
             Connect to shop
           </Button>
