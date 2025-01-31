@@ -7,6 +7,7 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { privateKeyToAccount } from "viem/accounts";
 import { useAccount, useChains, useWalletClient } from "wagmi";
+import { hardhat } from "wagmi/chains";
 import { ClipLoader } from "react-spinners";
 
 import {
@@ -415,9 +416,13 @@ export default function () {
                       type="checkbox"
                       onChange={(e) => handleAcceptedCurrencies(e)}
                       className="form-checkbox h-4 w-4"
-                      value={`USDC/${c.id}`}
+                      value={c.id === hardhat.id
+                        ? `EDD/${hardhat.id}`
+                        : `USDC/${c.id}`}
                     />
-                    <span>{`USDC/${c.name}`}</span>
+                    <span>
+                      {`${c.id === hardhat.id ? "EDD" : "USDC"}/${c.name}`}
+                    </span>
                   </label>
                 </div>
               ))}
@@ -443,7 +448,14 @@ export default function () {
                   })
                   .concat(
                     chains.map((c) => {
-                      return { label: `USDC/${c.name}`, value: `USDC/${c.id}` };
+                      return {
+                        label: `${
+                          c.id === hardhat.id ? "EDD" : "USDC"
+                        }/${c.name}`,
+                        value: `${
+                          c.id === hardhat.id ? "EDD" : "USDC"
+                        }/${c.id}`,
+                      };
                     }),
                   )}
                 callback={handlePricingCurrency}

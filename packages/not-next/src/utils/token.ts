@@ -6,6 +6,7 @@ import { Currency } from "../types.ts";
 // Any utility functions for tokens
 export const getTokenAddress = (symbol: string, chainId: string): Address => {
   if (symbol === "ETH") return abi.addresses.zeroAddress;
+  if (symbol === "EDD") return abi.addresses.Eddies;
   const addresses: {
     [key: string]: {
       [key: string]: string;
