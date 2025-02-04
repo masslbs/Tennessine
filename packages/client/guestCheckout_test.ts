@@ -19,26 +19,26 @@ import { hardhat } from "viem/chains";
 import { bytesToHex } from "viem/utils";
 import { privateKeyToAccount } from "viem/accounts";
 import { random256BigInt, random32BytesHex } from "@massmarket/utils";
-import {
-  addresses,
-  anvilPrivateKey2,
-  eddiesAbi,
-  paymentsByAddressAbi,
-} from "@massmarket/contracts";
+import { addresses, anvilPrivateKey2, eddiesAbi } from "@massmarket/contracts";
 import { objectId, priceToUint256 } from "@massmarket/utils";
-import { type ConcreteWalletClient, mintShop } from "@massmarket/blockchain";
+import {
+  approveERC20,
+  type ConcreteWalletClient,
+  getPaymentId,
+  mintShop,
+  pay,
+} from "@massmarket/blockchain";
 import type schema from "@massmarket/schema";
 import { discoverRelay, RelayClient } from "./mod.ts";
 
-// create a random address to pay to
 const payee: Uint8Array = hexToBytes(addresses.anvilAddress);
 const nativeCurrency: Uint8Array = hexToBytes(addresses.zeroAddress);
 const erc20Currency: Uint8Array = hexToBytes(addresses.Eddies);
 
 function formatPaymentDetailsForContract(
   paymentDetails: schema.IPaymentDetails,
-  currency,
-  shopId,
+  currency: Uint8Array,
+  shopId: bigint,
 ) {
   return {
     chainId: 31337n,
@@ -281,6 +281,8 @@ describe({
 
       const stream = guestRelayClient.createEventStream();
       let paymentHash: `0x${string}` | undefined;
+      let payed = false;
+
       for await (const { event } of stream) {
         if (event.updateOrder?.setPaymentDetails) {
           const paymentDetails = event.updateOrder.setPaymentDetails;
@@ -289,39 +291,24 @@ describe({
             erc20Currency,
             shopId,
           );
-          const paymentId = (await publicClient.readContract({
-            address: addresses.Payments as Address,
-            abi: paymentsByAddressAbi,
-            functionName: "getPaymentId",
-            args: [args],
-          })) as bigint;
+          const paymentId = await getPaymentId(publicClient, [args]);
 
           expect(toHex(paymentDetails.paymentId!.raw!)).toEqual(
             toHex(paymentId),
           );
           // allow the payment contract to transfer on behalf of the guest user
-          const txHash2 = await guestWallet.writeContract({
-            address: addresses.Eddies as Address,
-            abi: eddiesAbi,
-            functionName: "approve",
-            args: [
-              addresses.Payments,
-              bytesToBigInt(paymentDetails.total!.raw!),
-            ],
-          });
+          const txHash2 = await approveERC20(guestWallet, args.currency, [
+            addresses.Payments,
+            args.amount,
+          ]);
+
           const receipt2 = await publicClient.waitForTransactionReceipt({
             hash: txHash2,
           });
           expect(receipt2.status).toEqual("success");
 
-          // call the pay function
-          const hash = await guestWallet.writeContract({
-            address: addresses.Payments as Address,
-            abi: paymentsByAddressAbi,
-            functionName: "pay",
-            args: [args],
-            value: bytesToBigInt(paymentDetails.total!.raw!),
-          });
+          const hash = await pay(guestWallet, [args]);
+
           const receipt = await publicClient.waitForTransactionReceipt({
             hash,
           });
@@ -329,16 +316,18 @@ describe({
           paymentHash = hash;
         }
         // check for payment confirmation by the relay before exiting
-        // TODO: add timeout
         if (event.updateOrder?.addPaymentTx) {
           expect(event.updateOrder.id).toEqual(orderId);
           expect(toHex(event.updateOrder!.addPaymentTx!.txHash!.raw!)).toEqual(
             paymentHash,
           );
-          return;
+          payed = true;
+          break;
         }
       }
+      expect(payed).toEqual(true);
     });
+
     it("checkout with native token", async () => {
       // Create and commit new order.
       const orderId2 = { raw: objectId() };
@@ -378,11 +367,9 @@ describe({
       for await (const { event } of stream) {
         const orderUpdate = event.updateOrder;
         if (!orderUpdate) {
-          // console.log("not orderUpdate:", event);
           continue;
         }
         if (bytesToHex(orderUpdate.id!.raw!) !== bytesToHex(orderId2.raw)) {
-          // console.log("wrong order:", event);
           continue;
         }
         if (orderUpdate.setPaymentDetails) {
@@ -392,39 +379,26 @@ describe({
             nativeCurrency,
             shopId,
           );
-          const paymentId = (await publicClient.readContract({
-            address: addresses.Payments as Address,
-            abi: paymentsByAddressAbi,
-            functionName: "getPaymentId",
-            args: [args],
-          })) as bigint;
+          const paymentId = await getPaymentId(publicClient, [args]);
 
           expect(toHex(paymentDetails.paymentId!.raw!)).toEqual(
             toHex(paymentId),
           );
 
-          const txHash = await guestWallet.writeContract({
-            address: addresses.Payments as Address,
-            abi: paymentsByAddressAbi,
-            functionName: "pay",
-            args: [args],
-            // TODO: we must NOT include this 'value' on ERC20 payments
-            value: bytesToBigInt(paymentDetails.total!.raw!),
-          });
+          const txHash = await pay(wallet, [args]);
 
           const payReceipt = await publicClient.waitForTransactionReceipt({
             hash: txHash,
           });
           hash = txHash;
           expect(payReceipt.status).toEqual("success");
-          console.log("order payed");
         }
         if (orderUpdate.addPaymentTx) {
           expect(toHex(orderUpdate!.addPaymentTx!.txHash!.raw!)).toEqual(
             hash,
           );
           payed = true;
-          break; // exit for await loop
+          break;
         }
       }
       expect(payed).toEqual(true);
