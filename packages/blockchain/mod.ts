@@ -67,8 +67,8 @@ export function genericReadContract<
   };
 }
 
-// Logic for payNative vs. payTokenPreApproved is already baked into the contract function.
-// Not using genericWriteContract since we need to pass in the value param.
+// Logic for payNative vs. payTokenPreApproved is already baked into the pay contract function.
+// Not using genericWriteContract here since we need to pass in the value param for native payments.
 export function pay(
   wallet: ConcreteWalletClient,
   args: ContractFunctionArgs<
@@ -82,7 +82,9 @@ export function pay(
     abi: abi.paymentsByAddressAbi,
     functionName: "pay",
     args,
-    value: args[0].amount,
+    // If paying in native currency, pass in the value param.
+    ...(args[0].currency === abi.addresses.zeroAddress &&
+      { value: args[0].amount }),
   });
 }
 
