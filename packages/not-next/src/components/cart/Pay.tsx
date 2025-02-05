@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import { useAccount, useConfig, usePublicClient, useWalletClient } from "wagmi";
 import * as chains from "wagmi/chains";
+import { simulateContract } from "@wagmi/core";
 import { ContractFunctionArgs } from "viem";
 
 import * as abi from "@massmarket/contracts";
 import { assert, logger } from "@massmarket/utils";
-import { approveERC20, pay } from "@massmarket/blockchain";
+import { approveERC20, getAllowance, pay } from "@massmarket/blockchain";
 
 import ConnectWalletButton from "../common/ConnectWalletButton.tsx";
 import Button from "../common/Button.tsx";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 import { Order, OrderState } from "../../types.ts";
-import { getAllowance } from "../../../../blockchain/mod.ts";
 
 const namespace = "frontend:Pay";
 const debug = logger(namespace);
@@ -29,7 +29,7 @@ export default function Pay({
   >;
   paymentCurrencyLoading: boolean;
 }) {
-  const { status } = useAccount();
+  const { status, connector } = useAccount();
   const { data: wallet } = useWalletClient();
   const { clientStateManager } = useClientWithStateManager();
   const paymentChainId = Number(paymentArgs?.[0]?.chainId || 1);
@@ -37,6 +37,7 @@ export default function Pay({
     chains[import.meta.env?.VITE_CHAIN_NAME as keyof typeof chains]?.id ?? 1;
   const shopPublicClient = usePublicClient({ chainId: shopChainId });
   const paymentPublicClient = usePublicClient({ chainId: paymentChainId });
+  const config = useConfig();
 
   const [loading, setLoading] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
@@ -69,12 +70,25 @@ export default function Pay({
           paymentArgs[0].payeeAddress,
           paymentArgs[0].currency,
         ]);
-        if (allowance !== paymentArgs[0].amount) {
-          await approveERC20(wallet!, paymentArgs[0].currency, [
-            paymentArgs[0].payeeAddress,
-            paymentArgs[0].amount,
-          ]);
+        let amount = paymentArgs[0].amount;
+        if (allowance < paymentArgs[0].amount) {
+          amount = paymentArgs[0].amount - allowance;
         }
+        // This will throw error if simulate fails.
+        await simulateContract(config, {
+          abi: abi.eddiesAbi,
+          address: paymentArgs[0].currency,
+          functionName: "approve",
+          args: [
+            paymentArgs[0].payeeAddress,
+            amount,
+          ],
+          connector,
+        });
+        await approveERC20(wallet!, paymentArgs[0].currency, [
+          paymentArgs[0].payeeAddress,
+          amount,
+        ]);
         debug("ERC20 contract call approved");
       }
       await pay(wallet!, paymentArgs!);
