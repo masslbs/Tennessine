@@ -37,7 +37,6 @@
     "npm:@uidotdev/usehooks@^2.4.1": "2.4.1_react@18.3.1_react-dom@18.3.1__react@18.3.1",
     "npm:@vitejs/plugin-react@^4.3.3": "4.3.4_vite@5.4.11__@types+node@22.10.2_@babel+core@7.26.0_@types+node@22.10.2",
     "npm:@wagmi/cli@*": "2.1.18_zod@3.23.8_esbuild@0.19.12_picomatch@3.0.1",
-    "npm:@wagmi/connectors@^5.7.5": "5.7.5_@wagmi+core@2.16.3__viem@2.21.55___ws@8.18.0__@types+react@18.3.16__react@18.3.1_viem@2.21.55__ws@8.18.0_@types+react@18.3.16_react@18.3.1",
     "npm:@wagmi/core@*": "2.16.3_viem@2.21.55__ws@8.18.0_@types+react@18.3.16_react@18.3.1",
     "npm:@wagmi/core@^2.16.3": "2.16.3_viem@2.21.55__ws@8.18.0_@types+react@18.3.16_react@18.3.1",
     "npm:abitype@1.0.6": "1.0.6_zod@3.23.8",
@@ -711,12 +710,6 @@
         "@paulmillr/qr"
       ]
     },
-    "@metamask/sdk-install-modal-web@0.31.5": {
-      "integrity": "sha512-ZfrVkPAabfH4AIxcTlxQN5oyyzzVXFTLZrm1/BJ+X632d9MiyAVHNtiqa9EZpZYkZGk2icmDVP+xCpvJmVOVpQ==",
-      "dependencies": [
-        "@paulmillr/qr"
-      ]
-    },
     "@metamask/sdk@0.31.4_cross-fetch@4.1.0_eciesjs@0.4.13__@noble+ciphers@1.1.3_eventemitter2@6.4.9_readable-stream@3.6.2_socket.io-client@4.8.1": {
       "integrity": "sha512-HLUN4IZGdyiy5YeebXmXi+ndpmrl6zslCQLdR2QHplIy4JmUL/eDyKNFiK7eBLVKXVVIDYFIb6g1iSEb+i8Kew==",
       "dependencies": [
@@ -724,31 +717,7 @@
         "@metamask/onboarding",
         "@metamask/providers",
         "@metamask/sdk-communication-layer",
-        "@metamask/sdk-install-modal-web@0.31.2",
-        "@paulmillr/qr",
-        "bowser",
-        "cross-fetch@4.1.0",
-        "debug@4.4.0",
-        "eciesjs",
-        "eth-rpc-errors",
-        "eventemitter2",
-        "obj-multiplex",
-        "pump",
-        "readable-stream@3.6.2",
-        "socket.io-client@4.8.1",
-        "tslib@2.8.1",
-        "util",
-        "uuid@8.3.2"
-      ]
-    },
-    "@metamask/sdk@0.31.5_cross-fetch@4.1.0_eciesjs@0.4.13__@noble+ciphers@1.1.3_eventemitter2@6.4.9_readable-stream@3.6.2_socket.io-client@4.8.1": {
-      "integrity": "sha512-i7wteqO/fU2JWQrMZz+addHokYThHYznp4nYXviv+QysdxGVgAYvcW/PBA+wpeP3veX7QGfNqMPgSsZbBrASYw==",
-      "dependencies": [
-        "@babel/runtime",
-        "@metamask/onboarding",
-        "@metamask/providers",
-        "@metamask/sdk-communication-layer",
-        "@metamask/sdk-install-modal-web@0.31.5",
+        "@metamask/sdk-install-modal-web",
         "@paulmillr/qr",
         "bowser",
         "cross-fetch@4.1.0",
@@ -1551,23 +1520,10 @@
       "integrity": "sha512-i7Gk5M/Fc9gMvkVHbqw2kGtXvY8POsSY798/9I5npyglVjBddxoVk3xTYmcYTB1VIa4Fi0T2gLTHpQnpLrq1CQ==",
       "dependencies": [
         "@coinbase/wallet-sdk@4.2.3",
-        "@metamask/sdk@0.31.4_cross-fetch@4.1.0_eciesjs@0.4.13__@noble+ciphers@1.1.3_eventemitter2@6.4.9_readable-stream@3.6.2_socket.io-client@4.8.1",
+        "@metamask/sdk",
         "@safe-global/safe-apps-provider",
         "@safe-global/safe-apps-sdk",
         "@wagmi/core@2.16.3_viem@2.21.55__ws@8.18.0_@types+react@18.3.16_react@18.3.1_use-sync-external-store@1.2.0__react@18.3.1",
-        "@walletconnect/ethereum-provider",
-        "cbw-sdk@npm:@coinbase/wallet-sdk@3.9.3",
-        "viem@2.21.55_ws@8.18.0"
-      ]
-    },
-    "@wagmi/connectors@5.7.5_@wagmi+core@2.16.3__viem@2.21.55___ws@8.18.0__@types+react@18.3.16__react@18.3.1_viem@2.21.55__ws@8.18.0_@types+react@18.3.16_react@18.3.1": {
-      "integrity": "sha512-btqHHUSTzg4BZe9at/7SnRPv4cz8O3pisbeZBh0qxKz7PVm+9vRxY0bSala3xQPDcS0PRTB30Vn/+lM73GCjbw==",
-      "dependencies": [
-        "@coinbase/wallet-sdk@4.2.3",
-        "@metamask/sdk@0.31.5_cross-fetch@4.1.0_eciesjs@0.4.13__@noble+ciphers@1.1.3_eventemitter2@6.4.9_readable-stream@3.6.2_socket.io-client@4.8.1",
-        "@safe-global/safe-apps-provider",
-        "@safe-global/safe-apps-sdk",
-        "@wagmi/core@2.16.3_viem@2.21.55__ws@8.18.0_@types+react@18.3.16_react@18.3.1",
         "@walletconnect/ethereum-provider",
         "cbw-sdk@npm:@coinbase/wallet-sdk@3.9.3",
         "viem@2.21.55_ws@8.18.0"
@@ -4753,7 +4709,7 @@
       "integrity": "sha512-h8KDjPiXywZcKAbGttGDlZpwabZynR4lZ8eDO63tNgfxiMyhld0M5bMcB/u7XnH2xFgd0gq7PA2RVz96XMjazw==",
       "dependencies": [
         "@tanstack/react-query",
-        "@wagmi/connectors@5.7.3_@wagmi+core@2.16.3__viem@2.21.55___ws@8.18.0__@types+react@18.3.16__react@18.3.1__use-sync-external-store@1.2.0___react@18.3.1_viem@2.21.55__ws@8.18.0_@types+react@18.3.16_react@18.3.1_use-sync-external-store@1.2.0__react@18.3.1",
+        "@wagmi/connectors",
         "@wagmi/core@2.16.3_viem@2.21.55__ws@8.18.0_@types+react@18.3.16_react@18.3.1_use-sync-external-store@1.2.0__react@18.3.1",
         "react@18.3.1",
         "use-sync-external-store@1.2.0_react@18.3.1",
@@ -4978,7 +4934,6 @@
           "npm:@types/react@^18.3.11",
           "npm:@uidotdev/usehooks@^2.4.1",
           "npm:@vitejs/plugin-react@^4.3.3",
-          "npm:@wagmi/connectors@^5.7.5",
           "npm:@wagmi/core@^2.16.3",
           "npm:autoprefixer@^10.4.20",
           "npm:postcss@^8.4.49",
