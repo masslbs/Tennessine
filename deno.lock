@@ -37,6 +37,7 @@
     "npm:@uidotdev/usehooks@^2.4.1": "2.4.1_react@18.3.1_react-dom@18.3.1__react@18.3.1",
     "npm:@vitejs/plugin-react@^4.3.3": "4.3.4_vite@5.4.11__@types+node@22.10.2_@babel+core@7.26.0_@types+node@22.10.2",
     "npm:@wagmi/cli@*": "2.1.18_zod@3.23.8_esbuild@0.19.12_picomatch@3.0.1",
+    "npm:@wagmi/core@^2.16.3": "2.16.3_viem@2.21.55__ws@8.18.0_@types+react@18.3.16_react@18.3.1",
     "npm:abitype@1.0.6": "1.0.6_zod@3.23.8",
     "npm:abitype@1.0.7": "1.0.7",
     "npm:autoprefixer@^10.4.20": "10.4.20_postcss@8.4.49",
@@ -51,6 +52,8 @@
     "npm:protobufjs@*": "7.4.0",
     "npm:qrcode@^1.5.4": "1.5.4",
     "npm:react-dom@^18.3.1": "18.3.1_react@18.3.1",
+    "npm:react-spinners@*": "0.15.0_react@18.3.1_react-dom@18.3.1__react@18.3.1",
+    "npm:react-spinners@0.15": "0.15.0_react@18.3.1_react-dom@18.3.1__react@18.3.1",
     "npm:react@*": "18.3.1",
     "npm:react@^18.3.1": "18.3.1",
     "npm:tailwindcss@^3.4.17": "3.4.17_postcss@8.4.49",
@@ -1519,10 +1522,19 @@
         "@metamask/sdk",
         "@safe-global/safe-apps-provider",
         "@safe-global/safe-apps-sdk",
-        "@wagmi/core",
+        "@wagmi/core@2.16.3_viem@2.21.55__ws@8.18.0_@types+react@18.3.16_react@18.3.1_use-sync-external-store@1.2.0__react@18.3.1",
         "@walletconnect/ethereum-provider",
         "cbw-sdk@npm:@coinbase/wallet-sdk@3.9.3",
         "viem@2.21.55_ws@8.18.0"
+      ]
+    },
+    "@wagmi/core@2.16.3_viem@2.21.55__ws@8.18.0_@types+react@18.3.16_react@18.3.1": {
+      "integrity": "sha512-SVovoWHaQ2AIkmGf+ucNijT6AHXcTMffFcLmcFF6++y21x+ge7Gkh3UoJiU91SDDv8n08eTQ9jbyia3GEgU5jQ==",
+      "dependencies": [
+        "eventemitter3",
+        "mipd",
+        "viem@2.21.55_ws@8.18.0",
+        "zustand@5.0.0_@types+react@18.3.16_react@18.3.1"
       ]
     },
     "@wagmi/core@2.16.3_viem@2.21.55__ws@8.18.0_@types+react@18.3.16_react@18.3.1_use-sync-external-store@1.2.0__react@18.3.1": {
@@ -1531,7 +1543,7 @@
         "eventemitter3",
         "mipd",
         "viem@2.21.55_ws@8.18.0",
-        "zustand"
+        "zustand@5.0.0_@types+react@18.3.16_react@18.3.1_use-sync-external-store@1.2.0__react@18.3.1"
       ]
     },
     "@walletconnect/core@2.17.0": {
@@ -4024,6 +4036,13 @@
         "use-sidecar"
       ]
     },
+    "react-spinners@0.15.0_react@18.3.1_react-dom@18.3.1__react@18.3.1": {
+      "integrity": "sha512-ZO3/fNB9Qc+kgpG3SfdlMnvTX6LtLmTnOogb3W6sXIaU/kZ1ydEViPfZ06kSOaEsor58C/tzXw2wROGQu3X2pA==",
+      "dependencies": [
+        "react@18.3.1",
+        "react-dom"
+      ]
+    },
     "react-style-singleton@2.2.3_@types+react@18.3.16_react@18.3.1": {
       "integrity": "sha512-b6jSvxvVnyptAiLjbkWLE/lOnR4lfTtDAl+eUC7RZy+QQWc6wRzIV2CE6xBuMmDxc2qIihtDCZD5NPOFl7fRBQ==",
       "dependencies": [
@@ -4690,7 +4709,7 @@
       "dependencies": [
         "@tanstack/react-query",
         "@wagmi/connectors",
-        "@wagmi/core",
+        "@wagmi/core@2.16.3_viem@2.21.55__ws@8.18.0_@types+react@18.3.16_react@18.3.1_use-sync-external-store@1.2.0__react@18.3.1",
         "react@18.3.1",
         "use-sync-external-store@1.2.0_react@18.3.1",
         "viem@2.21.55_ws@8.18.0"
@@ -4847,6 +4866,13 @@
     "zod@3.23.8": {
       "integrity": "sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g=="
     },
+    "zustand@5.0.0_@types+react@18.3.16_react@18.3.1": {
+      "integrity": "sha512-LE+VcmbartOPM+auOjCCLQOsQ05zUTp8RkgwRzefUk+2jISdMMFnxvyTjA4YNWr5ZGXYbVsEMZosttuxUBkojQ==",
+      "dependencies": [
+        "@types/react",
+        "react@18.3.1"
+      ]
+    },
     "zustand@5.0.0_@types+react@18.3.16_react@18.3.1_use-sync-external-store@1.2.0__react@18.3.1": {
       "integrity": "sha512-LE+VcmbartOPM+auOjCCLQOsQ05zUTp8RkgwRzefUk+2jISdMMFnxvyTjA4YNWr5ZGXYbVsEMZosttuxUBkojQ==",
       "dependencies": [
@@ -4895,10 +4921,12 @@
           "npm:@types/react@^18.3.11",
           "npm:@uidotdev/usehooks@^2.4.1",
           "npm:@vitejs/plugin-react@^4.3.3",
+          "npm:@wagmi/core@^2.16.3",
           "npm:autoprefixer@^10.4.20",
           "npm:postcss@^8.4.49",
           "npm:qrcode@^1.5.4",
           "npm:react-dom@^18.3.1",
+          "npm:react-spinners@0.15",
           "npm:react@^18.3.1",
           "npm:tailwindcss@^3.4.17",
           "npm:viem@2.21.55",

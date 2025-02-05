@@ -6,7 +6,10 @@ import { ChangeEvent, useEffect, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { privateKeyToAccount } from "viem/accounts";
-import { useAccount, useChains, useWalletClient } from "wagmi";
+import { useAccount, useChains, useConfig, useWalletClient } from "wagmi";
+import { simulateContract } from "@wagmi/core";
+import { hardhat } from "wagmi/chains";
+import { ClipLoader } from "react-spinners";
 
 import {
   addRelay,
@@ -52,6 +55,8 @@ export default function () {
   // Set skipConnect to true so that useQuery does not try to connect and authenticate before enrolling the keycard.
   const { clientStateManager } = useClientWithStateManager(true);
   const [keycard, setKeycard] = useKeycard();
+  const { connector } = useAccount();
+  const config = useConfig();
 
   const [step, setStep] = useState<
     "manifest form" | "connect wallet" | "confirmation"
@@ -73,6 +78,8 @@ export default function () {
   const [storeRegistrationStatus, setStoreRegistrationStatus] = useState<
     string
   >("");
+  const [mintedHash, setMintedHash] = useState<string | null>(null);
+  const [creatingShop, setCreatingShop] = useState<boolean>(false);
 
   useEffect(() => {
     if (!search.shopId) {
@@ -153,11 +160,21 @@ export default function () {
   async function mint() {
     debug(`creating shop for ${shopId}`);
     setStoreRegistrationStatus("Minting shop...");
+    setCreatingShop(true);
     try {
       if (!shopPublicClient) {
         throw new Error("shopPublicClient not found");
       }
+      // This will throw error if simulate fails.
+      await simulateContract(config, {
+        abi: abi.shopRegAbi,
+        address: abi.addresses.ShopReg,
+        functionName: "mint",
+        args: [shopId!, wallet!.account.address],
+        connector,
+      });
       const hash = await mintShop(wallet!, [shopId!, wallet!.account.address]);
+      setMintedHash(hash);
       setStoreRegistrationStatus("Waiting to confirm mint transaction...");
       let receipt = await shopPublicClient!.waitForTransactionReceipt({
         hash,
@@ -329,6 +346,7 @@ export default function () {
       }
 
       debug("Shop created");
+      setCreatingShop(false);
       setStep("confirmation");
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
@@ -409,9 +427,13 @@ export default function () {
                       type="checkbox"
                       onChange={(e) => handleAcceptedCurrencies(e)}
                       className="form-checkbox h-4 w-4"
-                      value={`USDC/${c.id}`}
+                      value={c.id === hardhat.id
+                        ? `EDD/${hardhat.id}`
+                        : `USDC/${c.id}`}
                     />
-                    <span>{`USDC/${c.name}`}</span>
+                    <span>
+                      {`${c.id === hardhat.id ? "EDD" : "USDC"}/${c.name}`}
+                    </span>
                   </label>
                 </div>
               ))}
@@ -437,7 +459,14 @@ export default function () {
                   })
                   .concat(
                     chains.map((c) => {
-                      return { label: `USDC/${c.name}`, value: `USDC/${c.id}` };
+                      return {
+                        label: `${
+                          c.id === hardhat.id ? "EDD" : "USDC"
+                        }/${c.name}`,
+                        value: `${
+                          c.id === hardhat.id ? "EDD" : "USDC"
+                        }/${c.id}`,
+                      };
                     }),
                   )}
                 callback={handlePricingCurrency}
@@ -494,9 +523,28 @@ export default function () {
               <div className="flex flex-col gap-4">
                 <ConnectButton chainStatus="name" />
                 <p>{storeRegistrationStatus}</p>
-                <Button onClick={mint} disabled={!wallet || !shopId}>
-                  <h6>Mint Shop</h6>
-                </Button>
+                {mintedHash && (
+                  <a
+                    href={`${shopPublicClient.chain.blockExplorers?.default?.url}/tx/${mintedHash}`}
+                  >
+                    View TX
+                  </a>
+                )}
+                {creatingShop
+                  ? (
+                    <div>
+                      <ClipLoader
+                        loading={true}
+                        size={40}
+                        data-testid="loader"
+                      />
+                    </div>
+                  )
+                  : (
+                    <Button onClick={mint} disabled={!wallet || !shopId}>
+                      <h6>Mint Shop</h6>
+                    </Button>
+                  )}
               </div>
             )
             : <ConnectWalletButton />}
