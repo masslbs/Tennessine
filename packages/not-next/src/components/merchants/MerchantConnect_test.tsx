@@ -6,7 +6,7 @@ import { createRouterWrapper } from "../../utils/test.tsx";
 
 Deno.test("Check that we can render the merchant connect page", {
   sanitizeResources: false,
-  sanitizeOps: false
+  sanitizeOps: false,
 }, async (t) => {
   const wrapper = createRouterWrapper(null, "/merchant-connect");
 
