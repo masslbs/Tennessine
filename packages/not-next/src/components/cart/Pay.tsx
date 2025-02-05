@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useAccount, useWalletClient } from "wagmi";
+import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import * as chains from "wagmi/chains";
 import { ContractFunctionArgs } from "viem";
 
 import * as abi from "@massmarket/contracts";
@@ -10,8 +11,8 @@ import { approveERC20, pay } from "@massmarket/blockchain";
 import ConnectWalletButton from "../common/ConnectWalletButton.tsx";
 import Button from "../common/Button.tsx";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
-import { usePublicClient } from "../../hooks/usePublicClient.ts";
 import { Order, OrderState } from "../../types.ts";
+import { getAllowance } from "../../../../blockchain/mod.ts";
 
 const namespace = "frontend:Pay";
 const debug = logger(namespace);
@@ -31,9 +32,11 @@ export default function Pay({
   const { status } = useAccount();
   const { data: wallet } = useWalletClient();
   const { clientStateManager } = useClientWithStateManager();
-  const chainId = Number(paymentArgs?.[0]?.chainId || 1);
-  //Payment RPC
-  const { shopPublicClient } = usePublicClient(chainId);
+  const paymentChainId = Number(paymentArgs?.[0]?.chainId || 1);
+  const shopChainId =
+    chains[import.meta.env?.VITE_CHAIN_NAME as keyof typeof chains]?.id ?? 1;
+  const shopPublicClient = usePublicClient({ chainId: shopChainId });
+  const paymentPublicClient = usePublicClient({ chainId: paymentChainId });
 
   const [loading, setLoading] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
@@ -62,11 +65,16 @@ export default function Pay({
         paymentArgs[0].currency !== abi.addresses.zeroAddress
       ) {
         debug("Pending ERC20 contract call approval");
-
-        await approveERC20(wallet!, paymentArgs[0].currency, [
+        const allowance = await getAllowance(shopPublicClient!, [
           paymentArgs[0].payeeAddress,
-          paymentArgs[0].amount,
+          paymentArgs[0].currency,
         ]);
+        if (allowance !== paymentArgs[0].amount) {
+          await approveERC20(wallet!, paymentArgs[0].currency, [
+            paymentArgs[0].payeeAddress,
+            paymentArgs[0].amount,
+          ]);
+        }
         debug("ERC20 contract call approved");
       }
       await pay(wallet!, paymentArgs!);
@@ -91,7 +99,9 @@ export default function Pay({
             </Button>
             {txHash && (
               <a
-                href={`${shopPublicClient.chain.blockExplorers?.default?.url}/tx/${txHash}`}
+                href={`${
+                  paymentPublicClient!.chain.blockExplorers?.default?.url
+                }/tx/${txHash}`}
               >
                 View TX
               </a>
