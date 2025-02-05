@@ -4,7 +4,7 @@
 
 import { useEffect, useState } from "react";
 import { useAccount, useWalletClient } from "wagmi";
-// import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useNavigate } from "@tanstack/react-router";
 
 import * as abi from "@massmarket/contracts";
@@ -20,20 +20,14 @@ import { useShopId } from "../../hooks/useShopId.ts";
 const namespace = "frontend:connect-merchant";
 const debug = logger(namespace);
 const errlog = logger(namespace, "error");
-// export default function MerchantConnect() {
-//   return (
-//     <div data-testid="merchant-connect-page">
-//       <p>merchant connect</p>
-//     </div>
-//   );
-// }
+
 export default function MerchantConnect() {
   const { status } = useAccount();
   const { shopPublicClient } = usePublicClient();
   const { data: wallet } = useWalletClient();
   const [keycard, setKeycard] = useKeycard();
   // Set skipConnect to true so that useQuery does not try to connect and authenticate before enrolling the keycard.
-  // const { clientStateManager } = useClientWithStateManager(true);
+  const { clientStateManager } = useClientWithStateManager(true);
   const navigate = useNavigate({ from: "/merchant-connect" });
 
   const [searchShopId, setSearchShopId] = useState<string>("");
@@ -48,16 +42,16 @@ export default function MerchantConnect() {
     } | null
   >(null);
 
-  // const { shopId } = useShopId();
+  const { shopId } = useShopId();
 
-  // useEffect(() => {
-  //   if (shopId) {
-  //     setKeycard({
-  //       privateKey: random32BytesHex(),
-  //       role: "merchant",
-  //     });
-  //   }
-  // }, [shopId]);
+  useEffect(() => {
+    if (shopId) {
+      setKeycard({
+        privateKey: random32BytesHex(),
+        role: "merchant",
+      });
+    }
+  }, [shopId]);
 
   function handleClearShopIdInput() {
     setSearchShopId("");
@@ -70,24 +64,24 @@ export default function MerchantConnect() {
       return;
     }
     try {
-      // const uri = (await shopPublicClient!.readContract({
-      //   address: abi.addresses.ShopReg,
-      //   abi: abi.shopRegAbi,
-      //   functionName: "tokenURI",
-      //   args: [BigInt(searchShopId)],
-      // })) as string;
-      // if (uri) {
-      //   const res = await fetch(uri);
-      //   const data = await res.json();
-      //   debug("Shop found");
-      //   setShopData(data);
-      //   // navigate({
-      //   //   search: { shopId: BigInt(searchShopId) },
-      //   // });
-      //   setStep("connect");
-      // } else {
-      //   setErrorMsg("Shop not found");
-      // }
+      const uri = (await shopPublicClient!.readContract({
+        address: abi.addresses.ShopReg,
+        abi: abi.shopRegAbi,
+        functionName: "tokenURI",
+        args: [BigInt(searchShopId)],
+      })) as string;
+      if (uri) {
+        const res = await fetch(uri);
+        const data = await res.json();
+        debug("Shop found");
+        setShopData(data);
+        navigate({
+          search: { shopId: BigInt(searchShopId) },
+        });
+        setStep("connect");
+      } else {
+        setErrorMsg("Shop not found");
+      }
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Error finding shop", error);
@@ -97,31 +91,31 @@ export default function MerchantConnect() {
 
   async function enroll() {
     try {
-      // if (clientStateManager?.keycard !== keycard.privateKey) {
-      //   errlog("Keycard mismatch");
-      //   return;
-      // }
-      // const res = await clientStateManager?.relayClient.enrollKeycard(
-      //   wallet!,
-      //   false,
-      //   shopId,
-      //   new URL(globalThis.location.href),
-      // );
-      // if (res.ok) {
-      //   debug(`Keycard enrolled: ${clientStateManager?.keycard}`);
-      //   await clientStateManager!.connectAndAuthenticate();
-      //   debug("RelayClient connected");
-      //   await clientStateManager!.sendMerchantSubscriptionRequest();
-      //   debug("Merchant subscription request sent");
-      //   navigate({
-      //     to: "/connect-confirm",
-      //     search: {
-      //       shopId,
-      //     },
-      //   });
-      // } else {
-      //   throw new Error("Failed to enroll keycard");
-      // }
+      if (clientStateManager?.keycard !== keycard.privateKey) {
+        errlog("Keycard mismatch");
+        return;
+      }
+      const res = await clientStateManager?.relayClient.enrollKeycard(
+        wallet!,
+        false,
+        shopId,
+        new URL(globalThis.location.href),
+      );
+      if (res.ok) {
+        debug(`Keycard enrolled: ${clientStateManager?.keycard}`);
+        await clientStateManager!.connectAndAuthenticate();
+        debug("RelayClient connected");
+        await clientStateManager!.sendMerchantSubscriptionRequest();
+        debug("Merchant subscription request sent");
+        navigate({
+          to: "/connect-confirm",
+          search: {
+            shopId,
+          },
+        });
+      } else {
+        throw new Error("Failed to enroll keycard");
+      }
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Error enrolling keycard", error);
@@ -148,8 +142,8 @@ export default function MerchantConnect() {
             </div>
             <p className="flex items-center">{shopData.name}</p>
           </div>
-          {/* <ConnectButton /> */}
-          <Button onClick={enroll}>
+          <ConnectButton />
+          <Button disabled={status !== "connected"} onClick={enroll}>
             Connect to shop
           </Button>
         </div>
@@ -158,10 +152,7 @@ export default function MerchantConnect() {
   }
 
   return (
-    <main
-      className="pt-under-nav h-screen p-4 mt-5"
-      data-testid="merchant-connect-page"
-    >
+    <main className="pt-under-nav h-screen p-4 mt-5">
       <ErrorMessage
         errorMessage={errorMsg}
         onClose={() => {
