@@ -67,6 +67,18 @@ export function genericReadContract<
   };
 }
 
+export const payTokenPreApproved = genericWriteContract(
+  abi.paymentsByAddressAbi,
+  "payTokenPreApproved",
+  abi.addresses.Payments,
+);
+
+export const payNative = genericWriteContract(
+  abi.paymentsByAddressAbi,
+  "payNative",
+  abi.addresses.Payments,
+);
+
 // Logic for payNative vs. payTokenPreApproved is already baked into the pay contract function.
 // Not using genericWriteContract here since we need to pass in the value param for native payments.
 export function pay(
