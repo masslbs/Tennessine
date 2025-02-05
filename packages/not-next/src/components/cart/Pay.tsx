@@ -5,11 +5,7 @@ import { ContractFunctionArgs } from "viem";
 
 import * as abi from "@massmarket/contracts";
 import { assert, logger } from "@massmarket/utils";
-import {
-  approveERC20,
-  payNative,
-  payTokenPreApproved,
-} from "@massmarket/blockchain";
+import { approveERC20, pay } from "@massmarket/blockchain";
 
 import ConnectWalletButton from "../common/ConnectWalletButton.tsx";
 import Button from "../common/Button.tsx";
@@ -62,7 +58,6 @@ export default function Pay({
   async function sendPayment() {
     try {
       setLoading(true);
-      //TODO: Add test in guest checkout to use payNative. Currently we only have test to pay with ERC20.
       if (
         paymentArgs[0].currency !== abi.addresses.zeroAddress
       ) {
@@ -73,12 +68,8 @@ export default function Pay({
           paymentArgs[0].amount,
         ]);
         debug("ERC20 contract call approved");
-        await payTokenPreApproved(wallet!, paymentArgs!);
-      } else {
-        //ETH payments do not need to be approved.
-        debug("Pay native contract call");
-        await payNative(wallet!, paymentArgs!);
       }
+      await pay(wallet!, paymentArgs!);
     } catch (error) {
       assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Error sending payment", error);

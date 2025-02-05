@@ -79,6 +79,27 @@ export const payNative = genericWriteContract(
   abi.addresses.Payments,
 );
 
+// Logic for payNative vs. payTokenPreApproved is already baked into the pay contract function.
+// Not using genericWriteContract here since we need to pass in the value param for native payments.
+export function pay(
+  wallet: ConcreteWalletClient,
+  args: ContractFunctionArgs<
+    typeof abi.paymentsByAddressAbi,
+    "nonpayable" | "payable",
+    "payTokenPreApproved" | "payNative"
+  >,
+) {
+  return wallet.writeContract({
+    address: abi.addresses.Payments,
+    abi: abi.paymentsByAddressAbi,
+    functionName: "pay",
+    args,
+    // If paying in native currency, pass in the value param.
+    ...(args[0].currency === abi.addresses.zeroAddress &&
+      { value: args[0].amount }),
+  });
+}
+
 export const getPaymentAddress = genericReadContract(
   abi.paymentsByAddressAbi,
   "getPaymentAddress",
