@@ -12,9 +12,10 @@ export function useBaseToken() {
   );
   const { clientStateManager } = useClientWithStateManager();
   const { shopPublicClient } = usePublicClient(pricingCurrency?.chainId);
+  const manifestManager = clientStateManager?.stateManager?.manifest;
 
   function getManifest() {
-    clientStateManager!.stateManager.manifest.get().then(
+    manifestManager.get().then(
       (manifest: ShopManifest) => {
         manifest && setPricingCurrency(manifest.pricingCurrency);
       },
@@ -22,16 +23,21 @@ export function useBaseToken() {
   }
 
   useEffect(() => {
+    if (!manifestManager) return;
     function onCreateEvent() {
       getManifest();
     }
     function onUpdateEvent() {
       getManifest();
     }
-    clientStateManager!.stateManager.manifest.on("create", onCreateEvent);
-    clientStateManager!.stateManager.manifest.on("update", onUpdateEvent);
+    manifestManager.on("create", onCreateEvent);
+    manifestManager.on("update", onUpdateEvent);
     getManifest();
-  }, []);
+    return () => {
+      manifestManager.removeListener("create", onCreateEvent);
+      manifestManager.removeListener("update", onUpdateEvent);
+    };
+  }, [manifestManager]);
 
   const { result: baseToken } = useQuery(async () => {
     if (!pricingCurrency || !shopPublicClient) return;
