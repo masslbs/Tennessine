@@ -60,7 +60,7 @@ export default function MerchantDashboard() {
   }, []);
 
   return (
-    <main className="p-4 pt-under-nav">
+    <main className="p-4 pt-under-nav h-screen">
       <div className="mb-4">
         <h1>Dashboard</h1>
         <div className="flex flex-col gap-1 pt-4">

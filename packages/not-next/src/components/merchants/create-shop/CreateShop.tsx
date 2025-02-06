@@ -31,6 +31,7 @@ import { useClientWithStateManager } from "../../../hooks/useClientWithStateMana
 import { usePublicClient } from "../../../hooks/usePublicClient.ts";
 import { useShopId } from "../../../hooks/useShopId.ts";
 import { useKeycard } from "../../../hooks/useKeycard.ts";
+import { useShopDetails } from "../../../hooks/useShopDetails.ts";
 import { CurrencyChainOption, ShopCurrencies } from "../../../types.ts";
 import { getTokenAddress, isValidHex } from "../../../utils/mod.ts";
 
@@ -50,13 +51,16 @@ export default function () {
   const { shopPublicClient } = usePublicClient();
   const { data: wallet } = useWalletClient();
   const { shopId } = useShopId();
-  const navigate = useNavigate({ from: "/create-shop" });
-  const search = useSearch({ from: "/create-shop" });
+  const { setShopDetails } = useShopDetails();
+
   // Set skipConnect to true so that useQuery does not try to connect and authenticate before enrolling the keycard.
   const { clientStateManager } = useClientWithStateManager(true);
   const [keycard, setKeycard] = useKeycard();
   const { connector } = useAccount();
   const config = useConfig();
+
+  const navigate = useNavigate({ from: "/create-shop" });
+  const search = useSearch({ from: "/create-shop" });
 
   const [step, setStep] = useState<
     "manifest form" | "connect wallet" | "confirmation"
@@ -344,6 +348,11 @@ export default function () {
       if (transaction.status !== "success") {
         throw new Error("Error: setShopMetadataURI");
       }
+
+      setShopDetails({
+        name: storeName,
+        profilePictureUrl: imgPath.url,
+      });
 
       debug("Shop created");
       setCreatingShop(false);
