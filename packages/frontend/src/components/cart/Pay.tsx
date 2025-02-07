@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { ConnectButton, useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 import { useAccount, useConfig, usePublicClient, useWalletClient } from "wagmi";
 import * as chains from "wagmi/chains";
 import { simulateContract } from "@wagmi/core";
@@ -29,6 +29,7 @@ export default function Pay({
   >;
   paymentCurrencyLoading: boolean;
 }) {
+  const addRecentTransaction = useAddRecentTransaction();
   const { status, connector } = useAccount();
   const { data: wallet } = useWalletClient();
   const { clientStateManager } = useClientWithStateManager();
@@ -46,6 +47,11 @@ export default function Pay({
     function txHashDetected(order: [OrderState, Order]) {
       if (order[1].txHash) {
         setTxHash(order[1].txHash);
+        addRecentTransaction({
+          hash: order[1].txHash,
+          description: 'Order Payment',
+          // confirmations: 3,
+        });
       }
       setLoading(false);
     }
