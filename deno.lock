@@ -4907,7 +4907,7 @@
           "npm:wagmi@*"
         ]
       },
-      "packages/not-next": {
+      "packages/frontend": {
         "dependencies": [
           "npm:@deno/vite-plugin@1",
           "npm:@rainbow-me/rainbowkit@^2.2.0",

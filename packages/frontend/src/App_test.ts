@@ -5,7 +5,7 @@ import { mainnet, sepolia } from "npm:wagmi/chains";
 
 Deno.test("check that we can render the app", async () => {
   // we need to import App.tsx here since wagmi and rainbowkit setup timers
-  const { default: App } = await import("../src/App.tsx");
+  const { default: App } = await import("./App.tsx");
 
   const config = createConfig({
     chains: [mainnet, sepolia],

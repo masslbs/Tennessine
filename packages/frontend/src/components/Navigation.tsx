@@ -15,7 +15,7 @@ import {
   OrderId,
   OrderState,
 } from "../types.ts";
-import Cart from "../components/cart/Cart.tsx";
+import Cart from "./cart/Cart.tsx";
 import { useClientWithStateManager } from "../hooks/useClientWithStateManager.ts";
 import { useShopDetails } from "../hooks/useShopDetails.ts";
 import { useKeycard } from "../hooks/useKeycard.ts";

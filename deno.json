@@ -6,11 +6,11 @@
     "./packages/eventTree",
     "./packages/client",
     "./packages/contracts",
-    "./packages/not-next",
+    "./packages/frontend",
     "./packages/blockchain",
     "./packages/mmr"
   ],
-  "exclude": ["./packages/not-next/.vite/deps"],
+  "exclude": ["./packages/frontend/.vite/deps"],
   "lint": {
     "exclude": ["./packages/frontend"],
     "rules": {
