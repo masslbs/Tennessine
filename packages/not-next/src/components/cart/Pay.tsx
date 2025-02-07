@@ -70,26 +70,25 @@ export default function Pay({
           paymentArgs[0].payeeAddress,
           paymentArgs[0].currency,
         ]);
-        let amount = paymentArgs[0].amount;
         if (allowance < paymentArgs[0].amount) {
-          amount = paymentArgs[0].amount - allowance;
-        }
-        // This will throw error if simulate fails.
+          // This will throw error if simulate fails.
         await simulateContract(config, {
           abi: abi.eddiesAbi,
           address: paymentArgs[0].currency,
           functionName: "approve",
           args: [
             paymentArgs[0].payeeAddress,
-            amount,
+            paymentArgs[0].amount,
           ],
           connector,
         });
         await approveERC20(wallet!, paymentArgs[0].currency, [
           paymentArgs[0].payeeAddress,
-          amount,
+          paymentArgs[0].amount,
         ]);
         debug("ERC20 contract call approved");
+        }
+        
       }
       await pay(wallet!, paymentArgs!);
     } catch (error) {
