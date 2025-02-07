@@ -1,0 +1,81 @@
+import React, { StrictMode } from "react";
+import { assertEquals } from "jsr:@std/assert";
+import { cleanup, renderHook, waitFor } from "npm:@testing-library/react";
+import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
+import {
+  createMemoryHistory,
+  createRootRoute,
+  createRoute,
+  createRouter,
+  Outlet,
+  RouterProvider,
+} from "@tanstack/react-router";
+import { createConfig, http, WagmiProvider } from "wagmi";
+import { mainnet, sepolia } from "wagmi/chains";
+import { useClientWithStateManager } from "./useClientWithStateManager.js";
+import { MassMarketProvider } from "../MassMarketContext.jsx";
+
+const config = createConfig({
+  chains: [mainnet, sepolia],
+  transports: {
+    [mainnet.id]: http(),
+    [sepolia.id]: http(),
+  },
+});
+
+const createWrapper = (shopId: string | null = null) => {
+  return ({ children }: { children: React.ReactNode }) => {
+    const rootRoute = createRootRoute({
+      component: Outlet,
+    });
+    const componentRoute = createRoute({
+      getParentRoute: () => rootRoute,
+      path: "/",
+      component: () => <>{children}</>,
+    });
+    const router = createRouter({
+      routeTree: rootRoute.addChildren([componentRoute]),
+      history: createMemoryHistory({
+        initialEntries: [shopId ? `/?shopId=${shopId}` : "/"],
+      }),
+    });
+
+    return (
+      <StrictMode>
+        <WagmiProvider config={config}>
+          <MassMarketProvider>
+            {
+              /* TS expects self closing RouterProvier tag. See App.tsx for how we are using it.
+          But if we use the self closing syntax in testing, the router functions don't work in testing environment. */
+            }
+            {/* @ts-expect-error  */}
+            <RouterProvider router={router}>{children}</RouterProvider>
+          </MassMarketProvider>
+        </WagmiProvider>
+      </StrictMode>
+    );
+  };
+};
+
+Deno.test("useClientWithStateManager", async (t) => {
+  GlobalRegistrator.register({});
+
+  await t.step("should return client when shopId is provided", async () => {
+    const wrapper = createWrapper("123");
+
+    const { result, unmount } = renderHook(() => useClientWithStateManager(), {
+      wrapper,
+    });
+
+    await waitFor(() => {
+      assertEquals(typeof result.current.clientStateManager, "object");
+      assertEquals(result.current.clientStateManager !== null, true);
+      assertEquals(result.current.clientStateManager.shopId, BigInt(123));
+    });
+
+    unmount();
+  });
+
+  cleanup();
+  await GlobalRegistrator.unregister();
+});
