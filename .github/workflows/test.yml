@@ -14,6 +14,7 @@ env:
 
 jobs:
   browser-tests:
+    timeout-minutes: 15
     runs-on: [self-hosted, linux]
 
     permissions:
@@ -87,16 +88,22 @@ jobs:
           ssh-key: ${{ secrets.SSH_CHECKOUT_RELAY }}
           ref: ${{ steps.extract_branch.outputs.branch }}
           path: relay
-          fallback-branch: main
 
       - name: Compile relay
         run: nix build '.#relay'
         working-directory: relay
 
+      - name: git clone contracts
+        uses: ./Tennessine/.github/actions/checkout
+        with:
+          repository: masslbs/contracts
+          ref: ${{ steps.extract_branch.outputs.branch }}
+          path: contracts
+
       - name: deploy contracts and update ABI
         run: |
           nix develop -c deploy-market
-        working-directory: relay
+        working-directory: contracts
 
       - name: prepare env file for relay
         run: |
@@ -128,14 +135,14 @@ jobs:
         run: nix develop -c bash -c "deno run build"
         working-directory: Tennessine/packages/frontend
 
-      # - name: Upload frontend to Pinata
-      #   run: |
-      #     pinata auth ${{ secrets.PINATA_JWT }}
-      #     echo "Build Available as:" >> $GITHUB_STEP_SUMMARY
-      #     pinata upload --name "frontend-${{ github.sha }}" out/ > pinata.log
-      #     cid=$(egrep -o 'CID: (.*)' pinata.log | cut -d ' ' -f2)
-      #     echo "https://$cid.ipfs.nftstorage.link" >> $GITHUB_STEP_SUMMARY
-      #   working-directory: Tennessine/packages/frontend
+      - name: Upload frontend to Pinata
+        run: |
+          pinata auth ${{ secrets.PINATA_JWT }}
+          echo "Build Available as:" >> $GITHUB_STEP_SUMMARY
+          pinata upload --name "frontend-${{ github.sha }}" dist/ > pinata.log
+          cid=$(egrep -o 'CID: (.*)' pinata.log | cut -d ' ' -f2)
+          echo "https://$cid.ipfs.nftstorage.link" >> $GITHUB_STEP_SUMMARY
+        working-directory: Tennessine/packages/frontend
 
       - name: Upload relay log on failure
         if: ${{ failure() }}

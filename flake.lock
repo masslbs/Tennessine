@@ -6,9 +6,7 @@
         "flake-parts": "flake-parts",
         "forge-std": "forge-std",
         "foundry": "foundry",
-        "nixpkgs": [
-          "nixpkgs"
-        ],
+        "nixpkgs": "nixpkgs",
         "permit2": "permit2",
         "solady": "solady"
       },
@@ -171,14 +169,18 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 0,
-        "narHash": "sha256-AKU6qqskl0yf2+JdRdD0cfxX4b9x3KKV5RqA6wijmPM=",
-        "path": "/nix/store/22r7q7s9552gn1vpjigkbhfgcvhsrz68-source",
-        "type": "path"
+        "lastModified": 1735563628,
+        "narHash": "sha256-OnSAY7XDSx7CtDoqNh8jwVwh4xNL/2HaJxGjryLWzX8=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "b134951a4c9f3c995fd7be05f3243f8ecd65d798",
+        "type": "github"
       },
       "original": {
-        "id": "nixpkgs",
-        "type": "indirect"
+        "owner": "nixos",
+        "ref": "nixos-24.05",
+        "repo": "nixpkgs",
+        "type": "github"
       }
     },
     "nixpkgs-lib": {
@@ -219,6 +221,18 @@
         "ref": "nixos-24.05",
         "repo": "nixpkgs",
         "type": "github"
+      }
+    },
+    "nixpkgs_2": {
+      "locked": {
+        "lastModified": 0,
+        "narHash": "sha256-AKU6qqskl0yf2+JdRdD0cfxX4b9x3KKV5RqA6wijmPM=",
+        "path": "/nix/store/22r7q7s9552gn1vpjigkbhfgcvhsrz68-source",
+        "type": "path"
+      },
+      "original": {
+        "id": "nixpkgs",
+        "type": "indirect"
       }
     },
     "permit2": {
@@ -264,7 +278,7 @@
       "inputs": {
         "contracts": "contracts",
         "flake-parts": "flake-parts_2",
-        "nixpkgs": "nixpkgs",
+        "nixpkgs": "nixpkgs_2",
         "pre-commit-hooks": "pre-commit-hooks",
         "schema": "schema"
       }
@@ -272,17 +286,17 @@
     "schema": {
       "flake": false,
       "locked": {
-        "lastModified": 1730225600,
-        "narHash": "sha256-iWrUP1UeNmiTGuh3DrhKqCYf62+yoDt+Pu64pzM/uEU=",
+        "lastModified": 1733966579,
+        "narHash": "sha256-HmKhjwg/THU8eh4L6bDAExr5PXnkBHFWoEwvup4+1MY=",
         "owner": "masslbs",
         "repo": "network-schema",
-        "rev": "327c7a8896e6d41ca137f9e92038047141982dc4",
+        "rev": "9d18c2fd2a1a0367d1ab833ad0d759a4b65c0047",
         "type": "github"
       },
       "original": {
         "owner": "masslbs",
+        "ref": "v3.0",
         "repo": "network-schema",
-        "rev": "327c7a8896e6d41ca137f9e92038047141982dc4",
         "type": "github"
       }
     },
