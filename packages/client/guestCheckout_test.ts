@@ -24,6 +24,7 @@ import { objectId, priceToUint256 } from "@massmarket/utils";
 import {
   approveERC20,
   type ConcreteWalletClient,
+  getAllowance,
   getPaymentId,
   mintShop,
   pay,
@@ -306,7 +307,11 @@ describe({
             hash: txHash2,
           });
           expect(receipt2.status).toEqual("success");
-
+          const allowance = await getAllowance(publicClient, [
+            guestAccount.address,
+            addresses.Payments,
+          ]);
+          expect(allowance).toEqual(args.amount);
           const hash = await pay(guestWallet, [args]);
 
           const receipt = await publicClient.waitForTransactionReceipt({
