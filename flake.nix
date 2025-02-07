@@ -11,10 +11,9 @@
     };
     contracts = {
       url = "github:masslbs/contracts";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
     schema = {
-      url = "github:masslbs/network-schema/327c7a8896e6d41ca137f9e92038047141982dc4";
+      url = "github:masslbs/network-schema/v3.0";
       flake = false;
     };
   };
