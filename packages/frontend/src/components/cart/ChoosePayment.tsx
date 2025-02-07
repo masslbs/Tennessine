@@ -22,16 +22,16 @@ import {
   Payee,
   ShopCurrencies,
   ShopManifest,
-} from "../../types.js";
-import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.js";
-import { useShopId } from "../../hooks/useShopId.js";
-import { useCurrentOrder } from "../../hooks/useCurrentOrder.js";
-import { defaultRPC, getTokenInformation } from "../../utils/mod.js";
-import Dropdown from "../common/CurrencyDropdown.jsx";
-import BackButton from "../common/BackButton.jsx";
-import ErrorMessage from "../common/ErrorMessage.jsx";
-import Pay from "./Pay.jsx";
-import QRScan from "./QRScan.jsx";
+} from "../../types.ts";
+import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
+import { useShopId } from "../../hooks/useShopId.ts";
+import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
+import { defaultRPC, getTokenInformation } from "../../utils/mod.ts";
+import Dropdown from "../common/CurrencyDropdown.tsx";
+import BackButton from "../common/BackButton.tsx";
+import ErrorMessage from "../common/ErrorMessage.tsx";
+import Pay from "./Pay.tsx";
+import QRScan from "./QRScan.tsx";
 
 const namespace = "frontend:ChoosePayment";
 const debug = logger(namespace);

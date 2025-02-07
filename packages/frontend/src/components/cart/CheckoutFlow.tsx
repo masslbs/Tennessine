@@ -14,14 +14,14 @@ import {
   OrderEventTypes,
   OrderId,
   OrderState,
-} from "../../types.js";
-import Cart from "./Cart.jsx";
-import ErrorMessage from "../common/ErrorMessage.jsx";
-import ShippingDetails from "./ShippingDetails.jsx";
-import ChoosePayment from "./ChoosePayment.jsx";
-import TimerExpiration from "./TimerExpiration.jsx";
-import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.js";
-import { useCurrentOrder } from "../../hooks/useCurrentOrder.js";
+} from "../../types.ts";
+import Cart from "./Cart.tsx";
+import ErrorMessage from "../common/ErrorMessage.tsx";
+import ShippingDetails from "./ShippingDetails.tsx";
+import ChoosePayment from "./ChoosePayment.tsx";
+import TimerExpiration from "./TimerExpiration.tsx";
+import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
+import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 
 const namespace = "frontend:Checkout";
 const debug = logger(namespace);

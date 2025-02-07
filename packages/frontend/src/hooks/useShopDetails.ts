@@ -1,10 +1,10 @@
 import { useContext } from "react";
 import * as abi from "@massmarket/contracts";
 
-import { useShopId } from "./useShopId.js";
-import { usePublicClient } from "./usePublicClient.js";
-import { useQuery } from "./useQuery.js";
-import { MassMarketContext } from "../MassMarketContext.jsx";
+import { useShopId } from "./useShopId.ts";
+import { usePublicClient } from "./usePublicClient.ts";
+import { useQuery } from "./useQuery.ts";
+import { MassMarketContext } from "../MassMarketContext.tsx";
 
 export function useShopDetails() {
   const { shopDetails, setShopDetails } = useContext(MassMarketContext);

@@ -4,7 +4,7 @@ import { cleanup, renderHook } from "@testing-library/react-hooks";
 import { createConfig, http, WagmiProvider } from "wagmi";
 import { mainnet, sepolia } from "wagmi/chains";
 import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
-import { usePublicClient } from "./usePublicClient.js";
+import { usePublicClient } from "./usePublicClient.ts";
 
 const config = createConfig({
   chains: [mainnet, sepolia],

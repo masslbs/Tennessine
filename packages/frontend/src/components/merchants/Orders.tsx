@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.js";
-import { Order, OrderState } from "../../types.js";
-import Transactions from "./Transactions.jsx";
+import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
+import { Order, OrderState } from "../../types.ts";
+import Transactions from "./Transactions.tsx";
 
 export default function Orders() {
   const { clientStateManager } = useClientWithStateManager();

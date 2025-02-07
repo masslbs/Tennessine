@@ -1,7 +1,7 @@
 import { Address, PublicClient } from "viem";
 import * as abi from "@massmarket/contracts";
 import { assert } from "@massmarket/utils";
-import { Currency } from "../types.js";
+import { Currency } from "../types.ts";
 
 // Any utility functions for tokens
 export const getTokenAddress = (symbol: string, chainId: string): Address => {

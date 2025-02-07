@@ -2,7 +2,7 @@ import { assertEquals } from "jsr:@std/assert";
 import { createPublicClient, http } from "viem";
 import { hardhat } from "viem/chains";
 import * as abi from "@massmarket/contracts";
-import * as Utils from "./mod.js";
+import * as Utils from "./mod.ts";
 
 Deno.test("getTokenInformation", async () => {
   const publicClient = createPublicClient({

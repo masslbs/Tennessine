@@ -5,9 +5,9 @@ import { Link } from "@tanstack/react-router";
 
 import { formatUnitsFromString } from "@massmarket/utils";
 
-import Button from "../../common/Button.jsx";
-import { Listing, ListingViewState } from "../../../types.js";
-import { useBaseToken } from "../../../hooks/useBaseToken.js";
+import Button from "../../common/Button.tsx";
+import { Listing, ListingViewState } from "../../../types.ts";
+import { useBaseToken } from "../../../hooks/useBaseToken.ts";
 
 export default function MerchantViewProducts({
   products,

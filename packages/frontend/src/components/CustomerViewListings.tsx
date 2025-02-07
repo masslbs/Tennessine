@@ -5,8 +5,8 @@
 import { Link } from "@tanstack/react-router";
 
 import { formatUnitsFromString } from "@massmarket/utils";
-import { Listing, ListingViewState } from "../types.js";
-import { useBaseToken } from "../hooks/useBaseToken.js";
+import { Listing, ListingViewState } from "../types.ts";
+import { useBaseToken } from "../hooks/useBaseToken.ts";
 
 export default function CustomerViewProducts({
   products,

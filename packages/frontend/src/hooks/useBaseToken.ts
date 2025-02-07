@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 
-import { useClientWithStateManager } from "./useClientWithStateManager.js";
-import { usePublicClient } from "./usePublicClient.js";
-import { getTokenInformation } from "../utils/token.js";
-import { ShopCurrencies, ShopManifest } from "../types.js";
-import { useQuery } from "./useQuery.js";
+import { useClientWithStateManager } from "./useClientWithStateManager.ts";
+import { usePublicClient } from "./usePublicClient.ts";
+import { getTokenInformation } from "../utils/token.ts";
+import { ShopCurrencies, ShopManifest } from "../types.ts";
+import { useQuery } from "./useQuery.ts";
 
 export function useBaseToken() {
   const [pricingCurrency, setPricingCurrency] = useState<ShopCurrencies | null>(

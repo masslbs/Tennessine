@@ -10,12 +10,12 @@ import { useNavigate } from "@tanstack/react-router";
 import * as abi from "@massmarket/contracts";
 import { assert, logger, random32BytesHex } from "@massmarket/utils";
 
-import ErrorMessage from "../common/ErrorMessage.jsx";
-import Button from "../common/Button.jsx";
-import { usePublicClient } from "../../hooks/usePublicClient.js";
-import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.js";
-import { useKeycard } from "../../hooks/useKeycard.js";
-import { useShopId } from "../../hooks/useShopId.js";
+import ErrorMessage from "../common/ErrorMessage.tsx";
+import Button from "../common/Button.tsx";
+import { usePublicClient } from "../../hooks/usePublicClient.ts";
+import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
+import { useKeycard } from "../../hooks/useKeycard.ts";
+import { useShopId } from "../../hooks/useShopId.ts";
 
 const namespace = "frontend:connect-merchant";
 const debug = logger(namespace);

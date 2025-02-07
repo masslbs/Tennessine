@@ -16,21 +16,21 @@ import {
   CurrencyChainOption,
   ShopCurrencies,
   ShopManifest,
-} from "../../types.js";
+} from "../../types.ts";
 import {
   compareAddedRemovedChains,
   getTokenAddress,
-} from "../../utils/token.js";
-import Button from "../common/Button.jsx";
-import AvatarUpload from "../common/AvatarUpload.jsx";
-import ValidationWarning from "../common/ValidationWarning.jsx";
-import ErrorMessage from "../common/ErrorMessage.jsx";
-import SuccessToast from "../common/SuccessToast.jsx";
-import BackButton from "../common/BackButton.jsx";
-import Dropdown from "../common/CurrencyDropdown.jsx";
-import { useShopDetails } from "../../hooks/useShopDetails.js";
-import { useShopId } from "../../hooks/useShopId.js";
-import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.js";
+} from "../../utils/token.ts";
+import Button from "../common/Button.tsx";
+import AvatarUpload from "../common/AvatarUpload.tsx";
+import ValidationWarning from "../common/ValidationWarning.tsx";
+import ErrorMessage from "../common/ErrorMessage.tsx";
+import SuccessToast from "../common/SuccessToast.tsx";
+import BackButton from "../common/BackButton.tsx";
+import Dropdown from "../common/CurrencyDropdown.tsx";
+import { useShopDetails } from "../../hooks/useShopDetails.ts";
+import { useShopId } from "../../hooks/useShopId.ts";
+import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 
 const namespace = "frontend:StoreSettings";
 const debug = logger(namespace);

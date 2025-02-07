@@ -5,7 +5,7 @@ import { RelayClient, type RelayEndpoint } from "@massmarket/client";
 import { StateManager } from "@massmarket/stateManager";
 import { logger } from "@massmarket/utils";
 
-import { KeyCard, Listing, Order, ShopId, ShopManifest, Tag } from "./types.js";
+import { KeyCard, Listing, Order, ShopId, ShopManifest, Tag } from "./types.ts";
 
 const namespace = "frontend:ClientWithStateManager";
 const debug = logger(namespace);

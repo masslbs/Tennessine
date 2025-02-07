@@ -9,10 +9,10 @@ import * as abi from "@massmarket/contracts";
 import { assert, logger } from "@massmarket/utils";
 import { approveERC20, getAllowance, pay } from "@massmarket/blockchain";
 
-import ConnectWalletButton from "../common/ConnectWalletButton.jsx";
-import Button from "../common/Button.jsx";
-import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.js";
-import { Order, OrderState } from "../../types.js";
+import ConnectWalletButton from "../common/ConnectWalletButton.tsx";
+import Button from "../common/Button.tsx";
+import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
+import { Order, OrderState } from "../../types.ts";
 
 const namespace = "frontend:Pay";
 const debug = logger(namespace);

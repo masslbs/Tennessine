@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { Link } from "@tanstack/react-router";
-import Button from "../../common/Button.jsx";
-import { useShopId } from "../../../hooks/useShopId.js";
+import Button from "../../common/Button.tsx";
+import { useShopId } from "../../../hooks/useShopId.ts";
 
 export default function Confirmation() {
   const { shopId } = useShopId();

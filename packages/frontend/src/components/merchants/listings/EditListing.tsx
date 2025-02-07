@@ -7,13 +7,13 @@ import { useNavigate, useSearch } from "@tanstack/react-router";
 
 import { assert, formatUnitsFromString, logger } from "@massmarket/utils";
 
-import { Listing, ListingId, ListingViewState } from "../../../types.js";
-import ErrorMessage from "../../common/ErrorMessage.jsx";
-import ValidationWarning from "../../common/ValidationWarning.jsx";
-import { useBaseToken } from "../../../hooks/useBaseToken.js";
-import Button from "../../common/Button.jsx";
-import { useClientWithStateManager } from "../../../hooks/useClientWithStateManager.js";
-import BackButton from "../../common/BackButton.jsx";
+import { Listing, ListingId, ListingViewState } from "../../../types.ts";
+import ErrorMessage from "../../common/ErrorMessage.tsx";
+import ValidationWarning from "../../common/ValidationWarning.tsx";
+import { useBaseToken } from "../../../hooks/useBaseToken.ts";
+import Button from "../../common/Button.tsx";
+import { useClientWithStateManager } from "../../../hooks/useClientWithStateManager.ts";
+import BackButton from "../../common/BackButton.tsx";
 
 const namespace = "frontend:edit-product";
 const errlog = logger(namespace, "error");

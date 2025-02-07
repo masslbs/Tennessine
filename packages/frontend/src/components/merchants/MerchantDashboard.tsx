@@ -5,9 +5,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 
-import Transactions from "./Transactions.jsx";
-import { Order, OrderState } from "../../types.js";
-import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.js";
+import Transactions from "./Transactions.tsx";
+import { Order, OrderState } from "../../types.ts";
+import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 
 export default function MerchantDashboard() {
   const { clientStateManager } = useClientWithStateManager();

@@ -12,7 +12,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 // Import Routes
 
-import { Route as rootRoute } from "./routes/__root.jsx";
+import { Route as rootRoute } from "./routes/__root.tsx";
 
 // Create Virtual Routes
 
@@ -35,20 +35,20 @@ const SettingsLazyRoute = SettingsLazyImport.update({
   id: "/settings",
   path: "/settings",
   getParentRoute: () => rootRoute,
-} as any).lazy(() => import("./routes/settings.lazy.jsx").then((d) => d.Route));
+} as any).lazy(() => import("./routes/settings.lazy.tsx").then((d) => d.Route));
 
 const OrdersLazyRoute = OrdersLazyImport.update({
   id: "/orders",
   path: "/orders",
   getParentRoute: () => rootRoute,
-} as any).lazy(() => import("./routes/orders.lazy.jsx").then((d) => d.Route));
+} as any).lazy(() => import("./routes/orders.lazy.tsx").then((d) => d.Route));
 
 const OrderDetailsLazyRoute = OrderDetailsLazyImport.update({
   id: "/order-details",
   path: "/order-details",
   getParentRoute: () => rootRoute,
 } as any).lazy(() =>
-  import("./routes/order-details.lazy.jsx").then((d) => d.Route)
+  import("./routes/order-details.lazy.tsx").then((d) => d.Route)
 );
 
 const MerchantDashboardLazyRoute = MerchantDashboardLazyImport.update({
@@ -56,7 +56,7 @@ const MerchantDashboardLazyRoute = MerchantDashboardLazyImport.update({
   path: "/merchant-dashboard",
   getParentRoute: () => rootRoute,
 } as any).lazy(() =>
-  import("./routes/merchant-dashboard.lazy.jsx").then((d) => d.Route)
+  import("./routes/merchant-dashboard.lazy.tsx").then((d) => d.Route)
 );
 
 const MerchantConnectLazyRoute = MerchantConnectLazyImport.update({
@@ -64,21 +64,21 @@ const MerchantConnectLazyRoute = MerchantConnectLazyImport.update({
   path: "/merchant-connect",
   getParentRoute: () => rootRoute,
 } as any).lazy(() =>
-  import("./routes/merchant-connect.lazy.jsx").then((d) => d.Route)
+  import("./routes/merchant-connect.lazy.tsx").then((d) => d.Route)
 );
 
 const ListingsLazyRoute = ListingsLazyImport.update({
   id: "/listings",
   path: "/listings",
   getParentRoute: () => rootRoute,
-} as any).lazy(() => import("./routes/listings.lazy.jsx").then((d) => d.Route));
+} as any).lazy(() => import("./routes/listings.lazy.tsx").then((d) => d.Route));
 
 const ListingDetailLazyRoute = ListingDetailLazyImport.update({
   id: "/listing-detail",
   path: "/listing-detail",
   getParentRoute: () => rootRoute,
 } as any).lazy(() =>
-  import("./routes/listing-detail.lazy.jsx").then((d) => d.Route)
+  import("./routes/listing-detail.lazy.tsx").then((d) => d.Route)
 );
 
 const EditListingLazyRoute = EditListingLazyImport.update({
@@ -86,7 +86,7 @@ const EditListingLazyRoute = EditListingLazyImport.update({
   path: "/edit-listing",
   getParentRoute: () => rootRoute,
 } as any).lazy(() =>
-  import("./routes/edit-listing.lazy.jsx").then((d) => d.Route)
+  import("./routes/edit-listing.lazy.tsx").then((d) => d.Route)
 );
 
 const CreateShopLazyRoute = CreateShopLazyImport.update({
@@ -94,7 +94,7 @@ const CreateShopLazyRoute = CreateShopLazyImport.update({
   path: "/create-shop",
   getParentRoute: () => rootRoute,
 } as any).lazy(() =>
-  import("./routes/create-shop.lazy.jsx").then((d) => d.Route)
+  import("./routes/create-shop.lazy.tsx").then((d) => d.Route)
 );
 
 const ConnectConfirmLazyRoute = ConnectConfirmLazyImport.update({
@@ -102,20 +102,20 @@ const ConnectConfirmLazyRoute = ConnectConfirmLazyImport.update({
   path: "/connect-confirm",
   getParentRoute: () => rootRoute,
 } as any).lazy(() =>
-  import("./routes/connect-confirm.lazy.jsx").then((d) => d.Route)
+  import("./routes/connect-confirm.lazy.tsx").then((d) => d.Route)
 );
 
 const CheckoutLazyRoute = CheckoutLazyImport.update({
   id: "/checkout",
   path: "/checkout",
   getParentRoute: () => rootRoute,
-} as any).lazy(() => import("./routes/checkout.lazy.jsx").then((d) => d.Route));
+} as any).lazy(() => import("./routes/checkout.lazy.tsx").then((d) => d.Route));
 
 const IndexLazyRoute = IndexLazyImport.update({
   id: "/",
   path: "/",
   getParentRoute: () => rootRoute,
-} as any).lazy(() => import("./routes/index.lazy.jsx").then((d) => d.Route));
+} as any).lazy(() => import("./routes/index.lazy.tsx").then((d) => d.Route));
 
 // Populate the FileRoutesByPath interface
 

@@ -4,7 +4,7 @@
 
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
-import BackButton from "../common/BackButton.jsx";
+import BackButton from "../common/BackButton.tsx";
 
 export default function QRScan({
   imgSrc,

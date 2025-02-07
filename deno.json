@@ -6,7 +6,7 @@
     "./packages/eventTree",
     "./packages/client",
     "./packages/contracts",
-    "./packages/not-next",
+    "./packages/frontend",
     "./packages/blockchain",
     "./packages/mmr"
   ],

@@ -4,7 +4,7 @@ import React, {
   SetStateAction,
   useState,
 } from "react";
-import { ClientWithStateManager } from "./ClientWithStateManager.js";
+import { ClientWithStateManager } from "./ClientWithStateManager.ts";
 
 type MassMarketContextType = {
   clientStateManager: ClientWithStateManager | null;

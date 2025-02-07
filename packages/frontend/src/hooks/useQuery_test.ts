@@ -2,7 +2,7 @@ import { assertEquals } from "jsr:@std/assert";
 import { cleanup } from "npm:@testing-library/react";
 import { renderHook } from "npm:@testing-library/react";
 import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
-import { useQuery } from "./useQuery.js";
+import { useQuery } from "./useQuery.ts";
 
 Deno.test("test useQuery instantiation", async (t) => {
   GlobalRegistrator.register({});

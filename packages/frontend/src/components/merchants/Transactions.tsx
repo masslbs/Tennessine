@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Order, OrderState } from "../../types.js";
+import { Order, OrderState } from "../../types.ts";
 
 export default function Transactions(
   { orders }: { orders: Map<string, Order> },

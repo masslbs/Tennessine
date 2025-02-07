@@ -12,14 +12,14 @@ import {
   Order,
   OrderEventTypes,
   OrderId,
-} from "../../types.js";
+} from "../../types.ts";
 
-import Button from "../common/Button.jsx";
-import ErrorMessage from "../common/ErrorMessage.jsx";
-import { useBaseToken } from "../../hooks/useBaseToken.js";
-import { useCurrentOrder } from "../../hooks/useCurrentOrder.js";
-import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.js";
-import { multiplyAndFormatUnits } from "../../utils/helper.js";
+import Button from "../common/Button.tsx";
+import ErrorMessage from "../common/ErrorMessage.tsx";
+import { useBaseToken } from "../../hooks/useBaseToken.ts";
+import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
+import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
+import { multiplyAndFormatUnits } from "../../utils/helper.ts";
 
 const namespace = "frontend:Cart";
 const debug = logger(namespace);

@@ -12,8 +12,8 @@ import {
 } from "@tanstack/react-router";
 import { createConfig, http, WagmiProvider } from "wagmi";
 import { mainnet, sepolia } from "wagmi/chains";
-import { useClientWithStateManager } from "./useClientWithStateManager.js";
-import { MassMarketProvider } from "../MassMarketContext.jsx";
+import { useClientWithStateManager } from "./useClientWithStateManager.ts";
+import { MassMarketProvider } from "../MassMarketContext.tsx";
 
 const config = createConfig({
   chains: [mainnet, sepolia],

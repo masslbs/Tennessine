@@ -3,8 +3,8 @@ import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
 import { cleanup, renderHook } from "@testing-library/react-hooks";
 
 import { random32BytesHex } from "@massmarket/utils";
-import { useKeycard } from "./useKeycard.js";
-import { createRouterWrapper } from "../utils/mod.js";
+import { useKeycard } from "./useKeycard.ts";
+import { createRouterWrapper } from "../utils/mod.ts";
 
 Deno.test("useKeycard", async (t) => {
   GlobalRegistrator.register({});

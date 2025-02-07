@@ -2,15 +2,15 @@ import { useEffect, useState } from "react";
 import { type Chain, mainnet, optimism, sepolia } from "wagmi/chains";
 import { useSearch } from "@tanstack/react-router";
 
-import BackButton from "../common/BackButton.jsx";
+import BackButton from "../common/BackButton.tsx";
 import {
   CartItem,
   Listing,
   ListingId,
   Order,
   OrderState,
-} from "../../types.js";
-import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.js";
+} from "../../types.ts";
+import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 
 export default function OrderDetails() {
   const { clientStateManager } = useClientWithStateManager();

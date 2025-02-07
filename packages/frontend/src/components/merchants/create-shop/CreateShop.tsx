@@ -20,20 +20,20 @@ import {
 import { assert, logger, random256BigInt } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 
-import Confirmation from "./CreateShopConfirmation.jsx";
-import ValidationWarning from "../../common/ValidationWarning.jsx";
-import ErrorMessage from "../../common/ErrorMessage.jsx";
-import Button from "../../common/Button.jsx";
-import AvatarUpload from "../../common/AvatarUpload.jsx";
-import Dropdown from "../../common/CurrencyDropdown.jsx";
-import ConnectWalletButton from "../../common/ConnectWalletButton.jsx";
-import { useClientWithStateManager } from "../../../hooks/useClientWithStateManager.js";
-import { usePublicClient } from "../../../hooks/usePublicClient.js";
-import { useShopId } from "../../../hooks/useShopId.js";
-import { useKeycard } from "../../../hooks/useKeycard.js";
-import { useShopDetails } from "../../../hooks/useShopDetails.js";
-import { CurrencyChainOption, ShopCurrencies } from "../../../types.js";
-import { getTokenAddress, isValidHex } from "../../../utils/mod.js";
+import Confirmation from "./CreateShopConfirmation.tsx";
+import ValidationWarning from "../../common/ValidationWarning.tsx";
+import ErrorMessage from "../../common/ErrorMessage.tsx";
+import Button from "../../common/Button.tsx";
+import AvatarUpload from "../../common/AvatarUpload.tsx";
+import Dropdown from "../../common/CurrencyDropdown.tsx";
+import ConnectWalletButton from "../../common/ConnectWalletButton.tsx";
+import { useClientWithStateManager } from "../../../hooks/useClientWithStateManager.ts";
+import { usePublicClient } from "../../../hooks/usePublicClient.ts";
+import { useShopId } from "../../../hooks/useShopId.ts";
+import { useKeycard } from "../../../hooks/useKeycard.ts";
+import { useShopDetails } from "../../../hooks/useShopDetails.ts";
+import { CurrencyChainOption, ShopCurrencies } from "../../../types.ts";
+import { getTokenAddress, isValidHex } from "../../../utils/mod.ts";
 
 // When create shop CTA is clicked, these functions are called:
 // 1. mintShop

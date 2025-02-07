@@ -4,15 +4,15 @@ import { privateKeyToAccount } from "viem/accounts";
 
 import { logger, random32BytesHex } from "@massmarket/utils";
 
-import { MassMarketContext } from "../MassMarketContext.jsx";
-import { usePublicClient } from "./usePublicClient.js";
-import { useShopId } from "./useShopId.js";
-import { useQuery } from "./useQuery.js";
-import { useKeycard } from "./useKeycard.js";
-import { useRelayEndpoint } from "./useRelayEndpoint.js";
-import { useChain } from "./useChain.js";
-import { ClientWithStateManager } from "../ClientWithStateManager.js";
-import { defaultRPC } from "../utils/mod.js";
+import { MassMarketContext } from "../MassMarketContext.tsx";
+import { usePublicClient } from "./usePublicClient.ts";
+import { useShopId } from "./useShopId.ts";
+import { useQuery } from "./useQuery.ts";
+import { useKeycard } from "./useKeycard.ts";
+import { useRelayEndpoint } from "./useRelayEndpoint.ts";
+import { useChain } from "./useChain.ts";
+import { ClientWithStateManager } from "../ClientWithStateManager.ts";
+import { defaultRPC } from "../utils/mod.ts";
 
 const namespace = "frontend:useClientWithStateManager";
 const debug = logger(namespace);

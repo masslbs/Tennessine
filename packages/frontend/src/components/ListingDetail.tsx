@@ -7,15 +7,15 @@ import { Link, useSearch } from "@tanstack/react-router";
 
 import { formatUnitsFromString, logger } from "@massmarket/utils";
 
-import { Listing, ListingId, OrderId, OrderState } from "../types.js";
-import Button from "./common/Button.jsx";
-import BackButton from "./common/BackButton.jsx";
-import { useBaseToken } from "../hooks/useBaseToken.js";
-import { useClientWithStateManager } from "../hooks/useClientWithStateManager.js";
-import { useKeycard } from "../hooks/useKeycard.js";
-import ErrorMessage from "./common/ErrorMessage.jsx";
-import SuccessToast from "./common/SuccessToast.jsx";
-import { useCurrentOrder } from "../hooks/useCurrentOrder.js";
+import { Listing, ListingId, OrderId, OrderState } from "../types.ts";
+import Button from "./common/Button.tsx";
+import BackButton from "./common/BackButton.tsx";
+import { useBaseToken } from "../hooks/useBaseToken.ts";
+import { useClientWithStateManager } from "../hooks/useClientWithStateManager.ts";
+import { useKeycard } from "../hooks/useKeycard.ts";
+import ErrorMessage from "./common/ErrorMessage.tsx";
+import SuccessToast from "./common/SuccessToast.tsx";
+import { useCurrentOrder } from "../hooks/useCurrentOrder.ts";
 
 const namespace = "frontend:listing-detail";
 const debug = logger(namespace);

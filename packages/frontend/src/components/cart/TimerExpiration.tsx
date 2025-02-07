@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { Link } from "@tanstack/react-router";
-import Button from "../common/Button.jsx";
+import Button from "../common/Button.tsx";
 
 export default function TimerExpiration() {
   return (

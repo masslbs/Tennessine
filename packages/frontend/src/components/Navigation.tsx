@@ -14,13 +14,13 @@ import {
   OrderEventTypes,
   OrderId,
   OrderState,
-} from "../types.js";
-import Cart from "./cart/Cart.jsx";
-import { useClientWithStateManager } from "../hooks/useClientWithStateManager.js";
-import { useShopDetails } from "../hooks/useShopDetails.js";
-import { useKeycard } from "../hooks/useKeycard.js";
-import { useCurrentOrder } from "../hooks/useCurrentOrder.js";
-import { usePathname } from "../hooks/usePathname.js";
+} from "../types.ts";
+import Cart from "./cart/Cart.tsx";
+import { useClientWithStateManager } from "../hooks/useClientWithStateManager.ts";
+import { useShopDetails } from "../hooks/useShopDetails.ts";
+import { useKeycard } from "../hooks/useKeycard.ts";
+import { useCurrentOrder } from "../hooks/useCurrentOrder.ts";
+import { usePathname } from "../hooks/usePathname.ts";
 
 const merchantMenu = [
   {

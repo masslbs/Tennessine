@@ -2,7 +2,7 @@ import { assertEquals } from "jsr:@std/assert";
 import { cleanup, renderHook } from "@testing-library/react-hooks";
 import { waitFor } from "npm:@testing-library/react";
 import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
-import { useRelayEndpoint } from "./useRelayEndpoint.js";
+import { useRelayEndpoint } from "./useRelayEndpoint.ts";
 
 Deno.test("useRelayEndpoint", async (t) => {
   GlobalRegistrator.register({});

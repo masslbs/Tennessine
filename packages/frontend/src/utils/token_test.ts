@@ -1,6 +1,6 @@
 import { assertEquals } from "jsr:@std/assert";
-import { compareAddedRemovedChains } from "./token.js";
-import { TokenAddr } from "../types.js";
+import { compareAddedRemovedChains } from "./token.ts";
+import { TokenAddr } from "../types.ts";
 
 Deno.test("compareAddedRemovedChains", async (t) => {
   await t.step("should correctly identify added and removed chains", () => {

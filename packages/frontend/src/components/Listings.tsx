@@ -4,11 +4,11 @@
 
 import { useEffect, useState } from "react";
 
-import CustomerViewProducts from "./CustomerViewListings.jsx";
-import { useKeycard } from "../hooks/useKeycard.js";
-import { useClientWithStateManager } from "../hooks/useClientWithStateManager.js";
-import MerchantViewProducts from "./merchants/listings/MerchantViewListings.jsx";
-import { asyncIteratorToMap } from "../utils/mod.js";
+import CustomerViewProducts from "./CustomerViewListings.tsx";
+import { useKeycard } from "../hooks/useKeycard.ts";
+import { useClientWithStateManager } from "../hooks/useClientWithStateManager.ts";
+import MerchantViewProducts from "./merchants/listings/MerchantViewListings.tsx";
+import { asyncIteratorToMap } from "../utils/mod.ts";
 
 export default function Listings() {
   const { clientStateManager, result } = useClientWithStateManager();

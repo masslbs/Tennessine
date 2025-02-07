@@ -6,13 +6,13 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 import { assert, logger } from "@massmarket/utils";
 
-import { CheckoutStep, type ShippingDetails } from "../../types.js";
-import Button from "../common/Button.jsx";
-import ErrorMessage from "../common/ErrorMessage.jsx";
+import { CheckoutStep, type ShippingDetails } from "../../types.ts";
+import Button from "../common/Button.tsx";
+import ErrorMessage from "../common/ErrorMessage.tsx";
 // import TimerToast from "@/app/components/checkout/TimerToast";
-import ValidationWarning from "../common/ValidationWarning.jsx";
-import { useCurrentOrder } from "../../hooks/useCurrentOrder.js";
-import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.js";
+import ValidationWarning from "../common/ValidationWarning.tsx";
+import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
+import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 
 const namespace = "frontend:ShippingDetails";
 const debug = logger(namespace);
