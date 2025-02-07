@@ -294,9 +294,8 @@ describe({
           );
           const paymentId = await getPaymentId(publicClient, [args]);
 
-          expect(toHex(paymentDetails.paymentId!.raw!)).toEqual(
-            toHex(paymentId),
-          );
+          expect(paymentDetails.paymentId!.raw).toEqual(paymentId);
+
           // allow the payment contract to transfer on behalf of the guest user
           const txHash2 = await approveERC20(guestWallet, args.currency, [
             addresses.Payments,
@@ -332,7 +331,6 @@ describe({
       }
       expect(payed).toEqual(true);
     });
-
     it("checkout with native token", async () => {
       // Create and commit new order.
       const orderId2 = { raw: objectId() };
@@ -386,9 +384,7 @@ describe({
           );
           const paymentId = await getPaymentId(publicClient, [args]);
 
-          expect(toHex(paymentDetails.paymentId!.raw!)).toEqual(
-            toHex(paymentId),
-          );
+          expect(paymentDetails.paymentId!.raw!).toEqual(paymentId);
 
           const txHash = await pay(wallet, [args]);
 

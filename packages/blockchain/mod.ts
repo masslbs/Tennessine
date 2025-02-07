@@ -111,11 +111,26 @@ export const getPaymentAddress = genericReadContract(
   abi.addresses.Payments,
 );
 
-export const getPaymentId = genericReadContract(
+export const getPaymentIdRaw = genericReadContract(
   abi.paymentsByAddressAbi,
   "getPaymentId",
   abi.addresses.Payments,
 );
+
+export async function getPaymentId(
+  ...args: Parameters<typeof getPaymentIdRaw>
+): Promise<Uint8Array> {
+  const result: bigint = await getPaymentIdRaw(...args);
+  const resultAsHex = ("0x" + result.toString(16)) as `0x${string}`;
+  const resultBytes = hexToBytes(resultAsHex);
+  if (resultBytes.length === 32) {
+    return resultBytes;
+  }
+  // if result fits in less then 32bytes we have to fix the padding
+  const paddedResult = new Uint8Array(32);
+  paddedResult.set(resultBytes, paddedResult.length - resultBytes.length);
+  return paddedResult;
+}
 
 export function approveERC20(
   wallet: ConcreteWalletClient,
