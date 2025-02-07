@@ -70,11 +70,11 @@ export default function ShopSettings() {
           address: addresses.zeroAddress,
           chainId: c.id,
         });
-        const usdcTokenAddress = getTokenAddress("USDC", String(c.id));
+        const eddAddress = getTokenAddress("EDD", String(c.id));
         chainsToRender.push({
-          label: `USDC/${c.name}`,
-          value: `${usdcTokenAddress}/${c.id}`,
-          address: usdcTokenAddress as `0x${string}`,
+          label: `EDD/${c.name}`,
+          value: `${eddAddress}/${c.id}`,
+          address: eddAddress as `0x${string}`,
           chainId: c.id,
         });
       });

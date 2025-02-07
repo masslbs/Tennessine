@@ -54,7 +54,7 @@ export default function Orders() {
   }, []);
 
   return (
-    <main className="p-4 pt-under-nav">
+    <main className="p-4 pt-under-nav h-screen">
       <div className="transactions-container">
         <h2>Manage Orders</h2>
         <div className="bg-primary-dark-green flex text-white p-4 rounded-t-xl mt-4">

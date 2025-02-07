@@ -118,24 +118,27 @@ export default function ListingDetail() {
             setErrorMsg(null);
           }}
         />
-        <div className="m-4">
+        <div className="mx-4">
           <BackButton href="/listings" />
-          <div className="my-3 flex flex-col">
-            <h1 data-testid="title">{item.metadata.title}</h1>
+          <div className="my-3 flex">
+            <h1 className="flex items-center" data-testid="title">
+              {item.metadata.title}
+            </h1>
             <div
               className={`ml-auto ${
                 keycard.role === "merchant" ? "" : "hidden"
               }`}
             >
-              <Button custom="w-6/12">
+              <Button>
                 <Link
                   to="/edit-listing"
                   search={(prev: Record<string, string>) => ({
                     shopId: prev.shopId,
                     itemId: item.id,
                   })}
+                  className="text-white"
                 >
-                  Edit Product
+                  Edit
                 </Link>
               </Button>
             </div>
