@@ -72,24 +72,32 @@ export default function Pay({
         ]);
         if (allowance < paymentArgs[0].amount) {
           // This will throw error if simulate fails.
-        await simulateContract(config, {
-          abi: abi.eddiesAbi,
-          address: paymentArgs[0].currency,
-          functionName: "approve",
-          args: [
+          await simulateContract(config, {
+            abi: abi.eddiesAbi,
+            address: paymentArgs[0].currency,
+            functionName: "approve",
+            args: [
+              paymentArgs[0].payeeAddress,
+              paymentArgs[0].amount,
+            ],
+            connector,
+          });
+          await approveERC20(wallet!, paymentArgs[0].currency, [
             paymentArgs[0].payeeAddress,
             paymentArgs[0].amount,
-          ],
-          connector,
-        });
-        await approveERC20(wallet!, paymentArgs[0].currency, [
-          paymentArgs[0].payeeAddress,
-          paymentArgs[0].amount,
-        ]);
-        debug("ERC20 contract call approved");
+          ]);
+          debug("ERC20 contract call approved");
         }
-        
       }
+      await simulateContract(config, {
+        abi: abi.paymentsByAddressAbi,
+        address: abi.addresses.Payments,
+        functionName: "pay",
+        args: paymentArgs,
+        ...(paymentArgs[0].currency === abi.addresses.zeroAddress &&
+          { value: paymentArgs[0].amount }),
+        connector,
+      });
       await pay(wallet!, paymentArgs!);
     } catch (error) {
       assert(error instanceof Error, "Error is not an instance of Error");
