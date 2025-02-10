@@ -4,31 +4,17 @@ SPDX-FileCopyrightText: 2024 Mass Labs
 SPDX-License-Identifier: MIT
 -->
 
-# DESCRIPTION
+## Relay Client
 
 A TS library that implements a basic relay client. This is designed to handle
-commincation to the relay and also handle some interaction with the smart
-contract.
+commincation to and from the relay, by encoding and decoding messages to and
+from the relay.
 
-# TEST
+## Usage
 
-The tests need a relay to test against. Relay setup is in the `relay` repo. The
-tests also need anvil or a testnet with the smart contract deployed. Assuming
-you are in the nix dev shell, run `run-and-deploy` to start anvil and deploy the
-smart contract locally.
-
-```bash
-pnpm test
-```
-
-Test in browser
-
-```bash
-pnpm test:browser
-```
-
-Browser tests results are in the browser's console.
-
-# LICENCE
-
-Mozilla Public License Version 2.0
+1. connect: Create a websocket connection to the relay.
+2. authenticate: Send an authentication request to the relay.
+3. enrollKeycard: Enroll keycard that will be used for signing messages to send
+   shop events.
+4. sendMerchantSubscriptionRequest: Send a subscription request to the relay to
+   write and receive all events.

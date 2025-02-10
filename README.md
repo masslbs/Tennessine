@@ -9,40 +9,16 @@ SPDX-License-Identifier: Unlicense
 The newest type of [material](https://en.wikipedia.org/wiki/Tennessine) that
 builds around the [Mass Market](https://mass.market) system.
 
-# In this Repo
-
-This repo is a pnpm workspace and contains three packages.
+# Packages
 
 - [`client`](packages/client) - A network client to interact with a Mass Market
-  Relay.
-- [`contracts`](packages/client) - ABI wrappers for our
+  Relay. Encodes and decodes messages to and from the relay.
+- [`contracts`](packages/contracts) - ABI wrappers for our
   [contracts](https://github.com/masslbs/contracts)
 - [`schema`](packages/schema) - Generated encoder/decoders for the protocol
   buffer [definitions](https://github.com/masslbs/network-schema).
-- [`frontend`](packages/frontend) - A Next.js Frontend.
-
-# Developing
-
-Enter the development environment
-
-```bash
-nix develop
-```
-
-Install TS dependencies
-
-```bash
-pnpm install
-```
-
-Build the packages
-
-```bash
-pnpm build
-```
-
-Fomat the code
-
-```bash
-pnpm format
-```
+- [`frontend`](packages/frontend) - UI built with React, runs on
+  [`deno`](https://deno.com/) and [`vite`](https://vite.dev/).
+- [`blockchain`](packages/blockchain) - Wrapper functions for contract calls.
+- [`statemanager`](packages/statemanager) - Module for formatting data during
+  requesting and receiving events from the relay client.
