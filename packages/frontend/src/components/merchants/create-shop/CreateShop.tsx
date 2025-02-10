@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { ChangeEvent, useEffect, useState } from "react";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { ConnectButton, useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { privateKeyToAccount } from "viem/accounts";
 import { useAccount, useChains, useConfig, useWalletClient } from "wagmi";
@@ -47,6 +47,7 @@ const errlog = logger(namespace, "error");
 
 export default function () {
   const chains = useChains();
+  const addRecentTransaction = useAddRecentTransaction();
   const { status } = useAccount();
   const { shopPublicClient } = usePublicClient();
   const { data: wallet } = useWalletClient();
@@ -178,6 +179,11 @@ export default function () {
         connector,
       });
       const hash = await mintShop(wallet!, [shopId!, wallet!.account.address]);
+      addRecentTransaction({
+        hash,
+        description: 'Mint Shop',
+        // confirmations: 2,
+      });
       setMintedHash(hash);
       setStoreRegistrationStatus("Waiting to confirm mint transaction...");
       let receipt = await shopPublicClient!.waitForTransactionReceipt({

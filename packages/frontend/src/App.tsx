@@ -19,7 +19,7 @@ export default function App({
     <QueryClientProvider client={queryClient}>
       <WagmiProvider config={wagmiConfig}>
         <MassMarketProvider>
-          <RainbowKitProvider>
+          <RainbowKitProvider showRecentTransactions={true}>
             <RouterProvider router={router} />
             <main data-testid="homepage">
             </main>
