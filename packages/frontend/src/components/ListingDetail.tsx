@@ -55,7 +55,13 @@ export default function ListingDetail() {
     }
   }, [itemId, baseToken]);
 
-  if (!item) return null;
+  if (!item) {
+    return (
+      <main data-testid="listing-detail-page">
+        <p>Item not found.</p>
+      </main>
+    );
+  }
 
   function handlePurchaseQty(e: ChangeEvent<HTMLInputElement>) {
     const newValue = e.target.value.replace(/^0+/, "");
@@ -110,7 +116,10 @@ export default function ListingDetail() {
   }
 
   return (
-    <main className="bg-gray-100 pt-under-nav">
+    <main
+      className="bg-gray-100 pt-under-nav"
+      data-testid="listing-detail-page"
+    >
       <section className="flex flex-col">
         <ErrorMessage
           errorMessage={errorMsg}

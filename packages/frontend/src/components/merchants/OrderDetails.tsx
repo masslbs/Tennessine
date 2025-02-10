@@ -112,9 +112,12 @@ export default function OrderDetails() {
       );
     });
   }
-  if (!order) return <p>No order found</p>;
+  if (!order) return <p data-testid="order-details-page">No order found</p>;
   return (
-    <main className="p-4 pt-under-nav">
+    <main
+      className="p-4 pt-under-nav"
+      data-testid="order-details-page"
+    >
       <BackButton href="/orders" />
       <div className="mt-5">
         <h1>Order overview</h1>

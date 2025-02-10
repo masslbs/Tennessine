@@ -152,7 +152,10 @@ export default function MerchantConnect() {
   }
 
   return (
-    <main className="pt-under-nav h-screen p-4 mt-5" data-testid="merchant-connect-page">
+    <main
+      className="pt-under-nav h-screen p-4 mt-5"
+      data-testid="merchant-connect-page"
+    >
       <ErrorMessage
         errorMessage={errorMsg}
         onClose={() => {

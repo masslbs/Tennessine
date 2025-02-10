@@ -9,7 +9,6 @@ import { privateKeyToAccount } from "viem/accounts";
 import { useAccount, useChains, useConfig, useWalletClient } from "wagmi";
 import { simulateContract } from "@wagmi/core";
 import { hardhat } from "wagmi/chains";
-import { ClipLoader } from "react-spinners";
 
 import {
   addRelay,
@@ -24,6 +23,7 @@ import Confirmation from "./CreateShopConfirmation.tsx";
 import ValidationWarning from "../../common/ValidationWarning.tsx";
 import ErrorMessage from "../../common/ErrorMessage.tsx";
 import Button from "../../common/Button.tsx";
+import LoadingSpinner from "../../common/LoadingSpinner.tsx";
 import AvatarUpload from "../../common/AvatarUpload.tsx";
 import Dropdown from "../../common/CurrencyDropdown.tsx";
 import ConnectWalletButton from "../../common/ConnectWalletButton.tsx";
@@ -366,7 +366,7 @@ export default function () {
 
   if (step === "manifest form") {
     return (
-      <main className="p-4 pt-under-nav">
+      <main className="p-4 pt-under-nav" data-testid="create-shop-page">
         <section>
           <ValidationWarning
             warning={validationError}
@@ -540,15 +540,7 @@ export default function () {
                   </a>
                 )}
                 {creatingShop
-                  ? (
-                    <div>
-                      <ClipLoader
-                        loading={true}
-                        size={40}
-                        data-testid="loader"
-                      />
-                    </div>
-                  )
+                  ? <LoadingSpinner />
                   : (
                     <Button onClick={mint} disabled={!wallet || !shopId}>
                       <h6>Mint Shop</h6>

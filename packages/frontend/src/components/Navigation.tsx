@@ -227,7 +227,10 @@ function Navigation() {
   }
 
   return (
-    <section className={`absolute left-0 top-0 right-0`}>
+    <section
+      className={`absolute left-0 top-0 right-0`}
+      data-testid="navigation"
+    >
       <section className="w-full p-2 text-base flex justify-between bg-white">
         <div className="flex gap-2">
           {shopDetails.profilePictureUrl

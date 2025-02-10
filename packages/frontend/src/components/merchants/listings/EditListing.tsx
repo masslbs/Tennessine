@@ -240,7 +240,10 @@ export default function EditProduct() {
   }
 
   return (
-    <main className="pt-4 px-3 pt-under-nav">
+    <main
+      className="pt-4 px-3 pt-under-nav"
+      data-testid="edit-listing-page"
+    >
       <ValidationWarning
         warning={validationError}
         onClose={() => {

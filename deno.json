@@ -12,14 +12,12 @@
   ],
   "exclude": ["./packages/frontend/.vite/deps"],
   "lint": {
-    "exclude": ["./packages/frontend"],
     "rules": {
       "exclude": ["no-slow-types"]
     }
   },
   "fmt": {
     "exclude": [
-      "./packages/frontend",
       ".direnv",
       "node_modules",
       ".pre-commit-config.yaml"
