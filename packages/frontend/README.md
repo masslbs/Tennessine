@@ -27,17 +27,17 @@ deno test src/hooks/useClientWithStateManager_test.tsx --allow-net --allow-env -
 
 ## Custom Hooks
 
-All the custom hooks can be found in the `src/hooks` directory. These hooks can be called anywhere in the app to fetch/calculate the necessary data. 
+All the custom hooks can be found in the [`hooks`](src/hooks) directory. These hooks can be called anywhere in the app to fetch/calculate the necessary data. 
 
-Some of these hooks use `useQuery` which takes a function and a dependency array. This hook behaves like a cache, so that if the function has been called previously with no change in dependencies, the cached result will be returned instead of being recalculated.
+Some of these hooks use [`useQuery`](src/hooks/useQuery.ts) which takes a function and a dependency array. This hook behaves like a cache, so that if the function has been called previously with no change in dependencies, the cached result will be returned instead of being recalculated.
 
 ## TanStack Router
 
-[`TanStack Router`](https://tanstack.com/router) is used for routing. The routes can be found in the `src/routes` directory. `src/routeTree.gen.ts` is automatically updated when routes are added/removed.
+[`TanStack Router`](https://tanstack.com/router) is used for routing. The routes can be found in the [`routes`](src/routes) directory. [`routeTree.gen.ts`](src/routeTree.gen.ts) is automatically updated when routes are added/removed.
 
 ## ClientWithStateManager class
 
-A module that interacts with the state manager and relay client. It has methods to initialize the state manager/db, connect to the relay, and send authentication/subscription requests. It is initialized in the hook `useClientWithStateManager`. It encloses all the necessary logic for interacting with the state manager and relay client.
+A module that interacts with the state manager and relay client. It has methods to initialize the state manager/db, connect to the relay, and send authentication/subscription requests. It is initialized in the hook [`useClientWithStateManager`](src/hooks/useClientWithStateManager.ts). It encloses all the necessary logic for interacting with the state manager and relay client.
 
 ## MassMarketContext
 Preserves certain states across the app. These states and state setters are accessible anywhere in the app. For example, since we need the same instance of ClientWithStateManager across the app, we store it in the context.
