@@ -1,17 +1,17 @@
-import "../happyDomSetup.ts";
+import "../../happyDomSetup.ts";
 import { cleanup, render, screen } from "npm:@testing-library/react";
 
-import Listings from "./Listings.tsx";
-import { createRouterWrapper } from "../utils/test.tsx";
+import ShopSettings from "./ShopSettings.tsx";
+import { createRouterWrapper } from "../../utils/test.tsx";
 
-Deno.test("Check that we can render the listings screen", {
+Deno.test("Check that we can render the shop settings screen", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async () => {
   const wrapper = createRouterWrapper(null);
-  const { unmount } = await render(<Listings />, { wrapper });
+  const { unmount } = await render(<ShopSettings />, { wrapper });
   screen.debug();
-  screen.getByTestId("listings-page");
+  screen.getByTestId("shop-settings-page");
   unmount();
   cleanup();
 

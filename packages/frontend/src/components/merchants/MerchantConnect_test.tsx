@@ -4,7 +4,7 @@ import { cleanup, render, screen } from "npm:@testing-library/react";
 import MerchantConnect from "./MerchantConnect.tsx";
 import { createRouterWrapper } from "../../utils/test.tsx";
 
-Deno.test("Check that we can render the merchant connect page", {
+Deno.test("Check that we can render the merchant connect screen", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async (t) => {

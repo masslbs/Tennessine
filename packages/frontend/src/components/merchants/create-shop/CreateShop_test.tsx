@@ -4,7 +4,7 @@ import { cleanup, render, screen } from "npm:@testing-library/react";
 import CreateShop from "./CreateShop.tsx";
 import { createRouterWrapper } from "../../../utils/test.tsx";
 
-Deno.test("Check that we can render the create shop page", {
+Deno.test("Check that we can render the create shop screen", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async () => {

@@ -4,7 +4,7 @@ import { cleanup, render, screen } from "npm:@testing-library/react";
 import OrderDetails from "./OrderDetails.tsx";
 import { createRouterWrapper } from "../../utils/test.tsx";
 
-Deno.test("Check that we can render the order details page", {
+Deno.test("Check that we can render the order details screen", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async () => {
