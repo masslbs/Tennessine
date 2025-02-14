@@ -83,6 +83,7 @@ export default function ShopSettings() {
   }, []);
 
   useEffect(() => {
+    if (!clientStateManager) return;
     function onUpdateEvent(updatedManifest: ShopManifest) {
       const { pricingCurrency, acceptedCurrencies } = updatedManifest;
       setManifest(updatedManifest);
@@ -93,7 +94,7 @@ export default function ShopSettings() {
       });
     }
 
-    clientStateManager!
+    clientStateManager
       .stateManager!.manifest.get()
       .then((shopManifest: ShopManifest) => {
         const { pricingCurrency, acceptedCurrencies } = shopManifest;
@@ -105,11 +106,11 @@ export default function ShopSettings() {
         });
       });
 
-    clientStateManager!.stateManager.manifest.on("update", onUpdateEvent);
+    clientStateManager.stateManager.manifest.on("update", onUpdateEvent);
 
     return () => {
       // Cleanup listeners on unmount
-      clientStateManager!.stateManager.manifest.removeListener(
+      clientStateManager.stateManager.manifest.removeListener(
         "update",
         onUpdateEvent,
       );
@@ -213,7 +214,7 @@ export default function ShopSettings() {
   }
 
   return (
-    <main className="pt-under-nav px-4 mt-3">
+    <main className="pt-under-nav px-4 mt-3" data-testid="shop-settings-page">
       <ErrorMessage
         errorMessage={error}
         onClose={() => {
@@ -249,7 +250,8 @@ export default function ShopSettings() {
               <section>
                 <form
                   className="flex flex-col"
-                  onSubmit={(e) => e.preventDefault()}
+                  onSubmit={(e) =>
+                    e.preventDefault()}
                 >
                   <label className="font-medium text-base" htmlFor="storeName">
                     Shop Name
@@ -260,7 +262,8 @@ export default function ShopSettings() {
                     name="storeName"
                     value={storeName}
                     placeholder={shopDetails.name}
-                    onChange={(e) => setStoreName(e.target.value)}
+                    onChange={(e) =>
+                      setStoreName(e.target.value)}
                   />
                 </form>
               </section>

@@ -56,9 +56,14 @@ export default function Listings() {
     };
   }, [result]);
 
-  if (!clientStateManager?.stateManager) return <main>Loading...</main>;
+  if (!clientStateManager?.stateManager) {
+    return <main data-testid="listings-page">Loading...</main>;
+  }
   return (
-    <main className="bg-background-gray h-screen pt-under-nav">
+    <main
+      className="bg-background-gray h-screen pt-under-nav"
+      data-testid="listings-page"
+    >
       {keycard.role === "merchant"
         ? <MerchantViewProducts products={Array.from([...products.values()])} />
         : (
