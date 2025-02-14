@@ -4,6 +4,12 @@ import react from "@vitejs/plugin-react";
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 import tailwindcss from "tailwindcss";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
+import { entryPoints } from "./scripts/generate-entry-points.ts";
+
+// Take all the routes and create an object with the route name as the key and the index.html as the value.
+const buildInputs = Object.fromEntries(
+  entryPoints.map((path) => [path, "index.html"]),
+);
 
 export default defineConfig({
   css: {
@@ -11,6 +17,14 @@ export default defineConfig({
       plugins: [tailwindcss()],
     },
   },
+  build: {
+    rollupOptions: {
+      input: buildInputs,
+    },
+    outDir: "dist",
+    copyPublicDir: true,
+  },
+
   plugins: [
     deno(),
     react(),

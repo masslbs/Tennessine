@@ -132,7 +132,7 @@ jobs:
         working-directory: Tennessine/
 
       - name: build frontend
-        run: nix develop -c bash -c "deno run build"
+        run: nix develop -c bash -c "deno run production"
         working-directory: Tennessine/packages/frontend
 
       - name: Upload frontend to Pinata
