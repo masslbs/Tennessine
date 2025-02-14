@@ -31,6 +31,7 @@ import {
   shopRegAbi,
 } from "@massmarket/contracts";
 import {
+  getPaymentId,
   mintShop,
   publishInviteVerifier,
   redeemInviteSecret,
@@ -392,12 +393,7 @@ describe({
                 shopId: shopId,
                 shopSignature: toHex(paymentDetails.shopSignature!.raw!),
               };
-              const paymentId = await publicClient.readContract({
-                address: addresses.Payments,
-                abi: paymentsByAddressAbi,
-                functionName: "getPaymentId",
-                args: [args],
-              });
+              const paymentId = await getPaymentId(publicClient, [args]);
 
               expect(paymentDetails.paymentId!.raw!).toEqual(paymentId);
 
