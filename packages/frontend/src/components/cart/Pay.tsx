@@ -49,7 +49,7 @@ export default function Pay({
         setTxHash(order[1].txHash);
         addRecentTransaction({
           hash: order[1].txHash,
-          description: 'Order Payment',
+          description: "Order Payment",
           // confirmations: 3,
         });
       }

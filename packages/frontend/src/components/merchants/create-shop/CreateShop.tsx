@@ -181,7 +181,7 @@ export default function () {
       const hash = await mintShop(wallet!, [shopId!, wallet!.account.address]);
       addRecentTransaction({
         hash,
-        description: 'Mint Shop',
+        description: "Mint Shop",
         // confirmations: 2,
       });
       setMintedHash(hash);
