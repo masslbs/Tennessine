@@ -13,7 +13,7 @@ import { mainnet, sepolia } from "wagmi/chains";
 import { MassMarketProvider } from "../MassMarketContext.tsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
-import { MockClientStateManager } from "./MockClientWithStateManager.ts";
+import { MockClientStateManager } from "./MockClientStateManager.ts";
 
 export const config = createConfig({
   chains: [mainnet, sepolia],
@@ -74,6 +74,10 @@ export const createRouterWrapper = async (
           <WagmiProvider config={config}>
             <MassMarketProvider clientStateManager={csm}>
               <RainbowKitProvider showRecentTransactions={true}>
+                {
+                  /* TS expects self closing RouterProvier tag. See App.tsx for how we are using it.
+            But if we use the self closing syntax in testing, the router functions don't work in testing environment. */
+                }
                 {/* @ts-expect-error */}
                 <RouterProvider router={router}>{children}</RouterProvider>
               </RainbowKitProvider>

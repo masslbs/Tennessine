@@ -1,4 +1,5 @@
 import { MemoryLevel } from "npm:memory-level";
+import type { PublicClient } from "viem";
 import { random256BigInt } from "@massmarket/utils";
 import type {
   KeyCard,
@@ -10,7 +11,6 @@ import type {
 } from "./types.ts";
 import { MockClient } from "./mockClient.ts";
 import { StateManager } from "./mod.ts";
-import type { PublicClient } from "viem";
 
 const mockPublicClient = {
   readContract: () => 0n,

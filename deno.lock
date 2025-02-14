@@ -29,6 +29,8 @@
     "npm:@tanstack/router-plugin@^1.81.9": "1.87.11_vite@5.4.11__@types+node@22.10.2_@babel+core@7.26.0_@types+node@22.10.2",
     "npm:@testing-library/react-hooks@^8.0.1": "8.0.1_react@17.0.2",
     "npm:@testing-library/react@*": "16.1.0_@testing-library+dom@10.4.0_@types+react@18.3.16_@types+react-dom@18.3.5__@types+react@18.3.16_react@18.3.1_react-dom@18.3.1__react@18.3.1",
+    "npm:@testing-library/react@^16.2.0": "16.2.0_@testing-library+dom@10.4.0_@types+react@18.3.16_@types+react-dom@18.3.5__@types+react@18.3.16_react@18.3.1_react-dom@18.3.1__react@18.3.1",
+    "npm:@testing-library/user-event@^14.6.1": "14.6.1_@testing-library+dom@10.4.0",
     "npm:@types/node@*": "22.5.4",
     "npm:@types/node@^22.9.3": "22.10.2",
     "npm:@types/react-dom@^18.3.1": "18.3.5_@types+react@18.3.16",
@@ -1396,6 +1398,23 @@
         "@types/react-dom",
         "react@18.3.1",
         "react-dom"
+      ]
+    },
+    "@testing-library/react@16.2.0_@testing-library+dom@10.4.0_@types+react@18.3.16_@types+react-dom@18.3.5__@types+react@18.3.16_react@18.3.1_react-dom@18.3.1__react@18.3.1": {
+      "integrity": "sha512-2cSskAvA1QNtKc8Y9VJQRv0tm3hLVgxRGDB+KYhIaPQJ1I+RHbhIXcM+zClKXzMes/wshsMVzf4B9vS4IZpqDQ==",
+      "dependencies": [
+        "@babel/runtime",
+        "@testing-library/dom",
+        "@types/react",
+        "@types/react-dom",
+        "react@18.3.1",
+        "react-dom"
+      ]
+    },
+    "@testing-library/user-event@14.6.1_@testing-library+dom@10.4.0": {
+      "integrity": "sha512-vq7fv0rnt+QTXgPxr5Hjc210p6YKq2kmdziLgnsZGgLJ9e6VAShx1pACLuRjd/AS/sr7phAR58OIIpf0LlmQNw==",
+      "dependencies": [
+        "@testing-library/dom"
       ]
     },
     "@types/aria-query@5.0.4": {
@@ -5062,6 +5081,8 @@
           "npm:@tanstack/router-devtools@^1.82.1",
           "npm:@tanstack/router-plugin@^1.81.9",
           "npm:@testing-library/react-hooks@^8.0.1",
+          "npm:@testing-library/react@^16.2.0",
+          "npm:@testing-library/user-event@^14.6.1",
           "npm:@types/node@^22.9.3",
           "npm:@types/react-dom@^18.3.1",
           "npm:@types/react@^18.3.11",
