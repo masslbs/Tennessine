@@ -1,7 +1,7 @@
 {
   "name": "@massmarket/utils",
   "version": "0.0.1",
-  "exports": "./mod.ts",
+  "exports": { ".": "./mod.ts", "./test": "./test.ts" },
   "imports": {
     "buffer": "node:buffer",
     "@sentry/browser": "npm:@sentry/browser",

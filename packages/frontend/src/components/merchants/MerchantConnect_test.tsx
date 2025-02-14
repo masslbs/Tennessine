@@ -8,7 +8,7 @@ Deno.test("Check that we can render the merchant connect screen", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async (t) => {
-  const wrapper = createRouterWrapper(null, "/merchant-connect");
+  const { wrapper } = await createRouterWrapper(null, "/merchant-connect");
 
   await t.step("Render and unmount component", async () => {
     const { unmount } = render(<MerchantConnect />, { wrapper });

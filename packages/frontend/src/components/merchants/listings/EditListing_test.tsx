@@ -8,7 +8,7 @@ Deno.test("Check that we can render the edit listing screen", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async () => {
-  const wrapper = createRouterWrapper(null);
+  const { wrapper } = await createRouterWrapper(null);
   const { unmount } = await render(<EditListing />, { wrapper });
   screen.debug();
   screen.getByTestId("edit-listing-page");

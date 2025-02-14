@@ -1,9 +1,10 @@
 import { afterAll, beforeEach, describe, it } from "jsr:@std/testing/bdd";
 import { expect } from "jsr:@std/expect";
-import { bytesToHex, formatUnits, fromHex } from "viem";
+import { formatUnits, fromHex } from "viem";
 
 import * as abi from "@massmarket/contracts";
-import { objectId, random256BigInt, randomAddress } from "@massmarket/utils";
+import { random256BigInt, randomAddress } from "@massmarket/utils";
+import { payees, shippingRegions } from "@massmarket/utils/test";
 
 import type { StateManager } from "./mod.ts";
 import type { MockClient } from "./mockClient.ts";
@@ -25,29 +26,6 @@ const currencies = [
   {
     chainId: 12,
     address: abi.addresses.zeroAddress,
-  },
-];
-const payees = [
-  {
-    address: randomAddress(),
-    callAsContract: false,
-    chainId: 1,
-    name: "default",
-  },
-];
-const orderPriceModifiers = [
-  {
-    title: "EU VAT",
-    percentage: bytesToHex(objectId()),
-  },
-];
-const shippingRegions = [
-  {
-    name: "test",
-    country: "test country",
-    postalCode: "test postal",
-    city: "test city",
-    orderPriceModifiers,
   },
 ];
 

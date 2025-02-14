@@ -2,90 +2,19 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { hexToBytes, numberToBytes, type PublicClient } from "viem";
+import { hexToBytes, numberToBytes } from "viem";
 import { type PrivateKeyAccount, privateKeyToAccount } from "viem/accounts";
 import Long from "long";
-import { MemoryLevel } from "npm:memory-level";
 
 import type { EventId } from "@massmarket/client";
 import { ReadableEventStream } from "@massmarket/client/stream";
 import schema, { testVectors } from "@massmarket/schema";
-import { StateManager } from "./mod.ts";
-import type {
-  IRelayClient,
-  KeyCard,
-  Listing,
-  Order,
-  ShopManifest,
-  Tag,
-} from "./types.ts";
+import type { IRelayClient } from "./types.ts";
 
 export type IncomingEvent = {
   request: schema.SubscriptionPushRequest;
   done: () => void;
 };
-// this is not a mock Client, move to a different file
-export class MockClientStateManager {
-  readonly publicClient;
-  readonly shopId;
-  public stateManager: StateManager | null;
-  public relayClient: IRelayClient | null;
-
-  constructor(publicClient: PublicClient, shopId: bigint) {
-    this.stateManager = null;
-    this.relayClient = null;
-    this.publicClient = publicClient;
-    this.shopId = shopId;
-  }
-  createStateManager() {
-    const db = new MemoryLevel({
-      valueEncoding: "json",
-    });
-    // Set up all the stores via sublevel
-    const listingStore = db.sublevel<string, Listing>("listingStore", {
-      valueEncoding: "json",
-    });
-    const tagStore = db.sublevel<string, Tag>("tagStore", {
-      valueEncoding: "json",
-    });
-    const shopManifestStore = db.sublevel<string, ShopManifest>(
-      "shopManifestStore",
-      {
-        valueEncoding: "json",
-      },
-    );
-    const orderStore = db.sublevel<string, Order>("orderStore", {
-      valueEncoding: "json",
-    });
-
-    const keycardStore = db.sublevel<string, KeyCard>("keycardStore", {
-      valueEncoding: "json",
-    });
-
-    const keycardNonceStore = db.sublevel<string, number>("keycardNonceStore", {
-      valueEncoding: "json",
-    });
-
-    this.stateManager = new StateManager(
-      this.relayClient!,
-      listingStore,
-      tagStore,
-      shopManifestStore,
-      orderStore,
-      keycardStore,
-      keycardNonceStore,
-      this.shopId,
-      this.publicClient,
-    );
-
-    return this.stateManager;
-  }
-
-  setClientAndConnect() {
-    this.relayClient = new MockClient();
-    return this.relayClient;
-  }
-}
 
 export class MockClient implements IRelayClient {
   vectors;

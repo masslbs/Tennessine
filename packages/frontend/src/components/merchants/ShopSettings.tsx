@@ -83,7 +83,7 @@ export default function ShopSettings() {
   }, []);
 
   useEffect(() => {
-    if (!clientStateManager) return;
+    if (!clientStateManager?.stateManager) return;
     function onUpdateEvent(updatedManifest: ShopManifest) {
       const { pricingCurrency, acceptedCurrencies } = updatedManifest;
       setManifest(updatedManifest);

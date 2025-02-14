@@ -8,7 +8,7 @@ Deno.test("Check that we can render the navigation bar", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async () => {
-  const wrapper = createRouterWrapper(null);
+  const { wrapper } = await createRouterWrapper(null);
   const { unmount } = await render(<Navigation />, { wrapper });
   screen.debug();
   screen.getByTestId("navigation");

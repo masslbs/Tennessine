@@ -9,7 +9,7 @@ Deno.test("useClientWithStateManager", async (t) => {
   GlobalRegistrator.register({});
 
   await t.step("should return client when shopId is provided", async () => {
-    const wrapper = createRouterWrapper("123");
+    const { wrapper } = await createRouterWrapper("123");
 
     const { result, unmount } = renderHook(() => useClientWithStateManager(), {
       wrapper,
