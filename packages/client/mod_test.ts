@@ -399,11 +399,8 @@ describe({
                 args: [args],
               });
 
-              // TODO: toHex is not padding BigInt coerrect, so this cause random test
-              // failures
-              expect(toHex(paymentDetails.paymentId!.raw!)).toEqual(
-                toHex(paymentId),
-              );
+              expect(paymentDetails.paymentId!.raw!).toEqual(paymentId);
+
               const hash = await wallet.writeContract({
                 address: addresses.Payments,
                 abi: paymentsByAddressAbi,
