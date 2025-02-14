@@ -21,7 +21,7 @@ input[type="checkbox"] {
 }
 
 input[type="checkbox"]:checked::after {
-  content: url("./icons/checkmark.svg");
+  content: url("/icons/checkmark.svg");
   display: flex;
   justify-content: center;
   align-items: center;
