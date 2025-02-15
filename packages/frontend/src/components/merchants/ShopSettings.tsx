@@ -59,7 +59,7 @@ export default function ShopSettings() {
   const [displayedChains, setDisplayedChains] = useState<CurrencyChainOption[]>(
     [],
   );
-
+  console.log({ displayedChains });
   useEffect(() => {
     if (chains) {
       const chainsToRender: CurrencyChainOption[] = [];
@@ -127,8 +127,11 @@ export default function ShopSettings() {
       pricingToken!.address !== manifest!.pricingCurrency.address ||
       pricingToken!.chainId !== manifest!.pricingCurrency.chainId
     ) {
+      console.log("inside pricing currency", pricingToken);
+
       um.setPricingCurrency = pricingToken;
     }
+    console.log({ um, pricingToken });
     //Compare added/removed currencies and apply changes to update manifest object.
     const { removed, added } = compareAddedRemovedChains(
       manifest!.acceptedCurrencies,
@@ -208,6 +211,7 @@ export default function ShopSettings() {
   }
   function handlePricingCurrency(option: CurrencyChainOption) {
     const v = option.value as string;
+    console.log({ v });
     const [addr, chainId] = v.split("/");
     const address = addr as Address;
     setPricingCurrency({ address, chainId: Number(chainId) });
@@ -302,14 +306,16 @@ export default function ShopSettings() {
                 <label className="font-medium text-base">
                   Accepted currency
                 </label>
-                <div className="flex flex-col gap-1 mt-1">
+                <div
+                  className="flex flex-col gap-1 mt-1"
+                  data-testid="displayed-accepted-currencies"
+                >
                   {displayedChains.length &&
                     displayedChains.map((c: CurrencyChainOption) => {
                       return (
                         <div key={c.value}>
                           <label className="flex items-center space-x-2">
                             <input
-                              data-testid="displayed-accepted-currencies"
                               type="checkbox"
                               onChange={(e) => handleAcceptedCurrencies(e)}
                               className="form-checkbox h-4 w-4"
@@ -333,7 +339,7 @@ export default function ShopSettings() {
                     })}
                 </div>
               </section>
-              <section className="mt-4">
+              <section className="mt-4" data-testid="pricing-currency">
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -342,7 +348,6 @@ export default function ShopSettings() {
                   <div
                     className="flex flex-col"
                     onSubmit={(e) => e.preventDefault()}
-                    data-testid="pricing-currency"
                   >
                     <label
                       htmlFor="pricingCurrency"

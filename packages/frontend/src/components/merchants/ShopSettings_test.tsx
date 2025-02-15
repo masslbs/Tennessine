@@ -47,7 +47,10 @@ Deno.test("Check that we can render the shop settings screen", {
     });
 
     await waitFor(() => {
-      const checkboxes = screen.getAllByTestId("displayed-accepted-currencies");
+      const div = screen.getByTestId("displayed-accepted-currencies");
+      const checkboxes = Array.from(
+        div.querySelectorAll('input[type="checkbox"]'),
+      );
       const checked = checkboxes.filter((checkbox) =>
         (checkbox as HTMLInputElement).checked
       );
@@ -83,6 +86,41 @@ Deno.test("Check that we can render the shop settings screen", {
       const manifest = await csm.stateManager!.manifest.get();
       expect(manifest.pricingCurrency.chainId).toBe(sepolia.id);
       expect(manifest.pricingCurrency.address).toBe(addresses.zeroAddress);
+    });
+  });
+
+  await t.step("Check that we can update the accepted currencies", async () => {
+    await act(async () => {
+      const div = screen.getByTestId("displayed-accepted-currencies");
+      const checkboxes = Array.from(
+        div.querySelectorAll('input[type="checkbox"]'),
+      );
+      const EDD = checkboxes.find((checkbox) => {
+        return checkbox.value === `${addresses.Eddies}/${sepolia.id}`;
+      });
+      expect(EDD).toBeTruthy();
+      await user.click(EDD);
+    });
+    await act(async () => {
+      const submitButton = screen.getByRole("button", { name: "Update" });
+      expect(submitButton).toBeTruthy();
+      await userEvent.click(submitButton);
+    });
+    await waitFor(async () => {
+      const manifest = await csm.stateManager!.manifest.get();
+      expect(manifest.acceptedCurrencies.length).toBe(3);
+      expect(manifest.acceptedCurrencies[0]).toEqual({
+        chainId: mainnet.id,
+        address: addresses.zeroAddress,
+      });
+      expect(manifest.acceptedCurrencies[1]).toEqual({
+        chainId: sepolia.id,
+        address: addresses.zeroAddress,
+      });
+      expect(manifest.acceptedCurrencies[2]).toEqual({
+        chainId: sepolia.id,
+        address: addresses.Eddies.toLowerCase(),
+      });
     });
   });
 
