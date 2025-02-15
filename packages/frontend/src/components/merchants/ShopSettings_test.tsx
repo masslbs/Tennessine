@@ -15,7 +15,7 @@ Deno.test("Check that we can render the shop settings screen", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async (t) => {
-  const user = userEvent.setup();
+  const user = userEvent.default;
   const { wrapper, csm } = await createRouterWrapper(null);
   await csm.stateManager!.manifest.create(
     {
@@ -55,8 +55,12 @@ Deno.test("Check that we can render the shop settings screen", {
         (checkbox as HTMLInputElement).checked
       );
       expect(checked.length).toBe(2);
-      expect(checked[0].value).toBe(`${addresses.zeroAddress}/${mainnet.id}`);
-      expect(checked[1].value).toBe(`${addresses.zeroAddress}/${sepolia.id}`);
+      expect((checked[0] as HTMLInputElement).value).toBe(
+        `${addresses.zeroAddress}/${mainnet.id}`,
+      );
+      expect((checked[1] as HTMLInputElement).value).toBe(
+        `${addresses.zeroAddress}/${sepolia.id}`,
+      );
     });
   });
   await t.step("Check that we can change the pricing currency", async () => {
@@ -65,7 +69,7 @@ Deno.test("Check that we can render the shop settings screen", {
       expect(pricingCurrency).toBeTruthy();
       const dropdown = pricingCurrency.querySelector(
         '[data-testid="dropdown"]',
-      );
+      ) as HTMLInputElement;
       await user.click(dropdown);
     });
     const dropdownOptions = screen.getByTestId("dropdown-options");
@@ -74,18 +78,18 @@ Deno.test("Check that we can render the shop settings screen", {
       // click on the ETH/Sepolia option
       const option = screen.getByTestId("ETH/Sepolia");
       expect(option).toBeTruthy();
-      await userEvent.click(option);
+      await user.click(option);
     });
     await act(async () => {
       const submitButton = screen.getByRole("button", { name: "Update" });
       expect(submitButton).toBeTruthy();
-      await userEvent.click(submitButton);
+      await user.click(submitButton);
     });
     await waitFor(async () => {
       // check manifest is updated
       const manifest = await csm.stateManager!.manifest.get();
-      expect(manifest.pricingCurrency.chainId).toBe(sepolia.id);
-      expect(manifest.pricingCurrency.address).toBe(addresses.zeroAddress);
+      expect(manifest.pricingCurrency!.chainId).toBe(sepolia.id);
+      expect(manifest.pricingCurrency!.address).toBe(addresses.zeroAddress);
     });
   });
 
@@ -96,15 +100,16 @@ Deno.test("Check that we can render the shop settings screen", {
         div.querySelectorAll('input[type="checkbox"]'),
       );
       const EDD = checkboxes.find((checkbox) => {
-        return checkbox.value === `${addresses.Eddies}/${sepolia.id}`;
-      });
+        return (checkbox as HTMLInputElement).value ===
+          `${addresses.Eddies}/${sepolia.id}`;
+      }) as HTMLInputElement;
       expect(EDD).toBeTruthy();
-      await user.click(EDD);
+      await user.click(EDD as HTMLInputElement);
     });
     await act(async () => {
       const submitButton = screen.getByRole("button", { name: "Update" });
       expect(submitButton).toBeTruthy();
-      await userEvent.click(submitButton);
+      await user.click(submitButton);
     });
     await waitFor(async () => {
       const manifest = await csm.stateManager!.manifest.get();
