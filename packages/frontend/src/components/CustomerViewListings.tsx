@@ -66,7 +66,7 @@ export default function CustomerViewProducts({
                   height={20}
                   className="w-5 h-5"
                 />
-                <p>
+                <p data-testid="product-price">
                   {baseToken &&
                     formatUnitsFromString(item.price, baseToken.decimals)}
                 </p>
@@ -78,7 +78,7 @@ export default function CustomerViewProducts({
     });
   }
   return (
-    <section className="mt-2">
+    <section className="mt-2" data-testid="customer-view-listings">
       <div className="flex">
         <h1 className="grow flex items-center px-6">Shop</h1>
       </div>

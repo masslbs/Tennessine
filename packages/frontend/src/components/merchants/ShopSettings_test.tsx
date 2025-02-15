@@ -1,6 +1,6 @@
 import "../../happyDomSetup.ts";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { userEvent } from "@testing-library/user-event";
 import { expect } from "jsr:@std/expect";
 import { mainnet, sepolia } from "wagmi/chains";
 
@@ -15,7 +15,7 @@ Deno.test("Check that we can render the shop settings screen", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async (t) => {
-  const user = userEvent.default;
+  const user = userEvent.setup();
   const { wrapper, csm } = await createRouterWrapper(null);
   await csm.stateManager!.manifest.create(
     {

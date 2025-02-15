@@ -26,3 +26,8 @@ export const shippingRegions = [
     orderPriceModifiers,
   },
 ];
+export const metadata = {
+  title: "Test Item 1",
+  description: "Test description 1",
+  images: ["https://http.cat/images/201.jpg"],
+};

@@ -4,7 +4,7 @@ import { formatUnits, fromHex } from "viem";
 
 import * as abi from "@massmarket/contracts";
 import { random256BigInt, randomAddress } from "@massmarket/utils";
-import { payees, shippingRegions } from "@massmarket/utils/test";
+import { metadata, payees, shippingRegions } from "@massmarket/utils/test";
 
 import type { StateManager } from "./mod.ts";
 import type { MockClient } from "./mockClient.ts";
@@ -376,11 +376,7 @@ describe({ name: "global test settings", sanitizeResources: false }, () => {
 
     describe("ListingManager", () => {
       const decimals = 18;
-      const metadata = {
-        title: "Test Item 1",
-        description: "Test description 1",
-        images: ["https://http.cat/images/201.jpg"],
-      };
+
       let id: `0x${string}`;
       beforeEach(async () => {
         const res = await stateManager.listings.create(
