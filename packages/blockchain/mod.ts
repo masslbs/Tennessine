@@ -11,6 +11,8 @@ import {
   type ContractFunctionName,
   type ContractFunctionReturnType,
   hexToBytes,
+  numberToBytes,
+  pad,
   type PublicClient,
   type Transport,
   type WalletClient,
@@ -121,15 +123,7 @@ export async function getPaymentId(
   ...args: Parameters<typeof getPaymentIdRaw>
 ): Promise<Uint8Array> {
   const result: bigint = await getPaymentIdRaw(...args);
-  const resultAsHex = ("0x" + result.toString(16)) as `0x${string}`;
-  const resultBytes = hexToBytes(resultAsHex);
-  if (resultBytes.length === 32) {
-    return resultBytes;
-  }
-  // if result fits in less then 32bytes we have to fix the padding
-  const paddedResult = new Uint8Array(32);
-  paddedResult.set(resultBytes, paddedResult.length - resultBytes.length);
-  return paddedResult;
+  return pad(numberToBytes(result));
 }
 
 export function approveERC20(
