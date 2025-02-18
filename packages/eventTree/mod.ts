@@ -75,7 +75,7 @@ export default class EventTree<T> {
   }
 
   /** returns the root node of the tree */
-  get root(): Tree<T> {
+  get root(): EventTree<T> {
     return this.parentNode?.root ?? this;
   }
 
