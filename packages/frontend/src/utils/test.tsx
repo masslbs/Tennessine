@@ -23,9 +23,8 @@ export const config = createConfig({
   },
 });
 
-export const createRouterWrapper = async (
+export const createClientStateManager = async (
   shopId: string | null = null,
-  path: string = "/",
 ) => {
   const csm = new MockClientStateManager(
     shopId || "0x123",
@@ -33,8 +32,20 @@ export const createRouterWrapper = async (
   await csm.createStateManager();
   // Add test keycard for event verification
   await csm.stateManager?.keycards.addAddress(
-    csm.client!.keyCardWallet.address,
+    csm.relayClient!.keyCardWallet.address,
   );
+  return csm;
+};
+
+export const createRouterWrapper = async (
+  shopId: string | null = null,
+  path: string = "/",
+  // The only case clientStateManager needs to be passed here is if we need access to the state manager before the router is created.
+  // For example, in EditListing_test.tsx, we need to access the state manager to create a new listing and then use the listing id to set the search param.
+  clientStateManager: MockClientStateManager | null = null, // In most cases we don't need to pass clientStateManager separately.
+) => {
+  const csm = clientStateManager ?? await createClientStateManager(shopId);
+
   const wrapper = ({ children }: { children: React.ReactNode }) => {
     function RootComponent() {
       return <Outlet />;
