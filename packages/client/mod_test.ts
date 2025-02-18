@@ -31,6 +31,7 @@ import {
   shopRegAbi,
 } from "@massmarket/contracts";
 import {
+  getPaymentId,
   mintShop,
   publishInviteVerifier,
   redeemInviteSecret,
@@ -392,18 +393,10 @@ describe({
                 shopId: shopId,
                 shopSignature: toHex(paymentDetails.shopSignature!.raw!),
               };
-              const paymentId = await publicClient.readContract({
-                address: addresses.Payments,
-                abi: paymentsByAddressAbi,
-                functionName: "getPaymentId",
-                args: [args],
-              });
+              const paymentId = await getPaymentId(publicClient, [args]);
 
-              // TODO: toHex is not padding BigInt coerrect, so this cause random test
-              // failures
-              expect(toHex(paymentDetails.paymentId!.raw!)).toEqual(
-                toHex(paymentId),
-              );
+              expect(paymentDetails.paymentId!.raw!).toEqual(paymentId);
+
               const hash = await wallet.writeContract({
                 address: addresses.Payments,
                 abi: paymentsByAddressAbi,

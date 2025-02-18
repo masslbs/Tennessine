@@ -11,6 +11,8 @@ import {
   type ContractFunctionName,
   type ContractFunctionReturnType,
   hexToBytes,
+  numberToBytes,
+  pad,
   type PublicClient,
   type Transport,
   type WalletClient,
@@ -111,11 +113,18 @@ export const getPaymentAddress = genericReadContract(
   abi.addresses.Payments,
 );
 
-export const getPaymentId = genericReadContract(
+export const getPaymentIdRaw = genericReadContract(
   abi.paymentsByAddressAbi,
   "getPaymentId",
   abi.addresses.Payments,
 );
+
+export async function getPaymentId(
+  ...args: Parameters<typeof getPaymentIdRaw>
+): Promise<Uint8Array> {
+  const result: bigint = await getPaymentIdRaw(...args);
+  return pad(numberToBytes(result));
+}
 
 export function approveERC20(
   wallet: ConcreteWalletClient,
