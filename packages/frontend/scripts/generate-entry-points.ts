@@ -5,7 +5,7 @@ export const entryPoints = Object.values(routeTree.children || {})
   .map((r) => r.options.path.slice(1))
   .slice(1);
 
-// usually run by deno task generate, as part of the production pipline
+// usually run by deno task generate, as part of the production pipeline
 if (import.meta.main) {
   console.log("Copying index.html for each entry point...");
   for (const entry of entryPoints) {

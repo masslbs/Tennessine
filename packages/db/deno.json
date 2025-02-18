@@ -1,0 +1,9 @@
+{
+  "name": "@massmarket/db",
+  "version": "0.0.1",
+  "exports": "./mod.ts",
+  "imports": {
+    "@nullradix/ipld-cbor-graph-builder": "jsr:@nullradix/ipld-cbor-graph-builder@^3.0.0",
+    "@valibot/valibot": "jsr:@valibot/valibot@^0.42.1"
+  }
+}

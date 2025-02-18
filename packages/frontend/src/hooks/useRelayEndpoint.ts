@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { logger } from "@massmarket/utils";
 import { discoverRelay, type RelayEndpoint } from "@massmarket/client";
 
-const namespace = "frontend:useRelayEnpoint";
+const namespace = "frontend:useRelayEndpoint";
 const debug = logger(namespace);
 
 export function useRelayEndpoint() {

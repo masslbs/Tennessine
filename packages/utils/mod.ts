@@ -146,7 +146,7 @@ export function formatUnitsFromString(price: string, decimal: number) {
   return formatUnits(BigInt(price), decimal);
 }
 
-interface AdressObj {
+interface AddressObj {
   address: `0x${string}`;
   chainId: number;
   callAsContract?: boolean;
@@ -154,16 +154,16 @@ interface AdressObj {
 }
 
 // TODO: what does this do?
-export function addressToUint256(addressObject: AdressObj) {
+export function addressToUint256(addressObject: AddressObj) {
   return {
     ...addressObject,
     address: { raw: hexToBytes(addressObject.address) },
   };
 }
 
-export function addressesToUint256(addressObject: AdressObj[]) {
+export function addressesToUint256(addressObject: AddressObj[]) {
   if (!Array.isArray(addressObject)) {
-    throw new Error("addressesToUint256 expects an array of AdressObj");
+    throw new Error("addressesToUint256 expects an array of AddressObj");
   }
   return addressObject.map((c) => {
     return {

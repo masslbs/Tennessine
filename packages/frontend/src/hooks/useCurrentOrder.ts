@@ -41,10 +41,10 @@ export function useCurrentOrder() {
   }
 
   function onCommit(order: Order) {
-    if (order.status === OrderState.STATE_COMMITED) {
+    if (order.status === OrderState.STATE_COMMITTED) {
       setCurrentOrder({
         orderId: order.id,
-        status: OrderState.STATE_COMMITED,
+        status: OrderState.STATE_COMMITTED,
       });
     }
   }
@@ -77,13 +77,13 @@ export function useCurrentOrder() {
       // If no open order, look for committed order
       debug("No open order found, looking for committed order");
       const committedOrders = await orderManager.getStatus(
-        OrderState.STATE_COMMITED,
+        OrderState.STATE_COMMITTED,
       ) || [];
 
       if (committedOrders.length === 1) {
         setCurrentOrder({
           orderId: committedOrders[0],
-          status: OrderState.STATE_COMMITED,
+          status: OrderState.STATE_COMMITTED,
         });
         return;
       } else if (committedOrders.length > 1) {

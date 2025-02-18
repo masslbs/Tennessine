@@ -66,7 +66,7 @@ export const createRouterWrapper = (
             <MassMarketProvider>
               <RainbowKitProvider showRecentTransactions={true}>
                 {
-                  /* TS expects self closing RouterProvier tag. See App.tsx for how we are using it.
+                  /* TS expects self closing RouterProvider tag. See App.tsx for how we are using it.
             But if we use the self closing syntax in testing, the router functions don't work in testing environment. */
                 }
                 {/* @ts-expect-error  */}

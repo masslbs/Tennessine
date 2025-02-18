@@ -8,20 +8,17 @@
     "./packages/contracts",
     "./packages/frontend",
     "./packages/blockchain",
-    "./packages/mmr"
+    "./packages/mmr",
+    "./packages/db"
   ],
-  "exclude": ["./packages/frontend/.vite/deps"],
+  "exclude": ["./packages/frontend/.vite/deps", "./packages/db"],
   "lint": {
     "rules": {
       "exclude": ["no-slow-types"]
     }
   },
   "fmt": {
-    "exclude": [
-      ".direnv",
-      "node_modules",
-      ".pre-commit-config.yaml"
-    ]
+    "exclude": [".direnv", "node_modules", ".pre-commit-config.yaml"]
   },
   "compilerOptions": {
     "noErrorTruncation": true,

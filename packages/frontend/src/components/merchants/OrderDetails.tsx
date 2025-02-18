@@ -184,7 +184,7 @@ export default function OrderDetails() {
           <div className="flex gap-2">
             <div
               className={`bg-background-gray p-2 rounded-md overflow-x-auto w-40 ${
-                blockHash ? "" : "hiden"
+                blockHash ? "" : "hidden"
               }`}
             >
               <p>{blockHash}</p>

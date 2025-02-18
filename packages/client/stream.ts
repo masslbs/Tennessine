@@ -37,7 +37,7 @@ export class ReadableEventStream {
 
     this.stream = new ReadableStream<SequencedEventWithRecoveredSigner>({
       start(_controller) {},
-      // if pull returns a promise it will not be called again untill the promise is resolved regardless of the highwatermark
+      // if pull returns a promise it will not be called again until the promise is resolved regardless of the highwatermark
       // here we are using a recursive pull that will never resolve so that we have full control over when it is being called
       // and when to ask for the next chunk of data
       async pull(controller) {

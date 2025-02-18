@@ -7,7 +7,7 @@ SPDX-License-Identifier: Unlicense
 # Contracts
 
 This contains the generated ABIs for the contracts. The following ABIs are
-inculded
+included
 
 - [ERC20](./abi/ERC20.json)
 - [ShopReg](./abi/ShopReg.json)
