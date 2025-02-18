@@ -1,5 +1,5 @@
 import "../../happyDomSetup.ts";
-import { cleanup, render, screen } from "npm:@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 
 import OrderDetails from "./OrderDetails.tsx";
 import { createRouterWrapper } from "../../utils/test.tsx";

@@ -1,11 +1,5 @@
 import "../../../happyDomSetup.ts";
-import {
-  act,
-  cleanup,
-  render,
-  screen,
-  waitFor,
-} from "npm:@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "jsr:@std/expect";
 import { mainnet, sepolia } from "wagmi/chains";
@@ -69,7 +63,7 @@ Deno.test("Edit Listing", {
     });
     // Check the db to see that listing was created
     let listingCount = 0;
-    for await (const [key, item] of csm.stateManager!.listings.iterator()) {
+    for await (const [_, item] of csm.stateManager!.listings.iterator()) {
       listingCount++;
       const { metadata: { title, description, images } } = item;
       expect(title).toBe("product 1");
@@ -117,17 +111,17 @@ Deno.test("Edit Listing", {
     screen.getByTestId("edit-listing-page");
 
     await waitFor(() => {
-      const priceInput = screen.getByTestId("price");
+      const priceInput = screen.getByTestId("price") as HTMLInputElement;
       expect(priceInput.value).toBe("100");
-      const titleInput = screen.getByTestId("title");
+      const titleInput = screen.getByTestId("title") as HTMLInputElement;
       expect(titleInput.value).toBe(metadata.title);
-      const descInput = screen.getByTestId("description");
+      const descInput = screen.getByTestId("description") as HTMLInputElement;
       expect(descInput.value).toBe(metadata.description);
-      const quantityInput = screen.getByTestId("units");
+      const quantityInput = screen.getByTestId("units") as HTMLInputElement;
       expect(quantityInput.value).toBe("5");
       const publishCheckbox = screen.getByRole("checkbox", {
         name: /Publish product/i,
-      });
+      }) as HTMLInputElement;
       expect(publishCheckbox.checked).toBeTruthy();
     });
 

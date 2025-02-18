@@ -1,6 +1,6 @@
 import "../../happyDomSetup.ts";
 
-import { cleanup, render, screen } from "npm:@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import MerchantConnect from "./MerchantConnect.tsx";
 import { createRouterWrapper } from "../../utils/test.tsx";
 

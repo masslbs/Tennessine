@@ -8,19 +8,32 @@ import {
   RouterProvider,
 } from "@tanstack/react-router";
 import { createConfig, http, WagmiProvider } from "wagmi";
-import { mainnet, sepolia } from "wagmi/chains";
+import { hardhat, mainnet, sepolia } from "wagmi/chains";
+import { createWalletClient } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+import { anvilPrivateKey } from "@massmarket/contracts";
 
 import { MassMarketProvider } from "../MassMarketContext.tsx";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { MockClientStateManager } from "./MockClientStateManager.ts";
 
 export const config = createConfig({
-  chains: [mainnet, sepolia],
+  chains: [mainnet, sepolia, hardhat],
   transports: {
     [mainnet.id]: http(),
     [sepolia.id]: http(),
+    [hardhat.id]: http(),
   },
+});
+
+const mockWalletClient = createWalletClient({
+  chain: hardhat,
+  transport: http(),
+  account: privateKeyToAccount(
+    anvilPrivateKey,
+  ),
 });
 
 export const createClientStateManager = async (
@@ -78,10 +91,17 @@ export const createRouterWrapper = async (
         initialEntries: [shopId ? `${path}?shopId=${shopId}` : path],
       }),
     });
-
+    // Set initial data for wallet client
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          initialData: mockWalletClient,
+        },
+      },
+    });
     return (
       <StrictMode>
-        <QueryClientProvider client={new QueryClient()}>
+        <QueryClientProvider client={queryClient}>
           <WagmiProvider config={config}>
             <MassMarketProvider clientStateManager={csm}>
               <RainbowKitProvider showRecentTransactions={true}>

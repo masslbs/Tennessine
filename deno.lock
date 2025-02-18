@@ -8,7 +8,7 @@
     "jsr:@std/internal@^1.0.5": "1.0.5",
     "jsr:@std/testing@*": "1.0.5",
     "jsr:@wevm/viem@*": "2.21.59",
-    "npm:@deno/vite-plugin@1": "1.0.2_vite@5.4.11__@types+node@22.10.2_@types+node@22.10.2",
+    "npm:@deno/vite-plugin@^1.0.4": "1.0.4_vite@5.4.11__@types+node@22.10.2_@types+node@22.5.4",
     "npm:@ethereumjs/util@*": "9.1.0",
     "npm:@happy-dom/global-registrator@*": "15.11.7",
     "npm:@noble/curves@1.6.0": "1.6.0",
@@ -296,10 +296,10 @@
         "preact"
       ]
     },
-    "@deno/vite-plugin@1.0.2_vite@5.4.11__@types+node@22.10.2_@types+node@22.10.2": {
-      "integrity": "sha512-ZaC5W1yCb1xdRURU5qHFHrxZABr1tC68tS73/YhXUUbe9nuytCV4CG/dpLxMkxS64Fs3YwcqEz2k1eAqE9W5SQ==",
+    "@deno/vite-plugin@1.0.4_vite@5.4.11__@types+node@22.10.2_@types+node@22.5.4": {
+      "integrity": "sha512-xg8YT8Wn2sGXSnJgiGTpBGX1Dov0c6fd1rAp8VsfrCUtyBRRWzwVMAnd3fQ4yq8h7LSVvJUxEFN4U421k/DQLA==",
       "dependencies": [
-        "vite@5.4.11_@types+node@22.10.2"
+        "vite@5.4.11_@types+node@22.10.2_@types+node@22.5.4"
       ]
     },
     "@ecies/ciphers@0.2.2_@noble+ciphers@1.1.3": {
@@ -5074,7 +5074,7 @@
       },
       "packages/frontend": {
         "dependencies": [
-          "npm:@deno/vite-plugin@1",
+          "npm:@deno/vite-plugin@^1.0.4",
           "npm:@rainbow-me/rainbowkit@^2.2.0",
           "npm:@tanstack/react-query@^5.60.6",
           "npm:@tanstack/react-router@^1.82.1",

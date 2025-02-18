@@ -1,5 +1,5 @@
 import { assertEquals } from "jsr:@std/assert";
-import { cleanup, renderHook, waitFor } from "npm:@testing-library/react";
+import { cleanup, renderHook, waitFor } from "@testing-library/react";
 import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
 
 import { useClientWithStateManager } from "./useClientWithStateManager.ts";

@@ -14,7 +14,7 @@
     "exclude": ["./.vite"]
   },
   "imports": {
-    "@deno/vite-plugin": "npm:@deno/vite-plugin@^1.0.0",
+    "@deno/vite-plugin": "npm:@deno/vite-plugin@^1.0.4",
     "@rainbow-me/rainbowkit": "npm:@rainbow-me/rainbowkit@^2.2.0",
     "@tanstack/react-query": "npm:@tanstack/react-query@^5.60.6",
     "@tanstack/react-router": "npm:@tanstack/react-router@^1.82.1",

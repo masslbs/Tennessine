@@ -33,7 +33,7 @@ import { useShopId } from "../../../hooks/useShopId.ts";
 import { useKeycard } from "../../../hooks/useKeycard.ts";
 import { useShopDetails } from "../../../hooks/useShopDetails.ts";
 import { CurrencyChainOption, ShopCurrencies } from "../../../types.ts";
-import { getTokenAddress, isValidHex } from "../../../utils/mod.ts";
+import { getTokenAddress, isValidAddress } from "../../../utils/mod.ts";
 
 // When create shop CTA is clicked, these functions are called:
 // 1. mintShop
@@ -136,9 +136,8 @@ export default function () {
       return "Pricing currency chain is required.";
     }
 
-    const isTokenAddrHex = isValidHex(pricingCurrency.address);
-    const isPayeeAddHex = isValidHex(payeeAddress);
-
+    const isTokenAddrHex = isValidAddress(pricingCurrency.address);
+    const isPayeeAddHex = isValidAddress(payeeAddress);
     if (!isTokenAddrHex) {
       return "Token address must be a valid hex value";
     } else if (!storeName.length) {
@@ -422,7 +421,7 @@ export default function () {
               onChange={(e) => setDescription(e.target.value)}
             />
           </form>
-          <div>
+          <div data-testid="accepted-currencies">
             <label className="font-medium">Accepted currency</label>
             <div className="flex flex-col gap-2">
               {chains.map((c) => (
@@ -518,7 +517,10 @@ export default function () {
     );
   } else if (step === "connect wallet") {
     return (
-      <main className="h-screen p-4 pt-under-nav">
+      <main
+        className="h-screen p-4 pt-under-nav"
+        data-testid="connect-wallet-screen"
+      >
         <ValidationWarning
           warning={validationError}
           onClose={() => {

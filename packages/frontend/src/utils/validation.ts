@@ -1,5 +1,10 @@
 // Any utility functions for form validation
+import { isAddress, isHex } from "viem";
 
 export const isValidHex = (hex: string) => {
-  return Boolean(hex.match(/^0x[0-9a-f]+$/i));
+  return isHex(hex);
+};
+
+export const isValidAddress = (address: string) => {
+  return isAddress(address);
 };
