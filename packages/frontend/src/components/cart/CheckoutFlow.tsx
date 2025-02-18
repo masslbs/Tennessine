@@ -137,7 +137,7 @@ export default function CheckoutFlow() {
     }
     try {
       // Commit the order if it is not already committed
-      if (currentOrder!.status !== OrderState.STATE_COMMITED) {
+      if (currentOrder!.status !== OrderState.STATE_COMMITTED) {
         await clientStateManager!.stateManager.orders.commit(orderId);
         debug(`Order ID: ${orderId} committed`);
       }

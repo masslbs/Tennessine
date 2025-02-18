@@ -4,7 +4,7 @@
  * We cannot use native event emmitters because we cannot overwrite the `event.target` property and we need to know the listener count to manage subscriptions.
  *
  * ## Subscriptions
- * We can utilize the event tree to manage subscriptions to the relay(s). When listners are added and removed an event is emmited on the root node's `meta` event emmiter.
+ * We can utilize the event tree to manage subscriptions to the relay(s). When listeners are added and removed an event is emitted on the root node's `meta` event emmiter.
  * This event contains an array of `SubscriptionUpdate` objects that describe the changes to the subscriptions.
  * `SubscriptionUpdate`s are aware of the path in the tree where the subscription was added or removed and will not emit events for children nodes if the parent node has a subscription.
  * @module
@@ -30,22 +30,22 @@ export interface SubscriptionUpdate {
  * @template T the type of the event
  */
 export class EventEmmiter<T> {
-  /** A map of listners */
-  listners = new Set<EventListener<T>>();
+  /** A map of listeners */
+  listeners = new Set<EventListener<T>>();
 
   /** registers a callback to listen to events */
   on(listener: EventListener<T>) {
-    this.listners.add(listener);
+    this.listeners.add(listener);
   }
 
   /** removes a callback  */
   off(listener: EventListener<T>) {
-    this.listners.delete(listener);
+    this.listeners.delete(listener);
   }
 
   /** emits an event  */
   emit(event: T, source: object = this) {
-    this.listners.forEach((listener) => {
+    this.listeners.forEach((listener) => {
       listener(event, source);
     });
   }
@@ -85,14 +85,14 @@ export default class EventTree<T> {
 
   /** returns true if the node or the nodes parent has listeners */
   hasListeners(): boolean {
-    return this.emmiter.listners.size > 0 ||
+    return this.emmiter.listeners.size > 0 ||
       (this.parentNode?.hasListeners() ?? false);
   }
 
   #getChildren(): EventTree<T>[] {
     return Object.values(this.#edges).reduce(
       (acc, edge) =>
-        acc.concat(edge.emmiter.listners.size ? [edge] : edge.#getChildren()),
+        acc.concat(edge.emmiter.listeners.size ? [edge] : edge.#getChildren()),
       [] as EventTree<T>[],
     );
   }

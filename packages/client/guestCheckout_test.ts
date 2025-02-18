@@ -282,7 +282,7 @@ describe({
 
       const stream = guestRelayClient.createEventStream();
       let paymentHash: `0x${string}` | undefined;
-      let payed = false;
+      let paid = false;
 
       for await (const { event } of stream) {
         if (event.updateOrder?.setPaymentDetails) {
@@ -326,11 +326,11 @@ describe({
           expect(toHex(event.updateOrder!.addPaymentTx!.txHash!.raw!)).toEqual(
             paymentHash,
           );
-          payed = true;
+          paid = true;
           break;
         }
       }
-      expect(payed).toEqual(true);
+      expect(paid).toEqual(true);
     });
 
     it("checkout with native token", async () => {
@@ -367,7 +367,7 @@ describe({
       // Test checking out with native token
       const stream = relayClient.createEventStream();
       let hash;
-      let payed = false;
+      let paid = false;
 
       for await (const { event } of stream) {
         const orderUpdate = event.updateOrder;
@@ -402,11 +402,11 @@ describe({
           expect(toHex(orderUpdate!.addPaymentTx!.txHash!.raw!)).toEqual(
             hash,
           );
-          payed = true;
+          paid = true;
           break;
         }
       }
-      expect(payed).toEqual(true);
+      expect(paid).toEqual(true);
     });
   },
 });

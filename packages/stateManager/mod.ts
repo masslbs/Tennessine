@@ -48,7 +48,7 @@ import {
 
 const debug = logger("stateManager");
 
-// This is an interface that is used to retrieve and store objects from a persistant layer
+// This is an interface that is used to retrieve and store objects from a persistent layer
 export type Store<T extends ShopObjectTypes> = {
   put(key: string | `0x${string}` | OrderState, value: T): Promise<void>;
   get(key: string | `0x${string}` | OrderState): Promise<T>;
@@ -820,9 +820,9 @@ class OrderManager extends PublicObjectManager<Order | OrdersByStatus> {
         return;
       } else if (uo.commitItems) {
         const currentState = order.status;
-        order.status = OrderState.STATE_COMMITED;
+        order.status = OrderState.STATE_COMMITTED;
         await this.store.put(id, order);
-        await storeOrdersByStatus(id, this.store, OrderState.STATE_COMMITED);
+        await storeOrdersByStatus(id, this.store, OrderState.STATE_COMMITTED);
         //remove the orderId from state of orders before this event.
         let orders = (await this.store.get(currentState)) as OrdersByStatus;
         orders = orders.filter((oId) => oId !== id);

@@ -98,7 +98,7 @@ export default function ListingDetail() {
       debug(`New Order ID: ${orderId}`);
     }
     try {
-      if (currentOrder?.status === OrderState.STATE_COMMITED) {
+      if (currentOrder?.status === OrderState.STATE_COMMITTED) {
         orderId = await cancelAndCreateOrder();
       }
       await clientStateManager!.stateManager.orders.addItems(

@@ -610,7 +610,7 @@ describe({ name: "global test settings", sanitizeResources: false }, () => {
         expect(updatedOrder.choosePayment?.currency).toEqual(currency);
         //Make sure the order is only in committed orders.
         const committedOrders = await stateManager.orders.getStatus(
-          OrderState.STATE_COMMITED,
+          OrderState.STATE_COMMITTED,
         );
         const o = committedOrders.find((oId) => oId === id);
         expect(o).toBeTruthy();

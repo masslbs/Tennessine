@@ -30,7 +30,7 @@ export default function Transactions(
         case OrderState.STATE_OPEN:
           status = "Open";
           break;
-        case OrderState.STATE_COMMITED:
+        case OrderState.STATE_COMMITTED:
           status = "Committed";
           break;
         case OrderState.STATE_PAYMENT_TX:

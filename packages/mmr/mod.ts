@@ -3,7 +3,7 @@ import { keccak_256 } from "npm:@noble/hashes/sha3";
 import { bytesToHex } from "npm:@noble/hashes@1.6.1/utils";
 
 /**
- * This implmenents a persistant Merkle Mountain Range backed by a leveldb instance
+ * This implmenents a persistent Merkle Mountain Range backed by a leveldb instance
  */
 export default class MMR {
   public _root?: Uint8Array;
@@ -95,7 +95,7 @@ export default class MMR {
 
   _getMultiProofPositions(indexes: number[]) {
     indexes = indexes.map((a) => ++a).sort((a, b) => a - b);
-    // internal nodes that can be contructed given the proof
+    // internal nodes that can be constructed given the proof
     const internalPos = new Set<number>();
     const proofPos = new Set<number>();
     for (const index of indexes) {
@@ -130,7 +130,7 @@ export default class MMR {
     return [...proofPos];
   }
 
-  // Given an array of indexes this returns the internal hashs needed to compute the merkle proof
+  // Given an array of indexes this returns the internal hashes needed to compute the merkle proof
   async getMultiProof(indexes: number[]) {
     const proofPos = this._getMultiProofPositions(indexes);
     return await this.level.getMany(proofPos);
@@ -143,7 +143,7 @@ export default class MMR {
 
   static _pathToLeaf(leafIndex: number, size: number): number[] {
     const path = [];
-    // first calcuate the next power of 2, which would be the number of nodes in a full binary tree
+    // first calculate the next power of 2, which would be the number of nodes in a full binary tree
     const np2 = MMR.nextPowerOf2(size);
     const numOfNodes = np2 * 2 - 1;
     let height = Math.log2(np2) + 1;

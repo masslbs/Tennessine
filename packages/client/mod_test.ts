@@ -85,7 +85,7 @@ describe({
       });
 
       test("registrationTokenRedeem", async () => {
-        // still contrived, we would use a seperate keypair in reality and pass it via some sidechannel
+        // still contrived, we would use a separate keypair in reality and pass it via some sidechannel
         //
         // acc2 is the "long term wallet" of the new user
         // if we knew that before hand, we could just call registerUser(acc2.address, Clerk)

@@ -19,11 +19,11 @@ for performance.
 
 ### There are some footguns
 
-- The tree xor's the hashes of leafs to generate the parent hash. This is not
-  secure if the leafs are not trusted and can be manipulated by an attacker.
+- The tree xor's the hashes of leaves to generate the parent hash. This is not
+  secure if the leaves are not trusted and can be manipulated by an attacker.
 - You can only grow the tree by pushing values to it.
 - You can't remove values from the tree.
 
-### Impovements
+### Improvements
 
 - batch operations would be more performant

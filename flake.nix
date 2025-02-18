@@ -44,6 +44,7 @@
             src = ./.;
             hooks = {
               alejandra.enable = true;
+              typos.enable = true;
               denolint.enable = true;
               denofmt = {
                 verbose = true;
@@ -67,8 +68,9 @@
 
             buildInputs =
               [
-                # lsp for nix
-                nixd
+                typos # code spell checker
+                typos-lsp
+                nixd # lsp for nix
                 deno
                 contracts.packages.${system}.default
                 reuse
