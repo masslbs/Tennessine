@@ -96,7 +96,6 @@ export default function EditProduct() {
       //compare the edited fields against the original object.
       const diff: Partial<Listing> = {
         id: itemId as ListingId,
-        viewState,
       };
       if (
         newItem.price !==
@@ -108,6 +107,9 @@ export default function EditProduct() {
       }
       if (newItem.metadata !== productInView!.metadata) {
         diff["metadata"] = newItem.metadata;
+      }
+      if (newItem.viewState !== productInView!.viewState) {
+        diff["viewState"] = newItem.viewState;
       }
 
       if (Object.keys(diff).length === 1) return;

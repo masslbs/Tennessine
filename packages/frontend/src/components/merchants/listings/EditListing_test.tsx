@@ -67,7 +67,7 @@ Deno.test("Edit Listing", {
       });
       await user.click(publishButton);
     });
-    //Check the db to see that listing was created
+    // Check the db to see that listing was created
     let listingCount = 0;
     for await (const [key, item] of csm.stateManager!.listings.iterator()) {
       listingCount++;
@@ -112,7 +112,7 @@ Deno.test("Edit Listing", {
     const { wrapper } = await createRouterWrapper(null, `/?itemId=${id}`, csm);
 
     const { unmount } = await render(<EditListing />, {
-      wrapper: wrapper,
+      wrapper,
     });
     screen.getByTestId("edit-listing-page");
 
@@ -130,6 +130,32 @@ Deno.test("Edit Listing", {
       });
       expect(publishCheckbox.checked).toBeTruthy();
     });
+
+    // Update the inputs
+    await act(async () => {
+      const stockInput = screen.getByTestId("units");
+      await user.clear(stockInput);
+      await user.type(stockInput, "10");
+      const titleInput = screen.getByTestId("title");
+      await user.clear(titleInput);
+      await user.type(titleInput, "Updated title");
+      const descInput = screen.getByTestId("description");
+      await user.clear(descInput);
+      await user.type(descInput, "Updated description");
+    });
+
+    await act(async () => {
+      const publishButton = screen.getByRole("button", {
+        name: /Update product/i,
+      });
+      await user.click(publishButton);
+    });
+
+    const updatedListing = await csm.stateManager!.listings.get(id);
+    expect(updatedListing.quantity).toBe(10);
+    expect(updatedListing.metadata.title).toBe("Updated title");
+    expect(updatedListing.metadata.description).toBe("Updated description");
+
     unmount();
   });
   cleanup();
