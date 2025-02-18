@@ -55,8 +55,8 @@ export class EventEmmiter<T> {
  * This class dispatch's an event and bubbles that event up the tree
  * @template T the type of the event
  */
-export class Tree<T> {
-  #edges = {} as Record<string, Tree<T>>;
+export default class EventTree<T> {
+  #edges = {} as Record<string, EventTree<T>>;
   /** The event emmiter for this node */
   readonly emmiter = new EventEmmiter<T>();
   /** The event emmiter for the meta events, this only works on the root node of the tree */
@@ -66,7 +66,7 @@ export class Tree<T> {
     /** The name of the node, "" for root */
     readonly name: string = "",
     /** The parent node, null for root */
-    readonly parentNode: Tree<T> | null = null,
+    readonly parentNode: EventTree<T> | null = null,
   ) {}
 
   /** returns the node's path in a tree */
@@ -89,11 +89,11 @@ export class Tree<T> {
       (this.parentNode?.hasListeners() ?? false);
   }
 
-  #getChildren(): Tree<T>[] {
+  #getChildren(): EventTree<T>[] {
     return Object.values(this.#edges).reduce(
       (acc, edge) =>
         acc.concat(edge.emmiter.listners.size ? [edge] : edge.#getChildren()),
-      [] as Tree<T>[],
+      [] as EventTree<T>[],
     );
   }
 
@@ -102,7 +102,7 @@ export class Tree<T> {
     ...args: [path: string | string[], listener: EventListener<T>] | [
       listener: EventListener<T>,
     ]
-  ): Tree<T> {
+  ): EventTree<T> {
     const [path, listener] = args.length === 1 ? ["", args[0]] : args;
     const p: string[] = jsonpointer.split(path);
     if (p.length) {
@@ -141,7 +141,7 @@ export class Tree<T> {
     ...args: [path: string | string[], listener: EventListener<T>] | [
       listener: EventListener<T>,
     ]
-  ): Tree<T> | void {
+  ): EventTree<T> | void {
     const [path, listener] = args.length === 1 ? ["", args[0]] : args;
     const p: string[] = jsonpointer.split(path);
     if (p.length) {
@@ -172,7 +172,7 @@ export class Tree<T> {
   /** emits an event on a path in the tree */
   emit(
     ...args: [path: string | string[], event: T] | [event: T]
-  ): Tree<T> | void {
+  ): EventTree<T> | void {
     const [path, event] = args.length === 1 ? [[], args[0]] : args;
     const p: string[] = jsonpointer.split(path);
     if (p.length) {
@@ -185,12 +185,12 @@ export class Tree<T> {
   }
 
   /** get a node in the tree by path */
-  get(path: string | string[]): Tree<T> | undefined {
+  get(path: string | string[]): EventTree<T> | undefined {
     const p: string[] = jsonpointer.split(path);
     return this.#getPath(p);
   }
 
-  #getPath(p: string[]): Tree<T> | undefined {
+  #getPath(p: string[]): EventTree<T> | undefined {
     if (p.length) {
       const edge = p.shift();
       const next = this.#edges[edge!];
@@ -202,11 +202,11 @@ export class Tree<T> {
     }
   }
 
-  #getOrExtendPath(p: string[]): Tree<T> {
+  #getOrExtendPath(p: string[]): EventTree<T> {
     if (p.length) {
       const edge = p.shift()!;
       if (!this.#edges[edge]) {
-        this.#edges[edge] = new Tree(edge, this);
+        this.#edges[edge] = new EventTree(edge, this);
       }
       const next = this.#edges[edge];
       return next.#getOrExtendPath(p)!;
