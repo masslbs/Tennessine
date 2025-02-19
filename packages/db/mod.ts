@@ -1,20 +1,20 @@
 import * as v from "jsr:@valibot/valibot";
-import type { Blockstore } from "npm:interface-blockstore";
 import EventTree from "@massmarket/eventTree";
 import {
   Graph,
   type Link,
-  type SubObjects,
-} from "jsr:@nullradix/ipld-cbor-graph-builder@3.0.0";
+  type LinkValue,
+  type Store,
+} from "@nullradix/merkle-dag-builder";
 import jsonpointer from "npm:@sagold/json-pointer";
-
 import { getSubSchema } from "./validation.ts";
+import { assertEquals } from "jsr:@std/assert";
 
 export type Path = string | string[];
-export interface Op<T> {
+export interface Op {
   op: "set" | "delete";
   path: string | string[];
-  value: SubObjects<T>;
+  value: LinkValue;
 }
 export type Patch<T> = { path: Path; value: T }[];
 
@@ -27,104 +27,100 @@ export default class DataBase<T extends v.GenericSchema, VT = v.InferInput<T>> {
   >();
 
   readonly schema!: T;
-  readonly blockstore!: Blockstore;
-  readonly signingKey!: string;
-  readonly getKeySet!: (key: string) => boolean;
-  readonly root!: Link<VT>;
-  // readonly signingKey: string,
-  // readonly getKeySet: (key: string) => string,
-  // storage could be updated with the patches, for
-  // but reading can needs to be a k/v lookup
+  readonly store!: Store;
+  readonly root!: Link;
   constructor(params: {
     schema: T;
-    blockstore: Blockstore;
-    signingKey: string;
-    /* A callback function to check if the a key is in the set */
-    getKeySet: (key: string) => boolean;
-    root: Link<VT>;
+    store: Store;
+    root: Link;
   }) {
     Object.assign(this, params);
     this.states = new Map([
       [
         "local",
-        new Graph({ blockstore: params.blockstore }),
+        new Graph({ store: params.store }),
       ],
     ]);
   }
 
-  applyOp(op: Op<VT>, id = "local") {
+  #applyOp(op: Op, id = "local") {
     return this.states.get(id)?.set(this.root, op.path, op.value);
   }
 
-  async set(path: Path, value: SubObjects<VT>) {
-    const p: string[] = jsonpointer.split(path);
-    const schema = getSubSchema(this.schema, p);
-    // validate against the schema
-    v.parse(schema, value);
-    // to do, reuse the encoded value in sendPatch
-    const r = await this.applyOp({ op: "set", path: p, value });
-    // ignore sets that do not change the value
-    if (r.value !== value) {
-      this.events.emit(path, value);
-      // send patch to peers
-      for (const [controller, rid] in this.#streamsControllers) {
-        controller.enqueue(patch);
-      }
-    }
-  }
+  // async set(path: Path, value: LinkValue) {
+  //   const p: string[] = jsonpointer.split(path);
+  //   const schema = getSubSchema(this.schema, p);
+  //   // validate against the schema
+  //   v.parse(schema, value);
+  //   // to do, reuse the encoded value in sendPatch
+  //   const r = await this.#applyOp({ op: "set", path: p, value });
+  //   // ignore sets that do not change the value
+  //   if (r.value !== value) {
+  //     this.events.emit(path, value);
+  //     // send patch to peers
+  //     for (const [controller, rid] in this.#streamsControllers) {
+  //       controller.enqueue(patch);
+  //     }
+  //   }
+  // }
 
-  get(path: Path): VT {
-    return this.states.get("local")!.get(path);
-  }
+  // get(path: Path): VT {
+  //   return this.states.get("local")!.get(path);
+  // }
 
-  verifyPatch(patch: Patch<VT>) {
-    return true;
-  }
+  // verifyPatch(patch: Patch<VT>) {
+  //   return true;
+  // }
 
-  #verifySignature(signature: string) {
-    // get the keys that are valid from the tree,
-  }
+  // #verifySignature(signature: string) {
+  // get the keys that are valid from the tree,
+  // }
 
-  batch(patch: Patch<VT>) {
-    // validate the patch
-    // apply the patch
-    // emit the event
-  }
+  // batch(patch: Patch<VT>) {
+  // validate the patch
+  // apply the patch
+  // emit the event
+  // }
 
-  async applyRemotePatch(patch: Patch<VT>, id = "remote") {
-    this.verifyPatchScheme(patch);
-    await this.verifyPatchSignature(patch);
-    for (const op of patch) {
-      const schema = this.getSchema(op.path);
-      const result = await this.#applyOpRemote(op, id);
-      schema.verify(result);
-    }
-    const root = this.merklize(id);
-    assertEqual(root, patch.root, "Root hash should match");
-    // apply the patch to the local state
-    for (const op of patch) {
-      await this.#applyOp(op, "local");
-      this.events.emit({ path, value });
-    }
+  // async applyRemotePatch(patch: Patch<VT>, id = "remote") {
+  //   this.verifyPatchScheme(patch);
+  //   await this.verifyPatchSignature(patch);
+  //   for (const op of patch) {
+  //     const schema = this.getSchema(op.path);
+  //     const result = await this.#applyOpRemote(op, id);
+  //     schema.verify(result);
+  //   }
+  //   const root = this.merklize(id);
+  //   assertEquals(root, patch.root, "Root hash should match");
+  //   // apply the patch to the local state
+  //   for (const op of patch) {
+  //     await this.#applyOp(op, "local");
+  //     this.events.emit({ path, value });
+  //   }
 
-    // broadcast patch to all other peers via streams
-    // skipping the stream that sent the patch
-    for (const [controller, rid] in this.streamsControllers) {
-      if (rid !== id) {
-        controller.enqueue(patch);
-      }
-    }
-  }
+  //   // broadcast patch to all other peers via streams
+  //   // skipping the stream that sent the patch
+  //   for (const [controller, rid] in this.streamsControllers) {
+  //     if (rid !== id) {
+  //       controller.enqueue(patch);
+  //     }
+  //   }
+  // }
 
   createBidirectionalStream(id: string) {
-    assertEqual(this.state.has(id), false);
-    this.states.set(id, new Graph());
+    assertEquals(this.states.has(id), false);
+    this.states.set(
+      id,
+      new Graph({
+        store: this.store,
+      }),
+    );
     const self = this;
     return {
       // ingress
       writeable: new WritableStream({
         write(patch: Patch<VT>) {
-          return self.applyPatch(patch);
+          // return self.applyPatch(patch);
         },
       }),
       // egress

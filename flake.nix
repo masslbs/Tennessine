@@ -45,7 +45,8 @@
             hooks = {
               alejandra.enable = true;
               typos.enable = true;
-              denolint.enable = true;
+              # is broken when committing ts files that are ignored
+              # denolint.enable = true;
               denofmt = {
                 verbose = true;
                 enable = true;

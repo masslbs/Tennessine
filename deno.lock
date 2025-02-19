@@ -1,12 +1,23 @@
 {
   "version": "4",
   "specifiers": {
+    "jsr:@noble/hashes@^1.7.1": "1.7.1",
+    "jsr:@nullradix/ipld-cbor-graph-builder@3.0.0": "3.0.0",
+    "jsr:@nullradix/lockmap@~0.2.4": "0.2.4",
+    "jsr:@nullradix/merkle-dag-builder@*": "0.0.0",
+    "jsr:@nullradix/merkle-dag-builder@^0.0.1": "0.0.1",
     "jsr:@std/assert@*": "1.0.8",
+    "jsr:@std/assert@^1.0.11": "1.0.11",
     "jsr:@std/assert@^1.0.7": "1.0.8",
     "jsr:@std/assert@^1.0.8": "1.0.8",
+    "jsr:@std/bytes@^1.0.4": "1.0.4",
+    "jsr:@std/cbor@~0.1.6": "0.1.6",
     "jsr:@std/expect@*": "1.0.7",
     "jsr:@std/internal@^1.0.5": "1.0.5",
+    "jsr:@std/streams@^1.0.8": "1.0.8",
     "jsr:@std/testing@*": "1.0.5",
+    "jsr:@valibot/valibot@*": "0.42.1",
+    "jsr:@valibot/valibot@~0.42.1": "0.42.1",
     "jsr:@wevm/viem@*": "2.21.59",
     "npm:@deno/vite-plugin@1": "1.0.2_vite@5.4.11__@types+node@22.10.2_@types+node@22.10.2",
     "npm:@ethereumjs/util@*": "9.1.0",
@@ -74,10 +85,65 @@
     "npm:webauthn-p256@0.0.10": "0.0.10"
   },
   "jsr": {
+    "@noble/hashes@1.7.1": {
+      "integrity": "2c29f1dc07943155f5c7384be6f570a749c2afee95a0557cdae02b4fd5956134"
+    },
+    "@nullradix/ipld-cbor-graph-builder@3.0.0": {
+      "integrity": "237c77611200b2323dcf7fc02fb4cbd570958d5f8c407d33f7abf7eb5fde1bb3",
+      "dependencies": [
+        "jsr:@nullradix/lockmap",
+        "jsr:@std/assert@^1.0.11",
+        "npm:@ipld/dag-cbor",
+        "npm:@sagold/json-pointer@7",
+        "npm:multiformats",
+        "npm:shallow-clone"
+      ]
+    },
+    "@nullradix/lockmap@0.2.4": {
+      "integrity": "253dc2f7d3fa6613dfac38a01143a7fefaa5b07b885a43c58faadf0096c95c06"
+    },
+    "@nullradix/merkle-dag-builder@0.0.0": {
+      "integrity": "e43f8e7ce9f476a9b6c4e2de701a8f5666218e08446a2d2b8942a6f61ee27328",
+      "dependencies": [
+        "jsr:@noble/hashes@^1.7.1",
+        "jsr:@nullradix/lockmap",
+        "jsr:@std/assert@^1.0.11",
+        "jsr:@std/cbor",
+        "npm:@sagold/json-pointer@7",
+        "npm:shallow-clone"
+      ]
+    },
+    "@nullradix/merkle-dag-builder@0.0.1": {
+      "integrity": "414f55400a6ae1c3de6e3daaa214f9b8ad0b30d8356a88619cd5cba776b40f32",
+      "dependencies": [
+        "jsr:@noble/hashes@^1.7.1",
+        "jsr:@nullradix/lockmap",
+        "jsr:@std/assert@^1.0.11",
+        "jsr:@std/cbor",
+        "npm:@sagold/json-pointer@7",
+        "npm:shallow-clone"
+      ]
+    },
     "@std/assert@1.0.8": {
       "integrity": "ebe0bd7eb488ee39686f77003992f389a06c3da1bbd8022184804852b2fa641b",
       "dependencies": [
         "jsr:@std/internal"
+      ]
+    },
+    "@std/assert@1.0.11": {
+      "integrity": "2461ef3c368fe88bc60e186e7744a93112f16fd110022e113a0849e94d1c83c1",
+      "dependencies": [
+        "jsr:@std/internal"
+      ]
+    },
+    "@std/bytes@1.0.4": {
+      "integrity": "11a0debe522707c95c7b7ef89b478c13fb1583a7cfb9a85674cd2cc2e3a28abc"
+    },
+    "@std/cbor@0.1.6": {
+      "integrity": "3fb6e082f4eb44fc0c8d042999471264d398e6abb96c791c4e41614f9f52df44",
+      "dependencies": [
+        "jsr:@std/bytes",
+        "jsr:@std/streams"
       ]
     },
     "@std/expect@1.0.7": {
@@ -90,12 +156,18 @@
     "@std/internal@1.0.5": {
       "integrity": "54a546004f769c1ac9e025abd15a76b6671ddc9687e2313b67376125650dc7ba"
     },
+    "@std/streams@1.0.8": {
+      "integrity": "b41332d93d2cf6a82fe4ac2153b930adf1a859392931e2a19d9fabfb6f154fb3"
+    },
     "@std/testing@1.0.5": {
       "integrity": "6e693cbec94c81a1ad3df668685c7ba8e20742bb10305bc7137faa5cf16d2ec4",
       "dependencies": [
         "jsr:@std/assert@^1.0.8",
         "jsr:@std/internal"
       ]
+    },
+    "@valibot/valibot@0.42.1": {
+      "integrity": "ba0f6f7964aaeec0e4b1f793d575061f325ae6254cbb9d7ff01fb65068a0a23b"
     },
     "@wevm/viem@2.21.59": {
       "integrity": "aa77352bf1561b26974247dd53d4fa1afebe658ddc15aa32fc4c730e6161867c",
@@ -5096,7 +5168,7 @@
       },
       "packages/db": {
         "dependencies": [
-          "jsr:@nullradix/ipld-cbor-graph-builder@3",
+          "jsr:@nullradix/merkle-dag-builder@^0.0.1",
           "jsr:@valibot/valibot@~0.42.1"
         ]
       },

@@ -3,7 +3,10 @@
   "version": "0.0.1",
   "exports": "./mod.ts",
   "imports": {
-    "@nullradix/ipld-cbor-graph-builder": "jsr:@nullradix/ipld-cbor-graph-builder@^3.0.0",
-    "@valibot/valibot": "jsr:@valibot/valibot@^0.42.1"
+    "@valibot/valibot": "jsr:@valibot/valibot@^0.42.1",
+    "@nullradix/merkle-dag-builder": "jsr:@nullradix/merkle-dag-builder@^0.0.1"
+  },
+  "lint": {
+    "exclude": ["./*"]
   }
 }

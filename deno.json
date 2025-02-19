@@ -11,7 +11,7 @@
     "./packages/mmr",
     "./packages/db"
   ],
-  "exclude": ["./packages/frontend/.vite/deps", "./packages/db"],
+  "exclude": ["./packages/frontend/.vite/deps"],
   "lint": {
     "rules": {
       "exclude": ["no-slow-types"]
