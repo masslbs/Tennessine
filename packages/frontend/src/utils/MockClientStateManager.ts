@@ -15,4 +15,10 @@ export class MockClientStateManager {
     this.relayClient = client;
     this.stateManager = stateManager;
   }
+  async connectAndAuthenticate() {
+    return;
+  }
+  async sendMerchantSubscriptionRequest() {
+    return;
+  }
 }

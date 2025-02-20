@@ -1,5 +1,11 @@
 import "../../../happyDomSetup.ts";
-import { act, cleanup, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "jsr:@std/expect";
 import { hardhat } from "wagmi/chains";
@@ -13,10 +19,13 @@ Deno.test("Check that we can render the create shop screen", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async () => {
-  const user = userEvent.setup();
 
-  const { wrapper } = await createRouterWrapper(null, "/create-shop");
-  const { unmount } = await render(<CreateShop />, { wrapper });
+  const user = userEvent.setup();
+  const { wrapper, csm } = await createRouterWrapper(
+    null,
+    "/create-shop",
+  );
+  const { unmount } = render(<CreateShop />, { wrapper });
   screen.debug();
   screen.getByTestId("create-shop-page");
 
@@ -43,9 +52,10 @@ Deno.test("Check that we can render the create shop screen", {
     ) as HTMLInputElement;
     await user.click(dropdown);
   });
-  const dropdownOptions = screen.getByTestId("dropdown-options");
-  expect(dropdownOptions).toBeTruthy();
+
   await act(async () => {
+    const dropdownOptions = screen.getByTestId("dropdown-options");
+    expect(dropdownOptions).toBeTruthy();
     // click on the ETH/Hardhat option
     const option = screen.getByTestId("ETH/Hardhat");
     expect(option).toBeTruthy();
@@ -71,6 +81,33 @@ Deno.test("Check that we can render the create shop screen", {
     expect(connectWalletButton).toBeTruthy();
     await user.click(connectWalletButton);
   });
+
+  await act(async () => {
+    const mintShopButton = await screen.findByRole("button", {
+      name: /Mint Shop/i,
+    });
+    expect(mintShopButton).toBeTruthy();
+    await user.click(mintShopButton);
+  });
+
+  await waitFor(() => {
+    expect(screen.getByTestId("mint-shop-confirmation")).toBeTruthy();
+  });
+
+  const { acceptedCurrencies, payees, pricingCurrency, shippingRegions } =
+    await csm.stateManager.manifest.get();
+  expect(acceptedCurrencies.length).toBe(1);
+  expect(acceptedCurrencies[0].chainId).toBe(hardhat.id);
+  expect(acceptedCurrencies[0].address).toBe(addresses.zeroAddress);
+  expect(payees.length).toBe(1);
+  expect(payees[0].address.toLowerCase()).toBe(
+    addresses.anvilAddress.toLowerCase(),
+  );
+  expect(payees[0].chainId).toBe(hardhat.id);
+  expect(shippingRegions.length).toBe(1);
+  expect(pricingCurrency.chainId).toBe(hardhat.id);
+  expect(pricingCurrency.address).toBe(addresses.zeroAddress);
+
   unmount();
   cleanup();
 });
