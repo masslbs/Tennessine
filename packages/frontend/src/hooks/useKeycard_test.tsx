@@ -6,11 +6,14 @@ import { random32BytesHex } from "@massmarket/utils";
 import { useKeycard } from "./useKeycard.ts";
 import { createRouterWrapper } from "../utils/mod.ts";
 
-Deno.test("useKeycard", async (t) => {
+Deno.test("useKeycard", {
+  sanitizeResources: false,
+  sanitizeOps: false,
+}, async (t) => {
   GlobalRegistrator.register({});
   const randomKC = random32BytesHex();
-  await t.step("should set and get keycards", () => {
-    const wrapper = createRouterWrapper();
+  await t.step("should set and get keycards", async () => {
+    const { wrapper } = await createRouterWrapper();
     const { result, unmount } = renderHook(
       () => useKeycard({ privateKey: randomKC, role: "guest" }),
       { wrapper },
@@ -20,8 +23,8 @@ Deno.test("useKeycard", async (t) => {
     unmount();
   });
 
-  await t.step("should create random keycard if none is provided", () => {
-    const wrapper = createRouterWrapper();
+  await t.step("should create random keycard if none is provided", async () => {
+    const { wrapper } = await createRouterWrapper();
     const { result, unmount } = renderHook(() => useKeycard(), { wrapper });
     const [keycard] = result.current;
     assertEquals(keycard.privateKey !== null, true);

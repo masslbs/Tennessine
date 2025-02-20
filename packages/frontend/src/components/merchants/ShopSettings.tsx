@@ -59,7 +59,6 @@ export default function ShopSettings() {
   const [displayedChains, setDisplayedChains] = useState<CurrencyChainOption[]>(
     [],
   );
-
   useEffect(() => {
     if (chains) {
       const chainsToRender: CurrencyChainOption[] = [];
@@ -83,7 +82,7 @@ export default function ShopSettings() {
   }, []);
 
   useEffect(() => {
-    if (!clientStateManager) return;
+    if (!clientStateManager?.stateManager) return;
     function onUpdateEvent(updatedManifest: ShopManifest) {
       const { pricingCurrency, acceptedCurrencies } = updatedManifest;
       setManifest(updatedManifest);
@@ -302,14 +301,16 @@ export default function ShopSettings() {
                 <label className="font-medium text-base">
                   Accepted currency
                 </label>
-                <div className="flex flex-col gap-1 mt-1">
+                <div
+                  className="flex flex-col gap-1 mt-1"
+                  data-testid="displayed-accepted-currencies"
+                >
                   {displayedChains.length &&
                     displayedChains.map((c: CurrencyChainOption) => {
                       return (
                         <div key={c.value}>
                           <label className="flex items-center space-x-2">
                             <input
-                              data-testid="displayed-accepted-currencies"
                               type="checkbox"
                               onChange={(e) => handleAcceptedCurrencies(e)}
                               className="form-checkbox h-4 w-4"
@@ -333,7 +334,7 @@ export default function ShopSettings() {
                     })}
                 </div>
               </section>
-              <section className="mt-4">
+              <section className="mt-4" data-testid="pricing-currency">
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -342,7 +343,6 @@ export default function ShopSettings() {
                   <div
                     className="flex flex-col"
                     onSubmit={(e) => e.preventDefault()}
-                    data-testid="pricing-currency"
                   >
                     <label
                       htmlFor="pricingCurrency"

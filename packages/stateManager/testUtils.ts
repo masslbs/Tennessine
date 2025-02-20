@@ -1,6 +1,5 @@
 import { MemoryLevel } from "npm:memory-level";
-import { hardhat } from "viem/chains";
-import { createPublicClient, http } from "viem";
+import type { PublicClient } from "viem";
 import { random256BigInt } from "@massmarket/utils";
 import type {
   KeyCard,
@@ -13,10 +12,9 @@ import type {
 import { MockClient } from "./mockClient.ts";
 import { StateManager } from "./mod.ts";
 
-const publicClient = createPublicClient({
-  chain: hardhat,
-  transport: http(),
-});
+const mockPublicClient = {
+  readContract: () => 0n,
+} as unknown as PublicClient;
 
 export async function setupTestManager() {
   const opts = {
@@ -49,7 +47,7 @@ export async function setupTestManager() {
     keycardStore,
     keycardNonceStore,
     random256BigInt(),
-    publicClient,
+    mockPublicClient,
   );
 
   return {

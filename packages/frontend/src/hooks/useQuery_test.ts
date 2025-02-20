@@ -1,6 +1,5 @@
 import { assertEquals } from "jsr:@std/assert";
-import { cleanup } from "npm:@testing-library/react";
-import { renderHook } from "npm:@testing-library/react";
+import { cleanup, renderHook } from "@testing-library/react";
 import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
 import { useQuery } from "./useQuery.ts";
 

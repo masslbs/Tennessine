@@ -14,12 +14,14 @@
     "exclude": ["./.vite"]
   },
   "imports": {
-    "@deno/vite-plugin": "npm:@deno/vite-plugin@^1.0.0",
+    "@deno/vite-plugin": "npm:@deno/vite-plugin@^1.0.4",
     "@rainbow-me/rainbowkit": "npm:@rainbow-me/rainbowkit@^2.2.0",
     "@tanstack/react-query": "npm:@tanstack/react-query@^5.60.6",
     "@tanstack/react-router": "npm:@tanstack/react-router@^1.82.1",
     "@tanstack/router-devtools": "npm:@tanstack/router-devtools@^1.82.1",
     "@tanstack/router-plugin": "npm:@tanstack/router-plugin@^1.81.9",
+    "@testing-library/react": "npm:@testing-library/react@^16.2.0",
+    "@testing-library/user-event": "npm:@testing-library/user-event@^14.6.1",
     "@types/node": "npm:@types/node@^22.9.3",
     "@testing-library/react-hooks": "npm:@testing-library/react-hooks@^8.0.1",
     "@types/react": "npm:@types/react@^18.3.11",

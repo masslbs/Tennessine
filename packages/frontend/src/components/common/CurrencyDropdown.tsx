@@ -38,7 +38,7 @@ export default function Dropdown({
         className="flex items-center w-auto rounded-md border shadow-sm px-4 py-2 bg-background-gray"
         onClick={toggleDropdown}
       >
-        <p className="mr-2">
+        <p className="mr-2" data-testid="selected">
           {selectedOption ? selectedOption.label : "Select an option"}
         </p>
         <div className="ml-auto align-center">
@@ -47,7 +47,10 @@ export default function Dropdown({
       </button>
 
       {isOpen && (
-        <div className="bg-white border-2 border-solid p-2 ">
+        <div
+          className="bg-white border-2 border-solid p-2"
+          data-testid="dropdown-options"
+        >
           <div
             className="py-1"
             role="menu"

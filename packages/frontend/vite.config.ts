@@ -26,7 +26,7 @@ export default defineConfig({
   },
 
   plugins: [
-    deno(),
+    deno() as PluginOption,
     react(),
     TanStackRouterVite({ addExtensions: true }),
     nodePolyfills() as PluginOption,

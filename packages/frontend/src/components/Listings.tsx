@@ -4,10 +4,10 @@
 
 import { useEffect, useState } from "react";
 
-import CustomerViewProducts from "./CustomerViewListings.tsx";
+import CustomerViewListings from "./CustomerViewListings.tsx";
 import { useKeycard } from "../hooks/useKeycard.ts";
 import { useClientWithStateManager } from "../hooks/useClientWithStateManager.ts";
-import MerchantViewProducts from "./merchants/listings/MerchantViewListings.tsx";
+import MerchantViewListings from "./merchants/listings/MerchantViewListings.tsx";
 import { asyncIteratorToMap } from "../utils/mod.ts";
 
 export default function Listings() {
@@ -65,9 +65,9 @@ export default function Listings() {
       data-testid="listings-page"
     >
       {keycard.role === "merchant"
-        ? <MerchantViewProducts products={Array.from([...products.values()])} />
+        ? <MerchantViewListings products={Array.from([...products.values()])} />
         : (
-          <CustomerViewProducts
+          <CustomerViewListings
             products={Array.from([...products.values()])}
           />
         )}

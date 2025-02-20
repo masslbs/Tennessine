@@ -1,5 +1,5 @@
 import "../happyDomSetup.ts";
-import { cleanup, render, screen } from "npm:@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 
 import ListingDetail from "./ListingDetail.tsx";
 import { createRouterWrapper } from "../utils/test.tsx";
@@ -8,7 +8,7 @@ Deno.test("Check that we can render the listing details screen", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async () => {
-  const wrapper = createRouterWrapper(null);
+  const { wrapper } = await createRouterWrapper(null);
   const { unmount } = await render(<ListingDetail />, { wrapper });
   screen.debug();
   screen.getByTestId("listing-detail-page");

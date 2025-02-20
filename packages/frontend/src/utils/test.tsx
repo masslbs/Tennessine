@@ -8,25 +8,58 @@ import {
   RouterProvider,
 } from "@tanstack/react-router";
 import { createConfig, http, WagmiProvider } from "wagmi";
-import { mainnet, sepolia } from "wagmi/chains";
+import { hardhat, mainnet, sepolia } from "wagmi/chains";
+import { createWalletClient } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+import { anvilPrivateKey } from "@massmarket/contracts";
 
 import { MassMarketProvider } from "../MassMarketContext.tsx";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { MockClientStateManager } from "./MockClientStateManager.ts";
 
 export const config = createConfig({
-  chains: [mainnet, sepolia],
+  chains: [mainnet, sepolia, hardhat],
   transports: {
     [mainnet.id]: http(),
     [sepolia.id]: http(),
+    [hardhat.id]: http(),
   },
 });
 
-export const createRouterWrapper = (
+const mockWalletClient = createWalletClient({
+  chain: hardhat,
+  transport: http(),
+  account: privateKeyToAccount(
+    anvilPrivateKey,
+  ),
+});
+
+export const createClientStateManager = async (
+  shopId: string | null = null,
+) => {
+  const csm = new MockClientStateManager(
+    shopId || "0x123",
+  );
+  await csm.createStateManager();
+  // Add test keycard for event verification
+  await csm.stateManager?.keycards.addAddress(
+    csm.relayClient!.keyCardWallet.address,
+  );
+  return csm;
+};
+
+export const createRouterWrapper = async (
   shopId: string | null = null,
   path: string = "/",
+  // The only case clientStateManager needs to be passed here is if we need access to the state manager before the router is created.
+  // For example, in EditListing_test.tsx, we need to access the state manager to create a new listing and then use the listing id to set the search param.
+  clientStateManager: MockClientStateManager | null = null, // In most cases we don't need to pass clientStateManager separately.
 ) => {
-  return ({ children }: { children: React.ReactNode }) => {
+  const csm = clientStateManager ?? await createClientStateManager(shopId);
+
+  const wrapper = ({ children }: { children: React.ReactNode }) => {
     function RootComponent() {
       return <Outlet />;
     }
@@ -58,18 +91,25 @@ export const createRouterWrapper = (
         initialEntries: [shopId ? `${path}?shopId=${shopId}` : path],
       }),
     });
-
+    // Set initial data for wallet client
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          initialData: mockWalletClient,
+        },
+      },
+    });
     return (
       <StrictMode>
-        <QueryClientProvider client={new QueryClient()}>
+        <QueryClientProvider client={queryClient}>
           <WagmiProvider config={config}>
-            <MassMarketProvider>
+            <MassMarketProvider clientStateManager={csm}>
               <RainbowKitProvider showRecentTransactions={true}>
                 {
                   /* TS expects self closing RouterProvider tag. See App.tsx for how we are using it.
             But if we use the self closing syntax in testing, the router functions don't work in testing environment. */
                 }
-                {/* @ts-expect-error  */}
+                {/* @ts-expect-error */}
                 <RouterProvider router={router}>{children}</RouterProvider>
               </RainbowKitProvider>
             </MassMarketProvider>
@@ -77,5 +117,10 @@ export const createRouterWrapper = (
         </QueryClientProvider>
       </StrictMode>
     );
+  };
+
+  return {
+    wrapper,
+    csm,
   };
 };

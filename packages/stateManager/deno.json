@@ -4,6 +4,7 @@
   "exports": {
     ".": "./mod.ts",
     "./mockClient": "./mockClient.ts",
+    "./testUtils": "./testUtils.ts",
     "./types": "./types.ts"
   },
   "imports": {

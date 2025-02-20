@@ -1,5 +1,5 @@
 import { assertEquals } from "jsr:@std/assert";
-import { cleanup, renderHook, waitFor } from "npm:@testing-library/react";
+import { cleanup, renderHook, waitFor } from "@testing-library/react";
 import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
 
 import { useClientWithStateManager } from "./useClientWithStateManager.ts";
@@ -9,7 +9,7 @@ Deno.test("useClientWithStateManager", async (t) => {
   GlobalRegistrator.register({});
 
   await t.step("should return client when shopId is provided", async () => {
-    const wrapper = createRouterWrapper("123");
+    const { wrapper } = await createRouterWrapper("123");
 
     const { result, unmount } = renderHook(() => useClientWithStateManager(), {
       wrapper,
