@@ -5,7 +5,8 @@
     "preview": "deno run -A --node-modules-dir npm:vite preview",
     "serve": "deno run --allow-net --allow-read jsr:@std/http@1/file-server dist/",
     "generate": "deno run -A scripts/generate-entry-points.ts",
-    "production": "deno task build && deno task generate"
+    "production": "deno task build && deno task generate",
+    "test": "deno test --no-check --allow-env --allow-net"
   },
   "lint": {
     "exclude": ["./.vite", "./dist", "./src/routeTree.gen.ts"]
