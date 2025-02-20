@@ -1,31 +1,27 @@
 import "../../../happyDomSetup.ts";
-import {
-  act,
-  cleanup,
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "jsr:@std/expect";
 import { hardhat } from "wagmi/chains";
+import { connect } from "npm:wagmi/actions";
 
 import { addresses } from "@massmarket/contracts";
 
 import CreateShop from "./CreateShop.tsx";
-import { createRouterWrapper } from "../../../utils/test.tsx";
+import { config, createRouterWrapper } from "../../../utils/test.tsx";
 
 Deno.test("Check that we can render the create shop screen", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async () => {
-
   const user = userEvent.setup();
   const { wrapper, csm } = await createRouterWrapper(
     null,
     "/create-shop",
   );
   const { unmount } = render(<CreateShop />, { wrapper });
+  await connect(config, { connector: config.connectors[0] });
+
   screen.debug();
   screen.getByTestId("create-shop-page");
 
