@@ -46,7 +46,7 @@
               alejandra.enable = true;
               typos.enable = true;
               # is broken when committing ts files that are ignored
-              # denolint.enable = true;
+              denolint.enable = true;
               denofmt = {
                 verbose = true;
                 enable = true;
@@ -69,13 +69,13 @@
 
             buildInputs =
               [
-                typos # code spell checker
-                typos-lsp
-                nixd # lsp for nix
-                deno
                 contracts.packages.${system}.default
                 reuse
+                # Language servers
+                typos-lsp # code spell checker
+                nixd
               ]
+              # deno is automatically pulled in here
               ++ config.pre-commit.settings.enabledPackages;
 
             NETWORK_SCHEMA_PATH = "${schema}";

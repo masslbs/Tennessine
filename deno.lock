@@ -5,16 +5,16 @@
     "jsr:@nullradix/ipld-cbor-graph-builder@3.0.0": "3.0.0",
     "jsr:@nullradix/lockmap@~0.2.4": "0.2.4",
     "jsr:@nullradix/merkle-dag-builder@*": "0.0.0",
-    "jsr:@nullradix/merkle-dag-builder@^0.0.1": "0.0.1",
-    "jsr:@std/assert@*": "1.0.8",
+    "jsr:@nullradix/merkle-dag-builder@^0.0.4": "0.0.4",
+    "jsr:@std/assert@*": "1.0.11",
     "jsr:@std/assert@^1.0.11": "1.0.11",
     "jsr:@std/assert@^1.0.7": "1.0.8",
     "jsr:@std/assert@^1.0.8": "1.0.8",
-    "jsr:@std/bytes@^1.0.4": "1.0.4",
+    "jsr:@std/bytes@^1.0.4": "1.0.5",
     "jsr:@std/cbor@~0.1.6": "0.1.6",
     "jsr:@std/expect@*": "1.0.7",
     "jsr:@std/internal@^1.0.5": "1.0.5",
-    "jsr:@std/streams@^1.0.8": "1.0.8",
+    "jsr:@std/streams@^1.0.8": "1.0.9",
     "jsr:@std/testing@*": "1.0.5",
     "jsr:@valibot/valibot@*": "0.42.1",
     "jsr:@valibot/valibot@~0.42.1": "0.42.1",
@@ -115,8 +115,8 @@
         "npm:shallow-clone"
       ]
     },
-    "@nullradix/merkle-dag-builder@0.0.1": {
-      "integrity": "414f55400a6ae1c3de6e3daaa214f9b8ad0b30d8356a88619cd5cba776b40f32",
+    "@nullradix/merkle-dag-builder@0.0.4": {
+      "integrity": "0959708d4176e14333202fb187fd2d576fc817c0d2bdb88a97aef3c07561f580",
       "dependencies": [
         "jsr:@noble/hashes@^1.7.1",
         "jsr:@nullradix/lockmap",
@@ -141,6 +141,9 @@
     "@std/bytes@1.0.4": {
       "integrity": "11a0debe522707c95c7b7ef89b478c13fb1583a7cfb9a85674cd2cc2e3a28abc"
     },
+    "@std/bytes@1.0.5": {
+      "integrity": "4465dd739d7963d964c809202ebea6d5c6b8e3829ef25c6a224290fbb8a1021e"
+    },
     "@std/cbor@0.1.6": {
       "integrity": "3fb6e082f4eb44fc0c8d042999471264d398e6abb96c791c4e41614f9f52df44",
       "dependencies": [
@@ -160,6 +163,9 @@
     },
     "@std/streams@1.0.8": {
       "integrity": "b41332d93d2cf6a82fe4ac2153b930adf1a859392931e2a19d9fabfb6f154fb3"
+    },
+    "@std/streams@1.0.9": {
+      "integrity": "a9d26b1988cdd7aa7b1f4b51e1c36c1557f3f252880fa6cc5b9f37078b1a5035"
     },
     "@std/testing@1.0.5": {
       "integrity": "6e693cbec94c81a1ad3df668685c7ba8e20742bb10305bc7137faa5cf16d2ec4",
@@ -5187,7 +5193,7 @@
       },
       "packages/db": {
         "dependencies": [
-          "jsr:@nullradix/merkle-dag-builder@^0.0.1",
+          "jsr:@nullradix/merkle-dag-builder@^0.0.4",
           "jsr:@valibot/valibot@~0.42.1"
         ]
       },

@@ -65,7 +65,6 @@ export class RelayClient extends EventEmitter {
   private keyCardWallet: PrivateKeyAccount;
   public readonly relayEndpoint: RelayEndpoint;
   private subscriptionId: Uint8Array | null;
-  // TODO: type these out? apparently not inferred? - maybe just two different LSPs in my editor?
   private useTLS;
   private eventStream;
   private requestCounter;
@@ -90,6 +89,16 @@ export class RelayClient extends EventEmitter {
 
   createEventStream() {
     return this.eventStream.stream;
+  }
+
+  // TODO
+  createSubscriptionStream(_path: string, _height: number) {
+    return this.eventStream.stream;
+  }
+
+  // TODO
+  createWriteStream() {
+    return new WritableStream();
   }
 
   // like encodeAndSend but doesn't wait for a response.
