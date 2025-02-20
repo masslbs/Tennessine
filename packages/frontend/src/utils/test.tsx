@@ -56,7 +56,7 @@ export const createClientStateManager = async (
   shopId: string | null = null,
 ) => {
   const csm = new MockClientStateManager(
-    shopId || "0x123",
+    shopId ? BigInt(shopId) : BigInt(123),
   );
   await csm.createStateManager();
   // Add test keycard for event verification
@@ -104,7 +104,7 @@ export const createRouterWrapper = async (
         merchantConnectRoute,
       ]),
       history: createMemoryHistory({
-        initialEntries: [shopId ? `${path}?shopId=${shopId}` : path],
+        initialEntries: [shopId ? `${path}?shopId=${shopId}n` : path],
       }),
     });
     // Set initial data for wallet client

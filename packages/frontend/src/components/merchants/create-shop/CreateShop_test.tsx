@@ -6,6 +6,7 @@ import { hardhat } from "wagmi/chains";
 import { connect } from "npm:wagmi/actions";
 
 import { addresses } from "@massmarket/contracts";
+import { random256BigInt, random32BytesHex } from "@massmarket/utils";
 
 import CreateShop from "./CreateShop.tsx";
 import { config, createRouterWrapper } from "../../../utils/test.tsx";
@@ -15,13 +16,21 @@ Deno.test("Check that we can render the create shop screen", {
   sanitizeOps: false,
 }, async () => {
   const user = userEvent.setup();
-  const { wrapper, csm } = await createRouterWrapper(
-    null,
-    "/create-shop",
+  const shopId = random256BigInt();
+  const privateKey = random32BytesHex();
+  localStorage.setItem(
+    `keycard${shopId}`,
+    JSON.stringify({ privateKey, role: "merchant" }),
   );
+  const { wrapper, csm } = await createRouterWrapper(
+    shopId.toString(),
+    `/create-shop`,
+  );
+
+  csm.keycard = privateKey;
+
   const { unmount } = render(<CreateShop />, { wrapper });
   await connect(config, { connector: config.connectors[0] });
-
   screen.debug();
   screen.getByTestId("create-shop-page");
 

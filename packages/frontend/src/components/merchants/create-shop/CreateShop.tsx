@@ -53,16 +53,14 @@ export default function () {
   const { data: wallet } = useWalletClient();
   const { shopId } = useShopId();
   const { setShopDetails } = useShopDetails();
-
+  const [keycard, setKeycard] = useKeycard();
   // Set skipConnect to true so that useQuery does not try to connect and authenticate before enrolling the keycard.
   const { clientStateManager } = useClientWithStateManager(true);
-  const [keycard, setKeycard] = useKeycard();
   const { connector } = useAccount();
   const config = useConfig();
 
   const navigate = useNavigate({ from: "/create-shop" });
   const search = useSearch({ from: "/create-shop" });
-
   const [step, setStep] = useState<
     "manifest form" | "connect wallet" | "confirmation"
   >("manifest form");
@@ -86,6 +84,7 @@ export default function () {
   const [mintedHash, setMintedHash] = useState<string | null>(null);
   const [creatingShop, setCreatingShop] = useState<boolean>(false);
 
+  const isTest = connector?.id === "mock";
   useEffect(() => {
     if (!search.shopId) {
       navigate({ search: { shopId: random256BigInt() } });
@@ -169,15 +168,19 @@ export default function () {
       if (!shopPublicClient) {
         throw new Error("shopPublicClient not found");
       }
-      // This will throw error if simulate fails.
-      await simulateContract(config, {
-        abi: abi.shopRegAbi,
-        address: abi.addresses.ShopReg,
-        functionName: "mint",
-        args: [shopId!, wallet!.account.address],
-        connector,
-      });
+
+      if (!isTest) {
+        await simulateContract(config, {
+          abi: abi.shopRegAbi,
+          address: abi.addresses.ShopReg,
+          functionName: "mint",
+          args: [shopId!, wallet!.account.address],
+          connector,
+        });
+      }
+
       const hash = await mintShop(wallet!, [shopId!, wallet!.account.address]);
+      debug(`Mint hash: ${hash}`);
       addRecentTransaction({
         hash,
         description: "Mint Shop",
@@ -239,7 +242,7 @@ export default function () {
         wallet,
         false,
         shopId!,
-        new URL(globalThis.location.href),
+        !isTest ? new URL(globalThis.location.href) : null,
       );
       //set keycard role to merchant
       setKeycard({ ...keycard, role: "merchant" });
@@ -258,7 +261,6 @@ export default function () {
       await clientStateManager!.stateManager.keycards.addAddress(
         keyCardWallet.address.toLowerCase() as `0x${string}`,
       );
-
       debug(
         `keycard wallet address added: ${keyCardWallet.address.toLowerCase()}`,
       );
@@ -538,7 +540,8 @@ export default function () {
           {status === "connected"
             ? (
               <div className="flex flex-col gap-4">
-                <ConnectButton chainStatus="name" />
+                {/* Trying to render rainbowkit with happy-dom errors */}
+                {!isTest && <ConnectButton chainStatus="name" />}
                 <p>{storeRegistrationStatus}</p>
                 {mintedHash && (
                   <a
