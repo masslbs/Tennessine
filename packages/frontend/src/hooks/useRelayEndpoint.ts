@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { logger } from "@massmarket/utils";
 import { discoverRelay, type RelayEndpoint } from "@massmarket/client";
+import { isTest } from "../utils/helper.ts";
 
 const namespace = "frontend:useRelayEndpoint";
 const debug = logger(namespace);
@@ -10,13 +11,27 @@ export function useRelayEndpoint() {
     null,
   );
   function getRelayEndpoint() {
-    if (import.meta.env?.["VITE_RELAY_TOKEN_ID"]) {
+    if (
+      import.meta.env?.["VITE_RELAY_TOKEN_ID"] &&
+      import.meta.env?.["VITE_RELAY_ENDPOINT"]
+    ) {
       const re = {
         url: new URL(import.meta.env?.["VITE_RELAY_ENDPOINT"] as string),
         tokenId: import.meta.env?.["VITE_RELAY_TOKEN_ID"] as `0x${string}`,
       };
       setRelayEndpoint(re);
       debug(`using environment variables for relay endpoint ${re.url}`);
+    } else if (
+      // Cannot set import.meta.env in test environment, so we have to use Deno.env
+      isTest() && Deno.env.get("VITE_RELAY_TOKEN_ID") &&
+      Deno.env.get("VITE_RELAY_ENDPOINT")
+    ) {
+      const re = {
+        url: new URL(Deno.env.get("VITE_RELAY_ENDPOINT") as string),
+        tokenId: Deno.env.get("VITE_RELAY_TOKEN_ID") as `0x${string}`,
+      };
+      setRelayEndpoint(re);
+      debug(`using Deno environment variables for relay endpoint ${re.url}`);
     } else {
       discoverRelay("ws://localhost:4444/v3").then((discovered) => {
         if (!discovered.url) throw new Error("Relay endpoint URL not set");
