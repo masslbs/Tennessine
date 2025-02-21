@@ -6,7 +6,13 @@ import { ChangeEvent, useEffect, useState } from "react";
 import { ConnectButton, useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { privateKeyToAccount } from "viem/accounts";
-import { useAccount, useChains, useConfig, useWalletClient } from "wagmi";
+import {
+  useAccount,
+  useChains,
+  useConfig,
+  usePublicClient,
+  useWalletClient,
+} from "wagmi";
 import { simulateContract } from "@wagmi/core";
 import { hardhat } from "wagmi/chains";
 
@@ -28,12 +34,12 @@ import AvatarUpload from "../../common/AvatarUpload.tsx";
 import Dropdown from "../../common/CurrencyDropdown.tsx";
 import ConnectWalletButton from "../../common/ConnectWalletButton.tsx";
 import { useClientWithStateManager } from "../../../hooks/useClientWithStateManager.ts";
-import { usePublicClient } from "../../../hooks/usePublicClient.ts";
 import { useShopId } from "../../../hooks/useShopId.ts";
 import { useKeycard } from "../../../hooks/useKeycard.ts";
 import { useShopDetails } from "../../../hooks/useShopDetails.ts";
 import { CurrencyChainOption, ShopCurrencies } from "../../../types.ts";
-import { getTokenAddress, isValidAddress } from "../../../utils/mod.ts";
+import { getTokenAddress, isTest, isValidAddress } from "../../../utils/mod.ts";
+import { useChain } from "../../../hooks/useChain.ts";
 
 // When create shop CTA is clicked, these functions are called:
 // 1. mintShop
@@ -49,7 +55,8 @@ export default function () {
   const chains = useChains();
   const addRecentTransaction = useAddRecentTransaction();
   const { status } = useAccount();
-  const { shopPublicClient } = usePublicClient();
+  const { chain } = useChain();
+  const shopPublicClient = usePublicClient({ chainId: chain.id });
   const { data: wallet } = useWalletClient();
   const { shopId } = useShopId();
   const { setShopDetails } = useShopDetails();
@@ -84,7 +91,6 @@ export default function () {
   const [mintedHash, setMintedHash] = useState<string | null>(null);
   const [creatingShop, setCreatingShop] = useState<boolean>(false);
 
-  const isTest = connector?.id === "mock";
   useEffect(() => {
     if (!search.shopId) {
       navigate({ search: { shopId: random256BigInt() } });
@@ -229,7 +235,7 @@ export default function () {
   async function enrollConnectAuthenticate() {
     setStoreRegistrationStatus("Checking permissions...");
     try {
-      const hasAccess = await checkPermissions(shopPublicClient, [
+      const hasAccess = await checkPermissions(shopPublicClient!, [
         shopId!,
         wallet!.account.address,
         abi.permissions.updateRootHash,
@@ -545,7 +551,9 @@ export default function () {
                 <p>{storeRegistrationStatus}</p>
                 {mintedHash && (
                   <a
-                    href={`${shopPublicClient.chain.blockExplorers?.default?.url}/tx/${mintedHash}`}
+                    href={`${
+                      shopPublicClient!.chain.blockExplorers?.default?.url
+                    }/tx/${mintedHash}`}
                   >
                     View TX
                   </a>

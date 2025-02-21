@@ -5,7 +5,7 @@ import { MockClient } from "@massmarket/stateManager/mockClient";
 export class MockClientStateManager {
   public stateManager: StateManager | null = null;
   public relayClient: MockClient | null = null;
-  public keycard: string;
+  public keycard: string | null = null;
   constructor(
     public shopId: bigint,
   ) {
@@ -16,10 +16,10 @@ export class MockClientStateManager {
     this.relayClient = client;
     this.stateManager = stateManager;
   }
-  async connectAndAuthenticate() {
+  connectAndAuthenticate() {
     return;
   }
-  async sendMerchantSubscriptionRequest() {
+  sendMerchantSubscriptionRequest() {
     return;
   }
 }

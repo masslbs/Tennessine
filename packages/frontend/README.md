@@ -28,6 +28,12 @@ To run a single test:
 deno test src/hooks/useClientWithStateManager_test.tsx --allow-net --allow-env --no-check
 ```
 
+You can also use the deno task command to run with all the necessary flags:
+
+```
+deno run test
+```
+
 ## Custom Hooks
 
 All the custom hooks can be found in the [`hooks`](src/hooks) directory. These

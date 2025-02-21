@@ -22,3 +22,8 @@ export function multiplyAndFormatUnits(
 ) {
   return formatUnits(BigInt(price) * BigInt(quantity), decimals);
 }
+
+export function isTest() {
+  return import.meta.env?.["MODE"] !== "development" &&
+    import.meta.env?.["MODE"] !== "production";
+}

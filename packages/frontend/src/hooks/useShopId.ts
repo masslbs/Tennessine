@@ -3,12 +3,14 @@ import { usePathname } from "./usePathname.ts";
 
 export function useShopId() {
   const { pathname } = usePathname();
-  const search = useSearch({
+  const { shopId } = useSearch({
     from: pathname,
   });
   return {
-    // Since we attach n to the shopId param string to prevent tanstack router from converting bigint to floating point.
+    // Since we attach 'n' to the shopId param string to prevent tanstack router from converting bigint to floating point.
     // We remove the n to convert it back to bigint.
-    shopId: search?.shopId ? BigInt(search.shopId.replace(/n$/, "")) : null,
+    shopId: shopId
+      ? BigInt(typeof shopId === "string" ? shopId.replace(/n$/, "") : shopId)
+      : null,
   };
 }

@@ -100,7 +100,7 @@ Deno.test("Check that we can render the create shop screen", {
   });
 
   const { acceptedCurrencies, payees, pricingCurrency, shippingRegions } =
-    await csm.stateManager.manifest.get();
+    await csm.stateManager!.manifest.get();
   expect(acceptedCurrencies.length).toBe(1);
   expect(acceptedCurrencies[0].chainId).toBe(hardhat.id);
   expect(acceptedCurrencies[0].address).toBe(addresses.zeroAddress);
@@ -110,8 +110,8 @@ Deno.test("Check that we can render the create shop screen", {
   );
   expect(payees[0].chainId).toBe(hardhat.id);
   expect(shippingRegions.length).toBe(1);
-  expect(pricingCurrency.chainId).toBe(hardhat.id);
-  expect(pricingCurrency.address).toBe(addresses.zeroAddress);
+  expect(pricingCurrency!.chainId).toBe(hardhat.id);
+  expect(pricingCurrency!.address).toBe(addresses.zeroAddress);
 
   unmount();
   cleanup();

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
+import { usePublicClient } from "wagmi";
 
 import { useClientWithStateManager } from "./useClientWithStateManager.ts";
-import { usePublicClient } from "./usePublicClient.ts";
 import { getTokenInformation } from "../utils/token.ts";
 import { ShopCurrencies, ShopManifest } from "../types.ts";
 import { useQuery } from "./useQuery.ts";
@@ -11,7 +11,9 @@ export function useBaseToken() {
     null,
   );
   const { clientStateManager } = useClientWithStateManager();
-  const { shopPublicClient } = usePublicClient(pricingCurrency?.chainId);
+  const shopPublicClient = usePublicClient({
+    chainId: pricingCurrency?.chainId,
+  });
   const manifestManager = clientStateManager?.stateManager?.manifest;
 
   function getManifest() {

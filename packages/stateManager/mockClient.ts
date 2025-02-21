@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { hexToBytes, numberToBytes } from "viem";
-import { type PrivateKeyAccount, privateKeyToAccount } from "viem/accounts";
+import { privateKeyToAccount } from "viem/accounts";
 import Long from "long";
 
 import type { EventId } from "@massmarket/client";
@@ -17,26 +17,26 @@ export type IncomingEvent = {
 };
 
 export class MockClient implements IRelayClient {
-  vectors;
-  private eventStream: ReadableEventStream;
-  keyCardWallet: PrivateKeyAccount;
-  private requestCounter;
-  private lastSeqNo: number;
-  constructor() {
-    this.vectors = testVectors;
-    this.eventStream = new ReadableEventStream(this);
-    this.keyCardWallet = privateKeyToAccount(
-      this.vectors.signatures.signer.key as `0x${string}`,
-    );
-    this.requestCounter = 1;
-    this.lastSeqNo = 0;
-  }
+  vectors = testVectors;
+  private eventStream = new ReadableEventStream(this);
+  keyCardWallet = privateKeyToAccount(
+    testVectors.signatures.signer.key as `0x${string}`,
+  );
+  private requestCounter = 1;
+  private lastSeqNo = 0;
+  public relayEndpoint = {
+    url: "http://localhost:8080",
+    tokenId: "0x123" as const,
+  };
+
   encodeAndSendNoWait(_envelope: schema.IEnvelope = {}): schema.RequestId {
     const requestId = { raw: this.requestCounter };
     this.requestCounter++;
     return schema.RequestId.create(requestId);
   }
-
+  enrollKeycard(keycard: `0x${string}`) {
+    return { ok: true, keycard };
+  }
   connect(): Promise<Event | string> {
     return new Promise((resolve, reject) => {
       if (this.lastSeqNo > 0) {
