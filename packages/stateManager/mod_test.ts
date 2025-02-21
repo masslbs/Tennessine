@@ -4,7 +4,11 @@ import { formatUnits, fromHex } from "viem";
 
 import * as abi from "@massmarket/contracts";
 import { random256BigInt, randomAddress } from "@massmarket/utils";
-import { metadata, payees, shippingRegions } from "@massmarket/utils/test";
+import {
+  metadata,
+  payees,
+  shippingRegions,
+} from "@massmarket/schema/testFixtures";
 
 import type { StateManager } from "./mod.ts";
 import type { MockClient } from "./mockClient.ts";

@@ -1,7 +1,7 @@
 {
   "name": "@massmarket/schema",
   "version": "0.0.1",
-  "exports": "./mod.ts",
+  "exports": { ".": "./mod.ts", "./testFixtures": "./testFixtures.ts" },
   "tasks": {
     "pbjs-build": "deno run --allow-env --allow-read --allow-write npm:protobufjs-cli/pbjs -t static-module  -r market.mass -o ./compiled.js $NETWORK_SCHEMA_PATH/*.proto --dependency protobufjs/minimal.js",
     "pbts-build": "npm exec --package=protobufjs-cli -c 'pbts -r market.mass -o ./compiled.d.ts ./compiled.js'",

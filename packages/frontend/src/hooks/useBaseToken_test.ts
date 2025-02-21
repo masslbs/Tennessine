@@ -3,7 +3,7 @@ import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
 import { cleanup, renderHook, waitFor } from "@testing-library/react";
 
 import { addresses } from "@massmarket/contracts";
-import { payees, shippingRegions } from "@massmarket/utils/test";
+import { payees, shippingRegions } from "@massmarket/schema/testFixtures";
 import { random256BigInt } from "@massmarket/utils";
 
 import { createRouterWrapper } from "../utils/mod.ts";

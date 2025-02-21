@@ -10,7 +10,11 @@ import { expect } from "jsr:@std/expect";
 
 import { addresses } from "@massmarket/contracts";
 import { random256BigInt } from "@massmarket/utils";
-import { metadata, payees, shippingRegions } from "@massmarket/utils/test";
+import {
+  metadata,
+  payees,
+  shippingRegions,
+} from "@massmarket/schema/testFixtures";
 import { ListingViewState } from "@massmarket/stateManager/types";
 
 import Listings from "./Listings.tsx";

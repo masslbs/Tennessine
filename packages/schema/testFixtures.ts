@@ -1,5 +1,5 @@
 import { bytesToHex } from "viem";
-import { objectId, randomAddress } from "./mod.ts";
+import { objectId, randomAddress } from "../utils/mod.ts";
 
 // Test variables used in multiple packages.
 
