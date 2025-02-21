@@ -10,7 +10,7 @@ export default function Confirmation() {
   const { shopId } = useShopId();
 
   function copyToClipboard() {
-    navigator.clipboard.writeText(String(shopId));
+    navigator.clipboard.writeText(`"${String(shopId)}"`);
   }
 
   return (

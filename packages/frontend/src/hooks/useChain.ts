@@ -1,8 +1,4 @@
 import { type Chain, hardhat, mainnet, sepolia } from "viem/chains";
-import { logger } from "@massmarket/utils";
-
-const namespace = "frontend: useChain";
-const debug = logger(namespace);
 
 export function useChain() {
   const chainName = import.meta.env?.VITE_CHAIN_NAME;
@@ -15,7 +11,6 @@ export function useChain() {
       chain = mainnet;
       break;
     default:
-      debug("Chain name not set, defaulting to hardhat");
       chain = hardhat;
   }
   return { chain };

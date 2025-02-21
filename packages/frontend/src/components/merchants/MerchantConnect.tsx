@@ -76,7 +76,7 @@ export default function MerchantConnect() {
         debug("Shop found");
         setShopData(data);
         navigate({
-          search: { shopId: BigInt(searchShopId) },
+          search: { shopId: searchShopId.toString() },
         });
         setStep("connect");
       } else {
@@ -110,7 +110,7 @@ export default function MerchantConnect() {
         navigate({
           to: "/connect-confirm",
           search: {
-            shopId,
+            shopId: shopId?.toString(),
           },
         });
       } else {
