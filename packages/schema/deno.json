@@ -19,6 +19,7 @@
   "imports": {
     "protobufjs": "npm:protobufjs",
     "long": "npm:long",
-    "protobufjs-cli": "npm:protobufjs-cli"
+    "protobufjs-cli": "npm:protobufjs-cli",
+    "viem": "npm:viem@^2.23.3"
   }
 }

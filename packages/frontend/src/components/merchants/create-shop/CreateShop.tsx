@@ -175,7 +175,7 @@ export default function () {
         throw new Error("shopPublicClient not found");
       }
 
-      if (!isTest) {
+      if (!isTest()) {
         await simulateContract(config, {
           abi: abi.shopRegAbi,
           address: abi.addresses.ShopReg,
@@ -248,7 +248,7 @@ export default function () {
         wallet,
         false,
         shopId!,
-        !isTest ? new URL(globalThis.location.href) : null,
+        !isTest() ? new URL(globalThis.location.href) : null,
       );
       //set keycard role to merchant
       setKeycard({ ...keycard, role: "merchant" });
@@ -547,7 +547,7 @@ export default function () {
             ? (
               <div className="flex flex-col gap-4">
                 {/* Trying to render rainbowkit with happy-dom errors */}
-                {!isTest && <ConnectButton chainStatus="name" />}
+                {!isTest() && <ConnectButton chainStatus="name" />}
                 <p>{storeRegistrationStatus}</p>
                 {mintedHash && (
                   <a

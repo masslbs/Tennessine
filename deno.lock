@@ -78,6 +78,7 @@
     "npm:tailwindcss@^3.4.17": "3.4.17_postcss@8.4.49",
     "npm:viem@2.21.55": "2.21.55_ws@8.18.0",
     "npm:viem@^2.21.55": "2.21.59_ws@8.18.0",
+    "npm:viem@^2.23.3": "2.23.3_ws@8.18.0",
     "npm:vite-plugin-node-polyfills@0.22": "0.22.0_vite@5.4.11__@types+node@22.10.2_@types+node@22.5.4",
     "npm:vite@*": "5.4.11_@types+node@22.10.2",
     "npm:vite@^5.4.9": "5.4.11_@types+node@22.10.2",
@@ -942,6 +943,12 @@
         "@noble/hashes@1.6.0"
       ]
     },
+    "@noble/curves@1.8.1": {
+      "integrity": "sha512-warwspo+UYUPep0Q+vtdVB4Ugn8GGQj8iyB3gnRWsztmUHTI3S1nhdiWNsPUGL0vud7JlRRk1XEu7Lq1KGTnMQ==",
+      "dependencies": [
+        "@noble/hashes@1.7.1"
+      ]
+    },
     "@noble/hashes@1.4.0": {
       "integrity": "sha512-V1JJ1WTRUqHHrOSh597hURcMqVKVGL/ea3kv0gSnEdsEZ0/+VyPghM1lMNGc00z7CIQorSvbKpuJkxvuHbvdbg=="
     },
@@ -953,6 +960,9 @@
     },
     "@noble/hashes@1.6.1": {
       "integrity": "sha512-pq5D8h10hHBjyqX+cfBm0i8JUXJ0UhczFc4r74zbuT9XgewFo2E3J1cOaGtdZynILNmQ685YWGzGE1Zv6io50w=="
+    },
+    "@noble/hashes@1.7.1": {
+      "integrity": "sha512-B8XBPsn4vT/KJAGqDzbwztd+6Yte3P4V7iafm24bxgDe/mlRuK6xmWPuCNrKt2vDafZ8MfJLlchDG/vYafQEjQ=="
     },
     "@nodelib/fs.scandir@2.1.5": {
       "integrity": "sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==",
@@ -1170,6 +1180,9 @@
     "@scure/base@1.2.1": {
       "integrity": "sha512-DGmGtC8Tt63J5GfHgfl5CuAXh96VF/LD8K9Hr/Gv0J2lAoRGlPOMpqMpMbCTOoOJMZCk2Xt+DskdDyn6dEFdzQ=="
     },
+    "@scure/base@1.2.4": {
+      "integrity": "sha512-5Yy9czTO47mqz+/J8GM6GIId4umdCk1wc1q8rKERQulIoc8VP9pzDcghv10Tl2E7R96ZUx/PhND3ESYUQX8NuQ=="
+    },
     "@scure/bip32@1.4.0": {
       "integrity": "sha512-sVUpc0Vq3tXCkDGYVWGIZTRfnvu8LoTDaev7vbwh0omSvVORONr960MQWdKqJDCReIEmTj3PAr73O3aoxz7OPg==",
       "dependencies": [
@@ -1194,6 +1207,14 @@
         "@scure/base@1.2.1"
       ]
     },
+    "@scure/bip32@1.6.2": {
+      "integrity": "sha512-t96EPDMbtGgtb7onKKqxRLfE5g05k7uHnHRM2xdE6BP/ZmxaLtPek4J4KfVn/90IQNrU1IOAqMgiDtUdtbe3nw==",
+      "dependencies": [
+        "@noble/curves@1.8.1",
+        "@noble/hashes@1.7.1",
+        "@scure/base@1.2.4"
+      ]
+    },
     "@scure/bip39@1.3.0": {
       "integrity": "sha512-disdg7gHuTDZtY+ZdkmLpPCk7fxZSu3gBiEGuoC1XYxv9cGx3Z6cpTggCgW6odSOOIXCiDjuGejW+aJKCY/pIQ==",
       "dependencies": [
@@ -1213,6 +1234,13 @@
       "dependencies": [
         "@noble/hashes@1.6.1",
         "@scure/base@1.2.1"
+      ]
+    },
+    "@scure/bip39@1.5.4": {
+      "integrity": "sha512-TFM4ni0vKvCfBpohoh+/lY05i9gRbSwXWngAsF4CABQxoaOHijxuaZ2R6cStDQ5CHtHO9aGJTr4ksVJASRRyMA==",
+      "dependencies": [
+        "@noble/hashes@1.7.1",
+        "@scure/base@1.2.4"
       ]
     },
     "@sentry-internal/browser-utils@8.44.0": {
@@ -1953,6 +1981,9 @@
     },
     "abitype@1.0.7": {
       "integrity": "sha512-ZfYYSktDQUwc2eduYu8C4wOs+RDPmnRYMh7zNfzeMtGGgb0U+6tLGjixUic6mXf5xKKCcgT5Qp6cv39tOARVFw=="
+    },
+    "abitype@1.0.8": {
+      "integrity": "sha512-ZeiI6h3GnW06uYDLx0etQtX/p8E24UaHHBj57RSjK7YBFe7iuVn07EDpOeP451D06sF27VOz9JJPlIKJmXgkEg=="
     },
     "abstract-level@1.0.4": {
       "integrity": "sha512-eUP/6pbXBkMbXFdx4IH2fVgvB7M0JvR7/lIL33zcs0IBcwjdzSSl31TOJsaCzmKSSDF9h8QYSOJux4Nd4YJqFg==",
@@ -3846,6 +3877,18 @@
         "eventemitter3"
       ]
     },
+    "ox@0.6.7": {
+      "integrity": "sha512-17Gk/eFsFRAZ80p5eKqv89a57uXjd3NgIf1CaXojATPBuujVc/fQSVhBeAU9JCRB+k7J50WQAyWTxK19T9GgbA==",
+      "dependencies": [
+        "@adraffy/ens-normalize",
+        "@noble/curves@1.8.1",
+        "@noble/hashes@1.7.1",
+        "@scure/bip32@1.6.2",
+        "@scure/bip39@1.5.4",
+        "abitype@1.0.8",
+        "eventemitter3"
+      ]
+    },
     "p-limit@2.3.0": {
       "integrity": "sha512-//88mFWSJx8lxCzwdAABTJL2MyWB12+eIY7MDL2SqLmAkeKU9qxRvWuSyTjm3FUmpBEMuFfckAIqEaVGUDxb6w==",
       "dependencies": [
@@ -4945,6 +4988,19 @@
         "ws@8.18.0"
       ]
     },
+    "viem@2.23.3_ws@8.18.0": {
+      "integrity": "sha512-ON/Uybteajqxn3iFyhV/6Ybm+QKhcrsVyTZf/9v2w0CvYQIoyJYCfHSsQR9zpsbOGrR7d2p62w6jzb6fqzzacg==",
+      "dependencies": [
+        "@noble/curves@1.8.1",
+        "@noble/hashes@1.7.1",
+        "@scure/bip32@1.6.2",
+        "@scure/bip39@1.5.4",
+        "abitype@1.0.8",
+        "isows",
+        "ox@0.6.7",
+        "ws@8.18.0"
+      ]
+    },
     "vite-plugin-node-polyfills@0.22.0_vite@5.4.11__@types+node@22.10.2_@types+node@22.5.4": {
       "integrity": "sha512-F+G3LjiGbG8QpbH9bZ//GSBr9i1InSTkaulfUHFa9jkLqVGORFBoqc2A/Yu5Mmh1kNAbiAeKeK+6aaQUf3x0JA==",
       "dependencies": [
@@ -5226,7 +5282,8 @@
         "dependencies": [
           "npm:long@*",
           "npm:protobufjs-cli@*",
-          "npm:protobufjs@*"
+          "npm:protobufjs@*",
+          "npm:viem@^2.23.3"
         ]
       },
       "packages/stateManager": {
