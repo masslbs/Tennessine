@@ -14,6 +14,7 @@ import { config, createRouterWrapper } from "../../../utils/test.tsx";
 Deno.test("Check that we can render the create shop screen", {
   sanitizeResources: false,
   sanitizeOps: false,
+  sanitizeTimeout: 20000, // 20 second timeout
 }, async () => {
   const user = userEvent.setup();
   const shopId = random256BigInt();
@@ -96,8 +97,9 @@ Deno.test("Check that we can render the create shop screen", {
   });
 
   await waitFor(() => {
+    // This is a long timeout because the minting process can be slow.
     expect(screen.getByTestId("mint-shop-confirmation")).toBeTruthy();
-  });
+  }, { timeout: 15000 });
 
   const { acceptedCurrencies, payees, pricingCurrency, shippingRegions } =
     await csm.stateManager!.manifest.get();

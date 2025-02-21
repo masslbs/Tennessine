@@ -93,7 +93,7 @@ export default function () {
 
   useEffect(() => {
     if (!search.shopId) {
-      navigate({ search: { shopId: random256BigInt() } });
+      navigate({ search: { shopId: random256BigInt().toString() } });
     }
   }, []);
 

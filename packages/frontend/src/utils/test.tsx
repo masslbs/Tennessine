@@ -104,7 +104,7 @@ export const createRouterWrapper = async (
         merchantConnectRoute,
       ]),
       history: createMemoryHistory({
-        initialEntries: [shopId ? `${path}?shopId=${shopId}n` : path],
+        initialEntries: [shopId ? `${path}?shopId="${shopId}"` : path],
       }),
     });
     // Set initial data for wallet client
