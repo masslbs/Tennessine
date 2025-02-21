@@ -6,7 +6,11 @@ import { mainnet, sepolia } from "wagmi/chains";
 
 import { random256BigInt } from "@massmarket/utils";
 import { addresses } from "@massmarket/contracts";
-import { metadata, payees, shippingRegions } from "@massmarket/utils/test";
+import {
+  metadata,
+  payees,
+  shippingRegions,
+} from "@massmarket/schema/testFixtures";
 
 import EditListing from "./EditListing.tsx";
 import {

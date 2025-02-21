@@ -5,7 +5,7 @@ import { expect } from "jsr:@std/expect";
 import { mainnet, sepolia } from "wagmi/chains";
 
 import { random256BigInt } from "@massmarket/utils";
-import { payees, shippingRegions } from "@massmarket/utils/test";
+import { payees, shippingRegions } from "@massmarket/schema/testFixtures";
 import { addresses } from "@massmarket/contracts";
 
 import ShopSettings from "./ShopSettings.tsx";
