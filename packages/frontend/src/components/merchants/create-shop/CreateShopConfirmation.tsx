@@ -10,7 +10,7 @@ export default function Confirmation() {
   const { shopId } = useShopId();
 
   function copyToClipboard() {
-    navigator.clipboard.writeText(String(shopId));
+    navigator.clipboard.writeText(`0x${shopId!.toString(16)}`);
   }
 
   return (
@@ -38,7 +38,7 @@ export default function Confirmation() {
         </p>
         <div className="flex gap-2">
           <div className="bg-background-gray p-2 rounded-md overflow-x-auto w-40">
-            <p>{String(shopId)}</p>
+            <p>{`0x${shopId!.toString(16)}`}</p>
           </div>
           <button onClick={copyToClipboard} className="bg-white p-0">
             <img
