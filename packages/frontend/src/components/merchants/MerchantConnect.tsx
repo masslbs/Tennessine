@@ -59,10 +59,6 @@ export default function MerchantConnect() {
   }
 
   async function handleSearchForShop() {
-    if (!BigInt(searchShopId)) {
-      setErrorMsg("Enter a valid shop ID");
-      return;
-    }
     try {
       const uri = (await shopPublicClient!.readContract({
         address: abi.addresses.ShopReg,
@@ -76,7 +72,7 @@ export default function MerchantConnect() {
         debug("Shop found");
         setShopData(data);
         navigate({
-          search: { shopId: BigInt(searchShopId) },
+          search: { shopId: searchShopId },
         });
         setStep("connect");
       } else {
@@ -110,7 +106,7 @@ export default function MerchantConnect() {
         navigate({
           to: "/connect-confirm",
           search: {
-            shopId,
+            shopId: `0x${shopId!.toString(16)}`,
           },
         });
       } else {
@@ -165,16 +161,15 @@ export default function MerchantConnect() {
       <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
         <h1>Connect to your shop</h1>
         <form className="flex flex-col" onSubmit={(e) => e.preventDefault()}>
-          <label className="font-medium" htmlFor="storeName">
+          <label className="font-medium" htmlFor="searchShopId">
             Shop ID
           </label>
           <div className="flex gap-2">
             <input
               className="border-2 border-solid mt-1 p-2 rounded-md bg-background-gray grow"
-              data-testid="storeName"
-              name="storeName"
+              data-testid="searchShopId"
+              name="searchShopId"
               value={searchShopId}
-              type="number"
               onChange={(e) => setSearchShopId(e.target.value)}
             />
             <button
