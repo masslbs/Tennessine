@@ -15,7 +15,7 @@ function schemaIsObject(
 /** Validates a json pointer could be valid give a valibot schema */
 export function getSubSchema(
   schema: v.GenericSchema,
-  path: unknown[],
+  path: string[],
 ): v.GenericSchema {
   for (const part of path) {
     if (v.isOfType("any", schema) || v.isOfType("unknown", schema)) {

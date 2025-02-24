@@ -43,6 +43,14 @@ export class EventEmmiter<T> {
     this.listeners.delete(listener);
   }
 
+  once(listener: EventListener<T>) {
+    const onceListener = (event: T, source: EventEmmiter<T> | object) => {
+      this.off(onceListener);
+      listener(event, source);
+    };
+    this.on(onceListener);
+  }
+
   /** emits an event  */
   emit(event: T, source: object = this) {
     this.listeners.forEach((listener) => {

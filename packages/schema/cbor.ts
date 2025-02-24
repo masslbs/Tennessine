@@ -1,31 +1,50 @@
-import * as v from "jsr:@valibot/valibot";
+import * as v from "@valibot/valibot";
 
-export const PatchSchema = v.array(
-  v.intersect([
+export const OpSchema = v.intersect([
+  v.object({
+    path: v.array(v.string()),
+  }),
+  v.variant("op", [
     v.object({
-      path: v.string(),
+      op: v.union([
+        v.literal("add"),
+        v.literal("replace"),
+        v.literal("test"),
+      ]),
+      value: v.any(),
     }),
-    v.variant("op", [
-      v.object({
-        op: v.union([
-          v.literal("add"),
-          v.literal("replace"),
-          v.literal("test"),
-        ]),
-        value: v.any(),
-      }),
-      v.object({
-        op: v.union([v.literal("copy"), v.literal("move")]),
-        from: v.string(),
-      }),
-      v.object({
-        op: v.literal("remove"),
-      }),
-    ]),
+    v.object({
+      op: v.union([v.literal("copy"), v.literal("move")]),
+      from: v.string(),
+    }),
+    v.object({
+      op: v.literal("remove"),
+    }),
   ]),
-);
+]);
 
-export const StoreSchema = v.object({
+export const PatchSchema = v.object({
+  signature: v.string(),
+  keycard: v.string(),
+  account: v.string(),
+  path: v.array(v.string()),
+  ops: v.array(
+    OpSchema,
+  ),
+});
+
+export const BaseObjectSchema = v.object({
+  Accounts: v.record(
+    v.string(),
+    v.object({
+      KeyCards: v.array(v.string()),
+      Guest: v.boolean(),
+    }),
+  ),
+});
+
+export const ShopSchema = v.object({
+  ...BaseObjectSchema.entries,
   Manifest: v.object({
     ShopId: v.number(),
     Payees: v.record(
@@ -70,13 +89,6 @@ export const StoreSchema = v.object({
       TxDetails: v.optional(v.string()),
     }),
   ),
-  Accounts: v.record(
-    v.string(),
-    v.object({
-      KeyCards: v.array(v.string()),
-      Guest: v.boolean(),
-    }),
-  ),
   Tags: v.record(
     v.string(),
     v.object({
@@ -101,3 +113,5 @@ export const StoreSchema = v.object({
     }),
   ),
 });
+
+export type TPatch = v.InferInput<typeof PatchSchema>;

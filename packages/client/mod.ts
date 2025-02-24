@@ -12,6 +12,7 @@ import { bigIntToBytes } from "@ethereumjs/util";
 
 import schema, { EnvelopMessageTypes } from "@massmarket/schema";
 import type { ConcreteWalletClient } from "@massmarket/blockchain";
+import type { TPatch } from "@massmarket/schema/cbor";
 import {
   assert,
   decodeBufferToString,
@@ -93,7 +94,7 @@ export class RelayClient extends EventEmitter {
 
   // TODO
   createSubscriptionStream(_path: string, _height: number) {
-    return this.eventStream.stream;
+    return new ReadableStream<TPatch>();
   }
 
   // TODO
