@@ -24,7 +24,7 @@ Deno.test("Check that we can render the customer view listings screen", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async (t) => {
-  const { wrapper, csm } = await createRouterWrapper(null);
+  const { wrapper, csm } = await createRouterWrapper();
   const { unmount } = render(<Listings />, { wrapper });
   await csm.stateManager!.manifest.create(
     {

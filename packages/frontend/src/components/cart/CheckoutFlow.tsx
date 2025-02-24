@@ -152,7 +152,7 @@ export default function CheckoutFlow() {
   function renderContent() {
     if (step === CheckoutStep.cart) {
       return (
-        <section>
+        <section data-testid="cart">
           <Cart onCheckout={onCheckout} />
         </section>
       );
@@ -229,9 +229,11 @@ export default function CheckoutFlow() {
       );
     }
   }
-
   return (
-    <main className="pt-under-nav p-4 mt-5 min-h-screen">
+    <main
+      className="pt-under-nav p-4 mt-5 min-h-screen"
+      data-testid="checkout-screen"
+    >
       <ErrorMessage
         errorMessage={errorMsg}
         onClose={() => {
