@@ -9,7 +9,7 @@ import { useShopDetails } from "../../hooks/useShopDetails.ts";
 export default function ConnectConfirmation() {
   const { shopDetails } = useShopDetails();
   return (
-    <main className="pt-under-nav h-screen p-4 mt-5">
+    <div data-testid="connect-confirmation">
       <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg items-center">
         <img
           src="/icons/smiley.svg"
@@ -32,6 +32,6 @@ export default function ConnectConfirmation() {
           </Link>
         </Button>
       </section>
-    </main>
+    </div>
   );
 }
