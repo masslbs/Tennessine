@@ -16,6 +16,9 @@
       url = "github:masslbs/network-schema/v3.0";
       flake = false;
     };
+    relay = {
+      url = "git+ssh://git@github.com/masslbs/relay.git?ref=main";
+    };
   };
 
   outputs = inputs @ {
@@ -24,6 +27,7 @@
     schema,
     contracts,
     pre-commit-hooks,
+    relay,
     self,
     ...
   }:

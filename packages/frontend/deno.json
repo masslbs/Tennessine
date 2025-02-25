@@ -8,11 +8,12 @@
     "production": "deno task build && deno task generate",
     "test": "deno test -A"
   },
+  "exclude": ["./.vite/", "./dist/"],
   "lint": {
-    "exclude": ["./.vite", "./dist", "./src/routeTree.gen.ts"]
+    "exclude": ["./src/routeTree.gen.ts"]
   },
   "fmt": {
-    "exclude": ["./.vite", "./dist", "./src/routeTree.gen.ts"]
+    "exclude": ["./src/routeTree.gen.ts"]
   },
   "imports": {
     "@deno/vite-plugin": "npm:@deno/vite-plugin@^1.0.4",
