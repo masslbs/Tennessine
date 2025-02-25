@@ -13,6 +13,7 @@ import ConnectWalletButton from "../common/ConnectWalletButton.tsx";
 import Button from "../common/Button.tsx";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 import { Order, OrderState } from "../../types.ts";
+import { env } from "../../utils/env.ts";
 
 const namespace = "frontend:Pay";
 const debug = logger(namespace);
@@ -34,8 +35,8 @@ export default function Pay({
   const { data: wallet } = useWalletClient();
   const { clientStateManager } = useClientWithStateManager();
   const paymentChainId = Number(paymentArgs?.[0]?.chainId || 1);
-  const shopChainId =
-    chains[import.meta.env?.VITE_CHAIN_NAME as keyof typeof chains]?.id ?? 1;
+  const shopChainId = chains[env?.VITE_CHAIN_NAME as keyof typeof chains]?.id ??
+    1;
   const shopPublicClient = usePublicClient({ chainId: shopChainId });
   const paymentPublicClient = usePublicClient({ chainId: paymentChainId });
   const config = useConfig();
