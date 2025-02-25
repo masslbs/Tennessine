@@ -42,6 +42,7 @@ Deno.test("Check that we can render the create shop screen", {
     chainId: hardhat.id,
   });
 
+  // This is so that csm doesn't get reset in useClientStateManager while testing, since we need access to the same stateManager.
   csm.keycard = privateKey;
 
   screen.debug();

@@ -102,6 +102,13 @@ export enum CheckoutStep {
   confirmation = "confirmation",
   expired = "expired",
 }
+
+export enum SearchShopStep {
+  Search = "SEARCH",
+  Connect = "CONNECT",
+  Confirm = "CONFIRM",
+}
+
 export interface CurrentOrder {
   orderId: OrderId;
   status: OrderState;
