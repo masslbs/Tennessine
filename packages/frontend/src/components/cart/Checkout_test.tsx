@@ -87,12 +87,12 @@ Deno.test("Check that we can render the checkout screen", {
     // Fill in all shipping details fields
     await act(async () => {
       await user.type(screen.getByTestId("name"), shippingDetails.name);
-      await user.type(screen.getByTestId("address"), shippingDetails.address);
+      await user.type(screen.getByTestId("address"), shippingDetails.address1);
       await user.type(screen.getByTestId("city"), shippingDetails.city);
-      await user.type(screen.getByTestId("zip"), shippingDetails.zip);
+      await user.type(screen.getByTestId("zip"), shippingDetails.postalCode);
       await user.type(screen.getByTestId("country"), shippingDetails.country);
-      await user.type(screen.getByTestId("email"), shippingDetails.email);
-      await user.type(screen.getByTestId("phone"), shippingDetails.phone);
+      await user.type(screen.getByTestId("email"), shippingDetails.emailAddress);
+      await user.type(screen.getByTestId("phone"), shippingDetails.phoneNumber);
     });
 
     await act(async () => {
@@ -121,12 +121,12 @@ Deno.test("Check that we can render the checkout screen", {
     } = o.shippingDetails as ShippingDetails;
 
     expect(name).toBe(shippingDetails.name);
-    expect(address1).toBe(shippingDetails.address);
+    expect(address1).toBe(shippingDetails.address1);
     expect(city).toBe(shippingDetails.city);
-    expect(postalCode).toBe(shippingDetails.zip);
+    expect(postalCode).toBe(shippingDetails.postalCode);
     expect(country).toBe(shippingDetails.country);
-    expect(emailAddress).toBe(shippingDetails.email);
-    expect(phoneNumber).toBe(shippingDetails.phone);
+    expect(emailAddress).toBe(shippingDetails.emailAddress);
+    expect(phoneNumber).toBe(shippingDetails.phoneNumber);
   });
 
   await t.step("Choose payment", async () => {

@@ -40,10 +40,10 @@ export const metadata2 = {
 
 export const shippingDetails = {
   name: "John Doe",
-  address: "123 Main St",
+  address1: "123 Main St",
   city: "New York",
-  zip: "10001",
+  postalCode: "10001",
   country: "United States",
-  email: "john@example.com",
-  phone: "+1234567890",
+  emailAddress: "john@example.com",
+  phoneNumber: "+1234567890",
 };
