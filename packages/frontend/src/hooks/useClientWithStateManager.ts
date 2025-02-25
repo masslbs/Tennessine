@@ -1,11 +1,11 @@
 import { useContext, useEffect } from "react";
+import { usePublicClient } from "wagmi";
 import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
 import { logger, random32BytesHex } from "@massmarket/utils";
 
 import { MassMarketContext } from "../MassMarketContext.tsx";
-import { usePublicClient } from "./usePublicClient.ts";
 import { useShopId } from "./useShopId.ts";
 import { useQuery } from "./useQuery.ts";
 import { useKeycard } from "./useKeycard.ts";
@@ -24,8 +24,8 @@ export function useClientWithStateManager(skipConnect: boolean = false) {
   const [keycard, setKeycard] = useKeycard();
   const { relayEndpoint } = useRelayEndpoint();
   const { shopId } = useShopId();
-  const { shopPublicClient } = usePublicClient();
   const { chain } = useChain();
+  const shopPublicClient = usePublicClient({ chainId: chain.id });
 
   useEffect(() => {
     if (

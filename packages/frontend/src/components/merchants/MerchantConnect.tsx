@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useState } from "react";
-import { useAccount, useWalletClient } from "wagmi";
+import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useNavigate } from "@tanstack/react-router";
 
@@ -12,10 +12,10 @@ import { assert, logger, random32BytesHex } from "@massmarket/utils";
 
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import Button from "../common/Button.tsx";
-import { usePublicClient } from "../../hooks/usePublicClient.ts";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 import { useKeycard } from "../../hooks/useKeycard.ts";
 import { useShopId } from "../../hooks/useShopId.ts";
+import { useChain } from "../../hooks/useChain.ts";
 
 const namespace = "frontend:connect-merchant";
 const debug = logger(namespace);
@@ -23,7 +23,8 @@ const errlog = logger(namespace, "error");
 
 export default function MerchantConnect() {
   const { status } = useAccount();
-  const { shopPublicClient } = usePublicClient();
+  const { chain } = useChain();
+  const shopPublicClient = usePublicClient({ chainId: chain.id });
   const { data: wallet } = useWalletClient();
   const [keycard, setKeycard] = useKeycard();
   // Set skipConnect to true so that useQuery does not try to connect and authenticate before enrolling the keycard.
