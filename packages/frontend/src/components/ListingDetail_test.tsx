@@ -8,7 +8,7 @@ Deno.test("Check that we can render the listing details screen", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async () => {
-  const { wrapper } = await createRouterWrapper(null);
+  const { wrapper } = await createRouterWrapper();
   const { unmount } = await render(<ListingDetail />, { wrapper });
   screen.debug();
   screen.getByTestId("listing-detail-page");

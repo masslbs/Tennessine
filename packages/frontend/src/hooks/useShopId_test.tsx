@@ -1,6 +1,9 @@
 import { assertEquals } from "jsr:@std/assert";
 import { cleanup, renderHook } from "@testing-library/react-hooks";
 import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
+
+import { random256BigInt } from "@massmarket/utils";
+
 import { useShopId } from "./useShopId.ts";
 import { createRouterWrapper } from "../utils/mod.ts";
 
@@ -15,9 +18,10 @@ Deno.test(
       assertEquals(result.current.shopId, null);
     });
     await t.step("should return shopId from search params", async () => {
-      const { wrapper } = await createRouterWrapper("123");
+      const shopId = random256BigInt();
+      const { wrapper } = await createRouterWrapper(shopId);
       const { result, unmount } = renderHook(() => useShopId(), { wrapper });
-      assertEquals(result.current.shopId, BigInt("123"));
+      assertEquals(result.current.shopId, shopId);
       unmount();
     });
 

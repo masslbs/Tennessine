@@ -53,10 +53,10 @@ export const config = createConfig({
 });
 
 export const createClientStateManager = async (
-  shopId: string | null = null,
+  shopId: bigint | null = null,
 ) => {
   const csm = new MockClientStateManager(
-    shopId || "0x123",
+    shopId,
   );
   await csm.createStateManager();
   // Add test keycard for event verification
@@ -67,7 +67,7 @@ export const createClientStateManager = async (
 };
 
 export const createRouterWrapper = async (
-  shopId: string | null = null,
+  shopId: bigint | null = null,
   path: string = "/",
   // The only case clientStateManager needs to be passed here is if we need access to the state manager before the router is created.
   // For example, in EditListing_test.tsx, we need to access the state manager to create a new listing and then use the listing id to set the search param.
@@ -104,7 +104,9 @@ export const createRouterWrapper = async (
         merchantConnectRoute,
       ]),
       history: createMemoryHistory({
-        initialEntries: [shopId ? `${path}?shopId=${shopId}` : path],
+        initialEntries: [
+          shopId ? `${path}?shopId=0x${shopId.toString(16)}` : path,
+        ],
       }),
     });
     // Set initial data for wallet client

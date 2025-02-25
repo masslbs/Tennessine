@@ -16,7 +16,7 @@ Deno.test("Check that we can render the shop settings screen", {
   sanitizeOps: false,
 }, async (t) => {
   const user = userEvent.setup();
-  const { wrapper, csm } = await createRouterWrapper(null);
+  const { wrapper, csm } = await createRouterWrapper();
   await csm.stateManager!.manifest.create(
     {
       acceptedCurrencies: [{

@@ -109,7 +109,7 @@ Deno.test("Edit Listing", {
     await csm.stateManager!.listings.changeInventory(id, 5);
     const { wrapper } = await createRouterWrapper(null, `/?itemId=${id}`, csm);
 
-    const { unmount } = await render(<EditListing />, {
+    const { unmount } = render(<EditListing />, {
       wrapper,
     });
     screen.getByTestId("edit-listing-page");
