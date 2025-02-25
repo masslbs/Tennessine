@@ -1,4 +1,5 @@
 import { formatUnits } from "viem";
+import { env } from "./env.ts";
 
 export async function asyncIteratorToMap<K, V>(
   iterator: () => AsyncIterable<[K, V]>,
@@ -24,6 +25,6 @@ export function multiplyAndFormatUnits(
 }
 
 export function isTest() {
-  return import.meta.env?.["MODE"] !== "development" &&
-    import.meta.env?.["MODE"] !== "production";
+  return env?.["MODE"] !== "development" &&
+    env?.["MODE"] !== "production";
 }
