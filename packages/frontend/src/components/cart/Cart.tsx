@@ -223,6 +223,7 @@ export default function Cart({
               </h3>
               <button
                 onClick={() => removeItem(item.id, item.selectedQty)}
+                data-testid={`remove-item-${item.id}`}
                 className="ml-auto bg-transparent p-0"
               >
                 <img
@@ -239,6 +240,7 @@ export default function Cart({
               <div className="flex gap-2 items-center">
                 <button
                   onClick={() => removeQuantity(item.id)}
+                  data-testid={`remove-quantity-${item.id}`}
                   className="ml-auto bg-transparent p-0"
                 >
                   <img
@@ -249,9 +251,10 @@ export default function Cart({
                     className="w-5 h-5 max-h-5"
                   />
                 </button>
-                <p>{item.selectedQty}</p>
+                <p data-testid={`quantity-${item.id}`}>{item.selectedQty}</p>
                 <button
                   onClick={() => addQuantity(item.id)}
+                  data-testid={`add-quantity-${item.id}`}
                   className="ml-auto bg-transparent p-0"
                 >
                   <img
@@ -327,6 +330,7 @@ export default function Cart({
         <Button
           disabled={!orderId || !cartItemsMap.size}
           onClick={clearCart}
+          data-testid="clear-cart"
           custom="bg-gray-200 text-black"
         >
           Clear basket

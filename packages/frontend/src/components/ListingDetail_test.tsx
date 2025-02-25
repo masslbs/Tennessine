@@ -71,6 +71,4 @@ Deno.test("Check that we can render the listing details screen", {
   expect(Object.keys(order.items).length).toBe(1);
   unmount();
   cleanup();
-
-  
 });
