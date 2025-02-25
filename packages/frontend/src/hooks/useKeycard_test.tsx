@@ -1,8 +1,10 @@
 import { assertEquals } from "jsr:@std/assert";
 import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
 import { cleanup, renderHook } from "@testing-library/react-hooks";
+import { expect } from "jsr:@std/expect";
 
-import { random32BytesHex } from "@massmarket/utils";
+import { random256BigInt, random32BytesHex } from "@massmarket/utils";
+
 import { useKeycard } from "./useKeycard.ts";
 import { createRouterWrapper } from "../utils/mod.ts";
 
@@ -25,12 +27,29 @@ Deno.test("useKeycard", {
 
   await t.step("should create random keycard if none is provided", async () => {
     const { wrapper } = await createRouterWrapper();
+
     const { result, unmount } = renderHook(() => useKeycard(), { wrapper });
     const [keycard] = result.current;
     assertEquals(keycard.privateKey !== null, true);
     unmount();
   });
+  await t.step("should use keycard saved in local storage", async () => {
+    const shopId = random256BigInt();
 
+    const { wrapper } = await createRouterWrapper(shopId);
+
+    const privateKey = random32BytesHex();
+
+    localStorage.setItem(
+      `keycard${shopId}`,
+      JSON.stringify({ privateKey, role: "merchant" }),
+    );
+    const { result, unmount } = renderHook(() => useKeycard(), { wrapper });
+    const [keycard] = result.current;
+    expect(keycard.privateKey).toBe(privateKey);
+    expect(keycard.role).toBe("merchant");
+    unmount();
+  });
   cleanup();
   await GlobalRegistrator.unregister();
 });
