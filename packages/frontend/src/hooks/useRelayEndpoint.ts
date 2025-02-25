@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { logger } from "@massmarket/utils";
 import { discoverRelay, type RelayEndpoint } from "@massmarket/client";
+import { env } from "../utils/env.ts";
 
 const namespace = "frontend:useRelayEndpoint";
 const debug = logger(namespace);
@@ -10,10 +11,10 @@ export function useRelayEndpoint() {
     null,
   );
   function getRelayEndpoint() {
-    if (import.meta.env?.["VITE_RELAY_TOKEN_ID"]) {
+    if (env?.["VITE_RELAY_TOKEN_ID"]) {
       const re = {
-        url: new URL(import.meta.env?.["VITE_RELAY_ENDPOINT"] as string),
-        tokenId: import.meta.env?.["VITE_RELAY_TOKEN_ID"] as `0x${string}`,
+        url: new URL(env?.["VITE_RELAY_ENDPOINT"] as string),
+        tokenId: env?.["VITE_RELAY_TOKEN_ID"] as `0x${string}`,
       };
       setRelayEndpoint(re);
       debug(`using environment variables for relay endpoint ${re.url}`);

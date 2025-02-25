@@ -73,12 +73,12 @@ jobs:
         run: nix develop -c bash -c "deno lint"
         working-directory: Tennessine/
 
-      - name: Run fomating check
+      - name: Run formatting check
         run: nix develop -c bash -c "deno fmt --check"
         working-directory: Tennessine/
 
       - name: Type Check packages
-        run: nix develop -c bash -c "deno check packages/{mmr,blockchain,client,contracts,schema,stateManager,utils,frontend,eventTree}"
+        run: nix develop -c bash -c "deno check ."
         working-directory: Tennessine/
 
       - name: git clone relay

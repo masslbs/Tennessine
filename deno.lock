@@ -12,29 +12,34 @@
     "jsr:@std/assert@^1.0.8": "1.0.8",
     "jsr:@std/bytes@^1.0.4": "1.0.5",
     "jsr:@std/cbor@~0.1.6": "0.1.6",
-    "jsr:@std/expect@*": "1.0.7",
+    "jsr:@std/expect@*": "1.0.13",
     "jsr:@std/internal@^1.0.5": "1.0.5",
     "jsr:@std/streams@^1.0.8": "1.0.9",
     "jsr:@std/testing@*": "1.0.5",
     "jsr:@valibot/valibot@*": "0.42.1",
     "jsr:@valibot/valibot@~0.42.1": "0.42.1",
     "jsr:@wevm/viem@*": "2.21.59",
+    "jsr:@wevm/viem@^2.23.4": "2.23.5",
     "npm:@deno/vite-plugin@^1.0.4": "1.0.4_vite@5.4.11__@types+node@22.10.2_@types+node@22.5.4",
     "npm:@ethereumjs/util@*": "9.1.0",
     "npm:@happy-dom/global-registrator@*": "15.11.7",
     "npm:@ipld/dag-cbor@^9.2.2": "9.2.2",
     "npm:@noble/curves@1.6.0": "1.6.0",
     "npm:@noble/curves@1.7.0": "1.7.0",
+    "npm:@noble/curves@1.8.1": "1.8.1",
     "npm:@noble/hashes@*": "1.6.1",
     "npm:@noble/hashes@1.5.0": "1.5.0",
     "npm:@noble/hashes@1.6.1": "1.6.1",
+    "npm:@noble/hashes@1.7.1": "1.7.1",
     "npm:@rainbow-me/rainbowkit@^2.2.0": "2.2.1_@tanstack+react-query@5.62.11__react@18.3.1_react@18.3.1_react-dom@18.3.1__react@18.3.1_viem@2.21.55__ws@8.18.0_wagmi@2.14.6__@tanstack+react-query@5.62.11___react@18.3.1__react@18.3.1__viem@2.21.55___ws@8.18.0__@wagmi+core@2.16.3___viem@2.21.55____ws@8.18.0___@types+react@18.3.16___react@18.3.1___use-sync-external-store@1.2.0____react@18.3.1__@types+react@18.3.16__use-sync-external-store@1.2.0___react@18.3.1_@vanilla-extract+css@1.15.5_@types+react@18.3.16",
     "npm:@sagold/json-pointer@*": "6.0.1",
     "npm:@sagold/json-pointer@7": "7.1.1",
     "npm:@scure/bip32@1.5.0": "1.5.0",
     "npm:@scure/bip32@1.6.0": "1.6.0",
+    "npm:@scure/bip32@1.6.2": "1.6.2",
     "npm:@scure/bip39@1.4.0": "1.4.0",
     "npm:@scure/bip39@1.5.0": "1.5.0",
+    "npm:@scure/bip39@1.5.4": "1.5.4",
     "npm:@sentry/browser@*": "8.44.0",
     "npm:@tanstack/react-query@^5.60.6": "5.62.11_react@18.3.1",
     "npm:@tanstack/react-router@^1.82.1": "1.92.11_react@18.3.1_react-dom@18.3.1__react@18.3.1",
@@ -55,6 +60,7 @@
     "npm:@wagmi/core@^2.16.3": "2.16.3_viem@2.21.55__ws@8.18.0_@types+react@18.3.16_react@18.3.1",
     "npm:abitype@1.0.6": "1.0.6_zod@3.23.8",
     "npm:abitype@1.0.7": "1.0.7",
+    "npm:abitype@1.0.8": "1.0.8",
     "npm:autoprefixer@^10.4.20": "10.4.20_postcss@8.4.49",
     "npm:bootstrap@^5.3.3": "5.3.3_@popperjs+core@2.11.8",
     "npm:browser-level@*": "2.0.0",
@@ -66,6 +72,7 @@
     "npm:long@*": "5.2.3",
     "npm:memory-level@*": "2.0.0",
     "npm:multiformats@^13.3.1": "13.3.2",
+    "npm:ox@0.6.7": "0.6.7",
     "npm:postcss@^8.4.49": "8.4.49",
     "npm:protobufjs-cli@*": "1.1.3_protobufjs@7.4.0",
     "npm:protobufjs@*": "7.4.0",
@@ -159,6 +166,13 @@
         "jsr:@std/internal"
       ]
     },
+    "@std/expect@1.0.13": {
+      "integrity": "d8e236c7089cd9fcf5e6032f27dadc3db6349d0aee48c15bc71d717bca5baa42",
+      "dependencies": [
+        "jsr:@std/assert@^1.0.11",
+        "jsr:@std/internal"
+      ]
+    },
     "@std/internal@1.0.5": {
       "integrity": "54a546004f769c1ac9e025abd15a76b6671ddc9687e2313b67376125650dc7ba"
     },
@@ -188,6 +202,18 @@
         "npm:abitype@1.0.7",
         "npm:isows@1.0.6",
         "npm:webauthn-p256"
+      ]
+    },
+    "@wevm/viem@2.23.5": {
+      "integrity": "825ca8afd73a2e69784217a27d86364d7471310eb8d3a14b32fbd72761f64bde",
+      "dependencies": [
+        "npm:@noble/curves@1.8.1",
+        "npm:@noble/hashes@1.7.1",
+        "npm:@scure/bip32@1.6.2",
+        "npm:@scure/bip39@1.5.4",
+        "npm:abitype@1.0.8",
+        "npm:isows@1.0.6",
+        "npm:ox"
       ]
     }
   },
