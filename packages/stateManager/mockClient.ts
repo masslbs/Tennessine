@@ -17,20 +17,14 @@ export type IncomingEvent = {
 };
 
 export class MockClient implements IRelayClient {
-  vectors;
-  private eventStream: ReadableEventStream;
-  keyCardWallet: PrivateKeyAccount;
-  private requestCounter;
-  private lastSeqNo: number;
-  constructor() {
-    this.vectors = testVectors;
-    this.eventStream = new ReadableEventStream(this);
-    this.keyCardWallet = privateKeyToAccount(
-      this.vectors.signatures.signer.key as `0x${string}`,
-    );
-    this.requestCounter = 1;
-    this.lastSeqNo = 0;
-  }
+  vectors = testVectors;
+  private eventStream = new ReadableEventStream(this);
+  keyCardWallet = privateKeyToAccount(
+    testVectors.signatures.signer.key as `0x${string}`,
+  );
+  private requestCounter = 1;
+  private lastSeqNo = 0;
+
   encodeAndSendNoWait(_envelope: schema.IEnvelope = {}): schema.RequestId {
     const requestId = { raw: this.requestCounter };
     this.requestCounter++;
@@ -72,6 +66,10 @@ export class MockClient implements IRelayClient {
 
   authenticate(): Promise<schema.Envelope> {
     throw new Error("not implemented");
+  }
+
+  enrollKeycard(keycard: `0x${string}`) {
+    return { ok: true, keycard };
   }
 
   async sendShopEvent(props: schema.IShopEvent): Promise<EventId> {

@@ -1,15 +1,19 @@
+import "../happyDomSetup.ts";
 import { assertEquals } from "jsr:@std/assert";
 import { cleanup, renderHook, waitFor } from "@testing-library/react";
-import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
+
+import { random256BigInt } from "@massmarket/utils";
 
 import { useClientWithStateManager } from "./useClientWithStateManager.ts";
 import { createRouterWrapper } from "../utils/test.tsx";
 
-Deno.test("useClientWithStateManager", async (t) => {
-  GlobalRegistrator.register({});
-
+Deno.test("useClientWithStateManager", {
+  sanitizeResources: false,
+  sanitizeOps: false,
+}, async (t) => {
   await t.step("should return client when shopId is provided", async () => {
-    const { wrapper } = await createRouterWrapper("123");
+    const shopId = random256BigInt();
+    const { wrapper } = await createRouterWrapper(shopId);
 
     const { result, unmount } = renderHook(() => useClientWithStateManager(), {
       wrapper,
@@ -18,12 +22,11 @@ Deno.test("useClientWithStateManager", async (t) => {
     await waitFor(() => {
       assertEquals(typeof result.current.clientStateManager, "object");
       assertEquals(result.current.clientStateManager !== null, true);
-      assertEquals(result.current.clientStateManager.shopId, BigInt(123));
+      assertEquals(result.current.clientStateManager!.shopId, shopId);
     });
 
     unmount();
   });
 
   cleanup();
-  await GlobalRegistrator.unregister();
 });
