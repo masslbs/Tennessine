@@ -6,13 +6,13 @@
     "serve": "deno run --allow-net --allow-read jsr:@std/http@1/file-server dist/",
     "generate": "deno run -A scripts/generate-entry-points.ts",
     "production": "deno task build && deno task generate",
-    "test": "deno test --no-check --allow-env --allow-net"
+    "test": "deno test -A"
   },
   "lint": {
     "exclude": ["./.vite", "./dist", "./src/routeTree.gen.ts"]
   },
   "fmt": {
-    "exclude": ["./.vite"]
+    "exclude": ["./.vite", "./dist", "./src/routeTree.gen.ts"]
   },
   "imports": {
     "@deno/vite-plugin": "npm:@deno/vite-plugin@^1.0.4",
