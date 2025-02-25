@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { hexToBytes, numberToBytes } from "viem";
-import { type PrivateKeyAccount, privateKeyToAccount } from "viem/accounts";
+import { privateKeyToAccount } from "viem/accounts";
 import Long from "long";
 
 import type { EventId } from "@massmarket/client";

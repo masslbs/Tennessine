@@ -26,7 +26,7 @@ Deno.test("Check that we can render the merchant connect screen", {
   );
   csm.keycard = privateKey;
 
-  await t.step("Render and unmount component", async () => {
+  await t.step("Render and unmount component", () => {
     const { unmount } = render(<MerchantConnect />, { wrapper });
     screen.getByTestId("merchant-connect-page");
     expect(screen.getByTestId("merchant-connect-page")).toBeTruthy();
@@ -72,7 +72,7 @@ Deno.test("Check that we can render the merchant connect screen", {
       expect(searchButton).toBeTruthy();
       await user.click(searchButton);
     });
-    await waitFor(async () => {
+    await waitFor(() => {
       const errorMessage = screen.getByTestId("error-message") as HTMLElement;
       expect(errorMessage).toBeTruthy();
       expect(errorMessage.textContent).toBe("Shop not found");
@@ -101,7 +101,7 @@ Deno.test("Check that we can render the merchant connect screen", {
       expect(searchButton).toBeTruthy();
       await user.click(searchButton);
     });
-    await waitFor(async () => {
+    await waitFor(() => {
       expect(screen.getByTestId("connect-confirmation")).toBeTruthy();
     });
     unmount();

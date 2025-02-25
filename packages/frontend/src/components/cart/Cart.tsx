@@ -206,7 +206,7 @@ export default function Cart({
       if (!item.selectedQty) return null;
 
       return (
-        <div key={item.id} className="flex">
+        <div key={item.id} className="flex" data-testid="cart-item">
           <div className="flex justify-center h-28" data-testid={`product-img`}>
             <img
               src={item.metadata.images[0] || "/assets/no-image.png"}
@@ -300,13 +300,14 @@ export default function Cart({
             height={20}
             className="w-5 h-5 max-h-5"
           />
-          <h1>{calculateTotal()}</h1>
+          <h1 data-testid="total-price">{calculateTotal()}</h1>
         </div>
       </div>
       <div className="flex gap-4 mt-2">
         <Button
           disabled={!orderId || !cartItemsMap.size || !onCheckout}
           onClick={() => handleCheckout(orderId!)}
+          data-testid="checkout-button"
         >
           <div className="flex items-center gap-2">
             <p>Checkout</p>

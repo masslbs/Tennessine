@@ -42,7 +42,7 @@ export default function ChoosePayment({
   displayedAmount,
   setDisplayedAmount,
 }: {
-  setStep: Dispatch<SetStateAction<CheckoutStep>>;
+  setStep: (step: CheckoutStep) => void;
   displayedAmount: string | null;
   setDisplayedAmount: Dispatch<SetStateAction<string | null>>;
 }) {
@@ -265,7 +265,7 @@ export default function ChoosePayment({
   }
 
   return (
-    <section>
+    <section data-testid="choose-payment">
       <BackButton
         onClick={() => {
           setStep(CheckoutStep.shippingDetails);

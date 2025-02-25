@@ -31,3 +31,19 @@ export const metadata = {
   description: "Test description 1",
   images: ["https://http.cat/images/201.jpg"],
 };
+
+export const metadata2 = {
+  title: "Test Item 2",
+  description: "Test description 2",
+  images: ["https://http.cat/images/201.jpg"],
+};
+
+export const shippingDetails = {
+  name: "John Doe",
+  address: "123 Main St",
+  city: "New York",
+  zip: "10001",
+  country: "United States",
+  email: "john@example.com",
+  phone: "+1234567890",
+};
