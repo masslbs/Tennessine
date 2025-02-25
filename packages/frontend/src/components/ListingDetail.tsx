@@ -28,7 +28,6 @@ export default function ListingDetail() {
   const search = useSearch({ strict: false });
   const { currentOrder } = useCurrentOrder();
   const itemId = search.itemId as ListingId | "new";
-
   const [item, setItem] = useState<Listing | null>(null);
   const [price, setPrice] = useState("");
   const [tokenIcon, setIcon] = useState("/icons/usdc-coin.png");
@@ -220,7 +219,11 @@ export default function ListingDetail() {
                 />
               </div>
               <div className="flex items-end">
-                <Button onClick={changeItems} disabled={!quantity}>
+                <Button
+                  onClick={changeItems}
+                  disabled={!quantity}
+                  data-testid="addToBasket"
+                >
                   <div className="flex items-center gap-2">
                     <p>Add to basket</p>
                     <img

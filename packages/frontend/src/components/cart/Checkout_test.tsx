@@ -91,7 +91,10 @@ Deno.test("Check that we can render the checkout screen", {
       await user.type(screen.getByTestId("city"), shippingDetails.city);
       await user.type(screen.getByTestId("zip"), shippingDetails.postalCode);
       await user.type(screen.getByTestId("country"), shippingDetails.country);
-      await user.type(screen.getByTestId("email"), shippingDetails.emailAddress);
+      await user.type(
+        screen.getByTestId("email"),
+        shippingDetails.emailAddress,
+      );
       await user.type(screen.getByTestId("phone"), shippingDetails.phoneNumber);
     });
 
