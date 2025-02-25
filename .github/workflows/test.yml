@@ -65,6 +65,11 @@ jobs:
         run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
         id: extract_branch
 
+      - name: Get fallback branch from flake.lock
+        shell: bash
+        run: echo "contracts=$(jq -r '.nodes["contracts"].locked.rev' Tennessine/flake.lock)" >> $GITHUB_OUTPUT
+        id: fallback_branch
+
       - name: Installing deps
         run: nix develop -c bash -c "deno install"
         working-directory: Tennessine/
@@ -99,6 +104,7 @@ jobs:
           repository: masslbs/contracts
           ref: ${{ steps.extract_branch.outputs.branch }}
           path: contracts
+          fallback-branch: ${{ steps.fallback_branch.outputs.contracts }}
 
       - name: deploy contracts and update ABI
         run: |
@@ -119,7 +125,9 @@ jobs:
           ./result/bin/relay server > relay.log &
         working-directory: relay
 
-      - name: check services
+      # if this fails check the logs of the prior job. The relay should log it's failure reason there.
+      # the logs for the other services might be bit harder to come by since they are orchestrated by docker.
+      - name: check services running? 1. relay, 2. ipfs, 3. anvil
         run: |
           set -e
           curl http://localhost:4444/health
