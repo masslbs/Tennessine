@@ -9,7 +9,8 @@ import {
 } from "@tanstack/react-router";
 import { createConfig, http, WagmiProvider } from "wagmi";
 import { hardhat, mainnet, sepolia } from "wagmi/chains";
-import { createWalletClient } from "viem";
+import { mock } from "npm:wagmi/connectors";
+import { createTestClient, publicActions, walletActions } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -19,6 +20,21 @@ import { anvilPrivateKey } from "@massmarket/contracts";
 import { MassMarketProvider } from "../MassMarketContext.tsx";
 import { MockClientStateManager } from "./MockClientStateManager.ts";
 
+const account = privateKeyToAccount(
+  anvilPrivateKey,
+);
+
+export const testClient = createTestClient({
+  transport: http(),
+  chain: hardhat,
+  mode: "anvil",
+  account: account.address,
+  key: anvilPrivateKey,
+})
+  // Extend the client with public and wallet actions, so it can also act as a Public Client and Wallet Client
+  .extend(publicActions)
+  .extend(walletActions);
+
 export const config = createConfig({
   chains: [mainnet, sepolia, hardhat],
   transports: {
@@ -26,14 +42,14 @@ export const config = createConfig({
     [sepolia.id]: http(),
     [hardhat.id]: http(),
   },
-});
-
-const mockWalletClient = createWalletClient({
-  chain: hardhat,
-  transport: http(),
-  account: privateKeyToAccount(
-    anvilPrivateKey,
-  ),
+  connectors: [
+    mock({
+      accounts: [account.address],
+      features: {
+        defaultConnected: true,
+      },
+    }),
+  ],
 });
 
 export const createClientStateManager = async (
@@ -95,7 +111,7 @@ export const createRouterWrapper = async (
     const queryClient = new QueryClient({
       defaultOptions: {
         queries: {
-          initialData: mockWalletClient,
+          initialData: testClient,
         },
       },
     });
