@@ -281,7 +281,7 @@ export default function ChoosePayment({
         <h1>Choose payment method</h1>
       </div>
       <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
-        <div>
+        <div data-testid="payment-currency">
           <label>Payment currency and chain</label>
           {displayedChains && (
             <Dropdown

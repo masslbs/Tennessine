@@ -7,7 +7,7 @@ export const payees = [
   {
     address: randomAddress(),
     callAsContract: false,
-    chainId: 1,
+    chainId: 31337,
     name: "default",
   },
 ];

@@ -31,10 +31,10 @@ Deno.test("Check that we can render the checkout screen", {
   await csm.stateManager!.manifest.create(
     {
       acceptedCurrencies: [{
-        chainId: 1,
+        chainId: 31337,
         address: addresses.zeroAddress,
       }],
-      pricingCurrency: { chainId: 1, address: addresses.zeroAddress },
+      pricingCurrency: { chainId: 31337, address: addresses.zeroAddress },
       payees,
       shippingRegions,
     },
@@ -106,7 +106,7 @@ Deno.test("Check that we can render the checkout screen", {
     await waitFor(() => {
       const choosePayment = screen.getByTestId("choose-payment");
       expect(choosePayment).toBeTruthy();
-    }, { timeout: 10000 });
+    });
     // Verify order details were saved correctly
     const o = (await csm.stateManager!.orders.get(order.id))!;
     expect(o.shippingDetails).toBeDefined();
@@ -127,6 +127,27 @@ Deno.test("Check that we can render the checkout screen", {
     expect(country).toBe(shippingDetails.country);
     expect(emailAddress).toBe(shippingDetails.email);
     expect(phoneNumber).toBe(shippingDetails.phone);
+  });
+
+  await t.step("Choose payment", async () => {
+    const choosePayment = screen.getByTestId("choose-payment");
+    expect(choosePayment).toBeTruthy();
+    await act(async () => {
+      const paymentCurrency = screen.getByTestId("payment-currency");
+      expect(paymentCurrency).toBeTruthy();
+      const dropdown = paymentCurrency.querySelector(
+        '[data-testid="dropdown"]',
+      ) as HTMLInputElement;
+      await user.click(dropdown);
+    });
+    await act(async () => {
+      const dropdownOptions = screen.getByTestId("dropdown-options");
+      expect(dropdownOptions).toBeTruthy();
+      // // click on the ETH/Hardhat option
+      const option = screen.getByTestId("ETH/Hardhat");
+      expect(option).toBeTruthy();
+      await user.click(option);
+    });
   });
 
   unmount();
