@@ -14,7 +14,10 @@ export default function ErrorMessage({
   if (!errorMessage) return null;
 
   return (
-    <div className="px-4 py-2 bg-error-red text-white font-thin rounded-lg flex items-center">
+    <div
+      className="px-4 py-2 bg-error-red text-white font-thin rounded-lg flex items-center"
+      data-testid="error-message"
+    >
       <p>{errorMessage}</p>
       <button onClick={() => onClose()} className="ml-auto p-0 bg-transparent">
         <div className="bg-white rounded-full w-4 h-4 flex justify-center items-center">

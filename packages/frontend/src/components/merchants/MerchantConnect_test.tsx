@@ -59,12 +59,31 @@ Deno.test("Check that we can render the merchant connect screen", {
     );
     csm.keycard = merchantKeycard!.privateKey;
 
+    // Test invalid shop id
     await act(async () => {
       const searchInput = screen.getByTestId("search-shopId");
       expect(searchInput).toBeTruthy();
+      await user.type(searchInput, `0x${random256BigInt().toString(16)}`);
+    });
+    await act(async () => {
+      const searchButton = screen.getByRole("button", {
+        name: "Search for shop",
+      });
+      expect(searchButton).toBeTruthy();
+      await user.click(searchButton);
+    });
+    await waitFor(async () => {
+      const errorMessage = screen.getByTestId("error-message") as HTMLElement;
+      expect(errorMessage).toBeTruthy();
+      expect(errorMessage.textContent).toBe("Shop not found");
+    });
+
+    // Test valid shop id
+    await act(async () => {
+      const searchInput = screen.getByTestId("search-shopId");
+      expect(searchInput).toBeTruthy();
+      await user.clear(searchInput);
       await user.type(searchInput, `0x${shopId.toString(16)}`);
-      //test that both string and number work
-      // test an invalid shop id
     });
 
     await act(async () => {
