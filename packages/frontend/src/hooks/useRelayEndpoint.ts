@@ -8,7 +8,7 @@ const debug = logger(namespace);
 
 export function useRelayEndpoint() {
   const { result } = useQuery(async () => {
-    if (import.meta.env?.["VITE_RELAY_TOKEN_ID"]) {
+    if (env?.["VITE_RELAY_TOKEN_ID"]) {
       const re = {
         url: new URL(env?.["VITE_RELAY_ENDPOINT"] as string),
         tokenId: env?.["VITE_RELAY_TOKEN_ID"] as `0x${string}`,

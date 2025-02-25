@@ -24,7 +24,10 @@ export class MockClient implements IRelayClient {
   );
   private requestCounter = 1;
   private lastSeqNo = 0;
-
+  public relayEndpoint = {
+    url: "ws://localhost:4444/v3",
+    tokenId: "0x123",
+  };
   encodeAndSendNoWait(_envelope: schema.IEnvelope = {}): schema.RequestId {
     const requestId = { raw: this.requestCounter };
     this.requestCounter++;
