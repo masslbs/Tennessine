@@ -16,6 +16,7 @@ import { useClientWithStateManager } from "../../hooks/useClientWithStateManager
 import { useKeycard } from "../../hooks/useKeycard.ts";
 import { useShopId } from "../../hooks/useShopId.ts";
 import { useChain } from "../../hooks/useChain.ts";
+import { isTest } from "../../utils/helper.ts";
 
 const namespace = "frontend:connect-merchant";
 const debug = logger(namespace);
@@ -139,7 +140,8 @@ export default function MerchantConnect() {
             </div>
             <p className="flex items-center">{shopData.name}</p>
           </div>
-          <ConnectButton />
+          {/* Trying to render rainbowkit with happy-dom errors */}
+          {!isTest() && <ConnectButton chainStatus="name" />}
           <Button disabled={status !== "connected"} onClick={enroll}>
             Connect to shop
           </Button>
