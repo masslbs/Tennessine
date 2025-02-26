@@ -23,7 +23,14 @@ import { MockClientStateManager } from "./MockClientStateManager.ts";
 const account = privateKeyToAccount(
   anvilPrivateKey,
 );
-
+export const connectors = [
+  mock({
+    accounts: [account.address],
+    features: {
+      defaultConnected: true,
+    },
+  }),
+];
 export const testClient = createTestClient({
   transport: http(),
   chain: hardhat,
@@ -42,14 +49,7 @@ export const config = createConfig({
     [sepolia.id]: http(),
     [hardhat.id]: http(),
   },
-  connectors: [
-    mock({
-      accounts: [account.address],
-      features: {
-        defaultConnected: true,
-      },
-    }),
-  ],
+  connectors,
 });
 
 export const createClientStateManager = async (
