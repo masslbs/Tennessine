@@ -20,7 +20,7 @@ import { bytesToHex } from "viem/utils";
 import { privateKeyToAccount } from "viem/accounts";
 import { random256BigInt, random32BytesHex } from "@massmarket/utils";
 import { addresses, anvilPrivateKey2, eddiesAbi } from "@massmarket/contracts";
-import { objectId, priceToUint256 } from "@massmarket/utils";
+import { getWindowLocation, objectId, priceToUint256 } from "@massmarket/utils";
 import {
   approveERC20,
   type ConcreteWalletClient,
@@ -99,14 +99,12 @@ describe({
     let relayClient: RelayClient;
     it("enroll keycard", async () => {
       relayClient = await createRelayClient();
-      const windowLocation = typeof window == "undefined"
-        ? undefined
-        : new URL(globalThis.location.href);
+
       const enrolledResponse = await relayClient.enrollKeycard(
         wallet,
         false,
         shopId,
-        windowLocation,
+        getWindowLocation(),
       );
       expect(enrolledResponse.status).toBe(201);
     });
@@ -191,14 +189,12 @@ describe({
 
       guestRelayClient = await createRelayClient(sk);
       // enroll the guest client
-      const windowLocation = typeof window == "undefined"
-        ? undefined
-        : new URL(globalThis.location.href);
+
       const response = await guestRelayClient.enrollKeycard(
         w,
         true,
         shopId,
-        windowLocation,
+        getWindowLocation(),
       );
       await guestRelayClient.connect();
       await guestRelayClient.authenticate();

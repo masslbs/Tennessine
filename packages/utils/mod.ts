@@ -176,3 +176,9 @@ export function addressesToUint256(addressObject: AddressObj[]) {
 export function random256BigInt() {
   return bytesToBigInt(randomBytes(32));
 }
+
+export function getWindowLocation() {
+  return typeof window == "undefined"
+    ? undefined
+    : new URL(globalThis.location.href);
+}

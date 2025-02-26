@@ -22,7 +22,12 @@ import {
   mintShop,
   setTokenURI,
 } from "@massmarket/blockchain";
-import { assert, logger, random256BigInt } from "@massmarket/utils";
+import {
+  assert,
+  getWindowLocation,
+  logger,
+  random256BigInt,
+} from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 
 import Confirmation from "./CreateShopConfirmation.tsx";
@@ -245,11 +250,12 @@ export default function () {
         throw new Error("Access denied.");
       }
       setStoreRegistrationStatus("Enrolling keycard...");
+
       const res = await clientStateManager!.relayClient.enrollKeycard(
         wallet,
         false,
         shopId!,
-        !isTest() ? new URL(globalThis.location.href) : null,
+        getWindowLocation(),
       );
       //set keycard role to merchant
       setKeycard({ ...keycard, role: "merchant" });
