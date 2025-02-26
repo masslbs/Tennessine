@@ -3,11 +3,12 @@ import { act, cleanup, render, screen } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "jsr:@std/expect";
 import { hardhat } from "wagmi/chains";
+import { connect } from "npm:wagmi/actions";
 
 import { addresses } from "@massmarket/contracts";
 
 import CreateShop from "./CreateShop.tsx";
-import { createRouterWrapper } from "../../../utils/test.tsx";
+import { config, createRouterWrapper } from "../../../utils/test.tsx";
 
 Deno.test("Check that we can render the create shop screen", {
   sanitizeResources: false,
@@ -17,9 +18,12 @@ Deno.test("Check that we can render the create shop screen", {
 
   const { wrapper } = await createRouterWrapper(null, "/create-shop");
   const { unmount } = await render(<CreateShop />, { wrapper });
+  // Set connector chainId to hardhat.
+  await config.connectors[0].connect({ chainId: hardhat.id });
+  await connect(config, { connector: config.connectors[0] });
+
   screen.debug();
   screen.getByTestId("create-shop-page");
-
   await act(async () => {
     const shopName = screen.getByTestId(
       "storeName",
