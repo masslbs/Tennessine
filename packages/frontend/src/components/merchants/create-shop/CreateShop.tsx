@@ -176,16 +176,14 @@ export default function () {
       if (!shopPublicClient) {
         throw new Error("shopPublicClient not found");
       }
-      if (!isTest()) {
-        // This will throw error if simulate fails.
-        await simulateContract(config, {
-          abi: abi.shopRegAbi,
-          address: abi.addresses.ShopReg,
-          functionName: "mint",
-          args: [shopId!, wallet!.account.address],
-          connector,
-        });
-      }
+      // This will throw error if simulate fails.
+      await simulateContract(config, {
+        abi: abi.shopRegAbi,
+        address: abi.addresses.ShopReg,
+        functionName: "mint",
+        args: [shopId!, wallet!.account.address],
+        connector,
+      });
 
       const hash = await mintShop(wallet!, [shopId!, wallet!.account.address]);
       debug(`Mint hash: ${hash}`);
