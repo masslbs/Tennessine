@@ -3,13 +3,12 @@ import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "jsr:@std/expect";
 import { hardhat } from "wagmi/chains";
-import { createConfig, http } from "wagmi";
 
 import { addresses } from "@massmarket/contracts";
 import { random256BigInt, random32BytesHex } from "@massmarket/utils";
 
 import CreateShop from "./CreateShop.tsx";
-import { connectors, createRouterWrapper } from "../../../utils/test.tsx";
+import { createRouterWrapper } from "../../../utils/test.tsx";
 
 Deno.test("Check that we can render the create shop screen", {
   sanitizeResources: false,
@@ -22,25 +21,14 @@ Deno.test("Check that we can render the create shop screen", {
     `keycard${shopId}`,
     JSON.stringify({ privateKey, role: "merchant" }),
   );
+
   const { wrapper, csm } = await createRouterWrapper(
     shopId,
     `/create-shop`,
+    null,
   );
 
   const { unmount } = render(<CreateShop />, { wrapper });
-
-  // Creating a new config here with hardhat only. Else, simulateContract in CreateShop will error.
-  const mockConnectorConfig = createConfig({
-    chains: [hardhat],
-    transports: {
-      [hardhat.id]: http(),
-    },
-    connectors,
-  });
-  // Set connector chainId to hardhat.
-  await mockConnectorConfig.connectors[0].connect({
-    chainId: hardhat.id,
-  });
 
   // This is so that csm doesn't get reset in useClientStateManager while testing, since we need access to the same stateManager.
   csm.keycard = privateKey;

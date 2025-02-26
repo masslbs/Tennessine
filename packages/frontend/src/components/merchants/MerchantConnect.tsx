@@ -17,7 +17,6 @@ import { useClientWithStateManager } from "../../hooks/useClientWithStateManager
 import { useKeycard } from "../../hooks/useKeycard.ts";
 import { useShopId } from "../../hooks/useShopId.ts";
 import { useChain } from "../../hooks/useChain.ts";
-import { isTest } from "../../utils/helper.ts";
 import { SearchShopStep } from "../../types.ts";
 
 const namespace = "frontend:connect-merchant";

@@ -4,13 +4,12 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { act } from "@testing-library/react-hooks";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "jsr:@std/expect";
-import { connect } from "npm:wagmi/actions";
 
 import { random256BigInt, random32BytesHex } from "@massmarket/utils";
 import { mintShop, setTokenURI } from "@massmarket/blockchain";
 
 import MerchantConnect from "./MerchantConnect.tsx";
-import { config, createRouterWrapper, testClient } from "../../utils/test.tsx";
+import { createRouterWrapper, testClient } from "../../utils/test.tsx";
 
 Deno.test("Check that we can render the merchant connect screen", {
   sanitizeResources: false,
@@ -53,7 +52,6 @@ Deno.test("Check that we can render the merchant connect screen", {
 
     expect(transaction.status).toBe("success");
     const { unmount } = render(<MerchantConnect />, { wrapper });
-    await connect(config, { connector: config.connectors[0] });
     const merchantKeycard = JSON.parse(
       localStorage.getItem(`keycard${shopId}`) || "{}",
     );

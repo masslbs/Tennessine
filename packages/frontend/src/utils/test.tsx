@@ -8,6 +8,7 @@ import {
   RouterProvider,
 } from "@tanstack/react-router";
 import { createConfig, http, WagmiProvider } from "wagmi";
+import { connect } from "npm:wagmi/actions";
 import { hardhat, mainnet, sepolia } from "wagmi/chains";
 import { mock } from "npm:wagmi/connectors";
 import { createTestClient, publicActions, walletActions } from "viem";
@@ -28,6 +29,7 @@ export const connectors = [
     accounts: [account.address],
     features: {
       defaultConnected: true,
+      reconnect: true,
     },
   }),
 ];
@@ -41,16 +43,6 @@ export const testClient = createTestClient({
   // Extend the client with public and wallet actions, so it can also act as a Public Client and Wallet Client
   .extend(publicActions)
   .extend(walletActions);
-
-export const config = createConfig({
-  chains: [mainnet, sepolia, hardhat],
-  transports: {
-    [mainnet.id]: http(),
-    [sepolia.id]: http(),
-    [hardhat.id]: http(),
-  },
-  connectors,
-});
 
 export const createClientStateManager = async (
   shopId: bigint | null = null,
@@ -73,7 +65,17 @@ export const createRouterWrapper = async (
   // For example, in EditListing_test.tsx, we need to access the state manager to create a new listing and then use the listing id to set the search param.
   clientStateManager: MockClientStateManager | null = null, // In most cases we don't need to pass clientStateManager separately.
 ) => {
+  const config = createConfig({
+    chains: [hardhat, mainnet, sepolia],
+    transports: {
+      [hardhat.id]: http(),
+      [sepolia.id]: http(),
+      [mainnet.id]: http(),
+    },
+    connectors,
+  });
   const csm = clientStateManager ?? await createClientStateManager(shopId);
+  await connect(config, { connector: config.connectors[0] });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => {
     function RootComponent() {
@@ -115,14 +117,9 @@ export const createRouterWrapper = async (
         ],
       }),
     });
+
     // Set initial data for wallet client
-    const queryClient = new QueryClient({
-      defaultOptions: {
-        queries: {
-          initialData: testClient,
-        },
-      },
-    });
+    const queryClient = new QueryClient();
     return (
       <StrictMode>
         <QueryClientProvider client={queryClient}>

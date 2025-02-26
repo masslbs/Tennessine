@@ -7,7 +7,6 @@ import {
   metadata,
   metadata2,
   payees,
-  shippingDetails,
   shippingRegions,
 } from "@massmarket/schema/testFixtures";
 import { addresses } from "@massmarket/contracts";

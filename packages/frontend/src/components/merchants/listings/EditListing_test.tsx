@@ -2,7 +2,7 @@ import "../../../happyDomSetup.ts";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "jsr:@std/expect";
-import { mainnet, sepolia } from "wagmi/chains";
+import { hardhat, mainnet, sepolia } from "wagmi/chains";
 
 import { random256BigInt } from "@massmarket/utils";
 import { addresses } from "@massmarket/contracts";
@@ -27,7 +27,7 @@ Deno.test("Edit Listing", {
 
   await t.step("Create new listing", async () => {
     const { wrapper, csm } = await createRouterWrapper(null, "/?itemId=new");
-    const { unmount } = await render(<EditListing />, { wrapper });
+    const { unmount } = render(<EditListing />, { wrapper });
     screen.getByTestId("edit-listing-page");
     await act(async () => {
       const titleInput = screen.getByTestId("title");
@@ -94,7 +94,10 @@ Deno.test("Edit Listing", {
           chainId: sepolia.id,
           address: addresses.zeroAddress,
         }],
-        pricingCurrency: { chainId: 1, address: addresses.zeroAddress },
+        pricingCurrency: {
+          chainId: hardhat.id,
+          address: addresses.zeroAddress,
+        },
         payees,
         shippingRegions,
       },

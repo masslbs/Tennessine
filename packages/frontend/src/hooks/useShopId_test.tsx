@@ -1,6 +1,6 @@
+import "../happyDomSetup.ts";
 import { assertEquals } from "jsr:@std/assert";
 import { cleanup, renderHook } from "@testing-library/react-hooks";
-import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
 
 import { random256BigInt } from "@massmarket/utils";
 
@@ -11,11 +11,11 @@ Deno.test(
   "useShopId",
   { sanitizeResources: false, sanitizeOps: false },
   async (t) => {
-    GlobalRegistrator.register({});
     await t.step("should return null if no shopId is provided", async () => {
       const { wrapper } = await createRouterWrapper();
-      const { result } = renderHook(() => useShopId(), { wrapper });
+      const { result, unmount } = renderHook(() => useShopId(), { wrapper });
       assertEquals(result.current.shopId, null);
+      unmount();
     });
     await t.step("should return shopId from search params", async () => {
       const shopId = random256BigInt();
@@ -23,9 +23,8 @@ Deno.test(
       const { result, unmount } = renderHook(() => useShopId(), { wrapper });
       assertEquals(result.current.shopId, shopId);
       unmount();
+      cleanup();
     });
-
     cleanup();
-    await GlobalRegistrator.unregister();
   },
 );
