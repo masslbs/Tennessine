@@ -43,7 +43,7 @@ import { useShopId } from "../../../hooks/useShopId.ts";
 import { useKeycard } from "../../../hooks/useKeycard.ts";
 import { useShopDetails } from "../../../hooks/useShopDetails.ts";
 import { CurrencyChainOption, ShopCurrencies } from "../../../types.ts";
-import { getTokenAddress, isTest, isValidAddress } from "../../../utils/mod.ts";
+import { getTokenAddress, isValidAddress } from "../../../utils/mod.ts";
 import { useChain } from "../../../hooks/useChain.ts";
 
 // When create shop CTA is clicked, these functions are called:
@@ -554,8 +554,7 @@ export default function () {
           {status === "connected"
             ? (
               <div className="flex flex-col gap-4">
-                {/* Trying to render rainbowkit with happy-dom errors */}
-                {!isTest() && <ConnectButton chainStatus="name" />}
+                <ConnectButton chainStatus="name" />
                 <p>{storeRegistrationStatus}</p>
                 {mintedHash && (
                   <a

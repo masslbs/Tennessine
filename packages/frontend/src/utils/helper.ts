@@ -23,8 +23,3 @@ export function multiplyAndFormatUnits(
 ) {
   return formatUnits(BigInt(price) * BigInt(quantity), decimals);
 }
-
-export function isTest() {
-  return env?.["MODE"] !== "development" &&
-    env?.["MODE"] !== "production";
-}
