@@ -6,31 +6,25 @@ import {
   type StoreInterface,
 } from "@nullradix/merkle-dag-builder";
 import jsonpointer from "npm:@sagold/json-pointer";
-import { assert } from "jsr:@std/assert";
 import EventTree from "@massmarket/eventTree";
 import type { RelayClient } from "@massmarket/client";
 import { getSubSchema } from "@massmarket/schema/utils";
-import { type BaseObjectSchema, PatchSchema } from "@massmarket/schema/cbor";
+import {
+  type BaseObjectSchema,
+  PatchSchema,
+  type TPatch,
+} from "@massmarket/schema/cbor";
 
 export type Path = string | string[];
-
-export interface IStateMetadata {
-  root: Link;
-  seqNum: number;
-}
 
 export default class DataBase<
   T extends v.GenericSchema<v.InferInput<typeof BaseObjectSchema>>,
 > {
   readonly events = new EventTree();
-  readonly states: Map<
-    string,
-    IStateMetadata
-  > = new Map();
   readonly graph: Graph;
   readonly clients: Set<RelayClient> = new Set();
   // todo: change to op
-  #streamsControllers: ReadableStreamDefaultController<unknown>[] = [];
+  #streamsControllers: ReadableStreamDefaultController<TPatch>[] = [];
   constructor(
     public params: {
       schema: T;
@@ -41,7 +35,7 @@ export default class DataBase<
     this.graph = new Graph(params);
   }
 
-  async open(id = "local") {
+  async loadState(id = "local") {
     const storedState = await this.graph.getMetaData(id) as
       | { seqNum: number; root: Uint8Array }
       | undefined;
@@ -55,21 +49,20 @@ export default class DataBase<
         seqNum: 0,
         root: new Link({ value: v.getDefaults(this.params.schema) }),
       };
-    this.states.set(id, state);
     return state;
   }
 
   createWriteStream(id: string) {
-    return new WritableStream<v.InferInput<typeof PatchSchema>>({
+    // TODO: handle patch rejection
+    return new WritableStream<TPatch>({
       write: async (patch) => {
         // validate the Operation's schema
         v.parse(PatchSchema, patch);
-        const root = this.states.get(id)?.root;
-        assert(root, "State not found");
-        const validityRange = await this.graph.get(root, [
+        const state = await this.loadState(id);
+        const validityRange = await this.graph.get(state.root, [
           "account",
-          patch.account,
-          patch.keycard,
+          patch.account.toString(), // TODO: properly serialized
+          patch.keycard.toString(),
         ]);
         // TODO: Validate keycard for a given time range
         if (!validityRange) {
@@ -81,8 +74,28 @@ export default class DataBase<
           v.parse(OpValschema, op);
           // apply the operation
           if (op.op === "add") {
-            this.graph.set(root, op.path, op.value);
+            state.root = this.graph.set(state.root, op.path, op.value);
             // TODO
+          } else {
+            throw new Error("Unimplemented operation type");
+          }
+        }
+        // save the patch
+        // TODO: seqentail reads are faster then random,
+        this.graph.setMetaData(
+          [patch.account, patch.keycard, patch.seqNum],
+          patch,
+        );
+        // TODO: check stateroot
+        // apply the patch locally
+        const localState = await this.loadState("local")!;
+        for (const op of patch.ops) {
+          if (op.op === "add") {
+            localState.root = this.graph.set(
+              localState.root,
+              op.path,
+              op.value,
+            );
           } else {
             throw new Error("Unimplemented operation type");
           }
@@ -90,6 +103,7 @@ export default class DataBase<
       },
     });
   }
+
   createReadStream() {
     return new ReadableStream(
       {
@@ -103,7 +117,7 @@ export default class DataBase<
   async addConnection(client: RelayClient) {
     const id = client.relayEndpoint.tokenId;
     this.clients.add(client);
-    const state = await this.open(id);
+    const state = await this.loadState(id);
     this.events.meta.once((_subArray) => {
       // TODO:  implement dynamic subscriptions
       // currently we subscribe to the root when any event is subscribed to
@@ -122,8 +136,7 @@ export default class DataBase<
   async set(path: Path, value: LinkValue, id = "local") {
     const p: string[] = jsonpointer.split(path);
     const schema = getSubSchema(this.params.schema, p);
-    const state = this.states.get(id);
-    assert(state);
+    const state = await this.loadState(id);
     // validate against the schema
     v.parse(schema, value);
     const result = await this.graph.get(state.root, path);
@@ -131,19 +144,37 @@ export default class DataBase<
     // TODO: rename node to value?
     if (result.node !== value) {
       state.root = this.graph.set(state.root, path, value);
+      state.seqNum += 1;
+      const root = await this.graph.merklelize(state.root);
+      // TODO: all the setMetaData ops should be collected
+      const metaPromise = this.graph.setMetaData(id, {
+        seqNum: state.seqNum,
+        root,
+      });
       this.events.emit(path, value);
       // send patch to peers
-      this.#streamsControllers.forEach((controller) =>
-        // TODO: this needs to be a signed OP
-        controller.enqueue({ path, value })
-      );
+      this.#streamsControllers.forEach((controller) => {
+        controller.enqueue({
+          signature: new Uint8Array(32),
+          seqNum: state.seqNum,
+          keycard: new Uint8Array(32),
+          account: new Uint8Array(32),
+          ops: [
+            {
+              op: "add",
+              path: p,
+              value,
+            },
+          ],
+        });
+      });
+      return metaPromise;
     }
   }
 
   async get(path: Path, id = "local"): Promise<LinkValue> {
-    const root = this.states.get(id)?.root;
-    assert(root);
-    const res = await this.graph.get(root, path);
+    const state = await this.loadState(id);
+    const res = await this.graph.get(state.root, path);
     return res.node;
   }
 }

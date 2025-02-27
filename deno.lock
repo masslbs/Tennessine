@@ -5310,6 +5310,16 @@
           "npm:wagmi@^2.14.3"
         ]
       },
+      "packages/merkle-dag-builder": {
+        "dependencies": [
+          "jsr:@noble/hashes@^1.7.1",
+          "jsr:@nullradix/lockmap@~0.2.4",
+          "jsr:@std/assert@^1.0.11",
+          "jsr:@std/cbor@~0.1.6",
+          "npm:@sagold/json-pointer@7",
+          "npm:shallow-clone@^3.0.1"
+        ]
+      },
       "packages/schema": {
         "dependencies": [
           "jsr:@valibot/valibot@~0.42.1",

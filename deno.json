@@ -9,7 +9,8 @@
     "./packages/frontend",
     "./packages/blockchain",
     "./packages/mmr",
-    "./packages/db"
+    "./packages/db",
+    "./packages/merkle-dag-builder"
   ],
   "lint": {
     "rules": {

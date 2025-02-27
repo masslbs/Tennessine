@@ -22,12 +22,11 @@ export const OpSchema = v.intersect([
     }),
   ]),
 ]);
-
 export const PatchSchema = v.object({
-  signature: v.string(),
-  keycard: v.string(),
-  account: v.string(),
-  path: v.array(v.string()),
+  signature: v.instance(Uint8Array),
+  seqNum: v.number(),
+  keycard: v.instance(Uint8Array),
+  account: v.instance(Uint8Array),
   ops: v.array(
     OpSchema,
   ),
