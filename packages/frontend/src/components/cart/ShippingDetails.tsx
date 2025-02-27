@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { assert, logger } from "@massmarket/utils";
 
@@ -23,7 +23,7 @@ export default function ShippingDetails({
   startTimer,
   countdown,
 }: {
-  setStep: Dispatch<SetStateAction<CheckoutStep>>;
+  setStep: (step: CheckoutStep) => void;
   startTimer: () => void;
   countdown: number;
 }) {
@@ -101,7 +101,7 @@ export default function ShippingDetails({
   }
 
   return (
-    <main>
+    <main data-testid="shipping-details">
       <ErrorMessage
         errorMessage={errorMsg}
         onClose={() => {

@@ -42,7 +42,7 @@ export default function ChoosePayment({
   displayedAmount,
   setDisplayedAmount,
 }: {
-  setStep: Dispatch<SetStateAction<CheckoutStep>>;
+  setStep: (step: CheckoutStep) => void;
   displayedAmount: string | null;
   setDisplayedAmount: Dispatch<SetStateAction<string | null>>;
 }) {
@@ -265,7 +265,7 @@ export default function ChoosePayment({
   }
 
   return (
-    <section>
+    <section data-testid="choose-payment">
       <BackButton
         onClick={() => {
           setStep(CheckoutStep.shippingDetails);
@@ -281,7 +281,7 @@ export default function ChoosePayment({
         <h1>Choose payment method</h1>
       </div>
       <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
-        <div>
+        <div data-testid="payment-currency">
           <label>Payment currency and chain</label>
           {displayedChains && (
             <Dropdown

@@ -99,7 +99,7 @@ export default function OrderDetails() {
     const values: CartItem[] = Array.from(orderItems.values());
     return values.map((listing: CartItem) => {
       return (
-        <div key={listing.id} className="flex gap-4">
+        <div key={listing.id} className="flex gap-4" data-testid="order-item">
           <img
             src={listing.metadata.images[0] || "/assets/no-image.png"}
             width={48}
@@ -107,7 +107,7 @@ export default function OrderDetails() {
             alt="product-thumb"
             className="w-12 h-12 object-cover object-center rounded-lg"
           />
-          <h3>{listing.metadata.title}</h3>
+          <h3 data-testid="item-title">{listing.metadata.title}</h3>
         </div>
       );
     });
@@ -132,7 +132,10 @@ export default function OrderDetails() {
       </section>
       {order.shippingDetails
         ? (
-          <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
+          <section
+            className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg"
+            data-testid="shipping-details"
+          >
             <h2>Shipping Details</h2>
             <div className="flex gap-2">
               <h3>Name</h3>

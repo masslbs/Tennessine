@@ -261,6 +261,7 @@ function Navigation() {
           className={`flex gap-6 p-2`}
         >
           <button
+            data-testid="cart-toggle"
             className={`relative bg-transparent p-0 ${
               isMerchantView ? "hidden" : ""
             }`}

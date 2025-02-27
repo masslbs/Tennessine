@@ -37,6 +37,8 @@ export function useCurrentOrder() {
       case OrderEventTypes.COMMIT_ITEMS:
         onCommit(order);
         break;
+      default:
+        break;
     }
   }
 

@@ -45,7 +45,6 @@ import { useShopDetails } from "../../../hooks/useShopDetails.ts";
 import { CurrencyChainOption, ShopCurrencies } from "../../../types.ts";
 import { getTokenAddress, isValidAddress } from "../../../utils/mod.ts";
 import { useChain } from "../../../hooks/useChain.ts";
-
 // When create shop CTA is clicked, these functions are called:
 // 1. mintShop
 // 2. enrollConnectAuthenticate

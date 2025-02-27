@@ -8,6 +8,7 @@ import {
   RouterProvider,
 } from "@tanstack/react-router";
 import { createConfig, http, WagmiProvider } from "wagmi";
+import { connect } from "wagmi/actions";
 import { hardhat, mainnet, sepolia } from "wagmi/chains";
 import { mock } from "npm:wagmi/connectors";
 import { createTestClient, publicActions, walletActions } from "viem";
@@ -28,6 +29,7 @@ export const connectors = [
     accounts: [account.address],
     features: {
       defaultConnected: true,
+      reconnect: true,
     },
   }),
 ];
@@ -42,21 +44,11 @@ export const testClient = createTestClient({
   .extend(publicActions)
   .extend(walletActions);
 
-export const config = createConfig({
-  chains: [mainnet, sepolia, hardhat],
-  transports: {
-    [mainnet.id]: http(),
-    [sepolia.id]: http(),
-    [hardhat.id]: http(),
-  },
-  connectors,
-});
-
 export const createClientStateManager = async (
-  shopId: string | null = null,
+  shopId: bigint | null = null,
 ) => {
   const csm = new MockClientStateManager(
-    shopId || "0x123",
+    shopId,
   );
   await csm.createStateManager();
   // Add test keycard for event verification
@@ -67,13 +59,23 @@ export const createClientStateManager = async (
 };
 
 export const createRouterWrapper = async (
-  shopId: string | null = null,
+  shopId: bigint | null = null,
   path: string = "/",
   // The only case clientStateManager needs to be passed here is if we need access to the state manager before the router is created.
   // For example, in EditListing_test.tsx, we need to access the state manager to create a new listing and then use the listing id to set the search param.
   clientStateManager: MockClientStateManager | null = null, // In most cases we don't need to pass clientStateManager separately.
 ) => {
+  const config = createConfig({
+    chains: [hardhat, mainnet, sepolia],
+    transports: {
+      [hardhat.id]: http(),
+      [sepolia.id]: http(),
+      [mainnet.id]: http(),
+    },
+    connectors,
+  });
   const csm = clientStateManager ?? await createClientStateManager(shopId);
+  await connect(config, { connector: config.connectors[0] });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => {
     function RootComponent() {
@@ -97,24 +99,27 @@ export const createRouterWrapper = async (
       path: "/merchant-connect",
       component: () => <>{children}</>,
     });
+    const checkoutRoute = createRoute({
+      getParentRoute: () => rootRoute,
+      path: "/checkout",
+      component: () => <>{children}</>,
+    });
     const router = createRouter({
       routeTree: rootRoute.addChildren([
         componentRoute,
         createShopRoute,
         merchantConnectRoute,
+        checkoutRoute,
       ]),
       history: createMemoryHistory({
-        initialEntries: [shopId ? `${path}?shopId=${shopId}` : path],
+        initialEntries: [
+          shopId ? `${path}?shopId=0x${shopId.toString(16)}` : path,
+        ],
       }),
     });
+
     // Set initial data for wallet client
-    const queryClient = new QueryClient({
-      defaultOptions: {
-        queries: {
-          initialData: testClient,
-        },
-      },
-    });
+    const queryClient = new QueryClient();
     return (
       <StrictMode>
         <QueryClientProvider client={queryClient}>

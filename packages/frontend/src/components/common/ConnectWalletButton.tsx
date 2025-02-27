@@ -4,7 +4,7 @@ export default function ConnectWalletButton() {
   const { openConnectModal } = useConnectModal();
   return (
     <button
-      data-testid="connect-wallet"
+      data-testid="rainbowkit-connect-wallet"
       className="rounded-lg flex flex-col items-center gap-2 p-0 bg-transparent"
       onClick={openConnectModal}
     >

@@ -81,7 +81,7 @@ export default function MerchantViewProducts({
   }
 
   return (
-    <section className="mx-5 pt-3">
+    <section className="mx-5 pt-3" data-testid="merchant-view-listings">
       <div className="flex">
         <h1 className="grow flex items-center">Manage Products</h1>
         <Button custom="w-30">

@@ -14,7 +14,7 @@ export default function Confirmation() {
   }
 
   return (
-    <main className="p-4 pt-under-nav">
+    <main className="p-4 pt-under-nav" data-testid="mint-shop-confirmation">
       <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg items-center">
         <img
           src="/icons/smiley.svg"

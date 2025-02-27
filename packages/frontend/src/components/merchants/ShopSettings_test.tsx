@@ -16,7 +16,8 @@ Deno.test("Check that we can render the shop settings screen", {
   sanitizeOps: false,
 }, async (t) => {
   const user = userEvent.setup();
-  const { wrapper, csm } = await createRouterWrapper(null);
+
+  const { wrapper, csm } = await createRouterWrapper();
   await csm.stateManager!.manifest.create(
     {
       acceptedCurrencies: [{
@@ -26,13 +27,13 @@ Deno.test("Check that we can render the shop settings screen", {
         chainId: sepolia.id,
         address: addresses.zeroAddress,
       }],
-      pricingCurrency: { chainId: 1, address: addresses.zeroAddress },
+      pricingCurrency: { chainId: mainnet.id, address: addresses.zeroAddress },
       payees,
       shippingRegions,
     },
     random256BigInt(),
   );
-  const { unmount } = await render(<ShopSettings />, { wrapper });
+  const { unmount } = render(<ShopSettings />, { wrapper });
   screen.getByTestId("shop-settings-page");
 
   await t.step("Check that manifest data is rendered correctly", async () => {

@@ -10,12 +10,14 @@ import { useNavigate } from "@tanstack/react-router";
 import * as abi from "@massmarket/contracts";
 import { assert, logger, random32BytesHex } from "@massmarket/utils";
 
+import ConnectConfirmation from "./ConnectConfirmation.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import Button from "../common/Button.tsx";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 import { useKeycard } from "../../hooks/useKeycard.ts";
 import { useShopId } from "../../hooks/useShopId.ts";
 import { useChain } from "../../hooks/useChain.ts";
+import { SearchShopStep } from "../../types.ts";
 
 const namespace = "frontend:connect-merchant";
 const debug = logger(namespace);
@@ -32,8 +34,8 @@ export default function MerchantConnect() {
   const navigate = useNavigate({ from: "/merchant-connect" });
 
   const [searchShopId, setSearchShopId] = useState<string>("");
-  const [step, setStep] = useState<"search" | "connect">(
-    "search",
+  const [step, setStep] = useState<SearchShopStep>(
+    SearchShopStep.Search,
   );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [shopData, setShopData] = useState<
@@ -56,7 +58,7 @@ export default function MerchantConnect() {
 
   function handleClearShopIdInput() {
     setSearchShopId("");
-    setStep("search");
+    setStep(SearchShopStep.Search);
   }
 
   async function handleSearchForShop() {
@@ -75,7 +77,7 @@ export default function MerchantConnect() {
         navigate({
           search: { shopId: searchShopId },
         });
-        setStep("connect");
+        setStep(SearchShopStep.Connect);
       } else {
         setErrorMsg("Shop not found");
       }
@@ -104,12 +106,7 @@ export default function MerchantConnect() {
         debug("RelayClient connected");
         await clientStateManager!.sendMerchantSubscriptionRequest();
         debug("Merchant subscription request sent");
-        navigate({
-          to: "/connect-confirm",
-          search: {
-            shopId: `0x${shopId!.toString(16)}`,
-          },
-        });
+        setStep(SearchShopStep.Confirm);
       } else {
         throw new Error("Failed to enroll keycard");
       }
@@ -121,9 +118,9 @@ export default function MerchantConnect() {
   }
 
   function getButton() {
-    if (step === "search") {
+    if (step === SearchShopStep.Search) {
       return <Button onClick={handleSearchForShop}>Search for shop</Button>;
-    } else if (shopData && step === "connect") {
+    } else if (shopData && step === SearchShopStep.Connect) {
       return (
         <div className="flex flex-col gap-4">
           <div className="flex gap-3">
@@ -137,7 +134,9 @@ export default function MerchantConnect() {
                 className="w-12 h-12"
               />
             </div>
-            <p className="flex items-center">{shopData.name}</p>
+            <p className="flex items-center" data-testid="shop-name">
+              {shopData.name}
+            </p>
           </div>
           <ConnectButton chainStatus="name" />
           <Button disabled={status !== "connected"} onClick={enroll}>
@@ -153,42 +152,49 @@ export default function MerchantConnect() {
       className="pt-under-nav h-screen p-4 mt-5"
       data-testid="merchant-connect-page"
     >
-      <ErrorMessage
-        errorMessage={errorMsg}
-        onClose={() => {
-          setErrorMsg(null);
-        }}
-      />
-      <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
-        <h1>Connect to your shop</h1>
-        <form className="flex flex-col" onSubmit={(e) => e.preventDefault()}>
-          <label className="font-medium" htmlFor="searchShopId">
-            Shop ID
-          </label>
-          <div className="flex gap-2">
-            <input
-              className="border-2 border-solid mt-1 p-2 rounded-md bg-background-gray grow"
-              data-testid="searchShopId"
-              name="searchShopId"
-              value={searchShopId}
-              onChange={(e) => setSearchShopId(e.target.value)}
-            />
-            <button
-              onClick={handleClearShopIdInput}
-              className="bg-transparent p-0"
+      {step === SearchShopStep.Confirm ? <ConnectConfirmation /> : (
+        <section>
+          <ErrorMessage
+            errorMessage={errorMsg}
+            onClose={() => {
+              setErrorMsg(null);
+            }}
+          />
+          <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
+            <h1>Connect to your shop</h1>
+            <form
+              className="flex flex-col"
+              onSubmit={(e) => e.preventDefault()}
             >
-              <img
-                src={`/icons/close-icon.svg`}
-                width={15}
-                height={15}
-                alt="close-icon"
-                className="w-4 h-4"
-              />
-            </button>
-          </div>
-        </form>
-        {getButton()}
-      </section>
+              <label className="font-medium" htmlFor="searchShopId">
+                Shop ID
+              </label>
+              <div className="flex gap-2">
+                <input
+                  className="border-2 border-solid mt-1 p-2 rounded-md bg-background-gray grow"
+                  data-testid="search-shopId"
+                  name="searchShopId"
+                  value={searchShopId}
+                  onChange={(e) => setSearchShopId(e.target.value)}
+                />
+                <button
+                  onClick={handleClearShopIdInput}
+                  className="bg-transparent p-0"
+                >
+                  <img
+                    src={`/icons/close-icon.svg`}
+                    width={15}
+                    height={15}
+                    alt="close-icon"
+                    className="w-4 h-4"
+                  />
+                </button>
+              </div>
+            </form>
+            {getButton()}
+          </section>
+        </section>
+      )}
     </main>
   );
 }

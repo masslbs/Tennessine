@@ -206,7 +206,7 @@ export default function Cart({
       if (!item.selectedQty) return null;
 
       return (
-        <div key={item.id} className="flex">
+        <div key={item.id} className="flex" data-testid="cart-item">
           <div className="flex justify-center h-28" data-testid={`product-img`}>
             <img
               src={item.metadata.images[0] || "/assets/no-image.png"}
@@ -223,6 +223,7 @@ export default function Cart({
               </h3>
               <button
                 onClick={() => removeItem(item.id, item.selectedQty)}
+                data-testid={`remove-item-${item.id}`}
                 className="ml-auto bg-transparent p-0"
               >
                 <img
@@ -239,6 +240,7 @@ export default function Cart({
               <div className="flex gap-2 items-center">
                 <button
                   onClick={() => removeQuantity(item.id)}
+                  data-testid={`remove-quantity-${item.id}`}
                   className="ml-auto bg-transparent p-0"
                 >
                   <img
@@ -249,9 +251,10 @@ export default function Cart({
                     className="w-5 h-5 max-h-5"
                   />
                 </button>
-                <p>{item.selectedQty}</p>
+                <p data-testid={`quantity-${item.id}`}>{item.selectedQty}</p>
                 <button
                   onClick={() => addQuantity(item.id)}
+                  data-testid={`add-quantity-${item.id}`}
                   className="ml-auto bg-transparent p-0"
                 >
                   <img
@@ -300,13 +303,14 @@ export default function Cart({
             height={20}
             className="w-5 h-5 max-h-5"
           />
-          <h1>{calculateTotal()}</h1>
+          <h1 data-testid="total-price">{calculateTotal()}</h1>
         </div>
       </div>
       <div className="flex gap-4 mt-2">
         <Button
           disabled={!orderId || !cartItemsMap.size || !onCheckout}
           onClick={() => handleCheckout(orderId!)}
+          data-testid="checkout-button"
         >
           <div className="flex items-center gap-2">
             <p>Checkout</p>
@@ -326,6 +330,7 @@ export default function Cart({
         <Button
           disabled={!orderId || !cartItemsMap.size}
           onClick={clearCart}
+          data-testid="clear-cart"
           custom="bg-gray-200 text-black"
         >
           Clear basket

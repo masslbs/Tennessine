@@ -1,6 +1,7 @@
 import { assertEquals } from "jsr:@std/assert";
 import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
 import { cleanup, renderHook, waitFor } from "@testing-library/react";
+import { hardhat } from "wagmi/chains";
 
 import { addresses } from "@massmarket/contracts";
 import { payees, shippingRegions } from "@massmarket/schema/testFixtures";
@@ -19,18 +20,20 @@ Deno.test("useBaseToken", {
     const { wrapper, csm } = await createRouterWrapper();
     await csm.stateManager!.manifest.create({
       acceptedCurrencies: [{
-        chainId: 1,
+        chainId: hardhat.id,
         address: addresses.zeroAddress,
       }],
-      pricingCurrency: { chainId: 1, address: addresses.zeroAddress },
+      pricingCurrency: { chainId: hardhat.id, address: addresses.zeroAddress },
       payees,
       shippingRegions,
     }, random256BigInt());
     const { result, unmount } = renderHook(() => useBaseToken(), {
       wrapper,
     });
+
     await waitFor(() => {
       const { baseToken } = result.current;
+
       assertEquals(baseToken.symbol, "ETH");
       assertEquals(baseToken.decimals, 18);
     });

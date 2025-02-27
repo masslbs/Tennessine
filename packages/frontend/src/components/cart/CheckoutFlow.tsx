@@ -33,12 +33,8 @@ export default function CheckoutFlow() {
 
   const search = useSearch({ strict: false });
   const navigate = useNavigate();
+  const step = search?.step as CheckoutStep || CheckoutStep.cart;
 
-  const stepParam = search?.step as CheckoutStep;
-
-  const [step, setStep] = useState<CheckoutStep>(
-    stepParam ?? CheckoutStep.cart,
-  );
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [txHash, setTxHash] = useState<null | `0x${string}`>(null);
   const [blockHash, setBlockHash] = useState<null | `0x${string}`>(null);
@@ -91,8 +87,7 @@ export default function CheckoutFlow() {
     };
   });
 
-  function onNextStep(step: CheckoutStep) {
-    setStep(step);
+  function setStep(step: CheckoutStep) {
     navigate({
       to: "/checkout",
       search: (prev: Record<string, string>) => ({
@@ -160,7 +155,7 @@ export default function CheckoutFlow() {
     if (step === CheckoutStep.shippingDetails) {
       return (
         <ShippingDetails
-          setStep={onNextStep}
+          setStep={setStep}
           startTimer={startTimer}
           countdown={countdown}
         />
@@ -168,7 +163,7 @@ export default function CheckoutFlow() {
     } else if (step === CheckoutStep.paymentDetails) {
       return (
         <ChoosePayment
-          setStep={onNextStep}
+          setStep={setStep}
           setDisplayedAmount={setDisplayedAmount}
           displayedAmount={displayedAmount}
         />
