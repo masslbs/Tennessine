@@ -40,7 +40,7 @@
     "react-dom": "npm:react-dom@^18.3.1",
     "vite": "npm:vite@^5.4.9",
     "vite-plugin-node-polyfills": "npm:vite-plugin-node-polyfills@^0.22.0",
-    "wagmi": "npm:wagmi@^2.14.3",
+    "wagmi": "npm:wagmi@^2.14.12",
     "@uidotdev/usehooks": "npm:@uidotdev/usehooks@^2.4.1"
   }
 }

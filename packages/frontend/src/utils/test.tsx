@@ -8,7 +8,7 @@ import {
   RouterProvider,
 } from "@tanstack/react-router";
 import { createConfig, http, WagmiProvider } from "wagmi";
-import { connect } from "npm:wagmi/actions";
+import { connect } from "wagmi/actions";
 import { hardhat, mainnet, sepolia } from "wagmi/chains";
 import { mock } from "npm:wagmi/connectors";
 import { createTestClient, publicActions, walletActions } from "viem";
