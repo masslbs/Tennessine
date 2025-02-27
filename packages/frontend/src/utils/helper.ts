@@ -1,5 +1,4 @@
 import { formatUnits } from "viem";
-import { env } from "./env.ts";
 
 export async function asyncIteratorToMap<K, V>(
   iterator: () => AsyncIterable<[K, V]>,
