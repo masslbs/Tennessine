@@ -42,29 +42,29 @@ export const BaseObjectSchema = v.object({
   ),
 });
 
+const CurrencySchema = v.object({
+  ChainID: v.number(),
+  Address: v.string(),
+});
+
 export const ShopSchema = v.object({
   ...BaseObjectSchema.entries,
   Manifest: v.object({
-    ShopId: v.number(),
+    ShopID: v.bigint(),
     Payees: v.record(
       v.string(),
       v.object({
-        Address: v.object({
-          ChainId: v.number(),
-          Address: v.string(),
-        }),
+        Address: CurrencySchema,
         CallAsContract: v.boolean(),
       }),
     ),
-    PriceingCurrency: v.object({
-      ChainID: v.number(),
-      Address: v.string(),
-    }),
+    AcceptedCurrencies: v.array(CurrencySchema),
+    PricingCurrency: CurrencySchema,
     ShippingRegions: v.record(
       v.string(),
       v.object({
         Country: v.string(),
-        PostCode: v.string(),
+        Postcode: v.string(),
         City: v.string(),
         PriceModifier: v.optional(v.number()),
       }),

@@ -137,9 +137,13 @@ export class Graph {
   }
 
   /** This method retrieves data in the underlying store */
-  async getMetaData<T extends CborType = CborType>(key: CborType): Promise<T> {
+  async getMetaData<T extends CborType = CborType>(
+    key: CborType,
+  ): Promise<T | undefined> {
     const cbor = await this.store.get(encodeCbor(key));
-    return decodeCbor(cbor!) as T;
+    if (cbor) {
+      return decodeCbor(cbor) as T;
+    }
   }
 
   /** An async generator that walks a given path, returning a `node`, the node's `parent`, the `name` of the edge and `remainderPath` for each edge traversed in the graph */

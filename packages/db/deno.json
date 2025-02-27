@@ -3,7 +3,6 @@
   "version": "0.0.1",
   "exports": "./mod.ts",
   "imports": {
-    "@valibot/valibot": "jsr:@valibot/valibot@^0.42.1",
-    "@nullradix/merkle-dag-builder": "jsr:@nullradix/merkle-dag-builder@^0.0.4"
+    "@valibot/valibot": "jsr:@valibot/valibot@^0.42.1"
   }
 }

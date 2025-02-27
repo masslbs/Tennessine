@@ -4,7 +4,7 @@ import {
   Link,
   type LinkValue,
   type StoreInterface,
-} from "@nullradix/merkle-dag-builder";
+} from "@massmarket/merkle-dag-builder";
 import jsonpointer from "npm:@sagold/json-pointer";
 import EventTree from "@massmarket/eventTree";
 import type { RelayClient } from "@massmarket/client";
@@ -16,6 +16,7 @@ import {
 } from "@massmarket/schema/cbor";
 
 export type Path = string | string[];
+export type IStoredState = { seqNum: number; root: Uint8Array };
 
 export default class DataBase<
   T extends v.GenericSchema<v.InferInput<typeof BaseObjectSchema>>,
@@ -23,21 +24,23 @@ export default class DataBase<
   readonly events = new EventTree();
   readonly graph: Graph;
   readonly clients: Set<RelayClient> = new Set();
-  // todo: change to op
   #streamsControllers: ReadableStreamDefaultController<TPatch>[] = [];
   constructor(
     public params: {
       schema: T;
       store: StoreInterface;
-      id: number;
+      objectId: bigint;
     },
   ) {
     this.graph = new Graph(params);
   }
 
-  async loadState(id = "local") {
-    const storedState = await this.graph.getMetaData(id) as
-      | { seqNum: number; root: Uint8Array }
+  async loadState(view = "local") {
+    const storedState = await this.graph.getMetaData([
+      this.params.objectId,
+      view,
+    ]) as
+      | IStoredState
       | undefined;
 
     const state = storedState
@@ -50,6 +53,13 @@ export default class DataBase<
         root: new Link({ value: v.getDefaults(this.params.schema) }),
       };
     return state;
+  }
+
+  #saveState(state: IStoredState, view = "local") {
+    return this.graph.setMetaData([
+      this.params.objectId,
+      view,
+    ], state);
   }
 
   createWriteStream(id: string) {
@@ -118,13 +128,11 @@ export default class DataBase<
     const id = client.relayEndpoint.tokenId;
     this.clients.add(client);
     const state = await this.loadState(id);
-    this.events.meta.once((_subArray) => {
-      // TODO:  implement dynamic subscriptions
-      // currently we subscribe to the root when any event is subscribed to
-      const remoteReadable = client.createSubscriptionStream("/", state.seqNum);
-      const ourWritable = this.createWriteStream(id);
-      remoteReadable.pipeTo(ourWritable);
-    });
+    // TODO:  implement dynamic subscriptions
+    // currently we subscribe to the root when any event is subscribed to
+    const remoteReadable = client.createSubscriptionStream("/", state.seqNum);
+    const ourWritable = this.createWriteStream(id);
+    remoteReadable.pipeTo(ourWritable);
 
     // pipe our changes to the relay
     const remoteWritable = client.createWriteStream();
@@ -135,10 +143,11 @@ export default class DataBase<
   // TODO: rename LinkValue to NodeValue ?
   async set(path: Path, value: LinkValue, id = "local") {
     const p: string[] = jsonpointer.split(path);
+    // TODO: it would be nice to get the type instead of just generic
     const schema = getSubSchema(this.params.schema, p);
-    const state = await this.loadState(id);
     // validate against the schema
     v.parse(schema, value);
+    const state = await this.loadState(id);
     const result = await this.graph.get(state.root, path);
     //ignore sets that do not change the value
     // TODO: rename node to value?
@@ -147,7 +156,7 @@ export default class DataBase<
       state.seqNum += 1;
       const root = await this.graph.merklelize(state.root);
       // TODO: all the setMetaData ops should be collected
-      const metaPromise = this.graph.setMetaData(id, {
+      const metaPromise = this.#saveState({
         seqNum: state.seqNum,
         root,
       });

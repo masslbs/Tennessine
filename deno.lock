@@ -5,12 +5,12 @@
     "jsr:@nullradix/ipld-cbor-graph-builder@3.0.0": "3.0.0",
     "jsr:@nullradix/lockmap@~0.2.4": "0.2.4",
     "jsr:@nullradix/merkle-dag-builder@*": "0.0.0",
-    "jsr:@nullradix/merkle-dag-builder@^0.0.4": "0.0.4",
     "jsr:@std/assert@*": "1.0.11",
     "jsr:@std/assert@^1.0.11": "1.0.11",
     "jsr:@std/assert@^1.0.7": "1.0.8",
     "jsr:@std/assert@^1.0.8": "1.0.8",
     "jsr:@std/bytes@^1.0.4": "1.0.5",
+    "jsr:@std/cbor@*": "0.1.6",
     "jsr:@std/cbor@~0.1.6": "0.1.6",
     "jsr:@std/expect@*": "1.0.13",
     "jsr:@std/internal@^1.0.5": "1.0.5",
@@ -118,18 +118,7 @@
         "jsr:@noble/hashes@^1.7.1",
         "jsr:@nullradix/lockmap",
         "jsr:@std/assert@^1.0.11",
-        "jsr:@std/cbor",
-        "npm:@sagold/json-pointer@7",
-        "npm:shallow-clone"
-      ]
-    },
-    "@nullradix/merkle-dag-builder@0.0.4": {
-      "integrity": "0959708d4176e14333202fb187fd2d576fc817c0d2bdb88a97aef3c07561f580",
-      "dependencies": [
-        "jsr:@noble/hashes@^1.7.1",
-        "jsr:@nullradix/lockmap",
-        "jsr:@std/assert@^1.0.11",
-        "jsr:@std/cbor",
+        "jsr:@std/cbor@~0.1.6",
         "npm:@sagold/json-pointer@7",
         "npm:shallow-clone"
       ]
@@ -5275,7 +5264,6 @@
       },
       "packages/db": {
         "dependencies": [
-          "jsr:@nullradix/merkle-dag-builder@^0.0.4",
           "jsr:@valibot/valibot@~0.42.1"
         ]
       },
