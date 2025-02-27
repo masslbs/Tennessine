@@ -6,7 +6,13 @@ import { ChangeEvent, useEffect, useState } from "react";
 import { ConnectButton, useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { privateKeyToAccount } from "viem/accounts";
-import { useAccount, useChains, useConfig, useWalletClient } from "wagmi";
+import {
+  useAccount,
+  useChains,
+  useConfig,
+  usePublicClient,
+  useWalletClient,
+} from "wagmi";
 import { simulateContract } from "@wagmi/core";
 import { hardhat } from "wagmi/chains";
 
@@ -16,7 +22,12 @@ import {
   mintShop,
   setTokenURI,
 } from "@massmarket/blockchain";
-import { assert, logger, random256BigInt } from "@massmarket/utils";
+import {
+  assert,
+  getWindowLocation,
+  logger,
+  random256BigInt,
+} from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 
 import Confirmation from "./CreateShopConfirmation.tsx";
@@ -28,12 +39,12 @@ import AvatarUpload from "../../common/AvatarUpload.tsx";
 import Dropdown from "../../common/CurrencyDropdown.tsx";
 import ConnectWalletButton from "../../common/ConnectWalletButton.tsx";
 import { useClientWithStateManager } from "../../../hooks/useClientWithStateManager.ts";
-import { usePublicClient } from "../../../hooks/usePublicClient.ts";
 import { useShopId } from "../../../hooks/useShopId.ts";
 import { useKeycard } from "../../../hooks/useKeycard.ts";
 import { useShopDetails } from "../../../hooks/useShopDetails.ts";
 import { CurrencyChainOption, ShopCurrencies } from "../../../types.ts";
 import { getTokenAddress, isValidAddress } from "../../../utils/mod.ts";
+import { useChain } from "../../../hooks/useChain.ts";
 
 // When create shop CTA is clicked, these functions are called:
 // 1. mintShop
@@ -49,7 +60,8 @@ export default function () {
   const chains = useChains();
   const addRecentTransaction = useAddRecentTransaction();
   const { status } = useAccount();
-  const { shopPublicClient } = usePublicClient();
+  const { chain } = useChain();
+  const shopPublicClient = usePublicClient({ chainId: chain.id });
   const { data: wallet } = useWalletClient();
   const { shopId } = useShopId();
   const { setShopDetails } = useShopDetails();
@@ -177,7 +189,10 @@ export default function () {
         args: [shopId!, wallet!.account.address],
         connector,
       });
+
       const hash = await mintShop(wallet!, [shopId!, wallet!.account.address]);
+      debug(`Mint hash: ${hash}`);
+
       addRecentTransaction({
         hash,
         description: "Mint Shop",
@@ -226,7 +241,7 @@ export default function () {
   async function enrollConnectAuthenticate() {
     setStoreRegistrationStatus("Checking permissions...");
     try {
-      const hasAccess = await checkPermissions(shopPublicClient, [
+      const hasAccess = await checkPermissions(shopPublicClient!, [
         shopId!,
         wallet!.account.address,
         abi.permissions.updateRootHash,
@@ -235,11 +250,12 @@ export default function () {
         throw new Error("Access denied.");
       }
       setStoreRegistrationStatus("Enrolling keycard...");
+
       const res = await clientStateManager!.relayClient.enrollKeycard(
         wallet,
         false,
         shopId!,
-        new URL(globalThis.location.href),
+        getWindowLocation(),
       );
       //set keycard role to merchant
       setKeycard({ ...keycard, role: "merchant" });
@@ -542,7 +558,9 @@ export default function () {
                 <p>{storeRegistrationStatus}</p>
                 {mintedHash && (
                   <a
-                    href={`${shopPublicClient.chain.blockExplorers?.default?.url}/tx/${mintedHash}`}
+                    href={`${
+                      shopPublicClient!.chain.blockExplorers?.default?.url
+                    }/tx/${mintedHash}`}
                   >
                     View TX
                   </a>

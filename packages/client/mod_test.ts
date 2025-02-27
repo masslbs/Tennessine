@@ -17,6 +17,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { beforeAll, beforeEach, describe, test } from "jsr:@std/testing/bdd";
 import { expect } from "jsr:@std/expect";
 import {
+  getWindowLocation,
   objectId,
   priceToUint256,
   random256BigInt,
@@ -39,9 +40,7 @@ import {
 
 import { discoverRelay, RelayClient } from "./mod.ts";
 
-const windowLocation = typeof window == "undefined"
-  ? undefined
-  : new URL(globalThis.location.href);
+const windowLocation = getWindowLocation();
 // this key is from one of anvil's default keypairs
 const account = privateKeyToAccount(anvilPrivateKey);
 

@@ -3,11 +3,12 @@ import { act, cleanup, render, screen } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "jsr:@std/expect";
 import { hardhat } from "wagmi/chains";
+import { createConfig, http } from "wagmi";
 
 import { addresses } from "@massmarket/contracts";
 
 import CreateShop from "./CreateShop.tsx";
-import { createRouterWrapper } from "../../../utils/test.tsx";
+import { connectors, createRouterWrapper } from "../../../utils/test.tsx";
 
 Deno.test("Check that we can render the create shop screen", {
   sanitizeResources: false,
@@ -16,10 +17,23 @@ Deno.test("Check that we can render the create shop screen", {
   const user = userEvent.setup();
 
   const { wrapper } = await createRouterWrapper(null, "/create-shop");
-  const { unmount } = await render(<CreateShop />, { wrapper });
+  const { unmount } = render(<CreateShop />, { wrapper });
+
+  // Creating a new config here with hardhat only. Else, simulateContract in CreateShop will error.
+  const mockConnectorConfig = createConfig({
+    chains: [hardhat],
+    transports: {
+      [hardhat.id]: http(),
+    },
+    connectors,
+  });
+  // Set connector chainId to hardhat.
+  await mockConnectorConfig.connectors[0].connect({
+    chainId: hardhat.id,
+  });
+
   screen.debug();
   screen.getByTestId("create-shop-page");
-
   await act(async () => {
     const shopName = screen.getByTestId(
       "storeName",
