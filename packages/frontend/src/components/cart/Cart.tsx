@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useState } from "react";
+import { formatUnits } from "viem";
 
 import { assert, logger } from "@massmarket/utils";
 
@@ -27,8 +28,12 @@ const logerr = logger(namespace, "error");
 
 export default function Cart({
   onCheckout,
+  closeBasket,
+  showActionButtons = true,
 }: {
   onCheckout?: (orderId: OrderId) => Promise<void>;
+  closeBasket?: () => void;
+  showActionButtons?: boolean;
 }) {
   const { currentOrder } = useCurrentOrder();
   const { baseToken } = useBaseToken();
@@ -78,15 +83,18 @@ export default function Cart({
     // Get price and metadata for all the selected items in the order.
     const itemIds = Object.keys(ci);
     await Promise.all(
-      itemIds.map((id) =>
-        clientStateManager!.stateManager.listings.get(id as ListingId)
+      itemIds.map((id) => {
+        // If the selected quantity is 0, don't add the item to the cart object..
+        const selectedQty = ci[id as ListingId];
+        if (selectedQty === 0) return;
+        return clientStateManager!.stateManager.listings.get(id as ListingId)
           .then((item: Listing) => {
             cartObjects.set(id, {
               ...item,
-              selectedQty: ci[id as ListingId],
+              selectedQty,
             });
-          })
-      ),
+          });
+      }),
     );
     return cartObjects;
   }
@@ -104,6 +112,7 @@ export default function Cart({
         setErrorMsg("Not enough stock. Cart cleared.");
         await clearCart();
       } else {
+        setErrorMsg("Error during checkout");
         logerr("Error during checkout", error);
       }
     }
@@ -127,8 +136,10 @@ export default function Cart({
       );
       setCartMap(new Map());
       debug("cart cleared");
+      closeBasket?.();
     } catch (error) {
       assert(error instanceof Error, "Error is not an instance of Error");
+      setErrorMsg("Error clearing cart");
       logerr("Error clearing cart", error);
     }
   }
@@ -172,20 +183,15 @@ export default function Cart({
     }
   }
   function calculateTotal() {
+    if (!baseToken) return "0";
     const values: CartItem[] = Array.from(cartItemsMap.values());
     let total = BigInt(0);
     values.forEach((item) => {
       total += baseToken?.decimals
-        ? BigInt(
-          multiplyAndFormatUnits(
-            item.price,
-            item.selectedQty,
-            baseToken.decimals,
-          ),
-        )
+        ? BigInt(item.price) * BigInt(item.selectedQty)
         : BigInt(0);
     });
-    return total.toString();
+    return formatUnits(total, baseToken.decimals);
   }
   const icon = baseToken?.symbol === "ETH"
     ? "/icons/eth-coin.svg"
@@ -203,7 +209,6 @@ export default function Cart({
           baseToken.decimals,
         )
         : 0;
-      if (!item.selectedQty) return null;
 
       return (
         <div key={item.id} className="flex" data-testid="cart-item">
@@ -224,7 +229,9 @@ export default function Cart({
               <button
                 onClick={() => removeItem(item.id, item.selectedQty)}
                 data-testid={`remove-item-${item.id}`}
-                className="ml-auto bg-transparent p-0"
+                className={showActionButtons
+                  ? "ml-auto bg-transparent p-0"
+                  : "hidden"}
               >
                 <img
                   src="/icons/close-icon.svg"
@@ -236,8 +243,12 @@ export default function Cart({
               </button>
             </div>
 
-            <div className="flex gap-2 items-center mt-10">
-              <div className="flex gap-2 items-center">
+            <div className="flex gap-2 items-center mt-4 pt-3 border-t border-gray-300 w-full">
+              <div
+                className={showActionButtons
+                  ? "flex gap-2 items-center"
+                  : "hidden"}
+              >
                 <button
                   onClick={() => removeQuantity(item.id)}
                   data-testid={`remove-quantity-${item.id}`}
@@ -266,6 +277,13 @@ export default function Cart({
                   />
                 </button>
               </div>
+              <p
+                className={showActionButtons
+                  ? "hidden"
+                  : "flex gap-2 items-center"}
+              >
+                Qty: {item.selectedQty}
+              </p>
               <div className="flex gap-2 items-center ml-auto">
                 <img
                   src={icon}
@@ -293,7 +311,7 @@ export default function Cart({
         }}
       />
       {renderItems()}
-      <div className="mt-2">
+      <div className="mt-4">
         <p>Total Price:</p>
         <div className="flex items-center gap-2">
           <img
@@ -306,7 +324,10 @@ export default function Cart({
           <h1 data-testid="total-price">{calculateTotal()}</h1>
         </div>
       </div>
-      <div className="flex gap-4 mt-2">
+      <div
+        className={showActionButtons ? "flex gap-4 mt-2" : "hidden"}
+        id="cart-buttons-container"
+      >
         <Button
           disabled={!orderId || !cartItemsMap.size || !onCheckout}
           onClick={() => handleCheckout(orderId!)}
@@ -327,14 +348,14 @@ export default function Cart({
             />
           </div>
         </Button>
-        <Button
+        <button
           disabled={!orderId || !cartItemsMap.size}
           onClick={clearCart}
           data-testid="clear-cart"
-          custom="bg-gray-200 text-black"
+          className="bg-transparent text-black"
         >
-          Clear basket
-        </Button>
+          <p>Clear basket</p>
+        </button>
       </div>
     </div>
   );

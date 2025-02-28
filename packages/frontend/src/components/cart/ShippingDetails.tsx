@@ -13,6 +13,7 @@ import ErrorMessage from "../common/ErrorMessage.tsx";
 import ValidationWarning from "../common/ValidationWarning.tsx";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
+import Cart from "./Cart.tsx";
 
 const namespace = "frontend:ShippingDetails";
 const debug = logger(namespace);
@@ -101,7 +102,7 @@ export default function ShippingDetails({
   }
 
   return (
-    <main data-testid="shipping-details">
+    <section data-testid="shipping-details">
       <ErrorMessage
         errorMessage={errorMsg}
         onClose={() => {
@@ -114,17 +115,16 @@ export default function ShippingDetails({
           setValidationError(null);
         }}
       />
-      <div className="flex mb-2">
-        <h1>Shipping details</h1>
-      </div>
       {/* <TimerToast /> */}
-      <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
+      <section className="flex flex-row justify-center gap-12 bg-white px-5 rounded-lg">
         <form
           className="flex flex-col"
           onSubmit={(e) => {
             e.preventDefault();
           }}
         >
+          <h1 className="mb-5">Shipping details</h1>
+
           <label htmlFor="name">Name</label>
           <input
             className="border-2 border-solid mt-1 p-3 rounded-2xl"
@@ -195,9 +195,13 @@ export default function ShippingDetails({
               onChange={(e) => setNumber(e.target.value)}
             />
           </div>
+          <Button onClick={onUpdateShipping}>Payment options</Button>
         </form>
-        <Button onClick={onUpdateShipping}>Payment options</Button>
+        <section className="hidden md:block">
+          <h1 className="pl-5">Order Summary</h1>
+          <Cart showActionButtons={false} />
+        </section>
       </section>
-    </main>
+    </section>
   );
 }

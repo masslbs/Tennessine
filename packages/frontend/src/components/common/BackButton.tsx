@@ -16,7 +16,7 @@ export default function BackButton({
       <Link
         to={href}
         search={(prev: Record<string, string>) => ({ ...prev })}
-        className="flex gap-1 items-center text-black"
+        className="flex gap-1 items-center text-black p-0"
       >
         <img
           src={"/icons/chevron-left.svg"}
@@ -30,7 +30,10 @@ export default function BackButton({
     );
   } else if (onClick) {
     return (
-      <button onClick={onClick} className="flex items-center gap-1 bg-white">
+      <button
+        onClick={onClick}
+        className="flex items-center gap-1 bg-white p-0"
+      >
         <img
           src={"/icons/chevron-left.svg"}
           width={8}

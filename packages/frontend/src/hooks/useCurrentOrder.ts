@@ -6,6 +6,7 @@ import { useClientWithStateManager } from "./useClientWithStateManager.ts";
 import { CurrentOrder, Order, OrderEventTypes, OrderState } from "../types.ts";
 import { useShopId } from "./useShopId.ts";
 import { usePathname } from "./usePathname.ts";
+import { useKeycard } from "./useKeycard.ts";
 
 const namespace = "frontend:useCurrentOrder";
 const errlog = logger(namespace, "error");
@@ -15,6 +16,7 @@ export function useCurrentOrder() {
   const { isMerchantPath } = usePathname();
   const { clientStateManager } = useClientWithStateManager(isMerchantPath);
   const { shopId } = useShopId();
+  const [keycard] = useKeycard();
   const [currentOrder, setCurrentOrder] = useState<CurrentOrder | null>(null);
   const orderManager = clientStateManager?.stateManager?.orders;
 
@@ -72,7 +74,8 @@ export function useCurrentOrder() {
         status: OrderState.STATE_OPEN,
       });
       return;
-    } else if (openOrders.length > 1) {
+    } else if (openOrders.length > 1 && keycard?.role !== "merchant") {
+      //Since merchants are subscribed to all orders, we don't need to worry about multiple open orders.
       errlog("Multiple open orders found");
       return;
     } else {
@@ -88,7 +91,8 @@ export function useCurrentOrder() {
           status: OrderState.STATE_COMMITTED,
         });
         return;
-      } else if (committedOrders.length > 1) {
+      } else if (committedOrders.length > 1 && keycard?.role !== "merchant") {
+        //Since merchants are subscribed to all orders, we don't need to worry about multiple open orders.
         errlog("Multiple committed orders found");
         return;
       } else {

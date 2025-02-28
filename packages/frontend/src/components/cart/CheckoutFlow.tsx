@@ -22,6 +22,7 @@ import ChoosePayment from "./ChoosePayment.tsx";
 import TimerExpiration from "./TimerExpiration.tsx";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
+import PaymentConfirmation from "./PaymentConfirmation.tsx";
 
 const namespace = "frontend:Checkout";
 const debug = logger(namespace);
@@ -122,10 +123,6 @@ export default function CheckoutFlow() {
     setIsRunning(true);
   }
 
-  function copyToClipboard() {
-    navigator.clipboard.writeText(txHash || blockHash || "");
-  }
-
   async function onCheckout(orderId: OrderId) {
     if (!orderId) {
       throw new Error("No orderId");
@@ -170,63 +167,21 @@ export default function CheckoutFlow() {
       );
     } else if (step === CheckoutStep.expired) {
       return <TimerExpiration />;
-    } else {
+    } else if (step === CheckoutStep.confirmation && displayedAmount) {
       return (
-        <section>
-          <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg items-center">
-            <img
-              src="/icons/smiley.svg"
-              width={80}
-              height={80}
-              alt="smiley-icon"
-              className="w-20 h-20"
-            />
-            <h1>Payment Successful</h1>
-            <div className="flex gap-2 items-center">
-              <img
-                src="/icons/usdc-coin.png"
-                alt="coin"
-                width={24}
-                height={24}
-                className="w-6 h-6 max-h-6"
-              />
-              <h1>{displayedAmount}</h1>
-            </div>
-            <p>Your order has been completed.</p>
-            <div className="flex-col items-center gap-2 flex">
-              {txHash ? <p>Tx hash:</p> : <p>Block hash:</p>}
-              <div className="flex gap-2">
-                <input
-                  className="border-2 border-solid mt-1 p-2 rounded"
-                  id="txHash"
-                  name="txHash"
-                  value={txHash || blockHash || ""}
-                  onChange={() => {
-                    console.log("hash copied");
-                  }}
-                />
-                <button
-                  className="mr-4 p-0 bg-transparent"
-                  onClick={copyToClipboard}
-                >
-                  <img
-                    src="/icons/copy-icon.svg"
-                    width={14}
-                    height={14}
-                    alt="copy-icon"
-                    className="w-auto h-auto"
-                  />
-                </button>
-              </div>
-            </div>
-          </section>
-        </section>
+        <PaymentConfirmation
+          displayedAmount={displayedAmount}
+          hash={txHash || blockHash}
+        />
       );
+    } else {
+      logerr("Invalid step", new Error(`Invalid step: ${step}`));
+      return <p>Something went wrong</p>;
     }
   }
   return (
     <main
-      className="pt-under-nav p-4 mt-5 min-h-screen"
+      className="pt-under-nav p-4 min-h-screen"
       data-testid="checkout-screen"
     >
       <ErrorMessage

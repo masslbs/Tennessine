@@ -116,51 +116,48 @@ export default function ListingDetail() {
 
   return (
     <main
-      className="bg-gray-100 pt-under-nav"
+      className="bg-gray-100 pt-under-nav md:flex justify-center"
       data-testid="listing-detail-page"
     >
-      <section className="flex flex-col">
+      <section className="flex flex-col md:w-2/3 mx-4">
         <ErrorMessage
           errorMessage={errorMsg}
           onClose={() => {
             setErrorMsg(null);
           }}
         />
-        <div className="mx-4">
-          <BackButton href="/listings" />
-          <div className="my-3 flex">
-            <h1 className="flex items-center" data-testid="title">
-              {item.metadata.title}
-            </h1>
-            <div
-              className={`ml-auto ${
-                keycard.role === "merchant" ? "" : "hidden"
-              }`}
-            >
-              <Button>
-                <Link
-                  to="/edit-listing"
-                  search={(prev: Record<string, string>) => ({
-                    shopId: prev.shopId,
-                    itemId: item.id,
-                  })}
-                  className="text-white"
-                >
-                  Edit
-                </Link>
-              </Button>
-            </div>
+        <BackButton href="/listings" />
+        <div className="my-3 flex">
+          <h1 className="flex items-center" data-testid="title">
+            {item.metadata.title}
+          </h1>
+          <div
+            className={`ml-auto ${keycard.role === "merchant" ? "" : "hidden"}`}
+          >
+            <Button>
+              <Link
+                to="/edit-listing"
+                search={(prev: Record<string, string>) => ({
+                  shopId: prev.shopId,
+                  itemId: item.id,
+                })}
+                className="text-white"
+              >
+                Edit
+              </Link>
+            </Button>
           </div>
-          <div>
+        </div>
+        <div className="md:flex md:gap-8">
+          <div className="listing-image-container md:w-3/5">
             <img
               src={item.metadata.images[0]}
               alt="product-detail-image"
               width={380}
               height={250}
-              className="border rounded-lg"
+              className="border rounded-lg w-full"
               style={{
-                maxHeight: "250px",
-                width: "full",
+                maxHeight: "380px",
                 objectFit: "cover",
                 objectPosition: "center",
               }}
@@ -190,12 +187,12 @@ export default function ListingDetail() {
               )
               : null}
           </div>
-          <section className="flex gap-4 flex-col bg-white mt-5 rounded-md p-5">
+          <section className="flex gap-4 flex-col bg-white mt-5 md:mt-0 rounded-md md:w-2/5">
             <div>
-              <h2 className="font-sans text-gray-700">Description</h2>
+              <h3 className=" ">Description</h3>
               <p data-testid="description">{item.metadata.description}</p>
             </div>
-            <div className="flex gap-2 items-center">
+            <div className="flex gap-2 items-center mt-auto">
               <img
                 src={tokenIcon}
                 alt="coin"
