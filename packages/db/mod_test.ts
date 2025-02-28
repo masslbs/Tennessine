@@ -8,24 +8,23 @@ const manifest = {
     2463539455n,
   ),
   "Payees": {
-    "default": {
-      "Address": {
-        "ChainID": 1337,
-        "Address": "0x0102030405060708090a0b0c0d0e0f1011121314",
+    1337: {
+      "0x0000000000000000000000000000000000000000": {
+        isContract: true,
+        description: "My main wallet",
       },
-      "CallAsContract": false,
     },
   },
-  "AcceptedCurrencies": [
-    {
-      "ChainID": 1337,
-      "Address": "0x0000000000000000000000000000000000000000",
+  "AcceptedCurrencies": {
+    1337: {
+      "0x0000000000000000000000000000000000000000": null,
+      "0x0000000000000000000000000000000000000001": null,
+      "0x0000000000000000000000000000000000000002": null,
     },
-    {
-      "ChainID": 1337,
-      "Address": "0xffffffffffffffffffffffffffffffffffffffff",
+    2: {
+      "0x0000000000000000000000000000000000000000": null,
     },
-  ],
+  },
   "PricingCurrency": {
     "ChainID": 1337,
     "Address": "0x0000000000000000000000000000000000000000",

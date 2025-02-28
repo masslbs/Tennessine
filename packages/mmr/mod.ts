@@ -3,7 +3,7 @@ import { keccak_256 } from "npm:@noble/hashes/sha3";
 import { bytesToHex } from "npm:@noble/hashes@1.6.1/utils";
 
 /**
- * This implmenents a persistent Merkle Mountain Range backed by a leveldb instance
+ * This implementation elements a persistent Merkle Mountain Range backed by a leveldb instance
  */
 export default class MMR {
   public _root?: Uint8Array;
