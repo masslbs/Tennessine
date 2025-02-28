@@ -1,6 +1,10 @@
 import { useNavigate } from "@tanstack/react-router";
+import { logger } from "@massmarket/utils";
 
 import Button from "../common/Button.tsx";
+
+const namespace = "frontend:PaymentConfirmation";
+const debug = logger(namespace);
 
 export default function PaymentConfirmation(
   { displayedAmount, hash }: { displayedAmount: string; hash: string | null },
@@ -41,7 +45,7 @@ export default function PaymentConfirmation(
             name="txHash"
             value={hash || ""}
             onChange={() => {
-              console.log("hash copied");
+              debug("hash copied");
             }}
           />
           <button
