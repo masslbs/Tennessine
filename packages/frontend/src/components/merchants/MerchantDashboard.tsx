@@ -7,7 +7,7 @@ import { Link } from "@tanstack/react-router";
 import { isHex } from "viem";
 
 import Transactions from "./Transactions.tsx";
-import { Order, OrderEventTypes, OrderState } from "../../types.ts";
+import { Order, OrderEventTypes } from "../../types.ts";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 
 export default function MerchantDashboard() {

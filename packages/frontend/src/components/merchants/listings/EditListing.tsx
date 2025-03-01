@@ -17,6 +17,7 @@ import BackButton from "../../common/BackButton.tsx";
 
 const namespace = "frontend:edit-product";
 const errlog = logger(namespace, "error");
+const debug = logger(namespace, "debug");
 
 type Image = {
   blob: null | FormData;
@@ -123,6 +124,7 @@ export default function EditProduct() {
           units - productInView!.quantity,
         );
       }
+      debug("updated listing");
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Error updating listing", error);

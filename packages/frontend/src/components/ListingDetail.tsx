@@ -34,6 +34,7 @@ export default function ListingDetail() {
   const [quantity, setQuantity] = useState<string>("");
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [successMsg, setMsg] = useState<string | null>(null);
+  const [displayedImg, setDisplayedImg] = useState(null);
 
   useEffect(() => {
     if (itemId && baseToken) {
@@ -46,6 +47,7 @@ export default function ListingDetail() {
             item.price,
             baseToken?.decimals || 0,
           );
+          setDisplayedImg(item.metadata.images[0]);
           if (baseToken?.symbol === "ETH") {
             setIcon("/icons/eth-coin.svg");
           }
@@ -150,22 +152,25 @@ export default function ListingDetail() {
         </div>
         <div className="md:flex md:gap-8">
           <div className="listing-image-container md:w-3/5">
-            <img
-              src={item.metadata.images[0]}
-              alt="product-detail-image"
-              width={380}
-              height={250}
-              className="border rounded-lg w-full"
-              style={{
-                maxHeight: "380px",
-                objectFit: "cover",
-                objectPosition: "center",
-              }}
-            />
+            {displayedImg && (
+              <img
+                src={displayedImg}
+                alt="product-detail-image"
+                width={380}
+                height={250}
+                className="border rounded-lg w-full"
+                style={{
+                  maxHeight: "380px",
+                  objectFit: "cover",
+                  objectPosition: "center",
+                }}
+              />
+            )}
             {item.metadata.images.length > 1
               ? (
                 <div className="flex mt-2 gap-2">
                   {item.metadata.images.map((image: string, i: number) => {
+                    if (image === displayedImg) return;
                     return (
                       <img
                         key={i}
@@ -180,6 +185,7 @@ export default function ListingDetail() {
                           objectFit: "cover",
                           objectPosition: "center",
                         }}
+                        onClick={() => setDisplayedImg(image)}
                       />
                     );
                   })}
@@ -187,7 +193,7 @@ export default function ListingDetail() {
               )
               : null}
           </div>
-          <section className="flex gap-4 flex-col bg-white mt-5 md:mt-0 rounded-md md:w-2/5 p-8">
+          <section className="flex gap-4 flex-col bg-white mt-5 md:mt-0 rounded-md md:w-2/5 p-4">
             <div>
               <h3 className=" ">Description</h3>
               <p data-testid="description">{item.metadata.description}</p>
