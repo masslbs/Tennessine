@@ -187,7 +187,7 @@ export default function ListingDetail() {
               )
               : null}
           </div>
-          <section className="flex gap-4 flex-col bg-white mt-5 md:mt-0 rounded-md md:w-2/5">
+          <section className="flex gap-4 flex-col bg-white mt-5 md:mt-0 rounded-md md:w-2/5 p-8">
             <div>
               <h3 className=" ">Description</h3>
               <p data-testid="description">{item.metadata.description}</p>
@@ -202,7 +202,9 @@ export default function ListingDetail() {
               />
               <h1 data-testid="price">{Number(price).toFixed(2)}</h1>
             </div>
-            <div className="flex gap-6">
+            <div
+              className={keycard.role === "merchant" ? "hidden" : "flex gap-2"}
+            >
               <div>
                 <p className="text-xs text-primary-gray mb-2">Quantity</p>
                 <input

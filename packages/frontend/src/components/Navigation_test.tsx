@@ -36,12 +36,12 @@ Deno.test("Check that we can render the navigation bar", {
     random256BigInt(),
   );
   const item1 = await csm.stateManager!.listings.create({
-    price: "12.00",
+    price: "12.48",
     metadata,
     viewState: ListingViewState.LISTING_VIEW_STATE_PUBLISHED,
   });
   const item2 = await csm.stateManager!.listings.create({
-    price: "1.00",
+    price: "1.22",
     metadata: metadata2,
     viewState: ListingViewState.LISTING_VIEW_STATE_PUBLISHED,
   });

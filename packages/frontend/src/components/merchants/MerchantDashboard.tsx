@@ -4,9 +4,10 @@
 
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { isHex } from "viem";
 
 import Transactions from "./Transactions.tsx";
-import { Order, OrderState } from "../../types.ts";
+import { Order, OrderEventTypes, OrderState } from "../../types.ts";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 
 export default function MerchantDashboard() {
@@ -23,28 +24,33 @@ export default function MerchantDashboard() {
       ] of clientStateManager!.stateManager.orders.iterator()
     ) {
       // Exclude orders by status
-      if (Object.values(OrderState).includes(id)) {
-        return;
+      if (!isHex(id)) {
+        continue;
       }
+
       allOrders.set(id, o);
+      orders.set(id, o);
     }
     return allOrders;
   }
 
   useEffect(() => {
     function onCreateOrder(order: Order) {
-      orders.set(order.id, order);
-      setOrders(orders);
+      const newOrders = new Map(orders);
+      newOrders.set(order.id, order);
+      setOrders(newOrders);
     }
-    function onUpdateOrder(order: Order) {
-      orders.set(order.id, order);
-      setOrders(orders);
+    function onUpdateOrder(res: [OrderEventTypes, Order]) {
+      const order = res[1];
+      const newOrders = new Map(orders);
+      newOrders.set(order.id, order);
+      setOrders(newOrders);
     }
     getAllOrders().then((allOrders) => {
       setOrders(allOrders);
-      clientStateManager!.stateManager.orders.on("create", onCreateOrder);
-      clientStateManager!.stateManager.orders.on("update", onUpdateOrder);
     });
+    clientStateManager!.stateManager.orders.on("create", onCreateOrder);
+    clientStateManager!.stateManager.orders.on("update", onUpdateOrder);
 
     return () => {
       // Cleanup listeners on unmount
@@ -60,7 +66,10 @@ export default function MerchantDashboard() {
   }, []);
 
   return (
-    <main className="p-4 pt-under-nav h-screen">
+    <main
+      className="p-4 pt-under-nav h-screen"
+      data-testid="merchant-dashboard-page"
+    >
       <div className="mb-4">
         <h1>Dashboard</h1>
         <div className="flex flex-col gap-1 pt-4">
