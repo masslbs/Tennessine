@@ -1,12 +1,10 @@
-// import { assertEquals } from "jsr:@std/assert";
 import { ShopSchema } from "@massmarket/schema/cbor";
 import { MemStore } from "@massmarket/merkle-dag-builder/memstore";
 // import { Link } from "@massmarket/merkle-dag-builder";
 import Database from "./mod.ts";
+import { assertEquals } from "@std/assert";
 const manifest = {
-  "ShopID": BigInt(
-    2463539455n,
-  ),
+  "ShopID": 2463539455555n,
   "Payees": {
     1337: {
       "0x0000000000000000000000000000000000000000": {
@@ -40,14 +38,16 @@ const manifest = {
 };
 
 Deno.test("Database Testings", async (t) => {
-  await t.step("create a database", async () => {
+  await t.step("create a database and a Manifest", async () => {
     const store = new MemStore();
     const db = new Database({
       store,
       schema: ShopSchema,
       objectId: manifest.ShopID,
     });
-    await db.set("Manifest", manifest);
+    db.set("Manifest", manifest);
+    const result = await db.get("Manifest");
+    assertEquals(result, manifest);
   });
 
   await t.step("add a relay and set a key and retrieve it", async () => {

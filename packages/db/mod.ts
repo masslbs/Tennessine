@@ -24,6 +24,7 @@ export default class DataBase<
   readonly events = new EventTree();
   readonly graph: Graph;
   readonly clients: Set<RelayClient> = new Set();
+  mutations: Map<string, Promise<void>> = new Map();
   #streamsControllers: ReadableStreamDefaultController<TPatch>[] = [];
   constructor(
     public params: {
@@ -147,6 +148,14 @@ export default class DataBase<
     const schema = getSubSchema(this.params.schema, p);
     // validate against the schema
     v.parse(schema, value);
+
+    const ongoingWriteOp = this.mutations.get(id);
+    const { promise, resolve, reject } = Promise.withResolvers<void>();
+    this.mutations.set(id, promise);
+    if (ongoingWriteOp) {
+      // wait for any pending writes to complete
+      await ongoingWriteOp;
+    }
     const state = await this.loadState(id);
     const result = await this.graph.get(state.root, path);
     //ignore sets that do not change the value
@@ -177,11 +186,13 @@ export default class DataBase<
           ],
         });
       });
-      return metaPromise;
+      return metaPromise.then(resolve).catch(reject);
     }
   }
 
   async get(path: Path, id = "local"): Promise<LinkValue> {
+    // wait for any pending writes to complete
+    await this.mutations.get(id);
     const state = await this.loadState(id);
     const res = await this.graph.get(state.root, path);
     return res.node;

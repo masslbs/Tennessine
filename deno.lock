@@ -5226,6 +5226,7 @@
       },
       "packages/db": {
         "dependencies": [
+          "jsr:@std/assert@^1.0.11",
           "jsr:@valibot/valibot@~0.42.1"
         ]
       },
