@@ -9,7 +9,6 @@
     "./packages/frontend",
     "./packages/blockchain",
     "./packages/mmr",
-    "./packages/db",
     "./packages/merkle-dag-builder"
   ],
   "lint": {

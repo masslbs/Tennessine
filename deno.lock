@@ -5224,12 +5224,6 @@
           "npm:wagmi@*"
         ]
       },
-      "packages/db": {
-        "dependencies": [
-          "jsr:@std/assert@^1.0.11",
-          "jsr:@valibot/valibot@~0.42.1"
-        ]
-      },
       "packages/frontend": {
         "dependencies": [
           "npm:@deno/vite-plugin@^1.0.4",
@@ -5282,9 +5276,8 @@
       },
       "packages/stateManager": {
         "dependencies": [
-          "npm:@ethereumjs/util@*",
-          "npm:long@*",
-          "npm:viem@2.21.55"
+          "jsr:@std/assert@^1.0.11",
+          "jsr:@valibot/valibot@~0.42.1"
         ]
       },
       "packages/utils": {
