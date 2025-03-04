@@ -3,9 +3,11 @@
   "specifiers": {
     "jsr:@noble/hashes@^1.7.1": "1.7.1",
     "jsr:@nullradix/ipld-cbor-graph-builder@3.0.0": "3.0.0",
+    "jsr:@nullradix/lockmap@0.4": "0.4.0",
     "jsr:@nullradix/lockmap@~0.2.4": "0.2.4",
     "jsr:@nullradix/merkle-dag-builder@*": "0.0.0",
     "jsr:@std/assert@*": "1.0.11",
+    "jsr:@std/assert@^1.0.10": "1.0.11",
     "jsr:@std/assert@^1.0.11": "1.0.11",
     "jsr:@std/assert@^1.0.7": "1.0.8",
     "jsr:@std/assert@^1.0.8": "1.0.8",
@@ -15,13 +17,14 @@
     "jsr:@std/expect@*": "1.0.13",
     "jsr:@std/internal@^1.0.5": "1.0.5",
     "jsr:@std/streams@^1.0.8": "1.0.9",
-    "jsr:@std/testing@*": "1.0.5",
+    "jsr:@std/testing@*": "1.0.9",
     "jsr:@valibot/valibot@*": "0.42.1",
     "jsr:@valibot/valibot@~0.42.1": "0.42.1",
     "jsr:@wevm/viem@*": "2.21.59",
     "jsr:@wevm/viem@^2.23.4": "2.23.5",
+    "jsr:@wevm/viem@^2.23.5": "2.23.5",
     "npm:@deno/vite-plugin@^1.0.4": "1.0.4_vite@5.4.11__@types+node@22.10.2_@types+node@22.5.4",
-    "npm:@ethereumjs/util@*": "9.1.0",
+    "npm:@ethereumjs/util@*": "8.1.0",
     "npm:@happy-dom/global-registrator@*": "15.11.7",
     "npm:@ipld/dag-cbor@^9.2.2": "9.2.2",
     "npm:@noble/curves@1.6.0": "1.6.0",
@@ -100,7 +103,7 @@
     "@nullradix/ipld-cbor-graph-builder@3.0.0": {
       "integrity": "237c77611200b2323dcf7fc02fb4cbd570958d5f8c407d33f7abf7eb5fde1bb3",
       "dependencies": [
-        "jsr:@nullradix/lockmap",
+        "jsr:@nullradix/lockmap@~0.2.4",
         "jsr:@std/assert@^1.0.11",
         "npm:@ipld/dag-cbor",
         "npm:@sagold/json-pointer@7",
@@ -111,11 +114,14 @@
     "@nullradix/lockmap@0.2.4": {
       "integrity": "253dc2f7d3fa6613dfac38a01143a7fefaa5b07b885a43c58faadf0096c95c06"
     },
+    "@nullradix/lockmap@0.4.0": {
+      "integrity": "e28276ddb195ae62982a3646a1ff7b067929ed43a89f7f8f16129fbeac8dc35b"
+    },
     "@nullradix/merkle-dag-builder@0.0.0": {
       "integrity": "e43f8e7ce9f476a9b6c4e2de701a8f5666218e08446a2d2b8942a6f61ee27328",
       "dependencies": [
         "jsr:@noble/hashes@^1.7.1",
-        "jsr:@nullradix/lockmap",
+        "jsr:@nullradix/lockmap@~0.2.4",
         "jsr:@std/assert@^1.0.11",
         "jsr:@std/cbor@~0.1.6",
         "npm:@sagold/json-pointer@7",
@@ -174,6 +180,13 @@
       "integrity": "6e693cbec94c81a1ad3df668685c7ba8e20742bb10305bc7137faa5cf16d2ec4",
       "dependencies": [
         "jsr:@std/assert@^1.0.8",
+        "jsr:@std/internal"
+      ]
+    },
+    "@std/testing@1.0.9": {
+      "integrity": "9bdd4ac07cb13e7594ac30e90f6ceef7254ac83a9aeaa089be0008f33aab5cd4",
+      "dependencies": [
+        "jsr:@std/assert@^1.0.10",
         "jsr:@std/internal"
       ]
     },
@@ -623,38 +636,28 @@
     "@ethereumjs/common@3.2.0": {
       "integrity": "sha512-pksvzI0VyLgmuEF2FA/JR/4/y6hcPq8OUail3/AvycBaW1d5VSauOZzqGvJ3RTmR4MU35lWE8KseKOsEhrFRBA==",
       "dependencies": [
-        "@ethereumjs/util@8.1.0",
+        "@ethereumjs/util",
         "crc-32"
       ]
     },
     "@ethereumjs/rlp@4.0.1": {
       "integrity": "sha512-tqsQiBQDQdmPWE1xkkBq4rlSW5QZpLOUJ5RJh2/9fug+q9tnUhuZoVLk7s0scUIKTOzEtR72DFBXI4WiZcMpvw=="
     },
-    "@ethereumjs/rlp@5.0.2": {
-      "integrity": "sha512-DziebCdg4JpGlEqEdGgXmjqcFoJi+JGulUXwEjsZGAscAQ7MyD/7LE/GVCP29vEQxKc7AAwjT3A2ywHp2xfoCA=="
-    },
     "@ethereumjs/tx@4.2.0": {
       "integrity": "sha512-1nc6VO4jtFd172BbSnTnDQVr9IYBFl1y4xPzZdtkrkKIncBCkdbgfdRV+MiTkJYAtTxvV12GRZLqBFT1PNK6Yw==",
       "dependencies": [
         "@ethereumjs/common",
-        "@ethereumjs/rlp@4.0.1",
-        "@ethereumjs/util@8.1.0",
+        "@ethereumjs/rlp",
+        "@ethereumjs/util",
         "ethereum-cryptography"
       ]
     },
     "@ethereumjs/util@8.1.0": {
       "integrity": "sha512-zQ0IqbdX8FZ9aw11vP+dZkKDkS+kgIvQPHnSAXzP9pLu+Rfu3D3XEeLbicvoXJTYnhZiPmsZUxgdzXwNKxRPbA==",
       "dependencies": [
-        "@ethereumjs/rlp@4.0.1",
+        "@ethereumjs/rlp",
         "ethereum-cryptography",
         "micro-ftch"
-      ]
-    },
-    "@ethereumjs/util@9.1.0": {
-      "integrity": "sha512-XBEKsYqLGXLah9PNJbgdkigthkG7TAGvlD/sH12beMXEyHDyigfcbdvHhmLyDWgDyOJn4QwiQUaF7yeuhnjdog==",
-      "dependencies": [
-        "@ethereumjs/rlp@5.0.2",
-        "ethereum-cryptography"
       ]
     },
     "@happy-dom/global-registrator@15.11.7": {
@@ -5212,10 +5215,12 @@
       },
       "packages/client": {
         "dependencies": [
-          "npm:@ethereumjs/util@*",
-          "npm:isows@*",
+          "jsr:@nullradix/lockmap@0.4",
+          "jsr:@std/assert@^1.0.11",
+          "jsr:@std/cbor@~0.1.6",
+          "jsr:@valibot/valibot@~0.42.1",
+          "jsr:@wevm/viem@^2.23.5",
           "npm:long@*",
-          "npm:viem@2.21.55",
           "npm:web-streams-polyfill@*"
         ]
       },

@@ -2,25 +2,24 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { EventEmitter } from "events";
 import { Buffer } from "buffer";
-import { WebSocket } from "isows";
-import { hexToBigInt, hexToBytes, toBytes } from "viem";
-import type { PrivateKeyAccount } from "viem/accounts";
-import { createSiweMessage } from "viem/siwe";
-import { bigIntToBytes } from "@ethereumjs/util";
+import {
+  hexToBigInt,
+  numberToBytes,
+  recoverMessageAddress,
+  toBytes,
+} from "@wevm/viem";
+import type { PrivateKeyAccount } from "@wevm/viem/accounts";
+import { createSiweMessage } from "@wevm/viem/siwe";
+import LockMap from "@nullradix/lockmap";
+import { assert } from "@std/assert";
+import { decodeCbor, encodeCbor } from "@std/cbor";
+import * as v from "@valibot/valibot";
 
 import schema, { EnvelopMessageTypes } from "@massmarket/schema";
 import type { ConcreteWalletClient } from "@massmarket/blockchain";
-import type { TPatch } from "@massmarket/schema/cbor";
-import {
-  assert,
-  decodeBufferToString,
-  hexToBase64,
-  logger,
-} from "@massmarket/utils";
-
-import { ReadableEventStream } from "./stream.ts";
+import { PatchSchema, type TPatch } from "@massmarket/schema/cbor";
+import { decodeBufferToString, hexToBase64, logger } from "@massmarket/utils";
 
 const debug = logger("relayClient");
 
@@ -38,68 +37,92 @@ export function eventIdEqual(a: EventId, b: EventId) {
   return a.signer === b.signer && a.nonce === b.nonce;
 }
 
-export class SequencedEventWithRecoveredSigner {
-  readonly shopSeqNo: number;
-  readonly event: schema.ShopEvent;
-  readonly signer: `0x${string}`;
-
-  constructor(
-    shopSeqNo: number,
-    event: schema.ShopEvent,
-    signer: `0x${string}`,
-  ) {
-    this.shopSeqNo = shopSeqNo;
-    this.event = event;
-    this.signer = signer;
-  }
-
-  id(): EventId {
-    return {
-      signer: this.signer,
-      nonce: Number(this.event.nonce),
-    };
-  }
-}
-
-export class RelayClient extends EventEmitter {
+export class RelayClient {
   connection!: WebSocket;
   private keyCardWallet: PrivateKeyAccount;
   public readonly relayEndpoint: RelayEndpoint;
-  private subscriptionId: Uint8Array | null;
+  // TODO; we can use the subscription path for the id
+  #subscriptions: Map<
+    string,
+    {
+      id: Uint8Array;
+      controllers: Set<ReadableStreamDefaultController<TPatch>>;
+    }
+  > = new Map();
   private useTLS;
-  private eventStream;
   private requestCounter;
-  private eventNonceCounter;
+  #waitingMessagesResponse: LockMap<string, schema.Envelope> = new LockMap();
+  #isGuest: boolean = true;
+  #shopId: bigint;
+
   constructor({
     relayEndpoint,
     keyCardWallet,
+    isGuest,
+    shopId,
   }: {
     relayEndpoint: RelayEndpoint;
     keyCardWallet: PrivateKeyAccount;
+    //TODO: deprecate https://github.com/orgs/masslbs/projects/1/views/1?pane=issue&itemId=100185082&issue=masslbs%7Cnetwork-schema%7C40
+    //The relay should know given a keycard and a shopid
+    isGuest: boolean;
+    shopId: bigint;
   }) {
-    super();
     this.keyCardWallet = keyCardWallet;
     this.relayEndpoint = relayEndpoint;
     this.useTLS = relayEndpoint.url.protocol === "wss:" ||
       relayEndpoint.url.protocol === "https:";
-    this.eventStream = new ReadableEventStream(this);
     this.requestCounter = 1;
-    this.eventNonceCounter = 1;
-    this.subscriptionId = null;
-  }
-
-  createEventStream() {
-    return this.eventStream.stream;
+    this.#shopId = shopId;
+    this.#isGuest = isGuest;
   }
 
   // TODO
-  createSubscriptionStream(_path: string, _height: number) {
-    return new ReadableStream<TPatch>();
+  createSubscriptionStream(path: string, seqNum: number) {
+    assert(path, "/");
+    if (!this.#subscriptions.has(path)) {
+      // TODO; promise returned here, handle
+      this.createSubscription(path, seqNum);
+    }
+    let controller: ReadableStreamDefaultController<TPatch>;
+    return new ReadableStream<TPatch>({
+      start: (c: ReadableStreamDefaultController<TPatch>) => {
+        controller = c;
+        this.#subscriptions.get(path)?.controllers.add(controller);
+      },
+      cancel: () => {
+        const cset = this.#subscriptions.get(path)!.controllers;
+        cset.delete(controller);
+        if (cset.size === 0) {
+          this.#subscriptions.delete(path);
+          this.cancelSubscriptionRequest(path);
+        }
+      },
+    });
   }
 
-  // TODO
   createWriteStream() {
-    return new WritableStream();
+    return new WritableStream<TPatch>({
+      write: async (patch) => {
+        const payload = encodeCbor(patch);
+        const sig = await this.keyCardWallet.signMessage({
+          message: { raw: payload },
+        });
+        const signedEvent = {
+          signature: { raw: toBytes(sig) },
+          event: {
+            type_url: "type.googleapis.com/market.mass.ShopEvent",
+            value: payload,
+          },
+        };
+        const envelope = {
+          eventWriteRequest: {
+            events: [signedEvent],
+          },
+        };
+        await this.encodeAndSend(envelope);
+      },
+    });
   }
 
   // like encodeAndSend but doesn't wait for a response.
@@ -122,128 +145,37 @@ export class RelayClient extends EventEmitter {
   }
 
   // encode and send a message and then wait for a response
-  encodeAndSend(envelope: schema.IEnvelope = {}): Promise<schema.Envelope> {
+  async encodeAndSend(
+    envelope: schema.IEnvelope = {},
+  ): Promise<schema.Envelope> {
     const id = this.encodeAndSendNoWait(envelope);
-    return new Promise((resolve, reject) => {
-      this.once(id.raw.toString(), (response: schema.Envelope) => {
-        const requestType = Object.keys(response).filter((k) =>
-          k !== "requestId"
-        )[0];
-        if (response.response?.error) {
-          const { code, message } = response.response.error;
-          assert(code, "code is required");
-          assert(message, "message is required");
-          debug(
-            `network request ${requestType} id: ${id.raw} failed with error[${code}]: ${message}`,
-          );
-          reject(new Error(message));
-        } else {
-          debug(
-            `network request ${requestType} id: ${id.raw} received response`,
-          );
-          resolve(response);
-        }
-      });
-    });
-  }
+    const response = await this.#waitingMessagesResponse.get(
+      id.raw.toString(),
+    )!;
+    const requestType =
+      Object.keys(response).filter((k) => k !== "requestId")[0];
 
-  async sendShopEvent(shopEvent: schema.IShopEvent): Promise<EventId> {
-    await this.connect();
-
-    // prepare for signing
-    shopEvent.nonce = this.eventNonceCounter++;
-    shopEvent.timestamp = { seconds: Date.now() / 1000 };
-    const shopEventBytes = schema.ShopEvent.encode(shopEvent).finish();
-
-    // create signature for new event
-    const sig = await this.keyCardWallet.signMessage({
-      message: { raw: shopEventBytes },
-    });
-
-    const signedEvent = {
-      signature: { raw: hexToBytes(sig) },
-      event: {
-        type_url: "type.googleapis.com/market.mass.ShopEvent",
-        value: shopEventBytes,
-      },
-    };
-    const envelope = {
-      eventWriteRequest: {
-        events: [signedEvent],
-      },
-    };
-    await this.encodeAndSend(envelope);
-    return {
-      signer: this.keyCardWallet.address,
-      nonce: shopEvent.nonce,
-    };
-  }
-
-  set nonce(counter: number) {
-    this.eventNonceCounter = counter;
-  }
-
-  shopManifest(manifest: schema.IManifest, shopId: bigint) {
-    manifest.tokenId = { raw: bigIntToBytes(shopId) };
-    return this.sendShopEvent({
-      manifest: manifest,
-    });
-  }
-
-  updateShopManifest(update: schema.IUpdateManifest) {
-    return this.sendShopEvent({
-      updateManifest: update,
-    });
-  }
-
-  listing(item: schema.IListing) {
-    return this.sendShopEvent({
-      listing: item,
-    });
-  }
-
-  updateListing(item: schema.IUpdateListing) {
-    return this.sendShopEvent({
-      updateListing: item,
-    });
-  }
-
-  tag(tag: schema.ITag) {
-    return this.sendShopEvent({
-      tag: tag,
-    });
-  }
-
-  updateTag(tag: schema.IUpdateTag) {
-    return this.sendShopEvent({
-      updateTag: tag,
-    });
-  }
-
-  createOrder(order: schema.ICreateOrder) {
-    return this.sendShopEvent({
-      createOrder: order,
-    });
-  }
-
-  updateOrder(order: schema.IUpdateOrder) {
-    return this.sendShopEvent({
-      updateOrder: order,
-    });
-  }
-
-  changeInventory(stock: schema.IChangeInventory) {
-    return this.sendShopEvent({
-      changeInventory: stock,
-    });
+    if (response.response?.error) {
+      const { code, message } = response.response.error;
+      assert(code, "code is required");
+      assert(message, "message is required");
+      debug(
+        `network request ${requestType} id: ${id.raw} failed with error[${code}]: ${message}`,
+      );
+      throw new Error(message);
+    } else {
+      debug(
+        `network request ${requestType} id: ${id.raw} received response`,
+      );
+      return response;
+    }
   }
 
   async #decodeMessage(me: MessageEvent) {
-    const _data = me.data instanceof Blob
+    const data = me.data instanceof Blob
       ? await new Response(me.data).arrayBuffer()
       : me.data;
-    const payload = new Uint8Array(_data);
-
+    const payload = new Uint8Array(data);
     const envelope = schema.Envelope.decode(payload);
     assert(envelope.requestId?.raw, "requestId is required");
     const requestType =
@@ -261,18 +193,39 @@ export class RelayClient extends EventEmitter {
           "subscriptionPushRequest is required",
         );
         {
-          const events = envelope.subscriptionPushRequest.events!.map((evt) =>
-            schema.SubscriptionPushRequest.SequencedEvent.create(evt)
+          envelope.subscriptionPushRequest.events!.forEach(
+            async (evt: schema.SubscriptionPushRequest.ISequencedEvent) => {
+              const seqEvent = schema.SubscriptionPushRequest.SequencedEvent
+                .create(evt);
+              const cborPatch = seqEvent!.event!.event!.value!;
+              const signer = await recoverMessageAddress({
+                message: { raw: cborPatch },
+                signature: seqEvent!.event!.signature!.raw!,
+              });
+              // validate the schema
+              const patch = v.parse(
+                PatchSchema,
+                {
+                  ops: decodeCbor(cborPatch),
+                  signer,
+                  seqNum: Number(seqEvent!.seqNo.toString()),
+                },
+              );
+
+              for (
+                const controller of this.#subscriptions.get("/")!.controllers
+              ) {
+                controller.enqueue(patch);
+              }
+            },
           );
-          debug(`pushing ${events.length} events to event stream`);
-          this.eventStream.enqueue({
-            requestId: schema.RequestId.create(envelope.requestId),
-            events,
-          });
         }
         break;
       default:
-        this.emit(envelope.requestId.raw.toString(), envelope);
+        this.#waitingMessagesResponse.unlock(
+          envelope.requestId.raw.toString(),
+          envelope,
+        );
     }
   }
 
@@ -284,59 +237,39 @@ export class RelayClient extends EventEmitter {
     });
   }
 
-  async sendMerchantSubscriptionRequest(shopId: bigint, seqNo = 0) {
-    assert(
-      this.subscriptionId == null,
-      "subscriptionId is already set. cancel first.",
-    );
+  async createSubscription(path: string, seqNo = 0) {
+    this.#subscriptions.set(path, {
+      id: new Uint8Array(16),
+      controllers: new Set(),
+    });
     const filters = [
       { objectType: schema.ObjectType.OBJECT_TYPE_LISTING },
       { objectType: schema.ObjectType.OBJECT_TYPE_TAG },
       { objectType: schema.ObjectType.OBJECT_TYPE_ORDER },
       { objectType: schema.ObjectType.OBJECT_TYPE_ACCOUNT },
       { objectType: schema.ObjectType.OBJECT_TYPE_MANIFEST },
-      { objectType: schema.ObjectType.OBJECT_TYPE_INVENTORY },
+      ...this.#isGuest ? [] : [
+        { objectType: schema.ObjectType.OBJECT_TYPE_INVENTORY },
+      ],
     ];
     const { response } = await this.encodeAndSend({
       subscriptionRequest: {
         startShopSeqNo: seqNo,
-        shopId: { raw: bigIntToBytes(shopId) },
+        shopId: { raw: numberToBytes(this.#shopId) },
         filters,
       },
     });
     assert(response?.payload, "response.payload is required");
-    this.subscriptionId = response.payload;
-  }
-  async sendGuestCheckoutSubscriptionRequest(shopId: bigint, seqNo = 0) {
-    assert(
-      this.subscriptionId == null,
-      "subscriptionId is already set. cancel first.",
-    );
-    const filters = [
-      { objectType: schema.ObjectType.OBJECT_TYPE_LISTING },
-      { objectType: schema.ObjectType.OBJECT_TYPE_TAG },
-      { objectType: schema.ObjectType.OBJECT_TYPE_ORDER },
-      { objectType: schema.ObjectType.OBJECT_TYPE_ACCOUNT },
-      { objectType: schema.ObjectType.OBJECT_TYPE_MANIFEST },
-    ];
-    const { response } = await this.encodeAndSend({
-      subscriptionRequest: {
-        startShopSeqNo: seqNo,
-        shopId: { raw: bigIntToBytes(shopId) },
-        filters,
-      },
-    });
-    assert(response?.payload, "response.payload is required");
-    this.subscriptionId = response.payload;
   }
 
-  async cancelSubscriptionRequest() {
-    await this.encodeAndSend({
+  cancelSubscriptionRequest(path: string) {
+    const subscriptionId = this.#subscriptions.get(path)?.id;
+    this.#subscriptions.delete(path);
+    return this.encodeAndSend({
       subscriptionCancelRequest: {
-        subscriptionId: this.subscriptionId,
+        subscriptionId,
       },
     });
-    this.subscriptionId = null;
   }
 
   async authenticate() {
@@ -405,15 +338,13 @@ export class RelayClient extends EventEmitter {
 
   async enrollKeycard(
     wallet: ConcreteWalletClient,
-    isGuest: boolean = true,
-    shopId: bigint,
     location?: URL,
   ) {
     const publicKey = toBytes(this.keyCardWallet.publicKey).slice(1);
     const endpointURL = new URL(this.relayEndpoint.url);
     endpointURL.protocol = this.useTLS ? "https" : "http";
     endpointURL.pathname += `/enroll_key_card`;
-    endpointURL.search = `guest=${isGuest ? 1 : 0}`;
+    endpointURL.search = `guest=${this.#isGuest ? 1 : 0}`;
     const signInURL: URL = location ?? endpointURL;
 
     const message = createSiweMessage({
@@ -425,7 +356,7 @@ export class RelayClient extends EventEmitter {
       version: "1",
       resources: [
         `mass-relayid:${hexToBigInt(this.relayEndpoint.tokenId)}`,
-        `mass-shopid:${shopId}`,
+        `mass-shopid:${this.#shopId}`,
         `mass-keycard:${Buffer.from(publicKey).toString("hex")}`,
       ],
     });

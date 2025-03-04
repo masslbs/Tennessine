@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { WebSocket } from "isows";
 import {
   bytesToBigInt,
   bytesToHex,

@@ -9,11 +9,7 @@ import jsonpointer from "npm:@sagold/json-pointer";
 import EventTree from "@massmarket/eventTree";
 import type { RelayClient } from "@massmarket/client";
 import { getSubSchema } from "@massmarket/schema/utils";
-import {
-  type BaseObjectSchema,
-  PatchSchema,
-  type TPatch,
-} from "@massmarket/schema/cbor";
+import type { BaseObjectSchema, TPatch } from "@massmarket/schema/cbor";
 
 export type Path = string | string[];
 export type IStoredState = { seqNum: number; root: Uint8Array };
@@ -68,7 +64,6 @@ export default class DataBase<
     return new WritableStream<TPatch>({
       write: async (patch) => {
         // validate the Operation's schema
-        v.parse(PatchSchema, patch);
         const state = await this.loadState(id);
         const validityRange = await this.graph.get(state.root, [
           "account",
@@ -116,13 +111,11 @@ export default class DataBase<
   }
 
   createReadStream() {
-    return new ReadableStream(
-      {
-        start: (controller: ReadableStreamDefaultController) => {
-          this.#streamsControllers.push(controller);
-        },
+    return new ReadableStream<TPatch>({
+      start: (controller: ReadableStreamDefaultController<TPatch>) => {
+        this.#streamsControllers.push(controller);
       },
-    );
+    });
   }
 
   async addConnection(client: RelayClient) {
@@ -173,7 +166,7 @@ export default class DataBase<
       // send patch to peers
       this.#streamsControllers.forEach((controller) => {
         controller.enqueue({
-          signature: new Uint8Array(32),
+          signer: new Uint8Array(32),
           seqNum: state.seqNum,
           keycard: new Uint8Array(32),
           account: new Uint8Array(32),

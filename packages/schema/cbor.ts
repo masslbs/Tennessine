@@ -23,7 +23,7 @@ export const OpSchema = v.intersect([
   ]),
 ]);
 export const PatchSchema = v.object({
-  signature: v.instance(Uint8Array),
+  signer: v.instance(Uint8Array),
   seqNum: v.number(),
   keycard: v.instance(Uint8Array),
   account: v.instance(Uint8Array),
