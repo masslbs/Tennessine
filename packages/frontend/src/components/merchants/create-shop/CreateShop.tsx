@@ -43,7 +43,11 @@ import { useShopId } from "../../../hooks/useShopId.ts";
 import { useKeycard } from "../../../hooks/useKeycard.ts";
 import { useShopDetails } from "../../../hooks/useShopDetails.ts";
 import { CurrencyChainOption, ShopCurrencies } from "../../../types.ts";
-import { getTokenAddress, isValidAddress, removeCachedKeycards } from "../../../utils/mod.ts";
+import {
+  getTokenAddress,
+  isValidAddress,
+  removeCachedKeycards,
+} from "../../../utils/mod.ts";
 
 import { useChain } from "../../../hooks/useChain.ts";
 // When create shop CTA is clicked, these functions are called:
@@ -100,14 +104,13 @@ export default function () {
 
   useEffect(() => {
     if (!search.shopId) {
-      const newShopId = random256BigInt()
+      const newShopId = random256BigInt();
       navigate({ search: { shopId: `0x${newShopId.toString(16)}` } });
     }
     return () => {
       // If user exits before creating shop, remove keycard from local storage.
-      removeCachedKeycards()
-    }
-    
+      removeCachedKeycards();
+    };
   }, []);
 
   useEffect(() => {

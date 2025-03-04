@@ -28,9 +28,9 @@ export function removeCachedKeycards() {
     const key = localStorage.key(i);
     if (key && key.includes("keycard")) {
       const keycard = JSON.parse(localStorage.getItem(key)!);
-      if(keycard.role === "guest-new"){
+      if (keycard.role === "guest-new") {
         localStorage.removeItem(key);
-        i--; 
+        i--;
       }
     }
   }
