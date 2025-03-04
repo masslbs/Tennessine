@@ -44,7 +44,7 @@ Deno.test("Merchant Dashboard", {
 
   await t.step("No orders renders", () => {
     const { unmount } = render(<MerchantDashboard />, { wrapper });
-    screen.getByTestId("merchant-dashboard-page");
+    screen.getByTestId("merchant-dashboard-screen");
     screen.getByTestId("no-transactions");
     unmount();
   });
@@ -62,7 +62,7 @@ Deno.test("Merchant Dashboard", {
     }]);
 
     const { unmount } = render(<MerchantDashboard />, { wrapper });
-    screen.getByTestId("merchant-dashboard-page");
+    screen.getByTestId("merchant-dashboard-screen");
     await waitFor(() => {
       screen.getByTestId("transaction");
       expect(screen.getByTestId("id").textContent).toContain(

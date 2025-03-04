@@ -67,72 +67,74 @@ export default function MerchantDashboard() {
 
   return (
     <main
-      className="p-4 pt-under-nav h-screen"
-      data-testid="merchant-dashboard-page"
+      className="p-4 pt-under-nav h-screen md:flex justify-center"
+      data-testid="merchant-dashboard-screen"
     >
-      <div className="mb-4">
-        <h1>Dashboard</h1>
-        <div className="flex flex-col gap-1 pt-4">
-          <Link
-            className="flex items-center gap-1 p-3 bg-white rounded-md text-black"
-            to="/edit-listing"
-            search={(prev: Record<string, string>) => ({
-              shopId: prev.shopId,
-              itemId: "new",
-            })}
-          >
-            Add new product
-            <img
-              src={`/icons/chevron-right.svg`}
-              width={8}
-              height={8}
-              alt="chevron-right"
-              className="w-2 h-2 ml-auto"
-            />
-          </Link>
-          <Link
-            className="flex items-center gap-1 p-3 bg-white rounded-md text-black"
-            to="/listings"
-            search={(prev: Record<string, string>) => ({
-              shopId: prev.shopId,
-            })}
-          >
-            <p>View products</p>
-            <img
-              src={`/icons/chevron-right.svg`}
-              width={8}
-              height={8}
-              alt="chevron-right"
-              className="w-2 h-2 ml-auto"
-            />
-          </Link>
+      <section className="md:w-[560px]">
+        <section className="mb-4">
+          <h1>Dashboard</h1>
+          <div className="flex flex-col gap-1 pt-4">
+            <Link
+              className="flex items-center gap-1 p-3 bg-white rounded-md text-black"
+              to="/edit-listing"
+              search={(prev: Record<string, string>) => ({
+                shopId: prev.shopId,
+                itemId: "new",
+              })}
+            >
+              Add new product
+              <img
+                src={`/icons/chevron-right.svg`}
+                width={8}
+                height={8}
+                alt="chevron-right"
+                className="w-2 h-2 ml-auto"
+              />
+            </Link>
+            <Link
+              className="flex items-center gap-1 p-3 bg-white rounded-md text-black"
+              to="/listings"
+              search={(prev: Record<string, string>) => ({
+                shopId: prev.shopId,
+              })}
+            >
+              <p>View products</p>
+              <img
+                src={`/icons/chevron-right.svg`}
+                width={8}
+                height={8}
+                alt="chevron-right"
+                className="w-2 h-2 ml-auto"
+              />
+            </Link>
 
-          <Link
-            to="/settings"
-            search={(prev: Record<string, string>) => ({
-              shopId: prev.shopId,
-            })}
-            className="flex items-center gap-1 p-3 bg-white rounded-md text-black"
-          >
-            <p>Shop settings</p>
-            <img
-              src={`/icons/chevron-right.svg`}
-              width={8}
-              height={8}
-              alt="chevron-right"
-              className="w-2 h-2 ml-auto"
-            />
-          </Link>
-        </div>
-      </div>
-      <div className="transactions-container">
-        <h2 className="my-4">Latest orders</h2>
-        <div className="bg-primary-dark-green flex text-white p-4 rounded-t-xl">
-          <p>Order ID</p>
-          <p className="ml-auto">Status</p>
-        </div>
-        <Transactions orders={orders} />
-      </div>
+            <Link
+              to="/settings"
+              search={(prev: Record<string, string>) => ({
+                shopId: prev.shopId,
+              })}
+              className="flex items-center gap-1 p-3 bg-white rounded-md text-black"
+            >
+              <p>Shop settings</p>
+              <img
+                src={`/icons/chevron-right.svg`}
+                width={8}
+                height={8}
+                alt="chevron-right"
+                className="w-2 h-2 ml-auto"
+              />
+            </Link>
+          </div>
+        </section>
+        <section className="transactions-container">
+          <h2 className="my-4">Latest orders</h2>
+          <div className="bg-primary-dark-green flex text-white p-4 rounded-t-xl">
+            <p>Order ID</p>
+            <p className="ml-auto">Status</p>
+          </div>
+          <Transactions orders={orders} />
+        </section>
+      </section>
     </main>
   );
 }
