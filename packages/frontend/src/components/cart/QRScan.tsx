@@ -26,7 +26,7 @@ export default function QRScan({
   }, [imgSrc]);
 
   return (
-    <section className="flex justify-center">
+    <section className="md:flex justify-center">
       <section className="md:w-[560px]">
         <BackButton onClick={goBack} />
         <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">

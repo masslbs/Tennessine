@@ -122,6 +122,7 @@ export default function Pay({
               onClick={sendPayment}
               disabled={!paymentArgs || !wallet || loading ||
                 paymentCurrencyLoading}
+              custom={"md:w-1/2"}
             >
               {loading ? <h6>Waiting for transaction...</h6> : <h6>Pay</h6>}
             </Button>

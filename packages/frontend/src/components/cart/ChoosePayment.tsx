@@ -273,7 +273,7 @@ export default function ChoosePayment({
   }
 
   return (
-    <section data-testid="choose-payment" className="flex justify-center">
+    <section data-testid="choose-payment" className="md:flex justify-center">
       <section className="md:w-[560px]">
         <BackButton
           onClick={() => {

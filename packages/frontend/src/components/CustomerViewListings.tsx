@@ -84,7 +84,7 @@ export default function CustomerViewProducts({
     >
       <section>
         <h1>Shop</h1>
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-3">
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-5 pt-5">
           {renderProducts()}
         </section>
       </section>

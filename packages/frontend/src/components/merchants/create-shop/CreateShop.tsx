@@ -368,13 +368,13 @@ export default function () {
                       View TX
                     </a>
                   )}
-                  {creatingShop
-                    ? <LoadingSpinner />
-                    : (
+                  {creatingShop ? <LoadingSpinner /> : (
+                    <div>
                       <Button onClick={mint} disabled={!wallet || !shopId}>
                         <h6>Mint Shop</h6>
                       </Button>
-                    )}
+                    </div>
+                  )}
                 </div>
               )
               : <ConnectWalletButton />}

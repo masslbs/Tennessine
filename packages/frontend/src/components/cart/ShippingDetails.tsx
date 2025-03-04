@@ -195,7 +195,9 @@ export default function ShippingDetails({
               onChange={(e) => setNumber(e.target.value)}
             />
           </div>
-          <Button onClick={onUpdateShipping}>Payment options</Button>
+          <div className="mt-3">
+            <Button onClick={onUpdateShipping}>Payment options</Button>
+          </div>
         </form>
         <section className="hidden md:block">
           <h1 className="pl-5">Order Summary</h1>

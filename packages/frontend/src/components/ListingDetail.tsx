@@ -129,12 +129,12 @@ export default function ListingDetail() {
           }}
         />
         <BackButton href="/listings" />
-        <div className="my-3 flex">
+        <div className="my-3">
           <h1 className="flex items-center" data-testid="title">
             {item.metadata.title}
           </h1>
           <div
-            className={`ml-auto ${keycard.role === "merchant" ? "" : "hidden"}`}
+            className={`mt-2 ${keycard.role === "merchant" ? "" : "hidden"}`}
           >
             <Button>
               <Link
@@ -145,7 +145,7 @@ export default function ListingDetail() {
                 })}
                 className="text-white"
               >
-                Edit
+                Edit Product
               </Link>
             </Button>
           </div>
