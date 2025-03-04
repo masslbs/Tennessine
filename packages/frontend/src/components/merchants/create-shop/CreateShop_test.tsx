@@ -79,6 +79,14 @@ Deno.test("Check that we can render the create shop screen", {
     }) as HTMLInputElement;
     expect(ethHardhat).toBeTruthy();
     await user.click(ethHardhat as HTMLInputElement);
+    // Select and unselect EDD/Hardhat option
+    const eddHarhat = checkboxes.find((checkbox) => {
+      return (checkbox as HTMLInputElement).value ===
+        `EDD/${hardhat.id}`;
+    }) as HTMLInputElement;
+    expect(eddHarhat).toBeTruthy();
+    await user.click(eddHarhat as HTMLInputElement);
+    await user.click(eddHarhat as HTMLInputElement);
   });
   await act(async () => {
     const connectWalletButton = screen.getByRole("button", {

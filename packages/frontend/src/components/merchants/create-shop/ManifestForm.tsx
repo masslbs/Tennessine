@@ -18,9 +18,9 @@ import {
 import { getTokenAddress, isValidAddress } from "../../../utils/mod.ts";
 
 export default function ManifestForm(
-  { shopData, setShopData, setStep }: {
-    shopData: ShopForm;
-    setShopData: (shopData: ShopForm) => void;
+  { shopInputData, setShopInput, setStep }: {
+    shopInputData: ShopForm;
+    setShopInput: (shopInputData: ShopForm) => void;
     setStep: (step: CreateShopStep) => void;
   },
 ) {
@@ -30,7 +30,7 @@ export default function ManifestForm(
     pricingCurrency,
     acceptedCurrencies,
     payees,
-  } = shopData;
+  } = shopInputData;
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const chains = useChains();
@@ -39,7 +39,7 @@ export default function ManifestForm(
     field: K,
     value: ShopForm[K],
   ) {
-    setShopData({ ...shopData, [field]: value });
+    setShopInput({ ...shopInputData, [field]: value });
   }
 
   function handleAcceptedCurrencies(e: ChangeEvent<HTMLInputElement>) {
@@ -79,7 +79,7 @@ export default function ManifestForm(
   }
 
   function checkRequiredFields() {
-    if (!shopData.payees[0].address) {
+    if (!shopInputData.payees[0].address) {
       return "Payee address is required.";
     } else if (!pricingCurrency?.address) {
       return "Pricing currency address is required.";
@@ -88,12 +88,12 @@ export default function ManifestForm(
     }
 
     const isTokenAddrHex = isValidAddress(pricingCurrency.address);
-    const isPayeeAddHex = isValidAddress(shopData.payees[0].address);
+    const isPayeeAddHex = isValidAddress(shopInputData.payees[0].address);
     if (!isTokenAddrHex) {
       return "Token address must be a valid hex value";
-    } else if (!shopData.shopName.length) {
+    } else if (!shopInputData.shopName.length) {
       return "Store name is required";
-    } else if (!shopData.description.length) {
+    } else if (!shopInputData.description.length) {
       return "Store description is required";
     } else if (!isPayeeAddHex) {
       return "Payee Address must be a valid hex value";

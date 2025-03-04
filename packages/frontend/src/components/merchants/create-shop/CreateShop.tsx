@@ -69,7 +69,7 @@ export default function () {
     CreateShopStep
   >(CreateShopStep.ManifestForm);
 
-  const [shopData, setShopData] = useState<ShopForm>({
+  const [shopInputData, setShopInput] = useState<ShopForm>({
     shopName: "",
     description: "",
     avatar: null,
@@ -103,8 +103,8 @@ export default function () {
 
   useEffect(() => {
     if (wallet?.account) {
-      setShopData({
-        ...shopData,
+      setShopInput({
+        ...shopInputData,
         payees: [{
           address: wallet.account.address,
           chainId: chain.id,
@@ -236,13 +236,15 @@ export default function () {
 
       const uniqueByChainId = [
         ...new Set(
-          shopData.acceptedCurrencies.map((cur: ShopCurrencies) => cur.chainId),
+          shopInputData.acceptedCurrencies.map((cur: ShopCurrencies) =>
+            cur.chainId
+          ),
         ),
       ];
       // Get all unique chain IDs for selected accepted currencies and add payee for each chain.
       const payees = uniqueByChainId.map((chainId) => {
         return {
-          address: shopData.payees[0].address,
+          address: shopInputData.payees[0].address,
           callAsContract: false,
           chainId,
           name: `default - ${chainId}`,
@@ -250,8 +252,8 @@ export default function () {
       });
       await clientStateManager!.stateManager!.manifest.create(
         {
-          pricingCurrency: shopData.pricingCurrency as ShopCurrencies,
-          acceptedCurrencies: shopData.acceptedCurrencies,
+          pricingCurrency: shopInputData.pricingCurrency as ShopCurrencies,
+          acceptedCurrencies: shopInputData.acceptedCurrencies,
           payees,
           //TODO: UI for inputting shipping regions.
           shippingRegions: [
@@ -280,14 +282,14 @@ export default function () {
   async function uploadMetadata() {
     setStoreRegistrationStatus("Setting shop metadata...");
     try {
-      const imgPath = shopData.avatar
+      const imgPath = shopInputData.avatar
         ? await clientStateManager!.relayClient!.uploadBlob(
-          shopData.avatar as FormData,
+          shopInputData.avatar as FormData,
         )
         : { url: null };
       const metadata = {
-        name: shopData.shopName,
-        description: shopData.description,
+        name: shopInputData.shopName,
+        description: shopInputData.description,
         image: imgPath.url,
       };
       const jsn = JSON.stringify(metadata);
@@ -315,7 +317,7 @@ export default function () {
       }
 
       setShopDetails({
-        name: shopData.shopName,
+        name: shopInputData.shopName,
         profilePictureUrl: imgPath.url,
       });
 
@@ -333,8 +335,8 @@ export default function () {
     if (step === CreateShopStep.ManifestForm) {
       return (
         <ManifestForm
-          shopData={shopData}
-          setShopData={setShopData}
+          shopInputData={shopInputData}
+          setShopInput={setShopInput}
           setStep={setStep}
         />
       );
