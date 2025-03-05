@@ -13,6 +13,15 @@ import { assert, formatUnitsFromString, logger } from "@massmarket/utils";
 import { getPaymentAddress, getPaymentId } from "@massmarket/blockchain";
 import * as abi from "@massmarket/contracts";
 
+import Pay from "./Pay.tsx";
+import QRScan from "./QRScan.tsx";
+import TimerToast from "./TimerToast.tsx";
+import Dropdown from "../common/CurrencyDropdown.tsx";
+import BackButton from "../common/BackButton.tsx";
+import ErrorMessage from "../common/ErrorMessage.tsx";
+import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
+import { useShopId } from "../../hooks/useShopId.ts";
+import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import {
   CheckoutStep,
   CurrencyChainOption,
@@ -23,15 +32,7 @@ import {
   ShopCurrencies,
   ShopManifest,
 } from "../../types.ts";
-import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
-import { useShopId } from "../../hooks/useShopId.ts";
-import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { defaultRPC, getTokenInformation } from "../../utils/mod.ts";
-import Dropdown from "../common/CurrencyDropdown.tsx";
-import BackButton from "../common/BackButton.tsx";
-import ErrorMessage from "../common/ErrorMessage.tsx";
-import Pay from "./Pay.tsx";
-import QRScan from "./QRScan.tsx";
 
 const namespace = "frontend:ChoosePayment";
 const debug = logger(namespace);
@@ -286,8 +287,9 @@ export default function ChoosePayment({
             setErrorMsg(null);
           }}
         />
-        <h1 className="mt-5">Choose payment method</h1>
-        <section className="mt-2 flex flex-col gap-4 bg-white rounded-lg">
+        <h1 className="my-5">Choose payment method</h1>
+        <TimerToast />
+        <section className="mt-2 flex flex-col gap-4 bg-white rounded-lg px-5">
           <div data-testid="payment-currency">
             <label>Payment currency and chain</label>
             {displayedChains && (
@@ -313,14 +315,17 @@ export default function ChoosePayment({
           <div className={paymentCurrencyLoading ? "" : "hidden"}>
             <p>Getting payment details...</p>
           </div>
-          <div>
-            <div className="bg-background-gray p-5 rounded-lg">
+          <div
+            data-testid="payment-methods"
+            className="md:flex gap-4 justify-between"
+          >
+            <div className="bg-background-gray py-5 rounded-lg">
               <Pay
                 paymentArgs={paymentArgs}
                 paymentCurrencyLoading={paymentCurrencyLoading}
               />
             </div>
-            <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg mt-5">
+            <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg">
               <button
                 data-testid="connect-wallet"
                 className="rounded-lg flex flex-col items-center gap-2 bg-transparent p-0"

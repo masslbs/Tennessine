@@ -65,6 +65,7 @@ export default function CustomerViewProducts({
                   width={20}
                   height={20}
                   className="w-5 h-5"
+                  data-testid="coin-icon"
                 />
                 <p data-testid="product-price">
                   {baseToken &&

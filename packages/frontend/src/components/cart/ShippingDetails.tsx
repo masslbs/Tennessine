@@ -6,14 +6,14 @@ import { useEffect, useState } from "react";
 
 import { assert, logger } from "@massmarket/utils";
 
-import { CheckoutStep, type ShippingDetails } from "../../types.ts";
+import Cart from "./Cart.tsx";
+import TimerToast from "./TimerToast.tsx";
 import Button from "../common/Button.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
-// import TimerToast from "@/app/components/checkout/TimerToast";
 import ValidationWarning from "../common/ValidationWarning.tsx";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
-import Cart from "./Cart.tsx";
+import { CheckoutStep, type ShippingDetails } from "../../types.ts";
 
 const namespace = "frontend:ShippingDetails";
 const debug = logger(namespace);
@@ -115,7 +115,6 @@ export default function ShippingDetails({
           setValidationError(null);
         }}
       />
-      {/* <TimerToast /> */}
       <section className="flex flex-row justify-center gap-12 bg-white px-5 rounded-lg">
         <form
           className="flex flex-col"
@@ -124,8 +123,8 @@ export default function ShippingDetails({
           }}
         >
           <h1 className="mb-5">Shipping details</h1>
-
-          <label htmlFor="name">Name</label>
+          <TimerToast />
+          <label className="mt-5" htmlFor="name">Name</label>
           <input
             className="border-2 border-solid mt-1 p-3 rounded-2xl"
             id="name"

@@ -37,7 +37,7 @@ Deno.test(
     await csm.stateManager!.manifest.create(
       {
         acceptedCurrencies: [{
-          chainId: 1,
+          chainId: hardhat.id,
           address: addresses.zeroAddress,
         }],
         pricingCurrency: {
@@ -70,6 +70,10 @@ Deno.test(
         expect(title.textContent).toEqual(metadata.title);
         const price = within(listings[0]).getByTestId("product-price");
         expect(price.textContent).toEqual("12");
+        const coinIcon = within(listings[0]).getByTestId("coin-icon");
+        expect(coinIcon.getAttribute("src")).toEqual(
+          "/icons/eth-coin.svg",
+        );
         const image = within(listings[0]).getByRole("img", {
           name: "product-thumb",
         });
