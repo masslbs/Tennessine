@@ -19,6 +19,7 @@ import TimerToast from "./TimerToast.tsx";
 import Dropdown from "../common/CurrencyDropdown.tsx";
 import BackButton from "../common/BackButton.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
+import ConnectWalletButton from "../common/ConnectWalletButton.tsx";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 import { useShopId } from "../../hooks/useShopId.ts";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
@@ -59,6 +60,7 @@ export default function ChoosePayment({
   const [paymentAddress, setPaymentAddress] = useState<Address | null>(null);
   const [imgSrc, setSrc] = useState<null | string>(null);
   const [qrOpen, setQrOpen] = useState<boolean>(false);
+  const [connectWalletOpen, setConnectWalletOpen] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [chosenPaymentTokenIcon, setIcon] = useState<string>(
     "/icons/usdc-coin.png",
@@ -254,12 +256,21 @@ export default function ChoosePayment({
       setErrorMsg("Error setting chosen payment");
     }
   }
+
   function payByQr() {
     if (!displayedAmount) {
       setErrorMsg("Please select a payment currency");
       return;
     }
     setQrOpen(true);
+  }
+
+  function payWithWallet() {
+    if (!displayedAmount) {
+      setErrorMsg("Please select a payment currency");
+      return;
+    }
+    setConnectWalletOpen(true);
   }
 
   if (qrOpen) {
@@ -269,6 +280,14 @@ export default function ChoosePayment({
         purchaseAddress={paymentAddress!}
         displayedAmount={displayedAmount!}
         goBack={() => setQrOpen(false)}
+      />
+    );
+  } else if (connectWalletOpen) {
+    return (
+      <Pay
+        paymentArgs={paymentArgs}
+        paymentCurrencyLoading={paymentCurrencyLoading}
+        goBack={() => setConnectWalletOpen(false)}
       />
     );
   }
@@ -289,7 +308,7 @@ export default function ChoosePayment({
         />
         <h1 className="my-5">Choose payment method</h1>
         <TimerToast />
-        <section className="mt-2 flex flex-col gap-4 bg-white rounded-lg px-5">
+        <section className="mt-2 flex flex-col gap-4 bg-white rounded-lg p-5">
           <div data-testid="payment-currency">
             <label>Payment currency and chain</label>
             {displayedChains && (
@@ -317,17 +336,16 @@ export default function ChoosePayment({
           </div>
           <div
             data-testid="payment-methods"
-            className="md:flex gap-4 justify-between"
+            className="flex flex-col md:flex-row gap-4 justify-around"
           >
-            <div className="bg-background-gray py-5 rounded-lg">
-              <Pay
-                paymentArgs={paymentArgs}
-                paymentCurrencyLoading={paymentCurrencyLoading}
+            <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg">
+              <ConnectWalletButton
+                onClick={payWithWallet}
               />
             </div>
             <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg">
               <button
-                data-testid="connect-wallet"
+                data-testid="pay-by-qr"
                 className="rounded-lg flex flex-col items-center gap-2 bg-transparent p-0"
                 onClick={payByQr}
               >

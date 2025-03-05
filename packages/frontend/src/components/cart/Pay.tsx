@@ -9,8 +9,8 @@ import * as abi from "@massmarket/contracts";
 import { assert, logger } from "@massmarket/utils";
 import { approveERC20, getAllowance, pay } from "@massmarket/blockchain";
 
-import ConnectWalletButton from "../common/ConnectWalletButton.tsx";
 import Button from "../common/Button.tsx";
+import BackButton from "../common/BackButton.tsx";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 import { Order, OrderState } from "../../types.ts";
 import { env } from "../../utils/env.ts";
@@ -22,6 +22,7 @@ const errlog = logger(namespace, "error");
 export default function Pay({
   paymentArgs,
   paymentCurrencyLoading,
+  goBack,
 }: {
   paymentArgs: ContractFunctionArgs<
     typeof abi.paymentsByAddressAbi,
@@ -29,9 +30,10 @@ export default function Pay({
     "payTokenPreApproved"
   >;
   paymentCurrencyLoading: boolean;
+  goBack: () => void;
 }) {
   const addRecentTransaction = useAddRecentTransaction();
-  const { status, connector } = useAccount();
+  const { connector } = useAccount();
   const { data: wallet } = useWalletClient();
   const { clientStateManager } = useClientWithStateManager();
   const paymentChainId = Number(paymentArgs?.[0]?.chainId || 1);
@@ -113,35 +115,31 @@ export default function Pay({
   }
 
   return (
-    <div>
-      {status === "connected"
-        ? (
-          <div className="flex flex-col gap-4">
-            <ConnectButton chainStatus="name" />
-            <Button
-              onClick={sendPayment}
-              disabled={!paymentArgs || !wallet || loading ||
-                paymentCurrencyLoading}
-              custom={"md:w-1/2"}
+    <section className="md:flex justify-center">
+      <section className="md:w-[560px]">
+        <BackButton onClick={goBack} />
+        <section className="flex flex-col gap-4 bg-white p-5 rounded-lg mt-2">
+          <h1>Connect your wallet</h1>
+          <ConnectButton chainStatus="name" />
+          <Button
+            onClick={sendPayment}
+            disabled={!paymentArgs || !wallet || loading ||
+              paymentCurrencyLoading}
+            custom={"md:w-1/2"}
+          >
+            {loading ? <h6>Waiting for transaction...</h6> : <h6>Pay</h6>}
+          </Button>
+          {txHash && (
+            <a
+              href={`${
+                paymentPublicClient!.chain.blockExplorers?.default?.url
+              }/tx/${txHash}`}
             >
-              {loading ? <h6>Waiting for transaction...</h6> : <h6>Pay</h6>}
-            </Button>
-            {txHash && (
-              <a
-                href={`${
-                  paymentPublicClient!.chain.blockExplorers?.default?.url
-                }/tx/${txHash}`}
-              >
-                View TX
-              </a>
-            )}
-          </div>
-        )
-        : (
-          <div className="flex justify-center">
-            <ConnectWalletButton />
-          </div>
-        )}
-    </div>
+              View TX
+            </a>
+          )}
+        </section>
+      </section>
+    </section>
   );
 }

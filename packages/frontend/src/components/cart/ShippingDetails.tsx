@@ -115,14 +115,15 @@ export default function ShippingDetails({
           setValidationError(null);
         }}
       />
-      <section className="flex flex-row justify-center gap-12 bg-white px-5 rounded-lg">
+      <h1 className="mb-5">Shipping details</h1>
+
+      <section className="flex flex-row justify-center gap-12 bg-white p-5 rounded-lg">
         <form
           className="flex flex-col"
           onSubmit={(e) => {
             e.preventDefault();
           }}
         >
-          <h1 className="mb-5">Shipping details</h1>
           <TimerToast />
           <label className="mt-5" htmlFor="name">Name</label>
           <input

@@ -293,7 +293,7 @@ function Navigation() {
           </button>
         </section>
       </section>
-      {basketOpen && (
+      {(basketOpen || menuOpen) && (
         <span className="fixed bg-black w-full h-full opacity-60" />
       )}
       {menuOpen
@@ -308,7 +308,7 @@ function Navigation() {
       {basketOpen
         ? (
           <section className="md:w-1/3 md:ml-auto">
-            <div className="fixed bg-background-gray z-10 w-full md:w-1/3 md:right-0 flex flex-col gap-5 rounded-b-lg px-5 py-2">
+            <div className="fixed bg-background-gray z-10 w-full md:w-1/3 md:right-0 flex flex-col gap-5 rounded-b-lg p-5">
               <h1>Basket</h1>
               <Cart
                 onCheckout={onCheckout}

@@ -49,7 +49,7 @@ export default function MerchantViewProducts({
               width={127}
               height={112}
               alt="product-thumb"
-              className="w-32 h-28 object-cover object-center rounded-l-lg"
+              className="w-32 h-full object-cover object-center rounded-l-lg"
             />
           </div>
           <div className="bg-background-gray w-full rounded-r-lg px-5 py-4">

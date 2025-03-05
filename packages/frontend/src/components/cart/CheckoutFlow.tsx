@@ -181,7 +181,7 @@ export default function CheckoutFlow() {
   }
   return (
     <main
-      className="pt-under-nav p-4 min-h-screen"
+      className="pt-under-nav p-4"
       data-testid="checkout-screen"
     >
       <ErrorMessage

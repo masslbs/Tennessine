@@ -310,7 +310,9 @@ export default function Cart({
           setErrorMsg(null);
         }}
       />
-      {renderItems()}
+      <div className="flex flex-col gap-2">
+        {renderItems()}
+      </div>
       <div className="mt-4">
         <p>Total Price:</p>
         <div className="flex items-center gap-2">
