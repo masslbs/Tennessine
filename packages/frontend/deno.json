@@ -33,7 +33,6 @@
     "bootstrap": "npm:bootstrap@^5.3.3",
     "postcss": "npm:postcss@^8.4.49",
     "qrcode": "npm:qrcode@^1.5.4",
-    "react-bootstrap": "npm:react-bootstrap@^2.10.9",
     "tailwindcss": "npm:tailwindcss@^3.4.17",
     "viem": "npm:viem@2.21.55",
     "react": "npm:react@^18.3.1",
