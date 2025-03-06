@@ -13,6 +13,16 @@ import { assert, formatUnitsFromString, logger } from "@massmarket/utils";
 import { getPaymentAddress, getPaymentId } from "@massmarket/blockchain";
 import * as abi from "@massmarket/contracts";
 
+import Pay from "./Pay.tsx";
+import QRScan from "./QRScan.tsx";
+import TimerToast from "./TimerToast.tsx";
+import Dropdown from "../common/CurrencyDropdown.tsx";
+import BackButton from "../common/BackButton.tsx";
+import ErrorMessage from "../common/ErrorMessage.tsx";
+import ConnectWalletButton from "../common/ConnectWalletButton.tsx";
+import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
+import { useShopId } from "../../hooks/useShopId.ts";
+import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import {
   CheckoutStep,
   CurrencyChainOption,
@@ -23,15 +33,7 @@ import {
   ShopCurrencies,
   ShopManifest,
 } from "../../types.ts";
-import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
-import { useShopId } from "../../hooks/useShopId.ts";
-import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { defaultRPC, getTokenInformation } from "../../utils/mod.ts";
-import Dropdown from "../common/CurrencyDropdown.tsx";
-import BackButton from "../common/BackButton.tsx";
-import ErrorMessage from "../common/ErrorMessage.tsx";
-import Pay from "./Pay.tsx";
-import QRScan from "./QRScan.tsx";
 
 const namespace = "frontend:ChoosePayment";
 const debug = logger(namespace);
@@ -58,6 +60,7 @@ export default function ChoosePayment({
   const [paymentAddress, setPaymentAddress] = useState<Address | null>(null);
   const [imgSrc, setSrc] = useState<null | string>(null);
   const [qrOpen, setQrOpen] = useState<boolean>(false);
+  const [connectWalletOpen, setConnectWalletOpen] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [chosenPaymentTokenIcon, setIcon] = useState<string>(
     "/icons/usdc-coin.png",
@@ -253,6 +256,23 @@ export default function ChoosePayment({
       setErrorMsg("Error setting chosen payment");
     }
   }
+
+  function payByQr() {
+    if (!displayedAmount) {
+      setErrorMsg("Please select a payment currency");
+      return;
+    }
+    setQrOpen(true);
+  }
+
+  function payWithWallet() {
+    if (!displayedAmount) {
+      setErrorMsg("Please select a payment currency");
+      return;
+    }
+    setConnectWalletOpen(true);
+  }
+
   if (qrOpen) {
     return (
       <QRScan
@@ -262,84 +282,94 @@ export default function ChoosePayment({
         goBack={() => setQrOpen(false)}
       />
     );
+  } else if (connectWalletOpen) {
+    return (
+      <Pay
+        paymentArgs={paymentArgs}
+        paymentCurrencyLoading={paymentCurrencyLoading}
+        goBack={() => setConnectWalletOpen(false)}
+      />
+    );
   }
 
   return (
-    <section data-testid="choose-payment">
-      <BackButton
-        onClick={() => {
-          setStep(CheckoutStep.shippingDetails);
-        }}
-      />
-      <ErrorMessage
-        errorMessage={errorMsg}
-        onClose={() => {
-          setErrorMsg(null);
-        }}
-      />
-      <div className="flex">
-        <h1>Choose payment method</h1>
-      </div>
-      <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
-        <div data-testid="payment-currency">
-          <label>Payment currency and chain</label>
-          {displayedChains && (
-            <Dropdown
-              options={displayedChains}
-              callback={onSelectPaymentCurrency}
-            />
-          )}
-        </div>
-        <div className={displayedAmount ? "" : "hidden"}>
-          <p>Total Price</p>
-          <div className="flex items-center gap-2">
-            <img
-              src={chosenPaymentTokenIcon}
-              alt="coin"
-              width={24}
-              height={24}
-              className="w-6 h-6 max-h-6"
-            />
-            <h1>{displayedAmount}</h1>
-          </div>
-        </div>
-        <div className={paymentCurrencyLoading ? "" : "hidden"}>
-          <p>Getting payment details...</p>
-        </div>
-        <div>
-          <div className="bg-background-gray p-5 rounded-lg">
-            <Pay
-              paymentArgs={paymentArgs}
-              paymentCurrencyLoading={paymentCurrencyLoading}
-            />
-          </div>
-          <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg mt-5">
-            <button
-              data-testid="connect-wallet"
-              className="rounded-lg flex flex-col items-center gap-2 bg-transparent p-0"
-              onClick={() => setQrOpen(true)}
-              disabled={!displayedAmount}
-            >
-              <img
-                src="/icons/wallet-icon.svg"
-                width={40}
-                height={40}
-                alt="wallet-icon"
-                className="w-10 h-10 "
+    <section data-testid="choose-payment" className="md:flex justify-center">
+      <section className="md:w-[560px]">
+        <BackButton
+          onClick={() => {
+            setStep(CheckoutStep.shippingDetails);
+          }}
+        />
+        <ErrorMessage
+          errorMessage={errorMsg}
+          onClose={() => {
+            setErrorMsg(null);
+          }}
+        />
+        <h1 className="my-5">Choose payment method</h1>
+        <TimerToast />
+        <section className="mt-2 flex flex-col gap-4 bg-white rounded-lg p-5">
+          <div data-testid="payment-currency">
+            <label>Payment currency and chain</label>
+            {displayedChains && (
+              <Dropdown
+                options={displayedChains}
+                callback={onSelectPaymentCurrency}
               />
-              <div className="flex gap-2 items-center">
-                <p>Pay by QR code</p>
-                <img
-                  src="/icons/chevron-right.svg"
-                  width={12}
-                  height={12}
-                  alt="chevron"
-                  className="w-3 h-3"
-                />
-              </div>
-            </button>
+            )}
           </div>
-        </div>
+          <div className={displayedAmount ? "" : "hidden"}>
+            <p>Total Price</p>
+            <div className="flex items-center gap-2">
+              <img
+                src={chosenPaymentTokenIcon}
+                alt="coin"
+                width={24}
+                height={24}
+                className="w-6 h-6 max-h-6"
+              />
+              <h1>{displayedAmount}</h1>
+            </div>
+          </div>
+          <div className={paymentCurrencyLoading ? "" : "hidden"}>
+            <p>Getting payment details...</p>
+          </div>
+          <div
+            data-testid="payment-methods"
+            className="flex flex-col md:flex-row gap-4 justify-around"
+          >
+            <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg">
+              <ConnectWalletButton
+                onClick={payWithWallet}
+              />
+            </div>
+            <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg">
+              <button
+                data-testid="pay-by-qr"
+                className="rounded-lg flex flex-col items-center gap-2 bg-transparent p-0"
+                onClick={payByQr}
+              >
+                <img
+                  src="/icons/wallet-icon.svg"
+                  width={40}
+                  height={40}
+                  alt="wallet-icon"
+                  className="w-10 h-10 "
+                />
+                <div className="flex gap-2 items-center">
+                  <p>Pay by QR code</p>
+                  <img
+                    src="/icons/chevron-right.svg"
+                    width={12}
+                    height={12}
+                    alt="chevron"
+                    className="w-3 h-3"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </section>
       </section>
     </section>
   );

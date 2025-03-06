@@ -34,7 +34,9 @@ export default function MerchantViewProducts({
         <Link
           key={item.id}
           data-testid="product-container"
-          className={`${!visible ? "opacity-50" : ""} flex w-full h-auto mb-4`}
+          className={`${
+            !visible ? "opacity-50" : ""
+          } flex w-full h-auto mb-4 text-black`}
           to="/listing-detail"
           search={(prev: Record<string, string>) => ({
             shopId: prev.shopId,
@@ -47,11 +49,11 @@ export default function MerchantViewProducts({
               width={127}
               height={112}
               alt="product-thumb"
-              className="w-32 h-28 object-cover object-center rounded-l-lg"
+              className="w-32 h-full object-cover object-center rounded-l-lg"
             />
           </div>
           <div className="bg-background-gray w-full rounded-r-lg px-5 py-4">
-            <div className="flex">
+            <div className="flex border-b border-gray-300 w-full pb-3">
               <h3 data-testid="product-name" className="leading-4">
                 {metadata.title}
               </h3>
@@ -63,16 +65,27 @@ export default function MerchantViewProducts({
                 className="w-auto h-auto ml-auto"
               />
             </div>
-            <div className="flex justify-between mt-1">
+            <div className="flex justify-between mt-2 border-b border-gray-300 w-full pb-2">
               <p>Stock Level</p>
               <p>{item.quantity}</p>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between pt-2">
               <p>Price</p>
-              <p data-testid={`product-price`}>
-                {baseToken &&
-                  formatUnitsFromString(item.price, baseToken.decimals)}
-              </p>
+              <div className="flex gap-1 items-center">
+                <img
+                  src={baseToken?.symbol === "ETH"
+                    ? "/icons/eth-coin.svg"
+                    : "/icons/usdc-coin.png"}
+                  alt="coin"
+                  width={20}
+                  height={20}
+                  className="w-5 h-5"
+                />
+                <p data-testid={`product-price`}>
+                  {baseToken &&
+                    formatUnitsFromString(item.price, baseToken.decimals)}
+                </p>
+              </div>
             </div>
           </div>
         </Link>
@@ -81,7 +94,7 @@ export default function MerchantViewProducts({
   }
 
   return (
-    <section className="mx-5 pt-3" data-testid="merchant-view-listings">
+    <section className="mx-5 md:mx-8 pt-3" data-testid="merchant-view-listings">
       <div className="flex">
         <h1 className="grow flex items-center">Manage Products</h1>
         <Button custom="w-30">
@@ -98,20 +111,8 @@ export default function MerchantViewProducts({
         </Button>
       </div>
       <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
-        <div className="flex gap-2 text-sm">
-          <button className="ml-auto flex items-center gap-2 bg-white p-0">
-            <p>Filter</p>
-            <img
-              src="/icons/filter.svg"
-              width={12}
-              height={12}
-              alt="filter-icon"
-              className="w-3 h-3"
-            />
-          </button>
-        </div>
-        <section className="product-list-container flex flex-col gap-4">
-          <div className="flex flex-wrap">{renderProducts()}</div>
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {renderProducts()}
         </section>
       </section>
     </section>

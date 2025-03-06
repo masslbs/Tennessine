@@ -28,7 +28,7 @@ Deno.test("Edit Listing", {
   await t.step("Create new listing", async () => {
     const { wrapper, csm } = await createRouterWrapper(null, "/?itemId=new");
     const { unmount } = render(<EditListing />, { wrapper });
-    screen.getByTestId("edit-listing-page");
+    screen.getByTestId("edit-listing-screen");
     await act(async () => {
       const titleInput = screen.getByTestId("title");
       await user.type(titleInput, "product 1");
@@ -115,7 +115,7 @@ Deno.test("Edit Listing", {
     const { unmount } = render(<EditListing />, {
       wrapper,
     });
-    screen.getByTestId("edit-listing-page");
+    screen.getByTestId("edit-listing-screen");
 
     await waitFor(() => {
       const priceInput = screen.getByTestId("price") as HTMLInputElement;

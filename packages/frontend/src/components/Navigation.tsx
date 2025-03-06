@@ -231,7 +231,7 @@ function Navigation() {
       className={`absolute left-0 top-0 right-0`}
       data-testid="navigation"
     >
-      <section className="w-full p-2 text-base flex justify-between bg-white">
+      <section className="w-full p-2 text-base flex justify-between bg-white md:px-8">
         <div className="flex gap-2">
           {shopDetails.profilePictureUrl
             ? (
@@ -293,11 +293,13 @@ function Navigation() {
           </button>
         </section>
       </section>
+      {(basketOpen || menuOpen) && (
+        <span className="fixed bg-black w-full h-full opacity-60" />
+      )}
       {menuOpen
         ? (
-          <section>
-            <span className="fixed bg-black w-full h-full opacity-60" />
-            <div className="fixed bg-background-gray z-10 w-full flex flex-col gap-5 rounded-b-lg p-5">
+          <section className="md:w-1/3 md:ml-auto">
+            <div className="fixed bg-background-gray z-10 w-full md:w-1/3 md:right-0 flex flex-col gap-5 rounded-b-lg p-5">
               {renderMenuItems()}
             </div>
           </section>
@@ -305,10 +307,13 @@ function Navigation() {
         : null}
       {basketOpen
         ? (
-          <section>
-            <span className="fixed bg-black w-full h-full opacity-60" />
-            <div className="fixed bg-background-gray z-10 w-full flex flex-col gap-5 rounded-b-lg p-5">
-              <Cart onCheckout={onCheckout} />
+          <section className="md:w-1/3 md:ml-auto">
+            <div className="fixed bg-background-gray z-10 w-full md:w-1/3 md:right-0 flex flex-col gap-5 rounded-b-lg p-5">
+              <h1>Basket</h1>
+              <Cart
+                onCheckout={onCheckout}
+                closeBasket={() => setBasketOpen(false)}
+              />
             </div>
           </section>
         )

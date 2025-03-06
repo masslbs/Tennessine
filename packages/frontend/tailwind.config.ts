@@ -9,6 +9,9 @@ const config: Config = {
 
   theme: {
     extend: {
+      fontFamily: {
+        outfit: ["Outfit", "sans-serif"],
+      },
       screens: {
         xxs: { max: "400px" }, // for screens smaller than 400px
       },

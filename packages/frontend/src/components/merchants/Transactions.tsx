@@ -46,7 +46,7 @@ export default function Transactions(
 
   if (!transactions.length) {
     return (
-      <div>
+      <div data-testid="no-transactions">
         <p>no transactions</p>
       </div>
     );
@@ -54,6 +54,7 @@ export default function Transactions(
   return transactions.map((o) => {
     return (
       <Link
+        data-testid="transaction"
         key={o.orderId}
         className="bg-white border-2  p-3 flex justify-between"
         to="/order-details"
@@ -62,9 +63,9 @@ export default function Transactions(
           orderId: o.orderId,
         })}
       >
-        <p>{o.orderId?.slice(0, 10)}...</p>
-        <p>{o.date}</p>
-        <p>{o.status}</p>
+        <p data-testid="id">{o.orderId?.slice(0, 10)}...</p>
+        <p data-testid="date">{o.date}</p>
+        <p data-testid="status">{o.status}</p>
       </Link>
     );
   });

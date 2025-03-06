@@ -14,8 +14,8 @@ export default function Confirmation() {
   }
 
   return (
-    <main className="p-4 pt-under-nav" data-testid="mint-shop-confirmation">
-      <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg items-center">
+    <section className="md:w-[560px]" data-testid="mint-shop-confirmation">
+      <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg items-center text-center">
         <img
           src="/icons/smiley.svg"
           width={80}
@@ -37,7 +37,7 @@ export default function Confirmation() {
           indexer!) so we recommend that you really write it down.
         </p>
         <div className="flex gap-2">
-          <div className="bg-background-gray p-2 rounded-md overflow-x-auto w-40">
+          <div className="bg-background-gray p-2 rounded-md overflow-x-auto w-40 md:w-full">
             <p>{`0x${shopId!.toString(16)}`}</p>
           </div>
           <button onClick={copyToClipboard} className="bg-white p-0">
@@ -53,16 +53,20 @@ export default function Confirmation() {
       </section>
       <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg ">
         <h2 className="font-bold">Next steps</h2>
-        <Button>
-          <Link
-            to="/merchant-dashboard"
-            search={(prev: Record<string, string>) => ({ shopId: prev.shopId })}
-            className="text-white"
-          >
-            View Dashboard
-          </Link>
-        </Button>
+        <div>
+          <Button>
+            <Link
+              to="/merchant-dashboard"
+              search={(prev: Record<string, string>) => ({
+                shopId: prev.shopId,
+              })}
+              className="text-white"
+            >
+              View Dashboard
+            </Link>
+          </Button>
+        </div>
       </section>
-    </main>
+    </section>
   );
 }
