@@ -139,21 +139,21 @@ export default function MerchantConnect() {
             </p>
           </div>
           <ConnectButton chainStatus="name" />
-          <Button disabled={status !== "connected"} onClick={enroll}>
-            Connect to shop
-          </Button>
+          <div>
+            <Button disabled={status !== "connected"} onClick={enroll}>
+              Connect to shop
+            </Button>
+          </div>
         </div>
       );
     }
   }
-
-  return (
-    <main
-      className="pt-under-nav h-screen p-4 mt-5"
-      data-testid="merchant-connect-page"
-    >
-      {step === SearchShopStep.Confirm ? <ConnectConfirmation /> : (
-        <section>
+  function renderContent() {
+    if (step === SearchShopStep.Confirm) {
+      return <ConnectConfirmation />;
+    } else {
+      return (
+        <section className="md:w-[560px]">
           <ErrorMessage
             errorMessage={errorMsg}
             onClose={() => {
@@ -191,10 +191,20 @@ export default function MerchantConnect() {
                 </button>
               </div>
             </form>
-            {getButton()}
+            <div>
+              {getButton()}
+            </div>
           </section>
         </section>
-      )}
+      );
+    }
+  }
+  return (
+    <main
+      className="pt-under-nav p-4 mt-5 md:flex justify-center"
+      data-testid="merchant-connect-page"
+    >
+      {renderContent()}
     </main>
   );
 }

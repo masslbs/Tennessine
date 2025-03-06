@@ -1,12 +1,14 @@
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 
-export default function ConnectWalletButton() {
+export default function ConnectWalletButton(
+  { onClick }: { onClick?: () => void },
+) {
   const { openConnectModal } = useConnectModal();
   return (
     <button
       data-testid="rainbowkit-connect-wallet"
       className="rounded-lg flex flex-col items-center gap-2 p-0 bg-transparent"
-      onClick={openConnectModal}
+      onClick={onClick ?? openConnectModal}
     >
       <img
         src="/icons/wallet-icon.svg"

@@ -14,7 +14,7 @@ import { random256BigInt } from "@massmarket/utils";
 
 import Navigation from "./Navigation.tsx";
 import { createRouterWrapper } from "../utils/test.tsx";
-import { ListingViewState } from "../types.ts";
+import { ListingViewState, OrderState } from "../types.ts";
 
 Deno.test("Check that we can render the navigation bar", {
   sanitizeResources: false,
@@ -36,12 +36,12 @@ Deno.test("Check that we can render the navigation bar", {
     random256BigInt(),
   );
   const item1 = await csm.stateManager!.listings.create({
-    price: "12.00",
+    price: "12.48",
     metadata,
     viewState: ListingViewState.LISTING_VIEW_STATE_PUBLISHED,
   });
   const item2 = await csm.stateManager!.listings.create({
-    price: "1.00",
+    price: "1.22",
     metadata: metadata2,
     viewState: ListingViewState.LISTING_VIEW_STATE_PUBLISHED,
   });
@@ -123,8 +123,24 @@ Deno.test("Check that we can render the navigation bar", {
     const updatedOrder = await csm.stateManager!.orders.get(order.id);
     expect(updatedOrder.items[item2.id]).toBe(0);
     expect(updatedOrder.items[item1.id]).toBe(0);
-    const checkoutButton = screen.getByTestId("checkout-button");
-    await user.click(checkoutButton);
+  });
+  await t.step("Checkout button", async () => {
+    await csm.stateManager!.orders.addItems(order.id, [{
+      listingId: item1.id,
+      quantity: 1,
+    }, { listingId: item2.id, quantity: 1 }]);
+    await act(async () => {
+      const cartToggle = screen.getByTestId("cart-toggle");
+      expect(cartToggle).toBeTruthy();
+      await user.click(cartToggle);
+    });
+    await act(async () => {
+      const checkoutButton = screen.getByTestId("checkout-button");
+      await user.click(checkoutButton);
+    });
+    //Check that the order was committed after clicking checkout button.
+    const updatedOrder = await csm.stateManager!.orders.get(order.id);
+    expect(updatedOrder.status).toBe(OrderState.STATE_COMMITTED);
   });
 
   unmount();

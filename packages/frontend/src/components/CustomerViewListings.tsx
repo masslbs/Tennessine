@@ -38,10 +38,10 @@ export default function CustomerViewProducts({
             shopId: prev.shopId,
             itemId: item.id,
           })}
-          className={`${!visible ? "hidden" : ""}`}
+          className={`${!visible ? "hidden" : "text-black"}`}
         >
           <div>
-            <div className="flex justify-center" data-testid={`product-img`}>
+            <div data-testid="product-img">
               <img
                 src={metadata.images[0] || "/assets/no-image.png"}
                 width={160}
@@ -65,6 +65,7 @@ export default function CustomerViewProducts({
                   width={20}
                   height={20}
                   className="w-5 h-5"
+                  data-testid="coin-icon"
                 />
                 <p data-testid="product-price">
                   {baseToken &&
@@ -78,12 +79,13 @@ export default function CustomerViewProducts({
     });
   }
   return (
-    <section className="mt-2" data-testid="customer-view-listings">
-      <div className="flex">
-        <h1 className="grow flex items-center px-6">Shop</h1>
-      </div>
-      <section className="flex justify-center">
-        <section className="flex flex-wrap justify-between gap-3 mt-3 w-5/6 max-w-screen-sm">
+    <section
+      className="mt-2 flex justify-center"
+      data-testid="customer-view-listings"
+    >
+      <section>
+        <h1>Shop</h1>
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-5 pt-5">
           {renderProducts()}
         </section>
       </section>

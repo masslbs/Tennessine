@@ -34,21 +34,21 @@ Deno.test("Check that we can render the create shop screen", {
   csm.keycard = privateKey;
 
   screen.debug();
-  screen.getByTestId("create-shop-page");
+  screen.getByTestId("create-shop-screen");
   await act(async () => {
     const shopName = screen.getByTestId(
-      "storeName",
+      "shopName",
     );
     await user.type(shopName, "test shop");
     const shopDescription = screen.getByTestId(
-      "desc",
+      "description",
     );
     await user.type(shopDescription, "test description");
-    const payeeAddress = screen.getByTestId(
-      "payeeAddress",
+    const payees = screen.getByTestId(
+      "payees",
     );
-    await user.clear(payeeAddress);
-    await user.type(payeeAddress, addresses.anvilAddress);
+    await user.clear(payees);
+    await user.type(payees, addresses.anvilAddress);
   });
   await act(async () => {
     const pricingCurrency = screen.getByTestId("pricing-currency");
@@ -79,6 +79,14 @@ Deno.test("Check that we can render the create shop screen", {
     }) as HTMLInputElement;
     expect(ethHardhat).toBeTruthy();
     await user.click(ethHardhat as HTMLInputElement);
+    // Select and unselect EDD/Hardhat option
+    const eddHarhat = checkboxes.find((checkbox) => {
+      return (checkbox as HTMLInputElement).value ===
+        `EDD/${hardhat.id}`;
+    }) as HTMLInputElement;
+    expect(eddHarhat).toBeTruthy();
+    await user.click(eddHarhat as HTMLInputElement);
+    await user.click(eddHarhat as HTMLInputElement);
   });
   await act(async () => {
     const connectWalletButton = screen.getByRole("button", {

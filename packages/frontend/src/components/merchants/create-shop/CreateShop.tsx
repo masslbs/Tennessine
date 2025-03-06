@@ -2,19 +2,12 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { ChangeEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ConnectButton, useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { privateKeyToAccount } from "viem/accounts";
-import {
-  useAccount,
-  useChains,
-  useConfig,
-  usePublicClient,
-  useWalletClient,
-} from "wagmi";
+import { useAccount, useConfig, usePublicClient, useWalletClient } from "wagmi";
 import { simulateContract } from "@wagmi/core";
-import { hardhat } from "wagmi/chains";
 
 import {
   addRelay,
@@ -30,26 +23,20 @@ import {
 } from "@massmarket/utils";
 import * as abi from "@massmarket/contracts";
 
+import ManifestForm from "./ManifestForm.tsx";
 import Confirmation from "./CreateShopConfirmation.tsx";
-import ValidationWarning from "../../common/ValidationWarning.tsx";
 import ErrorMessage from "../../common/ErrorMessage.tsx";
 import Button from "../../common/Button.tsx";
 import LoadingSpinner from "../../common/LoadingSpinner.tsx";
-import AvatarUpload from "../../common/AvatarUpload.tsx";
-import Dropdown from "../../common/CurrencyDropdown.tsx";
 import ConnectWalletButton from "../../common/ConnectWalletButton.tsx";
 import { useClientWithStateManager } from "../../../hooks/useClientWithStateManager.ts";
 import { useShopId } from "../../../hooks/useShopId.ts";
 import { useKeycard } from "../../../hooks/useKeycard.ts";
 import { useShopDetails } from "../../../hooks/useShopDetails.ts";
-import { CurrencyChainOption, ShopCurrencies } from "../../../types.ts";
-import {
-  getTokenAddress,
-  isValidAddress,
-  removeCachedKeycards,
-} from "../../../utils/mod.ts";
-
 import { useChain } from "../../../hooks/useChain.ts";
+import { CreateShopStep, ShopCurrencies, ShopForm } from "../../../types.ts";
+import { removeCachedKeycards } from "../../../utils/mod.ts";
+
 // When create shop CTA is clicked, these functions are called:
 // 1. mintShop
 // 2. enrollConnectAuthenticate
@@ -61,7 +48,6 @@ const debug = logger(namespace);
 const errlog = logger(namespace, "error");
 
 export default function () {
-  const chains = useChains();
   const addRecentTransaction = useAddRecentTransaction();
   const { status } = useAccount();
   const { chain } = useChain();
@@ -80,27 +66,29 @@ export default function () {
   const search = useSearch({ from: "/create-shop" });
 
   const [step, setStep] = useState<
-    "manifest form" | "connect wallet" | "confirmation"
-  >("manifest form");
-  const [storeName, setStoreName] = useState<string>("");
-  const [description, setDescription] = useState<string>("");
-  const [avatar, setAvatar] = useState<FormData | null>(null);
-  const [pricingCurrency, setPricingCurrency] = useState<
-    Partial<ShopCurrencies>
-  >({ address: abi.addresses.zeroAddress });
-  const [acceptedCurrencies, setAcceptedCurrencies] = useState<
-    ShopCurrencies[]
-  >([]);
-  const [payeeAddress, setPayeeAddress] = useState<`0x${string}` | null>(
-    wallet?.account.address || null,
-  );
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [validationError, setValidationError] = useState<string | null>(null);
+    CreateShopStep
+  >(CreateShopStep.ManifestForm);
+
+  const [shopInputData, setShopInput] = useState<ShopForm>({
+    shopName: "",
+    description: "",
+    avatar: null,
+    payees: [{
+      address: wallet?.account.address || null,
+      chainId: wallet?.chain.id || chain.id,
+      name: "default",
+      callAsContract: false,
+    }],
+    pricingCurrency: { address: abi.addresses.zeroAddress, chainId: chain.id },
+    acceptedCurrencies: [],
+  });
+
   const [storeRegistrationStatus, setStoreRegistrationStatus] = useState<
     string
   >("");
   const [mintedHash, setMintedHash] = useState<string | null>(null);
   const [creatingShop, setCreatingShop] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (!search.shopId) {
@@ -115,72 +103,17 @@ export default function () {
 
   useEffect(() => {
     if (wallet?.account) {
-      setPayeeAddress(wallet.account.address);
+      setShopInput({
+        ...shopInputData,
+        payees: [{
+          address: wallet.account.address,
+          chainId: chain.id,
+          name: "default",
+          callAsContract: false,
+        }],
+      });
     }
   }, [wallet]);
-
-  function handleAcceptedCurrencies(e: ChangeEvent<HTMLInputElement>) {
-    const [sym, chainId] = e.target.value.split("/");
-    const address = getTokenAddress(sym, chainId);
-
-    if (e.target.checked) {
-      setAcceptedCurrencies([
-        ...acceptedCurrencies,
-        { address: address as `0x${string}`, chainId: Number(chainId) },
-      ]);
-    } else {
-      setAcceptedCurrencies(
-        acceptedCurrencies.filter(
-          (c: ShopCurrencies) =>
-            c.chainId !== Number(chainId) || c.address !== address,
-        ),
-      );
-    }
-  }
-
-  function handlePricingCurrency(option: CurrencyChainOption) {
-    const v = option.value as string;
-    const [sym, chainId] = v.split("/");
-    const address = getTokenAddress(sym, chainId);
-    setPricingCurrency({
-      address: address as `0x${string}`,
-      chainId: Number(chainId),
-    });
-  }
-
-  function checkRequiredFields() {
-    if (!payeeAddress) {
-      return "Payee address is required.";
-    } else if (!pricingCurrency?.address) {
-      return "Pricing currency address is required.";
-    } else if (!pricingCurrency?.chainId) {
-      return "Pricing currency chain is required.";
-    }
-
-    const isTokenAddrHex = isValidAddress(pricingCurrency.address);
-    const isPayeeAddHex = isValidAddress(payeeAddress);
-    if (!isTokenAddrHex) {
-      return "Token address must be a valid hex value";
-    } else if (!storeName.length) {
-      return "Store name is required";
-    } else if (!description.length) {
-      return "Store description is required";
-    } else if (!isPayeeAddHex) {
-      return "Payee Address must be a valid hex value";
-    }
-    return null;
-  }
-
-  function goToConnectWallet() {
-    const warning = checkRequiredFields();
-    if (warning) {
-      setValidationError(warning);
-      throw Error(`Check all required fields:${warning}`);
-    } else {
-      setValidationError(null);
-    }
-    setStep("connect wallet");
-  }
 
   async function mint() {
     debug(`creating shop for ${shopId}`);
@@ -303,13 +236,15 @@ export default function () {
 
       const uniqueByChainId = [
         ...new Set(
-          acceptedCurrencies.map((cur: ShopCurrencies) => cur.chainId),
+          shopInputData.acceptedCurrencies.map((cur: ShopCurrencies) =>
+            cur.chainId
+          ),
         ),
       ];
       // Get all unique chain IDs for selected accepted currencies and add payee for each chain.
       const payees = uniqueByChainId.map((chainId) => {
         return {
-          address: payeeAddress,
+          address: shopInputData.payees[0].address,
           callAsContract: false,
           chainId,
           name: `default - ${chainId}`,
@@ -317,8 +252,8 @@ export default function () {
       });
       await clientStateManager!.stateManager!.manifest.create(
         {
-          pricingCurrency: pricingCurrency as ShopCurrencies,
-          acceptedCurrencies,
+          pricingCurrency: shopInputData.pricingCurrency as ShopCurrencies,
+          acceptedCurrencies: shopInputData.acceptedCurrencies,
           payees,
           //TODO: UI for inputting shipping regions.
           shippingRegions: [
@@ -347,12 +282,14 @@ export default function () {
   async function uploadMetadata() {
     setStoreRegistrationStatus("Setting shop metadata...");
     try {
-      const imgPath = avatar
-        ? await clientStateManager!.relayClient!.uploadBlob(avatar as FormData)
+      const imgPath = shopInputData.avatar
+        ? await clientStateManager!.relayClient!.uploadBlob(
+          shopInputData.avatar as FormData,
+        )
         : { url: null };
       const metadata = {
-        name: storeName,
-        description: description,
+        name: shopInputData.shopName,
+        description: shopInputData.description,
         image: imgPath.url,
       };
       const jsn = JSON.stringify(metadata);
@@ -380,13 +317,13 @@ export default function () {
       }
 
       setShopDetails({
-        name: storeName,
+        name: shopInputData.shopName,
         profilePictureUrl: imgPath.url,
       });
 
       debug("Shop created");
       setCreatingShop(false);
-      setStep("confirmation");
+      setStep(CreateShopStep.Confirmation);
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Error uploading metadata", error);
@@ -394,200 +331,67 @@ export default function () {
     }
   }
 
-  if (step === "manifest form") {
-    return (
-      <main className="p-4 pt-under-nav" data-testid="create-shop-page">
-        <section>
-          <ValidationWarning
-            warning={validationError}
-            onClose={() => {
-              setValidationError(null);
-            }}
-          />
+  function renderContent() {
+    if (step === CreateShopStep.ManifestForm) {
+      return (
+        <ManifestForm
+          shopInputData={shopInputData}
+          setShopInput={setShopInput}
+          setStep={setStep}
+        />
+      );
+    } else if (step === CreateShopStep.ConnectWallet) {
+      return (
+        <section
+          className="md:w-[560px] h-[77vh]"
+          data-testid="connect-wallet-screen"
+        >
           <ErrorMessage
             errorMessage={errorMsg}
             onClose={() => {
               setErrorMsg(null);
             }}
           />
-          <div className="flex">
-            <h1>Create new shop</h1>
-          </div>
-        </section>
-        <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
-          <form
-            className="flex flex-col grow"
-            onSubmit={(e) => e.preventDefault()}
-          >
-            <label className="font-medium" htmlFor="storeName">
-              Shop Name
-            </label>
-            <input
-              className="border-2 border-solid mt-1 p-2 rounded-md bg-background-gray"
-              data-testid="storeName"
-              name="storeName"
-              value={storeName}
-              onChange={(e) => setStoreName(e.target.value)}
-            />
-          </form>
-          <div className="flex gap-2">
-            <AvatarUpload setImgBlob={setAvatar} setErrorMsg={setErrorMsg} />
-            <p className="flex items-center">Upload PFP</p>
-          </div>
-          <form className="flex flex-col" onSubmit={(e) => e.preventDefault()}>
-            <label htmlFor="desc" className="font-medium">
-              Description
-            </label>
-            <input
-              className="border-2 border-solid mt-1 p-2 rounded-md bg-background-gray"
-              data-testid="desc"
-              name="desc"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-          </form>
-          <div data-testid="accepted-currencies">
-            <label className="font-medium">Accepted currency</label>
-            <div className="flex flex-col gap-2">
-              {chains.map((c) => (
-                <div key={c.id}>
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      onChange={(e) => handleAcceptedCurrencies(e)}
-                      className="form-checkbox h-4 w-4"
-                      value={`ETH/${c.id}`}
-                    />
-                    <span>{`ETH/${c.name}`}</span>
-                  </label>
-
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      onChange={(e) => handleAcceptedCurrencies(e)}
-                      className="form-checkbox h-4 w-4"
-                      value={c.id === hardhat.id
-                        ? `EDD/${hardhat.id}`
-                        : `USDC/${c.id}`}
-                    />
-                    <span>
-                      {`${c.id === hardhat.id ? "EDD" : "USDC"}/${c.name}`}
-                    </span>
-                  </label>
+          <h1>Connect your wallet</h1>
+          <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
+            {status === "connected"
+              ? (
+                <div className="flex flex-col gap-4">
+                  <ConnectButton chainStatus="name" />
+                  <p>{storeRegistrationStatus}</p>
+                  {mintedHash && (
+                    <a
+                      href={`${
+                        shopPublicClient!.chain.blockExplorers?.default?.url
+                      }/tx/${mintedHash}`}
+                    >
+                      View TX
+                    </a>
+                  )}
+                  {creatingShop ? <LoadingSpinner /> : (
+                    <div>
+                      <Button onClick={mint} disabled={!wallet || !shopId}>
+                        <h6>Mint Shop</h6>
+                      </Button>
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-          </div>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-            }}
-          >
-            <div
-              className="flex flex-col"
-              onSubmit={(e) => e.preventDefault()}
-              data-testid="pricing-currency"
-            >
-              <label htmlFor="pricingCurrency" className="font-medium">
-                Pricing Currency
-              </label>
-              <Dropdown
-                options={chains
-                  .map((c) => {
-                    return { label: `ETH/${c.name}`, value: `ETH/${c.id}` };
-                  })
-                  .concat(
-                    chains.map((c) => {
-                      return {
-                        label: `${
-                          c.id === hardhat.id ? "EDD" : "USDC"
-                        }/${c.name}`,
-                        value: `${
-                          c.id === hardhat.id ? "EDD" : "USDC"
-                        }/${c.id}`,
-                      };
-                    }),
-                  )}
-                callback={handlePricingCurrency}
-              />
-            </div>
-          </form>
-          <div data-testid="payee-info" className="flex flex-col gap-2">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-              }}
-            >
-              <label htmlFor="payee" className="font-medium">
-                Payment Address
-              </label>
-              <input
-                className="border-2 border-solid mt-1 p-2 rounded-md w-full bg-background-gray"
-                id="payee"
-                data-testid="payeeAddress"
-                name="payee"
-                value={payeeAddress || ""}
-                onChange={(e) =>
-                  setPayeeAddress(e.target.value as `0x${string}`)}
-              />
-            </form>
-          </div>
-          <div>
-            <Button onClick={goToConnectWallet}>
-              <h6>Connect Wallet</h6>
-            </Button>
-          </div>
+              )
+              : <ConnectWalletButton />}
+          </section>
         </section>
-      </main>
-    );
-  } else if (step === "connect wallet") {
-    return (
-      <main
-        className="h-screen p-4 pt-under-nav"
-        data-testid="connect-wallet-screen"
-      >
-        <ValidationWarning
-          warning={validationError}
-          onClose={() => {
-            setValidationError(null);
-          }}
-        />
-        <ErrorMessage
-          errorMessage={errorMsg}
-          onClose={() => {
-            setErrorMsg(null);
-          }}
-        />
-        <h1>Connect your wallet</h1>
-        <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
-          {status === "connected"
-            ? (
-              <div className="flex flex-col gap-4">
-                <ConnectButton chainStatus="name" />
-                <p>{storeRegistrationStatus}</p>
-                {mintedHash && (
-                  <a
-                    href={`${
-                      shopPublicClient!.chain.blockExplorers?.default?.url
-                    }/tx/${mintedHash}`}
-                  >
-                    View TX
-                  </a>
-                )}
-                {creatingShop
-                  ? <LoadingSpinner />
-                  : (
-                    <Button onClick={mint} disabled={!wallet || !shopId}>
-                      <h6>Mint Shop</h6>
-                    </Button>
-                  )}
-              </div>
-            )
-            : <ConnectWalletButton />}
-        </section>
-      </main>
-    );
-  } else if (step === "confirmation") {
-    return <Confirmation />;
+      );
+    } else if (step === CreateShopStep.Confirmation) {
+      return <Confirmation />;
+    }
   }
+
+  return (
+    <main
+      className="p-4 pt-under-nav flex justify-center"
+      data-testid="create-shop-screen"
+    >
+      {renderContent()}
+    </main>
+  );
 }

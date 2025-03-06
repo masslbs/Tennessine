@@ -213,162 +213,169 @@ export default function ShopSettings() {
   }
 
   return (
-    <main className="pt-under-nav px-4 mt-3" data-testid="shop-settings-page">
-      <ErrorMessage
-        errorMessage={error}
-        onClose={() => {
-          setError(null);
-        }}
-      />
-      <ValidationWarning
-        warning={validationError}
-        onClose={() => {
-          setValidationError(null);
-        }}
-      />
-      <SuccessToast
-        message={success}
-        onClose={() => {
-          setSuccess(null);
-        }}
-      />
-      <BackButton href="/merchant-dashboard" />
-      <section className="mt-2">
-        <div className="flex">
-          <h2>Edit shop details</h2>
-        </div>
-        <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
-          <p className="flex items-center font-medium">Shop PFP</p>
-          <AvatarUpload
-            setImgBlob={setAvatar}
-            setErrorMsg={setError}
-            currentImg={shopDetails.profilePictureUrl}
-          />
-          <section className="text-sm flex flex-col gap-4">
-            <div>
-              <section>
-                <form
-                  className="flex flex-col"
-                  onSubmit={(e) =>
-                    e.preventDefault()}
-                >
-                  <label className="font-medium text-base" htmlFor="storeName">
-                    Shop Name
-                  </label>
-                  <input
-                    className="border-2 border-solid mt-1 p-2 rounded"
-                    data-testid="storeName"
-                    name="storeName"
-                    value={storeName}
-                    placeholder={shopDetails.name}
-                    onChange={(e) =>
-                      setStoreName(e.target.value)}
-                  />
-                </form>
-              </section>
-              <section className="mt-4 flex">
-                <form
-                  className="flex flex-col"
-                  onSubmit={(e) => e.preventDefault()}
-                >
-                  <label className="font-medium text-base" htmlFor="storeId">
-                    Shop ID
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      className="border-2 border-solid mt-1 p-2 rounded"
-                      id="shopId"
-                      name="shopId"
-                      value={String(shopId)}
-                      onChange={() => {}}
-                    />
-                    <button
-                      className="mr-4 p-0 bg-transparent"
-                      onClick={copyToClipboard}
-                    >
-                      <img
-                        src="/icons/copy-icon.svg"
-                        width={14}
-                        height={14}
-                        alt="copy-icon"
-                        className="w-auto h-auto"
-                      />
-                    </button>
-                  </div>
-                </form>
-              </section>
-              <section className="mt-4">
-                <label className="font-medium text-base">
-                  Accepted currency
-                </label>
-                <div
-                  className="flex flex-col gap-1 mt-1"
-                  data-testid="displayed-accepted-currencies"
-                >
-                  {displayedChains.length &&
-                    displayedChains.map((c: CurrencyChainOption) => {
-                      return (
-                        <div key={c.value}>
-                          <label className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              onChange={(e) => handleAcceptedCurrencies(e)}
-                              className="form-checkbox h-4 w-4"
-                              value={c.value}
-                              checked={Boolean(
-                                acceptedCurrencies.find(
-                                  (currency: Currency) => {
-                                    return (
-                                      currency.chainId === c.chainId &&
-                                      currency.address.toLowerCase() ===
-                                        c!.address!.toLowerCase()
-                                    );
-                                  },
-                                ),
-                              )}
-                            />
-                            <span>{c.label}</span>
-                          </label>
-                        </div>
-                      );
-                    })}
-                </div>
-              </section>
-              <section className="mt-4" data-testid="pricing-currency">
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                  }}
-                >
-                  <div
+    <main
+      className="pt-under-nav px-4 mt-3 md:flex justify-center"
+      data-testid="shop-settings-page"
+    >
+      <section className="md:w-[560px]">
+        <ErrorMessage
+          errorMessage={error}
+          onClose={() => {
+            setError(null);
+          }}
+        />
+        <ValidationWarning
+          warning={validationError}
+          onClose={() => {
+            setValidationError(null);
+          }}
+        />
+        <SuccessToast
+          message={success}
+          onClose={() => {
+            setSuccess(null);
+          }}
+        />
+        <BackButton href="/merchant-dashboard" />
+        <section className="mt-2">
+          <div className="flex">
+            <h2>Edit shop details</h2>
+          </div>
+          <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
+            <p className="flex items-center font-medium">Shop PFP</p>
+            <AvatarUpload
+              setImgBlob={setAvatar}
+              setErrorMsg={setError}
+              currentImg={shopDetails.profilePictureUrl}
+            />
+            <section className="text-sm flex flex-col gap-4">
+              <div>
+                <section>
+                  <form
                     className="flex flex-col"
                     onSubmit={(e) => e.preventDefault()}
                   >
                     <label
-                      htmlFor="pricingCurrency"
-                      className="font-medium text-base mb-1"
+                      className="font-medium text-base"
+                      htmlFor="storeName"
                     >
-                      Pricing Currency
+                      Shop Name
                     </label>
-                    <Dropdown
-                      options={displayedChains}
-                      callback={handlePricingCurrency}
-                      selected={displayedChains.find(
-                        (c: CurrencyChainOption) =>
-                          c.address!.toLowerCase() === pricingToken?.address &&
-                          c.chainId === pricingToken?.chainId,
-                      )}
+                    <input
+                      className="border-2 border-solid mt-1 p-2 rounded"
+                      data-testid="storeName"
+                      name="storeName"
+                      value={storeName}
+                      placeholder={shopDetails.name}
+                      onChange={(e) => setStoreName(e.target.value)}
                     />
+                  </form>
+                </section>
+                <section className="mt-4 flex">
+                  <form
+                    className="flex flex-col"
+                    onSubmit={(e) => e.preventDefault()}
+                  >
+                    <label className="font-medium text-base" htmlFor="storeId">
+                      Shop ID
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        className="border-2 border-solid mt-1 p-2 rounded"
+                        id="shopId"
+                        name="shopId"
+                        value={String(shopId)}
+                        onChange={() => {}}
+                      />
+                      <button
+                        className="mr-4 p-0 bg-transparent"
+                        onClick={copyToClipboard}
+                      >
+                        <img
+                          src="/icons/copy-icon.svg"
+                          width={14}
+                          height={14}
+                          alt="copy-icon"
+                          className="w-auto h-auto"
+                        />
+                      </button>
+                    </div>
+                  </form>
+                </section>
+                <section className="mt-4">
+                  <label className="font-medium text-base">
+                    Accepted currency
+                  </label>
+                  <div
+                    className="flex flex-col gap-1 mt-1"
+                    data-testid="displayed-accepted-currencies"
+                  >
+                    {displayedChains.length &&
+                      displayedChains.map((c: CurrencyChainOption) => {
+                        return (
+                          <div key={c.value}>
+                            <label className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                onChange={(e) => handleAcceptedCurrencies(e)}
+                                className="form-checkbox h-4 w-4"
+                                value={c.value}
+                                checked={Boolean(
+                                  acceptedCurrencies.find(
+                                    (currency: Currency) => {
+                                      return (
+                                        currency.chainId === c.chainId &&
+                                        currency.address.toLowerCase() ===
+                                          c!.address!.toLowerCase()
+                                      );
+                                    },
+                                  ),
+                                )}
+                              />
+                              <span>{c.label}</span>
+                            </label>
+                          </div>
+                        );
+                      })}
                   </div>
-                </form>
-              </section>
-            </div>
-            <div></div>
+                </section>
+                <section className="mt-4" data-testid="pricing-currency">
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                    }}
+                  >
+                    <div
+                      className="flex flex-col"
+                      onSubmit={(e) => e.preventDefault()}
+                    >
+                      <label
+                        htmlFor="pricingCurrency"
+                        className="font-medium text-base mb-1"
+                      >
+                        Pricing Currency
+                      </label>
+                      <Dropdown
+                        options={displayedChains}
+                        callback={handlePricingCurrency}
+                        selected={displayedChains.find(
+                          (c: CurrencyChainOption) =>
+                            c.address!.toLowerCase() ===
+                              pricingToken?.address &&
+                            c.chainId === pricingToken?.chainId,
+                        )}
+                      />
+                    </div>
+                  </form>
+                </section>
+              </div>
+              <div></div>
+            </section>
           </section>
+          <div className="my-4">
+            <Button onClick={updateShopManifest}>Update</Button>
+          </div>
         </section>
-        <div className="my-4">
-          <Button onClick={updateShopManifest}>Update</Button>
-        </div>
       </section>
     </main>
   );

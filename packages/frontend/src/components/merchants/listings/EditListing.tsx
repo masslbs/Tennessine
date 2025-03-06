@@ -17,6 +17,7 @@ import BackButton from "../../common/BackButton.tsx";
 
 const namespace = "frontend:edit-product";
 const errlog = logger(namespace, "error");
+const debug = logger(namespace, "debug");
 
 type Image = {
   blob: null | FormData;
@@ -123,6 +124,7 @@ export default function EditProduct() {
           units - productInView!.quantity,
         );
       }
+      debug("updated listing");
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Error updating listing", error);
@@ -243,177 +245,179 @@ export default function EditProduct() {
 
   return (
     <main
-      className="pt-4 px-3 pt-under-nav"
-      data-testid="edit-listing-page"
+      className="pt-4 px-3 pt-under-nav md:flex justify-center"
+      data-testid="edit-listing-screen"
     >
-      <ValidationWarning
-        warning={validationError}
-        onClose={() => {
-          setValidationError(null);
-        }}
-      />
-      <ErrorMessage
-        errorMessage={errorMsg}
-        onClose={() => {
-          setErrorMsg(null);
-        }}
-      />
-      <BackButton href="/listings" />
-      <section>
-        <div className="flex">
-          <h2>{hed}</h2>
-        </div>
-        <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
-          <form
-            className="flex flex-col"
-            onSubmit={(e) => {
-              e.preventDefault();
-            }}
-          >
-            <label htmlFor="title">Product name</label>
-            <input
-              value={title}
-              className="border-2 border-solid mt-1 p-3 rounded-md bg-background-gray"
-              data-testid="title"
-              name="title"
-              onChange={(e) => handleTitleChange(e)}
-            />
-          </form>
-          <form
-            className="flex flex-col"
-            onSubmit={(e) => {
-              e.preventDefault();
-            }}
-          >
-            <label htmlFor="description">Product description</label>
-            <input
-              value={description}
-              className="border-2 border-solid mt-1 p-3 rounded-md bg-background-gray"
-              data-testid="description"
-              name="description"
-              onChange={(e) => handleDescriptionChange(e)}
-            />
-          </form>
-          <section className="flex flex-col">
-            <p className="mb-2">Product pics</p>
-            <div className="border-2 border-solid rounded-md bg-background-gray h-32 flex">
-              <button
-                onClick={triggerFileInput}
-                className="p-5 w-full text-white bg-white"
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <img
-                    src={"/icons/images.svg"}
-                    width={25}
-                    height={25}
-                    alt="upload-picture"
-                    className="w-auto h-auto"
-                  />
-                  <p className="text-gray-400 text-xs ">
-                    {"upload JPG or PNG <10MB"}
-                  </p>
-                </div>
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2 mt-2 justify-start">
-              {images.map((img: Image, i: number) => {
-                return (
-                  <div key={i} className="relative mb-2">
+      <section className="md:w-[560px]">
+        <ValidationWarning
+          warning={validationError}
+          onClose={() => {
+            setValidationError(null);
+          }}
+        />
+        <ErrorMessage
+          errorMessage={errorMsg}
+          onClose={() => {
+            setErrorMsg(null);
+          }}
+        />
+        <BackButton href="/listings" />
+        <section className="mt-3">
+          <div className="flex">
+            <h2>{hed}</h2>
+          </div>
+          <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
+            <form
+              className="flex flex-col"
+              onSubmit={(e) => {
+                e.preventDefault();
+              }}
+            >
+              <label htmlFor="title">Product name</label>
+              <input
+                value={title}
+                className="border-2 border-solid mt-1 p-3 rounded-md bg-background-gray"
+                data-testid="title"
+                name="title"
+                onChange={(e) => handleTitleChange(e)}
+              />
+            </form>
+            <form
+              className="flex flex-col"
+              onSubmit={(e) => {
+                e.preventDefault();
+              }}
+            >
+              <label htmlFor="description">Product description</label>
+              <input
+                value={description}
+                className="border-2 border-solid mt-1 p-3 rounded-md bg-background-gray"
+                data-testid="description"
+                name="description"
+                onChange={(e) => handleDescriptionChange(e)}
+              />
+            </form>
+            <section className="flex flex-col">
+              <p className="mb-2">Product pics</p>
+              <div className="border-2 border-solid rounded-md bg-background-gray h-32 flex">
+                <button
+                  onClick={triggerFileInput}
+                  className="p-5 w-full text-white bg-white"
+                >
+                  <div className="flex flex-col items-center gap-2">
                     <img
-                      src={img.url}
-                      width={105}
-                      height={95}
-                      alt="uploaded-product-image"
-                      style={{
-                        maxHeight: "95px",
-                        maxWidth: "105px",
-                        minHeight: "95px",
-                        minWidth: "105px",
-                      }}
-                      className="rounded-md"
+                      src={"/icons/images.svg"}
+                      width={25}
+                      height={25}
+                      alt="upload-picture"
+                      className="w-auto h-auto"
                     />
-                    <div className="p-1 bg-black absolute top-1 right-2 rounded-full">
-                      <img
-                        src="/icons/remove-icon.svg"
-                        width={8}
-                        height={8}
-                        alt="remove"
-                        onClick={() => removeImg(img)}
-                        className="w-auto h-auto"
-                      />
-                    </div>
+                    <p className="text-gray-400 text-xs ">
+                      {"upload JPG or PNG <10MB"}
+                    </p>
                   </div>
-                );
-              })}
+                </button>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-2 justify-start">
+                {images.map((img: Image, i: number) => {
+                  return (
+                    <div key={i} className="relative mb-2">
+                      <img
+                        src={img.url}
+                        width={105}
+                        height={95}
+                        alt="uploaded-product-image"
+                        style={{
+                          maxHeight: "95px",
+                          maxWidth: "105px",
+                          minHeight: "95px",
+                          minWidth: "105px",
+                        }}
+                        className="rounded-md"
+                      />
+                      <div className="p-1 bg-black absolute top-1 right-2 rounded-full">
+                        <img
+                          src="/icons/remove-icon.svg"
+                          width={8}
+                          height={8}
+                          alt="remove"
+                          onClick={() => removeImg(img)}
+                          className="w-auto h-auto"
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+            <div className="flex justify-between">
+              <form
+                className="flex flex-col w-40"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                }}
+              >
+                <label htmlFor="price">price</label>
+                <input
+                  value={price}
+                  className="border-2 border-solid mt-1 p-3 rounded-md bg-background-gray"
+                  data-testid="price"
+                  name="price"
+                  onChange={(e) => handlePriceChange(e)}
+                />
+              </form>
+              <form
+                className="flex flex-col w-40"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                }}
+              >
+                <label htmlFor="units">units</label>
+                <input
+                  value={units}
+                  className="border-2 border-solid mt-1 p-3 rounded-md bg-background-gray"
+                  data-testid="units"
+                  name="units"
+                  onChange={(e) => handleStockChange(e)}
+                />
+              </form>
+            </div>
+
+            <div className="hidden">
+              <input
+                type="file"
+                data-testid="file-upload"
+                ref={fileInputRef}
+                className="file-input"
+                accept="image/*"
+                onChange={handleUpload}
+              />
             </div>
           </section>
-          <div className="flex justify-between">
-            <form
-              className="flex flex-col w-40"
-              onSubmit={(e) => {
-                e.preventDefault();
-              }}
-            >
-              <label htmlFor="price">price</label>
+          <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
+            <div className="flex gap-2 items-center">
               <input
-                value={price}
-                className="border-2 border-solid mt-1 p-3 rounded-md bg-background-gray"
-                data-testid="price"
-                name="price"
-                onChange={(e) => handlePriceChange(e)}
+                id="published"
+                name="published"
+                type="checkbox"
+                className="form-checkbox h-4 w-4"
+                checked={viewState ===
+                  ListingViewState.LISTING_VIEW_STATE_PUBLISHED}
+                onChange={(e) => {
+                  const { checked } = e.target;
+                  setViewState(
+                    checked
+                      ? ListingViewState.LISTING_VIEW_STATE_PUBLISHED
+                      : ListingViewState.LISTING_VIEW_STATE_UNSPECIFIED,
+                  );
+                }}
               />
-            </form>
-            <form
-              className="flex flex-col w-40"
-              onSubmit={(e) => {
-                e.preventDefault();
-              }}
-            >
-              <label htmlFor="units">units</label>
-              <input
-                value={units}
-                className="border-2 border-solid mt-1 p-3 rounded-md bg-background-gray"
-                data-testid="units"
-                name="units"
-                onChange={(e) => handleStockChange(e)}
-              />
-            </form>
-          </div>
-
-          <div className="hidden">
-            <input
-              type="file"
-              data-testid="file-upload"
-              ref={fileInputRef}
-              className="file-input"
-              accept="image/*"
-              onChange={handleUpload}
-            />
-          </div>
-        </section>
-        <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
-          <div className="flex gap-2 items-center">
-            <input
-              id="published"
-              name="published"
-              type="checkbox"
-              className="form-checkbox h-4 w-4"
-              checked={viewState ===
-                ListingViewState.LISTING_VIEW_STATE_PUBLISHED}
-              onChange={(e) => {
-                const { checked } = e.target;
-                setViewState(
-                  checked
-                    ? ListingViewState.LISTING_VIEW_STATE_PUBLISHED
-                    : ListingViewState.LISTING_VIEW_STATE_UNSPECIFIED,
-                );
-              }}
-            />
-            <label htmlFor="published">Publish product</label>
-          </div>
-          <Button disabled={publishing} onClick={onPublish}>
-            {editView ? "Update product" : "Create product"}
-          </Button>
+              <label htmlFor="published">Publish product</label>
+            </div>
+            <Button disabled={publishing} onClick={onPublish}>
+              {editView ? "Update product" : "Create product"}
+            </Button>
+          </section>
         </section>
       </section>
     </main>

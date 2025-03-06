@@ -108,6 +108,11 @@ export enum SearchShopStep {
   Connect = "CONNECT",
   Confirm = "CONFIRM",
 }
+export enum CreateShopStep {
+  ManifestForm = "MANIFEST_FORM",
+  ConnectWallet = "CONNECT_WALLET",
+  Confirmation = "CONFIRMATION",
+}
 
 export interface CurrentOrder {
   orderId: OrderId;
@@ -121,3 +126,9 @@ export interface Token {
 export type CartItem = {
   selectedQty: number;
 } & Listing;
+
+export type ShopForm = {
+  shopName: string;
+  description: string;
+  avatar: FormData | null;
+} & ShopManifest;
