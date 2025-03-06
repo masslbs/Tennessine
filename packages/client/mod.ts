@@ -5,16 +5,17 @@ import { assert } from "@std/assert";
 import { decodeCbor, encodeCbor } from "@std/cbor";
 import {
   type Account,
-  bytesToHex,
   type Hex,
   hexToBigInt,
   hexToBytes,
   numberToBytes,
   recoverMessageAddress,
-  stringToBytes,
+  recoverPublicKey,
   type WalletClient,
 } from "@wevm/viem";
+import { parseAccount } from "@wevm/viem/accounts";
 import { createSiweMessage } from "@wevm/viem/siwe";
+import { hashMessage } from "@wevm/viem/utils";
 import LockMap from "@nullradix/lockmap";
 import * as v from "@valibot/valibot";
 import schema, { EnvelopMessageTypes } from "@massmarket/schema";
@@ -36,8 +37,10 @@ export interface IRelayEndpoint {
 export class RelayClient {
   connection: WebSocket | null = null;
   walletClient: WalletClient;
-  readonly account: Hex | Account;
-  public readonly relayEndpoint: IRelayEndpoint;
+  readonly account;
+  readonly relayEndpoint;
+  readonly ethAddress: Hex;
+  readonly shopId;
   // TODO; we can use the subscription path for the id
   #subscriptions: Map<
     string,
@@ -49,7 +52,6 @@ export class RelayClient {
   #requestCounter;
   #waitingMessagesResponse: LockMap<string, schema.Envelope> = new LockMap();
   #isGuest: boolean = true;
-  #shopId: bigint;
 
   constructor({
     relayEndpoint,
@@ -60,7 +62,7 @@ export class RelayClient {
   }: {
     relayEndpoint: IRelayEndpoint;
     walletClient: WalletClient;
-    account: Address;
+    account: Hex | Account;
     //TODO: deprecate; the relay should know this
     isGuest: boolean;
     //TODO: move to the patchSet / stateManager
@@ -69,12 +71,12 @@ export class RelayClient {
     this.walletClient = walletClient;
     this.relayEndpoint = relayEndpoint;
     this.#requestCounter = 1;
-    this.#shopId = shopId;
+    this.shopId = shopId;
     this.#isGuest = isGuest;
     this.account = account;
+    this.ethAddress = parseAccount(account).address;
   }
 
-  // TODO
   createSubscriptionStream(path: string, seqNum: number) {
     assert(path, "/");
     if (!this.#subscriptions.has(path)) {
@@ -243,6 +245,7 @@ export class RelayClient {
       id: new Uint8Array(16),
       controllers: new Set(),
     });
+    // TODO: remove
     const filters = [
       { objectType: schema.ObjectType.OBJECT_TYPE_LISTING },
       { objectType: schema.ObjectType.OBJECT_TYPE_TAG },
@@ -256,7 +259,7 @@ export class RelayClient {
     const { response } = await this.encodeAndSend({
       subscriptionRequest: {
         startShopSeqNo: seqNo,
-        shopId: { raw: numberToBytes(this.#shopId) },
+        shopId: { raw: numberToBytes(this.shopId) },
         filters,
       },
     });
@@ -277,12 +280,14 @@ export class RelayClient {
     const { response } = await this.encodeAndSend({
       authRequest: {
         publicKey: {
-          raw: hexToBytes(this.account).slice(1),
+          // TODO: why are we slicing the bytes?
+          raw: hexToBytes(this.ethAddress).slice(1),
         },
       },
     });
     assert(response?.payload, "response.payload is required");
-    const sig = await this.keyCardWallet.signMessage({
+    const sig = await this.walletClient.signMessage({
+      account: this.account,
       message: {
         raw: response.payload,
       },
@@ -312,10 +317,10 @@ export class RelayClient {
       );
     }
     return new Promise((resolve) => {
-      if (this.connection.readyState === WebSocket.OPEN) {
+      if (this.connection!.readyState === WebSocket.OPEN) {
         resolve("already open");
       } else {
-        this.connection.addEventListener("open", (evt: Event) => {
+        this.connection!.addEventListener("open", (evt: Event) => {
           // TODO: unbox event to concrete values
           resolve(evt);
         });
@@ -327,20 +332,23 @@ export class RelayClient {
     return new Promise((resolve) => {
       if (
         typeof this.connection === "undefined" ||
-        this.connection.readyState === WebSocket.CLOSED
+        this.connection!.readyState === WebSocket.CLOSED
       ) {
         resolve("already closed");
         return;
       }
-      this.connection.addEventListener("close", resolve);
-      this.connection.close(1000);
+      this.connection!.addEventListener("close", resolve);
+      this.connection!.close(1000);
     });
   }
 
   async enrollKeycard(
-    wallet: ConcreteWalletClient,
+    wallet: WalletClient,
+    account: Hex | Account,
   ) {
-    const publicKey = hexToBytes(this.keyCardWallet.publicKey).slice(1);
+    const parsedAccount = parseAccount(account);
+    const address = parsedAccount.address;
+    const publicKey = getAccountPublicKey(this.walletClient, this.account);
     const endpointURL = new URL(this.relayEndpoint.url);
     endpointURL.protocol = this.relayEndpoint.url.protocol === "wss"
       ? "https"
@@ -349,7 +357,7 @@ export class RelayClient {
     endpointURL.search = `guest=${this.#isGuest ? 1 : 0}`;
 
     const message = createSiweMessage({
-      address: wallet.account.address,
+      address,
       chainId: 1, // not really used
       domain: endpointURL.host,
       nonce: "00000000",
@@ -357,22 +365,23 @@ export class RelayClient {
       version: "1",
       resources: [
         `mass-relayid:${hexToBigInt(this.relayEndpoint.tokenId)}`,
-        `mass-shopid:${this.#shopId}`,
-        `mass-keycard:${bytesToHex(publicKey)}`,
+        `mass-shopid:${this.shopId}`,
+        // TODO: do we need to slice the bytes?
+        `mass-keycard:${publicKey}`,
       ],
     });
     const signature = await wallet.signMessage({
-      message: { raw: stringToBytes(message) },
+      account: parsedAccount,
+      message,
     });
     const body = JSON.stringify({
       message,
       signature: hexToBase64(signature),
     });
-    const response = await fetch(endpointURL.href, {
+    return fetch(endpointURL.href, {
       method: "POST",
       body,
     });
-    return response;
   }
 
   async uploadBlob(blob: FormData) {
@@ -402,6 +411,18 @@ export class RelayClient {
     }
     return uploadResp.json();
   }
+}
+
+async function getAccountPublicKey(
+  wallet: WalletClient,
+  account: Hex | Account,
+): Promise<Hex> {
+  const signature = await wallet.signMessage({
+    account,
+    message: "",
+  });
+  const hash = hashMessage("");
+  return recoverPublicKey({ signature, hash });
 }
 
 // testing helper

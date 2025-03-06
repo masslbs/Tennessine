@@ -30,6 +30,8 @@ Deno.test({
         shopId,
         account,
       ]);
+      // this is still causing a leak
+      // https://github.com/wevm/viem/issues/2903
       const receipt = await client.waitForTransactionReceipt({
         hash: transactionHash,
       });
