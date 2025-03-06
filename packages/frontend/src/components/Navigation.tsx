@@ -232,7 +232,17 @@ function Navigation() {
       data-testid="navigation"
     >
       <section className="w-full p-2 text-base flex justify-between bg-white md:px-8">
-        <div className="flex gap-2">
+        <div
+          className="flex gap-2"
+          onClick={() =>
+            navigate({
+              to: "/listings",
+              search: (prev: Record<string, string>) => ({
+                shopId: prev.shopId,
+                step: CheckoutStep.shippingDetails,
+              }),
+            })}
+        >
           {shopDetails.profilePictureUrl
             ? (
               <div className="overflow-hidden rounded-full w-12 h-12">

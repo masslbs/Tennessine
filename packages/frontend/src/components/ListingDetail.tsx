@@ -156,11 +156,8 @@ export default function ListingDetail() {
               <img
                 src={displayedImg}
                 alt="product-detail-image"
-                width={380}
-                height={250}
-                className="border rounded-lg w-full"
+                className="border rounded-lg w-full max-h-1/2 md:max-h-[380px]"
                 style={{
-                  maxHeight: "380px",
                   objectFit: "cover",
                   objectPosition: "center",
                 }}
