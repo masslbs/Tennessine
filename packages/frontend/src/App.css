@@ -12,6 +12,8 @@
 html, body, #root {
   width: 100%;
   font-family: "Outfit", sans-serif;
+  background-color: #f3f3f3;
+  overflow-x: auto;
 }
 
 a {

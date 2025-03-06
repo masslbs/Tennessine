@@ -67,7 +67,7 @@ export default function MerchantDashboard() {
 
   return (
     <main
-      className="p-4 pt-under-nav md:flex justify-center"
+      className="p-4 pt-under-nav md:flex justify-center h-screen"
       data-testid="merchant-dashboard-screen"
     >
       <section className="md:w-[560px]">

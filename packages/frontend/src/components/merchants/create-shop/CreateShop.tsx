@@ -343,7 +343,7 @@ export default function () {
     } else if (step === CreateShopStep.ConnectWallet) {
       return (
         <section
-          className="md:w-[560px]"
+          className="md:w-[560px] h-[77vh]"
           data-testid="connect-wallet-screen"
         >
           <ErrorMessage
