@@ -1,57 +1,52 @@
-import { expect } from "jsr:@std/expect";
-import { describe, it } from "jsr:@std/testing/bdd";
+import { expect } from "@std/expect";
 import {
   type Address,
-  createPublicClient,
-  createWalletClient,
+  createClient,
   http,
-} from "viem";
+  publicActions,
+  walletActions,
+} from "@wevm/viem";
 
-import { privateKeyToAccount } from "viem/accounts";
-import { hardhat } from "viem/chains";
+import { hardhat } from "@wevm/viem/chains";
 import * as abi from "@massmarket/contracts";
 import { random256BigInt } from "@massmarket/utils";
 import { mintShop, setTokenURI } from "./mod.ts";
 
-const account = privateKeyToAccount(
-  "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d",
-);
-
 const shopId = random256BigInt();
 
-describe({
+Deno.test({
   name: "blockChain Client",
   sanitizeResources: false,
   sanitizeOps: false,
-  fn() {
-    const wallet = createWalletClient({
-      account,
+  async fn(t) {
+    const client = createClient({
       chain: hardhat,
       transport: http(),
-    });
-    const publicClient = createPublicClient({
-      chain: hardhat,
-      transport: http(),
-    });
-    it("mintShop", async () => {
-      const transactionHash = await mintShop(wallet, [
+    }).extend(walletActions).extend(publicActions);
+    const [account] = await client.requestAddresses();
+
+    await t.step("mintShop", async () => {
+      const transactionHash = await mintShop(client, account, [
         shopId,
-        wallet.account.address,
+        account,
       ]);
-      const receipt = await publicClient.waitForTransactionReceipt({
+      const receipt = await client.waitForTransactionReceipt({
         hash: transactionHash,
       });
       expect(receipt.status).toBe("success");
     });
-    it("setTokenURI", async () => {
+    await t.step("setTokenURI", async () => {
       const test_uri = "/testing/path";
-      const transactionHash = await setTokenURI(wallet, [shopId, test_uri]);
-      const receipt = await publicClient.waitForTransactionReceipt({
+      const transactionHash = await setTokenURI(client, account, [
+        shopId,
+        test_uri,
+      ]);
+      const receipt = await client.waitForTransactionReceipt({
         hash: transactionHash,
       });
       expect(receipt.status).toBe("success");
 
-      const uri = await publicClient.readContract({
+      const uri = await client.readContract({
         address: abi.addresses.ShopReg as Address,
         abi: abi.shopRegAbi,
         functionName: "tokenURI",

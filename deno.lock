@@ -15,14 +15,16 @@
     "jsr:@std/cbor@*": "0.1.6",
     "jsr:@std/cbor@~0.1.6": "0.1.6",
     "jsr:@std/expect@*": "1.0.13",
+    "jsr:@std/expect@^1.0.13": "1.0.13",
     "jsr:@std/internal@^1.0.5": "1.0.5",
     "jsr:@std/streams@^1.0.8": "1.0.9",
     "jsr:@std/testing@*": "1.0.9",
     "jsr:@valibot/valibot@*": "0.42.1",
     "jsr:@valibot/valibot@~0.42.1": "0.42.1",
     "jsr:@wevm/viem@*": "2.21.59",
-    "jsr:@wevm/viem@^2.23.4": "2.23.5",
-    "jsr:@wevm/viem@^2.23.5": "2.23.5",
+    "jsr:@wevm/viem@^2.23.4": "2.23.6",
+    "jsr:@wevm/viem@^2.23.5": "2.23.6",
+    "jsr:@wevm/viem@^2.23.6": "2.23.6",
     "npm:@deno/vite-plugin@^1.0.4": "1.0.4_vite@5.4.11__@types+node@22.10.2_@types+node@22.5.4",
     "npm:@ethereumjs/util@*": "8.1.0",
     "npm:@happy-dom/global-registrator@*": "15.11.7",
@@ -208,6 +210,18 @@
     },
     "@wevm/viem@2.23.5": {
       "integrity": "825ca8afd73a2e69784217a27d86364d7471310eb8d3a14b32fbd72761f64bde",
+      "dependencies": [
+        "npm:@noble/curves@1.8.1",
+        "npm:@noble/hashes@1.7.1",
+        "npm:@scure/bip32@1.6.2",
+        "npm:@scure/bip39@1.5.4",
+        "npm:abitype@1.0.8",
+        "npm:isows@1.0.6",
+        "npm:ox"
+      ]
+    },
+    "@wevm/viem@2.23.6": {
+      "integrity": "b1804030f8106aa8263ed685c3b894b92a6cfcafae6be6d36edb626750e550dc",
       "dependencies": [
         "npm:@noble/curves@1.8.1",
         "npm:@noble/hashes@1.7.1",
@@ -5211,7 +5225,9 @@
     "members": {
       "packages/blockchain": {
         "dependencies": [
-          "npm:viem@2.21.55"
+          "jsr:@std/cbor@~0.1.6",
+          "jsr:@std/expect@^1.0.13",
+          "jsr:@wevm/viem@^2.23.6"
         ]
       },
       "packages/client": {

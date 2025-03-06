@@ -4,18 +4,19 @@
 import { assert } from "@std/assert";
 import { decodeCbor, encodeCbor } from "@std/cbor";
 import {
+  type Account,
   bytesToHex,
+  type Hex,
   hexToBigInt,
   hexToBytes,
   numberToBytes,
   recoverMessageAddress,
   stringToBytes,
+  type WalletClient,
 } from "@wevm/viem";
-import type { PrivateKeyAccount } from "@wevm/viem/accounts";
 import { createSiweMessage } from "@wevm/viem/siwe";
 import LockMap from "@nullradix/lockmap";
 import * as v from "@valibot/valibot";
-import type { ConcreteWalletClient } from "@massmarket/blockchain";
 import schema, { EnvelopMessageTypes } from "@massmarket/schema";
 import {
   SignedPatchSetSchema,
@@ -27,24 +28,16 @@ import { decodeBufferToString, hexToBase64, logger } from "@massmarket/utils";
 
 const debug = logger("relayClient");
 
-export type RelayEndpoint = {
+export interface IRelayEndpoint {
   url: URL; // the websocket URL to talk to
   tokenId: `0x${string}`;
-};
-
-export type EventId = {
-  signer: `0x${string}`;
-  nonce: number;
-};
-
-export function eventIdEqual(a: EventId, b: EventId) {
-  return a.signer === b.signer && a.nonce === b.nonce;
 }
 
 export class RelayClient {
-  connection!: WebSocket;
-  private keyCardWallet: PrivateKeyAccount;
-  public readonly relayEndpoint: RelayEndpoint;
+  connection: WebSocket | null = null;
+  walletClient: WalletClient;
+  readonly account: Hex | Account;
+  public readonly relayEndpoint: IRelayEndpoint;
   // TODO; we can use the subscription path for the id
   #subscriptions: Map<
     string,
@@ -53,32 +46,32 @@ export class RelayClient {
       controllers: Set<ReadableStreamDefaultController<TRecoveredPatchSet>>;
     }
   > = new Map();
-  private useTLS;
-  private requestCounter;
+  #requestCounter;
   #waitingMessagesResponse: LockMap<string, schema.Envelope> = new LockMap();
   #isGuest: boolean = true;
   #shopId: bigint;
 
   constructor({
     relayEndpoint,
-    keyCardWallet,
+    walletClient,
+    account,
     isGuest,
     shopId,
   }: {
-    relayEndpoint: RelayEndpoint;
-    keyCardWallet: PrivateKeyAccount;
+    relayEndpoint: IRelayEndpoint;
+    walletClient: WalletClient;
+    account: Address;
     //TODO: deprecate; the relay should know this
     isGuest: boolean;
     //TODO: move to the patchSet / stateManager
     shopId: bigint;
   }) {
-    this.keyCardWallet = keyCardWallet;
+    this.walletClient = walletClient;
     this.relayEndpoint = relayEndpoint;
-    this.useTLS = relayEndpoint.url.protocol === "wss:" ||
-      relayEndpoint.url.protocol === "https:";
-    this.requestCounter = 1;
+    this.#requestCounter = 1;
     this.#shopId = shopId;
     this.#isGuest = isGuest;
+    this.account = account;
   }
 
   // TODO
@@ -110,7 +103,8 @@ export class RelayClient {
       write: async (patch) => {
         // TODO: use embedded cbor, or COSE
         const payload = encodeCbor(patch.Header);
-        const sig = await this.keyCardWallet.signMessage({
+        const sig = await this.walletClient.signMessage({
+          account: this.account,
           message: { raw: payload },
         });
         const signedPatchSet: TSignedPatchSet = {
@@ -132,7 +126,7 @@ export class RelayClient {
   // like encodeAndSend but doesn't wait for a response.
   encodeAndSendNoWait(envelope: schema.IEnvelope = {}): schema.RequestId {
     if (!envelope.requestId) {
-      envelope.requestId = { raw: this.requestCounter };
+      envelope.requestId = { raw: this.#requestCounter };
     }
     const err = schema.Envelope.verify(envelope);
     if (err) {
@@ -140,11 +134,12 @@ export class RelayClient {
     }
     // Turns json into binary
     const payload = schema.Envelope.encode(envelope).finish();
+    assert(this.connection);
     this.connection.send(payload);
     const requestType =
       Object.keys(envelope).filter((k) => k !== "requestId")[0];
     debug(`network request ${requestType} sent id: ${envelope.requestId!.raw}`);
-    this.requestCounter++;
+    this.#requestCounter++;
     return schema.RequestId.create(envelope.requestId);
   }
 
@@ -210,23 +205,29 @@ export class RelayClient {
               });
 
               for (
-                const controller of this.#subscriptions.get("/")!.controllers
+                const controller of this.#subscriptions.get("/")?.controllers ??
+                  []
               ) {
                 controller.enqueue({
                   ...patchSet,
                   Signer: signer,
                 });
               }
+              // TODO: properly handle backpressure
+              // we should implement `pull` for the read stream, in the pull we should request the next chunk
+              this.encodeAndSendNoWait({
+                requestId: envelope.requestId,
+                response: {},
+              });
             },
           );
         }
         break;
-      default:
-        this.#waitingMessagesResponse.unlock(
-          envelope.requestId.raw.toString(),
-          envelope,
-        );
     }
+    this.#waitingMessagesResponse.unlock(
+      envelope.requestId!.raw!.toString(),
+      envelope,
+    );
   }
 
   #handlePingRequest(ping: schema.Envelope) {
@@ -276,7 +277,7 @@ export class RelayClient {
     const { response } = await this.encodeAndSend({
       authRequest: {
         publicKey: {
-          raw: hexToBytes(this.keyCardWallet.publicKey).slice(1),
+          raw: hexToBytes(this.account).slice(1),
         },
       },
     });
@@ -338,21 +339,21 @@ export class RelayClient {
 
   async enrollKeycard(
     wallet: ConcreteWalletClient,
-    location?: URL,
   ) {
     const publicKey = hexToBytes(this.keyCardWallet.publicKey).slice(1);
     const endpointURL = new URL(this.relayEndpoint.url);
-    endpointURL.protocol = this.useTLS ? "https" : "http";
+    endpointURL.protocol = this.relayEndpoint.url.protocol === "wss"
+      ? "https"
+      : "http";
     endpointURL.pathname += `/enroll_key_card`;
     endpointURL.search = `guest=${this.#isGuest ? 1 : 0}`;
-    const signInURL: URL = location ?? endpointURL;
 
     const message = createSiweMessage({
       address: wallet.account.address,
       chainId: 1, // not really used
-      domain: signInURL.host,
+      domain: endpointURL.host,
       nonce: "00000000",
-      uri: signInURL.href,
+      uri: endpointURL.href,
       version: "1",
       resources: [
         `mass-relayid:${hexToBigInt(this.relayEndpoint.tokenId)}`,
@@ -404,7 +405,7 @@ export class RelayClient {
 }
 
 // testing helper
-export async function discoverRelay(url: string): Promise<RelayEndpoint> {
+export async function discoverRelay(url: string): Promise<IRelayEndpoint> {
   const discoveryURL = url
     .replace("ws", "http")
     .replace("/v3", "/testing/discovery");

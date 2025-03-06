@@ -4,12 +4,13 @@
 import {
   type Abi,
   type Account,
-  type Address,
   bytesToHex,
   type Chain,
   type ContractFunctionArgs,
   type ContractFunctionName,
   type ContractFunctionReturnType,
+  ethAddress,
+  type Hex,
   hexToBytes,
   numberToBytes,
   pad,
@@ -17,8 +18,8 @@ import {
   type Transport,
   type WalletClient,
   type WriteContractParameters,
-} from "viem";
-import { privateKeyToAccount } from "viem/accounts";
+} from "@wevm/viem";
+import { parseAccount, privateKeyToAccount } from "@wevm/viem/accounts";
 import * as abi from "@massmarket/contracts";
 
 export type ConcreteWalletClient = WalletClient<Transport, Chain, Account>;
@@ -29,14 +30,15 @@ type ReadOnly = "view" | "pure";
 export function genericWriteContract<
   const abiT extends Abi,
   const FuncName extends ContractFunctionName<abiT, Mutable>,
->(abi: abiT, functionName: FuncName, address: Address) {
+>(abi: abiT, functionName: FuncName, address: Hex) {
   return (
-    wallet: ConcreteWalletClient,
+    wallet: WalletClient,
+    account: Account | Hex,
     args: ContractFunctionArgs<abiT, Mutable, FuncName>,
   ) => {
     return wallet.writeContract({
       chain: wallet.chain,
-      account: wallet.account,
+      account,
       address,
       abi,
       functionName,
@@ -48,9 +50,10 @@ export function genericWriteContract<
 export function genericReadContract<
   const abiT extends Abi,
   const FuncName extends ContractFunctionName<abiT, ReadOnly>,
->(abi: abiT, functionName: FuncName, address: Address) {
+>(abi: abiT, functionName: FuncName, address: Hex) {
   return (
-    wallet: PublicClient,
+    publicClient: PublicClient,
+    account: Account | Hex,
     args: ContractFunctionArgs<abiT, ReadOnly, FuncName>,
   ): Promise<
     ContractFunctionReturnType<
@@ -60,7 +63,8 @@ export function genericReadContract<
       ContractFunctionArgs<abiT, ReadOnly, FuncName>
     >
   > => {
-    return wallet.readContract({
+    return publicClient.readContract({
+      account,
       address,
       abi,
       functionName,
@@ -97,7 +101,7 @@ export function pay(
     functionName: "pay",
     args,
     // If paying in native currency, pass in the value param.
-    ...(args[0].currency === abi.addresses.zeroAddress &&
+    ...(args[0].currency === ethAddress &&
       { value: args[0].amount }),
   });
 }
@@ -128,7 +132,7 @@ export async function getPaymentId(
 
 export function approveERC20(
   wallet: ConcreteWalletClient,
-  address: Address,
+  address: Hex,
   args: ContractFunctionArgs<
     typeof abi.eddiesAbi,
     "nonpayable" | "payable",
@@ -177,11 +181,13 @@ export const mintShop = genericWriteContract(
   abi.addresses.ShopReg,
 );
 export async function redeemInviteSecret(
-  secret: Address,
-  wallet: ConcreteWalletClient,
+  secret: Hex,
+  wallet: WalletClient,
+  account: Hex | Account,
   shopId: bigint,
 ) {
-  const message = "enrolling:" + wallet.account.address.toLowerCase();
+  const address = parseAccount(account).address;
+  const message = "enrolling:" + address.toLowerCase();
   const tokenAccount = privateKeyToAccount(secret);
   const sig = await tokenAccount.signMessage({
     message,
@@ -190,5 +196,11 @@ export async function redeemInviteSecret(
   const v = sigBytes[64];
   const r = bytesToHex(sigBytes.slice(0, 32));
   const s = bytesToHex(sigBytes.slice(32, 64));
-  return redeemInvite(wallet, [shopId, v, r, s, wallet.account.address]);
+  return redeemInvite(wallet, account, [
+    shopId,
+    v,
+    r,
+    s,
+    address,
+  ]);
 }

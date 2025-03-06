@@ -57,10 +57,12 @@
                   configPath = "./typos.toml";
                 };
               };
-              # is broken when committing ts files that are ignored
-              denolint.enable = true;
+              #TODO: tries to download modules on nix flake check
+              denolint = {
+                enable = true;
+                settings.configPath = "./deno.json";
+              };
               denofmt = {
-                verbose = true;
                 enable = true;
                 settings.configPath = "./deno.json";
               };
