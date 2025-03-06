@@ -12,17 +12,12 @@
     "pbts-build": "npm exec --package=protobufjs-cli -c 'pbts -r market.mass -o ./compiled.d.ts ./compiled.js'",
     "build": "deno task pbjs-build && deno task pbts-build"
   },
-  "fmt": {
-    "exclude": ["./compiled.*", "./testVectors.json"]
-  },
-  "lint": {
-    "exclude": ["./compiled.*"]
-  },
+  "exclude": ["./compiled.*", "./testVectors.json"],
   "imports": {
     "@valibot/valibot": "jsr:@valibot/valibot@^0.42.1",
     "protobufjs": "npm:protobufjs",
     "long": "npm:long",
     "protobufjs-cli": "npm:protobufjs-cli",
-    "viem": "jsr:@wevm/viem@^2.23.4"
+    "@wevm/viem": "jsr:@wevm/viem@^2.23.4"
   }
 }

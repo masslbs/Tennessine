@@ -1,36 +1,52 @@
 import * as v from "@valibot/valibot";
 
-export const OpSchema = v.intersect([
-  v.object({
-    path: v.array(v.string()),
-  }),
-  v.variant("op", [
-    v.object({
-      op: v.union([
-        v.literal("add"),
-        v.literal("replace"),
-        v.literal("test"),
-      ]),
-      value: v.any(),
-    }),
-    v.object({
-      op: v.union([v.literal("copy"), v.literal("move")]),
-      from: v.string(),
-    }),
-    v.object({
-      op: v.literal("remove"),
-    }),
-  ]),
+// For OpString enum
+const OpStringSchema = v.union([
+  v.literal("add"),
+  v.literal("replace"),
+  v.literal("remove"),
+  v.literal("increment"),
+  v.literal("decrement"),
 ]);
-export const PatchSchema = v.object({
-  signer: v.instance(Uint8Array),
-  seqNum: v.number(),
-  keycard: v.instance(Uint8Array),
-  account: v.instance(Uint8Array),
-  ops: v.array(
-    OpSchema,
-  ),
+
+// For PatchSetHeader
+const PatchSetHeaderSchema = v.object({
+  KeyCardNonce: v.number(), // uint64 with gt=0
+  ShopID: v.bigint(),
+  Timestamp: v.date(),
+  RootHash: v.instance(Uint8Array<ArrayBufferLike>),
 });
+
+// For Patch
+const PatchSchema = v.object({
+  Op: OpStringSchema,
+  Path: v.array(v.string()), // assuming PatchPath is string array
+  Value: v.instance(Uint8Array<ArrayBufferLike>), // assuming cbor.RawMessage is represented as Uint8Array
+});
+
+export const PatchSetSchema = v.object({
+  Header: PatchSetHeaderSchema,
+  Patches: v.array(PatchSchema),
+});
+
+export type TPatchSet = v.InferInput<typeof PatchSetSchema>;
+
+// For SignedPatchSet
+export const SignedPatchSetSchema = v.object({
+  ...PatchSetSchema.entries,
+  Signature: v.instance(Uint8Array<ArrayBufferLike>), // assuming objects.Signature is represented as Uint8Array
+});
+
+// Type inference
+export type TSignedPatchSet = v.InferInput<typeof SignedPatchSetSchema>;
+
+export const RecoveredPatchSetSchema = v.object({
+  ...SignedPatchSetSchema.entries,
+  Signer: v.string(),
+});
+
+// Type inference
+export type TRecoveredPatchSet = v.InferInput<typeof RecoveredPatchSetSchema>;
 
 export const BaseObjectSchema = v.object({
   Accounts: v.record(
@@ -115,5 +131,3 @@ export const ShopSchema = v.object({
     }),
   ),
 });
-
-export type TPatch = v.InferInput<typeof PatchSchema>;

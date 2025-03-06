@@ -37,6 +37,7 @@
     "npm:@rainbow-me/rainbowkit@^2.2.0": "2.2.4_@tanstack+react-query@5.62.11__react@18.3.1_react@18.3.1_react-dom@18.3.1__react@18.3.1_viem@2.21.55__ws@8.18.0_wagmi@2.14.12__@tanstack+react-query@5.62.11___react@18.3.1__react@18.3.1__viem@2.21.55___ws@8.18.0__@wagmi+core@2.16.5___viem@2.21.55____ws@8.18.0___@types+react@18.3.16___react@18.3.1___use-sync-external-store@1.4.0____react@18.3.1__@types+react@18.3.16__use-sync-external-store@1.4.0___react@18.3.1_@vanilla-extract+css@1.15.5_@types+react@18.3.16",
     "npm:@sagold/json-pointer@*": "6.0.1",
     "npm:@sagold/json-pointer@7": "7.1.1",
+    "npm:@sagold/json-pointer@^7.1.1": "7.1.1",
     "npm:@scure/bip32@1.5.0": "1.5.0",
     "npm:@scure/bip32@1.6.0": "1.6.0",
     "npm:@scure/bip32@1.6.2": "1.6.2",
@@ -5282,7 +5283,9 @@
       "packages/stateManager": {
         "dependencies": [
           "jsr:@std/assert@^1.0.11",
-          "jsr:@valibot/valibot@~0.42.1"
+          "jsr:@std/cbor@~0.1.6",
+          "jsr:@valibot/valibot@~0.42.1",
+          "npm:@sagold/json-pointer@^7.1.1"
         ]
       },
       "packages/utils": {

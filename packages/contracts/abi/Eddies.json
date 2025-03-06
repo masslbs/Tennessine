@@ -426,6 +426,11 @@
   },
   {
     "type": "error",
+    "name": "Permit2AllowanceIsFixedAtInfinity",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "PermitExpired",
     "inputs": []
   },

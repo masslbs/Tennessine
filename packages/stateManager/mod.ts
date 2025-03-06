@@ -1,15 +1,20 @@
+import { type CborType, decodeCbor, encodeCbor } from "@std/cbor";
 import * as v from "@valibot/valibot";
+import jsonpointer from "@sagold/json-pointer";
 import {
   Graph,
   Link,
   type LinkValue,
   type StoreInterface,
 } from "@massmarket/merkle-dag-builder";
-import jsonpointer from "npm:@sagold/json-pointer";
 import EventTree from "@massmarket/eventTree";
 import type { RelayClient } from "@massmarket/client";
 import { getSubSchema } from "@massmarket/schema/utils";
-import type { BaseObjectSchema, TPatch } from "@massmarket/schema/cbor";
+import type {
+  BaseObjectSchema,
+  TPatchSet,
+  TRecoveredPatchSet,
+} from "@massmarket/schema/cbor";
 
 export type Path = string | string[];
 export type IStoredState = { seqNum: number; root: Uint8Array };
@@ -21,7 +26,7 @@ export default class DataBase<
   readonly graph: Graph;
   readonly clients: Set<RelayClient> = new Set();
   mutations: Map<string, Promise<void>> = new Map();
-  #streamsControllers: ReadableStreamDefaultController<TPatch>[] = [];
+  #streamsControllers: ReadableStreamDefaultController<TPatchSet>[] = [];
   constructor(
     public params: {
       schema: T;
@@ -61,58 +66,58 @@ export default class DataBase<
 
   createWriteStream(id: string) {
     // TODO: handle patch rejection
-    return new WritableStream<TPatch>({
-      write: async (patch) => {
+    return new WritableStream<TRecoveredPatchSet>({
+      write: async (patchSet) => {
         // validate the Operation's schema
         const state = await this.loadState(id);
+        const localState = await this.loadState("local");
         const validityRange = await this.graph.get(state.root, [
           "account",
-          patch.account.toString(), // TODO: properly serialized
-          patch.keycard.toString(),
+          patchSet.Signer.toString(),
         ]);
         // TODO: Validate keycard for a given time range
         if (!validityRange) {
           throw new Error("Invalid keycard");
         }
-        for (const op of patch.ops) {
-          const OpValschema = getSubSchema(this.params.schema, op.path);
+        for (const patch of patchSet.Patches) {
+          const OpValschema = getSubSchema(this.params.schema, patch.Path);
+          // decode the value
+          const value = decodeCbor(patch.Value);
           // validate the Operation's value if any
-          v.parse(OpValschema, op);
+          v.parse(OpValschema, value);
           // apply the operation
-          if (op.op === "add") {
-            state.root = this.graph.set(state.root, op.path, op.value);
+          if (patch.Op === "add") {
+            state.root = this.graph.set(state.root, patch.Path, value);
+            localState.root = this.graph.set(
+              localState.root,
+              patch.Path,
+              value,
+            );
             // TODO
           } else {
             throw new Error("Unimplemented operation type");
           }
         }
+        // TODO: check stateroot
         // save the patch
         // TODO: seqentail reads are faster then random,
         this.graph.setMetaData(
-          [patch.account, patch.keycard, patch.seqNum],
-          patch,
+          [patchSet.Signer, patchSet.Header.KeyCardNonce],
+          patchSet,
         );
-        // TODO: check stateroot
-        // apply the patch locally
-        const localState = await this.loadState("local")!;
-        for (const op of patch.ops) {
-          if (op.op === "add") {
-            localState.root = this.graph.set(
-              localState.root,
-              op.path,
-              op.value,
-            );
-          } else {
-            throw new Error("Unimplemented operation type");
-          }
-        }
       },
     });
   }
 
   createReadStream() {
-    return new ReadableStream<TPatch>({
-      start: (controller: ReadableStreamDefaultController<TPatch>) => {
+    return new ReadableStream<
+      TPatchSet
+    >({
+      start: (
+        controller: ReadableStreamDefaultController<
+          TPatchSet
+        >,
+      ) => {
         this.#streamsControllers.push(controller);
       },
     });
@@ -135,7 +140,7 @@ export default class DataBase<
   }
 
   // TODO: rename LinkValue to NodeValue ?
-  async set(path: Path, value: LinkValue, id = "local") {
+  async set(path: Path, value: CborType, id = "local") {
     const p: string[] = jsonpointer.split(path);
     // TODO: it would be nice to get the type instead of just generic
     const schema = getSubSchema(this.params.schema, p);
@@ -166,17 +171,13 @@ export default class DataBase<
       // send patch to peers
       this.#streamsControllers.forEach((controller) => {
         controller.enqueue({
-          signer: new Uint8Array(32),
-          seqNum: state.seqNum,
-          keycard: new Uint8Array(32),
-          account: new Uint8Array(32),
-          ops: [
-            {
-              op: "add",
-              path: p,
-              value,
-            },
-          ],
+          Header: {
+            ShopID: this.params.objectId,
+            KeyCardNonce: 0,
+            Timestamp: new Date(),
+            RootHash: root,
+          },
+          Patches: [{ Path: p, Value: encodeCbor(value), Op: "add" }],
         });
       });
       return metaPromise.then(resolve).catch(reject);

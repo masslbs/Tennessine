@@ -1,4 +1,4 @@
-import * as v from "jsr:@valibot/valibot";
+import * as v from "@valibot/valibot";
 
 function schemaIsArray(
   schema: v.GenericSchema,

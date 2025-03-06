@@ -4,3 +4,6 @@ extend-exclude = [
     "packages/contracts/src/generated.ts",
     "packages/contracts/abi",
 ]
+
+[default.extend-words]
+COSE = "COSE"

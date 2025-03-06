@@ -1,24 +1,28 @@
 // SPDX-FileCopyrightText: 2024 Mass Labs
 //
 // SPDX-License-Identifier: MIT
-
-import { Buffer } from "buffer";
+import { assert } from "@std/assert";
+import { decodeCbor, encodeCbor } from "@std/cbor";
 import {
+  bytesToHex,
   hexToBigInt,
+  hexToBytes,
   numberToBytes,
   recoverMessageAddress,
-  toBytes,
+  stringToBytes,
 } from "@wevm/viem";
 import type { PrivateKeyAccount } from "@wevm/viem/accounts";
 import { createSiweMessage } from "@wevm/viem/siwe";
 import LockMap from "@nullradix/lockmap";
-import { assert } from "@std/assert";
-import { decodeCbor, encodeCbor } from "@std/cbor";
 import * as v from "@valibot/valibot";
-
-import schema, { EnvelopMessageTypes } from "@massmarket/schema";
 import type { ConcreteWalletClient } from "@massmarket/blockchain";
-import { PatchSchema, type TPatch } from "@massmarket/schema/cbor";
+import schema, { EnvelopMessageTypes } from "@massmarket/schema";
+import {
+  SignedPatchSetSchema,
+  type TPatchSet,
+  type TRecoveredPatchSet,
+  type TSignedPatchSet,
+} from "@massmarket/schema/cbor";
 import { decodeBufferToString, hexToBase64, logger } from "@massmarket/utils";
 
 const debug = logger("relayClient");
@@ -46,7 +50,7 @@ export class RelayClient {
     string,
     {
       id: Uint8Array;
-      controllers: Set<ReadableStreamDefaultController<TPatch>>;
+      controllers: Set<ReadableStreamDefaultController<TRecoveredPatchSet>>;
     }
   > = new Map();
   private useTLS;
@@ -63,9 +67,9 @@ export class RelayClient {
   }: {
     relayEndpoint: RelayEndpoint;
     keyCardWallet: PrivateKeyAccount;
-    //TODO: deprecate https://github.com/orgs/masslbs/projects/1/views/1?pane=issue&itemId=100185082&issue=masslbs%7Cnetwork-schema%7C40
-    //The relay should know given a keycard and a shopid
+    //TODO: deprecate; the relay should know this
     isGuest: boolean;
+    //TODO: move to the patchSet / stateManager
     shopId: bigint;
   }) {
     this.keyCardWallet = keyCardWallet;
@@ -84,9 +88,9 @@ export class RelayClient {
       // TODO; promise returned here, handle
       this.createSubscription(path, seqNum);
     }
-    let controller: ReadableStreamDefaultController<TPatch>;
-    return new ReadableStream<TPatch>({
-      start: (c: ReadableStreamDefaultController<TPatch>) => {
+    let controller: ReadableStreamDefaultController<TRecoveredPatchSet>;
+    return new ReadableStream({
+      start: (c) => {
         controller = c;
         this.#subscriptions.get(path)?.controllers.add(controller);
       },
@@ -102,22 +106,22 @@ export class RelayClient {
   }
 
   createWriteStream() {
-    return new WritableStream<TPatch>({
+    return new WritableStream<TPatchSet>({
       write: async (patch) => {
-        const payload = encodeCbor(patch);
+        // TODO: use embedded cbor, or COSE
+        const payload = encodeCbor(patch.Header);
         const sig = await this.keyCardWallet.signMessage({
           message: { raw: payload },
         });
-        const signedEvent = {
-          signature: { raw: toBytes(sig) },
-          event: {
-            type_url: "type.googleapis.com/market.mass.ShopEvent",
-            value: payload,
-          },
+        const signedPatchSet: TSignedPatchSet = {
+          Header: patch.Header,
+          Patches: patch.Patches,
+          Signature: hexToBytes(sig),
         };
+        const encodedPatchSet = encodeCbor(signedPatchSet);
         const envelope = {
-          eventWriteRequest: {
-            events: [signedEvent],
+          patchSetWriteRequest: {
+            patchSet: encodedPatchSet,
           },
         };
         await this.encodeAndSend(envelope);
@@ -193,29 +197,25 @@ export class RelayClient {
           "subscriptionPushRequest is required",
         );
         {
-          envelope.subscriptionPushRequest.events!.forEach(
-            async (evt: schema.SubscriptionPushRequest.ISequencedEvent) => {
-              const seqEvent = schema.SubscriptionPushRequest.SequencedEvent
-                .create(evt);
-              const cborPatch = seqEvent!.event!.event!.value!;
-              const signer = await recoverMessageAddress({
-                message: { raw: cborPatch },
-                signature: seqEvent!.event!.signature!.raw!,
-              });
-              // validate the schema
-              const patch = v.parse(
-                PatchSchema,
-                {
-                  ops: decodeCbor(cborPatch),
-                  signer,
-                  seqNum: Number(seqEvent!.seqNo.toString()),
-                },
+          envelope.subscriptionPushRequest.patches!.forEach(
+            async (evt) => {
+              const cborPatch = evt.patchData!;
+              const patchSet = v.parse(
+                SignedPatchSetSchema,
+                decodeCbor(cborPatch),
               );
+              const signer = await recoverMessageAddress({
+                message: { raw: patchSet.Header.RootHash },
+                signature: patchSet.Signature,
+              });
 
               for (
                 const controller of this.#subscriptions.get("/")!.controllers
               ) {
-                controller.enqueue(patch);
+                controller.enqueue({
+                  ...patchSet,
+                  Signer: signer,
+                });
               }
             },
           );
@@ -276,7 +276,7 @@ export class RelayClient {
     const { response } = await this.encodeAndSend({
       authRequest: {
         publicKey: {
-          raw: toBytes(this.keyCardWallet.publicKey).slice(1),
+          raw: hexToBytes(this.keyCardWallet.publicKey).slice(1),
         },
       },
     });
@@ -288,7 +288,7 @@ export class RelayClient {
     });
     return this.encodeAndSend({
       challengeSolutionRequest: {
-        signature: { raw: toBytes(sig) },
+        signature: { raw: hexToBytes(sig) },
       },
     });
   }
@@ -340,7 +340,7 @@ export class RelayClient {
     wallet: ConcreteWalletClient,
     location?: URL,
   ) {
-    const publicKey = toBytes(this.keyCardWallet.publicKey).slice(1);
+    const publicKey = hexToBytes(this.keyCardWallet.publicKey).slice(1);
     const endpointURL = new URL(this.relayEndpoint.url);
     endpointURL.protocol = this.useTLS ? "https" : "http";
     endpointURL.pathname += `/enroll_key_card`;
@@ -357,11 +357,11 @@ export class RelayClient {
       resources: [
         `mass-relayid:${hexToBigInt(this.relayEndpoint.tokenId)}`,
         `mass-shopid:${this.#shopId}`,
-        `mass-keycard:${Buffer.from(publicKey).toString("hex")}`,
+        `mass-keycard:${bytesToHex(publicKey)}`,
       ],
     });
     const signature = await wallet.signMessage({
-      message: { raw: Buffer.from(message) },
+      message: { raw: stringToBytes(message) },
     });
     const body = JSON.stringify({
       message,
