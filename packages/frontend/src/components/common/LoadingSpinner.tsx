@@ -5,7 +5,7 @@ export default function LoadingSpinner() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentSpinner((prev) => (prev % 12) + 1);
+      setCurrentSpinner((prev: number) => (prev % 12) + 1);
     }, 50);
 
     return () => clearInterval(interval);
