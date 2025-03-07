@@ -32,16 +32,15 @@
         "systems": "systems"
       },
       "locked": {
-        "lastModified": 1740773817,
+        "lastModified": 1741370265,
         "narHash": "sha256-i0AUFvK0Y/1Nmz0wqY0x8tBvvHDjqd84JSiHO9EucsI=",
         "owner": "masslbs",
         "repo": "contracts",
-        "rev": "562bd1f560cf80783b4fc5a3d77f584e7d31375f",
+        "rev": "2e7fd67bb99c0448b42a90e364c744799572437a",
         "type": "github"
       },
       "original": {
         "owner": "masslbs",
-        "ref": "services",
         "repo": "contracts",
         "type": "github"
       }

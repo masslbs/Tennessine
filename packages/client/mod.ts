@@ -147,9 +147,10 @@ export class RelayClient {
     envelope: schema.IEnvelope = {},
   ): Promise<schema.Envelope> {
     const id = this.encodeAndSendNoWait(envelope);
-    const response = await this.#waitingMessagesResponse.get(
+    const { promise } = this.#waitingMessagesResponse.lock(
       id.raw.toString(),
     )!;
+    const response = await promise;
     const requestType =
       Object.keys(response).filter((k) => k !== "requestId")[0];
 
@@ -223,6 +224,10 @@ export class RelayClient {
         }
         break;
     }
+    console.log("unlocking...");
+    console.log(envelope.requestId!.raw!.toString());
+    console.log("size");
+    console.log(this.#waitingMessagesResponse.size);
     this.#waitingMessagesResponse.unlock(
       envelope.requestId!.raw!.toString(),
       envelope,
@@ -243,24 +248,14 @@ export class RelayClient {
       controllers: new Set(),
     });
     // TODO: remove
-    const filters = [
-      { objectType: schema.ObjectType.OBJECT_TYPE_LISTING },
-      { objectType: schema.ObjectType.OBJECT_TYPE_TAG },
-      { objectType: schema.ObjectType.OBJECT_TYPE_ORDER },
-      { objectType: schema.ObjectType.OBJECT_TYPE_ACCOUNT },
-      { objectType: schema.ObjectType.OBJECT_TYPE_MANIFEST },
-      ...this.#isGuest ? [] : [
-        { objectType: schema.ObjectType.OBJECT_TYPE_INVENTORY },
-      ],
-    ];
     const { response } = await this.encodeAndSend({
       subscriptionRequest: {
         startShopSeqNo: seqNo,
         shopId: { raw: numberToBytes(this.shopId) },
-        filters,
       },
     });
     assert(response?.payload, "response.payload is required");
+    return response;
   }
 
   cancelSubscriptionRequest(path: string) {

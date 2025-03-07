@@ -11,7 +11,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     contracts = {
-      url = "github:masslbs/contracts/services";
+      url = "github:masslbs/contracts";
     };
     schema = {
       url = "github:masslbs/network-schema/cbor";
