@@ -69,34 +69,33 @@
             };
           };
         };
-        devShells.default = with pkgs;
-          nixpkgs.legacyPackages.${system}.mkShell {
-            NETWORK_SCHEMA_PATH = "${schema}";
-            MASS_TEST_VECTORS = "${schema.packages.${system}.default}";
-            MASS_CONTRACTS_PATH = "${contracts.packages.${system}.default}";
+        devShells.default = pkgs.mkShell {
+          NETWORK_SCHEMA_PATH = "${schema}";
+          MASS_TEST_VECTORS = "${schema.packages.${system}.default}";
+          MASS_CONTRACTS_PATH = "${contracts.packages.${system}.default}";
 
-            shellHook = ''
-              ${config.pre-commit.settings.installationScript}
-               # these fail if 'nix develop' isnt run from the root of the project
-               # TODO: lets reference directly instead of copying the files
-               if [ -d ./packages ]; then
-                 cp $MASS_CONTRACTS_PATH/abi/*.json ./packages/contracts/abi/
-                 cp $MASS_CONTRACTS_PATH/deploymentAddresses.json ./packages/contracts/
-               fi
-            '';
+          shellHook = ''
+            ${config.pre-commit.settings.installationScript}
+             # these fail if 'nix develop' isnt run from the root of the project
+             # TODO: lets reference directly instead of copying the files
+             if [ -d ./packages ]; then
+               cp $MASS_CONTRACTS_PATH/abi/*.json ./packages/contracts/abi/
+               cp $MASS_CONTRACTS_PATH/deploymentAddresses.json ./packages/contracts/
+             fi
+          '';
 
-            buildInputs =
-              [
-                contracts.packages.${system}.local-testnet
-                nodejs # needed for protobuf generation
-                reuse
-                # Language servers
-                typos-lsp # code spell checker
-                nixd
-              ]
-              # deno is automatically pulled in here
-              ++ config.pre-commit.settings.enabledPackages;
-          };
+          buildInputs = with pkgs;
+            [
+              contracts.packages.${system}.local-testnet
+              nodejs # needed for protobuf generation
+              reuse
+              # Language servers
+              typos-lsp # code spell checker
+              nixd
+            ]
+            # deno is automatically pulled in here
+            ++ config.pre-commit.settings.enabledPackages;
+        };
       };
     };
 }

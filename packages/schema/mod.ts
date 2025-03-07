@@ -3,9 +3,7 @@
 // SPDX-License-Identifier: MIT
 // @ts-types="./compiled.d.ts"
 import pb from "./compiled.js";
-import schema = pb.market.mass;
-
-export default schema;
+export default pb.market.mass;
 
 // a few concrete fields we need to handle in the client.
 // these are not generated from the proto files.
