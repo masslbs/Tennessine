@@ -55,10 +55,7 @@ export class RelayClient {
   // TODO; we can use the subscription path for the id
   #subscriptions: Map<
     string,
-    {
-      id: Uint8Array;
-      controllers: Set<ReadableStreamDefaultController<TRecoveredPatchSet>>;
-    }
+    ReadableStreamDefaultController<TRecoveredPatchSet>
   > = new Map();
   #requestCounter;
   #waitingMessagesResponse: LockMap<string, schema.Envelope> = new LockMap();
@@ -72,29 +69,6 @@ export class RelayClient {
     this.account = params.account;
     this.ethAddress = parseAccount(params.account).address;
     this.#requestCounter = 1;
-  }
-
-  createSubscriptionStream(path: string, seqNum: number) {
-    assert(path, "/");
-    if (!this.#subscriptions.has(path)) {
-      // TODO; promise returned here, handle
-      this.createSubscription(path, seqNum);
-    }
-    let controller: ReadableStreamDefaultController<TRecoveredPatchSet>;
-    return new ReadableStream({
-      start: (c) => {
-        controller = c;
-        this.#subscriptions.get(path)?.controllers.add(controller);
-      },
-      cancel: () => {
-        const cset = this.#subscriptions.get(path)!.controllers;
-        cset.delete(controller);
-        if (cset.size === 0) {
-          this.#subscriptions.delete(path);
-          this.cancelSubscriptionRequest(path);
-        }
-      },
-    });
   }
 
   createWriteStream() {
@@ -131,7 +105,6 @@ export class RelayClient {
     if (err) {
       throw new Error(`unable to verify envelope: ${err}`);
     }
-    // Turns json into binary
     const payload = schema.Envelope.encode(envelope).finish();
     assert(this.connection);
     this.connection.send(payload);
@@ -182,6 +155,7 @@ export class RelayClient {
     debug(
       `network request ${requestType} id: ${envelope.requestId!.raw} received`,
     );
+
     switch (envelope.message) {
       case EnvelopMessageTypes.PingRequest:
         this.#handlePingRequest(envelope);
@@ -192,46 +166,49 @@ export class RelayClient {
           "subscriptionPushRequest is required",
         );
         {
-          envelope.subscriptionPushRequest.patches!.forEach(
-            async (evt) => {
+          const subscriptionId = envelope
+            .subscriptionPushRequest
+            .subscriptionId!.toString();
+          const controller = this.#subscriptions.get(subscriptionId);
+          console.log("id", envelope);
+          assert(controller, "invalid subscription recv");
+
+          try {
+            for (const evt of envelope.subscriptionPushRequest.patches!) {
               const cborPatch = evt.patchData!;
               const patchSet = v.parse(
                 SignedPatchSetSchema,
                 decodeCbor(cborPatch),
               );
+              // This doesn't really need to be async
+              // viem does an async import of @noble/secp256k1
               const signer = await recoverMessageAddress({
                 message: { raw: patchSet.Header.RootHash },
                 signature: patchSet.Signature,
               });
-
-              for (
-                const controller of this.#subscriptions.get("/")?.controllers ??
-                  []
-              ) {
-                controller.enqueue({
-                  ...patchSet,
-                  Signer: signer,
-                });
-              }
-              // TODO: properly handle backpressure
-              // we should implement `pull` for the read stream, in the pull we should request the next chunk
-              this.encodeAndSendNoWait({
-                requestId: envelope.requestId,
-                response: {},
+              controller.enqueue({
+                ...patchSet,
+                Signer: signer,
               });
-            },
-          );
+            }
+          } catch (e) {
+            controller.error(e);
+          }
+          // TODO: properly handle backpressure
+          // we should implement `pull` for the read stream, in the pull we should request the next chunk
+          this.encodeAndSendNoWait({
+            requestId: envelope.requestId,
+            response: {},
+          });
         }
         break;
+      default:
+        this.#waitingMessagesResponse.unlock(
+          envelope.requestId!.raw!.toString(),
+          envelope,
+        );
+        break;
     }
-    console.log("unlocking...");
-    console.log(envelope.requestId!.raw!.toString());
-    console.log("size");
-    console.log(this.#waitingMessagesResponse.size);
-    this.#waitingMessagesResponse.unlock(
-      envelope.requestId!.raw!.toString(),
-      envelope,
-    );
   }
 
   #handlePingRequest(ping: schema.Envelope) {
@@ -242,28 +219,39 @@ export class RelayClient {
     });
   }
 
-  async createSubscription(path: string, seqNo = 0) {
-    this.#subscriptions.set(path, {
-      id: new Uint8Array(16),
-      controllers: new Set(),
-    });
-    // TODO: remove
+  async createSubscription(_path: string, seqNo = 0) {
     const { response } = await this.encodeAndSend({
       subscriptionRequest: {
         startShopSeqNo: seqNo,
         shopId: { raw: numberToBytes(this.shopId) },
       },
     });
+
     assert(response?.payload, "response.payload is required");
     return response;
   }
 
-  cancelSubscriptionRequest(path: string) {
-    const subscriptionId = this.#subscriptions.get(path)?.id;
-    this.#subscriptions.delete(path);
+  // TODO implement sending reason
+  cancelSubscriptionRequest(id: Uint8Array, _reason: unknown) {
     return this.encodeAndSend({
       subscriptionCancelRequest: {
-        subscriptionId,
+        subscriptionId: id,
+      },
+    });
+  }
+
+  createSubscriptionStream(path: string, seqNum: number) {
+    let id: Uint8Array;
+    return new ReadableStream({
+      start: async (c) => {
+        const r = await this.createSubscription(path, seqNum);
+        id = r.payload!;
+        console.log("sub id", id);
+        this.#subscriptions.set(id.toString(), c);
+      },
+      cancel: (reason) => {
+        this.#subscriptions.delete(id.toString());
+        this.cancelSubscriptionRequest(id, reason);
       },
     });
   }
