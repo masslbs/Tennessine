@@ -2,6 +2,7 @@
   "version": "4",
   "specifiers": {
     "jsr:@noble/hashes@^1.7.1": "1.7.1",
+    "jsr:@noble/secp256k1@^2.2.3": "2.2.3",
     "jsr:@nullradix/ipld-cbor-graph-builder@3.0.0": "3.0.0",
     "jsr:@nullradix/lockmap@0.4": "0.4.0",
     "jsr:@nullradix/lockmap@~0.2.4": "0.2.4",
@@ -102,6 +103,9 @@
   "jsr": {
     "@noble/hashes@1.7.1": {
       "integrity": "2c29f1dc07943155f5c7384be6f570a749c2afee95a0557cdae02b4fd5956134"
+    },
+    "@noble/secp256k1@2.2.3": {
+      "integrity": "830435da513d7d65fa6868061a0048b0f3ade456646c0f79a0675e7f4e965600"
     },
     "@nullradix/ipld-cbor-graph-builder@3.0.0": {
       "integrity": "237c77611200b2323dcf7fc02fb4cbd570958d5f8c407d33f7abf7eb5fde1bb3",
@@ -5232,6 +5236,7 @@
       },
       "packages/client": {
         "dependencies": [
+          "jsr:@noble/secp256k1@^2.2.3",
           "jsr:@nullradix/lockmap@0.4",
           "jsr:@std/assert@^1.0.11",
           "jsr:@std/cbor@~0.1.6",

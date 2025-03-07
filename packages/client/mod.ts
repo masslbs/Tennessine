@@ -16,6 +16,7 @@ import {
 import { parseAccount } from "@wevm/viem/accounts";
 import { createSiweMessage } from "@wevm/viem/siwe";
 import { hashMessage } from "@wevm/viem/utils";
+import { ProjectivePoint } from "@noble/secp256k1";
 import LockMap from "@nullradix/lockmap";
 import * as v from "@valibot/valibot";
 import schema, { EnvelopMessageTypes } from "@massmarket/schema";
@@ -296,7 +297,7 @@ export class RelayClient {
   }
 
   // TODO: make an enum of the possible events
-  connect(): Promise<Event | string> {
+  connect(): Promise<Event> {
     if (
       !this.connection ||
       this.connection.readyState === WebSocket.CLOSING ||
@@ -314,7 +315,7 @@ export class RelayClient {
     }
     return new Promise((resolve) => {
       if (this.connection!.readyState === WebSocket.OPEN) {
-        resolve("already open");
+        resolve(new Event("already open"));
       } else {
         this.connection!.addEventListener("open", (evt: Event) => {
           // TODO: unbox event to concrete values
@@ -344,7 +345,10 @@ export class RelayClient {
   ) {
     const parsedAccount = parseAccount(account);
     const address = parsedAccount.address;
-    const publicKey = getAccountPublicKey(this.walletClient, this.account);
+    const publicKey = await getAccountPublicKey(
+      this.walletClient,
+      this.account,
+    );
     const endpointURL = new URL(this.relayEndpoint.url);
     endpointURL.protocol = this.relayEndpoint.url.protocol === "wss"
       ? "https"
@@ -366,6 +370,7 @@ export class RelayClient {
         `mass-keycard:${publicKey}`,
       ],
     });
+
     const signature = await wallet.signMessage({
       account: parsedAccount,
       message,
@@ -412,13 +417,14 @@ export class RelayClient {
 async function getAccountPublicKey(
   wallet: WalletClient,
   account: Hex | Account,
-): Promise<Hex> {
+): Promise<string> {
   const signature = await wallet.signMessage({
     account,
     message: "",
   });
   const hash = hashMessage("");
-  return recoverPublicKey({ signature, hash });
+  const publicKey = await recoverPublicKey({ signature, hash });
+  return ProjectivePoint.fromHex(publicKey.slice(2)).toHex();
 }
 
 // testing helper
@@ -428,7 +434,6 @@ export async function discoverRelay(url: string): Promise<IRelayEndpoint> {
     .replace("/v4", "/testing/discovery");
   const testingResponse = await fetch(discoveryURL);
   const testingData = await testingResponse.json();
-  console.log(testingData);
   return {
     url: new URL(url),
     tokenId: testingData.relay_token_id,
