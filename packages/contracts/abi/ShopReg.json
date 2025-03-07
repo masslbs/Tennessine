@@ -1131,7 +1131,7 @@
     "name": "NotAuthorized",
     "inputs": [
       {
-        "name": "permision",
+        "name": "permission",
         "type": "uint8",
         "internalType": "uint8"
       }

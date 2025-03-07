@@ -34,6 +34,16 @@ export interface IRelayEndpoint {
   tokenId: `0x${string}`;
 }
 
+export interface IRelayClientOptions {
+  relayEndpoint: IRelayEndpoint;
+  walletClient: WalletClient;
+  account: Hex | Account;
+  //TODO: deprecate; the relay should know this
+  isGuest: boolean;
+  //TODO: move to the patchSet / stateManager
+  shopId: bigint;
+}
+
 export class RelayClient {
   connection: WebSocket | null = null;
   walletClient: WalletClient;
@@ -53,28 +63,14 @@ export class RelayClient {
   #waitingMessagesResponse: LockMap<string, schema.Envelope> = new LockMap();
   #isGuest: boolean = true;
 
-  constructor({
-    relayEndpoint,
-    walletClient,
-    account,
-    isGuest,
-    shopId,
-  }: {
-    relayEndpoint: IRelayEndpoint;
-    walletClient: WalletClient;
-    account: Hex | Account;
-    //TODO: deprecate; the relay should know this
-    isGuest: boolean;
-    //TODO: move to the patchSet / stateManager
-    shopId: bigint;
-  }) {
-    this.walletClient = walletClient;
-    this.relayEndpoint = relayEndpoint;
+  constructor(params: IRelayClientOptions) {
+    this.walletClient = params.walletClient;
+    this.relayEndpoint = params.relayEndpoint;
+    this.shopId = params.shopId;
+    this.#isGuest = params.isGuest;
+    this.account = params.account;
+    this.ethAddress = parseAccount(params.account).address;
     this.#requestCounter = 1;
-    this.shopId = shopId;
-    this.#isGuest = isGuest;
-    this.account = account;
-    this.ethAddress = parseAccount(account).address;
   }
 
   createSubscriptionStream(path: string, seqNum: number) {

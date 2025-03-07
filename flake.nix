@@ -11,7 +11,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     contracts = {
-      url = "github:masslbs/contracts";
+      url = "github:masslbs/contracts/services";
     };
     schema = {
       url = "github:masslbs/network-schema/cbor";
@@ -87,7 +87,7 @@
 
             buildInputs =
               [
-                contracts.packages.${system}.default
+                contracts.packages.${system}.local-testnet
                 nodejs # needed for protobuf generation
                 reuse
                 # Language servers
