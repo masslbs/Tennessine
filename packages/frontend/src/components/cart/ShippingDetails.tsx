@@ -61,6 +61,8 @@ export default function ShippingDetails({
       warning = "Must include postal code";
     } else if (!city.length) {
       warning = "Must include postal code";
+    } else if (!email.length) {
+      warning = "Must include email";
     }
     return warning;
   }
@@ -102,106 +104,110 @@ export default function ShippingDetails({
   }
 
   return (
-    <section data-testid="shipping-details">
-      <ErrorMessage
-        errorMessage={errorMsg}
-        onClose={() => {
-          setErrorMsg(null);
-        }}
-      />
-      <ValidationWarning
-        warning={validationError}
-        onClose={() => {
-          setValidationError(null);
-        }}
-      />
-      <h1 className="mb-5">Shipping details</h1>
-
-      <section className="flex flex-row justify-center gap-12 bg-white p-5 rounded-lg">
-        <form
-          className="flex flex-col"
-          onSubmit={(e) => {
-            e.preventDefault();
-          }}
-        >
-          <TimerToast />
-          <label className="mt-5" htmlFor="name">Name</label>
-          <input
-            className="border-2 border-solid mt-1 p-3 rounded-2xl"
-            id="name"
-            name="name"
-            data-testid="name"
-            onChange={(e) => setName(e.target.value)}
-          />
-          <label htmlFor="address">Address</label>
-          <input
-            className="border-2 border-solid mt-1 p-3 rounded-2xl"
-            id="address"
-            name="address"
-            data-testid="address"
-            onChange={(e) => setAddress(e.target.value)}
-          />
-          <div className="flex gap-2">
-            <div>
-              <label htmlFor="city">City</label>
-              <input
-                className="border-2 border-solid mt-1 p-3 rounded-2xl	w-full"
-                id="city"
-                name="city"
-                data-testid="city"
-                onChange={(e) => setCity(e.target.value)}
+    <section className="md:flex justify-center">
+      <section className="md:w-[900px]" data-testid="shipping-details">
+        <h1 className="my-5">Shipping details</h1>
+        <section className="flex flex-row justify-center gap-12 bg-white p-5 rounded-lg">
+          <form
+            className="flex flex-col"
+            onSubmit={(e) => {
+              e.preventDefault();
+            }}
+          >
+            <TimerToast />
+            <div className="mt-2">
+              <ErrorMessage
+                errorMessage={errorMsg}
+                onClose={() => {
+                  setErrorMsg(null);
+                }}
+              />
+              <ValidationWarning
+                warning={validationError}
+                onClose={() => {
+                  setValidationError(null);
+                }}
               />
             </div>
-            <div>
-              <label htmlFor="postal">Zip/Postal</label>
+
+            <label className="mt-5" htmlFor="name">Name</label>
+            <input
+              className="border-2 border-solid mt-1 p-3 rounded-2xl"
+              id="name"
+              name="name"
+              data-testid="name"
+              onChange={(e) => setName(e.target.value)}
+            />
+            <label htmlFor="address">Address</label>
+            <input
+              className="border-2 border-solid mt-1 p-3 rounded-2xl"
+              id="address"
+              name="address"
+              data-testid="address"
+              onChange={(e) => setAddress(e.target.value)}
+            />
+            <div className="flex gap-2">
+              <div>
+                <label htmlFor="city">City</label>
+                <input
+                  className="border-2 border-solid mt-1 p-3 rounded-2xl	w-full"
+                  id="city"
+                  name="city"
+                  data-testid="city"
+                  onChange={(e) => setCity(e.target.value)}
+                />
+              </div>
+              <div>
+                <label htmlFor="postal">Zip/Postal</label>
+                <input
+                  className="border-2 border-solid mt-1 p-3 rounded-2xl	w-full"
+                  id="zip"
+                  name="zip"
+                  data-testid="zip"
+                  onChange={(e) => setPostal(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <label htmlFor="country">Country</label>
+            <input
+              className="border-2 border-solid mt-1 p-3 rounded-2xl"
+              id="country"
+              name="country"
+              data-testid="country"
+              onChange={(e) => setCountry(e.target.value)}
+            />
+            <h2 className="my-3">Contact detail</h2>
+            <p>
+              Let the seller contact you if there is an issue with the order
+              (Recommended).
+            </p>
+            <div className="mt-3 flex flex-col">
+              <label htmlFor="email">Email</label>
               <input
-                className="border-2 border-solid mt-1 p-3 rounded-2xl	w-full"
-                id="zip"
-                name="zip"
-                data-testid="zip"
-                onChange={(e) => setPostal(e.target.value)}
+                className="border-2 border-solid mt-1 p-3 rounded-2xl"
+                id="email"
+                name="email"
+                data-testid="email"
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <label htmlFor="phoneNumber">Phone Number (optional)</label>
+              <input
+                className="border-2 border-solid mt-1 p-3 rounded-2xl"
+                id="phone"
+                name="phone"
+                data-testid="phone"
+                onChange={(e) => setNumber(e.target.value)}
               />
             </div>
-          </div>
-
-          <label htmlFor="country">Country</label>
-          <input
-            className="border-2 border-solid mt-1 p-3 rounded-2xl"
-            id="country"
-            name="country"
-            data-testid="country"
-            onChange={(e) => setCountry(e.target.value)}
-          />
-          <h2 className="my-3">Contact detail</h2>
-          <p>
-            Let the seller contact you if there is an issue with the order
-            (Recommended).
-          </p>
-          <div className="mt-3 flex flex-col">
-            <label htmlFor="email">Email</label>
-            <input
-              className="border-2 border-solid mt-1 p-3 rounded-2xl"
-              id="email"
-              name="email"
-              data-testid="email"
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <label htmlFor="phoneNumber">Phone Number (optional)</label>
-            <input
-              className="border-2 border-solid mt-1 p-3 rounded-2xl"
-              id="phone"
-              name="phone"
-              data-testid="phone"
-              onChange={(e) => setNumber(e.target.value)}
-            />
-          </div>
-          <div className="mt-3">
-            <Button onClick={onUpdateShipping}>Payment options</Button>
-          </div>
-        </form>
-        <section className="hidden md:block">
-          <h1 className="pl-5">Order Summary</h1>
-          <Cart showActionButtons={false} />
+            <div className="mt-3">
+              <Button onClick={onUpdateShipping}>Payment options</Button>
+            </div>
+          </form>
+          <section className="hidden md:block">
+            <h1 className="pl-5">Order Summary</h1>
+            <Cart showActionButtons={false} />
+          </section>
         </section>
       </section>
     </section>

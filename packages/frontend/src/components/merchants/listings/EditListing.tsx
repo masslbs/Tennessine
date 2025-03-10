@@ -88,7 +88,7 @@ export default function EditProduct() {
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Error creating listing", error);
-      setErrorMsg("Error creating listing");
+      throw error;
     }
   }
 
@@ -128,17 +128,21 @@ export default function EditProduct() {
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Error updating listing", error);
-      setErrorMsg("Error updating listing");
+      throw error;
     }
   }
 
   async function onPublish() {
-    if (!price) {
-      setValidationError("Product must include price.");
-    } else if (!title) {
+    if (!title) {
       setValidationError("Product must include title.");
+    } else if (!description) {
+      setValidationError("Product must include description.");
+    } else if (!price) {
+      setValidationError("Product must include price.");
     } else if (!images.length) {
       setValidationError("Product must include image.");
+    } else if (!units) {
+      setValidationError("Update the number of units.");
     } else if (productInView && !productInView.id) {
       setValidationError("Product id is missing.");
     } else {
@@ -177,7 +181,7 @@ export default function EditProduct() {
       } catch (error: unknown) {
         assert(error instanceof Error, "Error is not an instance of Error");
         errlog("Error publishing listing", error);
-        setErrorMsg("Error publishing listing");
+        setErrorMsg("Error publishing listing.");
       }
     }
   }
