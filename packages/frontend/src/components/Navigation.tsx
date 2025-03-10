@@ -46,8 +46,7 @@ function Navigation() {
 
   const navigate = useNavigate();
   const { shopDetails } = useShopDetails();
-  const { isMerchantPath } = usePathname();
-  const { clientStateManager } = useClientWithStateManager(isMerchantPath);
+  const { clientStateManager } = useClientWithStateManager();
   const { currentOrder } = useCurrentOrder();
   const [keycard] = useKeycard();
   const { disconnect } = useDisconnect();

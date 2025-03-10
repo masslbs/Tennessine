@@ -11,13 +11,14 @@ import { useQuery } from "./useQuery.ts";
 import { useKeycard } from "./useKeycard.ts";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";
 import { useChain } from "./useChain.ts";
+import { usePathname } from "./usePathname.ts";
 import { ClientWithStateManager } from "../ClientWithStateManager.ts";
 import { defaultRPC } from "../utils/mod.ts";
 
 const namespace = "frontend:useClientWithStateManager";
 const debug = logger(namespace);
 
-export function useClientWithStateManager(skipConnect: boolean = false) {
+export function useClientWithStateManager() {
   const { clientStateManager, setClientStateManager } = useContext(
     MassMarketContext,
   );
@@ -26,7 +27,7 @@ export function useClientWithStateManager(skipConnect: boolean = false) {
   const { shopId } = useShopId();
   const { chain } = useChain();
   const shopPublicClient = usePublicClient({ chainId: chain.id });
-
+  const { isMerchantPath } = usePathname();
   useEffect(() => {
     if (
       shopId &&
@@ -53,8 +54,8 @@ export function useClientWithStateManager(skipConnect: boolean = false) {
       !clientStateManager
     ) return;
     await clientStateManager.createNewRelayClient();
-    // skipConnect will be true if we are on a merchant page. We don't want to try connecting and authenticating before enrolling the keycard.
-    if (skipConnect) return;
+    // If current screen is /create-shop or /merchant-connect page, we don't want to try connecting and authenticating before enrolling the keycard.
+    if (isMerchantPath) return;
     if (keycard?.role === "merchant") {
       await clientStateManager.connectAndAuthenticate();
       await clientStateManager.sendMerchantSubscriptionRequest();

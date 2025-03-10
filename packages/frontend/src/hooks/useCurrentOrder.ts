@@ -13,8 +13,7 @@ const errlog = logger(namespace, "error");
 const debug = logger(namespace);
 
 export function useCurrentOrder() {
-  const { isMerchantPath } = usePathname();
-  const { clientStateManager } = useClientWithStateManager(isMerchantPath);
+  const { clientStateManager } = useClientWithStateManager();
   const { shopId } = useShopId();
   const [keycard] = useKeycard();
   const [currentOrder, setCurrentOrder] = useState<CurrentOrder | null>(null);

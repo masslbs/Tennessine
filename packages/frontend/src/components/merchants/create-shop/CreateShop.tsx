@@ -55,9 +55,7 @@ export default function () {
   const { data: wallet } = useWalletClient();
   const { shopId } = useShopId();
   const { setShopDetails } = useShopDetails();
-
-  // Set skipConnect to true so that useQuery does not try to connect and authenticate before enrolling the keycard.
-  const { clientStateManager } = useClientWithStateManager(true);
+  const { clientStateManager } = useClientWithStateManager();
   const [keycard, setKeycard] = useKeycard();
   const { connector } = useAccount();
   const config = useConfig();
