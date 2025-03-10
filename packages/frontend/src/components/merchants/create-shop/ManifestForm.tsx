@@ -79,24 +79,23 @@ export default function ManifestForm(
   }
 
   function checkRequiredFields() {
-    if (!shopInputData.payees[0].address) {
+    if (!shopInputData.shopName.length) {
+      return "Shop name is required.";
+    } else if (!shopInputData.description.length) {
+      return "Store description is required.";
+    } else if (!shopInputData.payees[0].address) {
       return "Payee address is required.";
-    } else if (!pricingCurrency?.address) {
-      return "Pricing currency address is required.";
-    } else if (!pricingCurrency?.chainId) {
-      return "Pricing currency chain is required.";
+    } else if (!pricingCurrency?.address || !pricingCurrency?.chainId) {
+      return "Pricing currency is required.";
+    } else if (!acceptedCurrencies.length) {
+      return "Accepted currencies are required.";
     }
-
     const isTokenAddrHex = isValidAddress(pricingCurrency.address);
     const isPayeeAddHex = isValidAddress(shopInputData.payees[0].address);
     if (!isTokenAddrHex) {
-      return "Token address must be a valid hex value";
-    } else if (!shopInputData.shopName.length) {
-      return "Store name is required";
-    } else if (!shopInputData.description.length) {
-      return "Store description is required";
+      return "Token address must be a valid address.";
     } else if (!isPayeeAddHex) {
-      return "Payee Address must be a valid hex value";
+      return "Payee address must be a valid address.";
     }
     return null;
   }
@@ -105,7 +104,7 @@ export default function ManifestForm(
     const warning = checkRequiredFields();
     if (warning) {
       setValidationError(warning);
-      throw Error(`Check all required fields:${warning}`);
+      throw Error(`Check all required fields: ${warning}`);
     } else {
       setValidationError(null);
     }
