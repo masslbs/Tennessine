@@ -9,7 +9,7 @@ import {
 import { generatePrivateKey, privateKeyToAccount } from "@wevm/viem/accounts";
 import { foundry } from "@wevm/viem/chains";
 import { mintShop, relayRegGetOwnerOf } from "@massmarket/blockchain";
-import { random256BigInt } from "@massmarket/utils";
+// import { random256BigInt } from "@massmarket/utils";
 // import schema from "@massmarket/schema";
 
 import { discoverRelay, type IRelayEndpoint, RelayClient } from "./mod.ts";
@@ -31,7 +31,7 @@ Deno.test(
       // get an account from anvil
       const [account] = await blockchainClient.requestAddresses();
 
-      const shopId = random256BigInt();
+      const shopId = 1313n;
 
       await t.step("mintShop", async () => {
         const transactionHash = await mintShop(blockchainClient, account, [
@@ -83,10 +83,26 @@ Deno.test(
           ]),
         ]);
         expect(m.value.signer).toBe(relayAddr);
+        console.log("manifest", m.value);
 
-        // const ws = relayClient.createWriteStream();
-        // const writer = ws.getWriter();
-        // await writer.write();
+        const ws = relayClient.createWriteStream();
+        const writer = ws.getWriter();
+        await writer.write([
+          {
+            Op: "add",
+            Path: ["manifest", "ShippingRegions"],
+            Value: {
+              "default": {
+                "Country": "DE",
+                "PostalCode": "",
+                "City": "",
+                "PriceModifiers": null,
+              },
+            },
+          },
+        ]);
+        const p = await r.read();
+        console.log(p);
         // await writer.close();
       });
     },

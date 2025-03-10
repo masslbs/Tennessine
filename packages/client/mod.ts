@@ -24,7 +24,6 @@ import {
   PatchSchema,
   PatchSetHeaderSchema,
   type TPatch,
-  type TPatchSet,
   type TPatchSetHeader,
   type TSignedPatchSet,
 } from "@massmarket/schema/cbor";
@@ -43,8 +42,9 @@ export interface IRelayClientOptions {
   account: Hex | Account;
   //TODO: deprecate; the relay should know this
   isGuest: boolean;
-  //TODO: move to the patchSet / stateManager
+  //TODO: make ID part of the path
   shopId: bigint;
+  keyCardNonce?: number;
 }
 
 interface PushedPatchSet {
@@ -57,6 +57,7 @@ interface PushedPatchSet {
 export class RelayClient {
   connection: WebSocket | null = null;
   walletClient: WalletClient;
+  keyCardNonce: number;
   readonly account;
   readonly relayEndpoint;
   readonly ethAddress: Hex;
@@ -73,6 +74,7 @@ export class RelayClient {
   constructor(params: IRelayClientOptions) {
     this.walletClient = params.walletClient;
     this.relayEndpoint = params.relayEndpoint;
+    this.keyCardNonce = params.keyCardNonce ?? 0;
     this.shopId = params.shopId;
     this.#isGuest = params.isGuest;
     this.account = params.account;
@@ -165,6 +167,7 @@ export class RelayClient {
               const header = v.parse(PatchSetHeaderSchema, dh);
               const patches = ppset.patches!.map((patch) => {
                 const decodedPatch = decodeCbor(patch);
+                // console.log("patch", decodedPatch);
                 return v.parse(PatchSchema, decodedPatch);
               });
 
@@ -247,17 +250,27 @@ export class RelayClient {
   }
 
   createWriteStream() {
-    return new WritableStream<TPatchSet>({
-      write: async (patch) => {
+    return new WritableStream<TPatch[]>({
+      write: async (patches) => {
+        const rootHash = await crypto.subtle.digest(
+          "SHA-256",
+          encodeCbor(patches),
+        );
+        const header: TPatchSetHeader = {
+          KeyCardNonce: this.keyCardNonce++,
+          Timestamp: new Date(),
+          ShopID: this.shopId,
+          RootHash: new Uint8Array(rootHash),
+        };
         // TODO: use embedded cbor, or COSE
-        const payload = encodeCbor(patch.Header);
+        const encodedHeader = encodeCbor(header);
         const sig = await this.walletClient.signMessage({
           account: this.account,
-          message: { raw: payload },
+          message: { raw: encodedHeader },
         });
         const signedPatchSet: TSignedPatchSet = {
-          Header: patch.Header,
-          Patches: patch.Patches,
+          Header: header,
+          Patches: patches,
           Signature: hexToBytes(sig),
         };
         const encodedPatchSet = encodeCbor(signedPatchSet);

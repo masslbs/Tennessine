@@ -1819,7 +1819,6 @@ export namespace market {
 
         /** Properties of a SyncStatusRequest. */
         interface ISyncStatusRequest {
-t
             /** SyncStatusRequest subscriptionId */
             subscriptionId?: (number|Long|null);
 

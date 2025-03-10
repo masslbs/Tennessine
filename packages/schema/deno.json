@@ -10,9 +10,9 @@
   "tasks": {
     "pbjs-build": "deno run --allow-env --allow-read --allow-write npm:protobufjs-cli/pbjs -t static-module -w es6  -o ./compiled.js $NETWORK_SCHEMA_PATH/*.proto --dependency protobufjs",
     "pbts-build": "npm exec --package=protobufjs-cli -c 'pbts -r market.mass -o ./compiled.d.ts ./compiled.js'",
-    "build": "deno task pbjs-build && deno task pbts-build"
+    "build-broken": "deno task pbjs-build && deno task pbts-build"
   },
-  "exclude": ["./compiled.*", "./testVectors.json"],
+  "exclude": ["./compiled.d.ts", "./compiled.js", "./testVectors.json"],
   "imports": {
     "@valibot/valibot": "jsr:@valibot/valibot@^0.42.1",
     "protobufjs": "npm:protobufjs",

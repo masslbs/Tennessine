@@ -22,7 +22,7 @@ export type TPatchSetHeader = v.InferInput<typeof PatchSetHeaderSchema>;
 // For Patch
 export const PatchSchema = v.object({
   Op: OpStringSchema,
-  Path: v.array(v.string()), // assuming PatchPath is string array
+  Path: v.array(v.union([v.string(), v.instance(Uint8Array<ArrayBufferLike>)])), // assuming PatchPath is string array
   Value: v.any(),
 });
 
