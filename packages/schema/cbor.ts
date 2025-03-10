@@ -11,7 +11,7 @@ const OpStringSchema = v.union([
 
 // For PatchSetHeader
 export const PatchSetHeaderSchema = v.object({
-  KeyCardNonce: v.number(), // uint64 with gt=0
+  KeyCardNonce: v.union([v.bigint(), v.number()]),
   ShopID: v.union([v.bigint(), v.number()]),
   Timestamp: v.date(),
   RootHash: v.instance(Uint8Array<ArrayBufferLike>),

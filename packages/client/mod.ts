@@ -9,6 +9,7 @@ import {
   hexToBigInt,
   hexToBytes,
   numberToBytes,
+  pad,
   recoverMessageAddress,
   recoverPublicKey,
   type WalletClient,
@@ -213,10 +214,16 @@ export class RelayClient {
   }
 
   async createSubscription(_path: string, seqNo = 0) {
+    console.log({
+      subscriptionRequest: {
+        startShopSeqNo: seqNo,
+        shopId: { raw: pad(numberToBytes(this.shopId)) },
+      },
+    });
     const { response } = await this.encodeAndSend({
       subscriptionRequest: {
         startShopSeqNo: seqNo,
-        shopId: { raw: numberToBytes(this.shopId) },
+        shopId: { raw: pad(numberToBytes(this.shopId)) },
       },
     });
 
@@ -239,7 +246,6 @@ export class RelayClient {
       start: async (c) => {
         const r = await this.createSubscription(path, seqNum);
         id = r.payload!;
-        console.log("sub id", id);
         this.#subscriptions.set(id.toString(), c);
       },
       cancel: (reason) => {
@@ -252,12 +258,13 @@ export class RelayClient {
   createWriteStream() {
     return new WritableStream<TPatch[]>({
       write: async (patches) => {
+        console.log("patches", patches);
         const rootHash = await crypto.subtle.digest(
           "SHA-256",
-          encodeCbor(patches),
+          encodeCbor(patches[0]),
         );
         const header: TPatchSetHeader = {
-          KeyCardNonce: this.keyCardNonce++,
+          KeyCardNonce: ++this.keyCardNonce,
           Timestamp: new Date(),
           ShopID: this.shopId,
           RootHash: new Uint8Array(rootHash),
@@ -273,6 +280,7 @@ export class RelayClient {
           Patches: patches,
           Signature: hexToBytes(sig),
         };
+
         const encodedPatchSet = encodeCbor(signedPatchSet);
         const envelope = {
           patchSetWriteRequest: {

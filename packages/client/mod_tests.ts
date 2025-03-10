@@ -31,7 +31,7 @@ Deno.test(
       // get an account from anvil
       const [account] = await blockchainClient.requestAddresses();
 
-      const shopId = 1313n;
+      const shopId = BigInt(Math.floor(Math.random() * 1000000));
 
       await t.step("mintShop", async () => {
         const transactionHash = await mintShop(blockchainClient, account, [
@@ -101,8 +101,8 @@ Deno.test(
             },
           },
         ]);
-        const p = await r.read();
-        console.log(p);
+        // const p = await r.read();
+        // console.log(p);
         // await writer.close();
       });
     },
