@@ -59,7 +59,7 @@ Deno.test(
         relayClient = new RelayClient({
           relayEndpoint,
           walletClient: blockchainClient,
-          account: kc,
+          keycard: kc,
           isGuest: true,
           shopId,
         });

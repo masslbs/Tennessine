@@ -40,7 +40,7 @@ export interface IRelayEndpoint {
 export interface IRelayClientOptions {
   relayEndpoint: IRelayEndpoint;
   walletClient: WalletClient;
-  account: Hex | Account;
+  keycard: Hex | Account;
   //TODO: deprecate; the relay should know this
   isGuest: boolean;
   //TODO: make ID part of the path
@@ -59,7 +59,7 @@ export class RelayClient {
   connection: WebSocket | null = null;
   walletClient: WalletClient;
   keyCardNonce: number;
-  readonly account;
+  readonly keycard;
   readonly relayEndpoint;
   readonly ethAddress: Hex;
   readonly shopId;
@@ -78,8 +78,8 @@ export class RelayClient {
     this.keyCardNonce = params.keyCardNonce ?? 0;
     this.shopId = params.shopId;
     this.#isGuest = params.isGuest;
-    this.account = params.account;
-    this.ethAddress = parseAccount(params.account).address;
+    this.keycard = params.keycard;
+    this.ethAddress = parseAccount(params.keycard).address;
     this.#requestCounter = 1;
   }
 
@@ -214,12 +214,6 @@ export class RelayClient {
   }
 
   async createSubscription(_path: string, seqNo = 0) {
-    console.log({
-      subscriptionRequest: {
-        startShopSeqNo: seqNo,
-        shopId: { raw: pad(numberToBytes(this.shopId)) },
-      },
-    });
     const { response } = await this.encodeAndSend({
       subscriptionRequest: {
         startShopSeqNo: seqNo,
@@ -257,8 +251,10 @@ export class RelayClient {
 
   createWriteStream() {
     return new WritableStream<TPatch[]>({
+      // Why do we even need to authenticate here?
+      start: () => this.authenticate(),
       write: async (patches) => {
-        console.log("patches", patches);
+        // TODO: add MMR
         const rootHash = await crypto.subtle.digest(
           "SHA-256",
           encodeCbor(patches[0]),
@@ -272,7 +268,7 @@ export class RelayClient {
         // TODO: use embedded cbor, or COSE
         const encodedHeader = encodeCbor(header);
         const sig = await this.walletClient.signMessage({
-          account: this.account,
+          account: this.keycard,
           message: { raw: encodedHeader },
         });
         const signedPatchSet: TSignedPatchSet = {
@@ -293,17 +289,21 @@ export class RelayClient {
   }
 
   async authenticate() {
+    const publicKey = await getAccountPublicKey(
+      this.walletClient,
+      this.keycard,
+    );
     const { response } = await this.encodeAndSend({
       authRequest: {
         publicKey: {
           // TODO: why are we slicing the bytes?
-          raw: hexToBytes(this.ethAddress).slice(1),
+          raw: hexToBytes(`0x${publicKey}`),
         },
       },
     });
     assert(response?.payload, "response.payload is required");
     const sig = await this.walletClient.signMessage({
-      account: this.account,
+      account: this.keycard,
       message: {
         raw: response.payload,
       },
@@ -366,7 +366,7 @@ export class RelayClient {
     const address = parsedAccount.address;
     const publicKey = await getAccountPublicKey(
       this.walletClient,
-      this.account,
+      this.keycard,
     );
     const endpointURL = new URL(this.relayEndpoint.url);
     endpointURL.protocol = this.relayEndpoint.url.protocol === "wss"
