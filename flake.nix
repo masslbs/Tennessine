@@ -6,6 +6,7 @@
   inputs = {
     systems.url = "github:nix-systems/default";
     flake-parts.url = "github:hercules-ci/flake-parts";
+    flake-root.url = "github:srid/flake-root";
     pre-commit-hooks = {
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -36,6 +37,7 @@
       systems = import systems;
       imports = [
         inputs.pre-commit-hooks.flakeModule
+        inputs.flake-root.flakeModule
       ];
       perSystem = {
         config,
@@ -74,8 +76,13 @@
           MASS_TEST_VECTORS = "${schema.packages.${system}.default}";
           MASS_CONTRACTS_PATH = "${contracts.packages.${system}.default}";
 
-          shellHook = config.pre-commit.settings.installationScript;
+          shellHook = ''
+            ${config.pre-commit.settings.installationScript}
+            cd $FLAKE_ROOT/packages/contracts
+            deno task build
+          '';
 
+          inputsFrom = [config.flake-root.devShell]; # Provides $FLAKE_ROOT in dev shell
           buildInputs = with pkgs;
             [
               contracts.packages.${system}.local-testnet

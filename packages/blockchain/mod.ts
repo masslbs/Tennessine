@@ -74,13 +74,13 @@ export function genericReadContract<
 export const payTokenPreApproved = genericWriteContract(
   abi.paymentsByAddressAbi,
   "payTokenPreApproved",
-  abi.addresses.Payments,
+  abi.paymentsByAddressAddress,
 );
 
 export const payNative = genericWriteContract(
   abi.paymentsByAddressAbi,
   "payNative",
-  abi.addresses.Payments,
+  abi.paymentsByAddressAddress,
 );
 
 // Logic for payNative vs. payTokenPreApproved is already baked into the pay contract function.
@@ -94,7 +94,7 @@ export function pay(
   >,
 ) {
   return wallet.writeContract({
-    address: abi.addresses.Payments,
+    address: abi.paymentsByAddressAddress,
     abi: abi.paymentsByAddressAbi,
     functionName: "pay",
     args,
@@ -106,19 +106,19 @@ export function pay(
 export const getAllowance = genericReadContract(
   abi.eddiesAbi,
   "allowance",
-  abi.addresses.Eddies,
+  abi.eddiesAddress,
 );
 
 export const getPaymentAddress = genericReadContract(
   abi.paymentsByAddressAbi,
   "getPaymentAddress",
-  abi.addresses.Payments,
+  abi.paymentsByAddressAddress,
 );
 
 export const getPaymentIdRaw = genericReadContract(
   abi.paymentsByAddressAbi,
   "getPaymentId",
-  abi.addresses.Payments,
+  abi.paymentsByAddressAddress,
 );
 
 export async function getPaymentId(
@@ -147,42 +147,42 @@ export function approveERC20(
 export const addRelay = genericWriteContract(
   abi.shopRegAbi,
   "addRelay",
-  abi.addresses.ShopReg,
+  abi.shopRegAddress,
 );
 
 export const setTokenURI = genericWriteContract(
   abi.shopRegAbi,
   "setTokenURI",
-  abi.addresses.ShopReg,
+  abi.shopRegAddress,
 );
 
 export const publishInviteVerifier = genericWriteContract(
   abi.shopRegAbi,
   "publishInviteVerifier",
-  abi.addresses.ShopReg,
+  abi.shopRegAddress,
 );
 
 export const redeemInvite = genericWriteContract(
   abi.shopRegAbi,
   "redeemInvite",
-  abi.addresses.ShopReg,
+  abi.shopRegAddress,
 );
 export const checkPermissions = genericReadContract(
   abi.shopRegAbi,
   "hasPermission",
-  abi.addresses.ShopReg,
+  abi.shopRegAddress,
 );
 
 export const mintShop = genericWriteContract(
   abi.shopRegAbi,
   "mint",
-  abi.addresses.ShopReg,
+  abi.shopRegAddress,
 );
 
 export const relayRegGetOwnerOf = genericReadContract(
   abi.relayRegAbi,
   "ownerOf",
-  abi.addresses.RelayReg,
+  abi.relayRegAddress,
 );
 
 export async function redeemInviteSecret(
