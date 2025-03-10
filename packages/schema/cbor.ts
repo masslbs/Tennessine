@@ -10,19 +10,23 @@ const OpStringSchema = v.union([
 ]);
 
 // For PatchSetHeader
-const PatchSetHeaderSchema = v.object({
+export const PatchSetHeaderSchema = v.object({
   KeyCardNonce: v.number(), // uint64 with gt=0
-  ShopID: v.bigint(),
+  ShopID: v.union([v.bigint(), v.number()]),
   Timestamp: v.date(),
   RootHash: v.instance(Uint8Array<ArrayBufferLike>),
 });
 
+export type TPatchSetHeader = v.InferInput<typeof PatchSetHeaderSchema>;
+
 // For Patch
-const PatchSchema = v.object({
+export const PatchSchema = v.object({
   Op: OpStringSchema,
   Path: v.array(v.string()), // assuming PatchPath is string array
-  Value: v.instance(Uint8Array<ArrayBufferLike>), // assuming cbor.RawMessage is represented as Uint8Array
+  Value: v.any(),
 });
+
+export type TPatch = v.InferInput<typeof PatchSchema>;
 
 export const PatchSetSchema = v.object({
   Header: PatchSetHeaderSchema,

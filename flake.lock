@@ -750,16 +750,16 @@
         "utils": "utils"
       },
       "locked": {
-        "lastModified": 1741348607,
-        "narHash": "sha256-R7qfiNrbvlJyb0DrHhxZSnpppmHDdvLFj9gdAdh1op0=",
+        "lastModified": 1741615769,
+        "narHash": "sha256-qXekU1OwBfyojj21hpfVi7Xi6yQj13n+0LKtL/LrzYg=",
         "owner": "masslbs",
         "repo": "network-schema",
-        "rev": "20fa0798a23a89b0b9af59c59d45cf567cc41339",
+        "rev": "ce6d5f044a85b4bc85598bfbc022ec4f227d72ae",
         "type": "github"
       },
       "original": {
         "owner": "masslbs",
-        "ref": "cbor",
+        "ref": "mapfree-subscription-pushes",
         "repo": "network-schema",
         "type": "github"
       }

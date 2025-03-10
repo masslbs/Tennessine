@@ -1396,11 +1396,8 @@ export namespace market {
             /** SubscriptionPushRequest subscriptionId */
             subscriptionId?: (Uint8Array|null);
 
-            /** SubscriptionPushRequest patches */
-            patches?: (market.mass.SubscriptionPushRequest.ISequencedPatch[]|null);
-
-            /** SubscriptionPushRequest patchSetMeta */
-            patchSetMeta?: ({ [k: string]: market.mass.SubscriptionPushRequest.IPatchSetMeta }|null);
+            /** SubscriptionPushRequest sets */
+            sets?: (market.mass.SubscriptionPushRequest.ISequencedPartialPatchSet[]|null);
         }
 
         /** Represents a SubscriptionPushRequest. */
@@ -1415,11 +1412,8 @@ export namespace market {
             /** SubscriptionPushRequest subscriptionId. */
             public subscriptionId: Uint8Array;
 
-            /** SubscriptionPushRequest patches. */
-            public patches: market.mass.SubscriptionPushRequest.ISequencedPatch[];
-
-            /** SubscriptionPushRequest patchSetMeta. */
-            public patchSetMeta: { [k: string]: market.mass.SubscriptionPushRequest.IPatchSetMeta };
+            /** SubscriptionPushRequest sets. */
+            public sets: market.mass.SubscriptionPushRequest.ISequencedPartialPatchSet[];
 
             /**
              * Creates a new SubscriptionPushRequest instance using the specified properties.
@@ -1501,218 +1495,127 @@ export namespace market {
 
         namespace SubscriptionPushRequest {
 
-            /** Properties of a SequencedPatch. */
-            interface ISequencedPatch {
+            /** Properties of a SequencedPartialPatchSet. */
+            interface ISequencedPartialPatchSet {
 
-                /** SequencedPatch shopSeqNo */
+                /** SequencedPartialPatchSet shopSeqNo */
                 shopSeqNo?: (number|Long|null);
 
-                /** SequencedPatch patchLeafIndex */
+                /** SequencedPartialPatchSet patchLeafIndex */
                 patchLeafIndex?: (number|null);
 
-                /** SequencedPatch patchData */
-                patchData?: (Uint8Array|null);
-
-                /** SequencedPatch mmrProof */
-                mmrProof?: (Uint8Array|null);
-            }
-
-            /** Represents a SequencedPatch. */
-            class SequencedPatch implements ISequencedPatch {
-
-                /**
-                 * Constructs a new SequencedPatch.
-                 * @param [properties] Properties to set
-                 */
-                constructor(properties?: market.mass.SubscriptionPushRequest.ISequencedPatch);
-
-                /** SequencedPatch shopSeqNo. */
-                public shopSeqNo: (number|Long);
-
-                /** SequencedPatch patchLeafIndex. */
-                public patchLeafIndex: number;
-
-                /** SequencedPatch patchData. */
-                public patchData: Uint8Array;
-
-                /** SequencedPatch mmrProof. */
-                public mmrProof: Uint8Array;
-
-                /**
-                 * Creates a new SequencedPatch instance using the specified properties.
-                 * @param [properties] Properties to set
-                 * @returns SequencedPatch instance
-                 */
-                public static create(properties?: market.mass.SubscriptionPushRequest.ISequencedPatch): market.mass.SubscriptionPushRequest.SequencedPatch;
-
-                /**
-                 * Encodes the specified SequencedPatch message. Does not implicitly {@link market.mass.SubscriptionPushRequest.SequencedPatch.verify|verify} messages.
-                 * @param message SequencedPatch message or plain object to encode
-                 * @param [writer] Writer to encode to
-                 * @returns Writer
-                 */
-                public static encode(message: market.mass.SubscriptionPushRequest.ISequencedPatch, writer?: $protobuf.Writer): $protobuf.Writer;
-
-                /**
-                 * Encodes the specified SequencedPatch message, length delimited. Does not implicitly {@link market.mass.SubscriptionPushRequest.SequencedPatch.verify|verify} messages.
-                 * @param message SequencedPatch message or plain object to encode
-                 * @param [writer] Writer to encode to
-                 * @returns Writer
-                 */
-                public static encodeDelimited(message: market.mass.SubscriptionPushRequest.ISequencedPatch, writer?: $protobuf.Writer): $protobuf.Writer;
-
-                /**
-                 * Decodes a SequencedPatch message from the specified reader or buffer.
-                 * @param reader Reader or buffer to decode from
-                 * @param [length] Message length if known beforehand
-                 * @returns SequencedPatch
-                 * @throws {Error} If the payload is not a reader or valid buffer
-                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                 */
-                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): market.mass.SubscriptionPushRequest.SequencedPatch;
-
-                /**
-                 * Decodes a SequencedPatch message from the specified reader or buffer, length delimited.
-                 * @param reader Reader or buffer to decode from
-                 * @returns SequencedPatch
-                 * @throws {Error} If the payload is not a reader or valid buffer
-                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                 */
-                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): market.mass.SubscriptionPushRequest.SequencedPatch;
-
-                /**
-                 * Verifies a SequencedPatch message.
-                 * @param message Plain object to verify
-                 * @returns `null` if valid, otherwise the reason why it is not
-                 */
-                public static verify(message: { [k: string]: any }): (string|null);
-
-                /**
-                 * Creates a SequencedPatch message from a plain object. Also converts values to their respective internal types.
-                 * @param object Plain object
-                 * @returns SequencedPatch
-                 */
-                public static fromObject(object: { [k: string]: any }): market.mass.SubscriptionPushRequest.SequencedPatch;
-
-                /**
-                 * Creates a plain object from a SequencedPatch message. Also converts values to other types if specified.
-                 * @param message SequencedPatch
-                 * @param [options] Conversion options
-                 * @returns Plain object
-                 */
-                public static toObject(message: market.mass.SubscriptionPushRequest.SequencedPatch, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-                /**
-                 * Converts this SequencedPatch to JSON.
-                 * @returns JSON object
-                 */
-                public toJSON(): { [k: string]: any };
-
-                /**
-                 * Gets the default type url for SequencedPatch
-                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-                 * @returns The default type url
-                 */
-                public static getTypeUrl(typeUrlPrefix?: string): string;
-            }
-
-            /** Properties of a PatchSetMeta. */
-            interface IPatchSetMeta {
-
-                /** PatchSetMeta header */
+                /** SequencedPartialPatchSet header */
                 header?: (Uint8Array|null);
 
-                /** PatchSetMeta signature */
+                /** SequencedPartialPatchSet signature */
                 signature?: (Uint8Array|null);
+
+                /** SequencedPartialPatchSet patches */
+                patches?: (Uint8Array[]|null);
+
+                /** SequencedPartialPatchSet proofs */
+                proofs?: (Uint8Array[]|null);
             }
 
-            /** Represents a PatchSetMeta. */
-            class PatchSetMeta implements IPatchSetMeta {
+            /** Represents a SequencedPartialPatchSet. */
+            class SequencedPartialPatchSet implements ISequencedPartialPatchSet {
 
                 /**
-                 * Constructs a new PatchSetMeta.
+                 * Constructs a new SequencedPartialPatchSet.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: market.mass.SubscriptionPushRequest.IPatchSetMeta);
+                constructor(properties?: market.mass.SubscriptionPushRequest.ISequencedPartialPatchSet);
 
-                /** PatchSetMeta header. */
+                /** SequencedPartialPatchSet shopSeqNo. */
+                public shopSeqNo: (number|Long);
+
+                /** SequencedPartialPatchSet patchLeafIndex. */
+                public patchLeafIndex: number;
+
+                /** SequencedPartialPatchSet header. */
                 public header: Uint8Array;
 
-                /** PatchSetMeta signature. */
+                /** SequencedPartialPatchSet signature. */
                 public signature: Uint8Array;
 
+                /** SequencedPartialPatchSet patches. */
+                public patches: Uint8Array[];
+
+                /** SequencedPartialPatchSet proofs. */
+                public proofs: Uint8Array[];
+
                 /**
-                 * Creates a new PatchSetMeta instance using the specified properties.
+                 * Creates a new SequencedPartialPatchSet instance using the specified properties.
                  * @param [properties] Properties to set
-                 * @returns PatchSetMeta instance
+                 * @returns SequencedPartialPatchSet instance
                  */
-                public static create(properties?: market.mass.SubscriptionPushRequest.IPatchSetMeta): market.mass.SubscriptionPushRequest.PatchSetMeta;
+                public static create(properties?: market.mass.SubscriptionPushRequest.ISequencedPartialPatchSet): market.mass.SubscriptionPushRequest.SequencedPartialPatchSet;
 
                 /**
-                 * Encodes the specified PatchSetMeta message. Does not implicitly {@link market.mass.SubscriptionPushRequest.PatchSetMeta.verify|verify} messages.
-                 * @param message PatchSetMeta message or plain object to encode
+                 * Encodes the specified SequencedPartialPatchSet message. Does not implicitly {@link market.mass.SubscriptionPushRequest.SequencedPartialPatchSet.verify|verify} messages.
+                 * @param message SequencedPartialPatchSet message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: market.mass.SubscriptionPushRequest.IPatchSetMeta, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: market.mass.SubscriptionPushRequest.ISequencedPartialPatchSet, writer?: $protobuf.Writer): $protobuf.Writer;
 
                 /**
-                 * Encodes the specified PatchSetMeta message, length delimited. Does not implicitly {@link market.mass.SubscriptionPushRequest.PatchSetMeta.verify|verify} messages.
-                 * @param message PatchSetMeta message or plain object to encode
+                 * Encodes the specified SequencedPartialPatchSet message, length delimited. Does not implicitly {@link market.mass.SubscriptionPushRequest.SequencedPartialPatchSet.verify|verify} messages.
+                 * @param message SequencedPartialPatchSet message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encodeDelimited(message: market.mass.SubscriptionPushRequest.IPatchSetMeta, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encodeDelimited(message: market.mass.SubscriptionPushRequest.ISequencedPartialPatchSet, writer?: $protobuf.Writer): $protobuf.Writer;
 
                 /**
-                 * Decodes a PatchSetMeta message from the specified reader or buffer.
+                 * Decodes a SequencedPartialPatchSet message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
                  * @param [length] Message length if known beforehand
-                 * @returns PatchSetMeta
+                 * @returns SequencedPartialPatchSet
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): market.mass.SubscriptionPushRequest.PatchSetMeta;
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): market.mass.SubscriptionPushRequest.SequencedPartialPatchSet;
 
                 /**
-                 * Decodes a PatchSetMeta message from the specified reader or buffer, length delimited.
+                 * Decodes a SequencedPartialPatchSet message from the specified reader or buffer, length delimited.
                  * @param reader Reader or buffer to decode from
-                 * @returns PatchSetMeta
+                 * @returns SequencedPartialPatchSet
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): market.mass.SubscriptionPushRequest.PatchSetMeta;
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): market.mass.SubscriptionPushRequest.SequencedPartialPatchSet;
 
                 /**
-                 * Verifies a PatchSetMeta message.
+                 * Verifies a SequencedPartialPatchSet message.
                  * @param message Plain object to verify
                  * @returns `null` if valid, otherwise the reason why it is not
                  */
                 public static verify(message: { [k: string]: any }): (string|null);
 
                 /**
-                 * Creates a PatchSetMeta message from a plain object. Also converts values to their respective internal types.
+                 * Creates a SequencedPartialPatchSet message from a plain object. Also converts values to their respective internal types.
                  * @param object Plain object
-                 * @returns PatchSetMeta
+                 * @returns SequencedPartialPatchSet
                  */
-                public static fromObject(object: { [k: string]: any }): market.mass.SubscriptionPushRequest.PatchSetMeta;
+                public static fromObject(object: { [k: string]: any }): market.mass.SubscriptionPushRequest.SequencedPartialPatchSet;
 
                 /**
-                 * Creates a plain object from a PatchSetMeta message. Also converts values to other types if specified.
-                 * @param message PatchSetMeta
+                 * Creates a plain object from a SequencedPartialPatchSet message. Also converts values to other types if specified.
+                 * @param message SequencedPartialPatchSet
                  * @param [options] Conversion options
                  * @returns Plain object
                  */
-                public static toObject(message: market.mass.SubscriptionPushRequest.PatchSetMeta, options?: $protobuf.IConversionOptions): { [k: string]: any };
+                public static toObject(message: market.mass.SubscriptionPushRequest.SequencedPartialPatchSet, options?: $protobuf.IConversionOptions): { [k: string]: any };
 
                 /**
-                 * Converts this PatchSetMeta to JSON.
+                 * Converts this SequencedPartialPatchSet to JSON.
                  * @returns JSON object
                  */
                 public toJSON(): { [k: string]: any };
 
                 /**
-                 * Gets the default type url for PatchSetMeta
+                 * Gets the default type url for SequencedPartialPatchSet
                  * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
                  * @returns The default type url
                  */
@@ -1916,7 +1819,7 @@ export namespace market {
 
         /** Properties of a SyncStatusRequest. */
         interface ISyncStatusRequest {
-
+t
             /** SyncStatusRequest subscriptionId */
             subscriptionId?: (number|Long|null);
 

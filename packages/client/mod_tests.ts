@@ -1,17 +1,18 @@
 import { expect } from "@std/expect";
 import {
   createTestClient,
+  hexToBigInt,
   http,
   publicActions,
   walletActions,
 } from "@wevm/viem";
 import { generatePrivateKey, privateKeyToAccount } from "@wevm/viem/accounts";
 import { foundry } from "@wevm/viem/chains";
-import { mintShop } from "@massmarket/blockchain";
+import { mintShop, relayRegGetOwnerOf } from "@massmarket/blockchain";
 import { random256BigInt } from "@massmarket/utils";
 // import schema from "@massmarket/schema";
 
-import { discoverRelay, RelayClient } from "./mod.ts";
+import { discoverRelay, type IRelayEndpoint, RelayClient } from "./mod.ts";
 
 const relayURL = Deno.env.get("RELAY_ENDPOINT") || "http://localhost:4444/v4";
 
@@ -45,14 +46,14 @@ Deno.test(
         expect(receipt.status).toBe("success");
       });
 
+      let relayEndpoint: IRelayEndpoint;
       await t.step("should discover relay", async () => {
-        const relayEndpoint = await discoverRelay(relayURL);
+        relayEndpoint = await discoverRelay(relayURL);
         expect(relayEndpoint).toBeDefined();
       });
 
       let relayClient: RelayClient;
       await t.step("should create relay client and connect", async () => {
-        const relayEndpoint = await discoverRelay(relayURL);
         const pk = generatePrivateKey();
         const kc = privateKeyToAccount(pk);
         relayClient = new RelayClient({
@@ -75,9 +76,13 @@ Deno.test(
       await t.step("should create a manifest", async () => {
         const s = relayClient.createSubscriptionStream("/", 0);
         const r = s.getReader();
-        const m = await r.read();
-        console.log(m);
-        // expect(r).toBeInstanceOf(schema.Envelope.GenericResponse);
+        const [m, relayAddr] = await Promise.all([
+          r.read(),
+          relayRegGetOwnerOf(blockchainClient, [
+            hexToBigInt(relayEndpoint.tokenId),
+          ]),
+        ]);
+        expect(m.value.signer).toBe(relayAddr);
 
         // const ws = relayClient.createWriteStream();
         // const writer = ws.getWriter();

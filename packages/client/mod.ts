@@ -21,9 +21,11 @@ import LockMap from "@nullradix/lockmap";
 import * as v from "@valibot/valibot";
 import schema, { EnvelopMessageTypes } from "@massmarket/schema";
 import {
-  SignedPatchSetSchema,
+  PatchSchema,
+  PatchSetHeaderSchema,
+  type TPatch,
   type TPatchSet,
-  type TRecoveredPatchSet,
+  type TPatchSetHeader,
   type TSignedPatchSet,
 } from "@massmarket/schema/cbor";
 import { decodeBufferToString, hexToBase64, logger } from "@massmarket/utils";
@@ -45,6 +47,13 @@ export interface IRelayClientOptions {
   shopId: bigint;
 }
 
+interface PushedPatchSet {
+  signer: Hex;
+  patches: TPatch[];
+  header: TPatchSetHeader;
+  sequence: number;
+}
+
 export class RelayClient {
   connection: WebSocket | null = null;
   walletClient: WalletClient;
@@ -55,7 +64,7 @@ export class RelayClient {
   // TODO; we can use the subscription path for the id
   #subscriptions: Map<
     string,
-    ReadableStreamDefaultController<TRecoveredPatchSet>
+    ReadableStreamDefaultController<PushedPatchSet>
   > = new Map();
   #requestCounter;
   #waitingMessagesResponse: LockMap<string, schema.Envelope> = new LockMap();
@@ -69,31 +78,6 @@ export class RelayClient {
     this.account = params.account;
     this.ethAddress = parseAccount(params.account).address;
     this.#requestCounter = 1;
-  }
-
-  createWriteStream() {
-    return new WritableStream<TPatchSet>({
-      write: async (patch) => {
-        // TODO: use embedded cbor, or COSE
-        const payload = encodeCbor(patch.Header);
-        const sig = await this.walletClient.signMessage({
-          account: this.account,
-          message: { raw: payload },
-        });
-        const signedPatchSet: TSignedPatchSet = {
-          Header: patch.Header,
-          Patches: patch.Patches,
-          Signature: hexToBytes(sig),
-        };
-        const encodedPatchSet = encodeCbor(signedPatchSet);
-        const envelope = {
-          patchSetWriteRequest: {
-            patchSet: encodedPatchSet,
-          },
-        };
-        await this.encodeAndSend(envelope);
-      },
-    });
   }
 
   // like encodeAndSend but doesn't wait for a response.
@@ -170,25 +154,31 @@ export class RelayClient {
             .subscriptionPushRequest
             .subscriptionId!.toString();
           const controller = this.#subscriptions.get(subscriptionId);
-          console.log("id", envelope);
-          assert(controller, "invalid subscription recv");
+          console.log("id", controller);
+          assert(controller, "invalad subscription recv");
 
           try {
-            for (const evt of envelope.subscriptionPushRequest.patches!) {
-              const cborPatch = evt.patchData!;
-              const patchSet = v.parse(
-                SignedPatchSetSchema,
-                decodeCbor(cborPatch),
-              );
+            for (const ppset of envelope.subscriptionPushRequest.sets!) {
+              const dh = decodeCbor(ppset.header!);
+              // @ts-ignore we will soon depracte pbjs
+              const sequence = ppset!.shopSeqNo!.toNumber();
+              const header = v.parse(PatchSetHeaderSchema, dh);
+              const patches = ppset.patches!.map((patch) => {
+                const decodedPatch = decodeCbor(patch);
+                return v.parse(PatchSchema, decodedPatch);
+              });
+
               // This doesn't really need to be async
               // viem does an async import of @noble/secp256k1
               const signer = await recoverMessageAddress({
-                message: { raw: patchSet.Header.RootHash },
-                signature: patchSet.Signature,
+                message: { raw: ppset.header! },
+                signature: ppset.signature!,
               });
               controller.enqueue({
-                ...patchSet,
-                Signer: signer,
+                patches,
+                header,
+                signer,
+                sequence,
               });
             }
           } catch (e) {
@@ -252,6 +242,31 @@ export class RelayClient {
       cancel: (reason) => {
         this.#subscriptions.delete(id.toString());
         this.cancelSubscriptionRequest(id, reason);
+      },
+    });
+  }
+
+  createWriteStream() {
+    return new WritableStream<TPatchSet>({
+      write: async (patch) => {
+        // TODO: use embedded cbor, or COSE
+        const payload = encodeCbor(patch.Header);
+        const sig = await this.walletClient.signMessage({
+          account: this.account,
+          message: { raw: payload },
+        });
+        const signedPatchSet: TSignedPatchSet = {
+          Header: patch.Header,
+          Patches: patch.Patches,
+          Signature: hexToBytes(sig),
+        };
+        const encodedPatchSet = encodeCbor(signedPatchSet);
+        const envelope = {
+          patchSetWriteRequest: {
+            patchSet: encodedPatchSet,
+          },
+        };
+        await this.encodeAndSend(envelope);
       },
     });
   }

@@ -1,5 +1,5 @@
 /*eslint-disable block-scoped-var, id-length, no-control-regex, no-magic-numbers, no-prototype-builtins, no-redeclare, no-shadow, no-var, sort-vars*/
-import  $protobuf from "protobufjs";
+import $protobuf from "protobufjs";
 
 // Common aliases
 const $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
@@ -3453,8 +3453,7 @@ export const market = $root.market = (() => {
              * @memberof market.mass
              * @interface ISubscriptionPushRequest
              * @property {Uint8Array|null} [subscriptionId] SubscriptionPushRequest subscriptionId
-             * @property {Array.<market.mass.SubscriptionPushRequest.ISequencedPatch>|null} [patches] SubscriptionPushRequest patches
-             * @property {Object.<string,market.mass.SubscriptionPushRequest.IPatchSetMeta>|null} [patchSetMeta] SubscriptionPushRequest patchSetMeta
+             * @property {Array.<market.mass.SubscriptionPushRequest.ISequencedPartialPatchSet>|null} [sets] SubscriptionPushRequest sets
              */
 
             /**
@@ -3466,8 +3465,7 @@ export const market = $root.market = (() => {
              * @param {market.mass.ISubscriptionPushRequest=} [properties] Properties to set
              */
             function SubscriptionPushRequest(properties) {
-                this.patches = [];
-                this.patchSetMeta = {};
+                this.sets = [];
                 if (properties)
                     for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                         if (properties[keys[i]] != null)
@@ -3483,20 +3481,12 @@ export const market = $root.market = (() => {
             SubscriptionPushRequest.prototype.subscriptionId = $util.newBuffer([]);
 
             /**
-             * SubscriptionPushRequest patches.
-             * @member {Array.<market.mass.SubscriptionPushRequest.ISequencedPatch>} patches
+             * SubscriptionPushRequest sets.
+             * @member {Array.<market.mass.SubscriptionPushRequest.ISequencedPartialPatchSet>} sets
              * @memberof market.mass.SubscriptionPushRequest
              * @instance
              */
-            SubscriptionPushRequest.prototype.patches = $util.emptyArray;
-
-            /**
-             * SubscriptionPushRequest patchSetMeta.
-             * @member {Object.<string,market.mass.SubscriptionPushRequest.IPatchSetMeta>} patchSetMeta
-             * @memberof market.mass.SubscriptionPushRequest
-             * @instance
-             */
-            SubscriptionPushRequest.prototype.patchSetMeta = $util.emptyObject;
+            SubscriptionPushRequest.prototype.sets = $util.emptyArray;
 
             /**
              * Creates a new SubscriptionPushRequest instance using the specified properties.
@@ -3524,14 +3514,9 @@ export const market = $root.market = (() => {
                     writer = $Writer.create();
                 if (message.subscriptionId != null && Object.hasOwnProperty.call(message, "subscriptionId"))
                     writer.uint32(/* id 1, wireType 2 =*/10).bytes(message.subscriptionId);
-                if (message.patches != null && message.patches.length)
-                    for (let i = 0; i < message.patches.length; ++i)
-                        $root.market.mass.SubscriptionPushRequest.SequencedPatch.encode(message.patches[i], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
-                if (message.patchSetMeta != null && Object.hasOwnProperty.call(message, "patchSetMeta"))
-                    for (let keys = Object.keys(message.patchSetMeta), i = 0; i < keys.length; ++i) {
-                        writer.uint32(/* id 4, wireType 2 =*/34).fork().uint32(/* id 1, wireType 0 =*/8).uint64(keys[i]);
-                        $root.market.mass.SubscriptionPushRequest.PatchSetMeta.encode(message.patchSetMeta[keys[i]], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim().ldelim();
-                    }
+                if (message.sets != null && message.sets.length)
+                    for (let i = 0; i < message.sets.length; ++i)
+                        $root.market.mass.SubscriptionPushRequest.SequencedPartialPatchSet.encode(message.sets[i], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
                 return writer;
             };
 
@@ -3562,7 +3547,7 @@ export const market = $root.market = (() => {
             SubscriptionPushRequest.decode = function decode(reader, length) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.market.mass.SubscriptionPushRequest(), key, value;
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.market.mass.SubscriptionPushRequest();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     switch (tag >>> 3) {
@@ -3571,32 +3556,9 @@ export const market = $root.market = (() => {
                             break;
                         }
                     case 2: {
-                            if (!(message.patches && message.patches.length))
-                                message.patches = [];
-                            message.patches.push($root.market.mass.SubscriptionPushRequest.SequencedPatch.decode(reader, reader.uint32()));
-                            break;
-                        }
-                    case 4: {
-                            if (message.patchSetMeta === $util.emptyObject)
-                                message.patchSetMeta = {};
-                            let end2 = reader.uint32() + reader.pos;
-                            key = 0;
-                            value = null;
-                            while (reader.pos < end2) {
-                                let tag2 = reader.uint32();
-                                switch (tag2 >>> 3) {
-                                case 1:
-                                    key = reader.uint64();
-                                    break;
-                                case 2:
-                                    value = $root.market.mass.SubscriptionPushRequest.PatchSetMeta.decode(reader, reader.uint32());
-                                    break;
-                                default:
-                                    reader.skipType(tag2 & 7);
-                                    break;
-                                }
-                            }
-                            message.patchSetMeta[typeof key === "object" ? $util.longToHash(key) : key] = value;
+                            if (!(message.sets && message.sets.length))
+                                message.sets = [];
+                            message.sets.push($root.market.mass.SubscriptionPushRequest.SequencedPartialPatchSet.decode(reader, reader.uint32()));
                             break;
                         }
                     default:
@@ -3637,27 +3599,13 @@ export const market = $root.market = (() => {
                 if (message.subscriptionId != null && message.hasOwnProperty("subscriptionId"))
                     if (!(message.subscriptionId && typeof message.subscriptionId.length === "number" || $util.isString(message.subscriptionId)))
                         return "subscriptionId: buffer expected";
-                if (message.patches != null && message.hasOwnProperty("patches")) {
-                    if (!Array.isArray(message.patches))
-                        return "patches: array expected";
-                    for (let i = 0; i < message.patches.length; ++i) {
-                        let error = $root.market.mass.SubscriptionPushRequest.SequencedPatch.verify(message.patches[i]);
+                if (message.sets != null && message.hasOwnProperty("sets")) {
+                    if (!Array.isArray(message.sets))
+                        return "sets: array expected";
+                    for (let i = 0; i < message.sets.length; ++i) {
+                        let error = $root.market.mass.SubscriptionPushRequest.SequencedPartialPatchSet.verify(message.sets[i]);
                         if (error)
-                            return "patches." + error;
-                    }
-                }
-                if (message.patchSetMeta != null && message.hasOwnProperty("patchSetMeta")) {
-                    if (!$util.isObject(message.patchSetMeta))
-                        return "patchSetMeta: object expected";
-                    let key = Object.keys(message.patchSetMeta);
-                    for (let i = 0; i < key.length; ++i) {
-                        if (!$util.key64Re.test(key[i]))
-                            return "patchSetMeta: integer|Long key{k:uint64} expected";
-                        {
-                            let error = $root.market.mass.SubscriptionPushRequest.PatchSetMeta.verify(message.patchSetMeta[key[i]]);
-                            if (error)
-                                return "patchSetMeta." + error;
-                        }
+                            return "sets." + error;
                     }
                 }
                 return null;
@@ -3680,24 +3628,14 @@ export const market = $root.market = (() => {
                         $util.base64.decode(object.subscriptionId, message.subscriptionId = $util.newBuffer($util.base64.length(object.subscriptionId)), 0);
                     else if (object.subscriptionId.length >= 0)
                         message.subscriptionId = object.subscriptionId;
-                if (object.patches) {
-                    if (!Array.isArray(object.patches))
-                        throw TypeError(".market.mass.SubscriptionPushRequest.patches: array expected");
-                    message.patches = [];
-                    for (let i = 0; i < object.patches.length; ++i) {
-                        if (typeof object.patches[i] !== "object")
-                            throw TypeError(".market.mass.SubscriptionPushRequest.patches: object expected");
-                        message.patches[i] = $root.market.mass.SubscriptionPushRequest.SequencedPatch.fromObject(object.patches[i]);
-                    }
-                }
-                if (object.patchSetMeta) {
-                    if (typeof object.patchSetMeta !== "object")
-                        throw TypeError(".market.mass.SubscriptionPushRequest.patchSetMeta: object expected");
-                    message.patchSetMeta = {};
-                    for (let keys = Object.keys(object.patchSetMeta), i = 0; i < keys.length; ++i) {
-                        if (typeof object.patchSetMeta[keys[i]] !== "object")
-                            throw TypeError(".market.mass.SubscriptionPushRequest.patchSetMeta: object expected");
-                        message.patchSetMeta[keys[i]] = $root.market.mass.SubscriptionPushRequest.PatchSetMeta.fromObject(object.patchSetMeta[keys[i]]);
+                if (object.sets) {
+                    if (!Array.isArray(object.sets))
+                        throw TypeError(".market.mass.SubscriptionPushRequest.sets: array expected");
+                    message.sets = [];
+                    for (let i = 0; i < object.sets.length; ++i) {
+                        if (typeof object.sets[i] !== "object")
+                            throw TypeError(".market.mass.SubscriptionPushRequest.sets: object expected");
+                        message.sets[i] = $root.market.mass.SubscriptionPushRequest.SequencedPartialPatchSet.fromObject(object.sets[i]);
                     }
                 }
                 return message;
@@ -3717,9 +3655,7 @@ export const market = $root.market = (() => {
                     options = {};
                 let object = {};
                 if (options.arrays || options.defaults)
-                    object.patches = [];
-                if (options.objects || options.defaults)
-                    object.patchSetMeta = {};
+                    object.sets = [];
                 if (options.defaults)
                     if (options.bytes === String)
                         object.subscriptionId = "";
@@ -3730,16 +3666,10 @@ export const market = $root.market = (() => {
                     }
                 if (message.subscriptionId != null && message.hasOwnProperty("subscriptionId"))
                     object.subscriptionId = options.bytes === String ? $util.base64.encode(message.subscriptionId, 0, message.subscriptionId.length) : options.bytes === Array ? Array.prototype.slice.call(message.subscriptionId) : message.subscriptionId;
-                if (message.patches && message.patches.length) {
-                    object.patches = [];
-                    for (let j = 0; j < message.patches.length; ++j)
-                        object.patches[j] = $root.market.mass.SubscriptionPushRequest.SequencedPatch.toObject(message.patches[j], options);
-                }
-                let keys2;
-                if (message.patchSetMeta && (keys2 = Object.keys(message.patchSetMeta)).length) {
-                    object.patchSetMeta = {};
-                    for (let j = 0; j < keys2.length; ++j)
-                        object.patchSetMeta[keys2[j]] = $root.market.mass.SubscriptionPushRequest.PatchSetMeta.toObject(message.patchSetMeta[keys2[j]], options);
+                if (message.sets && message.sets.length) {
+                    object.sets = [];
+                    for (let j = 0; j < message.sets.length; ++j)
+                        object.sets[j] = $root.market.mass.SubscriptionPushRequest.SequencedPartialPatchSet.toObject(message.sets[j], options);
                 }
                 return object;
             };
@@ -3770,27 +3700,31 @@ export const market = $root.market = (() => {
                 return typeUrlPrefix + "/market.mass.SubscriptionPushRequest";
             };
 
-            SubscriptionPushRequest.SequencedPatch = (function() {
+            SubscriptionPushRequest.SequencedPartialPatchSet = (function() {
 
                 /**
-                 * Properties of a SequencedPatch.
+                 * Properties of a SequencedPartialPatchSet.
                  * @memberof market.mass.SubscriptionPushRequest
-                 * @interface ISequencedPatch
-                 * @property {number|Long|null} [shopSeqNo] SequencedPatch shopSeqNo
-                 * @property {number|null} [patchLeafIndex] SequencedPatch patchLeafIndex
-                 * @property {Uint8Array|null} [patchData] SequencedPatch patchData
-                 * @property {Uint8Array|null} [mmrProof] SequencedPatch mmrProof
+                 * @interface ISequencedPartialPatchSet
+                 * @property {number|Long|null} [shopSeqNo] SequencedPartialPatchSet shopSeqNo
+                 * @property {number|null} [patchLeafIndex] SequencedPartialPatchSet patchLeafIndex
+                 * @property {Uint8Array|null} [header] SequencedPartialPatchSet header
+                 * @property {Uint8Array|null} [signature] SequencedPartialPatchSet signature
+                 * @property {Array.<Uint8Array>|null} [patches] SequencedPartialPatchSet patches
+                 * @property {Array.<Uint8Array>|null} [proofs] SequencedPartialPatchSet proofs
                  */
 
                 /**
-                 * Constructs a new SequencedPatch.
+                 * Constructs a new SequencedPartialPatchSet.
                  * @memberof market.mass.SubscriptionPushRequest
-                 * @classdesc Represents a SequencedPatch.
-                 * @implements ISequencedPatch
+                 * @classdesc Represents a SequencedPartialPatchSet.
+                 * @implements ISequencedPartialPatchSet
                  * @constructor
-                 * @param {market.mass.SubscriptionPushRequest.ISequencedPatch=} [properties] Properties to set
+                 * @param {market.mass.SubscriptionPushRequest.ISequencedPartialPatchSet=} [properties] Properties to set
                  */
-                function SequencedPatch(properties) {
+                function SequencedPartialPatchSet(properties) {
+                    this.patches = [];
+                    this.proofs = [];
                     if (properties)
                         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                             if (properties[keys[i]] != null)
@@ -3798,100 +3732,122 @@ export const market = $root.market = (() => {
                 }
 
                 /**
-                 * SequencedPatch shopSeqNo.
+                 * SequencedPartialPatchSet shopSeqNo.
                  * @member {number|Long} shopSeqNo
-                 * @memberof market.mass.SubscriptionPushRequest.SequencedPatch
+                 * @memberof market.mass.SubscriptionPushRequest.SequencedPartialPatchSet
                  * @instance
                  */
-                SequencedPatch.prototype.shopSeqNo = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
+                SequencedPartialPatchSet.prototype.shopSeqNo = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
 
                 /**
-                 * SequencedPatch patchLeafIndex.
+                 * SequencedPartialPatchSet patchLeafIndex.
                  * @member {number} patchLeafIndex
-                 * @memberof market.mass.SubscriptionPushRequest.SequencedPatch
+                 * @memberof market.mass.SubscriptionPushRequest.SequencedPartialPatchSet
                  * @instance
                  */
-                SequencedPatch.prototype.patchLeafIndex = 0;
+                SequencedPartialPatchSet.prototype.patchLeafIndex = 0;
 
                 /**
-                 * SequencedPatch patchData.
-                 * @member {Uint8Array} patchData
-                 * @memberof market.mass.SubscriptionPushRequest.SequencedPatch
+                 * SequencedPartialPatchSet header.
+                 * @member {Uint8Array} header
+                 * @memberof market.mass.SubscriptionPushRequest.SequencedPartialPatchSet
                  * @instance
                  */
-                SequencedPatch.prototype.patchData = $util.newBuffer([]);
+                SequencedPartialPatchSet.prototype.header = $util.newBuffer([]);
 
                 /**
-                 * SequencedPatch mmrProof.
-                 * @member {Uint8Array} mmrProof
-                 * @memberof market.mass.SubscriptionPushRequest.SequencedPatch
+                 * SequencedPartialPatchSet signature.
+                 * @member {Uint8Array} signature
+                 * @memberof market.mass.SubscriptionPushRequest.SequencedPartialPatchSet
                  * @instance
                  */
-                SequencedPatch.prototype.mmrProof = $util.newBuffer([]);
+                SequencedPartialPatchSet.prototype.signature = $util.newBuffer([]);
 
                 /**
-                 * Creates a new SequencedPatch instance using the specified properties.
+                 * SequencedPartialPatchSet patches.
+                 * @member {Array.<Uint8Array>} patches
+                 * @memberof market.mass.SubscriptionPushRequest.SequencedPartialPatchSet
+                 * @instance
+                 */
+                SequencedPartialPatchSet.prototype.patches = $util.emptyArray;
+
+                /**
+                 * SequencedPartialPatchSet proofs.
+                 * @member {Array.<Uint8Array>} proofs
+                 * @memberof market.mass.SubscriptionPushRequest.SequencedPartialPatchSet
+                 * @instance
+                 */
+                SequencedPartialPatchSet.prototype.proofs = $util.emptyArray;
+
+                /**
+                 * Creates a new SequencedPartialPatchSet instance using the specified properties.
                  * @function create
-                 * @memberof market.mass.SubscriptionPushRequest.SequencedPatch
+                 * @memberof market.mass.SubscriptionPushRequest.SequencedPartialPatchSet
                  * @static
-                 * @param {market.mass.SubscriptionPushRequest.ISequencedPatch=} [properties] Properties to set
-                 * @returns {market.mass.SubscriptionPushRequest.SequencedPatch} SequencedPatch instance
+                 * @param {market.mass.SubscriptionPushRequest.ISequencedPartialPatchSet=} [properties] Properties to set
+                 * @returns {market.mass.SubscriptionPushRequest.SequencedPartialPatchSet} SequencedPartialPatchSet instance
                  */
-                SequencedPatch.create = function create(properties) {
-                    return new SequencedPatch(properties);
+                SequencedPartialPatchSet.create = function create(properties) {
+                    return new SequencedPartialPatchSet(properties);
                 };
 
                 /**
-                 * Encodes the specified SequencedPatch message. Does not implicitly {@link market.mass.SubscriptionPushRequest.SequencedPatch.verify|verify} messages.
+                 * Encodes the specified SequencedPartialPatchSet message. Does not implicitly {@link market.mass.SubscriptionPushRequest.SequencedPartialPatchSet.verify|verify} messages.
                  * @function encode
-                 * @memberof market.mass.SubscriptionPushRequest.SequencedPatch
+                 * @memberof market.mass.SubscriptionPushRequest.SequencedPartialPatchSet
                  * @static
-                 * @param {market.mass.SubscriptionPushRequest.ISequencedPatch} message SequencedPatch message or plain object to encode
+                 * @param {market.mass.SubscriptionPushRequest.ISequencedPartialPatchSet} message SequencedPartialPatchSet message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
-                SequencedPatch.encode = function encode(message, writer) {
+                SequencedPartialPatchSet.encode = function encode(message, writer) {
                     if (!writer)
                         writer = $Writer.create();
                     if (message.shopSeqNo != null && Object.hasOwnProperty.call(message, "shopSeqNo"))
                         writer.uint32(/* id 1, wireType 0 =*/8).uint64(message.shopSeqNo);
                     if (message.patchLeafIndex != null && Object.hasOwnProperty.call(message, "patchLeafIndex"))
                         writer.uint32(/* id 2, wireType 0 =*/16).uint32(message.patchLeafIndex);
-                    if (message.patchData != null && Object.hasOwnProperty.call(message, "patchData"))
-                        writer.uint32(/* id 3, wireType 2 =*/26).bytes(message.patchData);
-                    if (message.mmrProof != null && Object.hasOwnProperty.call(message, "mmrProof"))
-                        writer.uint32(/* id 4, wireType 2 =*/34).bytes(message.mmrProof);
+                    if (message.header != null && Object.hasOwnProperty.call(message, "header"))
+                        writer.uint32(/* id 3, wireType 2 =*/26).bytes(message.header);
+                    if (message.signature != null && Object.hasOwnProperty.call(message, "signature"))
+                        writer.uint32(/* id 4, wireType 2 =*/34).bytes(message.signature);
+                    if (message.patches != null && message.patches.length)
+                        for (let i = 0; i < message.patches.length; ++i)
+                            writer.uint32(/* id 5, wireType 2 =*/42).bytes(message.patches[i]);
+                    if (message.proofs != null && message.proofs.length)
+                        for (let i = 0; i < message.proofs.length; ++i)
+                            writer.uint32(/* id 6, wireType 2 =*/50).bytes(message.proofs[i]);
                     return writer;
                 };
 
                 /**
-                 * Encodes the specified SequencedPatch message, length delimited. Does not implicitly {@link market.mass.SubscriptionPushRequest.SequencedPatch.verify|verify} messages.
+                 * Encodes the specified SequencedPartialPatchSet message, length delimited. Does not implicitly {@link market.mass.SubscriptionPushRequest.SequencedPartialPatchSet.verify|verify} messages.
                  * @function encodeDelimited
-                 * @memberof market.mass.SubscriptionPushRequest.SequencedPatch
+                 * @memberof market.mass.SubscriptionPushRequest.SequencedPartialPatchSet
                  * @static
-                 * @param {market.mass.SubscriptionPushRequest.ISequencedPatch} message SequencedPatch message or plain object to encode
+                 * @param {market.mass.SubscriptionPushRequest.ISequencedPartialPatchSet} message SequencedPartialPatchSet message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
-                SequencedPatch.encodeDelimited = function encodeDelimited(message, writer) {
+                SequencedPartialPatchSet.encodeDelimited = function encodeDelimited(message, writer) {
                     return this.encode(message, writer).ldelim();
                 };
 
                 /**
-                 * Decodes a SequencedPatch message from the specified reader or buffer.
+                 * Decodes a SequencedPartialPatchSet message from the specified reader or buffer.
                  * @function decode
-                 * @memberof market.mass.SubscriptionPushRequest.SequencedPatch
+                 * @memberof market.mass.SubscriptionPushRequest.SequencedPartialPatchSet
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {market.mass.SubscriptionPushRequest.SequencedPatch} SequencedPatch
+                 * @returns {market.mass.SubscriptionPushRequest.SequencedPartialPatchSet} SequencedPartialPatchSet
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                SequencedPatch.decode = function decode(reader, length) {
+                SequencedPartialPatchSet.decode = function decode(reader, length) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.market.mass.SubscriptionPushRequest.SequencedPatch();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.market.mass.SubscriptionPushRequest.SequencedPartialPatchSet();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         switch (tag >>> 3) {
@@ -3904,11 +3860,23 @@ export const market = $root.market = (() => {
                                 break;
                             }
                         case 3: {
-                                message.patchData = reader.bytes();
+                                message.header = reader.bytes();
                                 break;
                             }
                         case 4: {
-                                message.mmrProof = reader.bytes();
+                                message.signature = reader.bytes();
+                                break;
+                            }
+                        case 5: {
+                                if (!(message.patches && message.patches.length))
+                                    message.patches = [];
+                                message.patches.push(reader.bytes());
+                                break;
+                            }
+                        case 6: {
+                                if (!(message.proofs && message.proofs.length))
+                                    message.proofs = [];
+                                message.proofs.push(reader.bytes());
                                 break;
                             }
                         default:
@@ -3920,30 +3888,30 @@ export const market = $root.market = (() => {
                 };
 
                 /**
-                 * Decodes a SequencedPatch message from the specified reader or buffer, length delimited.
+                 * Decodes a SequencedPartialPatchSet message from the specified reader or buffer, length delimited.
                  * @function decodeDelimited
-                 * @memberof market.mass.SubscriptionPushRequest.SequencedPatch
+                 * @memberof market.mass.SubscriptionPushRequest.SequencedPartialPatchSet
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                 * @returns {market.mass.SubscriptionPushRequest.SequencedPatch} SequencedPatch
+                 * @returns {market.mass.SubscriptionPushRequest.SequencedPartialPatchSet} SequencedPartialPatchSet
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                SequencedPatch.decodeDelimited = function decodeDelimited(reader) {
+                SequencedPartialPatchSet.decodeDelimited = function decodeDelimited(reader) {
                     if (!(reader instanceof $Reader))
                         reader = new $Reader(reader);
                     return this.decode(reader, reader.uint32());
                 };
 
                 /**
-                 * Verifies a SequencedPatch message.
+                 * Verifies a SequencedPartialPatchSet message.
                  * @function verify
-                 * @memberof market.mass.SubscriptionPushRequest.SequencedPatch
+                 * @memberof market.mass.SubscriptionPushRequest.SequencedPartialPatchSet
                  * @static
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
                  */
-                SequencedPatch.verify = function verify(message) {
+                SequencedPartialPatchSet.verify = function verify(message) {
                     if (typeof message !== "object" || message === null)
                         return "object expected";
                     if (message.shopSeqNo != null && message.hasOwnProperty("shopSeqNo"))
@@ -3952,27 +3920,41 @@ export const market = $root.market = (() => {
                     if (message.patchLeafIndex != null && message.hasOwnProperty("patchLeafIndex"))
                         if (!$util.isInteger(message.patchLeafIndex))
                             return "patchLeafIndex: integer expected";
-                    if (message.patchData != null && message.hasOwnProperty("patchData"))
-                        if (!(message.patchData && typeof message.patchData.length === "number" || $util.isString(message.patchData)))
-                            return "patchData: buffer expected";
-                    if (message.mmrProof != null && message.hasOwnProperty("mmrProof"))
-                        if (!(message.mmrProof && typeof message.mmrProof.length === "number" || $util.isString(message.mmrProof)))
-                            return "mmrProof: buffer expected";
+                    if (message.header != null && message.hasOwnProperty("header"))
+                        if (!(message.header && typeof message.header.length === "number" || $util.isString(message.header)))
+                            return "header: buffer expected";
+                    if (message.signature != null && message.hasOwnProperty("signature"))
+                        if (!(message.signature && typeof message.signature.length === "number" || $util.isString(message.signature)))
+                            return "signature: buffer expected";
+                    if (message.patches != null && message.hasOwnProperty("patches")) {
+                        if (!Array.isArray(message.patches))
+                            return "patches: array expected";
+                        for (let i = 0; i < message.patches.length; ++i)
+                            if (!(message.patches[i] && typeof message.patches[i].length === "number" || $util.isString(message.patches[i])))
+                                return "patches: buffer[] expected";
+                    }
+                    if (message.proofs != null && message.hasOwnProperty("proofs")) {
+                        if (!Array.isArray(message.proofs))
+                            return "proofs: array expected";
+                        for (let i = 0; i < message.proofs.length; ++i)
+                            if (!(message.proofs[i] && typeof message.proofs[i].length === "number" || $util.isString(message.proofs[i])))
+                                return "proofs: buffer[] expected";
+                    }
                     return null;
                 };
 
                 /**
-                 * Creates a SequencedPatch message from a plain object. Also converts values to their respective internal types.
+                 * Creates a SequencedPartialPatchSet message from a plain object. Also converts values to their respective internal types.
                  * @function fromObject
-                 * @memberof market.mass.SubscriptionPushRequest.SequencedPatch
+                 * @memberof market.mass.SubscriptionPushRequest.SequencedPartialPatchSet
                  * @static
                  * @param {Object.<string,*>} object Plain object
-                 * @returns {market.mass.SubscriptionPushRequest.SequencedPatch} SequencedPatch
+                 * @returns {market.mass.SubscriptionPushRequest.SequencedPartialPatchSet} SequencedPartialPatchSet
                  */
-                SequencedPatch.fromObject = function fromObject(object) {
-                    if (object instanceof $root.market.mass.SubscriptionPushRequest.SequencedPatch)
+                SequencedPartialPatchSet.fromObject = function fromObject(object) {
+                    if (object instanceof $root.market.mass.SubscriptionPushRequest.SequencedPartialPatchSet)
                         return object;
-                    let message = new $root.market.mass.SubscriptionPushRequest.SequencedPatch();
+                    let message = new $root.market.mass.SubscriptionPushRequest.SequencedPartialPatchSet();
                     if (object.shopSeqNo != null)
                         if ($util.Long)
                             (message.shopSeqNo = $util.Long.fromValue(object.shopSeqNo)).unsigned = true;
@@ -3984,264 +3966,6 @@ export const market = $root.market = (() => {
                             message.shopSeqNo = new $util.LongBits(object.shopSeqNo.low >>> 0, object.shopSeqNo.high >>> 0).toNumber(true);
                     if (object.patchLeafIndex != null)
                         message.patchLeafIndex = object.patchLeafIndex >>> 0;
-                    if (object.patchData != null)
-                        if (typeof object.patchData === "string")
-                            $util.base64.decode(object.patchData, message.patchData = $util.newBuffer($util.base64.length(object.patchData)), 0);
-                        else if (object.patchData.length >= 0)
-                            message.patchData = object.patchData;
-                    if (object.mmrProof != null)
-                        if (typeof object.mmrProof === "string")
-                            $util.base64.decode(object.mmrProof, message.mmrProof = $util.newBuffer($util.base64.length(object.mmrProof)), 0);
-                        else if (object.mmrProof.length >= 0)
-                            message.mmrProof = object.mmrProof;
-                    return message;
-                };
-
-                /**
-                 * Creates a plain object from a SequencedPatch message. Also converts values to other types if specified.
-                 * @function toObject
-                 * @memberof market.mass.SubscriptionPushRequest.SequencedPatch
-                 * @static
-                 * @param {market.mass.SubscriptionPushRequest.SequencedPatch} message SequencedPatch
-                 * @param {$protobuf.IConversionOptions} [options] Conversion options
-                 * @returns {Object.<string,*>} Plain object
-                 */
-                SequencedPatch.toObject = function toObject(message, options) {
-                    if (!options)
-                        options = {};
-                    let object = {};
-                    if (options.defaults) {
-                        if ($util.Long) {
-                            let long = new $util.Long(0, 0, true);
-                            object.shopSeqNo = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
-                        } else
-                            object.shopSeqNo = options.longs === String ? "0" : 0;
-                        object.patchLeafIndex = 0;
-                        if (options.bytes === String)
-                            object.patchData = "";
-                        else {
-                            object.patchData = [];
-                            if (options.bytes !== Array)
-                                object.patchData = $util.newBuffer(object.patchData);
-                        }
-                        if (options.bytes === String)
-                            object.mmrProof = "";
-                        else {
-                            object.mmrProof = [];
-                            if (options.bytes !== Array)
-                                object.mmrProof = $util.newBuffer(object.mmrProof);
-                        }
-                    }
-                    if (message.shopSeqNo != null && message.hasOwnProperty("shopSeqNo"))
-                        if (typeof message.shopSeqNo === "number")
-                            object.shopSeqNo = options.longs === String ? String(message.shopSeqNo) : message.shopSeqNo;
-                        else
-                            object.shopSeqNo = options.longs === String ? $util.Long.prototype.toString.call(message.shopSeqNo) : options.longs === Number ? new $util.LongBits(message.shopSeqNo.low >>> 0, message.shopSeqNo.high >>> 0).toNumber(true) : message.shopSeqNo;
-                    if (message.patchLeafIndex != null && message.hasOwnProperty("patchLeafIndex"))
-                        object.patchLeafIndex = message.patchLeafIndex;
-                    if (message.patchData != null && message.hasOwnProperty("patchData"))
-                        object.patchData = options.bytes === String ? $util.base64.encode(message.patchData, 0, message.patchData.length) : options.bytes === Array ? Array.prototype.slice.call(message.patchData) : message.patchData;
-                    if (message.mmrProof != null && message.hasOwnProperty("mmrProof"))
-                        object.mmrProof = options.bytes === String ? $util.base64.encode(message.mmrProof, 0, message.mmrProof.length) : options.bytes === Array ? Array.prototype.slice.call(message.mmrProof) : message.mmrProof;
-                    return object;
-                };
-
-                /**
-                 * Converts this SequencedPatch to JSON.
-                 * @function toJSON
-                 * @memberof market.mass.SubscriptionPushRequest.SequencedPatch
-                 * @instance
-                 * @returns {Object.<string,*>} JSON object
-                 */
-                SequencedPatch.prototype.toJSON = function toJSON() {
-                    return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-                };
-
-                /**
-                 * Gets the default type url for SequencedPatch
-                 * @function getTypeUrl
-                 * @memberof market.mass.SubscriptionPushRequest.SequencedPatch
-                 * @static
-                 * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-                 * @returns {string} The default type url
-                 */
-                SequencedPatch.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-                    if (typeUrlPrefix === undefined) {
-                        typeUrlPrefix = "type.googleapis.com";
-                    }
-                    return typeUrlPrefix + "/market.mass.SubscriptionPushRequest.SequencedPatch";
-                };
-
-                return SequencedPatch;
-            })();
-
-            SubscriptionPushRequest.PatchSetMeta = (function() {
-
-                /**
-                 * Properties of a PatchSetMeta.
-                 * @memberof market.mass.SubscriptionPushRequest
-                 * @interface IPatchSetMeta
-                 * @property {Uint8Array|null} [header] PatchSetMeta header
-                 * @property {Uint8Array|null} [signature] PatchSetMeta signature
-                 */
-
-                /**
-                 * Constructs a new PatchSetMeta.
-                 * @memberof market.mass.SubscriptionPushRequest
-                 * @classdesc Represents a PatchSetMeta.
-                 * @implements IPatchSetMeta
-                 * @constructor
-                 * @param {market.mass.SubscriptionPushRequest.IPatchSetMeta=} [properties] Properties to set
-                 */
-                function PatchSetMeta(properties) {
-                    if (properties)
-                        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
-                                this[keys[i]] = properties[keys[i]];
-                }
-
-                /**
-                 * PatchSetMeta header.
-                 * @member {Uint8Array} header
-                 * @memberof market.mass.SubscriptionPushRequest.PatchSetMeta
-                 * @instance
-                 */
-                PatchSetMeta.prototype.header = $util.newBuffer([]);
-
-                /**
-                 * PatchSetMeta signature.
-                 * @member {Uint8Array} signature
-                 * @memberof market.mass.SubscriptionPushRequest.PatchSetMeta
-                 * @instance
-                 */
-                PatchSetMeta.prototype.signature = $util.newBuffer([]);
-
-                /**
-                 * Creates a new PatchSetMeta instance using the specified properties.
-                 * @function create
-                 * @memberof market.mass.SubscriptionPushRequest.PatchSetMeta
-                 * @static
-                 * @param {market.mass.SubscriptionPushRequest.IPatchSetMeta=} [properties] Properties to set
-                 * @returns {market.mass.SubscriptionPushRequest.PatchSetMeta} PatchSetMeta instance
-                 */
-                PatchSetMeta.create = function create(properties) {
-                    return new PatchSetMeta(properties);
-                };
-
-                /**
-                 * Encodes the specified PatchSetMeta message. Does not implicitly {@link market.mass.SubscriptionPushRequest.PatchSetMeta.verify|verify} messages.
-                 * @function encode
-                 * @memberof market.mass.SubscriptionPushRequest.PatchSetMeta
-                 * @static
-                 * @param {market.mass.SubscriptionPushRequest.IPatchSetMeta} message PatchSetMeta message or plain object to encode
-                 * @param {$protobuf.Writer} [writer] Writer to encode to
-                 * @returns {$protobuf.Writer} Writer
-                 */
-                PatchSetMeta.encode = function encode(message, writer) {
-                    if (!writer)
-                        writer = $Writer.create();
-                    if (message.header != null && Object.hasOwnProperty.call(message, "header"))
-                        writer.uint32(/* id 1, wireType 2 =*/10).bytes(message.header);
-                    if (message.signature != null && Object.hasOwnProperty.call(message, "signature"))
-                        writer.uint32(/* id 2, wireType 2 =*/18).bytes(message.signature);
-                    return writer;
-                };
-
-                /**
-                 * Encodes the specified PatchSetMeta message, length delimited. Does not implicitly {@link market.mass.SubscriptionPushRequest.PatchSetMeta.verify|verify} messages.
-                 * @function encodeDelimited
-                 * @memberof market.mass.SubscriptionPushRequest.PatchSetMeta
-                 * @static
-                 * @param {market.mass.SubscriptionPushRequest.IPatchSetMeta} message PatchSetMeta message or plain object to encode
-                 * @param {$protobuf.Writer} [writer] Writer to encode to
-                 * @returns {$protobuf.Writer} Writer
-                 */
-                PatchSetMeta.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
-                };
-
-                /**
-                 * Decodes a PatchSetMeta message from the specified reader or buffer.
-                 * @function decode
-                 * @memberof market.mass.SubscriptionPushRequest.PatchSetMeta
-                 * @static
-                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                 * @param {number} [length] Message length if known beforehand
-                 * @returns {market.mass.SubscriptionPushRequest.PatchSetMeta} PatchSetMeta
-                 * @throws {Error} If the payload is not a reader or valid buffer
-                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                 */
-                PatchSetMeta.decode = function decode(reader, length) {
-                    if (!(reader instanceof $Reader))
-                        reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.market.mass.SubscriptionPushRequest.PatchSetMeta();
-                    while (reader.pos < end) {
-                        let tag = reader.uint32();
-                        switch (tag >>> 3) {
-                        case 1: {
-                                message.header = reader.bytes();
-                                break;
-                            }
-                        case 2: {
-                                message.signature = reader.bytes();
-                                break;
-                            }
-                        default:
-                            reader.skipType(tag & 7);
-                            break;
-                        }
-                    }
-                    return message;
-                };
-
-                /**
-                 * Decodes a PatchSetMeta message from the specified reader or buffer, length delimited.
-                 * @function decodeDelimited
-                 * @memberof market.mass.SubscriptionPushRequest.PatchSetMeta
-                 * @static
-                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                 * @returns {market.mass.SubscriptionPushRequest.PatchSetMeta} PatchSetMeta
-                 * @throws {Error} If the payload is not a reader or valid buffer
-                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                 */
-                PatchSetMeta.decodeDelimited = function decodeDelimited(reader) {
-                    if (!(reader instanceof $Reader))
-                        reader = new $Reader(reader);
-                    return this.decode(reader, reader.uint32());
-                };
-
-                /**
-                 * Verifies a PatchSetMeta message.
-                 * @function verify
-                 * @memberof market.mass.SubscriptionPushRequest.PatchSetMeta
-                 * @static
-                 * @param {Object.<string,*>} message Plain object to verify
-                 * @returns {string|null} `null` if valid, otherwise the reason why it is not
-                 */
-                PatchSetMeta.verify = function verify(message) {
-                    if (typeof message !== "object" || message === null)
-                        return "object expected";
-                    if (message.header != null && message.hasOwnProperty("header"))
-                        if (!(message.header && typeof message.header.length === "number" || $util.isString(message.header)))
-                            return "header: buffer expected";
-                    if (message.signature != null && message.hasOwnProperty("signature"))
-                        if (!(message.signature && typeof message.signature.length === "number" || $util.isString(message.signature)))
-                            return "signature: buffer expected";
-                    return null;
-                };
-
-                /**
-                 * Creates a PatchSetMeta message from a plain object. Also converts values to their respective internal types.
-                 * @function fromObject
-                 * @memberof market.mass.SubscriptionPushRequest.PatchSetMeta
-                 * @static
-                 * @param {Object.<string,*>} object Plain object
-                 * @returns {market.mass.SubscriptionPushRequest.PatchSetMeta} PatchSetMeta
-                 */
-                PatchSetMeta.fromObject = function fromObject(object) {
-                    if (object instanceof $root.market.mass.SubscriptionPushRequest.PatchSetMeta)
-                        return object;
-                    let message = new $root.market.mass.SubscriptionPushRequest.PatchSetMeta();
                     if (object.header != null)
                         if (typeof object.header === "string")
                             $util.base64.decode(object.header, message.header = $util.newBuffer($util.base64.length(object.header)), 0);
@@ -4252,23 +3976,53 @@ export const market = $root.market = (() => {
                             $util.base64.decode(object.signature, message.signature = $util.newBuffer($util.base64.length(object.signature)), 0);
                         else if (object.signature.length >= 0)
                             message.signature = object.signature;
+                    if (object.patches) {
+                        if (!Array.isArray(object.patches))
+                            throw TypeError(".market.mass.SubscriptionPushRequest.SequencedPartialPatchSet.patches: array expected");
+                        message.patches = [];
+                        for (let i = 0; i < object.patches.length; ++i)
+                            if (typeof object.patches[i] === "string")
+                                $util.base64.decode(object.patches[i], message.patches[i] = $util.newBuffer($util.base64.length(object.patches[i])), 0);
+                            else if (object.patches[i].length >= 0)
+                                message.patches[i] = object.patches[i];
+                    }
+                    if (object.proofs) {
+                        if (!Array.isArray(object.proofs))
+                            throw TypeError(".market.mass.SubscriptionPushRequest.SequencedPartialPatchSet.proofs: array expected");
+                        message.proofs = [];
+                        for (let i = 0; i < object.proofs.length; ++i)
+                            if (typeof object.proofs[i] === "string")
+                                $util.base64.decode(object.proofs[i], message.proofs[i] = $util.newBuffer($util.base64.length(object.proofs[i])), 0);
+                            else if (object.proofs[i].length >= 0)
+                                message.proofs[i] = object.proofs[i];
+                    }
                     return message;
                 };
 
                 /**
-                 * Creates a plain object from a PatchSetMeta message. Also converts values to other types if specified.
+                 * Creates a plain object from a SequencedPartialPatchSet message. Also converts values to other types if specified.
                  * @function toObject
-                 * @memberof market.mass.SubscriptionPushRequest.PatchSetMeta
+                 * @memberof market.mass.SubscriptionPushRequest.SequencedPartialPatchSet
                  * @static
-                 * @param {market.mass.SubscriptionPushRequest.PatchSetMeta} message PatchSetMeta
+                 * @param {market.mass.SubscriptionPushRequest.SequencedPartialPatchSet} message SequencedPartialPatchSet
                  * @param {$protobuf.IConversionOptions} [options] Conversion options
                  * @returns {Object.<string,*>} Plain object
                  */
-                PatchSetMeta.toObject = function toObject(message, options) {
+                SequencedPartialPatchSet.toObject = function toObject(message, options) {
                     if (!options)
                         options = {};
                     let object = {};
+                    if (options.arrays || options.defaults) {
+                        object.patches = [];
+                        object.proofs = [];
+                    }
                     if (options.defaults) {
+                        if ($util.Long) {
+                            let long = new $util.Long(0, 0, true);
+                            object.shopSeqNo = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                        } else
+                            object.shopSeqNo = options.longs === String ? "0" : 0;
+                        object.patchLeafIndex = 0;
                         if (options.bytes === String)
                             object.header = "";
                         else {
@@ -4284,40 +4038,57 @@ export const market = $root.market = (() => {
                                 object.signature = $util.newBuffer(object.signature);
                         }
                     }
+                    if (message.shopSeqNo != null && message.hasOwnProperty("shopSeqNo"))
+                        if (typeof message.shopSeqNo === "number")
+                            object.shopSeqNo = options.longs === String ? String(message.shopSeqNo) : message.shopSeqNo;
+                        else
+                            object.shopSeqNo = options.longs === String ? $util.Long.prototype.toString.call(message.shopSeqNo) : options.longs === Number ? new $util.LongBits(message.shopSeqNo.low >>> 0, message.shopSeqNo.high >>> 0).toNumber(true) : message.shopSeqNo;
+                    if (message.patchLeafIndex != null && message.hasOwnProperty("patchLeafIndex"))
+                        object.patchLeafIndex = message.patchLeafIndex;
                     if (message.header != null && message.hasOwnProperty("header"))
                         object.header = options.bytes === String ? $util.base64.encode(message.header, 0, message.header.length) : options.bytes === Array ? Array.prototype.slice.call(message.header) : message.header;
                     if (message.signature != null && message.hasOwnProperty("signature"))
                         object.signature = options.bytes === String ? $util.base64.encode(message.signature, 0, message.signature.length) : options.bytes === Array ? Array.prototype.slice.call(message.signature) : message.signature;
+                    if (message.patches && message.patches.length) {
+                        object.patches = [];
+                        for (let j = 0; j < message.patches.length; ++j)
+                            object.patches[j] = options.bytes === String ? $util.base64.encode(message.patches[j], 0, message.patches[j].length) : options.bytes === Array ? Array.prototype.slice.call(message.patches[j]) : message.patches[j];
+                    }
+                    if (message.proofs && message.proofs.length) {
+                        object.proofs = [];
+                        for (let j = 0; j < message.proofs.length; ++j)
+                            object.proofs[j] = options.bytes === String ? $util.base64.encode(message.proofs[j], 0, message.proofs[j].length) : options.bytes === Array ? Array.prototype.slice.call(message.proofs[j]) : message.proofs[j];
+                    }
                     return object;
                 };
 
                 /**
-                 * Converts this PatchSetMeta to JSON.
+                 * Converts this SequencedPartialPatchSet to JSON.
                  * @function toJSON
-                 * @memberof market.mass.SubscriptionPushRequest.PatchSetMeta
+                 * @memberof market.mass.SubscriptionPushRequest.SequencedPartialPatchSet
                  * @instance
                  * @returns {Object.<string,*>} JSON object
                  */
-                PatchSetMeta.prototype.toJSON = function toJSON() {
+                SequencedPartialPatchSet.prototype.toJSON = function toJSON() {
                     return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
                 };
 
                 /**
-                 * Gets the default type url for PatchSetMeta
+                 * Gets the default type url for SequencedPartialPatchSet
                  * @function getTypeUrl
-                 * @memberof market.mass.SubscriptionPushRequest.PatchSetMeta
+                 * @memberof market.mass.SubscriptionPushRequest.SequencedPartialPatchSet
                  * @static
                  * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
                  * @returns {string} The default type url
                  */
-                PatchSetMeta.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+                SequencedPartialPatchSet.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
                     if (typeUrlPrefix === undefined) {
                         typeUrlPrefix = "type.googleapis.com";
                     }
-                    return typeUrlPrefix + "/market.mass.SubscriptionPushRequest.PatchSetMeta";
+                    return typeUrlPrefix + "/market.mass.SubscriptionPushRequest.SequencedPartialPatchSet";
                 };
 
-                return PatchSetMeta;
+                return SequencedPartialPatchSet;
             })();
 
             return SubscriptionPushRequest;

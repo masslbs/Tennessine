@@ -53,7 +53,6 @@ export function genericReadContract<
 >(abi: abiT, functionName: FuncName, address: Hex) {
   return (
     publicClient: PublicClient,
-    account: Account | Hex,
     args: ContractFunctionArgs<abiT, ReadOnly, FuncName>,
   ): Promise<
     ContractFunctionReturnType<
@@ -64,7 +63,6 @@ export function genericReadContract<
     >
   > => {
     return publicClient.readContract({
-      account,
       address,
       abi,
       functionName,
@@ -180,6 +178,13 @@ export const mintShop = genericWriteContract(
   "mint",
   abi.addresses.ShopReg,
 );
+
+export const relayRegGetOwnerOf = genericReadContract(
+  abi.relayRegAbi,
+  "ownerOf",
+  abi.addresses.RelayReg,
+);
+
 export async function redeemInviteSecret(
   secret: Hex,
   wallet: WalletClient,

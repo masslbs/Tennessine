@@ -14,7 +14,7 @@
       url = "github:masslbs/contracts";
     };
     schema = {
-      url = "github:masslbs/network-schema/cbor";
+      url = "github:masslbs/network-schema/mapfree-subscription-pushes";
     };
     relay = {
       url = "git+ssh://git@github.com/masslbs/relay.git?ref=network-v4";
@@ -74,15 +74,7 @@
           MASS_TEST_VECTORS = "${schema.packages.${system}.default}";
           MASS_CONTRACTS_PATH = "${contracts.packages.${system}.default}";
 
-          shellHook = ''
-            ${config.pre-commit.settings.installationScript}
-             # these fail if 'nix develop' isnt run from the root of the project
-             # TODO: lets reference directly instead of copying the files
-             if [ -d ./packages ]; then
-               cp $MASS_CONTRACTS_PATH/abi/*.json ./packages/contracts/abi/
-               cp $MASS_CONTRACTS_PATH/deploymentAddresses.json ./packages/contracts/
-             fi
-          '';
+          shellHook = config.pre-commit.settings.installationScript;
 
           buildInputs = with pkgs;
             [
