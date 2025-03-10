@@ -79,7 +79,7 @@ export default function () {
       name: "default",
       callAsContract: false,
     }],
-    pricingCurrency: { address: abi.addresses.zeroAddress, chainId: chain.id },
+    pricingCurrency: { address: null, chainId: null },
     acceptedCurrencies: [],
   });
 
