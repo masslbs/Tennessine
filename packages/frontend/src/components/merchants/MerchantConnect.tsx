@@ -29,8 +29,7 @@ export default function MerchantConnect() {
   const shopPublicClient = usePublicClient({ chainId: chain.id });
   const { data: wallet } = useWalletClient();
   const [keycard, setKeycard] = useKeycard();
-  // Set skipConnect to true so that useQuery does not try to connect and authenticate before enrolling the keycard.
-  const { clientStateManager } = useClientWithStateManager(true);
+  const { clientStateManager } = useClientWithStateManager();
   const navigate = useNavigate({ from: "/merchant-connect" });
 
   const [searchShopId, setSearchShopId] = useState<string>("");

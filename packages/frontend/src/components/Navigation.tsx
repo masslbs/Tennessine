@@ -20,7 +20,6 @@ import { useClientWithStateManager } from "../hooks/useClientWithStateManager.ts
 import { useShopDetails } from "../hooks/useShopDetails.ts";
 import { useKeycard } from "../hooks/useKeycard.ts";
 import { useCurrentOrder } from "../hooks/useCurrentOrder.ts";
-import { usePathname } from "../hooks/usePathname.ts";
 
 const merchantMenu = [
   {
@@ -46,8 +45,7 @@ function Navigation() {
 
   const navigate = useNavigate();
   const { shopDetails } = useShopDetails();
-  const { isMerchantPath } = usePathname();
-  const { clientStateManager } = useClientWithStateManager(isMerchantPath);
+  const { clientStateManager } = useClientWithStateManager();
   const { currentOrder } = useCurrentOrder();
   const [keycard] = useKeycard();
   const { disconnect } = useDisconnect();

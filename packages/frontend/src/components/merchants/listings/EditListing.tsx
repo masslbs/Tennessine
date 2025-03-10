@@ -124,7 +124,6 @@ export default function EditProduct() {
           units - productInView!.quantity,
         );
       }
-      debug("updated listing");
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Error updating listing", error);
@@ -172,6 +171,7 @@ export default function EditProduct() {
           ? await update(newItem)
           : await create(newItem);
         setPublishing(false);
+        debug("listing published");
         navigate({
           to: "/listings",
           search: (prev: Record<string, string>) => ({
