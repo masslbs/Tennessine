@@ -61,6 +61,8 @@ export default function ShippingDetails({
       warning = "Must include postal code";
     } else if (!city.length) {
       warning = "Must include postal code";
+    } else if (!email.length) {
+      warning = "Must include email";
     }
     return warning;
   }
