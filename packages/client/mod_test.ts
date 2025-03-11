@@ -9,12 +9,22 @@ import {
 import { generatePrivateKey, privateKeyToAccount } from "@wevm/viem/accounts";
 import { foundry } from "@wevm/viem/chains";
 import { mintShop, relayRegGetOwnerOf } from "@massmarket/blockchain";
-// import { random256BigInt } from "@massmarket/utils";
-// import schema from "@massmarket/schema";
 
 import { discoverRelay, type IRelayEndpoint, RelayClient } from "./mod.ts";
+import type { TPatch } from "@massmarket/schema/cbor";
 
 const relayURL = Deno.env.get("RELAY_ENDPOINT") || "http://localhost:4444/v4";
+
+// helper function
+async function writeAndReadPatch(
+  patch: TPatch,
+  writer: WritableStreamDefaultWriter,
+  reader: ReadableStreamDefaultReader,
+): Promise<void> {
+  await writer.write([patch]);
+  const p = await reader.read();
+  expect(p.value.patches).toEqual([patch]);
+}
 
 Deno.test(
   {
@@ -79,22 +89,21 @@ Deno.test(
 
       await t.step("should create a manifest", async () => {
         const s = relayClient.createSubscriptionStream("/", 0);
-        const r = s.getReader();
+        const reader = s.getReader();
         const [m, relayAddr] = await Promise.all([
-          r.read(),
+          reader.read(),
           relayRegGetOwnerOf(blockchainClient, [
             hexToBigInt(relayEndpoint.tokenId),
           ]),
         ]);
-        expect(m.value.signer).toBe(relayAddr);
-        console.log("manifest", m.value);
-
+        expect(m.value!.signer).toBe(relayAddr);
+        // write the ShippingRegions
         const ws = relayClient.createWriteStream();
         const writer = ws.getWriter();
-        await writer.write([
+        await writeAndReadPatch(
           {
-            Op: "add",
-            Path: ["manifest", "ShippingRegions", "default"],
+            Op: "add" as const,
+            Path: ["Manifest", "ShippingRegions", "default"],
             Value: {
               "Country": "DE",
               "PostalCode": "",
@@ -102,10 +111,19 @@ Deno.test(
               "PriceModifiers": null,
             },
           },
-        ]);
-        // const p = await r.read();
-        // console.log(p);
-        // await writer.close();
+          writer,
+          reader,
+        );
+
+        await writer.close();
+
+        // todo
+        // - manifest
+        //   - payess
+        //   - currency
+        //
+        // - orders
+        // - listings
       });
     },
   },

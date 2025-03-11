@@ -48,7 +48,7 @@ export interface IRelayClientOptions {
   keyCardNonce?: number;
 }
 
-interface PushedPatchSet {
+export interface PushedPatchSet {
   signer: Hex;
   patches: TPatch[];
   header: TPatchSetHeader;
@@ -64,10 +64,8 @@ export class RelayClient {
   readonly ethAddress: Hex;
   readonly shopId;
   // TODO; we can use the subscription path for the id
-  #subscriptions: Map<
-    string,
-    ReadableStreamDefaultController<PushedPatchSet>
-  > = new Map();
+  #subscriptions: Map<string, ReadableStreamDefaultController<PushedPatchSet>> =
+    new Map();
   #requestCounter;
   #waitingMessagesResponse: LockMap<string, schema.Envelope> = new LockMap();
 
@@ -234,7 +232,7 @@ export class RelayClient {
 
   createSubscriptionStream(path: string, seqNum: number) {
     let id: Uint8Array;
-    return new ReadableStream({
+    return new ReadableStream<PushedPatchSet>({
       start: async (c) => {
         const r = await this.createSubscription(path, seqNum);
         id = r.payload!;
