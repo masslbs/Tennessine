@@ -115,6 +115,22 @@ Deno.test(
           reader,
         );
 
+        await writeAndReadPatch(
+          {
+            Op: "add" as const,
+            Path: [
+              "Manifest",
+              "AcceptedCurrencies",
+              1,
+            ],
+            Value: {
+              "0x0000000000000000000000000000000000000000": {},
+            },
+          },
+          writer,
+          reader,
+        );
+
         await writer.close();
 
         // todo
