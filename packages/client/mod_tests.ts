@@ -69,7 +69,11 @@ Deno.test(
       });
 
       await t.step("enroll keycard", async () => {
-        const r = await relayClient.enrollKeycard(blockchainClient, account);
+        const r = await relayClient.enrollKeycard(
+          blockchainClient,
+          account,
+          false,
+        );
         expect(r.statusText).toBe("Created");
       });
 
@@ -89,7 +93,7 @@ Deno.test(
         const writer = ws.getWriter();
         await writer.write([
           {
-            Op: "add",
+            Op: "replace",
             Path: ["manifest", "ShippingRegions"],
             Value: {
               "default": {

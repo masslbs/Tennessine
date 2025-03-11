@@ -70,14 +70,12 @@ export class RelayClient {
   > = new Map();
   #requestCounter;
   #waitingMessagesResponse: LockMap<string, schema.Envelope> = new LockMap();
-  #isGuest: boolean = true;
 
   constructor(params: IRelayClientOptions) {
     this.walletClient = params.walletClient;
     this.relayEndpoint = params.relayEndpoint;
     this.keyCardNonce = params.keyCardNonce ?? 0;
     this.shopId = params.shopId;
-    this.#isGuest = params.isGuest;
     this.keycard = params.keycard;
     this.ethAddress = parseAccount(params.keycard).address;
     this.#requestCounter = 1;
@@ -361,6 +359,7 @@ export class RelayClient {
   async enrollKeycard(
     wallet: WalletClient,
     account: Hex | Account,
+    isGuest: boolean = true,
   ) {
     const parsedAccount = parseAccount(account);
     const address = parsedAccount.address;
@@ -373,7 +372,7 @@ export class RelayClient {
       ? "https"
       : "http";
     endpointURL.pathname += `/enroll_key_card`;
-    endpointURL.search = `guest=${this.#isGuest ? 1 : 0}`;
+    endpointURL.search = `guest=${isGuest ? 1 : 0}`;
 
     const message = createSiweMessage({
       address,
