@@ -93,15 +93,13 @@ Deno.test(
         const writer = ws.getWriter();
         await writer.write([
           {
-            Op: "replace",
-            Path: ["manifest", "ShippingRegions"],
+            Op: "add",
+            Path: ["manifest", "ShippingRegions", "default"],
             Value: {
-              "default": {
-                "Country": "DE",
-                "PostalCode": "",
-                "City": "",
-                "PriceModifiers": null,
-              },
+              "Country": "DE",
+              "PostalCode": "",
+              "City": "",
+              "PriceModifiers": null,
             },
           },
         ]);
