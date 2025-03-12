@@ -35,8 +35,8 @@ export default function Listings() {
     }
 
     // Listen to future events
-    clientStateManager!.stateManager.listings.on("create", onCreateEvent);
-    clientStateManager!.stateManager.listings.on("update", onUpdateEvent);
+    clientStateManager!.stateManager.events.on("Listing", onCreateEvent);
+    clientStateManager!.stateManager.events.on("UpdateListing", onUpdateEvent);
     asyncIteratorToMap(clientStateManager.stateManager.listings.iterator)
       .then(
         (listings) => {

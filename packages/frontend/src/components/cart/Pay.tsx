@@ -12,7 +12,7 @@ import { approveERC20, getAllowance, pay } from "@massmarket/blockchain";
 import Button from "../common/Button.tsx";
 import BackButton from "../common/BackButton.tsx";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
-import { Order, OrderState } from "../../types.ts";
+import { OrderState, TOrder } from "../../types.ts";
 import { env } from "../../utils/env.ts";
 
 const namespace = "frontend:Pay";
@@ -47,7 +47,7 @@ export default function Pay({
   const [txHash, setTxHash] = useState<string | null>(null);
 
   useEffect(() => {
-    function txHashDetected(order: [OrderState, Order]) {
+    function txHashDetected(order: [OrderState, TOrder]) {
       if (order[1].txHash) {
         setTxHash(order[1].txHash);
         addRecentTransaction({

@@ -5,9 +5,14 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 
-import { assert, formatUnitsFromString, logger } from "@massmarket/utils";
+import {
+  assert,
+  formatUnitsFromString,
+  logger,
+  objectId,
+} from "@massmarket/utils";
 
-import { Listing, ListingId, ListingViewState } from "../../../types.ts";
+import { ListingId, ListingViewState, TListing } from "../../../types.ts";
 import ErrorMessage from "../../common/ErrorMessage.tsx";
 import ValidationWarning from "../../common/ValidationWarning.tsx";
 import { useBaseToken } from "../../../hooks/useBaseToken.ts";
@@ -33,7 +38,7 @@ export default function EditProduct() {
 
   const { clientStateManager } = useClientWithStateManager();
   const { baseToken } = useBaseToken();
-  const [productInView, setProductInView] = useState<Listing | null>(null);
+  const [productInView, setProductInView] = useState<TListing | null>(null);
   const [price, setPrice] = useState<string>("");
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
@@ -52,7 +57,7 @@ export default function EditProduct() {
     if (editView && itemId && baseToken.decimals) {
       clientStateManager!
         .stateManager!.listings.get(itemId)
-        .then((item: Listing) => {
+        .then((item: TListing) => {
           setProductInView(item);
           setTitle(item.metadata.title);
           const price = formatUnitsFromString(item.price, baseToken.decimals);
@@ -74,17 +79,17 @@ export default function EditProduct() {
     }
   }, [baseToken]);
 
-  async function create(newItem: Partial<Listing>) {
+  async function create(newItem: Partial<TListing>) {
     try {
-      const { id } = await clientStateManager!.stateManager!.listings
-        .create(
-          newItem,
-          baseToken.decimals,
-        );
-      await clientStateManager!.stateManager!.listings.changeInventory(
-        id,
-        units,
-      );
+      await clientStateManager!.stateManager.set("Listing", newItem);
+      // await clientStateManager!.stateManager!.listings.changeInventory(
+      //   id,
+      //   units,
+      // );
+      await clientStateManager!.stateManager!.set("ChangeInventory", {
+        ID: newItem.ID,
+        diff: units,
+      });
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Error creating listing", error);
@@ -92,37 +97,39 @@ export default function EditProduct() {
     }
   }
 
-  async function update(newItem: Partial<Listing>) {
+  async function update(newItem: Partial<TListing>) {
     try {
       //compare the edited fields against the original object.
-      const diff: Partial<Listing> = {
-        id: itemId as ListingId,
+      const diff: Partial<TListing> = {
+        ID: itemId,
       };
       if (
-        newItem.price !==
+        newItem.Price !==
           Number(
-            formatUnitsFromString(productInView!.price, baseToken!.decimals),
+            formatUnitsFromString(productInView!.Price, baseToken!.decimals),
           ).toFixed(2)
       ) {
-        diff["price"] = newItem.price;
+        diff["Price"] = newItem.Price;
       }
-      if (newItem.metadata !== productInView!.metadata) {
-        diff["metadata"] = newItem.metadata;
+      if (newItem.Metadata !== productInView!.Metadata) {
+        diff["Metadata"] = newItem.Metadata;
       }
-      if (newItem.viewState !== productInView!.viewState) {
-        diff["viewState"] = newItem.viewState;
+      if (newItem.ViewState !== productInView!.ViewState) {
+        diff["ViewState"] = newItem.ViewState;
       }
 
-      if (Object.keys(diff).length === 1) return;
-      await clientStateManager!.stateManager!.listings.update(
-        diff,
-        baseToken!.decimals,
-      );
+      if (!Object.keys(diff).length) {
+        debug("No changes to listing");
+        return;
+      }
+      await clientStateManager!.stateManager!.set("Listing", diff);
+
       if (units !== productInView?.quantity) {
-        await clientStateManager!.stateManager!.listings.changeInventory(
-          itemId as ListingId,
-          units - productInView!.quantity,
-        );
+        await clientStateManager!.stateManager!.set("ChangeInventory", {
+          ID: itemId,
+          // diff: units - productInView!.quantity,
+        });
+
       }
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
@@ -159,13 +166,14 @@ export default function EditProduct() {
           }),
         );
         const newItem = {
-          price: Number(price).toFixed(2),
-          metadata: {
-            title,
-            description,
-            images: uploaded,
+          ID: editView ? itemId : objectId(),
+          Metadata: {
+            Title: title,
+            Description: description,
+            Images: uploaded,
           },
-          viewState,
+          Price: Number(price).toFixed(2),
+          ViewState: viewState,
         };
         editView && productInView
           ? await update(newItem)

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
-import { Order, OrderState } from "../../types.ts";
+import { OrderState, TOrder } from "../../types.ts";
 import Transactions from "./Transactions.tsx";
 
 export default function Orders() {
@@ -26,11 +26,11 @@ export default function Orders() {
   }
 
   useEffect(() => {
-    function onCreateOrder(order: Order) {
+    function onCreateOrder(order: TOrder) {
       orders.set(order.id, order);
       setOrders(orders);
     }
-    function onUpdateOrder(order: Order) {
+    function onUpdateOrder(order: TOrder) {
       orders.set(order.id, order);
       setOrders(orders);
     }

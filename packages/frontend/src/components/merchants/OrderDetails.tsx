@@ -5,10 +5,10 @@ import { useSearch } from "@tanstack/react-router";
 import BackButton from "../common/BackButton.tsx";
 import {
   CartItem,
-  Listing,
   ListingId,
-  Order,
   OrderState,
+  TListing,
+  TOrder,
 } from "../../types.ts";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 
@@ -23,11 +23,11 @@ export default function OrderDetails() {
   const [blockHash, setBlockHash] = useState(null);
   const [etherScanLink, setLink] = useState<string | null>(null);
   const [date, setDate] = useState("N/A");
-  const [order, setOrder] = useState<Order | null>(null);
+  const [order, setOrder] = useState<TOrder | null>(null);
 
   useEffect(() => {
     if (!orderId) return;
-    clientStateManager!.stateManager.orders.get(orderId).then((o: Order) => {
+    clientStateManager!.stateManager.orders.get(orderId).then((o: TOrder) => {
       getCartItemDetails(o).then((cartItems) => {
         setOrderItems(cartItems);
       });
@@ -75,7 +75,7 @@ export default function OrderDetails() {
     navigator.clipboard.writeText(blockHash);
   }
 
-  async function getCartItemDetails(order: Order) {
+  async function getCartItemDetails(order: TOrder) {
     const ci = order.items;
     const cartObjects = new Map<ListingId, CartItem>();
     // Get price and metadata for all the selected items in the order.
@@ -83,7 +83,7 @@ export default function OrderDetails() {
     await Promise.all(
       itemIds.map((id) =>
         clientStateManager!.stateManager.listings.get(id as ListingId)
-          .then((item: Listing) => {
+          .then((item: TListing) => {
             cartObjects.set(item.id, {
               ...item,
               selectedQty: ci[item.id],

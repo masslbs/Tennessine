@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { logger } from "@massmarket/utils";
 
 import { useClientWithStateManager } from "./useClientWithStateManager.ts";
-import { CurrentOrder, Order, OrderEventTypes, OrderState } from "../types.ts";
+import { CurrentOrder, OrderEventTypes, OrderState, TOrder } from "../types.ts";
 import { useShopId } from "./useShopId.ts";
 import { useKeycard } from "./useKeycard.ts";
 
@@ -18,12 +18,12 @@ export function useCurrentOrder() {
   const [currentOrder, setCurrentOrder] = useState<CurrentOrder | null>(null);
   const orderManager = clientStateManager?.stateManager?.orders;
 
-  function onOrderCreate(order: Order) {
+  function onOrderCreate(order: TOrder) {
     if (order.status === OrderState.STATE_OPEN) {
       setCurrentOrder({ orderId: order.id, status: OrderState.STATE_OPEN });
     }
   }
-  function onOrderUpdate(res: [OrderEventTypes, Order]) {
+  function onOrderUpdate(res: [OrderEventTypes, TOrder]) {
     const order = res[1];
     const type = res[0];
 
@@ -42,7 +42,7 @@ export function useCurrentOrder() {
     }
   }
 
-  function onCommit(order: Order) {
+  function onCommit(order: TOrder) {
     if (order.status === OrderState.STATE_COMMITTED) {
       setCurrentOrder({
         orderId: order.id,
@@ -50,13 +50,13 @@ export function useCurrentOrder() {
       });
     }
   }
-  function txHashDetected(order: Order) {
+  function txHashDetected(order: TOrder) {
     if (order.status === OrderState.STATE_PAYMENT_TX) {
       setCurrentOrder(null);
     }
   }
 
-  function orderCancel(order: Order) {
+  function orderCancel(order: TOrder) {
     if (order.status === OrderState.STATE_CANCELED) {
       setCurrentOrder(null);
     }

@@ -26,12 +26,12 @@ import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import {
   CheckoutStep,
   CurrencyChainOption,
-  Order,
   OrderEventTypes,
   OrderId,
   Payee,
   ShopCurrencies,
   ShopManifest,
+  TOrder,
 } from "../../types.ts";
 import { defaultRPC, getTokenInformation } from "../../utils/mod.ts";
 
@@ -91,7 +91,7 @@ export default function ChoosePayment({
   useEffect(() => {
     if (!currentOrder) return;
     //Listen for client to send paymentDetails event.
-    function onPaymentDetails(res: [OrderEventTypes, Order]) {
+    function onPaymentDetails(res: [OrderEventTypes, TOrder]) {
       const order = res[1];
       const type = res[0];
       if (

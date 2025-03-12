@@ -10,10 +10,10 @@ import { assert, logger } from "@massmarket/utils";
 
 import {
   CheckoutStep,
-  Order,
   OrderEventTypes,
   OrderId,
   OrderState,
+  TOrder,
 } from "../types.ts";
 import Cart from "./cart/Cart.tsx";
 import { useClientWithStateManager } from "../hooks/useClientWithStateManager.ts";
@@ -72,7 +72,7 @@ function Navigation() {
   ];
 
   useEffect(() => {
-    function onOrderUpdate(res: [OrderEventTypes, Order]) {
+    function onOrderUpdate(res: [OrderEventTypes, TOrder]) {
       const order = res[1];
       const type = res[0];
       if (currentOrder?.orderId !== order.id) return;
@@ -86,14 +86,14 @@ function Navigation() {
       }
     }
 
-    function onChangeItems(order: Order) {
+    function onChangeItems(order: TOrder) {
       const values = Object.values(order.items);
       let length = 0;
       values.map((qty) => (length += Number(qty)));
       setLength(length);
     }
 
-    function txHashDetected(order: Order) {
+    function txHashDetected(order: TOrder) {
       if (order.status === OrderState.STATE_PAYMENT_TX) {
         setLength(0);
       }
@@ -102,7 +102,7 @@ function Navigation() {
     if (clientStateManager?.stateManager) {
       if (currentOrder) {
         clientStateManager.stateManager.orders.get(currentOrder.orderId).then(
-          (o: Order) => {
+          (o: TOrder) => {
             onChangeItems(o);
           },
         );
@@ -140,7 +140,7 @@ function Navigation() {
       // Commit the order if it is not already committed
       if (currentOrder!.status !== OrderState.STATE_COMMITTED) {
         await clientStateManager!.stateManager.orders.commit(orderId);
-        debug(`Order ID: ${orderId} committed`);
+        debug(`TOrder ID: ${orderId} committed`);
       }
       setBasketOpen(false);
       navigate({

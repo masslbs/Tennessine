@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { Order, OrderState } from "../../types.ts";
+import { OrderState, TOrder } from "../../types.ts";
 
 export default function Transactions(
-  { orders }: { orders: Map<string, Order> },
+  { orders }: { orders: Map<string, TOrder> },
 ) {
   // filter out any orders by statuses, then sort by timestamp
   const transactions = Array.from([...orders.entries()])

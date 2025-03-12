@@ -6,13 +6,13 @@ import { Link } from "@tanstack/react-router";
 import { formatUnitsFromString } from "@massmarket/utils";
 
 import Button from "../../common/Button.tsx";
-import { Listing, ListingViewState } from "../../../types.ts";
+import { ListingViewState, TListing } from "../../../types.ts";
 import { useBaseToken } from "../../../hooks/useBaseToken.ts";
 
 export default function MerchantViewProducts({
   products,
 }: {
-  products: Listing[] | null;
+  products: TListing[] | null;
 }) {
   const { baseToken } = useBaseToken();
 

@@ -215,14 +215,14 @@ export default function () {
       await clientStateManager!.connectAndAuthenticate();
 
       // Add address of current kc wallet for all outgoing event verification.
-      const keyCardWallet = privateKeyToAccount(keycard.privateKey);
-      await clientStateManager!.stateManager.keycards.addAddress(
-        keyCardWallet.address.toLowerCase() as `0x${string}`,
-      );
+      // const keyCardWallet = privateKeyToAccount(keycard.privateKey);
+      // await clientStateManager!.stateManager.keycards.addAddress(
+      //   keyCardWallet.address.toLowerCase() as `0x${string}`,
+      // );
 
-      debug(
-        `keycard wallet address added: ${keyCardWallet.address.toLowerCase()}`,
-      );
+      // debug(
+      //   `keycard wallet address added: ${keyCardWallet.address.toLowerCase()}`,
+      // );
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
       errlog("enrollConnectAuthenticate failed", error);
@@ -253,7 +253,7 @@ export default function () {
         Payees,
       };
 
-      //db.set("Manifest", Manifest)
+      clientStateManager!.stateManager!.set("Manifest", Manifest);
 
       debug("Manifest created");
     } catch (error: unknown) {

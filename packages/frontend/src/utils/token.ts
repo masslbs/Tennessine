@@ -1,7 +1,7 @@
 import { Address, PublicClient } from "viem";
 import * as abi from "@massmarket/contracts";
 import { assert } from "@massmarket/utils";
-import { Currency } from "../types.ts";
+import { TCurrencyMap } from "../types.ts";
 
 // Any utility functions for tokens
 export const getTokenAddress = (symbol: string, chainId: string): Address => {
@@ -46,24 +46,31 @@ export const getTokenInformation = (
 };
 
 export function compareAddedRemovedChains(
-  originalArray: Currency[],
-  modifiedArray: Currency[],
+  originalMap: TCurrencyMap,
+  modifiedMap: TCurrencyMap,
 ) {
-  const removed = originalArray.filter((item1) =>
-    // Only return chains that are not in the modified array
-    !modifiedArray.some((item2) =>
-      item2.address.toLowerCase() === item1.address.toLowerCase() &&
-      item2.chainId === item1.chainId
-    )
-  );
+  const removed: { Address: string; chainID: number }[] = [];
+  const added: { Address: string; chainID: number }[] = [];
 
-  const added = modifiedArray.filter((item2) =>
-    // Only return chains that are not in the original array
-    !originalArray.some((item1) =>
-      item1.address.toLowerCase() === item2.address.toLowerCase() &&
-      item1.chainId === item2.chainId
-    )
-  );
+  // Check for removed tokens
+  originalMap.forEach((tokens, chainId) => {
+    Object.keys(tokens).forEach((address) => {
+      const modifiedChainTokens = modifiedMap.get(chainId);
+      if (!modifiedChainTokens || !(address in modifiedChainTokens)) {
+        removed.push({ Address: address, chainID: chainId });
+      }
+    });
+  });
+
+  // Check for added tokens
+  modifiedMap.forEach((tokens, chainId) => {
+    Object.keys(tokens).forEach((address) => {
+      const originalChainTokens = originalMap.get(chainId);
+      if (!originalChainTokens || !(address in originalChainTokens)) {
+        added.push({ Address: address, chainID: chainId });
+      }
+    });
+  });
 
   return { removed, added };
 }

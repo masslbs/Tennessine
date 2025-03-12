@@ -8,11 +8,11 @@ import { assert, logger } from "@massmarket/utils";
 
 import {
   CartItem,
-  Listing,
   ListingId,
-  Order,
   OrderEventTypes,
   OrderId,
+  TListing,
+  TOrder,
 } from "../../types.ts";
 
 import Button from "../common/Button.tsx";
@@ -47,7 +47,7 @@ export default function Cart({
 
   useEffect(() => {
     if (!clientStateManager) return;
-    function onChangeItems(res: [OrderEventTypes, Order]) {
+    function onChangeItems(res: [OrderEventTypes, TOrder]) {
       if (res[0] === OrderEventTypes.CHANGE_ITEMS) {
         getCartItemDetails(res[1]).then((itemDetails) => {
           setCartMap(itemDetails);
@@ -70,14 +70,14 @@ export default function Cart({
       setOrderId(currentOrder.orderId);
       clientStateManager!
         .stateManager!.orders.get(currentOrder.orderId)
-        .then(async (o: Order) => {
+        .then(async (o: TOrder) => {
           const itemDetails = await getCartItemDetails(o);
           setCartMap(itemDetails);
         });
     }
   }, [currentOrder]);
 
-  async function getCartItemDetails(order: Order) {
+  async function getCartItemDetails(order: TOrder) {
     const ci = order.items;
     const cartObjects = new Map();
     // Get price and metadata for all the selected items in the order.
@@ -88,7 +88,7 @@ export default function Cart({
         const selectedQty = ci[id as ListingId];
         if (selectedQty === 0) return;
         return clientStateManager!.stateManager.listings.get(id as ListingId)
-          .then((item: Listing) => {
+          .then((item: TListing) => {
             cartObjects.set(id, {
               ...item,
               selectedQty,

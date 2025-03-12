@@ -12,10 +12,10 @@ import { assert, logger } from "@massmarket/utils";
 import { addresses } from "@massmarket/contracts";
 
 import {
-  Currency,
   CurrencyChainOption,
-  ShopCurrencies,
-  ShopManifest,
+  TCurrencyMap,
+  TManifest,
+  TPricingCurrency,
 } from "../../types.ts";
 import {
   compareAddedRemovedChains,
@@ -47,15 +47,17 @@ export default function ShopSettings() {
   const [avatar, setAvatar] = useState<FormData | null>(null);
 
   const [acceptedCurrencies, setAcceptedCurrencies] = useState<
-    Currency[]
-  >([]);
-  const [pricingToken, setPricingCurrency] = useState<ShopCurrencies | null>(
+    TCurrencyMap
+  >(new Map());
+  const [pricingCurrency, setPricingCurrency] = useState<
+    TPricingCurrency | null
+  >(
     null,
   );
   const [error, setError] = useState<null | string>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [manifest, setManifest] = useState<ShopManifest | null>(null);
+  const [manifest, setManifest] = useState<TManifest | null>(null);
   const [displayedChains, setDisplayedChains] = useState<CurrencyChainOption[]>(
     [],
   );
@@ -66,15 +68,15 @@ export default function ShopSettings() {
         chainsToRender.push({
           label: `ETH/${c.name}`,
           value: `${addresses.zeroAddress}/${c.id}`,
-          address: addresses.zeroAddress,
-          chainId: c.id,
+          Address: addresses.zeroAddress,
+          ChainID: c.id,
         });
         const eddAddress = getTokenAddress("EDD", String(c.id));
         chainsToRender.push({
           label: `EDD/${c.name}`,
           value: `${eddAddress}/${c.id}`,
-          address: eddAddress as `0x${string}`,
-          chainId: c.id,
+          Address: eddAddress as `0x${string}`,
+          ChainID: c.id,
         });
       });
       setDisplayedChains(chainsToRender);
@@ -83,34 +85,32 @@ export default function ShopSettings() {
 
   useEffect(() => {
     if (!clientStateManager?.stateManager) return;
-    function onUpdateEvent(updatedManifest: ShopManifest) {
-      const { pricingCurrency, acceptedCurrencies } = updatedManifest;
+    function onUpdateEvent(updatedManifest: TManifest) {
       setManifest(updatedManifest);
-      setAcceptedCurrencies(acceptedCurrencies);
+      setAcceptedCurrencies(updatedManifest.acceptedCurrencies);
       setPricingCurrency({
-        address: pricingCurrency!.address!,
-        chainId: pricingCurrency!.chainId!,
+        Address: updatedManifest.pricingCurrency.Address!,
+        ChainID: updatedManifest.pricingCurrency.ChainID!,
       });
     }
 
     clientStateManager
       .stateManager!.manifest.get()
-      .then((shopManifest: ShopManifest) => {
-        const { pricingCurrency, acceptedCurrencies } = shopManifest;
+      .then((shopManifest: TManifest) => {
         setManifest(shopManifest);
-        setAcceptedCurrencies(acceptedCurrencies);
+        setAcceptedCurrencies(shopManifest.acceptedCurrencies);
         setPricingCurrency({
-          address: pricingCurrency!.address!,
-          chainId: pricingCurrency!.chainId!,
+          ChainID: shopManifest.pricingCurrency.ChainID!,
+          Address: shopManifest.pricingCurrency.Address!,
         });
       });
 
-    clientStateManager.stateManager.manifest.on("update", onUpdateEvent);
+    clientStateManager.stateManager.events.on(["Manifest"], onUpdateEvent);
 
     return () => {
       // Cleanup listeners on unmount
-      clientStateManager.stateManager.manifest.removeListener(
-        "update",
+      clientStateManager.stateManager.events.off(
+        ["Manifest"],
         onUpdateEvent,
       );
     };
@@ -123,10 +123,10 @@ export default function ShopSettings() {
     const um: Partial<UpdateShopManifest> = {};
     //If pricing currency needs to update.
     if (
-      pricingToken!.address !== manifest!.pricingCurrency.address ||
-      pricingToken!.chainId !== manifest!.pricingCurrency.chainId
+      pricingCurrency!.Address !== manifest!.pricingCurrency.Address ||
+      pricingCurrency!.chainID !== manifest!.pricingCurrency.chainID
     ) {
-      um.setPricingCurrency = pricingToken;
+      um.setPricingCurrency = pricingCurrency;
     }
     //Compare added/removed currencies and apply changes to update manifest object.
     const { removed, added } = compareAddedRemovedChains(
@@ -186,30 +186,39 @@ export default function ShopSettings() {
   }
 
   function handleAcceptedCurrencies(e: ChangeEvent<HTMLInputElement>) {
-    const [addr, chainId] = e.target.value.split("/");
-    const address = addr as Address;
+    const [address, chainId] = e.target.value.split("/");
+    const newAcceptedCurrencies = new Map(acceptedCurrencies);
+    const allChainAddresses = newAcceptedCurrencies.get(chainId) || new Map();
+
     if (e.target.checked) {
-      // Add to accepted currencies
-      setAcceptedCurrencies([
-        ...acceptedCurrencies,
-        { address, chainId: Number(chainId) },
-      ]);
+      allChainAddresses.set(address, null);
+      newAcceptedCurrencies.set(chainId, allChainAddresses);
+      setAcceptedCurrencies(newAcceptedCurrencies);
     } else {
-      // Remove from accepted currencies
-      const test = acceptedCurrencies.filter((c: Currency) => {
-        return !(c.address.toLowerCase() === address.toLowerCase() &&
-          c.chainId === Number(chainId));
-      });
+      if (allChainAddresses) {
+        //TODO: may have to delete address as lowercase
+        allChainAddresses.delete(address);
+        newAcceptedCurrencies.set(chainId, allChainAddresses);
+      }
       setAcceptedCurrencies(
-        test,
+        newAcceptedCurrencies,
       );
     }
   }
+
   function handlePricingCurrency(option: CurrencyChainOption) {
     const v = option.value as string;
     const [addr, chainId] = v.split("/");
     const address = addr as Address;
-    setPricingCurrency({ address, chainId: Number(chainId) });
+    setPricingCurrency({ ChainID: Number(chainId), Address: address });
+  }
+
+  function currencyIsSelected(c: CurrencyChainOption) {
+    if (acceptedCurrencies.get(c.chainId)) {
+      const addresses = Object.keys(acceptedCurrencies.get(c.chainId));
+      return addresses.includes(c.address.toLowerCase());
+    }
+    return false;
   }
 
   return (
@@ -320,17 +329,7 @@ export default function ShopSettings() {
                                 onChange={(e) => handleAcceptedCurrencies(e)}
                                 className="form-checkbox h-4 w-4"
                                 value={c.value}
-                                checked={Boolean(
-                                  acceptedCurrencies.find(
-                                    (currency: Currency) => {
-                                      return (
-                                        currency.chainId === c.chainId &&
-                                        currency.address.toLowerCase() ===
-                                          c!.address!.toLowerCase()
-                                      );
-                                    },
-                                  ),
-                                )}
+                                checked={currencyIsSelected(c)}
                               />
                               <span>{c.label}</span>
                             </label>
@@ -360,9 +359,9 @@ export default function ShopSettings() {
                         callback={handlePricingCurrency}
                         selected={displayedChains.find(
                           (c: CurrencyChainOption) =>
-                            c.address!.toLowerCase() ===
-                              pricingToken?.address &&
-                            c.chainId === pricingToken?.chainId,
+                            c.Address!.toLowerCase() ===
+                              pricingCurrency?.Address!.toLowerCase() &&
+                            c.ChainID === pricingCurrency?.ChainID,
                         )}
                       />
                     </div>

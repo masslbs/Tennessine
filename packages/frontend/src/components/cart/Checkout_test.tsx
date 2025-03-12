@@ -14,7 +14,7 @@ import {
   shippingRegions,
 } from "@massmarket/schema/testFixtures";
 
-import { ListingViewState, ShippingDetails } from "../../types.ts";
+import { ListingViewState, TAddressDetails } from "../../types.ts";
 import { createRouterWrapper } from "../../utils/test.tsx";
 import CheckoutFlow from "./CheckoutFlow.tsx";
 
@@ -121,7 +121,7 @@ Deno.test("Check that we can render the checkout screen", {
       country,
       phoneNumber,
       emailAddress,
-    } = o.shippingDetails as ShippingDetails;
+    } = o.shippingDetails as TAddressDetails;
 
     expect(name).toBe(shippingDetails.name);
     expect(address1).toBe(shippingDetails.address1);

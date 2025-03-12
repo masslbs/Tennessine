@@ -7,7 +7,7 @@ import { Link } from "@tanstack/react-router";
 import { isHex } from "viem";
 
 import Transactions from "./Transactions.tsx";
-import { Order, OrderEventTypes } from "../../types.ts";
+import { OrderEventTypes, TOrder } from "../../types.ts";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 
 export default function MerchantDashboard() {
@@ -35,12 +35,12 @@ export default function MerchantDashboard() {
   }
 
   useEffect(() => {
-    function onCreateOrder(order: Order) {
+    function onCreateOrder(order: TOrder) {
       const newOrders = new Map(orders);
       newOrders.set(order.id, order);
       setOrders(newOrders);
     }
-    function onUpdateOrder(res: [OrderEventTypes, Order]) {
+    function onUpdateOrder(res: [OrderEventTypes, TOrder]) {
       const order = res[1];
       const newOrders = new Map(orders);
       newOrders.set(order.id, order);

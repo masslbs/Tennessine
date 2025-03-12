@@ -2,78 +2,33 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {
-  KeyCard,
-  Listing,
-  ListingViewState,
-  Metadata,
-  Order,
-  OrderEventTypes,
-  OrderState,
-  Payee,
-  ShippingDetails,
-  ShopCurrencies,
-  ShopManifest,
-  Tag,
-} from "@massmarket/stateManager/types";
+import type {
+  TAddressDetails,
+  TCurrencyMap,
+  TListing,
+  TManifest,
+  TOrder,
+  TPricingCurrency,
+  TTag,
+} from "@massmarket/schema/cbor";
 
-export {
-  type KeyCard,
-  type Listing,
-  ListingViewState,
-  type Metadata,
-  type Order,
-  OrderEventTypes,
-  OrderState,
-  type Payee,
-  type ShippingDetails,
-  type ShopCurrencies,
-  type ShopManifest,
-  type Tag,
+export type {
+  TAddressDetails,
+  TCurrencyMap,
+  TListing,
+  TManifest,
+  TOrder,
+  TPricingCurrency,
+  TTag,
 };
+
+export type KeyCard = `0x${string}`;
 export type ListingId = `0x${string}`;
 export type TagId = `0x${string}`;
 export type OrderId = `0x${string}`;
-export type TokenAddr = `0x${string}`;
+export type TokenAddress = `0x${string}`;
 export type ShopId = bigint;
 
-export enum RelayStatus {
-  Available = "AVAILABLE",
-  Unavailable = "UNAVAILABLE",
-}
-
-export enum Role {
-  Owner = "OWNER",
-  Admin = "ADMIN",
-  Clerk = "CLERK",
-}
-
-export interface Contributor {
-  id: number;
-  role: Role;
-  name: string;
-  keyCardId: string;
-  thumbnail: string;
-  walletAddress: string;
-}
-
-export interface Relay {
-  id: `0x${string}`;
-  name: string;
-  location: string;
-  status: RelayStatus;
-  provisioned: boolean;
-}
-
-export enum SortOption {
-  priceLow = "Price Low",
-  priceHigh = "Price High",
-  newest = "Newest",
-  default = "Default",
-  available = "Available",
-  hidden = "Hidden",
-  unavailable = "Unavailable",
-}
 export enum Status {
   Failed = "FAILED",
   Pending = "PENDING",
@@ -85,15 +40,10 @@ export interface ShopDetails {
   profilePictureUrl: string;
 }
 
-export interface Currency {
-  address: TokenAddr;
-  chainId: number;
-}
-
 export type CurrencyChainOption = {
   label: string;
   value: string | number;
-} & Partial<Currency>;
+} & Partial<TCurrencyMap>;
 
 export enum CheckoutStep {
   cart = "cart",
@@ -119,16 +69,37 @@ export interface CurrentOrder {
   status: OrderState;
 }
 
-export interface Token {
-  symbol: string;
-  decimals: number;
-}
 export type CartItem = {
   selectedQty: number;
-} & Listing;
+} & TListing;
 
 export type ShopForm = {
   shopName: string;
   description: string;
   avatar: FormData | null;
-} & ShopManifest;
+  paymentAddress: string;
+};
+
+export enum ListingViewState {
+  LISTING_VIEW_STATE_UNSPECIFIED = 0,
+  LISTING_VIEW_STATE_PUBLISHED = 1,
+  LISTING_VIEW_STATE_DELETED = 2,
+}
+export enum OrderState {
+  STATE_UNSPECIFIED = 0,
+  STATE_OPEN = 1,
+  STATE_CANCELED = 2,
+  STATE_COMMITTED = 3,
+  STATE_PAYMENT_TX = 4,
+  STATE_PAID = 5,
+}
+export enum OrderEventTypes {
+  CANCELLED = "orderCanceled",
+  CHANGE_ITEMS = "changeItems",
+  INVOICE_ADDRESS = "invoiceAddress",
+  SHIPPING_ADDRESS = "shippingAddress",
+  COMMIT_ITEMS = "commitItems",
+  CHOOSE_PAYMENT = "choosePayment",
+  PAYMENT_DETAILS = "paymentDetails",
+  PAYMENT_TX = "addPaymentTx",
+}

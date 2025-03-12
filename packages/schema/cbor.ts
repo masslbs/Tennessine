@@ -94,6 +94,23 @@ const ManifestSchema = v.object({
   ),
 });
 
+
+
+
+const AddressDetailsSchema = v.object({
+  Name: v.string(),
+  Address1: v.string(),
+  Address2: v.string(),
+  City: v.string(),
+  PostalCode: v.string(),
+  Country: v.string(),
+  PhoneNumber: v.string(),
+  EmailAddress: v.optional(v.string()),
+});
+
+
+
+
 const ListingSchema = v.record(
   v.string(),
   v.object({
@@ -107,10 +124,9 @@ const ListingSchema = v.record(
     Price: v.number(),
     ViewState: v.number(),
     Options: v.optional(v.array(v.string())),
-    StockStatus: v.optional(v.string()),
+    StockStatuses: v.optional(v.string()),
   }),
 );
-
 const TagSchema = v.record(
   v.string(),
   v.object({
@@ -119,16 +135,6 @@ const TagSchema = v.record(
   }),
 );
 
-const AddressDetailsSchema = v.object({
-  Name: v.string(),
-  Address1: v.string(),
-  Address2: v.string(),
-  City: v.string(),
-  PostalCode: v.string(),
-  Country: v.string(),
-  PhoneNumber: v.string(),
-  EmailAddress: v.optional(v.string()),
-});
 
 const OrderSchema = v.record(
   v.string(),
@@ -148,26 +154,6 @@ const OrderSchema = v.record(
     TxDetails: v.optional(v.string()),
   }),
 );
-
-export const ManifestSchema=  v.object({
-  ShopID: v.bigint(),
-  Payees: CurrencyMapSchema,
-  AcceptedCurrencies: CurrencyMapSchema,
-  PricingCurrency: v.object({
-    ChainID: v.number(),
-    Address: v.string(),
-  }),
-  ShippingRegions: v.record(
-    v.string(),
-    v.object({
-      Country: v.string(),
-      Postcode: v.string(),
-      City: v.string(),
-      PriceModifiers: v.nullable(v.number()),
-    }),
-  ),
-})
-
 
 export const ShopSchema = v.object({
   ...BaseObjectSchema.entries,

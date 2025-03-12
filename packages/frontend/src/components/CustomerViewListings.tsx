@@ -5,13 +5,13 @@
 import { Link } from "@tanstack/react-router";
 
 import { formatUnitsFromString } from "@massmarket/utils";
-import { Listing, ListingViewState } from "../types.ts";
+import { ListingViewState, TListing } from "../types.ts";
 import { useBaseToken } from "../hooks/useBaseToken.ts";
 
 export default function CustomerViewProducts({
   products,
 }: {
-  products: Listing[] | null;
+  products: TListing[] | null;
 }) {
   const { baseToken } = useBaseToken();
 
@@ -23,7 +23,7 @@ export default function CustomerViewProducts({
         </div>
       );
     }
-    return products.map((item: Listing) => {
+    return products.map((item: TListing) => {
       const { metadata } = item;
       if (!metadata) return null;
       const visible =

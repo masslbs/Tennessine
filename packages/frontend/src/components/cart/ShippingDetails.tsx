@@ -13,7 +13,7 @@ import ErrorMessage from "../common/ErrorMessage.tsx";
 import ValidationWarning from "../common/ValidationWarning.tsx";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
-import { CheckoutStep, type ShippingDetails } from "../../types.ts";
+import { CheckoutStep, type TAddressDetails } from "../../types.ts";
 
 const namespace = "frontend:ShippingDetails";
 const debug = logger(namespace);
@@ -76,7 +76,7 @@ export default function ShippingDetails({
       if (!currentOrder) {
         throw new Error("No committed order ID found");
       }
-      const update: Partial<ShippingDetails> = {
+      const update: Partial<TAddressDetails> = {
         name,
         address1: address,
         country,

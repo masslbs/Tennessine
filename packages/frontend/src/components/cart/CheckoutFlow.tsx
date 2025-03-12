@@ -10,10 +10,10 @@ import { assert, logger } from "@massmarket/utils";
 import {
   CheckoutStep,
   ListingId,
-  Order,
   OrderEventTypes,
   OrderId,
   OrderState,
+  TOrder,
 } from "../../types.ts";
 import Cart from "./Cart.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
@@ -66,7 +66,7 @@ export default function CheckoutFlow() {
   }, [isRunning, countdown]);
 
   useEffect(() => {
-    function txHashDetected(res: [OrderEventTypes, Order]) {
+    function txHashDetected(res: [OrderEventTypes, TOrder]) {
       if (res[0] === OrderEventTypes.PAYMENT_TX) {
         const order = res[1];
         const tx = order.txHash as `0x${string}`;
@@ -131,7 +131,7 @@ export default function CheckoutFlow() {
       // Commit the order if it is not already committed
       if (currentOrder!.status !== OrderState.STATE_COMMITTED) {
         await clientStateManager!.stateManager.orders.commit(orderId);
-        debug(`Order ID: ${orderId} committed`);
+        debug(`TOrder ID: ${orderId} committed`);
       }
       setStep(CheckoutStep.shippingDetails);
     } catch (error: unknown) {

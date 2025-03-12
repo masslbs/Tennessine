@@ -13,7 +13,7 @@ import {
   CreateShopStep,
   CurrencyChainOption,
   ShopForm,
-  TCurrency,
+  TCurrencyMap,
 } from "../../../types.ts";
 import { getTokenAddress, isValidAddress } from "../../../utils/mod.ts";
 
@@ -54,21 +54,21 @@ export default function ManifestForm(
     const [sym, chainId] = e.target.value.split("/");
     const address = getTokenAddress(sym, chainId);
     const newAcceptedCurrencies = new Map(AcceptedCurrencies);
-    const chainObj = newAcceptedCurrencies.get(chainId) || new Map();
+    const allChainAddresses = newAcceptedCurrencies.get(chainId) || new Map();
 
     if (e.target.checked) {
-      chainObj.set(address, null);
-      newAcceptedCurrencies.set(chainId, chainObj);
+      allChainAddresses.set(address, null);
+      newAcceptedCurrencies.set(chainId, allChainAddresses);
       handleManifestChange("AcceptedCurrencies", newAcceptedCurrencies);
     } else {
-      if (chainObj) {
-        chainObj.delete(address);
-        newAcceptedCurrencies.set(chainId, chainObj);
+      if (allChainAddresses) {
+        allChainAddresses.delete(address);
+        newAcceptedCurrencies.set(chainId, allChainAddresses);
       }
       handleManifestChange(
         "AcceptedCurrencies",
         AcceptedCurrencies.filter(
-          (c: TCurrency) =>
+          (c: TCurrencyMap) =>
             c.chainId !== Number(chainId) || c.address !== address,
         ),
       );

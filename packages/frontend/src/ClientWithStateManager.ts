@@ -2,17 +2,17 @@ import { privateKeyToAccount } from "viem/accounts";
 import type { PublicClient } from "viem";
 import { BrowserLevel } from "npm:browser-level";
 import { RelayClient, type RelayEndpoint } from "@massmarket/client";
-import { StateManager } from "@massmarket/stateManager";
+import { Database } from "@massmarket/stateManager";
 import { logger } from "@massmarket/utils";
+import { ShopSchema } from "@massmarket/schema/cbor";
 
-import { KeyCard, Listing, Order, ShopId, ShopManifest, Tag } from "./types.ts";
+import { ShopId } from "./types.ts";
 
 const namespace = "frontend:ClientWithStateManager";
 const debug = logger(namespace);
-const logerr = logger(namespace, "error");
 
 export class ClientWithStateManager {
-  public stateManager: StateManager | null = null;
+  public stateManager: Database | null = null;
   public relayClient: RelayClient | null = null;
 
   constructor(
@@ -28,47 +28,19 @@ export class ClientWithStateManager {
     }`;
     debug(`using level db: ${dbName}`);
     const encOption = { valueEncoding: "json" };
-    const db = new BrowserLevel(`./${dbName}`, encOption);
-    // Set up all the stores via sublevel
-    const listingStore = db.sublevel<string, Listing>(
-      "listingStore",
-      encOption,
-    );
-    const tagStore = db.sublevel<string, Tag>("tagStore", encOption);
-    const shopManifestStore = db.sublevel<string, ShopManifest>(
-      "shopManifestStore",
-      encOption,
-    );
-    const orderStore = db.sublevel<string, Order>("orderStore", encOption);
-    const keycardStore = db.sublevel<string, KeyCard>(
-      "keycardStore",
-      encOption,
-    );
-    const keycardNonceStore = db.sublevel<string, number>(
-      "keycardNonceStore",
-      encOption,
+    const store = new BrowserLevel(`./${dbName}`, encOption);
+
+    this.stateManager = new Database(
+      {
+        store,
+        schema: ShopSchema,
+        objectId: this.shopId,
+      },
     );
 
-    this.stateManager = new StateManager(
-      this.relayClient!,
-      listingStore,
-      tagStore,
-      shopManifestStore,
-      orderStore,
-      keycardStore,
-      keycardNonceStore,
-      this.shopId,
-      this.publicClient,
-    );
-
-    // Only start the stream once relay address is added
-    this.stateManager.eventStreamProcessing.catch((err: Error) => {
-      logerr("Error something bad happened in the stream", err);
-    });
-
-    if (window && db) {
+    if (window && store) {
       globalThis.addEventListener("beforeunload", () => {
-        db.close().then(() => {
+        store.close().then(() => {
           debug("level db closed");
         });
       });
