@@ -12,8 +12,8 @@ import Dropdown from "../../common/CurrencyDropdown.tsx";
 import {
   CreateShopStep,
   CurrencyChainOption,
-  ShopCurrencies,
   ShopForm,
+  TCurrency,
 } from "../../../types.ts";
 import { getTokenAddress, isValidAddress } from "../../../utils/mod.ts";
 
@@ -53,17 +53,22 @@ export default function ManifestForm(
   function handleAcceptedCurrencies(e: ChangeEvent<HTMLInputElement>) {
     const [sym, chainId] = e.target.value.split("/");
     const address = getTokenAddress(sym, chainId);
+    const newAcceptedCurrencies = new Map(AcceptedCurrencies);
+    const chainObj = newAcceptedCurrencies.get(chainId) || new Map();
 
     if (e.target.checked) {
-      handleManifestChange(e.target.name, [
-        ...AcceptedCurrencies,
-        { address: address as `0x${string}`, chainId: Number(chainId) },
-      ]);
+      chainObj.set(address, null);
+      newAcceptedCurrencies.set(chainId, chainObj);
+      handleManifestChange("AcceptedCurrencies", newAcceptedCurrencies);
     } else {
+      if (chainObj) {
+        chainObj.delete(address);
+        newAcceptedCurrencies.set(chainId, chainObj);
+      }
       handleManifestChange(
-        e.target.name,
+        "AcceptedCurrencies",
         AcceptedCurrencies.filter(
-          (c: ShopCurrencies) =>
+          (c: TCurrency) =>
             c.chainId !== Number(chainId) || c.address !== address,
         ),
       );

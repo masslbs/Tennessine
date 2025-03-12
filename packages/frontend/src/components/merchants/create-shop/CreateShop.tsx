@@ -34,7 +34,7 @@ import { useShopId } from "../../../hooks/useShopId.ts";
 import { useKeycard } from "../../../hooks/useKeycard.ts";
 import { useShopDetails } from "../../../hooks/useShopDetails.ts";
 import { useChain } from "../../../hooks/useChain.ts";
-import { CreateShopStep, ShopCurrencies, ShopForm } from "../../../types.ts";
+import { CreateShopStep, ShopForm, TManifest } from "../../../types.ts";
 import { removeCachedKeycards } from "../../../utils/mod.ts";
 
 // When create shop CTA is clicked, these functions are called:
@@ -76,7 +76,7 @@ export default function () {
     },
   );
 
-  const [shopManifest, setShopManifest] = useState({
+  const [shopManifest, setShopManifest] = useState<TManifest>({
     ShopID: shopId,
     Payees: new Map(),
     PricingCurrency: new Map(),

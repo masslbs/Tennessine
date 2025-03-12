@@ -149,6 +149,26 @@ const OrderSchema = v.record(
   }),
 );
 
+export const ManifestSchema=  v.object({
+  ShopID: v.bigint(),
+  Payees: CurrencyMapSchema,
+  AcceptedCurrencies: CurrencyMapSchema,
+  PricingCurrency: v.object({
+    ChainID: v.number(),
+    Address: v.string(),
+  }),
+  ShippingRegions: v.record(
+    v.string(),
+    v.object({
+      Country: v.string(),
+      Postcode: v.string(),
+      City: v.string(),
+      PriceModifiers: v.nullable(v.number()),
+    }),
+  ),
+})
+
+
 export const ShopSchema = v.object({
   ...BaseObjectSchema.entries,
   Manifest: ManifestSchema,
