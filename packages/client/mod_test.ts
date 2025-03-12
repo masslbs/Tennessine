@@ -125,7 +125,22 @@ Deno.test(
               1,
               hexToBytes("0x0000000000000000000000000000000000000000"),
             ],
-            Value: null,
+            Value: {},
+          },
+          writer,
+          reader,
+        );
+
+        await writeAndReadPatch(
+          {
+            Op: "add" as const,
+            Path: [
+              "Manifest",
+              "Payees",
+              1,
+              hexToBytes("0x000000000000000000000000000000000000002e"),
+            ],
+            Value: {},
           },
           writer,
           reader,
@@ -133,11 +148,6 @@ Deno.test(
 
         await writer.close();
 
-        // todo
-        // - manifest
-        //   - payess
-        //   - currency
-        //
         // - orders
         // - listings
       });
