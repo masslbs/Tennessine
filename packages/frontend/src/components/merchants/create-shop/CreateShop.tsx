@@ -67,18 +67,28 @@ export default function () {
     CreateShopStep
   >(CreateShopStep.ManifestForm);
 
-  const [shopInputData, setShopInput] = useState<ShopForm>({
-    shopName: "",
-    description: "",
-    avatar: null,
-    payees: [{
-      address: wallet?.account.address || null,
-      chainId: wallet?.chain.id || chain.id,
-      name: "default",
-      callAsContract: false,
-    }],
-    pricingCurrency: { address: null, chainId: null },
-    acceptedCurrencies: [],
+  const [shopMetadata, setShopMetadata] = useState<ShopForm>(
+    {
+      shopName: "",
+      description: "",
+      avatar: null,
+      paymentAddress: wallet?.account?.address || "",
+    },
+  );
+
+  const [shopManifest, setShopManifest] = useState({
+    ShopID: shopId,
+    Payees: new Map(),
+    PricingCurrency: new Map(),
+    AcceptedCurrencies: new Map(),
+    ShippingRegions: {
+      "default": {
+        Country: "",
+        Postcode: "",
+        City: "",
+        PriceModifiers: null,
+      },
+    },
   });
 
   const [storeRegistrationStatus, setStoreRegistrationStatus] = useState<
@@ -101,14 +111,9 @@ export default function () {
 
   useEffect(() => {
     if (wallet?.account) {
-      setShopInput({
-        ...shopInputData,
-        payees: [{
-          address: wallet.account.address,
-          chainId: chain.id,
-          name: "default",
-          callAsContract: false,
-        }],
+      setShopMetadata({
+        ...shopMetadata,
+        paymentAddress: wallet.account.address,
       });
     }
   }, [wallet]);
@@ -231,41 +236,25 @@ export default function () {
     try {
       await clientStateManager!.sendMerchantSubscriptionRequest();
       debug("Sent merchant subscription request");
-
-      const uniqueByChainId = [
-        ...new Set(
-          shopInputData.acceptedCurrencies.map((cur: ShopCurrencies) =>
-            cur.chainId
-          ),
-        ),
-      ];
+      // Since we don't currently have UI for inputting payment address for each chain,
       // Get all unique chain IDs for selected accepted currencies and add payee for each chain.
-      const payees = uniqueByChainId.map((chainId) => {
-        return {
-          address: shopInputData.payees[0].address,
-          callAsContract: false,
-          chainId,
-          name: `default - ${chainId}`,
-        };
+      const uniqueByChainId = Object.keys(shopManifest.AcceptedCurrencies);
+      const Payees = new Map();
+      uniqueByChainId.forEach((chainId) => {
+        Payees.set(chainId, {
+          [shopMetadata.paymentAddress]: {
+            isContract: false,
+            description: `default - ${chainId}`,
+          },
+        });
       });
-      await clientStateManager!.stateManager!.manifest.create(
-        {
-          pricingCurrency: shopInputData.pricingCurrency as ShopCurrencies,
-          acceptedCurrencies: shopInputData.acceptedCurrencies,
-          payees,
-          //TODO: UI for inputting shipping regions.
-          shippingRegions: [
-            {
-              name: "default",
-              country: "",
-              postalCode: "",
-              city: "",
-              orderPriceModifiers: [],
-            },
-          ],
-        },
-        shopId!,
-      );
+      const Manifest = {
+        ...shopManifest,
+        Payees,
+      };
+
+      //db.set("Manifest", Manifest)
+
       debug("Manifest created");
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
@@ -280,14 +269,14 @@ export default function () {
   async function uploadMetadata() {
     setStoreRegistrationStatus("Setting shop metadata...");
     try {
-      const imgPath = shopInputData.avatar
+      const imgPath = shopManifest.avatar
         ? await clientStateManager!.relayClient!.uploadBlob(
-          shopInputData.avatar as FormData,
+          shopManifest.avatar as FormData,
         )
         : { url: null };
       const metadata = {
-        name: shopInputData.shopName,
-        description: shopInputData.description,
+        name: shopManifest.shopName,
+        description: shopManifest.description,
         image: imgPath.url,
       };
       const jsn = JSON.stringify(metadata);
@@ -315,7 +304,7 @@ export default function () {
       }
 
       setShopDetails({
-        name: shopInputData.shopName,
+        name: shopManifest.shopName,
         profilePictureUrl: imgPath.url,
       });
 
@@ -333,9 +322,11 @@ export default function () {
     if (step === CreateShopStep.ManifestForm) {
       return (
         <ManifestForm
-          shopInputData={shopInputData}
-          setShopInput={setShopInput}
+          shopManifest={shopManifest}
+          setShopManifest={setShopManifest}
           setStep={setStep}
+          shopMetadata={shopMetadata}
+          setShopMetadata={setShopMetadata}
         />
       );
     } else if (step === CreateShopStep.ConnectWallet) {

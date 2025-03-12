@@ -18,28 +18,36 @@ import {
 import { getTokenAddress, isValidAddress } from "../../../utils/mod.ts";
 
 export default function ManifestForm(
-  { shopInputData, setShopInput, setStep }: {
-    shopInputData: ShopForm;
-    setShopInput: (shopInputData: ShopForm) => void;
+  { shopManifest, setShopManifest, setStep, setShopMetadata, shopMetadata }: {
+    shopManifest: any;
+    setShopManifest: (shopManifest: any) => void;
     setStep: (step: CreateShopStep) => void;
+    shopMetadata: ShopForm;
+    setShopMetadata: (shopMetadata: ShopForm) => void;
   },
 ) {
   const {
-    shopName,
-    description,
-    pricingCurrency,
-    acceptedCurrencies,
-    payees,
-  } = shopInputData;
+    PricingCurrency,
+    AcceptedCurrencies,
+  } = shopManifest;
+  const { shopName, description, paymentAddress } = shopMetadata;
+
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const chains = useChains();
 
-  function handleInputChange<K extends keyof ShopForm>(
+  function handleManifestChange(
+    field: any,
+    value: any,
+  ) {
+    setShopManifest({ ...shopManifest, [field]: value });
+  }
+
+  function handleShopFormChange<K extends keyof ShopForm>(
     field: K,
     value: ShopForm[K],
   ) {
-    setShopInput({ ...shopInputData, [field]: value });
+    setShopMetadata({ ...shopMetadata, [field]: value });
   }
 
   function handleAcceptedCurrencies(e: ChangeEvent<HTMLInputElement>) {
@@ -47,14 +55,14 @@ export default function ManifestForm(
     const address = getTokenAddress(sym, chainId);
 
     if (e.target.checked) {
-      handleInputChange(e.target.name, [
-        ...acceptedCurrencies,
+      handleManifestChange(e.target.name, [
+        ...AcceptedCurrencies,
         { address: address as `0x${string}`, chainId: Number(chainId) },
       ]);
     } else {
-      handleInputChange(
+      handleManifestChange(
         e.target.name,
-        acceptedCurrencies.filter(
+        AcceptedCurrencies.filter(
           (c: ShopCurrencies) =>
             c.chainId !== Number(chainId) || c.address !== address,
         ),
@@ -65,33 +73,26 @@ export default function ManifestForm(
     const v = option.value as string;
     const [sym, chainId] = v.split("/");
     const address = getTokenAddress(sym, chainId);
-    handleInputChange("pricingCurrency", {
-      address: address as `0x${string}`,
-      chainId: Number(chainId),
+    handleManifestChange("PricingCurrency", {
+      ChainID: Number(chainId),
+      Address: address as `0x${string}`,
     });
   }
 
-  function handlePayee(e: ChangeEvent<HTMLInputElement>) {
-    handleInputChange("payees", [{
-      ...payees[0],
-      address: e.target.value as `0x${string}`,
-    }]);
-  }
-
   function checkRequiredFields() {
-    if (!shopInputData.shopName.length) {
+    if (!shopManifest.shopName.length) {
       return "Shop name is required.";
-    } else if (!shopInputData.description.length) {
+    } else if (!shopManifest.description.length) {
       return "Store description is required.";
-    } else if (!shopInputData.payees[0].address) {
+    } else if (!paymentAddress) {
       return "Payee address is required.";
-    } else if (!pricingCurrency?.address || !pricingCurrency?.chainId) {
+    } else if (!PricingCurrency?.address || !PricingCurrency?.chainId) {
       return "Pricing currency is required.";
-    } else if (!acceptedCurrencies.length) {
+    } else if (!AcceptedCurrencies.length) {
       return "Accepted currencies are required.";
     }
-    const isTokenAddrHex = isValidAddress(pricingCurrency.address);
-    const isPayeeAddHex = isValidAddress(shopInputData.payees[0].address);
+    const isTokenAddrHex = isValidAddress(PricingCurrency.address);
+    const isPayeeAddHex = isValidAddress(paymentAddress);
     if (!isTokenAddrHex) {
       return "Token address must be a valid address.";
     } else if (!isPayeeAddHex) {
@@ -143,13 +144,14 @@ export default function ManifestForm(
             data-testid="shopName"
             value={shopName}
             onChange={(e) => {
-              handleInputChange("shopName", e.target.value);
+              handleShopFormChange("shopName", e.target.value);
             }}
           />
         </form>
         <div className="flex gap-2">
           <AvatarUpload
-            setImgBlob={(blob: FormData) => handleInputChange("avatar", blob)}
+            setImgBlob={(blob: FormData) =>
+              handleShopFormChange("avatar", blob)}
             setErrorMsg={setErrorMsg}
           />
           <p className="flex items-center">Upload PFP</p>
@@ -162,7 +164,8 @@ export default function ManifestForm(
             className="border-2 border-solid mt-1 p-2 rounded-md bg-background-gray"
             data-testid="description"
             value={description}
-            onChange={(e) => handleInputChange("description", e.target.value)}
+            onChange={(e) =>
+              handleShopFormChange("description", e.target.value)}
           />
         </form>
         <div data-testid="accepted-currencies">
@@ -172,7 +175,7 @@ export default function ManifestForm(
               <div key={c.id}>
                 <label className="flex items-center space-x-2">
                   <input
-                    name="acceptedCurrencies"
+                    name="AcceptedCurrencies"
                     type="checkbox"
                     onChange={(e) => handleAcceptedCurrencies(e)}
                     className="form-checkbox h-4 w-4"
@@ -183,7 +186,7 @@ export default function ManifestForm(
 
                 <label className="flex items-center space-x-2">
                   <input
-                    name="acceptedCurrencies"
+                    name="AcceptedCurrencies"
                     type="checkbox"
                     onChange={(e) => handleAcceptedCurrencies(e)}
                     className="form-checkbox h-4 w-4"
@@ -209,7 +212,7 @@ export default function ManifestForm(
             onSubmit={(e) => e.preventDefault()}
             data-testid="pricing-currency"
           >
-            <label htmlFor="pricingCurrency" className="font-medium">
+            <label htmlFor="PricingCurrency" className="font-medium">
               Pricing Currency
             </label>
             <Dropdown
@@ -244,8 +247,9 @@ export default function ManifestForm(
               className="border-2 border-solid mt-1 p-2 rounded-md w-full bg-background-gray"
               id="payees"
               data-testid="payees"
-              value={payees[0].address || ""}
-              onChange={(e) => handlePayee(e)}
+              value={paymentAddress || ""}
+              onChange={(e) =>
+                handleShopFormChange("paymentAddress", e.target.value)}
             />
           </form>
         </div>
