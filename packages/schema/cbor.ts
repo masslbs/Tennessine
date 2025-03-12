@@ -72,66 +72,95 @@ const CurrencyMapSchema = v.record(
     })),
   ),
 );
+const PricingCurrencySchema = v.object({
+  ChainID: v.number(),
+  Address: v.string(),
+});
 
-export const ShopSchema = v.object({
-  ...BaseObjectSchema.entries,
-  Manifest: v.object({
-    ShopID: v.bigint(),
-    Payees: CurrencyMapSchema,
-    AcceptedCurrencies: CurrencyMapSchema,
-    PricingCurrency: v.object({
-      ChainID: v.number(),
-      Address: v.string(),
-    }),
-    ShippingRegions: v.record(
-      v.string(),
-      v.object({
-        Country: v.string(),
-        Postcode: v.string(),
-        City: v.string(),
-        PriceModifiers: v.nullable(v.number()),
-      }),
-    ),
-  }),
-  Orders: v.record(
+const ManifestSchema = v.object({
+  ShopID: v.bigint(),
+  Payees: CurrencyMapSchema,
+  AcceptedCurrencies: CurrencyMapSchema,
+  PricingCurrency: PricingCurrencySchema,
+  ShippingRegions: v.record(
     v.string(),
     v.object({
-      ID: v.number(),
-      Items: v.array(v.object({
-        ListingId: v.number(),
-        Quantity: v.number(),
-        VariationsIDs: v.array(v.number()),
-      })),
-      State: v.number(),
-      InvoiceAddress: v.optional(v.string()),
-      ShippingAddress: v.optional(v.string()),
-      CanceledAt: v.optional(v.date()),
-      ChosenPayee: v.optional(v.string()),
-      ChosenCurrency: v.optional(v.string()),
-      TxDetails: v.optional(v.string()),
-    }),
-  ),
-  Tags: v.record(
-    v.string(),
-    v.object({
-      Name: v.string(),
-      ListingIds: v.array(v.number()),
-    }),
-  ),
-  Listings: v.record(
-    v.string(),
-    v.object({
-      ID: v.number(),
-      Name: v.string(),
-      Metadata: v.object({
-        Title: v.string(),
-        Description: v.string(),
-        Images: v.array(v.string()),
-      }),
-      Price: v.number(),
-      ViewState: v.number(),
-      Options: v.optional(v.array(v.string())),
-      StockStatuses: v.optional(v.string()),
+      Country: v.string(),
+      Postcode: v.string(),
+      City: v.string(),
+      PriceModifiers: v.nullable(v.number()),
     }),
   ),
 });
+
+const ListingSchema = v.record(
+  v.string(),
+  v.object({
+    ID: v.number(),
+    Name: v.string(),
+    Metadata: v.object({
+      Title: v.string(),
+      Description: v.string(),
+      Images: v.array(v.string()),
+    }),
+    Price: v.number(),
+    ViewState: v.number(),
+    Options: v.optional(v.array(v.string())),
+    StockStatus: v.optional(v.string()),
+  }),
+);
+
+const TagSchema = v.record(
+  v.string(),
+  v.object({
+    Name: v.string(),
+    ListingIds: v.array(v.number()),
+  }),
+);
+
+const AddressDetailsSchema = v.object({
+  Name: v.string(),
+  Address1: v.string(),
+  Address2: v.string(),
+  City: v.string(),
+  PostalCode: v.string(),
+  Country: v.string(),
+  PhoneNumber: v.string(),
+  EmailAddress: v.optional(v.string()),
+});
+
+const OrderSchema = v.record(
+  v.string(),
+  v.object({
+    ID: v.number(),
+    Items: v.array(v.object({
+      ListingId: v.number(),
+      Quantity: v.number(),
+      VariationsIDs: v.array(v.number()),
+    })),
+    State: v.number(),
+    InvoiceAddress: v.optional(AddressDetailsSchema),
+    ShippingAddress: v.optional(AddressDetailsSchema),
+    CanceledAt: v.optional(v.date()),
+    ChosenPayee: v.optional(v.string()),
+    ChosenCurrency: v.optional(v.string()),
+    TxDetails: v.optional(v.string()),
+  }),
+);
+
+export const ShopSchema = v.object({
+  ...BaseObjectSchema.entries,
+  Manifest: ManifestSchema,
+  Listings: ListingSchema,
+  Tags: TagSchema,
+  Orders: OrderSchema,
+});
+
+
+export type TManifest = v.InferInput<typeof ManifestSchema>;
+export type TListing = v.InferInput<typeof ListingSchema>;
+export type TTag = v.InferInput<typeof TagSchema>;
+export type TOrder = v.InferInput<typeof OrderSchema>;
+export type TCurrencyMap = v.InferInput<typeof CurrencyMapSchema>;
+export type TPricingCurrency = v.InferInput<typeof PricingCurrencySchema>;
+export type TAddressDetails = v.InferInput<typeof AddressDetailsSchema>;
