@@ -2,6 +2,7 @@ import { expect } from "@std/expect";
 import {
   createTestClient,
   hexToBigInt,
+  hexToBytes,
   http,
   publicActions,
   walletActions,
@@ -121,8 +122,8 @@ Deno.test(
             Path: [
               "Manifest",
               "AcceptedCurrencies",
-              "1",
-              "0x0000000000000000000000000000000000000000",
+              1,
+              hexToBytes("0x0000000000000000000000000000000000000000"),
             ],
             Value: null,
           },
