@@ -11,7 +11,7 @@ import { generatePrivateKey, privateKeyToAccount } from "@wevm/viem/accounts";
 import { foundry } from "@wevm/viem/chains";
 import { mintShop, relayRegGetOwnerOf } from "@massmarket/blockchain";
 
-import { discoverRelay, type IRelayEndpoint, RelayClient } from "./mod.ts";
+import { discoverRelay, RelayClient } from "./mod.ts";
 import type { TPatch } from "@massmarket/schema/cbor";
 
 const relayURL = Deno.env.get("RELAY_ENDPOINT") || "http://localhost:4444/v4";
@@ -57,23 +57,23 @@ Deno.test(
         expect(receipt.status).toBe("success");
       });
 
-      let relayEndpoint: IRelayEndpoint;
       await t.step("should discover relay", async () => {
-        relayEndpoint = await discoverRelay(relayURL);
+        const relayEndpoint = await discoverRelay(relayURL);
         expect(relayEndpoint).toBeDefined();
       });
 
-      let relayClient: RelayClient;
+      // create a relay client
+      const relayEndpoint = await discoverRelay(relayURL);
+      const pk = generatePrivateKey();
+      const kc = privateKeyToAccount(pk);
+      const relayClient = new RelayClient({
+        relayEndpoint,
+        walletClient: blockchainClient,
+        keycard: kc,
+        shopId,
+      });
+
       await t.step("should create relay client and connect", async () => {
-        const pk = generatePrivateKey();
-        const kc = privateKeyToAccount(pk);
-        relayClient = new RelayClient({
-          relayEndpoint,
-          walletClient: blockchainClient,
-          keycard: kc,
-          isGuest: true,
-          shopId,
-        });
         expect(relayClient).toBeDefined();
         const event = await relayClient.connect();
         expect(event.type).toBe("open");
@@ -88,19 +88,22 @@ Deno.test(
         expect(r.statusText).toBe("Created");
       });
 
-      await t.step("should create a manifest", async () => {
-        const s = relayClient.createSubscriptionStream("/", 0);
-        const reader = s.getReader();
+      const s = relayClient.createSubscriptionStream("/", 0);
+      const reader = s.getReader();
+      const ws = relayClient.createWriteStream();
+      const writer = ws.getWriter();
+
+      await t.step("should create and update a manifest", async () => {
         const [m, relayAddr] = await Promise.all([
           reader.read(),
           relayRegGetOwnerOf(blockchainClient, [
             hexToBigInt(relayEndpoint.tokenId),
           ]),
         ]);
+
+        // test that the initial manifest created is signed by the relay
         expect(m.value!.signer).toBe(relayAddr);
         // write the ShippingRegions
-        const ws = relayClient.createWriteStream();
-        const writer = ws.getWriter();
         await writeAndReadPatch(
           {
             Op: "add" as const,
@@ -146,10 +149,11 @@ Deno.test(
           reader,
         );
 
-        await writer.close();
-
-        // - orders
-        // - listings
+        await Promise.all([
+          reader.cancel(),
+          writer.close(),
+        ]);
+        await relayClient.disconnect();
       });
     },
   },

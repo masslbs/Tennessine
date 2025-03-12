@@ -8,13 +8,9 @@ import {
   type StoreInterface,
 } from "@massmarket/merkle-dag-builder";
 import EventTree from "@massmarket/eventTree";
-import type { RelayClient } from "@massmarket/client";
+import type { PushedPatchSet, RelayClient } from "@massmarket/client";
 import { getSubSchema } from "@massmarket/schema/utils";
-import type {
-  BaseObjectSchema,
-  TPatchSet,
-  TRecoveredPatchSet,
-} from "@massmarket/schema/cbor";
+import type { BaseObjectSchema, TPatch } from "@massmarket/schema/cbor";
 
 export type Path = string | string[];
 export type IStoredState = { seqNum: number; root: Uint8Array };
@@ -25,8 +21,9 @@ export default class DataBase<
   readonly events = new EventTree();
   readonly graph: Graph;
   readonly clients: Set<RelayClient> = new Set();
-  mutations: Map<string, Promise<void>> = new Map();
-  #streamsControllers: ReadableStreamDefaultController<TPatchSet>[] = [];
+  readonly mutations: Map<string, Promise<void>> = new Map();
+  #streamsControllers: Set<ReadableStreamDefaultController<TPatch[]>> =
+    new Set();
   constructor(
     public params: {
       schema: T;
@@ -66,20 +63,20 @@ export default class DataBase<
 
   createWriteStream(id: string) {
     // TODO: handle patch rejection
-    return new WritableStream<TRecoveredPatchSet>({
+    return new WritableStream<PushedPatchSet>({
       write: async (patchSet) => {
         // validate the Operation's schema
         const state = await this.loadState(id);
         const localState = await this.loadState("local");
         const validityRange = await this.graph.get(state.root, [
           "account",
-          patchSet.Signer.toString(),
+          patchSet.signer,
         ]);
         // TODO: Validate keycard for a given time range
-        if (!validityRange) {
+        if (!validityRange.node) {
           throw new Error("Invalid keycard");
         }
-        for (const patch of patchSet.Patches) {
+        for (const patch of patchSet.patches) {
           const OpValschema = getSubSchema(this.params.schema, patch.Path);
           // decode the value
           const value = decodeCbor(patch.Value);
@@ -102,23 +99,19 @@ export default class DataBase<
         // save the patch
         // TODO: seqentail reads are faster then random,
         this.graph.setMetaData(
-          [patchSet.Signer, patchSet.Header.KeyCardNonce],
+          [patchSet.signer, patchSet.header.KeyCardNonce],
           patchSet,
         );
       },
     });
   }
 
-  createReadStream() {
-    return new ReadableStream<
-      TPatchSet
-    >({
+  createReadStream(): ReadableStream<TPatch[]> {
+    return new ReadableStream({
       start: (
-        controller: ReadableStreamDefaultController<
-          TPatchSet
-        >,
+        controller: ReadableStreamDefaultController,
       ) => {
-        this.#streamsControllers.push(controller);
+        this.#streamsControllers.add(controller);
       },
     });
   }
@@ -170,15 +163,9 @@ export default class DataBase<
       this.events.emit(path, value);
       // send patch to peers
       this.#streamsControllers.forEach((controller) => {
-        controller.enqueue({
-          Header: {
-            ShopID: this.params.objectId,
-            KeyCardNonce: 0,
-            Timestamp: new Date(),
-            RootHash: root,
-          },
-          Patches: [{ Path: p, Value: encodeCbor(value), Op: "add" }],
-        });
+        controller.enqueue([
+          { Path: p, Value: encodeCbor(value), Op: "add" },
+        ]);
       });
       return metaPromise.then(resolve).catch(reject);
     }

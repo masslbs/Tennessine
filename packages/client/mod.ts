@@ -41,24 +41,22 @@ export interface IRelayClientOptions {
   relayEndpoint: IRelayEndpoint;
   walletClient: WalletClient;
   keycard: Hex | Account;
-  //TODO: deprecate; the relay should know this
-  isGuest: boolean;
   //TODO: make ID part of the path
   shopId: bigint;
   keyCardNonce?: number;
 }
 
-export interface PushedPatchSet {
+export type PushedPatchSet = {
   signer: Hex;
   patches: TPatch[];
   header: TPatchSetHeader;
   sequence: number;
-}
+};
 
 export class RelayClient {
   connection: WebSocket | null = null;
-  walletClient: WalletClient;
   keyCardNonce: number;
+  readonly walletClient: WalletClient;
   readonly keycard;
   readonly relayEndpoint;
   readonly ethAddress: Hex;
@@ -238,9 +236,9 @@ export class RelayClient {
         id = r.payload!;
         this.#subscriptions.set(id.toString(), c);
       },
-      cancel: (reason) => {
+      cancel: async (reason) => {
         this.#subscriptions.delete(id.toString());
-        this.cancelSubscriptionRequest(id, reason);
+        await this.cancelSubscriptionRequest(id, reason);
       },
     });
   }
@@ -311,7 +309,6 @@ export class RelayClient {
     });
   }
 
-  // TODO: make an enum of the possible events
   connect(): Promise<Event> {
     if (
       !this.connection ||
@@ -430,6 +427,10 @@ export class RelayClient {
   }
 }
 
+/**
+ * Get the public key of an account. We have to sign then recover the public key,
+ * because the eth rpc doesn't have a method to get the public key of an account.
+ */
 async function getAccountPublicKey(
   wallet: WalletClient,
   account: Hex | Account,
