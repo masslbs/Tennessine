@@ -10,15 +10,11 @@
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    contracts = {
-      url = "github:masslbs/contracts";
-    };
-    schema = {
-      url = "github:masslbs/network-schema/mapfree-subscription-pushes";
-    };
     relay = {
       url = "git+ssh://git@github.com/masslbs/relay.git?ref=network-v4";
     };
+    schema.follows = "relay/schema";
+    contracts.follows = "relay/contracts";
   };
 
   outputs = inputs @ {
@@ -76,7 +72,7 @@
 
           shellHook = ''
             ${config.pre-commit.settings.installationScript}
-            deno task -r build
+            deno task -r -f contracts build
           '';
 
           buildInputs = with pkgs;

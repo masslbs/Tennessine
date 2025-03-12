@@ -1,5 +1,7 @@
 import * as v from "@valibot/valibot";
 
+const Bytes = v.instance(Uint8Array<ArrayBufferLike>);
+
 // For OpString enum
 const OpStringSchema = v.union([
   v.literal("add"),
@@ -14,7 +16,7 @@ export const PatchSetHeaderSchema = v.object({
   KeyCardNonce: v.union([v.bigint(), v.number()]),
   ShopID: v.union([v.bigint(), v.number()]),
   Timestamp: v.date(),
-  RootHash: v.instance(Uint8Array<ArrayBufferLike>),
+  RootHash: Bytes,
 });
 
 export type TPatchSetHeader = v.InferInput<typeof PatchSetHeaderSchema>;
@@ -38,7 +40,7 @@ export type TPatchSet = v.InferInput<typeof PatchSetSchema>;
 // For SignedPatchSet
 export const SignedPatchSetSchema = v.object({
   ...PatchSetSchema.entries,
-  Signature: v.instance(Uint8Array<ArrayBufferLike>), // assuming objects.Signature is represented as Uint8Array
+  Signature: Bytes,
 });
 
 // Type inference
@@ -62,13 +64,12 @@ export const BaseObjectSchema = v.object({
   ),
 });
 
-const CurrencyMapSchema = v.record(
-  v.string(), // chainid
-  v.record(
-    v.string(), // currency
+const CurrencyMapSchema = v.map(
+  v.number(), // chainid
+  v.map(
+    Bytes, // currency
     v.nullable(v.object({
       isContract: v.boolean(),
-      description: v.string(),
     })),
   ),
 );
@@ -155,7 +156,6 @@ export const ShopSchema = v.object({
   Tags: TagSchema,
   Orders: OrderSchema,
 });
-
 
 export type TManifest = v.InferInput<typeof ManifestSchema>;
 export type TListing = v.InferInput<typeof ListingSchema>;
