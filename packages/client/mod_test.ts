@@ -121,11 +121,10 @@ Deno.test(
             Path: [
               "Manifest",
               "AcceptedCurrencies",
-              1,
+              "1",
+              "0x0000000000000000000000000000000000000000",
             ],
-            Value: {
-              "0x0000000000000000000000000000000000000000": {},
-            },
+            Value: null,
           },
           writer,
           reader,
