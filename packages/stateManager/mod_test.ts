@@ -1,46 +1,20 @@
 import { ShopSchema } from "@massmarket/schema/cbor";
 import { MemStore } from "@massmarket/merkle-dag-builder/memstore";
-// import { Link } from "@massmarket/merkle-dag-builder";
-import Database from "./mod.ts";
+import StateManager from "./mod.ts";
 import { assertEquals } from "@std/assert";
-const manifest = {
-  "ShopID": 2463539455555n,
-  "Payees": {
-    1337: {
-      "0x0000000000000000000000000000000000000000": {
-        isContract: true,
-        description: "My main wallet",
-      },
-    },
-  },
-  "AcceptedCurrencies": {
-    1337: {
-      "0x0000000000000000000000000000000000000000": null,
-      "0x0000000000000000000000000000000000000001": null,
-      "0x0000000000000000000000000000000000000002": null,
-    },
-    2: {
-      "0x0000000000000000000000000000000000000000": null,
-    },
-  },
-  "PricingCurrency": {
-    "ChainID": 1337,
-    "Address": "0x0000000000000000000000000000000000000000",
-  },
-  "ShippingRegions": {
-    "default": {
-      "Country": "DE",
-      "Postcode": "",
-      "City": "",
-      "PriceModifiers": null,
-    },
-  },
-};
+import { decodeCbor } from "@std/cbor";
+
+const ManifestOkayTest = await fetch(
+  `file://${Deno.env.get("MASS_TEST_VECTORS")}/vectors/ManifestOkay.cbor`,
+);
+
+const ManifestOkayTestBytes = await ManifestOkayTest.bytes();
+const manifest = decodeCbor(ManifestOkayTestBytes);
 
 Deno.test("Database Testings", async (t) => {
   await t.step("create a database and a Manifest", async () => {
     const store = new MemStore();
-    const db = new Database({
+    const db = new StateManager({
       store,
       schema: ShopSchema,
       objectId: manifest.ShopID,

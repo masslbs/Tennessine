@@ -15,7 +15,7 @@ import type { BaseObjectSchema, TPatch } from "@massmarket/schema/cbor";
 export type Path = string | string[];
 export type IStoredState = { seqNum: number; root: Uint8Array };
 
-export default class DataBase<
+export default class StateManager<
   T extends v.GenericSchema<v.InferInput<typeof BaseObjectSchema>>,
 > {
   readonly events = new EventTree();

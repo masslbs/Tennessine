@@ -1,15 +1,5 @@
-import jsonpointer from "@sagold/json-pointer";
-import shallowClone from "shallow-clone";
-import { assert } from "@std/assert";
-import {
-  type CborPrimitiveType,
-  type CborTag,
-  type CborType,
-  decodeCbor,
-  encodeCbor,
-} from "@std/cbor";
-import LockMap from "@nullradix/lockmap";
-import { blake3 } from "@noble/hashes/blake3";
+import { any, decode, encode } from "@whiteand/cbor";
+import { assert } from "@std/assert/assert";
 
 /** The interface for a store that is used to store and retrieve blocks */
 export interface StoreInterface {
@@ -17,197 +7,192 @@ export interface StoreInterface {
   set(key: Uint8Array, value: Uint8Array): Promise<void>;
 }
 
-export type LinkValue =
-  | Link
-  | CborPrimitiveType
-  | CborTag<CborType>
-  | Map<CborType, LinkValue>
-  | LinkValue[]
-  | {
-    [k: string]: LinkValue;
-  };
+// Types that can be used as keys to a map
+export type CborKey =
+  | number
+  | bigint
+  | string
+  | boolean
+  | ArrayLike<8>;
 
-// narrowing functions
-function isObject<T>(obj: T): obj is T & Record<string, T> {
-  return obj === Object(obj);
+// Types that can be encoded / decoded as CBOR values
+export type CborValue =
+  | CborKey
+  | ArrayLike<CborValue>
+  | Map<CborValue, CborValue>;
+
+export const codec = {
+  encode(val: CborValue) {
+    return encode((e) => any.encode(val, e));
+  },
+  decode(data: Uint8Array): CborValue {
+    return decode(data, (d: Uint8Array) => any.decode(d), undefined).unwrap();
+  },
+};
+
+export type Hash = Uint8Array;
+
+export async function hash(data: BufferSource): Promise<Hash> {
+  return new Uint8Array(await crypto.subtle.digest("SHA-256", data));
 }
+
 // TODO: we need a some way to denote whether the value is a hash
-function isHash(node: LinkValue): node is Uint8Array {
+export function isHash(node: CborValue): node is Hash {
   return node instanceof Uint8Array && node.length === 32;
 }
 
-/**
- * A class that represents a merkle link in a merkle tree / DAG
- */
-export class Link {
-  /** if the value in the link and been modified */
-  public modified: boolean;
-  public hash?: Uint8Array;
-  /** the value stored in the link */
-  public value?: LinkValue;
-  /** on going mutation operations effecting the value of the link */
-  public mutation: Promise<void> | false = false;
-  /**
-   *  A promise that resolve when all the pending write operating started from this Link has finished.
-   * The difference between this and `mutation` is that this is a promise that resolves when all the
-   *  pending write operations have finished and mutation is a promise that resolves when the current mutation on this Link has finished.
-   */
-  public pendingWriteOperation: Promise<void> = Promise.resolve();
-  /**
-   * If no hash is provided the link is considered modified and when merklelized is called
-   * the value will be encoded and hashed to create a new hash. If a hash is provided the value
-   * and a value, it will be assumed that the value corresponds to the hash
-   */
-  constructor(params: {
-    hash?: Uint8Array;
-    value?: LinkValue;
-  }) {
-    assert(params.hash || params.value, "must provide a cid or value");
-    Object.assign(this, params);
-    this.modified = !this.hash;
-  }
-
-  /** acquires a mutation lock, preventing traversal of the link until the lock is resolved */
-  mutationLock(): Omit<PromiseWithResolvers<void>, "promise"> {
-    const { promise, resolve, reject } = Promise.withResolvers<void>();
-    this.mutation = promise;
-    return { resolve, reject };
-  }
-
-  /** creates a clone of the link */
-  clone(): Link {
-    return new Link({ hash: this.hash, value: shallowClone(this.value) });
+function get(obj: CborValue, key: CborKey): CborValue | undefined {
+  if (obj instanceof Map) {
+    return obj.get(key);
+  } else if (
+    typeof obj === "object" && obj !== null &&
+    (typeof key === "number" ||
+      typeof key === "string" ||
+      typeof key === "symbol")
+  ) {
+    return Reflect.get(obj, key);
+  } else {
+    throw new Error(`Cannot get key ${key} from ${obj}`);
   }
 }
 
-/** This is returned from the walk generator */
-export interface WalkResult {
-  /** the last merkle link that has been traversed through */
-  link: Link;
-  /** the current node in the graph */
-  node: LinkValue;
-  /** the parent of the current node */
-  parent: LinkValue;
-  /** the name of the edge that was traversed */
-  name: string;
-  /** the remaining path to traverse */
-  remainderPath: jsonpointer.JsonPath;
+function set(obj: CborValue, key: CborKey, value: CborValue): void {
+  if (obj instanceof Map) {
+    obj.set(key, value);
+  } else if (
+    typeof obj === "object" && obj !== null &&
+    (typeof key === "number" ||
+      typeof key === "string" ||
+      typeof key === "symbol")
+  ) {
+    Reflect.set(obj, key, value);
+  } else {
+    throw new Error(`Cannot set key ${key} on ${obj}`);
+  }
 }
 
-export class Graph {
-  #loading = new LockMap<string>();
+// store's objects, as long as they can be encoded as CBOR
+export class ObjectStore {
+  store: StoreInterface;
+  constructor(store: StoreInterface) {
+    this.store = store;
+  }
+
+  async get(
+    key: CborValue,
+  ): Promise<CborValue | undefined> {
+    if (!(key instanceof Uint8Array)) {
+      key = codec.encode(key);
+    }
+    const val = await this.store.get(key as Uint8Array);
+    return val ? codec.decode(val) : undefined;
+  }
+
+  async set(key: CborValue, value: CborValue): Promise<void> {
+    if (!(key instanceof Uint8Array)) {
+      key = codec.encode(key);
+    }
+    const ev = codec.encode(value);
+    await this.store.set(key as Uint8Array, ev);
+  }
+}
+
+export class ContentAddressableStore {
+  objStore: ObjectStore;
+  constructor(store: StoreInterface) {
+    this.objStore = new ObjectStore(store);
+  }
+
+  get(key: Hash): Promise<CborValue | undefined> {
+    return this.objStore.get(key);
+  }
+
+  async set(value: CborValue): Promise<Hash> {
+    if (isHash(value)) {
+      return value;
+    } else {
+      const ev = codec.encode(value);
+      const keyb = await crypto.subtle.digest("SHA-256", ev);
+      const key = new Uint8Array(keyb);
+      await this.objStore.store.set(key, ev);
+      return key;
+    }
+  }
+}
+
+export class DAG {
   /** the store that the graph is stored in */
-  public store: StoreInterface;
+  public store: ContentAddressableStore;
 
   /**
    * Creates a new graph
    * @param params.root - the root of the graph, which is always a merkle {@link Link}
    */
   constructor(
-    params: Partial<Graph> & {
+    params: {
       store: StoreInterface;
     },
   ) {
     Object.assign(this, params);
-    this.store = params.store;
+    this.store = new ContentAddressableStore(params.store);
   }
 
   // this loads a hash from the store
-  async #loadHash(hash: Uint8Array): Promise<Link> {
-    // #loading is a map of hashes that we have already requested. We don't want
-    // to rerequiest something that we already started loading
-    const hashString = hash.toString();
-    let loadingOp = this.#loading.get(hashString);
-    if (loadingOp) {
-      return loadingOp;
+  async #loadHash(
+    hash: Hash,
+    clone = false,
+  ): Promise<CborValue> {
+    const val = await this.store.get(hash);
+    if (!val) {
+      throw new Error(`Hash not found: ${hash}`);
+    }
+    if (clone) {
+      // we assume the store shares objects as a caching mechanism
+      // (TODO: it doesn't yet though)
+      // so we need to clone the object to avoid modifying the original
+      return structuredClone(val);
     } else {
-      const { resolve } = this.#loading.lock(hashString);
-      loadingOp = this.#loading.get(hashString);
-      const raw = await this.store.get(hash);
-      const value = decodeCbor(raw!);
-      const link = new Link({ value, hash });
-      resolve(link);
-      return link;
+      return val;
     }
   }
 
-  /** This method stores data in the underlying store, but keys it outside the merkle graph */
-  setMetaData(key: CborType, value: CborType): Promise<void> {
-    return this.store.set(encodeCbor(key), encodeCbor(value));
-  }
-
-  /** This method retrieves data in the underlying store */
-  async getMetaData<T extends CborType = CborType>(
-    key: CborType,
-  ): Promise<T | undefined> {
-    const cbor = await this.store.get(encodeCbor(key));
-    if (cbor) {
-      return decodeCbor(cbor) as T;
-    }
-  }
-
-  /** An async generator that walks a given path, returning a `node`, the node's `parent`, the `name` of the edge and `remainderPath` for each edge traversed in the graph */
+  /**
+   * An async generator that walks a given path
+   */
   async *walk(
-    root: Link,
-    path: string | string[],
-    mutate = false,
-  ): AsyncGenerator<WalkResult> {
-    const remainderPath = jsonpointer.split(path);
-    if (!root.value) {
-      root = await this.#loadHash(root.hash!);
+    root: CborValue | Hash,
+    path: CborKey[],
+    modify = false,
+  ): AsyncGenerator<{
+    value: CborValue;
+    step?: CborKey;
+    remaining: CborKey[];
+  }> {
+    assert(path.length);
+    if (isHash(root)) {
+      root = (await this.#loadHash(root, modify))!;
     }
-    let name,
-      resolve,
-      parent: LinkValue,
-      link = root,
-      node: LinkValue = root.value!;
-
-    try {
-      // only wait if there is a mutation in progress
-      // we don't want the mutationLock to be triggered on nextTick
-      if (link.mutation) await link.mutation;
-      if (mutate) {
-        resolve = link.mutationLock().resolve;
-      }
-      yield {
-        link,
-        node,
-        parent,
-        name: "",
-        remainderPath,
-      };
-      while (remainderPath.length) {
-        name = remainderPath.shift()!;
-        parent = node;
-        if (isObject(parent)) {
-          node = parent[name];
-          if (isHash(node)) {
-            const val = await this.#loadHash(node);
-            node = parent[name] = val;
-          }
-          if (node instanceof Link) {
-            await node.mutation;
-            if (mutate) {
-              resolve!();
-              resolve = node.mutationLock().resolve;
-            }
-            link = node;
-            node = link.value!;
-          }
-          yield {
-            link,
-            node,
-            parent,
-            name,
-            remainderPath,
-          };
-        } else {
-          break;
+    yield {
+      value: root,
+      remaining: path,
+    };
+    while (path.length) {
+      const step = path.shift()!;
+      const value = get(root, step);
+      if (value !== undefined) {
+        root = value;
+        // load hash links
+        if (isHash(root)) {
+          root = await this.#loadHash(root, modify);
         }
+        yield {
+          value,
+          step,
+          remaining: path,
+        };
+      } else {
+        return;
       }
-    } finally {
-      // unlock any pending mutations
-      if (mutate) resolve!();
     }
   }
 
@@ -215,99 +200,46 @@ export class Graph {
    * traverses an object's path and returns the resulting value, if any, in a Promise
    */
   async get(
-    root: Link,
-    path: string | string[],
-  ): Promise<WalkResult> {
-    const last = (await Array.fromAsync(this.walk(root, path))).pop()!;
-    return last;
+    root: CborValue | Hash,
+    path: CborKey[],
+  ): Promise<CborValue | undefined> {
+    const walk = await Array.fromAsync(
+      this.walk(root, path),
+    );
+    if (walk.length + 1 === path.length) {
+      return walk.pop()!.value;
+    }
   }
 
   /**
    * sets a value on a root object given its path
    */
-  set(
-    root: Link,
-    path: string | string[],
-    value: LinkValue,
-  ): Link {
-    const pathArray = jsonpointer.split(path);
-    const newRoot = root.clone();
-    // need to track the parents since we are cloning the nodes
-    // the generator will not have access to the cloned nodes
-    let parent: LinkValue = false;
-    newRoot.pendingWriteOperation = (async () => {
-      for await (
-        let {
-          link,
-          name,
-          node,
-          remainderPath,
-        } of this.walk(newRoot, pathArray, true)
-      ) {
-        // clone as we go along the path!
-        if (isObject(parent)) {
-          // if the node is the link
-          if (node === link.value) {
-            link = link.clone();
-            Reflect.set(parent, name, link);
-            node = link.value!;
-          } else {
-            // todo handle other types of objects such as arrays
-            node = shallowClone(node);
-            Reflect.set(parent, name, node);
-          }
-        }
-        if (!remainderPath.length) {
-          Reflect.set(parent as object, name, value);
-        } else if (!isObject(node)) {
-          // we should check for arrays here too
-          let extnode: LinkValue = {};
-          Reflect.set(parent as object, name, extnode);
-          // extend the path for the left over path names
-          const last = remainderPath!.pop()!;
-          for (const n of remainderPath!) {
-            extnode = extnode[n] = {};
-          }
-          extnode[last] = value;
-        } else {
-          // parent is an object
-          parent = node;
-        }
-      }
-    })();
-    return newRoot;
+  async set(
+    root: CborValue | Hash,
+    path: CborKey[],
+    value: CborValue,
+  ): Promise<CborValue> {
+    assert(path.length);
+    const last = path[path.length - 1];
+    const walk = await Array.fromAsync(
+      this.walk(root, path, true),
+    );
+
+    if (walk.length === path.length) {
+      const parent = path[path.length - 2];
+      set(parent, last, value);
+    } else {
+      throw new Error("Path does not exist");
+    }
+    return walk[0].value;
   }
 
   /**
    * flush an object to the store and create a merkle root
    */
-  async merklelize(
-    root: Link,
-  ): Promise<Uint8Array> {
-    if (root.modified) {
-      const value = root.value!;
-      await this.#merklelizeLeaves(value);
-      const buf = encodeCbor(value as CborType);
-      root.hash = blake3(buf);
-      root.modified = false;
-      await this.store.set(root.hash, buf);
-    }
-    return root.hash!;
-  }
-
-  #merklelizeLeaves(node: LinkValue) {
-    if (isObject(node)) {
-      return Promise.all(
-        Object.entries(node).map(async ([key, value]) => {
-          if (value instanceof Link) {
-            await value.mutation;
-            const hash = await this.merklelize(value);
-            node[key] = hash;
-          } else if (isObject(value)) {
-            await this.#merklelizeLeaves(value);
-          }
-        }),
-      );
-    }
+  merklelize(
+    root: CborValue | Hash,
+  ): Promise<Hash> {
+    return this.store.set(root);
   }
 }

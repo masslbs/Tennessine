@@ -8,11 +8,7 @@
   },
   "license": "MPL-2.0",
   "imports": {
-    "@noble/hashes": "jsr:@noble/hashes@^1.7.1",
-    "@nullradix/lockmap": "jsr:@nullradix/lockmap@^0.2.4",
-    "@sagold/json-pointer": "npm:@sagold/json-pointer@^7.0.0",
     "@std/assert": "jsr:@std/assert@^1.0.11",
-    "@std/cbor": "jsr:@std/cbor@^0.1.6",
-    "shallow-clone": "npm:shallow-clone@^3.0.1"
+    "@whiteand/cbor": "jsr:@whiteand/cbor@^0.11.20"
   }
 }
