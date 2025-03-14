@@ -1,5 +1,5 @@
 {
-  "name": "@massmarket/db",
+  "name": "@massmarket/stateManager",
   "version": "0.0.1",
   "exports": "./mod.ts",
   "imports": {

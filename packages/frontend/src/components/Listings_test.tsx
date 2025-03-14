@@ -17,7 +17,7 @@ import {
   payees,
   shippingRegions,
 } from "@massmarket/schema/testFixtures";
-import { ListingViewState } from "@massmarket/stateManager/types";
+import { ListingViewState } from "../types.ts";
 
 import Listings from "./Listings.tsx";
 import { createRouterWrapper } from "../utils/test.tsx";

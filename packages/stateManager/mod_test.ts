@@ -88,6 +88,21 @@ const manifest = new Map([
 //   "StockStatus": "In Stock",
 // };
 
+
+const listing1 = {
+  "ID": 234,
+  "Name": "testingvalue",
+  "Metadata": {
+    "Title": "testingvalue",
+    "Description": "testingvalue",
+    "Images": ["testingvalue"],
+  },
+  "Price": 100,
+  "ViewState": 1,
+  "Options": [],
+  "StockStatus": "In Stock",
+};
+
 Deno.test("Database Testings", async (t) => {
   await t.step("create a database and a Manifest", async () => {
     const store = new MemStore();
