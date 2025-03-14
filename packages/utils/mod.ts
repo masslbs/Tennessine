@@ -2,16 +2,17 @@
 //
 // SPDX-License-Identifier: MIT
 
+import { any, type DataItem, Decoder, encode } from "@whiteand/cbor";
+import { equal } from "@std/assert";
 import { Buffer } from "buffer";
 import {
   bytesToBigInt,
   bytesToHex,
   formatUnits,
-  hexToBytes,
   numberToBytes,
   parseUnits,
   toBytes,
-} from "viem";
+} from "@wevm/viem";
 import * as Sentry from "@sentry/browser";
 
 // TODO: type case first argument to captureException
@@ -146,35 +147,66 @@ export function formatUnitsFromString(price: string, decimal: number) {
   return formatUnits(BigInt(price), decimal);
 }
 
-interface AddressObj {
-  address: `0x${string}`;
-  chainId: number;
-  callAsContract?: boolean;
-  name?: string;
-}
-
-// TODO: what does this do?
-export function addressToUint256(addressObject: AddressObj) {
-  return {
-    ...addressObject,
-    address: { raw: hexToBytes(addressObject.address) },
-  };
-}
-
-export function addressesToUint256(addressObject: AddressObj[]) {
-  if (!Array.isArray(addressObject)) {
-    throw new Error("addressesToUint256 expects an array of AddressObj");
-  }
-  return addressObject.map((c) => {
-    return {
-      ...c,
-      address: { raw: hexToBytes(c.address) },
-    };
-  });
-}
-
 export function random256BigInt() {
   return bytesToBigInt(randomBytes(32));
+}
+
+export const codec = {
+  encode(val: DataItem) {
+    return encode((e) => any.encode(val, e));
+  },
+  decode(data: Uint8Array): DataItem {
+    const d = new Decoder(data, 0);
+    const decoded = d.decode(any);
+    return decoded.unwrap();
+  },
+};
+
+export type Hash = Uint8Array;
+
+export async function hash(data: BufferSource): Promise<Hash> {
+  return new Uint8Array(await crypto.subtle.digest("SHA-256", data));
+}
+
+// TODO: we need a some way to denote whether the value is a hash
+export function isHash(node: DataItem): node is Hash {
+  return node instanceof Uint8Array && node.length === 32;
+}
+
+export function get(obj: DataItem, key: DataItem): DataItem | undefined {
+  if (obj instanceof Map) {
+    if (
+      typeof key === "object" && key !== null
+    ) {
+      return obj.entries().find(([k]) => equal(k, key));
+    } else {
+      return obj.get(key);
+    }
+  } else if (
+    typeof obj === "object" && obj !== null &&
+    (typeof key === "number" ||
+      typeof key === "string" ||
+      typeof key === "symbol")
+  ) {
+    return Reflect.get(obj, key);
+  } else {
+    throw new Error(`Cannot get key ${key} from ${obj}`);
+  }
+}
+
+export function set(obj: DataItem, key: DataItem, value: DataItem): void {
+  if (obj instanceof Map) {
+    obj.set(key, value);
+  } else if (
+    typeof obj === "object" && obj !== null &&
+    (typeof key === "number" ||
+      typeof key === "string" ||
+      typeof key === "symbol")
+  ) {
+    Reflect.set(obj, key, value);
+  } else {
+    throw new Error(`Cannot set key ${key} on ${obj}`);
+  }
 }
 
 export function getWindowLocation() {

@@ -5,6 +5,7 @@
     "jsr:@noble/secp256k1@^2.2.3": "2.2.3",
     "jsr:@nullradix/ipld-cbor-graph-builder@3.0.0": "3.0.0",
     "jsr:@nullradix/lockmap@*": "0.4.0",
+    "jsr:@nullradix/lockmap@0.4": "0.4.0",
     "jsr:@nullradix/lockmap@~0.2.4": "0.2.4",
     "jsr:@nullradix/merkle-dag-builder@*": "0.0.0",
     "jsr:@std/assert@*": "1.0.11",
@@ -23,11 +24,13 @@
     "jsr:@valibot/valibot@*": "0.42.1",
     "jsr:@valibot/valibot@~0.42.1": "0.42.1",
     "jsr:@wevm/viem@*": "2.21.59",
+    "jsr:@wevm/viem@^2.23.10": "2.23.10",
     "jsr:@wevm/viem@^2.23.4": "2.23.6",
     "jsr:@wevm/viem@^2.23.5": "2.23.6",
     "jsr:@wevm/viem@^2.23.6": "2.23.6",
     "jsr:@whiteand/cbor@*": "0.11.20",
-    "jsr:@whiteand/cbor@~0.11.20": "0.11.20",
+    "jsr:@whiteand/cbor@~0.11.20": "0.11.24",
+    "jsr:@whiteand/cbor@~0.11.24": "0.11.24",
     "npm:@deno/vite-plugin@^1.0.4": "1.0.4_vite@5.4.11__@types+node@22.10.2_@types+node@22.5.4",
     "npm:@ethereumjs/util@*": "8.1.0",
     "npm:@happy-dom/global-registrator@*": "15.11.7",
@@ -83,6 +86,7 @@
     "npm:memory-level@*": "2.0.0",
     "npm:multiformats@^13.3.1": "13.3.2",
     "npm:ox@0.6.7": "0.6.7",
+    "npm:ox@0.6.9": "0.6.9",
     "npm:postcss@^8.4.49": "8.4.49",
     "npm:protobufjs-cli@*": "1.1.3_protobufjs@7.4.0",
     "npm:protobufjs@*": "7.4.0",
@@ -224,7 +228,7 @@
         "npm:@scure/bip39@1.5.4",
         "npm:abitype@1.0.8",
         "npm:isows@1.0.6",
-        "npm:ox"
+        "npm:ox@0.6.7"
       ]
     },
     "@wevm/viem@2.23.6": {
@@ -236,11 +240,29 @@
         "npm:@scure/bip39@1.5.4",
         "npm:abitype@1.0.8",
         "npm:isows@1.0.6",
-        "npm:ox"
+        "npm:ox@0.6.7"
+      ]
+    },
+    "@wevm/viem@2.23.10": {
+      "integrity": "d0b263a04338cf90284dd71ca4441f89c5a11a29650636c0964e6181d9542332",
+      "dependencies": [
+        "npm:@noble/curves@1.8.1",
+        "npm:@noble/hashes@1.7.1",
+        "npm:@scure/bip32@1.6.2",
+        "npm:@scure/bip39@1.5.4",
+        "npm:abitype@1.0.8",
+        "npm:isows@1.0.6",
+        "npm:ox@0.6.9"
       ]
     },
     "@whiteand/cbor@0.11.20": {
       "integrity": "d5ac1254cf10f654260d7268d118eb674b7d194e4287208d859b2fd2d9d2a7e1",
+      "dependencies": [
+        "npm:resultra"
+      ]
+    },
+    "@whiteand/cbor@0.11.24": {
+      "integrity": "5d99f33b9f3b7b9cc1005353083482f1e210346c2431d3194eaa9efe765b81ae",
       "dependencies": [
         "npm:resultra"
       ]
@@ -3862,6 +3884,18 @@
         "eventemitter3"
       ]
     },
+    "ox@0.6.9": {
+      "integrity": "sha512-wi5ShvzE4eOcTwQVsIPdFr+8ycyX+5le/96iAJutaZAvCes1J0+RvpEPg5QDPDiaR0XQQAvZVl7AwqQcINuUug==",
+      "dependencies": [
+        "@adraffy/ens-normalize",
+        "@noble/curves@1.8.1",
+        "@noble/hashes@1.7.1",
+        "@scure/bip32@1.6.2",
+        "@scure/bip39@1.5.4",
+        "abitype@1.0.8",
+        "eventemitter3"
+      ]
+    },
     "p-limit@2.3.0": {
       "integrity": "sha512-//88mFWSJx8lxCzwdAABTJL2MyWB12+eIY7MDL2SqLmAkeKU9qxRvWuSyTjm3FUmpBEMuFfckAIqEaVGUDxb6w==",
       "dependencies": [
@@ -5178,8 +5212,10 @@
       },
       "packages/utils": {
         "dependencies": [
-          "npm:@sentry/browser@*",
-          "npm:viem@2.21.55"
+          "jsr:@std/assert@^1.0.11",
+          "jsr:@wevm/viem@^2.23.10",
+          "jsr:@whiteand/cbor@~0.11.24",
+          "npm:@sentry/browser@*"
         ]
       }
     }

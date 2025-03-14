@@ -1,82 +1,12 @@
-import { any, decode, encode } from "@whiteand/cbor";
 import { assert } from "@std/assert/assert";
-import { equal } from "@std/assert";
+import type { DataItem } from "@whiteand/cbor";
+import { codec, get, type Hash, hash, isHash, set } from "@massmarket/utils";
 
 /** The interface for a store that is used to store and retrieve blocks */
 export interface StoreInterface {
   get(key: Uint8Array): Promise<Uint8Array | undefined>;
   set(key: Uint8Array, value: Uint8Array): Promise<void>;
   append(key: Uint8Array, value: Uint8Array): Promise<void>;
-}
-
-// Types that can be used as keys to a map
-export type CborKey =
-  | number
-  | bigint
-  | string
-  | boolean
-  | ArrayLike<8>;
-
-// Types that can be encoded / decoded as CBOR values
-export type CborValue =
-  | CborKey
-  | ArrayLike<CborValue>
-  | Map<CborValue, CborValue>;
-
-export const codec = {
-  encode(val: CborValue) {
-    return encode((e) => any.encode(val, e));
-  },
-  decode(data: Uint8Array): CborValue {
-    return decode(data, (d: Uint8Array) => any.decode(d), undefined).unwrap();
-  },
-};
-
-export type Hash = Uint8Array;
-
-export async function hash(data: BufferSource): Promise<Hash> {
-  return new Uint8Array(await crypto.subtle.digest("SHA-256", data));
-}
-
-// TODO: we need a some way to denote whether the value is a hash
-export function isHash(node: CborValue): node is Hash {
-  return node instanceof Uint8Array && node.length === 32;
-}
-
-function get(obj: CborValue, key: CborKey): CborValue | undefined {
-  if (obj instanceof Map) {
-    if (
-      typeof key === "object" && key !== null
-    ) {
-      return obj.entries().find(([k]) => equal(k, key));
-    } else {
-      return obj.get(key);
-    }
-  } else if (
-    typeof obj === "object" && obj !== null &&
-    (typeof key === "number" ||
-      typeof key === "string" ||
-      typeof key === "symbol")
-  ) {
-    return Reflect.get(obj, key);
-  } else {
-    throw new Error(`Cannot get key ${key} from ${obj}`);
-  }
-}
-
-function set(obj: CborValue, key: CborKey, value: CborValue): void {
-  if (obj instanceof Map) {
-    obj.set(key, value);
-  } else if (
-    typeof obj === "object" && obj !== null &&
-    (typeof key === "number" ||
-      typeof key === "string" ||
-      typeof key === "symbol")
-  ) {
-    Reflect.set(obj, key, value);
-  } else {
-    throw new Error(`Cannot set key ${key} on ${obj}`);
-  }
 }
 
 // store's objects, as long as they can be encoded as CBOR
@@ -87,8 +17,8 @@ export class ObjectStore {
   }
 
   async get(
-    key: CborValue,
-  ): Promise<CborValue | undefined> {
+    key: DataItem,
+  ): Promise<DataItem> {
     if (!(key instanceof Uint8Array)) {
       key = codec.encode(key);
     }
@@ -96,7 +26,7 @@ export class ObjectStore {
     return val ? codec.decode(val) : undefined;
   }
 
-  async set(key: CborValue, value: CborValue): Promise<void> {
+  async set(key: DataItem, value: DataItem): Promise<void> {
     if (!(key instanceof Uint8Array)) {
       key = codec.encode(key);
     }
@@ -104,7 +34,7 @@ export class ObjectStore {
     await this.store.set(key as Uint8Array, ev);
   }
 
-  append(key: CborValue, value: CborValue): Promise<void> {
+  append(key: DataItem, value: DataItem): Promise<void> {
     if (!(key instanceof Uint8Array)) {
       key = codec.encode(key);
     }
@@ -120,11 +50,11 @@ export class ContentAddressableStore {
     this.objStore = new ObjectStore(store);
   }
 
-  get(key: Hash): Promise<CborValue | undefined> {
+  get(key: Hash): Promise<DataItem | undefined> {
     return this.objStore.get(key);
   }
 
-  async set(value: CborValue): Promise<Hash> {
+  async set(value: DataItem): Promise<Hash> {
     if (isHash(value)) {
       return value;
     } else {
@@ -137,7 +67,7 @@ export class ContentAddressableStore {
   }
 }
 
-export type RootValue = CborValue | Hash | Promise<CborValue | Hash>;
+export type RootValue = DataItem | Hash | Promise<DataItem | Hash>;
 
 export class DAG {
   /** the store that the graph is stored in */
@@ -154,7 +84,7 @@ export class DAG {
   async #loadHash(
     hash: Hash,
     clone = false,
-  ): Promise<CborValue> {
+  ): Promise<DataItem> {
     const val = await this.store.get(hash);
     if (!val) {
       throw new Error(`Hash not found: ${hash}`);
@@ -174,11 +104,11 @@ export class DAG {
    */
   async *walk(
     root: RootValue,
-    path: CborKey[],
+    path: DataItem[],
     modify = false,
   ): AsyncGenerator<{
-    value: CborValue;
-    step?: CborKey;
+    value: DataItem;
+    step?: DataItem;
   }> {
     if (root instanceof Promise) {
       root = await root;
@@ -212,8 +142,8 @@ export class DAG {
    */
   async get(
     root: RootValue,
-    path: CborKey[],
-  ): Promise<CborValue | undefined> {
+    path: DataItem[],
+  ): Promise<DataItem> {
     const walk = await Array.fromAsync(
       this.walk(root, path),
     );
@@ -228,9 +158,9 @@ export class DAG {
    */
   async set(
     root: RootValue,
-    path: CborKey[],
-    value: CborValue,
-  ): Promise<CborValue> {
+    path: DataItem[],
+    value: DataItem,
+  ): Promise<DataItem> {
     assert(path.length);
     const last = path[path.length - 1];
     path = path.slice(0, -1);
