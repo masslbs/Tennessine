@@ -7,7 +7,8 @@ import {
 } from "@massmarket/merkle-dag-builder";
 import EventTree from "@massmarket/eventTree";
 import type { PushedPatchSet, RelayClient } from "@massmarket/client";
-import { getSubSchema } from "@massmarket/schema/utils";
+// import { getSubSchema, } from "@massmarket/schema/utils";
+import { codec } from "@massmarket/utils";
 import type { BaseObjectSchema, TPatch } from "@massmarket/schema/cbor";
 
 interface IStoredState {
@@ -45,7 +46,9 @@ export default class StateManager<
     } else {
       return {
         seqNum: 0,
-        root: v.getDefaults(this.params.schema) as CborValue,
+        root: new Map(),
+        // TODO: add class for shop at some point
+        // root: v.getDefaults(this.params.schema) as CborValue,
       };
     }
   }
@@ -133,12 +136,6 @@ export default class StateManager<
 
   // TODO: rename LinkValue to NodeValue ?
   async set(path: Path, value: CborType, id = "local") {
-    const p: string[] = jsonpointer.split(path);
-    // TODO: it would be nice to get the type instead of just generic
-    const schema = getSubSchema(this.params.schema, p);
-    // validate against the schema
-    v.parse(schema, value);
-
     const ongoingWriteOp = this.mutations.get(id);
     const { promise, resolve, reject } = Promise.withResolvers<void>();
     this.mutations.set(id, promise);
@@ -150,7 +147,7 @@ export default class StateManager<
     const result = await this.graph.get(state.root, path);
     //ignore sets that do not change the value
     // TODO: rename node to value?
-    if (result.node !== value) {
+    if (result !== value) {
       state.root = this.graph.set(state.root, path, value);
       state.seqNum += 1;
       const root = await this.graph.merklelize(state.root);
@@ -163,7 +160,7 @@ export default class StateManager<
       // send patch to peers
       this.#streamsControllers.forEach((controller) => {
         controller.enqueue([
-          { Path: p, Value: encodeCbor(value), Op: "add" },
+          { Path: path, Value: codec.encode(value), Op: "add" },
         ]);
       });
       return metaPromise.then(resolve).catch(reject);
@@ -174,7 +171,9 @@ export default class StateManager<
     // wait for any pending writes to complete
     await this.mutations.get(id);
     const state = await this.loadState(id);
+    console.log(`stateManager.get(${path})`);
+    console.log(`state:`, state);
     const res = await this.graph.get(state.root, path);
-    return res.node;
+    return res;
   }
 }
