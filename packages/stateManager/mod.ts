@@ -1,33 +1,22 @@
-import * as v from "@valibot/valibot";
-import {
-  type CborValue,
-  DAG,
-  type Hash,
-  type StoreInterface,
-} from "@massmarket/merkle-dag-builder";
+import { DAG, type StoreInterface } from "@massmarket/merkle-dag-builder";
 import EventTree from "@massmarket/eventTree";
 import type { PushedPatchSet, RelayClient } from "@massmarket/client";
-// import { getSubSchema, } from "@massmarket/schema/utils";
-import { codec } from "@massmarket/utils";
-import type { BaseObjectSchema, TPatch } from "@massmarket/schema/cbor";
+import { codec, type Hash } from "@massmarket/utils";
+import type { DataItem } from "@whiteand/cbor";
 
 interface IStoredState {
   seqNum: number;
-  root: CborValue | Hash | Promise<CborValue | Hash>;
+  root: DataItem | Hash | Promise<DataItem | Hash>;
 }
 
-export default class StateManager<
-  T extends v.GenericSchema<v.InferInput<typeof BaseObjectSchema>>,
-> {
+export default class StateManager {
   readonly events = new EventTree();
   readonly graph: DAG;
   readonly clients: Set<RelayClient> = new Set();
   readonly mutations: Map<string, Promise<void>> = new Map();
-  #streamsControllers: Set<ReadableStreamDefaultController<TPatch[]>> =
-    new Set();
+  #streamsControllers: Set<ReadableStreamDefaultController> = new Set();
   constructor(
     public params: {
-      schema: T;
       store: StoreInterface;
       objectId: bigint;
     },
@@ -79,11 +68,10 @@ export default class StateManager<
           throw new Error("Invalid keycard");
         }
         for (const patch of patchSet.patches) {
-          const OpValschema = getSubSchema(this.params.schema, patch.Path);
-          // decode the value
           const value = patch.Value;
-          // validate the Operation's value if any
-          v.parse(OpValschema, value);
+          // TODO validate the Operation's value if any
+          // const OpValschema = getSubSchema(this.params.schema, patch.Path);
+          // v.parse(OpValschema, value);
           // apply the operation
           if (patch.Op === "add") {
             state.root = this.graph.set(state.root, patch.Path, value);
@@ -98,17 +86,17 @@ export default class StateManager<
           }
         }
         // TODO: check stateroot
-        // save the patch
-        // TODO: seqentail reads are faster then random,
+        // TODO: we are saving the patches here
+        // incase we want to replay the log, but we have no way to get them out
         this.graph.store.objStore.append(
           [patchSet.signer, "patches"],
-          patchSet,
+          patchSet.patches,
         );
       },
     });
   }
 
-  createReadStream(): ReadableStream<TPatch[]> {
+  createReadStream(): ReadableStream {
     return new ReadableStream({
       start: (
         controller: ReadableStreamDefaultController,
@@ -135,7 +123,7 @@ export default class StateManager<
   }
 
   // TODO: rename LinkValue to NodeValue ?
-  async set(path: Path, value: CborType, id = "local") {
+  async set(path: DataItem[], value: DataItem, id = "local") {
     const ongoingWriteOp = this.mutations.get(id);
     const { promise, resolve, reject } = Promise.withResolvers<void>();
     this.mutations.set(id, promise);

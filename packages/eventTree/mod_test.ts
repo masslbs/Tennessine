@@ -17,16 +17,16 @@ Deno.test("Tree Event Testings", async (t) => {
   });
   await t.step("Tree Events!", async () => {
     const tree = new Tree();
-    assertEquals(tree.path, "/");
+    assertEquals(tree.path, []);
     const { promise, resolve } = Promise.withResolvers();
     let event = "test";
-    const f = tree.on("a/b/c/d/e/f", resolve);
+    const f = tree.on(["a", "b", "c", "d", "e", "f"], resolve);
     f.emit(event);
     const val = await promise;
     assertEquals(val, event, "Event should be dispatched");
 
-    const d = tree.get("/a/b/c/d")!;
-    assertEquals(d.path, "/a/b/c/d");
+    const d = tree.get(["a", "b", "c", "d"])!;
+    assertEquals(d.path, ["a", "b", "c", "d"]);
     let val2;
     d.on((e) => {
       val2 = e;
@@ -46,25 +46,28 @@ Deno.test("Tree Event Testings", async (t) => {
     const func = (e: string) => {
       val = e;
     };
-    const f = tree.on("a/b/c/d/e/f", func);
-    assertEquals(subArray, [{ subscribe: true, path: "/a/b/c/d/e/f" }]);
+    const f = tree.on(["a", "b", "c", "d", "e", "f"], func);
+    assertEquals(subArray, [{
+      subscribe: true,
+      path: ["a", "b", "c", "d", "e", "f"],
+    }]);
 
-    tree.on("a/b", func);
+    tree.on(["a", "b"], func);
     assertEquals(subArray, [
-      { subscribe: true, path: "/a/b" },
+      { subscribe: true, path: ["a", "b"] },
       {
         subscribe: false,
-        path: "/a/b/c/d/e/f",
+        path: ["a", "b", "c", "d", "e", "f"],
       },
     ]);
 
-    tree.off("a/b", func);
+    tree.off(["a", "b"], func);
 
     assertEquals(subArray, [
-      { subscribe: false, path: "/a/b" },
+      { subscribe: false, path: ["a", "b"] },
       {
         subscribe: true,
-        path: "/a/b/c/d/e/f",
+        path: ["a", "b", "c", "d", "e", "f"],
       },
     ]);
 
@@ -72,11 +75,11 @@ Deno.test("Tree Event Testings", async (t) => {
     assertEquals(subArray, [
       {
         subscribe: false,
-        path: "/a/b/c/d/e/f",
+        path: ["a", "b", "c", "d", "e", "f"],
       },
     ]);
 
-    tree.emit("a/b/c/d/e/f", "test");
+    tree.emit(["a", "b", "c", "d", "e", "f"], "test");
     assertEquals(val, undefined, "Event should not be dispatched");
   });
 });

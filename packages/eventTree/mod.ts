@@ -9,7 +9,6 @@
  * `SubscriptionUpdate`s are aware of the path in the tree where the subscription was added or removed and will not emit events for children nodes if the parent node has a subscription.
  * @module
  */
-import jsonpointer from "npm:@sagold/json-pointer";
 
 /** A callback function that gets called when an event is emitted */
 export type EventListener<T> = (
@@ -17,12 +16,17 @@ export type EventListener<T> = (
   source: EventEmmiter<T> | object,
 ) => void;
 
+export type Step = {
+  toString(): string;
+};
+export type Path = Step[];
+
 /** Used to express changes to which part of the tree is needs a subscription to */
 export interface SubscriptionUpdate {
   /** Whether to add a subscription or remove a subscription */
   subscribe: boolean;
   /** the path on the object tree to subscribe/unsubscribe */
-  path: string;
+  path: Path;
 }
 
 /**
@@ -78,8 +82,8 @@ export default class EventTree<T> {
   ) {}
 
   /** returns the node's path in a tree */
-  get path(): string {
-    return "/" + this.#path().join("/");
+  get path(): Path {
+    return this.#path();
   }
 
   /** returns the root node of the tree */
@@ -87,7 +91,7 @@ export default class EventTree<T> {
     return this.parentNode?.root ?? this;
   }
 
-  #path(): string[] {
+  #path(): Path {
     return this.parentNode ? [...this.parentNode.#path(), this.name] : [];
   }
 
@@ -107,14 +111,13 @@ export default class EventTree<T> {
 
   /** subscribes to an event on a path in the tree */
   on(
-    ...args: [path: string | string[], listener: EventListener<T>] | [
+    ...args: [path: Path, listener: EventListener<T>] | [
       listener: EventListener<T>,
     ]
   ): EventTree<T> {
-    const [path, listener] = args.length === 1 ? ["", args[0]] : args;
-    const p: string[] = jsonpointer.split(path);
-    if (p.length) {
-      return this.#getOrExtendPath(p).on(p, listener);
+    const [path, listener] = args.length === 1 ? [[], args[0]] : args;
+    if (path.length) {
+      return this.#getOrExtendPath(path).on(path, listener);
     } else {
       if (!this.hasListeners()) {
         const update: SubscriptionUpdate[] = [];
@@ -137,8 +140,8 @@ export default class EventTree<T> {
     }
   }
 
-  #removeEdge(edge: string) {
-    delete this.#edges[edge];
+  #removeEdge(edge: Step) {
+    delete this.#edges[edge.toString()];
     if (!Object.keys(this.#edges).length && this.parentNode) {
       this.parentNode.#removeEdge(this.name);
     }
@@ -146,14 +149,13 @@ export default class EventTree<T> {
 
   /** unsubscribes from an event on a path in the tree */
   off(
-    ...args: [path: string | string[], listener: EventListener<T>] | [
+    ...args: [path: Path, listener: EventListener<T>] | [
       listener: EventListener<T>,
     ]
   ): EventTree<T> | void {
-    const [path, listener] = args.length === 1 ? ["", args[0]] : args;
-    const p: string[] = jsonpointer.split(path);
-    if (p.length) {
-      return this.#getPath(p)?.off(p, listener);
+    const [path, listener] = args.length === 1 ? [[], args[0]] : args;
+    if (path.length) {
+      return this.#getPath(path)?.off(path, listener);
     } else {
       this.emmiter.off(listener);
       if (!Object.keys(this.#edges).length && this.parentNode) {
@@ -179,12 +181,11 @@ export default class EventTree<T> {
 
   /** emits an event on a path in the tree */
   emit(
-    ...args: [path: string | string[], event: T] | [event: T]
+    ...args: [path: Path, event: T] | [event: T]
   ): EventTree<T> | void {
     const [path, event] = args.length === 1 ? [[], args[0]] : args;
-    const p: string[] = jsonpointer.split(path);
-    if (p.length) {
-      return this.#getOrExtendPath(p).emit(event);
+    if (path.length) {
+      return this.#getOrExtendPath(path).emit(event);
     } else {
       this.emmiter.emit(event, this);
       this.parentNode?.emit(event);
@@ -193,15 +194,14 @@ export default class EventTree<T> {
   }
 
   /** get a node in the tree by path */
-  get(path: string | string[]): EventTree<T> | undefined {
-    const p: string[] = jsonpointer.split(path);
-    return this.#getPath(p);
+  get(path: Path): EventTree<T> | undefined {
+    return this.#getPath(path);
   }
 
-  #getPath(p: string[]): EventTree<T> | undefined {
+  #getPath(p: Path): EventTree<T> | undefined {
     if (p.length) {
       const edge = p.shift();
-      const next = this.#edges[edge!];
+      const next = this.#edges[edge!.toString()];
       if (next) {
         return next.#getPath(p);
       }
@@ -210,9 +210,9 @@ export default class EventTree<T> {
     }
   }
 
-  #getOrExtendPath(p: string[]): EventTree<T> {
+  #getOrExtendPath(p: Path): EventTree<T> {
     if (p.length) {
-      const edge = p.shift()!;
+      const edge = p.shift()!.toString();
       if (!this.#edges[edge]) {
         this.#edges[edge] = new EventTree(edge, this);
       }

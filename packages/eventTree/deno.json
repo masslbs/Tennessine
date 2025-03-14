@@ -2,5 +2,8 @@
   "name": "@massmarket/eventTree",
   "version": "0.0.1",
   "description": "A sythentic event tree",
-  "exports": "./mod.ts"
+  "exports": "./mod.ts",
+  "imports": {
+    "@hugoalh/fnv": "jsr:@hugoalh/fnv@^0.1.0"
+  }
 }
