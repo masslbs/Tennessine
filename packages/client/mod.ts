@@ -18,16 +18,20 @@ import { createSiweMessage } from "@wevm/viem/siwe";
 import { hashMessage } from "@wevm/viem/utils";
 import { ProjectivePoint } from "@noble/secp256k1";
 import LockMap from "@nullradix/lockmap";
-import * as v from "@valibot/valibot";
 import schema, { EnvelopMessageTypes } from "@massmarket/schema";
-import {
-  PatchSchema,
-  PatchSetHeaderSchema,
-  type TPatch,
-  type TPatchSetHeader,
-  type TSignedPatchSet,
+import type {
+  TPatch,
+  TPatchSetHeader,
+  TSignedPatchSet,
 } from "@massmarket/schema/cbor";
-import { decodeBufferToString, hexToBase64, logger } from "@massmarket/utils";
+import {
+  codec,
+  decodeBufferToString,
+  hexToBase64,
+  logger,
+} from "@massmarket/utils";
+
+import type { DataItem } from "@whiteand/cbor";
 
 const debug = logger("relayClient");
 
@@ -47,7 +51,7 @@ export interface IRelayClientOptions {
 
 export type PushedPatchSet = {
   signer: Hex;
-  patches: TPatch[];
+  patches: DataItem;
   header: TPatchSetHeader;
   sequence: number;
 };
@@ -150,20 +154,16 @@ export class RelayClient {
             .subscriptionPushRequest
             .subscriptionId!.toString();
           const controller = this.#subscriptions.get(subscriptionId);
-          console.log("id", controller);
           assert(controller, "invalad subscription recv");
 
           try {
             for (const ppset of envelope.subscriptionPushRequest.sets!) {
-              const dh = decodeCbor(ppset.header!);
+              const header = codec.decode(ppset.header!);
               // @ts-ignore we will soon depracte pbjs
               const sequence = ppset!.shopSeqNo!.toNumber();
-              const header = v.parse(PatchSetHeaderSchema, dh);
-              const patches = ppset.patches!.map((patch) => {
-                const decodedPatch = decodeCbor(patch);
-                // console.log("patch", decodedPatch);
-                return v.parse(PatchSchema, decodedPatch);
-              });
+              const patches = ppset.patches!.map((patch) =>
+                codec.decode(patch)
+              );
 
               // This doesn't really need to be async
               // viem does an async import of @noble/secp256k1
