@@ -1,10 +1,8 @@
-import { type CborType, decodeCbor, encodeCbor } from "@std/cbor";
 import * as v from "@valibot/valibot";
-import jsonpointer from "@sagold/json-pointer";
 import {
-  Graph,
-  Link,
-  type LinkValue,
+  type CborValue,
+  DAG,
+  type Hash,
   type StoreInterface,
 } from "@massmarket/merkle-dag-builder";
 import EventTree from "@massmarket/eventTree";
@@ -12,14 +10,16 @@ import type { PushedPatchSet, RelayClient } from "@massmarket/client";
 import { getSubSchema } from "@massmarket/schema/utils";
 import type { BaseObjectSchema, TPatch } from "@massmarket/schema/cbor";
 
-export type Path = string | string[];
-export type IStoredState = { seqNum: number; root: Uint8Array };
+interface IStoredState {
+  seqNum: number;
+  root: CborValue | Hash | Promise<CborValue | Hash>;
+}
 
 export default class StateManager<
   T extends v.GenericSchema<v.InferInput<typeof BaseObjectSchema>>,
 > {
   readonly events = new EventTree();
-  readonly graph: Graph;
+  readonly graph: DAG;
   readonly clients: Set<RelayClient> = new Set();
   readonly mutations: Map<string, Promise<void>> = new Map();
   #streamsControllers: Set<ReadableStreamDefaultController<TPatch[]>> =
@@ -31,34 +31,32 @@ export default class StateManager<
       objectId: bigint;
     },
   ) {
-    this.graph = new Graph(params);
+    this.graph = new DAG(params.store);
   }
 
-  async loadState(view = "local") {
-    const storedState = await this.graph.getMetaData([
+  async loadState(view = "local"): Promise<IStoredState> {
+    const storedState = await this.graph.store.objStore.get([
       this.params.objectId,
       view,
-    ]) as
-      | IStoredState
-      | undefined;
+    ]);
 
-    const state = storedState
-      ? {
-        seqNum: storedState.seqNum,
-        root: new Link({ hash: storedState.root }),
-      }
-      : {
+    if (storedState instanceof Map) {
+      return Object.fromEntries(storedState);
+    } else {
+      return {
         seqNum: 0,
-        root: new Link({ value: v.getDefaults(this.params.schema) }),
+        root: v.getDefaults(this.params.schema) as CborValue,
       };
-    return state;
+    }
   }
 
-  #saveState(state: IStoredState, view = "local") {
-    return this.graph.setMetaData([
+  async #saveState(state: IStoredState, view = "local") {
+    // wait for root to be resolved
+    state.root = await state.root;
+    return this.graph.store.objStore.set([
       this.params.objectId,
       view,
-    ], state);
+    ], new Map(Object.entries(state)));
   }
 
   createWriteStream(id: string) {
@@ -71,15 +69,16 @@ export default class StateManager<
         const validityRange = await this.graph.get(state.root, [
           "account",
           patchSet.signer,
-        ]);
+        ]) as Map<string, string>;
+
         // TODO: Validate keycard for a given time range
-        if (!validityRange.node) {
+        if (!validityRange.get("node")) {
           throw new Error("Invalid keycard");
         }
         for (const patch of patchSet.patches) {
           const OpValschema = getSubSchema(this.params.schema, patch.Path);
           // decode the value
-          const value = decodeCbor(patch.Value);
+          const value = patch.Value;
           // validate the Operation's value if any
           v.parse(OpValschema, value);
           // apply the operation
@@ -98,8 +97,8 @@ export default class StateManager<
         // TODO: check stateroot
         // save the patch
         // TODO: seqentail reads are faster then random,
-        this.graph.setMetaData(
-          [patchSet.signer, patchSet.header.KeyCardNonce],
+        this.graph.store.objStore.append(
+          [patchSet.signer, "patches"],
           patchSet,
         );
       },

@@ -1,10 +1,12 @@
 import { any, decode, encode } from "@whiteand/cbor";
 import { assert } from "@std/assert/assert";
+import { equal } from "@std/assert";
 
 /** The interface for a store that is used to store and retrieve blocks */
 export interface StoreInterface {
   get(key: Uint8Array): Promise<Uint8Array | undefined>;
   set(key: Uint8Array, value: Uint8Array): Promise<void>;
+  append(key: Uint8Array, value: Uint8Array): Promise<void>;
 }
 
 // Types that can be used as keys to a map
@@ -43,7 +45,13 @@ export function isHash(node: CborValue): node is Hash {
 
 function get(obj: CborValue, key: CborKey): CborValue | undefined {
   if (obj instanceof Map) {
-    return obj.get(key);
+    if (
+      typeof key === "object" && key !== null
+    ) {
+      return obj.entries().find(([k]) => equal(k, key));
+    } else {
+      return obj.get(key);
+    }
   } else if (
     typeof obj === "object" && obj !== null &&
     (typeof key === "number" ||
@@ -94,6 +102,15 @@ export class ObjectStore {
     }
     const ev = codec.encode(value);
     await this.store.set(key as Uint8Array, ev);
+  }
+
+  append(key: CborValue, value: CborValue): Promise<void> {
+    if (!(key instanceof Uint8Array)) {
+      key = codec.encode(key);
+    }
+
+    const ev = codec.encode(value);
+    return this.store.append(key as Uint8Array, ev);
   }
 }
 

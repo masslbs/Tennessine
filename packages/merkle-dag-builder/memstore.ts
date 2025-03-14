@@ -13,4 +13,13 @@ export class MemStore implements StoreInterface {
     this.#data.set("key" + key.toString(), value);
     return Promise.resolve();
   }
+
+  async append(key: Uint8Array, value: Uint8Array): Promise<void> {
+    const existingValue = await this.get(key);
+    if (existingValue) {
+      return this.set(key, new Uint8Array([...existingValue, ...value]));
+    } else {
+      return this.set(key, value);
+    }
+  }
 }

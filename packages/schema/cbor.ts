@@ -94,9 +94,6 @@ const ManifestSchema = v.object({
   ),
 });
 
-
-
-
 const AddressDetailsSchema = v.object({
   Name: v.string(),
   Address1: v.string(),
@@ -107,9 +104,6 @@ const AddressDetailsSchema = v.object({
   PhoneNumber: v.string(),
   EmailAddress: v.optional(v.string()),
 });
-
-
-
 
 const ListingSchema = v.record(
   v.string(),
@@ -134,7 +128,6 @@ const TagSchema = v.record(
     ListingIds: v.array(v.number()),
   }),
 );
-
 
 const OrderSchema = v.record(
   v.string(),
@@ -170,3 +163,4 @@ export type TOrder = v.InferInput<typeof OrderSchema>;
 export type TCurrencyMap = v.InferInput<typeof CurrencyMapSchema>;
 export type TPricingCurrency = v.InferInput<typeof PricingCurrencySchema>;
 export type TAddressDetails = v.InferInput<typeof AddressDetailsSchema>;
+export type IShopSchema = v.InferInput<typeof ShopSchema>;

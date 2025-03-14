@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: MIT
 import { assert } from "@std/assert";
-import { decodeCbor, encodeCbor } from "@std/cbor";
 import {
   type Account,
   type Hex,
