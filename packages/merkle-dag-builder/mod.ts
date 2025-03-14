@@ -112,7 +112,7 @@ export class ContentAddressableStore {
       return value;
     } else {
       const ev = codec.encode(value);
-      const keyb = await crypto.subtle.digest("SHA-256", ev);
+      const keyb = await hash(ev);
       const key = new Uint8Array(keyb);
       await this.objStore.store.set(key, ev);
       return key;
@@ -120,21 +120,17 @@ export class ContentAddressableStore {
   }
 }
 
+export type RootValue = CborValue | Hash | Promise<CborValue | Hash>;
+
 export class DAG {
   /** the store that the graph is stored in */
   public store: ContentAddressableStore;
 
   /**
    * Creates a new graph
-   * @param params.root - the root of the graph, which is always a merkle {@link Link}
    */
-  constructor(
-    params: {
-      store: StoreInterface;
-    },
-  ) {
-    Object.assign(this, params);
-    this.store = new ContentAddressableStore(params.store);
+  constructor(store: StoreInterface) {
+    this.store = new ContentAddressableStore(store);
   }
 
   // this loads a hash from the store
@@ -160,24 +156,23 @@ export class DAG {
    * An async generator that walks a given path
    */
   async *walk(
-    root: CborValue | Hash,
+    root: RootValue,
     path: CborKey[],
     modify = false,
   ): AsyncGenerator<{
     value: CborValue;
     step?: CborKey;
-    remaining: CborKey[];
   }> {
-    assert(path.length);
+    if (root instanceof Promise) {
+      root = await root;
+    }
     if (isHash(root)) {
       root = (await this.#loadHash(root, modify))!;
     }
     yield {
       value: root,
-      remaining: path,
     };
-    while (path.length) {
-      const step = path.shift()!;
+    for (const step of path) {
       const value = get(root, step);
       if (value !== undefined) {
         root = value;
@@ -188,7 +183,6 @@ export class DAG {
         yield {
           value,
           step,
-          remaining: path,
         };
       } else {
         return;
@@ -200,13 +194,14 @@ export class DAG {
    * traverses an object's path and returns the resulting value, if any, in a Promise
    */
   async get(
-    root: CborValue | Hash,
+    root: RootValue,
     path: CborKey[],
   ): Promise<CborValue | undefined> {
     const walk = await Array.fromAsync(
       this.walk(root, path),
     );
-    if (walk.length + 1 === path.length) {
+
+    if (walk.length === path.length + 1) {
       return walk.pop()!.value;
     }
   }
@@ -215,18 +210,19 @@ export class DAG {
    * sets a value on a root object given its path
    */
   async set(
-    root: CborValue | Hash,
+    root: RootValue,
     path: CborKey[],
     value: CborValue,
   ): Promise<CborValue> {
     assert(path.length);
     const last = path[path.length - 1];
+    path = path.slice(0, -1);
     const walk = await Array.fromAsync(
       this.walk(root, path, true),
     );
 
-    if (walk.length === path.length) {
-      const parent = path[path.length - 2];
+    if (walk.length === path.length + 1) {
+      const parent = walk[walk.length - 1].value;
       set(parent, last, value);
     } else {
       throw new Error("Path does not exist");
@@ -237,9 +233,12 @@ export class DAG {
   /**
    * flush an object to the store and create a merkle root
    */
-  merklelize(
-    root: CborValue | Hash,
+  async merklelize(
+    root: RootValue,
   ): Promise<Hash> {
+    if (root instanceof Promise) {
+      root = await root;
+    }
     return this.store.set(root);
   }
 }
