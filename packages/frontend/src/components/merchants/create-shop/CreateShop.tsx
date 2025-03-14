@@ -253,7 +253,7 @@ export default function () {
         Payees,
       };
 
-      clientStateManager!.stateManager!.set("Manifest", Manifest);
+      clientStateManager!.stateManager!.set(["Manifest"], Manifest);
 
       debug("Manifest created");
     } catch (error: unknown) {
@@ -275,8 +275,8 @@ export default function () {
         )
         : { url: null };
       const metadata = {
-        name: shopManifest.shopName,
-        description: shopManifest.description,
+        name: shopMetadata.shopName,
+        description: shopMetadata.description,
         image: imgPath.url,
       };
       const jsn = JSON.stringify(metadata);

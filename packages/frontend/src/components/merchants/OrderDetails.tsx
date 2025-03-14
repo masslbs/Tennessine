@@ -82,7 +82,7 @@ export default function OrderDetails() {
     const itemIds = Object.keys(ci);
     await Promise.all(
       itemIds.map((id) =>
-        clientStateManager!.stateManager.listings.get(id as ListingId)
+        clientStateManager!.stateManager.get(["Listings", id])
           .then((item: TListing) => {
             cartObjects.set(item.id, {
               ...item,

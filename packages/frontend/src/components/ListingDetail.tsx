@@ -40,7 +40,7 @@ export default function ListingDetail() {
     if (itemId && baseToken) {
       //set item details
       clientStateManager!.stateManager.listings
-        .get(itemId)
+        .get(["Listings", itemId])
         .then((item: TListing) => {
           setItem(item);
           const price = formatUnitsFromString(

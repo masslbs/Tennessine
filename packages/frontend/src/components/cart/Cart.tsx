@@ -87,7 +87,7 @@ export default function Cart({
         // If the selected quantity is 0, don't add the item to the cart object..
         const selectedQty = ci[id as ListingId];
         if (selectedQty === 0) return;
-        return clientStateManager!.stateManager.listings.get(id as ListingId)
+        return clientStateManager!.stateManager.get(["Listings", id])
           .then((item: TListing) => {
             cartObjects.set(id, {
               ...item,

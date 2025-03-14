@@ -7,11 +7,12 @@ import {
   http,
   pad,
   toHex,
+  zeroAddress,
 } from "viem";
 
 import { assert, formatUnitsFromString, logger } from "@massmarket/utils";
 import { getPaymentAddress, getPaymentId } from "@massmarket/blockchain";
-import * as abi from "@massmarket/contracts";
+import { paymentsByAddressAbi } from "@massmarket/contracts";
 
 import Pay from "./Pay.tsx";
 import QRScan from "./QRScan.tsx";
@@ -68,7 +69,7 @@ export default function ChoosePayment({
   const [paymentArgs, setPaymentArgs] = useState<
     | null
     | ContractFunctionArgs<
-      typeof abi.paymentsByAddressAbi,
+      typeof paymentsByAddressAbi,
       "nonpayable",
       "payTokenPreApproved"
     >
@@ -150,7 +151,7 @@ export default function ChoosePayment({
         currency.address,
       );
       //FIXME: get orderHash from paymentDetails.
-      const zeros32Bytes = pad(abi.addresses.zeroAddress, { size: 32 });
+      const zeros32Bytes = pad(zeroAddress, { size: 32 });
       const arg = {
         chainId: currency.chainId,
         ttl: BigInt(ttl),
@@ -180,7 +181,7 @@ export default function ChoosePayment({
       setPaymentArgs([arg]);
       const amount = BigInt(total);
       debug(`amount: ${amount}`);
-      const payLink = currency.address === abi.addresses.zeroAddress
+      const payLink = currency.address === zeroAddress
         ? `ethereum:${paymentAddr}?value=${amount}`
         : `ethereum:${currency.address}/transfer?address=${paymentAddr}&uint256=${amount}`;
       setPaymentAddress(paymentAddr);

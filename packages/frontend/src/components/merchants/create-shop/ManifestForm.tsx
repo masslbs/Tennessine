@@ -69,7 +69,7 @@ export default function ManifestForm(
         "AcceptedCurrencies",
         AcceptedCurrencies.filter(
           (c: TCurrencyMap) =>
-            c.chainId !== Number(chainId) || c.address !== address,
+            c.ChainID !== Number(chainId) || c.Address !== address,
         ),
       );
     }

@@ -72,7 +72,7 @@ export function useClientWithStateManager() {
           defaultRPC,
         ),
       });
-      const res = await clientStateManager.relayClient.enrollKeycard(
+      const res = await clientStateManager.relayClient!.enrollKeycard(
         guestWallet,
         true,
         clientStateManager.shopId,
