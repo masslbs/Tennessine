@@ -74,34 +74,32 @@ const manifest = new Map([
   ],
 ]);
 
-// const listing1 = {
-//   "ID": 234,
-//   "Name": "testingvalue",
-//   "Metadata": {
-//     "Title": "testingvalue",
-//     "Description": "testingvalue",
-//     "Images": ["testingvalue"],
-//   },
-//   "Price": 100,
-//   "ViewState": 1,
-//   "Options": [],
-//   "StockStatus": "In Stock",
-// };
 
 
-const listing1 = {
-  "ID": 234,
-  "Name": "testingvalue",
-  "Metadata": {
-    "Title": "testingvalue",
-    "Description": "testingvalue",
-    "Images": ["testingvalue"],
-  },
-  "Price": 100,
-  "ViewState": 1,
-  "Options": [],
-  "StockStatus": "In Stock",
-};
+const listing = new Map([
+  ["ID", 234],
+  ["Name", "testingvalue"],
+  ["Metadata", new Map([
+    ["Title", "testingvalue"],
+    ["Description", "testingvalue"],
+    ["Images", ["testingvalue"]],
+  ])],
+  ["Price", 100],
+  ["ViewState", 1],
+  ["Options", []],
+  ["StockStatus", "In Stock"],
+]);
+
+const order = new Map([
+  ["ID", 234],
+  ["Items", new Map([
+    ["ListingId", 234],
+    ["Quantity", 1],
+    ["VariationsIDs", [234]],
+  ])],
+  ["State", 1],
+])
+
 
 Deno.test("Database Testings", async (t) => {
   await t.step("create a database and a Manifest", async () => {
@@ -115,7 +113,26 @@ Deno.test("Database Testings", async (t) => {
     // db.set(['Listings', "234"], listings1)
     const result = await db.get(["Manifest"]);
     assertEquals(result, manifest);
+    const allListings = new Map([["234", listing], ["300", listing]])
+    db.set(['Listings'], new Map())
+    db.set(["Listings",'234'], listing)
+    db.set(["Listings", '300'], listing)
+    const allResults = await db.get(['Listings'])
+    const listing1 = await db.get(['Listings', '234'])
+    assertEquals(allResults, allListings)
+    assertEquals(listing1, listing)
+
+    const allOrders = new Map([["234", order], ["300", order]])
+    db.set(['Orders'], new Map())
+    db.set(["Orders",'234'], order)
+    db.set(["Orders", '300'], order)
+    const allOrdersResults = await db.get(['Orders'])
+    const order1 = await db.get(['Orders', '234'])
+    assertEquals(allOrdersResults, allOrders)
+    assertEquals(order1, order)
+    console.log({allOrdersResults, order1})
   });
+
 
   await t.step("add a relay and set a key and retrieve it", async () => {
     // const _root = new Link({ value: "root" });
