@@ -1,5 +1,6 @@
 import "../../../happyDomSetup.ts";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import { zeroAddress } from "viem";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "jsr:@std/expect";
 import { hardhat, mainnet, sepolia } from "wagmi/chains";
@@ -89,14 +90,14 @@ Deno.test("Edit Listing", {
       {
         acceptedCurrencies: [{
           chainId: mainnet.id,
-          address: addresses.zeroAddress,
+          address: zeroAddress,
         }, {
           chainId: sepolia.id,
-          address: addresses.zeroAddress,
+          address: zeroAddress,
         }],
         pricingCurrency: {
           chainId: hardhat.id,
-          address: addresses.zeroAddress,
+          address: zeroAddress,
         },
         payees,
         shippingRegions,

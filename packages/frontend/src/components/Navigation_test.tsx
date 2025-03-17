@@ -2,7 +2,7 @@ import "../happyDomSetup.ts";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { expect } from "jsr:@std/expect";
 import { userEvent } from "@testing-library/user-event";
-
+import { zeroAddress } from "viem";
 import {
   metadata,
   metadata2,
@@ -27,9 +27,9 @@ Deno.test("Check that we can render the navigation bar", {
     {
       acceptedCurrencies: [{
         chainId: 31337,
-        address: addresses.zeroAddress,
+        address: zeroAddress,
       }],
-      pricingCurrency: { chainId: 31337, address: addresses.zeroAddress },
+      pricingCurrency: { chainId: 31337, address: zeroAddress },
       payees,
       shippingRegions,
     },

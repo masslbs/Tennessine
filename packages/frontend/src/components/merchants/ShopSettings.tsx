@@ -4,12 +4,11 @@
 
 import { ChangeEvent, useEffect, useState } from "react";
 import { useChains, useWalletClient } from "wagmi";
-import { Address } from "viem";
+import { Address, zeroAddress } from "viem";
 
 import { UpdateShopManifest } from "@massmarket/stateManager/types";
 import { setTokenURI } from "@massmarket/blockchain";
 import { assert, logger } from "@massmarket/utils";
-import { addresses } from "@massmarket/contracts";
 
 import {
   CurrencyChainOption,
@@ -67,8 +66,8 @@ export default function ShopSettings() {
       chains.map((c) => {
         chainsToRender.push({
           label: `ETH/${c.name}`,
-          value: `${addresses.zeroAddress}/${c.id}`,
-          Address: addresses.zeroAddress,
+          value: `${zeroAddress}/${c.id}`,
+          Address: zeroAddress,
           ChainID: c.id,
         });
         const eddAddress = getTokenAddress("EDD", String(c.id));

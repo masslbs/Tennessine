@@ -1,4 +1,5 @@
 import { assertEquals } from "jsr:@std/assert";
+import { zeroAddress } from "viem";
 import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
 import { cleanup, renderHook, waitFor } from "@testing-library/react";
 import { hardhat } from "wagmi/chains";
@@ -21,9 +22,9 @@ Deno.test("useBaseToken", {
     await csm.stateManager!.manifest.create({
       acceptedCurrencies: [{
         chainId: hardhat.id,
-        address: addresses.zeroAddress,
+        address: zeroAddress,
       }],
-      pricingCurrency: { chainId: hardhat.id, address: addresses.zeroAddress },
+      pricingCurrency: { chainId: hardhat.id, address: zeroAddress },
       payees,
       shippingRegions,
     }, random256BigInt());
