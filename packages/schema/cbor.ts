@@ -105,55 +105,47 @@ const AddressDetailsSchema = v.object({
   EmailAddress: v.optional(v.string()),
 });
 
-const ListingSchema = v.record(
-  v.string(),
-  v.object({
-    ID: v.number(),
-    Name: v.string(),
-    Metadata: v.object({
-      Title: v.string(),
-      Description: v.string(),
-      Images: v.array(v.string()),
-    }),
-    Price: v.number(),
-    ViewState: v.number(),
-    Options: v.optional(v.array(v.string())),
-    StockStatuses: v.optional(v.string()),
+const ListingSchema = v.object({
+  ID: v.number(),
+  Name: v.string(),
+  Metadata: v.object({
+    Title: v.string(),
+    Description: v.string(),
+    Images: v.array(v.string()),
   }),
-);
-const TagSchema = v.record(
-  v.string(),
-  v.object({
-    Name: v.string(),
-    ListingIds: v.array(v.number()),
-  }),
-);
+  Price: v.number(),
+  ViewState: v.number(),
+  Options: v.optional(v.array(v.string())),
+  StockStatuses: v.optional(v.string()),
+});
 
-const OrderSchema = v.record(
-  v.string(),
-  v.object({
-    ID: v.number(),
-    Items: v.array(v.object({
-      ListingId: v.number(),
-      Quantity: v.number(),
-      VariationsIDs: v.array(v.number()),
-    })),
-    State: v.number(),
-    InvoiceAddress: v.optional(AddressDetailsSchema),
-    ShippingAddress: v.optional(AddressDetailsSchema),
-    CanceledAt: v.optional(v.date()),
-    ChosenPayee: v.optional(v.string()),
-    ChosenCurrency: v.optional(v.string()),
-    TxDetails: v.optional(v.string()),
-  }),
-);
+const TagSchema = v.object({
+  Name: v.string(),
+  ListingIds: v.array(v.number()),
+});
+
+const OrderSchema = v.object({
+  ID: v.number(),
+  Items: v.array(v.object({
+    ListingId: v.number(),
+    Quantity: v.number(),
+    VariationsIDs: v.array(v.number()),
+  })),
+  State: v.number(),
+  InvoiceAddress: v.optional(AddressDetailsSchema),
+  ShippingAddress: v.optional(AddressDetailsSchema),
+  CanceledAt: v.optional(v.date()),
+  ChosenPayee: v.optional(v.string()),
+  ChosenCurrency: v.optional(v.string()),
+  TxDetails: v.optional(v.string()),
+});
 
 export const ShopSchema = v.object({
   ...BaseObjectSchema.entries,
   Manifest: ManifestSchema,
-  Listings: ListingSchema,
-  Tags: TagSchema,
-  Orders: OrderSchema,
+  Listings: v.record(v.string(), ListingSchema),
+  Tags: v.record(v.string(), TagSchema),
+  Orders: v.record(v.string(), OrderSchema),
 });
 
 export type TManifest = v.InferInput<typeof ManifestSchema>;
