@@ -103,9 +103,12 @@ export default class StateManager {
             );
             // TODO
           } else if (patch.Op === "append") {
-            // state.root = this.graph.delete(state.root, patch.Path);
-            // localState.root = this.graph.delete(localState.root, patch.Path);
-            // TODO
+            const value = await this.graph.get(state.root, patch.Path);
+            if (Array.isArray(value)) {
+              value.push(value);
+            } else {
+              throw new Error("Invalid path");
+            }
           } else {
             throw new Error("Unimplemented operation type");
           }
