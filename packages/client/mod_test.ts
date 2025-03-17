@@ -2,6 +2,7 @@ import { expect } from "@std/expect";
 import {
   createTestClient,
   hexToBigInt,
+  hexToBytes,
   http,
   publicActions,
   walletActions,
@@ -120,40 +121,40 @@ Deno.test(
           reader,
         );
 
-        //   await writeAndReadPatch(
-        //     {
-        //       Op: "add" as const,
-        //       Path: [
-        //         "Manifest",
-        //         "AcceptedCurrencies",
-        //         1,
-        //         hexToBytes("0x0000000000000000000000000000000000000000"),
-        //       ],
-        //       Value: new Map(),
-        //     },
-        //     writer,
-        //     reader,
-        //   );
+        await writeAndReadPatch(
+          new Map<string, unknown>([
+            ["Op", "add"],
+            ["Path", [
+              "Manifest",
+              "AcceptedCurrencies",
+              1,
+              hexToBytes("0x0000000000000000000000000000000000000000"),
+            ]],
+            ["Value", new Map()],
+          ]),
+          writer,
+          reader,
+        );
 
-        //   await writeAndReadPatch(
-        //     {
-        //       Op: "add" as const,
-        //       Path: [
-        //         "Manifest",
-        //         "Payees",
-        //         1,
-        //         hexToBytes("0x000000000000000000000000000000000000002e"),
-        //       ],
-        //       Value: new Map(),
-        //     },
-        //     writer,
-        //     reader,
-        //   );
+        await writeAndReadPatch(
+          new Map<string, unknown>([
+            ["Op", "add"],
+            ["Path", [
+              "Manifest",
+              "Payees",
+              1,
+              hexToBytes("0x000000000000000000000000000000000000002e"),
+            ]],
+            ["Value", new Map()],
+          ]),
+          writer,
+          reader,
+        );
 
-        //   await Promise.all([
-        //     reader.cancel(),
-        //     writer.close(),
-        //   ]);
+        await Promise.all([
+          reader.cancel(),
+          writer.close(),
+        ]);
         await relayClient.disconnect();
       });
     },

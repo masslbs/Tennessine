@@ -21,6 +21,7 @@ import LockMap from "@nullradix/lockmap";
 import schema, { EnvelopMessageTypes } from "@massmarket/schema";
 import { decodeBufferToString, hexToBase64, logger } from "@massmarket/utils";
 import { type CodecValue, decode, encode } from "@massmarket/utils/codec";
+import { ReadableStream, WritableStream } from "web-streams-polyfill";
 
 const debug = logger("relayClient");
 
@@ -234,7 +235,7 @@ export class RelayClient {
   createWriteStream() {
     return new WritableStream<CodecValue[]>({
       // Why do we even need to authenticate here?
-      start: () => this.authenticate(),
+      start: () => this.authenticate().then(() => void 0),
       write: async (patches) => {
         // TODO: add MMR
         console.log(bytesToHex(encode(patches[0])));

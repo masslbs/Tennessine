@@ -5190,12 +5190,8 @@
           "jsr:@noble/secp256k1@^2.2.3",
           "jsr:@nullradix/lockmap@0.4",
           "jsr:@std/assert@^1.0.11",
-          "jsr:@std/cbor@~0.1.6",
           "jsr:@std/expect@^1.0.13",
-          "jsr:@valibot/valibot@~0.42.1",
           "jsr:@wevm/viem@^2.23.5",
-          "jsr:@whiteand/cbor@~0.11.24",
-          "npm:long@*",
           "npm:web-streams-polyfill@*"
         ]
       },
