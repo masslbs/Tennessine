@@ -1,8 +1,8 @@
 import "../../happyDomSetup.ts";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { expect } from "jsr:@std/expect";
+import { zeroAddress } from "viem";
 
-import { addresses } from "@massmarket/contracts";
 import { random256BigInt } from "@massmarket/utils";
 import {
   metadata,
@@ -29,9 +29,9 @@ Deno.test("Check that we can render the order details screen", {
     {
       acceptedCurrencies: [{
         chainId: 31337,
-        address: addresses.zeroAddress,
+        address: zeroAddress,
       }],
-      pricingCurrency: { chainId: 31337, address: addresses.zeroAddress },
+      pricingCurrency: { chainId: 31337, address: zeroAddress },
       payees,
       shippingRegions,
     },

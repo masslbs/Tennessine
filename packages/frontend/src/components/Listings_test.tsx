@@ -6,6 +6,7 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
+import { zeroAddress } from "viem";
 import { expect } from "jsr:@std/expect";
 import { hardhat } from "wagmi/chains";
 
@@ -38,11 +39,11 @@ Deno.test(
       {
         acceptedCurrencies: [{
           chainId: hardhat.id,
-          address: addresses.zeroAddress,
+          address: zeroAddress,
         }],
         pricingCurrency: {
           chainId: hardhat.id,
-          address: addresses.zeroAddress,
+          address: zeroAddress,
         },
         payees,
         shippingRegions,

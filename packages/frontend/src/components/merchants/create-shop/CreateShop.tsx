@@ -21,7 +21,7 @@ import {
   logger,
   random256BigInt,
 } from "@massmarket/utils";
-import * as abi from "@massmarket/contracts";
+import { permissions, shopRegAbi, shopRegAddress } from "@massmarket/contracts";
 
 import ManifestForm from "./ManifestForm.tsx";
 import Confirmation from "./CreateShopConfirmation.tsx";
@@ -128,8 +128,8 @@ export default function () {
       }
       // This will throw error if simulate fails.
       await simulateContract(config, {
-        abi: abi.shopRegAbi,
-        address: abi.addresses.ShopReg,
+        abi: shopRegAbi,
+        address: shopRegAddress,
         functionName: "mint",
         args: [shopId!, wallet!.account.address],
         connector,
@@ -189,7 +189,7 @@ export default function () {
       const hasAccess = await checkPermissions(shopPublicClient!, [
         shopId!,
         wallet!.account.address,
-        abi.permissions.updateRootHash,
+        permissions.updateRootHash,
       ]);
       if (!hasAccess) {
         throw new Error("Access denied.");
