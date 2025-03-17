@@ -60,7 +60,7 @@ export class ObjectStore {
   }
 
   async get(
-    key: codec.CodecKey,
+    key: codec.CodecValue,
   ): Promise<codec.CodecValue | undefined> {
     if (!(key instanceof Uint8Array)) {
       key = codec.encode(key);
@@ -69,7 +69,7 @@ export class ObjectStore {
     return val ? codec.decode(val) : undefined;
   }
 
-  async set(key: codec.CodecKey, value: codec.CodecValue): Promise<void> {
+  async set(key: codec.CodecValue, value: codec.CodecValue): Promise<void> {
     if (!(key instanceof Uint8Array)) {
       key = codec.encode(key);
     }
@@ -77,7 +77,7 @@ export class ObjectStore {
     await this.store.set(key as Uint8Array, ev);
   }
 
-  append(key: codec.CodecKey, value: codec.CodecValue): Promise<void> {
+  append(key: codec.CodecValue, value: codec.CodecValue): Promise<void> {
     if (!(key instanceof Uint8Array)) {
       key = codec.encode(key);
     }

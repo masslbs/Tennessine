@@ -2,11 +2,12 @@ import { DAG, type StoreInterface } from "@massmarket/merkle-dag-builder";
 import EventTree from "@massmarket/eventTree";
 import type { PushedPatchSet, RelayClient } from "@massmarket/client";
 import { codec, type Hash } from "@massmarket/utils";
-import type { DataItem } from "@whiteand/cbor";
+
+type HashOrValue = Hash | codec.CodecValue;
 
 interface IStoredState {
   seqNum: number;
-  root: DataItem | Hash | Promise<DataItem | Hash>;
+  root: HashOrValue | Promise<HashOrValue>;
 }
 
 export default class StateManager {

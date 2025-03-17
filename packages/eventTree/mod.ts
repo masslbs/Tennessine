@@ -10,15 +10,15 @@
  * @module
  */
 
+import type { codec } from "@massmarket/utils";
+
 /** A callback function that gets called when an event is emitted */
 export type EventListener<T> = (
   event: T,
   source: EventEmmiter<T> | object,
 ) => void;
 
-export type Step = {
-  toString(): string;
-};
+export type Step = codec.CodecKey;
 export type Path = Step[];
 
 /** Used to express changes to which part of the tree is needs a subscription to */

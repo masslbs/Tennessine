@@ -11,13 +11,13 @@ import { generatePrivateKey, privateKeyToAccount } from "@wevm/viem/accounts";
 import { foundry } from "@wevm/viem/chains";
 import { mintShop, relayRegGetOwnerOf } from "@massmarket/blockchain";
 
-import { discoverRelay, RelayClient } from "./mod.ts";
+import { discoverRelay, type Patch, RelayClient } from "./mod.ts";
 
 const relayURL = Deno.env.get("RELAY_ENDPOINT") || "http://localhost:4444/v4";
 
 // helper function
 async function writeAndReadPatch(
-  patch: unknown,
+  patch: Patch,
   writer: WritableStreamDefaultWriter,
   reader: ReadableStreamDefaultReader,
 ): Promise<void> {
@@ -104,49 +104,46 @@ Deno.test(
         expect(m.value!.signer).toBe(relayAddr);
         // write the ShippingRegions
         await writeAndReadPatch(
-          new Map<string, unknown>([
-            ["Op", "add"],
-            ["Path", ["Manifest", "ShippingRegions", "default"]],
-            [
-              "Value",
-              new Map([
-                ["City", ""],
-                ["Country", "DE"],
-                ["PostalCode", ""],
-                ["PriceModifiers", null],
-              ]),
-            ],
-          ]),
+          {
+            Op: "add",
+            Path: ["Manifest", "ShippingRegions", "default"],
+            Value: new Map([
+              ["City", ""],
+              ["Country", "DE"],
+              ["PostalCode", ""],
+              ["PriceModifiers", null],
+            ]),
+          },
           writer,
           reader,
         );
 
         await writeAndReadPatch(
-          new Map<string, unknown>([
-            ["Op", "add"],
-            ["Path", [
+          {
+            Op: "add",
+            Path: [
               "Manifest",
               "AcceptedCurrencies",
               1,
               hexToBytes("0x0000000000000000000000000000000000000000"),
-            ]],
-            ["Value", new Map()],
-          ]),
+            ],
+            Value: new Map(),
+          },
           writer,
           reader,
         );
 
         await writeAndReadPatch(
-          new Map<string, unknown>([
-            ["Op", "add"],
-            ["Path", [
+          {
+            Op: "add",
+            Path: [
               "Manifest",
               "Payees",
               1,
               hexToBytes("0x000000000000000000000000000000000000002e"),
-            ]],
-            ["Value", new Map()],
-          ]),
+            ],
+            Value: new Map(),
+          },
           writer,
           reader,
         );

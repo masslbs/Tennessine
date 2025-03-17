@@ -20,7 +20,12 @@ import { ProjectivePoint } from "@noble/secp256k1";
 import LockMap from "@nullradix/lockmap";
 import schema, { EnvelopMessageTypes } from "@massmarket/schema";
 import { decodeBufferToString, hexToBase64, logger } from "@massmarket/utils";
-import { type CodecValue, decode, encode } from "@massmarket/utils/codec";
+import {
+  type CodecKey,
+  type CodecValue,
+  decode,
+  encode,
+} from "@massmarket/utils/codec";
 import { ReadableStream, WritableStream } from "web-streams-polyfill";
 
 const debug = logger("relayClient");
@@ -41,9 +46,15 @@ export interface IRelayClientOptions {
 
 type Header = Map<string, CodecValue>;
 
+export type Patch = {
+  Path: CodecKey[];
+  Op: "add" | "remove" | "replace" | "append";
+  Value: CodecValue;
+};
+
 export type PushedPatchSet = {
   signer: Hex;
-  patches: CodecValue[];
+  patches: Patch[];
   header: Header;
   sequence: number;
 };
@@ -153,7 +164,11 @@ export class RelayClient {
               const header = decode(ppset.header!) as Header;
               // @ts-ignore we will soon depracte pbjs
               const sequence = ppset!.shopSeqNo!.toNumber();
-              const patches = ppset.patches!.map((patch) => decode(patch));
+              const patches = ppset.patches!.map((patch) =>
+                Object.fromEntries(
+                  decode(patch) as Map<string, CodecValue>,
+                ) as Patch
+              );
 
               // This doesn't really need to be async
               // viem does an async import of @noble/secp256k1
@@ -233,14 +248,15 @@ export class RelayClient {
   }
 
   createWriteStream() {
-    return new WritableStream<CodecValue[]>({
+    return new WritableStream<Patch[]>({
       // Why do we even need to authenticate here?
       start: () => this.authenticate().then(() => void 0),
       write: async (patches) => {
+        const patch = new Map(Object.entries(patches[0]));
         // TODO: add MMR
         const rootHash = await crypto.subtle.digest(
           "SHA-256",
-          encode(patches[0]),
+          encode(patch),
         );
         const header: Header = new Map<string, CodecValue>([
           ["KeyCardNonce", ++this.keyCardNonce],
@@ -256,7 +272,7 @@ export class RelayClient {
         });
         const signedPatchSet = {
           Header: header,
-          Patches: patches,
+          Patches: [patch],
           Signature: hexToBytes(sig),
         };
 

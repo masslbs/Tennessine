@@ -19,6 +19,7 @@ export type CodecKey =
 export type CodecValue =
   | CodecKey
   | Date
+  | null
   | ArrayBufferLike
   | Array<CodecValue>
   | Map<CodecKey, CodecValue>;
