@@ -5,7 +5,7 @@ export class Manifest extends BaseClass {
   Payees: PayeeMap;
   AcceptedCurrencies: AcceptedCurrencyMap;
   PricingCurrency: ChainAddress;
-  ShippingRegions: ShippingRegionsMap
+  ShippingRegions: ShippingRegionsMap;
 
   constructor(input: Map<string, any>) {
     super();
@@ -25,7 +25,7 @@ export class ShippingRegionsMap extends BaseClass {
     super();
     const map = new Map();
     for (const [key, value] of shippingRegions) {
-     map.set(key, new ShippingRegion(value));
+      map.set(key, new ShippingRegion(value));
     }
     this.data = map;
   }
@@ -142,11 +142,10 @@ export class ShippingRegion extends BaseClass {
   PostalCode: string;
   City: string;
   constructor(input: Map<string, any>) {
-      super()
+    super();
     this.Country = input.get("Country");
     this.PostalCode = input.get("PostalCode");
     this.City = input.get("City");
-
   }
 }
 
