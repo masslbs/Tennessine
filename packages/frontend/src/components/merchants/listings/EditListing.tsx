@@ -129,7 +129,6 @@ export default function EditProduct() {
           ID: itemId,
           // diff: units - productInView!.quantity,
         });
-
       }
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
