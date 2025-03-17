@@ -1,55 +1,11 @@
-import { codec } from "@massmarket/utils";
+import {
+  extractEntriesFromHAMT,
+  fetchAndDecode,
+} from "@massmarket/utils";
 
 import { Manifest } from "./standin_manifest.ts";
 import { Listing } from "./standin_listing.ts";
 import { Order } from "./standin_order.ts";
-
-async function fetchAndDecode(filename: string) {
-  const response = await fetch(
-    `file://${Deno.env.get("MASS_TEST_VECTORS")}/vectors/${filename}.cbor`,
-  );
-  const bytes = await response.bytes();
-  return codec.decode(bytes) as Map<string, any>;
-}
-
-function extractEntriesFromHAMT(hamtNode: any): Map<number, any> {
-  if (!hamtNode || !Array.isArray(hamtNode) || hamtNode.length < 2) {
-    return new Map();
-  }
-
-  const entries = hamtNode[1];
-  const result = new Map<number, any>();
-
-  if (Array.isArray(entries)) {
-    for (const entry of entries) {
-      if (Array.isArray(entry) && entry.length >= 2) {
-        // Check if this is a leaf node or another HAMT node
-        if (entry.length > 2 && entry[2] !== null) {
-          // This is another HAMT node, recurse into it
-          const subEntries = extractEntriesFromHAMT(entry[2]);
-          // Merge the results
-          for (const [subKey, subValue] of subEntries.entries()) {
-            result.set(subKey, subValue);
-          }
-        } else {
-          // This is a leaf node
-          const key = entry[0];
-          const value = entry[1];
-          // Convert key (Uint8Array) to number (8-byte big endian)
-          const keyNum = new DataView(
-            key.buffer,
-            key.byteOffset,
-            key.byteLength,
-          )
-            .getBigUint64(0, false);
-          result.set(Number(keyNum), value);
-        }
-      }
-    }
-  }
-  console.log("hamt result", result);
-  return result;
-}
 
 Deno.test("unpack manifest vectors", async () => {
   const manifestOkayVector = await fetchAndDecode("ManifestOkay");
