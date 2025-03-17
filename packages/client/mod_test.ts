@@ -11,13 +11,12 @@ import { foundry } from "@wevm/viem/chains";
 import { mintShop, relayRegGetOwnerOf } from "@massmarket/blockchain";
 
 import { discoverRelay, RelayClient } from "./mod.ts";
-import type { TPatch } from "@massmarket/schema/cbor";
 
 const relayURL = Deno.env.get("RELAY_ENDPOINT") || "http://localhost:4444/v4";
 
 // helper function
 async function writeAndReadPatch(
-  patch: TPatch,
+  patch: unknown,
   writer: WritableStreamDefaultWriter,
   reader: ReadableStreamDefaultReader,
 ): Promise<void> {
@@ -104,16 +103,19 @@ Deno.test(
         expect(m.value!.signer).toBe(relayAddr);
         // write the ShippingRegions
         await writeAndReadPatch(
-          {
-            Op: "add" as const,
-            Path: ["Manifest", "ShippingRegions", "default"],
-            Value: new Map([
-              ["Country", "DE"],
-              ["PostalCode", ""],
-              ["City", ""],
-              ["PriceModifiers", null],
-            ]),
-          },
+          new Map<string, unknown>([
+            ["Op", "add"],
+            ["Path", ["Manifest", "ShippingRegions", "default"]],
+            [
+              "Value",
+              new Map([
+                ["City", ""],
+                ["Country", "DE"],
+                ["PostalCode", ""],
+                ["PriceModifiers", null],
+              ]),
+            ],
+          ]),
           writer,
           reader,
         );

@@ -1,6 +1,7 @@
 import { Decoder, Encoder } from "cbor-x";
 
 const options = {
+  variableMapSize: true,
   useRecords: false,
   mapsAsObjects: false,
   tagUint8Array: false,
