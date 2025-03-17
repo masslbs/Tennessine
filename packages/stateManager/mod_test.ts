@@ -54,26 +54,27 @@ Deno.test("Database Testings", async (t) => {
       }
       await db.get(["Listings"]);
     });
-  });
-  await t.step("Set Orders", async () => {
-    const OrderVector = await fetchAndDecode("OrderOkay");
-    const orders = OrderVector?.get("Snapshots")?.map((snapshot: any) => {
-      const hamtNode = snapshot?.get("After")?.get("Value")?.get("Orders");
-      return extractEntriesFromHAMT(hamtNode);
-    }) || [];
-
-    for (const orderMap of orders) {
-      for (const [id, order] of orderMap.entries()) {
-        const unpacked = new Order(order);
-        const mapped = unpacked.returnAsMap();
-        await db.set(["Orders", id], mapped);
-
-        const result = await db.get(["Orders", id]);
-        assertEquals(result, mapped);
+    await t.step("Set Orders", async () => {
+      const OrderVector = await fetchAndDecode("OrderOkay");
+      const orders = OrderVector?.get("Snapshots")?.map((snapshot: any) => {
+        const hamtNode = snapshot?.get("After")?.get("Value")?.get("Orders");
+        return extractEntriesFromHAMT(hamtNode);
+      }) || [];
+  
+      for (const orderMap of orders) {
+        for (const [id, order] of orderMap.entries()) {
+          const unpacked = new Order(order);
+          const mapped = unpacked.returnAsMap();
+          await db.set(["Orders", id], mapped);
+  
+          const result = await db.get(["Orders", id]);
+          assertEquals(result, mapped);
+        }
       }
-    }
-    await db.get(["Orders"]);
+      await db.get(["Orders"]);
+    });
   });
+
   await t.step("add a relay and set a key and retrieve it", async () => {
     const { relayClient } = await createTestClients();
     const sm = new StateManager({
