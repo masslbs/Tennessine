@@ -76,3 +76,24 @@ export function getSubSchema(
   }
   return schema;
 }
+
+export class BaseClass {
+  returnAsMap(): Map<string, any> {
+    const map = new Map();
+    for (const [key, value] of Object.entries(this)) {
+      if (
+        ["string", "number", "boolean", "bigint"].includes(typeof value) ||
+         value instanceof Uint8Array
+      ) {
+        map.set(key, value);
+      } else if (value?.data) {
+        map.set(key, value.data);
+     }else if (value instanceof BaseClass) {
+        map.set(key, value.returnAsMap());
+      }  else {
+        console.log("Unknown value type:", key, typeof value, value);
+      }
+    }
+    return map;
+  }
+}

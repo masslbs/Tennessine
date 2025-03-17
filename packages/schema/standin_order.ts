@@ -1,6 +1,7 @@
 import { ChainAddress } from "./standin_manifest.ts";
+import { BaseClass } from "./utils.ts";
 
-export class Order {
+export class Order extends BaseClass {
   ID: number;
   Items: OrderedItem[];
   State: OrderState;
@@ -11,7 +12,8 @@ export class Order {
   ChosenCurrency?: ChainAddress;
   PaymentDetails?: PaymentDetails;
   TxDetails?: OrderPaid;
-  constructor(public input: Map<string, any>) {
+  constructor(input: Map<string, any>) {
+    super();
     this.ID = input.get("ID");
     this.Items =
       input.get("Items")?.map((item: any) => new OrderedItem(item)) ?? [];
@@ -38,11 +40,12 @@ export class Order {
   }
 }
 
-export class OrderedItem {
+export class OrderedItem extends BaseClass {
   ListingID: number;
   VariationIDs: string[] = [];
   Quantity: number;
-  constructor(public input: Map<string, any>) {
+  constructor(input: Map<string, any>) {
+    super();
     this.ListingID = input.get("ListingID");
     this.VariationIDs = input.get("VariationIDs") ?? [];
     this.Quantity = input.get("Quantity");
@@ -74,7 +77,7 @@ export function OrderStateFromNumber(num: number): OrderState {
   }
 }
 
-export class AddressDetails {
+export class AddressDetails extends BaseClass {
   Name: string;
   Address1: string;
   Address2?: string;
@@ -84,7 +87,8 @@ export class AddressDetails {
   EmailAddress: string;
   PhoneNumber?: string;
 
-  constructor(public input: Map<string, any>) {
+  constructor(input: Map<string, any>) {
+    super();
     this.Name = input.get("Name");
     this.Address1 = input.get("Address1");
     this.Address2 = input.get("Address2");
@@ -96,13 +100,14 @@ export class AddressDetails {
   }
 }
 
-export class PaymentDetails {
+export class PaymentDetails extends BaseClass {
   PaymentID: string;
   Total: bigint;
   ListingHashes: string[];
   TTL: number;
   ShopSignature: string;
-  constructor(public input: Map<string, any>) {
+  constructor(input: Map<string, any>) {
+    super();
     this.PaymentID = input.get("PaymentID");
     this.Total = input.get("Total");
     this.ListingHashes = input.get("ListingHashes") ?? [];
@@ -111,19 +116,21 @@ export class PaymentDetails {
   }
 }
 
-export class OrderPaid {
+export class OrderPaid extends BaseClass {
   TxHash?: string;
   BlockHash: string;
-  constructor(public input: Map<string, any>) {
+  constructor(input: Map<string, any>) {
+    super();
     this.TxHash = input.get("TxHash");
     this.BlockHash = input.get("BlockHash");
   }
 }
 
-export class Payee {
+export class Payee extends BaseClass {
   ChainID: number;
   Address: string;
-  constructor(public input: Map<string, any>) {
+  constructor(input: Map<string, any>) {
+    super();
     this.ChainID = input.get("ChainID");
     this.Address = input.get("Address");
   }
