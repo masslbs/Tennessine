@@ -89,10 +89,10 @@ export default class StateManager {
         // TODO: check stateroot
         // TODO: we are saving the patches here
         // incase we want to replay the log, but we have no way to get them out
-        this.graph.store.objStore.append(
-          [patchSet.signer, "patches"],
-          patchSet.patches,
-        );
+        // this.graph.store.objStore.append(
+        //   [patchSet.signer, "patches"],
+        //   patchSet.patches,
+        // );
       },
     });
   }
@@ -124,7 +124,7 @@ export default class StateManager {
   }
 
   // TODO: rename LinkValue to NodeValue ?
-  async set(path: DataItem[], value: DataItem, id = "local") {
+  async set(path: codec.Path, value: codec.CodecValue, id = "local") {
     const ongoingWriteOp = this.mutations.get(id);
     const { promise, resolve, reject } = Promise.withResolvers<void>();
     this.mutations.set(id, promise);
@@ -156,7 +156,10 @@ export default class StateManager {
     }
   }
 
-  async get(path: Path, id = "local"): Promise<LinkValue> {
+  async get(
+    path: codec.Path,
+    id = "local",
+  ): Promise<codec.CodecValue | undefined> {
     // wait for any pending writes to complete
     await this.mutations.get(id);
     const state = await this.loadState(id);
