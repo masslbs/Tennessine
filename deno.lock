@@ -1,7 +1,6 @@
 {
   "version": "4",
   "specifiers": {
-    "jsr:@hugoalh/fnv@0.1": "0.1.0",
     "jsr:@noble/hashes@^1.7.1": "1.7.1",
     "jsr:@noble/secp256k1@^2.2.3": "2.2.3",
     "jsr:@nullradix/ipld-cbor-graph-builder@3.0.0": "3.0.0",
@@ -78,6 +77,7 @@
     "npm:autoprefixer@^10.4.20": "10.4.20_postcss@8.4.49",
     "npm:bootstrap@^5.3.3": "5.3.3_@popperjs+core@2.11.8",
     "npm:browser-level@*": "2.0.0",
+    "npm:cbor-x@^1.6.0": "1.6.0",
     "npm:interface-blockstore@*": "5.3.1",
     "npm:interface-blockstore@^5.3.1": "5.3.1",
     "npm:isows@*": "1.0.6_ws@8.18.0",
@@ -109,9 +109,6 @@
     "npm:webauthn-p256@0.0.10": "0.0.10"
   },
   "jsr": {
-    "@hugoalh/fnv@0.1.0": {
-      "integrity": "68db236b896d5ead998517fa0bd1119780bfd6e9c1b4eb36fe1297b4f18fd3f7"
-    },
     "@noble/hashes@1.7.1": {
       "integrity": "2c29f1dc07943155f5c7384be6f570a749c2afee95a0557cdae02b4fd5956134"
     },
@@ -438,6 +435,24 @@
         "@babel/helper-string-parser",
         "@babel/helper-validator-identifier"
       ]
+    },
+    "@cbor-extract/cbor-extract-darwin-arm64@2.2.0": {
+      "integrity": "sha512-P7swiOAdF7aSi0H+tHtHtr6zrpF3aAq/W9FXx5HektRvLTM2O89xCyXF3pk7pLc7QpaY7AoaE8UowVf9QBdh3w=="
+    },
+    "@cbor-extract/cbor-extract-darwin-x64@2.2.0": {
+      "integrity": "sha512-1liF6fgowph0JxBbYnAS7ZlqNYLf000Qnj4KjqPNW4GViKrEql2MgZnAsExhY9LSy8dnvA4C0qHEBgPrll0z0w=="
+    },
+    "@cbor-extract/cbor-extract-linux-arm64@2.2.0": {
+      "integrity": "sha512-rQvhNmDuhjTVXSPFLolmQ47/ydGOFXtbR7+wgkSY0bdOxCFept1hvg59uiLPT2fVDuJFuEy16EImo5tE2x3RsQ=="
+    },
+    "@cbor-extract/cbor-extract-linux-arm@2.2.0": {
+      "integrity": "sha512-QeBcBXk964zOytiedMPQNZr7sg0TNavZeuUCD6ON4vEOU/25+pLhNN6EDIKJ9VLTKaZ7K7EaAriyYQ1NQ05s/Q=="
+    },
+    "@cbor-extract/cbor-extract-linux-x64@2.2.0": {
+      "integrity": "sha512-cWLAWtT3kNLHSvP4RKDzSTX9o0wvQEEAj4SKvhWuOVZxiDAeQazr9A+PSiRILK1VYMLeDml89ohxCnUNQNQNCw=="
+    },
+    "@cbor-extract/cbor-extract-win32-x64@2.2.0": {
+      "integrity": "sha512-l2M+Z8DO2vbvADOBNLbbh9y5ST1RY5sqkWOg/58GkUPBYou/cuNZ68SGQ644f1CvZ8kcOxyZtw06+dxWHIoN/w=="
     },
     "@coinbase/wallet-sdk@3.9.3": {
       "integrity": "sha512-N/A2DRIf0Y3PHc1XAMvbBUu4zisna6qAdqABMZwBMNEfWrXpAwx16pZGkYCLGE+Rvv1edbcB2LYDRnACNcmCiw==",
@@ -2353,6 +2368,24 @@
         "lodash"
       ]
     },
+    "cbor-extract@2.2.0": {
+      "integrity": "sha512-Ig1zM66BjLfTXpNgKpvBePq271BPOvu8MR0Jl080yG7Jsl+wAZunfrwiwA+9ruzm/WEdIV5QF/bjDZTqyAIVHA==",
+      "dependencies": [
+        "@cbor-extract/cbor-extract-darwin-arm64",
+        "@cbor-extract/cbor-extract-darwin-x64",
+        "@cbor-extract/cbor-extract-linux-arm",
+        "@cbor-extract/cbor-extract-linux-arm64",
+        "@cbor-extract/cbor-extract-linux-x64",
+        "@cbor-extract/cbor-extract-win32-x64",
+        "node-gyp-build-optional-packages"
+      ]
+    },
+    "cbor-x@1.6.0": {
+      "integrity": "sha512-0kareyRwHSkL6ws5VXHEf8uY1liitysCVJjlmhaLG+IXLqhSaOO+t63coaso7yjwEzWZzLy8fJo06gZDVQM9Qg==",
+      "dependencies": [
+        "cbor-extract"
+      ]
+    },
     "cborg@4.2.7": {
       "integrity": "sha512-zHTUAm+HAoRLtGEQ1b28HXBm8d/5YP+7eiSKzEu/mpFkptGYaMQCHv15OiQBuyNlIgbCBXvBbZQPl3xvcZTJXg=="
     },
@@ -2629,6 +2662,9 @@
     },
     "detect-browser@5.3.0": {
       "integrity": "sha512-53rsFbGdwMwlF7qvCt0ypLM5V5/Mbl0szB7GPN8y9NCcbknYOeVVXdrXEq+90IwAfrrzt6Hd+u2E2ntakICU8w=="
+    },
+    "detect-libc@2.0.3": {
+      "integrity": "sha512-bwy0MGW55bG41VqxxypOsdSdGqLwXPI/focwgTYCFMbdUiBAxLg9CFzG08sz2aqzknwiX7Hkl0bQENjg8iLByw=="
     },
     "detect-node-es@1.1.0": {
       "integrity": "sha512-ypdmJU/TbBby2Dxibuv7ZLW3Bs1QEmM7nHjEANfohJLvE0XVujisn1qPJcZxg+qDucsr+bP6fLD1rPS3AhJ7EQ=="
@@ -3704,6 +3740,12 @@
       "integrity": "sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==",
       "dependencies": [
         "whatwg-url"
+      ]
+    },
+    "node-gyp-build-optional-packages@5.1.1": {
+      "integrity": "sha512-+P72GAjVAbTxjjwUmwjVrqrdZROD4nf8KgpBoDxqXXTiYZZt/ud60dE5yvCSr9lRO8e8yv6kgJIC0K0PfZFVQw==",
+      "dependencies": [
+        "detect-libc"
       ]
     },
     "node-gyp-build@4.8.4": {
@@ -5152,6 +5194,7 @@
           "jsr:@std/expect@^1.0.13",
           "jsr:@valibot/valibot@~0.42.1",
           "jsr:@wevm/viem@^2.23.5",
+          "jsr:@whiteand/cbor@~0.11.24",
           "npm:long@*",
           "npm:web-streams-polyfill@*"
         ]
@@ -5159,11 +5202,6 @@
       "packages/contracts": {
         "dependencies": [
           "npm:wagmi@*"
-        ]
-      },
-      "packages/eventTree": {
-        "dependencies": [
-          "jsr:@hugoalh/fnv@0.1"
         ]
       },
       "packages/frontend": {
@@ -5225,7 +5263,8 @@
           "jsr:@std/assert@^1.0.11",
           "jsr:@wevm/viem@^2.23.10",
           "jsr:@whiteand/cbor@~0.11.24",
-          "npm:@sentry/browser@*"
+          "npm:@sentry/browser@*",
+          "npm:cbor-x@^1.6.0"
         ]
       }
     }

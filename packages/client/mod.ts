@@ -15,23 +15,12 @@ import {
 } from "@wevm/viem";
 import { parseAccount } from "@wevm/viem/accounts";
 import { createSiweMessage } from "@wevm/viem/siwe";
-import { hashMessage } from "@wevm/viem/utils";
+import { bytesToHex, hashMessage } from "@wevm/viem/utils";
 import { ProjectivePoint } from "@noble/secp256k1";
 import LockMap from "@nullradix/lockmap";
 import schema, { EnvelopMessageTypes } from "@massmarket/schema";
-import type {
-  TPatch,
-  TPatchSetHeader,
-  TSignedPatchSet,
-} from "@massmarket/schema/cbor";
-import {
-  codec,
-  decodeBufferToString,
-  hexToBase64,
-  logger,
-} from "@massmarket/utils";
-
-import type { DataItem } from "@whiteand/cbor";
+import { decodeBufferToString, hexToBase64, logger } from "@massmarket/utils";
+import { type CodecValue, decode, encode } from "@massmarket/utils/codec";
 
 const debug = logger("relayClient");
 
@@ -49,10 +38,12 @@ export interface IRelayClientOptions {
   keyCardNonce?: number;
 }
 
+type Header = Map<string, CodecValue>;
+
 export type PushedPatchSet = {
   signer: Hex;
-  patches: DataItem;
-  header: TPatchSetHeader;
+  patches: CodecValue[];
+  header: Header;
   sequence: number;
 };
 
@@ -158,12 +149,10 @@ export class RelayClient {
 
           try {
             for (const ppset of envelope.subscriptionPushRequest.sets!) {
-              const header = codec.decode(ppset.header!);
+              const header = decode(ppset.header!) as Header;
               // @ts-ignore we will soon depracte pbjs
               const sequence = ppset!.shopSeqNo!.toNumber();
-              const patches = ppset.patches!.map((patch) =>
-                codec.decode(patch)
-              );
+              const patches = ppset.patches!.map((patch) => decode(patch));
 
               // This doesn't really need to be async
               // viem does an async import of @noble/secp256k1
@@ -243,34 +232,35 @@ export class RelayClient {
   }
 
   createWriteStream() {
-    return new WritableStream<TPatch[]>({
+    return new WritableStream<CodecValue[]>({
       // Why do we even need to authenticate here?
       start: () => this.authenticate(),
       write: async (patches) => {
         // TODO: add MMR
+        console.log(bytesToHex(encode(patches[0])));
         const rootHash = await crypto.subtle.digest(
           "SHA-256",
-          encodeCbor(patches[0]),
+          encode(patches[0]),
         );
-        const header: TPatchSetHeader = {
-          KeyCardNonce: ++this.keyCardNonce,
-          Timestamp: new Date(),
-          ShopID: this.shopId,
-          RootHash: new Uint8Array(rootHash),
-        };
+        const header: Header = new Map<string, CodecValue>([
+          ["KeyCardNonce", ++this.keyCardNonce],
+          ["Timestamp", new Date()],
+          ["ShopID", this.shopId],
+          ["RootHash", rootHash],
+        ]);
         // TODO: use embedded cbor, or COSE
-        const encodedHeader = encodeCbor(header);
+        const encodedHeader = encode(header);
         const sig = await this.walletClient.signMessage({
           account: this.keycard,
           message: { raw: encodedHeader },
         });
-        const signedPatchSet: TSignedPatchSet = {
+        const signedPatchSet = {
           Header: header,
           Patches: patches,
           Signature: hexToBytes(sig),
         };
 
-        const encodedPatchSet = encodeCbor(signedPatchSet);
+        const encodedPatchSet = encode(new Map(Object.entries(signedPatchSet)));
         const envelope = {
           patchSetWriteRequest: {
             patchSet: encodedPatchSet,

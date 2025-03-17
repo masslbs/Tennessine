@@ -7,6 +7,11 @@
     "@wevm/viem": "jsr:@wevm/viem@^2.23.10",
     "@whiteand/cbor": "jsr:@whiteand/cbor@^0.11.24",
     "buffer": "node:buffer",
-    "@sentry/browser": "npm:@sentry/browser"
+    "@sentry/browser": "npm:@sentry/browser",
+    "cbor-x": "npm:cbor-x@^1.6.0"
+  },
+  "exports": {
+    ".": "./mod.ts",
+    "./codec": "./codec.ts"
   }
 }

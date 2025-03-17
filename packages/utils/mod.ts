@@ -1,8 +1,7 @@
-// SPDX-FileCopyrightText: 2024 Mass Labs
+// SPDX-FileCopyrightext: 2024 Mass Labs
 //
 // SPDX-License-Identifier: MIT
 
-import { any, type DataItem, Decoder, encode } from "@whiteand/cbor";
 import { equal } from "@std/assert";
 import { Buffer } from "buffer";
 import {
@@ -14,6 +13,8 @@ import {
   toBytes,
 } from "@wevm/viem";
 import * as Sentry from "@sentry/browser";
+export * as codec from "./codec.ts";
+import type * as codec from "./codec.ts";
 
 // TODO: type case first argument to captureException
 // TODO: add extras arguments (https://docs.sentry.io/platforms/javascript/guides/nextjs/enriching-events/)
@@ -151,17 +152,6 @@ export function random256BigInt() {
   return bytesToBigInt(randomBytes(32));
 }
 
-export const codec = {
-  encode(val: DataItem) {
-    return encode((e) => any.encode(val, e));
-  },
-  decode(data: Uint8Array): DataItem {
-    const d = new Decoder(data, 0);
-    const decoded = d.decode(any);
-    return decoded.unwrap();
-  },
-};
-
 export type Hash = Uint8Array;
 
 export async function hash(data: BufferSource): Promise<Hash> {
@@ -169,11 +159,14 @@ export async function hash(data: BufferSource): Promise<Hash> {
 }
 
 // TODO: we need a some way to denote whether the value is a hash
-export function isHash(node: DataItem): node is Hash {
+export function isHash(node: codec.CodecValue): node is Hash {
   return node instanceof Uint8Array && node.length === 32;
 }
 
-export function get(obj: DataItem, key: DataItem): DataItem | undefined {
+export function get(
+  obj: codec.CodecValue,
+  key: codec.CodecValue,
+): codec.CodecValue | undefined {
   if (obj instanceof Map) {
     if (
       typeof key === "object" && key !== null
@@ -194,7 +187,11 @@ export function get(obj: DataItem, key: DataItem): DataItem | undefined {
   }
 }
 
-export function set(obj: DataItem, key: DataItem, value: DataItem): void {
+export function set(
+  obj: codec.CodecValue,
+  key: codec.CodecValue,
+  value: codec.CodecValue,
+): void {
   if (obj instanceof Map) {
     obj.set(key, value);
   } else if (
