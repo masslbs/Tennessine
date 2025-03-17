@@ -6,10 +6,24 @@ const options = {
   mapsAsObjects: false,
   tagUint8Array: false,
 } as const;
+
 const encoder = new Encoder(options);
 const decoder = new Decoder(options);
 
-export type CodecValue = unknown;
+export type CodecKey =
+  | string
+  | number
+  | bigint
+  | ArrayLike<number>;
+
+export type CodecValue =
+  | CodecKey
+  | Date
+  | ArrayBufferLike
+  | Array<CodecValue>
+  | Map<CodecKey, CodecValue>;
+
+export type Path = CodecKey[];
 
 export function encode(val: CodecValue) {
   return new Uint8Array(encoder.encode(val));

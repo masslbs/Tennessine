@@ -15,7 +15,7 @@ import {
 } from "@wevm/viem";
 import { parseAccount } from "@wevm/viem/accounts";
 import { createSiweMessage } from "@wevm/viem/siwe";
-import { bytesToHex, hashMessage } from "@wevm/viem/utils";
+import { hashMessage } from "@wevm/viem/utils";
 import { ProjectivePoint } from "@noble/secp256k1";
 import LockMap from "@nullradix/lockmap";
 import schema, { EnvelopMessageTypes } from "@massmarket/schema";
@@ -238,7 +238,6 @@ export class RelayClient {
       start: () => this.authenticate().then(() => void 0),
       write: async (patches) => {
         // TODO: add MMR
-        console.log(bytesToHex(encode(patches[0])));
         const rootHash = await crypto.subtle.digest(
           "SHA-256",
           encode(patches[0]),

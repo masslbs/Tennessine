@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { equal } from "@std/assert";
 import { Buffer } from "buffer";
 import {
   bytesToBigInt,
@@ -161,49 +160,6 @@ export async function hash(data: BufferSource): Promise<Hash> {
 // TODO: we need a some way to denote whether the value is a hash
 export function isHash(node: codec.CodecValue): node is Hash {
   return node instanceof Uint8Array && node.length === 32;
-}
-
-export function get(
-  obj: codec.CodecValue,
-  key: codec.CodecValue,
-): codec.CodecValue | undefined {
-  if (obj instanceof Map) {
-    if (
-      typeof key === "object" && key !== null
-    ) {
-      return obj.entries().find(([k]) => equal(k, key));
-    } else {
-      return obj.get(key);
-    }
-  } else if (
-    typeof obj === "object" && obj !== null &&
-    (typeof key === "number" ||
-      typeof key === "string" ||
-      typeof key === "symbol")
-  ) {
-    return Reflect.get(obj, key);
-  } else {
-    throw new Error(`Cannot get key ${key} from ${obj}`);
-  }
-}
-
-export function set(
-  obj: codec.CodecValue,
-  key: codec.CodecValue,
-  value: codec.CodecValue,
-): void {
-  if (obj instanceof Map) {
-    obj.set(key, value);
-  } else if (
-    typeof obj === "object" && obj !== null &&
-    (typeof key === "number" ||
-      typeof key === "string" ||
-      typeof key === "symbol")
-  ) {
-    Reflect.set(obj, key, value);
-  } else {
-    throw new Error(`Cannot set key ${key} on ${obj}`);
-  }
 }
 
 export function getWindowLocation() {

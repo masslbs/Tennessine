@@ -1,6 +1,49 @@
 import { assert } from "@std/assert/assert";
-import type { DataItem } from "@whiteand/cbor";
-import { codec, get, type Hash, hash, isHash, set } from "@massmarket/utils";
+import { equal } from "@std/assert";
+import { codec, type Hash, hash, isHash } from "@massmarket/utils";
+
+export function get(
+  obj: codec.CodecValue,
+  key: codec.CodecKey,
+): codec.CodecValue | undefined {
+  if (obj instanceof Map) {
+    if (
+      typeof key === "object" && key !== null
+    ) {
+      return obj.entries().find(([k]) => equal(k, key));
+    } else {
+      return obj.get(key);
+    }
+  } else if (
+    typeof obj === "object" && obj !== null &&
+    (typeof key === "number" ||
+      typeof key === "string" ||
+      typeof key === "symbol")
+  ) {
+    return Reflect.get(obj, key);
+  } else {
+    throw new Error(`Cannot get key ${key} from ${obj}`);
+  }
+}
+
+export function set(
+  obj: codec.CodecValue,
+  key: codec.CodecKey,
+  value: codec.CodecValue,
+): void {
+  if (obj instanceof Map) {
+    obj.set(key, value);
+  } else if (
+    typeof obj === "object" && obj !== null &&
+    (typeof key === "number" ||
+      typeof key === "string" ||
+      typeof key === "symbol")
+  ) {
+    Reflect.set(obj, key, value);
+  } else {
+    throw new Error(`Cannot set key ${key} on ${obj}`);
+  }
+}
 
 /** The interface for a store that is used to store and retrieve blocks */
 export interface StoreInterface {
@@ -17,8 +60,8 @@ export class ObjectStore {
   }
 
   async get(
-    key: DataItem,
-  ): Promise<DataItem> {
+    key: codec.CodecKey,
+  ): Promise<codec.CodecValue | undefined> {
     if (!(key instanceof Uint8Array)) {
       key = codec.encode(key);
     }
@@ -26,7 +69,7 @@ export class ObjectStore {
     return val ? codec.decode(val) : undefined;
   }
 
-  async set(key: DataItem, value: DataItem): Promise<void> {
+  async set(key: codec.CodecKey, value: codec.CodecValue): Promise<void> {
     if (!(key instanceof Uint8Array)) {
       key = codec.encode(key);
     }
@@ -34,7 +77,7 @@ export class ObjectStore {
     await this.store.set(key as Uint8Array, ev);
   }
 
-  append(key: DataItem, value: DataItem): Promise<void> {
+  append(key: codec.CodecKey, value: codec.CodecValue): Promise<void> {
     if (!(key instanceof Uint8Array)) {
       key = codec.encode(key);
     }
@@ -50,11 +93,11 @@ export class ContentAddressableStore {
     this.objStore = new ObjectStore(store);
   }
 
-  get(key: Hash): Promise<DataItem | undefined> {
+  get(key: Hash): Promise<codec.CodecValue | undefined> {
     return this.objStore.get(key);
   }
 
-  async set(value: DataItem): Promise<Hash> {
+  async set(value: codec.CodecValue): Promise<Hash> {
     if (isHash(value)) {
       return value;
     } else {
@@ -67,7 +110,10 @@ export class ContentAddressableStore {
   }
 }
 
-export type RootValue = DataItem | Hash | Promise<DataItem | Hash>;
+export type RootValue =
+  | codec.CodecValue
+  | Hash
+  | Promise<codec.CodecValue | Hash>;
 
 export class DAG {
   /** the store that the graph is stored in */
@@ -84,7 +130,7 @@ export class DAG {
   async #loadHash(
     hash: Hash,
     clone = false,
-  ): Promise<DataItem> {
+  ): Promise<codec.CodecValue> {
     const val = await this.store.get(hash);
     if (!val) {
       throw new Error(`Hash not found: ${hash}`);
@@ -104,11 +150,11 @@ export class DAG {
    */
   async *walk(
     root: RootValue,
-    path: DataItem[],
+    path: codec.CodecKey[],
     modify = false,
   ): AsyncGenerator<{
-    value: DataItem;
-    step?: DataItem;
+    value: codec.CodecValue;
+    step?: codec.CodecValue;
   }> {
     if (root instanceof Promise) {
       root = await root;
@@ -142,8 +188,8 @@ export class DAG {
    */
   async get(
     root: RootValue,
-    path: DataItem[],
-  ): Promise<DataItem> {
+    path: codec.CodecKey[],
+  ): Promise<codec.CodecValue | undefined> {
     const walk = await Array.fromAsync(
       this.walk(root, path),
     );
@@ -158,9 +204,9 @@ export class DAG {
    */
   async set(
     root: RootValue,
-    path: DataItem[],
-    value: DataItem,
-  ): Promise<DataItem> {
+    path: codec.CodecKey[],
+    value: codec.CodecValue,
+  ): Promise<codec.CodecValue> {
     assert(path.length);
     const last = path[path.length - 1];
     path = path.slice(0, -1);
