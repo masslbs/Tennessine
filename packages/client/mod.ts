@@ -45,8 +45,6 @@ export interface IRelayClientOptions {
   keyCardNonce?: number;
 }
 
-type Header = Map<string, CodecValue>;
-
 export type Patch = {
   Path: CodecKey[];
   Op: "add" | "remove" | "replace" | "append";
@@ -263,7 +261,7 @@ export class RelayClient {
           "SHA-256",
           encode(patch),
         );
-        const header: Header = new Map<string, CodecValue>([
+        const header = new Map<string, CodecValue>([
           ["KeyCardNonce", ++this.keyCardNonce],
           ["Timestamp", new Date()],
           ["ShopID", this.shopId],

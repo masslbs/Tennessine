@@ -136,6 +136,7 @@ export default class StateManager {
     const id = client.relayEndpoint.tokenId;
     this.clients.add(client);
     const state = await this.loadState(id);
+    client.keyCardNonce = state.seqNum;
     // TODO:  implement dynamic subscriptions
     // currently we subscribe to the root when any event is subscribed to
     const remoteReadable = client.createSubscriptionStream("/", state.seqNum);

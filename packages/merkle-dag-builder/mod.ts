@@ -1,49 +1,5 @@
 import { assert } from "@std/assert/assert";
-import { equal } from "@std/assert";
 import { codec, type Hash, hash, isHash } from "@massmarket/utils";
-
-export function get(
-  obj: codec.CodecValue,
-  key: codec.CodecKey,
-): codec.CodecValue | undefined {
-  if (obj instanceof Map) {
-    if (
-      typeof key === "object" && key !== null
-    ) {
-      return obj.entries().find(([k]) => equal(k, key));
-    } else {
-      return obj.get(key);
-    }
-  } else if (
-    typeof obj === "object" && obj !== null &&
-    (typeof key === "number" ||
-      typeof key === "string" ||
-      typeof key === "symbol")
-  ) {
-    return Reflect.get(obj, key);
-  } else {
-    throw new Error(`Cannot get key ${key} from ${obj}`);
-  }
-}
-
-export function set(
-  obj: codec.CodecValue,
-  key: codec.CodecKey,
-  value: codec.CodecValue,
-): void {
-  if (obj instanceof Map) {
-    obj.set(key, value);
-  } else if (
-    typeof obj === "object" && obj !== null &&
-    (typeof key === "number" ||
-      typeof key === "string" ||
-      typeof key === "symbol")
-  ) {
-    Reflect.set(obj, key, value);
-  } else {
-    throw new Error(`Cannot set key ${key} on ${obj}`);
-  }
-}
 
 /** The interface for a store that is used to store and retrieve blocks */
 export interface StoreInterface {

@@ -19,7 +19,7 @@ export type EventListener<T> = (
 ) => void;
 
 export type Step = codec.CodecKey;
-export type Path = Step[];
+export type Path = Readonly<Step[]>;
 
 /** Used to express changes to which part of the tree is needs a subscription to */
 export interface SubscriptionUpdate {
@@ -117,7 +117,7 @@ export default class EventTree<T> {
   ): EventTree<T> {
     const [path, listener] = args.length === 1 ? [[], args[0]] : args;
     if (path.length) {
-      return this.#getOrExtendPath(path).on(path, listener);
+      return this.#getOrExtendPath(path).on([], listener);
     } else {
       if (!this.hasListeners()) {
         const update: SubscriptionUpdate[] = [];
@@ -200,10 +200,10 @@ export default class EventTree<T> {
 
   #getPath(p: Path): EventTree<T> | undefined {
     if (p.length) {
-      const edge = p.shift();
-      const next = this.#edges[edge!.toString()];
+      const edge = p[0];
+      const next = this.#edges[edge.toString()];
       if (next) {
-        return next.#getPath(p);
+        return next.#getPath(p.slice(1));
       }
     } else {
       return this;
@@ -211,13 +211,14 @@ export default class EventTree<T> {
   }
 
   #getOrExtendPath(p: Path): EventTree<T> {
-    if (p.length) {
-      const edge = p.shift()!.toString();
-      if (!this.#edges[edge]) {
-        this.#edges[edge] = new EventTree(edge, this);
+    const edge = p[0];
+    if (edge) {
+      const edgeStr = edge.toString();
+      if (!this.#edges[edgeStr]) {
+        this.#edges[edgeStr] = new EventTree(edgeStr, this);
       }
-      const next = this.#edges[edge];
-      return next.#getOrExtendPath(p)!;
+      const next = this.#edges[edgeStr];
+      return next.#getOrExtendPath(p.slice(1));
     } else {
       return this;
     }
