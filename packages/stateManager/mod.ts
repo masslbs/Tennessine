@@ -59,22 +59,23 @@ export default class StateManager {
         // validate the Operation's schema
         const state = await this.loadState(id);
         const localState = await this.loadState("local");
-        const validityRange = await this.graph.get(state.root, [
+        const _validityRange = await this.graph.get(state.root, [
           "account",
           patchSet.signer,
         ]) as Map<string, string>;
 
         // TODO: Validate keycard for a given time range
-        if (!validityRange.get("node")) {
-          throw new Error("Invalid keycard");
-        }
+        // if (!validityRange.get("node")) {
+        //   throw new Error("Invalid keycard");
+        // }
         for (const patch of patchSet.patches) {
+          console.log(patch);
           const value = patch.Value;
           // TODO validate the Operation's value if any
           // const OpValschema = getSubSchema(this.params.schema, patch.Path);
           // v.parse(OpValschema, value);
           // apply the operation
-          if (patch.Op === "add") {
+          if (patch.Op === "add" || patch.Op === "replace") {
             state.root = this.graph.set(state.root, patch.Path, value);
             localState.root = this.graph.set(
               localState.root,
@@ -115,15 +116,20 @@ export default class StateManager {
     // currently we subscribe to the root when any event is subscribed to
     const remoteReadable = client.createSubscriptionStream("/", state.seqNum);
     const ourWritable = this.createWriteStream(id);
-    remoteReadable.pipeTo(ourWritable);
+    const remote = remoteReadable.pipeTo(ourWritable).catch((error) => {
+      console.error("Error piping remote stream:", error);
+    });
 
     // pipe our changes to the relay
     const remoteWritable = client.createWriteStream();
     const ourReadable = this.createReadStream();
-    ourReadable.pipeTo(remoteWritable);
+    const ours = ourReadable.pipeTo(remoteWritable);
+    return {
+      remote,
+      ours,
+    };
   }
 
-  // TODO: rename LinkValue to NodeValue ?
   async set(path: codec.Path, value: codec.CodecValue, id = "local") {
     const ongoingWriteOp = this.mutations.get(id);
     const { promise, resolve, reject } = Promise.withResolvers<void>();
@@ -133,27 +139,22 @@ export default class StateManager {
       await ongoingWriteOp;
     }
     const state = await this.loadState(id);
-    const result = await this.graph.get(state.root, path);
-    //ignore sets that do not change the value
-    // TODO: rename node to value?
-    if (result !== value) {
-      state.root = this.graph.set(state.root, path, value);
-      state.seqNum += 1;
-      const root = await this.graph.merklelize(state.root);
-      // TODO: all the setMetaData ops should be collected
-      const metaPromise = this.#saveState({
-        seqNum: state.seqNum,
-        root,
-      });
-      this.events.emit(path, value);
-      // send patch to peers
-      this.#streamsControllers.forEach((controller) => {
-        controller.enqueue([
-          { Path: path, Value: codec.encode(value), Op: "add" },
-        ]);
-      });
-      return metaPromise.then(resolve).catch(reject);
-    }
+    state.root = this.graph.set(state.root, path, value);
+    state.seqNum += 1;
+    const root = await this.graph.merklelize(state.root);
+    // TODO: all the setMetaData ops should be collected
+    const metaPromise = this.#saveState({
+      seqNum: state.seqNum,
+      root,
+    });
+    this.events.emit(path, value);
+    // send patch to peers
+    this.#streamsControllers.forEach((controller) => {
+      controller.enqueue([
+        { Path: path, Value: codec.encode(value), Op: "add" },
+      ]);
+    });
+    return metaPromise.then(resolve).catch(reject);
   }
 
   async get(
@@ -163,9 +164,6 @@ export default class StateManager {
     // wait for any pending writes to complete
     await this.mutations.get(id);
     const state = await this.loadState(id);
-    console.log(`stateManager.get(${path})`);
-    console.log(`state:`, state);
-    const res = await this.graph.get(state.root, path);
-    return res;
+    return this.graph.get(state.root, path);
   }
 }

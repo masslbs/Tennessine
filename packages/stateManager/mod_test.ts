@@ -1,10 +1,9 @@
-import { hexToBytes } from "npm:viem";
-
-import { ShopSchema } from "@massmarket/schema/cbor";
-import { MemStore } from "@massmarket/merkle-dag-builder/memstore";
-import StateManager from "./mod.ts";
+import { hexToBytes } from "@wevm/viem";
 import { assertEquals } from "@std/assert";
-import { decodeCbor } from "@std/cbor";
+import { MemStore } from "@massmarket/merkle-dag-builder/memstore";
+import type { codec } from "@massmarket/utils";
+import { createTestClients } from "@massmarket/client/test";
+import StateManager from "./mod.ts";
 
 // const ManifestOkayTest = await fetch(
 //   `file://${Deno.env.get("MASS_TEST_VECTORS")}/vectors/ManifestOkay.cbor`,
@@ -13,7 +12,7 @@ import { decodeCbor } from "@std/cbor";
 // const ManifestOkayTestBytes = await ManifestOkayTest.bytes();
 // const manifest = decodeCbor(ManifestOkayTestBytes);
 
-const manifest = new Map([
+const manifest = new Map<string, codec.CodecValue>([
   ["ShopID", 2463539455555n],
   [
     "Payees",
@@ -23,7 +22,7 @@ const manifest = new Map([
         new Map([
           [
             hexToBytes("0x0000000000000000000000000000000000000000"),
-            new Map([
+            new Map<string, codec.CodecValue>([
               ["isContract", true],
               ["description", "My main wallet"],
             ]),
@@ -53,7 +52,7 @@ const manifest = new Map([
   ],
   [
     "PricingCurrency",
-    new Map([
+    new Map<string, codec.CodecValue>([
       ["ChainID", 1337],
       ["Address", "0x0000000000000000000000000000000000000000"],
     ]),
@@ -88,31 +87,46 @@ const manifest = new Map([
 //   "StockStatus": "In Stock",
 // };
 
+const store = new MemStore();
 Deno.test("Database Testings", async (t) => {
   await t.step("create a database and a Manifest", async () => {
-    const store = new MemStore();
-    const db = new StateManager({
+    const sm = new StateManager({
       store,
-      schema: ShopSchema,
       objectId: manifest.get("ShopID") as bigint,
     });
-    await db.set(["Manifest"], manifest);
-    // db.set(['Listings', "234"], listings1)
-    const result = await db.get(["Manifest"]);
+    const { resolve, promise } = Promise.withResolvers();
+    sm.events.on(["Manifest"], resolve);
+    await sm.set(["Manifest"], manifest);
+    const result = await sm.get(["Manifest"]);
     assertEquals(result, manifest);
+    const pr = await promise;
+    assertEquals(result, pr);
   });
 
   await t.step("add a relay and set a key and retrieve it", async () => {
-    // const _root = new Link({ value: "root" });
-    // const store = new MemStore();
-    // const db = new Database({
-    //   store,
-    //   schema: ShopSchema,
-    //   id: 1111,
-    // });
-    // await db.open();
-    // db.set("key", "value");
-    // const value = await db.get("key");
-    // assertEquals(value, "value");
+    const { relayClient } = await createTestClients();
+    const sm = new StateManager({
+      store,
+      objectId: relayClient.shopId,
+    });
+    // connect to the relay
+    await sm.addConnection(relayClient);
+    const { resolve, promise } = Promise.withResolvers();
+    sm.events.on(["Manifest"], (manifestPatch) => {
+      console.log("!!!!");
+      resolve(manifestPatch);
+    });
+    await promise;
+    await sm.set(
+      ["Manifest", "ShippingRegions", "default"],
+      new Map([
+        ["City", ""],
+        ["Country", "DE"],
+        ["PostalCode", ""],
+        ["PriceModifiers", null],
+      ]),
+    );
+    const value = await sm.get(["Manifest", "ShippingRegions", "default"]);
+    assertEquals(value, "value");
   });
 });

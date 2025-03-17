@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "exports": {
     ".": "./mod.ts",
-    "./stream": "./stream.ts"
+    "./test": "./testUtils.ts"
   },
   "imports": {
     "@noble/secp256k1": "jsr:@noble/secp256k1@^2.2.3",

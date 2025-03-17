@@ -94,7 +94,7 @@ export class RelayClient {
       throw new Error(`unable to verify envelope: ${err}`);
     }
     const payload = schema.Envelope.encode(envelope).finish();
-    assert(this.connection);
+    assert(this.connection, "Connection is not established");
     this.connection.send(payload);
     const requestType =
       Object.keys(envelope).filter((k) => k !== "requestId")[0];
@@ -237,6 +237,7 @@ export class RelayClient {
     let id: Uint8Array;
     return new ReadableStream<PushedPatchSet>({
       start: async (c) => {
+        await this.connect();
         const r = await this.createSubscription(path, seqNum);
         id = r.payload!;
         this.#subscriptions.set(id.toString(), c);
@@ -251,7 +252,10 @@ export class RelayClient {
   createWriteStream() {
     return new WritableStream<Patch[]>({
       // Why do we even need to authenticate here?
-      start: () => this.authenticate().then(() => void 0),
+      start: async () => {
+        await this.connect();
+        await this.authenticate();
+      },
       write: async (patches) => {
         const patch = new Map(Object.entries(patches[0]));
         // TODO: add MMR
