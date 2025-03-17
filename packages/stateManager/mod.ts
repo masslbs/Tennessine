@@ -3,6 +3,21 @@ import EventTree from "@massmarket/eventTree";
 import type { PushedPatchSet, RelayClient } from "@massmarket/client";
 import { codec, type Hash } from "@massmarket/utils";
 
+/*
+replace: not optional
+add: optional only
+*/
+
+const DefaultObject = new Map(Object.entries({
+  Tags: new Map(),
+  Orders: new Map(),
+  Accounts: new Map(),
+  Inventory: new Map(),
+  Listings: new Map(),
+  Manifest: new Map(),
+  SchemeVersion: 1,
+}));
+
 type HashOrValue = Hash | codec.CodecValue;
 
 interface IStoredState {
@@ -36,7 +51,7 @@ export default class StateManager {
     } else {
       return {
         seqNum: 0,
-        root: new Map(),
+        root: new Map(DefaultObject),
         // TODO: add class for shop at some point
         // root: v.getDefaults(this.params.schema) as CborValue,
       };
@@ -53,12 +68,16 @@ export default class StateManager {
   }
 
   createWriteStream(id: string) {
+    let state: IStoredState;
+    let localState: IStoredState;
     // TODO: handle patch rejection
     return new WritableStream<PushedPatchSet>({
+      start: async () => {
+        state = await this.loadState(id);
+        localState = await this.loadState("local");
+      },
       write: async (patchSet) => {
         // validate the Operation's schema
-        const state = await this.loadState(id);
-        const localState = await this.loadState("local");
         const _validityRange = await this.graph.get(state.root, [
           "account",
           patchSet.signer,
@@ -69,12 +88,12 @@ export default class StateManager {
         //   throw new Error("Invalid keycard");
         // }
         for (const patch of patchSet.patches) {
-          console.log(patch);
           const value = patch.Value;
           // TODO validate the Operation's value if any
           // const OpValschema = getSubSchema(this.params.schema, patch.Path);
           // v.parse(OpValschema, value);
           // apply the operation
+
           if (patch.Op === "add" || patch.Op === "replace") {
             state.root = this.graph.set(state.root, patch.Path, value);
             localState.root = this.graph.set(
@@ -83,9 +102,14 @@ export default class StateManager {
               value,
             );
             // TODO
+          } else if (patch.Op === "append") {
+            // state.root = this.graph.delete(state.root, patch.Path);
+            // localState.root = this.graph.delete(localState.root, patch.Path);
+            // TODO
           } else {
             throw new Error("Unimplemented operation type");
           }
+          this.events.emit(patch.Path, value);
         }
         // TODO: check stateroot
         // TODO: we are saving the patches here

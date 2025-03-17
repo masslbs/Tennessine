@@ -218,7 +218,7 @@ export class DAG {
       const parent = walk[walk.length - 1].value;
       set(parent, last, value);
     } else {
-      throw new Error("Path does not exist");
+      throw new Error(`Path ${path.join(".")} does not exist`);
     }
     return walk[0].value;
   }

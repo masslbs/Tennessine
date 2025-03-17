@@ -110,12 +110,13 @@ Deno.test("Database Testings", async (t) => {
       objectId: relayClient.shopId,
     });
     // connect to the relay
-    await sm.addConnection(relayClient);
     const { resolve, promise } = Promise.withResolvers();
     sm.events.on(["Manifest"], (manifestPatch) => {
-      console.log("!!!!");
+      console.log(manifestPatch);
       resolve(manifestPatch);
     });
+
+    await sm.addConnection(relayClient);
     await promise;
     await sm.set(
       ["Manifest", "ShippingRegions", "default"],
