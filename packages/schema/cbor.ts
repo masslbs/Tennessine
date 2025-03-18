@@ -105,14 +105,16 @@ const AddressDetailsSchema = v.object({
   EmailAddress: v.optional(v.string()),
 });
 
+const ListingMetadataSchema = v.object({
+  Title: v.string(),
+  Description: v.string(),
+  Images: v.array(v.string()),
+});
+
 const ListingSchema = v.object({
   ID: v.number(),
   Name: v.string(),
-  Metadata: v.object({
-    Title: v.string(),
-    Description: v.string(),
-    Images: v.array(v.string()),
-  }),
+  Metadata: ListingMetadataSchema,
   Price: v.number(),
   ViewState: v.number(),
   Options: v.optional(v.array(v.string())),
@@ -156,3 +158,4 @@ export type TCurrencyMap = v.InferInput<typeof CurrencyMapSchema>;
 export type TPricingCurrency = v.InferInput<typeof PricingCurrencySchema>;
 export type TAddressDetails = v.InferInput<typeof AddressDetailsSchema>;
 export type IShopSchema = v.InferInput<typeof ShopSchema>;
+export type TListingMetadata = v.InferInput<typeof ListingMetadataSchema>;
