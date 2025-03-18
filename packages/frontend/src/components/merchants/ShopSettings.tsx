@@ -14,7 +14,6 @@ import {
   TCurrencyMap,
   TManifest,
   TPricingCurrency,
-
 } from "../../types.ts";
 import {
   compareAddedRemovedChains,

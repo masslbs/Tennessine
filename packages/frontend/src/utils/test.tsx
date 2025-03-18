@@ -12,15 +12,15 @@ import { connect } from "wagmi/actions";
 import { hardhat, mainnet, sepolia } from "wagmi/chains";
 import { mock } from "npm:wagmi/connectors";
 import { createTestClient, publicActions, walletActions } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-import { anvilPrivateKey } from "@massmarket/contracts";
 
 import { MassMarketProvider } from "../MassMarketContext.tsx";
 import { MockClientStateManager } from "./MockClientStateManager.ts";
 
+const anvilPrivateKey = generatePrivateKey();
 const account = privateKeyToAccount(
   anvilPrivateKey,
 );
@@ -50,11 +50,7 @@ export const createClientStateManager = async (
   const csm = new MockClientStateManager(
     shopId,
   );
-  await csm.createStateManager();
-  // Add test keycard for event verification
-  await csm.stateManager?.keycards.addAddress(
-    csm.relayClient!.keyCardWallet.address,
-  );
+
   return csm;
 };
 

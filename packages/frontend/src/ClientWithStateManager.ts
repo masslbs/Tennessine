@@ -2,7 +2,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import type { Account, PublicClient, WalletClient } from "viem";
 import { BrowserLevel } from "npm:browser-level";
 import { RelayClient, type RelayEndpoint } from "@massmarket/client";
-import { Database } from "@massmarket/stateManager";
+import Database from "@massmarket/stateManager";
 import { logger } from "@massmarket/utils";
 import { ShopSchema } from "@massmarket/schema/cbor";
 
