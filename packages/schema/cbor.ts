@@ -73,24 +73,40 @@ const CurrencyMapSchema = v.map(
     })),
   ),
 );
-const PricingCurrencySchema = v.object({
+const ChainAddressSchema = v.object({
   ChainID: v.number(),
   Address: v.string(),
 });
 
+const ModificationAbsoluteSchema = v.object({
+  Amount: v.bigint(),
+  Plus: v.boolean(),
+});
+
+const PriceModifierSchema = v.object({
+  ModificationPrecents: v.optional(v.bigint()),
+  ModificationAbsolute: v.optional(ModificationAbsoluteSchema),
+});
+
 const ShippingRegionSchema = v.object({
   Country: v.string(),
-  Postcode: v.string(),
+  PostalCode: v.string(),
   City: v.string(),
-  PriceModifiers: v.nullable(v.number()),
+  PriceModifiers: v.optional(PriceModifierSchema),
 });
+
+const PayeeMetadata = v.object({
+  CallAsContract: v.boolean(),
+});
+
+const PayeeSchema = v.map(v.number(), v.map(v.string(), PayeeMetadata));
 
 const ManifestSchema = v.object({
   ShopID: v.bigint(),
-  Payees: CurrencyMapSchema,
+  Payees: PayeeSchema,
   AcceptedCurrencies: CurrencyMapSchema,
-  PricingCurrency: PricingCurrencySchema,
-  ShippingRegions: v.optional(v.record(
+  PricingCurrency: ChainAddressSchema,
+  ShippingRegions: v.optional(v.map(
     v.string(),
     ShippingRegionSchema,
   )),
@@ -121,15 +137,13 @@ const ListingStockStatusSchema = v.object({
 
 const ListingVariationSchema = v.object({
   VariationInfo: ListingMetadataSchema,
-  PriceModifier: v.optional(v.number()),
+  PriceModifier: v.optional(PriceModifierSchema),
   SKU: v.optional(v.string()),
 });
 
 const ListingOptionSchema = v.object({
   Title: v.string(),
-  Variations: v.optional(v.record(v.string(),
-    ListingVariationSchema,
-  )),
+  Variations: v.optional(v.map(v.string(), ListingVariationSchema)),
 });
 
 const ListingSchema = v.object({
@@ -138,7 +152,7 @@ const ListingSchema = v.object({
   Metadata: ListingMetadataSchema,
   Price: v.number(),
   ViewState: v.number(),
-  Options: v.optional(v.record(v.string(), ListingOptionSchema)),
+  Options: v.optional(v.map(v.string(), ListingOptionSchema)),
   StockStatuses: v.optional(v.array(ListingStockStatusSchema)),
 });
 
@@ -148,9 +162,22 @@ const TagSchema = v.object({
 });
 
 const OrderedItemSchema = v.object({
-  ListingId: v.number(),
+  ListingID: v.number(),
   Quantity: v.number(),
-  VariationsIDs: v.array(v.number()),
+  VariationIDs: v.array(v.string()),
+});
+
+const PaymentDetailsSchema = v.object({
+  PaymentID: v.string(),
+  Total: v.bigint(),
+  ListingHashes: v.array(v.string()),
+  TTL: v.number(),
+  ShopSignature: v.string(),
+});
+
+const OrderPaidSchema = v.object({
+  TxHash: v.optional(v.string()),
+  BlockHash: v.string(),
 });
 
 const OrderSchema = v.object({
@@ -160,9 +187,10 @@ const OrderSchema = v.object({
   InvoiceAddress: v.optional(AddressDetailsSchema),
   ShippingAddress: v.optional(AddressDetailsSchema),
   CanceledAt: v.optional(v.date()),
-  ChosenPayee: v.optional(v.string()),
-  ChosenCurrency: v.optional(v.string()),
-  TxDetails: v.optional(v.string()),
+  ChosenPayee: v.optional(ChainAddressSchema),
+  ChosenCurrency: v.optional(ChainAddressSchema),
+  TxDetails: v.optional(OrderPaidSchema),
+  PaymentDetails: v.optional(PaymentDetailsSchema),
 });
 
 export const ShopSchema = v.object({
@@ -178,7 +206,7 @@ export type TListing = v.InferInput<typeof ListingSchema>;
 export type TTag = v.InferInput<typeof TagSchema>;
 export type TOrder = v.InferInput<typeof OrderSchema>;
 export type TCurrencyMap = v.InferInput<typeof CurrencyMapSchema>;
-export type TPricingCurrency = v.InferInput<typeof PricingCurrencySchema>;
+export type TChainAddress = v.InferInput<typeof ChainAddressSchema>;
 export type TAddressDetails = v.InferInput<typeof AddressDetailsSchema>;
 export type IShopSchema = v.InferInput<typeof ShopSchema>;
 export type TListingMetadata = v.InferInput<typeof ListingMetadataSchema>;
@@ -187,3 +215,10 @@ export type TShippingRegion = v.InferInput<typeof ShippingRegionSchema>;
 export type TListingStockStatus = v.InferInput<typeof ListingStockStatusSchema>;
 export type TListingOption = v.InferInput<typeof ListingOptionSchema>;
 export type TListingVariation = v.InferInput<typeof ListingVariationSchema>;
+export type TPriceModifier = v.InferInput<typeof PriceModifierSchema>;
+export type TModificationAbsolute = v.InferInput<
+  typeof ModificationAbsoluteSchema
+>;
+export type TPayee = v.InferInput<typeof PayeeSchema>;
+export type TPaymentDetails = v.InferInput<typeof PaymentDetailsSchema>;
+export type TOrderPaid = v.InferInput<typeof OrderPaidSchema>;
