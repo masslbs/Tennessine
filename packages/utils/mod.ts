@@ -13,8 +13,8 @@ import {
   toBytes,
 } from "@wevm/viem";
 import * as Sentry from "@sentry/browser";
+import { type CodecKey, type CodecValue, decode } from "./codec.ts";
 export * as codec from "./codec.ts";
-import type * as codec from "./codec.ts";
 
 // TODO: type case first argument to captureException
 // TODO: add extras arguments (https://docs.sentry.io/platforms/javascript/guides/nextjs/enriching-events/)
@@ -130,7 +130,7 @@ export function bufferToJSON(metadata: Uint8Array) {
   return JSON.parse(new TextDecoder().decode(metadata));
 }
 
-//This is used to get the string value from an array buffer
+// This is used to get the string value from an array buffer
 export function decodeBufferToString(buffer: Uint8Array) {
   const textDecoder = new TextDecoder();
   return textDecoder.decode(buffer);
@@ -159,7 +159,7 @@ export async function hash(data: BufferSource): Promise<Hash> {
 }
 
 // TODO: we need a some way to denote whether the value is a hash
-export function isHash(node: codec.CodecValue): node is Hash {
+export function isHash(node: CodecValue): node is Hash {
   return node instanceof Uint8Array && node.length === 32;
 }
 
@@ -169,15 +169,22 @@ export function getWindowLocation() {
     : new URL(globalThis.location.href);
 }
 
+/**
+ * Get a value from an array or map given a `key`, which can be a string, number, or object.
+ * If the keys is an object then a deep equality check is performed while iterating through a map.
+ * TODO: Iterateing through the map to find a key/value is suboptimal, consider using a more efficient data structure.
+ */
 export function get(
-  obj: codec.CodecValue,
-  key: codec.CodecKey,
-): codec.CodecValue | undefined {
+  obj: unknown,
+  key: CodecKey,
+) {
   if (obj instanceof Map) {
     if (
       typeof key === "object" && key !== null
     ) {
-      return obj.entries().find(([k]) => equal(k, key));
+      // find the key in the map if the key is an array
+      const f = obj.entries().find(([k]) => equal(k, key));
+      if (f) return f[1];
     } else {
       return obj.get(key);
     }
@@ -189,14 +196,18 @@ export function get(
   ) {
     return Reflect.get(obj, key);
   } else {
-    throw new Error(`Cannot get key ${key} from ${obj}`);
+    // obj was a number / bool / null / undefined / etc
+    return undefined;
   }
 }
 
+/**
+ * Set a value in an array or map given a `key`, which can be a string, number, or object.
+ */
 export function set(
-  obj: codec.CodecValue,
-  key: codec.CodecKey,
-  value: codec.CodecValue,
+  obj: unknown,
+  key: CodecKey,
+  value: unknown,
 ): void {
   if (obj instanceof Map) {
     obj.set(key, value);
@@ -210,4 +221,51 @@ export function set(
   } else {
     throw new Error(`Cannot set key ${key} on ${obj}`);
   }
+}
+export async function fetchAndDecode(filename: string) {
+  const response = await fetch(
+    `file://${Deno.env.get("MASS_TEST_VECTORS")}/vectors/${filename}.cbor`,
+  );
+  const bytes = await response.bytes();
+  return decode(bytes) as Map<string, unknown>;
+}
+
+export function extractEntriesFromHAMT(
+  hamtNode: unknown,
+): Map<number, unknown> {
+  if (!hamtNode || !Array.isArray(hamtNode) || hamtNode.length < 2) {
+    return new Map();
+  }
+
+  const entries = hamtNode[1];
+  const result = new Map<number, unknown>();
+
+  if (Array.isArray(entries)) {
+    for (const entry of entries) {
+      if (Array.isArray(entry) && entry.length >= 2) {
+        // Check if this is a leaf node or another HAMT node
+        if (entry.length > 2 && entry[2] !== null) {
+          // This is another HAMT node, recurse into it
+          const subEntries = extractEntriesFromHAMT(entry[2]);
+          // Merge the results
+          for (const [subKey, subValue] of subEntries.entries()) {
+            result.set(subKey, subValue);
+          }
+        } else {
+          // This is a leaf node
+          const key = entry[0];
+          const value = entry[1];
+          // Convert key (Uint8Array) to number (8-byte big endian)
+          const keyNum = new DataView(
+            key.buffer,
+            key.byteOffset,
+            key.byteLength,
+          )
+            .getBigUint64(0, false);
+          result.set(Number(keyNum), value);
+        }
+      }
+    }
+  }
+  return result;
 }

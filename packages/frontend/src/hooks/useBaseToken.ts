@@ -3,12 +3,12 @@ import { usePublicClient } from "wagmi";
 
 import { useClientWithStateManager } from "./useClientWithStateManager.ts";
 import { getTokenInformation } from "../utils/token.ts";
-import { TManifest, TPricingCurrency } from "../types.ts";
+import { TManifest, TChainAddress } from "../types.ts";
 import { useQuery } from "./useQuery.ts";
 
 export function useBaseToken() {
-  const [pricingCurrency, setPricingCurrency] = useState<
-    TPricingCurrency | null
+  const [pricingCurrency, seTChainAddress] = useState<
+    TChainAddress | null
   >(
     null,
   );
@@ -21,7 +21,7 @@ export function useBaseToken() {
   function getManifest() {
     manifestManager.get().then(
       (manifest: TManifest) => {
-        manifest && setPricingCurrency(manifest.pricingCurrency);
+        manifest && seTChainAddress(manifest.pricingCurrency);
       },
     );
   }

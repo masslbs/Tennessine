@@ -5252,6 +5252,7 @@
       },
       "packages/schema": {
         "dependencies": [
+          "jsr:@std/assert@^1.0.11",
           "jsr:@valibot/valibot@~0.42.1",
           "jsr:@wevm/viem@^2.23.4",
           "npm:long@*",

@@ -13,7 +13,7 @@ import {
   CurrencyChainOption,
   TCurrencyMap,
   TManifest,
-  TPricingCurrency,
+  TChainAddress,
 } from "../../types.ts";
 import {
   compareAddedRemovedChains,
@@ -47,8 +47,8 @@ export default function ShopSettings() {
   const [acceptedCurrencies, setAcceptedCurrencies] = useState<
     TCurrencyMap
   >(new Map());
-  const [pricingCurrency, setPricingCurrency] = useState<
-    TPricingCurrency | null
+  const [pricingCurrency, seTChainAddress] = useState<
+    TChainAddress | null
   >(
     null,
   );
@@ -86,7 +86,7 @@ export default function ShopSettings() {
     function onUpdateEvent(updatedManifest: TManifest) {
       setManifest(updatedManifest);
       setAcceptedCurrencies(updatedManifest.acceptedCurrencies);
-      setPricingCurrency({
+      seTChainAddress({
         Address: updatedManifest.pricingCurrency.Address!,
         ChainID: updatedManifest.pricingCurrency.ChainID!,
       });
@@ -97,7 +97,7 @@ export default function ShopSettings() {
       .then((shopManifest: TManifest) => {
         setManifest(shopManifest);
         setAcceptedCurrencies(shopManifest.acceptedCurrencies);
-        setPricingCurrency({
+        seTChainAddress({
           ChainID: shopManifest.pricingCurrency.ChainID!,
           Address: shopManifest.pricingCurrency.Address!,
         });
@@ -124,7 +124,7 @@ export default function ShopSettings() {
       pricingCurrency!.Address !== manifest!.pricingCurrency.Address ||
       pricingCurrency!.chainID !== manifest!.pricingCurrency.chainID
     ) {
-      um.setPricingCurrency = pricingCurrency;
+      um.seTChainAddress = pricingCurrency;
     }
     //Compare added/removed currencies and apply changes to update manifest object.
     const { removed, added } = compareAddedRemovedChains(
@@ -208,7 +208,7 @@ export default function ShopSettings() {
     const v = option.value as string;
     const [addr, chainId] = v.split("/");
     const address = addr as Address;
-    setPricingCurrency({ ChainID: Number(chainId), Address: address });
+    seTChainAddress({ ChainID: Number(chainId), Address: address });
   }
 
   function currencyIsSelected(c: CurrencyChainOption) {

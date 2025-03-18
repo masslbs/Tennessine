@@ -54,7 +54,7 @@ export type Patch = {
 export type PushedPatchSet = {
   signer: Hex;
   patches: Patch[];
-  header: Header;
+  header: CodecValue;
   sequence: number;
 };
 
@@ -160,7 +160,7 @@ export class RelayClient {
 
           try {
             for (const ppset of envelope.subscriptionPushRequest.sets!) {
-              const header = decode(ppset.header!) as Header;
+              const header = decode(ppset.header!);
               // @ts-ignore we will soon depracte pbjs
               const sequence = ppset!.shopSeqNo!.toNumber();
               const patches = ppset.patches!.map((patch) =>
@@ -256,6 +256,7 @@ export class RelayClient {
       },
       write: async (patches) => {
         const patch = new Map(Object.entries(patches[0]));
+        console.log("Writing patches:", patch);
         // TODO: add MMR
         const rootHash = await crypto.subtle.digest(
           "SHA-256",

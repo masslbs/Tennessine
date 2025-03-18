@@ -1,92 +1,76 @@
-import { hexToBytes } from "@wevm/viem";
 import { assertEquals } from "@std/assert";
+
 import { MemStore } from "@massmarket/merkle-dag-builder/memstore";
-import type { codec } from "@massmarket/utils";
 import { createTestClients } from "@massmarket/client/test";
+import { extractEntriesFromHAMT, fetchAndDecode } from "@massmarket/utils";
+
 import StateManager from "./mod.ts";
+import { Listing } from "../schema/standin_listing.ts";
+import { ChainAddress, Manifest } from "../schema/standin_manifest.ts";
+import { Order } from "../schema/standin_order.ts";
 
-// const ManifestOkayTest = await fetch(
-//   `file://${Deno.env.get("MASS_TEST_VECTORS")}/vectors/ManifestOkay.cbor`,
-// );
-
-// const ManifestOkayTestBytes = await ManifestOkayTest.bytes();
-// const manifest = decodeCbor(ManifestOkayTestBytes);
-
-const manifest = new Map<string, codec.CodecValue>([
-  ["ShopID", 2463539455555n],
-  [
-    "Payees",
-    new Map([
-      [
-        1337,
-        new Map([
-          [
-            hexToBytes("0x0000000000000000000000000000000000000000"),
-            new Map<string, codec.CodecValue>([
-              ["isContract", true],
-              ["description", "My main wallet"],
-            ]),
-          ],
-        ]),
-      ],
-    ]),
-  ],
-  [
-    "AcceptedCurrencies",
-    new Map([
-      [
-        1337,
-        new Map([
-          [hexToBytes("0x0000000000000000000000000000000000000000"), null],
-          [hexToBytes("0x0000000000000000000000000000000000000001"), null],
-          [hexToBytes("0x0000000000000000000000000000000000000002"), null],
-        ]),
-      ],
-      [
-        2,
-        new Map([
-          [hexToBytes("0x0000000000000000000000000000000000000000"), null],
-        ]),
-      ],
-    ]),
-  ],
-  [
-    "PricingCurrency",
-    new Map<string, codec.CodecValue>([
-      ["ChainID", 1337],
-      ["Address", "0x0000000000000000000000000000000000000000"],
-    ]),
-  ],
-  [
-    "ShippingRegions",
-    new Map([
-      [
-        "default",
-        new Map([
-          ["Country", "DE"],
-          ["Postcode", ""],
-          ["City", ""],
-          ["PriceModifiers", null],
-        ]),
-      ],
-    ]),
-  ],
-]);
-
-const store = new MemStore();
 Deno.test("Database Testings", async (t) => {
-  await t.step("create a database and a Manifest", async () => {
-    const sm = new StateManager({
+  const store = new MemStore();
+
+  await t.step("Set Manifest, Listings, and Orders", async () => {
+    //Manifest
+    const manifestVector = await fetchAndDecode("ManifestOkay");
+    const manifests = manifestVector.get("Snapshots")?.map((snapshot: any) => {
+      return snapshot.get("After").get("Value").get("Manifest");
+    }) || [];
+    const db = new StateManager({
       store,
-      objectId: manifest.get("ShopID") as bigint,
+      objectId: manifests[0].get("ShopID") as bigint,
     });
-    const { resolve, promise } = Promise.withResolvers();
-    sm.events.on(["Manifest"], resolve);
-    await sm.set(["Manifest"], manifest);
-    const result = await sm.get(["Manifest"]);
-    assertEquals(result, manifest);
-    const pr = await promise;
-    assertEquals(result, pr);
+    // Need to initialize the listings map
+    await db.set(["Listings"], new Map());
+    await db.set(["Orders"], new Map());
+
+    const unpacked = new Manifest(manifests[0]);
+    const mapped = unpacked.returnAsMap();
+    await db.set(["Manifest"], mapped);
+
+
+    const result = await db.get(["Manifest"]);
+    assertEquals(result, manifests[0]);
+    //Listing
+    const ListingsVector = await fetchAndDecode("ListingOkay");
+    const listings = ListingsVector?.get("Snapshots")?.map((snapshot: any) => {
+      const hamtNode = snapshot?.get("After")?.get("Value")?.get(
+        "Listings",
+      );
+      return extractEntriesFromHAMT(hamtNode);
+    }) || [];
+    for (const listingMap of listings) {
+      for (const [id, listing] of listingMap.entries()) {
+        console.log("here!!!", { listing });
+        const unpacked = new Listing(listing);
+        const mapped = unpacked.returnAsMap();
+        await db.set(["Listings", id], mapped);
+        const result = await db.get(["Listings", id]);
+        assertEquals(result, mapped);
+      }
+    }
+    await db.get(["Listings"]);
+    //Order
+    const OrderVector = await fetchAndDecode("OrderOkay");
+    const orders = OrderVector?.get("Snapshots")?.map((snapshot: any) => {
+      const hamtNode = snapshot?.get("After")?.get("Value")?.get("Orders");
+      return extractEntriesFromHAMT(hamtNode);
+    }) || [];
+
+    for (const orderMap of orders) {
+      for (const [id, order] of orderMap.entries()) {
+        const unpacked = new Order(order);
+        console.log({ order, unpacked });
+        const mapped = unpacked.returnAsMap();
+        await db.set(["Orders", id], mapped);
+
+        const result = await db.get(["Orders", id]);
+        assertEquals(result, mapped);
+      }
+    }
+    await db.get(["Orders"]);
   });
 
   await t.step("add a relay and set a key and retrieve it", async () => {
@@ -104,16 +88,45 @@ Deno.test("Database Testings", async (t) => {
 
     await sm.addConnection(relayClient);
     await promise;
-    await sm.set(
-      ["Manifest", "ShippingRegions", "default"],
+    const testAddr = Uint8Array.from([
+      0xf0,
+      0xf1,
+      0xf2,
+      0x03,
+      0x04,
+      0x05,
+      0xf6,
+      0xf7,
+      0xf8,
+      0x09,
+      0x0a,
+      0x0b,
+      0xfc,
+      0xfd,
+      0xfe,
+      0x0f,
+      0x01,
+      0x02,
+      0xf3,
+      0xf4,
+    ]);
+    const testCurrency = new ChainAddress(
       new Map([
-        ["City", ""],
-        ["Country", "DE"],
-        ["PostalCode", ""],
-        ["PriceModifiers", null],
+        ["Address", testAddr],
+        ["ChainID", 1337],
       ]),
     );
-    const value = await sm.get(["Manifest", "ShippingRegions", "default"]);
-    assertEquals(value, "value");
+    await sm.set(
+      ["Manifest", "PricingCurrency"],
+      testCurrency.returnAsMap(),
+    );
+    const value = await sm.get(["Manifest", "PricingCurrency"]);
+    assertEquals(
+      value,
+      new Map([
+        ["Address", testAddr],
+        ["ChainID", 1337],
+      ]),
+    );
   });
 });

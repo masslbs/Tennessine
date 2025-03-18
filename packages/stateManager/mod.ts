@@ -1,12 +1,7 @@
 import { DAG, type StoreInterface } from "@massmarket/merkle-dag-builder";
 import EventTree from "@massmarket/eventTree";
 import type { PushedPatchSet, RelayClient } from "@massmarket/client";
-import { codec, type Hash } from "@massmarket/utils";
-
-/*
-replace: not optional
-add: optional only
-*/
+import type { codec, Hash } from "@massmarket/utils";
 
 const DefaultObject = new Map(Object.entries({
   Tags: new Map(),
@@ -26,11 +21,12 @@ interface IStoredState {
 }
 
 export default class StateManager {
-  readonly events = new EventTree();
+  readonly events = new EventTree<codec.CodecValue>(DefaultObject);
   readonly graph: DAG;
   readonly clients: Set<RelayClient> = new Set();
-  readonly mutations: Map<string, Promise<void>> = new Map();
   #streamsControllers: Set<ReadableStreamDefaultController> = new Set();
+  // very simple cache, we always want a reference to the same object
+  #stateCache: Map<string, Promise<IStoredState>> = new Map();
   constructor(
     public params: {
       store: StoreInterface;
@@ -40,25 +36,39 @@ export default class StateManager {
     this.graph = new DAG(params.store);
   }
 
-  async loadState(view = "local"): Promise<IStoredState> {
-    const storedState = await this.graph.store.objStore.get([
-      this.params.objectId,
-      view,
-    ]);
-
-    if (storedState instanceof Map) {
-      return Object.fromEntries(storedState);
-    } else {
-      return {
-        seqNum: 0,
-        root: new Map(DefaultObject),
-        // TODO: add class for shop at some point
-        // root: v.getDefaults(this.params.schema) as CborValue,
-      };
+  loadState(view = "local"): Promise<IStoredState> {
+    const state = this.#stateCache.get(view);
+    if (state) return state;
+    else {
+      const pStoredState = this.graph.store.objStore.get([
+        this.params.objectId,
+        view,
+      ]).then((storedState) => {
+        if (storedState instanceof Map) {
+          return Object.fromEntries(storedState);
+        } else {
+          return {
+            seqNum: 0,
+            root: new Map(DefaultObject),
+            // TODO: add class for shop at some point
+            // root: v.getDefaults(this.params.schema) as CborValue,
+          };
+        }
+      });
+      this.#stateCache.set(view, pStoredState);
+      return pStoredState;
     }
   }
 
-  async #saveState(state: IStoredState, view = "local") {
+  async getStateRoot(view = "local") {
+    const state = await this.#stateCache.get(view);
+    if (!state) throw new Error(`State not found for view ${view}`);
+    return state.root;
+  }
+
+  async #saveState(view = "local") {
+    const state = await this.#stateCache.get(view);
+    if (!state) throw new Error(`State not found for view ${view}`);
     // wait for root to be resolved
     state.root = await state.root;
     return this.graph.store.objStore.set([
@@ -68,13 +78,25 @@ export default class StateManager {
   }
 
   createWriteStream(id: string) {
+    // the remote state, ie the relay
     let state: IStoredState;
     let localState: IStoredState;
     // TODO: handle patch rejection
     return new WritableStream<PushedPatchSet>({
       start: async () => {
-        state = await this.loadState(id);
-        localState = await this.loadState("local");
+        [localState, state] = await Promise.all([
+          this.loadState(),
+          this.loadState(id),
+        ]);
+      },
+      close: async () => {
+        await Promise.all([
+          this.#saveState(),
+          this.#saveState(id),
+        ]);
+      },
+      abort(reason) {
+        console.error("WriteStream aborted:", reason);
       },
       write: async (patchSet) => {
         // validate the Operation's schema
@@ -92,8 +114,8 @@ export default class StateManager {
           // TODO validate the Operation's value if any
           // const OpValschema = getSubSchema(this.params.schema, patch.Path);
           // v.parse(OpValschema, value);
+          //
           // apply the operation
-
           if (patch.Op === "add" || patch.Op === "replace") {
             state.root = this.graph.set(state.root, patch.Path, value);
             localState.root = this.graph.set(
@@ -109,10 +131,23 @@ export default class StateManager {
             } else {
               throw new Error("Invalid path");
             }
+          } else if (patch.Op === "remove") {
+            const current = await this.graph.get(state.root, patch.Path);
+            const deleteKey = patch.Path[patch.Path.length - 1];
+            if (current instanceof Map) {
+              current.delete(deleteKey);
+            } else {
+              console.error({ current, patch });
+              throw new Error(
+                `Invalid current value (type: ${typeof current}) for path: ${patch.Path}`,
+              );
+            }
           } else {
-            throw new Error("Unimplemented operation type");
+            console.error({ patch });
+            throw new Error(`Unimplemented operation type: ${patch.Op}`);
           }
-          this.events.emit(patch.Path, value);
+          const obj = await localState.root;
+          this.events.emit(obj!);
         }
         // TODO: check stateroot
         // TODO: we are saving the patches here
@@ -159,30 +194,18 @@ export default class StateManager {
   }
 
   async set(path: codec.Path, value: codec.CodecValue, id = "local") {
-    const ongoingWriteOp = this.mutations.get(id);
-    const { promise, resolve, reject } = Promise.withResolvers<void>();
-    this.mutations.set(id, promise);
-    if (ongoingWriteOp) {
-      // wait for any pending writes to complete
-      await ongoingWriteOp;
-    }
     const state = await this.loadState(id);
-    state.root = this.graph.set(state.root, path, value);
+    state.root = await this.graph.set(state.root, path, value);
+    this.events.emit(state.root);
     state.seqNum += 1;
-    const root = await this.graph.merklelize(state.root);
-    // TODO: all the setMetaData ops should be collected
-    const metaPromise = this.#saveState({
-      seqNum: state.seqNum,
-      root,
-    });
-    this.events.emit(path, value);
+    // state.root = await this.graph.merklelize(state.root);
     // send patch to peers
     this.#streamsControllers.forEach((controller) => {
       controller.enqueue([
-        { Path: path, Value: codec.encode(value), Op: "add" },
+        { Op: "add", Path: path, Value: value },
       ]);
     });
-    return metaPromise.then(resolve).catch(reject);
+    return this.#saveState();
   }
 
   async get(
@@ -190,7 +213,6 @@ export default class StateManager {
     id = "local",
   ): Promise<codec.CodecValue | undefined> {
     // wait for any pending writes to complete
-    await this.mutations.get(id);
     const state = await this.loadState(id);
     return this.graph.get(state.root, path);
   }

@@ -8,7 +8,7 @@ import type {
   TListing,
   TManifest,
   TOrder,
-  TPricingCurrency,
+  TChainAddress,
   TTag,
 } from "@massmarket/schema/cbor";
 
@@ -18,7 +18,7 @@ export type {
   TListing,
   TManifest,
   TOrder,
-  TPricingCurrency,
+  TChainAddress,
   TTag,
 };
 

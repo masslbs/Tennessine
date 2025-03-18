@@ -13,8 +13,9 @@
     relay = {
       url = "git+ssh://git@github.com/masslbs/relay.git?ref=network-v4";
     };
-    schema.follows = "relay/schema";
     contracts.follows = "relay/contracts";
+    # schema.follows = "relay/schema";
+    schema.url = "github:masslbs/network-schema/cbor";
   };
 
   outputs = inputs @ {
@@ -66,7 +67,6 @@
           };
         };
         devShells.default = pkgs.mkShell {
-          NETWORK_SCHEMA_PATH = "${schema}";
           MASS_TEST_VECTORS = "${schema.packages.${system}.default}";
           MASS_CONTRACTS_PATH = "${contracts.packages.${system}.default}";
 
