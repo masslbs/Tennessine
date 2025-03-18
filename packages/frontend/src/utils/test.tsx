@@ -44,7 +44,7 @@ export const testClient = createTestClient({
   .extend(publicActions)
   .extend(walletActions);
 
-export const createClientStateManager = async (
+export const createClientStateManager =  (
   shopId: bigint | null = null,
 ) => {
   const csm = new MockClientStateManager(
