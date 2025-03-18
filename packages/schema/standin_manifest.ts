@@ -7,35 +7,43 @@ export class Manifest extends BaseClass {
   PricingCurrency: ChainAddress;
   ShippingRegions: ShippingRegionsMap | undefined;
 
-  constructor(input: Map<string, any>) {
+  constructor(input: Map<string, unknown>) {
     super();
-    this.ShopID = input.get("ShopID");
-    this.Payees = new PayeeMap(input.get("Payees"));
+    this.ShopID = input.get("ShopID") as bigint;
+    this.Payees = new PayeeMap(
+      input.get("Payees") as ConstructorParameters<typeof PayeeMap>[0],
+    );
     this.AcceptedCurrencies = new AcceptedCurrencyMap(
-      input.get("AcceptedCurrencies"),
+      input.get("AcceptedCurrencies") as ConstructorParameters<
+        typeof AcceptedCurrencyMap
+      >[0],
     );
     const pricingCurrency = input.get("PricingCurrency");
-    this.PricingCurrency = new ChainAddress(pricingCurrency);
+    this.PricingCurrency = new ChainAddress(
+      pricingCurrency as Map<string, unknown>,
+    );
     this.ShippingRegions = input.get("ShippingRegions")
-      ? new ShippingRegionsMap(input.get("ShippingRegions")!)
+      ? new ShippingRegionsMap(
+        input.get("ShippingRegions") as Map<string, unknown>,
+      )
       : undefined;
   }
 }
 
 export class ShippingRegionsMap {
   data: Map<string, ShippingRegion> = new Map();
-  constructor(shippingRegions: Map<string, any>) {
+  constructor(shippingRegions: Map<string, unknown>) {
     const map = new Map();
     for (const [key, value] of shippingRegions) {
       map.set(
         key,
-        new ShippingRegion(value),
+        new ShippingRegion(value as Map<string, unknown>),
       );
     }
     this.data = map;
   }
 
-  returnAsMap(): Map<string, any> {
+  returnAsMap(): Map<string, unknown> {
     const map = new Map();
     for (const [key, value] of this.data) {
       map.set(key, value.returnAsMap());
@@ -47,7 +55,7 @@ export class ShippingRegionsMap {
 export class PayeeMap {
   data: Map<number, Map<Uint8Array, PayeeMetadata>> = new Map();
 
-  constructor(payees: Map<number, Map<Uint8Array, any>>) {
+  constructor(payees: Map<number, Map<Uint8Array, unknown>>) {
     if (payees === undefined) {
       this.data = new Map();
       return;
@@ -113,7 +121,7 @@ export class PayeeMetadata extends BaseClass {
 export class AcceptedCurrencyMap {
   data: Map<number, Map<Uint8Array, Map<"isContract", boolean>>> = new Map();
 
-  constructor(input: Map<number, any>) {
+  constructor(input: Map<number, unknown>) {
     if (input instanceof Map) {
       // Iterate through chain IDs
       for (const [chainId, addressSet] of input) {
@@ -156,10 +164,10 @@ export class AcceptedCurrencyMap {
 export class ChainAddress extends BaseClass {
   ChainID: number;
   Address: Uint8Array;
-  constructor(input: Map<string, any>) {
+  constructor(input: Map<string, unknown>) {
     super();
-    this.ChainID = input.get("ChainID");
-    this.Address = input.get("Address");
+    this.ChainID = input.get("ChainID") as number;
+    this.Address = input.get("Address") as Uint8Array;
   }
 }
 
@@ -167,11 +175,11 @@ export class ShippingRegion extends BaseClass {
   Country: string;
   PostalCode: string;
   City: string;
-  constructor(input: Map<string, any>) {
+  constructor(input: Map<string, unknown>) {
     super();
-    this.Country = input.get("Country");
-    this.PostalCode = input.get("PostalCode");
-    this.City = input.get("City");
+    this.Country = input.get("Country") as string;
+    this.PostalCode = input.get("PostalCode") as string;
+    this.City = input.get("City") as string;
   }
 }
 
@@ -179,14 +187,14 @@ export class PriceModifier {
   ModificationPrecents?: bigint;
   ModificationAbsolute?: ModificationAbsolute | undefined;
 
-  constructor(input: Map<string, any>) {
+  constructor(input: Map<string, unknown>) {
     // Make it a sum type - only one of these should be set
     if (input.has("ModificationPrecents")) {
-      this.ModificationPrecents = input.get("ModificationPrecents");
+      this.ModificationPrecents = input.get("ModificationPrecents") as bigint;
     } else if (input.has("ModificationAbsolute")) {
       const modificationAbsolute = input.get("ModificationAbsolute")!;
       this.ModificationAbsolute = new ModificationAbsolute(
-        modificationAbsolute,
+        modificationAbsolute as Map<string, unknown>,
       );
     } else {
       throw new Error(
@@ -195,7 +203,7 @@ export class PriceModifier {
     }
   }
 
-  returnAsMap(): Map<string, any> {
+  returnAsMap(): Map<string, unknown> {
     const map = new Map();
     if (this.ModificationAbsolute && this.ModificationPrecents) {
       throw new Error(
@@ -216,9 +224,9 @@ export class ModificationAbsolute extends BaseClass {
   Amount: bigint;
   Plus: boolean;
 
-  constructor(input: Map<string, any>) {
+  constructor(input: Map<string, unknown>) {
     super();
-    this.Amount = input.get("Amount");
-    this.Plus = input.get("Plus");
+    this.Amount = input.get("Amount") as bigint;
+    this.Plus = input.get("Plus") as boolean;
   }
 }

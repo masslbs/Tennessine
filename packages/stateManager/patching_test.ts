@@ -1,8 +1,8 @@
 import { MemStore } from "@massmarket/merkle-dag-builder/memstore";
 
 import StateManager from "./mod.ts";
-import { type Patch, PushedPatchSet } from "@massmarket/client";
-import { type CodecValue } from "@massmarket/utils/codec";
+import type { Patch, PushedPatchSet } from "@massmarket/client";
+import type { CodecValue, Path } from "@massmarket/utils/codec";
 import { fetchAndDecode } from "@massmarket/utils";
 
 Deno.test("Database Testings", async (t) => {
@@ -19,17 +19,21 @@ Deno.test("Database Testings", async (t) => {
     await t.step(testFile, async () => {
       const store = new MemStore();
       const manifestVector = await fetchAndDecode(testFile);
-      const manifests =
-        manifestVector.get("Snapshots")?.map((snapshot: any) => {
-          return snapshot.get("After").get("Value").get("Manifest");
-        }) || [];
-      const patchSet = patchSetToPushedPatchSet(manifestVector.get("PatchSet"));
+      const manifests = (manifestVector.get("Snapshots") as Map<
+        string,
+        Map<string, Map<string, unknown>>
+      >[])?.map((snapshot) => {
+        return snapshot?.get("After")?.get("Value")?.get("Manifest");
+      }) || [];
+      const patchSet = patchSetToPushedPatchSet(
+        manifestVector.get("PatchSet") as Map<string, Map<string, unknown>[]>,
+      );
       const db = new StateManager({
         store,
-        objectId: manifests[0].get("ShopID") as bigint,
+        objectId: (manifests as Map<string, bigint>[])[0].get("ShopID")!,
       });
 
-      await db.set(["Manifest"], manifests[0]);
+      await db.set(["Manifest"], (manifests as Map<string, bigint>[])[0]);
 
       const stream = db.createWriteStream("vector-test");
       const writer = stream.getWriter();
@@ -40,12 +44,14 @@ Deno.test("Database Testings", async (t) => {
   }
 });
 
-function patchSetToPushedPatchSet(patchSet: Map<string, any>): PushedPatchSet {
-  const patches = patchSet.get("Patches").map((patch: any): Patch => {
+function patchSetToPushedPatchSet(
+  patchSet: Map<string, Map<string, unknown>[]>,
+): PushedPatchSet {
+  const patches = patchSet.get("Patches")!.map((patch): Patch => {
     return {
-      Op: patch.get("Op"),
-      Path: patch.get("Path"),
-      Value: patch.get("Value"),
+      Op: patch.get("Op") as "add" | "remove" | "replace",
+      Path: patch.get("Path") as Path,
+      Value: patch.get("Value") as CodecValue,
     };
   });
   return {
