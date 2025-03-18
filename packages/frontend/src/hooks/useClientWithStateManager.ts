@@ -56,27 +56,19 @@ export function useClientWithStateManager() {
     await clientStateManager.createNewRelayClient();
     // If current screen is /create-shop or /merchant-connect page, we don't want to try connecting and authenticating before enrolling the keycard.
     if (isMerchantPath) return;
-    if (keycard?.role === "merchant") {
-      await clientStateManager.connectAndAuthenticate();
-      await clientStateManager.sendMerchantSubscriptionRequest();
-      debug("Success: Connected with merchant keycard");
-    } else if (keycard?.role === "guest-returning") {
-      await clientStateManager.connectAndAuthenticate();
-      await clientStateManager.sendGuestCheckoutSubscriptionRequest();
-      debug("Success: Connected with guest keycard");
-    } else if (keycard?.role === "guest-new") {
+    if (keycard?.role === "guest-new") {
+      const account = privateKeyToAccount(random32BytesHex());
       const guestWallet = createWalletClient({
-        account: privateKeyToAccount(random32BytesHex()),
+        account,
         chain,
         transport: http(
           defaultRPC,
         ),
       });
-      const res = await clientStateManager.relayClient!.enrollKeycard(
+      const res = await clientStateManager.enrollKeycard(
         guestWallet,
+        account,
         true,
-        clientStateManager.shopId,
-        new URL(globalThis.location.href),
       );
       if (res.status === 409) {
         debug("Duplicate keycard. Setting new keycard and trying again.");
@@ -87,8 +79,7 @@ export function useClientWithStateManager() {
         throw new Error(`Failed to enroll keycard: ${res.error}`);
       }
       debug("Success: Enrolled new guest keycard");
-      await clientStateManager.connectAndAuthenticate();
-      await clientStateManager.sendGuestCheckoutSubscriptionRequest();
+
       //Set keycard role to guest-returning so we don't try enrolling again on refresh
       setKeycard({ ...keycard, role: "guest-returning" });
       debug("Success: sendGuestCheckoutSubscriptionRequest");

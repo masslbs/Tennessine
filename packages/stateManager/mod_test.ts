@@ -73,7 +73,6 @@ const manifest = new Map<string, codec.CodecValue>([
   ],
 ]);
 
-
 const store = new MemStore();
 Deno.test("Database Testings", async (t) => {
   await t.step("create a database and a Manifest", async () => {
@@ -89,7 +88,6 @@ Deno.test("Database Testings", async (t) => {
     const pr = await promise;
     assertEquals(result, pr);
   });
-
 
   await t.step("add a relay and set a key and retrieve it", async () => {
     const { relayClient } = await createTestClients();

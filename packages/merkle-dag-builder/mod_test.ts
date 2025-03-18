@@ -37,11 +37,10 @@ Deno.test("basic set and get ", async (t) => {
     root = graph.set(root, ["addresses"], addresses);
     const val = await graph.get(root, ["addresses"]);
     assertEquals(val, addresses);
-    const key3 = new Uint8Array([7, 8, 9])
+    const key3 = new Uint8Array([7, 8, 9]);
     root = graph.set(root, ["addresses", key3], "address3");
     const result = await graph.get(root, ["addresses", key3]);
     assertEquals(result, "address3");
-
   });
 
   await t.step("A path that does not exist (pathing into a map)", async () => {

@@ -1,5 +1,5 @@
 import { privateKeyToAccount } from "viem/accounts";
-import type { PublicClient } from "viem";
+import type { Account, PublicClient, WalletClient } from "viem";
 import { BrowserLevel } from "npm:browser-level";
 import { RelayClient, type RelayEndpoint } from "@massmarket/client";
 import { Database } from "@massmarket/stateManager";
@@ -22,7 +22,8 @@ export class ClientWithStateManager {
     public readonly relayEndpoint: RelayEndpoint,
   ) {}
 
-  createStateManager() {
+  async createStateManager() {
+    if (!this.relayClient) throw new Error("RelayClient not set");
     const dbName = `${String(this.shopId).slice(0, 5)}-${
       this.keycard.slice(0, 5)
     }`;
@@ -38,6 +39,8 @@ export class ClientWithStateManager {
       },
     );
 
+    await this.stateManager.addConnection(this.relayClient);
+
     if (window && store) {
       globalThis.addEventListener("beforeunload", () => {
         store.close().then(() => {
@@ -45,7 +48,6 @@ export class ClientWithStateManager {
         });
       });
     }
-
     return this.stateManager;
   }
 
@@ -55,43 +57,26 @@ export class ClientWithStateManager {
     if (!this.relayEndpoint?.tokenId) {
       throw new Error("Relay endpoint tokenId not set");
     }
-    const keyCardWallet = privateKeyToAccount(this.keycard);
     this.relayClient = new RelayClient({
       relayEndpoint: this.relayEndpoint,
-      keyCardWallet,
+      walletClient: privateKeyToAccount(this.keycard),
+      keyCard: this.keycard,
+      shopId: this.shopId,
     });
     debug("RelayClient created");
     return this.relayClient;
   }
 
-  async connectAndAuthenticate() {
+  enrollKeycard(
+    wallet: WalletClient,
+    account: Account,
+    isGuest: Boolean = true,
+  ) {
     if (!this.relayClient) throw new Error("RelayClient not set");
-
-    const keyCardWallet = privateKeyToAccount(this.keycard);
-    this.createStateManager();
-    const eventNonceCounter = await this.stateManager!.keycardNonce.get(
-      keyCardWallet.address,
-    ) || 0;
-    debug(`Setting nonce counter to: ${eventNonceCounter + 1}`);
-    this.relayClient.nonce = eventNonceCounter + 1;
-    await this.relayClient.connect();
-    await this.relayClient.authenticate();
-    debug("Success: Connected and authenticated Relay Client");
-  }
-
-  async sendMerchantSubscriptionRequest() {
-    const seqNo = await this.stateManager!.manifest.getSeqNo();
-    return this.relayClient!.sendMerchantSubscriptionRequest(
-      this.shopId,
-      seqNo,
-    );
-  }
-
-  async sendGuestCheckoutSubscriptionRequest() {
-    const seqNo = await this.stateManager!.manifest.getSeqNo();
-    return this.relayClient!.sendGuestCheckoutSubscriptionRequest(
-      this.shopId,
-      seqNo,
+    return this.relayClient.enrollKeycard(
+      wallet,
+      account,
+      isGuest,
     );
   }
 }
