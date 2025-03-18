@@ -1,13 +1,6 @@
+import { string } from "@valibot/valibot";
 import { PriceModifier } from "./standin_manifest.ts";
 import { BaseClass } from "./utils.ts";
-import type {
-  TListing,
-  TListingMetadata,
-  TListingOption,
-  TListingStockStatus,
-  TListingVariation,
-  TPriceModifier,
-} from "./cbor.ts";
 
 export class Listing extends BaseClass {
   ID: number;
@@ -17,28 +10,19 @@ export class Listing extends BaseClass {
   Options?: Map<string, ListingOption>;
   StockStatuses?: ListingStockStatus[];
 
-  constructor(input: {
-    get<K extends keyof TListing>(key: K): TListing[K];
-  }) {
+  constructor(input: Map<string, any>) {
     super();
     this.ID = input.get("ID")!;
     this.Price = input.get("Price")!;
     const metadata = input.get("Metadata");
     // since metadata does not return a map with a getter and ListingMetadata expects a map, this is a workaround for typescript.
-    this.Metadata = new ListingMetadata({
-      get: <K extends keyof TListingMetadata>(key: K) => metadata.get(key),
-    });
+    this.Metadata = new ListingMetadata(metadata);
     this.ViewState = ViewStateFromNumber(input.get("ViewState"));
     const options = input.get("Options");
     if (options) {
       const map = new Map<string, ListingOption>();
       for (const [key, value] of options) {
-        map.set(
-          key,
-          new ListingOption({
-            get: <K extends keyof TListingOption>(_key: K) => value.get(_key),
-          }),
-        );
+        map.set(key, new ListingOption(value));
       }
       this.Options = map;
     }
@@ -56,11 +40,7 @@ export class ListingMetadata {
   Description: string;
   Images?: string[];
 
-  constructor(
-    input: {
-      get: <K extends keyof TListingMetadata>(key: K) => TListingMetadata[K];
-    },
-  ) {
+  constructor(input: Map<string, any>) {
     this.Title = input.get("Title") as string;
     this.Description = input.get("Description") as string;
     this.Images = input.get("Images") as string[] | undefined;
@@ -101,25 +81,13 @@ export class ListingVariation extends BaseClass {
   PriceModifier?: PriceModifier;
   SKU?: string;
 
-  constructor(
-    input: {
-      get<K extends keyof TListingVariation>(key: K): TListingVariation[K];
-    },
-  ) {
+  constructor(input: Map<string, any>) {
     super();
     const metadata = input.get("VariationInfo");
-    this.VariationInfo = metadata
-      ? new ListingMetadata({
-        get: <K extends keyof TListingMetadata>(key: K) => metadata.get(key),
-      })
-      : undefined;
+    this.VariationInfo = metadata ? new ListingMetadata(metadata) : undefined;
     const priceModifier = input.get("PriceModifier");
     this.PriceModifier = priceModifier
-      ? new PriceModifier({
-        get: <K extends keyof TPriceModifier>(key: K) => priceModifier.get(key),
-        has: <K extends keyof TPriceModifier>(key: K) =>
-          Boolean(priceModifier.get(key)),
-      })
+      ? new PriceModifier(priceModifier)
       : undefined;
     this.SKU = input.get("SKU");
   }
@@ -129,9 +97,7 @@ export class ListingOption extends BaseClass {
   Title: string;
   Variations: Map<string, ListingVariation> | undefined;
 
-  constructor(
-    input: { get<K extends keyof TListingOption>(key: K): TListingOption[K] },
-  ) {
+  constructor(input: Map<string, any>) {
     super();
     this.Title = input.get("Title");
     const variations = input.get("Variations");
@@ -141,9 +107,7 @@ export class ListingOption extends BaseClass {
       for (const [key, val] of variations) {
         map.set(
           key,
-          new ListingVariation({
-            get: <K extends keyof TListingVariation>(_key: K) => val.get(_key),
-          }),
+          new ListingVariation(val),
         );
       }
       this.Variations = map;

@@ -16,18 +16,16 @@ Deno.test("unpack manifest vectors", async (t) => {
   }) || [];
 
   console.log("count of manifests", vector.length);
-
   for (const manifest of vector) {
-    // t.step(manifest.name, () => {
-    console.log(manifest.name);
-    const unpacked = new Manifest(manifest.value);
-    console.log(unpacked);
-    assertEquals(unpacked.returnAsMap(), manifest.value);
-    // });
+    await t.step(manifest.name, () => {
+      const unpacked = new Manifest(manifest.value);
+      console.log(unpacked);
+      assertEquals(unpacked.returnAsMap(), manifest.value);
+    });
   }
 });
 
-Deno.test("unpack listing vectors", async () => {
+Deno.test("unpack listing vectors", async (t) => {
   const listingOkayVector = await fetchAndDecode("ListingOkay");
 
   const vectors = listingOkayVector?.get("Snapshots")?.map((snapshot: any) => {
@@ -41,14 +39,15 @@ Deno.test("unpack listing vectors", async () => {
   }) || [];
 
   console.log("count of listings", vectors.length);
-
   for (const vector of vectors) {
     for (const [id, listing] of vector.values.entries()) {
-      console.log("listing:", vector.name, id);
-      console.log(listing);
-      const unpacked = new Listing(listing);
-      console.log(unpacked);
-      assertEquals(listing, unpacked.returnAsMap());
+      await t.step(`${vector.name} - ${id}`, () => {
+        console.log("listing:", vector.name, id);
+        console.log(listing);
+        const unpacked = new Listing(listing);
+        console.log(unpacked);
+        assertEquals(listing, unpacked.returnAsMap());
+      });
     }
   }
 });

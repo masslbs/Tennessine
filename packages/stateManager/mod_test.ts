@@ -86,8 +86,9 @@ Deno.test("Database Testings", async (t) => {
     });
 
     await sm.addConnection(relayClient);
-    let first = await promise;
-    console.log(first);
+    const first = await promise;
+    // console.log({ first });
+    _ = first;
     const testAddr = Uint8Array.from([
       0xf0,
       0xf1,
@@ -96,19 +97,19 @@ Deno.test("Database Testings", async (t) => {
       0x04,
       0x05,
       0xf6,
-      0x07,
+      0xf7,
       0xf8,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
-      0x00,
+      0x09,
+      0x0a,
+      0x0b,
+      0xfc,
+      0xfd,
+      0xfe,
+      0x0f,
+      0x01,
+      0x02,
+      0xf3,
+      0xf4,
     ]);
     const testCurrency = new ChainAddress(
       new Map([

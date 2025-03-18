@@ -1,13 +1,5 @@
 import { BaseClass } from "./utils.ts";
-import type {
-  TChainAddress,
-  TCurrencyMap,
-  TManifest,
-  TModificationAbsolute,
-  TPayee,
-  TPriceModifier,
-  TShippingRegion,
-} from "./cbor.ts";
+
 export class Manifest extends BaseClass {
   ShopID: bigint;
   Payees: PayeeMap;
@@ -15,7 +7,7 @@ export class Manifest extends BaseClass {
   PricingCurrency: ChainAddress;
   ShippingRegions: ShippingRegionsMap | undefined;
 
-  constructor(input: { get<K extends keyof TManifest>(key: K): TManifest[K] }) {
+  constructor(input: Map<string, any>) {
     super();
     this.ShopID = input.get("ShopID");
     this.Payees = new PayeeMap(input.get("Payees"));
@@ -23,10 +15,7 @@ export class Manifest extends BaseClass {
       input.get("AcceptedCurrencies"),
     );
     const pricingCurrency = input.get("PricingCurrency");
-    // console.log("pricingCurrency", pricingCurrency);
-    this.PricingCurrency = new ChainAddress({
-      get: <K extends keyof TChainAddress>(key: K) => pricingCurrency.get(key),
-    });
+    this.PricingCurrency = new ChainAddress(pricingCurrency);
     this.ShippingRegions = input.get("ShippingRegions")
       ? new ShippingRegionsMap(input.get("ShippingRegions")!)
       : undefined;
@@ -35,14 +24,12 @@ export class Manifest extends BaseClass {
 
 export class ShippingRegionsMap {
   data: Map<string, ShippingRegion> = new Map();
-  constructor(shippingRegions: Map<string, TShippingRegion>) {
+  constructor(shippingRegions: Map<string, any>) {
     const map = new Map();
     for (const [key, value] of shippingRegions) {
       map.set(
         key,
-        new ShippingRegion({
-          get: <K extends keyof TShippingRegion>(_key: K) => value.get(_key),
-        }),
+        new ShippingRegion(value),
       );
     }
     this.data = map;
@@ -60,7 +47,7 @@ export class ShippingRegionsMap {
 export class PayeeMap {
   data: Map<number, Map<Uint8Array, PayeeMetadata>> = new Map();
 
-  constructor(payees: TPayee) {
+  constructor(payees: Map<number, Map<Uint8Array, any>>) {
     if (payees === undefined) {
       this.data = new Map();
       return;
@@ -77,7 +64,7 @@ export class PayeeMap {
       // Iterate through addresses and metadata
       for (const [address, metadata] of addressMap) {
         if (
-          !(address instanceof Uint8Array)
+          !(address instanceof Uint8Array && address.length === 20)
         ) {
           throw new Error(`Invalid Ethereum address for chain ID ${chainId}`);
         }
@@ -126,7 +113,7 @@ export class PayeeMetadata extends BaseClass {
 export class AcceptedCurrencyMap {
   data: Map<number, Map<Uint8Array, Map<"isContract", boolean>>> = new Map();
 
-  constructor(input: TCurrencyMap) {
+  constructor(input: Map<number, any>) {
     if (input instanceof Map) {
       // Iterate through chain IDs
       for (const [chainId, addressSet] of input) {
@@ -169,15 +156,8 @@ export class AcceptedCurrencyMap {
 export class ChainAddress extends BaseClass {
   ChainID: number;
   Address: Uint8Array;
-  constructor(
-    input: {
-      get<K extends keyof TChainAddress>(key: K): TChainAddress[K];
-    },
-    // input: Map<string, any>,
-  ) {
+  constructor(input: Map<string, any>) {
     super();
-    console.log("input", input.get("ChainID"));
-
     this.ChainID = input.get("ChainID");
     this.Address = input.get("Address");
   }
@@ -187,9 +167,7 @@ export class ShippingRegion extends BaseClass {
   Country: string;
   PostalCode: string;
   City: string;
-  constructor(
-    input: { get<K extends keyof TShippingRegion>(key: K): TShippingRegion[K] },
-  ) {
+  constructor(input: Map<string, any>) {
     super();
     this.Country = input.get("Country");
     this.PostalCode = input.get("PostalCode");
@@ -201,22 +179,14 @@ export class PriceModifier {
   ModificationPrecents?: bigint;
   ModificationAbsolute?: ModificationAbsolute | undefined;
 
-  constructor(
-    input: {
-      get<K extends keyof TPriceModifier>(key: K): TPriceModifier[K];
-      has<K extends keyof TPriceModifier>(key: K): boolean;
-    },
-  ) {
+  constructor(input: Map<string, any>) {
     // Make it a sum type - only one of these should be set
     if (input.has("ModificationPrecents")) {
       this.ModificationPrecents = input.get("ModificationPrecents");
     } else if (input.has("ModificationAbsolute")) {
       const modificationAbsolute = input.get("ModificationAbsolute")!;
       this.ModificationAbsolute = new ModificationAbsolute(
-        {
-          get: <K extends keyof TModificationAbsolute>(key: K) =>
-            modificationAbsolute[key],
-        },
+        modificationAbsolute,
       );
     } else {
       throw new Error(
@@ -224,19 +194,29 @@ export class PriceModifier {
       );
     }
   }
+
+  returnAsMap(): Map<string, any> {
+    const map = new Map();
+    if (this.ModificationAbsolute && this.ModificationPrecents) {
+      throw new Error(
+        "PriceModifier must have either ModificationPrecents or ModificationAbsolute",
+      );
+    }
+    if (this.ModificationPrecents) {
+      map.set("ModificationPrecents", this.ModificationPrecents);
+    }
+    if (this.ModificationAbsolute) {
+      map.set("ModificationAbsolute", this.ModificationAbsolute.returnAsMap());
+    }
+    return map;
+  }
 }
 
 export class ModificationAbsolute {
   Amount: bigint;
   Plus: boolean;
 
-  constructor(
-    input: {
-      get<K extends keyof TModificationAbsolute>(
-        key: K,
-      ): TModificationAbsolute[K];
-    },
-  ) {
+  constructor(input: Map<string, any>) {
     this.Amount = input.get("Amount");
     this.Plus = input.get("Plus");
   }

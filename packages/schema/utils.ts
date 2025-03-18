@@ -121,9 +121,9 @@ export class BaseClass {
       } else if (value === undefined) {
         // ignore
       } else {
-        console.log("value", value);
+        console.error({ value });
         throw new Error(
-          `Unknown value on ${key}. Type: ${typeof value} Value: ${value}`,
+          `Unknown value on ${key}. Type: ${typeof value}`,
         );
       }
     }
