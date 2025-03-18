@@ -130,7 +130,7 @@ export function bufferToJSON(metadata: Uint8Array) {
   return JSON.parse(new TextDecoder().decode(metadata));
 }
 
-//This is used to get the string value from an array buffer
+// This is used to get the string value from an array buffer
 export function decodeBufferToString(buffer: Uint8Array) {
   const textDecoder = new TextDecoder();
   return textDecoder.decode(buffer);
@@ -169,6 +169,11 @@ export function getWindowLocation() {
     : new URL(globalThis.location.href);
 }
 
+/**
+ * Get a value from an array or map given a `key`, which can be a string, number, or object.
+ * If the keys is an object then a deep equality check is performed while iterating through a map.
+ * TODO: Iterateing through the map to find a key/value is suboptimal, consider using a more efficient data structure.
+ */
 export function get(
   obj: unknown,
   key: CodecKey,
@@ -191,10 +196,14 @@ export function get(
   ) {
     return Reflect.get(obj, key);
   } else {
-    throw new Error(`Cannot get key ${key} from ${obj}`);
+    // obj was a number / bool / null / undefined / etc
+    return undefined;
   }
 }
 
+/**
+ * Set a value in an array or map given a `key`, which can be a string, number, or object.
+ */
 export function set(
   obj: unknown,
   key: CodecKey,

@@ -13,12 +13,27 @@
 import { type codec, get, set } from "@massmarket/utils";
 
 /** A callback function that gets called when an event is emitted */
-export type EventListener<T> = (
+export type EventListener<T = unknown> = (
   event: T,
 ) => void;
 
 export type Step = codec.CodecKey;
 export type Path = Readonly<Step[]>;
+
+/**
+ * Retrieves a property type in a series of nested objects.
+ * Read more: https://stackoverflow.com/a/61648690.
+ */
+export type DeepIndex<T, KS extends Path, Fail = undefined> = KS extends
+  [infer F, ...infer R]
+  ? R extends Path
+    ? F extends keyof Exclude<T, undefined>
+      ? DeepIndex<Exclude<T, undefined>[F], R, Fail>
+    : T extends Map<infer X, infer I> ? F extends X ? DeepIndex<I, R, Fail>
+      : Fail // F is not in T, time to check map // never?
+    : Fail
+  : Fail
+  : T; // end
 
 /** Used to express changes to which part of the tree is needs a subscription to */
 export interface SubscriptionUpdate {
@@ -62,11 +77,11 @@ export class EventEmmiter<T> {
   }
 }
 
-class Node<T> {
+class Node<T = unknown> {
   edges: Map<codec.CodecKey, Node<T>> = new Map();
-  readonly emmiter = new EventEmmiter<T | undefined>();
-  constructor(public value: Readonly<T> | undefined = undefined) {}
-  emit(rootValue: T | undefined) {
+  readonly emmiter = new EventEmmiter<T>();
+  constructor(public value: T | undefined = undefined) {}
+  emit(rootValue: T) {
     if (rootValue !== this.value) {
       // update the vale
       this.value = rootValue;
@@ -90,24 +105,26 @@ export default class EventTree<T> {
   readonly root;
   /** The event emmiter for the meta events, this only works on the root node of the tree */
   // readonly meta = new EventEmmiter<SubscriptionUpdate[]>();
-  constructor(public value: Readonly<T>) {
-    this.root = new Node<T>(value);
+  constructor(public value: T) {
+    this.root = new Node(value);
   }
-  #getOrExtendPath(path: codec.Path = []): Node<T> {
-    let last: Node<T> = this.root;
-    let next: Node<T> | undefined;
+  #getOrExtendPath<ET>(
+    path: Path = [],
+  ): Node<ET> {
+    let last: Node<T> | Node = this.root;
+    let next: Node | undefined;
     for (const node of path) {
       next = get(last.edges, node);
       if (!next) {
-        next = new Node<T>();
+        next = new Node();
         set(last.edges, node, next);
       }
       last = next;
     }
-    return last;
+    return last as Node<ET>;
   }
-  *#path(path: codec.Path = []) {
-    let next: Node<T> | undefined = this.root;
+  *#path(path: Path = []) {
+    let next: Node<T> | Node | undefined = this.root;
     yield { node: next, step: undefined };
     for (const step of path) {
       next = get(next.edges, step);
@@ -117,15 +134,23 @@ export default class EventTree<T> {
       }
     }
   }
-  on(listener: EventListener<T | undefined>, path: codec.Path = []) {
-    this.#getOrExtendPath(path).emmiter.on(listener);
+  // TODO: if path is known return the correct type
+  on<P extends Path, ET = DeepIndex<T, P>>(
+    listener: EventListener<ET>,
+    path?: P,
+  ) {
+    this.#getOrExtendPath<ET>(path).emmiter.on(listener);
   }
-  off(listener: EventListener<T | undefined>, path: codec.Path = []) {
+  off<P extends Path, ET = DeepIndex<T, P>>(
+    listener: EventListener<ET>,
+    path?: P,
+  ) {
     const [...walk] = this.#path(path);
     let { node, step } = walk.pop()!;
     let parent, nextStep;
+    (node as Node<ET>)?.emmiter.off(listener);
+
     while (node) {
-      node.emmiter.off(listener);
       if (node.emmiter.listeners.size === 0 && node.edges.size === 0) {
         ({ node: parent, step: nextStep } = walk.pop()!);
         // make sure we are not the root
@@ -139,8 +164,11 @@ export default class EventTree<T> {
       }
     }
   }
-  once(listener: EventListener<T | undefined>, path: codec.Path = []) {
-    const l = (event: T | undefined) => {
+  once<P extends Path, ET = DeepIndex<T, P>>(
+    listener: EventListener<ET>,
+    path?: P,
+  ) {
+    const l = (event: ET) => {
       listener(event);
       this.off(l, path);
     };

@@ -16,17 +16,12 @@ export type CodecKey =
   | bigint
   | ArrayLike<number>;
 
-export type PrimitiveValues =
+export type CodecValue =
   | CodecKey
   | Date
   | null
   | boolean
-  | ArrayBufferLike;
-
-export type CodecValue<
-  Values = PrimitiveValues,
-> =
-  | Values
+  | ArrayBufferLike
   | Array<CodecValue>
   | Map<CodecKey, CodecValue>;
 
