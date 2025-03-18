@@ -143,7 +143,9 @@ export default class StateManager {
               current.delete(deleteKey);
             } else {
               console.error({ current, patch });
-              throw new Error(`Invalid current value (type: ${typeof current}) for path: ${patch.Path}`);
+              throw new Error(
+                `Invalid current value (type: ${typeof current}) for path: ${patch.Path}`,
+              );
             }
           } else {
             console.error({ patch });
