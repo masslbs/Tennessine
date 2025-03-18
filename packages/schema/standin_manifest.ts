@@ -212,11 +212,12 @@ export class PriceModifier {
   }
 }
 
-export class ModificationAbsolute {
+export class ModificationAbsolute extends BaseClass {
   Amount: bigint;
   Plus: boolean;
 
   constructor(input: Map<string, any>) {
+    super();
     this.Amount = input.get("Amount");
     this.Plus = input.get("Plus");
   }

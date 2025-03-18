@@ -28,7 +28,7 @@ export class Listing extends BaseClass {
     }
     const stockStatuses = input.get("StockStatuses");
     if (stockStatuses) {
-      this.StockStatuses = stockStatuses.map((stockStatus) =>
+      this.StockStatuses = stockStatuses.map((stockStatus: Map<string, any>) =>
         new ListingStockStatus(stockStatus)
       );
     }
@@ -120,11 +120,7 @@ export class ListingStockStatus extends BaseClass {
   InStock?: boolean;
   ExpectedInStockBy?: Date;
 
-  constructor(
-    input: {
-      get<K extends keyof TListingStockStatus>(key: K): TListingStockStatus[K];
-    },
-  ) {
+  constructor(input: Map<string, any>) {
     super();
     this.VariationIDs = input.get("VariationIDs") ?? [];
 
