@@ -23,9 +23,9 @@ export type {
 };
 
 export type KeyCard = `0x${string}`;
-export type ListingId = `0x${string}`;
+export type ListingId = number;
 export type TagId = `0x${string}`;
-export type OrderId = `0x${string}`;
+export type OrderId = number;
 export type TokenAddress = `0x${string}`;
 export type ShopId = bigint;
 

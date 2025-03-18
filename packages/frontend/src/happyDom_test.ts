@@ -2,10 +2,9 @@ import "./happyDomSetup.ts";
 
 import { expect } from "jsr:@std/expect";
 import { createPublicClient, createWalletClient, http } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
 import { hardhat } from "viem/chains";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
-import { anvilPrivateKey } from "@massmarket/contracts";
 import { random256BigInt } from "@massmarket/utils";
 import { mintShop } from "@massmarket/blockchain";
 
@@ -13,6 +12,7 @@ Deno.test("Fetch API works with happy-dom", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async () => {
+  const anvilPrivateKey = generatePrivateKey();
   const shopId = random256BigInt();
   const wallet = createWalletClient({
     account: privateKeyToAccount(

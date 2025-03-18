@@ -87,7 +87,7 @@ export default function Cart({
         // If the selected quantity is 0, don't add the item to the cart object..
         const selectedQty = ci[id as ListingId];
         if (selectedQty === 0) return;
-        return clientStateManager!.stateManager.listings.get(id as ListingId)
+        return clientStateManager!.stateManager.get(["Listings", id])
           .then((item: TListing) => {
             cartObjects.set(id, {
               ...item,
@@ -227,6 +227,7 @@ export default function Cart({
                 {item.metadata.title}
               </h3>
               <button
+                type="button"
                 onClick={() => removeItem(item.id, item.selectedQty)}
                 data-testid={`remove-item-${item.id}`}
                 className={showActionButtons
@@ -250,6 +251,7 @@ export default function Cart({
                   : "hidden"}
               >
                 <button
+                  type="button"
                   onClick={() => removeQuantity(item.id)}
                   data-testid={`remove-quantity-${item.id}`}
                   className="ml-auto bg-transparent p-0"
@@ -264,6 +266,7 @@ export default function Cart({
                 </button>
                 <p data-testid={`quantity-${item.id}`}>{item.selectedQty}</p>
                 <button
+                  type="button"
                   onClick={() => addQuantity(item.id)}
                   data-testid={`add-quantity-${item.id}`}
                   className="ml-auto bg-transparent p-0"
@@ -351,6 +354,7 @@ export default function Cart({
           </div>
         </Button>
         <button
+          type="button"
           disabled={!orderId || !cartItemsMap.size}
           onClick={clearCart}
           data-testid="clear-cart"

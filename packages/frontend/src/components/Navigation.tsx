@@ -163,6 +163,7 @@ function Navigation() {
       if (opt.title === "Disconnect") {
         return (
           <button
+            type="button"
             className="p-0 bg-transparent text-black"
             key={i}
             onClick={onDisconnect}
@@ -269,6 +270,7 @@ function Navigation() {
           className={`flex gap-6 p-2`}
         >
           <button
+            type="button"
             data-testid="cart-toggle"
             className={`relative bg-transparent p-0 ${
               isMerchantView ? "hidden" : ""
@@ -290,7 +292,11 @@ function Navigation() {
               <p className="text-white text-[10px]">{cartLength}</p>
             </div>
           </button>
-          <button onClick={menuSwitch} className="p-0 bg-transparent">
+          <button
+            onClick={menuSwitch}
+            className="p-0 bg-transparent"
+            type="button"
+          >
             <img
               src={menuOpen ? "/icons/close-icon.svg" : "/icons/hamburger.svg"}
               width={20}

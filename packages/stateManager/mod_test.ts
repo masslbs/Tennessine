@@ -30,6 +30,7 @@ Deno.test("Database Testings", async (t) => {
     const mapped = unpacked.returnAsMap();
     await db.set(["Manifest"], mapped);
 
+
     const result = await db.get(["Manifest"]);
     assertEquals(result, manifests[0]);
     //Listing

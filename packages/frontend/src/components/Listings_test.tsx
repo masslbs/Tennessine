@@ -6,10 +6,10 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
+import { zeroAddress } from "viem";
 import { expect } from "jsr:@std/expect";
 import { hardhat } from "wagmi/chains";
 
-import { addresses } from "@massmarket/contracts";
 import { random256BigInt, random32BytesHex } from "@massmarket/utils";
 import {
   metadata,
@@ -17,7 +17,7 @@ import {
   payees,
   shippingRegions,
 } from "@massmarket/schema/testFixtures";
-import { ListingViewState } from "@massmarket/stateManager/types";
+import { ListingViewState } from "../types.ts";
 
 import Listings from "./Listings.tsx";
 import { createRouterWrapper } from "../utils/test.tsx";
@@ -38,11 +38,11 @@ Deno.test(
       {
         acceptedCurrencies: [{
           chainId: hardhat.id,
-          address: addresses.zeroAddress,
+          address: zeroAddress,
         }],
         pricingCurrency: {
           chainId: hardhat.id,
-          address: addresses.zeroAddress,
+          address: zeroAddress,
         },
         payees,
         shippingRegions,

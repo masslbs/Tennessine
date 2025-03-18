@@ -4,12 +4,10 @@
 
 import { ChangeEvent, useEffect, useState } from "react";
 import { useChains, useWalletClient } from "wagmi";
-import { Address } from "viem";
+import { Address, zeroAddress } from "viem";
 
-import { UpdateShopManifest } from "@massmarket/stateManager/types";
 import { setTokenURI } from "@massmarket/blockchain";
 import { assert, logger } from "@massmarket/utils";
-import { addresses } from "@massmarket/contracts";
 
 import {
   CurrencyChainOption,
@@ -67,8 +65,8 @@ export default function ShopSettings() {
       chains.map((c) => {
         chainsToRender.push({
           label: `ETH/${c.name}`,
-          value: `${addresses.zeroAddress}/${c.id}`,
-          Address: addresses.zeroAddress,
+          value: `${zeroAddress}/${c.id}`,
+          Address: zeroAddress,
           ChainID: c.id,
         });
         const eddAddress = getTokenAddress("EDD", String(c.id));
@@ -120,7 +118,7 @@ export default function ShopSettings() {
     navigator.clipboard.writeText(String(shopId));
   }
   async function updateShopManifest() {
-    const um: Partial<UpdateShopManifest> = {};
+    const um: Partial<TManifest> = {};
     //If pricing currency needs to update.
     if (
       pricingCurrency!.Address !== manifest!.pricingCurrency.Address ||
@@ -297,6 +295,7 @@ export default function ShopSettings() {
                         onChange={() => {}}
                       />
                       <button
+                        type="button"
                         className="mr-4 p-0 bg-transparent"
                         onClick={copyToClipboard}
                       >
@@ -360,7 +359,7 @@ export default function ShopSettings() {
                         selected={displayedChains.find(
                           (c: CurrencyChainOption) =>
                             c.Address!.toLowerCase() ===
-                              pricingCurrency?.Address!.toLowerCase() &&
+                              pricingCurrency?.Address.toLowerCase() &&
                             c.ChainID === pricingCurrency?.ChainID,
                         )}
                       />

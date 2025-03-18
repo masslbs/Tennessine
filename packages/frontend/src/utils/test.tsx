@@ -12,15 +12,15 @@ import { connect } from "wagmi/actions";
 import { hardhat, mainnet, sepolia } from "wagmi/chains";
 import { mock } from "npm:wagmi/connectors";
 import { createTestClient, publicActions, walletActions } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-import { anvilPrivateKey } from "@massmarket/contracts";
 
 import { MassMarketProvider } from "../MassMarketContext.tsx";
 import { MockClientStateManager } from "./MockClientStateManager.ts";
 
+const anvilPrivateKey = generatePrivateKey();
 const account = privateKeyToAccount(
   anvilPrivateKey,
 );
@@ -44,17 +44,13 @@ export const testClient = createTestClient({
   .extend(publicActions)
   .extend(walletActions);
 
-export const createClientStateManager = async (
+export const createClientStateManager =  (
   shopId: bigint | null = null,
 ) => {
   const csm = new MockClientStateManager(
     shopId,
   );
-  await csm.createStateManager();
-  // Add test keycard for event verification
-  await csm.stateManager?.keycards.addAddress(
-    csm.relayClient!.keyCardWallet.address,
-  );
+
   return csm;
 };
 
@@ -125,7 +121,7 @@ export const createRouterWrapper = async (
         <QueryClientProvider client={queryClient}>
           <WagmiProvider config={config}>
             <MassMarketProvider clientStateManager={csm}>
-              <RainbowKitProvider showRecentTransactions={true}>
+              <RainbowKitProvider showRecentTransactions>
                 {
                   /* TS expects self closing RouterProvider tag. See App.tsx for how we are using it.
             But if we use the self closing syntax in testing, the router functions don't work in testing environment. */

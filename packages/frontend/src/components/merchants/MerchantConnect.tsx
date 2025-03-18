@@ -7,7 +7,7 @@ import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useNavigate } from "@tanstack/react-router";
 
-import * as abi from "@massmarket/contracts";
+import { shopRegAbi, shopRegAddress } from "@massmarket/contracts";
 import { assert, logger, random32BytesHex } from "@massmarket/utils";
 
 import ConnectConfirmation from "./ConnectConfirmation.tsx";
@@ -63,8 +63,8 @@ export default function MerchantConnect() {
   async function handleSearchForShop() {
     try {
       const uri = (await shopPublicClient!.readContract({
-        address: abi.addresses.ShopReg,
-        abi: abi.shopRegAbi,
+        address: shopRegAddress,
+        abi: shopRegAbi,
         functionName: "tokenURI",
         args: [BigInt(searchShopId)],
       })) as string;
@@ -93,18 +93,14 @@ export default function MerchantConnect() {
         errlog("Keycard mismatch");
         return;
       }
-      const res = await clientStateManager?.relayClient.enrollKeycard(
+      const res = await clientStateManager!.enrollKeycard(
         wallet!,
+        wallet!.account,
         false,
-        shopId,
-        new URL(globalThis.location.href),
       );
       if (res.ok) {
         debug(`Keycard enrolled: ${clientStateManager?.keycard}`);
-        await clientStateManager!.connectAndAuthenticate();
-        debug("RelayClient connected");
-        await clientStateManager!.sendMerchantSubscriptionRequest();
-        debug("Merchant subscription request sent");
+        await clientStateManager!.createStateManager();
         setStep(SearchShopStep.Confirm);
       } else {
         throw new Error("Failed to enroll keycard");
@@ -179,6 +175,7 @@ export default function MerchantConnect() {
                 <button
                   onClick={handleClearShopIdInput}
                   className="bg-transparent p-0"
+                  type="button"
                 >
                   <img
                     src={`/icons/close-icon.svg`}

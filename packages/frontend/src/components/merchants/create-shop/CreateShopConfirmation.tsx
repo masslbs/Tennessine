@@ -40,7 +40,11 @@ export default function Confirmation() {
           <div className="bg-background-gray p-2 rounded-md overflow-x-auto w-40 md:w-full">
             <p>{`0x${shopId!.toString(16)}`}</p>
           </div>
-          <button onClick={copyToClipboard} className="bg-white p-0">
+          <button
+            onClick={copyToClipboard}
+            className="bg-white p-0"
+            type="button"
+          >
             <img
               src="/icons/copy-icon.svg"
               width={20}

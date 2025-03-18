@@ -1,10 +1,11 @@
 import "../../../happyDomSetup.ts";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import { zeroAddress } from "viem";
+import { generatePrivateKey } from "viem/accounts";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "jsr:@std/expect";
 import { hardhat } from "wagmi/chains";
 
-import { addresses } from "@massmarket/contracts";
 import { random256BigInt, random32BytesHex } from "@massmarket/utils";
 
 import CreateShop from "./CreateShop.tsx";
@@ -14,6 +15,7 @@ Deno.test("Check that we can render the create shop screen", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async () => {
+  const anvilAddress = generatePrivateKey()
   const user = userEvent.setup();
   const shopId = random256BigInt();
   const privateKey = random32BytesHex();
@@ -48,7 +50,7 @@ Deno.test("Check that we can render the create shop screen", {
       "payees",
     );
     await user.clear(payees);
-    await user.type(payees, addresses.anvilAddress);
+    await user.type(payees, anvilAddress);
   });
   await act(async () => {
     const pricingCurrency = screen.getByTestId("pricing-currency");
@@ -110,18 +112,18 @@ Deno.test("Check that we can render the create shop screen", {
   }, { timeout: 15000 });
 
   const { acceptedCurrencies, payees, pricingCurrency, shippingRegions } =
-    await csm.stateManager!.manifest.get();
+    await csm.stateManager!.get();
   expect(acceptedCurrencies.length).toBe(1);
   expect(acceptedCurrencies[0].chainId).toBe(hardhat.id);
-  expect(acceptedCurrencies[0].address).toBe(addresses.zeroAddress);
+  expect(acceptedCurrencies[0].address).toBe(zeroAddress);
   expect(payees.length).toBe(1);
   expect(payees[0].address.toLowerCase()).toBe(
-    addresses.anvilAddress.toLowerCase(),
+    anvilAddress.toLowerCase(),
   );
   expect(payees[0].chainId).toBe(hardhat.id);
   expect(shippingRegions.length).toBe(1);
   expect(pricingCurrency!.chainId).toBe(hardhat.id);
-  expect(pricingCurrency!.address).toBe(addresses.zeroAddress);
+  expect(pricingCurrency!.address).toBe(zeroAddress);
 
   unmount();
   cleanup();

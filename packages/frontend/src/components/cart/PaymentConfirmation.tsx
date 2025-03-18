@@ -52,6 +52,7 @@ export default function PaymentConfirmation(
             <button
               className="mr-4 p-0 bg-transparent"
               onClick={copyToClipboard}
+              type="button"
             >
               <img
                 src="/icons/copy-icon.svg"

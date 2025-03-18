@@ -5,7 +5,6 @@
 import { useEffect, useState } from "react";
 import { ConnectButton, useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { privateKeyToAccount } from "viem/accounts";
 import { useAccount, useConfig, usePublicClient, useWalletClient } from "wagmi";
 import { simulateContract } from "@wagmi/core";
 
@@ -15,13 +14,8 @@ import {
   mintShop,
   setTokenURI,
 } from "@massmarket/blockchain";
-import {
-  assert,
-  getWindowLocation,
-  logger,
-  random256BigInt,
-} from "@massmarket/utils";
-import * as abi from "@massmarket/contracts";
+import { assert, logger, random256BigInt } from "@massmarket/utils";
+import { permissions, shopRegAbi, shopRegAddress } from "@massmarket/contracts";
 
 import ManifestForm from "./ManifestForm.tsx";
 import Confirmation from "./CreateShopConfirmation.tsx";
@@ -39,8 +33,8 @@ import { removeCachedKeycards } from "../../../utils/mod.ts";
 
 // When create shop CTA is clicked, these functions are called:
 // 1. mintShop
-// 2. enrollConnectAuthenticate
-// 3. createShopManifest
+// 2. enrollAndAddConnection
+// 3. updateManifest
 // 4. uploadMetadata
 
 const namespace = "frontend: CreateShop";
@@ -128,8 +122,8 @@ export default function () {
       }
       // This will throw error if simulate fails.
       await simulateContract(config, {
-        abi: abi.shopRegAbi,
-        address: abi.addresses.ShopReg,
+        abi: shopRegAbi,
+        address: shopRegAddress,
         functionName: "mint",
         args: [shopId!, wallet!.account.address],
         connector,
@@ -180,62 +174,45 @@ export default function () {
       return;
     }
 
-    await enrollConnectAuthenticate();
+    await enrollAndAddConnection();
   }
 
-  async function enrollConnectAuthenticate() {
+  async function enrollAndAddConnection() {
     setStoreRegistrationStatus("Checking permissions...");
     try {
       const hasAccess = await checkPermissions(shopPublicClient!, [
         shopId!,
         wallet!.account.address,
-        abi.permissions.updateRootHash,
+        permissions.updateRootHash,
       ]);
       if (!hasAccess) {
         throw new Error("Access denied.");
       }
       setStoreRegistrationStatus("Enrolling keycard...");
 
-      const res = await clientStateManager!.relayClient.enrollKeycard(
-        wallet,
+      const res = await clientStateManager!.enrollKeycard(
+        wallet!,
+        wallet!.account,
         false,
-        shopId!,
-        getWindowLocation(),
       );
       //set keycard role to merchant
       setKeycard({ ...keycard, role: "merchant" });
       if (!res.ok) {
         throw Error("Failed to enroll keycard");
       }
-
-      // Connect & authenticate
-      setStoreRegistrationStatus(
-        "Connecting and authenticating Relay Client...",
-      );
-      await clientStateManager!.connectAndAuthenticate();
-
-      // Add address of current kc wallet for all outgoing event verification.
-      // const keyCardWallet = privateKeyToAccount(keycard.privateKey);
-      // await clientStateManager!.stateManager.keycards.addAddress(
-      //   keyCardWallet.address.toLowerCase() as `0x${string}`,
-      // );
-
-      // debug(
-      //   `keycard wallet address added: ${keyCardWallet.address.toLowerCase()}`,
-      // );
+      // This adds connection to relay client and creates state manager.
+      await clientStateManager!.createStateManager();
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
-      errlog("enrollConnectAuthenticate failed", error);
+      errlog("enrollAndAddConnection failed", error);
       setErrorMsg("Error connecting to client");
       return;
     }
-    await createShopManifest();
+    await updateManifest();
   }
 
-  async function createShopManifest() {
+  async function updateManifest() {
     try {
-      await clientStateManager!.sendMerchantSubscriptionRequest();
-      debug("Sent merchant subscription request");
       // Since we don't currently have UI for inputting payment address for each chain,
       // Get all unique chain IDs for selected accepted currencies and add payee for each chain.
       const uniqueByChainId = Object.keys(shopManifest.AcceptedCurrencies);
@@ -252,8 +229,8 @@ export default function () {
         ...shopManifest,
         Payees,
       };
-
-      clientStateManager!.stateManager!.set("Manifest", Manifest);
+      // Use stand in class here
+      clientStateManager!.stateManager!.set(["Manifest"], Manifest);
 
       debug("Manifest created");
     } catch (error: unknown) {
@@ -269,14 +246,14 @@ export default function () {
   async function uploadMetadata() {
     setStoreRegistrationStatus("Setting shop metadata...");
     try {
-      const imgPath = shopManifest.avatar
+      const imgPath = shopMetadata.avatar
         ? await clientStateManager!.relayClient!.uploadBlob(
-          shopManifest.avatar as FormData,
+          shopMetadata.avatar as FormData,
         )
         : { url: null };
       const metadata = {
-        name: shopManifest.shopName,
-        description: shopManifest.description,
+        name: shopMetadata.shopName,
+        description: shopMetadata.description,
         image: imgPath.url,
       };
       const jsn = JSON.stringify(metadata);
@@ -289,7 +266,7 @@ export default function () {
       );
 
       //Write shop metadata to blockchain client.
-      const metadataHash = await setTokenURI(wallet!, [
+      const metadataHash = await setTokenURI(wallet!, wallet!.account, [
         shopId!,
         metadataPath.url,
       ]);
@@ -304,7 +281,7 @@ export default function () {
       }
 
       setShopDetails({
-        name: shopManifest.shopName,
+        name: shopMetadata.shopName,
         profilePictureUrl: imgPath.url,
       });
 

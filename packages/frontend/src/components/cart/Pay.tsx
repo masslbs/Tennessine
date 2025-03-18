@@ -3,9 +3,13 @@ import { ConnectButton, useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 import { useAccount, useConfig, usePublicClient, useWalletClient } from "wagmi";
 import * as chains from "wagmi/chains";
 import { simulateContract } from "@wagmi/core";
-import { ContractFunctionArgs } from "viem";
+import { ContractFunctionArgs, zeroAddress } from "viem";
 
-import * as abi from "@massmarket/contracts";
+import {
+  eddiesAbi,
+  paymentsByAddressAbi,
+  paymentsByAddressAddress,
+} from "@massmarket/contracts";
 import { assert, logger } from "@massmarket/utils";
 import { approveERC20, getAllowance, pay } from "@massmarket/blockchain";
 
@@ -25,7 +29,7 @@ export default function Pay({
   goBack,
 }: {
   paymentArgs: ContractFunctionArgs<
-    typeof abi.paymentsByAddressAbi,
+    typeof paymentsByAddressAbi,
     "nonpayable",
     "payTokenPreApproved"
   >;
@@ -72,7 +76,7 @@ export default function Pay({
     try {
       setLoading(true);
       if (
-        paymentArgs[0].currency !== abi.addresses.zeroAddress
+        paymentArgs[0].currency !== zeroAddress
       ) {
         debug("Pending ERC20 contract call approval");
         const allowance = await getAllowance(shopPublicClient!, [
@@ -82,7 +86,7 @@ export default function Pay({
         if (allowance < paymentArgs[0].amount) {
           // This will throw error if simulate fails.
           await simulateContract(config, {
-            abi: abi.eddiesAbi,
+            abi: eddiesAbi,
             address: paymentArgs[0].currency,
             functionName: "approve",
             args: [
@@ -99,11 +103,11 @@ export default function Pay({
         }
       }
       await simulateContract(config, {
-        abi: abi.paymentsByAddressAbi,
-        address: abi.addresses.Payments,
+        abi: paymentsByAddressAbi,
+        address: paymentsByAddressAddress,
         functionName: "pay",
         args: paymentArgs,
-        ...(paymentArgs[0].currency === abi.addresses.zeroAddress &&
+        ...(paymentArgs[0].currency === zeroAddress &&
           { value: paymentArgs[0].amount }),
         connector,
       });
@@ -125,7 +129,7 @@ export default function Pay({
             onClick={sendPayment}
             disabled={!paymentArgs || !wallet || loading ||
               paymentCurrencyLoading}
-            custom={"md:w-1/2"}
+            custom="md:w-1/2"
           >
             {loading ? <h6>Waiting for transaction...</h6> : <h6>Pay</h6>}
           </Button>

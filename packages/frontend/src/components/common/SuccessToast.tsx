@@ -13,7 +13,11 @@ export default function SuccessToast({ message, onClose }: SuccessToastProps) {
   return (
     <div className="px-4 py-2 bg-success-green text-white font-thin rounded-lg flex items-center">
       <p>{message}</p>
-      <button onClick={() => onClose()} className="ml-auto p-0 bg-transparent">
+      <button
+        onClick={() => onClose()}
+        className="ml-auto p-0 bg-transparent"
+        type="button"
+      >
         <div className="bg-white rounded-full w-4 h-4 flex justify-center items-center">
           <img
             src="/icons/close-icon.svg"

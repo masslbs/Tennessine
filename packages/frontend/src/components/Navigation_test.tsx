@@ -2,14 +2,13 @@ import "../happyDomSetup.ts";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { expect } from "jsr:@std/expect";
 import { userEvent } from "@testing-library/user-event";
-
+import { zeroAddress } from "viem";
 import {
   metadata,
   metadata2,
   payees,
   shippingRegions,
 } from "@massmarket/schema/testFixtures";
-import { addresses } from "@massmarket/contracts";
 import { random256BigInt } from "@massmarket/utils";
 
 import Navigation from "./Navigation.tsx";
@@ -27,9 +26,9 @@ Deno.test("Check that we can render the navigation bar", {
     {
       acceptedCurrencies: [{
         chainId: 31337,
-        address: addresses.zeroAddress,
+        address: zeroAddress,
       }],
-      pricingCurrency: { chainId: 31337, address: addresses.zeroAddress },
+      pricingCurrency: { chainId: 31337, address: zeroAddress },
       payees,
       shippingRegions,
     },

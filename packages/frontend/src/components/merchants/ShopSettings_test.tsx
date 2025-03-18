@@ -3,10 +3,11 @@ import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "jsr:@std/expect";
 import { mainnet, sepolia } from "wagmi/chains";
+import { zeroAddress } from "viem";
 
 import { random256BigInt } from "@massmarket/utils";
 import { payees, shippingRegions } from "@massmarket/schema/testFixtures";
-import { addresses } from "@massmarket/contracts";
+import { eddiesAddress } from "@massmarket/contracts";
 
 import ShopSettings from "./ShopSettings.tsx";
 import { createRouterWrapper } from "../../utils/test.tsx";
@@ -22,12 +23,12 @@ Deno.test("Check that we can render the shop settings screen", {
     {
       acceptedCurrencies: [{
         chainId: mainnet.id,
-        address: addresses.zeroAddress,
+        address: zeroAddress,
       }, {
         chainId: sepolia.id,
-        address: addresses.zeroAddress,
+        address: zeroAddress,
       }],
-      pricingCurrency: { chainId: mainnet.id, address: addresses.zeroAddress },
+      pricingCurrency: { chainId: mainnet.id, address: zeroAddress },
       payees,
       shippingRegions,
     },
@@ -57,10 +58,10 @@ Deno.test("Check that we can render the shop settings screen", {
       );
       expect(checked.length).toBe(2);
       expect((checked[0] as HTMLInputElement).value).toBe(
-        `${addresses.zeroAddress}/${mainnet.id}`,
+        `${zeroAddress}/${mainnet.id}`,
       );
       expect((checked[1] as HTMLInputElement).value).toBe(
-        `${addresses.zeroAddress}/${sepolia.id}`,
+        `${zeroAddress}/${sepolia.id}`,
       );
     });
   });
@@ -90,7 +91,7 @@ Deno.test("Check that we can render the shop settings screen", {
       // check manifest is updated
       const manifest = await csm.stateManager!.manifest.get();
       expect(manifest.pricingCurrency!.chainId).toBe(sepolia.id);
-      expect(manifest.pricingCurrency!.address).toBe(addresses.zeroAddress);
+      expect(manifest.pricingCurrency!.address).toBe(zeroAddress);
     });
   });
 
@@ -102,7 +103,7 @@ Deno.test("Check that we can render the shop settings screen", {
       );
       const EDD = checkboxes.find((checkbox) => {
         return (checkbox as HTMLInputElement).value ===
-          `${addresses.Eddies}/${sepolia.id}`;
+          `${eddiesAddress}/${sepolia.id}`;
       }) as HTMLInputElement;
       expect(EDD).toBeTruthy();
       await user.click(EDD as HTMLInputElement);
@@ -117,15 +118,15 @@ Deno.test("Check that we can render the shop settings screen", {
       expect(manifest.acceptedCurrencies.length).toBe(3);
       expect(manifest.acceptedCurrencies[0]).toEqual({
         chainId: mainnet.id,
-        address: addresses.zeroAddress,
+        address: zeroAddress,
       });
       expect(manifest.acceptedCurrencies[1]).toEqual({
         chainId: sepolia.id,
-        address: addresses.zeroAddress,
+        address: zeroAddress,
       });
       expect(manifest.acceptedCurrencies[2]).toEqual({
         chainId: sepolia.id,
-        address: addresses.Eddies.toLowerCase(),
+        address: eddiesAddress.toLowerCase(),
       });
     });
   });

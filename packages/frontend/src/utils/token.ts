@@ -1,17 +1,21 @@
-import { Address, PublicClient } from "viem";
-import * as abi from "@massmarket/contracts";
+import { Address, PublicClient, zeroAddress } from "viem";
+import {
+  eddiesAbi,
+  eddiesAddress,
+  tokenAddresses,
+} from "@massmarket/contracts";
 import { assert } from "@massmarket/utils";
 import { TCurrencyMap } from "../types.ts";
 
 // Any utility functions for tokens
 export const getTokenAddress = (symbol: string, chainId: string): Address => {
-  if (symbol === "ETH") return abi.addresses.zeroAddress;
-  if (symbol === "EDD") return abi.addresses.Eddies;
+  if (symbol === "ETH") return zeroAddress;
+  if (symbol === "EDD") return eddiesAddress;
   const addresses: {
     [key: string]: {
       [key: string]: string;
     };
-  } = abi.tokenAddresses;
+  } = tokenAddresses;
   const tokenAddress = addresses[chainId][symbol] as Address;
 
   if (!tokenAddress) {
@@ -25,20 +29,20 @@ export const getTokenInformation = (
   tokenAddress: `0x${string}`,
 ): Promise<[string, number]> => {
   assert(publicClient.chain, "publicClient.chain is undefined");
-  if (tokenAddress === abi.addresses.zeroAddress) {
+  if (tokenAddress === zeroAddress) {
     return new Promise((resolve) => {
       resolve(["ETH", 18]);
     });
   }
   const symbol = publicClient.readContract({
     address: tokenAddress,
-    abi: abi.eddiesAbi,
+    abi: eddiesAbi,
     functionName: "symbol",
     args: [],
   }) as Promise<string>;
   const decimal = publicClient.readContract({
     address: tokenAddress,
-    abi: abi.eddiesAbi,
+    abi: eddiesAbi,
     functionName: "decimals",
     args: [],
   }) as Promise<number>;

@@ -82,7 +82,7 @@ export default function OrderDetails() {
     const itemIds = Object.keys(ci);
     await Promise.all(
       itemIds.map((id) =>
-        clientStateManager!.stateManager.listings.get(id as ListingId)
+        clientStateManager!.stateManager.get(["Listings", id])
           .then((item: TListing) => {
             cartObjects.set(item.id, {
               ...item,
@@ -171,7 +171,11 @@ export default function OrderDetails() {
             >
               <p>{txHash}</p>
             </div>
-            <button onClick={copyTxHash} className="p-0 bg-transparent">
+            <button
+              onClick={copyTxHash}
+              className="p-0 bg-transparent"
+              type="button"
+            >
               <img
                 src="/icons/copy-icon.svg"
                 width={20}
@@ -192,7 +196,11 @@ export default function OrderDetails() {
             >
               <p>{blockHash}</p>
             </div>
-            <button onClick={copyBlockHash} className="p-0 bg-transparent">
+            <button
+              onClick={copyBlockHash}
+              className="p-0 bg-transparent"
+              type="button"
+            >
               <img
                 src="/icons/copy-icon.svg"
                 width={20}

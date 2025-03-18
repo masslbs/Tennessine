@@ -9,6 +9,7 @@ export default function ConnectWalletButton(
       data-testid="rainbowkit-connect-wallet"
       className="rounded-lg flex flex-col items-center gap-2 p-0 bg-transparent"
       onClick={onClick ?? openConnectModal}
+      type="button"
     >
       <img
         src="/icons/wallet-icon.svg"
