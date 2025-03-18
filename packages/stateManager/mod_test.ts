@@ -86,9 +86,7 @@ Deno.test("Database Testings", async (t) => {
     });
 
     await sm.addConnection(relayClient);
-    const first = await promise;
-    // console.log({ first });
-    _ = first;
+    await promise;
     const testAddr = Uint8Array.from([
       0xf0,
       0xf1,

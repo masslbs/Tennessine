@@ -647,11 +647,11 @@
         "utils": "utils_2"
       },
       "locked": {
-        "lastModified": 1742315637,
-        "narHash": "sha256-MWyfJTRcNjO9KfQfOqA19p4pzaQf0cqe7xfkd4cpTfY=",
+        "lastModified": 1742317551,
+        "narHash": "sha256-tK0Z+pI24ssE6N+wR2BuIQ/fwYF0f26QzWJALif4arc=",
         "owner": "masslbs",
         "repo": "network-schema",
-        "rev": "cde2ee28802bb43b08a4cdd6ef70196afad86205",
+        "rev": "5da49fa777f6a07e651b214cea3de47fb1a87277",
         "type": "github"
       },
       "original": {
