@@ -3,11 +3,6 @@ import EventTree from "@massmarket/eventTree";
 import type { PushedPatchSet, RelayClient } from "@massmarket/client";
 import type { codec, Hash } from "@massmarket/utils";
 
-/*
-replace: not optional
-add: optional only
-*/
-
 const DefaultObject = new Map(Object.entries({
   Tags: new Map(),
   Orders: new Map(),
@@ -26,7 +21,7 @@ interface IStoredState {
 }
 
 export default class StateManager {
-  readonly events = new EventTree();
+  readonly events = new EventTree<codec.CodecValue>(DefaultObject);
   readonly graph: DAG;
   readonly clients: Set<RelayClient> = new Set();
   #streamsControllers: Set<ReadableStreamDefaultController> = new Set();
@@ -151,7 +146,8 @@ export default class StateManager {
             console.error({ patch });
             throw new Error(`Unimplemented operation type: ${patch.Op}`);
           }
-          this.events.emit(patch.Path, value);
+          const obj = await localState.root;
+          this.events.emit(obj!);
         }
         // TODO: check stateroot
         // TODO: we are saving the patches here
@@ -199,10 +195,10 @@ export default class StateManager {
 
   async set(path: codec.Path, value: codec.CodecValue, id = "local") {
     const state = await this.loadState(id);
-    state.root = this.graph.set(state.root, path, value);
+    state.root = await this.graph.set(state.root, path, value);
+    this.events.emit(state.root);
     state.seqNum += 1;
-    state.root = await this.graph.merklelize(state.root);
-    this.events.emit(path, value);
+    // state.root = await this.graph.merklelize(state.root);
     // send patch to peers
     this.#streamsControllers.forEach((controller) => {
       controller.enqueue([

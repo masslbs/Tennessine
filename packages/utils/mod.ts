@@ -172,7 +172,7 @@ export function getWindowLocation() {
 export function get(
   obj: unknown,
   key: CodecKey,
-): unknown | undefined {
+) {
   if (obj instanceof Map) {
     if (
       typeof key === "object" && key !== null
