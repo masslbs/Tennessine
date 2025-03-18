@@ -60,7 +60,11 @@ export default function AvatarUpload({
   return (
     <section>
       <div className="flex">
-        <button onClick={triggerFileInput} className="bg-white p-0">
+        <button
+          onClick={triggerFileInput}
+          className="bg-white p-0"
+          type="button"
+        >
           {localImg
             ? (
               <div className="overflow-hidden rounded-full w-12 h-12">
@@ -76,7 +80,7 @@ export default function AvatarUpload({
             : (
               <div className="bg-background-gray rounded-full p-3">
                 <img
-                  src={"/icons/picture-upload.svg"}
+                  src="/icons/picture-upload.svg"
                   width={27}
                   height={21}
                   alt="upload"

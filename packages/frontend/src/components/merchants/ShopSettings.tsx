@@ -6,7 +6,6 @@ import { ChangeEvent, useEffect, useState } from "react";
 import { useChains, useWalletClient } from "wagmi";
 import { Address, zeroAddress } from "viem";
 
-import { UpdateShopManifest } from "@massmarket/stateManager/types";
 import { setTokenURI } from "@massmarket/blockchain";
 import { assert, logger } from "@massmarket/utils";
 
@@ -15,6 +14,7 @@ import {
   TCurrencyMap,
   TManifest,
   TPricingCurrency,
+
 } from "../../types.ts";
 import {
   compareAddedRemovedChains,
@@ -119,7 +119,7 @@ export default function ShopSettings() {
     navigator.clipboard.writeText(String(shopId));
   }
   async function updateShopManifest() {
-    const um: Partial<UpdateShopManifest> = {};
+    const um: Partial<TManifest> = {};
     //If pricing currency needs to update.
     if (
       pricingCurrency!.Address !== manifest!.pricingCurrency.Address ||
@@ -296,6 +296,7 @@ export default function ShopSettings() {
                         onChange={() => {}}
                       />
                       <button
+                        type="button"
                         className="mr-4 p-0 bg-transparent"
                         onClick={copyToClipboard}
                       >
@@ -359,7 +360,7 @@ export default function ShopSettings() {
                         selected={displayedChains.find(
                           (c: CurrencyChainOption) =>
                             c.Address!.toLowerCase() ===
-                              pricingCurrency?.Address!.toLowerCase() &&
+                              pricingCurrency?.Address.toLowerCase() &&
                             c.ChainID === pricingCurrency?.ChainID,
                         )}
                       />

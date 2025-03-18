@@ -9,7 +9,6 @@ import {
   payees,
   shippingRegions,
 } from "@massmarket/schema/testFixtures";
-import { addresses } from "@massmarket/contracts";
 import { random256BigInt } from "@massmarket/utils";
 
 import Navigation from "./Navigation.tsx";

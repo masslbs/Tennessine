@@ -5,7 +5,6 @@
 import { useEffect, useState } from "react";
 import { ConnectButton, useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { privateKeyToAccount } from "viem/accounts";
 import { useAccount, useConfig, usePublicClient, useWalletClient } from "wagmi";
 import { simulateContract } from "@wagmi/core";
 
@@ -15,12 +14,7 @@ import {
   mintShop,
   setTokenURI,
 } from "@massmarket/blockchain";
-import {
-  assert,
-  getWindowLocation,
-  logger,
-  random256BigInt,
-} from "@massmarket/utils";
+import { assert, logger, random256BigInt } from "@massmarket/utils";
 import { permissions, shopRegAbi, shopRegAddress } from "@massmarket/contracts";
 
 import ManifestForm from "./ManifestForm.tsx";
@@ -252,9 +246,9 @@ export default function () {
   async function uploadMetadata() {
     setStoreRegistrationStatus("Setting shop metadata...");
     try {
-      const imgPath = shopManifest.avatar
+      const imgPath = shopMetadata.avatar
         ? await clientStateManager!.relayClient!.uploadBlob(
-          shopManifest.avatar as FormData,
+          shopMetadata.avatar as FormData,
         )
         : { url: null };
       const metadata = {
@@ -272,7 +266,7 @@ export default function () {
       );
 
       //Write shop metadata to blockchain client.
-      const metadataHash = await setTokenURI(wallet!, [
+      const metadataHash = await setTokenURI(wallet!, wallet!.account, [
         shopId!,
         metadataPath.url,
       ]);
@@ -287,7 +281,7 @@ export default function () {
       }
 
       setShopDetails({
-        name: shopManifest.shopName,
+        name: shopMetadata.shopName,
         profilePictureUrl: imgPath.url,
       });
 

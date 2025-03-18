@@ -19,8 +19,8 @@ export function useCurrentOrder() {
   const orderManager = clientStateManager?.stateManager?.orders;
 
   function onOrderCreate(order: TOrder) {
-    if (order.status === OrderState.STATE_OPEN) {
-      setCurrentOrder({ orderId: order.id, status: OrderState.STATE_OPEN });
+    if (order.State === OrderState.STATE_OPEN) {
+      setCurrentOrder({ orderId: order.ID, status: OrderState.STATE_OPEN });
     }
   }
   function onOrderUpdate(res: [OrderEventTypes, TOrder]) {
@@ -43,21 +43,21 @@ export function useCurrentOrder() {
   }
 
   function onCommit(order: TOrder) {
-    if (order.status === OrderState.STATE_COMMITTED) {
+    if (order.State === OrderState.STATE_COMMITTED) {
       setCurrentOrder({
-        orderId: order.id,
+        orderId: order.ID,
         status: OrderState.STATE_COMMITTED,
       });
     }
   }
   function txHashDetected(order: TOrder) {
-    if (order.status === OrderState.STATE_PAYMENT_TX) {
+    if (order.State === OrderState.STATE_PAYMENT_TX) {
       setCurrentOrder(null);
     }
   }
 
   function orderCancel(order: TOrder) {
-    if (order.status === OrderState.STATE_CANCELED) {
+    if (order.State === OrderState.STATE_CANCELED) {
       setCurrentOrder(null);
     }
   }

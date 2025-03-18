@@ -10,7 +10,6 @@ import { zeroAddress } from "viem";
 import { expect } from "jsr:@std/expect";
 import { hardhat } from "wagmi/chains";
 
-import { addresses } from "@massmarket/contracts";
 import { random256BigInt, random32BytesHex } from "@massmarket/utils";
 import {
   metadata,

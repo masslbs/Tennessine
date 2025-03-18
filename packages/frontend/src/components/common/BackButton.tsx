@@ -21,7 +21,7 @@ export default function BackButton({
         className="flex gap-1 items-center text-black p-0"
       >
         <img
-          src={"/icons/chevron-left.svg"}
+          src="/icons/chevron-left.svg"
           width={8}
           height={8}
           alt="chevron-left"
@@ -35,9 +35,10 @@ export default function BackButton({
       <button
         onClick={onClick}
         className="flex items-center gap-1 bg-transparent p-0"
+        type="button"
       >
         <img
-          src={"/icons/chevron-left.svg"}
+          src="/icons/chevron-left.svg"
           width={8}
           height={8}
           alt="chevron-left"

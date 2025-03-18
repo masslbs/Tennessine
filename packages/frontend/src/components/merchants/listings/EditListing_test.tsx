@@ -6,7 +6,6 @@ import { expect } from "jsr:@std/expect";
 import { hardhat, mainnet, sepolia } from "wagmi/chains";
 
 import { random256BigInt } from "@massmarket/utils";
-import { addresses } from "@massmarket/contracts";
 import {
   metadata,
   payees,

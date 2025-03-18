@@ -19,7 +19,11 @@ export default function ErrorMessage({
       data-testid="error-message"
     >
       <p>{errorMessage}</p>
-      <button onClick={() => onClose()} className="ml-auto p-0 bg-transparent">
+      <button
+        type="button"
+        onClick={() => onClose()}
+        className="ml-auto p-0 bg-transparent"
+      >
         <div className="bg-white rounded-full w-4 h-4 flex justify-center items-center">
           <img
             src="/icons/close-icon.svg"

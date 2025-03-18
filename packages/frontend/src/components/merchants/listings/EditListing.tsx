@@ -312,12 +312,13 @@ export default function EditProduct() {
               <p className="mb-2">Product pics</p>
               <div className="border-2 border-solid rounded-md bg-background-gray h-32 flex">
                 <button
+                  type="button"
                   onClick={triggerFileInput}
                   className="p-5 w-full text-white bg-white"
                 >
                   <div className="flex flex-col items-center gap-2">
                     <img
-                      src={"/icons/images.svg"}
+                      src="/icons/images.svg"
                       width={25}
                       height={25}
                       alt="upload-picture"

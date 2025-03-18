@@ -95,7 +95,7 @@ export default function MerchantConnect() {
       }
       const res = await clientStateManager!.enrollKeycard(
         wallet!,
-        wallet.account,
+        wallet!.account,
         false,
       );
       if (res.ok) {
@@ -175,6 +175,7 @@ export default function MerchantConnect() {
                 <button
                   onClick={handleClearShopIdInput}
                   className="bg-transparent p-0"
+                  type="button"
                 >
                   <img
                     src={`/icons/close-icon.svg`}

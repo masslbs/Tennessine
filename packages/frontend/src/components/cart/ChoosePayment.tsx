@@ -346,6 +346,7 @@ export default function ChoosePayment({
             </div>
             <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg">
               <button
+                type="button"
                 data-testid="pay-by-qr"
                 className="rounded-lg flex flex-col items-center gap-2 bg-transparent p-0"
                 onClick={payByQr}

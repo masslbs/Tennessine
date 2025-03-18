@@ -4,7 +4,6 @@ import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
 import { cleanup, renderHook, waitFor } from "@testing-library/react";
 import { hardhat } from "wagmi/chains";
 
-import { addresses } from "@massmarket/contracts";
 import { payees, shippingRegions } from "@massmarket/schema/testFixtures";
 import { random256BigInt } from "@massmarket/utils";
 

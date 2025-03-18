@@ -14,13 +14,14 @@ import {
   CurrencyChainOption,
   ShopForm,
   TCurrencyMap,
+  TShopManifest,
 } from "../../../types.ts";
 import { getTokenAddress, isValidAddress } from "../../../utils/mod.ts";
 
 export default function ManifestForm(
   { shopManifest, setShopManifest, setStep, setShopMetadata, shopMetadata }: {
-    shopManifest: any;
-    setShopManifest: (shopManifest: any) => void;
+    shopManifest: TShopManifest;
+    setShopManifest: (shopManifest: TShopManifest) => void;
     setStep: (step: CreateShopStep) => void;
     shopMetadata: ShopForm;
     setShopMetadata: (shopMetadata: ShopForm) => void;
@@ -37,8 +38,8 @@ export default function ManifestForm(
   const chains = useChains();
 
   function handleManifestChange(
-    field: any,
-    value: any,
+    field: keyof TShopManifest,
+    value: TShopManifest[keyof TShopManifest],
   ) {
     setShopManifest({ ...shopManifest, [field]: value });
   }

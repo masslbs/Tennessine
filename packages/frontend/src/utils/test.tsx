@@ -125,7 +125,7 @@ export const createRouterWrapper = async (
         <QueryClientProvider client={queryClient}>
           <WagmiProvider config={config}>
             <MassMarketProvider clientStateManager={csm}>
-              <RainbowKitProvider showRecentTransactions={true}>
+              <RainbowKitProvider showRecentTransactions>
                 {
                   /* TS expects self closing RouterProvider tag. See App.tsx for how we are using it.
             But if we use the self closing syntax in testing, the router functions don't work in testing environment. */

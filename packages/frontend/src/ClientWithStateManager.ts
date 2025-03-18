@@ -70,7 +70,7 @@ export class ClientWithStateManager {
   enrollKeycard(
     wallet: WalletClient,
     account: Account,
-    isGuest: Boolean = true,
+    isGuest: boolean = true,
   ) {
     if (!this.relayClient) throw new Error("RelayClient not set");
     return this.relayClient.enrollKeycard(
