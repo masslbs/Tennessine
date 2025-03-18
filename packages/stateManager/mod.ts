@@ -136,8 +136,20 @@ export default class StateManager {
             } else {
               throw new Error("Invalid path");
             }
+          } else if (patch.Op === "remove") {
+            const current = await this.graph.get(state.root, patch.Path);
+            const deleteKey = patch.Path[patch.Path.length - 1];
+            if (current instanceof Map) {
+              current.delete(deleteKey);
+            } else {
+              console.error({ current, patch });
+              throw new Error(
+                `Invalid current value (type: ${typeof current}) for path: ${patch.Path}`,
+              );
+            }
           } else {
-            throw new Error("Unimplemented operation type");
+            console.error({ patch });
+            throw new Error(`Unimplemented operation type: ${patch.Op}`);
           }
           this.events.emit(patch.Path, value);
         }

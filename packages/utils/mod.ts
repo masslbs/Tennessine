@@ -13,8 +13,8 @@ import {
   toBytes,
 } from "@wevm/viem";
 import * as Sentry from "@sentry/browser";
+import { type CodecKey, type CodecValue, decode } from "./codec.ts";
 export * as codec from "./codec.ts";
-import type * as codec from "./codec.ts";
 
 // TODO: type case first argument to captureException
 // TODO: add extras arguments (https://docs.sentry.io/platforms/javascript/guides/nextjs/enriching-events/)
@@ -159,7 +159,7 @@ export async function hash(data: BufferSource): Promise<Hash> {
 }
 
 // TODO: we need a some way to denote whether the value is a hash
-export function isHash(node: codec.CodecValue): node is Hash {
+export function isHash(node: CodecValue): node is Hash {
   return node instanceof Uint8Array && node.length === 32;
 }
 
@@ -171,8 +171,8 @@ export function getWindowLocation() {
 
 export function get(
   obj: unknown,
-  key: codec.CodecKey,
-) {
+  key: CodecKey,
+): unknown | undefined {
   if (obj instanceof Map) {
     if (
       typeof key === "object" && key !== null
@@ -197,7 +197,7 @@ export function get(
 
 export function set(
   obj: unknown,
-  key: codec.CodecKey,
+  key: CodecKey,
   value: unknown,
 ): void {
   if (obj instanceof Map) {
@@ -212,4 +212,51 @@ export function set(
   } else {
     throw new Error(`Cannot set key ${key} on ${obj}`);
   }
+}
+export async function fetchAndDecode(filename: string) {
+  const response = await fetch(
+    `file://${Deno.env.get("MASS_TEST_VECTORS")}/vectors/${filename}.cbor`,
+  );
+  const bytes = await response.bytes();
+  return decode(bytes) as Map<string, unknown>;
+}
+
+export function extractEntriesFromHAMT(
+  hamtNode: unknown,
+): Map<number, unknown> {
+  if (!hamtNode || !Array.isArray(hamtNode) || hamtNode.length < 2) {
+    return new Map();
+  }
+
+  const entries = hamtNode[1];
+  const result = new Map<number, unknown>();
+
+  if (Array.isArray(entries)) {
+    for (const entry of entries) {
+      if (Array.isArray(entry) && entry.length >= 2) {
+        // Check if this is a leaf node or another HAMT node
+        if (entry.length > 2 && entry[2] !== null) {
+          // This is another HAMT node, recurse into it
+          const subEntries = extractEntriesFromHAMT(entry[2]);
+          // Merge the results
+          for (const [subKey, subValue] of subEntries.entries()) {
+            result.set(subKey, subValue);
+          }
+        } else {
+          // This is a leaf node
+          const key = entry[0];
+          const value = entry[1];
+          // Convert key (Uint8Array) to number (8-byte big endian)
+          const keyNum = new DataView(
+            key.buffer,
+            key.byteOffset,
+            key.byteLength,
+          )
+            .getBigUint64(0, false);
+          result.set(Number(keyNum), value);
+        }
+      }
+    }
+  }
+  return result;
 }
