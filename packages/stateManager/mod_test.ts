@@ -6,7 +6,7 @@ import { extractEntriesFromHAMT, fetchAndDecode } from "@massmarket/utils";
 
 import StateManager from "./mod.ts";
 import { Listing } from "../schema/standin_listing.ts";
-import { Manifest } from "../schema/standin_manifest.ts";
+import { ChainAddress, Manifest } from "../schema/standin_manifest.ts";
 import { Order } from "../schema/standin_order.ts";
 
 Deno.test("Database Testings", async (t) => {
@@ -61,7 +61,7 @@ Deno.test("Database Testings", async (t) => {
     for (const orderMap of orders) {
       for (const [id, order] of orderMap.entries()) {
         const unpacked = new Order(order);
-        // console.log({ order });
+        console.log({ order, unpacked });
         const mapped = unpacked.returnAsMap();
         await db.set(["Orders", id], mapped);
 
@@ -81,23 +81,52 @@ Deno.test("Database Testings", async (t) => {
     // connect to the relay
     const { resolve, promise } = Promise.withResolvers();
     sm.events.on(["Manifest"], (manifestPatch) => {
+      console.log(manifestPatch);
       resolve(manifestPatch);
     });
 
     await sm.addConnection(relayClient);
-    // wait for the first manifest patch event
-    const first = await promise;
+    let first = await promise;
     console.log(first);
-    await sm.set(
-      ["Manifest", "ShippingRegions", "default"],
+    const testAddr = Uint8Array.from([
+      0xf0,
+      0xf1,
+      0xf2,
+      0x03,
+      0x04,
+      0x05,
+      0xf6,
+      0x07,
+      0xf8,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+      0x00,
+    ]);
+    const testCurrency = new ChainAddress(
       new Map([
-        ["City", ""],
-        ["Country", "DE"],
-        ["PostalCode", ""],
-        ["PriceModifiers", null],
+        ["Address", testAddr],
+        ["ChainID", 1337],
       ]),
     );
-    // const value = await sm.get(["Manifest", "ShippingRegions", "default"]);
-    // assertEquals(value, "value");
+    await sm.set(
+      ["Manifest", "PricingCurrency"],
+      testCurrency.returnAsMap(),
+    );
+    const value = await sm.get(["Manifest", "PricingCurrency"]);
+    assertEquals(
+      value,
+      new Map([
+        ["Address", testAddr],
+        ["ChainID", 1337],
+      ]),
+    );
   });
 });
