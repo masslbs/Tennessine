@@ -1,7 +1,4 @@
-import {
-  extractEntriesFromHAMT,
-  fetchAndDecode,
-} from "@massmarket/utils";
+import { extractEntriesFromHAMT, fetchAndDecode } from "@massmarket/utils";
 
 import { Manifest } from "./standin_manifest.ts";
 import { Listing } from "./standin_listing.ts";

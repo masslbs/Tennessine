@@ -167,17 +167,17 @@ const OrderedItemSchema = v.object({
   VariationIDs: v.array(v.string()),
 });
 
+const OrderPaidSchema = v.object({
+  TxHash: v.optional(v.string()),
+  BlockHash: v.string(),
+});
+
 const PaymentDetailsSchema = v.object({
   PaymentID: v.string(),
   Total: v.bigint(),
   ListingHashes: v.array(v.string()),
   TTL: v.number(),
   ShopSignature: v.string(),
-});
-
-const OrderPaidSchema = v.object({
-  TxHash: v.optional(v.string()),
-  BlockHash: v.string(),
 });
 
 const OrderSchema = v.object({

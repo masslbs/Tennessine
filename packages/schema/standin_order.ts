@@ -1,5 +1,13 @@
 import { ChainAddress } from "./standin_manifest.ts";
 import { BaseClass } from "./utils.ts";
+import type {
+  TAddressDetails,
+  TOrder,
+  TOrderedItem,
+  TOrderPaid,
+  TPaymentDetails,
+  TChainAddress,
+} from "./cbor.ts";
 
 export class Order extends BaseClass {
   ID: number;
@@ -7,35 +15,47 @@ export class Order extends BaseClass {
   State: OrderState;
   InvoiceAddress?: AddressDetails;
   ShippingAddress?: AddressDetails;
-  CanceledAt?: string;
+  CanceledAt?: Date;
   ChosenPayee?: Payee;
   ChosenCurrency?: ChainAddress;
   PaymentDetails?: PaymentDetails;
   TxDetails?: OrderPaid;
-  constructor(input: Map<string, any>) {
+  constructor(input: { get: <K extends keyof TOrder>(key: K) => TOrder[K] }) {
     super();
     this.ID = input.get("ID");
-    this.Items =
-      input.get("Items")?.map((item: any) => new OrderedItem(item)) ?? [];
+    const items = input.get("Items");
+    this.Items = items
+      ? items.map((item: TOrderedItem) =>
+        new OrderedItem({
+          get: <K extends keyof TOrderedItem>(key: K) => item[key],
+        })
+      )
+      : [];
     this.State = OrderStateFromNumber(input.get("State"));
     this.InvoiceAddress = input.get("InvoiceAddress")
-      ? new AddressDetails(input.get("InvoiceAddress"))
+      ? new AddressDetails({
+        get: <K extends keyof TAddressDetails>(key: K) =>
+          input.get("InvoiceAddress")![key],
+      })
       : undefined;
     this.ShippingAddress = input.get("ShippingAddress")
-      ? new AddressDetails(input.get("ShippingAddress"))
+      ? new AddressDetails({
+        get: <K extends keyof TAddressDetails>(key: K) =>
+          input.get("ShippingAddress")![key],
+      })
       : undefined;
     this.CanceledAt = input.get("CanceledAt");
     this.ChosenPayee = input.get("ChosenPayee")
-      ? new Payee(input.get("ChosenPayee"))
+      ? new Payee({get: <K extends keyof TChainAddress>(key: K) => input.get("ChosenPayee")![key]})
       : undefined;
     this.ChosenCurrency = input.get("ChosenCurrency")
-      ? new ChainAddress(input.get("ChosenCurrency"))
+      ? new ChainAddress({get: <K extends keyof TChainAddress>(key: K) => input.get("ChosenCurrency")![key]})
       : undefined;
     this.PaymentDetails = input.get("PaymentDetails")
-      ? new PaymentDetails(input.get("PaymentDetails"))
+      ? new PaymentDetails({get: <K extends keyof TPaymentDetails>(key: K) => input.get("PaymentDetails")![key]})
       : undefined;
     this.TxDetails = input.get("TxDetails")
-      ? new OrderPaid(input.get("TxDetails"))
+      ? new OrderPaid({get: <K extends keyof TOrderPaid>(key: K) => input.get("TxDetails")![key]})
       : undefined;
   }
 }
@@ -44,7 +64,9 @@ export class OrderedItem extends BaseClass {
   ListingID: number;
   VariationIDs: string[] = [];
   Quantity: number;
-  constructor(input: Map<string, any>) {
+  constructor(
+    input: { get: <K extends keyof TOrderedItem>(key: K) => TOrderedItem[K] },
+  ) {
     super();
     this.ListingID = input.get("ListingID");
     this.VariationIDs = input.get("VariationIDs") ?? [];
@@ -84,10 +106,14 @@ export class AddressDetails extends BaseClass {
   City: string;
   PostalCode: string;
   Country: string;
-  EmailAddress: string;
+  EmailAddress?: string;
   PhoneNumber?: string;
 
-  constructor(input: Map<string, any>) {
+  constructor(
+    input: {
+      get: <K extends keyof TAddressDetails>(key: K) => TAddressDetails[K];
+    },
+  ) {
     super();
     this.Name = input.get("Name");
     this.Address1 = input.get("Address1");
@@ -106,7 +132,11 @@ export class PaymentDetails extends BaseClass {
   ListingHashes: string[];
   TTL: number;
   ShopSignature: string;
-  constructor(input: Map<string, any>) {
+  constructor(
+    input: {
+      get: <K extends keyof TPaymentDetails>(key: K) => TPaymentDetails[K];
+    },
+  ) {
     super();
     this.PaymentID = input.get("PaymentID");
     this.Total = input.get("Total");
@@ -119,7 +149,9 @@ export class PaymentDetails extends BaseClass {
 export class OrderPaid extends BaseClass {
   TxHash?: string;
   BlockHash: string;
-  constructor(input: Map<string, any>) {
+  constructor(
+    input: { get: <K extends keyof TOrderPaid>(key: K) => TOrderPaid[K] },
+  ) {
     super();
     this.TxHash = input.get("TxHash");
     this.BlockHash = input.get("BlockHash");
@@ -129,7 +161,11 @@ export class OrderPaid extends BaseClass {
 export class Payee extends BaseClass {
   ChainID: number;
   Address: string;
-  constructor(input: Map<string, any>) {
+  constructor(
+    input: {
+      get: <K extends keyof TChainAddress>(key: K) => TChainAddress[K];
+    },
+  ) {
     super();
     this.ChainID = input.get("ChainID");
     this.Address = input.get("Address");

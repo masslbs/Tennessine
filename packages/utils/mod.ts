@@ -13,7 +13,7 @@ import {
   toBytes,
 } from "@wevm/viem";
 import * as Sentry from "@sentry/browser";
-import { type CodecValue, decode, type CodecKey } from "./codec.ts";
+import { type CodecKey, type CodecValue, decode } from "./codec.ts";
 export * as codec from "./codec.ts";
 
 // TODO: type case first argument to captureException
