@@ -184,6 +184,7 @@ export function get(
     ) {
       // find the key in the map if the key is an array
       const f = obj.entries().find(([k]) => equal(k, key));
+      console.log("found", f);
       if (f) return f[1];
     } else {
       return obj.get(key);

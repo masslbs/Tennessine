@@ -1,4 +1,4 @@
-import { assertEquals, assertRejects } from "@std/assert";
+import { assertEquals } from "@std/assert";
 import { DAG, type RootValue } from "./mod.ts";
 import { MemStore } from "./memstore.ts";
 import { assert } from "@std/assert/assert";
@@ -51,15 +51,15 @@ Deno.test("basic set and get ", async (t) => {
     assertEquals(val, undefined);
   });
 
+  // Changed this to be undefined instead of throw
   await t.step(
     "A path that cannot not exist (trying to path through a string)",
     async () => {
       const graph = new DAG(
         store,
       );
-      await assertRejects(async () => {
-        await graph.get(root, ["c", "d"]);
-      });
+      const r = await graph.get(root, ["c", "d"]);
+      assertEquals(r, undefined);
     },
   );
 });

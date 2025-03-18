@@ -19,7 +19,7 @@ Deno.test("Tree Event Testings", async (t) => {
   await t.step("Tree Events!", () => {
     const tree = new Tree<codec.CodecValue>(0);
     let event;
-    const handler = (e: codec.CodecValue | undefined) => {
+    const handler = (e: codec.CodecValue) => {
       event = e;
     };
     tree.on(handler, ["some", "event"]);
