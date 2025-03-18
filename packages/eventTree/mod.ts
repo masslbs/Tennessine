@@ -10,12 +10,11 @@
  * @module
  */
 
-import type { codec } from "@massmarket/utils";
+import { type codec, get, set } from "@massmarket/utils";
 
 /** A callback function that gets called when an event is emitted */
 export type EventListener<T> = (
   event: T,
-  source: EventEmmiter<T> | object,
 ) => void;
 
 export type Step = codec.CodecKey;
@@ -48,18 +47,37 @@ export class EventEmmiter<T> {
   }
 
   once(listener: EventListener<T>) {
-    const onceListener = (event: T, source: EventEmmiter<T> | object) => {
+    const onceListener = (event: T) => {
       this.off(onceListener);
-      listener(event, source);
+      listener(event);
     };
     this.on(onceListener);
   }
 
   /** emits an event  */
-  emit(event: T, source: object = this) {
+  emit(event: T) {
     this.listeners.forEach((listener) => {
-      listener(event, source);
+      listener(event);
     });
+  }
+}
+
+class Node<T> {
+  edges: Map<codec.CodecKey, Node<T>> = new Map();
+  readonly emmiter = new EventEmmiter<T | undefined>();
+  constructor(public value: Readonly<T> | undefined = undefined) {}
+  emit(rootValue: T | undefined) {
+    if (rootValue !== this.value) {
+      // update the vale
+      this.value = rootValue;
+      this.emmiter.emit(rootValue);
+      for (const [name, child] of this.edges) {
+        const childRootValue = get(rootValue, name);
+        child.emit(
+          childRootValue,
+        );
+      }
+    }
   }
 }
 
@@ -68,159 +86,67 @@ export class EventEmmiter<T> {
  * @template T the type of the event
  */
 export default class EventTree<T> {
-  #edges = {} as Record<string, EventTree<T>>;
   /** The event emmiter for this node */
-  readonly emmiter = new EventEmmiter<T>();
+  readonly root;
   /** The event emmiter for the meta events, this only works on the root node of the tree */
-  readonly meta = new EventEmmiter<SubscriptionUpdate[]>();
-  /** create a new instance of the Tree */
-  constructor(
-    /** The name of the node, "" for root */
-    readonly name: string = "",
-    /** The parent node, null for root */
-    readonly parentNode: EventTree<T> | null = null,
-  ) {}
-
-  /** returns the node's path in a tree */
-  get path(): Path {
-    return this.#path();
+  // readonly meta = new EventEmmiter<SubscriptionUpdate[]>();
+  constructor(public value: Readonly<T>) {
+    this.root = new Node<T>(value);
   }
-
-  /** returns the root node of the tree */
-  get root(): EventTree<T> {
-    return this.parentNode?.root ?? this;
-  }
-
-  #path(): Path {
-    return this.parentNode ? [...this.parentNode.#path(), this.name] : [];
-  }
-
-  /** returns true if the node or the nodes parent has listeners */
-  hasListeners(): boolean {
-    return this.emmiter.listeners.size > 0 ||
-      (this.parentNode?.hasListeners() ?? false);
-  }
-
-  #getChildren(): EventTree<T>[] {
-    return Object.values(this.#edges).reduce(
-      (acc, edge) =>
-        acc.concat(edge.emmiter.listeners.size ? [edge] : edge.#getChildren()),
-      [] as EventTree<T>[],
-    );
-  }
-
-  /** subscribes to an event on a path in the tree */
-  on(
-    ...args: [path: Path, listener: EventListener<T>] | [
-      listener: EventListener<T>,
-    ]
-  ): EventTree<T> {
-    const [path, listener] = args.length === 1 ? [[], args[0]] : args;
-    if (path.length) {
-      return this.#getOrExtendPath(path).on([], listener);
-    } else {
-      if (!this.hasListeners()) {
-        const update: SubscriptionUpdate[] = [];
-        update.push({
-          subscribe: true,
-          path: this.path,
-        });
-
-        //  remove subscription from children nodes
-        this.#getChildren().forEach((child) => {
-          update.push({
-            subscribe: false,
-            path: child.path,
-          });
-        });
-        this.root.meta.emit(update);
+  #getOrExtendPath(path: codec.Path = []): Node<T> {
+    let last: Node<T> = this.root;
+    let next: Node<T> | undefined;
+    for (const node of path) {
+      next = get(last.edges, node);
+      if (!next) {
+        next = new Node<T>();
+        set(last.edges, node, next);
       }
-      this.emmiter.on(listener);
-      return this;
+      last = next;
     }
+    return last;
   }
-
-  #removeEdge(edge: Step) {
-    delete this.#edges[edge.toString()];
-    if (!Object.keys(this.#edges).length && this.parentNode) {
-      this.parentNode.#removeEdge(this.name);
-    }
-  }
-
-  /** unsubscribes from an event on a path in the tree */
-  off(
-    ...args: [path: Path, listener: EventListener<T>] | [
-      listener: EventListener<T>,
-    ]
-  ): EventTree<T> | void {
-    const [path, listener] = args.length === 1 ? [[], args[0]] : args;
-    if (path.length) {
-      return this.#getPath(path)?.off(path, listener);
-    } else {
-      this.emmiter.off(listener);
-      if (!Object.keys(this.#edges).length && this.parentNode) {
-        this.parentNode.#removeEdge(this.name);
+  *#path(path: codec.Path = []) {
+    let next: Node<T> | undefined = this.root;
+    yield { node: next, step: undefined };
+    for (const step of path) {
+      next = get(next.edges, step);
+      yield { node: next, step };
+      if (next === undefined) {
+        return;
       }
-      if (!this.hasListeners()) {
-        const update: SubscriptionUpdate[] = [];
-        update.push({
-          subscribe: false,
-          path: this.path,
-        });
-        this.#getChildren().forEach((child) => {
-          update.push({
-            subscribe: true,
-            path: child.path,
-          });
-        });
-        this.root.meta.emit(update);
+    }
+  }
+  on(listener: EventListener<T | undefined>, path: codec.Path = []) {
+    this.#getOrExtendPath(path).emmiter.on(listener);
+  }
+  off(listener: EventListener<T | undefined>, path: codec.Path = []) {
+    const [...walk] = this.#path(path);
+    let { node, step } = walk.pop()!;
+    let parent, nextStep;
+    while (node) {
+      node.emmiter.off(listener);
+      if (node.emmiter.listeners.size === 0 && node.edges.size === 0) {
+        ({ node: parent, step: nextStep } = walk.pop()!);
+        // make sure we are not the root
+        if (parent) {
+          parent.edges.delete(step!);
+        }
+        step = nextStep;
+        node = parent;
+      } else {
+        break;
       }
-      return this;
     }
   }
-
-  /** emits an event on a path in the tree */
-  emit(
-    ...args: [path: Path, event: T] | [event: T]
-  ): EventTree<T> | void {
-    const [path, event] = args.length === 1 ? [[], args[0]] : args;
-    if (path.length) {
-      return this.#getOrExtendPath(path).emit(event);
-    } else {
-      this.emmiter.emit(event, this);
-      this.parentNode?.emit(event);
-      return this;
-    }
+  once(listener: EventListener<T | undefined>, path: codec.Path = []) {
+    const l = (event: T | undefined) => {
+      listener(event);
+      this.off(l, path);
+    };
+    this.on(l, path);
   }
-
-  /** get a node in the tree by path */
-  get(path: Path): EventTree<T> | undefined {
-    return this.#getPath(path);
-  }
-
-  #getPath(p: Path): EventTree<T> | undefined {
-    if (p.length) {
-      const edge = p[0];
-      const next = this.#edges[edge.toString()];
-      if (next) {
-        return next.#getPath(p.slice(1));
-      }
-    } else {
-      return this;
-    }
-  }
-
-  #getOrExtendPath(p: Path): EventTree<T> {
-    const edge = p[0];
-    if (edge) {
-      const edgeStr = edge.toString();
-      if (!this.#edges[edgeStr]) {
-        this.#edges[edgeStr] = new EventTree(edgeStr, this);
-      }
-      const next = this.#edges[edgeStr];
-      return next.#getOrExtendPath(p.slice(1));
-    } else {
-      return this;
-    }
+  emit(event: Readonly<T>) {
+    this.root.emit(event);
   }
 }

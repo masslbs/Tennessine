@@ -1,5 +1,6 @@
 import { default as Tree, EventEmmiter } from "./mod.ts";
 import { assertEquals } from "jsr:@std/assert";
+import type { codec } from "@massmarket/utils";
 
 Deno.test("Tree Event Testings", async (t) => {
   await t.step("basic eventemmiter, no tree", () => {
@@ -15,71 +16,89 @@ Deno.test("Tree Event Testings", async (t) => {
     emmiter.emit("test2");
     assertEquals(val, "test", "Handler should be removed");
   });
-  await t.step("Tree Events!", async () => {
-    const tree = new Tree();
-    assertEquals(tree.path, []);
-    const { promise, resolve } = Promise.withResolvers();
-    let event = "test";
-    const f = tree.on(["a", "b", "c", "d", "e", "f"], resolve);
-    f.emit(event);
-    const val = await promise;
-    assertEquals(val, event, "Event should be dispatched");
-
-    const d = tree.get(["a", "b", "c", "d"])!;
-    assertEquals(d.path, ["a", "b", "c", "d"]);
-    let val2;
-    d.on((e) => {
-      val2 = e;
-    });
-    event = "test2";
-    f.emit(event);
-    // const val2 = await promise;
-    assertEquals(val2, event, "Event should be dispatched to parents");
-  });
-  await t.step("meta: subscription observations", () => {
-    const tree = new Tree<string>();
-    let subArray;
-    tree.meta.on((e) => {
-      subArray = e;
-    });
-    let _val;
-    const func = (e: string) => {
-      _val = e;
+  await t.step("Tree Events!", () => {
+    const tree = new Tree<codec.CodecValue>(0);
+    let event;
+    const handler = (e: codec.CodecValue | undefined) => {
+      event = e;
     };
-    const _f = tree.on(["a", "b", "c", "d", "e", "f"], func);
-    assertEquals(subArray, [{
-      subscribe: true,
-      path: ["a", "b", "c", "d", "e", "f"],
-    }]);
+    tree.on(handler, ["some", "event"]);
 
-    tree.on(["a", "b"], func);
-    assertEquals(subArray, [
-      { subscribe: true, path: ["a", "b"] },
-      {
-        subscribe: false,
-        path: ["a", "b", "c", "d", "e", "f"],
-      },
-    ]);
+    let parentEvent;
+    let calls = 0;
+    tree.on((e) => {
+      calls++;
+      parentEvent = e;
+    });
 
-    tree.off(["a", "b"], func);
+    const update = new Map([["some", new Map([["event", 1]])]]);
+    tree.emit(update);
+    assertEquals(event, 1, "Event should be dispatched");
+    assertEquals(parentEvent, update, "Event should be dispatched");
 
-    // assertEquals(subArray, [
-    //   { subscribe: false, path: ["a", "b"] },
-    //   {
-    //     subscribe: true,
-    //     path: ["a", "b", "c", "d", "e", "f"],
-    //   },
-    // ]);
-
-    // f.off(func);
-    // assertEquals(subArray, [
-    //   {
-    //     subscribe: false,
-    //     path: ["a", "b", "c", "d", "e", "f"],
-    //   },
-    // ]);
-
-    // tree.emit(["a", "b", "c", "d", "e", "f"], "test");
-    // assertEquals(val, undefined, "Event should not be dispatched");
+    tree.emit(update);
+    assertEquals(
+      calls,
+      1,
+      "Event should not be dispatched again if the value is the same",
+    );
+    tree.off(handler, ["some", "event"]);
+    const update2 = new Map([["some", new Map([["event", 2]])]]);
+    tree.once((e) => {
+      assertEquals(e, update2.get("some"));
+    }, ["some"]);
+    tree.emit(update2);
+    assertEquals(event, 1, "off should work");
+    assertEquals(parentEvent, update2);
+    const update3 = new Map([["some", new Map([["event", 3]])]]);
+    // makes sure once work once
+    tree.emit(update3);
   });
+
+  // await t.step("meta: subscription observations", () => {
+  //   const tree = new Tree<string>();
+  //   let subArray;
+  //   tree.meta.on((e) => {
+  //     subArray = e;
+  //   });
+  //   let _val;
+  //   const func = (e: string) => {
+  //     _val = e;
+  //   };
+  //   const _f = tree.on(["a", "b", "c", "d", "e", "f"], func);
+  //   assertEquals(subArray, [{
+  //     subscribe: true,
+  //     path: ["a", "b", "c", "d", "e", "f"],
+  //   }]);
+
+  //   tree.on(["a", "b"], func);
+  //   assertEquals(subArray, [
+  //     { subscribe: true, path: ["a", "b"] },
+  //     {
+  //       subscribe: false,
+  //       path: ["a", "b", "c", "d", "e", "f"],
+  //     },
+  //   ]);
+
+  //   tree.off(["a", "b"], func);
+
+  // assertEquals(subArray, [
+  //   { subscribe: false, path: ["a", "b"] },
+  //   {
+  //     subscribe: true,
+  //     path: ["a", "b", "c", "d", "e", "f"],
+  //   },
+  // ]);
+
+  // f.off(func);
+  // assertEquals(subArray, [
+  //   {
+  //     subscribe: false,
+  //     path: ["a", "b", "c", "d", "e", "f"],
+  //   },
+  // ]);
+
+  // tree.emit(["a", "b", "c", "d", "e", "f"], "test");
+  // assertEquals(val, undefined, "Event should not be dispatched");
+  // });
 });

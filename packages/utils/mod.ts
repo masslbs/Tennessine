@@ -170,14 +170,16 @@ export function getWindowLocation() {
 }
 
 export function get(
-  obj: codec.CodecValue,
+  obj: unknown,
   key: codec.CodecKey,
-): codec.CodecValue | undefined {
+) {
   if (obj instanceof Map) {
     if (
       typeof key === "object" && key !== null
     ) {
-      return obj.entries().find(([k]) => equal(k, key));
+      // find the key in the map if the key is an array
+      const f = obj.entries().find(([k]) => equal(k, key));
+      if (f) return f[1];
     } else {
       return obj.get(key);
     }
@@ -194,9 +196,9 @@ export function get(
 }
 
 export function set(
-  obj: codec.CodecValue,
+  obj: unknown,
   key: codec.CodecKey,
-  value: codec.CodecValue,
+  value: unknown,
 ): void {
   if (obj instanceof Map) {
     obj.set(key, value);

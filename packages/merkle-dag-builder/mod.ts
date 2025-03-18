@@ -122,7 +122,7 @@ export class DAG {
       value: root,
     };
     for (const step of path) {
-      const value = get(root, step);
+      const value = get(root, step) as codec.CodecValue;
       if (value !== undefined) {
         root = value;
         // load hash links
