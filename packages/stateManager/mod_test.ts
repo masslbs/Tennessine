@@ -117,6 +117,7 @@ Deno.test("Database Testings", async (t) => {
     });
 
     await sm.addConnection(relayClient);
+    // wait for the first manifest patch event
     await promise;
     await sm.set(
       ["Manifest", "ShippingRegions", "default"],

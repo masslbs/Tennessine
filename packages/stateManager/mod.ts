@@ -73,8 +73,16 @@ export default class StateManager {
     // TODO: handle patch rejection
     return new WritableStream<PushedPatchSet>({
       start: async () => {
-        state = await this.loadState(id);
-        localState = await this.loadState("local");
+        [localState, state] = await Promise.all([
+          this.loadState(id),
+          this.loadState("local"),
+        ]);
+      },
+      close: async () => {
+        await Promise.all([
+          this.#saveState(state),
+          this.#saveState(localState, "local"),
+        ]);
       },
       write: async (patchSet) => {
         // validate the Operation's schema
