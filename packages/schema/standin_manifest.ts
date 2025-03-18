@@ -1,11 +1,11 @@
 import { BaseClass } from "./utils.ts";
 import type {
+  TChainAddress,
   TCurrencyMap,
   TManifest,
   TModificationAbsolute,
   TPayee,
   TPriceModifier,
-  TChainAddress,
   TShippingRegion,
 } from "./cbor.ts";
 export class Manifest extends BaseClass {
@@ -23,8 +23,9 @@ export class Manifest extends BaseClass {
       input.get("AcceptedCurrencies"),
     );
     const pricingCurrency = input.get("PricingCurrency");
+    // console.log("pricingCurrency", pricingCurrency);
     this.PricingCurrency = new ChainAddress({
-      get: <K extends keyof TChainAddress>(key: K) => pricingCurrency[key],
+      get: <K extends keyof TChainAddress>(key: K) => pricingCurrency.get(key),
     });
     this.ShippingRegions = input.get("ShippingRegions")
       ? new ShippingRegionsMap(input.get("ShippingRegions")!)
@@ -32,25 +33,32 @@ export class Manifest extends BaseClass {
   }
 }
 
-export class ShippingRegionsMap extends BaseClass {
+export class ShippingRegionsMap {
   data: Map<string, ShippingRegion> = new Map();
   constructor(shippingRegions: Map<string, TShippingRegion>) {
-    super();
     const map = new Map();
     for (const [key, value] of shippingRegions) {
       map.set(
         key,
         new ShippingRegion({
-          get: <K extends keyof TShippingRegion>(_key: K) => value[_key],
+          get: <K extends keyof TShippingRegion>(_key: K) => value.get(_key),
         }),
       );
     }
     this.data = map;
   }
+
+  returnAsMap(): Map<string, any> {
+    const map = new Map();
+    for (const [key, value] of this.data) {
+      map.set(key, value.returnAsMap());
+    }
+    return map;
+  }
 }
 
 export class PayeeMap {
-  data: Map<number, Map<EthereumAddress, PayeeMetadata>> = new Map();
+  data: Map<number, Map<Uint8Array, PayeeMetadata>> = new Map();
 
   constructor(payees: TPayee) {
     if (payees === undefined) {
@@ -69,8 +77,7 @@ export class PayeeMap {
       // Iterate through addresses and metadata
       for (const [address, metadata] of addressMap) {
         if (
-          !(address as string || Uint8Array instanceof Uint8Array) ||
-          address.length !== 20
+          !(address instanceof Uint8Array)
         ) {
           throw new Error(`Invalid Ethereum address for chain ID ${chainId}`);
         }
@@ -90,8 +97,29 @@ export class PayeeMap {
     }
   }
 
-  get(chainId: number, address: EthereumAddress): PayeeMetadata | undefined {
+  get(chainId: number, address: Uint8Array): PayeeMetadata | undefined {
     return this.data.get(chainId)?.get(address);
+  }
+
+  returnAsMap(): Map<number, Map<Uint8Array, Map<"CallAsContract", boolean>>> {
+    const map = new Map();
+    for (const [chainId, addressMap] of this.data) {
+      const forChainID = new Map();
+      for (const [address, metadata] of addressMap) {
+        forChainID.set(address, metadata.returnAsMap());
+      }
+      map.set(chainId, forChainID);
+    }
+    return map;
+  }
+}
+
+export class PayeeMetadata extends BaseClass {
+  CallAsContract: boolean = false;
+
+  constructor(input: Map<"CallAsContract", boolean>) {
+    super();
+    this.CallAsContract = input.get("CallAsContract") || false;
   }
 }
 
@@ -125,40 +153,33 @@ export class AcceptedCurrencyMap {
       throw new Error("AcceptedCurrencies must be a Map");
     }
   }
-}
-
-export class PayeeMetadata {
-  CallAsContract: boolean = false;
-
-  constructor(input: Map<"CallAsContract", boolean>) {
-    this.CallAsContract = input.get("CallAsContract") || false;
+  returnAsMap(): Map<number, Map<Uint8Array, Map<"isContract", boolean>>> {
+    const map = new Map();
+    for (const [chainId, addressMap] of this.data) {
+      const addressMapMap = new Map();
+      for (const [address, metadata] of addressMap) {
+        addressMapMap.set(address, metadata);
+      }
+      map.set(chainId, addressMapMap);
+    }
+    return map;
   }
 }
 
 export class ChainAddress extends BaseClass {
   ChainID: number;
-  Address: EthereumAddress | string;
+  Address: Uint8Array;
   constructor(
     input: {
       get<K extends keyof TChainAddress>(key: K): TChainAddress[K];
     },
+    // input: Map<string, any>,
   ) {
     super();
+    console.log("input", input.get("ChainID"));
 
     this.ChainID = input.get("ChainID");
     this.Address = input.get("Address");
-  }
-}
-
-export class EthereumAddress extends BaseClass {
-  Address: Uint8Array | string;
-
-  constructor(input: Uint8Array) {
-    super();
-    if (input.length !== 20) {
-      throw new Error("Invalid Ethereum address");
-    }
-    this.Address = input;
   }
 }
 

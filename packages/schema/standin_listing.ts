@@ -14,8 +14,8 @@ export class Listing extends BaseClass {
   Price: number;
   Metadata: ListingMetadata;
   ViewState: ListingViewState;
-  Options: Map<string, ListingOption> | undefined;
-  StockStatuses: TListingStockStatus[] | undefined;
+  Options?: Map<string, ListingOption>;
+  StockStatuses?: ListingStockStatus[];
 
   constructor(input: {
     get<K extends keyof TListing>(key: K): TListing[K];
@@ -26,7 +26,7 @@ export class Listing extends BaseClass {
     const metadata = input.get("Metadata");
     // since metadata does not return a map with a getter and ListingMetadata expects a map, this is a workaround for typescript.
     this.Metadata = new ListingMetadata({
-      get: <K extends keyof TListingMetadata>(key: K) => metadata[key],
+      get: <K extends keyof TListingMetadata>(key: K) => metadata.get(key),
     });
     this.ViewState = ViewStateFromNumber(input.get("ViewState"));
     const options = input.get("Options");
@@ -36,30 +36,44 @@ export class Listing extends BaseClass {
         map.set(
           key,
           new ListingOption({
-            get: <K extends keyof TListingOption>(_key: K) => value[_key],
+            get: <K extends keyof TListingOption>(_key: K) => value.get(_key),
           }),
         );
       }
       this.Options = map;
     }
-    this.StockStatuses = input.get("StockStatuses");
+    const stockStatuses = input.get("StockStatuses");
+    if (stockStatuses) {
+      this.StockStatuses = stockStatuses.map((stockStatus) =>
+        new ListingStockStatus(stockStatus)
+      );
+    }
   }
 }
 
-export class ListingMetadata extends BaseClass {
+export class ListingMetadata {
   Title: string;
   Description: string;
-  Images: string[];
+  Images?: string[];
 
   constructor(
     input: {
       get: <K extends keyof TListingMetadata>(key: K) => TListingMetadata[K];
     },
   ) {
-    super();
     this.Title = input.get("Title") as string;
     this.Description = input.get("Description") as string;
-    this.Images = input.get("Images") as string[] ?? [];
+    this.Images = input.get("Images") as string[] | undefined;
+  }
+
+  returnAsMap(): Map<string, any> {
+    const map = new Map<string, any>();
+    map.set("Title", this.Title);
+    map.set("Description", this.Description);
+    if (this.Images) {
+      map.set("Images", this.Images);
+    }
+    return map;
   }
 }
 
@@ -83,9 +97,9 @@ export function ViewStateFromNumber(num: number): ListingViewState {
 }
 
 export class ListingVariation extends BaseClass {
-  VariationInfo: ListingMetadata;
-  PriceModifier: PriceModifier | undefined;
-  SKU: string | undefined;
+  VariationInfo?: ListingMetadata;
+  PriceModifier?: PriceModifier;
+  SKU?: string;
 
   constructor(
     input: {
@@ -94,15 +108,17 @@ export class ListingVariation extends BaseClass {
   ) {
     super();
     const metadata = input.get("VariationInfo");
-    this.VariationInfo = new ListingMetadata({
-      get: <K extends keyof TListingMetadata>(key: K) => metadata[key],
-    });
+    this.VariationInfo = metadata
+      ? new ListingMetadata({
+        get: <K extends keyof TListingMetadata>(key: K) => metadata.get(key),
+      })
+      : undefined;
     const priceModifier = input.get("PriceModifier");
     this.PriceModifier = priceModifier
       ? new PriceModifier({
-        get: <K extends keyof TPriceModifier>(key: K) => priceModifier[key],
+        get: <K extends keyof TPriceModifier>(key: K) => priceModifier.get(key),
         has: <K extends keyof TPriceModifier>(key: K) =>
-          Boolean(priceModifier[key]),
+          Boolean(priceModifier.get(key)),
       })
       : undefined;
     this.SKU = input.get("SKU");
@@ -126,11 +142,32 @@ export class ListingOption extends BaseClass {
         map.set(
           key,
           new ListingVariation({
-            get: <K extends keyof TListingVariation>(_key: K) => val[_key],
+            get: <K extends keyof TListingVariation>(_key: K) => val.get(_key),
           }),
         );
       }
       this.Variations = map;
+    }
+  }
+}
+
+export class ListingStockStatus extends BaseClass {
+  VariationIDs: string[];
+  InStock?: boolean;
+  ExpectedInStockBy?: Date;
+
+  constructor(
+    input: {
+      get<K extends keyof TListingStockStatus>(key: K): TListingStockStatus[K];
+    },
+  ) {
+    super();
+    this.VariationIDs = input.get("VariationIDs") ?? [];
+
+    this.InStock = input.get("InStock");
+
+    if (input.get("ExpectedInStockBy")) {
+      this.ExpectedInStockBy = input.get("ExpectedInStockBy");
     }
   }
 }

@@ -2,11 +2,11 @@ import { ChainAddress } from "./standin_manifest.ts";
 import { BaseClass } from "./utils.ts";
 import type {
   TAddressDetails,
+  TChainAddress,
   TOrder,
   TOrderedItem,
   TOrderPaid,
   TPaymentDetails,
-  TChainAddress,
 } from "./cbor.ts";
 
 export class Order extends BaseClass {
@@ -46,16 +46,28 @@ export class Order extends BaseClass {
       : undefined;
     this.CanceledAt = input.get("CanceledAt");
     this.ChosenPayee = input.get("ChosenPayee")
-      ? new Payee({get: <K extends keyof TChainAddress>(key: K) => input.get("ChosenPayee")![key]})
+      ? new Payee({
+        get: <K extends keyof TChainAddress>(key: K) =>
+          input.get("ChosenPayee")![key],
+      })
       : undefined;
     this.ChosenCurrency = input.get("ChosenCurrency")
-      ? new ChainAddress({get: <K extends keyof TChainAddress>(key: K) => input.get("ChosenCurrency")![key]})
+      ? new ChainAddress({
+        get: <K extends keyof TChainAddress>(key: K) =>
+          input.get("ChosenCurrency")![key],
+      })
       : undefined;
     this.PaymentDetails = input.get("PaymentDetails")
-      ? new PaymentDetails({get: <K extends keyof TPaymentDetails>(key: K) => input.get("PaymentDetails")![key]})
+      ? new PaymentDetails({
+        get: <K extends keyof TPaymentDetails>(key: K) =>
+          input.get("PaymentDetails")![key],
+      })
       : undefined;
     this.TxDetails = input.get("TxDetails")
-      ? new OrderPaid({get: <K extends keyof TOrderPaid>(key: K) => input.get("TxDetails")![key]})
+      ? new OrderPaid({
+        get: <K extends keyof TOrderPaid>(key: K) =>
+          input.get("TxDetails")![key],
+      })
       : undefined;
   }
 }

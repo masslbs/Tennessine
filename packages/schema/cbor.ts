@@ -75,7 +75,7 @@ const CurrencyMapSchema = v.map(
 );
 const ChainAddressSchema = v.object({
   ChainID: v.number(),
-  Address: v.string(),
+  Address: Bytes,
 });
 
 const ModificationAbsoluteSchema = v.object({
@@ -168,16 +168,16 @@ const OrderedItemSchema = v.object({
 });
 
 const OrderPaidSchema = v.object({
-  TxHash: v.optional(v.string()),
-  BlockHash: v.string(),
+  TxHash: v.optional(Bytes),
+  BlockHash: Bytes,
 });
 
 const PaymentDetailsSchema = v.object({
-  PaymentID: v.string(),
+  PaymentID: Bytes,
   Total: v.bigint(),
   ListingHashes: v.array(v.string()),
   TTL: v.number(),
-  ShopSignature: v.string(),
+  ShopSignature: Bytes,
 });
 
 const OrderSchema = v.object({
