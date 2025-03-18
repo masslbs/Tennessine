@@ -78,20 +78,22 @@ const PricingCurrencySchema = v.object({
   Address: v.string(),
 });
 
+const ShippingRegionSchema = v.object({
+  Country: v.string(),
+  Postcode: v.string(),
+  City: v.string(),
+  PriceModifiers: v.nullable(v.number()),
+});
+
 const ManifestSchema = v.object({
   ShopID: v.bigint(),
   Payees: CurrencyMapSchema,
   AcceptedCurrencies: CurrencyMapSchema,
   PricingCurrency: PricingCurrencySchema,
-  ShippingRegions: v.record(
+  ShippingRegions: v.optional(v.record(
     v.string(),
-    v.object({
-      Country: v.string(),
-      Postcode: v.string(),
-      City: v.string(),
-      PriceModifiers: v.nullable(v.number()),
-    }),
-  ),
+    ShippingRegionSchema,
+  )),
 });
 
 const AddressDetailsSchema = v.object({
@@ -111,14 +113,33 @@ const ListingMetadataSchema = v.object({
   Images: v.array(v.string()),
 });
 
+const ListingStockStatusSchema = v.object({
+  VariationIDs: v.array(v.string()),
+  InStock: v.optional(v.boolean()),
+  ExpectedInStockBy: v.optional(v.date()),
+});
+
+const ListingVariationSchema = v.object({
+  VariationInfo: ListingMetadataSchema,
+  PriceModifier: v.optional(v.number()),
+  SKU: v.optional(v.string()),
+});
+
+const ListingOptionSchema = v.object({
+  Title: v.string(),
+  Variations: v.optional(v.record(v.string(),
+    ListingVariationSchema,
+  )),
+});
+
 const ListingSchema = v.object({
   ID: v.number(),
   Name: v.string(),
   Metadata: ListingMetadataSchema,
   Price: v.number(),
   ViewState: v.number(),
-  Options: v.optional(v.array(v.string())),
-  StockStatuses: v.optional(v.string()),
+  Options: v.optional(v.record(v.string(), ListingOptionSchema)),
+  StockStatuses: v.optional(v.array(ListingStockStatusSchema)),
 });
 
 const TagSchema = v.object({
@@ -126,13 +147,15 @@ const TagSchema = v.object({
   ListingIds: v.array(v.number()),
 });
 
+const OrderedItemSchema = v.object({
+  ListingId: v.number(),
+  Quantity: v.number(),
+  VariationsIDs: v.array(v.number()),
+});
+
 const OrderSchema = v.object({
   ID: v.number(),
-  Items: v.array(v.object({
-    ListingId: v.number(),
-    Quantity: v.number(),
-    VariationsIDs: v.array(v.number()),
-  })),
+  Items: v.array(OrderedItemSchema),
   State: v.number(),
   InvoiceAddress: v.optional(AddressDetailsSchema),
   ShippingAddress: v.optional(AddressDetailsSchema),
@@ -159,3 +182,8 @@ export type TPricingCurrency = v.InferInput<typeof PricingCurrencySchema>;
 export type TAddressDetails = v.InferInput<typeof AddressDetailsSchema>;
 export type IShopSchema = v.InferInput<typeof ShopSchema>;
 export type TListingMetadata = v.InferInput<typeof ListingMetadataSchema>;
+export type TOrderedItem = v.InferInput<typeof OrderedItemSchema>;
+export type TShippingRegion = v.InferInput<typeof ShippingRegionSchema>;
+export type TListingStockStatus = v.InferInput<typeof ListingStockStatusSchema>;
+export type TListingOption = v.InferInput<typeof ListingOptionSchema>;
+export type TListingVariation = v.InferInput<typeof ListingVariationSchema>;
