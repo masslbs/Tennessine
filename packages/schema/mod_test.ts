@@ -55,7 +55,7 @@ Deno.test("unpack listing vectors", async (t) => {
         console.log(listing);
         const unpacked = new Listing(listing as Rmap);
         console.log(unpacked);
-        assertEquals(listing, unpacked.asCBORMap());
+        assertEquals(unpacked.asCBORMap(), listing);
       });
     }
   }
@@ -78,7 +78,7 @@ Deno.test("unpack order vectors", async () => {
       console.log("order id", id);
       const unpacked = new Order(order as Rmap);
       console.log(unpacked);
-      assertEquals(order, unpacked.asCBORMap());
+      assertEquals(unpacked.asCBORMap(), order);
     }
   }
 });
