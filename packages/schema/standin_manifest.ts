@@ -205,7 +205,7 @@ export class AcceptedCurrencyMap {
     }
   }
 
-  asCBORMap(): Map<number, Map<Uint8Array, Map<"isContract", boolean>>> {
+  asCBORMap(): Map<number, Map<Uint8Array, Map<"IsContract", boolean>>> {
     const map = new Map();
     for (const [chainId, addressMap] of this.data) {
       const addressMapMap = new Map();

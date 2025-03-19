@@ -24,7 +24,12 @@ export interface ShopDetails {
 export type CurrencyChainOption = {
   label: string;
   value: string | number;
-} & Partial<TCurrencyMap>;
+} 
+
+export type ChainAddress = {
+  chainId: number;
+  address: string;
+}
 
 export enum CheckoutStep {
   cart = "cart",
@@ -52,7 +57,7 @@ export interface CurrentOrder {
 
 export type CartItem = {
   selectedQty: number;
-} & TListing;
+}
 
 export type ShopForm = {
   shopName: string;

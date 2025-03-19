@@ -4,7 +4,6 @@
   "exports": {
     ".": "./mod.ts",
     "./testFixtures": "./testFixtures.ts",
-    "./cbor": "./cbor.ts",
     "./utils": "./utils.ts"
   },
   "tasks": {

@@ -14,6 +14,7 @@ import {
   mintShop,
   setTokenURI,
 } from "@massmarket/blockchain";
+import { Manifest, PayeeMap } from "@massmarket/schema"
 import { assert, logger, random256BigInt } from "@massmarket/utils";
 import { permissions, shopRegAbi, shopRegAddress } from "@massmarket/contracts";
 
@@ -28,7 +29,7 @@ import { useShopId } from "../../../hooks/useShopId.ts";
 import { useKeycard } from "../../../hooks/useKeycard.ts";
 import { useShopDetails } from "../../../hooks/useShopDetails.ts";
 import { useChain } from "../../../hooks/useChain.ts";
-import { CreateShopStep, ShopForm, TManifest } from "../../../types.ts";
+import { CreateShopStep, ShopForm,  } from "../../../types.ts";
 import { removeCachedKeycards } from "../../../utils/mod.ts";
 
 // When create shop CTA is clicked, these functions are called:
@@ -70,20 +71,7 @@ export default function () {
     },
   );
 
-  const [shopManifest, setShopManifest] = useState<TManifest>({
-    ShopID: shopId,
-    Payees: new Map(),
-    PricingCurrency: new Map(),
-    AcceptedCurrencies: new Map(),
-    ShippingRegions: {
-      "default": {
-        Country: "",
-        Postcode: "",
-        City: "",
-        PriceModifiers: null,
-      },
-    },
-  });
+  const [shopManifest, setShopManifest] = useState<Manifest>(new Manifest());
 
   const [storeRegistrationStatus, setStoreRegistrationStatus] = useState<
     string
@@ -218,20 +206,12 @@ export default function () {
       const uniqueByChainId = Object.keys(shopManifest.AcceptedCurrencies);
       const Payees = new Map();
       uniqueByChainId.forEach((chainId) => {
-        Payees.set(chainId, {
-          [shopMetadata.paymentAddress]: {
-            isContract: false,
-            description: `default - ${chainId}`,
-          },
-        });
+        Payees.set(chainId, new Map(
+          [[[shopMetadata.paymentAddress], new Map([['CallAsContract', false]])]]
+        ));
       });
-      const Manifest = {
-        ...shopManifest,
-        Payees,
-      };
-      // Use stand in class here
-      clientStateManager!.stateManager!.set(["Manifest"], Manifest);
-
+      shopManifest.Payees = new PayeeMap(Payees);
+      clientStateManager!.stateManager!.set(["Manifest"], shopManifest.asCBORMap());
       debug("Manifest created");
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
