@@ -13,7 +13,7 @@ import {
 } from "@massmarket/utils";
 import { Listing, ListingMetadata } from "@massmarket/schema";
 
-import { ListingId, ListingViewState, } from "../../../types.ts";
+import { ListingId, ListingViewState } from "../../../types.ts";
 import ErrorMessage from "../../common/ErrorMessage.tsx";
 import ValidationWarning from "../../common/ValidationWarning.tsx";
 import { useBaseToken } from "../../../hooks/useBaseToken.ts";
@@ -39,7 +39,7 @@ export default function EditProduct() {
 
   const { clientStateManager } = useClientWithStateManager();
   const { baseToken } = useBaseToken();
-  const [productInView, setProductInView] = useState<Listing>(new Listing());
+  const [productInView, setProductInView] = useState<Listing | null>(null);
   const [price, setPrice] = useState<string>("");
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
@@ -59,16 +59,26 @@ export default function EditProduct() {
     if (editView && itemId && baseToken.decimals) {
       clientStateManager!
         .stateManager!.get(["Listings", itemId])
-        .then((item:Map<string, unknown>) => {
-          const listing = new Listing(item)
+        .then((item: Map<string, unknown> | undefined) => {
+          if (!item) {
+            setErrorMsg("Error fetching listing");
+            errlog("Error fetching listing", "No item found");
+            return;
+          }
+          const listing = new Listing(item);
           setProductInView(listing);
           setTitle(listing.Metadata.Title);
-          const price = formatUnitsFromString(listing.Price, baseToken.decimals);
+          const price = formatUnitsFromString(
+            listing.Price,
+            baseToken.decimals,
+          );
           setPrice(price);
           setImages(
-            listing.Metadata.Images.map((img: string) => {
-              return { blob: null, url: img };
-            }),
+            listing.Metadata.Images
+              ? listing.Metadata.Images.map((img: string) => {
+                return { blob: null, url: img };
+              })
+              : [],
           );
           setDescription(listing.Metadata.Description);
           // setUnits(listing.quantity);
@@ -84,8 +94,11 @@ export default function EditProduct() {
 
   async function create(newListing: Listing) {
     try {
-      await clientStateManager!.stateManager.set(["Listing", newListing.ID], newListing);
-    //change inventory
+      await clientStateManager!.stateManager.set(
+        ["Listing", newListing.ID],
+        newListing,
+      );
+      //fixme: change inventory
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Error creating listing", error);
@@ -94,6 +107,7 @@ export default function EditProduct() {
   }
 
   async function update(newListing: Listing) {
+    const csm = clientStateManager!.stateManager!;
     try {
       //compare the edited fields against the original object.
       if (
@@ -102,17 +116,29 @@ export default function EditProduct() {
             formatUnitsFromString(productInView!.Price, baseToken!.decimals),
           ).toFixed(2)
       ) {
-        clientStateManager!.stateManager.set(['Listings', newListing.ID, 'Price'], newListing.Price)
+        await csm.set([
+          "Listings",
+          newListing.ID,
+          "Price",
+        ], newListing.Price);
       }
       if (newListing.Metadata !== productInView!.Metadata) {
-        clientStateManager!.stateManager.set(['Listings', newListing.ID, 'Metadata'], newListing.Metadata)
+        await csm.set([
+          "Listings",
+          newListing.ID,
+          "Metadata",
+        ], newListing.Metadata.asCBORMap());
       }
       if (newListing.ViewState !== productInView!.ViewState) {
-        clientStateManager!.stateManager.set(['Listings', newListing.ID, 'ViewState'], newListing.ViewState)
+        await csm.set([
+          "Listings",
+          newListing.ID,
+          "ViewState",
+        ], newListing.ViewState);
       }
 
-      if (units !== productInView?.quantity) {
-      //change inventory
+      if (units !== productInView?.Quantity) {
+        //FIXME: change inventory
       }
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
@@ -132,7 +158,7 @@ export default function EditProduct() {
       setValidationError("Product must include image.");
     } else if (!units) {
       setValidationError("Update the number of units.");
-    } else if (productInView && !productInView.id) {
+    } else if (productInView && !productInView.ID) {
       setValidationError("Product id is missing.");
     } else {
       try {
@@ -148,11 +174,19 @@ export default function EditProduct() {
             }
           }),
         );
-        const newListing = new Listing()
-        newListing.ID = editView ? itemId : objectId()
-        newListing.Metadata = new ListingMetadata(new Map([["Title", title], ["Description", description], ["Images", uploaded]]))
-        newListing.Price = Number(price).toFixed(2)
-        newListing.ViewState = viewState
+
+        const newListing = new Map([["ID", editView ? itemId : objectId()]]);
+        newListing.set(
+          "Metadata",
+          new ListingMetadata(
+            new Map([["Title", title], ["Description", description], [
+              "Images",
+              uploaded,
+            ]]),
+          ),
+        );
+        newListing.set("Price", Number(price).toFixed(2));
+        newListing.set("ViewState", viewState);
 
         editView && productInView
           ? await update(newListing)

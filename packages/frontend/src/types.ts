@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-
 export type KeyCard = `0x${string}`;
 export type ListingId = number;
 export type TagId = `0x${string}`;
@@ -24,12 +23,12 @@ export interface ShopDetails {
 export type CurrencyChainOption = {
   label: string;
   value: string | number;
-} 
+} & Partial<ChainAddress>;
 
 export type ChainAddress = {
   chainId: number;
   address: string;
-}
+};
 
 export enum CheckoutStep {
   cart = "cart",

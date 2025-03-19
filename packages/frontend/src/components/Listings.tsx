@@ -4,45 +4,59 @@
 
 import { useEffect, useState } from "react";
 
-import {Listing} from "@massmarket/schema"
+import { Listing } from "@massmarket/schema";
 
 import CustomerViewListings from "./CustomerViewListings.tsx";
 import { useKeycard } from "../hooks/useKeycard.ts";
 import { useClientWithStateManager } from "../hooks/useClientWithStateManager.ts";
 import MerchantViewListings from "./merchants/listings/MerchantViewListings.tsx";
-import { mapToListingsClass } from "../utils/mod.ts";
+import { ListingId } from "../types.ts";
 
 export default function Listings() {
   const { clientStateManager, result } = useClientWithStateManager();
   const [keycard] = useKeycard();
   const [products, setProducts] = useState<Map<ListingId, Listing>>(new Map());
 
-
- function setAllListings(map: Map<ListingId, Listing>){
-  sm.get(["Listings"]).then((allListings)=>{
-    mapToListingsClass(allListings).then((map)=>{
-      setProducts(map)
-    })  
-  })
- }
+  function getAllListings() {
+    return clientStateManager!.stateManager.get(["Listings"]).then(
+      async (allListings: Map<ListingId, unknown>) => {
+        const listings = new Map();
+        for await (
+          const [
+            id,
+            o,
+          ] of allListings.entries()
+        ) {
+          listings.set(id, new Listing(o));
+        }
+        return listings;
+      },
+    );
+  }
 
   useEffect(() => {
     if (!clientStateManager?.stateManager) return;
-    const sm = clientStateManager.stateManager
+    const sm = clientStateManager.stateManager;
 
     function onCreateEvent() {
-     setAllListings()
+      getAllListings().then((items: Map<ListingId, Listing>) => {
+        setProducts(items);
+      });
     }
 
     function onUpdateEvent() {
-      setAllListings()
+      getAllListings().then((items: Map<ListingId, Listing>) => {
+        setProducts(items);
+      });
     }
 
     // Listen to future events
     sm.events.on("Listing", onCreateEvent);
     sm.events.on("UpdateListing", onUpdateEvent);
 
-    setAllListings()
+    getAllListings().then((items: Map<ListingId, Listing>) => {
+      setProducts(items);
+    });
 
     return () => {
       // Cleanup listeners on unmount
@@ -60,7 +74,7 @@ export default function Listings() {
   if (!clientStateManager?.stateManager) {
     return <main data-testid="listings-page">Loading...</main>;
   }
-  
+
   return (
     <main
       className="bg-background-gray pt-under-nav"

@@ -5,13 +5,9 @@ import { useEffect, useState } from "react";
 import { formatUnits } from "viem";
 
 import { assert, logger } from "@massmarket/utils";
-import { Listing , Order, OrderedItem } from "@massmarket/schema";
+import { Listing, Order, OrderedItem } from "@massmarket/schema";
 
-import {
-  ListingId,
-  OrderEventTypes,
-  OrderId,
-} from "../../types.ts";
+import { ListingId, OrderEventTypes, OrderId } from "../../types.ts";
 
 import Button from "../common/Button.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
@@ -40,7 +36,9 @@ export default function Cart({
   const [cartItemsMap, setCartMap] = useState<
     Map<ListingId, Listing>
   >(new Map());
-  const [selectedQty, setSelectedQty] = useState<Map<ListingId, number>>(new Map());
+  const [selectedQty, setSelectedQty] = useState<Map<ListingId, number>>(
+    new Map(),
+  );
   const [orderId, setOrderId] = useState<OrderId | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -88,10 +86,13 @@ export default function Cart({
         updatedQtyMap.set(orderItem.ListingID, orderItem.Quantity);
         setSelectedQty(updatedQtyMap);
         // If the selected quantity is 0, don't add the item to cart items map
-        if(orderItem.Quantity === 0) return;
-        return clientStateManager!.stateManager.get(["Listings", orderItem.ListingID])
+        if (orderItem.Quantity === 0) return;
+        return clientStateManager!.stateManager.get([
+          "Listings",
+          orderItem.ListingID,
+        ])
           .then((l) => {
-            const listing = new Listing(l)
+            const listing = new Listing(l);
             allCartItems.set(orderItem.ListingID, listing);
           });
       }),
@@ -120,7 +121,10 @@ export default function Cart({
 
   async function clearCart() {
     try {
-      await clientStateManager!.stateManager.set(["Orders", orderId, "Items"], [] )
+      await clientStateManager!.stateManager.set(
+        ["Orders", orderId, "Items"],
+        [],
+      );
       setCartMap(new Map());
       setSelectedQty(new Map());
       debug("cart cleared");
@@ -136,14 +140,18 @@ export default function Cart({
     try {
       const updatedQtyMap = new Map(selectedQty);
       updatedQtyMap.set(id, selectedQty.get(id)! + (add ? 1 : -1));
-      setSelectedQty(updatedQtyMap);     
-      const updatedOrderItems: OrderedItem[] = Array.from(cartItemsMap.keys()).map((key)=>{
-        return {
-          ListingID: key,
-          Quantity: selectedQty.get(key)!,
-        }
-      })
-      await clientStateManager!.stateManager.set(["Orders", orderId, "Items"], updatedOrderItems);
+      setSelectedQty(updatedQtyMap);
+      const updatedOrderItems: OrderedItem[] = Array.from(cartItemsMap.keys())
+        .map((key) => {
+          return {
+            ListingID: key,
+            Quantity: selectedQty.get(key)!,
+          };
+        });
+      await clientStateManager!.stateManager.set(
+        ["Orders", orderId, "Items"],
+        updatedOrderItems,
+      );
     } catch (error) {
       logerr(`Error:addQuantity ${error}`);
     }
@@ -154,13 +162,17 @@ export default function Cart({
       const updatedQtyMap = new Map(selectedQty);
       updatedQtyMap.delete(id);
       setSelectedQty(updatedQtyMap);
-      const updatedOrderItems: OrderedItem[] = Array.from(cartItemsMap.keys()).map((key)=>{
-        return {
-          ListingID: key,
-          Quantity: selectedQty.get(key)!,
-        }
-      })
-      await clientStateManager!.stateManager.set(['Orders', orderId, "Items"], updatedOrderItems);
+      const updatedOrderItems: OrderedItem[] = Array.from(cartItemsMap.keys())
+        .map((key) => {
+          return {
+            ListingID: key,
+            Quantity: selectedQty.get(key)!,
+          };
+        });
+      await clientStateManager!.stateManager.set(
+        ["Orders", orderId, "Items"],
+        updatedOrderItems,
+      );
     } catch (error) {
       logerr(`Error:removeItem ${error}`);
     }
@@ -170,7 +182,7 @@ export default function Cart({
     if (!baseToken || cartItemsMap.size === 0) return "0";
     const values: Listing[] = Array.from(cartItemsMap.values());
     let total = BigInt(0);
-    values.forEach((item:Listing) => {
+    values.forEach((item: Listing) => {
       total += baseToken?.decimals
         ? BigInt(item.Price) * BigInt(selectedQty.get(item.ID)!)
         : BigInt(0);
@@ -249,7 +261,9 @@ export default function Cart({
                     className="w-5 h-5 max-h-5"
                   />
                 </button>
-                <p data-testid={`quantity-${item.ID}`}>{selectedQty.get(item.ID)}</p>
+                <p data-testid={`quantity-${item.ID}`}>
+                  {selectedQty.get(item.ID)}
+                </p>
                 <button
                   type="button"
                   onClick={() => adjustItemQuantity(item.ID)}

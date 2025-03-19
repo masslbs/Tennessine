@@ -7,13 +7,13 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useDisconnect } from "wagmi";
 
 import { assert, logger } from "@massmarket/utils";
+import { Order } from "@massmarket/schema";
 
 import {
   CheckoutStep,
   OrderEventTypes,
   OrderId,
   OrderState,
-  TOrder,
 } from "../types.ts";
 import Cart from "./cart/Cart.tsx";
 import { useClientWithStateManager } from "../hooks/useClientWithStateManager.ts";
@@ -72,10 +72,11 @@ function Navigation() {
   ];
 
   useEffect(() => {
-    function onOrderUpdate(res: [OrderEventTypes, TOrder]) {
-      const order = res[1];
+    function onOrderUpdate(res: [OrderEventTypes, unknown]) {
       const type = res[0];
-      if (currentOrder?.orderId !== order.id) return;
+      const order = new Order(res[1]);
+
+      if (currentOrder?.orderId !== order.ID) return;
       switch (type) {
         case OrderEventTypes.CHANGE_ITEMS:
           onChangeItems(order);
@@ -86,30 +87,33 @@ function Navigation() {
       }
     }
 
-    function onChangeItems(order: TOrder) {
-      const values = Object.values(order.items);
+    function onChangeItems(o: unknown) {
+      const order = new Order(o);
+      const values = Object.values(order.Items);
       let length = 0;
       values.map((qty) => (length += Number(qty)));
       setLength(length);
     }
 
-    function txHashDetected(order: TOrder) {
-      if (order.status === OrderState.STATE_PAYMENT_TX) {
+    function txHashDetected(o: unknown) {
+      const order = new Order(o);
+      if (order.State === OrderState.STATE_PAYMENT_TX) {
         setLength(0);
       }
     }
 
     if (clientStateManager?.stateManager) {
+      const sm = clientStateManager.stateManager;
       if (currentOrder) {
-        clientStateManager.stateManager.orders.get(currentOrder.orderId).then(
-          (o: TOrder) => {
+        sm.get(["Orders", currentOrder.orderId]).then(
+          (o: unknown) => {
             onChangeItems(o);
           },
         );
       }
-      clientStateManager.stateManager.orders.on("update", onOrderUpdate);
+      sm.orders.on("update", onOrderUpdate);
       return () => {
-        clientStateManager!.stateManager!.orders.removeListener(
+        sm.orders.removeListener(
           "update",
           onOrderUpdate,
         );
@@ -139,8 +143,11 @@ function Navigation() {
       }
       // Commit the order if it is not already committed
       if (currentOrder!.status !== OrderState.STATE_COMMITTED) {
-        await clientStateManager!.stateManager.orders.commit(orderId);
-        debug(`TOrder ID: ${orderId} committed`);
+        await clientStateManager!.stateManager.set(
+          ["Orders", orderId, "State"],
+          OrderState.STATE_COMMITTED,
+        );
+        debug(`Order ID: ${orderId} committed`);
       }
       setBasketOpen(false);
       navigate({

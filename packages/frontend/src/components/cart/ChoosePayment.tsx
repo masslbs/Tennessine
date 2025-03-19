@@ -13,6 +13,7 @@ import {
 import { assert, formatUnitsFromString, logger } from "@massmarket/utils";
 import { getPaymentAddress, getPaymentId } from "@massmarket/blockchain";
 import { paymentsByAddressAbi } from "@massmarket/contracts";
+import { ChainAddress, Manifest, Order, Payee } from "@massmarket/schema";
 
 import Pay from "./Pay.tsx";
 import QRScan from "./QRScan.tsx";
@@ -29,10 +30,6 @@ import {
   CurrencyChainOption,
   OrderEventTypes,
   OrderId,
-  Payee,
-  ShopCurrencies,
-  ShopManifest,
-  TOrder,
 } from "../../types.ts";
 import { defaultRPC, getTokenInformation } from "../../utils/mod.ts";
 
@@ -57,7 +54,7 @@ export default function ChoosePayment({
   const [displayedChains, setChains] = useState<CurrencyChainOption[] | null>(
     null,
   );
-  const [manifest, setManifest] = useState<null | ShopManifest>(null);
+  const [manifest, setManifest] = useState<Manifest>(new Manifest());
   const [paymentAddress, setPaymentAddress] = useState<Address | null>(null);
   const [imgSrc, setSrc] = useState<null | string>(null);
   const [qrOpen, setQrOpen] = useState<boolean>(false);
@@ -80,10 +77,11 @@ export default function ChoosePayment({
 
   useEffect(() => {
     clientStateManager!
-      .stateManager!.manifest.get()
-      .then((manifest: ShopManifest) => {
-        getDisplayedChains(manifest).then((arr) => {
-          setManifest(manifest);
+      .stateManager.get(["Manifest"])
+      .then((res: Map<string, unknown>) => {
+        const m = new Manifest(res);
+        getDisplayedChains(m).then((arr) => {
+          setManifest(m);
           setChains(arr);
         });
       });
@@ -92,11 +90,11 @@ export default function ChoosePayment({
   useEffect(() => {
     if (!currentOrder) return;
     //Listen for client to send paymentDetails event.
-    function onPaymentDetails(res: [OrderEventTypes, TOrder]) {
-      const order = res[1];
+    function onPaymentDetails(res: [OrderEventTypes, Map<string, unknown>]) {
+      const order = new Order(res[1]);
       const type = res[0];
       if (
-        order.id === currentOrder!.orderId &&
+        order.ID === currentOrder!.orderId &&
         type === OrderEventTypes.PAYMENT_DETAILS
       ) {
         getDetails(currentOrder!.orderId).then(() => {
@@ -208,48 +206,64 @@ export default function ChoosePayment({
     }
   }
 
-  function getDisplayedChains(manifest: ShopManifest) {
+  function getDisplayedChains(manifest: Manifest) {
+    const currenciesMap = manifest.AcceptedCurrencies.asCBORMap();
+    const displayed: CurrencyChainOption[] = [];
     // This fn gets the token symbol and chain name to display to user instead of displaying token address and chain ID number
-    return Promise.all(
-      manifest.acceptedCurrencies.map(async (ac: ShopCurrencies) => {
-        const chain = chains.find((chain) => ac.chainId === chain.id);
-        if (!chain) {
-          throw new Error("Chain not found");
-        }
-        const tokenPublicClient = createPublicClient({
-          chain,
-          transport: http(defaultRPC),
-        });
-        const res = await getTokenInformation(tokenPublicClient, ac.address);
-        return {
-          address: ac.address,
-          chainId: ac.chainId,
+    chains.forEach((chain) => {
+      if (!currenciesMap.has(chain.id)) return;
+      const tokenPublicClient = createPublicClient({
+        chain,
+        transport: http(defaultRPC),
+      });
+      // all addresses in chain
+      const c = currenciesMap.get(chain.id);
+      c.keys().forEach(async (address) => {
+        const res = await getTokenInformation(tokenPublicClient, address);
+        displayed.push({
+          address,
+          chainId: chain.id,
           label: `${res[0]}/${chain.name}`,
-          value: `${ac.address}/${ac.chainId}`,
-        };
-      }),
-    );
+          value: `${address}/${chain.id}`,
+        });
+      });
+    });
+
+    return displayed;
   }
+
   async function onSelectPaymentCurrency(selected: CurrencyChainOption) {
     try {
       setPaymentCurrencyLoading(true);
-      const payee = manifest!.payees.find(
-        (p: Payee) => p.chainId === selected.chainId,
-      );
-      if (!payee) {
+      const payeeAddresses = manifest.Payees.get(selected.chainId!);
+
+      if (!payeeAddresses.size()) {
         throw new Error("No payee found in shop manifest");
       }
-
-      await clientStateManager!.stateManager.orders.choosePayment(
-        currentOrder!.orderId,
-        {
-          currency: {
-            address: selected.address!,
-            chainId: selected.chainId!,
-          },
-          payee,
-        },
+      //FIXME: for now, just grab the first payee address in the map.
+      const payee = payeeAddresses.values().next().value;
+      const chosenCurrency = new ChainAddress(
+        new Map([["ChainID", selected.chainId!], [
+          "Address",
+          selected.address!,
+        ]]),
       );
+      const chosenPayee = new Payee(
+        new Map([["Address", payee.Address], [
+          "CallAsContract",
+          payee.CallAsContract,
+        ]]),
+      );
+      await clientStateManager!.stateManager.set([
+        "Orders",
+        currentOrder!.orderId,
+        "ChosenPayee",
+      ], chosenPayee.asCBORMap());
+      await clientStateManager!.stateManager.set([
+        "Orders",
+        currentOrder!.orderId,
+        "ChosenCurrency",
+      ], chosenCurrency.asCBORMap());
       debug("chosen payment set");
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");

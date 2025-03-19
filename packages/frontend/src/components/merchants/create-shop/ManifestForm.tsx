@@ -1,8 +1,13 @@
 import { ChangeEvent, useState } from "react";
 import { useChains } from "wagmi";
 import { hardhat } from "wagmi/chains";
+import { toBytes } from "viem";
 
-import { Manifest, AcceptedCurrencyMap, ChainAddress } from "@massmarket/schema"
+import {
+  AcceptedCurrencyMap,
+  ChainAddress,
+  Manifest,
+} from "@massmarket/schema";
 
 import ValidationWarning from "../../common/ValidationWarning.tsx";
 import ErrorMessage from "../../common/ErrorMessage.tsx";
@@ -25,20 +30,11 @@ export default function ManifestForm(
     setShopMetadata: (shopMetadata: ShopForm) => void;
   },
 ) {
-
   const { shopName, description, paymentAddress } = shopMetadata;
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const chains = useChains();
-
-  function handleManifestChange(
-    field: keyof Manifest,
-    value: Manifest[keyof Manifest],
-  ) {
-    shopManifest[field] = value;
-    setShopManifest(shopManifest);
-  }
 
   function handleShopFormChange<K extends keyof ShopForm>(
     field: K,
@@ -48,14 +44,17 @@ export default function ManifestForm(
   }
 
   function handleAcceptedCurrencies(e: ChangeEvent<HTMLInputElement>) {
-    const [sym, chainId] = e.target.value.split("/");
+    const [sym, id] = e.target.value.split("/");
+    const chainId = Number(id);
     const address = getTokenAddress(sym, chainId);
     const allChainsMap = shopManifest.AcceptedCurrencies.data;
     if (e.target.checked) {
-      const allAddressesMap = allChainsMap.has(chainId) ? allChainsMap.get(chainId) : new Map();
+      const allAddressesMap = allChainsMap.has(chainId)
+        ? allChainsMap.get(chainId)
+        : new Map();
       //FIXME: address has to be in bytes
-      allAddressesMap.set(address, new Map([['IsContract', false]]));
-      allChainsMap.set(chainId, allAddressesMap);
+      allAddressesMap!.set(address, new Map([["IsContract", false]]));
+      allChainsMap.set(chainId, allAddressesMap!);
     } else {
       // remove address from accepted currencies.
       const allAddressesMap = allChainsMap.get(chainId);
@@ -63,31 +62,39 @@ export default function ManifestForm(
         allAddressesMap.delete(address);
       }
     }
-    handleManifestChange("AcceptedCurrencies", new AcceptedCurrencyMap(allChainsMap));
+    shopManifest.AcceptedCurrencies = new AcceptedCurrencyMap(allChainsMap);
+    setShopManifest(shopManifest);
   }
 
   function handlePricingCurrency(option: CurrencyChainOption) {
     const v = option.value as string;
     const [sym, chainId] = v.split("/");
-    const address = getTokenAddress(sym, chainId);
-    const pricingCurrency = new Map([['ChainID', Number(chainId)],['Address', address]]);
-    handleManifestChange("PricingCurrency", new ChainAddress(pricingCurrency));
+    const address = getTokenAddress(sym, Number(chainId));
+    const pricingCurrency = new Map([["ChainID", Number(chainId)], [
+      "Address",
+      address,
+    ]]);
+    shopManifest.PricingCurrency = new ChainAddress(pricingCurrency);
+    setShopManifest(shopManifest);
   }
 
   function checkRequiredFields() {
-    if (!shopManifest.shopName.length) {
+    if (!shopMetadata.shopName.length) {
       return "Shop name is required.";
-    } else if (!shopManifest.description.length) {
+    } else if (!shopMetadata.description.length) {
       return "Store description is required.";
     } else if (!paymentAddress) {
       return "Payee address is required.";
-    } else if (!shopManifest.PricingCurrency.Address || !shopManifest.PricingCurrency.ChainID) {
+    } else if (
+      !shopManifest.PricingCurrency.Address ||
+      !shopManifest.PricingCurrency.ChainID
+    ) {
       return "Pricing currency is required.";
-    } else if (!shopManifest.AcceptedCurrencies.data.size()) {
+    } else if (!shopManifest.AcceptedCurrencies.data.size) {
       return "Accepted currencies are required.";
     }
     const isTokenAddrHex = isValidAddress(shopManifest.PricingCurrency.Address);
-    const isPayeeAddHex = isValidAddress(paymentAddress);
+    const isPayeeAddHex = isValidAddress(toBytes(paymentAddress));
     if (!isTokenAddrHex) {
       return "Token address must be a valid address.";
     } else if (!isPayeeAddHex) {

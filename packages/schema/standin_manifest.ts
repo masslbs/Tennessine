@@ -120,8 +120,8 @@ export class PayeeMap {
     }
   }
 
-  get(chainId: number, address: Uint8Array): PayeeMetadata | undefined {
-    return this.data.get(chainId)?.get(address);
+  get(chainId: number): Map<Uint8Array, PayeeMetadata> | undefined {
+    return this.data.get(chainId);
   }
 
   asCBORMap(): Map<number, Map<Uint8Array, Map<"CallAsContract", boolean>>> {
@@ -203,6 +203,10 @@ export class AcceptedCurrencyMap {
 
       this.data.set(chainId, validatedAddressMap);
     }
+  }
+
+  getAddressesByChainID(chainId: number) {
+    return this.data.get(chainId);
   }
 
   asCBORMap(): Map<number, Map<Uint8Array, Map<"IsContract", boolean>>> {

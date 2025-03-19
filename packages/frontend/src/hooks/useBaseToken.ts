@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
 import { usePublicClient } from "wagmi";
 
+import { ChainAddress, Manifest } from "@massmarket/schema";
+
 import { useClientWithStateManager } from "./useClientWithStateManager.ts";
 import { getTokenInformation } from "../utils/token.ts";
-import { TManifest, TChainAddress } from "../types.ts";
 import { useQuery } from "./useQuery.ts";
 
 export function useBaseToken() {
   const [pricingCurrency, seTChainAddress] = useState<
-    TChainAddress | null
+    ChainAddress
   >(
-    null,
+    new ChainAddress(),
   );
   const { clientStateManager } = useClientWithStateManager();
   const shopPublicClient = usePublicClient({
@@ -20,8 +21,9 @@ export function useBaseToken() {
 
   function getManifest() {
     manifestManager.get().then(
-      (manifest: TManifest) => {
-        manifest && seTChainAddress(manifest.pricingCurrency);
+      (res: Map<string, unknown>) => {
+        const manifest = new Manifest(res);
+        seTChainAddress(manifest.PricingCurrency);
       },
     );
   }

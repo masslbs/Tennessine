@@ -2,13 +2,10 @@ import { useEffect, useState } from "react";
 import { type Chain, mainnet, optimism, sepolia } from "wagmi/chains";
 import { useSearch } from "@tanstack/react-router";
 
-import {Order, Listing, OrderedItem} from "@massmarket/schema";
+import { Listing, Order, OrderedItem } from "@massmarket/schema";
 
 import BackButton from "../common/BackButton.tsx";
-import {
-  ListingId,
-  OrderState,
-} from "../../types.ts";
+import { ListingId, OrderState } from "../../types.ts";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 
 export default function OrderDetails() {
@@ -18,7 +15,9 @@ export default function OrderDetails() {
   const [cartItemsMap, setCartMap] = useState<Map<ListingId, Listing>>(
     new Map(),
   );
-  const [selectedQty, setSelectedQty] = useState<Map<ListingId, number>>(new Map());
+  const [selectedQty, setSelectedQty] = useState<Map<ListingId, number>>(
+    new Map(),
+  );
   const [txHash, setTxHash] = useState(null);
   const [blockHash, setBlockHash] = useState(null);
   const [etherScanLink, setLink] = useState<string | null>(null);
@@ -85,11 +84,14 @@ export default function OrderDetails() {
         updatedQtyMap.set(orderItem.ListingID, orderItem.Quantity);
         setSelectedQty(updatedQtyMap);
         // If the selected quantity is 0, don't add the item to cart items map
-        if(orderItem.Quantity === 0) return;
+        if (orderItem.Quantity === 0) return;
         // Get price and metadata for all the selected items in the order.
-        return clientStateManager!.stateManager.get(["Listings", orderItem.ListingID])
+        return clientStateManager!.stateManager.get([
+          "Listings",
+          orderItem.ListingID,
+        ])
           .then((l) => {
-            const listing = new Listing(l)
+            const listing = new Listing(l);
             allCartItems.set(orderItem.ListingID, listing);
           });
       }),

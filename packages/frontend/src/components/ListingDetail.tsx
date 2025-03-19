@@ -5,8 +5,8 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import { Link, useSearch } from "@tanstack/react-router";
 
-import { formatUnitsFromString, logger } from "@massmarket/utils";
-import { Listing, Order, OrderedItem} from "@massmarket/schema";
+import { formatUnitsFromString, logger, objectId } from "@massmarket/utils";
+import { Listing, Order, OrderedItem } from "@massmarket/schema";
 
 import { ListingId, OrderId, OrderState } from "../types.ts";
 import Button from "./common/Button.tsx";
@@ -17,6 +17,7 @@ import { useKeycard } from "../hooks/useKeycard.ts";
 import ErrorMessage from "./common/ErrorMessage.tsx";
 import SuccessToast from "./common/SuccessToast.tsx";
 import { useCurrentOrder } from "../hooks/useCurrentOrder.ts";
+import { cancelAndCreateOrder } from "../utils/helper.ts";
 
 const namespace = "frontend:listing-detail";
 const debug = logger(namespace);
@@ -28,7 +29,7 @@ export default function ListingDetail() {
   const [keycard] = useKeycard();
   const search = useSearch({ strict: false });
   const { currentOrder } = useCurrentOrder();
-  const itemId = search.itemId as ListingId
+  const itemId = search.itemId as ListingId;
   const [item, setItem] = useState<Listing>(new Listing());
   const [price, setPrice] = useState("");
   const [tokenIcon, setIcon] = useState("/icons/usdc-coin.png");
@@ -71,69 +72,61 @@ export default function ListingDetail() {
     setQuantity(newValue);
   }
 
-  function updateItemQuantity(order: Order, itemId: ListingId): Order{
+  function updateItemQuantity(order: Order, itemId: ListingId): Order {
     order.Items = order.Items.map((item: OrderedItem) => {
-        return new OrderedItem(new Map([
+      return new OrderedItem(
+        new Map([
           ["ListingID", item.ListingID],
           ["VariationIDs", item.VariationIDs],
-          ["Quantity", item.ListingID === itemId ? Number(quantity) : item.Quantity]
-        ]))
-    })
-    return order
-  }
-
-  async function cancelAndCreateOrder() {
-    debug(`Cancelling order ID: ${currentOrder!.orderId}`);
-    const sm = clientStateManager!.stateManager;
-    // Cancel current order.
-   const cancelledOrder = await sm.set(["Orders", currentOrder?.orderId, 'State'], OrderState.STATE_CANCELED)
-
-    // Create a new order and add the same items.
-    const newOrder = new Order()
-    const newOrderId = 1
-    newOrder.ID = newOrderId
-    newOrder.State = OrderState.STATE_OPEN
-    const updatedOrder = updateItemQuantity(cancelledOrder, itemId)
-    await sm.set(["Orders", newOrderId], updatedOrder.asCBORMap())
-    debug(`New order created: ${newOrderId}`);
-
-    debug("Listings added to new order");
-    return newOrderId
+          [
+            "Quantity",
+            item.ListingID === itemId ? Number(quantity) : item.Quantity,
+          ],
+        ]),
+      );
+    });
+    return order;
   }
 
   async function changeItems() {
-
     try {
       let orderId: OrderId | null = currentOrder?.orderId || null;
       if (
         !orderId
       ) {
         //Create new order
-        const newOrder = new Map()
-        orderId = 1
-        newOrder.set("ID", orderId)
+        const newOrder = new Map();
+        orderId = objectId();
+        newOrder.set("ID", orderId);
         newOrder.set("Items", [
           {
             ListingID: itemId,
             Quantity: Number(quantity),
-          }
-        ])
-        newOrder.set("State", OrderState.STATE_OPEN)
-        await clientStateManager!.stateManager.set(['Orders', orderId], newOrder)
+          },
+        ]);
+        newOrder.set("State", OrderState.STATE_OPEN);
+        await clientStateManager!.stateManager.set(
+          ["Orders", orderId],
+          newOrder,
+        );
 
         debug(`New Order ID: ${orderId}`);
       } else {
         // Update existing order
 
         if (currentOrder?.status === OrderState.STATE_COMMITTED) {
-          orderId = await cancelAndCreateOrder();
+          orderId = await cancelAndCreateOrder(orderId, clientStateManager!);
         }
 
-        const order = await clientStateManager!.stateManager.get(['Orders', orderId])
-        const newOrder = updateItemQuantity(new Order(order), itemId)
-        await clientStateManager!.stateManager.set(['Orders', orderId, "Items"], 
-          newOrder.asCBORMap().get("Items")
-        )
+        const order = await clientStateManager!.stateManager.get([
+          "Orders",
+          orderId,
+        ]);
+        const newOrder = updateItemQuantity(new Order(order), itemId);
+        await clientStateManager!.stateManager.set(
+          ["Orders", orderId, "Items"],
+          newOrder.asCBORMap().get("Items"),
+        );
         setQuantity("");
         setMsg("Added to cart");
       }
