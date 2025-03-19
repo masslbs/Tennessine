@@ -2,25 +2,6 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import type {
-  TAddressDetails,
-  TCurrencyMap,
-  TListing,
-  TManifest,
-  TOrder,
-  TChainAddress,
-  TTag,
-} from "@massmarket/schema/cbor";
-
-export type {
-  TAddressDetails,
-  TCurrencyMap,
-  TListing,
-  TManifest,
-  TOrder,
-  TChainAddress,
-  TTag,
-};
 
 export type KeyCard = `0x${string}`;
 export type ListingId = number;

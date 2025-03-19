@@ -4,7 +4,6 @@ import { BrowserLevel } from "npm:browser-level";
 import { RelayClient, type RelayEndpoint } from "@massmarket/client";
 import Database from "@massmarket/stateManager";
 import { logger } from "@massmarket/utils";
-import { ShopSchema } from "@massmarket/schema/cbor";
 
 import { ShopId } from "./types.ts";
 
@@ -34,7 +33,6 @@ export class ClientWithStateManager {
     this.stateManager = new Database(
       {
         store,
-        schema: ShopSchema,
         objectId: this.shopId,
       },
     );
