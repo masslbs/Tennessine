@@ -4,9 +4,8 @@ import { zeroAddress } from "viem";
 import { expect } from "jsr:@std/expect";
 import { userEvent } from "@testing-library/user-event";
 
-import { metadata } from "@massmarket/schema/testFixtures";
 import { random256BigInt } from "@massmarket/utils";
-import { payees, shippingRegions } from "@massmarket/schema/testFixtures";
+import { payees, shippingRegions, metadata } from "@massmarket/schema/testFixtures";
 
 import ListingDetail from "./ListingDetail.tsx";
 import {

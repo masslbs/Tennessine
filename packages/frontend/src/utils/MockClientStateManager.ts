@@ -3,7 +3,6 @@ import { MemoryLevel } from "npm:memory-level";
 
 import Database from "@massmarket/stateManager";
 import { RelayClient, type RelayEndpoint } from "@massmarket/client";
-import { ShopSchema } from "@massmarket/schema/cbor";
 
 export class MockClientStateManager {
   public stateManager: null = null;
@@ -22,7 +21,6 @@ export class MockClientStateManager {
     this.stateManager = new Database(
         {
           store,
-          schema: ShopSchema,
           objectId: this.shopId,
         },
       );
