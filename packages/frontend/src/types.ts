@@ -55,10 +55,6 @@ export interface CurrentOrder {
   status: OrderState;
 }
 
-export type CartItem = {
-  selectedQty: number;
-}
-
 export type ShopForm = {
   shopName: string;
   description: string;
