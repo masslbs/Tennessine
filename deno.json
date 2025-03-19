@@ -2,14 +2,14 @@
   "workspace": [
     "./packages/utils",
     "./packages/schema",
-    "./packages/stateManager",
     "./packages/eventTree",
-    "./packages/client",
     "./packages/contracts",
-    "./packages/frontend",
     "./packages/blockchain",
-    "./packages/mmr",
-    "./packages/merkle-dag-builder"
+    "./packages/client",
+    "./packages/merkle-dag-builder",
+    "./packages/stateManager",
+    "./packages/frontend",
+    "./packages/mmr"
   ],
   "exclude": ["./packages/frontend"],
   "lint": {
