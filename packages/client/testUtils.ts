@@ -1,11 +1,6 @@
-import {
-  createTestClient,
-  http,
-  publicActions,
-  walletActions,
-} from "@wevm/viem";
-import { generatePrivateKey, privateKeyToAccount } from "@wevm/viem/accounts";
-import { foundry } from "@wevm/viem/chains";
+import { createTestClient, http, publicActions, walletActions } from "viem";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { foundry } from "viem/chains";
 import { mintShop } from "@massmarket/blockchain";
 
 import { discoverRelay, RelayClient } from "./mod.ts";

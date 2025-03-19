@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert";
+import { assertEquals } from "@std/assert";
 import { zeroAddress } from "viem";
 import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
 import { cleanup, renderHook, waitFor } from "@testing-library/react";

@@ -6,9 +6,9 @@ import {
   http,
   publicActions,
   walletActions,
-} from "@wevm/viem";
-import { generatePrivateKey, privateKeyToAccount } from "@wevm/viem/accounts";
-import { foundry } from "@wevm/viem/chains";
+} from "viem";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { foundry } from "viem/chains";
 import { mintShop, relayRegGetOwnerOf } from "@massmarket/blockchain";
 
 import { discoverRelay, type Patch, RelayClient } from "./mod.ts";

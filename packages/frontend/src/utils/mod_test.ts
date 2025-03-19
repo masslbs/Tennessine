@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert";
+import { assertEquals } from "@std/assert";
 import { createPublicClient, http, zeroAddress } from "viem";
 import { hardhat } from "viem/chains";
 import { eddiesAddress } from "@massmarket/contracts";

@@ -18,8 +18,8 @@ import {
   type Transport,
   type WalletClient,
   type WriteContractParameters,
-} from "@wevm/viem";
-import { parseAccount, privateKeyToAccount } from "@wevm/viem/accounts";
+} from "viem";
+import { parseAccount, privateKeyToAccount } from "viem/accounts";
 import * as abi from "@massmarket/contracts";
 
 export type ConcreteWalletClient = WalletClient<Transport, Chain, Account>;

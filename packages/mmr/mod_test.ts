@@ -3,8 +3,8 @@ import { MemoryLevel } from "npm:memory-level";
 import type { Level } from "npm:level";
 import { keccak_256 } from "npm:@noble/hashes/sha3";
 
-import { test } from "jsr:@std/testing/bdd";
-import { expect } from "jsr:@std/expect";
+import { test } from "@std/testing/bdd";
+import { expect } from "@std/expect";
 
 function isEqualArray(a: Uint8Array, b: Uint8Array) {
   if (a.length != b.length) return false;

@@ -7,7 +7,7 @@ import {
   within,
 } from "@testing-library/react";
 import { zeroAddress } from "viem";
-import { expect } from "jsr:@std/expect";
+import { expect } from "@std/expect";
 import { hardhat } from "wagmi/chains";
 
 import { random256BigInt, random32BytesHex } from "@massmarket/utils";

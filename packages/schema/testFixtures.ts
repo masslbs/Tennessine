@@ -1,4 +1,4 @@
-import { bytesToHex } from "@wevm/viem";
+import { bytesToHex } from "viem";
 import { objectId, randomAddress } from "@massmarket/utils";
 
 // Test variables used in multiple packages.

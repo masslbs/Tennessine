@@ -3,7 +3,7 @@ import "../../happyDomSetup.ts";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { act } from "@testing-library/react-hooks";
 import { userEvent } from "@testing-library/user-event";
-import { expect } from "jsr:@std/expect";
+import { expect } from "@std/expect";
 
 import { random256BigInt, random32BytesHex } from "@massmarket/utils";
 import { mintShop, setTokenURI } from "@massmarket/blockchain";

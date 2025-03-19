@@ -1,6 +1,6 @@
 import "./happyDomSetup.ts";
 
-import { expect } from "jsr:@std/expect";
+import { expect } from "@std/expect";
 import { createPublicClient, createWalletClient, http } from "viem";
 import { hardhat } from "viem/chains";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";

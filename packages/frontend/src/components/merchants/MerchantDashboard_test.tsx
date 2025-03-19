@@ -1,7 +1,7 @@
 import "../../happyDomSetup.ts";
 
 import { render, screen, waitFor } from "@testing-library/react";
-import { expect } from "jsr:@std/expect";
+import { expect } from "@std/expect";
 
 import { addresses } from "@massmarket/contracts";
 import { random256BigInt, random32BytesHex } from "@massmarket/utils";

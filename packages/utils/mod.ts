@@ -11,7 +11,7 @@ import {
   numberToBytes,
   parseUnits,
   toBytes,
-} from "@wevm/viem";
+} from "viem";
 import * as Sentry from "@sentry/browser";
 import { type CodecKey, type CodecValue, decode } from "./codec.ts";
 export * as codec from "./codec.ts";

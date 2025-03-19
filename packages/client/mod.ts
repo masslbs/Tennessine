@@ -12,10 +12,10 @@ import {
   recoverMessageAddress,
   recoverPublicKey,
   type WalletClient,
-} from "@wevm/viem";
-import { parseAccount } from "@wevm/viem/accounts";
-import { createSiweMessage } from "@wevm/viem/siwe";
-import { hashMessage } from "@wevm/viem/utils";
+} from "viem";
+import { parseAccount } from "viem/accounts";
+import { createSiweMessage } from "viem/siwe";
+import { hashMessage } from "viem/utils";
 import { ProjectivePoint } from "@noble/secp256k1";
 import LockMap from "@nullradix/lockmap";
 import schema, { EnvelopMessageTypes } from "@massmarket/schema";

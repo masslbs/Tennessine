@@ -1,7 +1,7 @@
 import "../happyDomSetup.ts";
 import { render, screen, waitFor } from "@testing-library/react";
 import { useAccount, useEnsName, useWalletClient } from "wagmi";
-import { expect } from "jsr:@std/expect";
+import { expect } from "@std/expect";
 import { hardhat } from "wagmi/chains";
 import { createRouterWrapper } from "../utils/test.tsx";
 

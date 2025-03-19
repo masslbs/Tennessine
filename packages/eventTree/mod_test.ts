@@ -1,5 +1,5 @@
 import { default as Tree, EventEmmiter } from "./mod.ts";
-import { assertEquals } from "jsr:@std/assert";
+import { assertEquals } from "@std/assert";
 import type { codec } from "@massmarket/utils";
 
 Deno.test("Tree Event Testings", async (t) => {

@@ -1,4 +1,4 @@
-import { assert } from "@std/assert/assert";
+// import { assert } from "@std/assert";
 import { codec, get, type Hash, hash, isHash, set } from "@massmarket/utils";
 
 /** The interface for a store that is used to store and retrieve blocks */

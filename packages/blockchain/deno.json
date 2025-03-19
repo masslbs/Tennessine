@@ -4,8 +4,7 @@
   "description": "Blockchain client",
   "exports": "./mod.ts",
   "imports": {
-    "@std/cbor": "jsr:@std/cbor@^0.1.6",
     "@std/expect": "jsr:@std/expect@^1.0.13",
-    "@wevm/viem": "jsr:@wevm/viem@^2.23.6"
+    "viem": "npm:viem@^2.23.6"
   }
 }

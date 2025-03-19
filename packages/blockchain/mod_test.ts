@@ -1,7 +1,7 @@
 import { expect } from "@std/expect";
-import { createClient, http, publicActions, walletActions } from "@wevm/viem";
+import { createClient, http, publicActions, walletActions } from "viem";
 
-import { hardhat } from "@wevm/viem/chains";
+import { hardhat } from "viem/chains";
 import * as abi from "@massmarket/contracts";
 import { random256BigInt } from "@massmarket/utils";
 import { mintShop, setTokenURI } from "./mod.ts";

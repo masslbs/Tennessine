@@ -1,7 +1,7 @@
 import "../../happyDomSetup.ts";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
-import { expect } from "jsr:@std/expect";
+import { expect } from "@std/expect";
 import { mainnet, sepolia } from "wagmi/chains";
 import { zeroAddress } from "viem";
 

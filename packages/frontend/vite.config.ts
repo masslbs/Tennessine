@@ -2,7 +2,6 @@ import { defineConfig, PluginOption } from "vite";
 import deno from "@deno/vite-plugin";
 import react from "@vitejs/plugin-react";
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
-import tailwindcss from "tailwindcss";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 import { entryPoints } from "./scripts/generate-entry-points.ts";
 
@@ -12,11 +11,6 @@ const buildInputs = Object.fromEntries(
 );
 
 export default defineConfig({
-  css: {
-    postcss: {
-      plugins: [tailwindcss()],
-    },
-  },
   build: {
     rollupOptions: {
       input: buildInputs,

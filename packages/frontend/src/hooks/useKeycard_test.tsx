@@ -1,7 +1,7 @@
 import "../happyDomSetup.ts";
-import { assertEquals } from "jsr:@std/assert";
+import { assertEquals } from "@std/assert";
 import { cleanup, renderHook } from "@testing-library/react-hooks";
-import { expect } from "jsr:@std/expect";
+import { expect } from "@std/expect";
 
 import { random256BigInt, random32BytesHex } from "@massmarket/utils";
 

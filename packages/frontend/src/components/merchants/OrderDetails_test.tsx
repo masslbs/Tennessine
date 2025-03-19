@@ -1,6 +1,6 @@
 import "../../happyDomSetup.ts";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
-import { expect } from "jsr:@std/expect";
+import { expect } from "@std/expect";
 import { zeroAddress } from "viem";
 
 import { random256BigInt } from "@massmarket/utils";

@@ -3,7 +3,7 @@ import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { zeroAddress } from "viem";
 import { generatePrivateKey } from "viem/accounts";
 import { userEvent } from "@testing-library/user-event";
-import { expect } from "jsr:@std/expect";
+import { expect } from "@std/expect";
 import { hardhat } from "wagmi/chains";
 
 import { random256BigInt, random32BytesHex } from "@massmarket/utils";

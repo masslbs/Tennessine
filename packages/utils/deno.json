@@ -3,8 +3,7 @@
   "version": "0.0.1",
   "imports": {
     "@std/assert": "jsr:@std/assert@^1.0.11",
-    "@wevm/viem": "jsr:@wevm/viem@^2.23.10",
-    "@whiteand/cbor": "jsr:@whiteand/cbor@^0.11.24",
+    "viem": "npm:viem@^2.23.10",
     "buffer": "node:buffer",
     "@sentry/browser": "npm:@sentry/browser",
     "cbor-x": "npm:cbor-x@^1.6.0"
