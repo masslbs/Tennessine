@@ -39,14 +39,6 @@ jobs:
         ports:
           - 5001:5001
 
-      anvil:
-        image: ghcr.io/foundry-rs/foundry:latest
-        ports:
-          - 8545:8545
-        options: --entrypoint anvil
-        env:
-          ANVIL_IP_ADDR: 0.0.0.0
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -62,16 +54,20 @@ jobs:
 
       - name: Extract branch name for other checkouts
         shell: bash
-        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        run: echo "branch=$(jq -r '.nodes["relay"].locked.rev' Tennessine/flake.lock)" >> $GITHUB_OUTPUT
         id: extract_branch
 
-      - name: Get fallback branch from flake.lock
-        shell: bash
-        run: echo "contracts=$(jq -r '.nodes["contracts"].locked.rev' Tennessine/flake.lock)" >> $GITHUB_OUTPUT
-        id: fallback_branch
+      - name: git clone relay
+        uses: actions/checkout@v4
+        with:
+          repository: masslbs/relay
+          ssh-key: ${{ secrets.SSH_CHECKOUT_RELAY }}
+          ref: ${{ steps.extract_branch.outputs.branch }}
+          path: relay
 
-      - name: Installing deps
-        run: nix develop -c bash -c "deno install"
+      - name: Start local testnet
+        run: |
+          nix develop -c local-testnet -D
         working-directory: Tennessine/
 
       - name: Run Lint
@@ -86,30 +82,9 @@ jobs:
         run: nix develop -c bash -c "deno check ."
         working-directory: Tennessine/
 
-      - name: git clone relay
-        uses: ./Tennessine/.github/actions/checkout
-        with:
-          repository: masslbs/relay
-          ssh-key: ${{ secrets.SSH_CHECKOUT_RELAY }}
-          ref: ${{ steps.extract_branch.outputs.branch }}
-          path: relay
-
       - name: Compile relay
         run: nix build '.#relay'
         working-directory: relay
-
-      - name: git clone contracts
-        uses: ./Tennessine/.github/actions/checkout
-        with:
-          repository: masslbs/contracts
-          ref: ${{ steps.extract_branch.outputs.branch }}
-          path: contracts
-          fallback-branch: ${{ steps.fallback_branch.outputs.contracts }}
-
-      - name: deploy contracts and update ABI
-        run: |
-          nix develop -c deploy-market
-        working-directory: contracts
 
       - name: prepare env file for relay
         run: |
