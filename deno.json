@@ -11,6 +11,7 @@
     "./packages/mmr",
     "./packages/merkle-dag-builder"
   ],
+  "exclude": ["./packages/frontend"],
   "lint": {
     "rules": {
       "exclude": ["no-slow-types"]

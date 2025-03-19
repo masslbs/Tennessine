@@ -1,11 +1,5 @@
 import { expect } from "@std/expect";
-import {
-  type Address,
-  createClient,
-  http,
-  publicActions,
-  walletActions,
-} from "@wevm/viem";
+import { createClient, http, publicActions, walletActions } from "@wevm/viem";
 
 import { hardhat } from "@wevm/viem/chains";
 import * as abi from "@massmarket/contracts";
@@ -49,7 +43,7 @@ Deno.test({
       expect(receipt.status).toBe("success");
 
       const uri = await client.readContract({
-        address: abi.addresses.ShopReg as Address,
+        address: abi.shopRegAddress,
         abi: abi.shopRegAbi,
         functionName: "tokenURI",
         args: [shopId],

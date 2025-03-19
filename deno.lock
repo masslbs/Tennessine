@@ -24,10 +24,8 @@
     "jsr:@valibot/valibot@*": "0.42.1",
     "jsr:@valibot/valibot@~0.42.1": "0.42.1",
     "jsr:@wevm/viem@*": "2.21.59",
-    "jsr:@wevm/viem@^2.23.10": "2.23.11",
-    "jsr:@wevm/viem@^2.23.11": "2.23.11",
+    "jsr:@wevm/viem@^2.23.10": "2.23.10",
     "jsr:@wevm/viem@^2.23.4": "2.23.10",
-    "jsr:@wevm/viem@^2.23.5": "2.23.11",
     "jsr:@wevm/viem@^2.23.6": "2.23.10",
     "jsr:@whiteand/cbor@*": "0.11.20",
     "jsr:@whiteand/cbor@~0.11.20": "0.11.24",
@@ -248,18 +246,6 @@
     },
     "@wevm/viem@2.23.10": {
       "integrity": "d0b263a04338cf90284dd71ca4441f89c5a11a29650636c0964e6181d9542332",
-      "dependencies": [
-        "npm:@noble/curves@1.8.1",
-        "npm:@noble/hashes@1.7.1",
-        "npm:@scure/bip32@1.6.2",
-        "npm:@scure/bip39@1.5.4",
-        "npm:abitype@1.0.8",
-        "npm:isows@1.0.6",
-        "npm:ox@0.6.9"
-      ]
-    },
-    "@wevm/viem@2.23.11": {
-      "integrity": "5d7340836f930422eec181f03c85420d99c4e36caad4d682b2169fd518c7fb2d",
       "dependencies": [
         "npm:@noble/curves@1.8.1",
         "npm:@noble/hashes@1.7.1",
@@ -5205,7 +5191,7 @@
           "jsr:@nullradix/lockmap@0.4",
           "jsr:@std/assert@^1.0.11",
           "jsr:@std/expect@^1.0.13",
-          "jsr:@wevm/viem@^2.23.5",
+          "jsr:@wevm/viem@^2.23.6",
           "npm:web-streams-polyfill@*"
         ]
       },

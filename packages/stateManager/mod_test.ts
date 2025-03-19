@@ -2,40 +2,42 @@ import { assertEquals } from "@std/assert";
 
 import { MemStore } from "@massmarket/merkle-dag-builder/memstore";
 import { createTestClients } from "@massmarket/client/test";
-import { extractEntriesFromHAMT, fetchAndDecode } from "@massmarket/utils";
+import {
+  type codec,
+  extractEntriesFromHAMT,
+  fetchAndDecode,
+} from "@massmarket/utils";
 
 import StateManager from "./mod.ts";
-import { Listing } from "../schema/standin_listing.ts";
-import { ChainAddress, Manifest } from "../schema/standin_manifest.ts";
-import { Order } from "../schema/standin_order.ts";
+
+type TestVector = Map<
+  string,
+  Array<Map<string, Map<string, Map<string, Map<string, codec.CodecValue>>>>>
+>;
 
 Deno.test("Database Testings", async (t) => {
   const store = new MemStore();
 
   await t.step("Set Manifest, Listings, and Orders", async () => {
     //Manifest
-    const manifestVector = await fetchAndDecode("ManifestOkay");
-    const manifests = manifestVector.get("Snapshots")?.map((snapshot: any) => {
-      return snapshot.get("After").get("Value").get("Manifest");
+    const manifestVector = await fetchAndDecode("ManifestOkay") as TestVector;
+    const manifests = manifestVector.get("Snapshots")?.map((snapshot) => {
+      return snapshot!.get("After")!.get("Value")!.get("Manifest");
     }) || [];
     const db = new StateManager({
       store,
-      objectId: manifests[0].get("ShopID") as bigint,
+      objectId: manifests[0]!.get("ShopID") as bigint,
     });
     // Need to initialize the listings map
     await db.set(["Listings"], new Map());
     await db.set(["Orders"], new Map());
-
-    const unpacked = new Manifest(manifests[0]);
-    const mapped = unpacked.returnAsMap();
-    await db.set(["Manifest"], mapped);
-
+    await db.set(["Manifest"], manifests[0]!);
 
     const result = await db.get(["Manifest"]);
     assertEquals(result, manifests[0]);
     //Listing
-    const ListingsVector = await fetchAndDecode("ListingOkay");
-    const listings = ListingsVector?.get("Snapshots")?.map((snapshot: any) => {
+    const ListingsVector = await fetchAndDecode("ListingOkay") as TestVector;
+    const listings = ListingsVector?.get("Snapshots")?.map((snapshot) => {
       const hamtNode = snapshot?.get("After")?.get("Value")?.get(
         "Listings",
       );
@@ -43,34 +45,25 @@ Deno.test("Database Testings", async (t) => {
     }) || [];
     for (const listingMap of listings) {
       for (const [id, listing] of listingMap.entries()) {
-        console.log("here!!!", { listing });
-        const unpacked = new Listing(listing);
-        const mapped = unpacked.returnAsMap();
-        await db.set(["Listings", id], mapped);
+        await db.set(["Listings", id], listing as codec.CodecValue);
         const result = await db.get(["Listings", id]);
-        assertEquals(result, mapped);
+        assertEquals(result, listing);
       }
     }
-    await db.get(["Listings"]);
     //Order
-    const OrderVector = await fetchAndDecode("OrderOkay");
-    const orders = OrderVector?.get("Snapshots")?.map((snapshot: any) => {
+    const OrderVector = await fetchAndDecode("OrderOkay") as TestVector;
+    const orders = OrderVector?.get("Snapshots")?.map((snapshot) => {
       const hamtNode = snapshot?.get("After")?.get("Value")?.get("Orders");
       return extractEntriesFromHAMT(hamtNode);
     }) || [];
 
     for (const orderMap of orders) {
       for (const [id, order] of orderMap.entries()) {
-        const unpacked = new Order(order);
-        console.log({ order, unpacked });
-        const mapped = unpacked.returnAsMap();
-        await db.set(["Orders", id], mapped);
-
+        await db.set(["Orders", id], order as codec.CodecValue);
         const result = await db.get(["Orders", id]);
-        assertEquals(result, mapped);
+        assertEquals(result, order);
       }
     }
-    await db.get(["Orders"]);
   });
 
   await t.step("add a relay and set a key and retrieve it", async () => {
@@ -81,10 +74,10 @@ Deno.test("Database Testings", async (t) => {
     });
     // connect to the relay
     const { resolve, promise } = Promise.withResolvers();
-    sm.events.on(["Manifest"], (manifestPatch) => {
+    sm.events.on((manifestPatch) => {
       console.log(manifestPatch);
       resolve(manifestPatch);
-    });
+    }, ["Manifest"]);
 
     await sm.addConnection(relayClient);
     await promise;
@@ -110,20 +103,19 @@ Deno.test("Database Testings", async (t) => {
       0xf3,
       0xf4,
     ]);
-    const testCurrency = new ChainAddress(
-      new Map([
-        ["Address", testAddr],
-        ["ChainID", 1337],
-      ]),
-    );
+
+    const testCurrency = new Map<string, codec.CodecValue>([
+      ["Address", testAddr],
+      ["ChainID", 1337],
+    ]);
     await sm.set(
       ["Manifest", "PricingCurrency"],
-      testCurrency.returnAsMap(),
+      testCurrency,
     );
     const value = await sm.get(["Manifest", "PricingCurrency"]);
     assertEquals(
       value,
-      new Map([
+      new Map<string, codec.CodecValue>([
         ["Address", testAddr],
         ["ChainID", 1337],
       ]),
