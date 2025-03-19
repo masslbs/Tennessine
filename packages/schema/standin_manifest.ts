@@ -1,4 +1,11 @@
-import { BaseClass } from "./utils.ts";
+import {
+  BaseClass,
+  ensureBigInt,
+  ensureBoolean,
+  ensureNumber,
+  ensureString,
+  ensureUint8Array,
+} from "./utils.ts";
 
 export class Manifest extends BaseClass {
   ShopID: bigint;
@@ -9,44 +16,58 @@ export class Manifest extends BaseClass {
 
   constructor(input: Map<string, unknown>) {
     super();
-    this.ShopID = input.get("ShopID") as bigint;
-    this.Payees = new PayeeMap(
-      input.get("Payees") as ConstructorParameters<typeof PayeeMap>[0],
-    );
-    this.AcceptedCurrencies = new AcceptedCurrencyMap(
-      input.get("AcceptedCurrencies") as ConstructorParameters<
-        typeof AcceptedCurrencyMap
-      >[0],
-    );
+    this.ShopID = ensureBigInt(input.get("ShopID"), "ShopID");
+
+    const payees = input.get("Payees");
+    if (!(payees instanceof Map)) {
+      throw new TypeError("Expected Payees to be a Map");
+    }
+    this.Payees = new PayeeMap(payees);
+
+    const acceptedCurrencies = input.get("AcceptedCurrencies");
+    if (!(acceptedCurrencies instanceof Map)) {
+      throw new TypeError("Expected AcceptedCurrencies to be a Map");
+    }
+    this.AcceptedCurrencies = new AcceptedCurrencyMap(acceptedCurrencies);
+
     const pricingCurrency = input.get("PricingCurrency");
-    this.PricingCurrency = new ChainAddress(
-      pricingCurrency as Map<string, unknown>,
-    );
-    this.ShippingRegions = input.get("ShippingRegions")
-      ? new ShippingRegionsMap(
-        input.get("ShippingRegions") as Map<string, unknown>,
-      )
-      : undefined;
+    if (!(pricingCurrency instanceof Map)) {
+      throw new TypeError("Expected PricingCurrency to be a Map");
+    }
+    this.PricingCurrency = new ChainAddress(pricingCurrency);
+
+    const shippingRegions = input.get("ShippingRegions");
+    if (shippingRegions !== undefined) {
+      if (!(shippingRegions instanceof Map)) {
+        throw new TypeError("Expected ShippingRegions to be a Map");
+      }
+      this.ShippingRegions = new ShippingRegionsMap(shippingRegions);
+    } else {
+      this.ShippingRegions = undefined;
+    }
   }
 }
 
 export class ShippingRegionsMap {
   data: Map<string, ShippingRegion> = new Map();
+
   constructor(shippingRegions: Map<string, unknown>) {
-    const map = new Map();
+    const map = new Map<string, ShippingRegion>();
     for (const [key, value] of shippingRegions) {
-      map.set(
-        key,
-        new ShippingRegion(value as Map<string, unknown>),
-      );
+      if (!(value instanceof Map)) {
+        throw new TypeError(
+          `Expected shipping region value for ${key} to be a Map`,
+        );
+      }
+      map.set(key, new ShippingRegion(value));
     }
     this.data = map;
   }
 
-  returnAsMap(): Map<string, unknown> {
+  asCBORMap(): Map<string, unknown> {
     const map = new Map();
     for (const [key, value] of this.data) {
-      map.set(key, value.returnAsMap());
+      map.set(key, value.asCBORMap());
     }
     return map;
   }
@@ -63,28 +84,35 @@ export class PayeeMap {
 
     for (const [chainId, addressMap] of payees.entries()) {
       if (!(addressMap instanceof Map)) {
-        throw new Error(
+        throw new TypeError(
           `Expected Map for chain ID ${chainId}, got ${typeof addressMap}`,
         );
       }
 
-      const validatedAddressMap = new Map();
+      const validatedAddressMap = new Map<Uint8Array, PayeeMetadata>();
       // Iterate through addresses and metadata
       for (const [address, metadata] of addressMap) {
-        if (
-          !(address instanceof Uint8Array && address.length === 20)
-        ) {
-          throw new Error(`Invalid Ethereum address for chain ID ${chainId}`);
-        }
-
-        if (!(metadata instanceof Map)) {
-          throw new Error(
-            `Invalid metadata for address in chain ID ${chainId}`,
+        if (!(address instanceof Uint8Array)) {
+          throw new TypeError(
+            `Expected Uint8Array for address in chain ID ${chainId}, got ${typeof address}`,
           );
         }
 
-        const payeeMetadata = new PayeeMetadata(metadata);
+        if (address.length !== 20) {
+          throw new Error(
+            `Invalid Ethereum address for chain ID ${chainId}: address must be 20 bytes`,
+          );
+        }
 
+        if (!(metadata instanceof Map)) {
+          throw new TypeError(
+            `Invalid metadata for address in chain ID ${chainId}, got ${typeof metadata}`,
+          );
+        }
+
+        const payeeMetadata = new PayeeMetadata(
+          metadata as Map<"CallAsContract", boolean>,
+        );
         validatedAddressMap.set(address, payeeMetadata);
       }
 
@@ -96,12 +124,12 @@ export class PayeeMap {
     return this.data.get(chainId)?.get(address);
   }
 
-  returnAsMap(): Map<number, Map<Uint8Array, Map<"CallAsContract", boolean>>> {
+  asCBORMap(): Map<number, Map<Uint8Array, Map<"CallAsContract", boolean>>> {
     const map = new Map();
     for (const [chainId, addressMap] of this.data) {
       const forChainID = new Map();
       for (const [address, metadata] of addressMap) {
-        forChainID.set(address, metadata.returnAsMap());
+        forChainID.set(address, metadata.asCBORMap());
       }
       map.set(chainId, forChainID);
     }
@@ -112,43 +140,72 @@ export class PayeeMap {
 export class PayeeMetadata extends BaseClass {
   CallAsContract: boolean = false;
 
-  constructor(input: Map<"CallAsContract", boolean>) {
+  constructor(input: Map<string, unknown>) {
     super();
-    this.CallAsContract = input.get("CallAsContract") || false;
+    const callAsContract = input.get("CallAsContract");
+    this.CallAsContract = callAsContract !== undefined
+      ? ensureBoolean(callAsContract, "CallAsContract")
+      : false;
+  }
+}
+
+export class Payee extends BaseClass {
+  Address: ChainAddress;
+  CallAsContract: boolean;
+
+  constructor(input: Map<string, unknown>) {
+    super();
+    this.Address = new ChainAddress(
+      input.get("Address") as Map<string, unknown>,
+    );
+    this.CallAsContract = ensureBoolean(
+      input.get("CallAsContract"),
+      "CallAsContract",
+    );
   }
 }
 
 export class AcceptedCurrencyMap {
-  data: Map<number, Map<Uint8Array, Map<"isContract", boolean>>> = new Map();
+  data: Map<number, Map<Uint8Array, Map<string, boolean>>> = new Map();
 
   constructor(input: Map<number, unknown>) {
-    if (input instanceof Map) {
-      // Iterate through chain IDs
-      for (const [chainId, addressSet] of input) {
-        if (typeof chainId !== "number") {
-          throw new Error(
-            `Expected number for chain ID ${chainId}, got ${typeof chainId}`,
-          );
-        }
-        if (!(addressSet instanceof Map)) {
-          throw new Error(
-            `Expected Set for chain ID ${chainId}, got ${typeof addressSet}`,
-          );
-        }
-
-        const validatedAddressMap = new Map();
-        // Iterate through addresses
-        for (const [address, val] of addressSet.entries()) {
-          validatedAddressMap.set(address, val);
-        }
-
-        this.data.set(chainId, validatedAddressMap);
+    // Iterate through chain IDs
+    for (const [chainId, addressSet] of input) {
+      if (typeof chainId !== "number") {
+        throw new TypeError(
+          `Expected number for chain ID, got ${typeof chainId}`,
+        );
       }
-    } else {
-      throw new Error("AcceptedCurrencies must be a Map");
+
+      if (!(addressSet instanceof Map)) {
+        throw new TypeError(
+          `Expected Map for chain ID ${chainId}, got ${typeof addressSet}`,
+        );
+      }
+
+      const validatedAddressMap = new Map<Uint8Array, Map<string, boolean>>();
+      // Iterate through addresses
+      for (const [address, val] of addressSet.entries()) {
+        if (!(address instanceof Uint8Array)) {
+          throw new TypeError(
+            `Expected Uint8Array for address in chain ID ${chainId}, got ${typeof address}`,
+          );
+        }
+
+        if (!(val instanceof Map)) {
+          throw new TypeError(
+            `Expected Map for address metadata in chain ID ${chainId}, got ${typeof val}`,
+          );
+        }
+
+        validatedAddressMap.set(address, val as Map<string, boolean>);
+      }
+
+      this.data.set(chainId, validatedAddressMap);
     }
   }
-  returnAsMap(): Map<number, Map<Uint8Array, Map<"isContract", boolean>>> {
+
+  asCBORMap(): Map<number, Map<Uint8Array, Map<"isContract", boolean>>> {
     const map = new Map();
     for (const [chainId, addressMap] of this.data) {
       const addressMapMap = new Map();
@@ -164,10 +221,11 @@ export class AcceptedCurrencyMap {
 export class ChainAddress extends BaseClass {
   ChainID: number;
   Address: Uint8Array;
+
   constructor(input: Map<string, unknown>) {
     super();
-    this.ChainID = input.get("ChainID") as number;
-    this.Address = input.get("Address") as Uint8Array;
+    this.ChainID = ensureNumber(input.get("ChainID"), "ChainID");
+    this.Address = ensureUint8Array(input.get("Address"), "Address");
   }
 }
 
@@ -175,26 +233,33 @@ export class ShippingRegion extends BaseClass {
   Country: string;
   PostalCode: string;
   City: string;
+
   constructor(input: Map<string, unknown>) {
     super();
-    this.Country = input.get("Country") as string;
-    this.PostalCode = input.get("PostalCode") as string;
-    this.City = input.get("City") as string;
+    this.Country = ensureString(input.get("Country"), "Country");
+    this.PostalCode = ensureString(input.get("PostalCode"), "PostalCode");
+    this.City = ensureString(input.get("City"), "City");
   }
 }
 
 export class PriceModifier {
   ModificationPrecents?: bigint;
-  ModificationAbsolute?: ModificationAbsolute | undefined;
+  ModificationAbsolute?: ModificationAbsolute;
 
   constructor(input: Map<string, unknown>) {
     // Make it a sum type - only one of these should be set
     if (input.has("ModificationPrecents")) {
-      this.ModificationPrecents = input.get("ModificationPrecents") as bigint;
+      this.ModificationPrecents = ensureBigInt(
+        input.get("ModificationPrecents"),
+        "ModificationPrecents",
+      );
     } else if (input.has("ModificationAbsolute")) {
-      const modificationAbsolute = input.get("ModificationAbsolute")!;
+      const modificationAbsolute = input.get("ModificationAbsolute");
+      if (!(modificationAbsolute instanceof Map)) {
+        throw new TypeError("Expected ModificationAbsolute to be a Map");
+      }
       this.ModificationAbsolute = new ModificationAbsolute(
-        modificationAbsolute as Map<string, unknown>,
+        modificationAbsolute,
       );
     } else {
       throw new Error(
@@ -203,7 +268,7 @@ export class PriceModifier {
     }
   }
 
-  returnAsMap(): Map<string, unknown> {
+  asCBORMap(): Map<string, unknown> {
     const map = new Map();
     if (this.ModificationAbsolute && this.ModificationPrecents) {
       throw new Error(
@@ -214,7 +279,7 @@ export class PriceModifier {
       map.set("ModificationPrecents", this.ModificationPrecents);
     }
     if (this.ModificationAbsolute) {
-      map.set("ModificationAbsolute", this.ModificationAbsolute.returnAsMap());
+      map.set("ModificationAbsolute", this.ModificationAbsolute.asCBORMap());
     }
     return map;
   }
@@ -226,7 +291,7 @@ export class ModificationAbsolute extends BaseClass {
 
   constructor(input: Map<string, unknown>) {
     super();
-    this.Amount = input.get("Amount") as bigint;
-    this.Plus = input.get("Plus") as boolean;
+    this.Amount = ensureBigInt(input.get("Amount"), "Amount");
+    this.Plus = ensureBoolean(input.get("Plus"), "Plus");
   }
 }
