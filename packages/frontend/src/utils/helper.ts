@@ -1,16 +1,15 @@
 import { formatUnits } from "viem";
+import { Listing } from "@massmarket/schema";
 
-export async function asyncIteratorToMap<K, V>(
-  iterator: () => AsyncIterable<[K, V]>,
-): Promise<Map<K, V>> {
+export async function mapToListingsClass(listings){
   const items = new Map();
   for await (
     const [
       id,
       item,
-    ] of iterator()
+    ] of listings.entries()
   ) {
-    items.set(id, item);
+    items.set(id, new Listing(item));
   }
   return items;
 }

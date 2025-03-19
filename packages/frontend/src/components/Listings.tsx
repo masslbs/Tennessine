@@ -4,52 +4,53 @@
 
 import { useEffect, useState } from "react";
 
+import {Listing} from "@massmarket/schema"
+
 import CustomerViewListings from "./CustomerViewListings.tsx";
 import { useKeycard } from "../hooks/useKeycard.ts";
 import { useClientWithStateManager } from "../hooks/useClientWithStateManager.ts";
 import MerchantViewListings from "./merchants/listings/MerchantViewListings.tsx";
-import { asyncIteratorToMap } from "../utils/mod.ts";
+import { mapToListingsClass } from "../utils/mod.ts";
 
 export default function Listings() {
   const { clientStateManager, result } = useClientWithStateManager();
   const [keycard] = useKeycard();
-  const [products, setProducts] = useState(new Map());
+  const [products, setProducts] = useState<Map<ListingId, Listing>>(new Map());
+
+
+ function setAllListings(map: Map<ListingId, Listing>){
+  sm.get(["Listings"]).then((allListings)=>{
+    mapToListingsClass(allListings).then((map)=>{
+      setProducts(map)
+    })  
+  })
+ }
 
   useEffect(() => {
     if (!clientStateManager?.stateManager) return;
+    const sm = clientStateManager.stateManager
+
     function onCreateEvent() {
-      asyncIteratorToMap(clientStateManager!.stateManager.listings.iterator)
-        .then(
-          (listings) => {
-            setProducts(listings);
-          },
-        );
+     setAllListings()
     }
+
     function onUpdateEvent() {
-      asyncIteratorToMap(clientStateManager!.stateManager.listings.iterator)
-        .then(
-          (listings) => {
-            setProducts(listings);
-          },
-        );
+      setAllListings()
     }
 
     // Listen to future events
-    clientStateManager!.stateManager.events.on("Listing", onCreateEvent);
-    clientStateManager!.stateManager.events.on("UpdateListing", onUpdateEvent);
-    asyncIteratorToMap(clientStateManager.stateManager.listings.iterator)
-      .then(
-        (listings) => {
-          setProducts(listings);
-        },
-      );
+    sm.events.on("Listing", onCreateEvent);
+    sm.events.on("UpdateListing", onUpdateEvent);
+
+    setAllListings()
+
     return () => {
       // Cleanup listeners on unmount
-      clientStateManager!.stateManager.listings.removeListener(
+      sm.listings.removeListener(
         "create",
         onCreateEvent,
       );
-      clientStateManager!.stateManager.listings.removeListener(
+      sm.listings.removeListener(
         "update",
         onUpdateEvent,
       );
@@ -59,6 +60,7 @@ export default function Listings() {
   if (!clientStateManager?.stateManager) {
     return <main data-testid="listings-page">Loading...</main>;
   }
+  
   return (
     <main
       className="bg-background-gray pt-under-nav"
