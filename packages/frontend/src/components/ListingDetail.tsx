@@ -6,8 +6,10 @@ import { ChangeEvent, useEffect, useState } from "react";
 import { Link, useSearch } from "@tanstack/react-router";
 
 import { formatUnitsFromString, logger } from "@massmarket/utils";
+import { Listing } from "@massmarket/schema/standin";
+import { randUint64 } from "@massmarket/utils";
 
-import { ListingId, OrderId, OrderState, TListing } from "../types.ts";
+import { ListingId, OrderId, OrderState } from "../types.ts";
 import Button from "./common/Button.tsx";
 import BackButton from "./common/BackButton.tsx";
 import { useBaseToken } from "../hooks/useBaseToken.ts";
@@ -16,6 +18,7 @@ import { useKeycard } from "../hooks/useKeycard.ts";
 import ErrorMessage from "./common/ErrorMessage.tsx";
 import SuccessToast from "./common/SuccessToast.tsx";
 import { useCurrentOrder } from "../hooks/useCurrentOrder.ts";
+import { useStateManagerValue } from "../hooks/useStateManager.ts";
 
 const namespace = "frontend:listing-detail";
 const debug = logger(namespace);
@@ -26,10 +29,21 @@ export default function ListingDetail() {
   const { clientStateManager } = useClientWithStateManager();
   const [keycard] = useKeycard();
   const search = useSearch({ strict: false });
-  const { currentOrder } = useCurrentOrder();
-  const itemId = search.itemId as ListingId | "new";
-  const [item, setItem] = useState<TListing | null>(null);
-  const [price, setPrice] = useState("");
+  // const { currentOrder } = useCurrentOrder();
+  let itemId = search.itemId as ListingId | "new";
+  if (itemId === "new") {
+    itemId = randUint64();
+  }
+
+  const [item] = useStateManagerValue<Listing>(
+    ["Listings", itemId],
+    new Listing(new Map([["ItemID", itemId]])),
+  );
+  const [price, setPrice] = useStateManagerValue<bigint>(
+    ["Listings", itemId, "Price"],
+    0n,
+  );
+
   const [tokenIcon, setIcon] = useState("/icons/usdc-coin.png");
   const [quantity, setQuantity] = useState<string>("");
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
@@ -37,24 +51,24 @@ export default function ListingDetail() {
   const [displayedImg, setDisplayedImg] = useState(null);
 
   useEffect(() => {
-    if (itemId && baseToken) {
-      //set item details
-      clientStateManager!.stateManager.listings
-        .get(["Listings", itemId])
-        .then((item: TListing) => {
-          setItem(item);
-          const price = formatUnitsFromString(
-            item.price,
-            baseToken?.decimals || 0,
-          );
-          setDisplayedImg(item.metadata.images[0]);
-          if (baseToken?.symbol === "ETH") {
-            setIcon("/icons/eth-coin.svg");
-          }
-          setPrice(price);
-        });
+    if (item && baseToken) {
+      const price = formatUnitsFromString(
+        item.Price.toString(),
+        baseToken?.decimals || 0,
+      );
+      setPrice(price);
+
+      if (item.Metadata?.Images?.length && item.Metadata.Images.length > 0) {
+        setDisplayedImg(item.Metadata.Images[0]);
+      }
+
+      if (baseToken?.symbol === "ETH") {
+        setIcon("/icons/eth-coin.svg");
+      } else {
+        setIcon("/icons/usdc-coin.png");
+      }
     }
-  }, [itemId, baseToken]);
+  }, [item, baseToken]);
 
   if (!item) {
     return (
@@ -68,6 +82,7 @@ export default function ListingDetail() {
     const newValue = e.target.value.replace(/^0+/, "");
     setQuantity(newValue);
   }
+  /* TODO: orders
   async function cancelAndCreateOrder() {
     debug(`Cancelling order ID: ${currentOrder!.orderId}`);
     const sm = clientStateManager!.stateManager;
@@ -89,6 +104,7 @@ export default function ListingDetail() {
     debug("Listings added to new order");
     return newOrder.id;
   }
+
 
   async function changeItems() {
     let orderId: OrderId | null = currentOrder?.orderId || null;
@@ -115,7 +131,7 @@ export default function ListingDetail() {
       setErrorMsg("There was an error updating cart");
     }
   }
-
+  */
   return (
     <main
       className="bg-gray-100 pt-under-nav md:flex justify-center"
@@ -131,7 +147,7 @@ export default function ListingDetail() {
         <BackButton href="/listings" />
         <div className="my-3">
           <h1 className="flex items-center" data-testid="title">
-            {item.metadata.title}
+            {item.Metadata.Title}
           </h1>
           <div
             className={`mt-2 ${keycard.role === "merchant" ? "" : "hidden"}`}
@@ -141,7 +157,7 @@ export default function ListingDetail() {
                 to="/edit-listing"
                 search={(prev: Record<string, string>) => ({
                   shopId: prev.shopId,
-                  itemId: item.id,
+                  itemId: item.ID.toString(),
                 })}
                 className="text-white"
               >
@@ -163,10 +179,10 @@ export default function ListingDetail() {
                 }}
               />
             )}
-            {item.metadata.images.length > 1
+            {item.Metadata.Images && item.Metadata.Images.length > 1
               ? (
                 <div className="flex mt-2 gap-2">
-                  {item.metadata.images.map((image: string, i: number) => {
+                  {item.Metadata.Images.map((image: string, i: number) => {
                     if (image === displayedImg) return;
                     return (
                       <img
@@ -193,7 +209,7 @@ export default function ListingDetail() {
           <section className="flex gap-4 flex-col bg-white mt-5 md:mt-0 rounded-md md:w-2/5 p-4">
             <div>
               <h3 className=" ">Description</h3>
-              <p data-testid="description">{item.metadata.description}</p>
+              <p data-testid="description">{item.Metadata.Description}</p>
             </div>
             <div className="flex gap-2 items-center mt-auto">
               <img
