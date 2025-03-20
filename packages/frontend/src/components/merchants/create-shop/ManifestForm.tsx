@@ -52,7 +52,6 @@ export default function ManifestForm(
       const allAddressesMap = allChainsMap.has(chainId)
         ? allChainsMap.get(chainId)
         : new Map();
-      //FIXME: address has to be in bytes
       allAddressesMap!.set(address, new Map([["IsContract", false]]));
       allChainsMap.set(chainId, allAddressesMap!);
     } else {

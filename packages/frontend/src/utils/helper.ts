@@ -1,7 +1,6 @@
 import { formatUnits } from "viem";
 
 import { Order } from "@massmarket/schema";
-import { CodecValue } from "@massmarket/utils/codec";
 
 import { ClientWithStateManager } from "../ClientWithStateManager.ts";
 import { OrderId, OrderState } from "../types.ts";

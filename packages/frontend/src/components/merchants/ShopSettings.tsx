@@ -27,7 +27,6 @@ import { useShopId } from "../../hooks/useShopId.ts";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 
 const namespace = "frontend:StoreSettings";
-const debug = logger(namespace);
 const errlog = logger(namespace, "error");
 
 export default function ShopSettings() {

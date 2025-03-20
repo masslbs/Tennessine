@@ -8,6 +8,7 @@ import {
   AcceptedCurrencyMap,
   ChainAddress,
   Manifest,
+  Payee,
   PayeeMap,
 } from "./standin_manifest.ts";
 import { Listing, ListingMetadata } from "./standin_listing.ts";
@@ -20,6 +21,7 @@ export {
   Manifest,
   Order,
   OrderedItem,
+  Payee,
   PayeeMap,
 };
 
