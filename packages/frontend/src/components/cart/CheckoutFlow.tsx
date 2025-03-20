@@ -6,14 +6,13 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 
 import { assert, logger } from "@massmarket/utils";
+import { Order } from "@massmarket/schema";
 
 import {
   CheckoutStep,
-  ListingId,
   OrderEventTypes,
   OrderId,
   OrderState,
-  TOrder,
 } from "../../types.ts";
 import Cart from "./Cart.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
@@ -23,6 +22,7 @@ import TimerExpiration from "./TimerExpiration.tsx";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import PaymentConfirmation from "./PaymentConfirmation.tsx";
+import { cancelAndCreateOrder } from "../../utils/helper.ts";
 
 const namespace = "frontend:Checkout";
 const debug = logger(namespace);
@@ -52,7 +52,7 @@ export default function CheckoutFlow() {
         setCountdown((prev: number) => prev - 10);
       }, 10000);
     } else if (countdown === 0) {
-      cancelAndCreateOrder()
+      cancelAndCreateOrder(currentOrder!.orderId, clientStateManager!)
         .then()
         .catch((e) => {
           logerr("Error cancelling order", e);
@@ -66,11 +66,11 @@ export default function CheckoutFlow() {
   }, [isRunning, countdown]);
 
   useEffect(() => {
-    function txHashDetected(res: [OrderEventTypes, TOrder]) {
+    function txHashDetected(res: [OrderEventTypes, unknown]) {
       if (res[0] === OrderEventTypes.PAYMENT_TX) {
-        const order = res[1];
-        const tx = order.txHash as `0x${string}`;
-        const bh = order.blockHash as `0x${string}`;
+        const order = new Order(res[1]);
+        const tx = order.TxDetails?.TxHash;
+        const bh = order.TxDetails?.blockHash;
         tx && setTxHash(tx);
         bh && setBlockHash(bh);
         debug(`Hash received: ${tx ?? bh}`);
@@ -98,27 +98,6 @@ export default function CheckoutFlow() {
     });
   }
 
-  async function cancelAndCreateOrder() {
-    debug(`Cancelling order ID: ${currentOrder!.orderId}`);
-    const sm = clientStateManager!.stateManager;
-    const [_type, cancelledOrder] = await sm.orders.cancel(
-      currentOrder!.orderId,
-    );
-    // Once order is cancelled, create a new order and add the same items.
-    const newOrder = await sm.orders.create();
-    debug("New order created");
-    const listingsToAdd = Object.entries(cancelledOrder.items).map(
-      ([listingId, quantity]) => {
-        return {
-          listingId: listingId as ListingId,
-          quantity,
-        };
-      },
-    );
-    await sm.orders.addItems(newOrder.id, listingsToAdd);
-    debug("Listings added to new order");
-  }
-
   function startTimer() {
     setIsRunning(true);
   }
@@ -130,8 +109,11 @@ export default function CheckoutFlow() {
     try {
       // Commit the order if it is not already committed
       if (currentOrder!.status !== OrderState.STATE_COMMITTED) {
-        await clientStateManager!.stateManager.orders.commit(orderId);
-        debug(`TOrder ID: ${orderId} committed`);
+        await clientStateManager!.stateManager.set(
+          ["Orders", orderId, "State"],
+          OrderState.STATE_COMMITTED,
+        );
+        debug(`Order ID: ${orderId} committed`);
       }
       setStep(CheckoutStep.shippingDetails);
     } catch (error: unknown) {

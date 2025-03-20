@@ -1,43 +1,56 @@
 import { useEffect, useState } from "react";
+import { Order } from "@massmarket/schema";
+
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
-import { OrderState, TOrder } from "../../types.ts";
+import { OrderId } from "../../types.ts";
 import Transactions from "./Transactions.tsx";
 
 export default function Orders() {
   const { clientStateManager } = useClientWithStateManager();
 
-  const [orders, setOrders] = useState(new Map());
+  const [orders, setOrders] = useState<Map<OrderId, Order>>(new Map());
 
-  async function getAllOrders() {
-    const allOrders = new Map();
-    for await (
-      const [
-        id,
-        o,
-      ] of clientStateManager!.stateManager.orders.iterator()
-    ) {
-      // Exclude orders by status
-      if (Object.values(OrderState).includes(id)) {
-        return;
-      }
-      allOrders.set(id, o);
-    }
-    return allOrders;
+  function getAllOrders() {
+    return clientStateManager!.stateManager.get(["Orders"]).then(
+      async (res: Map<OrderId, unknown>) => {
+        const allOrders = new Map();
+        for await (
+          const [
+            id,
+            o,
+          ] of res.entries()
+        ) {
+          // // Exclude orders by status
+          // if (Object.values(OrderState).includes(id)) {
+          //   return;
+          // }
+          allOrders.set(id, new Order(o));
+        }
+        return allOrders;
+      },
+    );
   }
 
   useEffect(() => {
-    function onCreateOrder(order: TOrder) {
+    if (!clientStateManager?.stateManager) return;
+
+    function onCreateOrder(o: unknown) {
+      const order = new Order(o);
       orders.set(order.id, order);
       setOrders(orders);
     }
-    function onUpdateOrder(order: TOrder) {
+
+    function onUpdateOrder(o: unknown) {
+      const order = new Order(o);
       orders.set(order.id, order);
       setOrders(orders);
     }
-    getAllOrders().then((allOrders) => {
-      setOrders(allOrders);
-      clientStateManager!.stateManager.orders.on("create", onCreateOrder);
-      clientStateManager!.stateManager.orders.on("update", onUpdateOrder);
+
+    clientStateManager!.stateManager.orders.on("create", onCreateOrder);
+    clientStateManager!.stateManager.orders.on("update", onUpdateOrder);
+
+    getAllOrders().then((orders: Map<OrderId, Order>) => {
+      setOrders(orders);
     });
 
     return () => {

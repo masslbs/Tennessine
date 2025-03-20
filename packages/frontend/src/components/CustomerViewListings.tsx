@@ -4,14 +4,16 @@
 
 import { Link } from "@tanstack/react-router";
 
+import { Listing } from "@massmarket/schema";
+
 import { formatUnitsFromString } from "@massmarket/utils";
-import { ListingViewState, TListing } from "../types.ts";
+import { ListingViewState } from "../types.ts";
 import { useBaseToken } from "../hooks/useBaseToken.ts";
 
 export default function CustomerViewProducts({
   products,
 }: {
-  products: TListing[] | null;
+  products: Listing[] | null;
 }) {
   const { baseToken } = useBaseToken();
 
@@ -23,20 +25,20 @@ export default function CustomerViewProducts({
         </div>
       );
     }
-    return products.map((item: TListing) => {
+    return products.map((item: Listing) => {
       const { metadata } = item;
       if (!metadata) return null;
       const visible =
-        item.viewState === ListingViewState.LISTING_VIEW_STATE_PUBLISHED;
+        item.ViewState === ListingViewState.LISTING_VIEW_STATE_PUBLISHED;
 
       return (
         <Link
-          key={item.id}
+          key={item.ID}
           data-testid="product-container"
           to="/listing-detail"
           search={(prev: Record<string, string>) => ({
             shopId: prev.shopId,
-            itemId: item.id,
+            itemId: item.ID,
           })}
           className={`${!visible ? "hidden" : "text-black"}`}
         >
@@ -53,7 +55,7 @@ export default function CustomerViewProducts({
             <div className="bg-white flex flex-col gap-2 rounded-b-lg p-3 min-h-24 max-h-24 h-24 w-40 xxs:w-36">
               <div className="min-h-8">
                 <h3 data-testid="product-name" className="leading-4">
-                  {item.metadata.title}
+                  {item.Metadata.Title}
                 </h3>
               </div>
               <div className="flex gap-2 items-center">
@@ -69,7 +71,7 @@ export default function CustomerViewProducts({
                 />
                 <p data-testid="product-price">
                   {baseToken &&
-                    formatUnitsFromString(item.price, baseToken.decimals)}
+                    formatUnitsFromString(item.Price, baseToken.decimals)}
                 </p>
               </div>
             </div>

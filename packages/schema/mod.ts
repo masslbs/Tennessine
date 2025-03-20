@@ -4,6 +4,26 @@
 // @ts-types="./compiled.d.ts"
 import pb from "./compiled.js";
 export default pb.market.mass;
+import {
+  AcceptedCurrencyMap,
+  ChainAddress,
+  Manifest,
+  Payee,
+  PayeeMap,
+} from "./standin_manifest.ts";
+import { Listing, ListingMetadata } from "./standin_listing.ts";
+import { Order, OrderedItem } from "./standin_order.ts";
+export {
+  AcceptedCurrencyMap,
+  ChainAddress,
+  Listing,
+  ListingMetadata,
+  Manifest,
+  Order,
+  OrderedItem,
+  Payee,
+  PayeeMap,
+};
 
 // a few concrete fields we need to handle in the client.
 // these are not generated from the proto files.

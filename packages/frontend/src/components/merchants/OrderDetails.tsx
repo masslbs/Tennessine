@@ -2,34 +2,34 @@ import { useEffect, useState } from "react";
 import { type Chain, mainnet, optimism, sepolia } from "wagmi/chains";
 import { useSearch } from "@tanstack/react-router";
 
+import { Listing, Order, OrderedItem } from "@massmarket/schema";
+
 import BackButton from "../common/BackButton.tsx";
-import {
-  CartItem,
-  ListingId,
-  OrderState,
-  TListing,
-  TOrder,
-} from "../../types.ts";
+import { ListingId, OrderState } from "../../types.ts";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 
 export default function OrderDetails() {
   const { clientStateManager } = useClientWithStateManager();
   const search = useSearch({ strict: false });
   const orderId = search.orderId;
-  const [orderItems, setOrderItems] = useState<Map<ListingId, CartItem>>(
+  const [cartItemsMap, setCartMap] = useState<Map<ListingId, Listing>>(
+    new Map(),
+  );
+  const [selectedQty, setSelectedQty] = useState<Map<ListingId, number>>(
     new Map(),
   );
   const [txHash, setTxHash] = useState(null);
   const [blockHash, setBlockHash] = useState(null);
   const [etherScanLink, setLink] = useState<string | null>(null);
   const [date, setDate] = useState("N/A");
-  const [order, setOrder] = useState<TOrder | null>(null);
+  const [order, setOrder] = useState<Order>(new Order());
 
   useEffect(() => {
     if (!orderId) return;
-    clientStateManager!.stateManager.orders.get(orderId).then((o: TOrder) => {
-      getCartItemDetails(o).then((cartItems) => {
-        setOrderItems(cartItems);
+    clientStateManager!.stateManager.get(["Orders", orderId]).then((res) => {
+      const o = new Order(res);
+      getAllCartItemDetails(o).then((cartItems) => {
+        setCartMap(cartItems);
       });
       setOrder(o);
     });
@@ -68,36 +68,41 @@ export default function OrderDetails() {
   }, [order]);
 
   function copyTxHash() {
-    navigator.clipboard.writeText(txHash);
+    navigator.clipboard.writeText(txHash!);
   }
 
   function copyBlockHash() {
-    navigator.clipboard.writeText(blockHash);
+    navigator.clipboard.writeText(blockHash!);
   }
 
-  async function getCartItemDetails(order: TOrder) {
+  async function getAllCartItemDetails(order: Order) {
     const ci = order.items;
-    const cartObjects = new Map<ListingId, CartItem>();
-    // Get price and metadata for all the selected items in the order.
-    const itemIds = Object.keys(ci);
+    const allCartItems = new Map<ListingId, Listing>();
     await Promise.all(
-      itemIds.map((id) =>
-        clientStateManager!.stateManager.get(["Listings", id])
-          .then((item: TListing) => {
-            cartObjects.set(item.id, {
-              ...item,
-              selectedQty: ci[item.id],
-            });
-          })
-      ),
+      ci.map((orderItem: OrderedItem) => {
+        const updatedQtyMap = new Map(selectedQty);
+        updatedQtyMap.set(orderItem.ListingID, orderItem.Quantity);
+        setSelectedQty(updatedQtyMap);
+        // If the selected quantity is 0, don't add the item to cart items map
+        if (orderItem.Quantity === 0) return;
+        // Get price and metadata for all the selected items in the order.
+        return clientStateManager!.stateManager.get([
+          "Listings",
+          orderItem.ListingID,
+        ])
+          .then((l) => {
+            const listing = new Listing(l);
+            allCartItems.set(orderItem.ListingID, listing);
+          });
+      }),
     );
-    return cartObjects;
+    return allCartItems;
   }
 
   function renderItems() {
-    if (!order || !orderItems.size) return <p>No items in cart</p>;
-    const values: CartItem[] = Array.from(orderItems.values());
-    return values.map((listing: CartItem) => {
+    if (!order || !cartItemsMap.size) return <p>No items in cart</p>;
+    const values: Listing[] = Array.from(cartItemsMap.values());
+    return values.map((listing: Listing) => {
       return (
         <div key={listing.id} className="flex gap-4" data-testid="order-item">
           <img

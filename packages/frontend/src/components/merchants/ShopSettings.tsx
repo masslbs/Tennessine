@@ -8,17 +8,13 @@ import { Address, zeroAddress } from "viem";
 
 import { setTokenURI } from "@massmarket/blockchain";
 import { assert, logger } from "@massmarket/utils";
-
 import {
-  CurrencyChainOption,
-  TCurrencyMap,
-  TManifest,
-  TChainAddress,
-} from "../../types.ts";
-import {
-  compareAddedRemovedChains,
-  getTokenAddress,
-} from "../../utils/token.ts";
+  AcceptedCurrencyMap,
+  ChainAddress,
+  Manifest,
+} from "@massmarket/schema";
+import { CurrencyChainOption } from "../../types.ts";
+import { getTokenAddress } from "../../utils/token.ts";
 import Button from "../common/Button.tsx";
 import AvatarUpload from "../common/AvatarUpload.tsx";
 import ValidationWarning from "../common/ValidationWarning.tsx";
@@ -31,7 +27,6 @@ import { useShopId } from "../../hooks/useShopId.ts";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 
 const namespace = "frontend:StoreSettings";
-const debug = logger(namespace);
 const errlog = logger(namespace, "error");
 
 export default function ShopSettings() {
@@ -45,17 +40,17 @@ export default function ShopSettings() {
   const [avatar, setAvatar] = useState<FormData | null>(null);
 
   const [acceptedCurrencies, setAcceptedCurrencies] = useState<
-    TCurrencyMap
-  >(new Map());
-  const [pricingCurrency, seTChainAddress] = useState<
-    TChainAddress | null
+    AcceptedCurrencyMap
+  >(new AcceptedCurrencyMap());
+  const [pricingCurrency, setPricingCurrency] = useState<
+    ChainAddress
   >(
-    null,
+    new ChainAddress(new Map()),
   );
   const [error, setError] = useState<null | string>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [manifest, setManifest] = useState<TManifest | null>(null);
+  const [manifest, setManifest] = useState<Manifest | null>(null);
   const [displayedChains, setDisplayedChains] = useState<CurrencyChainOption[]>(
     [],
   );
@@ -66,15 +61,15 @@ export default function ShopSettings() {
         chainsToRender.push({
           label: `ETH/${c.name}`,
           value: `${zeroAddress}/${c.id}`,
-          Address: zeroAddress,
-          ChainID: c.id,
+          address: zeroAddress,
+          chainId: c.id,
         });
-        const eddAddress = getTokenAddress("EDD", String(c.id));
+        const eddAddress = getTokenAddress("EDD", c.id);
         chainsToRender.push({
           label: `EDD/${c.name}`,
           value: `${eddAddress}/${c.id}`,
-          Address: eddAddress as `0x${string}`,
-          ChainID: c.id,
+          address: eddAddress as `0x${string}`,
+          chainId: c.id,
         });
       });
       setDisplayedChains(chainsToRender);
@@ -83,24 +78,20 @@ export default function ShopSettings() {
 
   useEffect(() => {
     if (!clientStateManager?.stateManager) return;
-    function onUpdateEvent(updatedManifest: TManifest) {
-      setManifest(updatedManifest);
-      setAcceptedCurrencies(updatedManifest.acceptedCurrencies);
-      seTChainAddress({
-        Address: updatedManifest.pricingCurrency.Address!,
-        ChainID: updatedManifest.pricingCurrency.ChainID!,
-      });
+    function onUpdateEvent(res: Map<string, unknown>) {
+      const m = new Manifest(res);
+      setManifest(m);
+      setAcceptedCurrencies(m.AcceptedCurrencies);
+      setPricingCurrency(m.PricingCurrency);
     }
 
     clientStateManager
-      .stateManager!.manifest.get()
-      .then((shopManifest: TManifest) => {
-        setManifest(shopManifest);
-        setAcceptedCurrencies(shopManifest.acceptedCurrencies);
-        seTChainAddress({
-          ChainID: shopManifest.pricingCurrency.ChainID!,
-          Address: shopManifest.pricingCurrency.Address!,
-        });
+      .stateManager!.get(["Manifest"])
+      .then((res: Map<string, unknown>) => {
+        const m = new Manifest(res);
+        setManifest(m);
+        setAcceptedCurrencies(m.AcceptedCurrencies);
+        setPricingCurrency(m.PricingCurrency);
       });
 
     clientStateManager.stateManager.events.on(["Manifest"], onUpdateEvent);
@@ -118,34 +109,25 @@ export default function ShopSettings() {
     navigator.clipboard.writeText(String(shopId));
   }
   async function updateShopManifest() {
-    const um: Partial<TManifest> = {};
+    const csm = clientStateManager!.stateManager;
     //If pricing currency needs to update.
     if (
-      pricingCurrency!.Address !== manifest!.pricingCurrency.Address ||
-      pricingCurrency!.chainID !== manifest!.pricingCurrency.chainID
+      pricingCurrency!.Address !== manifest!.PricingCurrency.Address ||
+      pricingCurrency!.chainID !== manifest!.PricingCurrency.chainID
     ) {
-      um.seTChainAddress = pricingCurrency;
+      await csm.set(["Manifest", "PricingCurrency"], pricingCurrency);
     }
-    //Compare added/removed currencies and apply changes to update manifest object.
-    const { removed, added } = compareAddedRemovedChains(
-      manifest!.acceptedCurrencies,
-      acceptedCurrencies,
-    );
-
-    if (removed.length) {
-      debug(`Removing ${removed.length} chain from accepted chains`);
-      um.removeAcceptedCurrencies = removed;
-    }
-    if (added.length) {
-      debug(`Adding ${added.length} chain to accepted chains`);
-      um.addAcceptedCurrencies = added;
+    if (
+      acceptedCurrencies.asCBORMap() !==
+        manifest!.AcceptedCurrencies.asCBORMap()
+    ) {
+      await csm.set(
+        ["Manifest", "AcceptedCurrencies"],
+        acceptedCurrencies.asCBORMap(),
+      );
     }
 
     try {
-      if (Object.keys(um).length) {
-        await clientStateManager!.stateManager.manifest.update(um);
-      }
-
       //If avatar or store name changed, setShopMetadataURI.
       if (avatar || storeName !== shopDetails.name) {
         const metadata = {
@@ -185,21 +167,16 @@ export default function ShopSettings() {
 
   function handleAcceptedCurrencies(e: ChangeEvent<HTMLInputElement>) {
     const [address, chainId] = e.target.value.split("/");
-    const newAcceptedCurrencies = new Map(acceptedCurrencies);
-    const allChainAddresses = newAcceptedCurrencies.get(chainId) || new Map();
-
+    const copy = new AcceptedCurrencyMap(acceptedCurrencies.asCBORMap());
+    const addresses = copy.getAddressesByChainID(Number(chainId)) ?? new Map();
     if (e.target.checked) {
-      allChainAddresses.set(address, null);
-      newAcceptedCurrencies.set(chainId, allChainAddresses);
-      setAcceptedCurrencies(newAcceptedCurrencies);
+      addresses.set(address, new Map([["IsContract", false]]));
+      copy.set(Number(chainId), addresses);
+      setAcceptedCurrencies(copy);
     } else {
-      if (allChainAddresses) {
-        //TODO: may have to delete address as lowercase
-        allChainAddresses.delete(address);
-        newAcceptedCurrencies.set(chainId, allChainAddresses);
-      }
+      addresses.delete(address);
       setAcceptedCurrencies(
-        newAcceptedCurrencies,
+        copy,
       );
     }
   }
@@ -208,13 +185,16 @@ export default function ShopSettings() {
     const v = option.value as string;
     const [addr, chainId] = v.split("/");
     const address = addr as Address;
-    seTChainAddress({ ChainID: Number(chainId), Address: address });
+    const pc = new ChainAddress(
+      new Map([["ChainID", Number(chainId)], ["Address", address]]),
+    );
+    setPricingCurrency(pc);
   }
 
   function currencyIsSelected(c: CurrencyChainOption) {
-    if (acceptedCurrencies.get(c.chainId)) {
-      const addresses = Object.keys(acceptedCurrencies.get(c.chainId));
-      return addresses.includes(c.address.toLowerCase());
+    const addresses = acceptedCurrencies.getAddressesByChainID(c.chainId);
+    if (addresses) {
+      return Boolean(addresses.get(c.address!.toLowerCase()));
     }
     return false;
   }

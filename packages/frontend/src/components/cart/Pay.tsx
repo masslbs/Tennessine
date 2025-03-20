@@ -12,11 +12,12 @@ import {
 } from "@massmarket/contracts";
 import { assert, logger } from "@massmarket/utils";
 import { approveERC20, getAllowance, pay } from "@massmarket/blockchain";
+import { Order } from "@massmarket/schema";
 
 import Button from "../common/Button.tsx";
 import BackButton from "../common/BackButton.tsx";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
-import { OrderState, TOrder } from "../../types.ts";
+import { OrderState } from "../../types.ts";
 import { env } from "../../utils/env.ts";
 
 const namespace = "frontend:Pay";
@@ -51,11 +52,12 @@ export default function Pay({
   const [txHash, setTxHash] = useState<string | null>(null);
 
   useEffect(() => {
-    function txHashDetected(order: [OrderState, TOrder]) {
-      if (order[1].txHash) {
-        setTxHash(order[1].txHash);
+    function txHashDetected(res: [OrderState, unknown]) {
+      const order = new Order(res[1]);
+      if (order.TxDetails?.txHash) {
+        setTxHash(order.TxDetails?.txHash);
         addRecentTransaction({
-          hash: order[1].txHash,
+          hash: order.TxDetails?.txHash,
           description: "Order Payment",
           // confirmations: 3,
         });

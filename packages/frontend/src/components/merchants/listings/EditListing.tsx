@@ -11,8 +11,9 @@ import {
   logger,
   objectId,
 } from "@massmarket/utils";
+import { Listing, ListingMetadata } from "@massmarket/schema";
 
-import { ListingId, ListingViewState, TListing } from "../../../types.ts";
+import { ListingId, ListingViewState } from "../../../types.ts";
 import ErrorMessage from "../../common/ErrorMessage.tsx";
 import ValidationWarning from "../../common/ValidationWarning.tsx";
 import { useBaseToken } from "../../../hooks/useBaseToken.ts";
@@ -38,7 +39,7 @@ export default function EditProduct() {
 
   const { clientStateManager } = useClientWithStateManager();
   const { baseToken } = useBaseToken();
-  const [productInView, setProductInView] = useState<TListing | null>(null);
+  const [productInView, setProductInView] = useState<Listing | null>(null);
   const [price, setPrice] = useState<string>("");
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
@@ -53,23 +54,35 @@ export default function EditProduct() {
 
   const hed = editView ? "Edit product" : "Add Product";
   const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (editView && itemId && baseToken.decimals) {
       clientStateManager!
-        .stateManager!.listings.get(itemId)
-        .then((item: TListing) => {
-          setProductInView(item);
-          setTitle(item.metadata.title);
-          const price = formatUnitsFromString(item.price, baseToken.decimals);
+        .stateManager!.get(["Listings", itemId])
+        .then((item: Map<string, unknown> | undefined) => {
+          if (!item) {
+            setErrorMsg("Error fetching listing");
+            errlog("Error fetching listing", "No item found");
+            return;
+          }
+          const listing = new Listing(item);
+          setProductInView(listing);
+          setTitle(listing.Metadata.Title);
+          const price = formatUnitsFromString(
+            listing.Price,
+            baseToken.decimals,
+          );
           setPrice(price);
           setImages(
-            item.metadata.images.map((img: string) => {
-              return { blob: null, url: img };
-            }),
+            listing.Metadata.Images
+              ? listing.Metadata.Images.map((img: string) => {
+                return { blob: null, url: img };
+              })
+              : [],
           );
-          setDescription(item.metadata.description);
-          setUnits(item.quantity);
-          setViewState(item.viewState);
+          setDescription(listing.Metadata.Description);
+          // setUnits(listing.quantity);
+          setViewState(listing.ViewState);
         })
         .catch((e: unknown) => {
           assert(e instanceof Error, "Error is not an instance of Error");
@@ -79,17 +92,13 @@ export default function EditProduct() {
     }
   }, [baseToken]);
 
-  async function create(newItem: Partial<TListing>) {
+  async function create(newListing: Listing) {
     try {
-      await clientStateManager!.stateManager.set("Listing", newItem);
-      // await clientStateManager!.stateManager!.listings.changeInventory(
-      //   id,
-      //   units,
-      // );
-      await clientStateManager!.stateManager!.set("ChangeInventory", {
-        ID: newItem.ID,
-        diff: units,
-      });
+      await clientStateManager!.stateManager.set(
+        ["Listing", newListing.ID],
+        newListing,
+      );
+      //fixme: change inventory
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Error creating listing", error);
@@ -97,38 +106,39 @@ export default function EditProduct() {
     }
   }
 
-  async function update(newItem: Partial<TListing>) {
+  async function update(newListing: Listing) {
+    const csm = clientStateManager!.stateManager!;
     try {
       //compare the edited fields against the original object.
-      const diff: Partial<TListing> = {
-        ID: itemId,
-      };
       if (
-        newItem.Price !==
+        newListing.Price !==
           Number(
             formatUnitsFromString(productInView!.Price, baseToken!.decimals),
           ).toFixed(2)
       ) {
-        diff["Price"] = newItem.Price;
+        await csm.set([
+          "Listings",
+          newListing.ID,
+          "Price",
+        ], newListing.Price);
       }
-      if (newItem.Metadata !== productInView!.Metadata) {
-        diff["Metadata"] = newItem.Metadata;
+      if (newListing.Metadata !== productInView!.Metadata) {
+        await csm.set([
+          "Listings",
+          newListing.ID,
+          "Metadata",
+        ], newListing.Metadata.asCBORMap());
       }
-      if (newItem.ViewState !== productInView!.ViewState) {
-        diff["ViewState"] = newItem.ViewState;
+      if (newListing.ViewState !== productInView!.ViewState) {
+        await csm.set([
+          "Listings",
+          newListing.ID,
+          "ViewState",
+        ], newListing.ViewState);
       }
 
-      if (!Object.keys(diff).length) {
-        debug("No changes to listing");
-        return;
-      }
-      await clientStateManager!.stateManager!.set("Listing", diff);
-
-      if (units !== productInView?.quantity) {
-        await clientStateManager!.stateManager!.set("ChangeInventory", {
-          ID: itemId,
-          // diff: units - productInView!.quantity,
-        });
+      if (units !== productInView?.Quantity) {
+        //FIXME: change inventory
       }
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
@@ -148,7 +158,7 @@ export default function EditProduct() {
       setValidationError("Product must include image.");
     } else if (!units) {
       setValidationError("Update the number of units.");
-    } else if (productInView && !productInView.id) {
+    } else if (productInView && !productInView.ID) {
       setValidationError("Product id is missing.");
     } else {
       try {
@@ -164,19 +174,23 @@ export default function EditProduct() {
             }
           }),
         );
-        const newItem = {
-          ID: editView ? itemId : objectId(),
-          Metadata: {
-            Title: title,
-            Description: description,
-            Images: uploaded,
-          },
-          Price: Number(price).toFixed(2),
-          ViewState: viewState,
-        };
+
+        const newListing = new Map([["ID", editView ? itemId : objectId()]]);
+        newListing.set(
+          "Metadata",
+          new ListingMetadata(
+            new Map([["Title", title], ["Description", description], [
+              "Images",
+              uploaded,
+            ]]),
+          ),
+        );
+        newListing.set("Price", Number(price).toFixed(2));
+        newListing.set("ViewState", viewState);
+
         editView && productInView
-          ? await update(newItem)
-          : await create(newItem);
+          ? await update(newListing)
+          : await create(newListing);
         setPublishing(false);
         debug("listing published");
         navigate({

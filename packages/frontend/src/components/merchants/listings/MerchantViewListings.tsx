@@ -4,15 +4,16 @@
 import { Link } from "@tanstack/react-router";
 
 import { formatUnitsFromString } from "@massmarket/utils";
+import { Listing } from "@massmarket/schema";
 
 import Button from "../../common/Button.tsx";
-import { ListingViewState, TListing } from "../../../types.ts";
+import { ListingViewState } from "../../../types.ts";
 import { useBaseToken } from "../../../hooks/useBaseToken.ts";
 
 export default function MerchantViewProducts({
   products,
 }: {
-  products: TListing[] | null;
+  products: Listing[] | null;
 }) {
   const { baseToken } = useBaseToken();
 
@@ -24,15 +25,15 @@ export default function MerchantViewProducts({
         </div>
       );
     }
-    return products.map((item) => {
+    return products.map((item: Listing) => {
       const { metadata } = item;
       if (!metadata) return null;
       const visible =
-        item.viewState === ListingViewState.LISTING_VIEW_STATE_PUBLISHED;
+        item.ViewState === ListingViewState.LISTING_VIEW_STATE_PUBLISHED;
 
       return (
         <Link
-          key={item.id}
+          key={item.ID}
           data-testid="product-container"
           className={`${
             !visible ? "opacity-50" : ""
@@ -40,7 +41,7 @@ export default function MerchantViewProducts({
           to="/listing-detail"
           search={(prev: Record<string, string>) => ({
             shopId: prev.shopId,
-            itemId: item.id,
+            itemId: item.ID,
           })}
         >
           <div className="flex justify-center" data-testid="product-img">
@@ -67,7 +68,7 @@ export default function MerchantViewProducts({
             </div>
             <div className="flex justify-between mt-2 border-b border-gray-300 w-full pb-2">
               <p>Stock Level</p>
-              <p>{item.quantity}</p>
+              <p>{item.Quantity}</p>
             </div>
             <div className="flex justify-between pt-2">
               <p>Price</p>
@@ -83,7 +84,7 @@ export default function MerchantViewProducts({
                 />
                 <p data-testid={`product-price`}>
                   {baseToken &&
-                    formatUnitsFromString(item.price, baseToken.decimals)}
+                    formatUnitsFromString(item.Price, baseToken.decimals)}
                 </p>
               </div>
             </div>

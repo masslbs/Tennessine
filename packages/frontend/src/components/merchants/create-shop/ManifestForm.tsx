@@ -1,48 +1,40 @@
 import { ChangeEvent, useState } from "react";
-
 import { useChains } from "wagmi";
 import { hardhat } from "wagmi/chains";
+import { toBytes } from "viem";
+
+import {
+  AcceptedCurrencyMap,
+  ChainAddress,
+  Manifest,
+} from "@massmarket/schema";
 
 import ValidationWarning from "../../common/ValidationWarning.tsx";
 import ErrorMessage from "../../common/ErrorMessage.tsx";
 import Button from "../../common/Button.tsx";
 import AvatarUpload from "../../common/AvatarUpload.tsx";
 import Dropdown from "../../common/CurrencyDropdown.tsx";
-
 import {
   CreateShopStep,
   CurrencyChainOption,
   ShopForm,
-  TCurrencyMap,
-  TShopManifest,
 } from "../../../types.ts";
 import { getTokenAddress, isValidAddress } from "../../../utils/mod.ts";
 
 export default function ManifestForm(
   { shopManifest, setShopManifest, setStep, setShopMetadata, shopMetadata }: {
-    shopManifest: TShopManifest;
-    setShopManifest: (shopManifest: TShopManifest) => void;
+    shopManifest: Manifest;
+    setShopManifest: (shopManifest: Manifest) => void;
     setStep: (step: CreateShopStep) => void;
     shopMetadata: ShopForm;
     setShopMetadata: (shopMetadata: ShopForm) => void;
   },
 ) {
-  const {
-    PricingCurrency,
-    AcceptedCurrencies,
-  } = shopManifest;
   const { shopName, description, paymentAddress } = shopMetadata;
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const chains = useChains();
-
-  function handleManifestChange(
-    field: keyof TShopManifest,
-    value: TShopManifest[keyof TShopManifest],
-  ) {
-    setShopManifest({ ...shopManifest, [field]: value });
-  }
 
   function handleShopFormChange<K extends keyof ShopForm>(
     field: K,
@@ -52,53 +44,56 @@ export default function ManifestForm(
   }
 
   function handleAcceptedCurrencies(e: ChangeEvent<HTMLInputElement>) {
-    const [sym, chainId] = e.target.value.split("/");
+    const [sym, id] = e.target.value.split("/");
+    const chainId = Number(id);
     const address = getTokenAddress(sym, chainId);
-    const newAcceptedCurrencies = new Map(AcceptedCurrencies);
-    const allChainAddresses = newAcceptedCurrencies.get(chainId) || new Map();
-
+    const allChainsMap = shopManifest.AcceptedCurrencies.data;
     if (e.target.checked) {
-      allChainAddresses.set(address, null);
-      newAcceptedCurrencies.set(chainId, allChainAddresses);
-      handleManifestChange("AcceptedCurrencies", newAcceptedCurrencies);
+      const allAddressesMap = allChainsMap.has(chainId)
+        ? allChainsMap.get(chainId)
+        : new Map();
+      allAddressesMap!.set(address, new Map([["IsContract", false]]));
+      allChainsMap.set(chainId, allAddressesMap!);
     } else {
-      if (allChainAddresses) {
-        allChainAddresses.delete(address);
-        newAcceptedCurrencies.set(chainId, allChainAddresses);
+      // remove address from accepted currencies.
+      const allAddressesMap = allChainsMap.get(chainId);
+      if (allAddressesMap) {
+        allAddressesMap.delete(address);
       }
-      handleManifestChange(
-        "AcceptedCurrencies",
-        AcceptedCurrencies.filter(
-          (c: TCurrencyMap) =>
-            c.ChainID !== Number(chainId) || c.Address !== address,
-        ),
-      );
     }
+    shopManifest.AcceptedCurrencies = new AcceptedCurrencyMap(allChainsMap);
+    setShopManifest(shopManifest);
   }
+
   function handlePricingCurrency(option: CurrencyChainOption) {
     const v = option.value as string;
     const [sym, chainId] = v.split("/");
-    const address = getTokenAddress(sym, chainId);
-    handleManifestChange("PricingCurrency", {
-      ChainID: Number(chainId),
-      Address: address as `0x${string}`,
-    });
+    const address = getTokenAddress(sym, Number(chainId));
+    const pricingCurrency = new Map([["ChainID", Number(chainId)], [
+      "Address",
+      address,
+    ]]);
+    shopManifest.PricingCurrency = new ChainAddress(pricingCurrency);
+    setShopManifest(shopManifest);
   }
 
   function checkRequiredFields() {
-    if (!shopManifest.shopName.length) {
+    if (!shopMetadata.shopName.length) {
       return "Shop name is required.";
-    } else if (!shopManifest.description.length) {
+    } else if (!shopMetadata.description.length) {
       return "Store description is required.";
     } else if (!paymentAddress) {
       return "Payee address is required.";
-    } else if (!PricingCurrency?.address || !PricingCurrency?.chainId) {
+    } else if (
+      !shopManifest.PricingCurrency.Address ||
+      !shopManifest.PricingCurrency.ChainID
+    ) {
       return "Pricing currency is required.";
-    } else if (!AcceptedCurrencies.length) {
+    } else if (!shopManifest.AcceptedCurrencies.data.size) {
       return "Accepted currencies are required.";
     }
-    const isTokenAddrHex = isValidAddress(PricingCurrency.address);
-    const isPayeeAddHex = isValidAddress(paymentAddress);
+    const isTokenAddrHex = isValidAddress(shopManifest.PricingCurrency.Address);
+    const isPayeeAddHex = isValidAddress(toBytes(paymentAddress));
     if (!isTokenAddrHex) {
       return "Token address must be a valid address.";
     } else if (!isPayeeAddHex) {

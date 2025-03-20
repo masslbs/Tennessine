@@ -5,15 +5,9 @@ import { useEffect, useState } from "react";
 import { formatUnits } from "viem";
 
 import { assert, logger } from "@massmarket/utils";
+import { Listing, Order, OrderedItem } from "@massmarket/schema";
 
-import {
-  CartItem,
-  ListingId,
-  OrderEventTypes,
-  OrderId,
-  TListing,
-  TOrder,
-} from "../../types.ts";
+import { ListingId, OrderEventTypes, OrderId } from "../../types.ts";
 
 import Button from "../common/Button.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
@@ -40,17 +34,21 @@ export default function Cart({
   const { clientStateManager } = useClientWithStateManager();
 
   const [cartItemsMap, setCartMap] = useState<
-    Map<ListingId, CartItem>
+    Map<ListingId, Listing>
   >(new Map());
+  const [selectedQty, setSelectedQty] = useState<Map<ListingId, number>>(
+    new Map(),
+  );
   const [orderId, setOrderId] = useState<OrderId | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (!clientStateManager) return;
-    function onChangeItems(res: [OrderEventTypes, TOrder]) {
+    function onChangeItems(res: [OrderEventTypes, Order]) {
       if (res[0] === OrderEventTypes.CHANGE_ITEMS) {
-        getCartItemDetails(res[1]).then((itemDetails) => {
-          setCartMap(itemDetails);
+        const o = new Order(res[1]);
+        getAllCartItemDetails(o).then((allCartItems) => {
+          setCartMap(allCartItems);
         });
       }
     }
@@ -69,34 +67,37 @@ export default function Cart({
       debug(`Showing cart items for order ID: ${currentOrder.orderId}`);
       setOrderId(currentOrder.orderId);
       clientStateManager!
-        .stateManager!.orders.get(currentOrder.orderId)
-        .then(async (o: TOrder) => {
-          const itemDetails = await getCartItemDetails(o);
-          setCartMap(itemDetails);
+        .stateManager!.get(["Orders", currentOrder.orderId])
+        .then(async (res) => {
+          const o = new Order(res);
+          const allCartItems = await getAllCartItemDetails(o);
+          setCartMap(allCartItems);
         });
     }
   }, [currentOrder]);
 
-  async function getCartItemDetails(order: TOrder) {
-    const ci = order.items;
-    const cartObjects = new Map();
+  async function getAllCartItemDetails(order: Order) {
+    const ci = order.Items;
+    const allCartItems: Map<ListingId, Listing> = new Map();
     // Get price and metadata for all the selected items in the order.
-    const itemIds = Object.keys(ci);
     await Promise.all(
-      itemIds.map((id) => {
-        // If the selected quantity is 0, don't add the item to the cart object..
-        const selectedQty = ci[id as ListingId];
-        if (selectedQty === 0) return;
-        return clientStateManager!.stateManager.get(["Listings", id])
-          .then((item: TListing) => {
-            cartObjects.set(id, {
-              ...item,
-              selectedQty,
-            });
+      ci.map((orderItem: OrderedItem) => {
+        const updatedQtyMap = new Map(selectedQty);
+        updatedQtyMap.set(orderItem.ListingID, orderItem.Quantity);
+        setSelectedQty(updatedQtyMap);
+        // If the selected quantity is 0, don't add the item to cart items map
+        if (orderItem.Quantity === 0) return;
+        return clientStateManager!.stateManager.get([
+          "Listings",
+          orderItem.ListingID,
+        ])
+          .then((l) => {
+            const listing = new Listing(l);
+            allCartItems.set(orderItem.ListingID, listing);
           });
       }),
     );
-    return cartObjects;
+    return allCartItems;
   }
 
   async function handleCheckout(orderId: OrderId) {
@@ -120,21 +121,12 @@ export default function Cart({
 
   async function clearCart() {
     try {
-      const values: CartItem[] = Array.from(
-        cartItemsMap.values(),
-      );
-      const map = values.map((item) => {
-        // We are getting the quantity to remove from the order for every item in the cart.
-        return {
-          listingId: item.id,
-          quantity: item.selectedQty,
-        };
-      });
-      await clientStateManager!.stateManager.orders.removeItems(
-        orderId!,
-        map,
+      await clientStateManager!.stateManager.set(
+        ["Orders", orderId, "Items"],
+        [],
       );
       setCartMap(new Map());
+      setSelectedQty(new Map());
       debug("cart cleared");
       closeBasket?.();
     } catch (error) {
@@ -144,55 +136,60 @@ export default function Cart({
     }
   }
 
-  async function addQuantity(id: ListingId) {
+  async function adjustItemQuantity(id: ListingId, add: boolean = true) {
     try {
-      await clientStateManager!.stateManager.orders.addItems(orderId!, [
-        {
-          listingId: id,
-          quantity: 1,
-        },
-      ]);
+      const updatedQtyMap = new Map(selectedQty);
+      updatedQtyMap.set(id, selectedQty.get(id)! + (add ? 1 : -1));
+      setSelectedQty(updatedQtyMap);
+      const updatedOrderItems: OrderedItem[] = Array.from(cartItemsMap.keys())
+        .map((key) => {
+          return {
+            ListingID: key,
+            Quantity: selectedQty.get(key)!,
+          };
+        });
+      await clientStateManager!.stateManager.set(
+        ["Orders", orderId, "Items"],
+        updatedOrderItems,
+      );
     } catch (error) {
       logerr(`Error:addQuantity ${error}`);
     }
   }
 
-  async function removeQuantity(id: ListingId) {
+  async function removeItem(id: ListingId) {
     try {
-      await clientStateManager!.stateManager.orders.removeItems(orderId!, [
-        {
-          listingId: id,
-          quantity: 1,
-        },
-      ]);
-    } catch (error) {
-      logerr(`Error:removeQuantity ${error}`);
-    }
-  }
-
-  async function removeItem(id: ListingId, selectedQty: number) {
-    try {
-      await clientStateManager!.stateManager.orders.removeItems(orderId!, [
-        {
-          listingId: id,
-          quantity: selectedQty,
-        },
-      ]);
+      const updatedQtyMap = new Map(selectedQty);
+      updatedQtyMap.delete(id);
+      setSelectedQty(updatedQtyMap);
+      const updatedOrderItems: OrderedItem[] = Array.from(cartItemsMap.keys())
+        .map((key) => {
+          return {
+            ListingID: key,
+            Quantity: selectedQty.get(key)!,
+          };
+        });
+      await clientStateManager!.stateManager.set(
+        ["Orders", orderId, "Items"],
+        updatedOrderItems,
+      );
     } catch (error) {
       logerr(`Error:removeItem ${error}`);
     }
   }
+
   function calculateTotal() {
-    if (!baseToken) return "0";
-    const values: CartItem[] = Array.from(cartItemsMap.values());
+    if (!baseToken || cartItemsMap.size === 0) return "0";
+    const values: Listing[] = Array.from(cartItemsMap.values());
     let total = BigInt(0);
-    values.forEach((item) => {
+    values.forEach((item: Listing) => {
       total += baseToken?.decimals
-        ? BigInt(item.price) * BigInt(item.selectedQty)
+        ? BigInt(item.Price) * BigInt(selectedQty.get(item.ID)!)
         : BigInt(0);
     });
     return formatUnits(total, baseToken.decimals);
   }
+
   const icon = baseToken?.symbol === "ETH"
     ? "/icons/eth-coin.svg"
     : "/icons/usdc-coin.png";
@@ -200,21 +197,21 @@ export default function Cart({
   function renderItems() {
     if (!orderId || !cartItemsMap.size) return <p>No items in cart</p>;
 
-    const values: CartItem[] = Array.from(cartItemsMap.values());
-    return values.map((item) => {
+    const values: Listing[] = Array.from(cartItemsMap.values());
+    return values.map((item: Listing) => {
       const price = baseToken?.decimals
         ? multiplyAndFormatUnits(
-          item.price,
-          item.selectedQty,
+          item.Price,
+          selectedQty.get(item.ID) || 0,
           baseToken.decimals,
         )
         : 0;
 
       return (
-        <div key={item.id} className="flex" data-testid="cart-item">
+        <div key={item.ID} className="flex" data-testid="cart-item">
           <div className="flex justify-center h-28" data-testid={`product-img`}>
             <img
-              src={item.metadata.images[0] || "/assets/no-image.png"}
+              src={item.Metadata.Images[0] || "/assets/no-image.png"}
               width={127}
               height={112}
               alt="product-thumb"
@@ -224,11 +221,11 @@ export default function Cart({
           <div className="bg-background-gray w-full rounded-lg px-5 py-4">
             <div className="flex">
               <h3 data-testid="title" className="leading-4">
-                {item.metadata.title}
+                {item.Metadata.Title}
               </h3>
               <button
                 type="button"
-                onClick={() => removeItem(item.id, item.selectedQty)}
+                onClick={() => removeItem(item.ID)}
                 data-testid={`remove-item-${item.id}`}
                 className={showActionButtons
                   ? "ml-auto bg-transparent p-0"
@@ -252,8 +249,8 @@ export default function Cart({
               >
                 <button
                   type="button"
-                  onClick={() => removeQuantity(item.id)}
-                  data-testid={`remove-quantity-${item.id}`}
+                  onClick={() => adjustItemQuantity(item.id, false)}
+                  data-testid={`remove-quantity-${item.ID}`}
                   className="ml-auto bg-transparent p-0"
                 >
                   <img
@@ -264,11 +261,13 @@ export default function Cart({
                     className="w-5 h-5 max-h-5"
                   />
                 </button>
-                <p data-testid={`quantity-${item.id}`}>{item.selectedQty}</p>
+                <p data-testid={`quantity-${item.ID}`}>
+                  {selectedQty.get(item.ID)}
+                </p>
                 <button
                   type="button"
-                  onClick={() => addQuantity(item.id)}
-                  data-testid={`add-quantity-${item.id}`}
+                  onClick={() => adjustItemQuantity(item.ID)}
+                  data-testid={`add-quantity-${item.ID}`}
                   className="ml-auto bg-transparent p-0"
                 >
                   <img
@@ -285,7 +284,7 @@ export default function Cart({
                   ? "hidden"
                   : "flex gap-2 items-center"}
               >
-                Qty: {item.selectedQty}
+                Qty: {selectedQty.get(item.ID)}
               </p>
               <div className="flex gap-2 items-center ml-auto">
                 <img

@@ -15,7 +15,7 @@ Deno.test("Check that we can render the create shop screen", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async () => {
-  const anvilAddress = generatePrivateKey()
+  const anvilAddress = generatePrivateKey();
   const user = userEvent.setup();
   const shopId = random256BigInt();
   const privateKey = random32BytesHex();
@@ -112,7 +112,7 @@ Deno.test("Check that we can render the create shop screen", {
   }, { timeout: 15000 });
 
   const { acceptedCurrencies, payees, pricingCurrency, shippingRegions } =
-    await csm.stateManager!.get();
+    await csm.stateManager!.get(["Manifest"]);
   expect(acceptedCurrencies.length).toBe(1);
   expect(acceptedCurrencies[0].chainId).toBe(hardhat.id);
   expect(acceptedCurrencies[0].address).toBe(zeroAddress);
