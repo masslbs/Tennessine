@@ -1,11 +1,11 @@
-import { useContext, useEffect } from "react";
+import { useEffect } from "react";
 import { usePublicClient } from "wagmi";
 import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
 import { logger, random32BytesHex } from "@massmarket/utils";
 
-import { MassMarketContext } from "../MassMarketContext.tsx";
+import { useMassMarketContext } from "../MassMarketContext.ts";
 import { useShopId } from "./useShopId.ts";
 import { useQuery } from "./useQuery.ts";
 import { useKeycard } from "./useKeycard.ts";
@@ -19,9 +19,7 @@ const namespace = "frontend:useClientWithStateManager";
 const debug = logger(namespace);
 
 export function useClientWithStateManager() {
-  const { clientStateManager, setClientStateManager } = useContext(
-    MassMarketContext,
-  );
+  const { clientStateManager, setClientStateManager } = useMassMarketContext();
   const [keycard, setKeycard] = useKeycard();
   const { relayEndpoint } = useRelayEndpoint();
   const { shopId } = useShopId();
@@ -53,7 +51,7 @@ export function useClientWithStateManager() {
     if (
       !clientStateManager
     ) return;
-    await clientStateManager.createNewRelayClient();
+    clientStateManager.createNewRelayClient();
     // If current screen is /create-shop or /merchant-connect page, we don't want to try connecting and authenticating before enrolling the keycard.
     if (isMerchantPath) return;
     if (keycard?.role === "guest-new") {
@@ -76,7 +74,7 @@ export function useClientWithStateManager() {
         return;
       }
       if (!res.ok) {
-        throw new Error(`Failed to enroll keycard: ${res.error}`);
+        throw new Error(`Failed to enroll keycard: ${res}`);
       }
       debug("Success: Enrolled new guest keycard");
 

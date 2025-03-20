@@ -3,6 +3,7 @@ import React, {
   createElement,
   Dispatch,
   SetStateAction,
+  useContext,
   useState,
 } from "react";
 import { ClientWithStateManager } from "./ClientWithStateManager.ts";
@@ -51,4 +52,14 @@ export function MassMarketProvider(
     value,
     children: parameters.children,
   });
+}
+
+export function useMassMarketContext() {
+  const context = useContext(MassMarketContext);
+  if (!context) {
+    throw new Error(
+      "useMassMarketContext must be used within a MassMarketProvider",
+    );
+  }
+  return context;
 }

@@ -16,8 +16,7 @@ import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-
-import { MassMarketProvider } from "../MassMarketContext.tsx";
+import { MassMarketProvider } from "../MassMarketContext.ts";
 import { MockClientStateManager } from "./MockClientStateManager.ts";
 
 const anvilPrivateKey = generatePrivateKey();
@@ -44,7 +43,7 @@ export const testClient = createTestClient({
   .extend(publicActions)
   .extend(walletActions);
 
-export const createClientStateManager =  (
+export const createClientStateManager = (
   shopId: bigint | null = null,
 ) => {
   const csm = new MockClientStateManager(
