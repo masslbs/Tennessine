@@ -1,7 +1,7 @@
 import MMR from "./mod.ts";
-import { MemoryLevel } from "npm:memory-level";
-import type { Level } from "npm:level";
-import { keccak_256 } from "npm:@noble/hashes/sha3";
+import { MemoryLevel } from "memory-level";
+import type { Level } from "level";
+import { keccak_256 } from "@noble/hashes/sha3";
 
 import { test } from "@std/testing/bdd";
 import { expect } from "@std/expect";

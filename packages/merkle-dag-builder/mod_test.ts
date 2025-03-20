@@ -1,7 +1,6 @@
-import { assertEquals } from "@std/assert";
+import { assert, assertEquals } from "@std/assert";
 import { DAG, type RootValue } from "./mod.ts";
 import { MemStore } from "./memstore.ts";
-import { assert } from "@std/assert/assert";
 
 Deno.test("meta data", async (t) => {
   await t.step("testing storing and retrieving metadata", async () => {
