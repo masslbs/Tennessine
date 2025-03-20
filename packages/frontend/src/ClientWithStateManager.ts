@@ -1,7 +1,7 @@
 import { privateKeyToAccount } from "viem/accounts";
 import type { Account, PublicClient, WalletClient } from "viem";
 import { BrowserLevel } from "npm:browser-level";
-import { RelayClient, type RelayEndpoint } from "@massmarket/client";
+import { type IRelayEndpoint, RelayClient } from "@massmarket/client";
 import Database from "@massmarket/stateManager";
 import { logger } from "@massmarket/utils";
 
@@ -10,6 +10,7 @@ import { ShopId } from "./types.ts";
 const namespace = "frontend:ClientWithStateManager";
 const debug = logger(namespace);
 
+navigator.storage.getDirectory();
 export class ClientWithStateManager {
   public stateManager: Database | null = null;
   public relayClient: RelayClient | null = null;
@@ -18,7 +19,7 @@ export class ClientWithStateManager {
     public keycard: `0x${string}`,
     public readonly publicClient: PublicClient,
     public readonly shopId: ShopId,
-    public readonly relayEndpoint: RelayEndpoint,
+    public readonly relayEndpoint: IRelayEndpoint,
   ) {}
 
   async createStateManager() {
