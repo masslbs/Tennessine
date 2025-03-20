@@ -11,7 +11,6 @@
     "./packages/frontend",
     "./packages/mmr"
   ],
-  "exclude": ["./packages/frontend"],
   "lint": {
     "rules": {
       "exclude": ["no-slow-types"]
@@ -24,7 +23,7 @@
     "noErrorTruncation": true,
     "lib": ["ES2020", "dom", "dom.iterable", "dom.asynciterable", "deno.ns"],
     "jsx": "react-jsx",
-    "jsxImportSource": "npm:react",
-    "jsxImportSourceTypes": "npm:@types/react"
+    "jsxImportSource": "react",
+    "jsxImportSourceTypes": "@types/react"
   }
 }
