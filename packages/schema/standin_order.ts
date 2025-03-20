@@ -21,80 +21,123 @@ export class Order extends BaseClass {
   PaymentDetails?: PaymentDetails;
   TxDetails?: OrderPaid;
 
-  constructor(input: Map<string, unknown>) {
+  constructor(
+    id: number = 0,
+    items: OrderedItem[] = [],
+    state: OrderState = OrderState.Unspecified,
+    invoiceAddress?: AddressDetails,
+    shippingAddress?: AddressDetails,
+    canceledAt?: Date,
+    chosenPayee?: Payee,
+    chosenCurrency?: ChainAddress,
+    paymentDetails?: PaymentDetails,
+    txDetails?: OrderPaid,
+  ) {
     super();
-    this.ID = ensureNumber(input.get("ID"), "ID");
+    this.ID = id;
+    this.Items = items;
+    this.State = state;
+    this.InvoiceAddress = invoiceAddress;
+    this.ShippingAddress = shippingAddress;
+    this.CanceledAt = canceledAt;
+    this.ChosenPayee = chosenPayee;
+    this.ChosenCurrency = chosenCurrency;
+    this.PaymentDetails = paymentDetails;
+    this.TxDetails = txDetails;
+  }
 
-    const items = input.get("Items");
-    if (items !== undefined) {
-      if (!Array.isArray(items)) {
+  static fromCBOR(input: Map<string, unknown>): Order {
+    const id = ensureNumber(input.get("ID"), "ID");
+
+    const items: OrderedItem[] = [];
+    const itemsData = input.get("Items");
+    if (itemsData !== undefined) {
+      if (!Array.isArray(itemsData)) {
         throw new TypeError("Expected Items to be an array");
       }
-      this.Items = items.map((item) => {
+      items.push(...itemsData.map((item) => {
         if (!(item instanceof Map)) {
           throw new TypeError("Expected item to be a Map");
         }
-        return new OrderedItem(item);
-      });
-    } else {
-      this.Items = [];
+        return OrderedItem.fromCBOR(item);
+      }));
     }
 
     const stateNum = ensureNumber(input.get("State"), "State");
-    this.State = OrderStateFromNumber(stateNum);
+    const state = OrderStateFromNumber(stateNum);
 
-    const invoiceAddress = input.get("InvoiceAddress");
-    if (invoiceAddress !== undefined) {
-      if (!(invoiceAddress instanceof Map)) {
+    let invoiceAddress: AddressDetails | undefined;
+    const invoiceAddressData = input.get("InvoiceAddress");
+    if (invoiceAddressData !== undefined) {
+      if (!(invoiceAddressData instanceof Map)) {
         throw new TypeError("Expected InvoiceAddress to be a Map");
       }
-      this.InvoiceAddress = new AddressDetails(invoiceAddress);
+      invoiceAddress = AddressDetails.fromCBOR(invoiceAddressData);
     }
 
-    const shippingAddress = input.get("ShippingAddress");
-    if (shippingAddress !== undefined) {
-      if (!(shippingAddress instanceof Map)) {
+    let shippingAddress: AddressDetails | undefined;
+    const shippingAddressData = input.get("ShippingAddress");
+    if (shippingAddressData !== undefined) {
+      if (!(shippingAddressData instanceof Map)) {
         throw new TypeError("Expected ShippingAddress to be a Map");
       }
-      this.ShippingAddress = new AddressDetails(shippingAddress);
+      shippingAddress = AddressDetails.fromCBOR(shippingAddressData);
     }
 
-    const canceledAt = input.get("CanceledAt");
-    if (canceledAt !== undefined) {
-      this.CanceledAt = ensureDate(canceledAt, "CanceledAt");
+    let canceledAt: Date | undefined;
+    const canceledAtData = input.get("CanceledAt");
+    if (canceledAtData !== undefined) {
+      canceledAt = ensureDate(canceledAtData, "CanceledAt");
     }
 
-    const chosenPayee = input.get("ChosenPayee");
-    if (chosenPayee !== undefined) {
-      if (!(chosenPayee instanceof Map)) {
+    let chosenPayee: Payee | undefined;
+    const chosenPayeeData = input.get("ChosenPayee");
+    if (chosenPayeeData !== undefined) {
+      if (!(chosenPayeeData instanceof Map)) {
         throw new TypeError("Expected ChosenPayee to be a Map");
       }
-      this.ChosenPayee = new Payee(chosenPayee);
+      chosenPayee = Payee.fromCBOR(chosenPayeeData);
     }
 
-    const chosenCurrency = input.get("ChosenCurrency");
-    if (chosenCurrency !== undefined) {
-      if (!(chosenCurrency instanceof Map)) {
+    let chosenCurrency: ChainAddress | undefined;
+    const chosenCurrencyData = input.get("ChosenCurrency");
+    if (chosenCurrencyData !== undefined) {
+      if (!(chosenCurrencyData instanceof Map)) {
         throw new TypeError("Expected ChosenCurrency to be a Map");
       }
-      this.ChosenCurrency = new ChainAddress(chosenCurrency);
+      chosenCurrency = ChainAddress.fromCBOR(chosenCurrencyData);
     }
 
-    const paymentDetails = input.get("PaymentDetails");
-    if (paymentDetails !== undefined) {
-      if (!(paymentDetails instanceof Map)) {
+    let paymentDetails: PaymentDetails | undefined;
+    const paymentDetailsData = input.get("PaymentDetails");
+    if (paymentDetailsData !== undefined) {
+      if (!(paymentDetailsData instanceof Map)) {
         throw new TypeError("Expected PaymentDetails to be a Map");
       }
-      this.PaymentDetails = new PaymentDetails(paymentDetails);
+      paymentDetails = PaymentDetails.fromCBOR(paymentDetailsData);
     }
 
-    const txDetails = input.get("TxDetails");
-    if (txDetails !== undefined) {
-      if (!(txDetails instanceof Map)) {
+    let txDetails: OrderPaid | undefined;
+    const txDetailsData = input.get("TxDetails");
+    if (txDetailsData !== undefined) {
+      if (!(txDetailsData instanceof Map)) {
         throw new TypeError("Expected TxDetails to be a Map");
       }
-      this.TxDetails = new OrderPaid(txDetails);
+      txDetails = OrderPaid.fromCBOR(txDetailsData);
     }
+
+    return new Order(
+      id,
+      items,
+      state,
+      invoiceAddress,
+      shippingAddress,
+      canceledAt,
+      chosenPayee,
+      chosenCurrency,
+      paymentDetails,
+      txDetails,
+    );
   }
 }
 
@@ -103,16 +146,28 @@ export class OrderedItem extends BaseClass {
   VariationIDs?: string[];
   Quantity: number;
 
-  constructor(input: Map<string, unknown>) {
+  constructor(
+    listingID: number = 0,
+    quantity: number = 1,
+    variationIDs?: string[],
+  ) {
     super();
-    this.ListingID = ensureNumber(input.get("ListingID"), "ListingID");
+    this.ListingID = listingID;
+    this.Quantity = quantity;
+    this.VariationIDs = variationIDs;
+  }
 
-    const variationIDs = input.get("VariationIDs");
-    if (variationIDs !== undefined) {
-      this.VariationIDs = ensureStringArray(variationIDs, "VariationIDs");
+  static fromCBOR(input: Map<string, unknown>): OrderedItem {
+    const listingID = ensureNumber(input.get("ListingID"), "ListingID");
+    const quantity = ensureNumber(input.get("Quantity"), "Quantity");
+
+    let variationIDs: string[] | undefined;
+    const variationIDsData = input.get("VariationIDs");
+    if (variationIDsData !== undefined) {
+      variationIDs = ensureStringArray(variationIDsData, "VariationIDs");
     }
 
-    this.Quantity = ensureNumber(input.get("Quantity"), "Quantity");
+    return new OrderedItem(listingID, quantity, variationIDs);
   }
 }
 
@@ -151,27 +206,60 @@ export class AddressDetails extends BaseClass {
   EmailAddress: string;
   PhoneNumber?: string;
 
-  constructor(input: Map<string, unknown>) {
+  constructor(
+    name: string = "",
+    address1: string = "",
+    city: string = "",
+    postalCode: string = "",
+    country: string = "",
+    emailAddress: string = "",
+    address2?: string,
+    phoneNumber?: string,
+  ) {
     super();
-    this.Name = ensureString(input.get("Name"), "Name");
-    this.Address1 = ensureString(input.get("Address1"), "Address1");
+    this.Name = name;
+    this.Address1 = address1;
+    this.Address2 = address2;
+    this.City = city;
+    this.PostalCode = postalCode;
+    this.Country = country;
+    this.EmailAddress = emailAddress;
+    this.PhoneNumber = phoneNumber;
+  }
 
-    const address2 = input.get("Address2");
-    if (address2 !== undefined) {
-      this.Address2 = ensureString(address2, "Address2");
+  static fromCBOR(input: Map<string, unknown>): AddressDetails {
+    const name = ensureString(input.get("Name"), "Name");
+    const address1 = ensureString(input.get("Address1"), "Address1");
+    const city = ensureString(input.get("City"), "City");
+    const postalCode = ensureString(input.get("PostalCode"), "PostalCode");
+    const country = ensureString(input.get("Country"), "Country");
+    const emailAddress = ensureString(
+      input.get("EmailAddress"),
+      "EmailAddress",
+    );
+
+    let address2: string | undefined;
+    const address2Data = input.get("Address2");
+    if (address2Data !== undefined) {
+      address2 = ensureString(address2Data, "Address2");
     }
 
-    this.City = ensureString(input.get("City"), "City");
-    this.PostalCode = ensureString(input.get("PostalCode"), "PostalCode");
-    this.Country = ensureString(input.get("Country"), "Country");
-
-    const emailAddress = input.get("EmailAddress");
-    this.EmailAddress = ensureString(emailAddress, "EmailAddress");
-
-    const phoneNumber = input.get("PhoneNumber");
-    if (phoneNumber !== undefined) {
-      this.PhoneNumber = ensureString(phoneNumber, "PhoneNumber");
+    let phoneNumber: string | undefined;
+    const phoneNumberData = input.get("PhoneNumber");
+    if (phoneNumberData !== undefined) {
+      phoneNumber = ensureString(phoneNumberData, "PhoneNumber");
     }
+
+    return new AddressDetails(
+      name,
+      address1,
+      city,
+      postalCode,
+      country,
+      emailAddress,
+      address2,
+      phoneNumber,
+    );
   }
 }
 
@@ -182,33 +270,51 @@ export class PaymentDetails extends BaseClass {
   TTL: number;
   ShopSignature: Uint8Array;
 
-  constructor(input: Map<string, unknown>) {
+  constructor(
+    paymentID: Uint8Array = new Uint8Array(32),
+    total: bigint | number = 0n,
+    ttl: number = 0,
+    shopSignature: Uint8Array = new Uint8Array(65),
+    listingHashes: Uint8Array[] = [],
+  ) {
     super();
-    this.PaymentID = ensureUint8Array(input.get("PaymentID"), "PaymentID", 32);
-    this.Total = ensureSomeNumberAsBigInt(input.get("Total"), "Total");
+    this.PaymentID = paymentID;
+    this.Total = total;
+    this.ListingHashes = listingHashes;
+    this.TTL = ttl;
+    this.ShopSignature = shopSignature;
+  }
 
-    const listingHashes = input.get("ListingHashes");
-    if (listingHashes !== undefined) {
-      if (!Array.isArray(listingHashes)) {
-        throw new TypeError("Expected ListingHashes to be an array");
-      }
-      const verifiedHashes: Uint8Array[] = [];
-      for (const [index, hash] of listingHashes.entries()) {
-        if (!(hash instanceof Uint8Array)) {
-          throw new TypeError("Expected hash to be a Uint8Array");
-        }
-        verifiedHashes.push(ensureUint8Array(hash, `hash ${index}`, 32));
-      }
-      this.ListingHashes = verifiedHashes;
-    } else {
-      this.ListingHashes = [];
-    }
-
-    this.TTL = ensureNumber(input.get("TTL"), "TTL");
-    this.ShopSignature = ensureUint8Array(
+  static fromCBOR(input: Map<string, unknown>): PaymentDetails {
+    const paymentID = ensureUint8Array(input.get("PaymentID"), "PaymentID", 32);
+    const total = ensureSomeNumberAsBigInt(input.get("Total"), "Total");
+    const ttl = ensureNumber(input.get("TTL"), "TTL");
+    const shopSignature = ensureUint8Array(
       input.get("ShopSignature"),
       "ShopSignature",
       65,
+    );
+
+    const listingHashes: Uint8Array[] = [];
+    const listingHashesData = input.get("ListingHashes");
+    if (listingHashesData !== undefined) {
+      if (!Array.isArray(listingHashesData)) {
+        throw new TypeError("Expected ListingHashes to be an array");
+      }
+      for (const [index, hash] of listingHashesData.entries()) {
+        if (!(hash instanceof Uint8Array)) {
+          throw new TypeError("Expected hash to be a Uint8Array");
+        }
+        listingHashes.push(ensureUint8Array(hash, `hash ${index}`, 32));
+      }
+    }
+
+    return new PaymentDetails(
+      paymentID,
+      total,
+      ttl,
+      shopSignature,
+      listingHashes,
     );
   }
 }
@@ -217,13 +323,21 @@ export class OrderPaid extends BaseClass {
   TxHash?: Uint8Array;
   BlockHash: Uint8Array;
 
-  constructor(input: Map<string, unknown>) {
+  constructor(blockHash: Uint8Array = new Uint8Array(32), txHash?: Uint8Array) {
     super();
-    const txHash = input.get("TxHash");
-    if (txHash !== undefined) {
-      this.TxHash = ensureUint8Array(txHash, "TxHash", 32);
+    this.BlockHash = blockHash;
+    this.TxHash = txHash;
+  }
+
+  static fromCBOR(input: Map<string, unknown>): OrderPaid {
+    const blockHash = ensureUint8Array(input.get("BlockHash"), "BlockHash", 32);
+
+    let txHash: Uint8Array | undefined;
+    const txHashData = input.get("TxHash");
+    if (txHashData !== undefined) {
+      txHash = ensureUint8Array(txHashData, "TxHash", 32);
     }
 
-    this.BlockHash = ensureUint8Array(input.get("BlockHash"), "BlockHash", 32);
+    return new OrderPaid(blockHash, txHash);
   }
 }
