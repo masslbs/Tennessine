@@ -7,6 +7,7 @@ import { Buffer } from "buffer";
 import {
   bytesToBigInt,
   bytesToHex,
+  bytesToNumber,
   formatUnits,
   numberToBytes,
   parseUnits,
@@ -105,6 +106,10 @@ export function assertField<T>(
 
 export function objectId() {
   return randomBytes(8);
+}
+
+export function randUint64(): number {
+  return bytesToNumber(randomBytes(4));
 }
 
 export function randomBytes(n: number) {
