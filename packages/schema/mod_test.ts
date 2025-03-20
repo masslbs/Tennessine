@@ -1,10 +1,8 @@
 import { assertEquals } from "@std/assert";
 import { extractEntriesFromHAMT, fetchAndDecode } from "@massmarket/utils";
 
-import { Manifest } from "./standin_manifest.ts";
-import { Listing } from "./standin_listing.ts";
-import { Order } from "./standin_order.ts";
-//
+import { Listing, Manifest, Order } from "./standin_bundle.ts";
+
 type Rmap = Map<string, Rmap>;
 
 Deno.test("unpack manifest vectors", async (t) => {
@@ -25,7 +23,9 @@ Deno.test("unpack manifest vectors", async (t) => {
   console.log("count of manifests", vector.length);
   for (const manifest of vector) {
     await t.step(manifest.name as string, () => {
-      const unpacked = new Manifest(manifest.value);
+      const unpacked = Manifest.fromCBOR(
+        manifest.value as Map<string, unknown>,
+      );
       console.log(unpacked);
       assertEquals(unpacked.asCBORMap(), manifest.value);
     });
@@ -53,7 +53,7 @@ Deno.test("unpack listing vectors", async (t) => {
       await t.step(`${vector.name} - ${id}`, () => {
         console.log("listing:", vector.name, id);
         console.log(listing);
-        const unpacked = new Listing(listing as Rmap);
+        const unpacked = Listing.fromCBOR(listing as Map<string, unknown>);
         console.log(unpacked);
         assertEquals(unpacked.asCBORMap(), listing);
       });
@@ -76,7 +76,7 @@ Deno.test("unpack order vectors", async () => {
   for (const orderMap of orders) {
     for (const [id, order] of orderMap.entries()) {
       console.log("order id", id);
-      const unpacked = new Order(order as Rmap);
+      const unpacked = Order.fromCBOR(order as Map<string, unknown>);
       console.log(unpacked);
       assertEquals(unpacked.asCBORMap(), order);
     }

@@ -14,44 +14,72 @@ export class Manifest extends BaseClass {
   PricingCurrency: ChainAddress;
   ShippingRegions: ShippingRegionsMap | undefined;
 
-  constructor(input: Map<string, unknown>) {
+  constructor(
+    shopID: bigint = 0n,
+    payees?: PayeeMap,
+    acceptedCurrencies?: AcceptedCurrencyMap,
+    pricingCurrency?: ChainAddress,
+    shippingRegions?: ShippingRegionsMap,
+  ) {
     super();
-    this.ShopID = ensureBigInt(input.get("ShopID"), "ShopID");
+    this.ShopID = shopID;
+    this.Payees = payees || new PayeeMap();
+    this.AcceptedCurrencies = acceptedCurrencies || new AcceptedCurrencyMap();
+    this.PricingCurrency = pricingCurrency ||
+      new ChainAddress(0, new Uint8Array(20));
+    this.ShippingRegions = shippingRegions;
+  }
+
+  static fromCBOR(input: Map<string, unknown>): Manifest {
+    const shopID = ensureBigInt(input.get("ShopID"), "ShopID");
 
     const payees = input.get("Payees");
     if (!(payees instanceof Map)) {
       throw new TypeError("Expected Payees to be a Map");
     }
-    this.Payees = new PayeeMap(payees);
+    const payeeMap = PayeeMap.fromCBOR(payees);
 
     const acceptedCurrencies = input.get("AcceptedCurrencies");
     if (!(acceptedCurrencies instanceof Map)) {
       throw new TypeError("Expected AcceptedCurrencies to be a Map");
     }
-    this.AcceptedCurrencies = new AcceptedCurrencyMap(acceptedCurrencies);
+    const acceptedCurrencyMap = AcceptedCurrencyMap.fromCBOR(
+      acceptedCurrencies,
+    );
 
     const pricingCurrency = input.get("PricingCurrency");
     if (!(pricingCurrency instanceof Map)) {
       throw new TypeError("Expected PricingCurrency to be a Map");
     }
-    this.PricingCurrency = new ChainAddress(pricingCurrency);
+    const pricingCurrencyObj = ChainAddress.fromCBOR(pricingCurrency);
 
-    const shippingRegions = input.get("ShippingRegions");
-    if (shippingRegions !== undefined) {
-      if (!(shippingRegions instanceof Map)) {
+    let shippingRegions: ShippingRegionsMap | undefined = undefined;
+    const shippingRegionsData = input.get("ShippingRegions");
+    if (shippingRegionsData !== undefined) {
+      if (!(shippingRegionsData instanceof Map)) {
         throw new TypeError("Expected ShippingRegions to be a Map");
       }
-      this.ShippingRegions = new ShippingRegionsMap(shippingRegions);
-    } else {
-      this.ShippingRegions = undefined;
+      shippingRegions = ShippingRegionsMap.fromCBOR(shippingRegionsData);
     }
+
+    return new Manifest(
+      shopID,
+      payeeMap,
+      acceptedCurrencyMap,
+      pricingCurrencyObj,
+      shippingRegions,
+    );
   }
 }
 
 export class ShippingRegionsMap {
   data: Map<string, ShippingRegion> = new Map();
 
-  constructor(shippingRegions: Map<string, unknown>) {
+  constructor(regions?: Map<string, ShippingRegion>) {
+    this.data = regions || new Map();
+  }
+
+  static fromCBOR(shippingRegions: Map<string, unknown>): ShippingRegionsMap {
     const map = new Map<string, ShippingRegion>();
     for (const [key, value] of shippingRegions) {
       if (!(value instanceof Map)) {
@@ -59,9 +87,9 @@ export class ShippingRegionsMap {
           `Expected shipping region value for ${key} to be a Map`,
         );
       }
-      map.set(key, new ShippingRegion(value));
+      map.set(key, ShippingRegion.fromCBOR(value));
     }
-    this.data = map;
+    return new ShippingRegionsMap(map);
   }
 
   asCBORMap(): Map<string, unknown> {
@@ -76,12 +104,16 @@ export class ShippingRegionsMap {
 export class PayeeMap {
   data: Map<number, Map<Uint8Array, PayeeMetadata>> = new Map();
 
-  constructor(payees: Map<number, Map<Uint8Array, unknown>>) {
+  constructor(data?: Map<number, Map<Uint8Array, PayeeMetadata>>) {
+    this.data = data || new Map();
+  }
+
+  static fromCBOR(payees: Map<number, Map<Uint8Array, unknown>>): PayeeMap {
     if (payees === undefined) {
-      this.data = new Map();
-      return;
+      return new PayeeMap();
     }
 
+    const result = new Map<number, Map<Uint8Array, PayeeMetadata>>();
     for (const [chainId, addressMap] of payees.entries()) {
       if (!(addressMap instanceof Map)) {
         throw new TypeError(
@@ -110,14 +142,15 @@ export class PayeeMap {
           );
         }
 
-        const payeeMetadata = new PayeeMetadata(
+        const payeeMetadata = PayeeMetadata.fromCBOR(
           metadata as Map<"CallAsContract", boolean>,
         );
         validatedAddressMap.set(address, payeeMetadata);
       }
 
-      this.data.set(chainId, validatedAddressMap);
+      result.set(chainId, validatedAddressMap);
     }
+    return new PayeeMap(result);
   }
 
   get(chainId: number, address: Uint8Array): PayeeMetadata | undefined {
@@ -140,12 +173,17 @@ export class PayeeMap {
 export class PayeeMetadata extends BaseClass {
   CallAsContract: boolean = false;
 
-  constructor(input: Map<string, unknown>) {
+  constructor(callAsContract: boolean = false) {
     super();
+    this.CallAsContract = callAsContract;
+  }
+
+  static fromCBOR(input: Map<string, unknown>): PayeeMetadata {
     const callAsContract = input.get("CallAsContract");
-    this.CallAsContract = callAsContract !== undefined
+    const callAsContractValue = callAsContract !== undefined
       ? ensureBoolean(callAsContract, "CallAsContract")
       : false;
+    return new PayeeMetadata(callAsContractValue);
   }
 }
 
@@ -153,22 +191,35 @@ export class Payee extends BaseClass {
   Address: ChainAddress;
   CallAsContract: boolean;
 
-  constructor(input: Map<string, unknown>) {
+  constructor(address: ChainAddress, callAsContract: boolean = false) {
     super();
-    this.Address = new ChainAddress(
-      input.get("Address") as Map<string, unknown>,
-    );
-    this.CallAsContract = ensureBoolean(
+    this.Address = address;
+    this.CallAsContract = callAsContract;
+  }
+
+  static fromCBOR(input: Map<string, unknown>): Payee {
+    const addressData = input.get("Address");
+    if (!(addressData instanceof Map)) {
+      throw new TypeError("Expected Address to be a Map");
+    }
+    const address = ChainAddress.fromCBOR(addressData);
+    const callAsContract = ensureBoolean(
       input.get("CallAsContract"),
       "CallAsContract",
     );
+    return new Payee(address, callAsContract);
   }
 }
 
 export class AcceptedCurrencyMap {
   data: Map<number, Map<Uint8Array, Map<string, boolean>>> = new Map();
 
-  constructor(input: Map<number, unknown>) {
+  constructor(data?: Map<number, Map<Uint8Array, Map<string, boolean>>>) {
+    this.data = data || new Map();
+  }
+
+  static fromCBOR(input: Map<number, unknown>): AcceptedCurrencyMap {
+    const result = new Map<number, Map<Uint8Array, Map<string, boolean>>>();
     // Iterate through chain IDs
     for (const [chainId, addressSet] of input) {
       if (typeof chainId !== "number") {
@@ -201,8 +252,9 @@ export class AcceptedCurrencyMap {
         validatedAddressMap.set(address, val as Map<string, boolean>);
       }
 
-      this.data.set(chainId, validatedAddressMap);
+      result.set(chainId, validatedAddressMap);
     }
+    return new AcceptedCurrencyMap(result);
   }
 
   asCBORMap(): Map<number, Map<Uint8Array, Map<"isContract", boolean>>> {
@@ -222,10 +274,16 @@ export class ChainAddress extends BaseClass {
   ChainID: number;
   Address: Uint8Array;
 
-  constructor(input: Map<string, unknown>) {
+  constructor(chainID: number, address: Uint8Array) {
     super();
-    this.ChainID = ensureNumber(input.get("ChainID"), "ChainID");
-    this.Address = ensureUint8Array(input.get("Address"), "Address");
+    this.ChainID = chainID;
+    this.Address = address;
+  }
+
+  static fromCBOR(input: Map<string, unknown>): ChainAddress {
+    const chainID = ensureNumber(input.get("ChainID"), "ChainID");
+    const address = ensureUint8Array(input.get("Address"), "Address");
+    return new ChainAddress(chainID, address);
   }
 }
 
@@ -234,11 +292,22 @@ export class ShippingRegion extends BaseClass {
   PostalCode: string;
   City: string;
 
-  constructor(input: Map<string, unknown>) {
+  constructor(
+    country: string = "",
+    postalCode: string = "",
+    city: string = "",
+  ) {
     super();
-    this.Country = ensureString(input.get("Country"), "Country");
-    this.PostalCode = ensureString(input.get("PostalCode"), "PostalCode");
-    this.City = ensureString(input.get("City"), "City");
+    this.Country = country;
+    this.PostalCode = postalCode;
+    this.City = city;
+  }
+
+  static fromCBOR(input: Map<string, unknown>): ShippingRegion {
+    const country = ensureString(input.get("Country"), "Country");
+    const postalCode = ensureString(input.get("PostalCode"), "PostalCode");
+    const city = ensureString(input.get("City"), "City");
+    return new ShippingRegion(country, postalCode, city);
   }
 }
 
@@ -246,20 +315,38 @@ export class PriceModifier {
   ModificationPrecents?: bigint;
   ModificationAbsolute?: ModificationAbsolute;
 
-  constructor(input: Map<string, unknown>) {
+  constructor(
+    modificationPercents?: bigint,
+    modificationAbsolute?: ModificationAbsolute,
+  ) {
+    // Make it a sum type - only one of these should be set
+    if (
+      modificationPercents !== undefined && modificationAbsolute !== undefined
+    ) {
+      throw new Error(
+        "PriceModifier must have either ModificationPrecents or ModificationAbsolute, not both",
+      );
+    }
+    this.ModificationPrecents = modificationPercents;
+    this.ModificationAbsolute = modificationAbsolute;
+  }
+
+  static fromCBOR(input: Map<string, unknown>): PriceModifier {
     // Make it a sum type - only one of these should be set
     if (input.has("ModificationPrecents")) {
-      this.ModificationPrecents = ensureBigInt(
+      const modificationPercents = ensureBigInt(
         input.get("ModificationPrecents"),
         "ModificationPrecents",
       );
+      return new PriceModifier(modificationPercents);
     } else if (input.has("ModificationAbsolute")) {
       const modificationAbsolute = input.get("ModificationAbsolute");
       if (!(modificationAbsolute instanceof Map)) {
         throw new TypeError("Expected ModificationAbsolute to be a Map");
       }
-      this.ModificationAbsolute = new ModificationAbsolute(
-        modificationAbsolute,
+      return new PriceModifier(
+        undefined,
+        ModificationAbsolute.fromCBOR(modificationAbsolute),
       );
     } else {
       throw new Error(
@@ -289,9 +376,15 @@ export class ModificationAbsolute extends BaseClass {
   Amount: bigint;
   Plus: boolean;
 
-  constructor(input: Map<string, unknown>) {
+  constructor(amount: bigint, plus: boolean) {
     super();
-    this.Amount = ensureBigInt(input.get("Amount"), "Amount");
-    this.Plus = ensureBoolean(input.get("Plus"), "Plus");
+    this.Amount = amount;
+    this.Plus = plus;
+  }
+
+  static fromCBOR(input: Map<string, unknown>): ModificationAbsolute {
+    const amount = ensureBigInt(input.get("Amount"), "Amount");
+    const plus = ensureBoolean(input.get("Plus"), "Plus");
+    return new ModificationAbsolute(amount, plus);
   }
 }

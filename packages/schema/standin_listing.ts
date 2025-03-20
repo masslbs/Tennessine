@@ -15,19 +15,33 @@ export class Listing extends BaseClass {
   Options?: Map<string, ListingOption>;
   StockStatuses?: ListingStockStatus[];
 
-  constructor(input: Map<string, unknown>) {
+  constructor(
+    id: number = 0,
+    price: number = 0,
+    metadata?: ListingMetadata,
+    viewState: ListingViewState = ListingViewState.Unspecified,
+  ) {
     super();
-    this.ID = ensureNumber(input.get("ID"), "ID");
-    this.Price = ensureNumber(input.get("Price"), "Price");
+    this.ID = id;
+    this.Price = price;
+    this.Metadata = metadata || new ListingMetadata("", "");
+    this.ViewState = viewState;
+  }
+
+  static fromCBOR(input: Map<string, unknown>): Listing {
+    const id = ensureNumber(input.get("ID"), "ID");
+    const price = ensureNumber(input.get("Price"), "Price");
 
     const metadata = input.get("Metadata");
     if (!(metadata instanceof Map)) {
       throw new TypeError("Expected Metadata to be a Map");
     }
-    this.Metadata = new ListingMetadata(metadata);
+    const metadataObj = ListingMetadata.fromCBOR(metadata);
 
     const viewStateNum = ensureNumber(input.get("ViewState"), "ViewState");
-    this.ViewState = ViewStateFromNumber(viewStateNum);
+    const viewState = ViewStateFromNumber(viewStateNum);
+
+    const listing = new Listing(id, price, metadataObj, viewState);
 
     const options = input.get("Options");
     if (options !== undefined) {
@@ -39,9 +53,9 @@ export class Listing extends BaseClass {
         if (!(value instanceof Map)) {
           throw new TypeError(`Expected option value for ${key} to be a Map`);
         }
-        map.set(key, new ListingOption(value));
+        map.set(key, ListingOption.fromCBOR(value));
       }
-      this.Options = map;
+      listing.Options = map;
     }
 
     const stockStatuses = input.get("StockStatuses");
@@ -49,13 +63,15 @@ export class Listing extends BaseClass {
       if (!Array.isArray(stockStatuses)) {
         throw new TypeError("Expected StockStatuses to be an array");
       }
-      this.StockStatuses = stockStatuses.map((stockStatus) => {
+      listing.StockStatuses = stockStatuses.map((stockStatus) => {
         if (!(stockStatus instanceof Map)) {
           throw new TypeError("Expected stockStatus item to be a Map");
         }
-        return new ListingStockStatus(stockStatus);
+        return ListingStockStatus.fromCBOR(stockStatus);
       });
     }
+
+    return listing;
   }
 }
 
@@ -64,14 +80,26 @@ export class ListingMetadata {
   Description: string;
   Images?: string[];
 
-  constructor(input: Map<string, unknown>) {
-    this.Title = ensureString(input.get("Title"), "Title");
-    this.Description = ensureString(input.get("Description"), "Description");
+  constructor(title: string, description: string, images?: string[]) {
+    this.Title = title;
+    this.Description = description;
+    this.Images = images;
+  }
+
+  static fromCBOR(input: Map<string, unknown>): ListingMetadata {
+    const title = ensureString(input.get("Title"), "Title");
+    const description = ensureString(input.get("Description"), "Description");
 
     const images = input.get("Images");
     if (images !== undefined) {
-      this.Images = ensureStringArray(images, "Images");
+      return new ListingMetadata(
+        title,
+        description,
+        ensureStringArray(images, "Images"),
+      );
     }
+
+    return new ListingMetadata(title, description);
   }
 
   asCBORMap(): Map<string, unknown> {
@@ -109,14 +137,26 @@ export class ListingVariation extends BaseClass {
   PriceModifier?: PriceModifier;
   SKU?: string;
 
-  constructor(input: Map<string, unknown>) {
+  constructor(
+    variationInfo?: ListingMetadata,
+    priceModifier?: PriceModifier,
+    sku?: string,
+  ) {
     super();
+    this.VariationInfo = variationInfo;
+    this.PriceModifier = priceModifier;
+    this.SKU = sku;
+  }
+
+  static fromCBOR(input: Map<string, unknown>): ListingVariation {
+    const variation = new ListingVariation();
+
     const metadata = input.get("VariationInfo");
     if (metadata !== undefined) {
       if (!(metadata instanceof Map)) {
         throw new TypeError("Expected VariationInfo to be a Map");
       }
-      this.VariationInfo = new ListingMetadata(metadata);
+      variation.VariationInfo = ListingMetadata.fromCBOR(metadata);
     }
 
     const priceModifier = input.get("PriceModifier");
@@ -124,13 +164,17 @@ export class ListingVariation extends BaseClass {
       if (!(priceModifier instanceof Map)) {
         throw new TypeError("Expected PriceModifier to be a Map");
       }
-      this.PriceModifier = new PriceModifier(priceModifier);
+      variation.PriceModifier = PriceModifier.fromCBOR(
+        priceModifier as Map<string, unknown>,
+      );
     }
 
     const sku = input.get("SKU");
     if (sku !== undefined) {
-      this.SKU = ensureString(sku, "SKU");
+      variation.SKU = ensureString(sku, "SKU");
     }
+
+    return variation;
   }
 }
 
@@ -138,11 +182,17 @@ export class ListingOption extends BaseClass {
   Title: string;
   Variations: Map<string, ListingVariation> | undefined;
 
-  constructor(input: Map<string, unknown>) {
+  constructor(title: string, variations?: Map<string, ListingVariation>) {
     super();
-    this.Title = ensureString(input.get("Title"), "Title");
-    const variations = input.get("Variations");
+    this.Title = title;
+    this.Variations = variations;
+  }
 
+  static fromCBOR(input: Map<string, unknown>): ListingOption {
+    const title = ensureString(input.get("Title"), "Title");
+    const option = new ListingOption(title);
+
+    const variations = input.get("Variations");
     if (variations) {
       if (!(variations instanceof Map)) {
         throw new TypeError("Expected Variations to be a Map");
@@ -156,11 +206,13 @@ export class ListingOption extends BaseClass {
         }
         map.set(
           key,
-          new ListingVariation(val),
+          ListingVariation.fromCBOR(val),
         );
       }
-      this.Variations = map;
+      option.Variations = map;
     }
+
+    return option;
   }
 }
 
@@ -169,16 +221,28 @@ export class ListingStockStatus extends BaseClass {
   InStock?: boolean;
   ExpectedInStockBy?: Date;
 
-  constructor(input: Map<string, unknown>) {
+  constructor(
+    variationIDs: string[] = [],
+    inStock?: boolean,
+    expectedInStockBy?: Date,
+  ) {
     super();
+    this.VariationIDs = variationIDs;
+    this.InStock = inStock;
+    this.ExpectedInStockBy = expectedInStockBy;
+  }
+
+  static fromCBOR(input: Map<string, unknown>): ListingStockStatus {
+    const stockStatus = new ListingStockStatus();
+
     const variationIDs = input.get("VariationIDs");
-    this.VariationIDs = variationIDs
+    stockStatus.VariationIDs = variationIDs
       ? ensureStringArray(variationIDs, "VariationIDs")
       : [];
 
     const inStock = input.get("InStock");
     if (inStock !== undefined) {
-      this.InStock = ensureBoolean(inStock, "InStock");
+      stockStatus.InStock = ensureBoolean(inStock, "InStock");
     }
 
     const expectedInStockBy = input.get("ExpectedInStockBy");
@@ -186,7 +250,9 @@ export class ListingStockStatus extends BaseClass {
       if (!(expectedInStockBy instanceof Date)) {
         throw new TypeError("Expected ExpectedInStockBy to be a Date object");
       }
-      this.ExpectedInStockBy = expectedInStockBy;
+      stockStatus.ExpectedInStockBy = expectedInStockBy;
     }
+
+    return stockStatus;
   }
 }

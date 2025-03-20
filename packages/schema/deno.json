@@ -5,7 +5,8 @@
     ".": "./mod.ts",
     "./testFixtures": "./testFixtures.ts",
     "./cbor": "./cbor.ts",
-    "./utils": "./utils.ts"
+    "./utils": "./utils.ts",
+    "./standin": "./standin_bundle.ts"
   },
   "tasks": {
     "pbjs-build": "deno run --allow-env --allow-read --allow-write npm:protobufjs-cli/pbjs -t static-module -w es6  -o ./compiled.js $NETWORK_SCHEMA_PATH/*.proto --dependency protobufjs",
