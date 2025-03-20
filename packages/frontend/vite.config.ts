@@ -18,7 +18,6 @@ export default defineConfig({
     outDir: "dist",
     copyPublicDir: true,
   },
-
   plugins: [
     deno() as PluginOption,
     react(),

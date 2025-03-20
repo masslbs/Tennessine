@@ -32,6 +32,7 @@
     "@wagmi/core": "npm:@wagmi/core@^2.16.3",
     "autoprefixer": "npm:autoprefixer@^10.4.20",
     "bootstrap": "npm:bootstrap@^5.3.3",
+    "browser-level": "npm:browser-level@^2.0.0",
     "postcss": "npm:postcss@^8.4.49",
     "qrcode": "npm:qrcode@^1.5.4",
     "tailwindcss": "npm:tailwindcss@^4.0.14",

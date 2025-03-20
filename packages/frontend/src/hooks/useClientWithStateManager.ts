@@ -12,7 +12,7 @@ import { useKeycard } from "./useKeycard.ts";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";
 import { useChain } from "./useChain.ts";
 import { usePathname } from "./usePathname.ts";
-import { ClientWithStateManager } from "../ClientWithStateManager.ts";
+import { ClientStateManager } from "../ClientWithStateManager.ts";
 import { defaultRPC } from "../utils/mod.ts";
 
 const namespace = "frontend:useClientWithStateManager";
@@ -37,7 +37,7 @@ export function useClientWithStateManager() {
         clientStateManager?.keycard !== keycard.privateKey)
     ) {
       debug("Setting ClientWithStateManager");
-      const csm = new ClientWithStateManager(
+      const csm = new ClientStateManager(
         keycard.privateKey,
         shopPublicClient,
         shopId,

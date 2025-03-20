@@ -1,8 +1,8 @@
-import { Level } from "level";
+import { BrowserLevel } from "browser-level";
 import type { StoreInterface } from "./mod.ts";
 
 export class LevelStore implements StoreInterface {
-  #data = new Level<Uint8Array, Uint8Array>("./db", {
+  #data = new BrowserLevel<Uint8Array, Uint8Array>("./db", {
     valueEncoding: "view",
     keyEncoding: "view",
   });

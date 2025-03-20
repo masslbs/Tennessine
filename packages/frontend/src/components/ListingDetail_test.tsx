@@ -5,7 +5,11 @@ import { expect } from "@std/expect";
 import { userEvent } from "@testing-library/user-event";
 
 import { random256BigInt } from "@massmarket/utils";
-import { payees, shippingRegions, metadata } from "@massmarket/schema/testFixtures";
+import {
+  metadata,
+  payees,
+  shippingRegions,
+} from "@massmarket/schema/testFixtures";
 
 import ListingDetail from "./ListingDetail.tsx";
 import {
@@ -19,7 +23,7 @@ Deno.test("Check that we can render the listing details screen", {
   sanitizeOps: false,
 }, async () => {
   const user = userEvent.setup();
-  const csm = await createClientStateManager();
+  const csm = createClientStateManager();
   await csm.stateManager!.manifest.create(
     {
       acceptedCurrencies: [{

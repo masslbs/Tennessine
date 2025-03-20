@@ -1,81 +1,36 @@
-import { privateKeyToAccount } from "viem/accounts";
-import type { Account, PublicClient, WalletClient } from "viem";
-import { BrowserLevel } from "npm:browser-level";
-import { type IRelayEndpoint, RelayClient } from "@massmarket/client";
+import { type WalletClient } from "viem";
+
 import Database from "@massmarket/stateManager";
-import { logger } from "@massmarket/utils";
+import { type IRelayEndpoint, RelayClient } from "@massmarket/client";
+import { LevelStore } from "@massmarket/merkle-dag-builder/levelstore";
 
-import { ShopId } from "./types.ts";
-
-const namespace = "frontend:ClientWithStateManager";
-const debug = logger(namespace);
-
-navigator.storage.getDirectory();
-export class ClientWithStateManager {
-  public stateManager: Database | null = null;
-  public relayClient: RelayClient | null = null;
+export class ClientStateManager {
+  public stateManager;
+  public relayClient;
 
   constructor(
-    public keycard: `0x${string}`,
-    public readonly publicClient: PublicClient,
-    public readonly shopId: ShopId,
     public readonly relayEndpoint: IRelayEndpoint,
-  ) {}
-
-  async createStateManager() {
-    if (!this.relayClient) throw new Error("RelayClient not set");
-    const dbName = `${String(this.shopId).slice(0, 5)}-${
-      this.keycard.slice(0, 5)
-    }`;
-    debug(`using level db: ${dbName}`);
-    const encOption = { valueEncoding: "json" };
-    const store = new BrowserLevel(`./${dbName}`, encOption);
-
+    walletClient: WalletClient,
+    account: `0x${string}`,
+    shopId: bigint,
+  ) {
+    const store = new LevelStore();
     this.stateManager = new Database(
       {
         store,
-        objectId: this.shopId,
+        objectId: shopId,
       },
     );
 
-    await this.stateManager.addConnection(this.relayClient);
-
-    if (window && store) {
-      globalThis.addEventListener("beforeunload", () => {
-        store.close().then(() => {
-          debug("level db closed");
-        });
-      });
-    }
-    return this.stateManager;
-  }
-
-  createNewRelayClient() {
-    if (this.relayClient) return;
-    if (!this.relayEndpoint?.url) throw new Error("Relay endpoint URL not set");
-    if (!this.relayEndpoint?.tokenId) {
-      throw new Error("Relay endpoint tokenId not set");
-    }
     this.relayClient = new RelayClient({
       relayEndpoint: this.relayEndpoint,
-      walletClient: privateKeyToAccount(this.keycard),
-      keyCard: this.keycard,
-      shopId: this.shopId,
+      walletClient: walletClient,
+      keycard: account,
+      shopId: shopId,
     });
-    debug("RelayClient created");
-    return this.relayClient;
   }
 
-  enrollKeycard(
-    wallet: WalletClient,
-    account: Account,
-    isGuest: boolean = true,
-  ) {
-    if (!this.relayClient) throw new Error("RelayClient not set");
-    return this.relayClient.enrollKeycard(
-      wallet,
-      account,
-      isGuest,
-    );
+  connect() {
+    return this.stateManager.addConnection(this.relayClient);
   }
 }

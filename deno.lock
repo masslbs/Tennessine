@@ -42,6 +42,7 @@
     "npm:autoprefixer@^10.4.20": "10.4.21_postcss@8.5.3",
     "npm:bootstrap@^5.3.3": "5.3.3_@popperjs+core@2.11.8",
     "npm:browser-level@*": "2.0.0",
+    "npm:browser-level@2": "2.0.0",
     "npm:cbor-x@^1.6.0": "1.6.0",
     "npm:isows@1.0.6": "1.0.6_ws@8.18.1",
     "npm:level@9": "9.0.0",
@@ -4328,6 +4329,7 @@
           "npm:@wagmi/core@^2.16.3",
           "npm:autoprefixer@^10.4.20",
           "npm:bootstrap@^5.3.3",
+          "npm:browser-level@2",
           "npm:postcss@^8.4.49",
           "npm:qrcode@^1.5.4",
           "npm:react-dom@19",
@@ -4342,7 +4344,7 @@
       "packages/merkle-dag-builder": {
         "dependencies": [
           "jsr:@std/assert@^1.0.11",
-          "npm:level@9"
+          "npm:browser-level@2"
         ]
       },
       "packages/mmr": {
