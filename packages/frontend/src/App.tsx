@@ -2,7 +2,7 @@ import { type Config, WagmiProvider } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
-import { MassMarketProvider } from "./MassMarketContext.tsx";
+import { MassMarketProvider } from "./MassMarketContext.ts";
 import { getConfig } from "./wagmi.ts";
 import { routeTree } from "./routeTree.gen.ts";
 

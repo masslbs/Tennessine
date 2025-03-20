@@ -1,5 +1,6 @@
 import React, {
   createContext,
+  createElement,
   Dispatch,
   SetStateAction,
   useState,
@@ -7,9 +8,9 @@ import React, {
 import { ClientWithStateManager } from "./ClientWithStateManager.ts";
 
 type MassMarketContextType = {
-  clientStateManager: ClientWithStateManager | null;
+  clientStateManager?: ClientWithStateManager;
   setClientStateManager: Dispatch<
-    SetStateAction<ClientWithStateManager | null>
+    SetStateAction<ClientWithStateManager | undefined>
   >;
   shopDetails: {
     name: string;
@@ -20,21 +21,16 @@ type MassMarketContextType = {
   >;
 };
 
-export const MassMarketContext = createContext<MassMarketContextType>({
-  // Initial values
-  clientStateManager: null,
-  setClientStateManager: () => {},
-  shopDetails: {
-    name: "",
-    profilePictureUrl: "",
-  },
-  setShopDetails: () => {},
-});
+export const MassMarketContext = createContext<
+  MassMarketContextType | undefined
+>(
+  undefined,
+);
 
 export function MassMarketProvider(
-  parameters: React.PropsWithChildren & {
-    clientStateManager: ClientWithStateManager | null;
-  },
+  parameters: React.PropsWithChildren<{
+    clientStateManager?: ClientWithStateManager;
+  }>,
 ) {
   const [clientStateManager, setClientStateManager] = useState(
     parameters.clientStateManager,
@@ -51,9 +47,8 @@ export function MassMarketProvider(
     setShopDetails,
   };
 
-  return (
-    <MassMarketContext.Provider value={value}>
-      {parameters.children}
-    </MassMarketContext.Provider>
-  );
+  return createElement(MassMarketContext.Provider, {
+    value,
+    children: parameters.children,
+  });
 }
