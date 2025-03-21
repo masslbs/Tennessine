@@ -1,70 +1,6 @@
 import { assert } from "@std/assert";
-import { codec, get, type Hash, hash, isHash, set } from "@massmarket/utils";
-
-/** The interface for a store that is used to store and retrieve blocks */
-export interface StoreInterface {
-  get(key: Uint8Array): Promise<Uint8Array | undefined>;
-  set(key: Uint8Array, value: Uint8Array): Promise<void>;
-  append(key: Uint8Array, value: Uint8Array): Promise<void>;
-}
-
-// store's objects, as long as they can be encoded as CBOR
-export class ObjectStore {
-  store: StoreInterface;
-  constructor(store: StoreInterface) {
-    this.store = store;
-  }
-
-  async get(
-    key: codec.CodecValue,
-  ): Promise<codec.CodecValue | undefined> {
-    if (!(key instanceof Uint8Array)) {
-      key = codec.encode(key);
-    }
-    const val = await this.store.get(key as Uint8Array);
-    return val ? codec.decode(val) : undefined;
-  }
-
-  async set(key: codec.CodecValue, value: codec.CodecValue): Promise<void> {
-    if (!(key instanceof Uint8Array)) {
-      key = codec.encode(key);
-    }
-    const ev = codec.encode(value);
-    await this.store.set(key as Uint8Array, ev);
-  }
-
-  append(key: codec.CodecValue, value: codec.CodecValue): Promise<void> {
-    if (!(key instanceof Uint8Array)) {
-      key = codec.encode(key);
-    }
-
-    const ev = codec.encode(value);
-    return this.store.append(key as Uint8Array, ev);
-  }
-}
-
-export class ContentAddressableStore {
-  objStore: ObjectStore;
-  constructor(store: StoreInterface) {
-    this.objStore = new ObjectStore(store);
-  }
-
-  get(key: Hash): Promise<codec.CodecValue | undefined> {
-    return this.objStore.get(key);
-  }
-
-  async set(value: codec.CodecValue): Promise<Hash> {
-    if (isHash(value)) {
-      return value;
-    } else {
-      const ev = codec.encode(value);
-      const keyb = await hash(ev);
-      const key = new Uint8Array(keyb);
-      await this.objStore.store.set(key, ev);
-      return key;
-    }
-  }
-}
+import { type codec, get, type Hash, isHash, set } from "@massmarket/utils";
+import { type AbstractStore, ContentAddressableStore } from "@massmarket/store";
 
 export type RootValue =
   | codec.CodecValue
@@ -78,7 +14,7 @@ export class DAG {
   /**
    * Creates a new graph
    */
-  constructor(store: StoreInterface) {
+  constructor(store: AbstractStore) {
     this.store = new ContentAddressableStore(store);
   }
 

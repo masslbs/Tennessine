@@ -9,6 +9,7 @@
     "./packages/merkle-dag-builder",
     "./packages/stateManager",
     "./packages/frontend",
+    "./packages/store",
     "./packages/mmr"
   ],
   "lint": {

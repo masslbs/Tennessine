@@ -1,4 +1,5 @@
-import { DAG, type StoreInterface } from "@massmarket/merkle-dag-builder";
+import { DAG } from "@massmarket/merkle-dag-builder";
+import type { AbstractStore } from "@massmarket/store";
 import EventTree from "@massmarket/eventTree";
 import type { PushedPatchSet, RelayClient } from "@massmarket/client";
 import type { codec, Hash } from "@massmarket/utils";
@@ -29,7 +30,7 @@ export default class StateManager {
   #stateCache: Map<string, Promise<IStoredState>> = new Map();
   constructor(
     public params: {
-      store: StoreInterface;
+      store: AbstractStore;
       objectId: bigint;
     },
   ) {

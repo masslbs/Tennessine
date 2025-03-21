@@ -1,10 +1,10 @@
 import { assert, assertEquals } from "@std/assert";
+import { MemStore as Store } from "@massmarket/store/mem";
 import { DAG, type RootValue } from "./mod.ts";
-import { MemStore } from "./memstore.ts";
 
 Deno.test("meta data", async (t) => {
   await t.step("testing storing and retrieving metadata", async () => {
-    const store = new MemStore();
+    const store = new Store();
     const dag = new DAG(store);
     await dag.store.objStore.set("pet", "cat");
     const val = await dag.store.objStore.get("pet");
@@ -13,7 +13,7 @@ Deno.test("meta data", async (t) => {
 });
 
 let root: RootValue = new Map();
-const store = new MemStore();
+const store = new Store();
 
 Deno.test("basic set and get ", async (t) => {
   await t.step("Map with string keys", async () => {

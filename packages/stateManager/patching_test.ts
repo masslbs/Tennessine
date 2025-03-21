@@ -1,6 +1,5 @@
-import { MemStore } from "@massmarket/merkle-dag-builder/memstore";
-
 import StateManager from "./mod.ts";
+import { MemStore } from "@massmarket/store";
 import type { Patch, PushedPatchSet } from "@massmarket/client";
 import type { CodecValue, Path } from "@massmarket/utils/codec";
 import { fetchAndDecode } from "@massmarket/utils";

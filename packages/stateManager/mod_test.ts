@@ -1,6 +1,6 @@
 import { assertEquals } from "@std/assert";
 
-import { MemStore } from "@massmarket/merkle-dag-builder/memstore";
+import { MemStore } from "@massmarket/store";
 import { createTestClients } from "@massmarket/client/test";
 import {
   type codec,
