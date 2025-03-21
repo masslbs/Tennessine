@@ -318,17 +318,22 @@ export class RelayClient {
     });
   }
 
-  connect(): Promise<Event> {
+  connect(onError?: (error: Event) => void): Promise<Event> {
     if (
       !this.connection ||
       this.connection.readyState === WebSocket.CLOSING ||
       this.connection.readyState === WebSocket.CLOSED
     ) {
       this.connection = new WebSocket(this.relayEndpoint.url + "/sessions");
-      this.connection.addEventListener("error", (error: Event) => {
-        console.error("WebSocket error!");
-        console.error(error);
-      });
+
+      this.connection.addEventListener(
+        "error",
+        onError ? onError : (error: Event) => {
+          console.error("WebSocket error!");
+          console.error(error);
+        },
+      );
+
       this.connection.addEventListener(
         "message",
         this.#decodeMessage.bind(this),

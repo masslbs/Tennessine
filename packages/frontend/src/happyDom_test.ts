@@ -1,36 +1,35 @@
 import "./happyDomSetup.ts";
 
 import { expect } from "@std/expect";
-import { createPublicClient, createWalletClient, http } from "viem";
+import { createClient, publicActions, walletActions, webSocket } from "viem";
 import { hardhat } from "viem/chains";
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 import { random256BigInt } from "@massmarket/utils";
 import { mintShop } from "@massmarket/blockchain";
 
+//  i'm not sure these actually run in happy-dom
+
 Deno.test("Fetch API works with happy-dom", {
   sanitizeResources: false,
   sanitizeOps: false,
-}, async () => {
-  const anvilPrivateKey = generatePrivateKey();
+}, async (t) => {
   const shopId = random256BigInt();
-  const wallet = createWalletClient({
-    account: privateKeyToAccount(
-      anvilPrivateKey,
-    ),
+  const client = createClient({
     chain: hardhat,
-    transport: http(),
+    transport: webSocket("ws://localhost:8545"),
+  }).extend(walletActions).extend(publicActions);
+  const [account] = await client.requestAddresses();
+
+  await t.step("mintShop", async () => {
+    const transactionHash = await mintShop(client, account, [
+      shopId,
+      account,
+    ]);
+    // this is still causing a leak
+    // https://github.com/wevm/viem/issues/2903
+    const receipt = await client.waitForTransactionReceipt({
+      hash: transactionHash,
+    });
+    expect(receipt.status).toBe("success");
   });
-  const publicClient = createPublicClient({
-    chain: hardhat,
-    transport: http(),
-  });
-  const transactionHash = await mintShop(wallet, [
-    shopId,
-    wallet.account.address,
-  ]);
-  const receipt = await publicClient.waitForTransactionReceipt({
-    hash: transactionHash,
-  });
-  expect(receipt.status).toBe("success");
 });
