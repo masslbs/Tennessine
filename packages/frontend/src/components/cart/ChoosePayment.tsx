@@ -96,21 +96,21 @@ export default function ChoosePayment({
       });
     }
 
-    currentOrder!.orderId &&
-      sm.events.on(onPaymentDetails, ["Orders", currentOrder!.orderId]);
+    currentOrder!.ID &&
+      sm.events.on(onPaymentDetails, ["Orders", currentOrder!.ID]);
 
     return () => {
       // Cleanup listeners on unmount
       sm.events.off(
         onPaymentDetails,
-        ["Orders", currentOrder!.orderId],
+        ["Orders", currentOrder!.ID],
       );
     };
   }, [sm]);
 
   async function getPaymentArgs() {
     try {
-      const oId = currentOrder!.orderId;
+      const oId = currentOrder!.ID;
       const committedOrder = await sm
         .get(oId!);
       if (!committedOrder?.choosePayment) {

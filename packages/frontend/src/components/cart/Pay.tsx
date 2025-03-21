@@ -18,7 +18,6 @@ import Button from "../common/Button.tsx";
 import BackButton from "../common/BackButton.tsx";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
-import { OrderState } from "../../types.ts";
 import { env } from "../../utils/env.ts";
 
 const namespace = "frontend:Pay";
@@ -68,12 +67,12 @@ export default function Pay({
       }
       setLoading(false);
     }
-    sm.events.on(txHashDetected, ["Orders", currentOrder!.orderId]);
+    sm.events.on(txHashDetected, ["Orders", currentOrder!.ID]);
 
     return () => {
       sm.events.off(
         txHashDetected,
-        ["Orders", currentOrder!.orderId],
+        ["Orders", currentOrder!.ID],
       );
     };
   }, [currentOrder]);

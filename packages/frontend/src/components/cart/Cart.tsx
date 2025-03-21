@@ -7,8 +7,7 @@ import { formatUnits } from "viem";
 import { assert, logger } from "@massmarket/utils";
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
 
-import { ListingId, OrderEventTypes, OrderId } from "../../types.ts";
-
+import { ListingId, OrderId } from "../../types.ts";
 import Button from "../common/Button.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import { useBaseToken } from "../../hooks/useBaseToken.ts";
@@ -53,7 +52,7 @@ export default function Cart({
       });
     }
 
-    sm.get(["Orders", currentOrder!.orderId]).then(
+    sm.get(["Orders", currentOrder!.ID]).then(
       (order: Map<string, unknown>) => {
         getAllCartItemDetails(new Order(order)).then((allCartItems) => {
           setCartMap(allCartItems);
@@ -61,18 +60,18 @@ export default function Cart({
       },
     );
 
-    sm.events.on(onOrderUpdate, ["Orders", currentOrder!.orderId]);
+    sm.events.on(onOrderUpdate, ["Orders", currentOrder!.ID]);
 
     return () => {
-      sm.events.off(onOrderUpdate, ["Orders", currentOrder!.orderId]);
+      sm.events.off(onOrderUpdate, ["Orders", currentOrder!.ID]);
     };
   }, [sm]);
 
   useEffect(() => {
     if (!currentOrder || !sm) return;
-    debug(`Showing cart items for order ID: ${currentOrder.orderId}`);
-    setOrderId(currentOrder.orderId);
-    sm.get(["Orders", currentOrder.orderId])
+    debug(`Showing cart items for order ID: ${currentOrder.ID}`);
+    setOrderId(currentOrder.ID);
+    sm.get(["Orders", currentOrder.ID])
       .then(async (res) => {
         const o = new Order(res);
         const allCartItems = await getAllCartItemDetails(o);

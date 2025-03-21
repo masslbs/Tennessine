@@ -9,12 +9,7 @@ import { useDisconnect } from "wagmi";
 import { assert, logger } from "@massmarket/utils";
 import { Order } from "@massmarket/schema";
 
-import {
-  CheckoutStep,
-  OrderEventTypes,
-  OrderId,
-  OrderState,
-} from "../types.ts";
+import { CheckoutStep, OrderId, OrderState } from "../types.ts";
 import Cart from "./cart/Cart.tsx";
 import { useClientWithStateManager } from "../hooks/useClientWithStateManager.ts";
 import { useShopDetails } from "../hooks/useShopDetails.ts";
@@ -73,7 +68,7 @@ function Navigation() {
 
   useEffect(() => {
     if (!currentOrder) return;
-    clientStateManager?.stateManager?.get(["Orders", currentOrder.orderId])
+    clientStateManager?.stateManager?.get(["Orders", currentOrder.ID])
       .then((o: Map<OrderId, unknown>) => {
         // Getting number of items in order.
         const order = new Order(o);
@@ -105,7 +100,7 @@ function Navigation() {
         throw new Error("No order found");
       }
       // Commit the order if it is not already committed
-      if (currentOrder!.status !== OrderState.STATE_COMMITTED) {
+      if (currentOrder!.State !== OrderState.STATE_COMMITTED) {
         await sm.set(
           ["Orders", orderId, "State"],
           OrderState.STATE_COMMITTED,

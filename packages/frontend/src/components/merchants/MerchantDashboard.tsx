@@ -8,7 +8,7 @@ import { Link } from "@tanstack/react-router";
 import { Order } from "@massmarket/schema";
 
 import Transactions from "./Transactions.tsx";
-import { OrderEventTypes, OrderId } from "../../types.ts";
+import { OrderId } from "../../types.ts";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 
 export default function MerchantDashboard() {

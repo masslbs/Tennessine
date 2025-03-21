@@ -49,11 +49,6 @@ export enum CreateShopStep {
   Confirmation = "CONFIRMATION",
 }
 
-export interface CurrentOrder {
-  orderId: OrderId;
-  status: OrderState;
-}
-
 export type ShopForm = {
   shopName: string;
   description: string;
@@ -66,6 +61,7 @@ export enum ListingViewState {
   LISTING_VIEW_STATE_PUBLISHED = 1,
   LISTING_VIEW_STATE_DELETED = 2,
 }
+
 export enum OrderState {
   STATE_UNSPECIFIED = 0,
   STATE_OPEN = 1,
@@ -73,14 +69,4 @@ export enum OrderState {
   STATE_COMMITTED = 3,
   STATE_PAYMENT_TX = 4,
   STATE_PAID = 5,
-}
-export enum OrderEventTypes {
-  CANCELLED = "orderCanceled",
-  CHANGE_ITEMS = "changeItems",
-  INVOICE_ADDRESS = "invoiceAddress",
-  SHIPPING_ADDRESS = "shippingAddress",
-  COMMIT_ITEMS = "commitItems",
-  CHOOSE_PAYMENT = "choosePayment",
-  PAYMENT_DETAILS = "paymentDetails",
-  PAYMENT_TX = "addPaymentTx",
 }

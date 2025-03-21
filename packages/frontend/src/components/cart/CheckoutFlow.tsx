@@ -10,7 +10,6 @@ import { Order } from "@massmarket/schema";
 
 import {
   CheckoutStep,
-  OrderEventTypes,
   OrderId,
   OrderState,
 } from "../../types.ts";
@@ -54,7 +53,7 @@ export default function CheckoutFlow() {
         setCountdown((prev: number) => prev - 10);
       }, 10000);
     } else if (countdown === 0) {
-      cancelAndCreateOrder(currentOrder!.orderId, clientStateManager!)
+      cancelAndCreateOrder(currentOrder!.ID, clientStateManager!)
         .then()
         .catch((e) => {
           logerr("Error cancelling order", e);
@@ -80,11 +79,11 @@ export default function CheckoutFlow() {
       }
     }
 
-    sm.events.on(txHashDetected, ["Orders", currentOrder!.orderId]);
+    sm.events.on(txHashDetected, ["Orders", currentOrder!.ID]);
     return () => {
       sm.events.off(
         txHashDetected,
-        ["Orders", currentOrder!.orderId],
+        ["Orders", currentOrder!.ID],
       );
     };
   }, [currentOrder]);
@@ -109,7 +108,7 @@ export default function CheckoutFlow() {
     }
     try {
       // Commit the order if it is not already committed
-      if (currentOrder!.status !== OrderState.STATE_COMMITTED) {
+      if (currentOrder!.State !== OrderState.STATE_COMMITTED) {
         await sm.set(
           ["Orders", orderId, "State"],
           OrderState.STATE_COMMITTED,
