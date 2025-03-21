@@ -1,7 +1,7 @@
 import { DAG } from "@massmarket/merkle-dag-builder";
 import type { AbstractStore } from "@massmarket/store";
 import EventTree from "@massmarket/eventTree";
-import type { PushedPatchSet, RelayClient } from "@massmarket/client";
+import type { Patch, PushedPatchSet, RelayClient } from "@massmarket/client";
 import type { codec, Hash } from "@massmarket/utils";
 
 const DefaultObject = new Map(Object.entries({
@@ -25,7 +25,8 @@ export default class StateManager {
   readonly events = new EventTree<codec.CodecValue>(DefaultObject);
   readonly graph: DAG;
   readonly clients: Set<RelayClient> = new Set();
-  #streamsControllers: Set<ReadableStreamDefaultController> = new Set();
+  #streamsControllers: Set<ReadableStreamDefaultController<Patch[]>> =
+    new Set();
   // very simple cache, we always want a reference to the same object
   #stateCache: Map<string, Promise<IStoredState>> = new Map();
   constructor(
@@ -111,13 +112,13 @@ export default class StateManager {
         //   throw new Error("Invalid keycard");
         // }
         for (const patch of patchSet.patches) {
-          const value = patch.Value;
           // TODO validate the Operation's value if any
           // const OpValschema = getSubSchema(this.params.schema, patch.Path);
           // v.parse(OpValschema, value);
           //
           // apply the operation
           if (patch.Op === "add" || patch.Op === "replace") {
+            const value = patch.Value;
             state.root = this.graph.set(state.root, patch.Path, value);
             localState.root = this.graph.set(
               localState.root,
@@ -128,7 +129,7 @@ export default class StateManager {
           } else if (patch.Op === "append") {
             const value = await this.graph.get(state.root, patch.Path);
             if (Array.isArray(value)) {
-              value.push(value);
+              value.push(patch.Value);
             } else {
               throw new Error("Invalid path");
             }
@@ -161,8 +162,8 @@ export default class StateManager {
     });
   }
 
-  createReadStream(): ReadableStream {
-    return new ReadableStream({
+  createReadStream(): ReadableStream<Patch[]> {
+    return new ReadableStream<Patch[]>({
       start: (
         controller: ReadableStreamDefaultController,
       ) => {
@@ -194,18 +195,33 @@ export default class StateManager {
     };
   }
 
-  async set(path: codec.Path, value: codec.CodecValue, id = "local") {
+  async #sendPatch(patch: Patch, id: string) {
     const state = await this.loadState(id);
-    state.root = await this.graph.set(state.root, path, value);
-    this.events.emit(state.root);
     state.seqNum += 1;
-    // state.root = await this.graph.merklelize(state.root);
     // send patch to peers
     this.#streamsControllers.forEach((controller) => {
       controller.enqueue([
-        { Op: "add", Path: path, Value: value },
+        patch,
       ]);
     });
+    return state;
+  }
+
+  increment(path: codec.Path, id = "local") {
+    return this.#sendPatch({ Op: "increment", Path: path }, id);
+  }
+
+  decrement(path: codec.Path, id = "local") {
+    return this.#sendPatch({ Op: "decrement", Path: path }, id);
+  }
+
+  async set(path: codec.Path, value: codec.CodecValue, id = "local") {
+    const state = await this.#sendPatch(
+      { Op: "add", Path: path, Value: value },
+      id,
+    );
+    state.root = await this.graph.set(state.root, path, value);
+    this.events.emit(state.root);
     return this.#saveState();
   }
 

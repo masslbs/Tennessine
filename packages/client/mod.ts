@@ -45,11 +45,19 @@ export interface IRelayClientOptions {
   keyCardNonce?: number;
 }
 
-export type Patch = {
-  Path: CodecKey[];
-  Op: "add" | "remove" | "replace" | "append";
-  Value: CodecValue;
-};
+export type Patch =
+  & {
+    Path: CodecKey[];
+  }
+  & (
+    | {
+      Op: "add" | "remove" | "replace" | "append";
+      Value: CodecValue;
+    }
+    | {
+      Op: "remove" | "increment" | "decrement";
+    }
+  );
 
 export type PushedPatchSet = {
   signer: Hex;

@@ -10,6 +10,8 @@ import {
 
 import StateManager from "./mod.ts";
 
+const { relayClient } = await createTestClients();
+
 Deno.test("Database Testings", async (t) => {
   const store = new MemStore();
 
@@ -62,7 +64,6 @@ Deno.test("Database Testings", async (t) => {
   });
 
   await t.step("add a relay and set a key and retrieve it", async () => {
-    const { relayClient } = await createTestClients();
     const sm = new StateManager({
       store,
       objectId: relayClient.shopId,
@@ -70,11 +71,11 @@ Deno.test("Database Testings", async (t) => {
     // connect to the relay
     const { resolve, promise } = Promise.withResolvers();
     sm.events.on((manifestPatch) => {
-      console.log(manifestPatch);
       resolve(manifestPatch);
     }, ["Manifest"]);
 
     await sm.addConnection(relayClient);
+    // wait for manifest to be received
     await promise;
     const testAddr = Uint8Array.from([
       0xf0,
@@ -115,5 +116,6 @@ Deno.test("Database Testings", async (t) => {
         ["ChainID", 1337],
       ]),
     );
+    await relayClient.disconnect();
   });
 });
