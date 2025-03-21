@@ -4,9 +4,10 @@ import { logger } from "@massmarket/utils";
 import { Order } from "@massmarket/schema";
 
 import { useClientWithStateManager } from "./useClientWithStateManager.ts";
-import { CurrentOrder, OrderEventTypes, OrderState } from "../types.ts";
+import { OrderState } from "../types.ts";
 import { useShopId } from "./useShopId.ts";
 import { useKeycard } from "./useKeycard.ts";
+import { useQuery } from "./useQuery.ts";
 
 const namespace = "frontend:useCurrentOrder";
 const errlog = logger(namespace, "error");
@@ -16,106 +17,70 @@ export function useCurrentOrder() {
   const { clientStateManager } = useClientWithStateManager();
   const { shopId } = useShopId();
   const [keycard] = useKeycard();
-  const [currentOrder, setCurrentOrder] = useState<CurrentOrder | null>(null);
+  const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
   const sm = clientStateManager?.stateManager;
 
-  function onOrderCreate(o: Map<string, unknown>) {
+  function onCurrentOrderChange(o: Map<string, unknown>) {
     const order = new Order(o);
-    if (order.State === OrderState.STATE_OPEN) {
-      setCurrentOrder({ orderId: order.ID, status: OrderState.STATE_OPEN });
-    }
-  }
-
-  function onOrderUpdate(res: [OrderEventTypes, Map<string, unknown>]) {
-    const order = new Order(res[1]);
-    const type = res[0];
-
-    switch (type) {
-      case OrderEventTypes.CANCELLED:
-        orderCancel(order);
+    switch (order.State) {
+      case OrderState.STATE_CANCELED:
+        setCurrentOrder(null);
         break;
-      case OrderEventTypes.PAYMENT_TX:
-        txHashDetected(order);
-        break;
-      case OrderEventTypes.COMMIT_ITEMS:
-        onCommit(order);
+      case OrderState.STATE_PAYMENT_TX:
+        setCurrentOrder(null);
         break;
       default:
+        setCurrentOrder(order);
         break;
-    }
-  }
-
-  function onCommit(o: Map<string, unknown>) {
-    const order = new Order(o);
-    if (order.State === OrderState.STATE_COMMITTED) {
-      setCurrentOrder({
-        orderId: order.ID,
-        status: OrderState.STATE_COMMITTED,
-      });
-    }
-  }
-  function txHashDetected(o: Map<string, unknown>) {
-    const order = new Order(o);
-    if (order.State === OrderState.STATE_PAYMENT_TX) {
-      setCurrentOrder(null);
-    }
-  }
-
-  function orderCancel(o: Map<string, unknown>) {
-    const order = new Order(o);
-    if (order.State === OrderState.STATE_CANCELED) {
-      setCurrentOrder(null);
     }
   }
 
   async function orderFetcher() {
-    // First try to find an open order
-    // const openOrders = await orderManager.getStatus(OrderState.STATE_OPEN) ||
-    //FIXME
-    const openOrders = [];
+    const allOrders = await sm.get(["Orders"]);
+    const openOrders = allOrders.filter((o: Map<string, unknown>) =>
+      o.get("State") === OrderState.STATE_OPEN
+    );
     if (openOrders.length === 1) {
       setCurrentOrder({
         orderId: openOrders[0],
         status: OrderState.STATE_OPEN,
       });
-      return;
     } else if (openOrders.length > 1 && keycard?.role !== "merchant") {
       //Since merchants are subscribed to all orders, we don't need to worry about multiple open orders.
       errlog("Multiple open orders found");
-      return;
     } else {
       // If no open order, look for committed order
       debug("No open order found, looking for committed order");
-      //FIXME
-      const committedOrders = [];
+      const committedOrders = allOrders.filter((o: Map<string, unknown>) =>
+        o.get("State") === OrderState.STATE_COMMITTED
+      );
 
       if (committedOrders.length === 1) {
         setCurrentOrder({
           orderId: committedOrders[0],
           status: OrderState.STATE_COMMITTED,
         });
-        return;
       } else if (committedOrders.length > 1 && keycard?.role !== "merchant") {
-        //Since merchants are subscribed to all orders, we don't need to worry about multiple open orders.
+        //Since merchants are subscribed to all orders, we don't need to worry about multiple committed orders.
         errlog("Multiple committed orders found");
-        return;
       } else {
         debug("No order yet");
-        return;
       }
     }
   }
 
-  useEffect(() => {
+  useQuery(async () => {
     if (!sm) return;
-    sm.events.on(onOrderCreate, ["Orders"]);
-    sm.events.on(onOrderUpdate, ["Orders"]);
-    orderFetcher().then();
-    return () => {
-      sm.events.off(onOrderCreate, ["Orders"]);
-      sm.events.off(onOrderUpdate, ["Orders"]);
-    };
+    await orderFetcher();
   }, [shopId, sm]);
+
+  useEffect(() => {
+    if (!sm || !currentOrder.ID) return;
+    sm.events.on(onCurrentOrderChange, ["Orders", currentOrder.orderId]);
+    return () => {
+      sm.events.off(onCurrentOrderChange, ["Orders", currentOrder.orderId]);
+    };
+  }, [currentOrder?.ID]);
 
   return { currentOrder };
 }
