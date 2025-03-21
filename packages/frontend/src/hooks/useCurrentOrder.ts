@@ -17,7 +17,7 @@ export function useCurrentOrder() {
   const { shopId } = useShopId();
   const [keycard] = useKeycard();
   const [currentOrder, setCurrentOrder] = useState<CurrentOrder | null>(null);
-  const orderManager = clientStateManager?.stateManager?.orders;
+  const sm = clientStateManager?.stateManager;
 
   function onOrderCreate(o: Map<string, unknown>) {
     const order = new Order(o);
@@ -70,8 +70,9 @@ export function useCurrentOrder() {
 
   async function orderFetcher() {
     // First try to find an open order
-    const openOrders = await orderManager.getStatus(OrderState.STATE_OPEN) ||
-      [];
+    // const openOrders = await orderManager.getStatus(OrderState.STATE_OPEN) ||
+    //FIXME
+    const openOrders = [];
     if (openOrders.length === 1) {
       setCurrentOrder({
         orderId: openOrders[0],
@@ -85,9 +86,8 @@ export function useCurrentOrder() {
     } else {
       // If no open order, look for committed order
       debug("No open order found, looking for committed order");
-      const committedOrders = await orderManager.getStatus(
-        OrderState.STATE_COMMITTED,
-      ) || [];
+      //FIXME
+      const committedOrders = [];
 
       if (committedOrders.length === 1) {
         setCurrentOrder({
@@ -107,15 +107,15 @@ export function useCurrentOrder() {
   }
 
   useEffect(() => {
-    if (!orderManager) return;
-    orderManager.on("create", onOrderCreate);
-    orderManager.on("update", onOrderUpdate);
+    if (!sm) return;
+    sm.events.on(onOrderCreate, ["Orders"]);
+    sm.events.on(onOrderUpdate, ["Orders"]);
     orderFetcher().then();
     return () => {
-      orderManager.removeListener("create", onOrderCreate);
-      orderManager.removeListener("update", onOrderUpdate);
+      sm.events.off(onOrderCreate, ["Orders"]);
+      sm.events.off(onOrderUpdate, ["Orders"]);
     };
-  }, [shopId, orderManager]);
+  }, [shopId, sm]);
 
   return { currentOrder };
 }

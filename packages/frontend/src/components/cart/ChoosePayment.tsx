@@ -25,12 +25,7 @@ import ConnectWalletButton from "../common/ConnectWalletButton.tsx";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 import { useShopId } from "../../hooks/useShopId.ts";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
-import {
-  CheckoutStep,
-  CurrencyChainOption,
-  OrderEventTypes,
-  OrderId,
-} from "../../types.ts";
+import { CheckoutStep, CurrencyChainOption } from "../../types.ts";
 import { defaultRPC, getTokenInformation } from "../../utils/mod.ts";
 
 const namespace = "frontend:ChoosePayment";
@@ -75,9 +70,11 @@ export default function ChoosePayment({
   );
   const [paymentCurrencyLoading, setPaymentCurrencyLoading] = useState(false);
 
+  const sm = clientStateManager?.stateManager;
+
   useEffect(() => {
-    clientStateManager!
-      .stateManager.get(["Manifest"])
+    if (!sm) return;
+    sm.get(["Manifest"])
       .then((res: Map<string, unknown>) => {
         const m = new Manifest(res);
         getDisplayedChains(m).then((arr) => {
@@ -85,40 +82,36 @@ export default function ChoosePayment({
           setChains(arr);
         });
       });
-  }, []);
+  }, [sm]);
 
   useEffect(() => {
-    if (!currentOrder) return;
+    if (!sm) return;
     //Listen for client to send paymentDetails event.
-    function onPaymentDetails(res: [OrderEventTypes, Map<string, unknown>]) {
-      const order = new Order(res[1]);
-      const type = res[0];
-      if (
-        order.ID === currentOrder!.orderId &&
-        type === OrderEventTypes.PAYMENT_DETAILS
-      ) {
-        getDetails(currentOrder!.orderId).then(() => {
-          debug("paymentDetails found for order");
-          setPaymentCurrencyLoading(false);
-        });
-      }
+    function onPaymentDetails(res: Map<string, unknown>) {
+      const order = new Order(res);
+      if (!order.PaymentDetails) return;
+      getPaymentArgs().then(() => {
+        debug("paymentDetails found for order");
+        setPaymentCurrencyLoading(false);
+      });
     }
 
     currentOrder!.orderId &&
-      clientStateManager!.stateManager.orders.on("update", onPaymentDetails);
+      sm.events.on(onPaymentDetails, ["Orders", currentOrder!.orderId]);
 
     return () => {
       // Cleanup listeners on unmount
-      clientStateManager!.stateManager.listings.removeListener(
-        "update",
+      sm.events.off(
         onPaymentDetails,
+        ["Orders", currentOrder!.orderId],
       );
     };
-  }, [currentOrder]);
+  }, [sm]);
 
-  async function getDetails(oId: OrderId) {
+  async function getPaymentArgs() {
     try {
-      const committedOrder = await clientStateManager!.stateManager.orders
+      const oId = currentOrder!.orderId;
+      const committedOrder = await sm
         .get(oId!);
       if (!committedOrder?.choosePayment) {
         throw new Error("No chosen payment found");
@@ -198,7 +191,6 @@ export default function ChoosePayment({
       }
       debug(`displayed amount: ${displayedAmount}`);
       setDisplayedAmount(displayedAmount);
-      setStep(CheckoutStep.paymentDetails);
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Error getting payment details", error as Error);
@@ -254,12 +246,12 @@ export default function ChoosePayment({
           payee.CallAsContract,
         ]]),
       );
-      await clientStateManager!.stateManager.set([
+      await sm.set([
         "Orders",
         currentOrder!.orderId,
         "ChosenPayee",
       ], chosenPayee.asCBORMap());
-      await clientStateManager!.stateManager.set([
+      await sm.set([
         "Orders",
         currentOrder!.orderId,
         "ChosenCurrency",
@@ -298,6 +290,10 @@ export default function ChoosePayment({
       />
     );
   } else if (connectWalletOpen) {
+    if (!paymentArgs) {
+      setErrorMsg("No payment args found");
+      return;
+    }
     return (
       <Pay
         paymentArgs={paymentArgs}

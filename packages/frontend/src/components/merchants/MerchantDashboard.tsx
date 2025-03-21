@@ -4,66 +4,53 @@
 
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { isHex } from "viem";
+
+import { Order } from "@massmarket/schema";
 
 import Transactions from "./Transactions.tsx";
-import { OrderEventTypes, TOrder } from "../../types.ts";
+import { OrderEventTypes, OrderId } from "../../types.ts";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 
 export default function MerchantDashboard() {
   const { clientStateManager } = useClientWithStateManager();
+  const [orders, setOrders] = useState<Map<OrderId, Order>>(new Map());
+  const sm = clientStateManager?.stateManager;
 
-  const [orders, setOrders] = useState(new Map());
-
-  async function getAllOrders() {
+  function mapToOrderClass(orders: Map<OrderId, unknown>) {
     const allOrders = new Map();
-    for await (
+    for (
       const [
         id,
         o,
-      ] of clientStateManager!.stateManager.orders.iterator()
+      ] of orders.entries()
     ) {
-      // Exclude orders by status
-      if (!isHex(id)) {
-        continue;
-      }
-
-      allOrders.set(id, o);
-      orders.set(id, o);
+      allOrders.set(id, new Order(o));
     }
     return allOrders;
   }
 
   useEffect(() => {
-    function onCreateOrder(order: TOrder) {
-      const newOrders = new Map(orders);
-      newOrders.set(order.id, order);
-      setOrders(newOrders);
+    if (!sm) return;
+
+    function ordersEvent(res: Map<OrderId, unknown>) {
+      const allOrders = mapToOrderClass(res);
+      setOrders(allOrders);
     }
-    function onUpdateOrder(res: [OrderEventTypes, TOrder]) {
-      const order = res[1];
-      const newOrders = new Map(orders);
-      newOrders.set(order.id, order);
-      setOrders(newOrders);
-    }
-    getAllOrders().then((allOrders) => {
+
+    sm.get(["Orders"]).then((res) => {
+      const allOrders = mapToOrderClass(res);
       setOrders(allOrders);
     });
-    clientStateManager!.stateManager.orders.on("create", onCreateOrder);
-    clientStateManager!.stateManager.orders.on("update", onUpdateOrder);
+
+    sm.events.on(ordersEvent, ["Orders"]);
 
     return () => {
-      // Cleanup listeners on unmount
-      clientStateManager!.stateManager.orders.removeListener(
-        "create",
-        onCreateOrder,
-      );
-      clientStateManager!.stateManager.orders.removeListener(
-        "update",
-        onUpdateOrder,
+      sm.events.off(
+        ordersEvent,
+        ["Orders"],
       );
     };
-  }, []);
+  }, [sm]);
 
   return (
     <main

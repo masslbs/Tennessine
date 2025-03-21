@@ -16,62 +16,45 @@ export default function Listings() {
   const { clientStateManager, result } = useClientWithStateManager();
   const [keycard] = useKeycard();
   const [products, setProducts] = useState<Map<ListingId, Listing>>(new Map());
+  const sm = clientStateManager?.stateManager;
 
-  function getAllListings() {
-    return clientStateManager!.stateManager.get(["Listings"]).then(
-      async (allListings: Map<ListingId, unknown>) => {
-        const listings = new Map();
-        for await (
-          const [
-            id,
-            o,
-          ] of allListings.entries()
-        ) {
-          listings.set(id, new Listing(o));
-        }
-        return listings;
-      },
-    );
+  function mapToListingClass(allListings: Map<ListingId, unknown>) {
+    const listings = new Map();
+    for (
+      const [
+        id,
+        o,
+      ] of allListings.entries()
+    ) {
+      listings.set(id, new Listing(o));
+    }
+    return listings;
   }
 
   useEffect(() => {
-    if (!clientStateManager?.stateManager) return;
-    const sm = clientStateManager.stateManager;
+    if (!sm) return;
 
-    function onCreateEvent() {
-      getAllListings().then((items: Map<ListingId, Listing>) => {
-        setProducts(items);
-      });
+    function allListingsEvent(res: Map<ListingId, unknown>) {
+      const listings = mapToListingClass(res);
+      setProducts(listings);
     }
 
-    function onUpdateEvent() {
-      getAllListings().then((items: Map<ListingId, Listing>) => {
-        setProducts(items);
-      });
-    }
-
-    // Listen to future events
-    sm.events.on("Listing", onCreateEvent);
-    sm.events.on("UpdateListing", onUpdateEvent);
-
-    getAllListings().then((items: Map<ListingId, Listing>) => {
-      setProducts(items);
+    sm.get(["Listings"]).then((res: Map<ListingId, unknown>) => {
+      const listings = mapToListingClass(res);
+      setProducts(listings);
     });
 
+    sm.events.on(allListingsEvent, ["Listings"]);
+
     return () => {
-      // Cleanup listeners on unmount
-      sm.listings.removeListener(
-        "create",
-        onCreateEvent,
-      );
-      sm.listings.removeListener(
-        "update",
-        onUpdateEvent,
+      sm.events.off(
+        allListingsEvent,
+        ["Listings"],
       );
     };
-  }, [result]);
+  }, [result, sm]);
 
-  if (!clientStateManager?.stateManager) {
+  if (!sm) {
     return <main data-testid="listings-page">Loading...</main>;
   }
 

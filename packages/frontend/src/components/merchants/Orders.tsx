@@ -9,59 +9,40 @@ export default function Orders() {
   const { clientStateManager } = useClientWithStateManager();
 
   const [orders, setOrders] = useState<Map<OrderId, Order>>(new Map());
+  const sm = clientStateManager?.stateManager;
 
-  function getAllOrders() {
-    return clientStateManager!.stateManager.get(["Orders"]).then(
-      async (res: Map<OrderId, unknown>) => {
-        const allOrders = new Map();
-        for await (
-          const [
-            id,
-            o,
-          ] of res.entries()
-        ) {
-          // // Exclude orders by status
-          // if (Object.values(OrderState).includes(id)) {
-          //   return;
-          // }
-          allOrders.set(id, new Order(o));
-        }
-        return allOrders;
-      },
-    );
+  function getAllOrders(orders: Map<OrderId, unknown>) {
+    const allOrders = new Map();
+    for (
+      const [
+        id,
+        o,
+      ] of orders.entries()
+    ) {
+      allOrders.set(id, new Order(o));
+    }
+    return allOrders;
   }
 
   useEffect(() => {
-    if (!clientStateManager?.stateManager) return;
+    if (!sm) return;
 
-    function onCreateOrder(o: unknown) {
-      const order = new Order(o);
-      orders.set(order.id, order);
-      setOrders(orders);
+    function onUpdateOrder(orders: Map<OrderId, unknown>) {
+      const allOrders = getAllOrders(orders);
+      setOrders(allOrders);
     }
 
-    function onUpdateOrder(o: unknown) {
-      const order = new Order(o);
-      orders.set(order.id, order);
-      setOrders(orders);
-    }
+    sm.events.on(onUpdateOrder, ["Orders"]);
 
-    clientStateManager!.stateManager.orders.on("create", onCreateOrder);
-    clientStateManager!.stateManager.orders.on("update", onUpdateOrder);
-
-    getAllOrders().then((orders: Map<OrderId, Order>) => {
-      setOrders(orders);
+    sm.get(["Orders"]).then((orders: Map<OrderId, unknown>) => {
+      const allOrders = getAllOrders(orders);
+      setOrders(allOrders);
     });
 
     return () => {
-      // Cleanup listeners on unmount
-      clientStateManager!.stateManager.orders.removeListener(
-        "create",
-        onCreateOrder,
-      );
-      clientStateManager!.stateManager.orders.removeListener(
-        "update",
+      sm.events.off(
         onUpdateOrder,
+        ["Orders"],
       );
     };
   }, []);

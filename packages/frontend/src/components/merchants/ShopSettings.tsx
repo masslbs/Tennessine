@@ -4,7 +4,7 @@
 
 import { ChangeEvent, useEffect, useState } from "react";
 import { useChains, useWalletClient } from "wagmi";
-import { Address, zeroAddress } from "viem";
+import { Address, toHex, zeroAddress } from "viem";
 
 import { setTokenURI } from "@massmarket/blockchain";
 import { assert, logger } from "@massmarket/utils";
@@ -54,6 +54,8 @@ export default function ShopSettings() {
   const [displayedChains, setDisplayedChains] = useState<CurrencyChainOption[]>(
     [],
   );
+  const sm = clientStateManager?.stateManager;
+
   useEffect(() => {
     if (chains) {
       const chainsToRender: CurrencyChainOption[] = [];
@@ -68,7 +70,7 @@ export default function ShopSettings() {
         chainsToRender.push({
           label: `EDD/${c.name}`,
           value: `${eddAddress}/${c.id}`,
-          address: eddAddress as `0x${string}`,
+          address: toHex(eddAddress),
           chainId: c.id,
         });
       });
@@ -77,7 +79,7 @@ export default function ShopSettings() {
   }, []);
 
   useEffect(() => {
-    if (!clientStateManager?.stateManager) return;
+    if (!sm) return;
     function onUpdateEvent(res: Map<string, unknown>) {
       const m = new Manifest(res);
       setManifest(m);
@@ -85,8 +87,7 @@ export default function ShopSettings() {
       setPricingCurrency(m.PricingCurrency);
     }
 
-    clientStateManager
-      .stateManager!.get(["Manifest"])
+    sm.get(["Manifest"])
       .then((res: Map<string, unknown>) => {
         const m = new Manifest(res);
         setManifest(m);
@@ -94,34 +95,33 @@ export default function ShopSettings() {
         setPricingCurrency(m.PricingCurrency);
       });
 
-    clientStateManager.stateManager.events.on(["Manifest"], onUpdateEvent);
+    sm.events.on(onUpdateEvent, ["Manifest"]);
 
     return () => {
       // Cleanup listeners on unmount
-      clientStateManager.stateManager.events.off(
-        ["Manifest"],
+      sm.events.off(
         onUpdateEvent,
+        ["Manifest"],
       );
     };
-  }, []);
+  }, [sm]);
 
   function copyToClipboard() {
     navigator.clipboard.writeText(String(shopId));
   }
   async function updateShopManifest() {
-    const csm = clientStateManager!.stateManager;
     //If pricing currency needs to update.
     if (
       pricingCurrency!.Address !== manifest!.PricingCurrency.Address ||
       pricingCurrency!.chainID !== manifest!.PricingCurrency.chainID
     ) {
-      await csm.set(["Manifest", "PricingCurrency"], pricingCurrency);
+      await sm.set(["Manifest", "PricingCurrency"], pricingCurrency);
     }
     if (
       acceptedCurrencies.asCBORMap() !==
         manifest!.AcceptedCurrencies.asCBORMap()
     ) {
-      await csm.set(
+      await sm.set(
         ["Manifest", "AcceptedCurrencies"],
         acceptedCurrencies.asCBORMap(),
       );

@@ -42,39 +42,43 @@ export default function Cart({
   const [orderId, setOrderId] = useState<OrderId | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  const sm = clientStateManager?.stateManager;
+
   useEffect(() => {
-    if (!clientStateManager) return;
-    function onChangeItems(res: [OrderEventTypes, Order]) {
-      if (res[0] === OrderEventTypes.CHANGE_ITEMS) {
-        const o = new Order(res[1]);
-        getAllCartItemDetails(o).then((allCartItems) => {
-          setCartMap(allCartItems);
-        });
-      }
+    if (!sm) return;
+    function onOrderUpdate(order: Map<string, unknown>) {
+      const o = new Order(order);
+      getAllCartItemDetails(o).then((allCartItems) => {
+        setCartMap(allCartItems);
+      });
     }
 
-    clientStateManager.stateManager.orders.on("update", onChangeItems);
+    sm.get(["Orders", currentOrder!.orderId]).then(
+      (order: Map<string, unknown>) => {
+        getAllCartItemDetails(new Order(order)).then((allCartItems) => {
+          setCartMap(allCartItems);
+        });
+      },
+    );
+
+    sm.events.on(onOrderUpdate, ["Orders", currentOrder!.orderId]);
+
     return () => {
-      clientStateManager.stateManager.orders.removeListener(
-        "update",
-        onChangeItems,
-      );
+      sm.events.off(onOrderUpdate, ["Orders", currentOrder!.orderId]);
     };
-  }, [clientStateManager]);
+  }, [sm]);
 
   useEffect(() => {
-    if (currentOrder) {
-      debug(`Showing cart items for order ID: ${currentOrder.orderId}`);
-      setOrderId(currentOrder.orderId);
-      clientStateManager!
-        .stateManager!.get(["Orders", currentOrder.orderId])
-        .then(async (res) => {
-          const o = new Order(res);
-          const allCartItems = await getAllCartItemDetails(o);
-          setCartMap(allCartItems);
-        });
-    }
-  }, [currentOrder]);
+    if (!currentOrder || !sm) return;
+    debug(`Showing cart items for order ID: ${currentOrder.orderId}`);
+    setOrderId(currentOrder.orderId);
+    sm.get(["Orders", currentOrder.orderId])
+      .then(async (res) => {
+        const o = new Order(res);
+        const allCartItems = await getAllCartItemDetails(o);
+        setCartMap(allCartItems);
+      });
+  }, [currentOrder, sm]);
 
   async function getAllCartItemDetails(order: Order) {
     const ci = order.Items;
@@ -87,7 +91,7 @@ export default function Cart({
         setSelectedQty(updatedQtyMap);
         // If the selected quantity is 0, don't add the item to cart items map
         if (orderItem.Quantity === 0) return;
-        return clientStateManager!.stateManager.get([
+        return sm.get([
           "Listings",
           orderItem.ListingID,
         ])
@@ -121,7 +125,7 @@ export default function Cart({
 
   async function clearCart() {
     try {
-      await clientStateManager!.stateManager.set(
+      await sm.set(
         ["Orders", orderId, "Items"],
         [],
       );
@@ -148,7 +152,7 @@ export default function Cart({
             Quantity: selectedQty.get(key)!,
           };
         });
-      await clientStateManager!.stateManager.set(
+      await sm.set(
         ["Orders", orderId, "Items"],
         updatedOrderItems,
       );
@@ -169,7 +173,7 @@ export default function Cart({
             Quantity: selectedQty.get(key)!,
           };
         });
-      await clientStateManager!.stateManager.set(
+      await sm.set(
         ["Orders", orderId, "Items"],
         updatedOrderItems,
       );
