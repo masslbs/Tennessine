@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { IRelayEndpoint, RelayClient } from "@massmarket/client";
 import type { WalletClient } from "viem";
 import type { Account } from "viem/accounts";
-import { InvalidYParityError } from "npm:ox@0.6.9/Signature";
 
 interface RelayClientTestPageProps {
   relayEndpoint: IRelayEndpoint;
@@ -82,6 +81,7 @@ const RelayClientTestPage: React.FC<RelayClientTestPageProps> = ({
       {error && <div data-testid="connection-error">Error: {error}</div>}
       {connectionStatus === "connected" && (
         <button
+          type="button"
           data-testid="disconnect-button"
           onClick={handleDisconnect}
         >

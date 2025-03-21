@@ -107,7 +107,6 @@ Deno.test({
 
     await t.step("redeemInviteSecret", async () => {
       const client2 = createClient({
-        account: account2,
         chain: hardhat,
         transport: http(),
       }).extend(walletActions).extend(publicActions);

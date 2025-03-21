@@ -2,9 +2,9 @@ import { type WalletClient } from "viem";
 
 import Database from "@massmarket/stateManager";
 import { type IRelayEndpoint, RelayClient } from "@massmarket/client";
-import { LevelStore } from "@massmarket/merkle-dag-builder/levelstore";
+import { LevelStore } from "@massmarket/store/level";
 
-export class ClientStateManager {
+export class ClientWithStateManager {
   public stateManager;
   public relayClient;
 
