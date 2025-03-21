@@ -72,7 +72,11 @@
 
           shellHook = ''
             ${config.pre-commit.settings.installationScript}
-            deno task -r -f contracts build
+            # only runs when the contracts have changed
+            if [ $(cat .last-input) != "${contracts}" ]; then
+              echo ${contracts} > .last-input
+              deno task -r -f contracts build
+            fi
           '';
 
           buildInputs = with pkgs;
