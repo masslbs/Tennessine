@@ -1,6 +1,6 @@
 import { assertEquals } from "@std/assert";
 
-import { MemStore } from "@massmarket/store";
+import { MemStore } from "@massmarket/store/mem";
 import { createTestClients } from "@massmarket/client/test";
 import {
   type codec,

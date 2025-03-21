@@ -1,4 +1,4 @@
-import { AbstractStore } from "./mod.ts";
+import { AbstractStore } from "./abstract.ts";
 
 export class MemStore extends AbstractStore {
   #data: Map<string, Uint8Array> = new Map();

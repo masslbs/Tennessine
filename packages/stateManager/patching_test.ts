@@ -18,14 +18,14 @@ Deno.test("Database Testings", async (t) => {
     await t.step(testFile, async () => {
       const store = new MemStore();
       const manifestVector = await fetchAndDecode(testFile);
-      const manifests = (manifestVector.get("Snapshots") as Map<
-        string,
-        Map<string, Map<string, unknown>>
-      >[])?.map((snapshot) => {
+      const manifests = (manifestVector.get("Snapshots"))?.map((snapshot) => {
         return snapshot?.get("After")?.get("Value")?.get("Manifest");
       }) || [];
       const patchSet = patchSetToPushedPatchSet(
-        manifestVector.get("PatchSet") as Map<string, Map<string, unknown>[]>,
+        manifestVector!.get("PatchSet") as unknown as Map<
+          string,
+          Map<string, unknown>[]
+        >,
       );
       const db = new StateManager({
         store,
