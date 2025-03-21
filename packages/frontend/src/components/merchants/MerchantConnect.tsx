@@ -174,7 +174,7 @@ export default function MerchantConnect() {
                 />
                 <button
                   onClick={handleClearShopIdInput}
-                  className="bg-transparent p-0"
+                  style={{ backgroundColor: "transparent", padding: 0 }}
                   type="button"
                 >
                   <img

@@ -18,7 +18,8 @@ export default function ValidationWarning({
       <p>{warning}</p>
       <button
         onClick={() => onClose()}
-        className="ml-auto bg-transparent"
+        className="ml-auto"
+        style={{ backgroundColor: "transparent", padding: 0 }}
         type="button"
       >
         <div className="bg-white rounded-full w-4 h-4 flex justify-center items-center">

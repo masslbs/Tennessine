@@ -62,7 +62,7 @@ export default function AvatarUpload({
       <div className="flex">
         <button
           onClick={triggerFileInput}
-          className="bg-white p-0"
+          style={{ backgroundColor: "transparent", padding: 0 }}
           type="button"
         >
           {localImg

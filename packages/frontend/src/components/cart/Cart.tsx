@@ -230,9 +230,8 @@ export default function Cart({
                 type="button"
                 onClick={() => removeItem(item.ID)}
                 data-testid={`remove-item-${item.id}`}
-                className={showActionButtons
-                  ? "ml-auto bg-transparent p-0"
-                  : "hidden"}
+                className={showActionButtons ? "ml-auto" : "hidden"}
+                style={{ backgroundColor: "transparent", padding: 0 }}
               >
                 <img
                   src="/icons/close-icon.svg"
@@ -254,7 +253,8 @@ export default function Cart({
                   type="button"
                   onClick={() => adjustItemQuantity(item.id, false)}
                   data-testid={`remove-quantity-${item.ID}`}
-                  className="ml-auto bg-transparent p-0"
+                  className="ml-auto"
+                  style={{ backgroundColor: "transparent", padding: 0 }}
                 >
                   <img
                     src="/icons/minus.svg"
@@ -271,7 +271,8 @@ export default function Cart({
                   type="button"
                   onClick={() => adjustItemQuantity(item.ID)}
                   data-testid={`add-quantity-${item.ID}`}
-                  className="ml-auto bg-transparent p-0"
+                  className="ml-auto"
+                  style={{ backgroundColor: "transparent", padding: 0 }}
                 >
                   <img
                     src="/icons/plus.svg"
@@ -360,7 +361,7 @@ export default function Cart({
           disabled={!orderId || !cartItemsMap.size}
           onClick={clearCart}
           data-testid="clear-cart"
-          className="bg-transparent text-black"
+          style={{ backgroundColor: "transparent", padding: 0 }}
         >
           <p>Clear basket</p>
         </button>

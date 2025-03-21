@@ -13,10 +13,11 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ ...props }, ref: React.ForwardedRef<HTMLButtonElement>) => {
     return (
       <button
-        className={`flex justify-center items-center text-white px-3 py-2 rounded-md text-lg
-          bg-primary-dark-green disabled:bg-gray-200 disabled:text-gray-500 ${
+        className={`flex justify-center items-center rounded-md
+          disabled:bg-gray-200 disabled:text-gray-500 ${
           props.custom ? props.custom : ""
         }`}
+        style={{ padding: '8px 12px', backgroundColor: '#3b513e', color: 'white', fontSize: '18px'}}
         ref={ref}
         {...props}
       />

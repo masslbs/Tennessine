@@ -34,7 +34,8 @@ export default function BackButton({
     return (
       <button
         onClick={onClick}
-        className="flex items-center gap-1 bg-transparent p-0"
+        className="flex items-center gap-1"
+        style={{ backgroundColor: "transparent", padding: 0 }}
         type="button"
       >
         <img

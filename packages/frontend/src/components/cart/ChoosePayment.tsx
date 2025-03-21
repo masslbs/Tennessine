@@ -358,7 +358,8 @@ export default function ChoosePayment({
               <button
                 type="button"
                 data-testid="pay-by-qr"
-                className="rounded-lg flex flex-col items-center gap-2 bg-transparent p-0"
+                className="rounded-lg flex flex-col items-center gap-2"
+                style={{ backgroundColor: "transparent", padding: 0 }}
                 onClick={payByQr}
               >
                 <img
