@@ -70,3 +70,8 @@ export enum OrderState {
   STATE_PAYMENT_TX = 4,
   STATE_PAID = 5,
 }
+export enum KeycardRole {
+  NEW_GUEST = "new-guest",
+  RETURNING_GUEST = "returning-guest",
+  MERCHANT = "merchant",
+}

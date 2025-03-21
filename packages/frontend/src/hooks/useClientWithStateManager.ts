@@ -1,6 +1,5 @@
-import { useEffect } from "react";
-import { usePublicClient } from "wagmi";
-import { createWalletClient, http } from "viem";
+import { useWalletClient } from "wagmi";
+import { createWalletClient, http, toHex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
 import { logger, random32BytesHex } from "@massmarket/utils";
@@ -12,8 +11,9 @@ import { useKeycard } from "./useKeycard.ts";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";
 import { useChain } from "./useChain.ts";
 import { usePathname } from "./usePathname.ts";
-import { ClientStateManager } from "../ClientWithStateManager.ts";
+import { ClientWithStateManager } from "../ClientWithStateManager.ts";
 import { defaultRPC } from "../utils/mod.ts";
+import { KeycardRole } from "../types.ts";
 
 const namespace = "frontend:useClientWithStateManager";
 const debug = logger(namespace);
@@ -24,47 +24,33 @@ export function useClientWithStateManager() {
   const { relayEndpoint } = useRelayEndpoint();
   const { shopId } = useShopId();
   const { chain } = useChain();
-  const shopPublicClient = usePublicClient({ chainId: chain.id });
   const { isMerchantPath } = usePathname();
-  useEffect(() => {
-    if (
-      shopId &&
-      relayEndpoint &&
-      shopPublicClient &&
-      // This check is so that we don't reset the clientStateManager everytime this hook is called.
-      (clientStateManager?.shopId !== shopId ||
-        // If a new keycard is set, i.e. when there is a duplicate keycard error, also reset the clientStateManager
-        clientStateManager?.keycard !== keycard.privateKey)
-    ) {
-      debug("Setting ClientWithStateManager");
-      const csm = new ClientStateManager(
-        keycard.privateKey,
-        shopPublicClient,
-        shopId,
-        relayEndpoint,
-      );
-      setClientStateManager(csm);
-    }
-  }, [shopId, relayEndpoint, shopPublicClient, keycard.privateKey]);
+  const { data: wallet } = useWalletClient();
+
+  const account = privateKeyToAccount(random32BytesHex());
+  const usedWallet = keycard.role === KeycardRole.NEW_GUEST
+    ? createWalletClient({
+      account,
+      chain,
+      transport: http(
+        defaultRPC,
+      ),
+    })
+    : wallet;
+  const hexId = shopId ? toHex(shopId) : null;
 
   const { result } = useQuery(async () => {
-    if (
-      !clientStateManager
-    ) return;
-    clientStateManager.createNewRelayClient();
-    // If current screen is /create-shop or /merchant-connect page, we don't want to try connecting and authenticating before enrolling the keycard.
-    if (isMerchantPath) return;
-    if (keycard?.role === "guest-new") {
-      const account = privateKeyToAccount(random32BytesHex());
-      const guestWallet = createWalletClient({
-        account,
-        chain,
-        transport: http(
-          defaultRPC,
-        ),
-      });
-      const res = await clientStateManager.enrollKeycard(
-        guestWallet,
+    if (!shopId || !usedWallet) return;
+
+    if (keycard?.role === KeycardRole.NEW_GUEST) {
+      const csm = new ClientWithStateManager(
+        relayEndpoint,
+        usedWallet,
+        account.address,
+        shopId,
+      );
+      const res = await csm.relayClient.enrollKeycard(
+        usedWallet,
         account,
         true,
       );
@@ -77,15 +63,29 @@ export function useClientWithStateManager() {
         throw new Error(`Failed to enroll keycard: ${res}`);
       }
       debug("Success: Enrolled new guest keycard");
-
+      await csm.connect();
+      setClientStateManager(csm);
       //Set keycard role to guest-returning so we don't try enrolling again on refresh
-      setKeycard({ ...keycard, role: "guest-returning" });
-      debug("Success: sendGuestCheckoutSubscriptionRequest");
+      setKeycard({ ...keycard, role: KeycardRole.RETURNING_GUEST });
+    } else {
+      const csm = new ClientWithStateManager(
+        relayEndpoint,
+        usedWallet,
+        usedWallet.account.address,
+        shopId,
+      );
+      //If /create-shop or /merchant-connect, we don't want to connect to the client before we enroll keycard.
+      if (!isMerchantPath) {
+        await csm.connect();
+      }
+      setClientStateManager(csm);
     }
     return { clientConnected: true };
   }, [
-    clientStateManager?.keycard,
-    String(clientStateManager?.shopId),
+    hexId,
+    relayEndpoint,
+    keycard.privateKey,
+    usedWallet,
   ]);
 
   return { clientStateManager, result };
