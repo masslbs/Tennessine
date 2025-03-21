@@ -7,7 +7,7 @@ import { ConnectButton, useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useAccount, useConfig, usePublicClient, useWalletClient } from "wagmi";
 import { simulateContract } from "@wagmi/core";
-import { toBytes } from "viem";
+import { toBytes, toHex } from "viem";
 
 import {
   addRelay,
@@ -16,7 +16,12 @@ import {
   setTokenURI,
 } from "@massmarket/blockchain";
 import { Manifest, PayeeMap } from "@massmarket/schema";
-import { assert, logger, random256BigInt } from "@massmarket/utils";
+import {
+  assert,
+  logger,
+  random256BigInt,
+  random32BytesHex,
+} from "@massmarket/utils";
 import { permissions, shopRegAbi, shopRegAddress } from "@massmarket/contracts";
 
 import ManifestForm from "./ManifestForm.tsx";
@@ -30,7 +35,7 @@ import { useShopId } from "../../../hooks/useShopId.ts";
 import { useKeycard } from "../../../hooks/useKeycard.ts";
 import { useShopDetails } from "../../../hooks/useShopDetails.ts";
 import { useChain } from "../../../hooks/useChain.ts";
-import { CreateShopStep, ShopForm } from "../../../types.ts";
+import { CreateShopStep, KeycardRole, ShopForm } from "../../../types.ts";
 import { removeCachedKeycards } from "../../../utils/mod.ts";
 
 // When create shop CTA is clicked, these functions are called:
@@ -52,7 +57,10 @@ export default function () {
   const { shopId } = useShopId();
   const { setShopDetails } = useShopDetails();
   const { clientStateManager } = useClientWithStateManager();
-  const [keycard, setKeycard] = useKeycard();
+  const [keycard, setKeycard] = useKeycard({
+    privateKey: random32BytesHex(),
+    role: KeycardRole.MERCHANT,
+  });
   const { connector } = useAccount();
   const config = useConfig();
 
@@ -84,11 +92,11 @@ export default function () {
   useEffect(() => {
     if (!search.shopId) {
       const newShopId = random256BigInt();
-      navigate({ search: { shopId: `0x${newShopId.toString(16)}` } });
+      navigate({ search: { shopId: toHex(newShopId) } });
     }
     return () => {
       // If user exits before creating shop, remove keycard from local storage.
-      removeCachedKeycards();
+      // removeCachedKeycards();
     };
   }, []);
 
@@ -184,8 +192,6 @@ export default function () {
         wallet!.account,
         false,
       );
-      //set keycard role to merchant
-      setKeycard({ ...keycard, role: "merchant" });
       if (!res.ok) {
         throw Error("Failed to enroll keycard");
       }

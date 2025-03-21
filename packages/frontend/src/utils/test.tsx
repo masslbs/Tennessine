@@ -17,7 +17,7 @@ import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { MassMarketProvider } from "../MassMarketContext.ts";
-import { ClientStateManager } from "../ClientWithStateManager.ts";
+import { ClientWithStateManager } from "../ClientWithStateManager.ts";
 
 const anvilPrivateKey = generatePrivateKey();
 const account = privateKeyToAccount(
@@ -46,7 +46,7 @@ export const testClient = createTestClient({
 export const createClientStateManager = (
   shopId: bigint | null = null,
 ) => {
-  const csm = new ClientStateManager(
+  const csm = new ClientWithStateManager(
     shopId,
   );
 
@@ -58,7 +58,7 @@ export const createRouterWrapper = async (
   path: string = "/",
   // The only case clientStateManager needs to be passed here is if we need access to the state manager before the router is created.
   // For example, in EditListing_test.tsx, we need to access the state manager to create a new listing and then use the listing id to set the search param.
-  clientStateManager: ClientStateManager | null = null, // In most cases we don't need to pass clientStateManager separately.
+  clientStateManager: ClientWithStateManager | null = null, // In most cases we don't need to pass clientStateManager separately.
 ) => {
   const config = createConfig({
     chains: [hardhat, mainnet, sepolia],

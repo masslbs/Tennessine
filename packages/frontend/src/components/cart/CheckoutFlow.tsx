@@ -8,11 +8,7 @@ import { useNavigate, useSearch } from "@tanstack/react-router";
 import { assert, logger } from "@massmarket/utils";
 import { Order } from "@massmarket/schema";
 
-import {
-  CheckoutStep,
-  OrderId,
-  OrderState,
-} from "../../types.ts";
+import { CheckoutStep, OrderId, OrderState } from "../../types.ts";
 import Cart from "./Cart.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import ShippingDetails from "./ShippingDetails.tsx";

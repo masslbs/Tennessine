@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
+import { toHex } from "viem";
 
 import { logger } from "@massmarket/utils";
 import { Order } from "@massmarket/schema";
 
 import { useClientWithStateManager } from "./useClientWithStateManager.ts";
-import { OrderState } from "../types.ts";
+import { KeycardRole, OrderState } from "../types.ts";
 import { useShopId } from "./useShopId.ts";
 import { useKeycard } from "./useKeycard.ts";
 import { useQuery } from "./useQuery.ts";
@@ -19,6 +20,8 @@ export function useCurrentOrder() {
   const [keycard] = useKeycard();
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
   const sm = clientStateManager?.stateManager;
+  // bigint cannot be serialized so we convert to hex
+  const hexId = shopId ? toHex(shopId) : null;
 
   function onCurrentOrderChange(o: Map<string, unknown>) {
     const order = new Order(o);
@@ -45,7 +48,9 @@ export function useCurrentOrder() {
         orderId: openOrders[0],
         status: OrderState.STATE_OPEN,
       });
-    } else if (openOrders.length > 1 && keycard?.role !== "merchant") {
+    } else if (
+      openOrders.length > 1 && keycard?.role !== KeycardRole.MERCHANT
+    ) {
       //Since merchants are subscribed to all orders, we don't need to worry about multiple open orders.
       errlog("Multiple open orders found");
     } else {
@@ -72,7 +77,7 @@ export function useCurrentOrder() {
   useQuery(async () => {
     if (!sm) return;
     await orderFetcher();
-  }, [shopId, sm]);
+  }, [hexId, sm]);
 
   useEffect(() => {
     if (!sm || !currentOrder.ID) return;
