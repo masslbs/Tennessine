@@ -50,7 +50,8 @@ export default function PaymentConfirmation(
               }}
             />
             <button
-              className="mr-4 p-0 bg-transparent"
+              className="mr-4"
+              style={{ backgroundColor: "transparent", padding: 0 }}
               onClick={copyToClipboard}
               type="button"
             >

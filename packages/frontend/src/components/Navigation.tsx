@@ -129,7 +129,7 @@ function Navigation() {
         return (
           <button
             type="button"
-            className="p-0 bg-transparent text-black"
+            style={{ backgroundColor: "transparent", padding: 0 }}
             key={i}
             onClick={onDisconnect}
           >
@@ -237,9 +237,8 @@ function Navigation() {
           <button
             type="button"
             data-testid="cart-toggle"
-            className={`relative bg-transparent p-0 ${
-              isMerchantView ? "hidden" : ""
-            }`}
+            className={`relative ${isMerchantView ? "hidden" : ""}`}
+            style={{ backgroundColor: "transparent", padding: 0 }}
             onClick={() => setBasketOpen(!basketOpen)}
           >
             <img
@@ -259,7 +258,7 @@ function Navigation() {
           </button>
           <button
             onClick={menuSwitch}
-            className="p-0 bg-transparent"
+            style={{ backgroundColor: "transparent", padding: 0 }}
             type="button"
           >
             <img

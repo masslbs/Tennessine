@@ -15,7 +15,8 @@ export default function SuccessToast({ message, onClose }: SuccessToastProps) {
       <p>{message}</p>
       <button
         onClick={() => onClose()}
-        className="ml-auto p-0 bg-transparent"
+        className="ml-auto"
+        style={{ backgroundColor: "transparent", padding: 0 }}
         type="button"
       >
         <div className="bg-white rounded-full w-4 h-4 flex justify-center items-center">

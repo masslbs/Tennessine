@@ -178,7 +178,7 @@ export default function OrderDetails() {
             </div>
             <button
               onClick={copyTxHash}
-              className="p-0 bg-transparent"
+              style={{ backgroundColor: "transparent", padding: 0 }}
               type="button"
             >
               <img
@@ -203,7 +203,7 @@ export default function OrderDetails() {
             </div>
             <button
               onClick={copyBlockHash}
-              className="p-0 bg-transparent"
+              style={{ backgroundColor: "transparent", padding: 0 }}
               type="button"
             >
               <img

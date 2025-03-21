@@ -1,6 +1,32 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --spacing-under-nav: 70px;
+  --breakpoint-xxs: 400px;
+  --color-background-gray: #f3f3f3;
+  --color-warning-yellow: #f19a3e;
+  --color-error-red: #a31621;
+  --color-primary-dark-green: #3b513e;
+  --color-success-green: #5b9279;
+}
+
+body {
+  overflow: visible;
+  color: black;
+  background-color: #f3f3f3;
+  h1 {
+    font-size: 24px;
+    font-weight: 700;
+  }
+  h2 {
+    font-size: 20px;
+    font-weight: 700;
+  }
+  h3 {
+    font-size: 18px;
+    font-weight: 500;
+  }
+}
 
 @font-face {
   font-family: "Outfit";
@@ -9,6 +35,7 @@
   font-style: normal;
   font-display: swap;
 }
+
 html, body, #root {
   width: 100%;
   font-family: "Outfit", sans-serif;
@@ -40,22 +67,4 @@ input[type="checkbox"]:checked::after {
 
 input {
   background-color: transparent;
-}
-
-body {
-  overflow: visible;
-  color: black;
-  background-color: #f3f3f3;
-  h1 {
-    font-size: 24px;
-    font-weight: 700;
-  }
-  h2 {
-    font-size: 20px;
-    font-weight: 700;
-  }
-  h3 {
-    font-size: 18px;
-    font-weight: 500;
-  }
 }
