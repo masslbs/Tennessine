@@ -13,7 +13,7 @@ import ErrorMessage from "../common/ErrorMessage.tsx";
 import ValidationWarning from "../common/ValidationWarning.tsx";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
-import { CheckoutStep, type TAddressDetails } from "../../types.ts";
+import { CheckoutStep } from "../../types.ts";
 
 const namespace = "frontend:ShippingDetails";
 const debug = logger(namespace);
@@ -40,6 +40,7 @@ export default function ShippingDetails({
   const [email, setEmail] = useState("");
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const sm = clientStateManager?.stateManager;
 
   useEffect(() => {
     if (countdown === 900) {
@@ -76,7 +77,8 @@ export default function ShippingDetails({
       if (!currentOrder) {
         throw new Error("No committed order ID found");
       }
-      const update: Partial<TAddressDetails> = {
+      //TODO: use class
+      const update = {
         name,
         address1: address,
         country,
@@ -90,10 +92,8 @@ export default function ShippingDetails({
       if (email.length) {
         update.emailAddress = email;
       }
-      await clientStateManager!.stateManager.orders.updateShippingDetails(
-        currentOrder.orderId,
-        update,
-      );
+
+      await sm.set(["Orders", currentOrder.ID], update);
       debug("Shipping details updated");
       setStep(CheckoutStep.paymentDetails);
     } catch (error: unknown) {

@@ -10,7 +10,6 @@ import { Order } from "@massmarket/schema";
 
 import {
   CheckoutStep,
-  OrderEventTypes,
   OrderId,
   OrderState,
 } from "../../types.ts";
@@ -44,6 +43,8 @@ export default function CheckoutFlow() {
   const [countdown, setCountdown] = useState(900);
   const [isRunning, setIsRunning] = useState(false);
 
+  const sm = clientStateManager?.stateManager;
+
   useEffect(() => {
     let intervalId: ReturnType<typeof setInterval>;
 
@@ -52,7 +53,7 @@ export default function CheckoutFlow() {
         setCountdown((prev: number) => prev - 10);
       }, 10000);
     } else if (countdown === 0) {
-      cancelAndCreateOrder(currentOrder!.orderId, clientStateManager!)
+      cancelAndCreateOrder(currentOrder!.ID, clientStateManager!)
         .then()
         .catch((e) => {
           logerr("Error cancelling order", e);
@@ -66,11 +67,11 @@ export default function CheckoutFlow() {
   }, [isRunning, countdown]);
 
   useEffect(() => {
-    function txHashDetected(res: [OrderEventTypes, unknown]) {
-      if (res[0] === OrderEventTypes.PAYMENT_TX) {
-        const order = new Order(res[1]);
-        const tx = order.TxDetails?.TxHash;
-        const bh = order.TxDetails?.blockHash;
+    function txHashDetected(o: Map<string, unknown>) {
+      const order = new Order(o);
+      if (order.TxDetails) {
+        const tx = order.TxDetails.TxHash;
+        const bh = order.TxDetails.blockHash;
         tx && setTxHash(tx);
         bh && setBlockHash(bh);
         debug(`Hash received: ${tx ?? bh}`);
@@ -78,15 +79,14 @@ export default function CheckoutFlow() {
       }
     }
 
-    clientStateManager!.stateManager.orders.on("update", txHashDetected);
+    sm.events.on(txHashDetected, ["Orders", currentOrder!.ID]);
     return () => {
-      // Cleanup listeners on unmount
-      clientStateManager!.stateManager.orders.removeListener(
-        "update",
+      sm.events.off(
         txHashDetected,
+        ["Orders", currentOrder!.ID],
       );
     };
-  });
+  }, [currentOrder]);
 
   function setStep(step: CheckoutStep) {
     navigate({
@@ -108,8 +108,8 @@ export default function CheckoutFlow() {
     }
     try {
       // Commit the order if it is not already committed
-      if (currentOrder!.status !== OrderState.STATE_COMMITTED) {
-        await clientStateManager!.stateManager.set(
+      if (currentOrder!.State !== OrderState.STATE_COMMITTED) {
+        await sm.set(
           ["Orders", orderId, "State"],
           OrderState.STATE_COMMITTED,
         );

@@ -89,7 +89,7 @@ export default function MerchantConnect() {
 
   async function enroll() {
     try {
-      if (clientStateManager?.keycard !== keycard.privateKey) {
+      if (clientStateManager!.keycard !== keycard.privateKey) {
         errlog("Keycard mismatch");
         return;
       }
@@ -99,8 +99,8 @@ export default function MerchantConnect() {
         false,
       );
       if (res.ok) {
-        debug(`Keycard enrolled: ${clientStateManager?.keycard}`);
-        await clientStateManager!.createStateManager();
+        debug(`Keycard enrolled: ${clientStateManager!.keycard}`);
+        await clientStateManager!.connect();
         setStep(SearchShopStep.Confirm);
       } else {
         throw new Error("Failed to enroll keycard");

@@ -9,17 +9,16 @@ import { useDisconnect } from "wagmi";
 import { assert, logger } from "@massmarket/utils";
 import { Order } from "@massmarket/schema";
 
-import {
-  CheckoutStep,
-  OrderEventTypes,
-  OrderId,
-  OrderState,
-} from "../types.ts";
+import { CheckoutStep, OrderId, OrderState } from "../types.ts";
 import Cart from "./cart/Cart.tsx";
 import { useClientWithStateManager } from "../hooks/useClientWithStateManager.ts";
 import { useShopDetails } from "../hooks/useShopDetails.ts";
 import { useKeycard } from "../hooks/useKeycard.ts";
 import { useCurrentOrder } from "../hooks/useCurrentOrder.ts";
+
+const namespace = "frontend:Navigation";
+const debug = logger(namespace);
+const errlog = logger(namespace, "error");
 
 const merchantMenu = [
   {
@@ -34,9 +33,24 @@ const merchantMenu = [
   { title: "Disconnect", img: "menu-disconnect.svg" },
 ];
 
-const namespace = "frontend:Navigation";
-const debug = logger(namespace);
-const errlog = logger(namespace, "error");
+const customerMenu = [
+  { title: "Shop", img: "menu-products.svg", href: "/listings" },
+  {
+    title: "Basket",
+    img: "menu-basket.svg",
+    href: `/checkout`,
+  },
+  {
+    title: "Contact",
+    img: "menu-contact.svg",
+    href: `/contact`,
+  },
+  {
+    title: "Share",
+    img: "menu-share.svg",
+    href: `/contact`,
+  },
+];
 
 function Navigation() {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
@@ -49,77 +63,21 @@ function Navigation() {
   const { currentOrder } = useCurrentOrder();
   const [keycard] = useKeycard();
   const { disconnect } = useDisconnect();
-
+  const sm = clientStateManager?.stateManager;
   const isMerchantView = keycard.role === "merchant";
 
-  const customerMenu = [
-    { title: "Shop", img: "menu-products.svg", href: "/listings" },
-    {
-      title: "Basket",
-      img: "menu-basket.svg",
-      href: `/checkout`,
-    },
-    {
-      title: "Contact",
-      img: "menu-contact.svg",
-      href: `/contact`,
-    },
-    {
-      title: "Share",
-      img: "menu-share.svg",
-      href: `/contact`,
-    },
-  ];
-
   useEffect(() => {
-    function onOrderUpdate(res: [OrderEventTypes, unknown]) {
-      const type = res[0];
-      const order = new Order(res[1]);
-
-      if (currentOrder?.orderId !== order.ID) return;
-      switch (type) {
-        case OrderEventTypes.CHANGE_ITEMS:
-          onChangeItems(order);
-          break;
-        case OrderEventTypes.PAYMENT_TX:
-          txHashDetected(order);
-          break;
-      }
-    }
-
-    function onChangeItems(o: unknown) {
-      const order = new Order(o);
-      const values = Object.values(order.Items);
-      let length = 0;
-      values.map((qty) => (length += Number(qty)));
-      setLength(length);
-    }
-
-    function txHashDetected(o: unknown) {
-      const order = new Order(o);
-      if (order.State === OrderState.STATE_PAYMENT_TX) {
-        setLength(0);
-      }
-    }
-
-    if (clientStateManager?.stateManager) {
-      const sm = clientStateManager.stateManager;
-      if (currentOrder) {
-        sm.get(["Orders", currentOrder.orderId]).then(
-          (o: unknown) => {
-            onChangeItems(o);
-          },
-        );
-      }
-      sm.orders.on("update", onOrderUpdate);
-      return () => {
-        sm.orders.removeListener(
-          "update",
-          onOrderUpdate,
-        );
-      };
-    }
-  }, [clientStateManager?.stateManager, currentOrder]);
+    if (!currentOrder) return;
+    clientStateManager?.stateManager?.get(["Orders", currentOrder.ID])
+      .then((o: Map<OrderId, unknown>) => {
+        // Getting number of items in order.
+        const order = new Order(o);
+        const values = Object.values(order.Items);
+        let length = 0;
+        values.map((qty) => (length += Number(qty)));
+        setLength(length);
+      });
+  }, [currentOrder]);
 
   function onDisconnect() {
     setMenuOpen(false);
@@ -142,8 +100,8 @@ function Navigation() {
         throw new Error("No order found");
       }
       // Commit the order if it is not already committed
-      if (currentOrder!.status !== OrderState.STATE_COMMITTED) {
-        await clientStateManager!.stateManager.set(
+      if (currentOrder!.State !== OrderState.STATE_COMMITTED) {
+        await sm.set(
           ["Orders", orderId, "State"],
           OrderState.STATE_COMMITTED,
         );

@@ -90,7 +90,7 @@ export default function ListingDetail() {
 
   async function changeItems() {
     try {
-      let orderId: OrderId | null = currentOrder?.orderId || null;
+      let orderId: OrderId | null = currentOrder?.ID || null;
       if (
         !orderId
       ) {
@@ -114,7 +114,7 @@ export default function ListingDetail() {
       } else {
         // Update existing order
 
-        if (currentOrder?.status === OrderState.STATE_COMMITTED) {
+        if (currentOrder?.State === OrderState.STATE_COMMITTED) {
           orderId = await cancelAndCreateOrder(orderId, clientStateManager!);
         }
 

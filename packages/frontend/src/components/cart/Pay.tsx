@@ -17,7 +17,7 @@ import { Order } from "@massmarket/schema";
 import Button from "../common/Button.tsx";
 import BackButton from "../common/BackButton.tsx";
 import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
-import { OrderState } from "../../types.ts";
+import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { env } from "../../utils/env.ts";
 
 const namespace = "frontend:Pay";
@@ -41,6 +41,8 @@ export default function Pay({
   const { connector } = useAccount();
   const { data: wallet } = useWalletClient();
   const { clientStateManager } = useClientWithStateManager();
+  const { currentOrder } = useCurrentOrder();
+
   const paymentChainId = Number(paymentArgs?.[0]?.chainId || 1);
   const shopChainId = chains[env?.VITE_CHAIN_NAME as keyof typeof chains]?.id ??
     1;
@@ -50,29 +52,30 @@ export default function Pay({
 
   const [loading, setLoading] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
+  const sm = clientStateManager?.stateManager;
 
   useEffect(() => {
-    function txHashDetected(res: [OrderState, unknown]) {
-      const order = new Order(res[1]);
-      if (order.TxDetails?.txHash) {
-        setTxHash(order.TxDetails?.txHash);
+    function txHashDetected(o: Map<string, unknown>) {
+      const order = new Order(o);
+      if (order.TxDetails) {
+        setTxHash(order.TxDetails?.txHash ?? order.TxDetails?.blockHash);
         addRecentTransaction({
-          hash: order.TxDetails?.txHash,
+          hash: order.TxDetails?.txHash ?? order.TxDetails?.blockHash,
           description: "Order Payment",
           // confirmations: 3,
         });
       }
       setLoading(false);
     }
-    clientStateManager!.stateManager.orders.on("update", txHashDetected);
+    sm.events.on(txHashDetected, ["Orders", currentOrder!.ID]);
 
     return () => {
-      clientStateManager!.stateManager.orders.removeListener(
-        "update",
+      sm.events.off(
         txHashDetected,
+        ["Orders", currentOrder!.ID],
       );
     };
-  }, []);
+  }, [currentOrder]);
 
   async function sendPayment() {
     try {

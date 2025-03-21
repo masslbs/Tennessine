@@ -179,7 +179,7 @@ export default function () {
       }
       setStoreRegistrationStatus("Enrolling keycard...");
 
-      const res = await clientStateManager!.enrollKeycard(
+      const res = await clientStateManager!.relayClient.enrollKeycard(
         wallet!,
         wallet!.account,
         false,
@@ -190,7 +190,7 @@ export default function () {
         throw Error("Failed to enroll keycard");
       }
       // This adds connection to relay client and creates state manager.
-      await clientStateManager!.createStateManager();
+      await clientStateManager!.connect();
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
       errlog("enrollAndAddConnection failed", error);

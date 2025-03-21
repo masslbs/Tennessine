@@ -8,7 +8,7 @@ import { getTokenInformation } from "../utils/token.ts";
 import { useQuery } from "./useQuery.ts";
 
 export function useBaseToken() {
-  const [pricingCurrency, seTChainAddress] = useState<
+  const [pricingCurrency, setChainAddress] = useState<
     ChainAddress
   >(
     new ChainAddress(),
@@ -17,33 +17,27 @@ export function useBaseToken() {
   const shopPublicClient = usePublicClient({
     chainId: pricingCurrency?.chainId,
   });
-  const manifestManager = clientStateManager?.stateManager?.manifest;
-
-  function getManifest() {
-    manifestManager.get().then(
-      (res: Map<string, unknown>) => {
-        const manifest = new Manifest(res);
-        seTChainAddress(manifest.PricingCurrency);
-      },
-    );
-  }
+  const sm = clientStateManager?.stateManager;
 
   useEffect(() => {
-    if (!manifestManager) return;
-    function onCreateEvent() {
-      getManifest();
+    if (!sm) return;
+
+    function onUpdateEvent(m: Map<string, unknown>) {
+      const manifest = new Manifest(m);
+      setChainAddress(manifest.PricingCurrency);
     }
-    function onUpdateEvent() {
-      getManifest();
-    }
-    manifestManager.on("create", onCreateEvent);
-    manifestManager.on("update", onUpdateEvent);
-    getManifest();
+
+    sm.events.on(onUpdateEvent, ["Manifest"]);
+
+    sm.get(["Manifest"]).then((m: Map<string, unknown>) => {
+      const manifest = new Manifest(m);
+      setChainAddress(manifest.PricingCurrency);
+    });
+
     return () => {
-      manifestManager.removeListener("create", onCreateEvent);
-      manifestManager.removeListener("update", onUpdateEvent);
+      sm.events.off(onUpdateEvent, ["Manifest"]);
     };
-  }, [manifestManager]);
+  }, [sm]);
 
   const { result: baseToken } = useQuery(async () => {
     if (!pricingCurrency || !shopPublicClient) return;
