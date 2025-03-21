@@ -228,12 +228,18 @@ export function set(
     throw new Error(`Cannot set key ${key} on ${obj}`);
   }
 }
-export async function fetchAndDecode(filename: string) {
+
+type TestVector = Map<
+  string,
+  Array<Map<string, Map<string, Map<string, Map<string, CodecValue>>>>>
+>;
+
+export async function fetchAndDecode(filename: string): Promise<TestVector> {
   const response = await fetch(
     `file://${Deno.env.get("MASS_TEST_VECTORS")}/vectors/${filename}.cbor`,
   );
   const bytes = await response.bytes();
-  return decode(bytes) as Map<string, unknown>;
+  return decode(bytes) as TestVector;
 }
 
 export function extractEntriesFromHAMT(

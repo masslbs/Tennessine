@@ -10,17 +10,12 @@ import {
 
 import StateManager from "./mod.ts";
 
-type TestVector = Map<
-  string,
-  Array<Map<string, Map<string, Map<string, Map<string, codec.CodecValue>>>>>
->;
-
 Deno.test("Database Testings", async (t) => {
   const store = new MemStore();
 
   await t.step("Set Manifest, Listings, and Orders", async () => {
     //Manifest
-    const manifestVector = await fetchAndDecode("ManifestOkay") as TestVector;
+    const manifestVector = await fetchAndDecode("ManifestOkay");
     const manifests = manifestVector.get("Snapshots")?.map((snapshot) => {
       return snapshot!.get("After")!.get("Value")!.get("Manifest");
     }) || [];
@@ -36,7 +31,7 @@ Deno.test("Database Testings", async (t) => {
     const result = await db.get(["Manifest"]);
     assertEquals(result, manifests[0]);
     //Listing
-    const ListingsVector = await fetchAndDecode("ListingOkay") as TestVector;
+    const ListingsVector = await fetchAndDecode("ListingOkay");
     const listings = ListingsVector?.get("Snapshots")?.map((snapshot) => {
       const hamtNode = snapshot?.get("After")?.get("Value")?.get(
         "Listings",
@@ -51,7 +46,7 @@ Deno.test("Database Testings", async (t) => {
       }
     }
     //Order
-    const OrderVector = await fetchAndDecode("OrderOkay") as TestVector;
+    const OrderVector = await fetchAndDecode("OrderOkay");
     const orders = OrderVector?.get("Snapshots")?.map((snapshot) => {
       const hamtNode = snapshot?.get("After")?.get("Value")?.get("Orders");
       return extractEntriesFromHAMT(hamtNode);
