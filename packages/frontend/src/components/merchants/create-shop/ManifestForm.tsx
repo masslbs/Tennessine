@@ -199,38 +199,22 @@ export default function ManifestForm(
             ))}
           </div>
         </div>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-          }}
-        >
-          <div
-            className="flex flex-col"
-            onSubmit={(e) => e.preventDefault()}
-            data-testid="pricing-currency"
-          >
-            <label htmlFor="PricingCurrency" className="font-medium">
-              Pricing Currency
-            </label>
-            <Dropdown
-              options={chains
-                .map((c) => {
-                  return { label: `ETH/${c.name}`, value: `ETH/${c.id}` };
-                })
-                .concat(
-                  chains.map((c) => {
-                    return {
-                      label: `${
-                        c.id === hardhat.id ? "EDD" : "USDC"
-                      }/${c.name}`,
-                      value: `${c.id === hardhat.id ? "EDD" : "USDC"}/${c.id}`,
-                    };
-                  }),
-                )}
-              callback={handlePricingCurrency}
-            />
-          </div>
-        </form>
+        <Dropdown
+          label="Pricing Currency"
+          options={chains
+            .map((c) => {
+              return { label: `ETH/${c.name}`, value: `ETH/${c.id}` };
+            })
+            .concat(
+              chains.map((c) => {
+                return {
+                  label: `${c.id === hardhat.id ? "EDD" : "USDC"}/${c.name}`,
+                  value: `${c.id === hardhat.id ? "EDD" : "USDC"}/${c.id}`,
+                };
+              }),
+            )}
+          callback={handlePricingCurrency}
+        />
         <div data-testid="payee-info" className="flex flex-col gap-2">
           <form
             onSubmit={(e) => {
