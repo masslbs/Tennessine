@@ -30,7 +30,7 @@ Deno.test(
       await waitFor(() => {
         assertEquals(result.current.currentOrder, {
           orderId: order!.id,
-          status: OrderState.STATE_OPEN,
+          status: OrderState.Open,
         });
       });
 

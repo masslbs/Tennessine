@@ -17,15 +17,15 @@ export async function cancelAndCreateOrder(
   // Cancel current order.
   await sm.set(
     ["Orders", orderId, "State"],
-    OrderState.STATE_CANCELED,
+    OrderState.Canceled,
   );
 
   // Create a new order and add the same items.
   const newOrder = new Order();
   const newOrderId = 1;
   newOrder.ID = newOrderId;
-  newOrder.State = OrderState.STATE_OPEN;
-  newOrder.Items = new Order(currentOrder).Items;
+  newOrder.State = OrderState.Open;
+  newOrder.Items = Order.fromCBOR(currentOrder).Items;
   await sm.set(["Orders", newOrderId], newOrder.asCBORMap());
 
   return newOrder.ID;

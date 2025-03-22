@@ -94,8 +94,8 @@ export default function Cart({
           "Listings",
           orderItem.ListingID,
         ])
-          .then((l) => {
-            const listing = new Listing(l);
+          .then((l: Map<string, unknown>) => {
+            const listing = Listing.fromCBOR(l);
             allCartItems.set(orderItem.ListingID, listing);
           });
       }),

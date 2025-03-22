@@ -65,7 +65,7 @@ export default function EditProduct() {
             errlog("Error fetching listing", "No item found");
             return;
           }
-          const listing = new Listing(item);
+          const listing = Listing.fromCBOR(item);
           setProductInView(listing);
           setTitle(listing.Metadata.Title);
           const price = formatUnitsFromString(
