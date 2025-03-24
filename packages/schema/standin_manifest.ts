@@ -6,6 +6,7 @@ import {
   ensureString,
   ensureUint8Array,
 } from "./utils.ts";
+import { equal } from "@std/assert";
 
 type ContractStatus = Map<"IsContract", boolean>;
 
@@ -273,6 +274,36 @@ export class AcceptedCurrencyMap {
       map.set(chainId, addressMapMap);
     }
     return map;
+  }
+  addAddress(chainId: number, address: Uint8Array, isContract: boolean) {
+    const allChainsMap = this.asCBORMap();
+    const allAddressesMap = allChainsMap.has(chainId)
+      ? allChainsMap.get(chainId)
+      : new Map();
+    allAddressesMap!.set(address, new Map([["IsContract", isContract]]));
+    allChainsMap.set(chainId, allAddressesMap!);
+    this.data = allChainsMap;
+    return allChainsMap;
+  }
+
+  removeAddress(chainId: number, address: Uint8Array) {
+    const allChainsMap = this.asCBORMap();
+    const addressMap = allChainsMap.get(chainId);
+    const map = new Map();
+    if (addressMap) {
+      for (const [key, value] of addressMap) {
+        if (!equal(key, address)) {
+          map.set(key, value);
+        }
+      }
+    }
+    if (map.size) {
+      allChainsMap.set(chainId, map);
+    } else {
+      allChainsMap.delete(chainId);
+    }
+    this.data = allChainsMap;
+    return allChainsMap;
   }
 }
 

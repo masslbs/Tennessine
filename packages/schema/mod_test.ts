@@ -1,7 +1,7 @@
 import { assertEquals } from "@std/assert";
 import { extractEntriesFromHAMT, fetchAndDecode } from "@massmarket/utils";
 
-import { Listing, Manifest, Order } from "./mod.ts";
+import { AcceptedCurrencyMap, Listing, Manifest, Order } from "./mod.ts";
 
 type Rmap = Map<string, Rmap>;
 
@@ -81,4 +81,23 @@ Deno.test("unpack order vectors", async () => {
       assertEquals(unpacked.asCBORMap(), order);
     }
   }
+});
+
+Deno.test("AcceptedCurrencyMap addAddress/removeAddress", () => {
+  const currencies = new AcceptedCurrencyMap();
+  const chainId = 1;
+  const address1 = new Uint8Array([1, 2, 3]);
+  const address2 = new Uint8Array([4, 5, 6]);
+
+  currencies.addAddress(chainId, address1, false);
+  currencies.addAddress(chainId, address2, true);
+  const result1 = currencies.getAddressesByChainID(chainId);
+  assertEquals(result1?.size, 2);
+  assertEquals(result1?.get(address1)?.get("IsContract"), false);
+  assertEquals(result1?.get(address2)?.get("IsContract"), true);
+
+  currencies.removeAddress(chainId, address1);
+  const result2 = currencies.getAddressesByChainID(chainId);
+  assertEquals(result2?.size, 1);
+  assertEquals(result2?.get(address2)?.get("IsContract"), true);
 });
