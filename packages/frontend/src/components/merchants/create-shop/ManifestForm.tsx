@@ -69,11 +69,7 @@ export default function ManifestForm(
     const v = option.value as string;
     const [sym, chainId] = v.split("/");
     const address = getTokenAddress(sym, Number(chainId));
-    const pricingCurrency = new Map([["ChainID", Number(chainId)], [
-      "Address",
-      address,
-    ]]);
-    shopManifest.PricingCurrency = new ChainAddress(pricingCurrency);
+    shopManifest.PricingCurrency = new ChainAddress(Number(chainId), address);
     setShopManifest(shopManifest);
   }
 

@@ -57,7 +57,7 @@ export default function () {
   const { shopId } = useShopId();
   const { setShopDetails } = useShopDetails();
   const { clientStateManager } = useClientWithStateManager();
-  const [keycard, setKeycard] = useKeycard({
+  useKeycard({
     privateKey: random32BytesHex(),
     role: KeycardRole.MERCHANT,
   });

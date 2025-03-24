@@ -17,7 +17,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           disabled:bg-gray-200 disabled:text-gray-500 ${
           props.custom ? props.custom : ""
         }`}
-        style={{ padding: '8px 12px', backgroundColor: '#3b513e', color: 'white', fontSize: '18px'}}
+        style={{
+          padding: "8px 12px",
+          backgroundColor: "#3b513e",
+          color: "white",
+          fontSize: "18px",
+        }}
         ref={ref}
         {...props}
       />

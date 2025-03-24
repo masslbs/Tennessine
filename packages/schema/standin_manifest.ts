@@ -7,6 +7,8 @@ import {
   ensureUint8Array,
 } from "./utils.ts";
 
+type ContractStatus = Map<"IsContract", boolean>;
+
 export class Manifest extends BaseClass {
   ShopID: bigint;
   Payees: PayeeMap;
@@ -212,9 +214,9 @@ export class Payee extends BaseClass {
 }
 
 export class AcceptedCurrencyMap {
-  data: Map<number, Map<Uint8Array, Map<string, boolean>>> = new Map();
+  data: Map<number, Map<Uint8Array, ContractStatus>> = new Map();
 
-  constructor(data?: Map<number, Map<Uint8Array, Map<string, boolean>>>) {
+  constructor(data?: Map<number, Map<Uint8Array, ContractStatus>>) {
     this.data = data || new Map();
   }
 
@@ -261,7 +263,7 @@ export class AcceptedCurrencyMap {
     return this.data.get(chainId);
   }
 
-  asCBORMap(): Map<number, Map<Uint8Array, Map<"IsContract", boolean>>> {
+  asCBORMap(): Map<number, Map<Uint8Array, ContractStatus>> {
     const map = new Map();
     for (const [chainId, addressMap] of this.data) {
       const addressMapMap = new Map();
