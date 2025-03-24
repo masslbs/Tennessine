@@ -67,7 +67,7 @@ export function useClientWithStateManager() {
       //Set keycard role to guest-returning so we don't try enrolling again on refresh
       setKeycard({ ...keycard, role: KeycardRole.RETURNING_GUEST });
     } else {
-      await csm.connect();
+      await csm.relayClient.connect();
     }
     return { clientConnected: true };
   }, [
