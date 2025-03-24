@@ -187,8 +187,7 @@ export default function () {
         throw new Error("Access denied.");
       }
       setStoreRegistrationStatus("Enrolling keycard...");
-      const event = await clientStateManager!.relayClient.connect();
-      debug(`Websocket connection: ${event.type}`);
+
       const res = await clientStateManager!.relayClient.enrollKeycard(
         wallet!,
         wallet!.account,
