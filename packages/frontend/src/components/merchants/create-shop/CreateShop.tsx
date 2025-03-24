@@ -125,8 +125,11 @@ export default function () {
         args: [shopId!, wallet!.account.address],
         connector,
       });
-
-      const hash = await mintShop(wallet!, [shopId!, wallet!.account.address]);
+      debug("simulateContract success");
+      const hash = await mintShop(wallet!, wallet!.account.address, [
+        shopId!,
+        wallet!.account.address,
+      ]);
       debug(`Mint hash: ${hash}`);
 
       addRecentTransaction({
@@ -147,14 +150,12 @@ export default function () {
 
       setStoreRegistrationStatus("Adding relay token ID...");
       // Add relay tokenId for event verification.
-      const tx = await addRelay(wallet!, [
+      const tx = await addRelay(wallet!, wallet!.account.address, [
         shopId!,
-        clientStateManager!.relayClient.relayEndpoint.tokenId,
+        clientStateManager!.relayEndpoint.tokenId,
       ]);
       debug(
-        `Added relay token ID:${
-          clientStateManager!.relayClient.relayEndpoint.tokenId
-        }`,
+        `Added relay token ID:${clientStateManager!.relayEndpoint.tokenId}`,
       );
       receipt = await shopPublicClient!.waitForTransactionReceipt({
         hash: tx,
@@ -186,7 +187,8 @@ export default function () {
         throw new Error("Access denied.");
       }
       setStoreRegistrationStatus("Enrolling keycard...");
-
+      const event = await clientStateManager!.relayClient.connect();
+      debug(`Websocket connection: ${event.type}`);
       const res = await clientStateManager!.relayClient.enrollKeycard(
         wallet!,
         wallet!.account,
