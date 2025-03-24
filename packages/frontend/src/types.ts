@@ -63,12 +63,13 @@ export enum ListingViewState {
 }
 
 export enum OrderState {
-  STATE_UNSPECIFIED = 0,
-  STATE_OPEN = 1,
-  STATE_CANCELED = 2,
-  STATE_COMMITTED = 3,
-  STATE_PAYMENT_TX = 4,
-  STATE_PAID = 5,
+  Unspecified = 0,
+  Open = 1,
+  Canceled = 2,
+  Committed = 3,
+  PaymentChosen = 4,
+  Unpaid = 5,
+  Paid = 6,
 }
 export enum KeycardRole {
   NEW_GUEST = "new-guest",

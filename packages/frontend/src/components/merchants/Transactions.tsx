@@ -24,17 +24,16 @@ export default function Transactions(
       }
       let status: string;
       switch (value.status) {
-        case OrderState.STATE_CANCELED:
+        case OrderState.Canceled:
           status = "Cancelled";
           break;
-        case OrderState.STATE_OPEN:
+        case OrderState.Open:
           status = "Open";
           break;
-        case OrderState.STATE_COMMITTED:
+        case OrderState.Committed:
           status = "Committed";
           break;
-        case OrderState.STATE_PAYMENT_TX:
-        case OrderState.STATE_PAID:
+        case OrderState.Paid:
           status = "Paid";
           break;
         default:

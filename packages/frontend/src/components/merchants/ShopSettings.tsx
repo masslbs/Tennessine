@@ -89,7 +89,7 @@ export default function ShopSettings() {
 
     sm.get(["Manifest"])
       .then((res: Map<string, unknown>) => {
-        const m = new Manifest(res);
+        const m = Manifest.fromCBOR(res);
         setManifest(m);
         setAcceptedCurrencies(m.AcceptedCurrencies);
         setPricingCurrency(m.PricingCurrency);

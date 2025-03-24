@@ -67,7 +67,7 @@ Deno.test("Check that we can render the listing details screen", {
   });
 
   const openOrder = await csm.stateManager!.orders.getStatus(
-    OrderState.STATE_OPEN,
+    OrderState.Open,
   );
   const order = await csm.stateManager!.orders.get(openOrder[0]);
   expect(order.items[item1.id]).toBe(2);

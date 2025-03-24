@@ -71,7 +71,7 @@ function Navigation() {
     clientStateManager?.stateManager?.get(["Orders", currentOrder.ID])
       .then((o: Map<OrderId, unknown>) => {
         // Getting number of items in order.
-        const order = new Order(o);
+        const order = Order.fromCBOR(o);
         const values = Object.values(order.Items);
         let length = 0;
         values.map((qty) => (length += Number(qty)));
@@ -100,10 +100,10 @@ function Navigation() {
         throw new Error("No order found");
       }
       // Commit the order if it is not already committed
-      if (currentOrder!.State !== OrderState.STATE_COMMITTED) {
+      if (currentOrder!.State !== OrderState.Committed) {
         await sm.set(
           ["Orders", orderId, "State"],
-          OrderState.STATE_COMMITTED,
+          OrderState.Committed,
         );
         debug(`Order ID: ${orderId} committed`);
       }

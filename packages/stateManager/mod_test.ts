@@ -47,6 +47,7 @@ Deno.test("Database Testings", async (t) => {
         assertEquals(result, listing);
       }
     }
+
     //Order
     const OrderVector = await fetchAndDecode("OrderOkay");
     const orders = OrderVector?.get("Snapshots")?.map((snapshot) => {

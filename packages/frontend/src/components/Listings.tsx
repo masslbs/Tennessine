@@ -23,10 +23,10 @@ export default function Listings() {
     for (
       const [
         id,
-        o,
+        l,
       ] of allListings.entries()
     ) {
-      listings.set(id, new Listing(o));
+      listings.set(id, Listing.fromCBOR(l));
     }
     return listings;
   }

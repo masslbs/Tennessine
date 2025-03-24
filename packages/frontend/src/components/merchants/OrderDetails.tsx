@@ -26,20 +26,22 @@ export default function OrderDetails() {
 
   useEffect(() => {
     if (!orderId) return;
-    clientStateManager!.stateManager.get(["Orders", orderId]).then((res) => {
-      const o = new Order(res);
-      getAllCartItemDetails(o).then((cartItems) => {
-        setCartMap(cartItems);
-      });
-      setOrder(o);
-    });
+    clientStateManager!.stateManager.get(["Orders", orderId]).then(
+      (res: Map<string, unknown>) => {
+        const o = Order.fromCBOR(res);
+        getAllCartItemDetails(o).then((cartItems) => {
+          setCartMap(cartItems);
+        });
+        setOrder(o);
+      },
+    );
   }, [orderId]);
 
   useEffect(() => {
-    if (order?.status === OrderState.STATE_PAYMENT_TX) {
-      const id = order.choosePayment.currency.chainId;
-      order.txHash && setTxHash(order.txHash);
-      order.blockHash && setBlockHash(order.blockHash);
+    if (order?.State === OrderState.Paid) {
+      const id = order.ChosenCurrency.ChainID;
+      order.TxDetails.TxHash && setTxHash(order.TxDetails.TxHash);
+      order.TxDetails.BlockHash && setBlockHash(order.TxDetails.BlockHash);
 
       let chain: Chain | null = null;
       if (id === optimism.id) {
@@ -76,7 +78,7 @@ export default function OrderDetails() {
   }
 
   async function getAllCartItemDetails(order: Order) {
-    const ci = order.items;
+    const ci = order.Items;
     const allCartItems = new Map<ListingId, Listing>();
     await Promise.all(
       ci.map((orderItem: OrderedItem) => {
@@ -90,8 +92,8 @@ export default function OrderDetails() {
           "Listings",
           orderItem.ListingID,
         ])
-          .then((l) => {
-            const listing = new Listing(l);
+          .then((l: Map<string, unknown>) => {
+            const listing = Listing.fromCBOR(l);
             allCartItems.set(orderItem.ListingID, listing);
           });
       }),

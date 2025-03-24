@@ -139,7 +139,7 @@ Deno.test("Check that we can render the navigation bar", {
     });
     //Check that the order was committed after clicking checkout button.
     const updatedOrder = await csm.stateManager!.orders.get(order.id);
-    expect(updatedOrder.status).toBe(OrderState.STATE_COMMITTED);
+    expect(updatedOrder.status).toBe(OrderState.Committed);
   });
 
   unmount();

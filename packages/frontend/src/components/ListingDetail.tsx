@@ -43,8 +43,8 @@ export default function ListingDetail() {
       //set item details
       clientStateManager!.stateManager
         .get(["Listings", itemId])
-        .then((res) => {
-          const item = new Listing(res);
+        .then((res: Map<string, unknown>) => {
+          const item = Listing.fromCBOR(res);
           setItem(item);
           const price = formatUnitsFromString(
             item.Price,
@@ -104,7 +104,7 @@ export default function ListingDetail() {
             Quantity: Number(quantity),
           },
         ]);
-        newOrder.set("State", OrderState.STATE_OPEN);
+        newOrder.set("State", OrderState.Open);
         await clientStateManager!.stateManager.set(
           ["Orders", orderId],
           newOrder,
@@ -114,7 +114,7 @@ export default function ListingDetail() {
       } else {
         // Update existing order
 
-        if (currentOrder?.State === OrderState.STATE_COMMITTED) {
+        if (currentOrder?.State === OrderState.Committed) {
           orderId = await cancelAndCreateOrder(orderId, clientStateManager!);
         }
 

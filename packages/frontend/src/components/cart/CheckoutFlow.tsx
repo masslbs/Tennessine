@@ -104,10 +104,10 @@ export default function CheckoutFlow() {
     }
     try {
       // Commit the order if it is not already committed
-      if (currentOrder!.State !== OrderState.STATE_COMMITTED) {
+      if (currentOrder!.State !== OrderState.Committed) {
         await sm.set(
           ["Orders", orderId, "State"],
-          OrderState.STATE_COMMITTED,
+          OrderState.Committed,
         );
         debug(`Order ID: ${orderId} committed`);
       }
