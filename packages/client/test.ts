@@ -1,4 +1,11 @@
-import { createTestClient, http, publicActions, walletActions } from "viem";
+import {
+  createTestClient,
+  http,
+  publicActions,
+  type PublicClient,
+  walletActions,
+  type WalletClient,
+} from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { foundry } from "viem/chains";
 import { mintShop } from "@massmarket/blockchain";
@@ -8,14 +15,18 @@ import { discoverRelay, RelayClient } from "./mod.ts";
 export const relayURL = Deno.env.get("RELAY_ENDPOINT") ||
   "http://localhost:4444/v4";
 
-export async function createTestClients() {
-  const blockchainClient = createTestClient({
+export function createTestBlockchainClient() {
+  return createTestClient({
     chain: foundry,
     mode: "anvil",
     transport: http(),
   }).extend(publicActions)
     .extend(walletActions);
+}
 
+export async function createTestRelayClient(
+  blockchainClient: WalletClient & PublicClient,
+) {
   const shopId = BigInt(Math.floor(Math.random() * 1000000));
   // get an account from anvil
   const [account] = await blockchainClient.requestAddresses();
@@ -45,6 +56,11 @@ export async function createTestClients() {
     account,
     false,
   );
+  return relayClient;
+}
 
+export async function createTestClients() {
+  const blockchainClient = createTestBlockchainClient();
+  const relayClient = await createTestRelayClient(blockchainClient);
   return { relayClient, blockchainClient };
 }
