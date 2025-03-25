@@ -47,21 +47,15 @@ export default function ManifestForm(
     const [sym, id] = e.target.value.split("/");
     const chainId = Number(id);
     const address = getTokenAddress(sym, chainId);
-    const allChainsMap = shopManifest.AcceptedCurrencies.data;
     if (e.target.checked) {
-      const allAddressesMap = allChainsMap.has(chainId)
-        ? allChainsMap.get(chainId)
-        : new Map();
-      allAddressesMap!.set(address, new Map([["IsContract", false]]));
-      allChainsMap.set(chainId, allAddressesMap!);
+      shopManifest.AcceptedCurrencies.addAddress(chainId, address, true);
     } else {
       // remove address from accepted currencies.
-      const allAddressesMap = allChainsMap.get(chainId);
-      if (allAddressesMap) {
-        allAddressesMap.delete(address);
-      }
+      shopManifest.AcceptedCurrencies.removeAddress(
+        chainId,
+        address,
+      );
     }
-    shopManifest.AcceptedCurrencies = new AcceptedCurrencyMap(allChainsMap);
     setShopManifest(shopManifest);
   }
 

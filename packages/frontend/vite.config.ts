@@ -27,4 +27,11 @@ export default defineConfig({
     nodePolyfills() as PluginOption,
     tailwindcss() as PluginOption,
   ],
+  optimizeDeps: {
+    include: [
+      // This prebundles the secp256k1 dependency which is used by some functions imported by viem (e.g. recoverPublicKey)
+      // Since the imported function uses dynamic import of this dependency. Dynamic import of modules seems to cause errors with vite.
+      "@noble/secp256k1",
+    ],
+  },
 });

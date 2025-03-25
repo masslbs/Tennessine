@@ -1,4 +1,4 @@
-import { type WalletClient } from "viem";
+import type { Account, WalletClient } from "viem";
 
 import Database from "@massmarket/stateManager";
 import { type IRelayEndpoint, RelayClient } from "@massmarket/client";
@@ -11,7 +11,7 @@ export class ClientWithStateManager {
   constructor(
     public readonly relayEndpoint: IRelayEndpoint,
     walletClient: WalletClient,
-    account: `0x${string}`,
+    account: Account,
     shopId: bigint,
   ) {
     const store = new LevelStore();
@@ -30,7 +30,11 @@ export class ClientWithStateManager {
     });
   }
 
-  connect() {
+  addConnection() {
+    if (!this.relayClient) {
+      throw new Error("No relay client");
+    }
+
     return this.stateManager.addConnection(this.relayClient);
   }
 }

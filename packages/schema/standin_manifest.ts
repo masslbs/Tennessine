@@ -6,6 +6,7 @@ import {
   ensureString,
   ensureUint8Array,
 } from "./utils.ts";
+import { equal } from "@std/assert";
 
 type ContractStatus = Map<"IsContract", boolean>;
 
@@ -159,6 +160,22 @@ export class PayeeMap {
     return this.data.get(chainId);
   }
 
+  addAddress(chainId: number, address: Uint8Array, callAsContract: boolean) {
+    const map = new Map();
+    for (const [chainId, addressMap] of this.data) {
+      const forChainID = new Map();
+      for (const [address, metadata] of addressMap) {
+        forChainID.set(address, metadata);
+      }
+      map.set(chainId, forChainID);
+    }
+    const addressMap = new Map();
+    addressMap.set(address, new PayeeMetadata(callAsContract));
+    map.set(chainId, addressMap);
+    this.data = map;
+    return map;
+  }
+
   asCBORMap(): Map<number, Map<Uint8Array, Map<"CallAsContract", boolean>>> {
     const map = new Map();
     for (const [chainId, addressMap] of this.data) {
@@ -268,17 +285,48 @@ export class AcceptedCurrencyMap {
     for (const [chainId, addressMap] of this.data) {
       const addressMapMap = new Map();
       for (const [address, metadata] of addressMap) {
-        addressMapMap.set(address, metadata);
+        //FIXME 
+        addressMapMap.set(address, new Map());
       }
       map.set(chainId, addressMapMap);
     }
     return map;
   }
+  addAddress(chainId: number, address: Uint8Array, isContract: boolean) {
+    const allChainsMap = this.asCBORMap();
+    const allAddressesMap = allChainsMap.has(chainId)
+      ? allChainsMap.get(chainId)
+      : new Map();
+    allAddressesMap!.set(address, new Map([["IsContract", isContract]]));
+    allChainsMap.set(chainId, allAddressesMap!);
+    this.data = allChainsMap;
+    return allChainsMap;
+  }
+
+  removeAddress(chainId: number, address: Uint8Array) {
+    const allChainsMap = this.asCBORMap();
+    const addressMap = allChainsMap.get(chainId);
+    const map = new Map();
+    if (addressMap) {
+      for (const [key, value] of addressMap) {
+        if (!equal(key, address)) {
+          map.set(key, value);
+        }
+      }
+    }
+    if (map.size) {
+      allChainsMap.set(chainId, map);
+    } else {
+      allChainsMap.delete(chainId);
+    }
+    this.data = allChainsMap;
+    return allChainsMap;
+  }
 }
 
 export class ChainAddress extends BaseClass {
-  ChainID: number;
   Address: Uint8Array;
+  ChainID: number;
 
   constructor(chainID: number, address: Uint8Array) {
     super();

@@ -1,6 +1,7 @@
 import { expect } from "@std/expect";
 import {
   createTestClient,
+  createWalletClient,
   hexToBigInt,
   hexToBytes,
   http,
@@ -69,9 +70,14 @@ Deno.test(
       const relayEndpoint = await discoverRelay(relayURL);
       const pk = generatePrivateKey();
       const kc = privateKeyToAccount(pk);
+      const keycardWallet = createWalletClient({
+        account: kc,
+        chain: foundry,
+        transport: http(),
+      });
       const relayClient = new RelayClient({
         relayEndpoint,
-        walletClient: blockchainClient,
+        walletClient: keycardWallet,
         keycard: kc,
         shopId,
       });

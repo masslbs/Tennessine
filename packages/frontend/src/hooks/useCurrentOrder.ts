@@ -80,10 +80,10 @@ export function useCurrentOrder() {
     }
   }
 
-  useQuery(async () => {
-    if (!sm) return;
-    await orderFetcher();
-  }, [hexId, sm]);
+  // useQuery(async () => {
+  //   if (!sm) return;
+  //   await orderFetcher();
+  // }, [hexId, sm]);
 
   useEffect(() => {
     if (!sm || !currentOrder) return;

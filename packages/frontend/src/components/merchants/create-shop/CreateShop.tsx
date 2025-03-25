@@ -15,9 +15,10 @@ import {
   mintShop,
   setTokenURI,
 } from "@massmarket/blockchain";
-import { Manifest, PayeeMap } from "@massmarket/schema";
+import { Manifest } from "@massmarket/schema";
 import {
   assert,
+  getWindowLocation,
   logger,
   random256BigInt,
   random32BytesHex,
@@ -125,8 +126,11 @@ export default function () {
         args: [shopId!, wallet!.account.address],
         connector,
       });
-
-      const hash = await mintShop(wallet!, [shopId!, wallet!.account.address]);
+      debug("simulateContract success");
+      const hash = await mintShop(wallet!, wallet!.account.address, [
+        shopId!,
+        wallet!.account.address,
+      ]);
       debug(`Mint hash: ${hash}`);
 
       addRecentTransaction({
@@ -147,14 +151,12 @@ export default function () {
 
       setStoreRegistrationStatus("Adding relay token ID...");
       // Add relay tokenId for event verification.
-      const tx = await addRelay(wallet!, [
+      const tx = await addRelay(wallet!, wallet!.account.address, [
         shopId!,
-        clientStateManager!.relayClient.relayEndpoint.tokenId,
+        clientStateManager!.relayEndpoint.tokenId,
       ]);
       debug(
-        `Added relay token ID:${
-          clientStateManager!.relayClient.relayEndpoint.tokenId
-        }`,
+        `Added relay token ID:${clientStateManager!.relayEndpoint.tokenId}`,
       );
       receipt = await shopPublicClient!.waitForTransactionReceipt({
         hash: tx,
@@ -191,12 +193,16 @@ export default function () {
         wallet!,
         wallet!.account,
         false,
+        getWindowLocation(),
       );
       if (!res.ok) {
         throw Error("Failed to enroll keycard");
       }
-      // This adds connection to relay client and creates state manager.
-      await clientStateManager!.connect();
+      debug("Keycard enrolled");
+      setStoreRegistrationStatus("Adding connection...");
+
+      await clientStateManager!.addConnection();
+      debug("Relay client connected");
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
       errlog("enrollAndAddConnection failed", error);
@@ -208,26 +214,26 @@ export default function () {
 
   async function updateManifest() {
     try {
+      setStoreRegistrationStatus("Updating manifest...");
       // Since we don't currently have UI for inputting payment address for each chain,
       // Get all unique chain IDs for selected accepted currencies and add payee for each chain.
-      const uniqueByChainId = Object.keys(shopManifest.AcceptedCurrencies);
-      const Payees = new Map();
+      const uniqueByChainId = Array.from(
+        shopManifest.AcceptedCurrencies.asCBORMap().keys(),
+      );
       uniqueByChainId.forEach((chainId) => {
-        Payees.set(
+        shopManifest.Payees.addAddress(
           chainId,
-          new Map(
-            [[
-              [toBytes(shopMetadata.paymentAddress)],
-              new Map([["CallAsContract", false]]),
-            ]],
-          ),
+          toBytes(shopMetadata.paymentAddress),
+          false,
         );
       });
-      shopManifest.Payees = new PayeeMap(Payees);
-      clientStateManager!.stateManager!.set(
+      shopManifest.ShopID = shopId;
+
+      await clientStateManager?.stateManager.set(
         ["Manifest"],
         shopManifest.asCBORMap(),
       );
+
       debug("Manifest created");
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");

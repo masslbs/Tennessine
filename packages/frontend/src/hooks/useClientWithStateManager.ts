@@ -25,32 +25,32 @@ export function useClientWithStateManager() {
   const { shopId } = useShopId();
   const { chain } = useChain();
   const { isMerchantPath } = usePathname();
-  const { data: wallet } = useWalletClient();
 
-  const account = privateKeyToAccount(random32BytesHex());
-  const usedWallet = keycard.role === KeycardRole.NEW_GUEST
-    ? createWalletClient({
-      account,
-      chain,
-      transport: http(
-        defaultRPC,
-      ),
-    })
-    : wallet;
+  const account = privateKeyToAccount(keycard.privateKey);
+  const keycardWallet = createWalletClient({
+    account,
+    chain,
+    transport: http(
+      defaultRPC,
+    ),
+  });
+
   const hexId = shopId ? toHex(shopId) : null;
 
   const { result } = useQuery(async () => {
-    if (!shopId || !usedWallet) return;
+    if (!shopId || !keycardWallet || !relayEndpoint) return;
+
+    const csm = new ClientWithStateManager(
+      relayEndpoint,
+      keycardWallet,
+      account,
+      shopId,
+    );
+    setClientStateManager(csm);
 
     if (keycard?.role === KeycardRole.NEW_GUEST) {
-      const csm = new ClientWithStateManager(
-        relayEndpoint,
-        usedWallet,
-        account.address,
-        shopId,
-      );
       const res = await csm.relayClient.enrollKeycard(
-        usedWallet,
+        keycardWallet,
         account,
         true,
       );
@@ -64,28 +64,16 @@ export function useClientWithStateManager() {
       }
       debug("Success: Enrolled new guest keycard");
       await csm.connect();
-      setClientStateManager(csm);
       //Set keycard role to guest-returning so we don't try enrolling again on refresh
       setKeycard({ ...keycard, role: KeycardRole.RETURNING_GUEST });
     } else {
-      const csm = new ClientWithStateManager(
-        relayEndpoint,
-        usedWallet,
-        usedWallet.account.address,
-        shopId,
-      );
-      //If /create-shop or /merchant-connect, we don't want to connect to the client before we enroll keycard.
-      if (!isMerchantPath) {
-        await csm.connect();
-      }
-      setClientStateManager(csm);
+      await csm.relayClient.connect();
     }
     return { clientConnected: true };
   }, [
     hexId,
     relayEndpoint,
     keycard.privateKey,
-    usedWallet,
   ]);
 
   return { clientStateManager, result };
