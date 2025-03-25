@@ -273,7 +273,9 @@ export class AcceptedCurrencyMap {
 
       result.set(chainId, validatedAddressMap);
     }
-    return new AcceptedCurrencyMap(result);
+    return new AcceptedCurrencyMap(
+      (result as unknown) as Map<number, Map<Uint8Array, ContractStatus>>,
+    );
   }
 
   getAddressesByChainID(chainId: number) {
@@ -284,8 +286,8 @@ export class AcceptedCurrencyMap {
     const map = new Map();
     for (const [chainId, addressMap] of this.data) {
       const addressMapMap = new Map();
-      for (const [address, metadata] of addressMap) {
-        //FIXME 
+      for (const [address, _metadata] of addressMap) {
+        //FIXME
         addressMapMap.set(address, new Map());
       }
       map.set(chainId, addressMapMap);

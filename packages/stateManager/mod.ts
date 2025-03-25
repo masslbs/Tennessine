@@ -185,8 +185,7 @@ export default class StateManager {
     };
   }
 
-  async #sendPatch(patch: Patch) {
-    const state = await this.#open();
+  #sendPatch(state: IStoredState, patch: Patch) {
     state.seqNum += 1;
     // send patch to peers
     this.#streamsControllers.forEach((controller) => {
@@ -198,13 +197,15 @@ export default class StateManager {
   }
 
   async increment(path: codec.Path, value: codec.CodecValue) {
-    const state = await this.#sendPatch({ Op: "increment", Path: path });
+    const state = await this.#open();
+    this.#sendPatch(state, { Op: "increment", Path: path });
     state.root = await this.graph.set(state.root, path, value);
     this.events.emit(state.root);
   }
 
   async decrement(path: codec.Path, value: codec.CodecValue) {
-    const state = await this.#sendPatch({ Op: "decrement", Path: path });
+    const state = await this.#open();
+    this.#sendPatch(state, { Op: "decrement", Path: path });
     state.root = await this.graph.set(state.root, path, value);
     this.events.emit(state.root);
   }
@@ -216,11 +217,11 @@ export default class StateManager {
       op = oldValue === undefined ? "add" : "replace";
       return value;
     });
-
-    await this.#sendPatch(
+    this.events.emit(state.root);
+    return this.#sendPatch(
+      state,
       { Op: op!, Path: path, Value: value },
     );
-    this.events.emit(state.root);
   }
 
   async get(
