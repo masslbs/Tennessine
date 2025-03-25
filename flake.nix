@@ -6,6 +6,7 @@
   inputs = {
     systems.url = "github:nix-systems/default";
     flake-parts.url = "github:hercules-ci/flake-parts";
+    flake-root.url = "github:srid/flake-root";
     pre-commit-hooks = {
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -33,6 +34,7 @@
       systems = import systems;
       imports = [
         inputs.pre-commit-hooks.flakeModule
+        inputs.flake-root.flakeModule
       ];
       perSystem = {
         config,
@@ -67,16 +69,20 @@
           };
         };
         devShells.default = pkgs.mkShell {
+          inputsFrom = [config.flake-root.devShell]; # Provides $FLAKE_ROOT in dev shell
           MASS_TEST_VECTORS = "${schema.packages.${system}.default}";
           MASS_CONTRACTS_PATH = "${contracts.packages.${system}.default}";
 
           shellHook = ''
             ${config.pre-commit.settings.installationScript}
             # only runs when the contracts have changed
-            if [ $(cat .last-input) != "${contracts}" ]; then
+            pushd $FLAKE_ROOT
+            touch .last-input
+            if [[ "$(< .last-input)" != "${contracts}" ]]; then
               echo ${contracts} > .last-input
               deno task -r -f contracts build
             fi
+            popd
           '';
 
           buildInputs = with pkgs;
