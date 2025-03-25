@@ -169,8 +169,9 @@ export class RelayClient {
           try {
             for (const ppset of envelope.subscriptionPushRequest.sets!) {
               const header = decode(ppset.header!);
-              // @ts-ignore we will soon depracte pbjs
-              const sequence = ppset!.shopSeqNo!.toNumber();
+              const sequence = typeof ppset!.shopSeqNo! === "number"
+                ? ppset!.shopSeqNo!
+                : ppset!.shopSeqNo!.toNumber();
               const patches = ppset.patches!.map((patch) =>
                 Object.fromEntries(
                   decode(patch) as Map<string, CodecValue>,

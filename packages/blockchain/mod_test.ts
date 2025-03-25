@@ -1,6 +1,5 @@
 import { expect } from "@std/expect";
 import { createClient, http, publicActions, walletActions } from "viem";
-
 import { hardhat } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 
@@ -15,16 +14,17 @@ import {
   setTokenURI,
 } from "./mod.ts";
 
+const client = createClient({
+  chain: hardhat,
+  transport: http(),
+}).extend(walletActions).extend(publicActions);
+
 Deno.test({
   name: "blockChain Client",
   sanitizeResources: false,
   sanitizeOps: false,
   async fn(t) {
     const shopId = random256BigInt();
-    const client = createClient({
-      chain: hardhat,
-      transport: http(),
-    }).extend(walletActions).extend(publicActions);
     const [account] = await client.requestAddresses();
 
     await t.step("mintShop", async () => {

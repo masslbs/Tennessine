@@ -1,7 +1,10 @@
 import { assertEquals } from "@std/assert";
 
 import { MemStore } from "@massmarket/store/mem";
-import { createTestClients } from "@massmarket/client/test";
+import {
+  createTestBlockchainClient,
+  createTestRelayClient,
+} from "@massmarket/client/test";
 import {
   type codec,
   extractEntriesFromHAMT,
@@ -10,7 +13,9 @@ import {
 
 import StateManager from "./mod.ts";
 
-const { relayClient } = await createTestClients();
+// we create the blockchain client outside of the tests since viem has a ws leak
+const blockchainClient = createTestBlockchainClient();
+const relayClient = await createTestRelayClient(blockchainClient);
 
 Deno.test("Database Testings", async (t) => {
   const store = new MemStore();
