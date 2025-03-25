@@ -4,6 +4,7 @@ import EventTree from "@massmarket/eventTree";
 import type { Patch, PushedPatchSet, RelayClient } from "@massmarket/client";
 import type { codec, Hash } from "@massmarket/utils";
 
+// move to schema
 const DefaultObject = new Map(Object.entries({
   Tags: new Map(),
   Orders: new Map(),
@@ -38,7 +39,8 @@ export default class StateManager {
     this.graph = new DAG(params.store);
   }
 
-  async open(view = "local"): Promise<voi> {
+  async #open(view = "local"): Promise<IStoredState> {
+    if (this.#stateCache.has(view)) return this.#stateCache.get(view)!;
     const storedState = await this.graph.store.objStore.get([
       this.params.objectId,
       view,
@@ -52,16 +54,11 @@ export default class StateManager {
         // root: v.getDefaults(this.params.schema) as CborValue,
       };
     this.#stateCache.set(view, restored);
+    return restored;
   }
 
-  async getStateRoot(view = "local") {
-    const state = await this.#stateCache.get(view);
-    if (!state) throw new Error(`State not found for view ${view}`);
-    return state.root;
-  }
-
-  async #saveState(view = "local") {
-    const state = await this.#stateCache.get(view);
+  async #close(view = "local") {
+    const state = this.#stateCache.get(view);
     if (!state) throw new Error(`State not found for view ${view}`);
     // wait for root to be resolved
     state.root = await state.root;
@@ -79,14 +76,14 @@ export default class StateManager {
     return new WritableStream<PushedPatchSet>({
       start: async () => {
         [localState, state] = await Promise.all([
-          this.loadState(),
-          this.loadState(id),
+          this.#open(),
+          this.#open(id),
         ]);
       },
       close: async () => {
         await Promise.all([
-          this.#saveState(),
-          this.#saveState(id),
+          this.#close(),
+          this.#close(id),
         ]);
       },
       abort(reason) {
@@ -167,7 +164,7 @@ export default class StateManager {
   async addConnection(client: RelayClient) {
     const id = client.relayEndpoint.tokenId;
     this.clients.add(client);
-    const state = await this.loadState(id);
+    const state = await this.#open(id);
     client.keyCardNonce = state.seqNum;
     // TODO:  implement dynamic subscriptions
     // currently we subscribe to the root when any event is subscribed to
@@ -175,6 +172,7 @@ export default class StateManager {
     const ourWritable = this.createWriteStream(id);
     const remote = remoteReadable.pipeTo(ourWritable).catch((error) => {
       console.error("Error piping remote stream:", error);
+      return error;
     });
 
     // pipe our changes to the relay
@@ -187,8 +185,8 @@ export default class StateManager {
     };
   }
 
-  async #sendPatch(patch: Patch, id: string) {
-    const state = await this.loadState(id);
+  async #sendPatch(patch: Patch) {
+    const state = await this.#open();
     state.seqNum += 1;
     // send patch to peers
     this.#streamsControllers.forEach((controller) => {
@@ -199,29 +197,28 @@ export default class StateManager {
     return state;
   }
 
-  async increment(path: codec.Path, value: codec.CodecValue, id = "local") {
-    const state = await this.#sendPatch({ Op: "increment", Path: path }, id);
+  async increment(path: codec.Path, value: codec.CodecValue) {
+    const state = await this.#sendPatch({ Op: "increment", Path: path });
     state.root = await this.graph.set(state.root, path, value);
     this.events.emit(state.root);
   }
 
-  async decrement(path: codec.Path, value: codec.CodecValue, id = "local") {
-    const state = await this.#sendPatch({ Op: "decrement", Path: path }, id);
+  async decrement(path: codec.Path, value: codec.CodecValue) {
+    const state = await this.#sendPatch({ Op: "decrement", Path: path });
     state.root = await this.graph.set(state.root, path, value);
     this.events.emit(state.root);
   }
 
-  async set(path: codec.Path, value: codec.CodecValue, id = "local") {
-    const state = await this.#stateCache(id);
+  async set(path: codec.Path, value: codec.CodecValue) {
+    const state = await this.#open();
     let op;
-    state.root = await this.graph.upsert(state.root, path, (oldValue) => {
+    state.root = await this.graph.set(state.root, path, (oldValue) => {
       op = oldValue === undefined ? "add" : "replace";
       return value;
     });
 
     await this.#sendPatch(
-      { Op: op, Path: path, Value: value },
-      id,
+      { Op: op!, Path: path, Value: value },
     );
     this.events.emit(state.root);
   }
@@ -231,7 +228,7 @@ export default class StateManager {
     id = "local",
   ): Promise<codec.CodecValue | undefined> {
     // wait for any pending writes to complete
-    const state = await this.loadState(id);
+    const state = await this.#open(id);
     return this.graph.get(state.root, path);
   }
 }
