@@ -10,6 +10,7 @@ import {
   Manifest,
   Payee,
   PayeeMap,
+  PayeeMetadata,
 } from "./standin_manifest.ts";
 import { Listing, ListingMetadata } from "./standin_listing.ts";
 import { Order, OrderedItem } from "./standin_order.ts";
@@ -23,6 +24,7 @@ export {
   OrderedItem,
   Payee,
   PayeeMap,
+  PayeeMetadata,
 };
 
 // a few concrete fields we need to handle in the client.

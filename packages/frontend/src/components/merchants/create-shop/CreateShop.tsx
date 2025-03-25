@@ -15,9 +15,10 @@ import {
   mintShop,
   setTokenURI,
 } from "@massmarket/blockchain";
-import { Manifest, PayeeMap } from "@massmarket/schema";
+import { Manifest } from "@massmarket/schema";
 import {
   assert,
+  getWindowLocation,
   logger,
   random256BigInt,
   random32BytesHex,
@@ -192,12 +193,16 @@ export default function () {
         wallet!,
         wallet!.account,
         false,
+        getWindowLocation(),
       );
       if (!res.ok) {
         throw Error("Failed to enroll keycard");
       }
-      // This adds connection to relay client and creates state manager.
-      await clientStateManager!.connect();
+      debug("Keycard enrolled");
+      setStoreRegistrationStatus("Adding connection...");
+
+      await clientStateManager!.addConnection();
+      debug("Relay client connected");
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
       errlog("enrollAndAddConnection failed", error);
@@ -209,26 +214,26 @@ export default function () {
 
   async function updateManifest() {
     try {
+      setStoreRegistrationStatus("Updating manifest...");
       // Since we don't currently have UI for inputting payment address for each chain,
       // Get all unique chain IDs for selected accepted currencies and add payee for each chain.
-      const uniqueByChainId = Object.keys(shopManifest.AcceptedCurrencies);
-      const Payees = new Map();
+      const uniqueByChainId = Array.from(
+        shopManifest.AcceptedCurrencies.asCBORMap().keys(),
+      );
       uniqueByChainId.forEach((chainId) => {
-        Payees.set(
+        shopManifest.Payees.addAddress(
           chainId,
-          new Map(
-            [[
-              [toBytes(shopMetadata.paymentAddress)],
-              new Map([["CallAsContract", false]]),
-            ]],
-          ),
+          toBytes(shopMetadata.paymentAddress),
+          false,
         );
       });
-      shopManifest.Payees = new PayeeMap(Payees);
-      clientStateManager!.stateManager!.set(
+      shopManifest.ShopID = shopId;
+
+      await clientStateManager?.stateManager.set(
         ["Manifest"],
         shopManifest.asCBORMap(),
       );
+
       debug("Manifest created");
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
