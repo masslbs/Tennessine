@@ -1,5 +1,6 @@
-import { assert, assertEquals } from "@std/assert";
+import { assert, assertEquals, assertRejects } from "@std/assert";
 import { MemStore as Store } from "@massmarket/store/mem";
+import type { CodecValue } from "@massmarket/utils/codec";
 import { DAG, type RootValue } from "./mod.ts";
 
 Deno.test("meta data", async (t) => {
@@ -48,6 +49,11 @@ Deno.test("basic set and get ", async (t) => {
     );
     const val = await graph.get(root, ["d"]);
     assertEquals(val, undefined);
+    assertRejects(() => graph.get(new Uint8Array(32), ["c"]), "invalid root");
+    assertRejects(
+      () => graph.set(root, ["c", "d", "c"], "catz"),
+      "path does not exist",
+    );
   });
 
   // Changed this to be undefined instead of throw
@@ -61,6 +67,29 @@ Deno.test("basic set and get ", async (t) => {
       assertEquals(r, undefined);
     },
   );
+});
+
+Deno.test("upsert", async (t) => {
+  await t.step("should upsert a value", async () => {
+    const graph = new DAG(
+      store,
+    );
+
+    const addresses: CodecValue | Promise<CodecValue> | undefined = new Map([
+      [new Uint8Array([1, 2, 3]), "address1"],
+      [new Uint8Array([4, 5, 6]), "address2"],
+    ]);
+    const newAddresses = graph.set(
+      addresses,
+      ["addresses"],
+      (oldAddress) => {
+        assertEquals(oldAddress, addresses);
+        return "cat";
+      },
+    );
+    const address = await graph.get(newAddresses, ["addresses"]);
+    assertEquals(address, "cat");
+  });
 });
 
 Deno.test("should merklize", async (t) => {

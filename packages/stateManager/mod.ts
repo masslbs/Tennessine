@@ -28,7 +28,7 @@ export default class StateManager {
   #streamsControllers: Set<ReadableStreamDefaultController<Patch[]>> =
     new Set();
   // very simple cache, we always want a reference to the same object
-  #stateCache: Map<string, Promise<IStoredState>> = new Map();
+  #stateCache: Map<string, IStoredState> = new Map();
   constructor(
     public params: {
       store: AbstractStore;
@@ -38,28 +38,20 @@ export default class StateManager {
     this.graph = new DAG(params.store);
   }
 
-  loadState(view = "local"): Promise<IStoredState> {
-    const state = this.#stateCache.get(view);
-    if (state) return state;
-    else {
-      const pStoredState = this.graph.store.objStore.get([
-        this.params.objectId,
-        view,
-      ]).then((storedState) => {
-        if (storedState instanceof Map) {
-          return Object.fromEntries(storedState);
-        } else {
-          return {
-            seqNum: 0,
-            root: new Map(DefaultObject),
-            // TODO: add class for shop at some point
-            // root: v.getDefaults(this.params.schema) as CborValue,
-          };
-        }
-      });
-      this.#stateCache.set(view, pStoredState);
-      return pStoredState;
-    }
+  async open(view = "local"): Promise<voi> {
+    const storedState = await this.graph.store.objStore.get([
+      this.params.objectId,
+      view,
+    ]);
+    const restored = storedState instanceof Map
+      ? Object.fromEntries(storedState)
+      : {
+        seqNum: 0,
+        root: new Map(DefaultObject),
+        // TODO: add class for shop at some point
+        // root: v.getDefaults(this.params.schema) as CborValue,
+      };
+    this.#stateCache.set(view, restored);
   }
 
   async getStateRoot(view = "local") {
@@ -211,24 +203,27 @@ export default class StateManager {
     const state = await this.#sendPatch({ Op: "increment", Path: path }, id);
     state.root = await this.graph.set(state.root, path, value);
     this.events.emit(state.root);
-    return this.#saveState();
   }
 
   async decrement(path: codec.Path, value: codec.CodecValue, id = "local") {
     const state = await this.#sendPatch({ Op: "decrement", Path: path }, id);
     state.root = await this.graph.set(state.root, path, value);
     this.events.emit(state.root);
-    return this.#saveState();
   }
 
   async set(path: codec.Path, value: codec.CodecValue, id = "local") {
-    const state = await this.#sendPatch(
-      { Op: "add", Path: path, Value: value },
+    const state = await this.#stateCache(id);
+    let op;
+    state.root = await this.graph.upsert(state.root, path, (oldValue) => {
+      op = oldValue === undefined ? "add" : "replace";
+      return value;
+    });
+
+    await this.#sendPatch(
+      { Op: op, Path: path, Value: value },
       id,
     );
-    state.root = await this.graph.set(state.root, path, value);
     this.events.emit(state.root);
-    return this.#saveState();
   }
 
   async get(

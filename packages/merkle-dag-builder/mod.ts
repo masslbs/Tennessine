@@ -43,7 +43,7 @@ export class DAG {
   async *walk(
     root: RootValue,
     path: codec.CodecKey[],
-    modify = false,
+    clone = false,
   ): AsyncGenerator<{
     value: codec.CodecValue;
     step?: codec.CodecValue;
@@ -52,19 +52,21 @@ export class DAG {
       root = await root;
     }
     if (isHash(root)) {
-      root = (await this.#loadHash(root, modify))!;
+      root = (await this.#loadHash(root, clone))!;
     }
     yield {
       value: root,
     };
     for (const step of path) {
-      const value = get(root, step) as codec.CodecValue;
+      let value = get(root, step) as codec.CodecValue;
       if (value !== undefined) {
-        root = value;
         // load hash links
-        if (isHash(root)) {
-          root = await this.#loadHash(root, modify);
+        if (isHash(value)) {
+          // replace the hash with the value it loaded
+          value = await this.#loadHash(value, clone);
+          set(root, step, { "/": value });
         }
+        root = value;
         yield {
           value,
           step,
@@ -97,7 +99,11 @@ export class DAG {
   async set(
     root: RootValue,
     path: codec.CodecKey[],
-    value: codec.CodecValue,
+    value:
+      | codec.CodecValue
+      | ((
+        oldValue: codec.CodecValue,
+      ) => Promise<codec.CodecValue> | codec.CodecValue),
   ): Promise<codec.CodecValue> {
     assert(path.length);
     const last = path[path.length - 1];
@@ -108,6 +114,9 @@ export class DAG {
 
     if (walk.length === path.length + 1) {
       const parent = walk[walk.length - 1].value;
+      if (typeof value === "function") {
+        value = await value(parent);
+      }
       set(parent, last, value);
     } else {
       throw new Error(`Path ${path.join(".")} does not exist`);
