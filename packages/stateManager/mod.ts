@@ -207,12 +207,18 @@ export default class StateManager {
     return state;
   }
 
-  increment(path: codec.Path, id = "local") {
-    return this.#sendPatch({ Op: "increment", Path: path }, id);
+  async increment(path: codec.Path, value: codec.CodecValue, id = "local") {
+    const state = await this.#sendPatch({ Op: "increment", Path: path }, id);
+    state.root = await this.graph.set(state.root, path, value);
+    this.events.emit(state.root);
+    return this.#saveState();
   }
 
-  decrement(path: codec.Path, id = "local") {
-    return this.#sendPatch({ Op: "decrement", Path: path }, id);
+  async decrement(path: codec.Path, value: codec.CodecValue, id = "local") {
+    const state = await this.#sendPatch({ Op: "decrement", Path: path }, id);
+    state.root = await this.graph.set(state.root, path, value);
+    this.events.emit(state.root);
+    return this.#saveState();
   }
 
   async set(path: codec.Path, value: codec.CodecValue, id = "local") {
