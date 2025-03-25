@@ -66,6 +66,37 @@ export type PushedPatchSet = {
   sequence: number;
 };
 
+export type SignedPatchSet = {
+  Header: Map<string, CodecValue>;
+  Patches: Map<string, CodecValue>[];
+  Signature: Uint8Array;
+};
+
+export class RelayResponseError extends Error {
+  constructor(
+    cause: {
+      message: string;
+      id: unknown;
+      requestType: string;
+      code: number;
+    },
+  ) {
+    super(
+      `network request ${cause.requestType} id: ${cause.id} failed with error[${cause.code}]: ${cause.message}`,
+    );
+    Object.assign(this, cause);
+  }
+}
+
+export class ClientWriteError extends Error {
+  constructor(
+    public originalError: Error,
+    public patchSet: SignedPatchSet,
+  ) {
+    super(originalError.message);
+  }
+}
+
 export class RelayClient {
   connection: WebSocket | null = null;
   keyCardNonce: number;
@@ -125,10 +156,14 @@ export class RelayClient {
       const { code, message } = response.response.error;
       assert(code, "code is required");
       assert(message, "message is required");
-      debug(
-        `network request ${requestType} id: ${id.raw} failed with error[${code}]: ${message}`,
+      throw new RelayResponseError(
+        {
+          id: id.raw,
+          message,
+          code,
+          requestType,
+        },
       );
-      throw new Error(message);
     } else {
       debug(
         `network request ${requestType} id: ${id.raw} received response`,
@@ -265,7 +300,6 @@ export class RelayClient {
       },
       write: async (patches) => {
         const patch = new Map(Object.entries(patches[0]));
-        console.log("Writing patches:", patch);
         // TODO: add MMR
         const rootHash = await crypto.subtle.digest(
           "SHA-256",
@@ -288,14 +322,19 @@ export class RelayClient {
           Patches: [patch],
           Signature: hexToBytes(sig),
         };
-
         const encodedPatchSet = encode(new Map(Object.entries(signedPatchSet)));
         const envelope = {
           patchSetWriteRequest: {
             patchSet: encodedPatchSet,
           },
         };
-        await this.encodeAndSend(envelope);
+        try {
+          await this.encodeAndSend(envelope);
+        } catch (error) {
+          if (error instanceof Error) {
+            throw new ClientWriteError(error, signedPatchSet);
+          }
+        }
       },
     });
   }
@@ -308,7 +347,6 @@ export class RelayClient {
     const { response } = await this.encodeAndSend({
       authRequest: {
         publicKey: {
-          // TODO: why are we slicing the bytes?
           raw: hexToBytes(`0x${publicKey}`),
         },
       },
@@ -404,7 +442,6 @@ export class RelayClient {
       resources: [
         `mass-relayid:${hexToBigInt(this.relayEndpoint.tokenId)}`,
         `mass-shopid:${this.shopId}`,
-        // TODO: do we need to slice the bytes?
         `mass-keycard:${publicKey}`,
       ],
     });

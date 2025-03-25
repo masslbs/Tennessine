@@ -1,10 +1,12 @@
 import { assertEquals } from "@std/assert";
+import { assertInstanceOf } from "@std/assert/instance-of";
 
 import { MemStore } from "@massmarket/store/mem";
 import {
   createTestBlockchainClient,
   createTestRelayClient,
 } from "@massmarket/client/test";
+import { ClientWriteError } from "@massmarket/client";
 import {
   type codec,
   extractEntriesFromHAMT,
@@ -69,18 +71,19 @@ Deno.test("Database Testings", async (t) => {
     }
   });
 
+  const sm = new StateManager({
+    store,
+    objectId: relayClient.shopId,
+  });
+
   await t.step("add a relay and set a key and retrieve it", async () => {
-    const sm = new StateManager({
-      store,
-      objectId: relayClient.shopId,
-    });
     // connect to the relay
     const { resolve, promise } = Promise.withResolvers();
     sm.events.on((manifestPatch) => {
       resolve(manifestPatch);
     }, ["Manifest"]);
 
-    await sm.addConnection(relayClient);
+    const connection = await sm.addConnection(relayClient);
     // wait for manifest to be received
     await promise;
     const testAddr = Uint8Array.from([
@@ -122,6 +125,21 @@ Deno.test("Database Testings", async (t) => {
         ["ChainID", 1337],
       ]),
     );
-    await relayClient.disconnect();
+
+    // would be nice to put this in a new step
+    const badValue = "Truth gains more even by the errors";
+    return new Promise<void>((resolve) => {
+      connection.ours.catch((error) => {
+        assertInstanceOf(error, ClientWriteError);
+        assertEquals(error.patchSet.Patches[0].get("Value"), badValue);
+        resolve();
+      });
+      sm.set(
+        ["Manifest", "PricingCurrency"],
+        badValue,
+      );
+    }).finally(() => {
+      return relayClient.disconnect();
+    });
   });
 });
