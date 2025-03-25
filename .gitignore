@@ -41,3 +41,5 @@ packages/contracts/src
 
 # test Level DB
 packages/stateManager/tmpDb
+**/coverage
+.last-input
