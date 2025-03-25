@@ -160,6 +160,22 @@ export class PayeeMap {
     return this.data.get(chainId);
   }
 
+  addAddress(chainId: number, address: Uint8Array, callAsContract: boolean) {
+    const map = new Map();
+    for (const [chainId, addressMap] of this.data) {
+      const forChainID = new Map();
+      for (const [address, metadata] of addressMap) {
+        forChainID.set(address, metadata);
+      }
+      map.set(chainId, forChainID);
+    }
+    const addressMap = new Map();
+    addressMap.set(address, new PayeeMetadata(callAsContract));
+    map.set(chainId, addressMap);
+    this.data = map;
+    return map;
+  }
+
   asCBORMap(): Map<number, Map<Uint8Array, Map<"CallAsContract", boolean>>> {
     const map = new Map();
     for (const [chainId, addressMap] of this.data) {
@@ -269,7 +285,8 @@ export class AcceptedCurrencyMap {
     for (const [chainId, addressMap] of this.data) {
       const addressMapMap = new Map();
       for (const [address, metadata] of addressMap) {
-        addressMapMap.set(address, metadata);
+        //FIXME 
+        addressMapMap.set(address, new Map());
       }
       map.set(chainId, addressMapMap);
     }
@@ -308,8 +325,8 @@ export class AcceptedCurrencyMap {
 }
 
 export class ChainAddress extends BaseClass {
-  ChainID: number;
   Address: Uint8Array;
+  ChainID: number;
 
   constructor(chainID: number, address: Uint8Array) {
     super();

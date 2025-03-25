@@ -48,7 +48,7 @@ export default function ManifestForm(
     const chainId = Number(id);
     const address = getTokenAddress(sym, chainId);
     if (e.target.checked) {
-      shopManifest.AcceptedCurrencies.addAddress(chainId, address);
+      shopManifest.AcceptedCurrencies.addAddress(chainId, address, true);
     } else {
       // remove address from accepted currencies.
       shopManifest.AcceptedCurrencies.removeAddress(

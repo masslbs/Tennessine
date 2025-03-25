@@ -171,6 +171,9 @@ export class RelayClient {
               const header = decode(ppset.header!);
               // @ts-ignore we will soon depracte pbjs
               const sequence = ppset!.shopSeqNo!.toNumber();
+              //  const sequence = typeof ppset.shopSeqNo === "number"
+              // ? ppset.shopSeqNo
+              // : ppset!.shopSeqNo!.toNumber();
               const patches = ppset.patches!.map((patch) =>
                 Object.fromEntries(
                   decode(patch) as Map<string, CodecValue>,
@@ -377,6 +380,7 @@ export class RelayClient {
     wallet: WalletClient,
     account: Hex | Account,
     isGuest: boolean = true,
+    location?: URL,
   ) {
     const parsedAccount = parseAccount(account);
     const address = parsedAccount.address;
@@ -390,13 +394,14 @@ export class RelayClient {
       : "http";
     endpointURL.pathname += `/enroll_key_card`;
     endpointURL.search = `guest=${isGuest ? 1 : 0}`;
+    const signInURL: URL = location ?? endpointURL;
 
     const message = createSiweMessage({
       address,
       chainId: 1, // not really used
-      domain: endpointURL.host,
+      domain: signInURL.host,
       nonce: "00000000",
-      uri: endpointURL.href,
+      uri: signInURL.href,
       version: "1",
       resources: [
         `mass-relayid:${hexToBigInt(this.relayEndpoint.tokenId)}`,

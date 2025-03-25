@@ -31,9 +31,10 @@ export class ClientWithStateManager {
   }
 
   addConnection() {
-    if(!this.relayClient || !this.relayClient.readyState){
+    if (!this.relayClient) {
       throw new Error("No relay client");
     }
+
     return this.stateManager.addConnection(this.relayClient);
   }
 }
