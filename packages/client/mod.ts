@@ -52,11 +52,11 @@ export type Patch =
   }
   & (
     | {
-      Op: "add" | "remove" | "replace" | "append";
+      Op: "add" | "remove" | "replace" | "append" | "increment" | "decrement";
       Value: CodecValue;
     }
     | {
-      Op: "remove" | "increment" | "decrement";
+      Op: "remove";
     }
   );
 

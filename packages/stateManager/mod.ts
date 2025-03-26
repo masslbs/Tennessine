@@ -204,14 +204,14 @@ export default class StateManager {
 
   async increment(path: codec.Path, value: codec.CodecValue) {
     const state = await this.#open();
-    await this.#sendPatch({ Op: "increment", Path: path });
+    await this.#sendPatch({ Op: "increment", Path: path, Value: value });
     state.root = await this.graph.set(state.root, path, value);
     this.events.emit(state.root);
   }
 
   async decrement(path: codec.Path, value: codec.CodecValue) {
     const state = await this.#open();
-    await this.#sendPatch({ Op: "decrement", Path: path });
+    await this.#sendPatch({ Op: "decrement", Path: path, Value: value });
     state.root = await this.graph.set(state.root, path, value);
     this.events.emit(state.root);
   }
