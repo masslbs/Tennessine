@@ -343,12 +343,13 @@ export class RelayClient {
           resolve?.(); // could return response but what for..?
           return result; // where does this result go..?
         } catch (error) {
-          if (!(error instanceof Error)) {
-            throw new Error(`unknown error: ${error}`);
+          if (error instanceof RelayResponseError) {
+            const writeError = new ClientWriteError(error, signedPatchSet);
+            reject?.(writeError);
+            console.error(writeError);
+            return;
           }
-          const writeError = new ClientWriteError(error, signedPatchSet);
-          reject?.(writeError);
-          console.error(writeError);
+          throw new Error(`unknown relay client error: ${error}`);
         }
       },
     });
