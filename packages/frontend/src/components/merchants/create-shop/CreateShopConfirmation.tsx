@@ -42,8 +42,9 @@ export default function Confirmation() {
           </div>
           <button
             onClick={copyToClipboard}
-            className="bg-white p-0"
+            className="p-0"
             type="button"
+            style={{ backgroundColor: "white" }}
           >
             <img
               src="/icons/copy-icon.svg"
