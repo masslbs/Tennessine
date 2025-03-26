@@ -98,7 +98,10 @@ export default function EditProduct() {
         ["Listing", newListing.ID],
         newListing,
       );
-      //fixme: change inventory
+      await clientStateManager!.stateManager!.increment([
+        "Inventory",
+        newListing.ID,
+      ], units);
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Error creating listing", error);
@@ -136,9 +139,20 @@ export default function EditProduct() {
           "ViewState",
         ], newListing.ViewState);
       }
-
-      if (units !== productInView?.Quantity) {
-        //FIXME: change inventory
+      const prevQty = await clientStateManager?.stateManager.get([
+        "Inventory",
+        productInView.ID,
+      ]);
+      if (prevQty > units) {
+        await clientStateManager?.stateManager.decrement([
+          "Inventory",
+          productInView.ID,
+        ], prevQty - units);
+      } else if (prevQty < units) {
+        await clientStateManager?.stateManager.increment([
+          "Inventory",
+          productInView.ID,
+        ], units - prevQty);
       }
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
