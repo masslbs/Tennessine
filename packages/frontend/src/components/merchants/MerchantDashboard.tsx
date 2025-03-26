@@ -67,7 +67,7 @@ export default function MerchantDashboard() {
                 shopId: prev.shopId,
                 itemId: "new",
               })}
-              style={{color:'black'}}
+              style={{ color: "black" }}
             >
               Add new product
               <img
@@ -84,7 +84,7 @@ export default function MerchantDashboard() {
               search={(prev: Record<string, string>) => ({
                 shopId: prev.shopId,
               })}
-              style={{color:'black'}}
+              style={{ color: "black" }}
             >
               <p>View products</p>
               <img
@@ -102,7 +102,7 @@ export default function MerchantDashboard() {
                 shopId: prev.shopId,
               })}
               className="flex items-center gap-1 p-3 bg-white rounded-md"
-              style={{color:'black'}}
+              style={{ color: "black" }}
             >
               <p>Shop settings</p>
               <img

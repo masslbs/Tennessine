@@ -12,7 +12,7 @@ export class ClientWithStateManager {
     public readonly relayEndpoint: IRelayEndpoint,
     walletClient: WalletClient,
     account: Account,
-    shopId: bigint,
+    public readonly shopId: bigint,
   ) {
     const store = new LevelStore();
     this.stateManager = new Database(

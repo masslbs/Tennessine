@@ -45,7 +45,6 @@ export default function Listings() {
       sm.events.on(allListingsEvent, ["Listings"]);
     });
 
-
     return () => {
       sm.events.off(
         allListingsEvent,

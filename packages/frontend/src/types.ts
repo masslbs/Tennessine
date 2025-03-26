@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+import { OrderState } from "@massmarket/schema";
+export { OrderState };
 export type KeyCard = `0x${string}`;
 export type ListingId = number;
 export type TagId = `0x${string}`;
@@ -62,15 +64,6 @@ export enum ListingViewState {
   Deleted = 2,
 }
 
-export enum OrderState {
-  Unspecified = 0,
-  Open = 1,
-  Canceled = 2,
-  Committed = 3,
-  PaymentChosen = 4,
-  Unpaid = 5,
-  Paid = 6,
-}
 export enum KeycardRole {
   NEW_GUEST = "new-guest",
   RETURNING_GUEST = "returning-guest",

@@ -61,7 +61,6 @@ export default function Cart({
       },
     );
 
-
     return () => {
       sm.events.off(onOrderUpdate, ["Orders", currentOrder!.ID]);
     };
