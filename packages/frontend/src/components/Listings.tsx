@@ -42,9 +42,9 @@ export default function Listings() {
     sm.get(["Listings"]).then((res: Map<ListingId, unknown>) => {
       const listings = mapToListingClass(res);
       setProducts(listings);
+      sm.events.on(allListingsEvent, ["Listings"]);
     });
 
-    sm.events.on(allListingsEvent, ["Listings"]);
 
     return () => {
       sm.events.off(

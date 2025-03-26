@@ -66,6 +66,7 @@ export default function Confirmation() {
                 shopId: prev.shopId,
               })}
               className="text-white"
+              style={{ color: "black" }}
             >
               View Dashboard
             </Link>

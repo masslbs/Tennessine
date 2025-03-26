@@ -27,11 +27,11 @@ export function useBaseToken() {
       setChainAddress(manifest.PricingCurrency);
     }
 
-    sm.events.on(onUpdateEvent, ["Manifest"]);
 
     sm.get(["Manifest"]).then((m: Map<string, unknown>) => {
       const manifest = new Manifest(m);
       setChainAddress(manifest.PricingCurrency);
+      sm.events.on(onUpdateEvent, ["Manifest"]);
     });
 
     return () => {

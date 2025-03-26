@@ -3,7 +3,7 @@ import { useWalletClient } from "wagmi";
 import { createWalletClient, http, toHex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
-import { logger, random32BytesHex } from "@massmarket/utils";
+import { logger } from "@massmarket/utils";
 
 import { useMassMarketContext } from "../MassMarketContext.ts";
 import { useShopId } from "./useShopId.ts";
@@ -26,7 +26,6 @@ export function useClientWithStateManager() {
   const { shopId } = useShopId();
   const { chain } = useChain();
   const { isMerchantPath } = usePathname();
-  const { data: walletClient } = useWalletClient();
 
   const account = privateKeyToAccount(keycard.privateKey);
   const keycardWallet = createWalletClient({
