@@ -60,7 +60,7 @@ export type Patch =
     }
   );
 
-// TODO: maybe there is a better type definitoin for resolve and reject somewhere
+// TODO: maybe there is a better type definition for resolve and reject somewhere
 export type SendingPatchSet = {
   patches: Patch[];
   resolve?: () => void;
@@ -348,7 +348,7 @@ export class RelayClient {
           }
           const writeError = new ClientWriteError(error, signedPatchSet);
           reject?.(writeError);
-          // throw writeError;
+          throw writeError;
           // TODO: abort stream? if not, swallow the error..?
         }
       },
