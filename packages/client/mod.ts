@@ -52,13 +52,20 @@ export type Patch =
   }
   & (
     | {
-      Op: "add" | "remove" | "replace" | "append";
+      Op: "add" | "remove" | "replace" | "append" | "increment" | "decrement";
       Value: CodecValue;
     }
     | {
-      Op: "remove" | "increment" | "decrement";
+      Op: "remove";
     }
   );
+
+// TODO: maybe there is a better type definitoin for resolve and reject somewhere
+export type SendingPatchSet = {
+  patches: Patch[];
+  resolve?: () => void;
+  reject?: (error: Error) => void;
+};
 
 export type PushedPatchSet = {
   signer: Hex;
@@ -149,12 +156,13 @@ export class RelayClient {
     const { promise } = this.#waitingMessagesResponse.lock(
       id.raw.toString(),
     )!;
-    const response = await promise;
+    const responseEnvelope = await promise;
+    // besidess the requestId the envelope is a big one-of
     const requestType =
-      Object.keys(response).filter((k) => k !== "requestId")[0];
+      Object.keys(responseEnvelope).filter((k) => k !== "requestId")[0];
 
-    if (response.response?.error) {
-      const { code, message } = response.response.error;
+    if (responseEnvelope.response?.error) {
+      const { code, message } = responseEnvelope.response.error;
       assert(code, "code is required");
       assert(message, "message is required");
       throw new RelayResponseError(
@@ -169,7 +177,7 @@ export class RelayClient {
       debug(
         `network request ${requestType} id: ${id.raw} received response`,
       );
-      return response;
+      return responseEnvelope;
     }
   }
 
@@ -293,13 +301,14 @@ export class RelayClient {
   }
 
   createWriteStream() {
-    return new WritableStream<Patch[]>({
+    return new WritableStream<SendingPatchSet>({
       // Why do we even need to authenticate here?
       start: async () => {
         await this.connect();
         await this.authenticate();
       },
-      write: async (patches) => {
+      write: async (chunk) => {
+        const { patches, resolve, reject } = chunk;
         const patch = new Map(Object.entries(patches[0]));
         // TODO: add MMR
         const rootHash = await crypto.subtle.digest(
@@ -330,11 +339,17 @@ export class RelayClient {
           },
         };
         try {
-          await this.encodeAndSend(envelope);
+          const result = await this.encodeAndSend(envelope);
+          resolve?.(); // could return response but what for..?
+          return result;
         } catch (error) {
-          if (error instanceof Error) {
-            throw new ClientWriteError(error, signedPatchSet);
+          if (!(error instanceof Error)) {
+            throw new Error(`unknown error: ${error}`);
           }
+          const writeError = new ClientWriteError(error, signedPatchSet);
+          reject?.(writeError);
+          // throw writeError;
+          // TODO: abort stream? if not, swallow the error..?
         }
       },
     });

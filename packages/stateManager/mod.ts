@@ -1,7 +1,12 @@
 import { DAG } from "@massmarket/merkle-dag-builder";
 import type { AbstractStore } from "@massmarket/store";
 import EventTree from "@massmarket/eventTree";
-import type { Patch, PushedPatchSet, RelayClient } from "@massmarket/client";
+import type {
+  Patch,
+  PushedPatchSet,
+  RelayClient,
+  SendingPatchSet,
+} from "@massmarket/client";
 import type { codec, Hash } from "@massmarket/utils";
 
 // move to schema
@@ -34,7 +39,7 @@ export default class StateManager {
   readonly events = new EventTree<codec.CodecValue>(DefaultObject);
   readonly graph: DAG;
   readonly clients: Set<RelayClient> = new Set();
-  #streamsControllers: Set<ReadableStreamDefaultController<Patch[]>> =
+  #streamsControllers: Set<ReadableStreamDefaultController<SendingPatchSet>> =
     new Set();
   // very simple cache, we always want a reference to the same object
   #stateCache?: IStoredState;
@@ -170,8 +175,8 @@ export default class StateManager {
     });
   }
 
-  createReadStream(): ReadableStream<Patch[]> {
-    return new ReadableStream<Patch[]>({
+  createReadStream(): ReadableStream<SendingPatchSet> {
+    return new ReadableStream<SendingPatchSet>({
       start: (
         controller: ReadableStreamDefaultController,
       ) => {
@@ -207,14 +212,20 @@ export default class StateManager {
     };
   }
 
-  #sendPatch(state: IStoredState, patch: Patch) {
-    // send patch to peers
+  async #sendPatch(state: IStoredState, patch: Patch) {
+    // send patch to connected peers
+    const allWrites: Promise<void>[] = [];
     this.#streamsControllers.forEach((controller) => {
-      controller.enqueue([
-        patch,
-      ]);
+      const { promise, resolve, reject } = Promise.withResolvers<void>();
+      allWrites.push(promise);
+      controller.enqueue({
+        patches: [patch],
+        resolve,
+        reject,
+      });
     });
-    return state;
+    await Promise.all(allWrites);
+    state.keycardNonce += 1;
   }
 
   async increment(path: codec.Path, value: codec.CodecValue) {

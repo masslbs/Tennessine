@@ -20,7 +20,23 @@ const blockchainClient = createTestBlockchainClient();
 const relayClient = await createTestRelayClient(blockchainClient);
 
 Deno.test("Database Testings", async (t) => {
-  const store = new MemStore();
+  await t.step("Make sure stateManager throws an error when a patch is rejected", async () => {
+    const store = new MemStore();
+    const db = new StateManager({
+      store,
+      objectId: relayClient.shopId,
+    });
+    await db.addConnection(relayClient);
+    let called = false;
+    try {
+      await db.set(["Trash"], "Bad Value");
+    } catch (e) {
+      assertInstanceOf(e, ClientWriteError);
+      called = true;
+    }
+    assertEquals(called, true);
+    await relayClient.disconnect();
+  })
 
   await t.step("Set Manifest, Listings, and Orders", async () => {
     //Manifest
@@ -29,7 +45,7 @@ Deno.test("Database Testings", async (t) => {
       return snapshot!.get("After")!.get("Value")!.get("Manifest");
     }) || [];
     const db = new StateManager({
-      store,
+      store: new MemStore(),
       objectId: manifests[0]!.get("ShopID") as bigint,
     });
     // Need to initialize the listings map
@@ -69,21 +85,23 @@ Deno.test("Database Testings", async (t) => {
         assertEquals(result, order);
       }
     }
+    await relayClient.disconnect();
   });
 
-  const sm = new StateManager({
-    store,
-    objectId: relayClient.shopId,
-  });
 
   await t.step("add a relay and set a key and retrieve it", async () => {
+    const sm = new StateManager({
+      store: new MemStore(),
+      objectId: relayClient.shopId,
+    });
+  
     // connect to the relay
     const { resolve, promise } = Promise.withResolvers();
     sm.events.on((manifestPatch) => {
       resolve(manifestPatch);
     }, ["Manifest"]);
 
-    const connection = await sm.addConnection(relayClient);
+    await sm.addConnection(relayClient);
     // wait for manifest to be received
     await promise;
     const testAddr = Uint8Array.from([
@@ -125,10 +143,19 @@ Deno.test("Database Testings", async (t) => {
         ["ChainID", 1337],
       ]),
     );
+    await relayClient.disconnect();
+  })
 
-    // would be nice to put this in a new step
+  await t.step("Make sure stateManager throws an error when a patch is rejected", async () => {
+    const sm = new StateManager({
+      store: new MemStore(),
+      objectId: relayClient.shopId,
+    });
+  
+    const connection = await sm.addConnection(relayClient);
+    
     const badValue = "Truth gains more even by the errors";
-    return new Promise<void>((resolve) => {
+    const p = new Promise<void>((resolve) => {
       connection.ours.catch((error) => {
         assertInstanceOf(error, ClientWriteError);
         assertEquals(error.patchSet.Patches[0].get("Value"), badValue);
@@ -138,8 +165,8 @@ Deno.test("Database Testings", async (t) => {
         ["Manifest", "PricingCurrency"],
         badValue,
       );
-    }).finally(() => {
-      return relayClient.disconnect();
     });
+    await p;
+    await relayClient.disconnect();
   });
 });
