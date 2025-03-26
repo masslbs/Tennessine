@@ -18,7 +18,15 @@ const DefaultObject = new Map(Object.entries({
 type HashOrValue = Hash | codec.CodecValue;
 
 interface IStoredState {
-  seqNum: number;
+  // holds a map of subscription paths to sequence numbers
+  // example: { "/accounts/": 1000, "/orders/": 12222  }
+  // This should actually be a radix tree. Since if we subscribe to the root path that sequence number will overwrite the children paths,
+  // so for example if a subscription to the root path is made the map will be
+  // {"/": 1000}
+  // where the sequence number is the lowest sequence number of all children paths
+  // TODO: we are currently using a string, but need to use CodecKey[]
+  subscriptionTree: Map<string, number>;
+  keycardNonce: number;
   root: HashOrValue | Promise<HashOrValue>;
 }
 
@@ -29,7 +37,7 @@ export default class StateManager {
   #streamsControllers: Set<ReadableStreamDefaultController<Patch[]>> =
     new Set();
   // very simple cache, we always want a reference to the same object
-  #stateCache: Map<string, IStoredState> = new Map();
+  #stateCache?: IStoredState;
   constructor(
     public params: {
       store: AbstractStore;
@@ -39,52 +47,45 @@ export default class StateManager {
     this.graph = new DAG(params.store);
   }
 
-  async #open(view = "local"): Promise<IStoredState> {
-    if (this.#stateCache.has(view)) return this.#stateCache.get(view)!;
+  async #open(): Promise<IStoredState> {
+    if (this.#stateCache) return this.#stateCache;
     const storedState = await this.graph.store.objStore.get([
       this.params.objectId,
-      view,
     ]);
     const restored = storedState instanceof Map
       ? Object.fromEntries(storedState)
       : {
-        seqNum: 0,
+        subscriptionTree: new Map(),
+        keycardNonce: 0,
         root: new Map(DefaultObject),
         // TODO: add class for shop at some point
         // root: v.getDefaults(this.params.schema) as CborValue,
       };
-    this.#stateCache.set(view, restored);
+    this.#stateCache = restored;
     return restored;
   }
 
-  async #close(view = "local") {
-    const state = this.#stateCache.get(view);
-    if (!state) throw new Error(`State not found for view ${view}`);
+  async #close() {
+    const state = this.#stateCache;
+    console.log("Closing state:", state);
+    if (!state) throw new Error(`State closed before it was opened`);
     // wait for root to be resolved
     state.root = await state.root;
     return this.graph.store.objStore.set([
       this.params.objectId,
-      view,
     ], new Map(Object.entries(state)));
   }
 
-  createWriteStream(id: string) {
+  createWriteStream(subscriptionPath: codec.Path) {
     // the remote state, ie the relay
     let state: IStoredState;
-    let localState: IStoredState;
     // TODO: handle patch rejection
     return new WritableStream<PushedPatchSet>({
       start: async () => {
-        [localState, state] = await Promise.all([
-          this.#open(),
-          this.#open(id),
-        ]);
+        state = await this.#open();
       },
-      close: async () => {
-        await Promise.all([
-          this.#close(),
-          this.#close(id),
-        ]);
+      close: () => {
+        return this.#close();
       },
       abort(reason) {
         console.error("WriteStream aborted:", reason);
@@ -108,13 +109,11 @@ export default class StateManager {
           // apply the operation
           if (patch.Op === "add" || patch.Op === "replace") {
             const value = patch.Value;
-            state.root = this.graph.set(state.root, patch.Path, value);
-            localState.root = this.graph.set(
-              localState.root,
+            state.root = this.graph.set(
+              state.root,
               patch.Path,
               value,
             );
-            // TODO
           } else if (patch.Op === "append") {
             const value = await this.graph.get(state.root, patch.Path);
             if (Array.isArray(value)) {
@@ -122,22 +121,40 @@ export default class StateManager {
             } else {
               throw new Error("Invalid path");
             }
+            state.root = this.graph.set(
+              state.root,
+              patch.Path,
+              value,
+            );
           } else if (patch.Op === "remove") {
-            const current = await this.graph.get(state.root, patch.Path);
             const deleteKey = patch.Path[patch.Path.length - 1];
-            if (current instanceof Map) {
-              current.delete(deleteKey);
+            const path = patch.Path.slice(0, -1);
+            const value = await this.graph.get(
+              state.root,
+              path,
+            );
+            if (value instanceof Map) {
+              value.delete(deleteKey);
             } else {
-              console.error({ current, patch });
+              console.error({ value, patch });
               throw new Error(
-                `Invalid current value (type: ${typeof current}) for path: ${patch.Path}`,
+                `Invalid current value (type: ${typeof value}) for path: ${patch.Path}`,
               );
             }
+            state.root = this.graph.set(
+              state.root,
+              patch.Path,
+              value,
+            );
           } else {
             console.error({ patch });
             throw new Error(`Unimplemented operation type: ${patch.Op}`);
           }
-          const obj = await localState.root;
+          state.subscriptionTree.set(
+            subscriptionPath.toString(),
+            patchSet.sequence,
+          );
+          const obj = await state.root;
           this.events.emit(obj!);
         }
         // TODO: check stateroot
@@ -162,18 +179,17 @@ export default class StateManager {
   }
 
   async addConnection(client: RelayClient) {
-    const id = client.relayEndpoint.tokenId;
     this.clients.add(client);
-    const state = await this.#open(id);
-    client.keyCardNonce = state.seqNum;
+    const remoteState = await this.#open();
+    client.keyCardNonce = remoteState.keycardNonce;
     // TODO:  implement dynamic subscriptions
     // currently we subscribe to the root when any event is subscribed to
-    const remoteReadable = client.createSubscriptionStream("/", state.seqNum);
-    const ourWritable = this.createWriteStream(id);
-    const remote = remoteReadable.pipeTo(ourWritable).catch((error) => {
-      console.error("Error piping remote stream:", error);
-      return error;
-    });
+    const remoteReadable = client.createSubscriptionStream(
+      "/",
+      remoteState.subscriptionTree.get("/") ?? 0,
+    );
+    const ourWritable = this.createWriteStream([]);
+    const remote = remoteReadable.pipeTo(ourWritable);
 
     // pipe our changes to the relay
     const remoteWritable = client.createWriteStream();
@@ -186,7 +202,6 @@ export default class StateManager {
   }
 
   #sendPatch(state: IStoredState, patch: Patch) {
-    state.seqNum += 1;
     // send patch to peers
     this.#streamsControllers.forEach((controller) => {
       controller.enqueue([
@@ -226,10 +241,9 @@ export default class StateManager {
 
   async get(
     path: codec.Path,
-    id = "local",
   ): Promise<codec.CodecValue | undefined> {
     // wait for any pending writes to complete
-    const state = await this.#open(id);
+    const state = await this.#open();
     return this.graph.get(state.root, path);
   }
 }

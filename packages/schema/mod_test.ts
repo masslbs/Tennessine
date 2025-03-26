@@ -1,13 +1,7 @@
 import { assertEquals } from "@std/assert";
 import { extractEntriesFromHAMT, fetchAndDecode } from "@massmarket/utils";
 
-import {
-  AcceptedCurrencyMap,
-  Listing,
-  Manifest,
-  Order,
-  PayeeMap,
-} from "./mod.ts";
+import { Listing, Manifest, Order } from "./mod.ts";
 
 type Rmap = Map<string, Rmap>;
 

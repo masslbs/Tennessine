@@ -1,6 +1,6 @@
 # DESCRIPTION
 
-This builds the protobuf defintions found in the
+This builds the protobuf definitions found in the
 [network-schema repo](https://github.com/masslbs/network-schema).
 
 # BUILD
