@@ -5,18 +5,12 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 
-import {
-  assert,
-  formatUnitsFromString,
-  logger,
-  objectId,
-} from "@massmarket/utils";
-import { Listing, ListingMetadata } from "@massmarket/schema";
+import { assert, logger, objectId } from "@massmarket/utils";
+import { Listing } from "@massmarket/schema";
 
 import { ListingId, ListingViewState } from "../../../types.ts";
 import ErrorMessage from "../../common/ErrorMessage.tsx";
 import ValidationWarning from "../../common/ValidationWarning.tsx";
-import { useBaseToken } from "../../../hooks/useBaseToken.ts";
 import Button from "../../common/Button.tsx";
 import { useClientWithStateManager } from "../../../hooks/useClientWithStateManager.ts";
 import BackButton from "../../common/BackButton.tsx";
@@ -33,56 +27,33 @@ type Image = {
 export default function EditProduct() {
   const navigate = useNavigate();
   const search = useSearch({ strict: false });
-
-  const itemId = search.itemId as ListingId | "new";
-  const editView = itemId !== "new";
-
   const { clientStateManager } = useClientWithStateManager();
-  const { baseToken } = useBaseToken();
-  const [productInView, setProductInView] = useState<Listing | null>(null);
-  const [price, setPrice] = useState<string>("");
-  const [title, setTitle] = useState<string>("");
-  const [description, setDescription] = useState<string>("");
+
+  const [listing, setListing] = useState<Listing>(new Listing());
   const [units, setUnits] = useState<number>(0);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [viewState, setViewState] = useState(
-    ListingViewState.LISTING_VIEW_STATE_UNSPECIFIED,
-  );
-  const [images, setImages] = useState<Image[]>([]);
+  const [blobs, setBlobs] = useState<FormData[]>([]);
   const [publishing, setPublishing] = useState(false);
 
+  const itemId = search.itemId ? Number(search.itemId) as ListingId : "new";
+  const editView = itemId !== "new";
   const hed = editView ? "Edit product" : "Add Product";
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const sm = clientStateManager?.stateManager;
+
   useEffect(() => {
-    if (editView && itemId && baseToken.decimals) {
-      clientStateManager!
-        .stateManager!.get(["Listings", itemId])
+    if (!sm) return;
+    if (editView && itemId) {
+      sm.get(["Listings", itemId])
         .then((item: Map<string, unknown> | undefined) => {
           if (!item) {
             setErrorMsg("Error fetching listing");
             errlog("Error fetching listing", "No item found");
             return;
           }
-          const listing = Listing.fromCBOR(item);
-          setProductInView(listing);
-          setTitle(listing.Metadata.Title);
-          const price = formatUnitsFromString(
-            listing.Price,
-            baseToken.decimals,
-          );
-          setPrice(price);
-          setImages(
-            listing.Metadata.Images
-              ? listing.Metadata.Images.map((img: string) => {
-                return { blob: null, url: img };
-              })
-              : [],
-          );
-          setDescription(listing.Metadata.Description);
-          // setUnits(listing.quantity);
-          setViewState(listing.ViewState);
+          setListing(Listing.fromCBOR(item));
         })
         .catch((e: unknown) => {
           assert(e instanceof Error, "Error is not an instance of Error");
@@ -90,15 +61,15 @@ export default function EditProduct() {
           errlog("Error fetching listing", e);
         });
     }
-  }, [baseToken]);
+  }, [sm]);
 
   async function create(newListing: Listing) {
     try {
-      await clientStateManager!.stateManager.set(
-        ["Listing", newListing.ID],
-        newListing,
+      await sm.set(
+        ["Listings", newListing.ID],
+        newListing.asCBORMap(),
       );
-      await clientStateManager!.stateManager!.increment([
+      await sm!.increment([
         "Inventory",
         newListing.ID,
       ], units);
@@ -110,48 +81,47 @@ export default function EditProduct() {
   }
 
   async function update(newListing: Listing) {
-    const csm = clientStateManager!.stateManager!;
     try {
       //compare the edited fields against the original object.
+      const oldListing = await sm.get(["Listings", newListing.ID]);
       if (
-        newListing.Price !==
-          Number(
-            formatUnitsFromString(productInView!.Price, baseToken!.decimals),
-          ).toFixed(2)
+        newListing.Price !== oldListing.Price
       ) {
-        await csm.set([
+        await sm.set([
           "Listings",
           newListing.ID,
           "Price",
         ], newListing.Price);
       }
-      if (newListing.Metadata !== productInView!.Metadata) {
-        await csm.set([
+      if (newListing.Metadata !== oldListing!.Metadata) {
+        await sm.set([
           "Listings",
           newListing.ID,
           "Metadata",
         ], newListing.Metadata.asCBORMap());
       }
-      if (newListing.ViewState !== productInView!.ViewState) {
-        await csm.set([
+      if (newListing.ViewState !== oldListing!.ViewState) {
+        await sm.set([
           "Listings",
           newListing.ID,
           "ViewState",
         ], newListing.ViewState);
       }
-      const prevQty = await clientStateManager?.stateManager.get([
+
+      const prevQty = await sm.get([
         "Inventory",
-        productInView.ID,
+        newListing.ID,
       ]);
+
       if (prevQty > units) {
-        await clientStateManager?.stateManager.decrement([
+        await sm.decrement([
           "Inventory",
-          productInView.ID,
+          newListing.ID,
         ], prevQty - units);
       } else if (prevQty < units) {
-        await clientStateManager?.stateManager.increment([
+        await sm.increment([
           "Inventory",
-          productInView.ID,
+          newListing.ID,
         ], units - prevQty);
       }
     } catch (error: unknown) {
@@ -162,49 +132,39 @@ export default function EditProduct() {
   }
 
   async function onPublish() {
-    if (!title) {
+    const newListing = Listing.fromCBOR(listing.asCBORMap());
+    if (!newListing.Metadata.Title) {
       setValidationError("Product must include title.");
-    } else if (!description) {
+    } else if (!newListing.Metadata.Description) {
       setValidationError("Product must include description.");
-    } else if (!price) {
+    } else if (!newListing.Price) {
       setValidationError("Product must include price.");
-    } else if (!images.length) {
+    } else if (!newListing.Metadata.Images?.length) {
       setValidationError("Product must include image.");
     } else if (!units) {
       setValidationError("Update the number of units.");
-    } else if (productInView && !productInView.ID) {
-      setValidationError("Product id is missing.");
     } else {
       try {
         setPublishing(true);
-        const uploaded = await Promise.all(
-          images.map(async (i: Image) => {
-            if (i.blob) {
+        if (blobs.length > 0) {
+          const uploaded = await Promise.all(
+            blobs.map(async (i: FormData) => {
               const { url } = await clientStateManager!.relayClient!
-                .uploadBlob(i.blob);
+                .uploadBlob(i);
               return url;
-            } else {
-              return i.url;
-            }
-          }),
-        );
+            }),
+          );
+          newListing.Metadata.Images = uploaded;
+        }
 
-        const newListing = new Map([["ID", editView ? itemId : objectId()]]);
-        newListing.set(
-          "Metadata",
-          new ListingMetadata(
-            new Map([["Title", title], ["Description", description], [
-              "Images",
-              uploaded,
-            ]]),
-          ),
-        );
-        newListing.set("Price", Number(price).toFixed(2));
-        newListing.set("ViewState", viewState);
+        if (editView) {
+          newListing.ID = itemId;
+        } else {
+          newListing.ID = objectId();
+        }
 
-        editView && productInView
-          ? await update(newListing)
-          : await create(newListing);
+        editView ? await update(newListing) : await create(newListing);
+
         setPublishing(false);
         debug("listing published");
         navigate({
@@ -221,21 +181,21 @@ export default function EditProduct() {
     }
   }
 
-  function handleTitleChange(e: ChangeEvent<HTMLInputElement>) {
-    setTitle(e.target.value);
-  }
-
-  function handleDescriptionChange(e: ChangeEvent<HTMLInputElement>) {
-    setDescription(e.target.value);
-  }
-
-  function handlePriceChange(e: ChangeEvent<HTMLInputElement>) {
-    const _price = e.target.value;
-    if (_price && !Number(_price)) {
-      setPrice("");
+  function handleInputChange(
+    e: ChangeEvent<HTMLInputElement>,
+    field: string,
+  ) {
+    const newListing = Listing.fromCBOR(listing.asCBORMap());
+    if (field === "Price") {
+      newListing.Price = Number(e.target.value);
+    } else if (field === "ViewState") {
+      newListing.ViewState = e.target.checked
+        ? ListingViewState.Published
+        : ListingViewState.Unspecified;
     } else {
-      setPrice(_price);
+      newListing.Metadata[field] = e.target.value;
     }
+    setListing(newListing);
   }
 
   function handleStockChange(e: ChangeEvent<HTMLInputElement>) {
@@ -254,11 +214,18 @@ export default function EditProduct() {
         const reader = new FileReader();
         const blob = new FormData();
         blob.append("file", fileInput.files[0]);
+        setBlobs([...blobs, blob]);
 
         reader.onload = function (e) {
           const r = e.target as FileReader;
           const url = r.result;
-          typeof url == "string" && setImages([...images, { blob, url }]);
+          if (typeof url === "string") {
+            const newListing = Listing.fromCBOR(listing.asCBORMap());
+            const images = newListing.Metadata.Images ?? [];
+            images.push(url);
+            newListing.Metadata.Images = images;
+            setListing(newListing);
+          }
         };
 
         reader.readAsDataURL(fileInput.files[0]);
@@ -278,8 +245,11 @@ export default function EditProduct() {
     }
   }
 
-  function removeImg(img: { blob: null | FormData; url: string }) {
-    setImages(images.filter((i: Image) => img.url !== i.url));
+  function removeImg(img: string) {
+    listing.Metadata.Images = listing.Metadata.Images.filter((a: string) =>
+      img !== a
+    );
+    setListing(listing);
   }
 
   return (
@@ -314,11 +284,11 @@ export default function EditProduct() {
             >
               <label htmlFor="title">Product name</label>
               <input
-                value={title}
+                value={listing.Metadata.Title}
                 className="border-2 border-solid mt-1 p-3 rounded-md bg-background-gray"
                 data-testid="title"
                 name="title"
-                onChange={(e) => handleTitleChange(e)}
+                onChange={(e) => handleInputChange(e, "Title")}
               />
             </form>
             <form
@@ -329,11 +299,11 @@ export default function EditProduct() {
             >
               <label htmlFor="description">Product description</label>
               <input
-                value={description}
+                value={listing.Metadata.Description}
                 className="border-2 border-solid mt-1 p-3 rounded-md bg-background-gray"
                 data-testid="description"
                 name="description"
-                onChange={(e) => handleDescriptionChange(e)}
+                onChange={(e) => handleInputChange(e, "Description")}
               />
             </form>
             <section className="flex flex-col">
@@ -342,7 +312,8 @@ export default function EditProduct() {
                 <button
                   type="button"
                   onClick={triggerFileInput}
-                  className="p-5 w-full text-white bg-white"
+                  className="p-5 w-full text-white"
+                  style={{ backgroundColor: "white" }}
                 >
                   <div className="flex flex-col items-center gap-2">
                     <img
@@ -359,11 +330,11 @@ export default function EditProduct() {
                 </button>
               </div>
               <div className="flex flex-wrap gap-2 mt-2 justify-start">
-                {images.map((img: Image, i: number) => {
+                {listing.Metadata.Images?.map((img: string, i: number) => {
                   return (
                     <div key={i} className="relative mb-2">
                       <img
-                        src={img.url}
+                        src={img}
                         width={105}
                         height={95}
                         alt="uploaded-product-image"
@@ -399,11 +370,11 @@ export default function EditProduct() {
               >
                 <label htmlFor="price">price</label>
                 <input
-                  value={price}
+                  value={listing.Price}
                   className="border-2 border-solid mt-1 p-3 rounded-md bg-background-gray"
                   data-testid="price"
                   name="price"
-                  onChange={(e) => handlePriceChange(e)}
+                  onChange={(e) => handleInputChange(e, "Price")}
                 />
               </form>
               <form
@@ -441,16 +412,9 @@ export default function EditProduct() {
                 name="published"
                 type="checkbox"
                 className="form-checkbox h-4 w-4"
-                checked={viewState ===
-                  ListingViewState.LISTING_VIEW_STATE_PUBLISHED}
-                onChange={(e) => {
-                  const { checked } = e.target;
-                  setViewState(
-                    checked
-                      ? ListingViewState.LISTING_VIEW_STATE_PUBLISHED
-                      : ListingViewState.LISTING_VIEW_STATE_UNSPECIFIED,
-                  );
-                }}
+                checked={listing.ViewState ===
+                  ListingViewState.Published}
+                onChange={(e) => handleInputChange(e, "ViewState")}
               />
               <label htmlFor="published">Publish product</label>
             </div>

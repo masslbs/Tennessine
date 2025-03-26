@@ -57,9 +57,9 @@ export type ShopForm = {
 };
 
 export enum ListingViewState {
-  LISTING_VIEW_STATE_UNSPECIFIED = 0,
-  LISTING_VIEW_STATE_PUBLISHED = 1,
-  LISTING_VIEW_STATE_DELETED = 2,
+  Unspecified = 0,
+  Published = 1,
+  Deleted = 2,
 }
 
 export enum OrderState {

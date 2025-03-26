@@ -52,7 +52,7 @@ Deno.test(
     await csm.stateManager!.listings.create({
       price: "12.00",
       metadata,
-      viewState: ListingViewState.LISTING_VIEW_STATE_PUBLISHED,
+      viewState: ListingViewState.Published,
     });
 
     await t.step("Check that the listings are rendered correctly", async () => {
@@ -113,7 +113,7 @@ Deno.test(
       await csm.stateManager!.listings.create({
         price: "13.00",
         metadata: metadata2,
-        viewState: ListingViewState.LISTING_VIEW_STATE_PUBLISHED,
+        viewState: ListingViewState.Published,
       });
       await waitFor(() => {
         screen.getByTestId("merchant-view-listings");
