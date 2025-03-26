@@ -341,15 +341,14 @@ export class RelayClient {
         try {
           const result = await this.encodeAndSend(envelope);
           resolve?.(); // could return response but what for..?
-          return result;
+          return result; // where does this result go..?
         } catch (error) {
           if (!(error instanceof Error)) {
             throw new Error(`unknown error: ${error}`);
           }
           const writeError = new ClientWriteError(error, signedPatchSet);
           reject?.(writeError);
-          throw writeError;
-          // TODO: abort stream? if not, swallow the error..?
+          console.error(writeError);
         }
       },
     });

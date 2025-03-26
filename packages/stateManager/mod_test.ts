@@ -83,7 +83,7 @@ Deno.test("Database Testings", async (t) => {
       resolve(manifestPatch);
     }, ["Manifest"]);
 
-    const connection = await sm.addConnection(relayClient);
+    await sm.addConnection(relayClient);
     // wait for manifest to be received
     await promise;
     const testAddr = Uint8Array.from([
@@ -125,21 +125,6 @@ Deno.test("Database Testings", async (t) => {
         ["ChainID", 1337],
       ]),
     );
-
-    // would be nice to put this in a new step
-    const badValue = "Truth gains more even by the errors";
-    return new Promise<void>((resolve) => {
-      connection.ours.catch((error) => {
-        console.log(error);
-        assertInstanceOf(error, ClientWriteError);
-        assertEquals(error.patchSet.Patches[0].get("Value"), badValue);
-        resolve();
-      });
-      sm.set(
-        ["Manifest", "PricingCurrency"],
-        badValue,
-      );
-    });
   });
 
   await t.step(
@@ -156,5 +141,16 @@ Deno.test("Database Testings", async (t) => {
       assertEquals(called, true);
     },
   );
+  await t.step("Make sure we can do more then one bad write", async () => {
+    let called = false;
+    try {
+      await sm.set(["Trash"], "Another Bad Value");
+    } catch (e) {
+      console.log(e);
+      assertInstanceOf(e, ClientWriteError);
+      called = true;
+    }
+    assertEquals(called, true);
+  });
   await relayClient.disconnect();
 });
