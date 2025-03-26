@@ -25,7 +25,7 @@ interface IStoredState {
   // {"/": 1000}
   // where the sequence number is the lowest sequence number of all children paths
   // TODO: we are currently using a string, but need to use CodecKey[]
-  subscriptionTree: Map<string, number>;
+  subscriptionTrees: Map<string, Map<string, number>>;
   keycardNonce: number;
   root: HashOrValue | Promise<HashOrValue>;
 }
@@ -55,7 +55,7 @@ export default class StateManager {
     const restored = storedState instanceof Map
       ? Object.fromEntries(storedState)
       : {
-        subscriptionTree: new Map(),
+        subscriptionTrees: new Map(),
         keycardNonce: 0,
         root: new Map(DefaultObject),
         // TODO: add class for shop at some point
@@ -76,13 +76,15 @@ export default class StateManager {
     ], new Map(Object.entries(state)));
   }
 
-  createWriteStream(subscriptionPath: codec.Path) {
+  createWriteStream(remoteId: string, subscriptionPath: codec.Path) {
     // the remote state, ie the relay
     let state: IStoredState;
+    let subscriptionTree: Map<string, number>;
     // TODO: handle patch rejection
     return new WritableStream<PushedPatchSet>({
       start: async () => {
         state = await this.#open();
+        subscriptionTree = state.subscriptionTrees.get(remoteId) ?? new Map();
       },
       close: () => {
         return this.#close();
@@ -150,7 +152,7 @@ export default class StateManager {
             console.error({ patch });
             throw new Error(`Unimplemented operation type: ${patch.Op}`);
           }
-          state.subscriptionTree.set(
+          subscriptionTree.set(
             subscriptionPath.toString(),
             patchSet.sequence,
           );
@@ -179,16 +181,20 @@ export default class StateManager {
   }
 
   async addConnection(client: RelayClient) {
+    const id = client.relayEndpoint.tokenId;
     this.clients.add(client);
     const remoteState = await this.#open();
     client.keyCardNonce = remoteState.keycardNonce;
     // TODO:  implement dynamic subscriptions
     // currently we subscribe to the root when any event is subscribed to
     const remoteReadable = client.createSubscriptionStream(
-      "/",
-      remoteState.subscriptionTree.get("/") ?? 0,
+      [],
+      remoteState.subscriptionTrees.get(id)?.get("") ?? 0,
     );
-    const ourWritable = this.createWriteStream([]);
+    const ourWritable = this.createWriteStream(
+      id,
+      [],
+    );
     const remote = remoteReadable.pipeTo(ourWritable);
 
     // pipe our changes to the relay
