@@ -33,10 +33,11 @@ Deno.test("Database Testings", async (t) => {
       store,
       objectId: manifests[0]!.get("ShopID") as bigint,
     });
+    await db.open();
     // Need to initialize the listings map
-    await db.set(["Listings"], new Map());
-    await db.set(["Orders"], new Map());
-    await db.set(["Manifest"], manifests[0]!);
+    db.set(["Listings"], new Map());
+    db.set(["Orders"], new Map());
+    db.set(["Manifest"], manifests[0]!);
 
     const result = await db.get(["Manifest"]);
     assertEquals(result, manifests[0]);
@@ -76,6 +77,8 @@ Deno.test("Database Testings", async (t) => {
     store,
     objectId: relayClient.shopId,
   });
+
+  await sm.open();
 
   await t.step("add a relay and set a key and retrieve it", async () => {
     // connect to the relay
@@ -140,6 +143,23 @@ Deno.test("Database Testings", async (t) => {
       sm.set(["Trash"], "Another Bad Value")
     );
     assertInstanceOf(result, ClientWriteError);
+  });
+
+  await t.step("Make sure we can close the state manager", async () => {
+    const nonce = relayClient.keyCardNonce;
+    await sm.close();
+    const nsm = new StateManager({
+      store,
+      objectId: relayClient.shopId,
+    });
+    await nsm.open();
+    await nsm.addConnection(relayClient);
+    assertEquals(
+      nonce,
+      relayClient.keyCardNonce,
+      "the new state manager should have loaded the nonce",
+    );
+    await nsm.close();
   });
 
   await relayClient.disconnect();

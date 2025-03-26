@@ -3,6 +3,7 @@ import type { AbstractStore } from "@massmarket/store";
 import EventTree from "@massmarket/eventTree";
 import type { Patch, PushedPatchSet, RelayClient } from "@massmarket/client";
 import type { codec, Hash } from "@massmarket/utils";
+import { assert } from "@std/assert";
 
 // move to schema
 const DefaultObject = new Map(Object.entries({
@@ -36,7 +37,7 @@ export default class StateManager {
   readonly clients: Set<RelayClient> = new Set();
   #streamsWriters: Set<WritableStreamDefaultWriter<Patch[]>> = new Set();
   // very simple cache, we always want a reference to the same object
-  #stateCache?: IStoredState;
+  #state?: IStoredState;
   constructor(
     public params: {
       store: AbstractStore;
@@ -46,8 +47,7 @@ export default class StateManager {
     this.graph = new DAG(params.store);
   }
 
-  async #open(): Promise<IStoredState> {
-    if (this.#stateCache) return this.#stateCache;
+  async open(): Promise<IStoredState> {
     const storedState = await this.graph.store.objStore.get([
       this.params.objectId,
     ]);
@@ -60,37 +60,33 @@ export default class StateManager {
         // TODO: add class for shop at some point
         // root: v.getDefaults(this.params.schema) as CborValue,
       };
-    this.#stateCache = restored;
+    this.#state = restored;
     return restored;
   }
 
-  async #close() {
-    const state = this.#stateCache;
-    console.log("Closing state:", state);
+  async close() {
+    const state = this.#state;
+    assert(state, "open not finished");
+    const closingClients = [...this.clients].map((client) => {
+      state.keycardNonce = client.keyCardNonce;
+      return client.disconnect();
+    });
     if (!state) throw new Error(`State closed before it was opened`);
     // wait for root to be resolved
     state.root = await state.root;
-    return this.graph.store.objStore.set([
-      this.params.objectId,
-    ], new Map(Object.entries(state)));
+    return Promise.all([
+      closingClients,
+      this.graph.store.objStore.set([
+        this.params.objectId,
+      ], new Map(Object.entries(state))),
+    ]);
   }
 
   createWriteStream(remoteId: string, subscriptionPath: codec.Path) {
-    // the remote state, ie the relay
-    let state: IStoredState;
-    let subscriptionTree: Map<string, number>;
-    // TODO: handle patch rejection
+    const state = this.#state;
+    assert(state, "open not finished");
+    const subscriptionTree = state.subscriptionTrees.get(remoteId) ?? new Map();
     return new WritableStream<PushedPatchSet>({
-      start: async () => {
-        state = await this.#open();
-        subscriptionTree = state.subscriptionTrees.get(remoteId) ?? new Map();
-      },
-      close: () => {
-        return this.#close();
-      },
-      abort(reason) {
-        console.error("WriteStream aborted:", reason);
-      },
       write: async (patchSet) => {
         // validate the Operation's schema
         const _validityRange = await this.graph.get(state.root, [
@@ -137,7 +133,6 @@ export default class StateManager {
             if (value instanceof Map) {
               value.delete(deleteKey);
             } else {
-              console.error({ value, patch });
               throw new Error(
                 `Invalid current value (type: ${typeof value}) for path: ${patch.Path}`,
               );
@@ -172,26 +167,23 @@ export default class StateManager {
   async addConnection(client: RelayClient) {
     const id = client.relayEndpoint.tokenId;
     this.clients.add(client);
-    const remoteState = await this.#open();
-    client.keyCardNonce = remoteState.keycardNonce;
+    const state = await this.open();
+    client.keyCardNonce = state.keycardNonce;
     // TODO:  implement dynamic subscriptions
     // currently we subscribe to the root when any event is subscribed to
     const remoteReadable = client.createSubscriptionStream(
       [],
-      remoteState.subscriptionTrees.get(id)?.get("") ?? 0,
+      state.subscriptionTrees.get(id)?.get("") ?? 0,
     );
     const ourWritable = this.createWriteStream(
       id,
       [],
     );
-    const remote = remoteReadable.pipeTo(ourWritable);
-
-    // pipe our changes to the relay
     const remoteWritable = client.createWriteStream();
     const writer = remoteWritable.getWriter();
-    await writer.ready;
     this.#streamsWriters.add(writer);
-    return { remote };
+    const connection = remoteReadable.pipeTo(ourWritable);
+    return { connection };
   }
 
   #sendPatch(patch: Patch) {
@@ -203,37 +195,46 @@ export default class StateManager {
   }
 
   async increment(path: codec.Path, value: codec.CodecValue) {
-    const state = await this.#open();
+    const state = this.#state;
+    assert(state, "open not finished");
     await this.#sendPatch({ Op: "increment", Path: path, Value: value });
     state.root = await this.graph.set(state.root, path, value);
     this.events.emit(state.root);
   }
 
   async decrement(path: codec.Path, value: codec.CodecValue) {
-    const state = await this.#open();
+    const state = this.#state;
+    assert(state, "open not finished");
     await this.#sendPatch({ Op: "decrement", Path: path, Value: value });
     state.root = await this.graph.set(state.root, path, value);
     this.events.emit(state.root);
   }
 
   async set(path: codec.Path, value: codec.CodecValue) {
-    const state = await this.#open();
-    let op;
-    state.root = await this.graph.set(state.root, path, (oldValue) => {
-      op = oldValue === undefined ? "add" : "replace";
+    const state = this.#state;
+    assert(state, "open not finished");
+    let sendpromise: Promise<void[]>;
+    // we don't await the set operation here. Instead we set the root to be
+    // the promise returned by the set operation. When the state is fed into
+    // the next write operation or get, it will be awaited by the DAG
+    state.root = this.graph.set(state.root, path, (oldValue) => {
+      const op = oldValue === undefined ? "add" : "replace";
+      sendpromise = this.#sendPatch(
+        { Op: op, Path: path, Value: value },
+      );
       return value;
     });
+    state.root = await state.root;
     this.events.emit(state.root);
-    return this.#sendPatch(
-      { Op: op!, Path: path, Value: value },
-    );
+    return sendpromise!;
   }
 
-  async get(
+  get(
     path: codec.Path,
   ): Promise<codec.CodecValue | undefined> {
     // wait for any pending writes to complete
-    const state = await this.#open();
+    const state = this.#state;
+    assert(state, "open not finished");
     return this.graph.get(state.root, path);
   }
 }
