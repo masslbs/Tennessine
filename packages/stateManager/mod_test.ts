@@ -20,24 +20,103 @@ const blockchainClient = createTestBlockchainClient();
 const relayClient = await createTestRelayClient(blockchainClient);
 
 Deno.test("Database Testings", async (t) => {
-  await t.step("Make sure stateManager throws an error when a patch is rejected", async () => {
-    const store = new MemStore();
-    const db = new StateManager({
-      store,
-      objectId: relayClient.shopId,
-    });
-    await db.addConnection(relayClient);
-    let called = false;
-    try {
-      await db.set(["Trash"], "Bad Value");
-    } catch (e) {
-      assertInstanceOf(e, ClientWriteError);
-      called = true;
-    }
-    assertEquals(called, true);
-    await relayClient.disconnect();
-  })
+  const store = new MemStore();
+  const db = new StateManager({
+    store,
+    objectId: relayClient.shopId,
+  });
 
+  // connect to the relay
+  const { resolve, promise } = Promise.withResolvers();
+  db.events.on((manifestPatch) => {
+    resolve(manifestPatch);
+  }, ["Manifest"]);
+
+  // TODO: these steps are sharing this connection betcasue disconnect and addConnection again doesn't work rn
+  const connection = await db.addConnection(relayClient);
+
+  // wait for manifest to be received
+  await promise;
+
+  await t.step(
+    "Make sure stateManager throws an error when a patch is rejected",
+    async () => {
+      let called = false;
+      try {
+        await db.set(["Trash"], "Bad Value");
+      } catch (e) {
+        assertInstanceOf(e, ClientWriteError);
+        called = true;
+      }
+      assertEquals(called, true);
+    },
+  );
+
+  await t.step("add a relay and set a key and retrieve it", async () => {
+    const testAddr = Uint8Array.from([
+      0xf0,
+      0xf1,
+      0xf2,
+      0x03,
+      0x04,
+      0x05,
+      0xf6,
+      0xf7,
+      0xf8,
+      0x09,
+      0x0a,
+      0x0b,
+      0xfc,
+      0xfd,
+      0xfe,
+      0x0f,
+      0x01,
+      0x02,
+      0xf3,
+      0xf4,
+    ]);
+
+    const testCurrency = new Map<string, codec.CodecValue>([
+      ["Address", testAddr],
+      ["ChainID", 1337],
+    ]);
+    await db.set(
+      ["Manifest", "PricingCurrency"],
+      testCurrency,
+    );
+    const value = await db.get(["Manifest", "PricingCurrency"]);
+    assertEquals(
+      value,
+      new Map<string, codec.CodecValue>([
+        ["Address", testAddr],
+        ["ChainID", 1337],
+      ]),
+    );
+  });
+
+  await t.step(
+    "Make sure stateManager throws an error when a patch is rejected",
+    async () => {
+      const badValue = "Truth gains more even by the errors";
+      const p = new Promise<void>((resolve) => {
+        connection.ours.catch((error) => {
+          assertInstanceOf(error, ClientWriteError);
+          assertEquals(error.patchSet.Patches[0].get("Value"), badValue);
+          resolve();
+        });
+        db.set(
+          ["Manifest", "PricingCurrency"],
+          badValue,
+        );
+      });
+      await p;
+    },
+  );
+
+  await relayClient.disconnect();
+});
+
+Deno.test("Load vector states", async (t) => {
   await t.step("Set Manifest, Listings, and Orders", async () => {
     //Manifest
     const manifestVector = await fetchAndDecode("ManifestOkay");
@@ -85,88 +164,5 @@ Deno.test("Database Testings", async (t) => {
         assertEquals(result, order);
       }
     }
-    await relayClient.disconnect();
-  });
-
-
-  await t.step("add a relay and set a key and retrieve it", async () => {
-    const sm = new StateManager({
-      store: new MemStore(),
-      objectId: relayClient.shopId,
-    });
-  
-    // connect to the relay
-    const { resolve, promise } = Promise.withResolvers();
-    sm.events.on((manifestPatch) => {
-      resolve(manifestPatch);
-    }, ["Manifest"]);
-
-    await sm.addConnection(relayClient);
-    // wait for manifest to be received
-    await promise;
-    const testAddr = Uint8Array.from([
-      0xf0,
-      0xf1,
-      0xf2,
-      0x03,
-      0x04,
-      0x05,
-      0xf6,
-      0xf7,
-      0xf8,
-      0x09,
-      0x0a,
-      0x0b,
-      0xfc,
-      0xfd,
-      0xfe,
-      0x0f,
-      0x01,
-      0x02,
-      0xf3,
-      0xf4,
-    ]);
-
-    const testCurrency = new Map<string, codec.CodecValue>([
-      ["Address", testAddr],
-      ["ChainID", 1337],
-    ]);
-    await sm.set(
-      ["Manifest", "PricingCurrency"],
-      testCurrency,
-    );
-    const value = await sm.get(["Manifest", "PricingCurrency"]);
-    assertEquals(
-      value,
-      new Map<string, codec.CodecValue>([
-        ["Address", testAddr],
-        ["ChainID", 1337],
-      ]),
-    );
-    await relayClient.disconnect();
-  })
-
-  await t.step("Make sure stateManager throws an error when a patch is rejected", async () => {
-    const sm = new StateManager({
-      store: new MemStore(),
-      objectId: relayClient.shopId,
-    });
-  
-    const connection = await sm.addConnection(relayClient);
-    
-    const badValue = "Truth gains more even by the errors";
-    const p = new Promise<void>((resolve) => {
-      connection.ours.catch((error) => {
-        assertInstanceOf(error, ClientWriteError);
-        assertEquals(error.patchSet.Patches[0].get("Value"), badValue);
-        resolve();
-      });
-      sm.set(
-        ["Manifest", "PricingCurrency"],
-        badValue,
-      );
-    });
-    await p;
-    await relayClient.disconnect();
   });
 });
