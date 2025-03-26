@@ -32,8 +32,7 @@ Deno.test("Database Testings", async (t) => {
     resolve(manifestPatch);
   }, ["Manifest"]);
 
-  // TODO: these steps are sharing this connection betcasue disconnect and addConnection again doesn't work rn
-  const connection = await db.addConnection(relayClient);
+  await db.addConnection(relayClient);
 
   // wait for manifest to be received
   await promise;
@@ -94,26 +93,37 @@ Deno.test("Database Testings", async (t) => {
     );
   });
 
-  await t.step(
-    "Make sure stateManager throws an error when a patch is rejected",
-    async () => {
-      const badValue = "Truth gains more even by the errors";
-      const p = new Promise<void>((resolve) => {
-        connection.ours.catch((error) => {
-          assertInstanceOf(error, ClientWriteError);
-          assertEquals(error.patchSet.Patches[0].get("Value"), badValue);
-          resolve();
-        });
-        db.set(
-          ["Manifest", "PricingCurrency"],
-          badValue,
-        );
-      });
-      await p;
-    },
-  );
-
   await relayClient.disconnect();
+});
+
+Deno.test("stateManager throws an error when a patch is rejected", async () => {
+  // TODO: comment this 2nd client out to test "reconnecting"
+  const relayClient = await createTestRelayClient(blockchainClient);
+
+  const store = new MemStore();
+  const db = new StateManager({
+    store,
+    objectId: relayClient.shopId,
+  });
+
+  const connection = await db.addConnection(relayClient);
+
+  const badValue = "Truth gains more even by the errors";
+  const p = new Promise<void>((resolve) => {
+    connection.ours.catch((error) => {
+      assertInstanceOf(error, ClientWriteError);
+      assertEquals(error.patchSet.Patches[0].get("Value"), badValue);
+      resolve();
+      console.log("resolved");
+    });
+    // not awaiting to test the other error path with .catch
+    db.set(
+      ["Manifest", "PricingCurrency"],
+      badValue,
+    );
+  });
+  await p;
+  console.log("done");
 });
 
 Deno.test("Load vector states", async (t) => {
