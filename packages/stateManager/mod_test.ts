@@ -14,6 +14,7 @@ import {
 } from "@massmarket/utils";
 
 import StateManager from "./mod.ts";
+import { assertRejects } from "@std/assert/rejects";
 
 // we create the blockchain client outside of the tests since viem has a ws leak
 const blockchainClient = createTestBlockchainClient();
@@ -83,7 +84,7 @@ Deno.test("Database Testings", async (t) => {
       resolve(manifestPatch);
     }, ["Manifest"]);
 
-    const connection = await sm.addConnection(relayClient);
+    await sm.addConnection(relayClient);
     // wait for manifest to be received
     await promise;
     const testAddr = Uint8Array.from([
@@ -125,21 +126,21 @@ Deno.test("Database Testings", async (t) => {
         ["ChainID", 1337],
       ]),
     );
-
-    // would be nice to put this in a new step
-    const badValue = "Truth gains more even by the errors";
-    return new Promise<void>((resolve) => {
-      connection.ours.catch((error) => {
-        assertInstanceOf(error, ClientWriteError);
-        assertEquals(error.patchSet.Patches[0].get("Value"), badValue);
-        resolve();
-      });
-      sm.set(
-        ["Manifest", "PricingCurrency"],
-        badValue,
-      );
-    }).finally(() => {
-      return relayClient.disconnect();
-    });
   });
+
+  await t.step(
+    "Make sure stateManager throws an error when a patch is rejected",
+    async () => {
+      const result = await assertRejects(() => sm.set(["Trash"], "Bad Value"));
+      assertInstanceOf(result, ClientWriteError);
+    },
+  );
+  await t.step("Make sure we can do more then one bad write", async () => {
+    const result = await assertRejects(() =>
+      sm.set(["Trash"], "Another Bad Value")
+    );
+    assertInstanceOf(result, ClientWriteError);
+  });
+
+  await relayClient.disconnect();
 });

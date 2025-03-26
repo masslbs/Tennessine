@@ -34,8 +34,7 @@ export default class StateManager {
   readonly events = new EventTree<codec.CodecValue>(DefaultObject);
   readonly graph: DAG;
   readonly clients: Set<RelayClient> = new Set();
-  #streamsControllers: Set<ReadableStreamDefaultController<Patch[]>> =
-    new Set();
+  #streamsWriters: Set<WritableStreamDefaultWriter<Patch[]>> = new Set();
   // very simple cache, we always want a reference to the same object
   #stateCache?: IStoredState;
   constructor(
@@ -170,16 +169,6 @@ export default class StateManager {
     });
   }
 
-  createReadStream(): ReadableStream<Patch[]> {
-    return new ReadableStream<Patch[]>({
-      start: (
-        controller: ReadableStreamDefaultController,
-      ) => {
-        this.#streamsControllers.add(controller);
-      },
-    });
-  }
-
   async addConnection(client: RelayClient) {
     const id = client.relayEndpoint.tokenId;
     this.clients.add(client);
@@ -199,34 +188,30 @@ export default class StateManager {
 
     // pipe our changes to the relay
     const remoteWritable = client.createWriteStream();
-    const ourReadable = this.createReadStream();
-    const ours = ourReadable.pipeTo(remoteWritable);
-    return {
-      remote,
-      ours,
-    };
+    const writer = remoteWritable.getWriter();
+    await writer.ready;
+    this.#streamsWriters.add(writer);
+    return { remote };
   }
 
-  #sendPatch(state: IStoredState, patch: Patch) {
+  #sendPatch(patch: Patch) {
     // send patch to peers
-    this.#streamsControllers.forEach((controller) => {
-      controller.enqueue([
-        patch,
-      ]);
-    });
-    return state;
+    return Promise.all(
+      this.#streamsWriters.keys().map((writer) => writer.write([patch]))
+        .toArray(),
+    );
   }
 
   async increment(path: codec.Path, value: codec.CodecValue) {
     const state = await this.#open();
-    this.#sendPatch(state, { Op: "increment", Path: path });
+    await this.#sendPatch({ Op: "increment", Path: path });
     state.root = await this.graph.set(state.root, path, value);
     this.events.emit(state.root);
   }
 
   async decrement(path: codec.Path, value: codec.CodecValue) {
     const state = await this.#open();
-    this.#sendPatch(state, { Op: "decrement", Path: path });
+    await this.#sendPatch({ Op: "decrement", Path: path });
     state.root = await this.graph.set(state.root, path, value);
     this.events.emit(state.root);
   }
@@ -240,7 +225,6 @@ export default class StateManager {
     });
     this.events.emit(state.root);
     return this.#sendPatch(
-      state,
       { Op: op!, Path: path, Value: value },
     );
   }
