@@ -43,7 +43,9 @@ export function useClientWithStateManager() {
       account,
       shopId,
     );
-    setClientStateManager(csm);
+    csm.initialize().then(() => {
+      setClientStateManager(csm);
+    });
   }, [shopId, keycard.privateKey, relayEndpoint]);
 
   useQuery(async () => {
