@@ -5,8 +5,8 @@ import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 import tailwindcss from "@tailwindcss/vite";
 
+// only needed for the build
 import { entryPoints } from "./scripts/generate-entry-points.ts";
-
 // Take all the routes and create an object with the route name as the key and the index.html as the value.
 const buildInputs = Object.fromEntries(
   entryPoints.map((path) => [path, "index.html"]),
