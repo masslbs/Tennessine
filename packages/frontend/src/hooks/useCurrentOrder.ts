@@ -1,12 +1,8 @@
-import { useEffect, useState } from "react";
-import { toHex } from "viem";
-
+import { useEffect } from "react";
 import { logger } from "@massmarket/utils";
 import { Order } from "@massmarket/schema";
-
 import { useClientWithStateManager } from "./useClientWithStateManager.ts";
 import { KeycardRole, OrderState } from "../types.ts";
-import { useShopId } from "./useShopId.ts";
 import { useKeycard } from "./useKeycard.ts";
 import { useMassMarketContext } from "../MassMarketContext.ts";
 
@@ -17,7 +13,6 @@ const debug = logger(namespace);
 export function useCurrentOrder() {
   const { currentOrder, setCurrentOrder } = useMassMarketContext();
   const { clientStateManager } = useClientWithStateManager();
-  const { shopId } = useShopId();
   const [keycard] = useKeycard();
   const sm = clientStateManager?.stateManager;
 
@@ -41,8 +36,12 @@ export function useCurrentOrder() {
     const openOrders: Order[] = [];
     const committedOrders: Order[] = [];
 
+    if (!allOrders || !(allOrders instanceof Map)) {
+      return null;
+    }
+
     for (const [_, o] of allOrders.entries()) {
-      const order = Order.fromCBOR(o);
+      const order = Order.fromCBOR(o as Map<string, unknown>);
       if (order.State === OrderState.Open) {
         openOrders.push(order);
       } else if (order.State === OrderState.Committed) {
