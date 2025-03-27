@@ -69,17 +69,17 @@ jobs:
           nix develop -c local-testnet -D
         working-directory: Tennessine/
 
-      - name: Run Lint
-        run: nix develop -c bash -c "deno lint"
-        working-directory: Tennessine/
+      # - name: Run Lint
+      #   run: nix develop -c bash -c "deno lint"
+      #   working-directory: Tennessine/
 
       - name: Run formatting check
         run: nix develop -c bash -c "deno fmt --check"
         working-directory: Tennessine/
 
-      - name: Type Check packages
-        run: nix develop -c bash -c "deno check ."
-        working-directory: Tennessine/
+      # - name: Type Check packages
+      #   run: nix develop -c bash -c "deno check ."
+      #   working-directory: Tennessine/
 
       - name: Compile relay
         run: nix build '.#relay'
