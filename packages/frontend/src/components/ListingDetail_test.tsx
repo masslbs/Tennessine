@@ -13,9 +13,9 @@ import {
 
 import ListingDetail from "./ListingDetail.tsx";
 import {
-  createClientStateManager,
   createRouterWrapper,
-} from "../utils/test.tsx";
+  createTestStateManager,
+} from "../testutils/mod.tsx";
 import { ListingViewState, OrderState } from "../types.ts";
 
 Deno.test("Check that we can render the listing details screen", {
@@ -23,7 +23,7 @@ Deno.test("Check that we can render the listing details screen", {
   sanitizeOps: false,
 }, async () => {
   const user = userEvent.setup();
-  const csm = createClientStateManager();
+  const csm = createTestStateManager();
   await csm.stateManager!.manifest.create(
     {
       acceptedCurrencies: [{

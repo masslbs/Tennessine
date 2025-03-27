@@ -9,7 +9,7 @@ import { Manifest } from "@massmarket/schema";
 import { random256BigInt, random32BytesHex } from "@massmarket/utils";
 
 import CreateShop from "./CreateShop.tsx";
-import { createRouterWrapper } from "../../../utils/test.tsx";
+import { createRouterWrapper } from "../../../testutils/mod.tsx";
 
 Deno.test("Check that we can render the create shop screen", {
   sanitizeResources: false,

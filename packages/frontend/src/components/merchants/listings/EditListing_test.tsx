@@ -14,9 +14,9 @@ import {
 
 import EditListing from "./EditListing.tsx";
 import {
-  createClientStateManager,
   createRouterWrapper,
-} from "../../../utils/test.tsx";
+  createTestStateManager,
+} from "../../../testutils/mod.tsx";
 import { ListingViewState } from "../../../types.ts";
 
 Deno.test("Edit Listing", {
@@ -84,7 +84,7 @@ Deno.test("Edit Listing", {
     unmount();
   });
   await t.step("Edit existing listing", async () => {
-    const csm = await createClientStateManager();
+    const csm = await createTestStateManager();
     await csm.stateManager!.manifest.create(
       {
         acceptedCurrencies: [{

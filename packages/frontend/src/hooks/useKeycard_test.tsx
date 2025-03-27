@@ -7,7 +7,7 @@ import { random256BigInt, random32BytesHex } from "@massmarket/utils";
 
 import { KeycardRole } from "../types.ts";
 import { useKeycard } from "./useKeycard.ts";
-import { createRouterWrapper } from "../utils/test.tsx";
+import { createRouterWrapper } from "../testutils/mod.tsx";
 
 Deno.test("useKeycard", {
   sanitizeResources: false,
