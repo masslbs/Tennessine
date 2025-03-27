@@ -45,7 +45,7 @@ export const connectors = [
   }),
 ];
 
-export const createTestStateManager = (
+export const createTestStateManager = async (
   shopId: bigint | null = null,
 ) => {
   if (!shopId) {
@@ -60,7 +60,7 @@ export const createTestStateManager = (
     testKeyCard,
     shopId,
   );
-
+  await csm.stateManager.open();
   return csm;
 };
 
