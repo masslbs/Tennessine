@@ -1,7 +1,9 @@
 import { assertEquals } from "@std/assert";
 import { createPublicClient, http, zeroAddress } from "viem";
 import { hardhat } from "viem/chains";
-import { eddiesAddress } from "@massmarket/contracts";
+import { abi } from "@massmarket/contracts";
+const { eddiesAddress } = abi;
+
 import * as Utils from "./mod.ts";
 
 Deno.test("getTokenInformation", async () => {
