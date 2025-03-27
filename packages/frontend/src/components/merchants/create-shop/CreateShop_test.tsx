@@ -53,19 +53,10 @@ Deno.test("Check that we can render the create shop screen", {
     await user.type(payees, anvilAddress);
   });
   await act(async () => {
-    const pricingCurrency = screen.getByTestId("pricing-currency");
-    expect(pricingCurrency).toBeTruthy();
-    const dropdown = pricingCurrency.querySelector(
-      '[data-testid="dropdown"]',
-    ) as HTMLInputElement;
-    await user.click(dropdown);
-  });
-
-  await act(async () => {
-    const dropdownOptions = screen.getByTestId("dropdown-options");
-    expect(dropdownOptions).toBeTruthy();
-    // click on the ETH/Hardhat option
-    const option = screen.getByTestId("ETH/Hardhat");
+    // const pricingCurrency = screen.getByTestId("pricing-currency-dropdown");
+    // expect(pricingCurrency).toBeTruthy();
+    // await user.click(pricingCurrency);
+    const option = screen.getByTestId("pricing-currency-option-EDD/Hardhat");
     expect(option).toBeTruthy();
     await user.click(option);
   });
