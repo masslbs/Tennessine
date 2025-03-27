@@ -1,5 +1,5 @@
 import { usePublicClient } from "wagmi";
-import { shopRegAbi, shopRegAddress } from "@massmarket/contracts";
+import { abi } from "@massmarket/contracts";
 import { useShopId } from "./useShopId.ts";
 import { useQuery } from "./useQuery.ts";
 import { useMassMarketContext } from "../MassMarketContext.ts";
@@ -16,8 +16,8 @@ export function useShopDetails() {
   const { result } = useQuery(async () => {
     if (!shopId || !shopPublicClient) return;
     const uri = await shopPublicClient.readContract({
-      address: shopRegAddress,
-      abi: shopRegAbi,
+      address: abi.shopRegAddress,
+      abi: abi.shopRegAbi,
       functionName: "tokenURI",
       args: [shopId],
     });

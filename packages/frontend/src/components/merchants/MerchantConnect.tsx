@@ -7,7 +7,7 @@ import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useNavigate } from "@tanstack/react-router";
 
-import { shopRegAbi, shopRegAddress } from "@massmarket/contracts";
+import { abi } from "@massmarket/contracts";
 import { assert, logger, random32BytesHex } from "@massmarket/utils";
 
 import ConnectConfirmation from "./ConnectConfirmation.tsx";
@@ -63,8 +63,8 @@ export default function MerchantConnect() {
   async function handleSearchForShop() {
     try {
       const uri = (await shopPublicClient!.readContract({
-        address: shopRegAddress,
-        abi: shopRegAbi,
+        address: abi.shopRegAddress,
+        abi: abi.shopRegAbi,
         functionName: "tokenURI",
         args: [BigInt(searchShopId)],
       })) as string;
