@@ -226,7 +226,7 @@ export default function () {
 
       await clientStateManager?.stateManager.set(
         ["Manifest"],
-        shopManifest.asCBORMap(),
+        shopManifest,
       );
       setKeycard({
         privateKey: keycard.privateKey,
