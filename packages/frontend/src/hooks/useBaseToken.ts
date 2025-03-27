@@ -29,11 +29,11 @@ export function useBaseToken() {
     const path = ["Manifest", "PricingCurrency"];
     sm.get(path).then((currency: Map<string, unknown>) => {
       setChainAddress(ChainAddress.fromCBOR(currency));
-      sm.events.on(setCurrency, path);
-      return () => {
-        sm.events.off(setCurrency, path);
-      };
     });
+    sm.events.on(setCurrency, path);
+    return () => {
+      sm.events.off(setCurrency, path);
+    };
   }, [sm]);
 
   const { result: baseToken } = useQuery(async () => {
