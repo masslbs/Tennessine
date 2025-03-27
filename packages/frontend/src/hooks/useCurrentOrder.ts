@@ -8,20 +8,18 @@ import { useClientWithStateManager } from "./useClientWithStateManager.ts";
 import { KeycardRole, OrderState } from "../types.ts";
 import { useShopId } from "./useShopId.ts";
 import { useKeycard } from "./useKeycard.ts";
-import { useQuery } from "./useQuery.ts";
+import { useMassMarketContext } from "../MassMarketContext.ts";
 
 const namespace = "frontend:useCurrentOrder";
 const errlog = logger(namespace, "error");
 const debug = logger(namespace);
 
 export function useCurrentOrder() {
+  const { currentOrder, setCurrentOrder } = useMassMarketContext();
   const { clientStateManager } = useClientWithStateManager();
   const { shopId } = useShopId();
   const [keycard] = useKeycard();
-  const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
   const sm = clientStateManager?.stateManager;
-  // bigint cannot be serialized so we convert to hex
-  const hexId = shopId ? toHex(shopId) : null;
 
   function onCurrentOrderChange(o: Map<string, unknown>) {
     const order = Order.fromCBOR(o);
@@ -46,17 +44,14 @@ export function useCurrentOrder() {
     for (const [_, o] of allOrders.entries()) {
       const order = Order.fromCBOR(o);
       if (order.State === OrderState.Open) {
-        openOrders.push(o);
+        openOrders.push(order);
       } else if (order.State === OrderState.Committed) {
-        committedOrders.push(o);
+        committedOrders.push(order);
       }
     }
 
     if (openOrders.length === 1) {
-      setCurrentOrder({
-        orderId: openOrders[0],
-        status: OrderState.Open,
-      });
+      return openOrders[0];
     } else if (
       openOrders.length > 1 && keycard?.role !== KeycardRole.MERCHANT
     ) {
@@ -67,10 +62,7 @@ export function useCurrentOrder() {
       debug("No open order found, looking for committed order");
 
       if (committedOrders.length === 1) {
-        setCurrentOrder({
-          orderId: committedOrders[0],
-          status: OrderState.Committed,
-        });
+        return committedOrders[0];
       } else if (committedOrders.length > 1 && keycard?.role !== "merchant") {
         //Since merchants are subscribed to all orders, we don't need to worry about multiple committed orders.
         errlog("Multiple committed orders found");
@@ -78,20 +70,23 @@ export function useCurrentOrder() {
         debug("No order yet");
       }
     }
+    return null;
   }
 
-  // useQuery(async () => {
-  //   if (!sm) return;
-  //   await orderFetcher();
-  // }, [hexId, sm]);
-
   useEffect(() => {
-    if (!sm || !currentOrder) return;
-    sm.events.on(onCurrentOrderChange, ["Orders", currentOrder.ID]);
+    if (!sm) return;
+    if (!currentOrder) {
+      orderFetcher().then((o: Order | null) => {
+        if (!o) return;
+        sm.events.on(onCurrentOrderChange, ["Orders", o.ID]);
+        setCurrentOrder(o);
+      });
+    }
     return () => {
-      sm.events.off(onCurrentOrderChange, ["Orders", currentOrder.ID]);
+      if (currentOrder) {
+        sm.events.off(onCurrentOrderChange, ["Orders", currentOrder.ID]);
+      }
     };
-  }, [currentOrder]);
-
+  }, [sm]);
   return { currentOrder };
 }

@@ -65,8 +65,7 @@ export default function Confirmation() {
               search={(prev: Record<string, string>) => ({
                 shopId: prev.shopId,
               })}
-              className="text-white"
-              style={{ color: "black" }}
+              style={{ color: "white" }}
             >
               View Dashboard
             </Link>
