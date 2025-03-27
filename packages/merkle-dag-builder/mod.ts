@@ -4,8 +4,7 @@ import { type AbstractStore, ContentAddressableStore } from "@massmarket/store";
 
 export type RootValue =
   | codec.CodecValue
-  | Hash
-  | Promise<codec.CodecValue | Hash>;
+  | Promise<codec.CodecValue>;
 
 export class DAG {
   /** the store that the graph is stored in */
@@ -53,6 +52,9 @@ export class DAG {
     }
     if (isHash(root)) {
       root = (await this.#loadHash(root, clone))!;
+    }
+    if (clone) {
+      root = structuredClone(root);
     }
     yield {
       value: root,

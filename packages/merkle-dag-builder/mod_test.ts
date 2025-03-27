@@ -2,6 +2,7 @@ import { assert, assertEquals, assertRejects } from "@std/assert";
 import { MemStore as Store } from "@massmarket/store/mem";
 import type { CodecValue } from "@massmarket/utils/codec";
 import { DAG, type RootValue } from "./mod.ts";
+import { assertNotEquals } from "@std/assert/not-equals";
 
 Deno.test("meta data", async (t) => {
   await t.step("testing storing and retrieving metadata", async () => {
@@ -13,20 +14,22 @@ Deno.test("meta data", async (t) => {
   });
 });
 
-let root: RootValue = new Map();
 const store = new Store();
 
 Deno.test("basic set and get ", async (t) => {
   await t.step("Map with string keys", async () => {
+    const root: RootValue = new Map();
     const graph = new DAG(
       store,
     );
-    root = graph.set(root, ["c"], "cat");
-    const val = await graph.get(root, ["c"]);
+    const newRoot = await graph.set(root, ["c"], "cat");
+    assertNotEquals(root, newRoot);
+    const val = await graph.get(newRoot, ["c"]);
     assertEquals(val, "cat");
   });
 
   await t.step("Map with Uint8Array keys", async () => {
+    let root: RootValue = new Map();
     const graph = new DAG(
       store,
     );
@@ -44,6 +47,7 @@ Deno.test("basic set and get ", async (t) => {
   });
 
   await t.step("A path that does not exist (pathing into a map)", async () => {
+    const root: RootValue = new Map();
     const graph = new DAG(
       store,
     );
@@ -60,6 +64,7 @@ Deno.test("basic set and get ", async (t) => {
   await t.step(
     "A path that cannot not exist (trying to path through a string)",
     async () => {
+      const root: RootValue = new Map();
       const graph = new DAG(
         store,
       );
@@ -94,6 +99,7 @@ Deno.test("upsert", async (t) => {
 
 Deno.test("should merklize", async (t) => {
   let merkleRoot;
+  let root: RootValue = new Map();
   await t.step("should create a merkle root", async () => {
     const graph = new DAG(
       store,
@@ -108,6 +114,7 @@ Deno.test("should merklize", async (t) => {
       store,
     );
 
+    root = graph.set(root, ["c"], "cat");
     merkleRoot = await graph.merklelize(root);
     const cat = await graph.get(merkleRoot, ["c"]);
     assert(cat === "cat");
