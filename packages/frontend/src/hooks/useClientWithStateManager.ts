@@ -46,7 +46,7 @@ export function useClientWithStateManager() {
     setClientStateManager(csm);
   }, [shopId, keycard.privateKey, relayEndpoint]);
 
-  const { result } = useQuery(async () => {
+  useQuery(async () => {
     if (
       !clientStateManager ||
       clientStateManager?.relayClient?.connection?.readyState ||
@@ -70,13 +70,11 @@ export function useClientWithStateManager() {
       debug("Adding connection");
       await clientStateManager.addConnection();
     }
-
-    return { clientConnected: true };
   }, [
     String(shopId),
     relayEndpoint,
     keycard.privateKey,
     String(clientStateManager),
   ]);
-  return { clientStateManager, result };
+  return { clientStateManager };
 }

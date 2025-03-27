@@ -41,14 +41,15 @@ export default function MerchantDashboard() {
       const allOrders = mapToOrderClass(res);
       setOrders(allOrders);
       sm.events.on(ordersEvent, ["Orders"]);
+      //FIXME: if sm.get(['Orders'])  isn't called first, events.on/off will error.
+      // Need to initialize all the stores first when app initially loads.
+      return () => {
+        sm.events.off(
+          ordersEvent,
+          ["Orders"],
+        );
+      };
     });
-
-    return () => {
-      sm.events.off(
-        ordersEvent,
-        ["Orders"],
-      );
-    };
   }, [sm]);
 
   return (
