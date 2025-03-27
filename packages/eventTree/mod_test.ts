@@ -22,6 +22,15 @@ Deno.test("Tree Event Testings", async (t) => {
     const handler = (e: codec.CodecValue) => {
       event = e;
     };
+    // should be able to listen and unlisten
+    tree.on(handler, ["some", "event"]);
+    tree.off(handler, ["some", "event"]);
+
+    // // shouldn't get an event
+    const update = new Map([["some", new Map([["event", 1]])]]);
+    tree.emit("something");
+    assertEquals(event, undefined, "Event should not be dispatched");
+
     tree.on(handler, ["some", "event"]);
 
     let parentEvent;
@@ -31,7 +40,7 @@ Deno.test("Tree Event Testings", async (t) => {
       parentEvent = e;
     });
 
-    const update = new Map([["some", new Map([["event", 1]])]]);
+    console.log(update);
     tree.emit(update);
     assertEquals(event, 1, "Event should be dispatched");
     assertEquals(parentEvent, update, "Event should be dispatched");

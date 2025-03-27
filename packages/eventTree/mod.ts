@@ -150,7 +150,7 @@ export default class EventTree<T> {
     let parent, nextStep;
     (node as Node<ET>)?.emmiter.off(listener);
 
-    while (node) {
+    while (walk.length && node) {
       if (node.emmiter.listeners.size === 0 && node.edges.size === 0) {
         ({ node: parent, step: nextStep } = walk.pop()!);
         // make sure we are not the root
