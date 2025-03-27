@@ -5,7 +5,7 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import { Link, useSearch } from "@tanstack/react-router";
 
-import { logger, objectId } from "@massmarket/utils";
+import { logger, randUint64 } from "@massmarket/utils";
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
 
 import { ListingId, OrderId, OrderState } from "../types.ts";
@@ -73,7 +73,7 @@ export default function ListingDetail() {
         !orderId
       ) {
         //Create new order
-        orderId = objectId();
+        orderId = randUint64();
         const newOrder = new Order(
           orderId,
           [
