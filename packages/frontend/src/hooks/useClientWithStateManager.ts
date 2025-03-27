@@ -36,14 +36,22 @@ export function useClientWithStateManager() {
   });
 
   useEffect(() => {
-    if (!shopId || !keycard.privateKey || !relayEndpoint) return;
+    if (
+      !shopId || !keycard.privateKey || !relayEndpoint ||
+      // This check is to prevent the clientStateManager from being set multiple times.
+      clientStateManager?.shopId === shopId
+    ) return;
     const csm = new ClientWithStateManager(
       relayEndpoint,
       keycardWallet,
       account,
       shopId,
     );
-    setClientStateManager(csm);
+    // Open db connection, then set ClientStateManager
+    csm.open().then(() => {
+      setClientStateManager(csm);
+      debug("ClientStateManager set");
+    });
   }, [shopId, keycard.privateKey, relayEndpoint]);
 
   useQuery(async () => {

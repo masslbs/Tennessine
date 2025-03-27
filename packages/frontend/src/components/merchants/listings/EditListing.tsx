@@ -5,7 +5,7 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 
-import { assert, logger, objectId } from "@massmarket/utils";
+import { assert, logger, randUint64 } from "@massmarket/utils";
 import { Listing } from "@massmarket/schema";
 
 import { ListingId, ListingViewState } from "../../../types.ts";
@@ -160,7 +160,7 @@ export default function EditProduct() {
         if (editView) {
           newListing.ID = itemId;
         } else {
-          newListing.ID = objectId();
+          newListing.ID = randUint64();
         }
 
         editView ? await update(newListing) : await create(newListing);

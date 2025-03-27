@@ -66,7 +66,6 @@ export default function MerchantDashboard() {
               to="/edit-listing"
               search={(prev: Record<string, string>) => ({
                 shopId: prev.shopId,
-                itemId: "new",
               })}
               style={{ color: "black" }}
             >
