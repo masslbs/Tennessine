@@ -100,10 +100,15 @@ export default function Pay({
             ],
             connector,
           });
-          await approveERC20(wallet!, paymentArgs[0].currency, [
-            paymentArgs[0].payeeAddress,
-            paymentArgs[0].amount,
-          ]);
+          await approveERC20(
+            wallet!,
+            wallet!.account,
+            paymentArgs[0].currency,
+            [
+              paymentArgs[0].payeeAddress,
+              paymentArgs[0].amount,
+            ],
+          );
           debug("ERC20 contract call approved");
         }
       }

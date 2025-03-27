@@ -5,7 +5,6 @@ import {
   type Abi,
   type Account,
   bytesToHex,
-  type Chain,
   type ContractFunctionArgs,
   type ContractFunctionName,
   type ContractFunctionReturnType,
@@ -15,7 +14,6 @@ import {
   numberToBytes,
   pad,
   type PublicClient,
-  type Transport,
   type WalletClient,
   type WriteContractParameters,
 } from "viem";
@@ -36,8 +34,6 @@ export const permissions = {
   removeUser: 7,
   publishInviteVerifier: 8,
 } as const;
-
-export type ConcreteWalletClient = WalletClient<Transport, Chain, Account>;
 
 type Mutable = "nonpayable" | "payable";
 type ReadOnly = "view" | "pure";
@@ -101,7 +97,8 @@ export const payNative = genericWriteContract(
 // Logic for payNative vs. payTokenPreApproved is already baked into the pay contract function.
 // Not using genericWriteContract here since we need to pass in the value param for native payments.
 export function pay(
-  wallet: ConcreteWalletClient,
+  wallet: WalletClient,
+  account: Account | Hex,
   args: ContractFunctionArgs<
     typeof abi.paymentsByAddressAbi,
     "nonpayable" | "payable",
@@ -109,7 +106,9 @@ export function pay(
   >,
 ) {
   return wallet.writeContract({
+    chain: wallet.chain,
     address: abi.paymentsByAddressAddress,
+    account,
     abi: abi.paymentsByAddressAbi,
     functionName: "pay",
     args,
@@ -144,7 +143,8 @@ export async function getPaymentId(
 }
 
 export function approveERC20(
-  wallet: ConcreteWalletClient,
+  wallet: WalletClient,
+  account: Account | Hex,
   address: Hex,
   args: ContractFunctionArgs<
     typeof abi.eddiesAbi,
@@ -153,7 +153,9 @@ export function approveERC20(
   >,
 ) {
   return wallet.writeContract({
+    chain: wallet.chain,
     address,
+    account,
     abi: abi.eddiesAbi,
     functionName: "approve",
     args,

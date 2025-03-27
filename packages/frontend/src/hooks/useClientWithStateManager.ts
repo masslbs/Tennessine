@@ -1,6 +1,5 @@
 import { useEffect } from "react";
-import { useWalletClient } from "wagmi";
-import { createWalletClient, http, toHex } from "viem";
+import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
 import { logger } from "@massmarket/utils";
