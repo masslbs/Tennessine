@@ -20,6 +20,16 @@ import { assertRejects } from "@std/assert/rejects";
 const blockchainClient = createTestBlockchainClient();
 const relayClient = await createTestRelayClient(blockchainClient);
 
+const root = new Map(Object.entries({
+  Tags: new Map(),
+  Orders: new Map(),
+  Accounts: new Map(),
+  Inventory: new Map(),
+  Listings: new Map(),
+  Manifest: new Map(),
+  SchemeVersion: 1,
+}));
+
 Deno.test("Database Testings", async (t) => {
   const store = new MemStore();
 
@@ -32,6 +42,7 @@ Deno.test("Database Testings", async (t) => {
     const db = new StateManager({
       store,
       objectId: manifests[0]!.get("ShopID") as bigint,
+      root,
     });
     await db.open();
     // Need to initialize the listings map
@@ -76,6 +87,7 @@ Deno.test("Database Testings", async (t) => {
   const sm = new StateManager({
     store,
     objectId: relayClient.shopId,
+    root,
   });
 
   await sm.open();

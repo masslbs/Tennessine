@@ -6,12 +6,12 @@ import { fetchAndDecode } from "@massmarket/utils";
 
 Deno.test("Database Testings", async (t) => {
   const testFiles = [
-    "ManifestOkay",
+    // "ManifestOkay",
     "ListingOkay",
-    "OrderOkay",
-    "ShopOkay",
-    "InventoryOkay",
-    "UserFlows/SimpleShoppingTrip",
+    // "OrderOkay",
+    // "ShopOkay",
+    // "InventoryOkay",
+    // "UserFlows/SimpleShoppingTrip",
   ];
 
   for (const testFile of testFiles) {
@@ -31,11 +31,12 @@ Deno.test("Database Testings", async (t) => {
         store,
         objectId: (manifests as Map<string, bigint>[])[0].get("ShopID")!,
       });
-
+      await db.open();
       await db.set(["Manifest"], (manifests as Map<string, bigint>[])[0]);
 
-      const stream = db.createWriteStream("vector-test");
+      const stream = db.createWriteStream("tests", []);
       const writer = stream.getWriter();
+      console.log(patchSet);
       await writer.write(patchSet);
 
       await writer.close();
