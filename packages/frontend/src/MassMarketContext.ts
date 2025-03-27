@@ -7,7 +7,7 @@ import React, {
   useState,
 } from "react";
 import { ClientWithStateManager } from "./ClientWithStateManager.ts";
-import { Order } from "../../schema/mod.ts";
+import { Order } from "@massmarket/schema";
 
 type MassMarketContextType = {
   clientStateManager?: ClientWithStateManager;
