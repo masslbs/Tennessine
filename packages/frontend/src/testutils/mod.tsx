@@ -60,7 +60,7 @@ export const createTestStateManager = async (
     testKeyCard,
     shopId,
   );
-  await csm.stateManager.open();
+  await csm.open();
   return csm;
 };
 
@@ -150,5 +150,6 @@ export const createRouterWrapper = async (
   return {
     wrapper,
     csm,
+    testAccountAddress,
   };
 };

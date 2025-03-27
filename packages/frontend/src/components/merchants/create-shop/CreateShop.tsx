@@ -146,12 +146,15 @@ export default function () {
 
       setStoreRegistrationStatus("Adding relay token ID...");
       // Add relay tokenId for event verification.
+      const tokenID = BigInt(
+        clientStateManager!.relayClient.relayEndpoint.tokenId,
+      );
       const tx = await addRelay(wallet!, wallet!.account.address, [
         shopId!,
-        clientStateManager!.relayEndpoint.tokenId,
+        tokenID,
       ]);
       debug(
-        `Added relay token ID:${clientStateManager!.relayEndpoint.tokenId}`,
+        `Added relay token ID:${tokenID}`,
       );
       receipt = await shopPublicClient!.waitForTransactionReceipt({
         hash: tx,
@@ -208,6 +211,9 @@ export default function () {
   }
 
   async function updateManifest() {
+    if (!shopId) {
+      throw new Error("shopId not found");
+    }
     try {
       setStoreRegistrationStatus("Updating manifest...");
       // Since we don't currently have UI for inputting payment address for each chain,
@@ -226,6 +232,7 @@ export default function () {
 
       await clientStateManager?.stateManager.set(
         ["Manifest"],
+        // @ts-ignore TODO: add BaseClass to CodecValue
         shopManifest,
       );
       setKeycard({

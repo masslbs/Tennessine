@@ -1,9 +1,7 @@
 import { useEffect } from "react";
 import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-
 import { logger } from "@massmarket/utils";
-
 import { useMassMarketContext } from "../MassMarketContext.ts";
 import { useShopId } from "./useShopId.ts";
 import { useQuery } from "./useQuery.ts";
