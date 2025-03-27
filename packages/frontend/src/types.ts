@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { OrderState } from "@massmarket/schema";
-export { OrderState };
+import { ListingViewState, OrderState } from "@massmarket/schema";
+export { ListingViewState, OrderState };
 export type KeyCard = `0x${string}`;
 export type ListingId = number;
 export type TagId = `0x${string}`;
@@ -57,12 +57,6 @@ export type ShopForm = {
   avatar: FormData | null;
   paymentAddress: string;
 };
-
-export enum ListingViewState {
-  Unspecified = 0,
-  Published = 1,
-  Deleted = 2,
-}
 
 export enum KeycardRole {
   NEW_GUEST = "new-guest",

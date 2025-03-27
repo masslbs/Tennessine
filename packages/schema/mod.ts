@@ -12,7 +12,11 @@ import {
   PayeeMap,
   PayeeMetadata,
 } from "./standin_manifest.ts";
-import { Listing, ListingMetadata } from "./standin_listing.ts";
+import {
+  Listing,
+  ListingMetadata,
+  ListingViewState,
+} from "./standin_listing.ts";
 import { Order, OrderedItem, OrderState } from "./standin_order.ts";
 import { BaseClass } from "./utils.ts";
 export {
@@ -21,6 +25,7 @@ export {
   ChainAddress,
   Listing,
   ListingMetadata,
+  ListingViewState,
   Manifest,
   Order,
   OrderedItem,
