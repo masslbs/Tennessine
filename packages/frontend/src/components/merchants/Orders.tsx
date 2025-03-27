@@ -32,11 +32,10 @@ export default function Orders() {
       setOrders(allOrders);
     }
 
-    sm.events.on(onUpdateOrder, ["Orders"]);
-
     sm.get(["Orders"]).then((orders: Map<OrderId, unknown>) => {
       const allOrders = getAllOrders(orders);
       setOrders(allOrders);
+      sm.events.on(onUpdateOrder, ["Orders"]);
     });
 
     return () => {

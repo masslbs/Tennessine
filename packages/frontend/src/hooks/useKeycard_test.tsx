@@ -1,12 +1,13 @@
 import "../happyDomSetup.ts";
 import { assertEquals } from "@std/assert";
-import { cleanup, renderHook } from "@testing-library/react-hooks";
+import { cleanup, renderHook } from "@testing-library/react";
 import { expect } from "@std/expect";
 
 import { random256BigInt, random32BytesHex } from "@massmarket/utils";
 
+import { KeycardRole } from "../types.ts";
 import { useKeycard } from "./useKeycard.ts";
-import { createRouterWrapper } from "../utils/mod.ts";
+import { createRouterWrapper } from "../utils/test.tsx";
 
 Deno.test("useKeycard", {
   sanitizeResources: false,
@@ -16,11 +17,12 @@ Deno.test("useKeycard", {
   await t.step("should set and get keycards", async () => {
     const { wrapper } = await createRouterWrapper();
     const { result, unmount } = renderHook(
-      () => useKeycard({ privateKey: randomKC, role: "guest" }),
+      () => useKeycard({ privateKey: randomKC, role: KeycardRole.NEW_GUEST }),
       { wrapper },
     );
     const [keycard] = result.current;
     assertEquals(keycard.privateKey, randomKC);
+    assertEquals(keycard.role, KeycardRole.NEW_GUEST);
     unmount();
   });
 

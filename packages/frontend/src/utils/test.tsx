@@ -13,46 +13,58 @@ import { hardhat, mainnet, sepolia } from "wagmi/chains";
 import { mock } from "npm:wagmi/connectors";
 import { createTestClient, publicActions, walletActions } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { discoverRelay } from "@massmarket/client";
+import { random256BigInt } from "@massmarket/utils";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { MassMarketProvider } from "../MassMarketContext.ts";
 import { ClientWithStateManager } from "../ClientWithStateManager.ts";
 
-const anvilPrivateKey = generatePrivateKey();
-const account = privateKeyToAccount(
-  anvilPrivateKey,
-);
+export const relayURL = Deno.env.get("RELAY_ENDPOINT") ||
+  "http://localhost:4444/v4";
+const testRelayEndpoint = await discoverRelay(relayURL);
+
+export const testClient = createTestClient({
+  transport: http(),
+  chain: hardhat,
+  mode: "anvil",
+})
+  // Extend the client with public and wallet actions, so it can also act as a Public Client and Wallet Client
+  .extend(publicActions)
+  .extend(walletActions);
+const [testAccountAddress] = await testClient.requestAddresses();
+
 export const connectors = [
   mock({
-    accounts: [account.address],
+    accounts: [testAccountAddress],
     features: {
       defaultConnected: true,
       reconnect: true,
     },
   }),
 ];
-export const testClient = createTestClient({
-  transport: http(),
-  chain: hardhat,
-  mode: "anvil",
-  account: account.address,
-  key: anvilPrivateKey,
-})
-  // Extend the client with public and wallet actions, so it can also act as a Public Client and Wallet Client
-  .extend(publicActions)
-  .extend(walletActions);
 
-export const createClientStateManager = (
+export const createTestStateManager = (
   shopId: bigint | null = null,
 ) => {
+  if (!shopId) {
+    shopId = random256BigInt();
+  }
+  const pk = generatePrivateKey();
+  const testKeyCard = privateKeyToAccount(pk);
+
   const csm = new ClientWithStateManager(
+    testRelayEndpoint,
+    testClient,
+    testKeyCard,
     shopId,
   );
 
   return csm;
 };
 
+// TODO: verify where createRouterWrapper is used and if we can remove the csm argument.
 export const createRouterWrapper = async (
   shopId: bigint | null = null,
   path: string = "/",
@@ -69,7 +81,7 @@ export const createRouterWrapper = async (
     },
     connectors,
   });
-  const csm = clientStateManager ?? await createClientStateManager(shopId);
+  const csm = clientStateManager ?? await createTestStateManager(shopId);
   await connect(config, { connector: config.connectors[0] });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => {

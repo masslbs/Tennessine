@@ -37,12 +37,11 @@ export default function MerchantDashboard() {
       setOrders(allOrders);
     }
 
-    sm.get(["Orders"]).then((res) => {
+    sm.get(["Orders"]).then((res: Map<OrderId, unknown>) => {
       const allOrders = mapToOrderClass(res);
       setOrders(allOrders);
+      sm.events.on(ordersEvent, ["Orders"]);
     });
-
-    sm.events.on(ordersEvent, ["Orders"]);
 
     return () => {
       sm.events.off(
@@ -62,12 +61,13 @@ export default function MerchantDashboard() {
           <h1>Dashboard</h1>
           <div className="flex flex-col gap-1 pt-4">
             <Link
-              className="flex items-center gap-1 p-3 bg-white rounded-md text-black"
+              className="flex items-center gap-1 p-3 bg-white rounded-md"
               to="/edit-listing"
               search={(prev: Record<string, string>) => ({
                 shopId: prev.shopId,
                 itemId: "new",
               })}
+              style={{ color: "black" }}
             >
               Add new product
               <img
@@ -79,11 +79,12 @@ export default function MerchantDashboard() {
               />
             </Link>
             <Link
-              className="flex items-center gap-1 p-3 bg-white rounded-md text-black"
+              className="flex items-center gap-1 p-3 bg-white rounded-md"
               to="/listings"
               search={(prev: Record<string, string>) => ({
                 shopId: prev.shopId,
               })}
+              style={{ color: "black" }}
             >
               <p>View products</p>
               <img
@@ -100,7 +101,8 @@ export default function MerchantDashboard() {
               search={(prev: Record<string, string>) => ({
                 shopId: prev.shopId,
               })}
-              className="flex items-center gap-1 p-3 bg-white rounded-md text-black"
+              className="flex items-center gap-1 p-3 bg-white rounded-md"
+              style={{ color: "black" }}
             >
               <p>Shop settings</p>
               <img

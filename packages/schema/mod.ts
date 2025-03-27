@@ -12,16 +12,24 @@ import {
   PayeeMap,
   PayeeMetadata,
 } from "./standin_manifest.ts";
-import { Listing, ListingMetadata } from "./standin_listing.ts";
-import { Order, OrderedItem } from "./standin_order.ts";
+import {
+  Listing,
+  ListingMetadata,
+  ListingViewState,
+} from "./standin_listing.ts";
+import { Order, OrderedItem, OrderState } from "./standin_order.ts";
+import { BaseClass } from "./utils.ts";
 export {
   AcceptedCurrencyMap,
+  BaseClass,
   ChainAddress,
   Listing,
   ListingMetadata,
+  ListingViewState,
   Manifest,
   Order,
   OrderedItem,
+  OrderState,
   Payee,
   PayeeMap,
   PayeeMetadata,

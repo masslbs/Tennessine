@@ -1,7 +1,6 @@
 import "../happyDomSetup.ts";
 import { assertEquals } from "@std/assert";
-import { cleanup, renderHook } from "@testing-library/react-hooks";
-import { waitFor } from "@testing-library/react";
+import { cleanup, renderHook, waitFor } from "@testing-library/react";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";
 
 Deno.test("useRelayEndpoint", {

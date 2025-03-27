@@ -43,12 +43,12 @@ Deno.test("Check that we can render the checkout screen", {
   const item1 = await csm.stateManager!.listings.create({
     price: "12.00",
     metadata,
-    viewState: ListingViewState.LISTING_VIEW_STATE_PUBLISHED,
+    viewState: ListingViewState.Published,
   });
   const item2 = await csm.stateManager!.listings.create({
     price: "1.00",
     metadata: metadata2,
-    viewState: ListingViewState.LISTING_VIEW_STATE_PUBLISHED,
+    viewState: ListingViewState.Published,
   });
   // Create order and add item to it
   const order = await csm.stateManager!.orders.create();

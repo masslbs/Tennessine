@@ -53,7 +53,7 @@ Deno.test("Merchant Dashboard", {
     const item1 = await csm.stateManager!.listings.create({
       price: "12.00",
       metadata,
-      viewState: ListingViewState.LISTING_VIEW_STATE_PUBLISHED,
+      viewState: ListingViewState.Published,
     });
     const order = await csm.stateManager!.orders.create();
     await csm.stateManager!.orders.addItems(order.id, [{

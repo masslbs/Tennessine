@@ -1,10 +1,10 @@
+import "../happyDomSetup.ts";
 import { assertEquals } from "@std/assert";
 import { cleanup, renderHook } from "@testing-library/react";
-import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
+
 import { useQuery } from "./useQuery.ts";
 
 Deno.test("test useQuery instantiation", async (t) => {
-  GlobalRegistrator.register({});
   const value = Symbol("hello");
   function testQuery(shouldThrow: boolean) {
     return () => {
@@ -56,5 +56,4 @@ Deno.test("test useQuery instantiation", async (t) => {
   );
   unmount();
   cleanup();
-  await GlobalRegistrator.unregister();
 });

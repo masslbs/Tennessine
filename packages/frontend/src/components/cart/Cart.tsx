@@ -57,10 +57,9 @@ export default function Cart({
         getAllCartItemDetails(new Order(order)).then((allCartItems) => {
           setCartMap(allCartItems);
         });
+        sm.events.on(onOrderUpdate, ["Orders", currentOrder!.ID]);
       },
     );
-
-    sm.events.on(onOrderUpdate, ["Orders", currentOrder!.ID]);
 
     return () => {
       sm.events.off(onOrderUpdate, ["Orders", currentOrder!.ID]);

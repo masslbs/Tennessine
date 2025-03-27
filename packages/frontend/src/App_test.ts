@@ -2,6 +2,7 @@ import "./happyDomSetup.ts";
 import { cleanup, render, screen } from "@testing-library/react";
 import { createConfig, http } from "wagmi";
 import { mainnet, sepolia } from "wagmi/chains";
+import { relayURL } from "./utils/test.tsx";
 
 Deno.test("check that we can render the app", {
   sanitizeResources: false,
@@ -61,7 +62,7 @@ Deno.test("check that we can connect to the relay client", {
   await t.step("can create and connect to relay client", async () => {
     // Create relay client
     const shopId = random256BigInt();
-    const relayEndpoint = await discoverRelay("ws://localhost:8080/v4");
+    const relayEndpoint = await discoverRelay(relayURL);
 
     const client = new RelayClient({
       relayEndpoint,

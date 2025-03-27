@@ -76,7 +76,7 @@ Deno.test("Edit Listing", {
       expect(item.quantity).toBe(10);
       expect(images).toBeDefined();
       expect(item.viewState).toBe(
-        ListingViewState.LISTING_VIEW_STATE_PUBLISHED,
+        ListingViewState.Published,
       );
     }
 
@@ -107,7 +107,7 @@ Deno.test("Edit Listing", {
     const { id } = await csm.stateManager!.listings.create({
       metadata,
       price: "100",
-      viewState: ListingViewState.LISTING_VIEW_STATE_PUBLISHED,
+      viewState: ListingViewState.Published,
     });
     await csm.stateManager!.listings.changeInventory(id, 5);
     const { wrapper } = await createRouterWrapper(null, `/?itemId=${id}`, csm);

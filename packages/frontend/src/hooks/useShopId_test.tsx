@@ -1,11 +1,11 @@
 import "../happyDomSetup.ts";
 import { assertEquals } from "@std/assert";
-import { cleanup, renderHook } from "@testing-library/react-hooks";
+import { cleanup, renderHook } from "@testing-library/react";
 
 import { random256BigInt } from "@massmarket/utils";
 
 import { useShopId } from "./useShopId.ts";
-import { createRouterWrapper } from "../utils/mod.ts";
+import { createRouterWrapper } from "../utils/test.tsx";
 
 Deno.test(
   "useShopId",
