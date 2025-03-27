@@ -1,9 +1,5 @@
 import { Address, PublicClient, toBytes, zeroAddress } from "viem";
-import {
-  eddiesAbi,
-  eddiesAddress,
-  tokenAddresses,
-} from "@massmarket/contracts";
+import { abi, tokenAddresses } from "@massmarket/contracts";
 import { assert } from "@massmarket/utils";
 
 // Any utility functions for tokens
@@ -12,7 +8,7 @@ export const getTokenAddress = (
   chainId: number,
 ): Uint8Array => {
   if (symbol === "ETH") return toBytes(zeroAddress);
-  if (symbol === "EDD") return toBytes(eddiesAddress);
+  if (symbol === "EDD") return toBytes(abi.eddiesAddress);
   const addresses: {
     [key: string]: {
       [key: string]: string;
@@ -38,13 +34,13 @@ export const getTokenInformation = (
   }
   const symbol = publicClient.readContract({
     address: tokenAddress,
-    abi: eddiesAbi,
+    abi: abi.eddiesAbi,
     functionName: "symbol",
     args: [],
   }) as Promise<string>;
   const decimal = publicClient.readContract({
     address: tokenAddress,
-    abi: eddiesAbi,
+    abi: abi.eddiesAbi,
     functionName: "decimals",
     args: [],
   }) as Promise<number>;

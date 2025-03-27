@@ -14,16 +14,16 @@ import {
 
 import OrderDetails from "./OrderDetails.tsx";
 import {
-  createClientStateManager,
   createRouterWrapper,
-} from "../../utils/test.tsx";
+  createTestStateManager,
+} from "../../testutils/mod.tsx";
 import { ListingViewState } from "../../types.ts";
 
 Deno.test("Check that we can render the order details screen", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async () => {
-  const csm = await createClientStateManager();
+  const csm = await createTestStateManager();
 
   await csm.stateManager!.manifest.create(
     {

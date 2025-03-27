@@ -5,7 +5,7 @@ import { renderHook, waitFor } from "@testing-library/react";
 import { Order } from "@massmarket/schema";
 
 import { useCurrentOrder } from "./useCurrentOrder.ts";
-import { createRouterWrapper } from "../utils/test.tsx";
+import { createRouterWrapper } from "../testutils/mod.tsx";
 import { OrderState } from "../types.ts";
 
 Deno.test(

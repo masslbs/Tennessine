@@ -7,7 +7,7 @@ const queryCache = new Map();
 export function useQuery<T>(query: () => Promise<T>, deps: unknown[] = []) {
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState(false);
-  const [result, setResult] = useState(undefined);
+  const [result, setResult] = useState<T | undefined>(undefined);
   const queryCacheKey = hashMessage(JSON.stringify(deps) + query.toString());
 
   useEffect(() => {

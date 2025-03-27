@@ -9,7 +9,7 @@ import { random256BigInt, random32BytesHex } from "@massmarket/utils";
 import { mintShop, setTokenURI } from "@massmarket/contracts";
 
 import MerchantConnect from "./MerchantConnect.tsx";
-import { createRouterWrapper, testClient } from "../../utils/test.tsx";
+import { createRouterWrapper, testClient } from "../../testutils/mod.tsx";
 
 Deno.test("Check that we can render the merchant connect screen", {
   sanitizeResources: false,

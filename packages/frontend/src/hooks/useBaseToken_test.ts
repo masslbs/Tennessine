@@ -5,7 +5,7 @@ import { cleanup, renderHook, waitFor } from "@testing-library/react";
 import { allManifests } from "@massmarket/schema/testFixtures";
 import { ChainAddress } from "@massmarket/schema";
 
-import { createRouterWrapper } from "../utils/mod.ts";
+import { createRouterWrapper } from "../testutils/mod.tsx";
 import { useBaseToken } from "./useBaseToken.ts";
 
 Deno.test("useBaseToken", {

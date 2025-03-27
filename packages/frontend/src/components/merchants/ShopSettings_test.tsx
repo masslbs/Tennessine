@@ -7,10 +7,11 @@ import { zeroAddress } from "viem";
 
 import { random256BigInt } from "@massmarket/utils";
 import { payees, shippingRegions } from "@massmarket/schema/testFixtures";
-import { eddiesAddress } from "@massmarket/contracts";
+import { abi } from "@massmarket/contracts";
+const { eddiesAddress } = abi;
 
 import ShopSettings from "./ShopSettings.tsx";
-import { createRouterWrapper } from "../../utils/test.tsx";
+import { createRouterWrapper } from "../../testutils/mod.tsx";
 
 Deno.test("Check that we can render the shop settings screen", {
   sanitizeResources: false,

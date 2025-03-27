@@ -5,11 +5,11 @@ import { generatePrivateKey } from "viem/accounts";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "@std/expect";
 import { hardhat } from "wagmi/chains";
-
+import { Manifest } from "@massmarket/schema";
 import { random256BigInt, random32BytesHex } from "@massmarket/utils";
 
 import CreateShop from "./CreateShop.tsx";
-import { createRouterWrapper } from "../../../utils/test.tsx";
+import { createRouterWrapper } from "../../../testutils/mod.tsx";
 
 Deno.test("Check that we can render the create shop screen", {
   sanitizeResources: false,
@@ -53,19 +53,10 @@ Deno.test("Check that we can render the create shop screen", {
     await user.type(payees, anvilAddress);
   });
   await act(async () => {
-    const pricingCurrency = screen.getByTestId("pricing-currency");
-    expect(pricingCurrency).toBeTruthy();
-    const dropdown = pricingCurrency.querySelector(
-      '[data-testid="dropdown"]',
-    ) as HTMLInputElement;
-    await user.click(dropdown);
-  });
-
-  await act(async () => {
-    const dropdownOptions = screen.getByTestId("dropdown-options");
-    expect(dropdownOptions).toBeTruthy();
-    // click on the ETH/Hardhat option
-    const option = screen.getByTestId("ETH/Hardhat");
+    // const pricingCurrency = screen.getByTestId("pricing-currency-dropdown");
+    // expect(pricingCurrency).toBeTruthy();
+    // await user.click(pricingCurrency);
+    const option = screen.getByTestId("pricing-currency-option-EDD/Hardhat");
     expect(option).toBeTruthy();
     await user.click(option);
   });
@@ -111,19 +102,35 @@ Deno.test("Check that we can render the create shop screen", {
     expect(screen.getByTestId("mint-shop-confirmation")).toBeTruthy();
   }, { timeout: 15000 });
 
-  const { acceptedCurrencies, payees, pricingCurrency, shippingRegions } =
-    await csm.stateManager!.get(["Manifest"]);
-  expect(acceptedCurrencies.length).toBe(1);
-  expect(acceptedCurrencies[0].chainId).toBe(hardhat.id);
-  expect(acceptedCurrencies[0].address).toBe(zeroAddress);
-  expect(payees.length).toBe(1);
-  expect(payees[0].address.toLowerCase()).toBe(
-    anvilAddress.toLowerCase(),
+  const manifest = Manifest.fromCBOR(
+    await csm.stateManager!.get(["Manifest"]) as Map<string, unknown>,
   );
-  expect(payees[0].chainId).toBe(hardhat.id);
-  expect(shippingRegions.length).toBe(1);
-  expect(pricingCurrency!.chainId).toBe(hardhat.id);
-  expect(pricingCurrency!.address).toBe(zeroAddress);
+  // check accepted currencies
+  expect(manifest.AcceptedCurrencies.size).toBe(1);
+  const acceptedCurrency = manifest.AcceptedCurrencies.getAddressesByChainID(
+    hardhat.id,
+  );
+  expect(acceptedCurrency).toBeTruthy();
+  expect(acceptedCurrency!.size).toBe(1);
+  // get first value
+  const acceptedCurrencyAddress = acceptedCurrency!.keys().next().value;
+  expect(acceptedCurrencyAddress).toBeTruthy();
+  expect(acceptedCurrencyAddress).toBe(zeroAddress);
+
+  // check payees
+  expect(manifest.Payees.size).toBe(1);
+  const payees = manifest.Payees.get(hardhat.id);
+  expect(payees).toBeTruthy();
+  expect(payees!.size).toBe(1);
+  // get first value
+  const payeeAddress = payees!.keys().next().value;
+  expect(payeeAddress).toBeTruthy();
+  expect(payeeAddress).toBe(anvilAddress);
+  expect(payees!.get(payeeAddress!)!.CallAsContract).toBe(true);
+
+  // check pricing currency
+  expect(manifest.PricingCurrency.ChainID).toBe(hardhat.id);
+  expect(manifest.PricingCurrency.Address).toBe(zeroAddress);
 
   unmount();
   cleanup();

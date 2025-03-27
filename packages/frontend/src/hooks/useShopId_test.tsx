@@ -5,7 +5,7 @@ import { cleanup, renderHook } from "@testing-library/react";
 import { random256BigInt } from "@massmarket/utils";
 
 import { useShopId } from "./useShopId.ts";
-import { createRouterWrapper } from "../utils/test.tsx";
+import { createRouterWrapper } from "../testutils/mod.tsx";
 
 Deno.test(
   "useShopId",

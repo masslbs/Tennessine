@@ -12,7 +12,7 @@ import {
 } from "@massmarket/schema/testFixtures";
 
 import MerchantDashboard from "./MerchantDashboard.tsx";
-import { createRouterWrapper } from "../../utils/test.tsx";
+import { createRouterWrapper } from "../../testutils/mod.tsx";
 import { ListingViewState } from "../../types.ts";
 
 Deno.test("Merchant Dashboard", {

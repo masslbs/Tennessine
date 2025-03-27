@@ -36,6 +36,7 @@ import { useKeycard } from "../../../hooks/useKeycard.ts";
 import { useShopDetails } from "../../../hooks/useShopDetails.ts";
 import { useChain } from "../../../hooks/useChain.ts";
 import { CreateShopStep, KeycardRole, ShopForm } from "../../../types.ts";
+import { removeCachedKeycards } from "../../../utils/helper.ts";
 
 // When create shop CTA is clicked, these functions are called:
 // 1. mintShop

@@ -7,11 +7,13 @@ export default function Dropdown({
   callback,
   selected = null,
   label,
+  testId = "currency-dropdown",
 }: {
   options: CurrencyChainOption[];
   callback: (option: CurrencyChainOption) => void | Promise<void>;
   selected?: null | CurrencyChainOption;
   label: string;
+  testId?: string;
 }) {
   const [selectedOption, setSelectedOption] = useState<
     CurrencyChainOption | null
@@ -39,12 +41,17 @@ export default function Dropdown({
     >
       <label className="font-medium">{label}</label>
       <select
+        data-testid={testId}
         onChange={(e) => handleChange(e)}
         value={selectedOption?.label || ""}
       >
         <option value="" disabled>Select a currency</option>
         {options.map((option) => (
-          <option key={option.label} value={option.label}>
+          <option
+            data-testid={`${testId}-option-${option.label}`}
+            key={option.label}
+            value={option.label}
+          >
             {option.label}
           </option>
         ))}
