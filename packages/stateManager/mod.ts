@@ -5,7 +5,6 @@ import type { AbstractStore } from "@massmarket/store";
 import EventTree from "@massmarket/eventTree";
 import type { Patch, PushedPatchSet, RelayClient } from "@massmarket/client";
 import type { codec, Hash } from "@massmarket/utils";
-import { BaseClass } from "@massmarket/schema";
 
 // move to schema
 const DefaultObject = new Map(Object.entries({
@@ -213,9 +212,6 @@ export default class StateManager {
   }
 
   async set(path: codec.Path, value: codec.CodecValue) {
-    if (BaseClass.isBaseClass(value)) {
-      value = value.asCBORMap() as codec.CodecValue;
-    }
     const state = this.#state;
     assert(state, "open not finished");
     let sendpromise: Promise<void[]>;
