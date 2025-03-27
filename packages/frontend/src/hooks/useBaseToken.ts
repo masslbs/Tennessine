@@ -6,45 +6,36 @@ import { ChainAddress, Manifest } from "@massmarket/schema";
 import { useClientWithStateManager } from "./useClientWithStateManager.ts";
 import { getTokenInformation } from "../utils/token.ts";
 import { useQuery } from "./useQuery.ts";
+import { bytesToHex } from "viem";
 
 export function useBaseToken() {
   const [pricingCurrency, setChainAddress] = useState<
     ChainAddress
   >(
-    new ChainAddress(),
+    new ChainAddress(0, new Uint8Array(20)),
   );
   const { clientStateManager } = useClientWithStateManager();
   const shopPublicClient = usePublicClient({
-    chainId: pricingCurrency?.chainId,
+    chainId: pricingCurrency?.chainID,
   });
   const sm = clientStateManager?.stateManager;
 
   useEffect(() => {
     if (!sm) return;
 
-    function onUpdateEvent(m: Map<string, unknown>) {
-      const manifest = new Manifest(m);
-      setChainAddress(manifest.PricingCurrency);
-    }
-
-    sm.events.on(onUpdateEvent, ["Manifest"]);
-
-    sm.get(["Manifest"]).then((m: Map<string, unknown>) => {
-      const manifest = new Manifest(m);
-      setChainAddress(manifest.PricingCurrency);
-    });
-
-    return () => {
-      sm.events.off(onUpdateEvent, ["Manifest"]);
+    const setCurrency = (currency: Map<string, unknown>) => {
+      setChainAddress(ChainAddress.fromCBOR(currency));
     };
+    const path = ["Manifest", "PricingCurrency"];
+    sm.events.on(setCurrency, path);
+    sm.get(path).then(setCurrency);
   }, [sm]);
 
   const { result: baseToken } = useQuery(async () => {
     if (!pricingCurrency || !shopPublicClient) return;
-    const { address } = pricingCurrency;
     const [symbol, decimals] = await getTokenInformation(
       shopPublicClient!,
-      address!,
+      bytesToHex(pricingCurrency.Address),
     );
     return { symbol, decimals };
   }, [pricingCurrency, shopPublicClient?.chain.id]);

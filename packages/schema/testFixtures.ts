@@ -1,16 +1,26 @@
 import { bytesToHex } from "viem";
 import { objectId, randomAddress } from "@massmarket/utils";
-
+import { PayeeMap } from "@massmarket/schema";
+import { hardhat } from "viem/chains";
+import { fetchAndDecode } from "@massmarket/utils";
 // Test variables used in multiple packages.
 
-export const payees = [
-  {
-    address: randomAddress(),
-    callAsContract: false,
-    chainId: 31337,
-    name: "default",
-  },
-];
+export const payees = new PayeeMap(
+  new Map([
+    [
+      hardhat.id,
+      new Map([
+        [
+          randomAddress(),
+          {
+            callAsContract: false,
+          },
+        ],
+      ]),
+    ],
+  ]),
+);
+
 export const orderPriceModifiers = [
   {
     title: "EU VAT",
@@ -47,3 +57,13 @@ export const shippingDetails = {
   emailAddress: "john@example.com",
   phoneNumber: "+1234567890",
 };
+
+type TestVector = Map<
+  string,
+  Array<Map<string, Map<string, Map<string, Map<string, codec.CodecValue>>>>>
+>;
+
+const manifestVector = await fetchAndDecode("ManifestOkay") as TestVector;
+export const allManifests = manifestVector.get("Snapshots")?.map((snapshot) => {
+  return snapshot!.get("After")!.get("Value")!.get("Manifest");
+}) || [];

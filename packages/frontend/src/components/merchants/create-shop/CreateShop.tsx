@@ -21,7 +21,6 @@ import {
   getWindowLocation,
   logger,
   random256BigInt,
-  random32BytesHex,
 } from "@massmarket/utils";
 import { abi, permissions } from "@massmarket/contracts";
 
@@ -58,16 +57,11 @@ export default function () {
   const { shopId } = useShopId();
   const { setShopDetails } = useShopDetails();
   const { clientStateManager } = useClientWithStateManager();
-  useKeycard({
-    privateKey: random32BytesHex(),
-    role: KeycardRole.MERCHANT,
-  });
+  const [keycard, setKeycard] = useKeycard();
   const { connector } = useAccount();
   const config = useConfig();
-
   const navigate = useNavigate({ from: "/create-shop" });
   const search = useSearch({ from: "/create-shop" });
-
   const [step, setStep] = useState<
     CreateShopStep
   >(CreateShopStep.ManifestForm);
@@ -97,7 +91,7 @@ export default function () {
     }
     return () => {
       // If user exits before creating shop, remove keycard from local storage.
-      // removeCachedKeycards();
+      removeCachedKeycards();
     };
   }, []);
 
@@ -198,7 +192,7 @@ export default function () {
       if (!res.ok) {
         throw Error("Failed to enroll keycard");
       }
-      debug("Keycard enrolled");
+      debug(`Keycard enrolled: ${keycard.privateKey}`);
       setStoreRegistrationStatus("Adding connection...");
 
       await clientStateManager!.addConnection();
@@ -233,7 +227,10 @@ export default function () {
         ["Manifest"],
         shopManifest.asCBORMap(),
       );
-
+      setKeycard({
+        privateKey: keycard.privateKey,
+        role: KeycardRole.MERCHANT,
+      });
       debug("Manifest created");
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");

@@ -5,7 +5,7 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import { Link, useSearch } from "@tanstack/react-router";
 
-import { formatUnitsFromString, logger, objectId } from "@massmarket/utils";
+import { logger, objectId } from "@massmarket/utils";
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
 
 import { ListingId, OrderId, OrderState } from "../types.ts";
@@ -30,8 +30,7 @@ export default function ListingDetail() {
   const search = useSearch({ strict: false });
   const { currentOrder } = useCurrentOrder();
   const itemId = search.itemId as ListingId;
-  const [item, setItem] = useState<Listing>(new Listing());
-  const [price, setPrice] = useState("");
+  const [listing, setListing] = useState<Listing>(new Listing());
   const [tokenIcon, setIcon] = useState("/icons/usdc-coin.png");
   const [quantity, setQuantity] = useState<string>("");
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
@@ -45,21 +44,16 @@ export default function ListingDetail() {
         .get(["Listings", itemId])
         .then((res: Map<string, unknown>) => {
           const item = Listing.fromCBOR(res);
-          setItem(item);
-          const price = formatUnitsFromString(
-            item.Price,
-            baseToken?.decimals || 0,
-          );
+          setListing(item);
           setDisplayedImg(item.Metadata.Images[0]);
           if (baseToken?.symbol === "ETH") {
             setIcon("/icons/eth-coin.svg");
           }
-          setPrice(price);
         });
     }
   }, [itemId, baseToken]);
 
-  if (!item) {
+  if (!listing) {
     return (
       <main data-testid="listing-detail-page">
         <p>Item not found.</p>
@@ -72,22 +66,6 @@ export default function ListingDetail() {
     setQuantity(newValue);
   }
 
-  function updateItemQuantity(order: Order, itemId: ListingId): Order {
-    order.Items = order.Items.map((item: OrderedItem) => {
-      return new OrderedItem(
-        new Map([
-          ["ListingID", item.ListingID],
-          ["VariationIDs", item.VariationIDs],
-          [
-            "Quantity",
-            item.ListingID === itemId ? Number(quantity) : item.Quantity,
-          ],
-        ]),
-      );
-    });
-    return order;
-  }
-
   async function changeItems() {
     try {
       let orderId: OrderId | null = currentOrder?.ID || null;
@@ -95,21 +73,21 @@ export default function ListingDetail() {
         !orderId
       ) {
         //Create new order
-        const newOrder = new Map();
         orderId = objectId();
-        newOrder.set("ID", orderId);
-        newOrder.set("Items", [
-          {
-            ListingID: itemId,
-            Quantity: Number(quantity),
-          },
-        ]);
-        newOrder.set("State", OrderState.Open);
+        const newOrder = new Order(
+          orderId,
+          [
+            {
+              ListingID: itemId,
+              Quantity: Number(quantity),
+            },
+          ],
+          OrderState.Open,
+        );
         await clientStateManager!.stateManager.set(
           ["Orders", orderId],
           newOrder,
         );
-
         debug(`New Order ID: ${orderId}`);
       } else {
         // Update existing order
@@ -118,14 +96,23 @@ export default function ListingDetail() {
           orderId = await cancelAndCreateOrder(orderId, clientStateManager!);
         }
 
-        const order = await clientStateManager!.stateManager.get([
+        const o = await clientStateManager!.stateManager.get([
           "Orders",
           orderId,
         ]);
-        const newOrder = updateItemQuantity(new Order(order), itemId);
+        const order: Order = Order.fromCBOR(o);
+        const updatedOrderItems: OrderedItem[] = (order.Items ?? []).map(
+          (item: OrderedItem) => {
+            if (item.ListingID === itemId) {
+              return new OrderedItem(item.ListingID, Number(quantity));
+            } else {
+              return item;
+            }
+          },
+        );
         await clientStateManager!.stateManager.set(
           ["Orders", orderId, "Items"],
-          newOrder.asCBORMap().get("Items"),
+          updatedOrderItems,
         );
         setQuantity("");
         setMsg("Added to cart");
@@ -151,7 +138,7 @@ export default function ListingDetail() {
         <BackButton href="/listings" />
         <div className="my-3">
           <h1 className="flex items-center" data-testid="title">
-            {item.Metadata.Title}
+            {listing.Metadata.Title}
           </h1>
           <div
             className={`mt-2 ${keycard.role === "merchant" ? "" : "hidden"}`}
@@ -161,7 +148,7 @@ export default function ListingDetail() {
                 to="/edit-listing"
                 search={(prev: Record<string, string>) => ({
                   shopId: prev.shopId,
-                  itemId: item.ID,
+                  itemId: listing.ID,
                 })}
                 className="text-white"
               >
@@ -183,10 +170,10 @@ export default function ListingDetail() {
                 }}
               />
             )}
-            {item.Metadata.Images.length > 1
+            {listing.Metadata.Images.length > 1
               ? (
                 <div className="flex mt-2 gap-2">
-                  {item.Metadata.Images.map((image: string, i: number) => {
+                  {listing.Metadata.Images.map((image: string, i: number) => {
                     if (image === displayedImg) return;
                     return (
                       <img
@@ -213,7 +200,7 @@ export default function ListingDetail() {
           <section className="flex gap-4 flex-col bg-white mt-5 md:mt-0 rounded-md md:w-2/5 p-4">
             <div>
               <h3 className=" ">Description</h3>
-              <p data-testid="description">{item.Metadata.Description}</p>
+              <p data-testid="description">{listing.Metadata.Description}</p>
             </div>
             <div className="flex gap-2 items-center mt-auto">
               <img
@@ -223,7 +210,7 @@ export default function ListingDetail() {
                 height={24}
                 className="w-6 h-6 max-h-6"
               />
-              <h1 data-testid="price">{Number(price).toFixed(2)}</h1>
+              <h1 data-testid="price">{listing.Price}</h1>
             </div>
             <div
               className={keycard.role === "merchant" ? "hidden" : "flex gap-2"}

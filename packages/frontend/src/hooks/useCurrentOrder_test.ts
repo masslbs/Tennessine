@@ -1,6 +1,8 @@
+import "../happyDomSetup.ts";
 import { assertEquals } from "@std/assert";
 import { renderHook, waitFor } from "@testing-library/react";
-import { GlobalRegistrator } from "npm:@happy-dom/global-registrator";
+
+import { Order } from "@massmarket/schema";
 
 import { useCurrentOrder } from "./useCurrentOrder.ts";
 import { createRouterWrapper } from "../utils/test.tsx";
@@ -10,7 +12,6 @@ Deno.test(
   "useCurrentOrder",
   { sanitizeResources: false, sanitizeOps: false },
   async (t) => {
-    GlobalRegistrator.register({});
     const { wrapper, csm } = await createRouterWrapper();
 
     await t.step("should return null if no order is found", () => {
@@ -23,15 +24,17 @@ Deno.test(
     });
 
     await t.step("should return open order", async () => {
-      const order = await csm.stateManager?.orders.create();
+      const order = new Order(12);
+      order.State = OrderState.Open;
+      await csm.stateManager!.set(["Orders", order.ID], order);
       const { result, unmount } = renderHook(() => useCurrentOrder(), {
         wrapper,
       });
+
       await waitFor(() => {
-        assertEquals(result.current.currentOrder, {
-          orderId: order!.id,
-          status: OrderState.Open,
-        });
+        const { currentOrder } = result.current;
+        assertEquals(currentOrder?.ID, order.ID);
+        assertEquals(currentOrder?.State, OrderState.Open);
       });
 
       unmount();

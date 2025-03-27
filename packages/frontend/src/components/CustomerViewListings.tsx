@@ -28,8 +28,7 @@ export default function CustomerViewProducts({
     return products.map((item: Listing) => {
       const { metadata } = item;
       if (!metadata) return null;
-      const visible =
-        item.ViewState === ListingViewState.LISTING_VIEW_STATE_PUBLISHED;
+      const visible = item.ViewState === ListingViewState.Published;
 
       return (
         <Link

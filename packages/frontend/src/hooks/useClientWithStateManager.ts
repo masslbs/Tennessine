@@ -1,8 +1,9 @@
+import { useEffect } from "react";
 import { useWalletClient } from "wagmi";
 import { createWalletClient, http, toHex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
-import { logger, random32BytesHex } from "@massmarket/utils";
+import { logger } from "@massmarket/utils";
 
 import { useMassMarketContext } from "../MassMarketContext.ts";
 import { useShopId } from "./useShopId.ts";
@@ -35,11 +36,8 @@ export function useClientWithStateManager() {
     ),
   });
 
-  const hexId = shopId ? toHex(shopId) : null;
-
-  const { result } = useQuery(async () => {
-    if (!shopId || !keycardWallet || !relayEndpoint) return;
-
+  useEffect(() => {
+    if (!shopId || !keycard.privateKey || !relayEndpoint) return;
     const csm = new ClientWithStateManager(
       relayEndpoint,
       keycardWallet,
@@ -47,34 +45,39 @@ export function useClientWithStateManager() {
       shopId,
     );
     setClientStateManager(csm);
+  }, [shopId, keycard.privateKey, relayEndpoint]);
 
+  const { result } = useQuery(async () => {
+    if (
+      !clientStateManager ||
+      clientStateManager?.relayClient?.connection?.readyState ||
+      isMerchantPath
+    ) return;
     if (keycard?.role === KeycardRole.NEW_GUEST) {
-      const res = await csm.relayClient.enrollKeycard(
+      debug("Enrolling guest keycard");
+      const res = await clientStateManager.relayClient.enrollKeycard(
         keycardWallet,
         account,
         true,
       );
-      if (res.status === 409) {
-        debug("Duplicate keycard. Setting new keycard and trying again.");
-        setKeycard({ privateKey: random32BytesHex(), role: "guest-new" });
-        return;
-      }
       if (!res.ok) {
         throw new Error(`Failed to enroll keycard: ${res}`);
       }
       debug("Success: Enrolled new guest keycard");
-      await csm.connect();
+      await clientStateManager.addConnection();
       //Set keycard role to guest-returning so we don't try enrolling again on refresh
       setKeycard({ ...keycard, role: KeycardRole.RETURNING_GUEST });
     } else {
-      await csm.relayClient.connect();
+      debug("Adding connection");
+      await clientStateManager.addConnection();
     }
+
     return { clientConnected: true };
   }, [
-    hexId,
+    String(shopId),
     relayEndpoint,
     keycard.privateKey,
+    String(clientStateManager),
   ]);
-
   return { clientStateManager, result };
 }
