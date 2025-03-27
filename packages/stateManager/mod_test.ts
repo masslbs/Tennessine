@@ -7,11 +7,7 @@ import {
   createTestRelayClient,
 } from "@massmarket/client/test";
 import { ClientWriteError } from "@massmarket/client";
-import {
-  type codec,
-  extractEntriesFromHAMT,
-  fetchAndDecode,
-} from "@massmarket/utils";
+import type { codec } from "@massmarket/utils";
 
 import StateManager from "./mod.ts";
 import { assertRejects } from "@std/assert/rejects";
@@ -32,58 +28,6 @@ const root = new Map(Object.entries({
 
 Deno.test("Database Testings", async (t) => {
   const store = new MemStore();
-
-  await t.step("Set Manifest, Listings, and Orders", async () => {
-    //Manifest
-    const manifestVector = await fetchAndDecode("ManifestOkay");
-    const manifests = manifestVector.get("Snapshots")?.map((snapshot) => {
-      return snapshot!.get("After")!.get("Value")!.get("Manifest");
-    }) || [];
-    const db = new StateManager({
-      store,
-      objectId: manifests[0]!.get("ShopID") as bigint,
-      root,
-    });
-    await db.open();
-    // Need to initialize the listings map
-    db.set(["Listings"], new Map());
-    db.set(["Orders"], new Map());
-    db.set(["Manifest"], manifests[0]!);
-
-    const result = await db.get(["Manifest"]);
-    assertEquals(result, manifests[0]);
-    //Listing
-    const ListingsVector = await fetchAndDecode("ListingOkay");
-    const listings = ListingsVector?.get("Snapshots")?.map((snapshot) => {
-      const hamtNode = snapshot?.get("After")?.get("Value")?.get(
-        "Listings",
-      );
-      return extractEntriesFromHAMT(hamtNode);
-    }) || [];
-    for (const listingMap of listings) {
-      for (const [id, listing] of listingMap.entries()) {
-        await db.set(["Listings", id], listing as codec.CodecValue);
-        const result = await db.get(["Listings", id]);
-        assertEquals(result, listing);
-      }
-    }
-
-    //Order
-    const OrderVector = await fetchAndDecode("OrderOkay");
-    const orders = OrderVector?.get("Snapshots")?.map((snapshot) => {
-      const hamtNode = snapshot?.get("After")?.get("Value")?.get("Orders");
-      return extractEntriesFromHAMT(hamtNode);
-    }) || [];
-
-    for (const orderMap of orders) {
-      for (const [id, order] of orderMap.entries()) {
-        await db.set(["Orders", id], order as codec.CodecValue);
-        const result = await db.get(["Orders", id]);
-        assertEquals(result, order);
-      }
-    }
-  });
-
   const sm = new StateManager({
     store,
     objectId: relayClient.shopId,

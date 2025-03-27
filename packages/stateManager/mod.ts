@@ -96,6 +96,7 @@ export default class StateManager {
           // v.parse(OpValschema, value);
           //
           // apply the operation
+          //
           if (patch.Op === "add" || patch.Op === "replace") {
             value = patch.Value;
           } else if (patch.Op === "append") {
@@ -116,9 +117,14 @@ export default class StateManager {
             if (fvalue instanceof Map) {
               fvalue.delete(deleteKey);
               value = fvalue;
+            } else if (
+              fvalue instanceof Array && typeof deleteKey === "number"
+            ) {
+              fvalue.splice(deleteKey, deleteKey + 1);
+              value = fvalue;
             } else {
               throw new Error(
-                `Invalid current value (type: ${typeof fvalue}) for path: ${patch.Path}`,
+                `Invalid current value ${fvalue} for path: ${patch.Path}`,
               );
             }
           } else {
@@ -126,7 +132,7 @@ export default class StateManager {
             throw new Error(`Unimplemented operation type: ${patch.Op}`);
           }
 
-          state.root = this.graph.set(
+          state.root = await this.graph.set(
             state.root,
             patch.Path,
             value,
