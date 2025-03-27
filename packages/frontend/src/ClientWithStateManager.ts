@@ -15,7 +15,7 @@ export class ClientWithStateManager {
     public readonly shopId: bigint,
   ) {}
 
-  async initialize() {
+  async open() {
     const root = new Map(Object.entries({
       Tags: new Map(),
       Orders: new Map(),

@@ -43,7 +43,8 @@ export function useClientWithStateManager() {
       account,
       shopId,
     );
-    csm.initialize().then(() => {
+    // Open db connection, then set ClientStateManager
+    csm.open().then(() => {
       setClientStateManager(csm);
     });
   }, [shopId, keycard.privateKey, relayEndpoint]);
