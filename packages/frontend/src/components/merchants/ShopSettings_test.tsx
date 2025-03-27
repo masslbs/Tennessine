@@ -7,7 +7,8 @@ import { zeroAddress } from "viem";
 
 import { random256BigInt } from "@massmarket/utils";
 import { payees, shippingRegions } from "@massmarket/schema/testFixtures";
-import { eddiesAddress } from "@massmarket/contracts";
+import { abi } from "@massmarket/contracts";
+const { eddiesAddress } = abi;
 
 import ShopSettings from "./ShopSettings.tsx";
 import { createRouterWrapper } from "../../utils/test.tsx";
