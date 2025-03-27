@@ -1,6 +1,6 @@
 import { MemoryLevel } from "memory-level";
 import type { AbstractLevel } from "abstract-level";
-import { AbstractStore } from "./mod.ts";
+import { AbstractStore } from "./abstract.ts";
 
 export type AbstractLevelConstructor = new (
   ...params: ConstructorParameters<typeof AbstractLevel>

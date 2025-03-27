@@ -2,6 +2,7 @@ import { codec, type Hash, hash, isHash } from "@massmarket/utils";
 import type { AbstractStore } from "./abstract.ts";
 
 export * from "./mem.ts";
+export * from "./jollytoad.ts";
 export * from "./level.ts";
 export * from "./abstract.ts";
 

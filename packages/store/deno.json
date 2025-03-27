@@ -6,11 +6,15 @@
     ".": "./mod.ts",
     "./mem": "./mem.ts",
     "./level": "./level.ts",
+    "./jollytoad": "./jollytoad.ts",
     "./abstract": "./abstract.ts"
   },
   "license": "MPL-2.0",
   "imports": {
     "@std/assert": "jsr:@std/assert@^1.0.11",
+    "@jollytoad/store": "jsr:@jollytoad/store@^0.4.0",
+    "@jollytoad/store-common": "jsr:@jollytoad/store-common@^0.4.0",
+    "$store": "jsr:@jollytoad/store-web-storage@^0.4.0",
     "abstract-level": "npm:abstract-level@^3.0.1",
     "browser-level": "npm:browser-level@^2.0.0",
     "memory-level": "npm:memory-level@^3.0.0"
