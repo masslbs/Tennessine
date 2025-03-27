@@ -16,9 +16,19 @@ export class ClientWithStateManager {
   ) {}
 
   async initialize() {
+    const root = new Map(Object.entries({
+      Tags: new Map(),
+      Orders: new Map(),
+      Accounts: new Map(),
+      Inventory: new Map(),
+      Listings: new Map(),
+      Manifest: new Map(),
+      SchemeVersion: 1,
+    }));
     this.stateManager = new Database({
       store: new LevelStore(),
       objectId: this.shopId,
+      root,
     });
 
     await this.stateManager.open();
@@ -29,7 +39,6 @@ export class ClientWithStateManager {
       keycard: this.account,
       shopId: this.shopId,
     });
-
   }
 
   addConnection() {
