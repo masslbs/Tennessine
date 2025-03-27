@@ -5,7 +5,7 @@ import { createClient, publicActions, walletActions, webSocket } from "viem";
 import { hardhat } from "viem/chains";
 
 import { random256BigInt } from "@massmarket/utils";
-import { mintShop } from "@massmarket/blockchain";
+import { mintShop } from "@massmarket/contracts";
 
 //  i'm not sure these actually run in happy-dom
 

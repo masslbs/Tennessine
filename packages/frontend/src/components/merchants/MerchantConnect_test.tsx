@@ -6,7 +6,7 @@ import { userEvent } from "@testing-library/user-event";
 import { expect } from "@std/expect";
 
 import { random256BigInt, random32BytesHex } from "@massmarket/utils";
-import { mintShop, setTokenURI } from "@massmarket/blockchain";
+import { mintShop, setTokenURI } from "@massmarket/contracts";
 
 import MerchantConnect from "./MerchantConnect.tsx";
 import { createRouterWrapper, testClient } from "../../utils/test.tsx";

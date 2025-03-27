@@ -14,7 +14,7 @@ import {
   checkPermissions,
   mintShop,
   setTokenURI,
-} from "@massmarket/blockchain";
+} from "@massmarket/contracts";
 import { Manifest } from "@massmarket/schema";
 import {
   assert,
@@ -23,7 +23,7 @@ import {
   random256BigInt,
   random32BytesHex,
 } from "@massmarket/utils";
-import { permissions, shopRegAbi, shopRegAddress } from "@massmarket/contracts";
+import { abi, permissions } from "@massmarket/contracts";
 
 import ManifestForm from "./ManifestForm.tsx";
 import Confirmation from "./CreateShopConfirmation.tsx";
@@ -37,7 +37,6 @@ import { useKeycard } from "../../../hooks/useKeycard.ts";
 import { useShopDetails } from "../../../hooks/useShopDetails.ts";
 import { useChain } from "../../../hooks/useChain.ts";
 import { CreateShopStep, KeycardRole, ShopForm } from "../../../types.ts";
-import { removeCachedKeycards } from "../../../utils/mod.ts";
 
 // When create shop CTA is clicked, these functions are called:
 // 1. mintShop
@@ -48,6 +47,7 @@ import { removeCachedKeycards } from "../../../utils/mod.ts";
 const namespace = "frontend: CreateShop";
 const debug = logger(namespace);
 const errlog = logger(namespace, "error");
+const { shopRegAbi, shopRegAddress } = abi;
 
 export default function () {
   const addRecentTransaction = useAddRecentTransaction();

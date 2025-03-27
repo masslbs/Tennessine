@@ -11,8 +11,7 @@ import {
 } from "viem";
 
 import { assert, formatUnitsFromString, logger } from "@massmarket/utils";
-import { getPaymentAddress, getPaymentId } from "@massmarket/blockchain";
-import { paymentsByAddressAbi } from "@massmarket/contracts";
+import { abi, getPaymentAddress, getPaymentId } from "@massmarket/contracts";
 import { ChainAddress, Manifest, Order, Payee } from "@massmarket/schema";
 
 import Pay from "./Pay.tsx";
@@ -31,6 +30,7 @@ import { defaultRPC, getTokenInformation } from "../../utils/mod.ts";
 const namespace = "frontend:ChoosePayment";
 const debug = logger(namespace);
 const errlog = logger(namespace, "error");
+const paymentsByAddressAbi = abi.paymentsByAddressAbi;
 
 export default function ChoosePayment({
   setStep,

@@ -5,13 +5,8 @@ import * as chains from "wagmi/chains";
 import { simulateContract } from "@wagmi/core";
 import { ContractFunctionArgs, zeroAddress } from "viem";
 
-import {
-  eddiesAbi,
-  paymentsByAddressAbi,
-  paymentsByAddressAddress,
-} from "@massmarket/contracts";
 import { assert, logger } from "@massmarket/utils";
-import { approveERC20, getAllowance, pay } from "@massmarket/blockchain";
+import { abi, approveERC20, getAllowance, pay } from "@massmarket/contracts";
 import { Order } from "@massmarket/schema";
 
 import Button from "../common/Button.tsx";
@@ -23,6 +18,11 @@ import { env } from "../../utils/env.ts";
 const namespace = "frontend:Pay";
 const debug = logger(namespace);
 const errlog = logger(namespace, "error");
+const {
+  eddiesAbi,
+  paymentsByAddressAbi,
+  paymentsByAddressAddress,
+} = abi;
 
 export default function Pay({
   paymentArgs,

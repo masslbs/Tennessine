@@ -6,7 +6,7 @@ import { ChangeEvent, useEffect, useState } from "react";
 import { useChains, useWalletClient } from "wagmi";
 import { Address, toHex, zeroAddress } from "viem";
 
-import { setTokenURI } from "@massmarket/blockchain";
+import { setTokenURI } from "@massmarket/contracts";
 import { assert, logger } from "@massmarket/utils";
 import {
   AcceptedCurrencyMap,

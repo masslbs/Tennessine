@@ -4448,12 +4448,6 @@
       "jsr:@std/expect@^1.0.13"
     ],
     "members": {
-      "packages/blockchain": {
-        "dependencies": [
-          "jsr:@std/expect@^1.0.13",
-          "npm:viem@^2.23.6"
-        ]
-      },
       "packages/client": {
         "dependencies": [
           "jsr:@noble/secp256k1@^2.2.3",
@@ -4466,6 +4460,8 @@
       },
       "packages/contracts": {
         "dependencies": [
+          "jsr:@std/expect@^1.0.13",
+          "npm:viem@^2.23.6",
           "npm:wagmi@*"
         ]
       },

@@ -8,7 +8,7 @@ import {
 } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { foundry } from "viem/chains";
-import { mintShop } from "@massmarket/blockchain";
+import { mintShop } from "@massmarket/contracts";
 
 import { discoverRelay, RelayClient } from "./mod.ts";
 

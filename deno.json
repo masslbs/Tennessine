@@ -4,7 +4,6 @@
     "./packages/schema",
     "./packages/eventTree",
     "./packages/contracts",
-    "./packages/blockchain",
     "./packages/client",
     "./packages/merkle-dag-builder",
     "./packages/stateManager",
