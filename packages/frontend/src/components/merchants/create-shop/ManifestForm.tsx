@@ -3,11 +3,7 @@ import { useChains } from "wagmi";
 import { hardhat } from "wagmi/chains";
 import { toBytes } from "viem";
 
-import {
-  AcceptedCurrencyMap,
-  ChainAddress,
-  Manifest,
-} from "@massmarket/schema";
+import { ChainAddress, Manifest } from "@massmarket/schema";
 
 import ValidationWarning from "../../common/ValidationWarning.tsx";
 import ErrorMessage from "../../common/ErrorMessage.tsx";
@@ -195,6 +191,7 @@ export default function ManifestForm(
         </div>
         <Dropdown
           label="Pricing Currency"
+          testId="pricing-currency-dropdown"
           options={chains
             .map((c) => {
               return { label: `ETH/${c.name}`, value: `ETH/${c.id}` };
