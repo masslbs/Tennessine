@@ -5,7 +5,6 @@ import type { AbstractStore } from "@massmarket/store";
 import EventTree from "@massmarket/eventTree";
 import type { Patch, PushedPatchSet, RelayClient } from "@massmarket/client";
 import type { codec, Hash } from "@massmarket/utils";
-import { BaseClass } from "@massmarket/schema/utils";
 
 type HashOrValue = Hash | codec.CodecValue;
 
@@ -98,6 +97,7 @@ export default class StateManager {
           //
           // apply the operation
           //
+          console.log("Applying patch:", patch);
           if (patch.Op === "add" || patch.Op === "replace") {
             value = patch.Value;
           } else if (patch.Op === "append") {
@@ -204,9 +204,6 @@ export default class StateManager {
   }
 
   async set(path: codec.Path, value: codec.CodecValue) {
-    if (BaseClass.isBaseClass(value)) {
-      value = value.asCBORMap() as codec.CodecValue;
-    }
     const state = this.#state;
     assert(state, "open not finished");
     let sendpromise: Promise<void[]>;
