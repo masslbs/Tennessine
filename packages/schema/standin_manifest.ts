@@ -156,6 +156,10 @@ export class PayeeMap {
     return new PayeeMap(result);
   }
 
+  public get size() {
+    return this.data.size;
+  }
+
   get(chainId: number): Map<Uint8Array, PayeeMetadata> | undefined {
     return this.data.get(chainId);
   }
@@ -276,6 +280,10 @@ export class AcceptedCurrencyMap {
     return new AcceptedCurrencyMap(
       (result as unknown) as Map<number, Map<Uint8Array, ContractStatus>>,
     );
+  }
+
+  public get size() {
+    return this.data.size;
   }
 
   getAddressesByChainID(chainId: number) {
