@@ -26,7 +26,8 @@ export async function cancelAndCreateOrder(
   newOrder.ID = newOrderId;
   newOrder.State = OrderState.Open;
   newOrder.Items = Order.fromCBOR(currentOrder).Items;
-  await sm.set(["Orders", newOrderId], newOrder.asCBORMap());
+  // @ts-ignore TODO: add BaseClass to CodecValue
+  await sm.set(["Orders", newOrderId], newOrder);
 
   return newOrder.ID;
 }

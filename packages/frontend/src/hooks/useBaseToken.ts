@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { usePublicClient } from "wagmi";
 
-import { ChainAddress, Manifest } from "@massmarket/schema";
+import { ChainAddress } from "@massmarket/schema";
 
 import { useClientWithStateManager } from "./useClientWithStateManager.ts";
 import { getTokenInformation } from "../utils/token.ts";

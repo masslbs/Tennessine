@@ -38,10 +38,10 @@ export default function Dropdown({
         e.preventDefault();
       }}
       className="flex flex-col"
+      data-testid={testId}
     >
       <label className="font-medium">{label}</label>
       <select
-        data-testid={testId}
         onChange={(e) => handleChange(e)}
         value={selectedOption?.label || ""}
       >
