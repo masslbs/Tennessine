@@ -2,9 +2,6 @@
   "version": "4",
   "specifiers": {
     "jsr:@anon/kv@*": "0.1.2",
-    "jsr:@jollytoad/store-common@0.4": "0.4.0",
-    "jsr:@jollytoad/store-web-storage@0.4": "0.4.0",
-    "jsr:@jollytoad/store@0.4": "0.4.0",
     "jsr:@noble/hashes@^1.7.1": "1.7.1",
     "jsr:@noble/secp256k1@^2.2.3": "2.2.3",
     "jsr:@nullradix/lockmap@0.4": "0.4.1",
@@ -78,24 +75,6 @@
   "jsr": {
     "@anon/kv@0.1.2": {
       "integrity": "b41ef2e911f41ea77b313c49ead7e706b775c55ee73669fc1209663bd442a054"
-    },
-    "@jollytoad/store@0.4.0": {
-      "integrity": "60c8fa324f90e91ba37dfc8aed9dcf0d98dae6a81dcf1241bc773f3546adf2c9",
-      "dependencies": [
-        "jsr:@jollytoad/store-common"
-      ]
-    },
-    "@jollytoad/store-common@0.4.0": {
-      "integrity": "48a6dd891bbe8147f6a73e415e23754996231dd08d8564ec1e928435a4847ef9",
-      "dependencies": [
-        "jsr:@std/assert@1"
-      ]
-    },
-    "@jollytoad/store-web-storage@0.4.0": {
-      "integrity": "92b7e2afdc90b246ce75605a31cb260d15befdb4c742858a09ac9b3d5a2ea65a",
-      "dependencies": [
-        "jsr:@jollytoad/store-common"
-      ]
     },
     "@noble/hashes@1.7.1": {
       "integrity": "2c29f1dc07943155f5c7384be6f570a749c2afee95a0557cdae02b4fd5956134"
@@ -4534,9 +4513,6 @@
       },
       "packages/store": {
         "dependencies": [
-          "jsr:@jollytoad/store-common@0.4",
-          "jsr:@jollytoad/store-web-storage@0.4",
-          "jsr:@jollytoad/store@0.4",
           "jsr:@std/assert@^1.0.11",
           "npm:abstract-level@^3.0.1",
           "npm:browser-level@2",
