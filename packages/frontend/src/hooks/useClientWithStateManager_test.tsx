@@ -5,7 +5,7 @@ import { cleanup, renderHook, waitFor } from "@testing-library/react";
 import { random256BigInt } from "@massmarket/utils";
 
 import { useClientWithStateManager } from "./useClientWithStateManager.ts";
-import { createRouterWrapper } from "../utils/test.tsx";
+import { createRouterWrapper } from "../testutils/mod.tsx";
 
 Deno.test("useClientWithStateManager", {
   sanitizeResources: false,

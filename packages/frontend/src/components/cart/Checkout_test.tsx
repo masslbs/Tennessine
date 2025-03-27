@@ -15,7 +15,7 @@ import {
 } from "@massmarket/schema/testFixtures";
 
 import { ListingViewState, TAddressDetails } from "../../types.ts";
-import { createRouterWrapper } from "../../utils/test.tsx";
+import { createRouterWrapper } from "../../testutils/mod.tsx";
 import CheckoutFlow from "./CheckoutFlow.tsx";
 
 Deno.test("Check that we can render the checkout screen", {

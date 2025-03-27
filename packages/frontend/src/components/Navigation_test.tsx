@@ -12,7 +12,7 @@ import {
 import { random256BigInt } from "@massmarket/utils";
 
 import Navigation from "./Navigation.tsx";
-import { createRouterWrapper } from "../utils/test.tsx";
+import { createRouterWrapper } from "../testutils/mod.tsx";
 import { ListingViewState, OrderState } from "../types.ts";
 
 Deno.test("Check that we can render the navigation bar", {

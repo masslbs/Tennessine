@@ -3,7 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { useAccount, useEnsName, useWalletClient } from "wagmi";
 import { expect } from "@std/expect";
 import { hardhat } from "wagmi/chains";
-import { createRouterWrapper } from "../utils/test.tsx";
+import { createRouterWrapper } from "./mod.tsx";
 
 const TestComponent = () => {
   const { status } = useAccount();

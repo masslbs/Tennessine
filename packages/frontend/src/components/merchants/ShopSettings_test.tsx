@@ -11,7 +11,7 @@ import { abi } from "@massmarket/contracts";
 const { eddiesAddress } = abi;
 
 import ShopSettings from "./ShopSettings.tsx";
-import { createRouterWrapper } from "../../utils/test.tsx";
+import { createRouterWrapper } from "../../testutils/mod.tsx";
 
 Deno.test("Check that we can render the shop settings screen", {
   sanitizeResources: false,

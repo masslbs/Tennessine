@@ -20,7 +20,7 @@ import {
 import { ListingViewState } from "../types.ts";
 
 import Listings from "./Listings.tsx";
-import { createRouterWrapper } from "../utils/test.tsx";
+import { createRouterWrapper } from "../testutils/mod.tsx";
 
 Deno.test(
   "Listings screen for both customer and merchant",
