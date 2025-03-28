@@ -100,6 +100,8 @@ export class ClientWriteError extends Error {
 export class RelayClient {
   connection: WebSocket | null = null;
   keyCardNonce: number;
+  private pingsReceived: number = 0;
+  private lastPingReceived: Date = new Date(0);
   readonly walletClient: WalletClient;
   readonly keycard;
   readonly relayEndpoint;
@@ -119,6 +121,16 @@ export class RelayClient {
     this.keycard = params.keycard;
     this.ethAddress = parseAccount(params.keycard).address;
     this.#requestCounter = 1;
+  }
+
+  get stats() {
+    return {
+      pingsReceived: this.pingsReceived,
+      lastPingReceived: this.lastPingReceived,
+      subscriptions: this.#subscriptions.size,
+      waitingMessagesResponse: this.#waitingMessagesResponse.size,
+      requestCounter: this.#requestCounter,
+    };
   }
 
   // like encodeAndSend but doesn't wait for a response.
@@ -252,6 +264,8 @@ export class RelayClient {
       requestId: ping.requestId,
       response: {},
     });
+    this.pingsReceived++;
+    this.lastPingReceived = new Date();
   }
 
   async createSubscription(_path: Path, seqNo = 0) {

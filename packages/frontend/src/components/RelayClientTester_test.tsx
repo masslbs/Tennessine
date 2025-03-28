@@ -3,7 +3,7 @@ import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { expect } from "@std/expect";
 import { userEvent } from "@testing-library/user-event";
 import { discoverRelay, IRelayEndpoint } from "@massmarket/client";
-import { random256BigInt, random32BytesHex } from "@massmarket/utils";
+import { random256BigInt } from "@massmarket/utils";
 import { createClient, publicActions, walletActions, webSocket } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { hardhat } from "viem/chains";
@@ -15,7 +15,6 @@ const client = createClient({
   chain: hardhat,
   transport: webSocket("ws://localhost:8545"),
 }).extend(walletActions).extend(publicActions);
-const [account] = await client.requestAddresses();
 
 const pk = generatePrivateKey();
 const kc = privateKeyToAccount(pk);
@@ -44,7 +43,9 @@ Deno.test("RelayClientTester component connects to relay", {
     await waitFor(() => {
       const status = screen.getByTestId("connection-status");
       expect(status.textContent).toContain("connected");
-    }, { timeout: 1000 });
+      const lastPingReceived = screen.getByTestId("stats-last-ping-received");
+      expect(lastPingReceived.textContent).toContain("second");
+    }, { timeout: 10000 });
 
     // Test disconnect functionality
     await act(async () => {
@@ -83,6 +84,8 @@ Deno.test("RelayClientTester component connects to relay", {
       expect(error.textContent).toContain(
         "NetworkError: failed to connect to WebSocket",
       );
+      const lastPingReceived = screen.getByTestId("stats-last-ping-received");
+      expect(lastPingReceived.textContent).toContain("Never");
     });
 
     unmount();
