@@ -7,7 +7,7 @@ import {
   createTestRelayClient,
 } from "@massmarket/client/test";
 import { ClientWriteError } from "@massmarket/client";
-import type { codec } from "@massmarket/utils";
+import { type codec, randomBytes } from "@massmarket/utils";
 
 import StateManager from "./mod.ts";
 import { assertRejects } from "@std/assert/rejects";
@@ -115,6 +115,37 @@ Deno.test("Database Testings", async (t) => {
       "the new state manager should have loaded the nonce",
     );
     await nsm.close();
+
+    // Test that we can set new values after reopening
+    const reopenedSm = new StateManager({
+      store,
+      objectId: relayClient.shopId,
+    });
+    await reopenedSm.open();
+    await reopenedSm.addConnection(relayClient);
+
+    // Set a new value
+    const newTestValue = new Map<string, codec.CodecValue>([
+      ["Address", randomBytes(20)],
+      ["ChainID", 1337],
+    ]);
+    await reopenedSm.set(
+      ["Manifest", "PricingCurrency"],
+      newTestValue,
+    );
+
+    // Verify the value was set correctly
+    const retrievedValue = await reopenedSm.get([
+      "Manifest",
+      "PricingCurrency",
+    ]);
+    assertEquals(
+      retrievedValue,
+      newTestValue,
+      "should be able to set and get values after reopening",
+    );
+
+    await reopenedSm.close();
   });
 
   await relayClient.disconnect();
