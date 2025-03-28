@@ -27,8 +27,7 @@ import {
   encode,
   type Path,
 } from "@massmarket/utils/codec";
-// TODO !!! broke something in statemanager
-// import { ReadableStream, WritableStream } from "web-streams-polyfill";
+import { ReadableStream, WritableStream } from "web-streams-polyfill";
 
 const debug = logger("relayClient");
 
