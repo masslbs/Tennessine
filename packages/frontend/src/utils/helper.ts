@@ -3,7 +3,7 @@ import { formatUnits } from "viem";
 import { Order } from "@massmarket/schema";
 
 import { ClientWithStateManager } from "../ClientWithStateManager.ts";
-import { OrderId, OrderState } from "../types.ts";
+import { KeycardRole, OrderId, OrderState } from "../types.ts";
 
 export async function cancelAndCreateOrder(
   orderId: OrderId,
@@ -44,7 +44,7 @@ export function removeCachedKeycards() {
     const key = localStorage.key(i);
     if (key && key.includes("keycard")) {
       const keycard = JSON.parse(localStorage.getItem(key)!);
-      if (keycard.role === "guest-new") {
+      if (keycard.role === KeycardRole.NEW_GUEST) {
         localStorage.removeItem(key);
         i--;
       }
