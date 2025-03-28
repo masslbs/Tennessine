@@ -4,7 +4,11 @@ import { cleanup, renderHook } from "@testing-library/react";
 
 import { useQuery } from "./useQuery.ts";
 
-Deno.test("test useQuery instantiation", async (t) => {
+Deno.test("test useQuery instantiation", {
+  // - A timer was started in this test, but never completed. This is often caused by not calling `clearTimeout`.
+  sanitizeResources: false,
+  sanitizeOps: false,
+}, async (t) => {
   const value = Symbol("hello");
   function testQuery(shouldThrow: boolean) {
     return () => {

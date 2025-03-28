@@ -2,7 +2,11 @@ import "./happyDomSetup.ts";
 import { cleanup, render, screen } from "@testing-library/react";
 import { createConfig, http } from "wagmi";
 import { mainnet, sepolia } from "wagmi/chains";
-import { relayURL } from "./utils/test.tsx";
+import { createWalletClient, custom } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { discoverRelay, RelayClient } from "@massmarket/client";
+import { random256BigInt, random32BytesHex } from "@massmarket/utils";
+import { relayURL } from "./testutils/mod.tsx";
 
 Deno.test("check that we can render the app", {
   sanitizeResources: false,
@@ -35,21 +39,13 @@ Deno.test("check that we can connect to the relay client", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async (t) => {
-  // Import necessary modules
-  const { RelayClient, discoverRelay } = await import("@massmarket/client");
-  const { createWalletClient, custom } = await import("viem");
-  const { privateKeyToAccount } = await import("viem/accounts");
-  const { random32BytesHex, random256BigInt } = await import(
-    "@massmarket/utils"
-  );
-
   // Create a mock wallet client and account
   const privateKey = random32BytesHex();
   const account = privateKeyToAccount(privateKey as `0x${string}`);
   const walletClient = createWalletClient({
     account,
     transport: custom({
-      request: async ({ method, params }) => {
+      request: ({ method }) => {
         if (method === "personal_sign") {
           // Mock signing functionality
           return "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
