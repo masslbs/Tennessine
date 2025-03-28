@@ -164,19 +164,28 @@ Deno.test(
         ]);
       });
 
+      const file = new File(["foo"], "foo.txt", {
+        type: "text/plain",
+      });
+      const expectedIPFSPath =
+        "/ipfs/QmcJw6x4bQr7oFnVnF6i8SLcJvhXjaxWvj54FYXmZ4Ct6p";
+      const formData = new FormData();
+      formData.append("file", file);
+
       await t.step("blob upload", async () => {
-        const file = new File(["foo"], "foo.txt", {
-          type: "text/plain",
-        });
-        const formData = new FormData();
-        formData.append("file", file);
         const result = await relayClient.uploadBlob(formData);
-        expect(result.ipfs_path).toBe(
-          "/ipfs/QmcJw6x4bQr7oFnVnF6i8SLcJvhXjaxWvj54FYXmZ4Ct6p",
-        );
+        expect(result.ipfs_path).toBe(expectedIPFSPath);
       });
 
       await relayClient.disconnect();
+
+      await t.step(
+        "should check that the client connects and authenticates by itself",
+        async () => {
+          const result = await relayClient.uploadBlob(formData);
+          expect(result.ipfs_path).toBe(expectedIPFSPath);
+        },
+      );
     },
   },
 );
