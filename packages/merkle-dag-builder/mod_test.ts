@@ -3,6 +3,7 @@ import { MemStore as Store } from "@massmarket/store/mem";
 import type { CodecValue } from "@massmarket/utils/codec";
 import { DAG, type RootValue } from "./mod.ts";
 import { assertNotEquals } from "@std/assert/not-equals";
+import { set } from "@massmarket/utils";
 
 Deno.test("meta data", async (t) => {
   await t.step("testing storing and retrieving metadata", async () => {
@@ -87,9 +88,9 @@ Deno.test("upsert", async (t) => {
     const newAddresses = graph.set(
       addresses,
       ["addresses"],
-      (oldAddress) => {
+      (oldAddress, path) => {
         assertEquals(oldAddress, addresses);
-        return "cat";
+        set(oldAddress, path, "cat");
       },
     );
     const address = await graph.get(newAddresses, ["addresses"]);
