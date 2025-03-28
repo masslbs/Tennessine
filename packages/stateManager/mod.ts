@@ -6,6 +6,7 @@ import EventTree from "@massmarket/eventTree";
 import type { Patch, PushedPatchSet, RelayClient } from "@massmarket/client";
 import { type codec, get, type Hash, set } from "@massmarket/utils";
 import { BaseClass } from "@massmarket/schema/utils";
+import { WritableStream } from "web-streams-polyfill";
 
 type HashOrValue = Hash | codec.CodecValue;
 
