@@ -21,11 +21,11 @@ import Dropdown from "../common/CurrencyDropdown.tsx";
 import BackButton from "../common/BackButton.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import ConnectWalletButton from "../common/ConnectWalletButton.tsx";
-import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 import { useShopId } from "../../hooks/useShopId.ts";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { CheckoutStep, CurrencyChainOption } from "../../types.ts";
 import { defaultRPC, getTokenInformation } from "../../utils/mod.ts";
+import { useStateManager } from "../../hooks/useStateManager.ts";
 
 const namespace = "frontend:ChoosePayment";
 const debug = logger(namespace);
@@ -41,10 +41,10 @@ export default function ChoosePayment({
   displayedAmount: string | null;
   setDisplayedAmount: Dispatch<SetStateAction<string | null>>;
 }) {
-  const { clientStateManager } = useClientWithStateManager();
   const { shopId } = useShopId();
   const { currentOrder } = useCurrentOrder();
   const chains = useChains();
+  const { stateManager } = useStateManager();
 
   const [displayedChains, setChains] = useState<CurrencyChainOption[] | null>(
     null,
@@ -70,11 +70,9 @@ export default function ChoosePayment({
   );
   const [paymentCurrencyLoading, setPaymentCurrencyLoading] = useState(false);
 
-  const sm = clientStateManager?.stateManager;
-
   useEffect(() => {
-    if (!sm) return;
-    sm.get(["Manifest"])
+    if (!stateManager) return;
+    stateManager.get(["Manifest"])
       .then((res: Map<string, unknown>) => {
         const m = new Manifest(res);
         getDisplayedChains(m).then((arr) => {
@@ -82,10 +80,10 @@ export default function ChoosePayment({
           setChains(arr);
         });
       });
-  }, [sm]);
+  }, [stateManager]);
 
   useEffect(() => {
-    if (!sm) return;
+    if (!stateManager) return;
     //Listen for client to send paymentDetails event.
     function onPaymentDetails(res: Map<string, unknown>) {
       const order = new Order(res);
@@ -97,16 +95,16 @@ export default function ChoosePayment({
     }
 
     currentOrder!.ID &&
-      sm.events.on(onPaymentDetails, ["Orders", currentOrder!.ID]);
+      stateManager.events.on(onPaymentDetails, ["Orders", currentOrder!.ID]);
 
     return () => {
       // Cleanup listeners on unmount
-      sm.events.off(
+      stateManager.events.off(
         onPaymentDetails,
         ["Orders", currentOrder!.ID],
       );
     };
-  }, [sm]);
+  }, [stateManager]);
 
   async function getPaymentArgs() {
     try {

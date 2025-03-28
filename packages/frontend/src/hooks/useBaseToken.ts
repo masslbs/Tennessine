@@ -3,7 +3,7 @@ import { usePublicClient } from "wagmi";
 
 import { ChainAddress } from "@massmarket/schema";
 
-import { useClientWithStateManager } from "./useClientWithStateManager.ts";
+import { useStateManager } from "./useStateManager.ts";
 import { getTokenInformation } from "../utils/token.ts";
 import { useQuery } from "./useQuery.ts";
 import { bytesToHex } from "viem";
@@ -14,27 +14,26 @@ export function useBaseToken() {
   >(
     new ChainAddress(0, new Uint8Array(20)),
   );
-  const { clientStateManager } = useClientWithStateManager();
+  const { stateManager } = useStateManager();
   const shopPublicClient = usePublicClient({
     chainId: pricingCurrency?.chainID,
   });
-  const sm = clientStateManager?.stateManager;
 
   useEffect(() => {
-    if (!sm) return;
+    if (!stateManager) return;
 
     const setCurrency = (currency: Map<string, unknown>) => {
       setChainAddress(ChainAddress.fromCBOR(currency));
     };
     const path = ["Manifest", "PricingCurrency"];
-    sm.get(path).then((currency: Map<string, unknown>) => {
+    stateManager.get(path).then((currency: Map<string, unknown>) => {
       setChainAddress(ChainAddress.fromCBOR(currency));
     });
-    sm.events.on(setCurrency, path);
+    stateManager.events.on(setCurrency, path);
     return () => {
-      sm.events.off(setCurrency, path);
+      stateManager.events.off(setCurrency, path);
     };
-  }, [sm]);
+  }, [stateManager]);
 
   const { result: baseToken } = useQuery(async () => {
     if (!pricingCurrency || !shopPublicClient) return;

@@ -30,13 +30,14 @@ import ErrorMessage from "../../common/ErrorMessage.tsx";
 import Button from "../../common/Button.tsx";
 import LoadingSpinner from "../../common/LoadingSpinner.tsx";
 import ConnectWalletButton from "../../common/ConnectWalletButton.tsx";
-import { useClientWithStateManager } from "../../../hooks/useClientWithStateManager.ts";
 import { useShopId } from "../../../hooks/useShopId.ts";
 import { useKeycard } from "../../../hooks/useKeycard.ts";
 import { useShopDetails } from "../../../hooks/useShopDetails.ts";
 import { useChain } from "../../../hooks/useChain.ts";
 import { CreateShopStep, KeycardRole, ShopForm } from "../../../types.ts";
 import { removeCachedKeycards } from "../../../utils/helper.ts";
+import { useRelayClient } from "../../../hooks/useRelayClient.ts";
+import { useStateManager } from "../../../hooks/useStateManager.ts";
 
 // When create shop CTA is clicked, these functions are called:
 // 1. mintShop
@@ -57,8 +58,10 @@ export default function () {
   const { data: wallet } = useWalletClient();
   const { shopId } = useShopId();
   const { setShopDetails } = useShopDetails();
-  const { clientStateManager } = useClientWithStateManager();
   const [keycard, setKeycard] = useKeycard();
+  const { relayClient } = useRelayClient();
+  const { stateManager } = useStateManager();
+
   const { connector } = useAccount();
   const config = useConfig();
   const navigate = useNavigate({ from: "/create-shop" });
@@ -147,7 +150,7 @@ export default function () {
       setStoreRegistrationStatus("Adding relay token ID...");
       // Add relay tokenId for event verification.
       const tokenID = BigInt(
-        clientStateManager!.relayClient.relayEndpoint.tokenId,
+        relayClient.relayEndpoint.tokenId,
       );
       const tx = await addRelay(wallet!, wallet!.account.address, [
         shopId!,
@@ -186,8 +189,7 @@ export default function () {
         throw new Error("Access denied.");
       }
       setStoreRegistrationStatus("Enrolling keycard...");
-
-      const res = await clientStateManager!.relayClient.enrollKeycard(
+      const res = await relayClient.enrollKeycard(
         wallet!,
         wallet!.account,
         false,
@@ -199,7 +201,7 @@ export default function () {
       debug(`Keycard enrolled: ${keycard.privateKey}`);
       setStoreRegistrationStatus("Adding connection...");
 
-      await clientStateManager!.addConnection();
+      await stateManager.addConnection(relayClient);
       debug("Relay client connected");
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
@@ -230,7 +232,7 @@ export default function () {
       });
       shopManifest.ShopID = shopId;
 
-      await clientStateManager?.stateManager.set(
+      await stateManager.set(
         ["Manifest"],
         // @ts-ignore TODO: add BaseClass to CodecValue
         shopManifest,
@@ -254,7 +256,7 @@ export default function () {
     setStoreRegistrationStatus("Setting shop metadata...");
     try {
       const imgPath = shopMetadata.avatar
-        ? await clientStateManager!.relayClient!.uploadBlob(
+        ? await relayClient!.uploadBlob(
           shopMetadata.avatar as FormData,
         )
         : { url: null };
@@ -268,7 +270,7 @@ export default function () {
       const file = new File([blob], "file.json");
       const formData = new FormData();
       formData.append("file", file);
-      const metadataPath = await clientStateManager!.relayClient!.uploadBlob(
+      const metadataPath = await relayClient!.uploadBlob(
         formData,
       );
 

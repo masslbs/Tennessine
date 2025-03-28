@@ -8,15 +8,14 @@ import { Listing } from "@massmarket/schema";
 
 import CustomerViewListings from "./CustomerViewListings.tsx";
 import { useKeycard } from "../hooks/useKeycard.ts";
-import { useClientWithStateManager } from "../hooks/useClientWithStateManager.ts";
+import { useStateManager } from "../hooks/useStateManager.ts";
 import MerchantViewListings from "./merchants/listings/MerchantViewListings.tsx";
 import { ListingId } from "../types.ts";
 
 export default function Listings() {
-  const { clientStateManager, result } = useClientWithStateManager();
+  const { stateManager } = useStateManager();
   const [keycard] = useKeycard();
   const [products, setProducts] = useState<Map<ListingId, Listing>>(new Map());
-  const sm = clientStateManager?.stateManager;
 
   function mapToListingClass(allListings: Map<ListingId, unknown>) {
     const listings = new Map();
@@ -32,29 +31,29 @@ export default function Listings() {
   }
 
   useEffect(() => {
-    if (!sm) return;
+    if (!stateManager) return;
 
     function allListingsEvent(res: Map<ListingId, unknown>) {
       const listings = mapToListingClass(res);
       setProducts(listings);
     }
 
-    sm.get(["Listings"]).then((res: Map<ListingId, unknown>) => {
+    stateManager.get(["Listings"]).then((res: Map<ListingId, unknown>) => {
       const listings = mapToListingClass(res);
       setProducts(listings);
     });
 
-    sm.events.on(allListingsEvent, ["Listings"]);
+    stateManager.events.on(allListingsEvent, ["Listings"]);
 
     return () => {
-      sm.events.off(
+      stateManager.events.off(
         allListingsEvent,
         ["Listings"],
       );
     };
-  }, [result, sm]);
+  }, [stateManager]);
 
-  if (!sm) {
+  if (!stateManager) {
     return <main data-testid="listings-page">Loading...</main>;
   }
 

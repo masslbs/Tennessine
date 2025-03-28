@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { logger } from "@massmarket/utils";
 import { Order } from "@massmarket/schema";
-import { useClientWithStateManager } from "./useClientWithStateManager.ts";
+import { useStateManager } from "./useStateManager.ts";
 import { KeycardRole, OrderState } from "../types.ts";
 import { useKeycard } from "./useKeycard.ts";
 import { useMassMarketContext } from "../MassMarketContext.ts";
@@ -12,9 +12,8 @@ const debug = logger(namespace);
 
 export function useCurrentOrder() {
   const { currentOrder, setCurrentOrder } = useMassMarketContext();
-  const { clientStateManager } = useClientWithStateManager();
+  const { stateManager } = useStateManager();
   const [keycard] = useKeycard();
-  const sm = clientStateManager?.stateManager;
 
   function onCurrentOrderChange(o: Map<string, unknown>) {
     const order = Order.fromCBOR(o);
@@ -32,7 +31,7 @@ export function useCurrentOrder() {
   }
 
   async function orderFetcher() {
-    const allOrders = await sm!.get(["Orders"]);
+    const allOrders = await stateManager!.get(["Orders"]);
     const openOrders: Order[] = [];
     const committedOrders: Order[] = [];
 
@@ -73,19 +72,22 @@ export function useCurrentOrder() {
   }
 
   useEffect(() => {
-    if (!sm) return;
+    if (!stateManager) return;
     if (!currentOrder) {
       orderFetcher().then((o: Order | null) => {
         if (!o) return;
-        sm.events.on(onCurrentOrderChange, ["Orders", o.ID]);
+        stateManager.events.on(onCurrentOrderChange, ["Orders", o.ID]);
         setCurrentOrder(o);
       });
     }
     return () => {
       if (currentOrder) {
-        sm.events.off(onCurrentOrderChange, ["Orders", currentOrder.ID]);
+        stateManager.events.off(onCurrentOrderChange, [
+          "Orders",
+          currentOrder.ID,
+        ]);
       }
     };
-  }, [sm]);
+  }, [stateManager]);
   return { currentOrder };
 }

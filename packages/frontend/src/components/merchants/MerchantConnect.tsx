@@ -13,11 +13,11 @@ import { assert, logger, random32BytesHex } from "@massmarket/utils";
 import ConnectConfirmation from "./ConnectConfirmation.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import Button from "../common/Button.tsx";
-import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 import { useKeycard } from "../../hooks/useKeycard.ts";
 import { useShopId } from "../../hooks/useShopId.ts";
 import { useChain } from "../../hooks/useChain.ts";
 import { SearchShopStep } from "../../types.ts";
+import { useStateManager } from "../../hooks/useStateManager.ts";
 
 const namespace = "frontend:connect-merchant";
 const debug = logger(namespace);
@@ -29,7 +29,7 @@ export default function MerchantConnect() {
   const shopPublicClient = usePublicClient({ chainId: chain.id });
   const { data: wallet } = useWalletClient();
   const [keycard, setKeycard] = useKeycard();
-  const { clientStateManager } = useClientWithStateManager();
+  const { stateManager } = useStateManager();
   const navigate = useNavigate({ from: "/merchant-connect" });
 
   const [searchShopId, setSearchShopId] = useState<string>("");
@@ -89,18 +89,18 @@ export default function MerchantConnect() {
 
   async function enroll() {
     try {
-      if (clientStateManager!.keycard !== keycard.privateKey) {
+      if (stateManager!.keycard !== keycard.privateKey) {
         errlog("Keycard mismatch");
         return;
       }
-      const res = await clientStateManager!.enrollKeycard(
+      const res = await stateManager!.enrollKeycard(
         wallet!,
         wallet!.account,
         false,
       );
       if (res.ok) {
-        debug(`Keycard enrolled: ${clientStateManager!.keycard}`);
-        await clientStateManager!.connect();
+        debug(`Keycard enrolled: ${stateManager!.keycard}`);
+        await stateManager!.connect();
         setStep(SearchShopStep.Confirm);
       } else {
         throw new Error("Failed to enroll keycard");

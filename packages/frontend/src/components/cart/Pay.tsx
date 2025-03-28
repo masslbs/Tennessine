@@ -11,8 +11,8 @@ import { Order } from "@massmarket/schema";
 
 import Button from "../common/Button.tsx";
 import BackButton from "../common/BackButton.tsx";
-import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
+import { useStateManager } from "../../hooks/useStateManager.ts";
 import { env } from "../../utils/env.ts";
 
 const namespace = "frontend:Pay";
@@ -40,9 +40,8 @@ export default function Pay({
   const addRecentTransaction = useAddRecentTransaction();
   const { connector } = useAccount();
   const { data: wallet } = useWalletClient();
-  const { clientStateManager } = useClientWithStateManager();
   const { currentOrder } = useCurrentOrder();
-
+  const { stateManager } = useStateManager();
   const paymentChainId = Number(paymentArgs?.[0]?.chainId || 1);
   const shopChainId = chains[env?.VITE_CHAIN_NAME as keyof typeof chains]?.id ??
     1;
@@ -52,7 +51,6 @@ export default function Pay({
 
   const [loading, setLoading] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
-  const sm = clientStateManager?.stateManager;
 
   useEffect(() => {
     function txHashDetected(o: Map<string, unknown>) {
@@ -67,10 +65,10 @@ export default function Pay({
       }
       setLoading(false);
     }
-    sm.events.on(txHashDetected, ["Orders", currentOrder!.ID]);
+    stateManager.events.on(txHashDetected, ["Orders", currentOrder!.ID]);
 
     return () => {
-      sm.events.off(
+      stateManager.events.off(
         txHashDetected,
         ["Orders", currentOrder!.ID],
       );

@@ -14,8 +14,8 @@ import ErrorMessage from "../common/ErrorMessage.tsx";
 import ShippingDetails from "./ShippingDetails.tsx";
 import ChoosePayment from "./ChoosePayment.tsx";
 import TimerExpiration from "./TimerExpiration.tsx";
-import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
+import { useStateManager } from "../../hooks/useStateManager.ts";
 import PaymentConfirmation from "./PaymentConfirmation.tsx";
 import { cancelAndCreateOrder } from "../../utils/helper.ts";
 
@@ -24,7 +24,7 @@ const debug = logger(namespace);
 const logerr = logger(namespace, "error");
 
 export default function CheckoutFlow() {
-  const { clientStateManager } = useClientWithStateManager();
+  const { stateManager } = useStateManager();
   const { currentOrder } = useCurrentOrder();
 
   const search = useSearch({ strict: false });
@@ -39,8 +39,6 @@ export default function CheckoutFlow() {
   const [countdown, setCountdown] = useState(900);
   const [isRunning, setIsRunning] = useState(false);
 
-  const sm = clientStateManager?.stateManager;
-
   useEffect(() => {
     let intervalId: ReturnType<typeof setInterval>;
 
@@ -49,7 +47,7 @@ export default function CheckoutFlow() {
         setCountdown((prev: number) => prev - 10);
       }, 10000);
     } else if (countdown === 0) {
-      cancelAndCreateOrder(currentOrder!.ID, clientStateManager!)
+      cancelAndCreateOrder(currentOrder!.ID, stateManager)
         .then()
         .catch((e) => {
           logerr("Error cancelling order", e);
@@ -75,9 +73,9 @@ export default function CheckoutFlow() {
       }
     }
 
-    sm.events.on(txHashDetected, ["Orders", currentOrder!.ID]);
+    stateManager.events.on(txHashDetected, ["Orders", currentOrder!.ID]);
     return () => {
-      sm.events.off(
+      stateManager.events.off(
         txHashDetected,
         ["Orders", currentOrder!.ID],
       );
@@ -105,7 +103,7 @@ export default function CheckoutFlow() {
     try {
       // Commit the order if it is not already committed
       if (currentOrder!.State !== OrderState.Committed) {
-        await sm.set(
+        await stateManager.set(
           ["Orders", orderId, "State"],
           OrderState.Committed,
         );

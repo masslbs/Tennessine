@@ -12,9 +12,8 @@ import Button from "../common/Button.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import ValidationWarning from "../common/ValidationWarning.tsx";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
-import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 import { CheckoutStep } from "../../types.ts";
-
+import { useStateManager } from "../../hooks/useStateManager.ts";
 const namespace = "frontend:ShippingDetails";
 const debug = logger(namespace);
 const errlog = logger(namespace, "error");
@@ -29,7 +28,7 @@ export default function ShippingDetails({
   countdown: number;
 }) {
   const { currentOrder } = useCurrentOrder();
-  const { clientStateManager } = useClientWithStateManager();
+  const { stateManager } = useStateManager();
 
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
@@ -40,7 +39,6 @@ export default function ShippingDetails({
   const [email, setEmail] = useState("");
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
-  const sm = clientStateManager?.stateManager;
 
   useEffect(() => {
     if (countdown === 900) {
@@ -93,7 +91,7 @@ export default function ShippingDetails({
         update.emailAddress = email;
       }
 
-      await sm.set(["Orders", currentOrder.ID], update);
+      await stateManager.set(["Orders", currentOrder.ID], update);
       debug("Shipping details updated");
       setStep(CheckoutStep.paymentDetails);
     } catch (error: unknown) {
