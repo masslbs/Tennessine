@@ -20,6 +20,7 @@
     "jsr:@std/testing@^1.0.9": "1.0.9",
     "npm:@deno/vite-plugin@^1.0.4": "1.0.4_vite@6.2.2__@types+node@22.13.10_@types+node@22.13.10",
     "npm:@happy-dom/global-registrator@*": "17.4.4",
+    "npm:@happy-dom/global-registrator@^17.4.4": "17.4.4",
     "npm:@noble/curves@1.8.1": "1.8.1",
     "npm:@noble/hashes@1.7.1": "1.7.1",
     "npm:@rainbow-me/rainbowkit@^2.2.0": "2.2.4_@tanstack+react-query@5.69.0__react@19.0.0_react@19.0.0_react-dom@19.0.0__react@19.0.0_viem@2.23.12__ws@8.18.1_wagmi@2.14.15__@tanstack+react-query@5.69.0___react@19.0.0__react@19.0.0__viem@2.23.12___ws@8.18.1__@wagmi+core@2.16.7___viem@2.23.12____ws@8.18.1___@types+react@19.0.12___react@19.0.0___use-sync-external-store@1.4.0____react@19.0.0__@types+react@19.0.12__use-sync-external-store@1.4.0___react@19.0.0_@vanilla-extract+css@1.15.5_@types+react@19.0.12",
@@ -86,7 +87,10 @@
       ]
     },
     "@jollytoad/store-common@0.4.0": {
-      "integrity": "48a6dd891bbe8147f6a73e415e23754996231dd08d8564ec1e928435a4847ef9"
+      "integrity": "48a6dd891bbe8147f6a73e415e23754996231dd08d8564ec1e928435a4847ef9",
+      "dependencies": [
+        "jsr:@std/assert@1"
+      ]
     },
     "@jollytoad/store-web-storage@0.4.0": {
       "integrity": "92b7e2afdc90b246ce75605a31cb260d15befdb4c742858a09ac9b3d5a2ea65a",
@@ -4471,6 +4475,7 @@
         "dependencies": [
           "jsr:@std/assert@^1.0.11",
           "npm:@deno/vite-plugin@^1.0.4",
+          "npm:@happy-dom/global-registrator@^17.4.4",
           "npm:@rainbow-me/rainbowkit@^2.2.0",
           "npm:@tailwindcss/vite@^4.0.15",
           "npm:@tanstack/react-query@^5.60.6",
