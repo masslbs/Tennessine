@@ -30,11 +30,10 @@ Deno.test("Database Testings", async (t) => {
   const store = new MemStore();
   const sm = new StateManager({
     store,
-    objectId: relayClient.shopId,
-    root,
+    id: relayClient.shopId,
   });
 
-  await sm.open();
+  await sm.open(root);
 
   await t.step("add a relay and set a key and retrieve it", async () => {
     // connect to the relay
@@ -43,7 +42,7 @@ Deno.test("Database Testings", async (t) => {
       resolve(manifestPatch);
     }, ["Manifest"]);
 
-    await sm.addConnection(relayClient);
+    sm.addConnection(relayClient);
     // wait for manifest to be received
     await promise;
     const testAddr = Uint8Array.from([
@@ -106,10 +105,10 @@ Deno.test("Database Testings", async (t) => {
     await sm.close();
     const nsm = new StateManager({
       store,
-      objectId: relayClient.shopId,
+      id: relayClient.shopId,
     });
     await nsm.open();
-    await nsm.addConnection(relayClient);
+    nsm.addConnection(relayClient);
     assertEquals(
       nonce,
       relayClient.keyCardNonce,

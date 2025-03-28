@@ -104,8 +104,9 @@ export class DAG {
     value:
       | codec.CodecValue
       | ((
-        oldValue: codec.CodecValue,
-      ) => Promise<codec.CodecValue> | codec.CodecValue),
+        parent: codec.CodecValue,
+        key: codec.CodecKey,
+      ) => Promise<void> | void),
   ): Promise<codec.CodecValue> {
     assert(path.length);
     const last = path[path.length - 1];
@@ -117,9 +118,10 @@ export class DAG {
     if (walk.length === path.length + 1) {
       const parent = walk[walk.length - 1].value;
       if (typeof value === "function") {
-        value = await value(parent);
+        await value(parent, last);
+      } else {
+        set(parent, last, value);
       }
-      set(parent, last, value);
     } else {
       throw new Error(`Path ${path.join(".")} does not exist`);
     }

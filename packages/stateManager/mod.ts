@@ -4,7 +4,7 @@ import { DAG, type RootValue } from "@massmarket/merkle-dag-builder";
 import type { AbstractStore } from "@massmarket/store";
 import EventTree from "@massmarket/eventTree";
 import type { Patch, PushedPatchSet, RelayClient } from "@massmarket/client";
-import type { codec, Hash } from "@massmarket/utils";
+import { type codec, get, type Hash, set } from "@massmarket/utils";
 import { BaseClass } from "@massmarket/schema/utils";
 
 type HashOrValue = Hash | codec.CodecValue;
@@ -26,51 +26,57 @@ export default class StateManager {
   readonly events = new EventTree<codec.CodecValue>(new Map());
   readonly graph: DAG;
   readonly clients: Set<RelayClient> = new Set();
+  readonly id: bigint;
   #streamsWriters: Set<WritableStreamDefaultWriter<Patch[]>> = new Set();
   // very simple cache, we always want a reference to the same object
   #state?: IStoredState;
   constructor(
-    public params: {
+    params: {
       store: AbstractStore;
-      objectId: bigint;
-      root?: Readonly<RootValue>;
+      id: bigint;
     },
   ) {
+    this.id = params.id;
     this.graph = new DAG(params.store);
   }
 
-  async open(): Promise<IStoredState> {
-    const storedState = await this.graph.store.objStore.get([
-      this.params.objectId,
-    ]);
-    const restored: IStoredState = storedState instanceof Map
+  get root(): RootValue {
+    assert(this.#state, "open not finished");
+    return this.#state.root;
+  }
+
+  async open(root?: Readonly<RootValue>) {
+    const storedState = await this.graph.store.objStore.get(this.id);
+    const restored: IStoredState = storedState instanceof Map && !root
       ? Object.fromEntries(storedState)
       : {
         subscriptionTrees: new Map(),
         keycardNonce: 0,
-        root: this.params.root ?? new Map(),
+        root: root ?? new Map(),
         // TODO: add class for shop at some point
         // root: v.getDefaults(this.params.schema) as CborValue,
       };
     this.#state = restored;
     this.events.emit(this.#state.root as HashOrValue);
-    return restored;
   }
 
   async close() {
     const state = this.#state;
+    this.#state = undefined;
     assert(state, "open not finished");
     const closingClients = [...this.clients].map((client) => {
       state.keycardNonce = client.keyCardNonce;
       return client.disconnect();
     });
+    this.clients.clear();
     // wait for root to be resolved
     state.root = await state.root;
     return Promise.all([
-      closingClients,
-      this.graph.store.objStore.set([
-        this.params.objectId,
-      ], new Map(Object.entries(state))),
+      ...closingClients,
+      this.graph.store.objStore.set(
+        this.id,
+        new Map(Object.entries(state)),
+      ),
     ]);
   }
 
@@ -87,47 +93,61 @@ export default class StateManager {
         ]) as Map<string, string>;
 
         // TODO: Validate keycard for a given time range
-        // if (!validityRange.get("node")) {
         //   throw new Error("Invalid keycard");
-        // }
         for (const patch of patchSet.patches) {
-          let value: codec.CodecValue;
+          let operation;
           // TODO validate the Operation's value if any
           // const OpValschema = getSubSchema(this.params.schema, patch.Path);
           // v.parse(OpValschema, value);
           //
           // apply the operation
           //
-          if (patch.Op === "add" || patch.Op === "replace") {
-            value = patch.Value;
-          } else if (patch.Op === "append") {
-            const fvalue = await this.graph.get(state.root, patch.Path);
-            if (Array.isArray(fvalue)) {
-              fvalue.push(patch.Value);
-              value = fvalue;
-            } else {
-              throw new Error("Invalid path");
-            }
-          } else if (patch.Op === "remove") {
-            const deleteKey = patch.Path[patch.Path.length - 1];
-            const path = patch.Path.slice(0, -1);
-            const fvalue = await this.graph.get(
-              state.root,
-              path,
-            );
-            if (fvalue instanceof Map) {
-              fvalue.delete(deleteKey);
-              value = fvalue;
-            } else if (
-              fvalue instanceof Array && typeof deleteKey === "number"
-            ) {
-              fvalue.splice(deleteKey, deleteKey + 1);
-              value = fvalue;
-            } else {
-              throw new Error(
-                `Invalid current value ${fvalue} for path: ${patch.Path}`,
+          console.log("Applying patch:", patch);
+          if (patch.Op === "add") {
+            // const addKey = patch.Path[patch.Path.length - 1];
+            // path = patch.Path.slice(0, -1);
+            operation = (parent: codec.CodecValue, key: codec.CodecKey) => {
+              console.log("f value:", parent, key);
+              assert(
+                parent,
+                `The Value at the path ${patch.Path.join("/")} does not exist`,
               );
-            }
+              if (parent instanceof Array && typeof key === "number") {
+                parent.splice(key, 0, patch.Value);
+              } else {
+                set(parent, key, patch.Value);
+              }
+            };
+          } else if (patch.Op === "replace") {
+            operation = patch.Value;
+          } else if (patch.Op === "append") {
+            operation = (parent: codec.CodecValue) => {
+              if (Array.isArray(parent)) {
+                parent.push(patch.Value);
+              } else {
+                throw new Error("Invalid path");
+              }
+            };
+          } else if (patch.Op === "remove") {
+            // const deleteKey = patch.Path[patch.Path.length - 1];
+            // path = patch.Path.slice(0, -1);
+            operation = (
+              parent: codec.CodecValue,
+              deleteKey: codec.CodecKey,
+            ) => {
+              if (parent instanceof Map) {
+                parent.delete(deleteKey);
+              } else if (
+                parent instanceof Array && typeof deleteKey === "number"
+              ) {
+                parent.splice(deleteKey, 1);
+              } else {
+                throw new Error(
+                  `Invalid current value ${parent} for path: ${patch.Path}`,
+                );
+              }
+              return parent;
+            };
           } else {
             console.error({ patch });
             throw new Error(`Unimplemented operation type: ${patch.Op}`);
@@ -136,7 +156,7 @@ export default class StateManager {
           state.root = await this.graph.set(
             state.root,
             patch.Path,
-            value,
+            operation,
           );
         }
 
@@ -157,16 +177,16 @@ export default class StateManager {
     });
   }
 
-  async addConnection(client: RelayClient) {
+  addConnection(client: RelayClient) {
+    assert(this.#state, "open not finished");
+    client.keyCardNonce = this.#state.keycardNonce;
     const id = client.relayEndpoint.tokenId;
     this.clients.add(client);
-    const state = await this.open();
-    client.keyCardNonce = state.keycardNonce;
     // TODO:  implement dynamic subscriptions
     // currently we subscribe to the root when any event is subscribed to
     const remoteReadable = client.createSubscriptionStream(
       [],
-      state.subscriptionTrees.get(id)?.get("") ?? 0,
+      this.#state.subscriptionTrees.get(id)?.get("") ?? 0,
     );
     const ourWritable = this.createWriteStream(
       id,
@@ -210,12 +230,13 @@ export default class StateManager {
     const state = this.#state;
     assert(state, "open not finished");
     let sendpromise: Promise<void[]>;
-    state.root = this.graph.set(state.root, path, (oldValue) => {
-      const op = oldValue === undefined ? "add" : "replace";
+    state.root = this.graph.set(state.root, path, (parent, p) => {
+      const v = get(parent, p);
+      set(parent, p, value);
+      const op = v === undefined ? "add" : "replace";
       sendpromise = this.#sendPatch(
         { Op: op, Path: path, Value: value },
       );
-      return value;
     });
     const r = await state.root;
     this.events.emit(r);
