@@ -20,11 +20,6 @@ const namespace = "frontend:edit-product";
 const errlog = logger(namespace, "error");
 const debug = logger(namespace, "debug");
 
-type Image = {
-  blob: null | FormData;
-  url: string;
-};
-
 export default function EditProduct() {
   const navigate = useNavigate();
   const search = useSearch({ strict: false });
@@ -37,8 +32,10 @@ export default function EditProduct() {
   const [blobs, setBlobs] = useState<FormData[]>([]);
   const [publishing, setPublishing] = useState(false);
 
-  const itemId = search.itemId ? Number(search.itemId) as ListingId : "new";
-  const editView = itemId !== "new";
+  // TODO: this "new" handling seems a bit convoluted...
+  const itemId = search.itemId.indexOf("new") !== 0 ? Number(search.itemId) as ListingId : "new";
+  const editView = itemId !== "new"
+  // console.log({ itemId, search, editView });
   const hed = editView ? "Edit product" : "Add Product";
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -66,7 +63,7 @@ export default function EditProduct() {
     try {
       await stateManager.set(
         ["Listings", newListing.ID],
-        newListing.asCBORMap(),
+        newListing,
       );
       await stateManager!.increment([
         "Inventory",
@@ -158,11 +155,11 @@ export default function EditProduct() {
 
         if (editView) {
           newListing.ID = itemId;
+          await update(newListing)
         } else {
           newListing.ID = randUint64();
+          await create(newListing);
         }
-
-        editView ? await update(newListing) : await create(newListing);
 
         setPublishing(false);
         debug("listing published");
@@ -219,11 +216,10 @@ export default function EditProduct() {
           const r = e.target as FileReader;
           const url = r.result;
           if (typeof url === "string") {
-            const newListing = Listing.fromCBOR(listing.asCBORMap());
-            const images = newListing.Metadata.Images ?? [];
+            const images = listing.Metadata.Images ?? [];
             images.push(url);
-            newListing.Metadata.Images = images;
-            setListing(newListing);
+            listing.Metadata.Images = images;
+            setListing(listing);
           }
         };
 
@@ -328,7 +324,10 @@ export default function EditProduct() {
                   </div>
                 </button>
               </div>
-              <div className="flex flex-wrap gap-2 mt-2 justify-start">
+              <div
+                className="flex flex-wrap gap-2 mt-2 justify-start"
+                data-testid="listing-images"
+              >
                 {listing.Metadata.Images?.map((img: string, i: number) => {
                   return (
                     <div key={i} className="relative mb-2">
@@ -336,7 +335,7 @@ export default function EditProduct() {
                         src={img}
                         width={105}
                         height={95}
-                        alt="uploaded-product-image"
+                        data-testid="uploaded-product-image"
                         style={{
                           maxHeight: "95px",
                           maxWidth: "105px",
@@ -417,7 +416,11 @@ export default function EditProduct() {
               />
               <label htmlFor="published">Publish product</label>
             </div>
-            <Button disabled={publishing} onClick={onPublish}>
+            <Button
+              disabled={publishing}
+              onClick={onPublish}
+              data-testid="save-button"
+            >
               {editView ? "Update product" : "Create product"}
             </Button>
           </section>

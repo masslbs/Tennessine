@@ -25,7 +25,7 @@ Deno.test("Check that we can create a shop", {
     JSON.stringify({ privateKey, role: "merchant" }),
   );
 
-  const { wrapper, csm, testAccountAddress } = await createRouterWrapper(
+  const { wrapper, csm, testAccount } = await createRouterWrapper(
     shopId,
     `/create-shop`,
     null,
@@ -42,7 +42,7 @@ Deno.test("Check that we can create a shop", {
     await user.type(shopDescription, "test description");
     const payees = screen.getByTestId("payees");
     await user.clear(payees);
-    await user.type(payees, testAccountAddress);
+    await user.type(payees, testAccount);
   });
   await act(async () => {
     const pricingCurrency = screen.getByTestId("pricing-currency-dropdown");
@@ -124,7 +124,7 @@ Deno.test("Check that we can create a shop", {
   // get first value
   const payeeAddress = payees!.keys().next().value;
   expect(payeeAddress).toBeTruthy();
-  expect(payeeAddress).toEqual(hexToBytes(testAccountAddress));
+  expect(payeeAddress).toEqual(hexToBytes(testAccount));
   expect(payees!.get(payeeAddress!)!.CallAsContract).toBe(false);
 
   // check pricing currency

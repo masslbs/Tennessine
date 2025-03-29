@@ -33,11 +33,13 @@ export const testClient = createTestClient({
   // Extend the client with public and wallet actions, so it can also act as a Public Client and Wallet Client
   .extend(publicActions)
   .extend(walletActions);
-const [testAccountAddress] = await testClient.requestAddresses();
+const testAccounts = await testClient.requestAddresses();
+export const testAccount = testAccounts[0];
+// console.log({testAccount, "where": "helper", testAccounts})
 
 export const connectors = [
   mock({
-    accounts: [testAccountAddress],
+    accounts: [testAccount],
     features: {
       defaultConnected: true,
       reconnect: true,
@@ -48,7 +50,7 @@ export const connectors = [
 export const createTestStateManager = async (
   shopId: bigint | null = null,
 ) => {
-  if (!shopId) {
+  if (shopId === null) {
     shopId = random256BigInt();
   }
   const pk = generatePrivateKey();
@@ -150,6 +152,6 @@ export const createRouterWrapper = async (
   return {
     wrapper,
     csm,
-    testAccountAddress,
+    testAccount,
   };
 };

@@ -29,6 +29,7 @@ import {
 } from "@massmarket/utils/codec";
 import { ReadableStream, WritableStream } from "web-streams-polyfill";
 
+
 const debug = logger("relayClient");
 
 export interface IRelayEndpoint {
@@ -112,6 +113,7 @@ export class RelayClient {
     new Map();
   #requestCounter;
   #waitingMessagesResponse: LockMap<string, schema.Envelope> = new LockMap();
+  #blockingActions: LockMap<string,boolean> = new LockMap();
   #authenticated = false;
 
   constructor(params: IRelayClientOptions) {
@@ -355,7 +357,9 @@ export class RelayClient {
   }
 
   async authenticate() {
+    const {resolve} = await this.#blockingActions.lock("authenticate")
     if (this.#authenticated) {
+      resolve()
       return;
     }
     const publicKey = await getAccountPublicKey(
@@ -382,6 +386,7 @@ export class RelayClient {
       },
     });
     this.#authenticated = true;
+    resolve()
   }
 
   connect(onError?: (error: Event) => void): Promise<Event> {
