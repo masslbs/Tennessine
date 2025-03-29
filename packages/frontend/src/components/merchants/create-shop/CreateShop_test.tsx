@@ -5,9 +5,11 @@ import { hexToBytes } from "viem";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "@std/expect";
 import { hardhat } from "wagmi/chains";
+
 import { Manifest } from "@massmarket/schema";
 import { random256BigInt } from "@massmarket/utils";
 import { abi } from "@massmarket/contracts";
+
 import CreateShop from "./CreateShop.tsx";
 import { createRouterWrapper } from "../../../testutils/mod.tsx";
 
@@ -25,11 +27,9 @@ Deno.test("Check that we can create a shop", {
     JSON.stringify({ privateKey, role: "merchant" }),
   );
 
-  const { wrapper, csm, testAccountAddress } = await createRouterWrapper(
-    shopId,
-    `/create-shop`,
-    null,
-  );
+  const { wrapper, stateManager, testAccount } = await createRouterWrapper({
+    path: `/create-shop`,
+  });
 
   const { unmount } = render(<CreateShop />, { wrapper });
 
@@ -42,7 +42,7 @@ Deno.test("Check that we can create a shop", {
     await user.type(shopDescription, "test description");
     const payees = screen.getByTestId("payees");
     await user.clear(payees);
-    await user.type(payees, testAccountAddress);
+    await user.type(payees, testAccount);
   });
   await act(async () => {
     const pricingCurrency = screen.getByTestId("pricing-currency-dropdown");
@@ -99,7 +99,7 @@ Deno.test("Check that we can create a shop", {
   let manifest = new Manifest();
   await waitFor(async () => {
     manifest = Manifest.fromCBOR(
-      await csm.stateManager!.get(["Manifest"]) as Map<string, unknown>,
+      await stateManager.get(["Manifest"]) as Map<string, unknown>,
     );
     expect(manifest.AcceptedCurrencies.size).toBe(1);
   });
@@ -124,7 +124,7 @@ Deno.test("Check that we can create a shop", {
   // get first value
   const payeeAddress = payees!.keys().next().value;
   expect(payeeAddress).toBeTruthy();
-  expect(payeeAddress).toEqual(hexToBytes(testAccountAddress));
+  expect(payeeAddress).toEqual(hexToBytes(testAccount));
   expect(payees!.get(payeeAddress!)!.CallAsContract).toBe(false);
 
   // check pricing currency

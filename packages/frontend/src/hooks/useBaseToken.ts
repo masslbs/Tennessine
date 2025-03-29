@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { usePublicClient } from "wagmi";
-
 import { ChainAddress } from "@massmarket/schema";
-
 import { useStateManager } from "./useStateManager.ts";
 import { getTokenInformation } from "../utils/token.ts";
 import { useQuery } from "./useQuery.ts";
 import { bytesToHex } from "viem";
+import type { CodecValue } from "@massmarket/utils/codec";
 
 export function useBaseToken() {
   const [pricingCurrency, setChainAddress] = useState<
@@ -16,7 +15,7 @@ export function useBaseToken() {
   );
   const { stateManager } = useStateManager();
   const shopPublicClient = usePublicClient({
-    chainId: pricingCurrency?.chainID,
+    chainId: pricingCurrency?.ChainID,
   });
 
   useEffect(() => {
@@ -26,8 +25,9 @@ export function useBaseToken() {
       setChainAddress(ChainAddress.fromCBOR(currency));
     };
     const path = ["Manifest", "PricingCurrency"];
-    stateManager.get(path).then((currency: Map<string, unknown>) => {
-      setChainAddress(ChainAddress.fromCBOR(currency));
+    stateManager.get(path).then((currency: CodecValue | undefined) => {
+      if (!currency) return;
+      setChainAddress(ChainAddress.fromCBOR(currency as Map<string, unknown>));
     });
     stateManager.events.on(setCurrency, path);
     return () => {

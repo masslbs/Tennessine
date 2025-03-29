@@ -8,5 +8,7 @@ export function useKeycard(
   keycard = { privateKey: generatePrivateKey(), role: KeycardRole.NEW_GUEST },
 ) {
   const { shopId } = useShopId();
-  return useLocalStorage("keycard" + shopId, keycard);
+  const keyCardID = "keycard" + shopId;
+  // console.log({shopId, keyCardID});
+  return useLocalStorage(keyCardID, keycard);
 }

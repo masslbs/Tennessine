@@ -1,7 +1,7 @@
 import { privateKeyToAccount } from "viem/accounts";
 import { createWalletClient, http } from "viem";
 
-import { logger } from "@massmarket/utils";
+import { getWindowLocation, logger } from "@massmarket/utils";
 import { LevelStore } from "@massmarket/store/level";
 import StateManager from "@massmarket/stateManager";
 
@@ -18,6 +18,28 @@ import { useChain } from "./useChain.ts";
 const namespace = "frontend:useStateManager";
 const debug = logger(namespace);
 
+async function createStateManager(shopId: bigint) {
+  debug("Creating state manager");
+  const startingState = new Map(Object.entries({
+    Tags: new Map(),
+    Orders: new Map(),
+    Accounts: new Map(),
+    Inventory: new Map(),
+    Listings: new Map(),
+    Manifest: new Map(),
+    SchemeVersion: 1,
+  }));
+
+  const db = new StateManager({
+    store: new LevelStore(),
+    id: shopId,
+    defaultState: startingState,
+  });
+  await db.open();
+
+  return db;
+}
+
 export function useStateManager() {
   const { stateManager, setStateManager } = useMassMarketContext();
   const { relayClient } = useRelayClient();
@@ -26,25 +48,16 @@ export function useStateManager() {
   const { chain } = useChain();
   const { isMerchantPath } = usePathname();
 
+  // Since we are calling addConnection in this query with the relayClient, if the relayClient changes, we need to re-run this query
+  const accountDep = typeof relayClient?.keycard === "string"
+    ? relayClient.keycard
+    : relayClient?.keycard?.address;
+  const deps = [String(shopId), accountDep];
   useQuery(async () => {
-    debug("Creating state manager");
-    const root = new Map(Object.entries({
-      Tags: new Map(),
-      Orders: new Map(),
-      Accounts: new Map(),
-      Inventory: new Map(),
-      Listings: new Map(),
-      Manifest: new Map(),
-      SchemeVersion: 1,
-    }));
-
-    const db = new StateManager({
-      store: new LevelStore(),
-      id: shopId,
-      defaultState: root,
-    });
-
-    await db.open();
+    if (!shopId) {
+      throw new Error("Shop ID is required");
+    }
+    const db = stateManager ?? await createStateManager(shopId);
 
     // Skip this logic if /create-shop or /merchant-connect, since we need to enroll merchant keycard before we call addConnection in those cases.
     if (!isMerchantPath && relayClient) {
@@ -62,17 +75,18 @@ export function useStateManager() {
           keycardWallet,
           account,
           true,
+          getWindowLocation(),
         );
         if (!res.ok) {
           throw new Error(`Failed to enroll keycard: ${res}`);
         }
         debug("Success: Enrolled new guest keycard");
-        await db.addConnection();
+        db.addConnection(relayClient);
         //Set keycard role to guest-returning so we don't try enrolling again on refresh
         setKeycard({ ...keycard, role: KeycardRole.RETURNING_GUEST });
       } else {
         debug("Adding connection");
-        await db.addConnection(relayClient);
+        db.addConnection(relayClient);
       }
     }
     setStateManager(db);
@@ -84,8 +98,7 @@ export function useStateManager() {
         });
       });
     }
-    // Since we are calling addConnection in this query with the relayClient, if the relayClient changes, we need to re-run this query
-  }, [String(shopId), relayClient?.keycard?.address]);
+  }, deps);
 
   return { stateManager };
 }

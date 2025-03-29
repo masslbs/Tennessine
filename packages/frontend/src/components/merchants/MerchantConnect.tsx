@@ -6,9 +6,15 @@ import { useEffect, useState } from "react";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useNavigate } from "@tanstack/react-router";
+import { toHex } from "viem";
 
 import { abi } from "@massmarket/contracts";
-import { assert, logger, random32BytesHex } from "@massmarket/utils";
+import {
+  assert,
+  getWindowLocation,
+  logger,
+  random32BytesHex,
+} from "@massmarket/utils";
 
 import ConnectConfirmation from "./ConnectConfirmation.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
@@ -16,8 +22,8 @@ import Button from "../common/Button.tsx";
 import { useKeycard } from "../../hooks/useKeycard.ts";
 import { useShopId } from "../../hooks/useShopId.ts";
 import { useChain } from "../../hooks/useChain.ts";
-import { SearchShopStep } from "../../types.ts";
-import { useStateManager } from "../../hooks/useStateManager.ts";
+import { KeycardRole, SearchShopStep } from "../../types.ts";
+import { useRelayClient } from "../../hooks/useRelayClient.ts";
 
 const namespace = "frontend:connect-merchant";
 const debug = logger(namespace);
@@ -28,11 +34,14 @@ export default function MerchantConnect() {
   const { chain } = useChain();
   const shopPublicClient = usePublicClient({ chainId: chain.id });
   const { data: wallet } = useWalletClient();
+  const { shopId } = useShopId();
   const [keycard, setKeycard] = useKeycard();
-  const { stateManager } = useStateManager();
+  const { relayClient } = useRelayClient();
   const navigate = useNavigate({ from: "/merchant-connect" });
 
-  const [searchShopId, setSearchShopId] = useState<string>("");
+  const [searchShopId, setSearchShopId] = useState<string>(
+    shopId ? toHex(shopId) : "",
+  );
   const [step, setStep] = useState<SearchShopStep>(
     SearchShopStep.Search,
   );
@@ -44,16 +53,15 @@ export default function MerchantConnect() {
     } | null
   >(null);
 
-  const { shopId } = useShopId();
-
   useEffect(() => {
-    if (shopId) {
+    // only create merchant keycard if it doesn't exist
+    if (shopId && keycard.role === KeycardRole.NEW_GUEST) {
       setKeycard({
         privateKey: random32BytesHex(),
-        role: "merchant",
+        role: KeycardRole.MERCHANT,
       });
     }
-  }, [shopId]);
+  }, [shopId !== null, keycard.role === KeycardRole.NEW_GUEST, shopId]);
 
   function handleClearShopIdInput() {
     setSearchShopId("");
@@ -89,22 +97,18 @@ export default function MerchantConnect() {
 
   async function enroll() {
     try {
-      if (stateManager!.keycard !== keycard.privateKey) {
-        errlog("Keycard mismatch");
-        return;
-      }
-      const res = await stateManager!.enrollKeycard(
+      const res = await relayClient.enrollKeycard(
         wallet!,
         wallet!.account,
         false,
+        getWindowLocation(),
       );
-      if (res.ok) {
-        debug(`Keycard enrolled: ${stateManager!.keycard}`);
-        await stateManager!.connect();
-        setStep(SearchShopStep.Confirm);
-      } else {
+      if (!res.ok) {
         throw new Error("Failed to enroll keycard");
       }
+      debug(`Keycard enrolled: ${keycard.privateKey}`);
+      await relayClient.connect();
+      setStep(SearchShopStep.Confirm);
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Error enrolling keycard", error);
