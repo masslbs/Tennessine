@@ -27,8 +27,8 @@ export class ClientWithStateManager {
     }));
     this.#stateManager = new Database({
       store: new LevelStore(),
-      objectId: this.shopId,
-      root,
+      id: this.shopId,
+      defaultState: root,
     });
 
     await this.#stateManager.open();
