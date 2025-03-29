@@ -120,10 +120,10 @@ Deno.test("Database Testings", async (t) => {
     // Test that we can set new values after reopening
     const reopenedSm = new StateManager({
       store,
-      objectId: relayClient.shopId,
+      id: relayClient.shopId,
     });
     await reopenedSm.open();
-    await reopenedSm.addConnection(relayClient);
+    reopenedSm.addConnection(relayClient);
 
     // Set a new value
     const newTestValue = new Map<string, codec.CodecValue>([
