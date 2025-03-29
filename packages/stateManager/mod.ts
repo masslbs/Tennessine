@@ -30,14 +30,17 @@ export default class StateManager {
   #streamsWriters: Set<WritableStreamDefaultWriter<Patch[]>> = new Set();
   // very simple cache, we always want a reference to the same object
   #state?: IStoredState;
+  #defaultState: RootValue;
   constructor(
     params: {
       store: AbstractStore;
       id: bigint;
+      defaultState?: RootValue;
     },
   ) {
     this.id = params.id;
     this.graph = new DAG(params.store);
+    this.#defaultState = params?.defaultState ?? new Map();
   }
 
   get root(): RootValue {
@@ -45,14 +48,14 @@ export default class StateManager {
     return this.#state.root;
   }
 
-  async open(root?: Readonly<RootValue>) {
+  async open() {
     const storedState = await this.graph.store.objStore.get(this.id);
-    const restored: IStoredState = storedState instanceof Map && !root
+    const restored: IStoredState = storedState instanceof Map
       ? Object.fromEntries(storedState)
       : {
         subscriptionTrees: new Map(),
         keycardNonce: 0,
-        root: root ?? new Map(),
+        root: this.#defaultState,
         // TODO: add class for shop at some point
         // root: v.getDefaults(this.params.schema) as CborValue,
       };
@@ -102,12 +105,11 @@ export default class StateManager {
           //
           // apply the operation
           //
-          console.log("Applying patch:", patch);
+          // console.log("Applying patch:", patch);
           if (patch.Op === "add") {
             // const addKey = patch.Path[patch.Path.length - 1];
             // path = patch.Path.slice(0, -1);
             operation = (parent: codec.CodecValue, key: codec.CodecKey) => {
-              console.log("f value:", parent, key);
               assert(
                 parent,
                 `The Value at the path ${patch.Path.join("/")} does not exist`,
@@ -121,11 +123,14 @@ export default class StateManager {
           } else if (patch.Op === "replace") {
             operation = patch.Value;
           } else if (patch.Op === "append") {
-            operation = (parent: codec.CodecValue) => {
-              if (Array.isArray(parent)) {
-                parent.push(patch.Value);
+            operation = (parent: codec.CodecValue, step: codec.CodecKey) => {
+              const value = get(parent, step);
+              if (Array.isArray(value)) {
+                value.push(patch.Value);
               } else {
-                throw new Error("Invalid path");
+                throw new Error(
+                  `tying to append to non-array, path ${patch.Path.join("/")}`,
+                );
               }
             };
           } else if (patch.Op === "remove") {

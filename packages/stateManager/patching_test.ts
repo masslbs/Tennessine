@@ -15,9 +15,9 @@ Deno.test("Database Testings", async (t) => {
     // "UserFlows/SimpleShoppingTrip",
   ];
 
+  let passing = true;
   for (const testFile of testFiles) {
     await t.step(testFile, async (tt) => {
-      const store = new MemStore();
       const rawTestVector = await fetchAndDecode(testFile) as Map<
         string,
         unknown
@@ -26,7 +26,10 @@ Deno.test("Database Testings", async (t) => {
         string,
         Map<string, CodecValue>
       >[];
-      const rawPatchSet = rawTestVector.get("PatchSet") as Map<string, unknown>;
+      const rawPatchSet = rawTestVector.get("PatchSet") as Map<
+        string,
+        unknown
+      >;
       const id = (rawPatchSet.get("Header") as Map<string, unknown>).get(
         "ShopID",
       ) as bigint;
@@ -35,25 +38,30 @@ Deno.test("Database Testings", async (t) => {
         snapShots,
         rawPatchSet,
       );
+
       for (const test of testVectors) {
-        await tt.step(test.description, async () => {
-          const before = test.snapshot.before;
-          const after = test.snapshot.after;
-          const sm = new StateManager({
-            store,
-            id,
+        if (passing) {
+          passing = await tt.step(test.description, async () => {
+            const store = new MemStore();
+            const before = test.snapshot.before;
+            const after = test.snapshot.after;
+            const sm = new StateManager({
+              store,
+              id,
+              defaultState: before,
+            });
+            await sm.open();
+            const stream = sm.createWriteStream("tests", []);
+            const writer = stream.getWriter();
+            // console.log("Before writing patch set", before);
+            // console.log("After writing patch set", after);
+            // console.log("Writing patch set", test.patchSet);
+            await writer.write(test.patchSet);
+            await writer.close();
+            assertEquals(sm.root, after);
+            await sm.close();
           });
-          await sm.open(before);
-          const stream = sm.createWriteStream("tests", []);
-          const writer = stream.getWriter();
-          console.log("Before writing patch set", before);
-          console.log("After writing patch set", after);
-          console.log("Writing patch set", test.patchSet);
-          await writer.write(test.patchSet);
-          await writer.close();
-          assertEquals(sm.root, after);
-          await sm.close();
-        });
+        }
       }
     });
   }

@@ -31,9 +31,10 @@ Deno.test("Database Testings", async (t) => {
   const sm = new StateManager({
     store,
     id: relayClient.shopId,
+    defaultState: root,
   });
 
-  await sm.open(root);
+  await sm.open();
 
   await t.step("add a relay and set a key and retrieve it", async () => {
     // connect to the relay
