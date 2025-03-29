@@ -1,30 +1,31 @@
 import "../../../happyDomSetup.ts";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
-import { zeroAddress } from "viem";
 import { generatePrivateKey } from "viem/accounts";
+import { hexToBytes } from "viem";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "@std/expect";
 import { hardhat } from "wagmi/chains";
 import { Manifest } from "@massmarket/schema";
-import { random256BigInt, random32BytesHex } from "@massmarket/utils";
-
+import { random256BigInt } from "@massmarket/utils";
+import { abi } from "@massmarket/contracts";
 import CreateShop from "./CreateShop.tsx";
 import { createRouterWrapper } from "../../../testutils/mod.tsx";
 
-Deno.test("Check that we can render the create shop screen", {
+const zeroAddressBytes = new Uint8Array(20);
+
+Deno.test("Check that we can create a shop", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async () => {
-  const anvilAddress = generatePrivateKey();
   const user = userEvent.setup();
   const shopId = random256BigInt();
-  const privateKey = random32BytesHex();
+  const privateKey = generatePrivateKey();
   localStorage.setItem(
     `keycard${shopId}`,
     JSON.stringify({ privateKey, role: "merchant" }),
   );
 
-  const { wrapper, csm } = await createRouterWrapper(
+  const { wrapper, csm, testAccountAddress } = await createRouterWrapper(
     shopId,
     `/create-shop`,
     null,
@@ -32,33 +33,27 @@ Deno.test("Check that we can render the create shop screen", {
 
   const { unmount } = render(<CreateShop />, { wrapper });
 
-  // This is so that csm doesn't get reset in useClientStateManager while testing, since we need access to the same stateManager.
-  csm.keycard = privateKey;
-
-  screen.debug();
+  // screen.debug();
   screen.getByTestId("create-shop-screen");
   await act(async () => {
-    const shopName = screen.getByTestId(
-      "shopName",
-    );
+    const shopName = screen.getByTestId("shopName");
     await user.type(shopName, "test shop");
-    const shopDescription = screen.getByTestId(
-      "description",
-    );
+    const shopDescription = screen.getByTestId("description");
     await user.type(shopDescription, "test description");
-    const payees = screen.getByTestId(
-      "payees",
-    );
+    const payees = screen.getByTestId("payees");
     await user.clear(payees);
-    await user.type(payees, anvilAddress);
+    await user.type(payees, testAccountAddress);
   });
   await act(async () => {
-    // const pricingCurrency = screen.getByTestId("pricing-currency-dropdown");
-    // expect(pricingCurrency).toBeTruthy();
-    // await user.click(pricingCurrency);
-    const option = screen.getByTestId("pricing-currency-option-EDD/Hardhat");
-    expect(option).toBeTruthy();
-    await user.click(option);
+    const pricingCurrency = screen.getByTestId("pricing-currency-dropdown");
+    expect(pricingCurrency).toBeTruthy();
+    // Replace clicking with a proper select element change
+    const selectElement = pricingCurrency.querySelector("select");
+    expect(selectElement).toBeTruthy();
+    // Simulate selecting the option using fireEvent
+    await user.selectOptions(selectElement as HTMLSelectElement, "EDD/Hardhat");
+    // Now we can verify the selection was made
+    expect((selectElement as HTMLSelectElement).value).toBe("EDD/Hardhat");
   });
   await act(async () => {
     const div = screen.getByTestId("accepted-currencies");
@@ -88,7 +83,6 @@ Deno.test("Check that we can render the create shop screen", {
     expect(connectWalletButton).toBeTruthy();
     await user.click(connectWalletButton);
   });
-
   await act(async () => {
     const mintShopButton = await screen.findByRole("button", {
       name: /Mint Shop/i,
@@ -102,9 +96,13 @@ Deno.test("Check that we can render the create shop screen", {
     expect(screen.getByTestId("mint-shop-confirmation")).toBeTruthy();
   }, { timeout: 15000 });
 
-  const manifest = Manifest.fromCBOR(
-    await csm.stateManager!.get(["Manifest"]) as Map<string, unknown>,
-  );
+  let manifest = new Manifest();
+  await waitFor(async () => {
+    manifest = Manifest.fromCBOR(
+      await csm.stateManager!.get(["Manifest"]) as Map<string, unknown>,
+    );
+    expect(manifest.AcceptedCurrencies.size).toBe(1);
+  });
   // check accepted currencies
   expect(manifest.AcceptedCurrencies.size).toBe(1);
   const acceptedCurrency = manifest.AcceptedCurrencies.getAddressesByChainID(
@@ -115,22 +113,25 @@ Deno.test("Check that we can render the create shop screen", {
   // get first value
   const acceptedCurrencyAddress = acceptedCurrency!.keys().next().value;
   expect(acceptedCurrencyAddress).toBeTruthy();
-  expect(acceptedCurrencyAddress).toBe(zeroAddress);
+  expect(acceptedCurrencyAddress).toEqual(zeroAddressBytes);
 
   // check payees
   expect(manifest.Payees.size).toBe(1);
   const payees = manifest.Payees.get(hardhat.id);
   expect(payees).toBeTruthy();
   expect(payees!.size).toBe(1);
+
   // get first value
   const payeeAddress = payees!.keys().next().value;
   expect(payeeAddress).toBeTruthy();
-  expect(payeeAddress).toBe(anvilAddress);
-  expect(payees!.get(payeeAddress!)!.CallAsContract).toBe(true);
+  expect(payeeAddress).toEqual(hexToBytes(testAccountAddress));
+  expect(payees!.get(payeeAddress!)!.CallAsContract).toBe(false);
 
   // check pricing currency
   expect(manifest.PricingCurrency.ChainID).toBe(hardhat.id);
-  expect(manifest.PricingCurrency.Address).toBe(zeroAddress);
+  expect(manifest.PricingCurrency.Address).toEqual(
+    hexToBytes(abi.eddiesAddress),
+  );
 
   unmount();
   cleanup();

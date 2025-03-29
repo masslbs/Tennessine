@@ -27,8 +27,7 @@ import {
   encode,
   type Path,
 } from "@massmarket/utils/codec";
-// TODO !!! broke something in statemanager
-// import { ReadableStream, WritableStream } from "web-streams-polyfill";
+import { ReadableStream, WritableStream } from "web-streams-polyfill";
 
 const debug = logger("relayClient");
 
@@ -101,6 +100,8 @@ export class ClientWriteError extends Error {
 export class RelayClient {
   connection: WebSocket | null = null;
   keyCardNonce: number;
+  private pingsReceived: number = 0;
+  private lastPingReceived: Date = new Date(0);
   readonly walletClient: WalletClient;
   readonly keycard;
   readonly relayEndpoint;
@@ -111,6 +112,7 @@ export class RelayClient {
     new Map();
   #requestCounter;
   #waitingMessagesResponse: LockMap<string, schema.Envelope> = new LockMap();
+  #authenticated = false;
 
   constructor(params: IRelayClientOptions) {
     this.walletClient = params.walletClient;
@@ -120,6 +122,16 @@ export class RelayClient {
     this.keycard = params.keycard;
     this.ethAddress = parseAccount(params.keycard).address;
     this.#requestCounter = 1;
+  }
+
+  get stats() {
+    return {
+      pingsReceived: this.pingsReceived,
+      lastPingReceived: this.lastPingReceived,
+      subscriptions: this.#subscriptions.size,
+      waitingMessagesResponse: this.#waitingMessagesResponse.size,
+      requestCounter: this.#requestCounter,
+    };
   }
 
   // like encodeAndSend but doesn't wait for a response.
@@ -253,6 +265,8 @@ export class RelayClient {
       requestId: ping.requestId,
       response: {},
     });
+    this.pingsReceived++;
+    this.lastPingReceived = new Date();
   }
 
   async createSubscription(_path: Path, seqNo = 0) {
@@ -341,6 +355,9 @@ export class RelayClient {
   }
 
   async authenticate() {
+    if (this.#authenticated) {
+      return;
+    }
     const publicKey = await getAccountPublicKey(
       this.walletClient,
       this.keycard,
@@ -359,11 +376,12 @@ export class RelayClient {
         raw: response.payload,
       },
     });
-    return this.encodeAndSend({
+    await this.encodeAndSend({
       challengeSolutionRequest: {
         signature: { raw: hexToBytes(sig) },
       },
     });
+    this.#authenticated = true;
   }
 
   connect(onError?: (error: Event) => void): Promise<Event> {
@@ -410,6 +428,7 @@ export class RelayClient {
       }
       this.connection!.addEventListener("close", resolve);
       this.connection!.close(1000);
+      this.#authenticated = false;
     });
   }
 
@@ -463,6 +482,7 @@ export class RelayClient {
 
   async uploadBlob(blob: FormData) {
     await this.connect();
+    await this.authenticate();
     const envelope = await this.encodeAndSend({
       getBlobUploadUrlRequest: {},
     });

@@ -10,6 +10,28 @@ interface RelayClientTestPageProps {
   shopId: bigint;
 }
 
+function relativeTime(diff: number) {
+  // Convert milliseconds to seconds
+  const seconds = Math.floor(diff / 1000);
+
+  if (seconds < 60) {
+    return `${seconds} second${seconds !== 1 ? "s" : ""} ago`;
+  }
+
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) {
+    return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+  }
+
+  const days = Math.floor(hours / 24);
+  return `${days} day${days !== 1 ? "s" : ""} ago`;
+}
+
 const RelayClientTestPage: React.FC<RelayClientTestPageProps> = ({
   relayEndpoint,
   walletClient,
@@ -19,6 +41,7 @@ const RelayClientTestPage: React.FC<RelayClientTestPageProps> = ({
   const [connectionStatus, setConnectionStatus] = useState<
     "idle" | "connecting" | "connected" | "failed" | "disconnected"
   >("idle");
+  const [lastPingReceived, setLastPingReceived] = useState<string>("Never");
   const [error, setError] = useState<string | null>(null);
   const [client, setClient] = useState<RelayClient | null>(null);
 
@@ -50,7 +73,7 @@ const RelayClientTestPage: React.FC<RelayClientTestPageProps> = ({
       }
     };
 
-    setupClient();
+    setupClient().then();
 
     // Cleanup function to disconnect when component unmounts
     return () => {
@@ -71,9 +94,25 @@ const RelayClientTestPage: React.FC<RelayClientTestPageProps> = ({
         console.error("disconnect error", err);
         setError(err instanceof Error ? err.message : String(err));
         setConnectionStatus("failed");
+        setLastPingReceived("Never");
       }
     }
   };
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (client && client.stats.pingsReceived > 0) {
+        console.log({ stats: client.stats });
+        const now = new Date();
+        const diff = now.getTime() - client?.stats.lastPingReceived.getTime();
+        setLastPingReceived(relativeTime(diff));
+      }
+    }, 1000);
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, [client]);
 
   return (
     <div data-testid="relay-client-tester">
@@ -88,6 +127,9 @@ const RelayClientTestPage: React.FC<RelayClientTestPageProps> = ({
           Disconnect
         </button>
       )}
+      <div data-testid="stats-last-ping-received">
+        Last ping received: {lastPingReceived}
+      </div>
     </div>
   );
 };
