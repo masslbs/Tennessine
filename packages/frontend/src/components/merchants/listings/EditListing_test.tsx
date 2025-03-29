@@ -1,32 +1,32 @@
 import "../../../happyDomSetup.ts";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
-import { zeroAddress } from "viem";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "@std/expect";
-import { hardhat, mainnet, sepolia } from "wagmi/chains";
 
+import { Listing } from "@massmarket/schema";
 import { random256BigInt } from "@massmarket/utils";
-import {
-  metadata,
-  payees,
-  shippingRegions,
-} from "@massmarket/schema/testFixtures";
 
 import EditListing from "./EditListing.tsx";
-import {
-  createRouterWrapper,
-  createTestStateManager,
-} from "../../../testutils/mod.tsx";
+import { createRouterWrapper } from "../../../testutils/mod.tsx";
 import { ListingViewState } from "../../../types.ts";
 
 Deno.test("Edit Listing", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async (t) => {
-  const user = userEvent.setup();
+  const shopId = random256BigInt();
 
+  const { wrapper, stateManager, relayClient } = await createRouterWrapper({
+    shopId,
+    path: "/?itemId=new",
+    createShop: true,
+    enrollMerchant: true,
+  });
+
+  let listingID = 0; // to be established by first test step
+
+  const user = userEvent.setup();
   await t.step("Create new listing", async () => {
-    const { wrapper, csm } = await createRouterWrapper(null, "/?itemId=new");
     const { unmount } = render(<EditListing />, { wrapper });
     screen.getByTestId("edit-listing-screen");
     await act(async () => {
@@ -35,9 +35,9 @@ Deno.test("Edit Listing", {
       const descInput = screen.getByTestId("description");
       await user.type(descInput, "product 1 description");
       const priceInput = screen.getByTestId("price");
-      await user.type(priceInput, "1");
+      await user.type(priceInput, "555");
       const stockInput = screen.getByTestId("units");
-      await user.type(stockInput, "10");
+      await user.type(stockInput, "123");
 
       // Simulate file upload
       const file = new File(["test image content"], "test.jpg", {
@@ -54,8 +54,11 @@ Deno.test("Edit Listing", {
     });
 
     await act(async () => {
+      // check we got listing images on screen
+      const listingImages = await screen.findByTestId("listing-images");
+      expect(listingImages.children.length).toEqual(1);
       // Verify the image was uploaded
-      const uploadedImage = await screen.findByAltText(
+      const uploadedImage = await screen.findByTestId(
         "uploaded-product-image",
       );
       expect(uploadedImage).toBeDefined();
@@ -63,19 +66,35 @@ Deno.test("Edit Listing", {
       const publishButton = screen.getByRole("button", {
         name: /Create product/i,
       });
+      // const publishButton = await screen.findByTestId("save-button")
       await user.click(publishButton);
     });
+
+    let allListings: Map<string, unknown> = new Map();
+
     // Check the db to see that listing was created
     let listingCount = 0;
-    for await (const [_, item] of csm.stateManager!.listings.iterator()) {
+    await waitFor(async () => {
+      const gotListings = await stateManager.get(["Listings"]);
+      expect(gotListings).toBeInstanceOf(Map<string, unknown>);
+      allListings = gotListings as Map<string, unknown>;
+      expect(allListings.size).toEqual(1);
+    }, { timeout: 10000 });
+
+    for (const [id, listingData] of allListings.entries()) {
       listingCount++;
-      const { metadata: { title, description, images } } = item;
-      expect(title).toBe("product 1");
-      expect(description).toBe("product 1 description");
-      expect(item.price).toBe("1");
-      expect(item.quantity).toBe(10);
-      expect(images).toBeDefined();
-      expect(item.viewState).toBe(
+      expect(typeof id).toBe("number");
+      listingID = Number(id);
+      const l = Listing.fromCBOR(listingData as Map<string, unknown>);
+
+      // const { metadata: { title, description, images } } = item;
+      expect(l.Metadata.Title).toBe("product 1");
+      expect(l.Metadata.Description).toBe("product 1 description");
+      expect(l.Price).toEqual(555);
+      const inventory = await stateManager.get(["Inventory", listingID]);
+      expect(inventory).toBe(123);
+      expect(l.Metadata.Images?.length).toEqual(1);
+      expect(l.ViewState).toBe(
         ListingViewState.Published,
       );
     }
@@ -83,34 +102,16 @@ Deno.test("Edit Listing", {
     expect(listingCount).toBe(1);
     unmount();
   });
-  await t.step("Edit existing listing", async () => {
-    const csm = await createTestStateManager();
-    await csm.stateManager!.manifest.create(
-      {
-        acceptedCurrencies: [{
-          chainId: mainnet.id,
-          address: zeroAddress,
-        }, {
-          chainId: sepolia.id,
-          address: zeroAddress,
-        }],
-        pricingCurrency: {
-          chainId: hardhat.id,
-          address: zeroAddress,
-        },
-        payees,
-        shippingRegions,
-      },
-      random256BigInt(),
-    );
+  expect(listingID).toBeGreaterThan(0);
 
-    const { id } = await csm.stateManager!.listings.create({
-      metadata,
-      price: "100",
-      viewState: ListingViewState.Published,
+  await t.step("Edit existing listing", async () => {
+    await stateManager.set(["Inventory", listingID], 123);
+    const { wrapper } = await createRouterWrapper({
+      shopId,
+      path: `/?itemId=${listingID}`,
+      stateManager,
+      relayClient,
     });
-    await csm.stateManager!.listings.changeInventory(id, 5);
-    const { wrapper } = await createRouterWrapper(null, `/?itemId=${id}`, csm);
 
     const { unmount } = render(<EditListing />, {
       wrapper,
@@ -119,13 +120,13 @@ Deno.test("Edit Listing", {
 
     await waitFor(() => {
       const priceInput = screen.getByTestId("price") as HTMLInputElement;
-      expect(priceInput.value).toBe("100");
+      expect(priceInput.value).toBe("555");
       const titleInput = screen.getByTestId("title") as HTMLInputElement;
-      expect(titleInput.value).toBe(metadata.title);
+      expect(titleInput.value).toBe("product 1");
       const descInput = screen.getByTestId("description") as HTMLInputElement;
-      expect(descInput.value).toBe(metadata.description);
+      expect(descInput.value).toBe("product 1 description");
       const quantityInput = screen.getByTestId("units") as HTMLInputElement;
-      expect(quantityInput.value).toBe("5");
+      expect(quantityInput.value).toBe("123");
       const publishCheckbox = screen.getByRole("checkbox", {
         name: /Publish product/i,
       }) as HTMLInputElement;
@@ -136,7 +137,7 @@ Deno.test("Edit Listing", {
     await act(async () => {
       const stockInput = screen.getByTestId("units");
       await user.clear(stockInput);
-      await user.type(stockInput, "10");
+      await user.type(stockInput, "321");
       const titleInput = screen.getByTestId("title");
       await user.clear(titleInput);
       await user.type(titleInput, "Updated title");
@@ -152,11 +153,17 @@ Deno.test("Edit Listing", {
       await user.click(publishButton);
     });
 
-    const updatedListing = await csm.stateManager!.listings.get(id);
-    expect(updatedListing.quantity).toBe(10);
-    expect(updatedListing.metadata.title).toBe("Updated title");
-    expect(updatedListing.metadata.description).toBe("Updated description");
+    // the end of act does not mean the update is back from the relay yet, so we need to waitFor
+    await waitFor(async () => {
+      const updatedListing = Listing.fromCBOR(
+        await stateManager.get(["Listings", listingID]) as Map<string, unknown>,
+      );
+      expect(updatedListing.Metadata.Title).toBe("Updated title");
+      expect(updatedListing.Metadata.Description).toBe("Updated description");
+      const updateInv = await stateManager.get(["Inventory", listingID]);
 
+      expect(updateInv).toBe(321);
+    });
     unmount();
   });
   cleanup();

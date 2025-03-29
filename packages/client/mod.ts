@@ -29,6 +29,7 @@ import {
 } from "@massmarket/utils/codec";
 import { ReadableStream, WritableStream } from "web-streams-polyfill";
 
+
 const debug = logger("relayClient");
 
 export interface IRelayEndpoint {
@@ -105,7 +106,6 @@ export class RelayClient {
   readonly walletClient: WalletClient;
   readonly keycard;
   readonly relayEndpoint;
-  readonly ethAddress: Hex;
   readonly shopId;
   // TODO; we can use the subscription path for the id
   #subscriptions: Map<string, ReadableStreamDefaultController<PushedPatchSet>> =
@@ -122,7 +122,6 @@ export class RelayClient {
     this.keyCardNonce = params.keyCardNonce ?? 0;
     this.shopId = params.shopId;
     this.keycard = params.keycard;
-    this.ethAddress = parseAccount(params.keycard).address;
     this.#requestCounter = 1;
     this.#authenticationPromise = this.#initialAuthPromise;
     this.#isAuthenticated = false;
@@ -426,10 +425,18 @@ export class RelayClient {
         },
       });
 
-      assert(
-        authResponse?.payload,
-        "Authentication response payload is required",
-      );
+      // either authResponse.payload or authResponse.error is required
+      if (!authResponse?.payload) {
+        assert(
+          authResponse?.error,
+          "Authentication response error is required",
+        );
+        const { code, message } = authResponse.error;
+        assert(code, "error.code is required");
+        assert(message, "error.message is required");
+        throw new Error(`Authentication failed with code: ${code}: ${message}`);
+      }
+
       const sig = await this.walletClient.signMessage({
         account: this.keycard,
         message: {

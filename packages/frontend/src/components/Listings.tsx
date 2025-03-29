@@ -15,17 +15,16 @@ import { ListingId } from "../types.ts";
 export default function Listings() {
   const { stateManager } = useStateManager();
   const [keycard] = useKeycard();
-  const [products, setProducts] = useState<Map<ListingId, Listing>>(new Map());
+  const [products, setProducts] = useState<Listing[]>([]);
+
+  if (!stateManager) {
+    return <main data-testid="listings-page">Loading...</main>;
+  }
 
   function mapToListingClass(allListings: Map<ListingId, unknown>) {
-    const listings = new Map();
-    for (
-      const [
-        id,
-        l,
-      ] of allListings.entries()
-    ) {
-      listings.set(id, Listing.fromCBOR(l));
+    const listings: Listing[] = [];
+    for (const [_id, l] of allListings.entries()) {
+      listings.push(Listing.fromCBOR(l));
     }
     return listings;
   }
@@ -53,20 +52,16 @@ export default function Listings() {
     };
   }, [stateManager]);
 
-  if (!stateManager) {
-    return <main data-testid="listings-page">Loading...</main>;
-  }
-
   return (
     <main
       className="bg-background-gray pt-under-nav"
       data-testid="listings-page"
     >
       {keycard.role === "merchant"
-        ? <MerchantViewListings products={Array.from([...products.values()])} />
+        ? <MerchantViewListings products={products} />
         : (
           <CustomerViewListings
-            products={Array.from([...products.values()])}
+            products={products}
           />
         )}
     </main>

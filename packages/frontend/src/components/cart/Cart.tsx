@@ -24,7 +24,7 @@ export default function Cart({
   closeBasket,
   showActionButtons = true,
 }: {
-  onCheckout?: (orderId: OrderId) => Promise<void>;
+  onCheckout?: () => Promise<void>;
   closeBasket?: () => void;
   showActionButtons?: boolean;
 }) {
@@ -38,13 +38,16 @@ export default function Cart({
   const [selectedQty, setSelectedQty] = useState<Map<ListingId, number>>(
     new Map(),
   );
-  const [orderId, setOrderId] = useState<OrderId | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  if (!currentOrder) {
+    return <p>No order</p>;
+  }
 
   useEffect(() => {
     if (!stateManager) return;
     function onOrderUpdate(order: Map<string, unknown>) {
-      const o = new Order(order);
+      const o = Order.fromCBOR(order);
       getAllCartItemDetails(o).then((allCartItems) => {
         setCartMap(allCartItems);
       });
@@ -52,7 +55,7 @@ export default function Cart({
 
     stateManager.get(["Orders", currentOrder!.ID]).then(
       (order: Map<string, unknown>) => {
-        getAllCartItemDetails(new Order(order)).then((allCartItems) => {
+        getAllCartItemDetails(Order.fromCBOR(order)).then((allCartItems) => {
           setCartMap(allCartItems);
         });
       },
@@ -67,10 +70,9 @@ export default function Cart({
   useEffect(() => {
     if (!currentOrder || !stateManager) return;
     debug(`Showing cart items for order ID: ${currentOrder.ID}`);
-    setOrderId(currentOrder.ID);
     stateManager.get(["Orders", currentOrder.ID])
       .then(async (res) => {
-        const o = new Order(res);
+        const o = Order.fromCBOR(res);
         const allCartItems = await getAllCartItemDetails(o);
         setCartMap(allCartItems);
       });
@@ -100,9 +102,9 @@ export default function Cart({
     return allCartItems;
   }
 
-  async function handleCheckout(orderId: OrderId) {
+  async function handleCheckout() {
     try {
-      await onCheckout!(orderId);
+      await onCheckout!();
     } catch (error) {
       assert(error instanceof Error, "Error is not an instance of Error");
       if (
@@ -122,7 +124,7 @@ export default function Cart({
   async function clearCart() {
     try {
       await stateManager.set(
-        ["Orders", orderId, "Items"],
+        ["Orders", currentOrder!.ID, "Items"],
         [],
       );
       setCartMap(new Map());
@@ -143,13 +145,11 @@ export default function Cart({
       setSelectedQty(updatedQtyMap);
       const updatedOrderItems: OrderedItem[] = Array.from(cartItemsMap.keys())
         .map((key) => {
-          return {
-            ListingID: key,
-            Quantity: selectedQty.get(key)!,
-          };
+          return new OrderedItem(key, selectedQty.get(key)!);
         });
       await stateManager.set(
-        ["Orders", orderId, "Items"],
+        ["Orders", currentOrder!.ID, "Items"],
+        // @ts-ignore TODO: add BaseClass to CodecValue
         updatedOrderItems,
       );
     } catch (error) {
@@ -164,13 +164,11 @@ export default function Cart({
       setSelectedQty(updatedQtyMap);
       const updatedOrderItems: OrderedItem[] = Array.from(cartItemsMap.keys())
         .map((key) => {
-          return {
-            ListingID: key,
-            Quantity: selectedQty.get(key)!,
-          };
+          return new OrderedItem(key, selectedQty.get(key)!);
         });
       await stateManager.set(
-        ["Orders", orderId, "Items"],
+        ["Orders", currentOrder!.ID, "Items"],
+        // @ts-ignore TODO: add BaseClass to CodecValue
         updatedOrderItems,
       );
     } catch (error) {
@@ -195,7 +193,7 @@ export default function Cart({
     : "/icons/usdc-coin.png";
 
   function renderItems() {
-    if (!orderId || !cartItemsMap.size) return <p>No items in cart</p>;
+    if (!currentOrder || !cartItemsMap.size) return <p>No items in cart</p>;
 
     const values: Listing[] = Array.from(cartItemsMap.values());
     return values.map((item: Listing) => {
@@ -334,8 +332,8 @@ export default function Cart({
         id="cart-buttons-container"
       >
         <Button
-          disabled={!orderId || !cartItemsMap.size || !onCheckout}
-          onClick={() => handleCheckout(orderId!)}
+          disabled={!currentOrder || !cartItemsMap.size || !onCheckout}
+          onClick={() => handleCheckout()}
           data-testid="checkout-button"
         >
           <div className="flex items-center gap-2">
@@ -346,7 +344,7 @@ export default function Cart({
               width={7}
               height={12}
               style={{
-                display: !orderId || !cartItemsMap.size || !onCheckout
+                display: !currentOrder || !cartItemsMap.size || !onCheckout
                   ? "none"
                   : "",
               }}
@@ -355,7 +353,7 @@ export default function Cart({
         </Button>
         <button
           type="button"
-          disabled={!orderId || !cartItemsMap.size}
+          disabled={!currentOrder || !cartItemsMap.size}
           onClick={clearCart}
           data-testid="clear-cart"
           style={{ backgroundColor: "transparent", padding: 0 }}

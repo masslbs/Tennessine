@@ -15,7 +15,7 @@ Deno.test("useKeycard", {
 }, async (t) => {
   const randomKC = random32BytesHex();
   await t.step("should set and get keycards", async () => {
-    const { wrapper } = await createRouterWrapper();
+    const { wrapper } = await createRouterWrapper({});
     const { result, unmount } = renderHook(
       () => useKeycard({ privateKey: randomKC, role: KeycardRole.NEW_GUEST }),
       { wrapper },
@@ -27,7 +27,7 @@ Deno.test("useKeycard", {
   });
 
   await t.step("should create random keycard if none is provided", async () => {
-    const { wrapper } = await createRouterWrapper();
+    const { wrapper } = await createRouterWrapper({});
 
     const { result, unmount } = renderHook(() => useKeycard(), { wrapper });
     const [keycard] = result.current;
@@ -37,7 +37,7 @@ Deno.test("useKeycard", {
   await t.step("should use keycard saved in local storage", async () => {
     const shopId = random256BigInt();
 
-    const { wrapper } = await createRouterWrapper(shopId);
+    const { wrapper } = await createRouterWrapper({ shopId });
 
     const privateKey = random32BytesHex();
 

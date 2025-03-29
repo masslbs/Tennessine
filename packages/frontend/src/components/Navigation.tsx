@@ -92,19 +92,19 @@ function Navigation() {
     basketOpen && setBasketOpen(false);
   }
 
-  async function onCheckout(orderId: OrderId) {
+  async function onCheckout() {
     try {
-      if (!orderId) {
+      if (!currentOrder) {
         debug("orderId not found");
         throw new Error("No order found");
       }
       // Commit the order if it is not already committed
       if (currentOrder!.State !== OrderState.Committed) {
         await stateManager.set(
-          ["Orders", orderId, "State"],
+          ["Orders", currentOrder!.ID, "State"],
           OrderState.Committed,
         );
-        debug(`Order ID: ${orderId} committed`);
+        debug(`Order ID: ${currentOrder!.ID} committed`);
       }
       setBasketOpen(false);
       navigate({

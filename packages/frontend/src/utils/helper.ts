@@ -1,7 +1,7 @@
 import { formatUnits } from "viem";
 
 import { Order } from "@massmarket/schema";
-import { StateManager } from "@massmarket/stateManager";
+import StateManager from "@massmarket/stateManager";
 import { KeycardRole, OrderId, OrderState } from "../types.ts";
 
 export async function cancelAndCreateOrder(

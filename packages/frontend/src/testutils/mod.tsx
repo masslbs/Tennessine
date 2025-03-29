@@ -13,13 +13,17 @@ import { hardhat, mainnet, sepolia } from "wagmi/chains";
 import { mock } from "npm:wagmi/connectors";
 import { createTestClient, publicActions, walletActions } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { discoverRelay } from "@massmarket/client";
-import { random256BigInt } from "@massmarket/utils";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
+import { discoverRelay, RelayClient } from "@massmarket/client";
+import { mintShop } from "@massmarket/contracts";
+import { random256BigInt } from "@massmarket/utils";
+import StateManager from "@massmarket/stateManager";
+import { MemStore } from "@massmarket/store";
+
 import { MassMarketProvider } from "../MassMarketContext.ts";
-import { ClientWithStateManager } from "../ClientWithStateManager.ts";
+import { KeycardRole } from "../types.ts";
 
 export const relayURL = Deno.env.get("RELAY_ENDPOINT") ||
   "http://localhost:4444/v4";
@@ -33,11 +37,12 @@ export const testClient = createTestClient({
   // Extend the client with public and wallet actions, so it can also act as a Public Client and Wallet Client
   .extend(publicActions)
   .extend(walletActions);
-const [testAccountAddress] = await testClient.requestAddresses();
+const testAccounts = await testClient.requestAddresses();
+export const testAccount = testAccounts[0];
 
 export const connectors = [
   mock({
-    accounts: [testAccountAddress],
+    accounts: [testAccount],
     features: {
       defaultConnected: true,
       reconnect: true,
@@ -45,33 +50,85 @@ export const connectors = [
   }),
 ];
 
-export const createTestStateManager = async (
-  shopId: bigint | null = null,
-) => {
-  if (!shopId) {
-    shopId = random256BigInt();
-  }
-  const pk = generatePrivateKey();
-  const testKeyCard = privateKeyToAccount(pk);
+export const createTestStateManager = async (shopId: bigint) => {
+  const root = new Map(Object.entries({
+    Tags: new Map(),
+    Orders: new Map(),
+    Accounts: new Map(),
+    Inventory: new Map(),
+    Listings: new Map(),
+    Manifest: new Map(),
+    SchemeVersion: 1,
+  }));
+  const stateManager = new StateManager({
+    store: new MemStore(),
+    id: shopId,
+    defaultState: root,
+  });
+  await stateManager.open();
 
-  const csm = new ClientWithStateManager(
-    testRelayEndpoint,
-    testClient,
-    testKeyCard,
+  return stateManager;
+};
+
+export const createTestRelayClient = async (
+  shopId: bigint,
+  enrollKeycard: boolean,
+) => {
+  const keyCardID = `keycard${shopId}`;
+  const hasKC = localStorage.getItem(keyCardID);
+  if (hasKC) {
+    throw new Error("Keycard already exists");
+  }
+  const kcPrivateKey = generatePrivateKey();
+  const keycard = privateKeyToAccount(kcPrivateKey);
+
+  const relayClient = new RelayClient({
+    relayEndpoint: testRelayEndpoint,
+    walletClient: testClient,
+    keycard,
     shopId,
-  );
-  await csm.open();
-  return csm;
+  });
+
+  if (enrollKeycard) {
+    const result = await relayClient.enrollKeycard(
+      testClient,
+      testAccount,
+      false,
+    );
+    if (!result.ok) {
+      throw new Error("Failed to enroll keycard");
+    }
+
+    localStorage.setItem(
+      keyCardID,
+      JSON.stringify({
+        privateKey: kcPrivateKey,
+        role: KeycardRole.MERCHANT,
+      }),
+    );
+  }
+
+  return relayClient;
 };
 
 // TODO: verify where createRouterWrapper is used and if we can remove the csm argument.
-export const createRouterWrapper = async (
-  shopId: bigint | null = null,
-  path: string = "/",
+export const createRouterWrapper = async ({
+  shopId,
+  createShop = false,
+  enrollMerchant = false,
+  path = "/",
+  stateManager,
+  relayClient,
+}: {
+  shopId?: bigint | null;
+  createShop?: boolean; // whether to mint a shop
+  enrollMerchant?: boolean; // whether to enroll a keycard
+  path?: string;
   // The only case clientStateManager needs to be passed here is if we need access to the state manager before the router is created.
   // For example, in EditListing_test.tsx, we need to access the state manager to create a new listing and then use the listing id to set the search param.
-  clientStateManager: ClientWithStateManager | null = null, // In most cases we don't need to pass clientStateManager separately.
-) => {
+  stateManager?: StateManager; // In most cases we don't need to pass clientStateManager separately.
+  relayClient?: RelayClient;
+}) => {
   const config = createConfig({
     chains: [hardhat, mainnet, sepolia],
     transports: {
@@ -81,8 +138,48 @@ export const createRouterWrapper = async (
     },
     connectors,
   });
-  const csm = clientStateManager ?? await createTestStateManager(shopId);
+  // establish wallet connection
   await connect(config, { connector: config.connectors[0] });
+
+  if (!shopId) {
+    shopId = random256BigInt();
+  }
+  if (createShop) {
+    const transactionHash = await mintShop(testClient, testAccount, [
+      shopId,
+      testAccount,
+    ]);
+    // this is still causing a leak
+    // https://github.com/wevm/viem/issues/2903
+    const receipt = await testClient.waitForTransactionReceipt({
+      hash: transactionHash,
+    });
+    if (receipt.status !== "success") {
+      throw new Error("Shop creation failed");
+    }
+  }
+  if (!relayClient) {
+    relayClient = await createTestRelayClient(shopId, enrollMerchant);
+  }
+
+  if (!stateManager) {
+    stateManager = await createTestStateManager(shopId);
+  }
+
+  const initialURL = (() => {
+    if (!shopId) return path;
+
+    // parse it
+    const url = new URL(path, "http://localhost");
+    const searchParams = url.searchParams;
+    // override the shopId
+    searchParams.set("shopId", `0x${shopId.toString(16)}`);
+
+    // Return the path with search params, but without the base URL
+    return `${url.pathname}${
+      searchParams.toString() ? "?" + searchParams.toString() : ""
+    }`;
+  })();
 
   const wrapper = ({ children }: { children: React.ReactNode }) => {
     function RootComponent() {
@@ -119,9 +216,7 @@ export const createRouterWrapper = async (
         checkoutRoute,
       ]),
       history: createMemoryHistory({
-        initialEntries: [
-          shopId ? `${path}?shopId=0x${shopId.toString(16)}` : path,
-        ],
+        initialEntries: [initialURL],
       }),
     });
 
@@ -131,7 +226,10 @@ export const createRouterWrapper = async (
       <StrictMode>
         <QueryClientProvider client={queryClient}>
           <WagmiProvider config={config}>
-            <MassMarketProvider clientStateManager={csm}>
+            <MassMarketProvider
+              stateManager={stateManager}
+              relayClient={relayClient}
+            >
               <RainbowKitProvider showRecentTransactions>
                 {
                   /* TS expects self closing RouterProvider tag. See App.tsx for how we are using it.
@@ -149,7 +247,8 @@ export const createRouterWrapper = async (
 
   return {
     wrapper,
-    csm,
-    testAccountAddress,
+    stateManager,
+    relayClient,
+    testAccount,
   };
 };
