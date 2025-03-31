@@ -8,6 +8,8 @@ export class ClientWithStateManager {
   #stateManager?: Database;
   #relayClient?: RelayClient;
 
+  #hasConnection = false;
+
   constructor(
     private readonly relayEndpoint: IRelayEndpoint,
     private readonly walletClient: WalletClient,
@@ -62,7 +64,13 @@ export class ClientWithStateManager {
     if (!this.#stateManager) {
       throw new Error("state manager not open");
     }
-
-    return this.#stateManager.addConnection(this.#relayClient);
+    if (this.#hasConnection) {
+      // console.trace("addConnection: already has connection");
+      return;
+    }
+    const res = this.#stateManager.addConnection(this.#relayClient);
+    // console.trace("addConnection", res);
+    this.#hasConnection = true;
+    return res;
   }
 }
