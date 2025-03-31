@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
 import { Order } from "@massmarket/schema";
 
-import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
 import { OrderId } from "../../types.ts";
 import Transactions from "./Transactions.tsx";
+import { useStateManager } from "../../hooks/useStateManager.ts";
 
 export default function Orders() {
-  const { clientStateManager } = useClientWithStateManager();
+  const { stateManager } = useStateManager();
 
   const [orders, setOrders] = useState<Map<OrderId, Order>>(new Map());
-  const sm = clientStateManager?.stateManager;
 
   function getAllOrders(orders: Map<OrderId, unknown>) {
     const allOrders = new Map();
@@ -25,21 +24,21 @@ export default function Orders() {
   }
 
   useEffect(() => {
-    if (!sm) return;
+    if (!stateManager) return;
 
     function onUpdateOrder(orders: Map<OrderId, unknown>) {
       const allOrders = getAllOrders(orders);
       setOrders(allOrders);
     }
 
-    sm.get(["Orders"]).then((orders: Map<OrderId, unknown>) => {
+    stateManager.get(["Orders"]).then((orders: Map<OrderId, unknown>) => {
       const allOrders = getAllOrders(orders);
       setOrders(allOrders);
     });
-    sm.events.on(onUpdateOrder, ["Orders"]);
+    stateManager.events.on(onUpdateOrder, ["Orders"]);
 
     return () => {
-      sm.events.off(
+      stateManager.events.off(
         onUpdateOrder,
         ["Orders"],
       );

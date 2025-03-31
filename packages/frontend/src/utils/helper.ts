@@ -1,15 +1,13 @@
 import { formatUnits } from "viem";
 
 import { Order } from "@massmarket/schema";
-
-import { ClientWithStateManager } from "../ClientWithStateManager.ts";
+import { StateManager } from "@massmarket/stateManager";
 import { KeycardRole, OrderId, OrderState } from "../types.ts";
 
 export async function cancelAndCreateOrder(
   orderId: OrderId,
-  csm: ClientWithStateManager,
+  sm: StateManager,
 ) {
-  const sm = csm.stateManager!;
   const currentOrder = await sm.get(["Orders", orderId]) as Map<
     string,
     unknown

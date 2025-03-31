@@ -11,7 +11,7 @@ import { Order } from "@massmarket/schema";
 
 import { CheckoutStep, OrderId, OrderState } from "../types.ts";
 import Cart from "./cart/Cart.tsx";
-import { useClientWithStateManager } from "../hooks/useClientWithStateManager.ts";
+import { useStateManager } from "../hooks/useStateManager.ts";
 import { useShopDetails } from "../hooks/useShopDetails.ts";
 import { useKeycard } from "../hooks/useKeycard.ts";
 import { useCurrentOrder } from "../hooks/useCurrentOrder.ts";
@@ -59,16 +59,15 @@ function Navigation() {
 
   const navigate = useNavigate();
   const { shopDetails } = useShopDetails();
-  const { clientStateManager } = useClientWithStateManager();
+  const { stateManager } = useStateManager();
   const { currentOrder } = useCurrentOrder();
   const [keycard] = useKeycard();
   const { disconnect } = useDisconnect();
-  const sm = clientStateManager?.stateManager;
   const isMerchantView = keycard.role === "merchant";
 
   useEffect(() => {
     if (!currentOrder) return;
-    clientStateManager?.stateManager?.get(["Orders", currentOrder.ID])
+    stateManager?.get(["Orders", currentOrder.ID])
       .then((o: Map<OrderId, unknown>) => {
         // Getting number of items in order.
         const order = Order.fromCBOR(o);
@@ -101,7 +100,7 @@ function Navigation() {
       }
       // Commit the order if it is not already committed
       if (currentOrder!.State !== OrderState.Committed) {
-        await sm.set(
+        await stateManager.set(
           ["Orders", orderId, "State"],
           OrderState.Committed,
         );

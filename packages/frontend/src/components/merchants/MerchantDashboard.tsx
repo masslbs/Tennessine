@@ -9,12 +9,11 @@ import { Order } from "@massmarket/schema";
 
 import Transactions from "./Transactions.tsx";
 import { OrderId } from "../../types.ts";
-import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
+import { useStateManager } from "../../hooks/useStateManager.ts";
 
 export default function MerchantDashboard() {
-  const { clientStateManager } = useClientWithStateManager();
+  const { stateManager } = useStateManager();
   const [orders, setOrders] = useState<Map<OrderId, Order>>(new Map());
-  const sm = clientStateManager?.stateManager;
 
   function mapToOrderClass(orders: Map<OrderId, unknown>) {
     const allOrders = new Map();
@@ -30,27 +29,27 @@ export default function MerchantDashboard() {
   }
 
   useEffect(() => {
-    if (!sm) return;
+    if (!stateManager) return;
 
     function ordersEvent(res: Map<OrderId, unknown>) {
       const allOrders = mapToOrderClass(res);
       setOrders(allOrders);
     }
 
-    sm.get(["Orders"]).then((res: Map<OrderId, unknown>) => {
+    stateManager.get(["Orders"]).then((res: Map<OrderId, unknown>) => {
       const allOrders = mapToOrderClass(res);
       setOrders(allOrders);
     });
 
-    sm.events.on(ordersEvent, ["Orders"]);
+    stateManager.events.on(ordersEvent, ["Orders"]);
 
     return () => {
-      sm.events.off(
+      stateManager.events.off(
         ordersEvent,
         ["Orders"],
       );
     };
-  }, [sm]);
+  }, [stateManager]);
 
   return (
     <main

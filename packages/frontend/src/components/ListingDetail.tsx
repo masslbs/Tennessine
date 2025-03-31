@@ -11,8 +11,8 @@ import { Listing, Order, OrderedItem } from "@massmarket/schema";
 import { ListingId, OrderId, OrderState } from "../types.ts";
 import Button from "./common/Button.tsx";
 import BackButton from "./common/BackButton.tsx";
+import { useStateManager } from "../hooks/useStateManager.ts";
 import { useBaseToken } from "../hooks/useBaseToken.ts";
-import { useClientWithStateManager } from "../hooks/useClientWithStateManager.ts";
 import { useKeycard } from "../hooks/useKeycard.ts";
 import ErrorMessage from "./common/ErrorMessage.tsx";
 import SuccessToast from "./common/SuccessToast.tsx";
@@ -25,7 +25,7 @@ const errlog = logger(namespace, "error");
 
 export default function ListingDetail() {
   const { baseToken } = useBaseToken();
-  const { clientStateManager } = useClientWithStateManager();
+  const { stateManager } = useStateManager();
   const [keycard] = useKeycard();
   const search = useSearch({ strict: false });
   const { currentOrder } = useCurrentOrder();
@@ -40,7 +40,7 @@ export default function ListingDetail() {
   useEffect(() => {
     if (itemId && baseToken) {
       //set item details
-      clientStateManager!.stateManager
+      stateManager
         .get(["Listings", itemId])
         .then((res: Map<string, unknown>) => {
           const item = Listing.fromCBOR(res);
@@ -84,7 +84,7 @@ export default function ListingDetail() {
           ],
           OrderState.Open,
         );
-        await clientStateManager!.stateManager.set(
+        await stateManager.set(
           ["Orders", orderId],
           newOrder,
         );
@@ -93,10 +93,10 @@ export default function ListingDetail() {
         // Update existing order
 
         if (currentOrder?.State === OrderState.Committed) {
-          orderId = await cancelAndCreateOrder(orderId, clientStateManager!);
+          orderId = await cancelAndCreateOrder(orderId, stateManager);
         }
 
-        const o = await clientStateManager!.stateManager.get([
+        const o = await stateManager.get([
           "Orders",
           orderId,
         ]);
@@ -110,7 +110,7 @@ export default function ListingDetail() {
             }
           },
         );
-        await clientStateManager!.stateManager.set(
+        await stateManager.set(
           ["Orders", orderId, "Items"],
           updatedOrderItems,
         );

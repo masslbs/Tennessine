@@ -6,10 +6,10 @@ import { Listing, Order, OrderedItem } from "@massmarket/schema";
 
 import BackButton from "../common/BackButton.tsx";
 import { ListingId, OrderState } from "../../types.ts";
-import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
+import { useStateManager } from "../../hooks/useStateManager.ts";
 
 export default function OrderDetails() {
-  const { clientStateManager } = useClientWithStateManager();
+  const { stateManager } = useStateManager();
   const search = useSearch({ strict: false });
   const orderId = search.orderId;
   const [cartItemsMap, setCartMap] = useState<Map<ListingId, Listing>>(
@@ -26,7 +26,7 @@ export default function OrderDetails() {
 
   useEffect(() => {
     if (!orderId) return;
-    clientStateManager!.stateManager.get(["Orders", orderId]).then(
+    stateManager.get(["Orders", orderId]).then(
       (res: Map<string, unknown>) => {
         const o = Order.fromCBOR(res);
         getAllCartItemDetails(o).then((cartItems) => {
@@ -88,7 +88,7 @@ export default function OrderDetails() {
         // If the selected quantity is 0, don't add the item to cart items map
         if (orderItem.Quantity === 0) return;
         // Get price and metadata for all the selected items in the order.
-        return clientStateManager!.stateManager.get([
+        return stateManager.get([
           "Listings",
           orderItem.ListingID,
         ])

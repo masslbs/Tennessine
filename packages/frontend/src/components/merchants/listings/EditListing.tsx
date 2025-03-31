@@ -12,8 +12,9 @@ import { ListingId, ListingViewState } from "../../../types.ts";
 import ErrorMessage from "../../common/ErrorMessage.tsx";
 import ValidationWarning from "../../common/ValidationWarning.tsx";
 import Button from "../../common/Button.tsx";
-import { useClientWithStateManager } from "../../../hooks/useClientWithStateManager.ts";
 import BackButton from "../../common/BackButton.tsx";
+import { useStateManager } from "../../../hooks/useStateManager.ts";
+import { useRelayClient } from "../../../hooks/useRelayClient.ts";
 
 const namespace = "frontend:edit-product";
 const errlog = logger(namespace, "error");
@@ -27,8 +28,8 @@ type Image = {
 export default function EditProduct() {
   const navigate = useNavigate();
   const search = useSearch({ strict: false });
-  const { clientStateManager } = useClientWithStateManager();
-
+  const { stateManager } = useStateManager();
+  const { relayClient } = useRelayClient();
   const [listing, setListing] = useState<Listing>(new Listing());
   const [units, setUnits] = useState<number>(0);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -41,12 +42,10 @@ export default function EditProduct() {
   const hed = editView ? "Edit product" : "Add Product";
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const sm = clientStateManager?.stateManager;
-
   useEffect(() => {
-    if (!sm) return;
+    if (!stateManager) return;
     if (editView && itemId) {
-      sm.get(["Listings", itemId])
+      stateManager.get(["Listings", itemId])
         .then((item: Map<string, unknown> | undefined) => {
           if (!item) {
             setErrorMsg("Error fetching listing");
@@ -61,15 +60,15 @@ export default function EditProduct() {
           errlog("Error fetching listing", e);
         });
     }
-  }, [sm]);
+  }, [stateManager]);
 
   async function create(newListing: Listing) {
     try {
-      await sm.set(
+      await stateManager.set(
         ["Listings", newListing.ID],
         newListing.asCBORMap(),
       );
-      await sm!.increment([
+      await stateManager!.increment([
         "Inventory",
         newListing.ID,
       ], units);
@@ -83,43 +82,43 @@ export default function EditProduct() {
   async function update(newListing: Listing) {
     try {
       //compare the edited fields against the original object.
-      const oldListing = await sm.get(["Listings", newListing.ID]);
+      const oldListing = await stateManager.get(["Listings", newListing.ID]);
       if (
         newListing.Price !== oldListing.Price
       ) {
-        await sm.set([
+        await stateManager.set([
           "Listings",
           newListing.ID,
           "Price",
         ], newListing.Price);
       }
       if (newListing.Metadata !== oldListing!.Metadata) {
-        await sm.set([
+        await stateManager.set([
           "Listings",
           newListing.ID,
           "Metadata",
         ], newListing.Metadata.asCBORMap());
       }
       if (newListing.ViewState !== oldListing!.ViewState) {
-        await sm.set([
+        await stateManager.set([
           "Listings",
           newListing.ID,
           "ViewState",
         ], newListing.ViewState);
       }
 
-      const prevQty = await sm.get([
+      const prevQty = await stateManager.get([
         "Inventory",
         newListing.ID,
       ]);
 
       if (prevQty > units) {
-        await sm.decrement([
+        await stateManager.decrement([
           "Inventory",
           newListing.ID,
         ], prevQty - units);
       } else if (prevQty < units) {
-        await sm.increment([
+        await stateManager.increment([
           "Inventory",
           newListing.ID,
         ], units - prevQty);
@@ -149,7 +148,7 @@ export default function EditProduct() {
         if (blobs.length > 0) {
           const uploaded = await Promise.all(
             blobs.map(async (i: FormData) => {
-              const { url } = await clientStateManager!.relayClient!
+              const { url } = await relayClient!
                 .uploadBlob(i);
               return url;
             }),

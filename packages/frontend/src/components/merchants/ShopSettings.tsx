@@ -24,8 +24,8 @@ import BackButton from "../common/BackButton.tsx";
 import Dropdown from "../common/CurrencyDropdown.tsx";
 import { useShopDetails } from "../../hooks/useShopDetails.ts";
 import { useShopId } from "../../hooks/useShopId.ts";
-import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
-
+import { useRelayClient } from "../../hooks/useRelayClient.ts";
+import { useStateManager } from "../../hooks/useStateManager.ts";
 const namespace = "frontend:StoreSettings";
 const errlog = logger(namespace, "error");
 
@@ -33,8 +33,9 @@ export default function ShopSettings() {
   const { shopDetails, setShopDetails } = useShopDetails();
   const { shopId } = useShopId();
   const { data: wallet } = useWalletClient();
-  const { clientStateManager } = useClientWithStateManager();
   const chains = useChains();
+  const { stateManager } = useStateManager();
+  const { relayClient } = useRelayClient();
 
   const [storeName, setStoreName] = useState<string>(shopDetails.name || "");
   const [avatar, setAvatar] = useState<FormData | null>(null);
@@ -54,7 +55,6 @@ export default function ShopSettings() {
   const [displayedChains, setDisplayedChains] = useState<CurrencyChainOption[]>(
     [],
   );
-  const sm = clientStateManager?.stateManager;
 
   useEffect(() => {
     if (chains) {
@@ -79,7 +79,7 @@ export default function ShopSettings() {
   }, []);
 
   useEffect(() => {
-    if (!sm) return;
+    if (!stateManager) return;
     function onUpdateEvent(res: Map<string, unknown>) {
       const m = new Manifest(res);
       setManifest(m);
@@ -87,7 +87,7 @@ export default function ShopSettings() {
       setPricingCurrency(m.PricingCurrency);
     }
 
-    sm.get(["Manifest"])
+    stateManager.get(["Manifest"])
       .then((res: Map<string, unknown>) => {
         const m = Manifest.fromCBOR(res);
         setManifest(m);
@@ -95,16 +95,16 @@ export default function ShopSettings() {
         setPricingCurrency(m.PricingCurrency);
       });
 
-    sm.events.on(onUpdateEvent, ["Manifest"]);
+    stateManager.events.on(onUpdateEvent, ["Manifest"]);
 
     return () => {
       // Cleanup listeners on unmount
-      sm.events.off(
+      stateManager.events.off(
         onUpdateEvent,
         ["Manifest"],
       );
     };
-  }, [sm]);
+  }, [stateManager]);
 
   function copyToClipboard() {
     navigator.clipboard.writeText(String(shopId));
@@ -115,13 +115,13 @@ export default function ShopSettings() {
       pricingCurrency!.Address !== manifest!.PricingCurrency.Address ||
       pricingCurrency!.chainID !== manifest!.PricingCurrency.chainID
     ) {
-      await sm.set(["Manifest", "PricingCurrency"], pricingCurrency);
+      await stateManager.set(["Manifest", "PricingCurrency"], pricingCurrency);
     }
     if (
       acceptedCurrencies.asCBORMap() !==
         manifest!.AcceptedCurrencies.asCBORMap()
     ) {
-      await sm.set(
+      await stateManager.set(
         ["Manifest", "AcceptedCurrencies"],
         acceptedCurrencies.asCBORMap(),
       );
@@ -135,7 +135,7 @@ export default function ShopSettings() {
           //If new avatar was uploaded, upload the image, otherwise use previous image.
           image: avatar
             ? (
-              await clientStateManager!.relayClient!.uploadBlob(
+              await relayClient!.uploadBlob(
                 avatar as FormData,
               )
             ).url
@@ -147,7 +147,7 @@ export default function ShopSettings() {
         const file = new File([blob], "file.json");
         const formData = new FormData();
         formData.append("file", file);
-        const { url } = await clientStateManager!.relayClient!.uploadBlob(
+        const { url } = await relayClient!.uploadBlob(
           formData,
         );
         await setTokenURI(wallet!, [shopId!, url]);

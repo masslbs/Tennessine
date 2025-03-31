@@ -12,7 +12,7 @@ import Button from "../common/Button.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import { useBaseToken } from "../../hooks/useBaseToken.ts";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
-import { useClientWithStateManager } from "../../hooks/useClientWithStateManager.ts";
+import { useStateManager } from "../../hooks/useStateManager.ts";
 import { multiplyAndFormatUnits } from "../../utils/helper.ts";
 
 const namespace = "frontend:Cart";
@@ -30,7 +30,7 @@ export default function Cart({
 }) {
   const { currentOrder } = useCurrentOrder();
   const { baseToken } = useBaseToken();
-  const { clientStateManager } = useClientWithStateManager();
+  const { stateManager } = useStateManager();
 
   const [cartItemsMap, setCartMap] = useState<
     Map<ListingId, Listing>
@@ -41,10 +41,8 @@ export default function Cart({
   const [orderId, setOrderId] = useState<OrderId | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const sm = clientStateManager?.stateManager;
-
   useEffect(() => {
-    if (!sm) return;
+    if (!stateManager) return;
     function onOrderUpdate(order: Map<string, unknown>) {
       const o = new Order(order);
       getAllCartItemDetails(o).then((allCartItems) => {
@@ -52,31 +50,31 @@ export default function Cart({
       });
     }
 
-    sm.get(["Orders", currentOrder!.ID]).then(
+    stateManager.get(["Orders", currentOrder!.ID]).then(
       (order: Map<string, unknown>) => {
         getAllCartItemDetails(new Order(order)).then((allCartItems) => {
           setCartMap(allCartItems);
         });
       },
     );
-    sm.events.on(onOrderUpdate, ["Orders", currentOrder!.ID]);
+    stateManager.events.on(onOrderUpdate, ["Orders", currentOrder!.ID]);
 
     return () => {
-      sm.events.off(onOrderUpdate, ["Orders", currentOrder!.ID]);
+      stateManager.events.off(onOrderUpdate, ["Orders", currentOrder!.ID]);
     };
-  }, [sm]);
+  }, [stateManager]);
 
   useEffect(() => {
-    if (!currentOrder || !sm) return;
+    if (!currentOrder || !stateManager) return;
     debug(`Showing cart items for order ID: ${currentOrder.ID}`);
     setOrderId(currentOrder.ID);
-    sm.get(["Orders", currentOrder.ID])
+    stateManager.get(["Orders", currentOrder.ID])
       .then(async (res) => {
         const o = new Order(res);
         const allCartItems = await getAllCartItemDetails(o);
         setCartMap(allCartItems);
       });
-  }, [currentOrder, sm]);
+  }, [currentOrder, stateManager]);
 
   async function getAllCartItemDetails(order: Order) {
     const ci = order.Items;
@@ -89,7 +87,7 @@ export default function Cart({
         setSelectedQty(updatedQtyMap);
         // If the selected quantity is 0, don't add the item to cart items map
         if (orderItem.Quantity === 0) return;
-        return sm.get([
+        return stateManager.get([
           "Listings",
           orderItem.ListingID,
         ])
@@ -123,7 +121,7 @@ export default function Cart({
 
   async function clearCart() {
     try {
-      await sm.set(
+      await stateManager.set(
         ["Orders", orderId, "Items"],
         [],
       );
@@ -150,7 +148,7 @@ export default function Cart({
             Quantity: selectedQty.get(key)!,
           };
         });
-      await sm.set(
+      await stateManager.set(
         ["Orders", orderId, "Items"],
         updatedOrderItems,
       );
@@ -171,7 +169,7 @@ export default function Cart({
             Quantity: selectedQty.get(key)!,
           };
         });
-      await sm.set(
+      await stateManager.set(
         ["Orders", orderId, "Items"],
         updatedOrderItems,
       );
