@@ -8,6 +8,7 @@ import {
   zeroAddress,
 } from "viem";
 import { foundry } from "viem/chains";
+import { generatePrivateKey } from "viem/accounts";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "@std/expect";
 import { hardhat, mainnet, sepolia } from "wagmi/chains";
@@ -26,7 +27,7 @@ import {
   createTestStateManager,
   testAccount,
 } from "../../../testutils/mod.tsx";
-import { ListingViewState } from "../../../types.ts";
+import { KeycardRole, ListingViewState } from "../../../types.ts";
 
 Deno.test("Edit Listing", {
   sanitizeResources: false,
@@ -56,9 +57,31 @@ Deno.test("Edit Listing", {
   });
   expect(receipt.status).toBe("success");
 
+  // setup merchant keycard
+  // TODO: move to helper
+  const keyCardID = `keycard${shopId}`;
+  const hasKC = localStorage.getItem(keyCardID);
+  console.log({ hasKC, keyCardID });
+  localStorage.setItem(
+    keyCardID,
+    JSON.stringify({
+      privateKey: generatePrivateKey(),
+      role: KeycardRole.MERCHANT,
+    }),
+  );
+
   const user = userEvent.setup();
   await t.step("Create new listing", async () => {
     const { wrapper, csm } = await createRouterWrapper(shopId, "/?itemId=new");
+
+    // TODO: move to helper but need access to csm
+    const res = await csm.relayClient!.enrollKeycard(
+      blockchainClient,
+      testAccount,
+      false,
+    );
+    expect(res.ok).toBe(true);
+
     const { unmount } = render(<EditListing />, { wrapper });
     screen.getByTestId("edit-listing-screen");
     await act(async () => {
@@ -102,19 +125,19 @@ Deno.test("Edit Listing", {
       await user.click(publishButton);
     });
 
-    let allListings: Map<string, unknown>
+    let allListings: Map<string, unknown>;
     // Check the db to see that listing was created
     let listingCount = 0;
-    
+
     await waitFor(async () => {
-      allListings = await csm.stateManager.get(["Listings"])
-      expect(allListings.size).toEqual(1)
-    }, {timeout: 10000})
-    
-    for (const [id, listingData] of allListings.entries()) {
+      allListings = await csm.stateManager.get(["Listings"]);
+      expect(allListings.size).toEqual(1);
+    }, { timeout: 10000 });
+
+    for (const [_id, listingData] of allListings.entries()) {
       listingCount++;
-      const l = Listing.fromCBOR(listingData)
-      console.log({listingData, l})
+      const l = Listing.fromCBOR(listingData);
+      console.log({ listingData, l });
       // const { metadata: { title, description, images } } = item;
       expect(l.Metadata.Title).toBe("product 1");
       expect(l.Metadata.Description).toBe("product 1 description");

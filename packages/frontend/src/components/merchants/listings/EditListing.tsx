@@ -33,97 +33,69 @@ export default function EditProduct() {
   const [publishing, setPublishing] = useState(false);
 
   // TODO: this "new" handling seems a bit convoluted...
-  const itemId = search.itemId.indexOf("new") !== 0 ? Number(search.itemId) as ListingId : "new";
-  const editView = itemId !== "new"
+  const itemId = search.itemId.indexOf("new") !== 0
+    ? Number(search.itemId) as ListingId
+    : "new";
+  const editView = itemId !== "new";
   // console.log({ itemId, search, editView });
   const hed = editView ? "Edit product" : "Add Product";
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!stateManager) return;
-    if (editView && itemId) {
-      stateManager.get(["Listings", itemId])
-        .then((item: Map<string, unknown> | undefined) => {
-          if (!item) {
-            setErrorMsg("Error fetching listing");
-            errlog("Error fetching listing", "No item found");
-            return;
-          }
-          setListing(Listing.fromCBOR(item));
-        })
-        .catch((e: unknown) => {
-          assert(e instanceof Error, "Error is not an instance of Error");
+    if (!stateManager || !editView || !itemId) return;
+    stateManager.get(["Listings", itemId])
+      .then((item: Map<string, unknown> | undefined) => {
+        if (!item) {
           setErrorMsg("Error fetching listing");
-          errlog("Error fetching listing", e);
-        });
-    }
-  }, [stateManager]);
+          errlog("Error fetching listing", "No item found");
+          return;
+        }
+        setListing(Listing.fromCBOR(item));
+      })
+      .catch((e: unknown) => {
+        assert(e instanceof Error, "Error is not an instance of Error");
+        setErrorMsg("Error fetching listing");
+        errlog("Error fetching listing", e);
+      });
+  }, [stateManager, editView, itemId]);
 
   async function create(newListing: Listing) {
-    try {
-      await stateManager.set(
-        ["Listings", newListing.ID],
-        newListing,
-      );
-      await stateManager!.increment([
-        "Inventory",
-        newListing.ID,
-      ], units);
-    } catch (error: unknown) {
-      assert(error instanceof Error, "Error is not an instance of Error");
-      errlog("Error creating listing", error);
-      throw error;
-    }
+    assert(stateManager, "State manager is required");
+    console.log("create", newListing.ID);
+    await stateManager.set(["Listings", newListing.ID], newListing);
+
+    console.log("set inventory", newListing.ID, units);
+    await stateManager.increment(["Inventory", newListing.ID], units);
   }
 
   async function update(newListing: Listing) {
-    try {
-      //compare the edited fields against the original object.
-      const oldListing = await stateManager.get(["Listings", newListing.ID]);
-      if (
-        newListing.Price !== oldListing.Price
-      ) {
-        await stateManager.set([
-          "Listings",
-          newListing.ID,
-          "Price",
-        ], newListing.Price);
-      }
-      if (newListing.Metadata !== oldListing!.Metadata) {
-        await stateManager.set([
-          "Listings",
-          newListing.ID,
-          "Metadata",
-        ], newListing.Metadata);
-      }
-      if (newListing.ViewState !== oldListing!.ViewState) {
-        await stateManager.set([
-          "Listings",
-          newListing.ID,
-          "ViewState",
-        ], newListing.ViewState);
-      }
+    assert(stateManager, "State manager is required");
+    console.log("update", newListing.ID);
+    //compare the edited fields against the original object.
+    const listingPath = ["Listings", newListing.ID];
+    const oldListing = Listing.fromCBOR(await stateManager.get(listingPath));
+    if (oldListing === undefined) {
+      throw new Error("Listing not found");
+    }
+    if (newListing.Price !== oldListing.Price) {
+      await stateManager.set([...listingPath, "Price"], newListing.Price);
+    }
+    if (newListing.Metadata !== oldListing!.Metadata) {
+      await stateManager.set([...listingPath, "Metadata"], newListing.Metadata);
+    }
+    if (newListing.ViewState !== oldListing!.ViewState) {
+      await stateManager.set(
+        [...listingPath, "ViewState"],
+        newListing.ViewState,
+      );
+    }
 
-      const prevQty = await stateManager.get([
-        "Inventory",
-        newListing.ID,
-      ]);
-
-      if (prevQty > units) {
-        await stateManager.decrement([
-          "Inventory",
-          newListing.ID,
-        ], prevQty - units);
-      } else if (prevQty < units) {
-        await stateManager.increment([
-          "Inventory",
-          newListing.ID,
-        ], units - prevQty);
-      }
-    } catch (error: unknown) {
-      assert(error instanceof Error, "Error is not an instance of Error");
-      errlog("Error updating listing", error);
-      throw error;
+    const inventoryPath = ["Inventory", newListing.ID];
+    const prevQty = await stateManager.get(inventoryPath);
+    if (prevQty > units) {
+      await stateManager.decrement(inventoryPath, prevQty - units);
+    } else if (prevQty < units) {
+      await stateManager.increment(inventoryPath, units - prevQty);
     }
   }
 
@@ -155,16 +127,15 @@ export default function EditProduct() {
 
         if (editView) {
           newListing.ID = itemId;
-          await update(newListing)
+          await update(newListing);
         } else {
           newListing.ID = randUint64();
           await create(newListing);
         }
-
-        setPublishing(false);
         debug("listing published");
+
         navigate({
-          to: "/listings",
+          to: "/listings", // TODO: the routes should be constants
           search: (prev: Record<string, string>) => ({
             shopId: prev.shopId,
           }),
@@ -173,6 +144,8 @@ export default function EditProduct() {
         assert(error instanceof Error, "Error is not an instance of Error");
         errlog("Error publishing listing", error);
         setErrorMsg("Error publishing listing.");
+      } finally {
+        setPublishing(false);
       }
     }
   }
@@ -181,6 +154,7 @@ export default function EditProduct() {
     e: ChangeEvent<HTMLInputElement>,
     field: string,
   ) {
+    // TODO: why do we need to create a copy here?
     const newListing = Listing.fromCBOR(listing.asCBORMap());
     if (field === "Price") {
       newListing.Price = Number(e.target.value);
@@ -188,8 +162,12 @@ export default function EditProduct() {
       newListing.ViewState = e.target.checked
         ? ListingViewState.Published
         : ListingViewState.Unspecified;
+    } else if (field === "Title") {
+      newListing.Metadata.Title = e.target.value;
+    } else if (field === "Description") {
+      newListing.Metadata.Description = e.target.value;
     } else {
-      newListing.Metadata[field] = e.target.value;
+      throw new Error(`Unknown field: ${field}`);
     }
     setListing(newListing);
   }
