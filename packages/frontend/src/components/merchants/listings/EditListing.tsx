@@ -94,7 +94,7 @@ export default function EditProduct() {
           "Listings",
           newListing.ID,
           "Metadata",
-        ], newListing.Metadata.asCBORMap());
+        ], newListing.Metadata);
       }
       if (newListing.ViewState !== oldListing!.ViewState) {
         await stateManager.set([

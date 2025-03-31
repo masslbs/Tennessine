@@ -86,6 +86,22 @@ export const createRouterWrapper = async (
   const csm = clientStateManager ?? await createTestStateManager(shopId);
   await connect(config, { connector: config.connectors[0] });
 
+  const initialURL = (() => {
+    if (!shopId) return path;
+
+    // parse it
+    const url = new URL(path, "http://localhost");
+    const searchParams = url.searchParams;
+    // override the shopId
+    searchParams.set("shopId", `0x${shopId.toString(16)}`);
+
+    // Return the path with search params, but without the base URL
+    return `${url.pathname}${
+      searchParams.toString() ? "?" + searchParams.toString() : ""
+    }`;
+  })();
+  // console.log({initialURL});
+
   const wrapper = ({ children }: { children: React.ReactNode }) => {
     function RootComponent() {
       return <Outlet />;
@@ -121,9 +137,7 @@ export const createRouterWrapper = async (
         checkoutRoute,
       ]),
       history: createMemoryHistory({
-        initialEntries: [
-          shopId ? `${path}?shopId=0x${shopId.toString(16)}` : path,
-        ],
+        initialEntries: [initialURL],
       }),
     });
 

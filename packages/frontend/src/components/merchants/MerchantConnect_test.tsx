@@ -5,11 +5,15 @@ import { act } from "@testing-library/react-hooks";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "@std/expect";
 
-import { random256BigInt, random32BytesHex } from "@massmarket/utils";
+import { random256BigInt } from "@massmarket/utils";
 import { mintShop, setTokenURI } from "@massmarket/contracts";
 
 import MerchantConnect from "./MerchantConnect.tsx";
-import { createRouterWrapper, testClient } from "../../testutils/mod.tsx";
+import {
+  createRouterWrapper,
+  testAccount,
+  testClient,
+} from "../../testutils/mod.tsx";
 
 Deno.test("Check that we can render the merchant connect screen", {
   sanitizeResources: false,
@@ -17,13 +21,11 @@ Deno.test("Check that we can render the merchant connect screen", {
 }, async (t) => {
   const shopId = random256BigInt();
   const user = userEvent.setup();
-  const privateKey = random32BytesHex();
 
-  const { wrapper, csm } = await createRouterWrapper(
+  const { wrapper } = await createRouterWrapper(
     shopId,
     "/merchant-connect",
   );
-  csm.keycard = privateKey;
 
   await t.step("Render and unmount component", () => {
     const { unmount } = render(<MerchantConnect />, { wrapper });
@@ -31,17 +33,18 @@ Deno.test("Check that we can render the merchant connect screen", {
     expect(screen.getByTestId("merchant-connect-page")).toBeTruthy();
     unmount();
   });
+
   await t.step("should be able to search for existing shop", async () => {
-    const transactionHash = await mintShop(testClient, [
+    const transactionHash = await mintShop(testClient, testAccount, [
       shopId,
-      testClient.account.address,
+      testAccount,
     ]);
     const receipt = await testClient.waitForTransactionReceipt({
       hash: transactionHash,
     });
     expect(receipt.status).toBe("success");
 
-    const metadataHash = await setTokenURI(testClient!, [
+    const metadataHash = await setTokenURI(testClient!, testAccount, [
       shopId!,
       "https://dummyjson.com/c/0a7c-cc65-4739-8899",
     ]);
@@ -49,15 +52,11 @@ Deno.test("Check that we can render the merchant connect screen", {
       hash: metadataHash,
       retryCount: 10,
     });
-
     expect(transaction.status).toBe("success");
+    console.log({ "shop minted": shopId });
     const { unmount } = render(<MerchantConnect />, { wrapper });
-    const merchantKeycard = JSON.parse(
-      localStorage.getItem(`keycard${shopId}`) || "{}",
-    );
-    csm.keycard = merchantKeycard!.privateKey;
 
-    // Test invalid shop id
+    console.log("Test invalid shop id");
     await act(async () => {
       const searchInput = screen.getByTestId("search-shopId");
       expect(searchInput).toBeTruthy();
@@ -76,7 +75,7 @@ Deno.test("Check that we can render the merchant connect screen", {
       expect(errorMessage.textContent).toBe("Shop not found");
     });
 
-    // Test valid shop id
+    console.log("Test valid shop id");
     await act(async () => {
       const searchInput = screen.getByTestId("search-shopId");
       expect(searchInput).toBeTruthy();

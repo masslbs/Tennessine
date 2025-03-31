@@ -16,7 +16,7 @@ import Button from "../common/Button.tsx";
 import { useKeycard } from "../../hooks/useKeycard.ts";
 import { useShopId } from "../../hooks/useShopId.ts";
 import { useChain } from "../../hooks/useChain.ts";
-import { SearchShopStep } from "../../types.ts";
+import { KeycardRole, SearchShopStep } from "../../types.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 
 const namespace = "frontend:connect-merchant";
@@ -47,13 +47,15 @@ export default function MerchantConnect() {
   const { shopId } = useShopId();
 
   useEffect(() => {
-    if (shopId) {
+    // only create merchant keycard if it doesn't exist
+    if (shopId && keycard.role === KeycardRole.NEW_GUEST) {
       setKeycard({
         privateKey: random32BytesHex(),
-        role: "merchant",
+        role: KeycardRole.MERCHANT,
       });
+      console.log("keycard set for shopId:", shopId);
     }
-  }, [shopId]);
+  }, [shopId !== null, keycard.role === KeycardRole.NEW_GUEST, shopId]);
 
   function handleClearShopIdInput() {
     setSearchShopId("");
@@ -98,13 +100,12 @@ export default function MerchantConnect() {
         wallet!.account,
         false,
       );
-      if (res.ok) {
-        debug(`Keycard enrolled: ${stateManager!.keycard}`);
-        await stateManager!.connect();
-        setStep(SearchShopStep.Confirm);
-      } else {
+      if (!res.ok) {
         throw new Error("Failed to enroll keycard");
       }
+      debug(`Keycard enrolled: ${keycard.privateKey}`);
+      await stateManager!.connect();
+      setStep(SearchShopStep.Confirm);
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Error enrolling keycard", error);
