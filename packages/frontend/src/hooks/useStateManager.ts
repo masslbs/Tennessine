@@ -40,8 +40,8 @@ export function useStateManager() {
 
     const db = new StateManager({
       store: new LevelStore(),
-      objectId: shopId,
-      root,
+      id: shopId,
+      defaultState: root,
     });
 
     await db.open();
