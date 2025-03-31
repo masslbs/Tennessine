@@ -25,10 +25,9 @@ Deno.test("Check that we can create a shop", {
     JSON.stringify({ privateKey, role: "merchant" }),
   );
 
-  const { wrapper, csm, testAccount } = await createRouterWrapper(
+  const { wrapper, stateManager, testAccount } = await createRouterWrapper(
     shopId,
     `/create-shop`,
-    null,
   );
 
   const { unmount } = render(<CreateShop />, { wrapper });
@@ -99,7 +98,7 @@ Deno.test("Check that we can create a shop", {
   let manifest = new Manifest();
   await waitFor(async () => {
     manifest = Manifest.fromCBOR(
-      await csm.stateManager!.get(["Manifest"]) as Map<string, unknown>,
+      await stateManager.get(["Manifest"]) as Map<string, unknown>,
     );
     expect(manifest.AcceptedCurrencies.size).toBe(1);
   });

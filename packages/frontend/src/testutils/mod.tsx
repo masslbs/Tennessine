@@ -19,7 +19,9 @@ import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { MassMarketProvider } from "../MassMarketContext.ts";
-import { ClientWithStateManager } from "../ClientWithStateManager.ts";
+import StateManager from "@massmarket/stateManager";
+import { MemStore } from "@massmarket/store";
+import { RelayClient } from "@massmarket/client";
 
 export const relayURL = Deno.env.get("RELAY_ENDPOINT") ||
   "http://localhost:4444/v4";
@@ -56,14 +58,34 @@ export const createTestStateManager = async (
   const pk = generatePrivateKey();
   const testKeyCard = privateKeyToAccount(pk);
 
-  const csm = new ClientWithStateManager(
-    testRelayEndpoint,
-    testClient,
-    testKeyCard,
-    shopId,
-  );
-  await csm.open();
-  return csm;
+  const root = new Map(Object.entries({
+    Tags: new Map(),
+    Orders: new Map(),
+    Accounts: new Map(),
+    Inventory: new Map(),
+    Listings: new Map(),
+    Manifest: new Map(),
+    SchemeVersion: 1,
+  }));
+  const stateManager = new StateManager({
+    store: new MemStore(),
+    id: shopId,
+    defaultState: root,
+  });
+
+  await stateManager.open();
+
+  const relayClient = new RelayClient({
+    relayEndpoint: testRelayEndpoint,
+    walletClient: testClient,
+    keycard: testKeyCard,
+    shopId: shopId,
+  });
+
+  return {
+    stateManager,
+    relayClient,
+  };
 };
 
 // TODO: verify where createRouterWrapper is used and if we can remove the csm argument.
@@ -72,7 +94,8 @@ export const createRouterWrapper = async (
   path: string = "/",
   // The only case clientStateManager needs to be passed here is if we need access to the state manager before the router is created.
   // For example, in EditListing_test.tsx, we need to access the state manager to create a new listing and then use the listing id to set the search param.
-  clientStateManager: ClientWithStateManager | null = null, // In most cases we don't need to pass clientStateManager separately.
+  stateManager?: StateManager, // In most cases we don't need to pass clientStateManager separately.
+  relayClient?: RelayClient,
 ) => {
   const config = createConfig({
     chains: [hardhat, mainnet, sepolia],
@@ -83,7 +106,14 @@ export const createRouterWrapper = async (
     },
     connectors,
   });
-  const csm = clientStateManager ?? await createTestStateManager(shopId);
+  if (!stateManager) {
+    const csm = await createTestStateManager(shopId);
+    stateManager = csm.stateManager;
+    relayClient = csm.relayClient;
+  }
+  if (!relayClient) {
+    throw new Error("Relay client is required");
+  }
   await connect(config, { connector: config.connectors[0] });
 
   const initialURL = (() => {
@@ -147,7 +177,10 @@ export const createRouterWrapper = async (
       <StrictMode>
         <QueryClientProvider client={queryClient}>
           <WagmiProvider config={config}>
-            <MassMarketProvider clientStateManager={csm}>
+            <MassMarketProvider
+              stateManager={stateManager}
+              relayClient={relayClient}
+            >
               <RainbowKitProvider showRecentTransactions>
                 {
                   /* TS expects self closing RouterProvider tag. See App.tsx for how we are using it.
@@ -165,7 +198,8 @@ export const createRouterWrapper = async (
 
   return {
     wrapper,
-    csm,
+    stateManager,
+    relayClient,
     testAccount,
   };
 };

@@ -27,6 +27,12 @@ export function useRelayClient() {
         defaultRPC,
       ),
     });
+    if (!relayEndpoint) {
+      throw new Error("Relay endpoint is required");
+    }
+    if (!shopId) {
+      throw new Error("Shop ID is required");
+    }
     const rc = new RelayClient({
       relayEndpoint,
       walletClient: keycardWallet,

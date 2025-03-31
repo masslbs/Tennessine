@@ -72,10 +72,13 @@ Deno.test("Edit Listing", {
 
   const user = userEvent.setup();
   await t.step("Create new listing", async () => {
-    const { wrapper, csm } = await createRouterWrapper(shopId, "/?itemId=new");
+    const { wrapper, stateManager, relayClient } = await createRouterWrapper(
+      shopId,
+      "/?itemId=new",
+    );
 
     // TODO: move to helper but need access to csm
-    const res = await csm.relayClient!.enrollKeycard(
+    const res = await relayClient.enrollKeycard(
       blockchainClient,
       testAccount,
       false,
@@ -130,7 +133,7 @@ Deno.test("Edit Listing", {
     let listingCount = 0;
 
     await waitFor(async () => {
-      allListings = await csm.stateManager.get(["Listings"]);
+      allListings = await stateManager.get(["Listings"]);
       expect(allListings.size).toEqual(1);
     }, { timeout: 10000 });
 
@@ -155,7 +158,7 @@ Deno.test("Edit Listing", {
   });
   // await t.step("Edit existing listing", async () => {
   //   const csm = await createTestStateManager();
-  //   await csm.stateManager!.manifest.create(
+  //   await stateManager!.manifest.create(
   //     {
   //       acceptedCurrencies: [{
   //         chainId: mainnet.id,
@@ -174,12 +177,12 @@ Deno.test("Edit Listing", {
   //     random256BigInt(),
   //   );
 
-  //   const { id } = await csm.stateManager!.listings.create({
+  //   const { id } = await stateManager!.listings.create({
   //     metadata,
   //     price: "100",
   //     viewState: ListingViewState.Published,
   //   });
-  //   await csm.stateManager!.listings.changeInventory(id, 5);
+  //   await stateManager!.listings.changeInventory(id, 5);
   //   const { wrapper } = await createRouterWrapper(null, `/?itemId=${id}`, csm);
 
   //   const { unmount } = render(<EditListing />, {
@@ -222,7 +225,7 @@ Deno.test("Edit Listing", {
   //     await user.click(publishButton);
   //   });
 
-  //   const updatedListing = await csm.stateManager!.listings.get(id);
+  //   const updatedListing = await stateManager!.listings.get(id);
   //   expect(updatedListing.quantity).toBe(10);
   //   expect(updatedListing.metadata.title).toBe("Updated title");
   //   expect(updatedListing.metadata.description).toBe("Updated description");
