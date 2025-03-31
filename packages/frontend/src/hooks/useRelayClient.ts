@@ -18,16 +18,15 @@ export function useRelayClient() {
   const { relayEndpoint } = useRelayEndpoint();
   const { shopId } = useShopId();
 
-  const account = privateKeyToAccount(keycard.privateKey);
-  const keycardWallet = createWalletClient({
-    account,
-    chain,
-    transport: http(
-      defaultRPC,
-    ),
-  });
-
   useQuery(async () => {
+    const account = privateKeyToAccount(keycard.privateKey);
+    const keycardWallet = createWalletClient({
+      account,
+      chain,
+      transport: http(
+        defaultRPC,
+      ),
+    });
     const rc = new RelayClient({
       relayEndpoint,
       walletClient: keycardWallet,
