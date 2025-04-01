@@ -14,7 +14,7 @@ Deno.test(
   async (t) => {
     const { wrapper, stateManager } = await createRouterWrapper({
       createShop: true,
-      enrollKeycard: true,
+      enrollMerchant: true,
     });
 
     await t.step("should return null if no order is found", () => {

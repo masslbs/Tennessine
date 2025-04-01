@@ -115,14 +115,14 @@ export const createTestRelayClient = async (
 export const createRouterWrapper = async ({
   shopId,
   createShop = false,
-  enrollKeycard = false,
+  enrollMerchant = false,
   path = "/",
   stateManager,
   relayClient,
 }: {
   shopId?: bigint | null;
   createShop?: boolean; // whether to mint a shop
-  enrollKeycard?: boolean; // whether to enroll a keycard
+  enrollMerchant?: boolean; // whether to enroll a keycard
   path?: string;
   // The only case clientStateManager needs to be passed here is if we need access to the state manager before the router is created.
   // For example, in EditListing_test.tsx, we need to access the state manager to create a new listing and then use the listing id to set the search param.
@@ -159,7 +159,7 @@ export const createRouterWrapper = async ({
     }
   }
   if (!relayClient) {
-    relayClient = await createTestRelayClient(shopId, enrollKeycard);
+    relayClient = await createTestRelayClient(shopId, enrollMerchant);
   }
 
   if (!stateManager) {

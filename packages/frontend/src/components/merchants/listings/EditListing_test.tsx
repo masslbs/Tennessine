@@ -20,7 +20,7 @@ Deno.test("Edit Listing", {
     shopId,
     path: "/?itemId=new",
     createShop: true,
-    enrollKeycard: true,
+    enrollMerchant: true,
   });
 
   let listingID = 0; // to be established by first test step

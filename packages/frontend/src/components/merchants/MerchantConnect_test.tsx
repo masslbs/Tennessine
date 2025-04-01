@@ -24,7 +24,7 @@ Deno.test("Check that we can render the merchant connect screen", {
 
   const { wrapper } = await createRouterWrapper({
     shopId,
-    enrollKeycard: false,
+    enrollMerchant: false,
     path: "/merchant-connect",
   });
 

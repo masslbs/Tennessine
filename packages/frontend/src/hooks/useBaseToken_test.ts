@@ -15,7 +15,7 @@ Deno.test("useBaseToken", {
   await t.step("should return correct base token information", async () => {
     const { wrapper, stateManager } = await createRouterWrapper({
       createShop: true,
-      enrollKeycard: true,
+      enrollMerchant: true,
     });
 
     await stateManager.set(["Manifest"], allManifests[0]!);
