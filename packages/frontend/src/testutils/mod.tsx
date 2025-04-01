@@ -13,16 +13,16 @@ import { hardhat, mainnet, sepolia } from "wagmi/chains";
 import { mock } from "npm:wagmi/connectors";
 import { createTestClient, publicActions, walletActions } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { mintShop } from "@massmarket/contracts";
-import { discoverRelay } from "@massmarket/client";
-import { random256BigInt } from "@massmarket/utils";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { MassMarketProvider } from "../MassMarketContext.ts";
+
+import { discoverRelay, RelayClient } from "@massmarket/client";
+import { mintShop } from "@massmarket/contracts";
+import { random256BigInt } from "@massmarket/utils";
 import StateManager from "@massmarket/stateManager";
 import { MemStore } from "@massmarket/store";
-import { RelayClient } from "@massmarket/client";
-import { type Account } from "viem";
+
+import { MassMarketProvider } from "../MassMarketContext.ts";
 import { KeycardRole } from "../types.ts";
 
 export const relayURL = Deno.env.get("RELAY_ENDPOINT") ||
@@ -121,8 +121,8 @@ export const createRouterWrapper = async ({
   relayClient,
 }: {
   shopId?: bigint | null;
-  createShop?: boolean; // wether to mint a shop
-  enrollKeycard?: boolean; // wether to enroll a keycard
+  createShop?: boolean; // whether to mint a shop
+  enrollKeycard?: boolean; // whether to enroll a keycard
   path?: string;
   // The only case clientStateManager needs to be passed here is if we need access to the state manager before the router is created.
   // For example, in EditListing_test.tsx, we need to access the state manager to create a new listing and then use the listing id to set the search param.
