@@ -43,9 +43,14 @@ export default function ListingDetail() {
       stateManager
         .get(["Listings", itemId])
         .then((res: Map<string, unknown>) => {
+          if (!res) {
+            throw new Error(`Listing ${itemId} not found`);
+          }
           const item = Listing.fromCBOR(res);
           setListing(item);
-          setDisplayedImg(item.Metadata.Images[0]);
+          if (item.Metadata.Images && item.Metadata.Images.length > 0) {
+            setDisplayedImg(item.Metadata.Images[0]);
+          }
           if (baseToken?.symbol === "ETH") {
             setIcon("/icons/eth-coin.svg");
           }
@@ -77,15 +82,13 @@ export default function ListingDetail() {
         const newOrder = new Order(
           orderId,
           [
-            {
-              ListingID: itemId,
-              Quantity: Number(quantity),
-            },
+            new OrderedItem(itemId, Number(quantity)),
           ],
           OrderState.Open,
         );
         await stateManager.set(
           ["Orders", orderId],
+          // @ts-ignore TODO: add BaseClass to CodecValue
           newOrder,
         );
         debug(`New Order ID: ${orderId}`);
@@ -112,6 +115,7 @@ export default function ListingDetail() {
         );
         await stateManager.set(
           ["Orders", orderId, "Items"],
+          // @ts-ignore TODO: add BaseClass to CodecValue
           updatedOrderItems,
         );
         setQuantity("");
@@ -170,7 +174,7 @@ export default function ListingDetail() {
                 }}
               />
             )}
-            {listing.Metadata.Images.length > 1
+            {listing.Metadata.Images && listing.Metadata.Images.length > 1
               ? (
                 <div className="flex mt-2 gap-2">
                   {listing.Metadata.Images.map((image: string, i: number) => {

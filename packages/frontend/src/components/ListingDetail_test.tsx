@@ -1,63 +1,62 @@
 import "../happyDomSetup.ts";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
-import { zeroAddress } from "viem";
 import { expect } from "@std/expect";
 import { userEvent } from "@testing-library/user-event";
 
 import { random256BigInt } from "@massmarket/utils";
-import {
-  metadata,
-  payees,
-  shippingRegions,
-} from "@massmarket/schema/testFixtures";
+import { Listing, Order } from "@massmarket/schema";
+import { allListings } from "@massmarket/schema/testFixtures";
 
 import ListingDetail from "./ListingDetail.tsx";
 import {
   createRouterWrapper,
   createTestStateManager,
 } from "../testutils/mod.tsx";
-import { ListingViewState, OrderState } from "../types.ts";
 
 Deno.test("Check that we can render the listing details screen", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async () => {
-  const user = userEvent.setup();
-  const csm = createTestStateManager();
-  await csm.stateManager!.manifest.create(
-    {
-      acceptedCurrencies: [{
-        chainId: 31337,
-        address: zeroAddress,
-      }],
-      pricingCurrency: { chainId: 31337, address: zeroAddress },
-      payees,
-      shippingRegions,
-    },
-    random256BigInt(),
-  );
-  const item1 = await csm.stateManager!.listings.create({
-    price: "12.00",
-    metadata,
-    viewState: ListingViewState.Published,
+  const shopId = random256BigInt();
+  const stateManager = await createTestStateManager(shopId);
+
+  let listing: Listing;
+  const listingId = 23;
+  if (!allListings.has(listingId)) {
+    throw new Error(`Listing ${listingId} not found`);
+  }
+  for (const [key, entry] of allListings.entries()) {
+    // @ts-ignore TODO: add BaseClass to CodecValue
+    await stateManager.set(["Listings", key], entry);
+    if (key === listingId) {
+      listing = entry as Listing;
+    }
+  }
+
+  const { wrapper } = await createRouterWrapper({
+    shopId,
+    createShop: true,
+    enrollMerchant: false,
+    path: `/?itemId=${listingId}`,
+    stateManager,
   });
-  const { wrapper } = await createRouterWrapper(
-    null,
-    "/?itemId=" + item1.id,
-    csm,
-  );
   const { unmount } = render(<ListingDetail />, { wrapper });
-  screen.debug();
+  // screen.debug();
   screen.getByTestId("listing-detail-page");
   await waitFor(() => {
     const price = screen.getByTestId("price");
-    expect(price.textContent).toBe("12.00");
+    expect(price.textContent).toBe("12345");
     const description = screen.getByTestId("description");
-    expect(description.textContent).toBe(metadata.description);
+    expect(description.textContent).toBe(listing.Metadata.Description);
     const title = screen.getByTestId("title");
-    expect(title.textContent).toBe(metadata.title);
+    expect(title.textContent).toBe(listing.Metadata.Title);
   });
+
+  let allOrders = await stateManager.get(["Orders"]) as Map<string, unknown>;
+  expect(allOrders.size).toBe(0);
+
   // Test adding to cart
+  const user = userEvent.setup();
   await waitFor(async () => {
     const purchaseQty = screen.getByTestId("purchaseQty");
     expect(purchaseQty).toBeTruthy();
@@ -66,12 +65,15 @@ Deno.test("Check that we can render the listing details screen", {
     await user.click(addToBasket);
   });
 
-  const openOrder = await csm.stateManager!.orders.getStatus(
-    OrderState.Open,
-  );
-  const order = await csm.stateManager!.orders.get(openOrder[0]);
-  expect(order.items[item1.id]).toBe(2);
-  expect(Object.keys(order.items).length).toBe(1);
+  allOrders = await stateManager.get(["Orders"]) as Map<string, unknown>;
+  expect(allOrders.size).toBe(1);
+
+  const orderId = Array.from(allOrders.keys())[0];
+  const orderData = await stateManager.get(["Orders", orderId]);
+  const order = Order.fromCBOR(orderData as Map<string, unknown>);
+  expect(order.Items[0].ListingID).toBe(listingId);
+  expect(order.Items[0].Quantity).toBe(2);
+
   unmount();
   cleanup();
 });
