@@ -49,12 +49,7 @@ export const connectors = [
   }),
 ];
 
-export const createTestStateManager = async (
-  shopId: bigint | null = null,
-) => {
-  if (shopId === null) {
-    shopId = random256BigInt();
-  }
+export const createTestStateManager = async (shopId: bigint) => {
   const pk = generatePrivateKey();
   const testKeyCard = privateKeyToAccount(pk);
 
@@ -106,6 +101,9 @@ export const createRouterWrapper = async (
     },
     connectors,
   });
+  if (!shopId) {
+    shopId = random256BigInt();
+  }
   if (!stateManager) {
     const csm = await createTestStateManager(shopId);
     stateManager = csm.stateManager;

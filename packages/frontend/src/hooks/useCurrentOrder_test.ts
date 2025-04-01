@@ -12,7 +12,7 @@ Deno.test(
   "useCurrentOrder",
   { sanitizeResources: false, sanitizeOps: false },
   async (t) => {
-    const { wrapper, csm } = await createRouterWrapper();
+    const { wrapper, stateManager } = await createRouterWrapper();
 
     await t.step("should return null if no order is found", () => {
       const { result, unmount } = renderHook(() => useCurrentOrder(), {
@@ -26,7 +26,8 @@ Deno.test(
     await t.step("should return open order", async () => {
       const order = new Order(12);
       order.State = OrderState.Open;
-      await csm.stateManager!.set(["Orders", order.ID], order);
+      // @ts-ignore TODO: add BaseClass to CodecValue
+      await stateManager.set(["Orders", order.ID], order);
       const { result, unmount } = renderHook(() => useCurrentOrder(), {
         wrapper,
       });

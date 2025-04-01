@@ -48,6 +48,11 @@ export function useStateManager() {
   const { chain } = useChain();
   const { isMerchantPath } = usePathname();
 
+  // Since we are calling addConnection in this query with the relayClient, if the relayClient changes, we need to re-run this query
+  const accountDep = typeof relayClient?.keycard === "string"
+    ? relayClient.keycard
+    : relayClient?.keycard?.address;
+  const deps = [String(shopId), accountDep];
   useQuery(async () => {
     if (!shopId) {
       throw new Error("Shop ID is required");
@@ -92,8 +97,7 @@ export function useStateManager() {
         });
       });
     }
-    // Since we are calling addConnection in this query with the relayClient, if the relayClient changes, we need to re-run this query
-  }, [String(shopId), relayClient?.keycard?.address]);
+  }, deps);
 
   return { stateManager };
 }
