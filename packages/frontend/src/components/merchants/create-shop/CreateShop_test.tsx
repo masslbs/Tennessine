@@ -5,9 +5,11 @@ import { hexToBytes } from "viem";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "@std/expect";
 import { hardhat } from "wagmi/chains";
+
 import { Manifest } from "@massmarket/schema";
 import { random256BigInt } from "@massmarket/utils";
 import { abi } from "@massmarket/contracts";
+
 import CreateShop from "./CreateShop.tsx";
 import { createRouterWrapper } from "../../../testutils/mod.tsx";
 

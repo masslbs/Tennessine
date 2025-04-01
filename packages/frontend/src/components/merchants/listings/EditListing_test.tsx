@@ -2,8 +2,10 @@ import "../../../happyDomSetup.ts";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "@std/expect";
+
 import { Listing } from "@massmarket/schema";
 import { random256BigInt } from "@massmarket/utils";
+
 import EditListing from "./EditListing.tsx";
 import { createRouterWrapper } from "../../../testutils/mod.tsx";
 import { ListingViewState } from "../../../types.ts";

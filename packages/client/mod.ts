@@ -105,7 +105,6 @@ export class RelayClient {
   readonly walletClient: WalletClient;
   readonly keycard;
   readonly relayEndpoint;
-  readonly ethAddress: Hex;
   readonly shopId;
   // TODO; we can use the subscription path for the id
   #subscriptions: Map<string, ReadableStreamDefaultController<PushedPatchSet>> =
@@ -122,7 +121,6 @@ export class RelayClient {
     this.keyCardNonce = params.keyCardNonce ?? 0;
     this.shopId = params.shopId;
     this.keycard = params.keycard;
-    this.ethAddress = parseAccount(params.keycard).address;
     this.#requestCounter = 1;
     this.#authenticationPromise = this.#initialAuthPromise;
     this.#isAuthenticated = false;
