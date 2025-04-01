@@ -1,5 +1,6 @@
 import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
+import { useEffect } from "react";
 
 import { RelayClient } from "@massmarket/client";
 
@@ -8,7 +9,7 @@ import { useKeycard } from "./useKeycard.ts";
 import { useChain } from "./useChain.ts";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";
 import { useShopId } from "./useShopId.ts";
-import { useQuery } from "./useQuery.ts";
+
 import { defaultRPC } from "../utils/mod.ts";
 
 export function useRelayClient() {
@@ -18,33 +19,40 @@ export function useRelayClient() {
   const { relayEndpoint } = useRelayEndpoint();
   const { shopId } = useShopId();
 
-  // only create a client if we don't have one
-  if (!relayClient) {
-    // TODO: without this async useQuery freaks out..?
-    useQuery(async () => {
-      const account = privateKeyToAccount(keycard.privateKey);
-      const keycardWallet = createWalletClient({
-        account,
-        chain,
-        transport: http(
-          defaultRPC,
-        ),
-      });
-      if (!relayEndpoint) {
-        throw new Error("Relay endpoint is required");
-      }
-      if (!shopId) {
-        throw new Error("Shop ID is required");
-      }
-      const rc = new RelayClient({
-        relayEndpoint,
-        walletClient: keycardWallet,
-        keycard: account,
-        shopId,
-      });
+  useEffect(() => {
+    if (relayClient) {
+      return;
+    }
+    const account = privateKeyToAccount(keycard.privateKey);
+    const keycardWallet = createWalletClient({
+      account,
+      chain,
+      transport: http(
+        defaultRPC,
+      ),
+    });
+    if (!relayEndpoint) {
+      console.warn("Relay endpoint is required");
+      return;
+    }
+    if (!shopId) {
+      console.warn("Shop ID is required");
+      return;
+    }
+    const rc = new RelayClient({
+      relayEndpoint,
+      walletClient: keycardWallet,
+      keycard: account,
+      shopId,
+    });
 
-      setRelayClient(rc);
-    }, [!relayClient, relayEndpoint, keycard.privateKey, String(shopId)]);
-  }
+    setRelayClient(rc);
+  }, [
+    String(shopId),
+    relayClient,
+    relayEndpoint !== undefined,
+    keycard.privateKey,
+  ]);
+
   return { relayClient };
 }
