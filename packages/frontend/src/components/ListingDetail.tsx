@@ -155,6 +155,9 @@ export default function ListingDetail() {
                   itemId: listing.ID,
                 })}
                 className="text-white"
+                style={{
+                  color: "white",
+                }}
               >
                 Edit Product
               </Link>
@@ -171,6 +174,7 @@ export default function ListingDetail() {
                 style={{
                   objectFit: "cover",
                   objectPosition: "center",
+                  border: "none",
                 }}
               />
             )}

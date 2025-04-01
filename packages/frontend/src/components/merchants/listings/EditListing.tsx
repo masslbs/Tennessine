@@ -154,7 +154,7 @@ export default function EditProduct() {
     e: ChangeEvent<HTMLInputElement>,
     field: string,
   ) {
-    // TODO: why do we need to create a copy here?
+    // We need to create a deep copy of the class and call setListing, or else react will not recognize it as a state change, and will not re-render the component.
     const newListing = Listing.fromCBOR(listing.asCBORMap());
     if (field === "Price") {
       newListing.Price = Number(e.target.value);
@@ -196,8 +196,9 @@ export default function EditProduct() {
           if (typeof url === "string") {
             const images = listing.Metadata.Images ?? [];
             images.push(url);
-            listing.Metadata.Images = images;
-            setListing(listing);
+            const newListing = Listing.fromCBOR(listing.asCBORMap());
+            newListing.Metadata.Images = images;
+            setListing(newListing);
           }
         };
 
