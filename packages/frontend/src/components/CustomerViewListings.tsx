@@ -6,7 +6,6 @@ import { Link } from "@tanstack/react-router";
 
 import { Listing } from "@massmarket/schema";
 
-import { formatUnitsFromString } from "@massmarket/utils";
 import { ListingViewState } from "../types.ts";
 import { useBaseToken } from "../hooks/useBaseToken.ts";
 
@@ -71,11 +70,7 @@ export default function CustomerViewProducts({
                   data-testid="coin-icon"
                 />
                 <p data-testid="product-price">
-                  {baseToken &&
-                    formatUnitsFromString(
-                      item.Price.toString(),
-                      baseToken.decimals,
-                    )}
+                  {item.Price}
                 </p>
               </div>
             </div>
