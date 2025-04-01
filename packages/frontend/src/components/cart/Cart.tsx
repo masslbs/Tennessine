@@ -7,7 +7,7 @@ import { formatUnits } from "viem";
 import { assert, logger } from "@massmarket/utils";
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
 
-import { ListingId, OrderId } from "../../types.ts";
+import { ListingId } from "../../types.ts";
 import Button from "../common/Button.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import { useBaseToken } from "../../hooks/useBaseToken.ts";
@@ -180,9 +180,15 @@ export default function Cart({
     if (!baseToken || cartItemsMap.size === 0) return "0";
     const values: Listing[] = Array.from(cartItemsMap.values());
     let total = BigInt(0);
+    console.log({ selectedQty });
     values.forEach((item: Listing) => {
+      console.log({
+        price: item.Price,
+        id: item.ID,
+        qty: selectedQty.get(item.ID),
+      });
       total += baseToken?.decimals
-        ? BigInt(item.Price) * BigInt(selectedQty.get(item.ID)!)
+        ? BigInt(item.Price) * BigInt(selectedQty.get(item.ID) ?? 0)
         : BigInt(0);
     });
     return formatUnits(total, baseToken.decimals);
@@ -204,12 +210,15 @@ export default function Cart({
           baseToken.decimals,
         )
         : 0;
-
+      let image = "/assets/no-image.png";
+      if (item.Metadata.Images && item.Metadata.Images.length > 0) {
+        image = item.Metadata.Images[0];
+      }
       return (
         <div key={item.ID} className="flex" data-testid="cart-item">
           <div className="flex justify-center h-28" data-testid={`product-img`}>
             <img
-              src={item.Metadata.Images[0] || "/assets/no-image.png"}
+              src={image}
               width={127}
               height={112}
               alt="product-thumb"
@@ -224,7 +233,7 @@ export default function Cart({
               <button
                 type="button"
                 onClick={() => removeItem(item.ID)}
-                data-testid={`remove-item-${item.id}`}
+                data-testid={`remove-item-${item.ID}`}
                 className={showActionButtons ? "ml-auto" : "hidden"}
                 style={{ backgroundColor: "transparent", padding: 0 }}
               >
@@ -246,7 +255,7 @@ export default function Cart({
               >
                 <button
                   type="button"
-                  onClick={() => adjustItemQuantity(item.id, false)}
+                  onClick={() => adjustItemQuantity(item.ID, false)}
                   data-testid={`remove-quantity-${item.ID}`}
                   className="ml-auto"
                   style={{ backgroundColor: "transparent", padding: 0 }}

@@ -8,6 +8,7 @@ import { useMassMarketContext } from "../MassMarketContext.ts";
 
 const namespace = "frontend:useCurrentOrder";
 const errlog = logger(namespace, "error");
+const info = logger(namespace, "info");
 const debug = logger(namespace);
 
 export function useCurrentOrder() {
@@ -49,6 +50,7 @@ export function useCurrentOrder() {
     }
 
     if (openOrders.length === 1) {
+      info(`Found 1 open order: ${openOrders[0].ID}`);
       return openOrders[0];
     } else if (
       openOrders.length > 1 && keycard?.role !== KeycardRole.MERCHANT
@@ -65,7 +67,7 @@ export function useCurrentOrder() {
         //Since merchants are subscribed to all orders, we don't need to worry about multiple committed orders.
         errlog("Multiple committed orders found");
       } else {
-        debug("No order yet");
+        info("No order yet");
       }
     }
     return null;
