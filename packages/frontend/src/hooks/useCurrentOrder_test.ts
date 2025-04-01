@@ -12,7 +12,10 @@ Deno.test(
   "useCurrentOrder",
   { sanitizeResources: false, sanitizeOps: false },
   async (t) => {
-    const { wrapper, stateManager } = await createRouterWrapper();
+    const { wrapper, stateManager } = await createRouterWrapper({
+      createShop: true,
+      enrollKeycard: true,
+    });
 
     await t.step("should return null if no order is found", () => {
       const { result, unmount } = renderHook(() => useCurrentOrder(), {

@@ -13,7 +13,7 @@ Deno.test(
   async (t) => {
     await t.step("should return shopId from search params", async () => {
       const shopId = random256BigInt();
-      const { wrapper } = await createRouterWrapper(shopId);
+      const { wrapper } = await createRouterWrapper({ shopId });
       const { result, unmount } = renderHook(() => useShopId(), { wrapper });
       assertEquals(result.current.shopId, shopId);
       unmount();
