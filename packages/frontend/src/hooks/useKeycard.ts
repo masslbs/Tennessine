@@ -8,9 +8,6 @@ export function useKeycard(
   keycard = { privateKey: generatePrivateKey(), role: KeycardRole.NEW_GUEST },
 ) {
   const { shopId } = useShopId();
-  if (shopId === null) {
-    throw new Error("Shop ID is null");
-  }
   const keyCardID = "keycard" + shopId;
   // console.log({shopId, keyCardID});
   return useLocalStorage(keyCardID, keycard);
