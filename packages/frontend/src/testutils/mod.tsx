@@ -13,6 +13,7 @@ import { hardhat, mainnet, sepolia } from "wagmi/chains";
 import { mock } from "npm:wagmi/connectors";
 import { createTestClient, publicActions, walletActions } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { mintShop } from "@massmarket/contracts";
 import { discoverRelay } from "@massmarket/client";
 import { random256BigInt } from "@massmarket/utils";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
@@ -22,6 +23,7 @@ import StateManager from "@massmarket/stateManager";
 import { MemStore } from "@massmarket/store";
 import { RelayClient } from "@massmarket/client";
 import { type Account } from "viem";
+import { KeycardRole } from "../types.ts";
 
 export const relayURL = Deno.env.get("RELAY_ENDPOINT") ||
   "http://localhost:4444/v4";
@@ -68,20 +70,43 @@ export const createTestStateManager = async (shopId: bigint) => {
   return stateManager;
 };
 
-export const createTestRelayClient = (
+export const createTestRelayClient = async (
   shopId: bigint,
-  testKeyCard?: Account,
+  enrollKeycard: boolean,
 ) => {
-  if (!testKeyCard) {
-    testKeyCard = privateKeyToAccount(generatePrivateKey());
+  const keyCardID = `keycard${shopId}`;
+  const hasKC = localStorage.getItem(keyCardID);
+  if (hasKC) {
+    throw new Error("Keycard already exists");
   }
+  const kcPrivateKey = generatePrivateKey();
+  const keycard = privateKeyToAccount(kcPrivateKey);
 
   const relayClient = new RelayClient({
     relayEndpoint: testRelayEndpoint,
     walletClient: testClient,
-    keycard: testKeyCard,
-    shopId: shopId,
+    keycard,
+    shopId,
   });
+
+  if (enrollKeycard) {
+    const result = await relayClient.enrollKeycard(
+      testClient,
+      testAccount,
+      false,
+    );
+    if (!result.ok) {
+      throw new Error("Failed to enroll keycard");
+    }
+
+    localStorage.setItem(
+      keyCardID,
+      JSON.stringify({
+        privateKey: kcPrivateKey,
+        role: KeycardRole.MERCHANT,
+      }),
+    );
+  }
 
   return relayClient;
 };
@@ -89,19 +114,21 @@ export const createTestRelayClient = (
 // TODO: verify where createRouterWrapper is used and if we can remove the csm argument.
 export const createRouterWrapper = async ({
   shopId,
+  createShop = false,
+  enrollKeycard = false,
   path = "/",
   stateManager,
   relayClient,
-  testKeyCard,
 }: {
   shopId?: bigint | null;
+  createShop?: boolean; // wether to mint a shop
+  enrollKeycard?: boolean; // wether to enroll a keycard
   path?: string;
   // The only case clientStateManager needs to be passed here is if we need access to the state manager before the router is created.
   // For example, in EditListing_test.tsx, we need to access the state manager to create a new listing and then use the listing id to set the search param.
   stateManager?: StateManager; // In most cases we don't need to pass clientStateManager separately.
   relayClient?: RelayClient;
-  testKeyCard?: Account;
-} = {}) => {
+}) => {
   const config = createConfig({
     chains: [hardhat, mainnet, sepolia],
     transports: {
@@ -111,19 +138,33 @@ export const createRouterWrapper = async ({
     },
     connectors,
   });
+  // establish wallet connection
+  await connect(config, { connector: config.connectors[0] });
 
   if (!shopId) {
     shopId = random256BigInt();
   }
+  if (createShop) {
+    const transactionHash = await mintShop(testClient, testAccount, [
+      shopId,
+      testAccount,
+    ]);
+    // this is still causing a leak
+    // https://github.com/wevm/viem/issues/2903
+    const receipt = await testClient.waitForTransactionReceipt({
+      hash: transactionHash,
+    });
+    if (receipt.status !== "success") {
+      throw new Error("Shop creation failed");
+    }
+  }
+  if (!relayClient) {
+    relayClient = await createTestRelayClient(shopId, enrollKeycard);
+  }
+
   if (!stateManager) {
     stateManager = await createTestStateManager(shopId);
   }
-
-  if (!relayClient) {
-    relayClient = createTestRelayClient(shopId, testKeyCard);
-  }
-
-  await connect(config, { connector: config.connectors[0] });
 
   const initialURL = (() => {
     if (!shopId) return path;

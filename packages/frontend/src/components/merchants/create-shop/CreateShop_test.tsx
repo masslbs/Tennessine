@@ -25,10 +25,9 @@ Deno.test("Check that we can create a shop", {
     JSON.stringify({ privateKey, role: "merchant" }),
   );
 
-  const { wrapper, stateManager, testAccount } = await createRouterWrapper(
-    shopId,
-    `/create-shop`,
-  );
+  const { wrapper, stateManager, testAccount } = await createRouterWrapper({
+    path: `/create-shop`,
+  });
 
   const { unmount } = render(<CreateShop />, { wrapper });
 

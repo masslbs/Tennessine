@@ -1,86 +1,29 @@
 import "../../../happyDomSetup.ts";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
-import {
-  createTestClient,
-  http,
-  publicActions,
-  walletActions,
-  zeroAddress,
-} from "viem";
-import { foundry } from "viem/chains";
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "@std/expect";
-import { hardhat, mainnet, sepolia } from "wagmi/chains";
-import { mintShop, relayRegGetOwnerOf } from "@massmarket/contracts";
 import { Listing } from "@massmarket/schema";
-import { assert, random256BigInt } from "@massmarket/utils";
-import {
-  // metadata,
-  // payees,
-  // shippingRegions,
-} from "@massmarket/schema/testFixtures";
-
+import { random256BigInt } from "@massmarket/utils";
 import EditListing from "./EditListing.tsx";
-import {
-  createRouterWrapper,
-  createTestStateManager,
-  testAccount,
-  testClient,
-} from "../../../testutils/mod.tsx";
-import { KeycardRole, ListingViewState } from "../../../types.ts";
+import { createRouterWrapper } from "../../../testutils/mod.tsx";
+import { ListingViewState } from "../../../types.ts";
 
 Deno.test("Edit Listing", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async (t) => {
-  // prepare shop
-  // TODO: move to helper
   const shopId = random256BigInt();
 
-  const transactionHash = await mintShop(testClient, testAccount, [
-    shopId,
-    testAccount,
-  ]);
-  // this is still causing a leak
-  // https://github.com/wevm/viem/issues/2903
-  const receipt = await testClient.waitForTransactionReceipt({
-    hash: transactionHash,
-  });
-  expect(receipt.status).toBe("success");
-
-  // setup merchant keycard
-  // TODO: move to helper
-  const keyCardID = `keycard${shopId}`;
-  const hasKC = localStorage.getItem(keyCardID);
-  expect(hasKC).toBeNull();
-  const kcPrivateKey = generatePrivateKey();
-  localStorage.setItem(
-    keyCardID,
-    JSON.stringify({
-      privateKey: kcPrivateKey,
-      role: KeycardRole.MERCHANT,
-    }),
-  );
-  const testKeyCard = privateKeyToAccount(kcPrivateKey);
-
-  const user = userEvent.setup();
   const { wrapper, stateManager, relayClient } = await createRouterWrapper({
     shopId,
     path: "/?itemId=new",
-    testKeyCard,
+    createShop: true,
+    enrollKeycard: true,
   });
 
-  // TODO: move to helper but need access to csm
-  const res = await relayClient.enrollKeycard(
-    testClient,
-    testAccount,
-    false,
-  );
-  expect(res.ok).toBe(true);
+  let listingID = 0; // to be established by first test step
 
-  let listingID = 0;
-
+  const user = userEvent.setup();
   await t.step("Create new listing", async () => {
     const { unmount } = render(<EditListing />, { wrapper });
     screen.getByTestId("edit-listing-screen");
@@ -157,17 +100,15 @@ Deno.test("Edit Listing", {
     expect(listingCount).toBe(1);
     unmount();
   });
+  expect(listingID).toBeGreaterThan(0);
 
   await t.step("Edit existing listing", async () => {
-    expect(listingID).toBeGreaterThan(0);
-
     await stateManager.set(["Inventory", listingID], 123);
     const { wrapper } = await createRouterWrapper({
       shopId,
       path: `/?itemId=${listingID}`,
       stateManager,
       relayClient,
-      testKeyCard,
     });
 
     const { unmount } = render(<EditListing />, {
