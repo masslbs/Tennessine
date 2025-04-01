@@ -12,15 +12,15 @@ export const allManifests = manifestVector.get("Snapshots")?.map((snapshot) => {
   return snapshot!.get("After")!.get("Value")!.get("Manifest");
 }) || [];
 
-const listingVector = await fetchAndDecode("ListingOkay") as TestVector;
+const listingVector = await fetchAndDecode("ShopOkay") as TestVector;
 const listingsMap = new Map<number, Listing>();
 listingVector.get("Snapshots")?.forEach((snapshot) => {
   const listingsHamt = extractEntriesFromHAMT(
     snapshot!.get("After")!.get("Value")!.get("Listings"),
   );
-  for (const [key, listingMap] of listingsHamt.entries()) {
+  for (const [_key, listingMap] of listingsHamt.entries()) {
     listingsMap.set(
-      key,
+      _key,
       Listing.fromCBOR(listingMap as Map<string, CodecValue>),
     );
   }

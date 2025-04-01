@@ -16,6 +16,7 @@ export default function MerchantViewProducts({
   products: Listing[] | null;
 }) {
   const { baseToken } = useBaseToken();
+  const { stateManager } = useStateManager();
 
   function renderProducts() {
     if (!products?.length) {
@@ -25,10 +26,15 @@ export default function MerchantViewProducts({
         </div>
       );
     }
-    return products.map((item: Listing) => {
-      const { metadata } = item;
-      if (!metadata) return null;
+    return products.map(async (item: Listing) => {
       const visible = item.ViewState === ListingViewState.Published;
+
+      let productImage = "/assets/no-image.png";
+      if (item.Metadata.Images && item.Metadata.Images.length > 0) {
+        productImage = item.Metadata.Images[0];
+      }
+
+      const quantity = await stateManager.get(["Inventory", item.ID]);
 
       return (
         <Link
@@ -45,7 +51,7 @@ export default function MerchantViewProducts({
         >
           <div className="flex justify-center" data-testid="product-img">
             <img
-              src={metadata.images[0] || "/assets/no-image.png"}
+              src={productImage}
               width={127}
               height={112}
               alt="product-thumb"
@@ -55,7 +61,7 @@ export default function MerchantViewProducts({
           <div className="bg-background-gray w-full rounded-r-lg px-5 py-4">
             <div className="flex border-b border-gray-300 w-full pb-3">
               <h3 data-testid="product-name" className="leading-4">
-                {metadata.title}
+                {item.Metadata.Title}
               </h3>
               <img
                 src={`/icons/chevron-right.svg`}
@@ -67,7 +73,7 @@ export default function MerchantViewProducts({
             </div>
             <div className="flex justify-between mt-2 border-b border-gray-300 w-full pb-2">
               <p>Stock Level</p>
-              <p>{item.Quantity}</p>
+              <p>{quantity}</p>
             </div>
             <div className="flex justify-between pt-2">
               <p>Price</p>

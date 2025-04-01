@@ -41,11 +41,11 @@ Deno.test("Check that we can render the listing details screen", {
     stateManager,
   });
   const { unmount } = render(<ListingDetail />, { wrapper });
-  // screen.debug();
+
   screen.getByTestId("listing-detail-page");
   await waitFor(() => {
     const price = screen.getByTestId("price");
-    expect(price.textContent).toBe("12345");
+    expect(price.textContent).toBe("230000");
     const description = screen.getByTestId("description");
     expect(description.textContent).toBe(listing.Metadata.Description);
     const title = screen.getByTestId("title");

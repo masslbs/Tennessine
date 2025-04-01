@@ -26,10 +26,12 @@ export default function CustomerViewProducts({
       );
     }
     return products.map((item: Listing) => {
-      const { metadata } = item;
-      if (!metadata) return null;
       const visible = item.ViewState === ListingViewState.Published;
 
+      let productImage = "/assets/no-image.png";
+      if (item.Metadata.Images && item.Metadata.Images.length > 0) {
+        productImage = item.Metadata.Images[0];
+      }
       return (
         <Link
           key={item.ID}
@@ -44,7 +46,7 @@ export default function CustomerViewProducts({
           <div>
             <div data-testid="product-img">
               <img
-                src={metadata.images[0] || "/assets/no-image.png"}
+                src={productImage}
                 width={160}
                 height={144}
                 alt="product-thumb"
@@ -70,7 +72,10 @@ export default function CustomerViewProducts({
                 />
                 <p data-testid="product-price">
                   {baseToken &&
-                    formatUnitsFromString(item.Price, baseToken.decimals)}
+                    formatUnitsFromString(
+                      item.Price.toString(),
+                      baseToken.decimals,
+                    )}
                 </p>
               </div>
             </div>
