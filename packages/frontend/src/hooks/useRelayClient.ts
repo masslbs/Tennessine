@@ -1,8 +1,8 @@
 import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { useEffect } from "react";
 
 import { RelayClient } from "@massmarket/client";
+import { logger } from "@massmarket/utils";
 
 import { useMassMarketContext } from "../MassMarketContext.ts";
 import { useKeycard } from "./useKeycard.ts";
@@ -11,6 +11,10 @@ import { useRelayEndpoint } from "./useRelayEndpoint.ts";
 import { useShopId } from "./useShopId.ts";
 
 import { defaultRPC } from "../utils/mod.ts";
+import { useQuery } from "./useQuery.ts";
+
+const namespace = "frontend:useRelayClient";
+const debug = logger(namespace);
 
 export function useRelayClient() {
   const { relayClient, setRelayClient } = useMassMarketContext();
@@ -19,10 +23,7 @@ export function useRelayClient() {
   const { relayEndpoint } = useRelayEndpoint();
   const { shopId } = useShopId();
 
-  useEffect(() => {
-    if (relayClient) {
-      return;
-    }
+  useQuery(async () => {
     const account = privateKeyToAccount(keycard.privateKey);
     const keycardWallet = createWalletClient({
       account,
@@ -32,13 +33,14 @@ export function useRelayClient() {
       ),
     });
     if (!relayEndpoint) {
-      console.warn("Relay endpoint is required");
+      debug("Relay endpoint is required");
       return;
     }
     if (!shopId) {
-      console.warn("Shop ID is required");
+      debug("Shop ID is required");
       return;
     }
+    debug(`Setting RelayClient with keycard: ${keycard.privateKey}`);
     const rc = new RelayClient({
       relayEndpoint,
       walletClient: keycardWallet,
@@ -49,9 +51,7 @@ export function useRelayClient() {
     setRelayClient(rc);
   }, [
     String(shopId),
-    relayClient,
-    relayEndpoint !== undefined,
-    keycard.privateKey,
+    relayEndpoint,
   ]);
 
   return { relayClient };

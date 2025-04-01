@@ -10,7 +10,7 @@ import {
   zeroAddress,
 } from "viem";
 
-import { assert, formatUnitsFromString, logger } from "@massmarket/utils";
+import { assert, logger } from "@massmarket/utils";
 import { abi, getPaymentAddress, getPaymentId } from "@massmarket/contracts";
 import { ChainAddress, Manifest, Order, Payee } from "@massmarket/schema";
 
@@ -176,12 +176,7 @@ export default function ChoosePayment({
       setPaymentAddress(paymentAddr);
       debug(`payment address: ${paymentAddr}`);
       setSrc(payLink);
-      const displayedAmount = `${
-        formatUnitsFromString(
-          total,
-          decimal,
-        )
-      } ${symbol}`;
+      const displayedAmount = `${total} ${symbol}`;
       if (symbol === "ETH") {
         setIcon("/icons/eth-coin.svg");
       } else {

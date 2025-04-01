@@ -148,11 +148,6 @@ export function priceToUint256(priceString: string, decimals = 18) {
   return numberToBytes(priceInSmallestUnit, { size: 32 });
 }
 
-//Since we are currently storing price as a string, convert string to bigint, then calculate the decimal point.
-export function formatUnitsFromString(price: string, decimal: number) {
-  return formatUnits(BigInt(price), decimal);
-}
-
 export function random256BigInt() {
   return bytesToBigInt(randomBytes(32));
 }

@@ -2,7 +2,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { createWalletClient, http } from "viem";
 
 import { getWindowLocation, logger } from "@massmarket/utils";
-import { LevelStore } from "@massmarket/store/level";
+import { JollyToadStore } from "@massmarket/store/jollytoad";
 import StateManager from "@massmarket/stateManager";
 
 import { KeycardRole } from "../types.ts";
@@ -31,7 +31,7 @@ async function createStateManager(shopId: bigint) {
   }));
 
   const db = new StateManager({
-    store: new LevelStore(),
+    store: new JollyToadStore(),
     id: shopId,
     defaultState: startingState,
   });
@@ -53,6 +53,7 @@ export function useStateManager() {
     ? relayClient.keycard
     : relayClient?.keycard?.address;
   const deps = [String(shopId), accountDep];
+
   useQuery(async () => {
     if (!shopId) {
       throw new Error("Shop ID is required");
@@ -89,12 +90,13 @@ export function useStateManager() {
         db.addConnection(relayClient);
       }
     }
+    debug("StateManager set");
     setStateManager(db);
 
-    if (window) {
+    if (window && relayClient) {
       globalThis.addEventListener("beforeunload", () => {
         db.close().then(() => {
-          debug(`DB closed. Keycard nonce: ${relayClient?.keyCardNonce}`);
+          debug(`DB closed. Keycard nonce saved: ${relayClient.keyCardNonce}`);
         });
       });
     }

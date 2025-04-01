@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { Link } from "@tanstack/react-router";
 
-import { formatUnitsFromString } from "@massmarket/utils";
 import { Listing } from "@massmarket/schema";
 
 import Button from "../../common/Button.tsx";
@@ -53,10 +52,13 @@ export default function MerchantViewProducts({
           <div className="flex justify-center" data-testid="product-img">
             <img
               src={productImage}
-              width={127}
-              height={112}
               alt="product-thumb"
-              className="w-32 h-full object-cover object-center rounded-l-lg"
+              style={{
+                width: 127,
+                minWidth: 127,
+                height: "100%",
+              }}
+              className="h-full object-cover object-center rounded-l-lg"
             />
           </div>
           <div className="bg-background-gray w-full rounded-r-lg px-5 py-4">
@@ -89,8 +91,7 @@ export default function MerchantViewProducts({
                   className="w-5 h-5"
                 />
                 <p data-testid={`product-price`}>
-                  {baseToken &&
-                    formatUnitsFromString(item.Price, baseToken.decimals)}
+                  {item.Price}
                 </p>
               </div>
             </div>
@@ -112,6 +113,9 @@ export default function MerchantViewProducts({
               itemId: "new",
             })}
             className="text-white"
+            style={{
+              color: "white",
+            }}
           >
             Add new +
           </Link>
