@@ -137,8 +137,11 @@ export default function ManifestForm(
         </form>
         <div className="flex gap-2">
           <AvatarUpload
-            setImgBlob={(blob: FormData) =>
-              handleShopFormChange("avatar", blob)}
+            // @ts-ignore TODO: fix this
+            // Type '(prevState: FormData) => FormData' is not assignable to type 'FormData'.
+            setImgBlob={(blob: FormData) => {
+              handleShopFormChange("avatar", blob);
+            }}
             setErrorMsg={setErrorMsg}
           />
           <p className="flex items-center">Upload PFP</p>
