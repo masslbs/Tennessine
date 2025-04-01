@@ -17,11 +17,11 @@ import { discoverRelay } from "@massmarket/client";
 import { random256BigInt } from "@massmarket/utils";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
 import { MassMarketProvider } from "../MassMarketContext.ts";
 import StateManager from "@massmarket/stateManager";
 import { MemStore } from "@massmarket/store";
 import { RelayClient } from "@massmarket/client";
+import { type Account } from "viem";
 
 export const relayURL = Deno.env.get("RELAY_ENDPOINT") ||
   "http://localhost:4444/v4";
@@ -37,7 +37,6 @@ export const testClient = createTestClient({
   .extend(walletActions);
 const testAccounts = await testClient.requestAddresses();
 export const testAccount = testAccounts[0];
-// console.log({testAccount, "where": "helper", testAccounts})
 
 export const connectors = [
   mock({
@@ -50,9 +49,6 @@ export const connectors = [
 ];
 
 export const createTestStateManager = async (shopId: bigint) => {
-  const pk = generatePrivateKey();
-  const testKeyCard = privateKeyToAccount(pk);
-
   const root = new Map(Object.entries({
     Tags: new Map(),
     Orders: new Map(),
@@ -67,8 +63,18 @@ export const createTestStateManager = async (shopId: bigint) => {
     id: shopId,
     defaultState: root,
   });
-
   await stateManager.open();
+
+  return stateManager;
+};
+
+export const createTestRelayClient = (
+  shopId: bigint,
+  testKeyCard?: Account,
+) => {
+  if (!testKeyCard) {
+    testKeyCard = privateKeyToAccount(generatePrivateKey());
+  }
 
   const relayClient = new RelayClient({
     relayEndpoint: testRelayEndpoint,
@@ -77,21 +83,25 @@ export const createTestStateManager = async (shopId: bigint) => {
     shopId: shopId,
   });
 
-  return {
-    stateManager,
-    relayClient,
-  };
+  return relayClient;
 };
 
 // TODO: verify where createRouterWrapper is used and if we can remove the csm argument.
-export const createRouterWrapper = async (
-  shopId: bigint | null = null,
-  path: string = "/",
+export const createRouterWrapper = async ({
+  shopId,
+  path = "/",
+  stateManager,
+  relayClient,
+  testKeyCard,
+}: {
+  shopId?: bigint | null;
+  path?: string;
   // The only case clientStateManager needs to be passed here is if we need access to the state manager before the router is created.
   // For example, in EditListing_test.tsx, we need to access the state manager to create a new listing and then use the listing id to set the search param.
-  stateManager?: StateManager, // In most cases we don't need to pass clientStateManager separately.
-  relayClient?: RelayClient,
-) => {
+  stateManager?: StateManager; // In most cases we don't need to pass clientStateManager separately.
+  relayClient?: RelayClient;
+  testKeyCard?: Account;
+} = {}) => {
   const config = createConfig({
     chains: [hardhat, mainnet, sepolia],
     transports: {
@@ -101,17 +111,18 @@ export const createRouterWrapper = async (
     },
     connectors,
   });
+
   if (!shopId) {
     shopId = random256BigInt();
   }
   if (!stateManager) {
-    const csm = await createTestStateManager(shopId);
-    stateManager = csm.stateManager;
-    relayClient = csm.relayClient;
+    stateManager = await createTestStateManager(shopId);
   }
+
   if (!relayClient) {
-    throw new Error("Relay client is required");
+    relayClient = createTestRelayClient(shopId, testKeyCard);
   }
+
   await connect(config, { connector: config.connectors[0] });
 
   const initialURL = (() => {
@@ -128,7 +139,6 @@ export const createRouterWrapper = async (
       searchParams.toString() ? "?" + searchParams.toString() : ""
     }`;
   })();
-  // console.log({initialURL});
 
   const wrapper = ({ children }: { children: React.ReactNode }) => {
     function RootComponent() {

@@ -18,30 +18,33 @@ export function useRelayClient() {
   const { relayEndpoint } = useRelayEndpoint();
   const { shopId } = useShopId();
 
-  useQuery(async () => {
-    const account = privateKeyToAccount(keycard.privateKey);
-    const keycardWallet = createWalletClient({
-      account,
-      chain,
-      transport: http(
-        defaultRPC,
-      ),
-    });
-    if (!relayEndpoint) {
-      throw new Error("Relay endpoint is required");
-    }
-    if (!shopId) {
-      throw new Error("Shop ID is required");
-    }
-    const rc = new RelayClient({
-      relayEndpoint,
-      walletClient: keycardWallet,
-      keycard: account,
-      shopId,
-    });
+  // only create a client if we don't have one
+  if (!relayClient) {
+    // TODO: without this async useQuery freaks out..?
+    useQuery(async () => {
+      const account = privateKeyToAccount(keycard.privateKey);
+      const keycardWallet = createWalletClient({
+        account,
+        chain,
+        transport: http(
+          defaultRPC,
+        ),
+      });
+      if (!relayEndpoint) {
+        throw new Error("Relay endpoint is required");
+      }
+      if (!shopId) {
+        throw new Error("Shop ID is required");
+      }
+      const rc = new RelayClient({
+        relayEndpoint,
+        walletClient: keycardWallet,
+        keycard: account,
+        shopId,
+      });
 
-    setRelayClient(rc);
-  }, [relayEndpoint, keycard.privateKey, String(shopId)]);
-
+      setRelayClient(rc);
+    }, [!relayClient, relayEndpoint, keycard.privateKey, String(shopId)]);
+  }
   return { relayClient };
 }

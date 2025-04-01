@@ -7,6 +7,7 @@ import { useNavigate, useSearch } from "@tanstack/react-router";
 
 import { assert, logger, randUint64 } from "@massmarket/utils";
 import { Listing } from "@massmarket/schema";
+import { CodecValue } from "@massmarket/utils/codec";
 
 import { ListingId, ListingViewState } from "../../../types.ts";
 import ErrorMessage from "../../common/ErrorMessage.tsx";
@@ -33,11 +34,10 @@ export default function EditProduct() {
   const [publishing, setPublishing] = useState(false);
 
   // TODO: this "new" handling seems a bit convoluted...
-  const itemId = search.itemId.indexOf("new") !== 0
+  const itemId = typeof search.itemId === "number"
     ? Number(search.itemId) as ListingId
     : "new";
   const editView = itemId !== "new";
-  // console.log({ itemId, search, editView });
   const hed = editView ? "Edit product" : "Add Product";
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -57,23 +57,28 @@ export default function EditProduct() {
         setErrorMsg("Error fetching listing");
         errlog("Error fetching listing", e);
       });
+    stateManager.get(["Inventory", itemId])
+      .then((item: CodecValue | undefined) => {
+        if (item) {
+          setUnits(Number(item));
+        }
+      });
   }, [stateManager, editView, itemId]);
 
   async function create(newListing: Listing) {
     assert(stateManager, "State manager is required");
-    console.log("create", newListing.ID);
+    // @ts-ignore TODO: add BaseClass to CodecValue
     await stateManager.set(["Listings", newListing.ID], newListing);
-
-    console.log("set inventory", newListing.ID, units);
     await stateManager.increment(["Inventory", newListing.ID], units);
   }
 
   async function update(newListing: Listing) {
     assert(stateManager, "State manager is required");
-    console.log("update", newListing.ID);
     //compare the edited fields against the original object.
     const listingPath = ["Listings", newListing.ID];
-    const oldListing = Listing.fromCBOR(await stateManager.get(listingPath));
+    const oldListing = Listing.fromCBOR(
+      await stateManager.get(listingPath) as Map<string, unknown>,
+    );
     if (oldListing === undefined) {
       throw new Error("Listing not found");
     }
@@ -81,6 +86,7 @@ export default function EditProduct() {
       await stateManager.set([...listingPath, "Price"], newListing.Price);
     }
     if (newListing.Metadata !== oldListing!.Metadata) {
+      // @ts-ignore TODO: add BaseClass to CodecValue
       await stateManager.set([...listingPath, "Metadata"], newListing.Metadata);
     }
     if (newListing.ViewState !== oldListing!.ViewState) {
@@ -90,13 +96,7 @@ export default function EditProduct() {
       );
     }
 
-    const inventoryPath = ["Inventory", newListing.ID];
-    const prevQty = await stateManager.get(inventoryPath);
-    if (prevQty > units) {
-      await stateManager.decrement(inventoryPath, prevQty - units);
-    } else if (prevQty < units) {
-      await stateManager.increment(inventoryPath, units - prevQty);
-    }
+    await stateManager.set(["Inventory", newListing.ID], units);
   }
 
   async function onPublish() {

@@ -8,17 +8,17 @@ import {
   zeroAddress,
 } from "viem";
 import { foundry } from "viem/chains";
-import { generatePrivateKey } from "viem/accounts";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "@std/expect";
 import { hardhat, mainnet, sepolia } from "wagmi/chains";
 import { mintShop, relayRegGetOwnerOf } from "@massmarket/contracts";
 import { Listing } from "@massmarket/schema";
-import { random256BigInt } from "@massmarket/utils";
+import { assert, random256BigInt } from "@massmarket/utils";
 import {
-  metadata,
-  payees,
-  shippingRegions,
+  // metadata,
+  // payees,
+  // shippingRegions,
 } from "@massmarket/schema/testFixtures";
 
 import EditListing from "./EditListing.tsx";
@@ -26,6 +26,7 @@ import {
   createRouterWrapper,
   createTestStateManager,
   testAccount,
+  testClient,
 } from "../../../testutils/mod.tsx";
 import { KeycardRole, ListingViewState } from "../../../types.ts";
 
@@ -35,24 +36,15 @@ Deno.test("Edit Listing", {
 }, async (t) => {
   // prepare shop
   // TODO: move to helper
-  const blockchainClient = createTestClient({
-    chain: foundry,
-    mode: "anvil",
-    transport: http(),
-  }).extend(publicActions)
-    .extend(walletActions);
-  const [account] = await blockchainClient.requestAddresses();
-  expect(account).toEqual(testAccount);
+  const shopId = random256BigInt();
 
-  const shopId = BigInt(Math.floor(Math.random() * 1000000));
-
-  const transactionHash = await mintShop(blockchainClient, testAccount, [
+  const transactionHash = await mintShop(testClient, testAccount, [
     shopId,
     testAccount,
   ]);
   // this is still causing a leak
   // https://github.com/wevm/viem/issues/2903
-  const receipt = await blockchainClient.waitForTransactionReceipt({
+  const receipt = await testClient.waitForTransactionReceipt({
     hash: transactionHash,
   });
   expect(receipt.status).toBe("success");
@@ -61,30 +53,35 @@ Deno.test("Edit Listing", {
   // TODO: move to helper
   const keyCardID = `keycard${shopId}`;
   const hasKC = localStorage.getItem(keyCardID);
-  console.log({ hasKC, keyCardID });
+  expect(hasKC).toBeNull();
+  const kcPrivateKey = generatePrivateKey();
   localStorage.setItem(
     keyCardID,
     JSON.stringify({
-      privateKey: generatePrivateKey(),
+      privateKey: kcPrivateKey,
       role: KeycardRole.MERCHANT,
     }),
   );
+  const testKeyCard = privateKeyToAccount(kcPrivateKey);
 
   const user = userEvent.setup();
+  const { wrapper, stateManager, relayClient } = await createRouterWrapper({
+    shopId,
+    path: "/?itemId=new",
+    testKeyCard,
+  });
+
+  // TODO: move to helper but need access to csm
+  const res = await relayClient.enrollKeycard(
+    testClient,
+    testAccount,
+    false,
+  );
+  expect(res.ok).toBe(true);
+
+  let listingID = 0;
+
   await t.step("Create new listing", async () => {
-    const { wrapper, stateManager, relayClient } = await createRouterWrapper(
-      shopId,
-      "/?itemId=new",
-    );
-
-    // TODO: move to helper but need access to csm
-    const res = await relayClient.enrollKeycard(
-      blockchainClient,
-      testAccount,
-      false,
-    );
-    expect(res.ok).toBe(true);
-
     const { unmount } = render(<EditListing />, { wrapper });
     screen.getByTestId("edit-listing-screen");
     await act(async () => {
@@ -93,9 +90,9 @@ Deno.test("Edit Listing", {
       const descInput = screen.getByTestId("description");
       await user.type(descInput, "product 1 description");
       const priceInput = screen.getByTestId("price");
-      await user.type(priceInput, "1");
+      await user.type(priceInput, "555");
       const stockInput = screen.getByTestId("units");
-      await user.type(stockInput, "10");
+      await user.type(stockInput, "123");
 
       // Simulate file upload
       const file = new File(["test image content"], "test.jpg", {
@@ -128,26 +125,30 @@ Deno.test("Edit Listing", {
       await user.click(publishButton);
     });
 
-    let allListings: Map<string, unknown>;
+    let allListings: Map<string, unknown> = new Map();
+
     // Check the db to see that listing was created
     let listingCount = 0;
-
     await waitFor(async () => {
-      allListings = await stateManager.get(["Listings"]);
+      const gotListings = await stateManager.get(["Listings"]);
+      expect(gotListings).toBeInstanceOf(Map<string, unknown>);
+      allListings = gotListings as Map<string, unknown>;
       expect(allListings.size).toEqual(1);
     }, { timeout: 10000 });
 
-    for (const [_id, listingData] of allListings.entries()) {
+    for (const [id, listingData] of allListings.entries()) {
       listingCount++;
-      const l = Listing.fromCBOR(listingData);
-      console.log({ listingData, l });
+      expect(typeof id).toBe("number");
+      listingID = Number(id);
+      const l = Listing.fromCBOR(listingData as Map<string, unknown>);
+
       // const { metadata: { title, description, images } } = item;
       expect(l.Metadata.Title).toBe("product 1");
       expect(l.Metadata.Description).toBe("product 1 description");
-      expect(l.Price).toEqual(1);
-      // TODO: inventory
-      // expect(l.Metadata.Quantity).toBe(10);
-      expect(l.Metadata.Images.length).toEqual(1);
+      expect(l.Price).toEqual(555);
+      const inventory = await stateManager.get(["Inventory", listingID]);
+      expect(inventory).toBe(123);
+      expect(l.Metadata.Images?.length).toEqual(1);
       expect(l.ViewState).toBe(
         ListingViewState.Published,
       );
@@ -156,81 +157,71 @@ Deno.test("Edit Listing", {
     expect(listingCount).toBe(1);
     unmount();
   });
-  // await t.step("Edit existing listing", async () => {
-  //   const csm = await createTestStateManager();
-  //   await stateManager!.manifest.create(
-  //     {
-  //       acceptedCurrencies: [{
-  //         chainId: mainnet.id,
-  //         address: zeroAddress,
-  //       }, {
-  //         chainId: sepolia.id,
-  //         address: zeroAddress,
-  //       }],
-  //       pricingCurrency: {
-  //         chainId: hardhat.id,
-  //         address: zeroAddress,
-  //       },
-  //       payees,
-  //       shippingRegions,
-  //     },
-  //     random256BigInt(),
-  //   );
 
-  //   const { id } = await stateManager!.listings.create({
-  //     metadata,
-  //     price: "100",
-  //     viewState: ListingViewState.Published,
-  //   });
-  //   await stateManager!.listings.changeInventory(id, 5);
-  //   const { wrapper } = await createRouterWrapper(null, `/?itemId=${id}`, csm);
+  await t.step("Edit existing listing", async () => {
+    expect(listingID).toBeGreaterThan(0);
 
-  //   const { unmount } = render(<EditListing />, {
-  //     wrapper,
-  //   });
-  //   screen.getByTestId("edit-listing-screen");
+    await stateManager.set(["Inventory", listingID], 123);
+    const { wrapper } = await createRouterWrapper({
+      shopId,
+      path: `/?itemId=${listingID}`,
+      stateManager,
+      relayClient,
+      testKeyCard,
+    });
 
-  //   await waitFor(() => {
-  //     const priceInput = screen.getByTestId("price") as HTMLInputElement;
-  //     expect(priceInput.value).toBe("100");
-  //     const titleInput = screen.getByTestId("title") as HTMLInputElement;
-  //     expect(titleInput.value).toBe(metadata.title);
-  //     const descInput = screen.getByTestId("description") as HTMLInputElement;
-  //     expect(descInput.value).toBe(metadata.description);
-  //     const quantityInput = screen.getByTestId("units") as HTMLInputElement;
-  //     expect(quantityInput.value).toBe("5");
-  //     const publishCheckbox = screen.getByRole("checkbox", {
-  //       name: /Publish product/i,
-  //     }) as HTMLInputElement;
-  //     expect(publishCheckbox.checked).toBeTruthy();
-  //   });
+    const { unmount } = render(<EditListing />, {
+      wrapper,
+    });
+    screen.getByTestId("edit-listing-screen");
 
-  //   // Update the inputs
-  //   await act(async () => {
-  //     const stockInput = screen.getByTestId("units");
-  //     await user.clear(stockInput);
-  //     await user.type(stockInput, "10");
-  //     const titleInput = screen.getByTestId("title");
-  //     await user.clear(titleInput);
-  //     await user.type(titleInput, "Updated title");
-  //     const descInput = screen.getByTestId("description");
-  //     await user.clear(descInput);
-  //     await user.type(descInput, "Updated description");
-  //   });
+    await waitFor(() => {
+      const priceInput = screen.getByTestId("price") as HTMLInputElement;
+      expect(priceInput.value).toBe("555");
+      const titleInput = screen.getByTestId("title") as HTMLInputElement;
+      expect(titleInput.value).toBe("product 1");
+      const descInput = screen.getByTestId("description") as HTMLInputElement;
+      expect(descInput.value).toBe("product 1 description");
+      const quantityInput = screen.getByTestId("units") as HTMLInputElement;
+      expect(quantityInput.value).toBe("123");
+      const publishCheckbox = screen.getByRole("checkbox", {
+        name: /Publish product/i,
+      }) as HTMLInputElement;
+      expect(publishCheckbox.checked).toBeTruthy();
+    });
 
-  //   await act(async () => {
-  //     const publishButton = screen.getByRole("button", {
-  //       name: /Update product/i,
-  //     });
-  //     await user.click(publishButton);
-  //   });
+    // Update the inputs
+    await act(async () => {
+      const stockInput = screen.getByTestId("units");
+      await user.clear(stockInput);
+      await user.type(stockInput, "321");
+      const titleInput = screen.getByTestId("title");
+      await user.clear(titleInput);
+      await user.type(titleInput, "Updated title");
+      const descInput = screen.getByTestId("description");
+      await user.clear(descInput);
+      await user.type(descInput, "Updated description");
+    });
 
-  //   const updatedListing = await stateManager!.listings.get(id);
-  //   expect(updatedListing.quantity).toBe(10);
-  //   expect(updatedListing.metadata.title).toBe("Updated title");
-  //   expect(updatedListing.metadata.description).toBe("Updated description");
+    await act(async () => {
+      const publishButton = screen.getByRole("button", {
+        name: /Update product/i,
+      });
+      await user.click(publishButton);
+    });
 
-  //   unmount();
-  // });
+    // the end of act does not mean the update is back from the relay yet, so we need to waitFor
+    await waitFor(async () => {
+      const updatedListing = Listing.fromCBOR(
+        await stateManager.get(["Listings", listingID]) as Map<string, unknown>,
+      );
+      expect(updatedListing.Metadata.Title).toBe("Updated title");
+      expect(updatedListing.Metadata.Description).toBe("Updated description");
+      const updateInv = await stateManager.get(["Inventory", listingID]);
+
+      expect(updateInv).toBe(321);
+    });
+    unmount();
+  });
   cleanup();
 });
