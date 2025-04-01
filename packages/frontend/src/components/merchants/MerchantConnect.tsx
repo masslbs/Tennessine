@@ -6,9 +6,15 @@ import { useEffect, useState } from "react";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useNavigate } from "@tanstack/react-router";
+import { toHex } from "viem";
 
 import { abi } from "@massmarket/contracts";
-import { assert, logger, random32BytesHex } from "@massmarket/utils";
+import {
+  assert,
+  getWindowLocation,
+  logger,
+  random32BytesHex,
+} from "@massmarket/utils";
 
 import ConnectConfirmation from "./ConnectConfirmation.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
@@ -28,11 +34,14 @@ export default function MerchantConnect() {
   const { chain } = useChain();
   const shopPublicClient = usePublicClient({ chainId: chain.id });
   const { data: wallet } = useWalletClient();
+  const { shopId } = useShopId();
   const [keycard, setKeycard] = useKeycard();
   const { relayClient } = useRelayClient();
   const navigate = useNavigate({ from: "/merchant-connect" });
 
-  const [searchShopId, setSearchShopId] = useState<string>("");
+  const [searchShopId, setSearchShopId] = useState<string>(
+    shopId ? toHex(shopId) : "",
+  );
   const [step, setStep] = useState<SearchShopStep>(
     SearchShopStep.Search,
   );
@@ -43,8 +52,6 @@ export default function MerchantConnect() {
       image: string;
     } | null
   >(null);
-
-  const { shopId } = useShopId();
 
   useEffect(() => {
     // only create merchant keycard if it doesn't exist
@@ -94,6 +101,7 @@ export default function MerchantConnect() {
         wallet!,
         wallet!.account,
         false,
+        getWindowLocation(),
       );
       if (!res.ok) {
         throw new Error("Failed to enroll keycard");

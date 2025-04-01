@@ -9,6 +9,7 @@ import { Listing } from "@massmarket/schema";
 import Button from "../../common/Button.tsx";
 import { ListingViewState } from "../../../types.ts";
 import { useBaseToken } from "../../../hooks/useBaseToken.ts";
+import { useStateManager } from "../../../hooks/useStateManager.ts";
 
 export default function MerchantViewProducts({
   products,

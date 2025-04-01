@@ -1,7 +1,7 @@
 import { privateKeyToAccount } from "viem/accounts";
 import { createWalletClient, http } from "viem";
 
-import { logger } from "@massmarket/utils";
+import { getWindowLocation, logger } from "@massmarket/utils";
 import { LevelStore } from "@massmarket/store/level";
 import StateManager from "@massmarket/stateManager";
 
@@ -75,6 +75,7 @@ export function useStateManager() {
           keycardWallet,
           account,
           true,
+          getWindowLocation(),
         );
         if (!res.ok) {
           throw new Error(`Failed to enroll keycard: ${res}`);
