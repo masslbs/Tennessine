@@ -22,10 +22,11 @@ Deno.test("Check that we can render the merchant connect screen", {
   const shopId = random256BigInt();
   const user = userEvent.setup();
 
-  const { wrapper } = await createRouterWrapper(
+  const { wrapper } = await createRouterWrapper({
     shopId,
-    "/merchant-connect",
-  );
+    enrollKeycard: false,
+    path: "/merchant-connect",
+  });
 
   await t.step("Render and unmount component", () => {
     const { unmount } = render(<MerchantConnect />, { wrapper });

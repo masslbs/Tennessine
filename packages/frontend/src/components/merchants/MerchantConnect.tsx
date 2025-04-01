@@ -17,7 +17,7 @@ import { useKeycard } from "../../hooks/useKeycard.ts";
 import { useShopId } from "../../hooks/useShopId.ts";
 import { useChain } from "../../hooks/useChain.ts";
 import { KeycardRole, SearchShopStep } from "../../types.ts";
-import { useStateManager } from "../../hooks/useStateManager.ts";
+import { useRelayClient } from "../../hooks/useRelayClient.ts";
 
 const namespace = "frontend:connect-merchant";
 const debug = logger(namespace);
@@ -29,7 +29,7 @@ export default function MerchantConnect() {
   const shopPublicClient = usePublicClient({ chainId: chain.id });
   const { data: wallet } = useWalletClient();
   const [keycard, setKeycard] = useKeycard();
-  const { stateManager } = useStateManager();
+  const { relayClient } = useRelayClient();
   const navigate = useNavigate({ from: "/merchant-connect" });
 
   const [searchShopId, setSearchShopId] = useState<string>("");
@@ -53,7 +53,6 @@ export default function MerchantConnect() {
         privateKey: random32BytesHex(),
         role: KeycardRole.MERCHANT,
       });
-      console.log("keycard set for shopId:", shopId);
     }
   }, [shopId !== null, keycard.role === KeycardRole.NEW_GUEST, shopId]);
 
@@ -91,11 +90,7 @@ export default function MerchantConnect() {
 
   async function enroll() {
     try {
-      if (stateManager!.keycard !== keycard.privateKey) {
-        errlog("Keycard mismatch");
-        return;
-      }
-      const res = await stateManager!.enrollKeycard(
+      const res = await relayClient.enrollKeycard(
         wallet!,
         wallet!.account,
         false,
@@ -104,7 +99,7 @@ export default function MerchantConnect() {
         throw new Error("Failed to enroll keycard");
       }
       debug(`Keycard enrolled: ${keycard.privateKey}`);
-      await stateManager!.connect();
+      await relayClient.connect();
       setStep(SearchShopStep.Confirm);
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
