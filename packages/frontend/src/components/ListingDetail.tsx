@@ -92,9 +92,10 @@ export default function ListingDetail() {
         const updatedOrderItems: OrderedItem[] = (order.Items ?? []).map(
           (item: OrderedItem) => {
             if (item.ListingID === itemId) {
-              return new OrderedItem(item.ListingID, Number(quantity));
+              return new OrderedItem(item.ListingID, Number(quantity))
+                .asCBORMap();
             } else {
-              return item;
+              return item.asCBORMap();
             }
           },
         );
