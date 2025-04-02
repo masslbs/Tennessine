@@ -45,12 +45,6 @@ Deno.test("Edit Listing", {
       });
       const fileInput = screen.getByTestId("file-upload");
       await user.upload(fileInput, file);
-
-      // Check checkbox to mark listing as published
-      const publishCheckbox = screen.getByRole("checkbox", {
-        name: /Publish product/i,
-      });
-      await user.click(publishCheckbox);
     });
 
     await act(async () => {
@@ -62,6 +56,20 @@ Deno.test("Edit Listing", {
         "uploaded-product-image",
       );
       expect(uploadedImage).toBeDefined();
+    });
+
+    // if we do this before the image is uploaded, it will fail
+    // for some reason the reader.onload fires after this,
+    // resulting in a data race, overwriting the images with old state.
+    await act(async () => {
+      // Check checkbox to mark listing as published
+      const publishCheckbox = screen.getByRole("checkbox", {
+        name: /Publish product/i,
+      });
+      await user.click(publishCheckbox);
+    });
+
+    await act(async () => {
       // Click on publish button
       const publishButton = screen.getByRole("button", {
         name: /Create product/i,
@@ -70,9 +78,8 @@ Deno.test("Edit Listing", {
       await user.click(publishButton);
     });
 
-    let allListings: Map<string, unknown> = new Map();
-
     // Check the db to see that listing was created
+    let allListings: Map<string, unknown> = new Map();
     let listingCount = 0;
     await waitFor(async () => {
       const gotListings = await stateManager.get(["Listings"]);
@@ -166,5 +173,6 @@ Deno.test("Edit Listing", {
     });
     unmount();
   });
+
   cleanup();
 });
