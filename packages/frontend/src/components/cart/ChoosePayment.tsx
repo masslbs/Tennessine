@@ -74,7 +74,7 @@ export default function ChoosePayment({
     if (!stateManager) return;
     stateManager.get(["Manifest"])
       .then((res: Map<string, unknown>) => {
-        const m = new Manifest(res);
+        const m = Manifest.fromCBOR(res);
         getDisplayedChains(m).then((arr) => {
           setManifest(m);
           setChains(arr);
@@ -191,28 +191,31 @@ export default function ChoosePayment({
     }
   }
 
-  function getDisplayedChains(manifest: Manifest) {
+  async function getDisplayedChains(manifest: Manifest) {
+    // Only display chains that are in accepted currencies
     const currenciesMap = manifest.AcceptedCurrencies.asCBORMap();
     const displayed: CurrencyChainOption[] = [];
-    // This fn gets the token symbol and chain name to display to user instead of displaying token address and chain ID number
-    chains.forEach((chain) => {
-      if (!currenciesMap.has(chain.id)) return;
+
+    for (const [id, addresses] of currenciesMap.entries()) {
+      const chain = chains.find((chain) => chain.id === Number(id));
+      if (!chain) continue;
       const tokenPublicClient = createPublicClient({
         chain,
         transport: http(defaultRPC),
       });
-      // all addresses in chain
-      const c = currenciesMap.get(chain.id);
-      c.keys().forEach(async (address) => {
-        const res = await getTokenInformation(tokenPublicClient, address);
+      for (const [address, val] of addresses.entries()) {
+        const res = await getTokenInformation(
+          tokenPublicClient,
+          toHex(address),
+        );
         displayed.push({
           address,
-          chainId: chain.id,
-          label: `${res[0]}/${chain.name}`,
-          value: `${address}/${chain.id}`,
+          chainId: chain!.id,
+          label: `${res[0]}/${chain!.name}`,
+          value: `${address}/${chain!.id}`,
         });
-      });
-    });
+      }
+    }
 
     return displayed;
   }
@@ -220,35 +223,31 @@ export default function ChoosePayment({
   async function onSelectPaymentCurrency(selected: CurrencyChainOption) {
     try {
       setPaymentCurrencyLoading(true);
+      //TODO: for now, just grab the first payee address in the map.
       const payeeAddresses = manifest.Payees.get(selected.chainId!);
-
-      if (!payeeAddresses.size()) {
+      if (!payeeAddresses.size) {
         throw new Error("No payee found in shop manifest");
       }
-      //FIXME: for now, just grab the first payee address in the map.
-      const payee = payeeAddresses.values().next().value;
+      const payee = payeeAddresses.entries().next().value;
       const chosenCurrency = new ChainAddress(
-        new Map([["ChainID", selected.chainId!], [
-          "Address",
-          selected.address!,
-        ]]),
+        selected.chainId!,
+        selected.address!,
       );
+
       const chosenPayee = new Payee(
-        new Map([["Address", payee.Address], [
-          "CallAsContract",
-          payee.CallAsContract,
-        ]]),
+        new ChainAddress(selected.chainId, payee[0]),
+        payee[1].CallAsContract,
       );
-      await sm.set([
+      await stateManager.set([
         "Orders",
-        currentOrder!.orderId,
+        currentOrder!.ID,
         "ChosenPayee",
-      ], chosenPayee.asCBORMap());
-      await sm.set([
+      ], chosenPayee);
+      await stateManager!.set([
         "Orders",
-        currentOrder!.orderId,
+        currentOrder!.ID,
         "ChosenCurrency",
-      ], chosenCurrency.asCBORMap());
+      ], chosenCurrency);
       debug("chosen payment set");
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
