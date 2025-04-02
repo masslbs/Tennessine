@@ -112,7 +112,6 @@ export default function MerchantViewProducts({
               shopId: prev.shopId,
               itemId: "new",
             })}
-            className="text-white"
             style={{
               color: "white",
             }}
