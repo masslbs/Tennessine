@@ -5,6 +5,7 @@
 import { useEffect, useState } from "react";
 
 import { assert, logger } from "@massmarket/utils";
+import { AddressDetails } from "@massmarket/schema";
 
 import Cart from "./Cart.tsx";
 import TimerToast from "./TimerToast.tsx";
@@ -14,6 +15,7 @@ import ValidationWarning from "../common/ValidationWarning.tsx";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { CheckoutStep } from "../../types.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
+
 const namespace = "frontend:ShippingDetails";
 const debug = logger(namespace);
 const errlog = logger(namespace, "error");
@@ -29,14 +31,9 @@ export default function ShippingDetails({
 }) {
   const { currentOrder } = useCurrentOrder();
   const { stateManager } = useStateManager();
-
-  const [city, setCity] = useState("");
-  const [address, setAddress] = useState("");
-  const [name, setName] = useState("");
-  const [postalCode, setPostal] = useState("");
-  const [country, setCountry] = useState("");
-  const [phoneNumber, setNumber] = useState("");
-  const [email, setEmail] = useState("");
+  const [shippingAddress, setShippingAddress] = useState<AddressDetails>(
+    new AddressDetails(),
+  );
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
 
@@ -50,23 +47,37 @@ export default function ShippingDetails({
 
   function checkRequiredFields() {
     let warning: null | string = null;
-    if (!name.length) {
+    if (!shippingAddress.Name.length) {
       warning = "Must include name";
-    } else if (!address.length) {
+    } else if (!shippingAddress.Address1.length) {
       warning = "Must include address";
-    } else if (!country.length) {
+    } else if (!shippingAddress.Country.length) {
       warning = "Must include country";
-    } else if (!postalCode.length) {
+    } else if (!shippingAddress.PostalCode.length) {
       warning = "Must include postal code";
-    } else if (!city.length) {
+    } else if (!shippingAddress.City.length) {
       warning = "Must include postal code";
-    } else if (!email.length) {
+    } else if (!shippingAddress.EmailAddress.length) {
       warning = "Must include email";
     }
     return warning;
   }
 
-  async function onUpdateShipping() {
+  function handleFormChange(field: keyof AddressDetails, value: string) {
+    const newAddress = new AddressDetails(
+      shippingAddress.Name,
+      shippingAddress.Address1,
+      shippingAddress.City,
+      shippingAddress.PostalCode,
+      shippingAddress.Country,
+      shippingAddress.EmailAddress,
+      shippingAddress.PhoneNumber,
+    );
+    newAddress[field] = value;
+    setShippingAddress(newAddress);
+  }
+
+  async function onSubmitForm() {
     try {
       const warning = checkRequiredFields();
       if (warning) {
@@ -75,23 +86,10 @@ export default function ShippingDetails({
       if (!currentOrder) {
         throw new Error("No committed order ID found");
       }
-      //TODO: use class
-      const update = {
-        name,
-        address1: address,
-        country,
-        city,
-        postalCode,
-      };
-
-      if (phoneNumber.length) {
-        update.phoneNumber = phoneNumber;
-      }
-      if (email.length) {
-        update.emailAddress = email;
-      }
-
-      await stateManager.set(["Orders", currentOrder.ID], update);
+      await stateManager.set(
+        ["Orders", currentOrder.ID, "ShippingAddress"],
+        shippingAddress,
+      );
       debug("Shipping details updated");
       setStep(CheckoutStep.paymentDetails);
     } catch (error: unknown) {
@@ -134,7 +132,7 @@ export default function ShippingDetails({
               id="name"
               name="name"
               data-testid="name"
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => handleFormChange("Name", e.target.value)}
             />
             <label htmlFor="address">Address</label>
             <input
@@ -142,7 +140,7 @@ export default function ShippingDetails({
               id="address"
               name="address"
               data-testid="address"
-              onChange={(e) => setAddress(e.target.value)}
+              onChange={(e) => handleFormChange("Address1", e.target.value)}
             />
             <div className="flex gap-2">
               <div>
@@ -152,7 +150,7 @@ export default function ShippingDetails({
                   id="city"
                   name="city"
                   data-testid="city"
-                  onChange={(e) => setCity(e.target.value)}
+                  onChange={(e) => handleFormChange("City", e.target.value)}
                 />
               </div>
               <div>
@@ -162,7 +160,8 @@ export default function ShippingDetails({
                   id="zip"
                   name="zip"
                   data-testid="zip"
-                  onChange={(e) => setPostal(e.target.value)}
+                  onChange={(e) =>
+                    handleFormChange("PostalCode", e.target.value)}
                 />
               </div>
             </div>
@@ -173,7 +172,7 @@ export default function ShippingDetails({
               id="country"
               name="country"
               data-testid="country"
-              onChange={(e) => setCountry(e.target.value)}
+              onChange={(e) => handleFormChange("Country", e.target.value)}
             />
             <h2 className="my-3">Contact detail</h2>
             <p>
@@ -187,7 +186,8 @@ export default function ShippingDetails({
                 id="email"
                 name="email"
                 data-testid="email"
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) =>
+                  handleFormChange("EmailAddress", e.target.value)}
               />
               <label htmlFor="phoneNumber">Phone Number (optional)</label>
               <input
@@ -195,11 +195,12 @@ export default function ShippingDetails({
                 id="phone"
                 name="phone"
                 data-testid="phone"
-                onChange={(e) => setNumber(e.target.value)}
+                onChange={(e) =>
+                  handleFormChange("PhoneNumber", e.target.value)}
               />
             </div>
             <div className="mt-3">
-              <Button onClick={onUpdateShipping}>Payment options</Button>
+              <Button onClick={onSubmitForm}>Payment options</Button>
             </div>
           </form>
           <section className="hidden md:block">
