@@ -29,7 +29,9 @@ export default function ConnectConfirmation() {
               search={(prev: Record<string, string>) => ({
                 shopId: prev.shopId,
               })}
-              className="text-white"
+              style={{
+                color: "white",
+              }}
             >
               Shop Dashboard
             </Link>

@@ -7,7 +7,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useDisconnect } from "wagmi";
 
 import { assert, logger } from "@massmarket/utils";
-import { Order } from "@massmarket/schema";
+import { Order, OrderedItem } from "@massmarket/schema";
 
 import { CheckoutStep, OrderId, OrderState } from "../types.ts";
 import Cart from "./cart/Cart.tsx";
@@ -64,16 +64,15 @@ function Navigation() {
   const [keycard] = useKeycard();
   const { disconnect } = useDisconnect();
   const isMerchantView = keycard.role === "merchant";
-
+  console.log("currentOrder in NAVIGATION", currentOrder);
   useEffect(() => {
     if (!currentOrder) return;
     stateManager?.get(["Orders", currentOrder.ID])
       .then((o: Map<OrderId, unknown>) => {
-        // Getting number of items in order.
         const order = Order.fromCBOR(o);
-        const values = Object.values(order.Items);
+        // Getting number of items in order.
         let length = 0;
-        values.map((qty) => (length += Number(qty)));
+        order.Items.map((item: OrderedItem) => (length += item.Quantity));
         setLength(length);
       });
   }, [currentOrder]);

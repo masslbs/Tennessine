@@ -1,6 +1,8 @@
 import { useEffect } from "react";
-import { logger } from "@massmarket/utils";
-import { Order } from "@massmarket/schema";
+
+import { logger, randUint64 } from "@massmarket/utils";
+import { Order, OrderedItem } from "@massmarket/schema";
+
 import { useStateManager } from "./useStateManager.ts";
 import { KeycardRole, OrderState } from "../types.ts";
 import { useKeycard } from "./useKeycard.ts";
@@ -29,6 +31,24 @@ export function useCurrentOrder() {
         setCurrentOrder(order);
         break;
     }
+  }
+
+  async function createOrder(itemId, quantity) {
+    const orderId = randUint64();
+    const newOrder = new Order(
+      orderId,
+      [
+        new OrderedItem(itemId, Number(quantity)),
+      ],
+      OrderState.Open,
+    );
+    await stateManager.set(
+      ["Orders", orderId],
+      // @ts-ignore TODO: add BaseClass to CodecValue
+      newOrder,
+    );
+    debug(`New Order ID: ${orderId}`);
+    setCurrentOrder(newOrder);
   }
 
   async function orderFetcher() {
@@ -91,5 +111,5 @@ export function useCurrentOrder() {
       }
     };
   }, [stateManager]);
-  return { currentOrder };
+  return { currentOrder, createOrder };
 }
