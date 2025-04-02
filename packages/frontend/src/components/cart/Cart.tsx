@@ -179,19 +179,11 @@ export default function Cart({
   function calculateTotal() {
     if (!baseToken || cartItemsMap.size === 0) return "0";
     const values: Listing[] = Array.from(cartItemsMap.values());
-    let total = BigInt(0);
-    console.log({ selectedQty });
+    let total = 0;
     values.forEach((item: Listing) => {
-      console.log({
-        price: item.Price,
-        id: item.ID,
-        qty: selectedQty.get(item.ID),
-      });
-      total += baseToken?.decimals
-        ? BigInt(item.Price) * BigInt(selectedQty.get(item.ID) ?? 0)
-        : BigInt(0);
+      total += item.Price * (selectedQty.get(item.ID) ?? 0);
     });
-    return formatUnits(total, baseToken.decimals);
+    return total;
   }
 
   const icon = baseToken?.symbol === "ETH"
@@ -203,13 +195,7 @@ export default function Cart({
 
     const values: Listing[] = Array.from(cartItemsMap.values());
     return values.map((item: Listing) => {
-      const price = baseToken?.decimals
-        ? multiplyAndFormatUnits(
-          item.Price,
-          selectedQty.get(item.ID) || 0,
-          baseToken.decimals,
-        )
-        : 0;
+      const price = item.Price * (selectedQty.get(item.ID) || 0);
       let image = "/assets/no-image.png";
       if (item.Metadata.Images && item.Metadata.Images.length > 0) {
         image = item.Metadata.Images[0];
