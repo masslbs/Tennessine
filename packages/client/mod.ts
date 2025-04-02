@@ -29,7 +29,6 @@ import {
 } from "@massmarket/utils/codec";
 import { ReadableStream, WritableStream } from "web-streams-polyfill";
 
-
 const debug = logger("relayClient");
 
 export interface IRelayEndpoint {
@@ -151,7 +150,8 @@ export class RelayClient {
     this.connection.send(payload);
     const requestType =
       Object.keys(envelope).filter((k) => k !== "requestId")[0];
-    debug(`network request ${requestType} sent id: ${envelope.requestId!.raw}`);
+    const reqId = envelope.requestId!.raw;
+    debug(` sent[${reqId}] ${requestType}`);
     this.#requestCounter++;
     return schema.RequestId.create(envelope.requestId);
   }
@@ -167,7 +167,7 @@ export class RelayClient {
     const response = await promise;
     const requestType =
       Object.keys(response).filter((k) => k !== "requestId")[0];
-
+    debug(`recvt[${id.raw}] ${requestType}`);
     if (response.response?.error) {
       const { code, message } = response.response.error;
       assert(code, "code is required");
@@ -181,9 +181,6 @@ export class RelayClient {
         },
       );
     } else {
-      debug(
-        `network request ${requestType} id: ${id.raw} received response`,
-      );
       return response;
     }
   }
@@ -197,9 +194,13 @@ export class RelayClient {
     assert(envelope.requestId?.raw, "requestId is required");
     const requestType =
       Object.keys(envelope).filter((k) => k !== "requestId")[0];
-    debug(
-      `network request ${requestType} id: ${envelope.requestId!.raw} received`,
-    );
+    const reqId = envelope.requestId!.raw;
+    if (requestType === "response") {
+      const isError = envelope.response?.error ? "error" : "okay";
+      debug(`unbox[${reqId}] ${isError}`);
+    } else {
+      debug(`unbox[${reqId}] ${requestType}`);
+    }
 
     switch (envelope.message) {
       case EnvelopMessageTypes.PingRequest:
@@ -360,7 +361,7 @@ export class RelayClient {
   }
 
   // TODO: this is a bit of a mess.
-  // What these promises are tyring to achive would usually be a mutex/lock,
+  // What these promises are trying to achieve would usually be a mutex/lock,
   // to make sure we are not running multiple authentication attempts at the same time.
   async authenticate(): Promise<boolean> {
     // 1. Already authenticated? Return true.
