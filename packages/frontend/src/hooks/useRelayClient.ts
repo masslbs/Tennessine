@@ -9,12 +9,16 @@ import { useKeycard } from "./useKeycard.ts";
 import { useChain } from "./useChain.ts";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";
 import { useShopId } from "./useShopId.ts";
-
 import { defaultRPC } from "../utils/mod.ts";
 import { useQuery } from "./useQuery.ts";
 
 const namespace = "frontend:useRelayClient";
 const debug = logger(namespace);
+
+// Check if running in a HappyDOM environment (likely testing)
+const isTesting = typeof globalThis !== "undefined" &&
+  // @ts-ignore TODO: is there a better way to check for happydom?
+  !!(globalThis as any).happyDOM;
 
 export function useRelayClient() {
   const { relayClient, setRelayClient } = useMassMarketContext();
@@ -23,7 +27,15 @@ export function useRelayClient() {
   const { relayEndpoint } = useRelayEndpoint();
   const { shopId } = useShopId();
 
+  // @ts-ignore TODO: useQuery needs async, even though we are not using it.
   useQuery(async () => {
+    // TODO: this is a bit annoying.. in testing we are already supplying a relayClient,
+    // so we don't want to create another one.
+    // but, there are features in the app that want to un/reset the relayClient,
+    // so we need to be careful about this.
+    if (isTesting && relayClient) {
+      return;
+    }
     const account = privateKeyToAccount(keycard.privateKey);
     const keycardWallet = createWalletClient({
       account,

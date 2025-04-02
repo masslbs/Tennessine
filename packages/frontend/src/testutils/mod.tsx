@@ -127,7 +127,7 @@ export const createRouterWrapper = async ({
   // For example, in EditListing_test.tsx, we need to access the state manager to create a new listing and then use the listing id to set the search param.
   stateManager?: StateManager; // In most cases we don't need to pass clientStateManager separately.
   relayClient?: RelayClient;
-}) => {
+} = {}) => {
   const config = createConfig({
     chains: [hardhat, mainnet, sepolia],
     transports: {
