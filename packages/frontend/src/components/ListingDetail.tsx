@@ -28,7 +28,7 @@ export default function ListingDetail() {
   const { stateManager } = useStateManager();
   const [keycard] = useKeycard();
   const search = useSearch({ strict: false });
-  const { currentOrder } = useCurrentOrder();
+  const { currentOrder, createOrder } = useCurrentOrder();
   const itemId = search.itemId as ListingId;
   const [listing, setListing] = useState<Listing>(new Listing());
   const [tokenIcon, setIcon] = useState("/icons/usdc-coin.png");
@@ -77,24 +77,9 @@ export default function ListingDetail() {
       if (
         !orderId
       ) {
-        //Create new order
-        orderId = randUint64();
-        const newOrder = new Order(
-          orderId,
-          [
-            new OrderedItem(itemId, Number(quantity)),
-          ],
-          OrderState.Open,
-        );
-        await stateManager.set(
-          ["Orders", orderId],
-          // @ts-ignore TODO: add BaseClass to CodecValue
-          newOrder,
-        );
-        debug(`New Order ID: ${orderId}`);
+        await createOrder(itemId, quantity);
       } else {
         // Update existing order
-
         if (currentOrder?.State === OrderState.Committed) {
           orderId = await cancelAndCreateOrder(orderId, stateManager);
         }
@@ -154,7 +139,6 @@ export default function ListingDetail() {
                   shopId: prev.shopId,
                   itemId: listing.ID,
                 })}
-                className="text-white"
                 style={{
                   color: "white",
                 }}
@@ -170,7 +154,7 @@ export default function ListingDetail() {
               <img
                 src={displayedImg}
                 alt="product-detail-image"
-                className="border rounded-lg w-full max-h-1/2 md:max-h-[380px]"
+                className="rounded-lg w-full max-h-1/2 md:max-h-[380px]"
                 style={{
                   objectFit: "cover",
                   objectPosition: "center",
