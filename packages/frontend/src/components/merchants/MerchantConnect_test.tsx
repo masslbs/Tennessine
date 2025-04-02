@@ -14,13 +14,13 @@ import {
   testAccount,
   testClient,
 } from "../../testutils/mod.tsx";
+import { toHex } from "viem";
 
 Deno.test("Check that we can render the merchant connect screen", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async (t) => {
   const shopId = random256BigInt();
-  const user = userEvent.setup();
 
   const { wrapper } = await createRouterWrapper({
     shopId,
@@ -55,13 +55,39 @@ Deno.test("Check that we can render the merchant connect screen", {
     });
     expect(transaction.status).toBe("success");
     console.log({ "shop minted": shopId });
-    const { unmount } = render(<MerchantConnect />, { wrapper });
+  });
 
+  // TODO: for some reason, making these three steps introduces problems
+  await t.step("Test different shop ids", async () => {
     console.log("Test invalid shop id");
+    const { unmount } = render(<MerchantConnect />, { wrapper });
+    const user = userEvent.setup();
     await act(async () => {
       const searchInput = screen.getByTestId("search-shopId");
       expect(searchInput).toBeTruthy();
-      await user.type(searchInput, `0x${random256BigInt().toString(16)}`);
+      await user.clear(searchInput);
+      await user.type(searchInput, `Hello, world!`);
+    });
+    await act(async () => {
+      const searchButton = screen.getByRole("button", {
+        name: "Search for shop",
+      });
+      expect(searchButton).toBeTruthy();
+      await user.click(searchButton);
+    });
+    await waitFor(() => {
+      const errorMessage = screen.getByTestId("error-message") as HTMLElement;
+      expect(errorMessage).toBeTruthy();
+      expect(errorMessage.textContent).toBe("Invalid shop ID (input not hex)");
+    });
+
+    console.log("Test non-existent shop id");
+    const testShopId = toHex(random256BigInt(), { size: 32 });
+    await act(async () => {
+      const searchInput = screen.getByTestId("search-shopId");
+      expect(searchInput).toBeTruthy();
+      await user.clear(searchInput);
+      await user.type(searchInput, testShopId);
     });
     await act(async () => {
       const searchButton = screen.getByRole("button", {
@@ -83,7 +109,6 @@ Deno.test("Check that we can render the merchant connect screen", {
       await user.clear(searchInput);
       await user.type(searchInput, `0x${shopId.toString(16)}`);
     });
-
     await act(async () => {
       const searchButton = screen.getByRole("button", {
         name: "Search for shop",
