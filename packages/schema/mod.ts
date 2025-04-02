@@ -17,10 +17,16 @@ import {
   ListingMetadata,
   ListingViewState,
 } from "./standin_listing.ts";
-import { Order, OrderedItem, OrderState } from "./standin_order.ts";
+import {
+  AddressDetails,
+  Order,
+  OrderedItem,
+  OrderState,
+} from "./standin_order.ts";
 import { BaseClass } from "./utils.ts";
 export {
   AcceptedCurrencyMap,
+  AddressDetails,
   BaseClass,
   ChainAddress,
   Listing,

@@ -105,7 +105,7 @@ export default function ListingDetail() {
           updatedOrderItems,
         );
         setQuantity("");
-        setMsg("Added to cart");
+        setMsg("Cart updated");
       }
     } catch (error) {
       errlog(`Error: changeItems ${error}`);
