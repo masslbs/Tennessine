@@ -6,10 +6,7 @@ import { allListings } from "@massmarket/schema/testFixtures";
 import { random256BigInt, randUint64 } from "@massmarket/utils";
 import { Order, OrderedItem } from "@massmarket/schema";
 import Navigation from "./Navigation.tsx";
-import {
-  createRouterWrapper,
-  createTestStateManager,
-} from "../testutils/mod.tsx";
+import { createRouterWrapper, testClient } from "../testutils/mod.tsx";
 import { OrderState } from "../types.ts";
 
 Deno.test("Check that we can render the navigation bar", {
@@ -17,20 +14,40 @@ Deno.test("Check that we can render the navigation bar", {
   sanitizeOps: false,
 }, async (t) => {
   const shopId = random256BigInt();
-  const stateManager = await createTestStateManager(shopId);
+
+  const {
+    stateManager: merchantStateManager,
+    relayClient: merchantRelayClient,
+  } = await createRouterWrapper({
+    shopId,
+    createShop: true,
+    enrollMerchant: true,
+  });
+
+  merchantStateManager.addConnection(merchantRelayClient);
 
   // populate state manager with listings
   for (const [listingID, listing] of allListings.entries()) {
     // @ts-ignore TODO: add BaseClass to CodecValue
-    await stateManager.set(["Listings", listingID], listing);
-    await stateManager.set(["Inventory", listingID], 10);
+    await merchantStateManager.set(["Listings", listingID], listing);
+    await merchantStateManager.set(["Inventory", listingID], 100);
   }
 
-  // bring up wrapper, connect relay as a guest
-  const { wrapper } = await createRouterWrapper({
-    createShop: true,
-    enrollMerchant: false,
-    stateManager,
+  // remove merchant's keycard to free up for customer
+  localStorage.removeItem(`keycard${shopId}`);
+
+  console.log("merchant setup done. bringing up customer wrapper.");
+
+  const { wrapper, stateManager, relayClient, testAccount } =
+    await createRouterWrapper({
+      shopId,
+    });
+  await relayClient.enrollKeycard(testClient, testAccount, true);
+  stateManager.addConnection(relayClient);
+
+  await waitFor(async () => {
+    const storedListings = await stateManager.get(["Listings"]);
+    expect(storedListings.size).toBe(allListings.size);
   });
 
   // Create order and add items to it
@@ -40,8 +57,8 @@ Deno.test("Check that we can render the navigation bar", {
   const order = new Order(
     orderId,
     [
-      new OrderedItem(item1ID, 2),
-      new OrderedItem(item2ID, 5),
+      new OrderedItem(item1ID, 32),
+      new OrderedItem(item2ID, 24),
     ],
     OrderState.Open,
   );
@@ -49,13 +66,12 @@ Deno.test("Check that we can render the navigation bar", {
   await stateManager.set(["Orders", orderId], order);
 
   const { unmount } = render(<Navigation />, { wrapper });
-  screen.debug();
   screen.getByTestId("navigation");
 
   const user = userEvent.setup();
   await act(async () => {
     const cartToggle = screen.getByTestId("cart-toggle");
-    expect(cartToggle).toBeTruthy();
+    expect(cartToggle).toBeDefined();
     await user.click(cartToggle);
   });
 
@@ -65,19 +81,20 @@ Deno.test("Check that we can render the navigation bar", {
       const cartItems = screen.getAllByTestId("cart-item");
       expect(cartItems.length).toBe(2);
       //check that the added quantity is displayed correctly
-      expect(cartItems[0].textContent).toContain("2");
-      expect(cartItems[1].textContent).toContain("5");
+      expect(cartItems[0].textContent).toEqual("test32Qty: 327360000ETH");
+      expect(cartItems[1].textContent).toEqual("test4224Qty: 2410080000ETH");
     });
 
     await act(async () => {
       const removeButton = screen.getByTestId(`remove-item-${item1ID}`);
+      expect(removeButton).toBeDefined();
       await user.click(removeButton);
     });
 
     await waitFor(() => {
       const cartItems = screen.getAllByTestId("cart-item");
       expect(cartItems.length).toBe(1);
-      expect(cartItems[0].textContent).toContain(metadata2.title);
+      expect(cartItems[0].textContent).toContain("test4224Qty");
     });
   });
   /*
