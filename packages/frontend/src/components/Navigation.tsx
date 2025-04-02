@@ -64,7 +64,7 @@ function Navigation() {
   const [keycard] = useKeycard();
   const { disconnect } = useDisconnect();
   const isMerchantView = keycard.role === "merchant";
-  console.log("currentOrder in NAVIGATION", currentOrder);
+
   useEffect(() => {
     if (!currentOrder) return;
     stateManager?.get(["Orders", currentOrder.ID])
