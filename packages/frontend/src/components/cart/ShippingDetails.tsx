@@ -81,6 +81,8 @@ export default function ShippingDetails({
     try {
       const warning = checkRequiredFields();
       if (warning) {
+        globalThis.scrollTo({ top: 0, behavior: "smooth" });
+
         return setValidationError(warning);
       }
       if (!currentOrder) {
