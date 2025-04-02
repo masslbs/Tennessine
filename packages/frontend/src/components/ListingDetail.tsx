@@ -78,6 +78,7 @@ export default function ListingDetail() {
         !orderId
       ) {
         await createOrder(itemId, quantity);
+        setMsg("Item added to cart");
       } else {
         // Update existing order
         if (currentOrder?.State === OrderState.Committed) {
