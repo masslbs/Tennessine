@@ -1,4 +1,5 @@
 import { useSearch } from "@tanstack/react-router";
+import { hexToBigInt } from "viem";
 import { env } from "../utils/env.ts";
 
 export function useShopId() {
@@ -9,6 +10,6 @@ export function useShopId() {
   }
   const search = useSearch({ strict: false });
   return {
-    shopId: search?.shopId ? BigInt(search.shopId) : null,
+    shopId: search?.shopId ? hexToBigInt(search.shopId, { size: 32 }) : null,
   };
 }

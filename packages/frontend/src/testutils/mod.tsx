@@ -111,7 +111,6 @@ export const createTestRelayClient = async (
   return relayClient;
 };
 
-// TODO: verify where createRouterWrapper is used and if we can remove the csm argument.
 export const createRouterWrapper = async ({
   shopId,
   createShop = false,

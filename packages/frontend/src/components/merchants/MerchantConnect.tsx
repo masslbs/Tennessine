@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useNavigate } from "@tanstack/react-router";
-import { toHex } from "viem";
+import { hexToBigInt, isHex, toHex } from "viem";
 
 import { abi } from "@massmarket/contracts";
 import {
@@ -40,7 +40,7 @@ export default function MerchantConnect() {
   const navigate = useNavigate({ from: "/merchant-connect" });
 
   const [searchShopId, setSearchShopId] = useState<string>(
-    shopId ? toHex(shopId) : "",
+    shopId ? toHex(shopId, { size: 32 }) : "",
   );
   const [step, setStep] = useState<SearchShopStep>(
     SearchShopStep.Search,
@@ -69,12 +69,22 @@ export default function MerchantConnect() {
   }
 
   async function handleSearchForShop() {
+    setErrorMsg(null);
+    if (searchShopId.length > 66) {
+      setErrorMsg("Invalid shop ID (input too long)");
+      return;
+    }
+    if (!isHex(searchShopId)) {
+      setErrorMsg("Invalid shop ID (input not hex)");
+      return;
+    }
+    const shopID = hexToBigInt(searchShopId as `0x${string}`, { size: 32 });
     try {
       const uri = (await shopPublicClient!.readContract({
         address: abi.shopRegAddress,
         abi: abi.shopRegAbi,
         functionName: "tokenURI",
-        args: [BigInt(searchShopId)],
+        args: [shopID],
       })) as string;
       if (uri) {
         const res = await fetch(uri);
