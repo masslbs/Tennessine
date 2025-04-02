@@ -12,7 +12,13 @@ import {
 
 import { assert, logger } from "@massmarket/utils";
 import { abi, getPaymentAddress, getPaymentId } from "@massmarket/contracts";
-import { ChainAddress, Manifest, Order, Payee } from "@massmarket/schema";
+import {
+  ChainAddress,
+  Manifest,
+  Order,
+  OrderState,
+  Payee,
+} from "@massmarket/schema";
 
 import Pay from "./Pay.tsx";
 import QRScan from "./QRScan.tsx";
@@ -223,7 +229,7 @@ export default function ChoosePayment({
       setPaymentCurrencyLoading(true);
       //TODO: for now, just grab the first payee address in the map.
       const payeeAddresses = manifest.Payees.get(selected.chainId!);
-      if (!payeeAddresses.size) {
+      if (payeeAddresses.size === 0) {
         throw new Error("No payee found in shop manifest");
       }
       const payee = payeeAddresses.entries().next().value;
@@ -246,6 +252,11 @@ export default function ChoosePayment({
         currentOrder!.ID,
         "ChosenCurrency",
       ], chosenCurrency);
+      await stateManager.set([
+        "Orders",
+        currentOrder!.ID,
+        "State",
+      ], OrderState.PaymentChosen);
       debug("chosen payment set");
     } catch (error: unknown) {
       assert(error instanceof Error, "Error is not an instance of Error");
