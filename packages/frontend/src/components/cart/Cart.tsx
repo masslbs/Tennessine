@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useState } from "react";
-import { formatUnits } from "viem";
 
 import { assert, logger } from "@massmarket/utils";
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
@@ -13,7 +12,6 @@ import ErrorMessage from "../common/ErrorMessage.tsx";
 import { useBaseToken } from "../../hooks/useBaseToken.ts";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
-import { multiplyAndFormatUnits } from "../../utils/helper.ts";
 
 const namespace = "frontend:Cart";
 const debug = logger(namespace);
@@ -82,23 +80,22 @@ export default function Cart({
     const ci = order.Items;
     const allCartItems: Map<ListingId, Listing> = new Map();
     // Get price and metadata for all the selected items in the order.
+    const updatedQtyMap = new Map();
     await Promise.all(
-      ci.map((orderItem: OrderedItem) => {
-        const updatedQtyMap = new Map(selectedQty);
+      ci.map(async (orderItem: OrderedItem) => {
         updatedQtyMap.set(orderItem.ListingID, orderItem.Quantity);
-        setSelectedQty(updatedQtyMap);
         // If the selected quantity is 0, don't add the item to cart items map
         if (orderItem.Quantity === 0) return;
-        return stateManager.get([
-          "Listings",
-          orderItem.ListingID,
-        ])
-          .then((l: Map<string, unknown>) => {
-            const listing = Listing.fromCBOR(l);
-            allCartItems.set(orderItem.ListingID, listing);
-          });
+        const listing = Listing.fromCBOR(
+          await stateManager.get([
+            "Listings",
+            orderItem.ListingID,
+          ]) as Map<string, unknown>,
+        );
+        allCartItems.set(orderItem.ListingID, listing);
       }),
     );
+    setSelectedQty(updatedQtyMap);
     return allCartItems;
   }
 
@@ -162,9 +159,14 @@ export default function Cart({
       const updatedQtyMap = new Map(selectedQty);
       updatedQtyMap.delete(id);
       setSelectedQty(updatedQtyMap);
-      const updatedOrderItems: OrderedItem[] = Array.from(cartItemsMap.keys())
+      const updatedOrderItems: Map<string, unknown>[] = Array.from(
+        cartItemsMap.keys(),
+      )
+        .filter((key) => key !== id) // TODO: i _think_ cartItemsMap should be muted already but...
         .map((key) => {
-          return new OrderedItem(key, selectedQty.get(key)!);
+          // TODO: BaseClass.isBaseClass does not recognize BaseClass[] yet
+          // so we manually call asCBORMap for now
+          return new OrderedItem(key, selectedQty.get(key)!).asCBORMap();
         });
       await stateManager.set(
         ["Orders", currentOrder!.ID, "Items"],
@@ -172,6 +174,8 @@ export default function Cart({
         updatedOrderItems,
       );
     } catch (error) {
+      assert(error instanceof Error, "Error is not an instance of Error");
+      setErrorMsg("Error removing item");
       logerr(`Error:removeItem ${error}`);
     }
   }
@@ -181,7 +185,9 @@ export default function Cart({
     const values: Listing[] = Array.from(cartItemsMap.values());
     let total = 0;
     values.forEach((item: Listing) => {
-      total += item.Price * (selectedQty.get(item.ID) ?? 0);
+      const qty = selectedQty.get(item.ID) || 0;
+      // if (!qty) throw new Error(`Quantity for ${item.ID} not found`);
+      total += item.Price * qty;
     });
     return total;
   }
@@ -193,9 +199,12 @@ export default function Cart({
   function renderItems() {
     if (!currentOrder || !cartItemsMap.size) return <p>No items in cart</p>;
 
+    // console.log({cartItemsMap, selectedQty})
     const values: Listing[] = Array.from(cartItemsMap.values());
     return values.map((item: Listing) => {
-      const price = item.Price * (selectedQty.get(item.ID) || 0);
+      const qty = selectedQty.get(item.ID) || 0;
+      // if (!qty) throw new Error(`Quantity for ${item.ID} not found`);
+      const price = item.Price * qty;
       let image = "/assets/no-image.png";
       if (item.Metadata.Images && item.Metadata.Images.length > 0) {
         image = item.Metadata.Images[0];
