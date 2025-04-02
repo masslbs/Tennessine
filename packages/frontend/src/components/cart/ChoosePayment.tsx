@@ -86,14 +86,13 @@ export default function ChoosePayment({
     if (!stateManager) return;
     //Listen for client to send paymentDetails event.
     function onPaymentDetails(res: Map<string, unknown>) {
-      const order = new Order(res);
+      const order = Order.fromCBOR(res);
       if (!order.PaymentDetails) return;
       getPaymentArgs().then(() => {
         debug("paymentDetails found for order");
         setPaymentCurrencyLoading(false);
       });
     }
-
     currentOrder!.ID &&
       stateManager.events.on(onPaymentDetails, ["Orders", currentOrder!.ID]);
 
@@ -109,8 +108,7 @@ export default function ChoosePayment({
   async function getPaymentArgs() {
     try {
       const oId = currentOrder!.ID;
-      const committedOrder = await sm
-        .get(oId!);
+      const committedOrder = await stateManager.get(["Orders", oId]);
       if (!committedOrder?.choosePayment) {
         throw new Error("No chosen payment found");
       }
