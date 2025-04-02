@@ -191,6 +191,12 @@ export function OrderStateFromNumber(num: number): OrderState {
       return OrderState.Canceled;
     case 3:
       return OrderState.Committed;
+    case 4:
+      return OrderState.PaymentChosen;
+    case 5:
+      return OrderState.Unpaid;
+    case 6:
+      return OrderState.Paid;
     default:
       throw new Error(`Invalid order state: ${num}`);
   }

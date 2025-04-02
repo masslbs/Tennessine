@@ -4,11 +4,12 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
+import { toHex } from "viem";
 
 import { assert, logger } from "@massmarket/utils";
 import { Order } from "@massmarket/schema";
 
-import { CheckoutStep, OrderId, OrderState } from "../../types.ts";
+import { CheckoutStep, OrderState } from "../../types.ts";
 import Cart from "./Cart.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import ShippingDetails from "./ShippingDetails.tsx";
@@ -61,13 +62,14 @@ export default function CheckoutFlow() {
   }, [isRunning, countdown]);
 
   useEffect(() => {
+    if (!currentOrder) return;
     function txHashDetected(o: Map<string, unknown>) {
-      const order = new Order(o);
+      const order = Order.fromCBOR(o);
       if (order.TxDetails) {
         const tx = order.TxDetails.TxHash;
-        const bh = order.TxDetails.blockHash;
-        tx && setTxHash(tx);
-        bh && setBlockHash(bh);
+        const bh = order.TxDetails.BlockHash;
+        tx && setTxHash(toHex(tx));
+        bh && setBlockHash(toHex(bh));
         debug(`Hash received: ${tx ?? bh}`);
         setStep(CheckoutStep.confirmation);
       }
@@ -80,7 +82,7 @@ export default function CheckoutFlow() {
         ["Orders", currentOrder!.ID],
       );
     };
-  }, [currentOrder]);
+  }, [currentOrder != null]);
 
   function setStep(step: CheckoutStep) {
     navigate({
@@ -96,18 +98,18 @@ export default function CheckoutFlow() {
     setIsRunning(true);
   }
 
-  async function onCheckout(orderId: OrderId) {
-    if (!orderId) {
+  async function onCheckout() {
+    if (!currentOrder) {
       throw new Error("No orderId");
     }
     try {
       // Commit the order if it is not already committed
-      if (currentOrder!.State !== OrderState.Committed) {
+      if (currentOrder.State !== OrderState.Committed) {
         await stateManager.set(
-          ["Orders", orderId, "State"],
+          ["Orders", currentOrder.ID, "State"],
           OrderState.Committed,
         );
-        debug(`Order ID: ${orderId} committed`);
+        debug(`Order ID: ${currentOrder.ID} committed`);
       }
       setStep(CheckoutStep.shippingDetails);
     } catch (error: unknown) {

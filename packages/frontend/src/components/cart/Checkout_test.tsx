@@ -1,21 +1,21 @@
 import "../../happyDomSetup.ts";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
-
 import { expect } from "@std/expect";
+import { fromHex } from "viem";
 
-import { addresses } from "@massmarket/contracts";
-import { random256BigInt } from "@massmarket/utils";
+// import { addresses } from "@massmarket/contracts";
+import { random256BigInt, randUint64 } from "@massmarket/utils";
+import { allListings } from "@massmarket/schema/testFixtures";
 import {
-  metadata,
-  metadata2,
-  payees,
-  shippingDetails,
-  shippingRegions,
-} from "@massmarket/schema/testFixtures";
+  ChainAddress,
+  Manifest,
+  Order,
+  OrderedItem,
+  OrderState,
+} from "@massmarket/schema";
 
-import { ListingViewState, TAddressDetails } from "../../types.ts";
-import { createRouterWrapper } from "../../testutils/mod.tsx";
+import { createRouterWrapper, testClient } from "../../testutils/mod.tsx";
 import CheckoutFlow from "./CheckoutFlow.tsx";
 
 Deno.test("Check that we can render the checkout screen", {
@@ -23,39 +23,83 @@ Deno.test("Check that we can render the checkout screen", {
   sanitizeOps: false,
 }, async (t) => {
   const user = userEvent.setup();
+  const shopId = random256BigInt();
 
-  const { wrapper, csm } = await createRouterWrapper(
-    null,
-    "/checkout?step=cart",
-  );
-  await csm.stateManager!.manifest.create(
-    {
-      acceptedCurrencies: [{
-        chainId: 31337,
-        address: addresses.zeroAddress,
-      }],
-      pricingCurrency: { chainId: 31337, address: addresses.zeroAddress },
-      payees,
-      shippingRegions,
-    },
-    random256BigInt(),
-  );
-  const item1 = await csm.stateManager!.listings.create({
-    price: "12.00",
-    metadata,
-    viewState: ListingViewState.Published,
+  // Set up merchant first
+  const {
+    stateManager: merchantStateManager,
+    relayClient: merchantRelayClient,
+  } = await createRouterWrapper({
+    shopId,
+    createShop: true,
+    enrollMerchant: true,
   });
-  const item2 = await csm.stateManager!.listings.create({
-    price: "1.00",
-    metadata: metadata2,
-    viewState: ListingViewState.Published,
+  merchantStateManager.addConnection(merchantRelayClient);
+
+  // wait for manifest to sync
+  await waitFor(async () => {
+    const manifest = await merchantStateManager.get(["Manifest"]);
+    expect(manifest).toBeDefined();
+    const manifestObj = Manifest.fromCBOR(manifest as Map<string, unknown>);
+    // console.log({manifestObj})
+    expect(manifestObj.ShopID).toBe(shopId);
+    // expect(manifestObj.AcceptedCurrencies.size).toBe(1);
   });
-  // Create order and add item to it
-  const order = await csm.stateManager!.orders.create();
-  await csm.stateManager!.orders.addItems(order.id, [{
-    listingId: item1.id,
-    quantity: 2,
-  }, { listingId: item2.id, quantity: 5 }]);
+
+  // Add manifest data
+  // const testCurrency = new ChainAddress(31337, new Uint8Array(20))
+  // await merchantStateManager.set(["Manifest", "AcceptedCurrencies", testCurrency.ChainID, testCurrency.Address],
+  //   // @ts-ignore TODO: add BaseClass to CodecValue
+  //   true
+  // );
+  // await merchantStateManager.set(["Manifest", "PricingCurrency"],
+  //   // @ts-ignore TODO: add BaseClass to CodecValue
+  //   testCurrency
+  // );
+
+  // Create listings
+  for (const [listingID, listing] of allListings.entries()) {
+    // @ts-ignore TODO: add BaseClass to CodecValue
+    await merchantStateManager.set(["Listings", listingID], listing);
+    await merchantStateManager.set(["Inventory", listingID], 100);
+  }
+
+  // Remove merchant's keycard to free up for customer
+  localStorage.removeItem(`keycard${shopId}`);
+
+  console.log("merchant setup done. bringing up customer wrapper.");
+
+  // Set up customer
+  const { wrapper, stateManager, relayClient, testAccount } =
+    await createRouterWrapper({
+      shopId,
+      path: "/checkout?step=cart",
+    });
+
+  await relayClient.enrollKeycard(testClient, testAccount, true);
+  stateManager.addConnection(relayClient);
+
+  // Wait for listings to sync
+  await waitFor(async () => {
+    const storedListings = await stateManager.get(["Listings"]) as Map<
+      number,
+      unknown
+    >;
+    expect(storedListings.size).toBe(allListings.size);
+  });
+
+  // Create order and add items
+  const orderId = randUint64();
+  const order = new Order(
+    orderId,
+    [
+      new OrderedItem(23, 2), // 2 of item 23
+      new OrderedItem(42, 5), // 5 of item 42
+    ],
+    OrderState.Open,
+  );
+  // @ts-ignore TODO: add BaseClass to CodecValue
+  await stateManager.set(["Orders", orderId], order);
 
   const { unmount } = render(<CheckoutFlow />, { wrapper });
   screen.debug();
@@ -111,7 +155,8 @@ Deno.test("Check that we can render the checkout screen", {
       expect(choosePayment).toBeTruthy();
     });
     // Verify order details were saved correctly
-    const o = (await csm.stateManager!.orders.get(order.id))!;
+    const updatedOrderData = await stateManager.get(["Orders", orderId]);
+    const o = Order.fromCBOR(updatedOrderData);
     expect(o.shippingDetails).toBeDefined();
     const {
       name,
