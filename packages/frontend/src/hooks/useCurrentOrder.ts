@@ -55,7 +55,6 @@ export function useCurrentOrder() {
     const allOrders = await stateManager!.get(["Orders"]);
     const openOrders: Order[] = [];
     const committedOrders: Order[] = [];
-
     if (!allOrders || !(allOrders instanceof Map)) {
       return null;
     }

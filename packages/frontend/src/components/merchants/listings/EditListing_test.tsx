@@ -2,7 +2,7 @@ import "../../../happyDomSetup.ts";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "@std/expect";
-
+import { parseEther } from "viem";
 import { Listing } from "@massmarket/schema";
 import { random256BigInt } from "@massmarket/utils";
 
@@ -36,7 +36,7 @@ Deno.test("Edit Listing", {
       await user.type(descInput, "product 1 description");
       const priceInput = screen.getByTestId("price");
       await user.type(priceInput, "555");
-      const stockInput = screen.getByTestId("units");
+      const stockInput = screen.getByTestId("stock");
       await user.type(stockInput, "123");
 
       // Simulate file upload
@@ -97,7 +97,7 @@ Deno.test("Edit Listing", {
       // const { metadata: { title, description, images } } = item;
       expect(l.Metadata.Title).toBe("product 1");
       expect(l.Metadata.Description).toBe("product 1 description");
-      expect(l.Price).toEqual(555);
+      expect(l.Price).toEqual(parseEther("555"));
       const inventory = await stateManager.get(["Inventory", listingID]);
       expect(inventory).toBe(123);
       expect(l.Metadata.Images?.length).toEqual(1);
@@ -132,7 +132,7 @@ Deno.test("Edit Listing", {
       expect(titleInput.value).toBe("product 1");
       const descInput = screen.getByTestId("description") as HTMLInputElement;
       expect(descInput.value).toBe("product 1 description");
-      const quantityInput = screen.getByTestId("units") as HTMLInputElement;
+      const quantityInput = screen.getByTestId("stock") as HTMLInputElement;
       expect(quantityInput.value).toBe("123");
       const publishCheckbox = screen.getByRole("checkbox", {
         name: /Publish product/i,
@@ -142,7 +142,7 @@ Deno.test("Edit Listing", {
 
     // Update the inputs
     await act(async () => {
-      const stockInput = screen.getByTestId("units");
+      const stockInput = screen.getByTestId("stock");
       await user.clear(stockInput);
       await user.type(stockInput, "321");
       const titleInput = screen.getByTestId("title");

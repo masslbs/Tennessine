@@ -23,7 +23,6 @@ export default function OrderDetails() {
   const [etherScanLink, setLink] = useState<string | null>(null);
   const [date, setDate] = useState("N/A");
   const [order, setOrder] = useState<Order>(new Order());
-
   useEffect(() => {
     if (!orderId) return;
     stateManager.get(["Orders", orderId]).then(
@@ -31,8 +30,8 @@ export default function OrderDetails() {
         const o = Order.fromCBOR(res);
         getAllCartItemDetails(o).then((cartItems) => {
           setCartMap(cartItems);
+          setOrder(o);
         });
-        setOrder(o);
       },
     );
   }, [orderId]);
@@ -81,21 +80,19 @@ export default function OrderDetails() {
     const ci = order.Items;
     const allCartItems = new Map<ListingId, Listing>();
     await Promise.all(
-      ci.map((orderItem: OrderedItem) => {
+      ci.map(async (orderItem: OrderedItem) => {
         const updatedQtyMap = new Map(selectedQty);
         updatedQtyMap.set(orderItem.ListingID, orderItem.Quantity);
         setSelectedQty(updatedQtyMap);
         // If the selected quantity is 0, don't add the item to cart items map
         if (orderItem.Quantity === 0) return;
         // Get price and metadata for all the selected items in the order.
-        return stateManager.get([
+        const listing = await stateManager.get([
           "Listings",
           orderItem.ListingID,
-        ])
-          .then((l: Map<string, unknown>) => {
-            const listing = Listing.fromCBOR(l);
-            allCartItems.set(orderItem.ListingID, listing);
-          });
+        ]);
+        const l = Listing.fromCBOR(listing);
+        allCartItems.set(orderItem.ListingID, l);
       }),
     );
     return allCartItems;
@@ -106,15 +103,15 @@ export default function OrderDetails() {
     const values: Listing[] = Array.from(cartItemsMap.values());
     return values.map((listing: Listing) => {
       return (
-        <div key={listing.id} className="flex gap-4" data-testid="order-item">
+        <div key={listing.ID} className="flex gap-4" data-testid="order-item">
           <img
-            src={listing.metadata.images[0] || "/assets/no-image.png"}
+            src={listing.Metadata.Images?.[0] || "/assets/no-image.png"}
             width={48}
             height={48}
             alt="product-thumb"
             className="w-12 h-12 object-cover object-center rounded-lg"
           />
-          <h3 data-testid="item-title">{listing.metadata.title}</h3>
+          <h3 data-testid="item-title">{listing.Metadata.Title}</h3>
         </div>
       );
     });
@@ -137,7 +134,7 @@ export default function OrderDetails() {
         <h2>Order items</h2>
         {renderItems()}
       </section>
-      {order.shippingDetails
+      {order.ShippingAddress
         ? (
           <section
             className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg"
@@ -146,24 +143,24 @@ export default function OrderDetails() {
             <h2>Shipping Details</h2>
             <div className="flex gap-2">
               <h3>Name</h3>
-              <p>{order.shippingDetails.name}</p>
+              <p>{order.ShippingAddress.Name}</p>
             </div>
             <div className="flex gap-2">
               <h3>Address</h3>
               <div>
-                <p>{order.shippingDetails.address1}</p>
-                <p>{order.shippingDetails.city}</p>
-                <p>{order.shippingDetails.country}</p>
-                <p>{order.shippingDetails.postalCode}</p>
+                <p>{order.ShippingAddress.Address1}</p>
+                <p>{order.ShippingAddress.City}</p>
+                <p>{order.ShippingAddress.Country}</p>
+                <p>{order.ShippingAddress.PostalCode}</p>
               </div>
             </div>
             <div className="flex gap-2">
               <h3>Email</h3>
-              <p>{order.shippingDetails.emailAddress}</p>
+              <p>{order.ShippingAddress.EmailAddress}</p>
             </div>
             <div className="flex gap-2">
               <h3>Phone</h3>
-              <p>{order.shippingDetails.phoneNumber}</p>
+              <p>{order.ShippingAddress.PhoneNumber}</p>
             </div>
           </section>
         )

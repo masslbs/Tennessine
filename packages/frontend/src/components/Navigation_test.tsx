@@ -81,8 +81,12 @@ Deno.test("Check that we can render the navigation bar", {
       const cartItems = screen.getAllByTestId("cart-item");
       expect(cartItems.length).toBe(2);
       //check that the added quantity is displayed correctly
-      expect(cartItems[0].textContent).toEqual("test32Qty: 327360000ETH");
-      expect(cartItems[1].textContent).toEqual("test4224Qty: 2410080000ETH");
+      expect(cartItems[0].textContent).toEqual(
+        "test32Qty: 320.00000000000736ETH",
+      );
+      expect(cartItems[1].textContent).toEqual(
+        "test4224Qty: 240.00000000001008ETH",
+      );
     });
 
     await act(async () => {

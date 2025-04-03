@@ -30,6 +30,8 @@ import {
 import { ReadableStream, WritableStream } from "web-streams-polyfill";
 
 const debug = logger("relayClient");
+const errLog = logger("relayClient", "error");
+const warnLog = logger("relayClient", "warn");
 
 export interface IRelayEndpoint {
   url: URL; // the websocket URL to talk to
@@ -198,7 +200,7 @@ export class RelayClient {
     if (requestType === "response") {
       const isError = envelope.response?.error ? "error" : "okay";
       debug(`unbox[${reqId}] ${isError}`);
-    } else {
+    } else if (requestType === "subscriptionPushRequest") {
       debug(`unbox[${reqId}] ${requestType}`);
     }
 
@@ -216,10 +218,16 @@ export class RelayClient {
             .subscriptionPushRequest
             .subscriptionId!.toString();
           const controller = this.#subscriptions.get(subscriptionId);
-          assert(controller, "invalad subscription recv");
-
+          if (!controller) {
+            assert(controller, "invalid subscription recv");
+            return;
+          }
+          const sets = envelope.subscriptionPushRequest.sets;
+          debug(
+            `unbox[${reqId}] subscriptionPushRequest[${subscriptionId}]. SetCount: ${sets.length}`,
+          );
           try {
-            for (const ppset of envelope.subscriptionPushRequest.sets!) {
+            for (const ppset of sets) {
               const header = decode(ppset.header!);
               const sequence = typeof ppset!.shopSeqNo! === "number"
                 ? ppset!.shopSeqNo!
@@ -483,8 +491,17 @@ export class RelayClient {
       this.connection.addEventListener(
         "error",
         onError ? onError : (error: Event) => {
-          console.error("WebSocket error!");
-          console.error(error);
+          errLog("WebSocket error!", error);
+        },
+      );
+
+      this.connection.addEventListener(
+        "close",
+        (ev: CloseEvent) => {
+          warnLog("WebSocket closed", ev);
+          this.#isAuthenticated = false;
+          this.#authenticationPromise = this.#initialAuthPromise;
+          this.connection = null;
         },
       );
 
@@ -498,6 +515,7 @@ export class RelayClient {
         resolve(new Event("already open"));
       } else {
         this.connection!.addEventListener("open", (evt: Event) => {
+          debug("WebSocket opened");
           // TODO: unbox event to concrete values
           resolve(evt);
         });

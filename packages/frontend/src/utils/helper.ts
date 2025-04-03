@@ -3,6 +3,7 @@ import { formatUnits } from "viem";
 import { Order } from "@massmarket/schema";
 import StateManager from "@massmarket/stateManager";
 import { KeycardRole, OrderId, OrderState } from "../types.ts";
+import { randUint64 } from "../../../utils/mod.ts";
 
 export async function cancelAndCreateOrder(
   orderId: OrderId,
@@ -14,13 +15,17 @@ export async function cancelAndCreateOrder(
   >;
   // Cancel current order.
   await sm.set(
+    ["Orders", orderId, "CanceledAt"],
+    new Date(),
+  );
+  await sm.set(
     ["Orders", orderId, "State"],
     OrderState.Canceled,
   );
 
   // Create a new order and add the same items.
   const newOrder = new Order();
-  const newOrderId = 1;
+  const newOrderId = randUint64();
   newOrder.ID = newOrderId;
   newOrder.State = OrderState.Open;
   newOrder.Items = Order.fromCBOR(currentOrder).Items;
@@ -31,7 +36,7 @@ export async function cancelAndCreateOrder(
 }
 
 export function multiplyAndFormatUnits(
-  price: string,
+  price: bigint,
   quantity: number,
   decimals: number,
 ) {

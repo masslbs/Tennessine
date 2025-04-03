@@ -4,10 +4,10 @@ import { userEvent } from "@testing-library/user-event";
 import { expect } from "@std/expect";
 import { fromHex } from "viem";
 
-// import { addresses } from "@massmarket/contracts";
 import { random256BigInt, randUint64 } from "@massmarket/utils";
 import { allListings } from "@massmarket/schema/testFixtures";
 import {
+  AddressDetails,
   ChainAddress,
   Manifest,
   Order,
@@ -29,13 +29,14 @@ Deno.test("Check that we can render the checkout screen", {
   const {
     stateManager: merchantStateManager,
     relayClient: merchantRelayClient,
+    testAccount: testMerchantAccount,
   } = await createRouterWrapper({
     shopId,
     createShop: true,
     enrollMerchant: true,
   });
   merchantStateManager.addConnection(merchantRelayClient);
-
+  console.log("acting as merchant:", testMerchantAccount);
   // wait for manifest to sync
   await waitFor(async () => {
     const manifest = await merchantStateManager.get(["Manifest"]);
@@ -47,11 +48,33 @@ Deno.test("Check that we can render the checkout screen", {
   });
 
   // Add manifest data
-  // const testCurrency = new ChainAddress(31337, new Uint8Array(20))
+  const testCurrency = new ChainAddress(31337, new Uint8Array(20));
+
+  // TODO: allow for setting the whole accepted currencies map at once
   // await merchantStateManager.set(["Manifest", "AcceptedCurrencies", testCurrency.ChainID, testCurrency.Address],
   //   // @ts-ignore TODO: add BaseClass to CodecValue
-  //   true
+  //   new Map<number, Map<string, boolean>>([
+  //     [testCurrency.ChainID, new Map([[testCurrency.Address, true]])],
+  //   ])
   // );
+
+  // work around it by replacing the whole manifest instead
+  const currentManifestMap = await merchantStateManager.get(["Manifest"]);
+  const currentManifest = Manifest.fromCBOR(
+    currentManifestMap as Map<string, unknown>,
+  );
+  currentManifest.AcceptedCurrencies.addAddress(
+    testCurrency.ChainID,
+    testCurrency.Address,
+    false,
+  );
+  currentManifest.Payees.addAddress(
+    testCurrency.ChainID,
+    fromHex(testMerchantAccount, { size: 20, to: "bytes" }),
+    false,
+  );
+  await merchantStateManager.set(["Manifest"], currentManifest);
+
   // await merchantStateManager.set(["Manifest", "PricingCurrency"],
   //   // @ts-ignore TODO: add BaseClass to CodecValue
   //   testCurrency
@@ -75,8 +98,10 @@ Deno.test("Check that we can render the checkout screen", {
       shopId,
       path: "/checkout?step=cart",
     });
-
+  console.log("acting as customer:", testAccount);
   await relayClient.enrollKeycard(testClient, testAccount, true);
+  await relayClient.connect();
+  await relayClient.authenticate();
   stateManager.addConnection(relayClient);
 
   // Wait for listings to sync
@@ -102,17 +127,19 @@ Deno.test("Check that we can render the checkout screen", {
   await stateManager.set(["Orders", orderId], order);
 
   const { unmount } = render(<CheckoutFlow />, { wrapper });
-  screen.debug();
   screen.getByTestId("checkout-screen");
 
+  const wantTotalPrice = "0.00000000000256";
   await t.step("Cart contains correct items", async () => {
     screen.getByTestId("cart");
     await waitFor(() => {
       const items = screen.getAllByTestId("cart-item") as HTMLElement[];
       expect(items).toHaveLength(2);
-      expect(items[0].textContent).toContain(metadata.title);
-      expect(items[1].textContent).toContain(metadata2.title);
-      expect(screen.getByTestId("total-price").textContent).toBe("29");
+      expect(items[0].textContent).toContain("test2Qty: 20.00000000000046ETH");
+      expect(items[1].textContent).toContain("test425Qty: 50.0000000000021ETH");
+      expect(screen.getByTestId("total-price").textContent).toBe(
+        wantTotalPrice,
+      );
     });
     await act(async () => {
       const checkoutButton = screen.getByTestId("checkout-button");
@@ -127,19 +154,42 @@ Deno.test("Check that we can render the checkout screen", {
     });
   });
 
+  const testShippingDetails = new AddressDetails(
+    "John Doe",
+    "123 Main St",
+    "Anytown",
+    "12345",
+    "USA",
+    "john.doe@example.com",
+    undefined, // Address 2 not used yet
+    "+1234567890",
+  );
+
   await t.step("Input shipping details", async () => {
     // Fill in all shipping details fields
     await act(async () => {
-      await user.type(screen.getByTestId("name"), shippingDetails.name);
-      await user.type(screen.getByTestId("address"), shippingDetails.address1);
-      await user.type(screen.getByTestId("city"), shippingDetails.city);
-      await user.type(screen.getByTestId("zip"), shippingDetails.postalCode);
-      await user.type(screen.getByTestId("country"), shippingDetails.country);
+      await user.type(screen.getByTestId("name"), testShippingDetails.Name);
+      await user.type(
+        screen.getByTestId("address"),
+        testShippingDetails.Address1,
+      );
+      await user.type(screen.getByTestId("city"), testShippingDetails.City);
+      await user.type(
+        screen.getByTestId("zip"),
+        testShippingDetails.PostalCode,
+      );
+      await user.type(
+        screen.getByTestId("country"),
+        testShippingDetails.Country,
+      );
       await user.type(
         screen.getByTestId("email"),
-        shippingDetails.emailAddress,
+        testShippingDetails.EmailAddress,
       );
-      await user.type(screen.getByTestId("phone"), shippingDetails.phoneNumber);
+      await user.type(
+        screen.getByTestId("phone"),
+        testShippingDetails.PhoneNumber!,
+      );
     });
 
     await act(async () => {
@@ -154,27 +204,14 @@ Deno.test("Check that we can render the checkout screen", {
       const choosePayment = screen.getByTestId("choose-payment");
       expect(choosePayment).toBeTruthy();
     });
+
     // Verify order details were saved correctly
     const updatedOrderData = await stateManager.get(["Orders", orderId]);
-    const o = Order.fromCBOR(updatedOrderData);
-    expect(o.shippingDetails).toBeDefined();
-    const {
-      name,
-      address1,
-      city,
-      postalCode,
-      country,
-      phoneNumber,
-      emailAddress,
-    } = o.shippingDetails as TAddressDetails;
+    const o = Order.fromCBOR(updatedOrderData as Map<string, unknown>);
+    expect(o.InvoiceAddress).toBeDefined();
+    expect(o.ShippingAddress).toBeUndefined();
 
-    expect(name).toBe(shippingDetails.name);
-    expect(address1).toBe(shippingDetails.address1);
-    expect(city).toBe(shippingDetails.city);
-    expect(postalCode).toBe(shippingDetails.postalCode);
-    expect(country).toBe(shippingDetails.country);
-    expect(emailAddress).toBe(shippingDetails.emailAddress);
-    expect(phoneNumber).toBe(shippingDetails.phoneNumber);
+    expect(o.InvoiceAddress).toEqual(testShippingDetails);
   });
 
   await t.step("Choose payment", async () => {
@@ -189,12 +226,71 @@ Deno.test("Check that we can render the checkout screen", {
       await user.click(dropdown);
     });
     await act(async () => {
-      const dropdownOptions = screen.getByTestId("dropdown-options");
+      const dropdownOptions = screen.getByTestId("chains-dropdown-select");
       expect(dropdownOptions).toBeTruthy();
+      const selectElement = dropdownOptions.querySelector("select");
+      expect(selectElement).toBeTruthy();
       // // click on the ETH/Hardhat option
-      const option = screen.getByTestId("ETH/Hardhat");
-      expect(option).toBeTruthy();
-      await user.click(option);
+      await user.selectOptions(
+        selectElement as HTMLSelectElement,
+        "ETH/Hardhat",
+      );
+    });
+    await waitFor(() => {
+      const paymentDetailsLoading = screen.getByTestId(
+        "payment-details-loading",
+      );
+      expect(paymentDetailsLoading).toBeTruthy();
+      expect(paymentDetailsLoading.classList.contains("hidden")).toBe(true);
+    });
+  });
+
+  await t.step("Connect wallet and initiate payment", async () => {
+    await act(async () => {
+      const connectWalletButton = screen.getByTestId(
+        "rainbowkit-connect-wallet",
+      );
+      expect(connectWalletButton).toBeTruthy();
+      await user.click(connectWalletButton);
+    });
+
+    let payButton: HTMLElement | null = null;
+    await waitFor(() => {
+      // Wait for the Pay button to appear after wallet connection
+      payButton = screen.getByRole("button", {
+        name: /Pay/i,
+      });
+      expect(payButton).toBeTruthy();
+    });
+
+    await act(async () => {
+      expect(payButton).toBeTruthy();
+      await user.click(payButton!);
+    });
+
+    // Wait for the transaction processing message to appear
+    await waitFor(() => {
+      const waitingMessage = screen.getByText("Waiting for transaction...");
+      expect(waitingMessage).toBeTruthy();
+      expect(waitingMessage.tagName.toLowerCase()).toBe("h6");
+    });
+  });
+
+  await t.step("Wait for payment to be confirmed", async () => {
+    await waitFor(() => {
+      // Check for payment confirmation screen
+      const successMessage = screen.getByText("Payment Successful");
+      expect(successMessage).toBeTruthy();
+
+      // Verify the transaction hash is displayed
+      const txHashInput = screen.getByTestId("tx-hash-input");
+      expect(txHashInput).toBeTruthy();
+      expect(txHashInput.value).toContain("0x");
+
+      // Verify USDC amount is displayed
+      const amountElement = screen.getByTestId("displayed-amount");
+      expect(amountElement).toBeTruthy();
+      expect(amountElement.textContent).toContain(wantTotalPrice);
     });
   });
 

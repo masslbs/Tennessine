@@ -116,7 +116,7 @@ Deno.test(
         await writeAndReadPatch(
           {
             Op: "add",
-            Path: ["Manifest", "ShippingRegions", "default"],
+            Path: ["Manifest", "ShippingRegions", "germany"],
             Value: new Map([
               ["City", ""],
               ["Country", "DE"],
