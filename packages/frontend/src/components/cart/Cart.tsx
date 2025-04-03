@@ -190,7 +190,7 @@ export default function Cart({
     values.forEach((item: Listing) => {
       const qty = selectedQty.get(item.ID) || 0;
       // if (!qty) throw new Error(`Quantity for ${item.ID} not found`);
-      total += item.Price * BigInt(qty);
+      total += BigInt(item.Price) * BigInt(qty);
     });
     return formatUnits(total, baseToken.decimals);
   }

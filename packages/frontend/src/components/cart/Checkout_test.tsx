@@ -135,9 +135,11 @@ Deno.test("Check that we can render the checkout screen", {
     await waitFor(() => {
       const items = screen.getAllByTestId("cart-item") as HTMLElement[];
       expect(items).toHaveLength(2);
-      expect(items[0].textContent).toContain("test2Qty: 2460000ETH");
-      expect(items[1].textContent).toContain("test425Qty: 52100000ETH");
-      expect(screen.getByTestId("total-price").textContent).toBe("2560000");
+      expect(items[0].textContent).toContain("test2Qty: 20.00000000000046ETH");
+      expect(items[1].textContent).toContain("test425Qty: 50.0000000000021ETH");
+      expect(screen.getByTestId("total-price").textContent).toBe(
+        "0.00000000000256",
+      );
     });
     await act(async () => {
       const checkoutButton = screen.getByTestId("checkout-button");

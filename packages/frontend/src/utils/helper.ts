@@ -35,7 +35,7 @@ export function multiplyAndFormatUnits(
   quantity: number,
   decimals: number,
 ) {
-  return formatUnits(price * BigInt(quantity), decimals);
+  return formatUnits(BigInt(price) * BigInt(quantity), decimals);
 }
 
 export function removeCachedKeycards() {
