@@ -31,11 +31,11 @@ export async function cancelAndCreateOrder(
 }
 
 export function multiplyAndFormatUnits(
-  price: string,
+  price: bigint,
   quantity: number,
   decimals: number,
 ) {
-  return formatUnits(BigInt(price) * BigInt(quantity), decimals);
+  return formatUnits(price * BigInt(quantity), decimals);
 }
 
 export function removeCachedKeycards() {

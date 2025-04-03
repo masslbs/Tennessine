@@ -4,6 +4,7 @@ import {
   Address,
   type ContractFunctionArgs,
   createPublicClient,
+  formatUnits,
   fromHex,
   http,
   pad,
@@ -149,7 +150,7 @@ export default function ChoosePayment({
         transport: http(defaultRPC),
       });
 
-      const [symbol, _decimal] = await getTokenInformation(
+      const [symbol, chosenCurrencyDecimals] = await getTokenInformation(
         paymentRPC,
         toHex(currency.Address, { size: 20 }),
       );
@@ -193,7 +194,9 @@ export default function ChoosePayment({
       setPaymentAddress(paymentAddr);
       debug(`payment address: ${paymentAddr}`);
       setSrc(payLink);
-      const displayedAmount = `${details.Total} ${symbol}`;
+      const displayedAmount = `${
+        formatUnits(details.Total, chosenCurrencyDecimals)
+      } ${symbol}`;
       if (symbol === "ETH") {
         setIcon("/icons/eth-coin.svg");
       } else {

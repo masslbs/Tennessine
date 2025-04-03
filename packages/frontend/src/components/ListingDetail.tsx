@@ -4,6 +4,7 @@
 
 import { ChangeEvent, useEffect, useState } from "react";
 import { Link, useSearch } from "@tanstack/react-router";
+import { formatUnits } from "viem";
 
 import { logger, randUint64 } from "@massmarket/utils";
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
@@ -204,7 +205,9 @@ export default function ListingDetail() {
                 height={24}
                 className="w-6 h-6 max-h-6"
               />
-              <h1 data-testid="price">{listing.Price}</h1>
+              <h1 data-testid="price">
+                {formatUnits(listing.Price, baseToken.decimals)}
+              </h1>
             </div>
             <div
               className={keycard.role === "merchant" ? "hidden" : "flex gap-2"}
