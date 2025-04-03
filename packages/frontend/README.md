@@ -19,13 +19,13 @@ After entering nix shell,
 To run all tests:
 
 ```
-deno test --allow-net --allow-env --no-check
+deno test -A
 ```
 
 To run a single test:
 
 ```
-deno test src/hooks/useClientWithStateManager_test.tsx --allow-net --allow-env --no-check
+deno test src/hooks/useRelayEndpoint_test.ts -A
 ```
 
 ## Custom Hooks
@@ -45,27 +45,11 @@ can be found in the [`routes`](src/routes) directory.
 [`routeTree.gen.ts`](src/routeTree.gen.ts) is automatically updated when routes
 are added/removed.
 
-## ClientWithStateManager class
-
-A module that interacts with the state manager and relay client. It has methods
-to initialize the state manager/db, connect to the relay, and send
-authentication/subscription requests. It is initialized in the hook
-[`useClientWithStateManager`](src/hooks/useClientWithStateManager.ts). It
-encloses all the necessary logic for interacting with the state manager and
-relay client.
-
 ## MassMarketContext
 
 Preserves certain states across the app. These states and state setters are
 accessible anywhere in the app. For example, since we need the same instance of
 ClientWithStateManager across the app, we store it in the context.
-
-## Interacting with the State Manager
-
-Based on user actions, the frontend calls methods on the various shop object
-managers (i.e. ListingManager, TagManager, etc.) to send shop events to the
-relay when creating/updating data. The state manager then consumes the events
-from the relay and updates the data in the db.
 
 ## Event Listeners
 
