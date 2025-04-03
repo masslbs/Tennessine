@@ -54,11 +54,11 @@ export default function Pay({
 
   useEffect(() => {
     function txHashDetected(o: Map<string, unknown>) {
-      const order = new Order(o);
+      const order = Order.fromCBOR(o);
       if (order.TxDetails) {
-        setTxHash(order.TxDetails?.txHash ?? order.TxDetails?.blockHash);
+        setTxHash(order.TxDetails?.TxHash ?? order.TxDetails?.BlockHash);
         addRecentTransaction({
-          hash: order.TxDetails?.txHash ?? order.TxDetails?.blockHash,
+          hash: order.TxDetails?.TxHash ?? order.TxDetails?.BlockHash,
           description: "Order Payment",
           // confirmations: 3,
         });
@@ -77,10 +77,7 @@ export default function Pay({
 
   async function sendPayment() {
     try {
-      setLoading(true);
-      if (
-        paymentArgs[0].currency !== zeroAddress
-      ) {
+      if (paymentArgs[0].currency !== zeroAddress) {
         debug("Pending ERC20 contract call approval");
         const allowance = await getAllowance(shopPublicClient!, [
           paymentArgs[0].payeeAddress,
@@ -110,7 +107,7 @@ export default function Pay({
           debug("ERC20 contract call approved");
         }
       }
-      await simulateContract(config, {
+      const res = await simulateContract(config, {
         abi: paymentsByAddressAbi,
         address: paymentsByAddressAddress,
         functionName: "pay",
@@ -119,7 +116,10 @@ export default function Pay({
           { value: paymentArgs[0].amount }),
         connector,
       });
-      await pay(wallet!, paymentArgs!);
+      console.log({ res });
+      const tx = await pay(wallet!, wallet!.account, paymentArgs);
+      console.log({ tx });
+      setLoading(true);
     } catch (error) {
       assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Error sending payment", error);

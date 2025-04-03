@@ -198,7 +198,7 @@ export class RelayClient {
     if (requestType === "response") {
       const isError = envelope.response?.error ? "error" : "okay";
       debug(`unbox[${reqId}] ${isError}`);
-    } else {
+    } else if (requestType === "subscriptionPushRequest") {
       debug(`unbox[${reqId}] ${requestType}`);
     }
 
@@ -216,10 +216,16 @@ export class RelayClient {
             .subscriptionPushRequest
             .subscriptionId!.toString();
           const controller = this.#subscriptions.get(subscriptionId);
-          assert(controller, "invalad subscription recv");
-
+          if (!controller) {
+            assert(controller, "invalid subscription recv");
+            return;
+          }
+          const sets = envelope.subscriptionPushRequest.sets;
+          debug(
+            `unbox[${reqId}] subscriptionPushRequest[${subscriptionId}]. SetCount: ${sets.length}`,
+          );
           try {
-            for (const ppset of envelope.subscriptionPushRequest.sets!) {
+            for (const ppset of sets) {
               const header = decode(ppset.header!);
               const sequence = typeof ppset!.shopSeqNo! === "number"
                 ? ppset!.shopSeqNo!
@@ -481,10 +487,27 @@ export class RelayClient {
       this.#authenticationPromise = this.#initialAuthPromise; // Use the initial promise instance
 
       this.connection.addEventListener(
+        "open",
+        () => {
+          console.log("WebSocket opened");
+        },
+      );
+
+      this.connection.addEventListener(
         "error",
         onError ? onError : (error: Event) => {
           console.error("WebSocket error!");
           console.error(error);
+        },
+      );
+
+      this.connection.addEventListener(
+        "close",
+        onError ? onError : (ev: CloseEvent) => {
+          console.warn("WebSocket closed");
+          console.warn(ev);
+          this.#isAuthenticated = false;
+          this.#authenticationPromise = this.#initialAuthPromise;
         },
       );
 

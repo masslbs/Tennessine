@@ -69,7 +69,7 @@ export default function EditProduct() {
     assert(stateManager, "State manager is required");
     // @ts-ignore TODO: add BaseClass to CodecValue
     await stateManager.set(["Listings", newListing.ID], newListing);
-    await stateManager.increment(["Inventory", newListing.ID], units);
+    await stateManager.set(["Inventory", newListing.ID], units);
   }
 
   async function update(newListing: Listing) {

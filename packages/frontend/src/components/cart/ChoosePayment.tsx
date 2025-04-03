@@ -4,6 +4,7 @@ import {
   Address,
   type ContractFunctionArgs,
   createPublicClient,
+  fromHex,
   http,
   pad,
   toHex,
@@ -90,6 +91,7 @@ export default function ChoosePayment({
 
   useEffect(() => {
     if (!stateManager) return;
+    if (!currentOrder) return;
     //Listen for client to send paymentDetails event.
     function onPaymentDetails(res: Map<string, unknown>) {
       const order = Order.fromCBOR(res);
@@ -99,8 +101,8 @@ export default function ChoosePayment({
         setPaymentCurrencyLoading(false);
       });
     }
-    currentOrder!.ID &&
-      stateManager.events.on(onPaymentDetails, ["Orders", currentOrder!.ID]);
+
+    stateManager.events.on(onPaymentDetails, ["Orders", currentOrder!.ID]);
 
     return () => {
       // Cleanup listeners on unmount
@@ -114,52 +116,62 @@ export default function ChoosePayment({
   async function getPaymentArgs() {
     try {
       const oId = currentOrder!.ID;
-      const committedOrder = await stateManager.get(["Orders", oId]);
-      if (!committedOrder?.choosePayment) {
-        throw new Error("No chosen payment found");
+      const committedOrder = Order.fromCBOR(
+        await stateManager.get(["Orders", oId]) as Map<string, unknown>,
+      );
+      if (!committedOrder.ChosenPayee) {
+        throw new Error("No chosen payee found");
       }
-      if (!committedOrder?.paymentDetails) {
+      const payee = committedOrder.ChosenPayee;
+      if (!committedOrder.ChosenCurrency) {
+        throw new Error("No chosen currency found");
+      }
+      const currency = committedOrder.ChosenCurrency;
+      if (!committedOrder.PaymentDetails) {
         throw new Error("No payment details found");
       }
-      const { currency, payee } = committedOrder.choosePayment;
-      if (currency.chainId !== payee.chainId) {
+      const details = committedOrder.PaymentDetails;
+      if (currency.ChainID !== payee.Address.ChainID) {
         throw new Error("Currency and payee chainId mismatch");
       }
-      const { total, shopSignature, ttl, paymentId } =
-        committedOrder.paymentDetails;
       const chosenPaymentChain = chains.find(
-        (chain) => currency.chainId === chain.id,
+        (chain) => currency.ChainID === chain.id,
       );
       if (!chosenPaymentChain) {
         throw new Error("No chosen payment chain found");
       }
+
+      const paymentId = toHex(details.PaymentID, { size: 32 });
+
       //Create public client with correct chainId.
       const paymentRPC = createPublicClient({
         chain: chosenPaymentChain,
         transport: http(defaultRPC),
       });
 
-      const [symbol, decimal] = await getTokenInformation(
+      const [symbol, _decimal] = await getTokenInformation(
         paymentRPC,
-        currency.address,
+        toHex(currency.Address, { size: 20 }),
       );
       //FIXME: get orderHash from paymentDetails.
       const zeros32Bytes = pad(zeroAddress, { size: 32 });
       const arg = {
-        chainId: currency.chainId,
-        ttl: BigInt(ttl),
+        chainId: BigInt(currency.ChainID),
+        ttl: BigInt(details.TTL),
         order: zeros32Bytes,
-        currency: currency.address,
-        amount: BigInt(total),
-        payeeAddress: payee.address,
+        currency: toHex(currency.Address, { size: 20 }),
+        amount: BigInt(details.Total),
+        payeeAddress: toHex(payee.Address.Address, { size: 20 }),
         isPaymentEndpoint: false,
         shopId: shopId!,
-        shopSignature,
+        shopSignature: toHex(new Uint8Array(64)),
       };
+
+      console.log({ arg });
 
       const paymentAddr = await getPaymentAddress(paymentRPC, [
         arg,
-        payee.address,
+        toHex(payee.Address.Address, { size: 20 }),
       ]);
       if (!paymentAddr) {
         throw new Error("No payment address found");
@@ -172,15 +184,16 @@ export default function ChoosePayment({
         throw new Error("Payment ID mismatch");
       }
       setPaymentArgs([arg]);
-      const amount = BigInt(total);
+      const amount = BigInt(details.Total);
       debug(`amount: ${amount}`);
-      const payLink = currency.address === zeroAddress
+      const hexCurrency = toHex(currency.Address);
+      const payLink = hexCurrency === zeroAddress
         ? `ethereum:${paymentAddr}?value=${amount}`
-        : `ethereum:${currency.address}/transfer?address=${paymentAddr}&uint256=${amount}`;
+        : `ethereum:${hexCurrency}/transfer?address=${paymentAddr}&uint256=${amount}`;
       setPaymentAddress(paymentAddr);
       debug(`payment address: ${paymentAddr}`);
       setSrc(payLink);
-      const displayedAmount = `${total} ${symbol}`;
+      const displayedAmount = `${details.Total} ${symbol}`;
       if (symbol === "ETH") {
         setIcon("/icons/eth-coin.svg");
       } else {
@@ -207,13 +220,14 @@ export default function ChoosePayment({
         chain,
         transport: http(defaultRPC),
       });
-      for (const [address, val] of addresses.entries()) {
+      for (const [address, _val] of addresses.entries()) {
+        const hexAddr = toHex(address, { size: 20 });
         const res = await getTokenInformation(
           tokenPublicClient,
-          toHex(address),
+          hexAddr,
         );
         displayed.push({
-          address,
+          address: hexAddr,
           chainId: chain!.id,
           label: `${res[0]}/${chain!.name}`,
           value: `${address}/${chain!.id}`,
@@ -225,36 +239,47 @@ export default function ChoosePayment({
   }
 
   async function onSelectPaymentCurrency(selected: CurrencyChainOption) {
+    if (!selected.chainId || !selected.address) {
+      throw new Error("Invalid currency chain option");
+    }
+    if (!currentOrder) {
+      throw new Error("No current order found");
+    }
     try {
       setPaymentCurrencyLoading(true);
       //TODO: for now, just grab the first payee address in the map.
       const payeeAddresses = manifest.Payees.get(selected.chainId!);
-      if (payeeAddresses.size === 0) {
+      if (!payeeAddresses || payeeAddresses.size === 0) {
         throw new Error("No payee found in shop manifest");
       }
-      const payee = payeeAddresses.entries().next().value;
       const chosenCurrency = new ChainAddress(
         selected.chainId!,
-        selected.address!,
+        fromHex(selected.address as `0x${string}`, { size: 20, to: "bytes" }),
       );
 
+      const payee = payeeAddresses.entries().next().value;
+      if (!payee) {
+        throw new Error("No payee found in shop manifest");
+      }
       const chosenPayee = new Payee(
         new ChainAddress(selected.chainId, payee[0]),
         payee[1].CallAsContract,
       );
       await stateManager.set([
         "Orders",
-        currentOrder!.ID,
+        currentOrder.ID,
         "ChosenPayee",
+        // @ts-ignore TODO: add BaseClass to CodecValue
       ], chosenPayee);
-      await stateManager!.set([
+      await stateManager.set([
         "Orders",
-        currentOrder!.ID,
+        currentOrder.ID,
         "ChosenCurrency",
+        // @ts-ignore TODO: add BaseClass to CodecValue
       ], chosenCurrency);
       await stateManager.set([
         "Orders",
-        currentOrder!.ID,
+        currentOrder.ID,
         "State",
       ], OrderState.PaymentChosen);
       debug("chosen payment set");
@@ -325,6 +350,7 @@ export default function ChoosePayment({
             <label>Payment currency and chain</label>
             {displayedChains && (
               <Dropdown
+                label="chains-dropdown"
                 options={displayedChains}
                 callback={onSelectPaymentCurrency}
               />
