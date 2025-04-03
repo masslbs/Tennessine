@@ -353,6 +353,7 @@ export default function ChoosePayment({
                 label="chains-dropdown"
                 options={displayedChains}
                 callback={onSelectPaymentCurrency}
+                testId="chains-dropdown-select"
               />
             )}
           </div>
@@ -369,7 +370,10 @@ export default function ChoosePayment({
               <h1>{displayedAmount}</h1>
             </div>
           </div>
-          <div className={paymentCurrencyLoading ? "" : "hidden"}>
+          <div
+            data-testid="payment-details-loading"
+            className={paymentCurrencyLoading ? "" : "hidden"}
+          >
             <p>Getting payment details...</p>
           </div>
           <div

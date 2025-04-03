@@ -40,6 +40,7 @@ export default function Cart({
 
   useEffect(() => {
     if (!stateManager) return;
+    if (!currentOrder) return;
     function onOrderUpdate(order: Map<string, unknown>) {
       const o = Order.fromCBOR(order);
       getAllCartItemDetails(o).then((allCartItems) => {

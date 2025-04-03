@@ -55,7 +55,9 @@ export default function Pay({
   useEffect(() => {
     function txHashDetected(o: Map<string, unknown>) {
       const order = Order.fromCBOR(o);
+      debug("order updated", order);
       if (order.TxDetails) {
+        debug("txHashDetected", order.TxDetails);
         setTxHash(order.TxDetails?.TxHash ?? order.TxDetails?.BlockHash);
         addRecentTransaction({
           hash: order.TxDetails?.TxHash ?? order.TxDetails?.BlockHash,
@@ -143,6 +145,7 @@ export default function Pay({
           </Button>
           {txHash && (
             <a
+              data-testid="tx-hash-link"
               href={`${
                 paymentPublicClient!.chain.blockExplorers?.default?.url
               }/tx/${txHash}`}

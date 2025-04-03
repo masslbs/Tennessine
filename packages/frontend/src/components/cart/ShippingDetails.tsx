@@ -31,7 +31,7 @@ export default function ShippingDetails({
 }) {
   const { currentOrder } = useCurrentOrder();
   const { stateManager } = useStateManager();
-  const [shippingAddress, setShippingAddress] = useState<AddressDetails>(
+  const [invoiceAddress, setInvoiceAddress] = useState<AddressDetails>(
     new AddressDetails(),
   );
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
@@ -47,17 +47,17 @@ export default function ShippingDetails({
 
   function checkRequiredFields() {
     let warning: null | string = null;
-    if (!shippingAddress.Name.length) {
+    if (!invoiceAddress.Name.length) {
       warning = "Must include name";
-    } else if (!shippingAddress.Address1.length) {
+    } else if (!invoiceAddress.Address1.length) {
       warning = "Must include address";
-    } else if (!shippingAddress.Country.length) {
+    } else if (!invoiceAddress.Country.length) {
       warning = "Must include country";
-    } else if (!shippingAddress.PostalCode.length) {
+    } else if (!invoiceAddress.PostalCode.length) {
       warning = "Must include postal code";
-    } else if (!shippingAddress.City.length) {
+    } else if (!invoiceAddress.City.length) {
       warning = "Must include postal code";
-    } else if (!shippingAddress.EmailAddress.length) {
+    } else if (!invoiceAddress.EmailAddress.length) {
       warning = "Must include email";
     }
     return warning;
@@ -65,16 +65,17 @@ export default function ShippingDetails({
 
   function handleFormChange(field: keyof AddressDetails, value: string) {
     const newAddress = new AddressDetails(
-      shippingAddress.Name,
-      shippingAddress.Address1,
-      shippingAddress.City,
-      shippingAddress.PostalCode,
-      shippingAddress.Country,
-      shippingAddress.EmailAddress,
-      shippingAddress.PhoneNumber,
+      invoiceAddress.Name,
+      invoiceAddress.Address1,
+      invoiceAddress.City,
+      invoiceAddress.PostalCode,
+      invoiceAddress.Country,
+      invoiceAddress.EmailAddress,
+      undefined, // Address 2 not used yet
+      invoiceAddress.PhoneNumber,
     );
-    newAddress[field] = value;
-    setShippingAddress(newAddress);
+    Reflect.set(newAddress, field, value);
+    setInvoiceAddress(newAddress);
   }
 
   async function onSubmitForm() {
@@ -89,8 +90,9 @@ export default function ShippingDetails({
         throw new Error("No committed order ID found");
       }
       await stateManager.set(
-        ["Orders", currentOrder.ID, "ShippingAddress"],
-        shippingAddress,
+        ["Orders", currentOrder.ID, "InvoiceAddress"],
+        // @ts-ignore TODO: add BaseClass to CodecValue
+        invoiceAddress,
       );
       debug("Shipping details updated");
       setStep(CheckoutStep.paymentDetails);
