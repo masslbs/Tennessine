@@ -9,7 +9,7 @@ import {
 
 export class Listing extends BaseClass {
   ID: number;
-  Price: number;
+  Price: bigint;
   Metadata: ListingMetadata;
   ViewState: ListingViewState;
   Options?: Map<string, ListingOption>;
@@ -17,7 +17,7 @@ export class Listing extends BaseClass {
 
   constructor(
     id: number = 0,
-    price: number = 0,
+    price: bigint = BigInt(0),
     metadata?: ListingMetadata,
     viewState: ListingViewState = ListingViewState.Unspecified,
   ) {
@@ -30,7 +30,7 @@ export class Listing extends BaseClass {
 
   static fromCBOR(input: Map<string, unknown>): Listing {
     const id = ensureNumber(input.get("ID"), "ID");
-    const price = ensureNumber(input.get("Price"), "Price");
+    const price = input.get("Price")
 
     const metadata = input.get("Metadata");
     if (!(metadata instanceof Map)) {

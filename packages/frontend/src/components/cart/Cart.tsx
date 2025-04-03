@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useState } from "react";
+import { formatUnits } from "viem";
 
 import { assert, logger } from "@massmarket/utils";
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
@@ -12,6 +13,7 @@ import ErrorMessage from "../common/ErrorMessage.tsx";
 import { useBaseToken } from "../../hooks/useBaseToken.ts";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
+import { multiplyAndFormatUnits } from "../../utils/helper.ts";
 
 const namespace = "frontend:Cart";
 const debug = logger(namespace);
@@ -183,13 +185,13 @@ export default function Cart({
   function calculateTotal() {
     if (!baseToken || cartItemsMap.size === 0) return "0";
     const values: Listing[] = Array.from(cartItemsMap.values());
-    let total = 0;
+    let total = BigInt(0);
     values.forEach((item: Listing) => {
       const qty = selectedQty.get(item.ID) || 0;
       // if (!qty) throw new Error(`Quantity for ${item.ID} not found`);
-      total += item.Price * qty;
+      total += item.Price * BigInt(qty);
     });
-    return total;
+    return formatUnits(total, baseToken.decimals);
   }
 
   const icon = baseToken?.symbol === "ETH"
@@ -204,7 +206,7 @@ export default function Cart({
     return values.map((item: Listing) => {
       const qty = selectedQty.get(item.ID) || 0;
       // if (!qty) throw new Error(`Quantity for ${item.ID} not found`);
-      const price = item.Price * qty;
+      const price = multiplyAndFormatUnits(item.Price, qty, baseToken.decimals);
       let image = "/assets/no-image.png";
       if (item.Metadata.Images && item.Metadata.Images.length > 0) {
         image = item.Metadata.Images[0];
@@ -297,7 +299,9 @@ export default function Cart({
                   height={20}
                   className="w-5 h-5 max-h-5"
                 />
-                <p data-testid="price">{price}</p>
+                <p data-testid="price">
+                  {price}
+                </p>
                 <p data-testid="symbol">{baseToken?.symbol}</p>
               </div>
             </div>

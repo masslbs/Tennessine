@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { Link } from "@tanstack/react-router";
+import { formatUnits } from "viem";
 
 import { Listing } from "@massmarket/schema";
 
@@ -91,7 +92,7 @@ export default function MerchantViewProducts({
                   className="w-5 h-5"
                 />
                 <p data-testid={`product-price`}>
-                  {item.Price}
+                  {formatUnits(item.Price, baseToken.decimals)}
                 </p>
               </div>
             </div>

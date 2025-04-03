@@ -4,6 +4,7 @@
 
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
+import { formatUnits, parseUnits } from "viem";
 
 import { assert, logger, randUint64 } from "@massmarket/utils";
 import { Listing } from "@massmarket/schema";
@@ -16,6 +17,7 @@ import Button from "../../common/Button.tsx";
 import BackButton from "../../common/BackButton.tsx";
 import { useStateManager } from "../../../hooks/useStateManager.ts";
 import { useRelayClient } from "../../../hooks/useRelayClient.ts";
+import { useBaseToken } from "../../../hooks/useBaseToken.ts";
 
 const namespace = "frontend:edit-product";
 const errlog = logger(namespace, "error");
@@ -26,8 +28,10 @@ export default function EditProduct() {
   const search = useSearch({ strict: false });
   const { stateManager } = useStateManager();
   const { relayClient } = useRelayClient();
+  const { baseToken } = useBaseToken();
+
   const [listing, setListing] = useState<Listing>(new Listing());
-  const [units, setUnits] = useState<number>(0);
+  const [stock, setStock] = useState<number>(0);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [blobs, setBlobs] = useState<FormData[]>([]);
@@ -60,7 +64,7 @@ export default function EditProduct() {
     stateManager.get(["Inventory", itemId])
       .then((item: CodecValue | undefined) => {
         if (item) {
-          setUnits(Number(item));
+          setStock(Number(item));
         }
       });
   }, [stateManager, editView, itemId]);
@@ -69,7 +73,7 @@ export default function EditProduct() {
     assert(stateManager, "State manager is required");
     // @ts-ignore TODO: add BaseClass to CodecValue
     await stateManager.set(["Listings", newListing.ID], newListing);
-    await stateManager.set(["Inventory", newListing.ID], units);
+    await stateManager.set(["Inventory", newListing.ID], stock);
   }
 
   async function update(newListing: Listing) {
@@ -96,7 +100,7 @@ export default function EditProduct() {
       );
     }
 
-    await stateManager.set(["Inventory", newListing.ID], units);
+    await stateManager.set(["Inventory", newListing.ID], stock);
   }
 
   async function onPublish() {
@@ -109,8 +113,8 @@ export default function EditProduct() {
       setValidationError("Product must include price.");
     } else if (!newListing.Metadata.Images?.length) {
       setValidationError("Product must include image.");
-    } else if (!units) {
-      setValidationError("Update the number of units.");
+    } else if (!stock) {
+      setValidationError("Update the number of stock.");
     } else {
       try {
         setPublishing(true);
@@ -157,7 +161,7 @@ export default function EditProduct() {
     // We need to create a deep copy of the class and call setListing, or else react will not recognize it as a state change, and will not re-render the component.
     const newListing = Listing.fromCBOR(listing.asCBORMap());
     if (field === "Price") {
-      newListing.Price = Number(e.target.value);
+      newListing.Price = parseUnits(e.target.value, baseToken.decimals);
     } else if (field === "ViewState") {
       newListing.ViewState = e.target.checked
         ? ListingViewState.Published
@@ -173,11 +177,11 @@ export default function EditProduct() {
   }
 
   function handleStockChange(e: ChangeEvent<HTMLInputElement>) {
-    const units = e.target.value;
-    if (units && !Number(units)) {
-      setUnits(0);
+    const stock = e.target.value;
+    if (stock && !Number(stock)) {
+      setStock(0);
     } else {
-      setUnits(Number(e.target.value) || 0);
+      setStock(Number(e.target.value) || 0);
     }
   }
 
@@ -225,7 +229,6 @@ export default function EditProduct() {
     );
     setListing(listing);
   }
-
   return (
     <main
       className="pt-4 px-3 pt-under-nav md:flex justify-center"
@@ -347,7 +350,7 @@ export default function EditProduct() {
               >
                 <label htmlFor="price">price</label>
                 <input
-                  value={listing.Price}
+                  value={formatUnits(listing.Price, baseToken.decimals)}
                   className="border-2 border-solid mt-1 p-3 rounded-md bg-background-gray"
                   data-testid="price"
                   name="price"
@@ -360,12 +363,12 @@ export default function EditProduct() {
                   e.preventDefault();
                 }}
               >
-                <label htmlFor="units">units</label>
+                <label htmlFor="stock">stock</label>
                 <input
-                  value={units}
+                  value={stock}
                   className="border-2 border-solid mt-1 p-3 rounded-md bg-background-gray"
-                  data-testid="units"
-                  name="units"
+                  data-testid="stock"
+                  name="stock"
                   onChange={(e) => handleStockChange(e)}
                 />
               </form>
