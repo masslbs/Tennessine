@@ -34,6 +34,7 @@ Deno.test("useKeycard", {
     assertEquals(keycard.privateKey !== null, true);
     unmount();
   });
+
   await t.step("should use keycard saved in local storage", async () => {
     const shopId = random256BigInt();
 

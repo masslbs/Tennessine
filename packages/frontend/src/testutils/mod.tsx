@@ -129,11 +129,9 @@ export const createRouterWrapper = async ({
   relayClient?: RelayClient;
 } = {}) => {
   const config = createConfig({
-    chains: [hardhat, mainnet, sepolia],
+    chains: [hardhat], // testing only
     transports: {
       [hardhat.id]: http(),
-      [sepolia.id]: http(),
-      [mainnet.id]: http(),
     },
     connectors,
   });

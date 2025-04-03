@@ -4,7 +4,8 @@
 
 import { ChangeEvent, useEffect, useState } from "react";
 import { useChains, useWalletClient } from "wagmi";
-import { Address, toHex, zeroAddress } from "viem";
+import { hexToBytes, zeroAddress } from "viem";
+import { equal } from "@std/assert";
 
 import { setTokenURI } from "@massmarket/contracts";
 import { assert, logger } from "@massmarket/utils";
@@ -46,7 +47,7 @@ export default function ShopSettings() {
   const [pricingCurrency, setPricingCurrency] = useState<
     ChainAddress
   >(
-    new ChainAddress(new Map()),
+    new ChainAddress(),
   );
   const [error, setError] = useState<null | string>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -62,15 +63,15 @@ export default function ShopSettings() {
       chains.map((c) => {
         chainsToRender.push({
           label: `ETH/${c.name}`,
-          value: `${zeroAddress}/${c.id}`,
-          address: zeroAddress,
+          value: `ETH/${c.id}`,
+          address: hexToBytes(zeroAddress),
           chainId: c.id,
         });
         const eddAddress = getTokenAddress("EDD", c.id);
         chainsToRender.push({
           label: `EDD/${c.name}`,
-          value: `${eddAddress}/${c.id}`,
-          address: toHex(eddAddress),
+          value: `EDD/${c.id}`,
+          address: eddAddress,
           chainId: c.id,
         });
       });
@@ -84,7 +85,7 @@ export default function ShopSettings() {
       const m = new Manifest(res);
       setManifest(m);
       setAcceptedCurrencies(m.AcceptedCurrencies);
-      setPricingCurrency(m.PricingCurrency);
+      // setPricingCurrency(m.PricingCurrency);
     }
 
     stateManager.get(["Manifest"])
@@ -165,38 +166,44 @@ export default function ShopSettings() {
     }
   }
 
-  function handleAcceptedCurrencies(e: ChangeEvent<HTMLInputElement>) {
-    const [address, chainId] = e.target.value.split("/");
+  function handleAcceptedCurrencies(
+    e: ChangeEvent<HTMLInputElement>,
+    c: CurrencyChainOption,
+  ) {
     const copy = new AcceptedCurrencyMap(acceptedCurrencies.asCBORMap());
-    const addresses = copy.getAddressesByChainID(Number(chainId)) ?? new Map();
     if (e.target.checked) {
-      addresses.set(address, new Map([["IsContract", false]]));
-      copy.set(Number(chainId), addresses);
-      setAcceptedCurrencies(copy);
+      copy.addAddress(c.chainId, c.address, true);
     } else {
-      addresses.delete(address);
-      setAcceptedCurrencies(
-        copy,
-      );
+      copy.removeAddress(c.chainId, c.address);
     }
+    setAcceptedCurrencies(copy);
   }
 
   function handlePricingCurrency(option: CurrencyChainOption) {
-    const v = option.value as string;
-    const [addr, chainId] = v.split("/");
-    const address = addr as Address;
     const pc = new ChainAddress(
-      new Map([["ChainID", Number(chainId)], ["Address", address]]),
+      option.chainId,
+      option.address,
     );
     setPricingCurrency(pc);
   }
 
   function currencyIsSelected(c: CurrencyChainOption) {
-    const addresses = acceptedCurrencies.getAddressesByChainID(c.chainId);
-    if (addresses) {
-      return Boolean(addresses.get(c.address!.toLowerCase()));
-    }
-    return false;
+    const metadata = acceptedCurrencies.getAddressMetadata(
+      c.chainId,
+      c.address,
+    );
+    return Boolean(metadata);
+  }
+
+  function selectedPricingCurrency() {
+    return displayedChains.find((c) => {
+      if (
+        c.chainId === pricingCurrency?.ChainID &&
+        equal(c.address, pricingCurrency?.Address)
+      ) {
+        return c;
+      }
+    });
   }
 
   return (
@@ -299,56 +306,36 @@ export default function ShopSettings() {
                     className="flex flex-col gap-1 mt-1"
                     data-testid="displayed-accepted-currencies"
                   >
-                    {displayedChains.length &&
-                      displayedChains.map((c: CurrencyChainOption) => {
-                        return (
-                          <div key={c.value}>
-                            <label className="flex items-center space-x-2">
-                              <input
-                                type="checkbox"
-                                onChange={(e) => handleAcceptedCurrencies(e)}
-                                className="form-checkbox h-4 w-4"
-                                value={c.value}
-                                checked={currencyIsSelected(c)}
-                              />
-                              <span>{c.label}</span>
-                            </label>
-                          </div>
-                        );
-                      })}
+                    {displayedChains.map((c: CurrencyChainOption) => {
+                      return (
+                        <div key={c.value}>
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              onChange={(e) => handleAcceptedCurrencies(e, c)}
+                              className="form-checkbox h-4 w-4"
+                              value={c.value}
+                              checked={currencyIsSelected(c)}
+                            />
+                            <span>{c.label}</span>
+                          </label>
+                        </div>
+                      );
+                    })}
                   </div>
                 </section>
-                <section className="mt-4" data-testid="pricing-currency">
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                    }}
-                  >
-                    <div
-                      className="flex flex-col"
-                      onSubmit={(e) => e.preventDefault()}
-                    >
-                      <label
-                        htmlFor="pricingCurrency"
-                        className="font-medium text-base mb-1"
-                      >
-                        Pricing Currency
-                      </label>
-                      <Dropdown
-                        options={displayedChains}
-                        callback={handlePricingCurrency}
-                        selected={displayedChains.find(
-                          (c: CurrencyChainOption) =>
-                            c.Address!.toLowerCase() ===
-                              pricingCurrency?.Address.toLowerCase() &&
-                            c.ChainID === pricingCurrency?.ChainID,
-                        )}
-                      />
-                    </div>
-                  </form>
+                <section className="mt-4">
+                  <div className="flex flex-col">
+                    <Dropdown
+                      label="Pricing Currency"
+                      testId="pricing-currency-dropdown"
+                      options={displayedChains}
+                      callback={handlePricingCurrency}
+                      selected={selectedPricingCurrency()}
+                    />
+                  </div>
                 </section>
               </div>
-              <div></div>
             </section>
           </section>
           <div className="my-4">

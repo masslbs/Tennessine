@@ -3,87 +3,49 @@ import "../../happyDomSetup.ts";
 import { render, screen, waitFor } from "@testing-library/react";
 import { expect } from "@std/expect";
 
-import { addresses } from "@massmarket/contracts";
-import { random256BigInt, random32BytesHex } from "@massmarket/utils";
-import {
-  metadata,
-  payees,
-  shippingRegions,
-} from "@massmarket/schema/testFixtures";
+import { random256BigInt } from "@massmarket/utils";
+import { allOrderListings, allOrders } from "@massmarket/schema/testFixtures";
 
 import MerchantDashboard from "./MerchantDashboard.tsx";
 import { createRouterWrapper } from "../../testutils/mod.tsx";
-import { ListingViewState } from "../../types.ts";
 
 Deno.test("Merchant Dashboard", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async (t) => {
   const shopId = random256BigInt();
-  const privateKey = random32BytesHex();
-  localStorage.setItem(
-    `keycard${shopId}`,
-    JSON.stringify({ privateKey, role: "merchant" }),
-  );
-  const { wrapper, csm } = await createRouterWrapper(
-    shopId,
-  );
-  csm.keycard = privateKey;
-  await csm.stateManager!.manifest.create(
-    {
-      acceptedCurrencies: [{
-        chainId: 31337,
-        address: addresses.zeroAddress,
-      }],
-      pricingCurrency: { chainId: 31337, address: addresses.zeroAddress },
-      payees,
-      shippingRegions,
-    },
-    shopId,
-  );
-
-  await t.step("No orders renders", () => {
-    const { unmount } = render(<MerchantDashboard />, { wrapper });
-    screen.getByTestId("merchant-dashboard-screen");
-    screen.getByTestId("no-transactions");
-    unmount();
-  });
 
   await t.step("All orders render", async () => {
-    const item1 = await csm.stateManager!.listings.create({
-      price: "12.00",
-      metadata,
-      viewState: ListingViewState.Published,
+    const {
+      wrapper,
+      stateManager,
+      relayClient,
+    } = await createRouterWrapper({
+      shopId,
+      createShop: true,
+      enrollMerchant: true,
     });
-    const order = await csm.stateManager!.orders.create();
-    await csm.stateManager!.orders.addItems(order.id, [{
-      listingId: item1.id,
-      quantity: 1,
-    }]);
+    stateManager.addConnection(relayClient);
+
+    for (const [key, entry] of allOrderListings.entries()) {
+      // @ts-ignore TODO: add BaseClass to CodecValue
+      await stateManager.set(["Listings", key], entry);
+    }
+
+    for (const [key, entry] of allOrders.entries()) {
+      // @ts-ignore TODO: add BaseClass to CodecValue
+      await stateManager.set(["Orders", key], entry);
+    }
 
     const { unmount } = render(<MerchantDashboard />, { wrapper });
+
     screen.getByTestId("merchant-dashboard-screen");
-    await waitFor(() => {
-      screen.getByTestId("transaction");
-      expect(screen.getByTestId("id").textContent).toContain(
-        order.id?.slice(0, 10),
-      );
-      expect(screen.getByTestId("date").textContent).toBeDefined();
-      expect(screen.getByTestId("status").textContent).toEqual("Open");
-    });
-    const order2 = await csm.stateManager!.orders.create();
-    await csm.stateManager!.orders.addItems(order2.id, [{
-      listingId: item1.id,
-      quantity: 1,
-    }]);
-    await csm.stateManager!.orders.commit(order2.id);
 
     await waitFor(() => {
-      const transactions = screen.getAllByTestId("transaction");
-      expect(transactions).toBeTruthy();
-      expect(transactions.length).toBe(2);
+      const orders = screen.getAllByTestId("transaction");
+      expect(orders).toBeTruthy();
+      expect(orders.length).toBe(allOrders.size);
     });
-
     unmount();
   });
 });

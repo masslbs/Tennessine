@@ -2,13 +2,18 @@ import "../../happyDomSetup.ts";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "@std/expect";
-import { mainnet, sepolia } from "wagmi/chains";
-import { zeroAddress } from "viem";
+import { hardhat } from "wagmi/chains";
+import { hexToBytes, zeroAddress } from "viem";
+import { equal } from "@std/assert";
 
 import { random256BigInt } from "@massmarket/utils";
-import { payees, shippingRegions } from "@massmarket/schema/testFixtures";
+import { allManifests } from "@massmarket/schema/testFixtures";
+import {
+  AcceptedCurrencyMap,
+  ChainAddress,
+  Manifest,
+} from "@massmarket/schema";
 import { abi } from "@massmarket/contracts";
-const { eddiesAddress } = abi;
 
 import ShopSettings from "./ShopSettings.tsx";
 import { createRouterWrapper } from "../../testutils/mod.tsx";
@@ -18,35 +23,37 @@ Deno.test("Check that we can render the shop settings screen", {
   sanitizeOps: false,
 }, async (t) => {
   const user = userEvent.setup();
+  const m = allManifests[0];
+  const manifest = Manifest.fromCBOR(m);
+  const shopId = random256BigInt();
 
-  const { wrapper, csm } = await createRouterWrapper();
-  await csm.stateManager!.manifest.create(
-    {
-      acceptedCurrencies: [{
-        chainId: mainnet.id,
-        address: zeroAddress,
-      }, {
-        chainId: sepolia.id,
-        address: zeroAddress,
-      }],
-      pricingCurrency: { chainId: mainnet.id, address: zeroAddress },
-      payees,
-      shippingRegions,
-    },
-    random256BigInt(),
+  const {
+    wrapper,
+    stateManager,
+  } = await createRouterWrapper({
+    shopId,
+    createShop: true,
+    enrollMerchant: true,
+  });
+  manifest.ShopID = shopId;
+  manifest.PricingCurrency = new ChainAddress(
+    hardhat.id,
+    hexToBytes(zeroAddress),
   );
+  const ac = new AcceptedCurrencyMap();
+  ac.addAddress(hardhat.id, hexToBytes(zeroAddress), false);
+  manifest.AcceptedCurrencies = ac;
+  await stateManager.set(["Manifest"], manifest);
   const { unmount } = render(<ShopSettings />, { wrapper });
   screen.getByTestId("shop-settings-page");
 
   await t.step("Check that manifest data is rendered correctly", async () => {
-    await waitFor(() => {
-      const pricingCurrency = screen.getByTestId("pricing-currency");
+    await waitFor(async () => {
+      const pricingCurrency = screen.getByTestId("pricing-currency-dropdown");
       expect(pricingCurrency).toBeTruthy();
-      const selectedOption = pricingCurrency.querySelector(
-        '[data-testid="selected"]',
-      );
-      expect(selectedOption).toBeTruthy();
-      expect(selectedOption?.textContent).toBe("ETH/Ethereum");
+      const selectElement = pricingCurrency.querySelector("select");
+      // Check that the correct currency is displayed as pre selected.
+      expect(selectElement!.value).toBeTruthy("ETH/Hardhat");
     });
 
     await waitFor(() => {
@@ -54,84 +61,61 @@ Deno.test("Check that we can render the shop settings screen", {
       const checkboxes = Array.from(
         div.querySelectorAll('input[type="checkbox"]'),
       );
-      const checked = checkboxes.filter((checkbox) =>
-        (checkbox as HTMLInputElement).checked
-      );
-      expect(checked.length).toBe(2);
+      const checked = checkboxes.filter((checkbox) => {
+        return (checkbox as HTMLInputElement).checked;
+      });
+      expect(checked.length).toBe(1);
       expect((checked[0] as HTMLInputElement).value).toBe(
-        `${zeroAddress}/${mainnet.id}`,
+        `ETH/${hardhat.id}`,
       );
-      expect((checked[1] as HTMLInputElement).value).toBe(
-        `${zeroAddress}/${sepolia.id}`,
-      );
-    });
-  });
-  await t.step("Check that we can change the pricing currency", async () => {
-    await act(async () => {
-      const pricingCurrency = screen.getByTestId("pricing-currency");
-      expect(pricingCurrency).toBeTruthy();
-      const dropdown = pricingCurrency.querySelector(
-        '[data-testid="dropdown"]',
-      ) as HTMLInputElement;
-      await user.click(dropdown);
-    });
-    const dropdownOptions = screen.getByTestId("dropdown-options");
-    expect(dropdownOptions).toBeTruthy();
-    await act(async () => {
-      // click on the ETH/Sepolia option
-      const option = screen.getByTestId("ETH/Sepolia");
-      expect(option).toBeTruthy();
-      await user.click(option);
-    });
-    await act(async () => {
-      const submitButton = screen.getByRole("button", { name: "Update" });
-      expect(submitButton).toBeTruthy();
-      await user.click(submitButton);
-    });
-    await waitFor(async () => {
-      // check manifest is updated
-      const manifest = await csm.stateManager!.manifest.get();
-      expect(manifest.pricingCurrency!.chainId).toBe(sepolia.id);
-      expect(manifest.pricingCurrency!.address).toBe(zeroAddress);
     });
   });
 
-  await t.step("Check that we can update the accepted currencies", async () => {
-    await act(async () => {
-      const div = screen.getByTestId("displayed-accepted-currencies");
-      const checkboxes = Array.from(
-        div.querySelectorAll('input[type="checkbox"]'),
-      );
-      const EDD = checkboxes.find((checkbox) => {
-        return (checkbox as HTMLInputElement).value ===
-          `${eddiesAddress}/${sepolia.id}`;
-      }) as HTMLInputElement;
-      expect(EDD).toBeTruthy();
-      await user.click(EDD as HTMLInputElement);
-    });
-    await act(async () => {
-      const submitButton = screen.getByRole("button", { name: "Update" });
-      expect(submitButton).toBeTruthy();
-      await user.click(submitButton);
-    });
-    await waitFor(async () => {
-      const manifest = await csm.stateManager!.manifest.get();
-      expect(manifest.acceptedCurrencies.length).toBe(3);
-      expect(manifest.acceptedCurrencies[0]).toEqual({
-        chainId: mainnet.id,
-        address: zeroAddress,
+  await t.step(
+    "Check that we can update accepted/pricing currency",
+    async () => {
+      await act(async () => {
+        const div = screen.getByTestId("displayed-accepted-currencies");
+        const checkboxes = Array.from(
+          div.querySelectorAll('input[type="checkbox"]'),
+        );
+        const ethHardhat = checkboxes.find((checkbox) => {
+          const val = (checkbox as HTMLInputElement).value;
+          return val === `EDD/${hardhat.id}`;
+        });
+        expect(ethHardhat).toBeTruthy();
+        await user.click(ethHardhat as HTMLInputElement);
       });
-      expect(manifest.acceptedCurrencies[1]).toEqual({
-        chainId: sepolia.id,
-        address: zeroAddress,
-      });
-      expect(manifest.acceptedCurrencies[2]).toEqual({
-        chainId: sepolia.id,
-        address: eddiesAddress.toLowerCase(),
-      });
-    });
-  });
 
+      await act(async () => {
+        const pricingCurrency = screen.getByTestId("pricing-currency-dropdown");
+        const selectElement = pricingCurrency.querySelector("select");
+        expect(selectElement).toBeTruthy();
+        await user.selectOptions(
+          selectElement as HTMLSelectElement,
+          "EDD/Hardhat",
+        );
+        expect((selectElement as HTMLSelectElement).value).toBe("EDD/Hardhat");
+      });
+      await act(async () => {
+        const submitButton = screen.getByRole("button", { name: "Update" });
+        expect(submitButton).toBeTruthy();
+        await user.click(submitButton);
+      });
+      await waitFor(async () => {
+        // check manifest is updated
+        const m = await stateManager.get(["Manifest"]);
+        const manifest = Manifest.fromCBOR(m);
+        expect(manifest.PricingCurrency!.ChainID).toBe(hardhat.id);
+        expect(
+          equal(
+            manifest.PricingCurrency!.Address,
+            hexToBytes(abi.eddiesAddress),
+          ),
+        ).toBe(true);
+      });
+    },
+  );
   unmount();
   cleanup();
 });

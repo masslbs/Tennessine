@@ -8,7 +8,6 @@ import {
   type ContractFunctionArgs,
   type ContractFunctionName,
   type ContractFunctionReturnType,
-  ethAddress,
   type Hex,
   hexToBytes,
   numberToBytes,
@@ -16,6 +15,7 @@ import {
   type PublicClient,
   type WalletClient,
   type WriteContractParameters,
+  zeroAddress,
 } from "viem";
 import { parseAccount, privateKeyToAccount } from "viem/accounts";
 import tokenAddresses from "./tokenAddresses.json" with { type: "json" };
@@ -105,17 +105,23 @@ export function pay(
     "payTokenPreApproved" | "payNative"
   >,
 ) {
-  return wallet.writeContract({
+  if (Number(args[0].chainId) !== wallet.chain?.id) {
+    throw new Error("Chain ID mismatch");
+  }
+  const writeArgs = {
     chain: wallet.chain,
     address: abi.paymentsByAddressAddress,
     account,
     abi: abi.paymentsByAddressAbi,
     functionName: "pay",
     args,
-    // If paying in native currency, pass in the value param.
-    ...(args[0].currency === ethAddress &&
-      { value: args[0].amount }),
-  });
+  };
+  // If paying in native currency, pass in the value param.
+  if (args[0].currency === zeroAddress) {
+    // @ts-ignore "value" is not part of the abi
+    writeArgs.value = args[0].amount;
+  }
+  return wallet.writeContract(writeArgs);
 }
 export const getAllowance = genericReadContract(
   abi.eddiesAbi,

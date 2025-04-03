@@ -213,21 +213,22 @@ export default class StateManager {
     );
   }
 
-  async increment(path: codec.Path, value: codec.CodecValue) {
-    const state = this.#state;
-    assert(state, "open not finished");
-    await this.#sendPatch({ Op: "increment", Path: path, Value: value });
-    state.root = await this.graph.set(state.root, path, value);
-    this.events.emit(state.root);
-  }
+  // TODO: these need to be implemented in createWriteStream first
+  // async increment(path: codec.Path, value: codec.CodecValue) {
+  //   const state = this.#state;
+  //   assert(state, "open not finished");
+  //   await this.#sendPatch({ Op: "increment", Path: path, Value: value });
+  //   state.root = await this.graph.set(state.root, path, value);
+  //   this.events.emit(state.root);
+  // }
 
-  async decrement(path: codec.Path, value: codec.CodecValue) {
-    const state = this.#state;
-    assert(state, "open not finished");
-    await this.#sendPatch({ Op: "decrement", Path: path, Value: value });
-    state.root = await this.graph.set(state.root, path, value);
-    this.events.emit(state.root);
-  }
+  // async decrement(path: codec.Path, value: codec.CodecValue) {
+  //   const state = this.#state;
+  //   assert(state, "open not finished");
+  //   await this.#sendPatch({ Op: "decrement", Path: path, Value: value });
+  //   state.root = await this.graph.set(state.root, path, value);
+  //   this.events.emit(state.root);
+  // }
 
   async set(path: codec.Path, value: codec.CodecValue) {
     if (BaseClass.isBaseClass(value)) {

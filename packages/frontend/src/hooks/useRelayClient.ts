@@ -11,14 +11,10 @@ import { useRelayEndpoint } from "./useRelayEndpoint.ts";
 import { useShopId } from "./useShopId.ts";
 import { defaultRPC } from "../utils/mod.ts";
 import { useQuery } from "./useQuery.ts";
+import { isTesting } from "../utils/env.ts";
 
 const namespace = "frontend:useRelayClient";
 const debug = logger(namespace);
-
-// Check if running in a HappyDOM environment (likely testing)
-const isTesting = typeof globalThis !== "undefined" &&
-  // @ts-ignore TODO: is there a better way to check for happydom?
-  !!(globalThis as any).happyDOM;
 
 export function useRelayClient() {
   const { relayClient, setRelayClient } = useMassMarketContext();
