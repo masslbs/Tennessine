@@ -126,8 +126,7 @@ export default function CheckoutFlow() {
           <Cart onCheckout={onCheckout} />
         </section>
       );
-    }
-    if (step === CheckoutStep.shippingDetails) {
+    } else if (step === CheckoutStep.shippingDetails) {
       return (
         <ShippingDetails
           setStep={setStep}

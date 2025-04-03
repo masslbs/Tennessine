@@ -38,10 +38,6 @@ export default function Cart({
   );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  if (!currentOrder) {
-    return <p>No order</p>;
-  }
-
   useEffect(() => {
     if (!stateManager) return;
     function onOrderUpdate(order: Map<string, unknown>) {
@@ -75,6 +71,10 @@ export default function Cart({
         setCartMap(allCartItems);
       });
   }, [currentOrder, stateManager]);
+
+  if (!currentOrder) {
+    return <p>No order</p>;
+  }
 
   async function getAllCartItemDetails(order: Order) {
     const ci = order.Items;

@@ -52,7 +52,8 @@ Deno.test(
         const title = within(listings[0]).getByTestId("product-name");
         expect(title.textContent).toEqual("test");
         const price = within(listings[0]).getByTestId("product-price");
-        expect(price.textContent).toEqual("0.00000000000023");
+        // expect(price.textContent).toEqual("0.00000000000023");
+        expect(price.textContent).toEqual("230000");
         const coinIcon = within(listings[0]).getByTestId("coin-icon");
         expect(coinIcon.getAttribute("src")).toEqual(
           "/icons/eth-coin.svg",

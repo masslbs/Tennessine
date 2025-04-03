@@ -48,9 +48,12 @@ Deno.test("Check that we can render the checkout screen", {
 
   // Add manifest data
   // const testCurrency = new ChainAddress(31337, new Uint8Array(20))
+  // TODO: allow for setting the whole acceptec currencies map at once
   // await merchantStateManager.set(["Manifest", "AcceptedCurrencies", testCurrency.ChainID, testCurrency.Address],
   //   // @ts-ignore TODO: add BaseClass to CodecValue
-  //   true
+  //   new Map<number, Map<string, boolean>>([
+  //     [testCurrency.ChainID, new Map([[testCurrency.Address, true]])],
+  //   ])
   // );
   // await merchantStateManager.set(["Manifest", "PricingCurrency"],
   //   // @ts-ignore TODO: add BaseClass to CodecValue
@@ -102,7 +105,6 @@ Deno.test("Check that we can render the checkout screen", {
   await stateManager.set(["Orders", orderId], order);
 
   const { unmount } = render(<CheckoutFlow />, { wrapper });
-  screen.debug();
   screen.getByTestId("checkout-screen");
 
   await t.step("Cart contains correct items", async () => {
