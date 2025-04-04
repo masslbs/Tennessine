@@ -17,11 +17,12 @@ export function getConfig() {
       [hardhat.id]: transport,
     }
     : {
+      [hardhat.id]: transport,
       [mainnet.id]: transport,
       [sepolia.id]: transport,
       [optimism.id]: transport,
     };
-  const chains = isTesting ? [hardhat] : [mainnet, optimism, sepolia];
+  const chains = isTesting ? [hardhat] : [hardhat, mainnet, optimism, sepolia];
   return getDefaultConfig({
     appName: "Mass Labs",
     projectId: "6c432edcd930e0fa2c87a8d940ae5b91",

@@ -25,11 +25,11 @@ export interface ShopDetails {
 export type CurrencyChainOption = {
   label: string;
   value: string | number;
-} & Partial<ChainAddress>;
+} & Partial<CurrencyOption>;
 
-export type ChainAddress = {
+export type CurrencyOption = {
   chainId: number;
-  address: string;
+  address: Uint8Array;
 };
 
 export enum CheckoutStep {

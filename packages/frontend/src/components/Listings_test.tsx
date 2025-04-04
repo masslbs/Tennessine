@@ -7,6 +7,7 @@ import {
   within,
 } from "@testing-library/react";
 import { expect } from "@std/expect";
+import { formatEther } from "viem";
 
 import { random256BigInt } from "@massmarket/utils";
 import { allListings } from "@massmarket/schema/testFixtures";
@@ -51,7 +52,7 @@ Deno.test(
         expect(title.textContent).toEqual("test");
         const price = within(listings[0]).getByTestId("product-price");
         // expect(price.textContent).toEqual("0.00000000000023");
-        expect(price.textContent).toEqual("0.00000000000023");
+        expect(price.textContent).toEqual(formatEther(BigInt(230000)));
         const coinIcon = within(listings[0]).getByTestId("coin-icon");
         expect(coinIcon.getAttribute("src")).toEqual(
           "/icons/eth-coin.svg",

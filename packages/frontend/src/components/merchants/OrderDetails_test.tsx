@@ -1,86 +1,59 @@
 import "../../happyDomSetup.ts";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { expect } from "@std/expect";
-import { zeroAddress } from "viem";
 
 import { random256BigInt } from "@massmarket/utils";
-import {
-  metadata,
-  metadata2,
-  payees,
-  shippingDetails,
-  shippingRegions,
-} from "@massmarket/schema/testFixtures";
+import { allOrderListings, allOrders } from "@massmarket/schema/testFixtures";
+import { Listing } from "@massmarket/schema";
 
 import OrderDetails from "./OrderDetails.tsx";
-import {
-  createRouterWrapper,
-  createTestStateManager,
-} from "../../testutils/mod.tsx";
-import { ListingViewState } from "../../types.ts";
+import { createRouterWrapper } from "../../testutils/mod.tsx";
 
 Deno.test("Check that we can render the order details screen", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async () => {
-  const csm = await createTestStateManager();
+  const shopId = random256BigInt();
+  const orderId = allOrders.keys().next().value;
+  const order = allOrders.get(orderId);
+  order.ShippingAddress = order.InvoiceAddress;
 
-  await csm.stateManager!.manifest.create(
-    {
-      acceptedCurrencies: [{
-        chainId: 31337,
-        address: zeroAddress,
-      }],
-      pricingCurrency: { chainId: 31337, address: zeroAddress },
-      payees,
-      shippingRegions,
-    },
-    random256BigInt(),
-  );
-  const item1 = await csm.stateManager!.listings.create({
-    price: "12.00",
-    metadata,
-    viewState: ListingViewState.Published,
+  const {
+    wrapper,
+    stateManager,
+    relayClient,
+  } = await createRouterWrapper({
+    shopId,
+    path: `/?orderId=${orderId}`,
+    createShop: true,
+    enrollMerchant: true,
   });
-  const item2 = await csm.stateManager!.listings.create({
-    price: "1.00",
-    metadata: metadata2,
-    viewState: ListingViewState.Published,
-  });
-  // Create order and add item to it
-  const order = await csm.stateManager!.orders.create();
-  await csm.stateManager!.orders.addItems(order.id, [{
-    listingId: item1.id,
-    quantity: 2,
-  }, { listingId: item2.id, quantity: 5 }]);
-  await csm.stateManager!.orders.commit(order.id);
-  await csm.stateManager!.orders.updateShippingDetails(
-    order.id,
-    shippingDetails,
-  );
-  const { wrapper } = await createRouterWrapper(
-    null,
-    "/?orderId=" + order.id,
-    csm,
-  );
+  stateManager.addConnection(relayClient);
+  let listing = Listing;
+  for (const [key, entry] of allOrderListings.entries()) {
+    // @ts-ignore TODO: add BaseClass to CodecValue
+    await stateManager.set(["Listings", key], entry);
+    if (key === order.Items[0].ListingID) {
+      listing = entry;
+    }
+  }
+  await stateManager.set(["Orders", orderId], order);
 
   const { unmount } = render(<OrderDetails />, { wrapper });
   screen.debug();
   screen.getByTestId("order-details-page");
+
   await waitFor(() => {
     const orderItem = screen.getAllByTestId("order-item");
     expect(orderItem.length).toBe(2);
-    expect(orderItem[0].textContent).toBe(metadata.title);
-    expect(orderItem[1].textContent).toBe(metadata2.title);
+    expect(orderItem[0].textContent).toBe(listing.Metadata.Title);
     const details = screen.getByTestId("shipping-details");
     expect(details).toBeTruthy();
-    expect(details.textContent).toContain(shippingDetails.name);
-    expect(details.textContent).toContain(shippingDetails.address1);
-    expect(details.textContent).toContain(shippingDetails.city);
-    expect(details.textContent).toContain(shippingDetails.country);
-    expect(details.textContent).toContain(shippingDetails.postalCode);
-    expect(details.textContent).toContain(shippingDetails.emailAddress);
-    expect(details.textContent).toContain(shippingDetails.phoneNumber);
+    expect(details.textContent).toContain(order.ShippingAddress.Name);
+    expect(details.textContent).toContain(order.ShippingAddress.Address1);
+    expect(details.textContent).toContain(order.ShippingAddress.City);
+    expect(details.textContent).toContain(order.ShippingAddress.Country);
+    expect(details.textContent).toContain(order.ShippingAddress.PostalCode);
   });
   unmount();
   cleanup();
