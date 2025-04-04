@@ -34,7 +34,7 @@ export default function PaymentConfirmation(
             height={24}
             className="w-6 h-6 max-h-6"
           />
-          <h1>{displayedAmount}</h1>
+          <h1 data-testid="displayed-amount">{displayedAmount}</h1>
         </div>
         <p>Your order has been completed.</p>
         <div className="flex-col items-center gap-2 flex">
@@ -44,6 +44,7 @@ export default function PaymentConfirmation(
               className="border-2 border-solid mt-1 p-2 rounded"
               id="txHash"
               name="txHash"
+              data-testid="tx-hash-input"
               value={hash || ""}
               onChange={() => {
                 debug("hash copied");

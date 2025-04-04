@@ -3,7 +3,7 @@ import { ConnectButton, useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 import { useAccount, useConfig, usePublicClient, useWalletClient } from "wagmi";
 import * as chains from "wagmi/chains";
 import { simulateContract } from "@wagmi/core";
-import { ContractFunctionArgs, zeroAddress } from "viem";
+import { ContractFunctionArgs, toHex, zeroAddress } from "viem";
 
 import { assert, logger } from "@massmarket/utils";
 import { abi, approveERC20, getAllowance, pay } from "@massmarket/contracts";
@@ -14,14 +14,20 @@ import BackButton from "../common/BackButton.tsx";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 import { env } from "../../utils/env.ts";
+import { isTesting } from "../../utils/env.ts";
 
 const namespace = "frontend:Pay";
 const debug = logger(namespace);
 const errlog = logger(namespace, "error");
+
+const defaultShopChainName = isTesting ? "hardhat" : "mainnet";
+const configuredChainName = env?.VITE_CHAIN_NAME || defaultShopChainName;
+
 const {
   eddiesAbi,
   paymentsByAddressAbi,
   paymentsByAddressAddress,
+  // useSimulatePaymentsByAddressPay
 } = abi;
 
 export default function Pay({
@@ -42,9 +48,9 @@ export default function Pay({
   const { data: wallet } = useWalletClient();
   const { currentOrder } = useCurrentOrder();
   const { stateManager } = useStateManager();
-  const paymentChainId = Number(paymentArgs?.[0]?.chainId || 1);
-  const shopChainId = chains[env?.VITE_CHAIN_NAME as keyof typeof chains]?.id ??
-    1;
+  const paymentChainId = Number(paymentArgs?.[0]?.chainId);
+  // TODO: might want to do this in a hook
+  const shopChainId = chains[configuredChainName as keyof typeof chains]?.id;
   const shopPublicClient = usePublicClient({ chainId: shopChainId });
   const paymentPublicClient = usePublicClient({ chainId: paymentChainId });
   const config = useConfig();
@@ -53,40 +59,43 @@ export default function Pay({
   const [txHash, setTxHash] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!currentOrder) return;
     function txHashDetected(o: Map<string, unknown>) {
       const order = Order.fromCBOR(o);
-      debug("order updated", order);
       if (order.TxDetails) {
         debug("txHashDetected", order.TxDetails);
         setTxHash(order.TxDetails?.TxHash ?? order.TxDetails?.BlockHash);
+        // TODO: are we sure this works for block hashes?
         addRecentTransaction({
-          hash: order.TxDetails?.TxHash ?? order.TxDetails?.BlockHash,
+          hash: toHex(order.TxDetails?.TxHash ?? order.TxDetails?.BlockHash),
           description: "Order Payment",
           // confirmations: 3,
         });
       }
+      // TODO: shouldn't this be inside the if?
       setLoading(false);
     }
-    stateManager.events.on(txHashDetected, ["Orders", currentOrder!.ID]);
+    stateManager.events.on(txHashDetected, ["Orders", currentOrder.ID]);
 
     return () => {
       stateManager.events.off(
         txHashDetected,
-        ["Orders", currentOrder!.ID],
+        ["Orders", currentOrder.ID],
       );
     };
-  }, [currentOrder]);
+  }, [currentOrder !== null]);
 
   async function sendPayment() {
+    const isNative = paymentArgs[0].currency === zeroAddress;
     try {
-      if (paymentArgs[0].currency !== zeroAddress) {
-        debug("Pending ERC20 contract call approval");
-        const allowance = await getAllowance(shopPublicClient!, [
+      if (!isNative) {
+        debug("Checking ERC20 allowance");
+        const allowance = await getAllowance(paymentPublicClient!, [
           paymentArgs[0].payeeAddress,
           paymentArgs[0].currency,
         ]);
         if (allowance < paymentArgs[0].amount) {
-          // This will throw error if simulate fails.
+          // This will throw an error if simulate fails.
           await simulateContract(config, {
             abi: eddiesAbi,
             address: paymentArgs[0].currency,
@@ -97,7 +106,7 @@ export default function Pay({
             ],
             connector,
           });
-          await approveERC20(
+          const hash = await approveERC20(
             wallet!,
             wallet!.account,
             paymentArgs[0].currency,
@@ -106,21 +115,36 @@ export default function Pay({
               paymentArgs[0].amount,
             ],
           );
-          debug("ERC20 contract call approved");
+          await paymentPublicClient!.waitForTransactionReceipt({
+            hash,
+            // confirmations: 2,
+            retryCount: 5,
+          });
+          debug("ERC20 allowance approved");
         }
       }
-      const res = await simulateContract(config, {
+      const simArgs = {
+        chainId: paymentChainId,
         abi: paymentsByAddressAbi,
         address: paymentsByAddressAddress,
         functionName: "pay",
         args: paymentArgs,
-        ...(paymentArgs[0].currency === zeroAddress &&
-          { value: paymentArgs[0].amount }),
         connector,
+      };
+      if (isNative) {
+        // @ts-ignore "value" is not part of the abi
+        simArgs.value = paymentArgs[0].amount;
+      }
+      await simulateContract(config, simArgs);
+      const hash = await pay(wallet!, wallet!.account, paymentArgs);
+      const receipt = await shopPublicClient!.waitForTransactionReceipt({
+        hash,
+        // confirmations: 2,
+        retryCount: 5,
       });
-      console.log({ res });
-      const tx = await pay(wallet!, wallet!.account, paymentArgs);
-      console.log({ tx });
+      if (receipt!.status !== "success") {
+        throw new Error("pay: transaction failed");
+      }
       setLoading(true);
     } catch (error) {
       assert(error instanceof Error, "Error is not an instance of Error");

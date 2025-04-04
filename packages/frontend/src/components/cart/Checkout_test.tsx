@@ -4,7 +4,6 @@ import { userEvent } from "@testing-library/user-event";
 import { expect } from "@std/expect";
 import { fromHex } from "viem";
 
-// import { addresses } from "@massmarket/contracts";
 import { random256BigInt, randUint64 } from "@massmarket/utils";
 import { allListings } from "@massmarket/schema/testFixtures";
 import {
@@ -37,7 +36,7 @@ Deno.test("Check that we can render the checkout screen", {
     enrollMerchant: true,
   });
   merchantStateManager.addConnection(merchantRelayClient);
-
+  console.log("acting as merchant:", testMerchantAccount);
   // wait for manifest to sync
   await waitFor(async () => {
     const manifest = await merchantStateManager.get(["Manifest"]);
@@ -99,7 +98,7 @@ Deno.test("Check that we can render the checkout screen", {
       shopId,
       path: "/checkout?step=cart",
     });
-
+  console.log("acting as customer:", testAccount);
   await relayClient.enrollKeycard(testClient, testAccount, true);
   await relayClient.connect();
   await relayClient.authenticate();
@@ -130,6 +129,7 @@ Deno.test("Check that we can render the checkout screen", {
   const { unmount } = render(<CheckoutFlow />, { wrapper });
   screen.getByTestId("checkout-screen");
 
+  const wantTotalPrice = "0.00000000000256";
   await t.step("Cart contains correct items", async () => {
     screen.getByTestId("cart");
     await waitFor(() => {
@@ -138,7 +138,7 @@ Deno.test("Check that we can render the checkout screen", {
       expect(items[0].textContent).toContain("test2Qty: 20.00000000000046ETH");
       expect(items[1].textContent).toContain("test425Qty: 50.0000000000021ETH");
       expect(screen.getByTestId("total-price").textContent).toBe(
-        "0.00000000000256",
+        wantTotalPrice,
       );
     });
     await act(async () => {
@@ -247,26 +247,11 @@ Deno.test("Check that we can render the checkout screen", {
 
   await t.step("Connect wallet and initiate payment", async () => {
     await act(async () => {
-      const connectWalletButton = screen.getByRole("button", {
-        name: /Connect Wallet/i,
-      });
+      const connectWalletButton = screen.getByTestId(
+        "rainbowkit-connect-wallet",
+      );
       expect(connectWalletButton).toBeTruthy();
       await user.click(connectWalletButton);
-    });
-    console.log("clicked connect wallet button");
-    await waitFor(() => {
-      // hardHatButton = screen.getByRole("button", {
-      //   name: /Hardhat/i,
-      // });
-
-      const hardHatButton = screen.getByTestId("rk-chain-button");
-      expect(hardHatButton).toBeTruthy();
-    });
-    console.log("found hardhat button");
-    await act(async () => {
-      const hardHatButton = screen.getByTestId("rk-chain-button");
-      expect(hardHatButton).toBeTruthy();
-      await user.click(hardHatButton);
     });
 
     let payButton: HTMLElement | null = null;
@@ -276,26 +261,38 @@ Deno.test("Check that we can render the checkout screen", {
         name: /Pay/i,
       });
       expect(payButton).toBeTruthy();
-
-      // Verify the button text is "Pay"
-      const payButtonText = screen.getByText("Pay");
-      expect(payButtonText).toBeTruthy();
-      expect(payButtonText.textContent).toBe("Pay");
     });
+
     await act(async () => {
-      console.log("found pay button");
       expect(payButton).toBeTruthy();
       await user.click(payButton!);
     });
+
+    // Wait for the transaction processing message to appear
+    await waitFor(() => {
+      const waitingMessage = screen.getByText("Waiting for transaction...");
+      expect(waitingMessage).toBeTruthy();
+      expect(waitingMessage.tagName.toLowerCase()).toBe("h6");
+    });
   });
 
-  // await t.step("Confirm payment", async () => {
-  //   await waitFor(() => {
-  //     const txHashLink = screen.getByTestId("tx-hash-link");
-  //     expect(txHashLink).toBeTruthy();
-  //   });
-  //   screen.debug();
-  // });
+  await t.step("Wait for payment to be confirmed", async () => {
+    await waitFor(() => {
+      // Check for payment confirmation screen
+      const successMessage = screen.getByText("Payment Successful");
+      expect(successMessage).toBeTruthy();
+
+      // Verify the transaction hash is displayed
+      const txHashInput = screen.getByTestId("tx-hash-input");
+      expect(txHashInput).toBeTruthy();
+      expect(txHashInput.value).toContain("0x");
+
+      // Verify USDC amount is displayed
+      const amountElement = screen.getByTestId("displayed-amount");
+      expect(amountElement).toBeTruthy();
+      expect(amountElement.textContent).toContain(wantTotalPrice);
+    });
+  });
 
   unmount();
   cleanup();

@@ -168,8 +168,6 @@ export default function ChoosePayment({
         shopSignature: toHex(new Uint8Array(64)),
       };
 
-      console.log({ arg });
-
       const paymentAddr = await getPaymentAddress(paymentRPC, [
         arg,
         toHex(payee.Address.Address, { size: 20 }),
