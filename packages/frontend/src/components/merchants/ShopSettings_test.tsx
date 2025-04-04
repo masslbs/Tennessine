@@ -8,7 +8,11 @@ import { equal } from "@std/assert";
 
 import { random256BigInt } from "@massmarket/utils";
 import { allManifests } from "@massmarket/schema/testFixtures";
-import { Manifest } from "@massmarket/schema";
+import {
+  AcceptedCurrencyMap,
+  ChainAddress,
+  Manifest,
+} from "@massmarket/schema";
 import { abi } from "@massmarket/contracts";
 
 import ShopSettings from "./ShopSettings.tsx";
@@ -19,40 +23,31 @@ Deno.test("Check that we can render the shop settings screen", {
   sanitizeOps: false,
 }, async (t) => {
   const user = userEvent.setup();
+  const m = allManifests[0];
+  const manifest = Manifest.fromCBOR(m);
   const shopId = random256BigInt();
-  const manifest = allManifests[0];
 
   const {
     wrapper,
     stateManager,
-    relayClient,
   } = await createRouterWrapper({
     shopId,
     createShop: true,
     enrollMerchant: true,
   });
-  manifest.set(
-    "PricingCurrency",
-    new Map([
-      ["Address", hexToBytes(zeroAddress)],
-      ["ChainID", hardhat.id],
-    ]),
+  manifest.ShopID = shopId;
+  manifest.PricingCurrency = new ChainAddress(
+    hardhat.id,
+    hexToBytes(zeroAddress),
   );
-  manifest.set(
-    "AcceptedCurrencies",
-    new Map([
-      [
-        hardhat.id,
-        new Map([[hexToBytes(zeroAddress), new Map([["IsContract", false]])]]),
-      ],
-    ]),
-  );
+  const ac = new AcceptedCurrencyMap();
+  ac.addAddress(hardhat.id, hexToBytes(zeroAddress), false);
+  manifest.AcceptedCurrencies = ac;
   await stateManager.set(["Manifest"], manifest);
+  const { unmount } = render(<ShopSettings />, { wrapper });
+  screen.getByTestId("shop-settings-page");
 
   await t.step("Check that manifest data is rendered correctly", async () => {
-    const { unmount } = render(<ShopSettings />, { wrapper });
-    screen.getByTestId("shop-settings-page");
-
     await waitFor(async () => {
       const pricingCurrency = screen.getByTestId("pricing-currency-dropdown");
       expect(pricingCurrency).toBeTruthy();
@@ -121,7 +116,6 @@ Deno.test("Check that we can render the shop settings screen", {
       });
     },
   );
-
-  // unmount();
+  unmount();
   cleanup();
 });
