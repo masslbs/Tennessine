@@ -45,7 +45,7 @@ Deno.test("Check that we can render the listing details screen", {
   screen.getByTestId("listing-detail-page");
   await waitFor(() => {
     const price = screen.getByTestId("price");
-    expect(price.textContent).toBe("230000");
+    expect(price.textContent).toBe("0.00000000000023");
     const description = screen.getByTestId("description");
     expect(description.textContent).toBe(listing.Metadata.Description);
     const title = screen.getByTestId("title");

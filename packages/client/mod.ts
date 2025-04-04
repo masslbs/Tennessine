@@ -30,6 +30,8 @@ import {
 import { ReadableStream, WritableStream } from "web-streams-polyfill";
 
 const debug = logger("relayClient");
+const errLog = logger("relayClient", "error");
+const warnLog = logger("relayClient", "warn");
 
 export interface IRelayEndpoint {
   url: URL; // the websocket URL to talk to
@@ -487,25 +489,16 @@ export class RelayClient {
       this.#authenticationPromise = this.#initialAuthPromise; // Use the initial promise instance
 
       this.connection.addEventListener(
-        "open",
-        () => {
-          console.log("WebSocket opened");
-        },
-      );
-
-      this.connection.addEventListener(
         "error",
         onError ? onError : (error: Event) => {
-          console.error("WebSocket error!");
-          console.error(error);
+          errLog("WebSocket error!", error);
         },
       );
 
       this.connection.addEventListener(
         "close",
         onError ? onError : (ev: CloseEvent) => {
-          console.warn("WebSocket closed");
-          console.warn(ev);
+          warnLog("WebSocket closed", ev);
           this.#isAuthenticated = false;
           this.#authenticationPromise = this.#initialAuthPromise;
         },
@@ -521,6 +514,7 @@ export class RelayClient {
         resolve(new Event("already open"));
       } else {
         this.connection!.addEventListener("open", (evt: Event) => {
+          debug("WebSocket opened");
           // TODO: unbox event to concrete values
           resolve(evt);
         });

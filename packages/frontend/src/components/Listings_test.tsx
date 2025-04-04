@@ -8,11 +8,9 @@ import {
 } from "@testing-library/react";
 import { expect } from "@std/expect";
 
-import { random256BigInt, random32BytesHex } from "@massmarket/utils";
+import { random256BigInt } from "@massmarket/utils";
 import { allListings } from "@massmarket/schema/testFixtures";
-import { Listing, ListingMetadata } from "@massmarket/schema";
 
-import { ListingViewState } from "../types.ts";
 import Listings from "./Listings.tsx";
 import {
   createRouterWrapper,
@@ -53,7 +51,7 @@ Deno.test(
         expect(title.textContent).toEqual("test");
         const price = within(listings[0]).getByTestId("product-price");
         // expect(price.textContent).toEqual("0.00000000000023");
-        expect(price.textContent).toEqual("230000");
+        expect(price.textContent).toEqual("0.00000000000023");
         const coinIcon = within(listings[0]).getByTestId("coin-icon");
         expect(coinIcon.getAttribute("src")).toEqual(
           "/icons/eth-coin.svg",

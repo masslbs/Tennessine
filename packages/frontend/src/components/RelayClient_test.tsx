@@ -45,6 +45,7 @@ Deno.test("RelayClientTester component connects to relay", {
       expect(status.textContent).toContain("connected");
       const lastPingReceived = screen.getByTestId("stats-last-ping-received");
       expect(lastPingReceived.textContent).toContain("second");
+      // make sure to align this timeout with PING_INTERVAL. Otherwise, the test will fail.
     }, { timeout: 10000 });
 
     // Test disconnect functionality
