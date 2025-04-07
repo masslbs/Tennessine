@@ -88,6 +88,8 @@ jobs:
       - name: prepare env file for relay
         run: |
           cp .env.sample .env
+          echo "PING_INTERVAL=1s" >> .env
+          echo "KICK_TIMEOUT=30s" >> .env
           cat .env
         working-directory: relay
 
