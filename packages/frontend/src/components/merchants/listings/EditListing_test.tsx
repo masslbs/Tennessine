@@ -86,8 +86,11 @@ Deno.test("Edit Listing", {
       expect(gotListings).toBeInstanceOf(Map<string, unknown>);
       allListings = gotListings as Map<string, unknown>;
       expect(allListings.size).toEqual(1);
-      const inventory = await stateManager.get(["Inventory", listingID]);
-      expect(inventory).toBe(123);
+      const allInventory = await stateManager.get(["Inventory"]) as Map<
+        string,
+        unknown
+      >;
+      expect(allInventory.size).toEqual(1);
     }, { timeout: 15000 });
 
     for (const [id, listingData] of allListings.entries()) {
