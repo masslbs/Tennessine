@@ -1,5 +1,5 @@
 import "../happyDomSetup.ts";
-import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { expect } from "@std/expect";
 import { userEvent } from "@testing-library/user-event";
 import { allListings } from "@massmarket/schema/testFixtures";
@@ -8,6 +8,7 @@ import { Order, OrderedItem } from "@massmarket/schema";
 import Navigation from "./Navigation.tsx";
 import { createRouterWrapper, testClient } from "../testutils/mod.tsx";
 import { OrderState } from "../types.ts";
+import { wait } from "@testing-library/user-event/dist/cjs/utils/index.js";
 
 Deno.test("Check that we can render the navigation bar", {
   sanitizeResources: false,
@@ -69,7 +70,7 @@ Deno.test("Check that we can render the navigation bar", {
   screen.getByTestId("navigation");
 
   const user = userEvent.setup();
-  await act(async () => {
+  await waitFor(async () => {
     const cartToggle = screen.getByTestId("cart-toggle");
     expect(cartToggle).toBeDefined();
     await user.click(cartToggle);
@@ -89,7 +90,7 @@ Deno.test("Check that we can render the navigation bar", {
       );
     });
 
-    await act(async () => {
+    await waitFor(async () => {
       const removeButton = screen.getByTestId(`remove-item-${item1ID}`);
       expect(removeButton).toBeDefined();
       await user.click(removeButton);
@@ -101,38 +102,45 @@ Deno.test("Check that we can render the navigation bar", {
       expect(cartItems[0].textContent).toContain("test4224Qty");
     });
   });
-  /*
+
   await t.step("Add quantity to item", async () => {
-    await act(async () => {
+    await waitFor(async () => {
       const addButton = screen.getByTestId(`add-quantity-${item2ID}`);
+      expect(addButton).toBeDefined();
       await user.click(addButton);
     });
     await waitFor(() => {
       const quantity = screen.getByTestId(`quantity-${item2ID}`);
-      expect(quantity.textContent).toContain("6");
+      expect(quantity.textContent).toContain("25");
     });
+    // Check statemanager updated correctly.
+    const updatedOrder = await stateManager.get(["Orders", orderId]);
+    const updatedOrderItems =
+      Order.fromCBOR(updatedOrder as Map<string, unknown>).Items;
+    expect(updatedOrderItems[0].ListingID).toBe(item2ID);
+    expect(updatedOrderItems[0].Quantity).toBe(25);
   });
 
   await t.step("Remove quantity from item", async () => {
-    await act(async () => {
+    await waitFor(async () => {
       const minusQty = screen.getByTestId(`remove-quantity-${item2ID}`);
-      await user.click(minusQty);
+      expect(minusQty).toBeDefined();
       await user.click(minusQty);
     });
     await waitFor(() => {
       const quantity = screen.getByTestId(`quantity-${item2ID}`);
-      expect(quantity.textContent).toContain("4");
+      expect(quantity.textContent).toContain("24");
     });
     // Check statemanager updated correctly.
-    const updatedOrder = Order.fromCBOR(await stateManager.get(["Orders", orderId]) as Map<string, unknown>);
-    expect(updatedOrder.Items[0].ListingID).toBe(item1ID);
-    expect(updatedOrder.Items[0].Quantity).toBe(4);
-    expect(updatedOrder.Items[1].ListingID).toBe(item2ID);
-    expect(updatedOrder.Items[1].Quantity).toBe(0);
+    const updatedOrder = await stateManager.get(["Orders", orderId]);
+    const updatedOrderItems =
+      Order.fromCBOR(updatedOrder as Map<string, unknown>).Items;
+    expect(updatedOrderItems[0].ListingID).toBe(item2ID);
+    expect(updatedOrderItems[0].Quantity).toBe(24);
   });
 
   await t.step("Clear cart", async () => {
-    await act(async () => {
+    await waitFor(async () => {
       const clearCart = screen.getByTestId("clear-cart");
       await user.click(clearCart);
     });
@@ -140,29 +148,33 @@ Deno.test("Check that we can render the navigation bar", {
       const cartItems = screen.queryAllByTestId("cart-item");
       expect(cartItems.length).toBe(0);
     });
-    const updatedOrder = await stateManager.orders.get(order.id);
-    expect(updatedOrder.items[item2.id]).toBe(0);
-    expect(updatedOrder.items[item1.id]).toBe(0);
+    const updatedOrder = await stateManager.get(["Orders", orderId]);
+    const updatedOrderItems =
+      Order.fromCBOR(updatedOrder as Map<string, unknown>).Items;
+    expect(updatedOrderItems.length).toBe(0);
   });
+
   await t.step("Checkout button", async () => {
-    await stateManager.orders.addItems(order.id, [{
-      listingId: item1.id,
-      quantity: 1,
-    }, { listingId: item2.id, quantity: 1 }]);
-    await act(async () => {
+    await stateManager.set(["Orders", orderId, "Items"], [
+      new OrderedItem(item1ID, 32).asCBORMap(),
+      new OrderedItem(item2ID, 24).asCBORMap(),
+    ]);
+    await waitFor(async () => {
       const cartToggle = screen.getByTestId("cart-toggle");
       expect(cartToggle).toBeTruthy();
       await user.click(cartToggle);
     });
-    await act(async () => {
+    await waitFor(async () => {
       const checkoutButton = screen.getByTestId("checkout-button");
+      expect(checkoutButton).toBeDefined();
       await user.click(checkoutButton);
     });
     //Check that the order was committed after clicking checkout button.
-    const updatedOrder = await stateManager.orders.get(order.id);
-    expect(updatedOrder.status).toBe(OrderState.Committed);
+    const updatedOrder = await stateManager.get(["Orders", orderId]);
+    const state = Order.fromCBOR(updatedOrder as Map<string, unknown>).State;
+    expect(state).toBe(OrderState.Committed);
   });
-  */
+
   unmount();
   cleanup();
 });

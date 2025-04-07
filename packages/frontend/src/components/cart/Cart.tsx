@@ -145,7 +145,7 @@ export default function Cart({
       setSelectedQty(updatedQtyMap);
       const updatedOrderItems: OrderedItem[] = Array.from(cartItemsMap.keys())
         .map((key) => {
-          return new OrderedItem(key, selectedQty.get(key)!);
+          return new OrderedItem(key, updatedQtyMap.get(key)!).asCBORMap();
         });
       await stateManager.set(
         ["Orders", currentOrder!.ID, "Items"],
