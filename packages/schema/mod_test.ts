@@ -1,10 +1,13 @@
 import { assertEquals } from "@std/assert";
 import { extractEntriesFromHAMT, fetchAndDecode } from "@massmarket/utils";
-
+import type { CodecValue } from "@massmarket/utils/codec";
 import { Listing, Manifest, Order } from "./mod.ts";
 
 type Rmap = Map<string, Rmap>;
-
+type TestVector = Map<
+  string,
+  Array<Map<string, Map<string, Map<string, Map<string, CodecValue>>>>>
+>;
 Deno.test("unpack manifest vectors", async (t) => {
   const manifestOkayVector = await fetchAndDecode("ManifestOkay");
   const manifestOkayVectorSnapshots = manifestOkayVector.get(
@@ -33,7 +36,7 @@ Deno.test("unpack manifest vectors", async (t) => {
 });
 
 Deno.test("unpack listing vectors", async (t) => {
-  const listingOkayVector = await fetchAndDecode("ListingOkay") as Rmap;
+  const listingOkayVector = await fetchAndDecode("ListingOkay") as TestVector;
 
   const vectors = (listingOkayVector?.get("Snapshots") as unknown as [])?.map(
     (snapshot: Rmap) => {
