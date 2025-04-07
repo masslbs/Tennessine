@@ -98,11 +98,11 @@
         "nixpkgs-lib": "nixpkgs-lib"
       },
       "locked": {
-        "lastModified": 1741352980,
-        "narHash": "sha256-+u2UunDA4Cl5Fci3m7S643HzKmIDAe+fiXrLqYsR2fs=",
+        "lastModified": 1743550720,
+        "narHash": "sha256-hIshGgKZCgWh6AYJpJmRgFdR3WUbkY04o82X05xqQiY=",
         "owner": "hercules-ci",
         "repo": "flake-parts",
-        "rev": "f4330d22f1c5d2ba72d3d22df5597d123fdb60a9",
+        "rev": "c621e8422220273271f52058f618c94e405bb0f5",
         "type": "github"
       },
       "original": {
@@ -384,8 +384,8 @@
     "nixpkgs": {
       "locked": {
         "lastModified": 0,
-        "narHash": "sha256-C7jVfohcGzdZRF6DO+ybyG/sqpo1h6bZi9T56sxLy+k=",
-        "path": "/nix/store/alzxn3hjisc84hrlv44x6hni48crww26-source",
+        "narHash": "sha256-rpqepOZ8Eo1zg+KJeWoq1HAOgoMCDloqv5r2EAa9TSA=",
+        "path": "/nix/store/inbabfz8n7fxflkis0a05zcli4a1q2bp-source",
         "type": "path"
       },
       "original": {
@@ -395,11 +395,11 @@
     },
     "nixpkgs-lib": {
       "locked": {
-        "lastModified": 1740877520,
-        "narHash": "sha256-oiwv/ZK/2FhGxrCkQkB83i7GnWXPPLzoqFHpDD3uYpk=",
+        "lastModified": 1743296961,
+        "narHash": "sha256-b1EdN3cULCqtorQ4QeWgLMrd5ZGOjLSLemfa00heasc=",
         "owner": "nix-community",
         "repo": "nixpkgs.lib",
-        "rev": "147dee35aab2193b174e4c0868bd80ead5ce755c",
+        "rev": "e4822aea2a6d1cdd36653c134cacfd64c97ff4fa",
         "type": "github"
       },
       "original": {
@@ -438,11 +438,11 @@
     },
     "nixpkgs_3": {
       "locked": {
-        "lastModified": 1741600792,
-        "narHash": "sha256-yfDy6chHcM7pXpMF4wycuuV+ILSTG486Z/vLx/Bdi6Y=",
+        "lastModified": 1743231893,
+        "narHash": "sha256-tpJsHMUPEhEnzySoQxx7+kA+KUtgWqvlcUBqROYNNt0=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "ebe2788eafd539477f83775ef93c3c7e244421d3",
+        "rev": "c570c1f5304493cafe133b8d843c7c1c4a10d3a6",
         "type": "github"
       },
       "original": {
@@ -525,11 +525,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1742300892,
-        "narHash": "sha256-QmF0proyjXI9YyZO9GZmc7/uEu5KVwCtcdLsKSoxPAI=",
+        "lastModified": 1742649964,
+        "narHash": "sha256-DwOTp7nvfi8mRfuL1escHDXabVXFGT1VlPD1JHrtrco=",
         "owner": "cachix",
         "repo": "git-hooks.nix",
-        "rev": "ea26a82dda75bee6783baca6894040c8e6599728",
+        "rev": "dcf5072734cb576d2b0c59b2ac44f5050b5eac82",
         "type": "github"
       },
       "original": {
@@ -569,11 +569,11 @@
         "nixpkgs": "nixpkgs_4"
       },
       "locked": {
-        "lastModified": 1741379162,
-        "narHash": "sha256-srpAbmJapkaqGRE3ytf3bj4XshspVR5964OX5LfjDWc=",
+        "lastModified": 1742649964,
+        "narHash": "sha256-DwOTp7nvfi8mRfuL1escHDXabVXFGT1VlPD1JHrtrco=",
         "owner": "cachix",
         "repo": "pre-commit-hooks.nix",
-        "rev": "b5a62751225b2f62ff3147d0a334055ebadcd5cc",
+        "rev": "dcf5072734cb576d2b0c59b2ac44f5050b5eac82",
         "type": "github"
       },
       "original": {
@@ -606,11 +606,11 @@
         "schema": "schema"
       },
       "locked": {
-        "lastModified": 1741816992,
-        "narHash": "sha256-qlvnxuTmCUCL2UCiQ07lA2kQlQ39mqhVmbhwJDIP1FI=",
+        "lastModified": 1744012061,
+        "narHash": "sha256-4ibDrmukfY9y94JVkuagrmkJyjCTIejz3zZWZAv33+c=",
         "ref": "network-v4",
-        "rev": "5d4e7bb4d9570476cf517b06b3da454e8f8a145b",
-        "revCount": 45,
+        "rev": "08516e905f5ac1fefbfc602f5bff5aecc148b1ba",
+        "revCount": 52,
         "type": "git",
         "url": "ssh://git@github.com/masslbs/relay.git"
       },
@@ -642,11 +642,11 @@
         "utils": "utils"
       },
       "locked": {
-        "lastModified": 1741798280,
-        "narHash": "sha256-HV0cqylkjOESBEUzlsKl7tBlbGMbkOSMboefZWxB6Bs=",
+        "lastModified": 1742317551,
+        "narHash": "sha256-tK0Z+pI24ssE6N+wR2BuIQ/fwYF0f26QzWJALif4arc=",
         "owner": "masslbs",
         "repo": "network-schema",
-        "rev": "4bbb6a36b5db40469b3d7427bfd8eaeddc412e0b",
+        "rev": "5da49fa777f6a07e651b214cea3de47fb1a87277",
         "type": "github"
       },
       "original": {
@@ -663,11 +663,11 @@
         "utils": "utils_2"
       },
       "locked": {
-        "lastModified": 1742317551,
-        "narHash": "sha256-tK0Z+pI24ssE6N+wR2BuIQ/fwYF0f26QzWJALif4arc=",
+        "lastModified": 1743621044,
+        "narHash": "sha256-u4sGXp86riCQBu5TvF5/kFwDsFhVg9s7FHHwiCzt8GA=",
         "owner": "masslbs",
         "repo": "network-schema",
-        "rev": "5da49fa777f6a07e651b214cea3de47fb1a87277",
+        "rev": "9cd45f8f3bc01c418f8e0dc2604b48fd7bf84f6f",
         "type": "github"
       },
       "original": {
