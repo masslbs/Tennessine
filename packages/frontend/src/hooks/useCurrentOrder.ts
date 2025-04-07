@@ -97,9 +97,14 @@ export function useCurrentOrder() {
     if (!currentOrder) {
       orderFetcher().then((o: Order | null) => {
         if (!o) return;
-        stateManager.events.on(onCurrentOrderChange, ["Orders", o.ID]);
         setCurrentOrder(o);
       });
+    }
+  }, [stateManager]);
+
+  useEffect(() => {
+    if (currentOrder) {
+      stateManager.events.on(onCurrentOrderChange, ["Orders", currentOrder.ID]);
     }
     return () => {
       if (currentOrder) {
@@ -109,6 +114,6 @@ export function useCurrentOrder() {
         ]);
       }
     };
-  }, [stateManager]);
+  }, [currentOrder?.ID]);
   return { currentOrder, createOrder };
 }

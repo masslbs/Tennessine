@@ -342,7 +342,7 @@ export default function Cart({
       >
         <Button
           disabled={!currentOrder || !cartItemsMap.size || !onCheckout}
-          onClick={() => handleCheckout()}
+          onClick={handleCheckout}
           data-testid="checkout-button"
         >
           <div className="flex items-center gap-2">

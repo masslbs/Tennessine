@@ -221,6 +221,8 @@ export default function ListingDetail() {
                   value={quantity}
                   data-testid="purchaseQty"
                   type="number"
+                  min="0"
+                  step="1"
                   onChange={(e) => handlePurchaseQty(e)}
                 />
               </div>

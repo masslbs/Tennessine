@@ -348,10 +348,9 @@ export default function ChoosePayment({
         <TimerToast />
         <section className="mt-2 flex flex-col gap-4 bg-white rounded-lg p-5">
           <div data-testid="payment-currency">
-            <label>Payment currency and chain</label>
             {displayedChains && (
               <Dropdown
-                label="chains-dropdown"
+                label="Payment currency and chain"
                 options={displayedChains}
                 callback={onSelectPaymentCurrency}
                 testId="chains-dropdown-select"
