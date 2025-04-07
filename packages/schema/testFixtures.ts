@@ -1,4 +1,4 @@
-import { Listing , Order} from "@massmarket/schema";
+import { Listing, Order } from "@massmarket/schema";
 import { extractEntriesFromHAMT, fetchAndDecode } from "@massmarket/utils";
 import type { CodecValue } from "@massmarket/utils/codec";
 
