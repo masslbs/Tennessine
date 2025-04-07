@@ -13,6 +13,8 @@ import {
   Order,
   OrderedItem,
   OrderState,
+  ShippingRegion,
+  ShippingRegionsMap,
 } from "@massmarket/schema";
 
 import { createRouterWrapper, testClient } from "../../testutils/mod.tsx";
@@ -73,6 +75,15 @@ Deno.test("Check that we can render the checkout screen", {
     fromHex(testMerchantAccount, { size: 20, to: "bytes" }),
     false,
   );
+  currentManifest.ShippingRegions = new ShippingRegionsMap(
+    new Map([
+      [
+        "default",
+        new ShippingRegion("nowhere"),
+      ],
+    ]),
+  );
+  // @ts-ignore TODO: add BaseClass to CodecValue
   await merchantStateManager.set(["Manifest"], currentManifest);
 
   // await merchantStateManager.set(["Manifest", "PricingCurrency"],
@@ -159,7 +170,7 @@ Deno.test("Check that we can render the checkout screen", {
     "123 Main St",
     "Anytown",
     "12345",
-    "USA",
+    "nowhere",
     "john.doe@example.com",
     undefined, // Address 2 not used yet
     "+1234567890",

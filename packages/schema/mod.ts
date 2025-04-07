@@ -11,6 +11,8 @@ import {
   Payee,
   PayeeMap,
   PayeeMetadata,
+  ShippingRegion,
+  ShippingRegionsMap,
 } from "./standin_manifest.ts";
 import {
   Listing,
@@ -39,6 +41,8 @@ export {
   Payee,
   PayeeMap,
   PayeeMetadata,
+  ShippingRegion,
+  ShippingRegionsMap,
 };
 
 // a few concrete fields we need to handle in the client.
