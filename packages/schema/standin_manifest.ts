@@ -290,13 +290,13 @@ export class AcceptedCurrencyMap {
     return this.data.get(chainId);
   }
   getAddressMetadata(chainId: number, address: Uint8Array) {
-    const addresses = this.data.get(chainId)
+    const addresses = this.data.get(chainId);
     if (addresses) {
-     for (const [key, value] of addresses) {
-      if (equal(key, address)) {
-        return value;
+      for (const [key, value] of addresses) {
+        if (equal(key, address)) {
+          return value;
+        }
       }
-     }
     }
     return null;
   }

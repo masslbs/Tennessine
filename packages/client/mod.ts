@@ -219,7 +219,10 @@ export class RelayClient {
             .subscriptionId!.toString();
           const controller = this.#subscriptions.get(subscriptionId);
           if (!controller) {
-            assert(controller, "invalid subscription recv");
+            assert(
+              controller,
+              "invalid subscription recv. id: " + subscriptionId,
+            );
             return;
           }
           const sets = envelope.subscriptionPushRequest.sets ?? [];
