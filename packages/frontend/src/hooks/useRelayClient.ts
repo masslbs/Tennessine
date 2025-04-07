@@ -57,6 +57,7 @@ export function useRelayClient() {
     });
 
     setRelayClient(rc);
+    debug(`RelayClient set!`);
   }, [
     String(shopId),
     relayEndpoint,

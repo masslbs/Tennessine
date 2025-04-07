@@ -50,6 +50,8 @@ const debug = logger(namespace);
 const errlog = logger(namespace, "error");
 const { shopRegAbi, shopRegAddress } = abi;
 
+const retryCount = 20;
+
 export default function () {
   const addRecentTransaction = useAddRecentTransaction();
   const { status } = useAccount();
@@ -141,7 +143,7 @@ export default function () {
       let receipt = await shopPublicClient!.waitForTransactionReceipt({
         hash,
         // confirmations: 2,
-        retryCount: 5,
+        retryCount,
       });
       if (receipt!.status !== "success") {
         throw new Error("Mint shop: transaction failed");
@@ -162,7 +164,7 @@ export default function () {
       receipt = await shopPublicClient!.waitForTransactionReceipt({
         hash: tx,
         // confirmations: 2,
-        retryCount: 5,
+        retryCount,
       });
       if (receipt.status !== "success") {
         throw new Error("Error: addRelay");
@@ -282,7 +284,7 @@ export default function () {
 
       const transaction = await shopPublicClient!.waitForTransactionReceipt({
         hash: metadataHash,
-        retryCount: 10,
+        retryCount,
       });
 
       if (transaction.status !== "success") {
