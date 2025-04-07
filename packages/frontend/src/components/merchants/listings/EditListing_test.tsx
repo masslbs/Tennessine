@@ -87,7 +87,7 @@ Deno.test("Edit Listing", {
       allListings = gotListings as Map<string, unknown>;
       expect(allListings.size).toEqual(1);
       const allInventory = await stateManager.get(["Inventory"]) as Map<
-        string,
+        number,
         unknown
       >;
       expect(allInventory.size).toEqual(1);
@@ -97,12 +97,12 @@ Deno.test("Edit Listing", {
       listingCount++;
       expect(typeof id).toBe("number");
       listingID = Number(id);
-      const l = Listing.fromCBOR(listingData as Map<string, unknown>);
 
-      // const { metadata: { title, description, images } } = item;
+      const l = Listing.fromCBOR(listingData as Map<string, unknown>);
       expect(l.Metadata.Title).toBe("product 1");
       expect(l.Metadata.Description).toBe("product 1 description");
       expect(l.Price).toEqual(parseEther("555"));
+
       const inventory = await stateManager.get(["Inventory", listingID]);
       expect(inventory).toBe(123);
       expect(l.Metadata.Images?.length).toEqual(1);
