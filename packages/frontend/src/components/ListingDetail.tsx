@@ -18,7 +18,6 @@ import { useKeycard } from "../hooks/useKeycard.ts";
 import ErrorMessage from "./common/ErrorMessage.tsx";
 import SuccessToast from "./common/SuccessToast.tsx";
 import { useCurrentOrder } from "../hooks/useCurrentOrder.ts";
-import { cancelAndCreateOrder } from "../utils/helper.ts";
 
 const namespace = "frontend:listing-detail";
 const errlog = logger(namespace, "error");
@@ -28,7 +27,8 @@ export default function ListingDetail() {
   const { stateManager } = useStateManager();
   const [keycard] = useKeycard();
   const search = useSearch({ strict: false });
-  const { currentOrder, createOrder } = useCurrentOrder();
+  const { currentOrder, createOrder, cancelAndRecreateOrder } =
+    useCurrentOrder();
   const itemId = search.itemId as ListingId;
   const [listing, setListing] = useState<Listing>(new Listing());
   const [tokenIcon, setIcon] = useState("/icons/usdc-coin.png");
@@ -77,12 +77,14 @@ export default function ListingDetail() {
       if (
         !orderId
       ) {
-        await createOrder(itemId, quantity);
+        await createOrder(itemId, Number(quantity));
         setMsg("Item added to cart");
       } else {
         // Update existing order
+
+        // If the order is committed, cancel it and create a new one
         if (currentOrder?.State === OrderState.Committed) {
-          orderId = await cancelAndCreateOrder(orderId, stateManager);
+          orderId = await cancelAndRecreateOrder();
         }
 
         const o = await stateManager.get([

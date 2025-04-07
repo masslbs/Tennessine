@@ -18,7 +18,6 @@ import TimerExpiration from "./TimerExpiration.tsx";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 import PaymentConfirmation from "./PaymentConfirmation.tsx";
-import { cancelAndCreateOrder } from "../../utils/helper.ts";
 
 const namespace = "frontend:Checkout";
 const debug = logger(namespace);
@@ -26,7 +25,7 @@ const logerr = logger(namespace, "error");
 
 export default function CheckoutFlow() {
   const { stateManager } = useStateManager();
-  const { currentOrder } = useCurrentOrder();
+  const { currentOrder, cancelAndRecreateOrder } = useCurrentOrder();
 
   const search = useSearch({ strict: false });
   const navigate = useNavigate();
@@ -48,7 +47,7 @@ export default function CheckoutFlow() {
         setCountdown((prev: number) => prev - 10);
       }, 10000);
     } else if (countdown === 0) {
-      cancelAndCreateOrder(currentOrder!.ID, stateManager)
+      cancelAndRecreateOrder()
         .then()
         .catch((e) => {
           logerr("Error cancelling order", e);

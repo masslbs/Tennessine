@@ -11,7 +11,10 @@ export default function SuccessToast({ message, onClose }: SuccessToastProps) {
   if (!message) return null;
 
   return (
-    <div className="px-4 py-2 bg-success-green text-white font-thin rounded-lg flex items-center">
+    <div
+      className="px-4 py-2 bg-success-green text-white font-thin rounded-lg flex items-center"
+      data-testid="success-toast"
+    >
       <p>{message}</p>
       <button
         onClick={() => onClose()}

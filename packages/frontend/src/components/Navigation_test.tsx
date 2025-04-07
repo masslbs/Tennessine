@@ -175,6 +175,26 @@ Deno.test("Check that we can render the navigation bar", {
     expect(state).toBe(OrderState.Committed);
   });
 
+  await t.step("clear cart when order is committed", async () => {
+    await waitFor(async () => {
+      const cartToggle = screen.getByTestId("cart-toggle");
+      expect(cartToggle).toBeTruthy();
+      await user.click(cartToggle);
+    });
+    // Try to clear cart that's already committed
+    await waitFor(async () => {
+      const clearCart = screen.getByTestId("clear-cart");
+      expect(clearCart).toBeDefined();
+      await user.click(clearCart);
+    });
+    await waitFor(() => {
+      const cartItems = screen.queryAllByTestId("cart-item");
+      expect(cartItems.length).toBe(0);
+    });
+    const orders = await stateManager.get(["Orders"]);
+    expect(orders.size).toBe(2);
+  });
+
   unmount();
   cleanup();
 });
