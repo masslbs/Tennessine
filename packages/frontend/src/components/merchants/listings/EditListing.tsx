@@ -350,6 +350,8 @@ export default function EditProduct() {
               >
                 <label htmlFor="price">price</label>
                 <input
+                  type="number"
+                  step="any"
                   value={formatUnits(listing.Price, baseToken.decimals)}
                   className="border-2 border-solid mt-1 p-3 rounded-md bg-background-gray"
                   data-testid="price"
