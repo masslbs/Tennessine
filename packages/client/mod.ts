@@ -222,7 +222,7 @@ export class RelayClient {
             assert(controller, "invalid subscription recv");
             return;
           }
-          const sets = envelope.subscriptionPushRequest.sets;
+          const sets = envelope.subscriptionPushRequest.sets ?? [];
           debug(
             `unbox[${reqId}] subscriptionPushRequest[${subscriptionId}]. SetCount: ${sets.length}`,
           );
@@ -490,7 +490,10 @@ export class RelayClient {
 
       this.connection.addEventListener(
         "error",
-        onError ? onError : (error: Event) => {
+        onError ? onError : (errEv: Event) => {
+          assert(errEv instanceof ErrorEvent, "error event is required");
+          const error = new Error(errEv.message);
+          error.name = errEv.error?.name ?? "WebSocketError";
           errLog("WebSocket error!", error);
         },
       );
@@ -498,7 +501,9 @@ export class RelayClient {
       this.connection.addEventListener(
         "close",
         (ev: CloseEvent) => {
-          warnLog("WebSocket closed", ev);
+          if (!ev.wasClean) {
+            warnLog("WebSocket closed uncleanly");
+          }
           this.#isAuthenticated = false;
           this.#authenticationPromise = this.#initialAuthPromise;
           this.connection = null;

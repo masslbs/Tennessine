@@ -3,6 +3,7 @@ import {
   BaseClass,
   ensureBoolean,
   ensureNumber,
+  ensureSomeNumberAsBigInt,
   ensureString,
   ensureStringArray,
 } from "./utils.ts";
@@ -30,7 +31,7 @@ export class Listing extends BaseClass {
 
   static fromCBOR(input: Map<string, unknown>): Listing {
     const id = ensureNumber(input.get("ID"), "ID");
-    const price = input.get("Price")
+    const price = ensureSomeNumberAsBigInt(input.get("Price"), "Price");
 
     const metadata = input.get("Metadata");
     if (!(metadata instanceof Map)) {
@@ -41,6 +42,7 @@ export class Listing extends BaseClass {
     const viewStateNum = ensureNumber(input.get("ViewState"), "ViewState");
     const viewState = ViewStateFromNumber(viewStateNum);
 
+    // @ts-ignore TODO: see comment on ensureSomeNumberAsBigInt about treatment of bigint
     const listing = new Listing(id, price, metadataObj, viewState);
 
     const options = input.get("Options");
