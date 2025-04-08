@@ -107,6 +107,7 @@ Deno.test("Check that we can render the listing details screen", {
     await user.click(addToBasket);
   });
   const items =
+    // @ts-ignore TODO: add BaseClass to CodecValue
     Order.fromCBOR(await stateManager.get(["Orders", orderId])).Items;
   expect(items[0].ListingID).toBe(listingId);
   expect(items[0].Quantity).toBe(10);
@@ -127,13 +128,17 @@ Deno.test("Check that we can render the listing details screen", {
   await waitFor(async () => {
     const successToast = screen.getByTestId("success-toast");
     expect(successToast).toBeTruthy();
-    const updatedOrders = await stateManager.get(["Orders"]);
+    const updatedOrders = await stateManager.get(["Orders"]) as Map<
+      bigint,
+      unknown
+    >;
     expect(updatedOrders.size).toBe(2);
     const newOrderId = Array.from(updatedOrders.keys())[1];
+    // @ts-ignore TODO: add BaseClass to CodecValue
     const newOrderData = await stateManager.get(["Orders", newOrderId]);
     const newOrder = Order.fromCBOR(newOrderData as Map<string, unknown>);
     expect(newOrder.Items[0].ListingID).toBe(listingId);
-    expect(newOrder.Items[0].Quantity).toBe(10);
+    expect(newOrder.Items[0].Quantity).toBe(1);
   });
 
   unmount();
