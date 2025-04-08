@@ -12,7 +12,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     relay = {
-      url = "git+ssh://git@github.com/masslbs/relay.git?ref=network-v4";
+      url = "git+ssh://git@github.com/masslbs/relay.git?ref=process-compose";
     };
     contracts.follows = "relay/contracts";
     # schema.follows = "relay/schema";
@@ -87,7 +87,7 @@
 
           buildInputs = with pkgs;
             [
-              contracts.packages.${system}.local-testnet
+              relay.packages.${system}.local-testnet
               nodejs # needed for protobuf generation
               reuse
               # Language servers
