@@ -53,8 +53,12 @@ export type Patch =
   }
   & (
     | {
-      Op: "add" | "remove" | "replace" | "append" | "increment" | "decrement";
+      Op: "add" | "replace" | "append";
       Value: CodecValue;
+    }
+    | {
+      Op: "increment" | "decrement";
+      Value: number;
     }
     | {
       Op: "remove";
