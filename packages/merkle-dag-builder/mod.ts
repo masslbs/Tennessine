@@ -120,7 +120,10 @@ export class DAG {
       if (typeof value === "function") {
         await value(parent, last);
       } else {
+        console.log("setting value");
+        console.log("parent", parent);
         set(parent, last, value);
+        console.log("parent", parent);
       }
     } else {
       throw new Error(`Path ${path.join(".")} does not exist`);

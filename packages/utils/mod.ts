@@ -209,7 +209,8 @@ export function set(
   value: unknown,
 ): void {
   if (obj instanceof Map) {
-    obj.set(key, value);
+    const f = obj.entries().find(([k]) => equal(k, key)) ?? [key];
+    obj.set(f[0] ?? key, value);
   } else if (
     typeof obj === "object" && obj !== null &&
     (typeof key === "number" ||
