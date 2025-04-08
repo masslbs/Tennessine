@@ -1,10 +1,10 @@
 import { Link } from "@tanstack/react-router";
 
 import { Order } from "@massmarket/schema";
-import { OrderState } from "../../types.ts";
+import { OrderId, OrderState } from "../../types.ts";
 
 export default function Transactions(
-  { orders }: { orders: Map<string, Order> },
+  { orders }: { orders: Map<OrderId, Order> },
 ) {
   const transactions = Array.from([...orders.entries()])
     .map(([key, value]) => {
