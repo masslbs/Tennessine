@@ -15,7 +15,7 @@ export default function MerchantDashboard() {
   const { stateManager } = useStateManager();
   const [orders, setOrders] = useState<Map<OrderId, Order>>(new Map());
 
-  function mapToOrderClass(orders: Map<OrderId, unknown>) {
+  function mapToOrderClass(orders: Map<OrderId, Map<string, unknown>>) {
     const allOrders = new Map();
     for (
       const [
@@ -31,15 +31,18 @@ export default function MerchantDashboard() {
   useEffect(() => {
     if (!stateManager) return;
 
-    function ordersEvent(res: Map<OrderId, unknown>) {
+    function ordersEvent(res: Map<OrderId, Map<string, unknown>>) {
       const allOrders = mapToOrderClass(res);
       setOrders(allOrders);
     }
 
-    stateManager.get(["Orders"]).then((res: Map<OrderId, unknown>) => {
-      const allOrders = mapToOrderClass(res);
-      setOrders(allOrders);
-    });
+    // @ts-ignore TODO: add BaseClass to CodecValue
+    stateManager.get(["Orders"]).then(
+      (res: Map<OrderId, Map<string, unknown>>) => {
+        const allOrders = mapToOrderClass(res);
+        setOrders(allOrders);
+      },
+    );
 
     stateManager.events.on(ordersEvent, ["Orders"]);
 

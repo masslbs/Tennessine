@@ -24,8 +24,7 @@ Deno.test("Check that we can render the shop settings screen", {
 }, async (t) => {
   const user = userEvent.setup();
   const m = allManifests[0];
-  // @ts-ignore TODO: add BaseClass to CodecValue
-  const manifest = Manifest.fromCBOR(m);
+  const manifest = Manifest.fromCBOR(m as Map<string, unknown>);
   const shopId = random256BigInt();
 
   const {
@@ -108,8 +107,7 @@ Deno.test("Check that we can render the shop settings screen", {
       await waitFor(async () => {
         // check manifest is updated
         const m = await stateManager.get(["Manifest"]);
-        // @ts-ignore TODO: add BaseClass to CodecValue
-        const manifest = Manifest.fromCBOR(m);
+        const manifest = Manifest.fromCBOR(m as Map<string, unknown>);
         expect(manifest.PricingCurrency!.ChainID).toBe(hardhat.id);
         expect(
           equal(

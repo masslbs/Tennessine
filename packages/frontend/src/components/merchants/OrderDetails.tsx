@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { toHex } from "viem";
 import { type Chain, mainnet, optimism, sepolia } from "wagmi/chains";
 import { useSearch } from "@tanstack/react-router";
 
@@ -7,7 +8,6 @@ import { Listing, Order, OrderedItem } from "@massmarket/schema";
 import BackButton from "../common/BackButton.tsx";
 import { ListingId, OrderState } from "../../types.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
-
 export default function OrderDetails() {
   const { stateManager } = useStateManager();
   const search = useSearch({ strict: false });
@@ -18,14 +18,14 @@ export default function OrderDetails() {
   const [selectedQty, setSelectedQty] = useState<Map<ListingId, number>>(
     new Map(),
   );
-  const [txHash, setTxHash] = useState(null);
-  const [blockHash, setBlockHash] = useState(null);
+  const [txHash, setTxHash] = useState<string | null>(null);
+  const [blockHash, setBlockHash] = useState<string | null>(null);
   const [etherScanLink, setLink] = useState<string | null>(null);
-  const [date, setDate] = useState("N/A");
   const [order, setOrder] = useState<Order>(new Order());
   useEffect(() => {
     if (!orderId) return;
     stateManager.get(["Orders", orderId]).then(
+      // @ts-ignore TODO: add BaseClass to CodecValue
       (res: Map<string, unknown>) => {
         const o = Order.fromCBOR(res);
         getAllCartItemDetails(o).then((cartItems) => {
@@ -38,9 +38,10 @@ export default function OrderDetails() {
 
   useEffect(() => {
     if (order?.State === OrderState.Paid) {
-      const id = order.ChosenCurrency.ChainID;
-      order.TxDetails.TxHash && setTxHash(order.TxDetails.TxHash);
-      order.TxDetails.BlockHash && setBlockHash(order.TxDetails.BlockHash);
+      const id = order.ChosenCurrency!.ChainID;
+      order.TxDetails!.TxHash && setTxHash(toHex(order.TxDetails!.TxHash!));
+      order.TxDetails!.BlockHash &&
+        setBlockHash(toHex(order.TxDetails!.BlockHash!));
 
       let chain: Chain | null = null;
       if (id === optimism.id) {
@@ -53,17 +54,6 @@ export default function OrderDetails() {
 
       if (chain) {
         setLink(chain.blockExplorers?.default?.url || null);
-      }
-
-      if (order.timestamp) {
-        const d = new Intl.DateTimeFormat("en-US", {
-          year: "numeric",
-          month: "numeric",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        }).format(order.timestamp * 1000);
-        setDate(d);
       }
     }
   }, [order]);
@@ -91,7 +81,7 @@ export default function OrderDetails() {
           "Listings",
           orderItem.ListingID,
         ]);
-        const l = Listing.fromCBOR(listing);
+        const l = Listing.fromCBOR(listing as Map<string, unknown>);
         allCartItems.set(orderItem.ListingID, l);
       }),
     );
@@ -127,8 +117,7 @@ export default function OrderDetails() {
         <h1>Order overview</h1>
       </div>
       <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
-        <p>Order ID: {order.id}</p>
-        <p>Last updated: {date}</p>
+        <p>Order ID: {order.ID}</p>
       </section>
       <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
         <h2>Order items</h2>
