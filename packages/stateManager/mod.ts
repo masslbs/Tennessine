@@ -141,7 +141,6 @@ export default class StateManager {
               parent: codec.CodecValue,
               deleteKey: codec.CodecKey,
             ) => {
-              console.log("Deleting key from Map:", deleteKey, parent);
               if (parent instanceof Map) {
                 const f = parent.entries().find(([k]) => equal(k, deleteKey));
                 if (f) parent.delete(f[0]);
@@ -157,10 +156,26 @@ export default class StateManager {
               return parent;
             };
           } else if (patch.Op === "increment") {
-            operation = (_parent: codec.CodecValue, _step: codec.CodecKey) => {
+            operation = (parent: codec.CodecValue, step: codec.CodecKey) => {
+              const val = get(parent, step);
+              if (typeof val === "number") {
+                set(parent, step, val + (patch.Value as number));
+              } else {
+                throw new Error(
+                  `Invalid current value ${val} for path: ${patch.Path}`,
+                );
+              }
             };
           } else if (patch.Op === "decrement") {
-            operation = (_parent: codec.CodecValue, _step: codec.CodecKey) => {
+            operation = (parent: codec.CodecValue, step: codec.CodecKey) => {
+              const val = get(parent, step);
+              if (typeof val === "number") {
+                set(parent, step, val - (patch.Value as number));
+              } else {
+                throw new Error(
+                  `Invalid current value ${val} for path: ${patch.Path}`,
+                );
+              }
             };
           } else {
             console.error({ patch });
