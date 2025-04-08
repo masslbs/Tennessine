@@ -1,4 +1,4 @@
-import { assert } from "@std/assert";
+import { assert, equal } from "@std/assert";
 
 import { DAG, type RootValue } from "@massmarket/merkle-dag-builder";
 import type { AbstractStore } from "@massmarket/store";
@@ -141,8 +141,10 @@ export default class StateManager {
               parent: codec.CodecValue,
               deleteKey: codec.CodecKey,
             ) => {
+              console.log("Deleting key from Map:", deleteKey, parent);
               if (parent instanceof Map) {
-                parent.delete(deleteKey);
+                const f = parent.entries().find(([k]) => equal(k, deleteKey));
+                if (f) parent.delete(f[0]);
               } else if (
                 parent instanceof Array && typeof deleteKey === "number"
               ) {
@@ -153,6 +155,12 @@ export default class StateManager {
                 );
               }
               return parent;
+            };
+          } else if (patch.Op === "increment") {
+            operation = (_parent: codec.CodecValue, _step: codec.CodecKey) => {
+            };
+          } else if (patch.Op === "decrement") {
+            operation = (_parent: codec.CodecValue, _step: codec.CodecKey) => {
             };
           } else {
             console.error({ patch });

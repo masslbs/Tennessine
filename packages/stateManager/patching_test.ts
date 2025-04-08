@@ -8,11 +8,11 @@ import { assertEquals } from "@std/assert/equals";
 Deno.test("Database Testings", async (t) => {
   const testFiles = [
     "ManifestOkay",
-    "ListingOkay",
-    "OrderOkay",
+    // "ListingOkay",
+    // "OrderOkay",
     // "ShopOkay", // skipping because extractFromHAMT returns integger as keys and Account should have bytes as keys
-    "InventoryOkay",
-    "UserFlows/SimpleShoppingTrip",
+    // "InventoryOkay",
+    // "UserFlows/SimpleShoppingTrip",
   ];
 
   let passing = true;

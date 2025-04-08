@@ -8,7 +8,6 @@ import {
   bytesToBigInt,
   bytesToHex,
   bytesToNumber,
-  formatUnits,
   numberToBytes,
   parseUnits,
   toBytes,
