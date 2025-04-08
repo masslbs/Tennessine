@@ -317,6 +317,7 @@ export class RelayClient {
         const r = await this.createSubscription(path, seqNum);
         id = r.payload!;
         this.#subscriptions.set(id.toString(), c);
+        debug(`registered subscription[${id.toString()}]`);
       },
       cancel: async (reason) => {
         this.#subscriptions.delete(id.toString());
