@@ -4,7 +4,7 @@ import { expect } from "@std/expect";
 
 import { random256BigInt } from "@massmarket/utils";
 import { allOrderListings, allOrders } from "@massmarket/schema/testFixtures";
-import { Listing } from "@massmarket/schema";
+import { Listing, Order } from "@massmarket/schema";
 
 import OrderDetails from "./OrderDetails.tsx";
 import { createRouterWrapper } from "../../testutils/mod.tsx";
@@ -14,8 +14,8 @@ Deno.test("Check that we can render the order details screen", {
   sanitizeOps: false,
 }, async () => {
   const shopId = random256BigInt();
-  const orderId = allOrders.keys().next().value;
-  const order = allOrders.get(orderId);
+  const orderId = allOrders.keys().next().value!;
+  const order = allOrders.get(orderId) as Order;
   order.ShippingAddress = order.InvoiceAddress;
 
   const {
@@ -29,14 +29,15 @@ Deno.test("Check that we can render the order details screen", {
     enrollMerchant: true,
   });
   stateManager.addConnection(relayClient);
-  let listing = Listing;
+  let listing: Listing;
   for (const [key, entry] of allOrderListings.entries()) {
     // @ts-ignore TODO: add BaseClass to CodecValue
     await stateManager.set(["Listings", key], entry);
     if (key === order.Items[0].ListingID) {
-      listing = entry;
+      listing = entry as Listing;
     }
   }
+  // @ts-ignore TODO: add BaseClass to CodecValue
   await stateManager.set(["Orders", orderId], order);
 
   const { unmount } = render(<OrderDetails />, { wrapper });
@@ -49,11 +50,11 @@ Deno.test("Check that we can render the order details screen", {
     expect(orderItem[0].textContent).toBe(listing.Metadata.Title);
     const details = screen.getByTestId("shipping-details");
     expect(details).toBeTruthy();
-    expect(details.textContent).toContain(order.ShippingAddress.Name);
-    expect(details.textContent).toContain(order.ShippingAddress.Address1);
-    expect(details.textContent).toContain(order.ShippingAddress.City);
-    expect(details.textContent).toContain(order.ShippingAddress.Country);
-    expect(details.textContent).toContain(order.ShippingAddress.PostalCode);
+    expect(details.textContent).toContain(order.ShippingAddress!.Name);
+    expect(details.textContent).toContain(order.ShippingAddress!.Address1);
+    expect(details.textContent).toContain(order.ShippingAddress!.City);
+    expect(details.textContent).toContain(order.ShippingAddress!.Country);
+    expect(details.textContent).toContain(order.ShippingAddress!.PostalCode);
   });
   unmount();
   cleanup();

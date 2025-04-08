@@ -42,6 +42,7 @@ export default function ListingDetail() {
       //set item details
       stateManager
         .get(["Listings", itemId])
+        // @ts-ignore TODO: add BaseClass to CodecValue
         .then((res: Map<string, unknown>) => {
           if (!res) {
             throw new Error(`Listing ${itemId} not found`);
@@ -91,19 +92,19 @@ export default function ListingDetail() {
           "Orders",
           orderId,
         ]);
-        const order: Order = Order.fromCBOR(o);
+        const order: Order = Order.fromCBOR(o as Map<string, unknown>);
         // If item already exists in the items array, filter it out so we can replace it with the new quantity
-        const updatedOrderItems: OrderedItem[] = (order.Items ?? []).filter(
+        const updatedOrderItems = (order.Items ?? []).filter(
           (item: OrderedItem) => item.ListingID !== itemId,
         );
         updatedOrderItems.push(
-          new OrderedItem(itemId, Number(quantity)).asCBORMap(),
+          new OrderedItem(itemId, Number(quantity)),
         );
 
         await stateManager.set(
           ["Orders", orderId, "Items"],
           // @ts-ignore TODO: add BaseClass to CodecValue
-          updatedOrderItems,
+          updatedOrderItems.map((item: OrderedItem) => item.asCBORMap()),
         );
         setQuantity("");
         setMsg("Cart updated");
