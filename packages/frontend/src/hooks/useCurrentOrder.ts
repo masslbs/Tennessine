@@ -4,7 +4,7 @@ import { logger, randUint64 } from "@massmarket/utils";
 import { Order, OrderedItem } from "@massmarket/schema";
 
 import { useStateManager } from "./useStateManager.ts";
-import { KeycardRole, OrderState } from "../types.ts";
+import { KeycardRole, ListingId, OrderState } from "../types.ts";
 import { useKeycard } from "./useKeycard.ts";
 import { useMassMarketContext } from "../MassMarketContext.ts";
 
@@ -33,13 +33,15 @@ export function useCurrentOrder() {
     }
   }
 
-  async function createOrder(itemId, quantity) {
+  async function createOrder(itemId?: ListingId, quantity?: number) {
     const orderId = randUint64();
     const newOrder = new Order(
       orderId,
-      [
-        new OrderedItem(itemId, Number(quantity)),
-      ],
+      itemId
+        ? [
+          new OrderedItem(itemId, Number(quantity)),
+        ]
+        : [],
       OrderState.Open,
     );
     await stateManager.set(
@@ -49,6 +51,40 @@ export function useCurrentOrder() {
     );
     debug(`New Order ID: ${orderId}`);
     setCurrentOrder(newOrder);
+  }
+
+  async function cancelOrder() {
+    debug("Cancelling order");
+
+    await stateManager.set(
+      ["Orders", currentOrder!.ID, "CanceledAt"],
+      new Date(),
+    );
+    await stateManager.set(
+      ["Orders", currentOrder!.ID, "State"],
+      OrderState.Canceled,
+    );
+  }
+
+  async function cancelAndRecreateOrder() {
+    debug("Cancelling and recreating order");
+    const items = currentOrder?.Items;
+    await cancelOrder();
+    const newOrderID = randUint64();
+    const newOrder = new Order(
+      newOrderID,
+      items,
+      OrderState.Open,
+    );
+
+    await stateManager.set(
+      ["Orders", newOrderID],
+      // @ts-ignore TODO: add BaseClass to CodecValue
+      newOrder,
+    );
+    debug("Order recreated.");
+    setCurrentOrder(newOrder);
+    return newOrderID;
   }
 
   async function orderFetcher() {
@@ -97,9 +133,14 @@ export function useCurrentOrder() {
     if (!currentOrder) {
       orderFetcher().then((o: Order | null) => {
         if (!o) return;
-        stateManager.events.on(onCurrentOrderChange, ["Orders", o.ID]);
         setCurrentOrder(o);
       });
+    }
+  }, [stateManager]);
+
+  useEffect(() => {
+    if (currentOrder) {
+      stateManager.events.on(onCurrentOrderChange, ["Orders", currentOrder.ID]);
     }
     return () => {
       if (currentOrder) {
@@ -109,6 +150,6 @@ export function useCurrentOrder() {
         ]);
       }
     };
-  }, [stateManager]);
-  return { currentOrder, createOrder };
+  }, [currentOrder?.ID]);
+  return { currentOrder, createOrder, cancelAndRecreateOrder, cancelOrder };
 }

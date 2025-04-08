@@ -6,7 +6,7 @@ import { ChangeEvent, useEffect, useState } from "react";
 import { Link, useSearch } from "@tanstack/react-router";
 import { formatUnits } from "viem";
 
-import { logger, randUint64 } from "@massmarket/utils";
+import { logger } from "@massmarket/utils";
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
 
 import { ListingId, OrderId, OrderState } from "../types.ts";
@@ -18,10 +18,8 @@ import { useKeycard } from "../hooks/useKeycard.ts";
 import ErrorMessage from "./common/ErrorMessage.tsx";
 import SuccessToast from "./common/SuccessToast.tsx";
 import { useCurrentOrder } from "../hooks/useCurrentOrder.ts";
-import { cancelAndCreateOrder } from "../utils/helper.ts";
 
 const namespace = "frontend:listing-detail";
-const debug = logger(namespace);
 const errlog = logger(namespace, "error");
 
 export default function ListingDetail() {
@@ -29,7 +27,8 @@ export default function ListingDetail() {
   const { stateManager } = useStateManager();
   const [keycard] = useKeycard();
   const search = useSearch({ strict: false });
-  const { currentOrder, createOrder } = useCurrentOrder();
+  const { currentOrder, createOrder, cancelAndRecreateOrder } =
+    useCurrentOrder();
   const itemId = search.itemId as ListingId;
   const [listing, setListing] = useState<Listing>(new Listing());
   const [tokenIcon, setIcon] = useState("/icons/usdc-coin.png");
@@ -78,12 +77,14 @@ export default function ListingDetail() {
       if (
         !orderId
       ) {
-        await createOrder(itemId, quantity);
+        await createOrder(itemId, Number(quantity));
         setMsg("Item added to cart");
       } else {
         // Update existing order
+
+        // If the order is committed, cancel it and create a new one
         if (currentOrder?.State === OrderState.Committed) {
-          orderId = await cancelAndCreateOrder(orderId, stateManager);
+          orderId = await cancelAndRecreateOrder();
         }
 
         const o = await stateManager.get([
@@ -91,16 +92,14 @@ export default function ListingDetail() {
           orderId,
         ]);
         const order: Order = Order.fromCBOR(o);
-        const updatedOrderItems: OrderedItem[] = (order.Items ?? []).map(
-          (item: OrderedItem) => {
-            if (item.ListingID === itemId) {
-              return new OrderedItem(item.ListingID, Number(quantity))
-                .asCBORMap();
-            } else {
-              return item.asCBORMap();
-            }
-          },
+        // If item already exists in the items array, filter it out so we can replace it with the new quantity
+        const updatedOrderItems: OrderedItem[] = (order.Items ?? []).filter(
+          (item: OrderedItem) => item.ListingID !== itemId,
         );
+        updatedOrderItems.push(
+          new OrderedItem(itemId, Number(quantity)).asCBORMap(),
+        );
+
         await stateManager.set(
           ["Orders", orderId, "Items"],
           // @ts-ignore TODO: add BaseClass to CodecValue
@@ -221,6 +220,8 @@ export default function ListingDetail() {
                   value={quantity}
                   data-testid="purchaseQty"
                   type="number"
+                  min="0"
+                  step="1"
                   onChange={(e) => handlePurchaseQty(e)}
                 />
               </div>

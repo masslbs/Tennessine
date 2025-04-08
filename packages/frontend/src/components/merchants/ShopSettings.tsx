@@ -15,7 +15,6 @@ import {
   Manifest,
 } from "@massmarket/schema";
 import { CurrencyChainOption } from "../../types.ts";
-import { getTokenAddress } from "../../utils/token.ts";
 import Button from "../common/Button.tsx";
 import AvatarUpload from "../common/AvatarUpload.tsx";
 import ValidationWarning from "../common/ValidationWarning.tsx";
@@ -27,6 +26,7 @@ import { useShopDetails } from "../../hooks/useShopDetails.ts";
 import { useShopId } from "../../hooks/useShopId.ts";
 import { useRelayClient } from "../../hooks/useRelayClient.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
+import { useAllCurrencyOptions } from "../../hooks/useAllCurrencyOptions.ts";
 const namespace = "frontend:StoreSettings";
 const errlog = logger(namespace, "error");
 
@@ -45,50 +45,27 @@ export default function ShopSettings() {
     AcceptedCurrencyMap
   >(new AcceptedCurrencyMap());
   const [pricingCurrency, setPricingCurrency] = useState<
-    ChainAddress
+    ChainAddress | null
   >(
-    new ChainAddress(),
+    null,
   );
   const [error, setError] = useState<null | string>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [manifest, setManifest] = useState<Manifest | null>(null);
-  const [displayedChains, setDisplayedChains] = useState<CurrencyChainOption[]>(
-    [],
-  );
-
-  useEffect(() => {
-    if (chains) {
-      const chainsToRender: CurrencyChainOption[] = [];
-      chains.map((c) => {
-        chainsToRender.push({
-          label: `ETH/${c.name}`,
-          value: `ETH/${c.id}`,
-          address: hexToBytes(zeroAddress),
-          chainId: c.id,
-        });
-        const eddAddress = getTokenAddress("EDD", c.id);
-        chainsToRender.push({
-          label: `EDD/${c.name}`,
-          value: `EDD/${c.id}`,
-          address: eddAddress,
-          chainId: c.id,
-        });
-      });
-      setDisplayedChains(chainsToRender);
-    }
-  }, []);
+  const currencyOptions = useAllCurrencyOptions();
 
   useEffect(() => {
     if (!stateManager) return;
     function onUpdateEvent(res: Map<string, unknown>) {
-      const m = new Manifest(res);
+      const m = Manifest.fromCBOR(res);
       setManifest(m);
       setAcceptedCurrencies(m.AcceptedCurrencies);
       // setPricingCurrency(m.PricingCurrency);
     }
 
     stateManager.get(["Manifest"])
+      // @ts-ignore TODO: add BaseClass to CodecValue
       .then((res: Map<string, unknown>) => {
         const m = Manifest.fromCBOR(res);
         setManifest(m);
@@ -114,8 +91,9 @@ export default function ShopSettings() {
     //If pricing currency needs to update.
     if (
       pricingCurrency!.Address !== manifest!.PricingCurrency.Address ||
-      pricingCurrency!.chainID !== manifest!.PricingCurrency.chainID
+      pricingCurrency!.ChainID !== manifest!.PricingCurrency.ChainID
     ) {
+      // @ts-ignore TODO: add BaseClass to CodecValue
       await stateManager.set(["Manifest", "PricingCurrency"], pricingCurrency);
     }
     if (
@@ -151,7 +129,7 @@ export default function ShopSettings() {
         const { url } = await relayClient!.uploadBlob(
           formData,
         );
-        await setTokenURI(wallet!, [shopId!, url]);
+        await setTokenURI(wallet!, wallet!.account, [shopId!, url]);
         setShopDetails({
           name: storeName,
           profilePictureUrl: metadata.image,
@@ -187,16 +165,16 @@ export default function ShopSettings() {
     setPricingCurrency(pc);
   }
 
-  function currencyIsSelected(c: CurrencyChainOption) {
+  function currencyIsSelected(option: CurrencyChainOption) {
     const metadata = acceptedCurrencies.getAddressMetadata(
-      c.chainId,
-      c.address,
+      option.chainId,
+      option.address,
     );
     return Boolean(metadata);
   }
 
   function selectedPricingCurrency() {
-    return displayedChains.find((c) => {
+    return currencyOptions.find((c) => {
       if (
         c.chainId === pricingCurrency?.ChainID &&
         equal(c.address, pricingCurrency?.Address)
@@ -306,7 +284,7 @@ export default function ShopSettings() {
                     className="flex flex-col gap-1 mt-1"
                     data-testid="displayed-accepted-currencies"
                   >
-                    {displayedChains.map((c: CurrencyChainOption) => {
+                    {currencyOptions.map((c: CurrencyChainOption) => {
                       return (
                         <div key={c.value}>
                           <label className="flex items-center space-x-2">
@@ -329,7 +307,7 @@ export default function ShopSettings() {
                     <Dropdown
                       label="Pricing Currency"
                       testId="pricing-currency-dropdown"
-                      options={displayedChains}
+                      options={currencyOptions}
                       callback={handlePricingCurrency}
                       selected={selectedPricingCurrency()}
                     />

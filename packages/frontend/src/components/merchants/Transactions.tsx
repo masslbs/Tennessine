@@ -1,16 +1,16 @@
 import { Link } from "@tanstack/react-router";
-import { OrderState, TOrder } from "../../types.ts";
+
+import { Order } from "@massmarket/schema";
+import { OrderState } from "../../types.ts";
 
 export default function Transactions(
-  { orders }: { orders: Map<string, TOrder> },
+  { orders }: { orders: Map<string, Order> },
 ) {
   const transactions = Array.from([...orders.entries()])
     .map(([key, value]) => {
       const ID = key;
-      let date = "";
-
       let status: string;
-      switch (value.status) {
+      switch (value.State) {
         case OrderState.Canceled:
           status = "Cancelled";
           break;
@@ -26,7 +26,7 @@ export default function Transactions(
         default:
           status = "Unspecified";
       }
-      return { ID, date, status };
+      return { ID, status };
     });
 
   if (!transactions.length) {
@@ -48,8 +48,7 @@ export default function Transactions(
           orderId: o.ID,
         })}
       >
-        <p data-testid="id">{o.ID}...</p>
-        <p data-testid="date">{o.date}</p>
+        <p data-testid={o.ID}>{o.ID}...</p>
         <p data-testid="status">{o.status}</p>
       </Link>
     );

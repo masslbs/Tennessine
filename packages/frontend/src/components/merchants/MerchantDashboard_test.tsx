@@ -31,10 +31,11 @@ Deno.test("Merchant Dashboard", {
       // @ts-ignore TODO: add BaseClass to CodecValue
       await stateManager.set(["Listings", key], entry);
     }
-
+    let orderId: number;
     for (const [key, entry] of allOrders.entries()) {
       // @ts-ignore TODO: add BaseClass to CodecValue
       await stateManager.set(["Orders", key], entry);
+      orderId = key;
     }
 
     const { unmount } = render(<MerchantDashboard />, { wrapper });
@@ -45,6 +46,12 @@ Deno.test("Merchant Dashboard", {
       const orders = screen.getAllByTestId("transaction");
       expect(orders).toBeTruthy();
       expect(orders.length).toBe(allOrders.size);
+    });
+    await waitFor(() => {
+      const order = screen.getAllByTestId(orderId);
+      expect(order).toBeTruthy();
+      const status = screen.getAllByTestId("status");
+      expect(status[0].textContent).toBe("Open");
     });
     unmount();
   });

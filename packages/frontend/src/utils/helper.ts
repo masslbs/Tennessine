@@ -1,39 +1,6 @@
 import { formatUnits } from "viem";
 
-import { Order } from "@massmarket/schema";
-import StateManager from "@massmarket/stateManager";
-import { KeycardRole, OrderId, OrderState } from "../types.ts";
-import { randUint64 } from "../../../utils/mod.ts";
-
-export async function cancelAndCreateOrder(
-  orderId: OrderId,
-  sm: StateManager,
-) {
-  const currentOrder = await sm.get(["Orders", orderId]) as Map<
-    string,
-    unknown
-  >;
-  // Cancel current order.
-  await sm.set(
-    ["Orders", orderId, "CanceledAt"],
-    new Date(),
-  );
-  await sm.set(
-    ["Orders", orderId, "State"],
-    OrderState.Canceled,
-  );
-
-  // Create a new order and add the same items.
-  const newOrder = new Order();
-  const newOrderId = randUint64();
-  newOrder.ID = newOrderId;
-  newOrder.State = OrderState.Open;
-  newOrder.Items = Order.fromCBOR(currentOrder).Items;
-  // @ts-ignore TODO: add BaseClass to CodecValue
-  await sm.set(["Orders", newOrderId], newOrder);
-
-  return newOrder.ID;
-}
+import { KeycardRole } from "../types.ts";
 
 export function multiplyAndFormatUnits(
   price: bigint,
