@@ -37,16 +37,14 @@ export default function EditProduct() {
   const [blobs, setBlobs] = useState<FormData[]>([]);
   const [publishing, setPublishing] = useState(false);
 
-  // TODO: this "new" handling seems a bit convoluted...
   const itemId = typeof search.itemId === "number"
     ? Number(search.itemId) as ListingId
-    : "new";
-  const editView = itemId !== "new";
-  const hed = editView ? "Edit product" : "Add Product";
+    : null;
+  const hed = itemId ? "Edit product" : "Add Product";
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!stateManager || !editView || !itemId) return;
+    if (!stateManager || !itemId) return;
     stateManager.get(["Listings", itemId])
       // @ts-ignore TODO: add BaseClass to CodecValue
       .then((item: Map<string, unknown> | undefined) => {
@@ -68,7 +66,7 @@ export default function EditProduct() {
           setStock(Number(item));
         }
       });
-  }, [stateManager, editView, itemId]);
+  }, [stateManager, itemId]);
 
   async function create(newListing: Listing) {
     assert(stateManager, "State manager is required");
@@ -130,7 +128,7 @@ export default function EditProduct() {
           newListing.Metadata.Images = uploaded;
         }
 
-        if (editView) {
+        if (itemId) {
           newListing.ID = itemId;
           await update(newListing);
         } else {
@@ -406,7 +404,7 @@ export default function EditProduct() {
               onClick={onPublish}
               data-testid="save-button"
             >
-              {editView ? "Update product" : "Create product"}
+              {itemId ? "Update product" : "Create product"}
             </Button>
           </section>
         </section>
