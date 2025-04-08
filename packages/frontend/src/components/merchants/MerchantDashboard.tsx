@@ -23,7 +23,7 @@ export default function MerchantDashboard() {
         o,
       ] of orders.entries()
     ) {
-      allOrders.set(id, new Order(o));
+      allOrders.set(id, Order.fromCBOR(o));
     }
     return allOrders;
   }

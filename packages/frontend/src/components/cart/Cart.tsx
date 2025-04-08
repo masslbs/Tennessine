@@ -7,7 +7,7 @@ import { formatUnits } from "viem";
 import { assert, logger } from "@massmarket/utils";
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
 
-import { ListingId } from "../../types.ts";
+import { ListingId, OrderState } from "../../types.ts";
 import Button from "../common/Button.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import { useBaseToken } from "../../hooks/useBaseToken.ts";
@@ -28,7 +28,7 @@ export default function Cart({
   closeBasket?: () => void;
   showActionButtons?: boolean;
 }) {
-  const { currentOrder } = useCurrentOrder();
+  const { currentOrder, cancelOrder, createOrder } = useCurrentOrder();
   const { baseToken } = useBaseToken();
   const { stateManager } = useStateManager();
 
@@ -40,29 +40,12 @@ export default function Cart({
   );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!stateManager) return;
-    if (!currentOrder) return;
-    function onOrderUpdate(order: Map<string, unknown>) {
-      const o = Order.fromCBOR(order);
-      getAllCartItemDetails(o).then((allCartItems) => {
-        setCartMap(allCartItems);
-      });
-    }
-
-    stateManager.get(["Orders", currentOrder!.ID]).then(
-      (order: Map<string, unknown>) => {
-        getAllCartItemDetails(Order.fromCBOR(order)).then((allCartItems) => {
-          setCartMap(allCartItems);
-        });
-      },
-    );
-    stateManager.events.on(onOrderUpdate, ["Orders", currentOrder!.ID]);
-
-    return () => {
-      stateManager.events.off(onOrderUpdate, ["Orders", currentOrder!.ID]);
-    };
-  }, [stateManager]);
+  function onOrderUpdate(order: Map<string, unknown>) {
+    const o = Order.fromCBOR(order);
+    getAllCartItemDetails(o).then((allCartItems) => {
+      setCartMap(allCartItems);
+    });
+  }
 
   useEffect(() => {
     if (!currentOrder || !stateManager) return;
@@ -73,6 +56,12 @@ export default function Cart({
         const allCartItems = await getAllCartItemDetails(o);
         setCartMap(allCartItems);
       });
+
+    stateManager.events.on(onOrderUpdate, ["Orders", currentOrder!.ID]);
+
+    return () => {
+      stateManager.events.off(onOrderUpdate, ["Orders", currentOrder!.ID]);
+    };
   }, [currentOrder, stateManager]);
 
   if (!currentOrder) {
@@ -123,6 +112,11 @@ export default function Cart({
 
   async function clearCart() {
     try {
+      if (currentOrder?.State === OrderState.Committed) {
+        await cancelOrder();
+        await createOrder();
+        return;
+      }
       await stateManager.set(
         ["Orders", currentOrder!.ID, "Items"],
         [],
@@ -145,7 +139,7 @@ export default function Cart({
       setSelectedQty(updatedQtyMap);
       const updatedOrderItems: OrderedItem[] = Array.from(cartItemsMap.keys())
         .map((key) => {
-          return new OrderedItem(key, selectedQty.get(key)!);
+          return new OrderedItem(key, updatedQtyMap.get(key)!).asCBORMap();
         });
       await stateManager.set(
         ["Orders", currentOrder!.ID, "Items"],
@@ -202,7 +196,6 @@ export default function Cart({
   function renderItems() {
     if (!currentOrder || !cartItemsMap.size) return <p>No items in cart</p>;
 
-    // console.log({cartItemsMap, selectedQty})
     const values: Listing[] = Array.from(cartItemsMap.values());
     return values.map((item: Listing) => {
       const qty = selectedQty.get(item.ID) || 0;
@@ -342,7 +335,7 @@ export default function Cart({
       >
         <Button
           disabled={!currentOrder || !cartItemsMap.size || !onCheckout}
-          onClick={() => handleCheckout()}
+          onClick={handleCheckout}
           data-testid="checkout-button"
         >
           <div className="flex items-center gap-2">

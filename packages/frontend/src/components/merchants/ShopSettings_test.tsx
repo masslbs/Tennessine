@@ -24,6 +24,7 @@ Deno.test("Check that we can render the shop settings screen", {
 }, async (t) => {
   const user = userEvent.setup();
   const m = allManifests[0];
+  // @ts-ignore TODO: add BaseClass to CodecValue
   const manifest = Manifest.fromCBOR(m);
   const shopId = random256BigInt();
 
@@ -43,17 +44,19 @@ Deno.test("Check that we can render the shop settings screen", {
   const ac = new AcceptedCurrencyMap();
   ac.addAddress(hardhat.id, hexToBytes(zeroAddress), false);
   manifest.AcceptedCurrencies = ac;
+  // @ts-ignore TODO: add BaseClass to CodecValue
+
   await stateManager.set(["Manifest"], manifest);
   const { unmount } = render(<ShopSettings />, { wrapper });
   screen.getByTestId("shop-settings-page");
 
   await t.step("Check that manifest data is rendered correctly", async () => {
-    await waitFor(async () => {
+    await waitFor(() => {
       const pricingCurrency = screen.getByTestId("pricing-currency-dropdown");
       expect(pricingCurrency).toBeTruthy();
       const selectElement = pricingCurrency.querySelector("select");
       // Check that the correct currency is displayed as pre selected.
-      expect(selectElement!.value).toBeTruthy("ETH/Hardhat");
+      expect(selectElement!.value).toEqual("ETH/Hardhat");
     });
 
     await waitFor(() => {
@@ -105,6 +108,7 @@ Deno.test("Check that we can render the shop settings screen", {
       await waitFor(async () => {
         // check manifest is updated
         const m = await stateManager.get(["Manifest"]);
+        // @ts-ignore TODO: add BaseClass to CodecValue
         const manifest = Manifest.fromCBOR(m);
         expect(manifest.PricingCurrency!.ChainID).toBe(hardhat.id);
         expect(
