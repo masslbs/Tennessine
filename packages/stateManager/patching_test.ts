@@ -7,12 +7,12 @@ import { assertEquals } from "@std/assert/equals";
 
 Deno.test("Database Testings", async (t) => {
   const testFiles = [
-    // "ManifestOkay",
+    "ManifestOkay",
     "ListingOkay",
-    // "OrderOkay",
-    // "ShopOkay",
-    // "InventoryOkay",
-    // "UserFlows/SimpleShoppingTrip",
+    "OrderOkay",
+    // "ShopOkay", // skipping because extractFromHAMT returns integger as keys and Account should have bytes as keys
+    "InventoryOkay",
+    "UserFlows/SimpleShoppingTrip",
   ];
 
   let passing = true;
@@ -53,9 +53,9 @@ Deno.test("Database Testings", async (t) => {
             await sm.open();
             const stream = sm.createWriteStream("tests", []);
             const writer = stream.getWriter();
-            // console.log("Before writing patch set", before);
-            // console.log("After writing patch set", after);
-            // console.log("Writing patch set", test.patchSet);
+            console.log("Before writing patch set", before);
+            console.log("After writing patch set", after);
+            console.log("Writing patch set", test.patchSet);
             await writer.write(test.patchSet);
             await writer.close();
             assertEquals(sm.root, after);
@@ -81,10 +81,12 @@ function createtestvectors(
   const header = patchSet.get("Header") as CodecValue;
 
   function fixListings(vector: Map<string, CodecValue>) {
-    const listings = extractEntriesFromHAMT(
-      vector.get("Listings"),
-    ) as CodecValue;
-    vector.set("Listings", listings);
+    ["Orders", "Listings", "Accounts"].forEach((key) => {
+      const val = extractEntriesFromHAMT(
+        vector.get(key),
+      ) as CodecValue;
+      vector.set(key, val);
+    });
     return vector;
   }
 
