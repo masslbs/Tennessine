@@ -24,7 +24,7 @@ export default function Listings() {
   function mapToListingClass(allListings: Map<ListingId, unknown>) {
     const listings: Listing[] = [];
     for (const [_id, l] of allListings.entries()) {
-      listings.push(Listing.fromCBOR(l));
+      listings.push(Listing.fromCBOR(l as Map<string, unknown>));
     }
     return listings;
   }
@@ -37,6 +37,7 @@ export default function Listings() {
       setProducts(listings);
     }
 
+    // @ts-ignore TODO: add BaseClass to CodecValue
     stateManager.get(["Listings"]).then((res: Map<ListingId, unknown>) => {
       const listings = mapToListingClass(res);
       setProducts(listings);

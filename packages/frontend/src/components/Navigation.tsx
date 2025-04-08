@@ -68,8 +68,9 @@ function Navigation() {
   useEffect(() => {
     if (!currentOrder) return;
     stateManager?.get(["Orders", currentOrder.ID])
-      .then((o: Map<OrderId, unknown>) => {
-        const order = Order.fromCBOR(o);
+      // @ts-ignore TODO: add BaseClass to CodecValue
+      .then((o: Map<string, unknown>) => {
+        const order = Order.fromCBOR(o as Map<string, unknown>);
         // Getting number of items in order.
         let length = 0;
         order.Items.map((item: OrderedItem) => (length += item.Quantity));

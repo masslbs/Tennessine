@@ -51,7 +51,8 @@ export default function Cart({
     if (!currentOrder || !stateManager) return;
     debug(`Showing cart items for order ID: ${currentOrder.ID}`);
     stateManager.get(["Orders", currentOrder.ID])
-      .then(async (res) => {
+      // @ts-ignore TODO: add BaseClass to CodecValue
+      .then(async (res: Map<string, unknown>) => {
         const o = Order.fromCBOR(res);
         const allCartItems = await getAllCartItemDetails(o);
         setCartMap(allCartItems);
@@ -137,7 +138,7 @@ export default function Cart({
       const updatedQtyMap = new Map(selectedQty);
       updatedQtyMap.set(id, selectedQty.get(id)! + (add ? 1 : -1));
       setSelectedQty(updatedQtyMap);
-      const updatedOrderItems: OrderedItem[] = Array.from(cartItemsMap.keys())
+      const updatedOrderItems = Array.from(cartItemsMap.keys())
         .map((key) => {
           return new OrderedItem(key, updatedQtyMap.get(key)!).asCBORMap();
         });

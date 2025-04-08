@@ -35,7 +35,7 @@ export default function MerchantViewProducts({
         productImage = item.Metadata.Images[0];
       }
 
-      const quantity = await stateManager.get(["Inventory", item.ID]);
+      const quantity = await stateManager.get(["Inventory", item.ID]) as number;
 
       return (
         <Link

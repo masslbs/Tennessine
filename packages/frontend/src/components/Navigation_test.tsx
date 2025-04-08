@@ -46,7 +46,10 @@ Deno.test("Check that we can render the navigation bar", {
   stateManager.addConnection(relayClient);
 
   await waitFor(async () => {
-    const storedListings = await stateManager.get(["Listings"]);
+    const storedListings = await stateManager.get(["Listings"]) as Map<
+      bigint,
+      unknown
+    >;
     expect(storedListings.size).toBe(allListings.size);
   });
 
@@ -155,7 +158,10 @@ Deno.test("Check that we can render the navigation bar", {
 
   await t.step("Checkout button", async () => {
     await stateManager.set(["Orders", orderId, "Items"], [
+      // @ts-ignore TODO: add BaseClass to CodecValue
       new OrderedItem(item1ID, 32).asCBORMap(),
+      // @ts-ignore TODO: add BaseClass to CodecValue
+
       new OrderedItem(item2ID, 24).asCBORMap(),
     ]);
     await waitFor(async () => {
@@ -189,7 +195,10 @@ Deno.test("Check that we can render the navigation bar", {
     await waitFor(async () => {
       const cartItems = screen.queryAllByTestId("cart-item");
       expect(cartItems.length).toBe(0);
-      const orders = await stateManager.get(["Orders"]);
+      const orders = await stateManager.get(["Orders"]) as Map<
+        bigint,
+        unknown
+      >;
       expect(orders.size).toBe(2);
     });
   });
