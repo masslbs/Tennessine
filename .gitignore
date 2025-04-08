@@ -2,6 +2,9 @@
 #
 # SPDX-License-Identifier: Unlicense
 
+# process-compose scratch space
+data
+
 # Logs
 logs
 *.log
