@@ -48,10 +48,11 @@ export default function EditProduct() {
   useEffect(() => {
     if (!stateManager || !editView || !itemId) return;
     stateManager.get(["Listings", itemId])
+      // @ts-ignore TODO: add BaseClass to CodecValue
       .then((item: Map<string, unknown> | undefined) => {
         if (!item) {
           setErrorMsg("Error fetching listing");
-          errlog("Error fetching listing", "No item found");
+          errlog("Error fetching listing. No item found");
           return;
         }
         setListing(Listing.fromCBOR(item));
@@ -224,7 +225,7 @@ export default function EditProduct() {
   }
 
   function removeImg(img: string) {
-    listing.Metadata.Images = listing.Metadata.Images.filter((a: string) =>
+    listing.Metadata.Images = listing.Metadata!.Images!.filter((a: string) =>
       img !== a
     );
     setListing(listing);

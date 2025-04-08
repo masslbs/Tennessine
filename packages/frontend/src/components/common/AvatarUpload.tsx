@@ -16,7 +16,7 @@ export default function AvatarUpload({
   setErrorMsg,
   currentImg = null,
 }: {
-  setImgBlob: Dispatch<SetStateAction<FormData>>;
+  setImgBlob: Dispatch<SetStateAction<FormData | null>>;
   setErrorMsg: Dispatch<SetStateAction<string | null>>;
   currentImg?: string | null;
 }) {

@@ -25,9 +25,6 @@ export interface ShopDetails {
 export type CurrencyChainOption = {
   label: string;
   value: string | number;
-} & Partial<CurrencyOption>;
-
-export type CurrencyOption = {
   chainId: number;
   address: Uint8Array;
 };

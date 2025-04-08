@@ -15,7 +15,8 @@ import {
   CurrencyChainOption,
   ShopForm,
 } from "../../../types.ts";
-import { getTokenAddress, isValidAddress } from "../../../utils/mod.ts";
+import { isValidAddress } from "../../../utils/mod.ts";
+import { useAllCurrencyOptions } from "../../../hooks/useAllCurrencyOptions.ts";
 
 export default function ManifestForm(
   { shopManifest, setShopManifest, setStep, setShopMetadata, shopMetadata }: {
@@ -30,7 +31,7 @@ export default function ManifestForm(
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
-  const chains = useChains();
+  const currencyOptions = useAllCurrencyOptions();
 
   function handleShopFormChange<K extends keyof ShopForm>(
     field: K,
@@ -39,27 +40,31 @@ export default function ManifestForm(
     setShopMetadata({ ...shopMetadata, [field]: value });
   }
 
-  function handleAcceptedCurrencies(e: ChangeEvent<HTMLInputElement>) {
-    const [sym, id] = e.target.value.split("/");
-    const chainId = Number(id);
-    const address = getTokenAddress(sym, chainId);
+  function handleAcceptedCurrencies(
+    e: ChangeEvent<HTMLInputElement>,
+    option: CurrencyChainOption,
+  ) {
     if (e.target.checked) {
-      shopManifest.AcceptedCurrencies.addAddress(chainId, address, true);
+      shopManifest.AcceptedCurrencies.addAddress(
+        option.chainId,
+        option.address,
+        true,
+      );
     } else {
       // remove address from accepted currencies.
       shopManifest.AcceptedCurrencies.removeAddress(
-        chainId,
-        address,
+        option.chainId,
+        option.address,
       );
     }
     setShopManifest(shopManifest);
   }
 
   function handlePricingCurrency(option: CurrencyChainOption) {
-    const v = option.value as string;
-    const [sym, chainId] = v.split("/");
-    const address = getTokenAddress(sym, Number(chainId));
-    shopManifest.PricingCurrency = new ChainAddress(Number(chainId), address);
+    shopManifest.PricingCurrency = new ChainAddress(
+      option.chainId,
+      option.address,
+    );
     setShopManifest(shopManifest);
   }
 
@@ -161,32 +166,17 @@ export default function ManifestForm(
         <div data-testid="accepted-currencies">
           <label className="font-medium">Accepted currency</label>
           <div className="flex flex-col gap-2">
-            {chains.map((c) => (
-              <div key={c.id}>
+            {currencyOptions.map((c, i) => (
+              <div key={i}>
                 <label className="flex items-center space-x-2">
                   <input
                     name="AcceptedCurrencies"
                     type="checkbox"
-                    onChange={(e) => handleAcceptedCurrencies(e)}
+                    onChange={(e) => handleAcceptedCurrencies(e, c)}
                     className="form-checkbox h-4 w-4"
-                    value={`ETH/${c.id}`}
+                    value={c.value}
                   />
-                  <span>{`ETH/${c.name}`}</span>
-                </label>
-
-                <label className="flex items-center space-x-2">
-                  <input
-                    name="AcceptedCurrencies"
-                    type="checkbox"
-                    onChange={(e) => handleAcceptedCurrencies(e)}
-                    className="form-checkbox h-4 w-4"
-                    value={c.id === hardhat.id
-                      ? `EDD/${hardhat.id}`
-                      : `USDC/${c.id}`}
-                  />
-                  <span>
-                    {`${c.id === hardhat.id ? "EDD" : "USDC"}/${c.name}`}
-                  </span>
+                  <span>{c.label}</span>
                 </label>
               </div>
             ))}
@@ -195,18 +185,7 @@ export default function ManifestForm(
         <Dropdown
           label="Pricing Currency"
           testId="pricing-currency-dropdown"
-          options={chains
-            .map((c) => {
-              return { label: `ETH/${c.name}`, value: `ETH/${c.id}` };
-            })
-            .concat(
-              chains.map((c) => {
-                return {
-                  label: `${c.id === hardhat.id ? "EDD" : "USDC"}/${c.name}`,
-                  value: `${c.id === hardhat.id ? "EDD" : "USDC"}/${c.id}`,
-                };
-              }),
-            )}
+          options={currencyOptions}
           callback={handlePricingCurrency}
         />
         <div data-testid="payee-info" className="flex flex-col gap-2">

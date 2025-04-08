@@ -8,7 +8,6 @@ import { Order, OrderedItem } from "@massmarket/schema";
 import Navigation from "./Navigation.tsx";
 import { createRouterWrapper, testClient } from "../testutils/mod.tsx";
 import { OrderState } from "../types.ts";
-import { wait } from "@testing-library/user-event/dist/cjs/utils/index.js";
 
 Deno.test("Check that we can render the navigation bar", {
   sanitizeResources: false,
@@ -187,12 +186,12 @@ Deno.test("Check that we can render the navigation bar", {
       expect(clearCart).toBeDefined();
       await user.click(clearCart);
     });
-    await waitFor(() => {
+    await waitFor(async () => {
       const cartItems = screen.queryAllByTestId("cart-item");
       expect(cartItems.length).toBe(0);
+      const orders = await stateManager.get(["Orders"]);
+      expect(orders.size).toBe(2);
     });
-    const orders = await stateManager.get(["Orders"]);
-    expect(orders.size).toBe(2);
   });
 
   unmount();

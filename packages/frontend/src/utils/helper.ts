@@ -1,9 +1,6 @@
 import { formatUnits } from "viem";
 
-import { Order } from "@massmarket/schema";
-import StateManager from "@massmarket/stateManager";
-import { KeycardRole, OrderId, OrderState } from "../types.ts";
-import { randUint64 } from "../../../utils/mod.ts";
+import { KeycardRole } from "../types.ts";
 
 export function multiplyAndFormatUnits(
   price: bigint,
