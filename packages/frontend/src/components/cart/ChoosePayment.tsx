@@ -222,13 +222,12 @@ export default function ChoosePayment({
         transport: http(defaultRPC),
       });
       for (const [address, _val] of addresses.entries()) {
-        const hexAddr = toHex(address, { size: 20 });
         const res = await getTokenInformation(
           tokenPublicClient,
-          hexAddr,
+          toHex(address, { size: 20 }),
         );
         displayed.push({
-          address: hexAddr,
+          address,
           chainId: chain!.id,
           label: `${res[0]}/${chain!.name}`,
           value: `${address}/${chain!.id}`,
@@ -255,7 +254,7 @@ export default function ChoosePayment({
       }
       const chosenCurrency = new ChainAddress(
         selected.chainId!,
-        fromHex(selected.address as `0x${string}`, { size: 20, to: "bytes" }),
+        selected.address,
       );
 
       const payee = payeeAddresses.entries().next().value;
