@@ -236,7 +236,6 @@ export default function () {
 
       await stateManager.set(
         ["Manifest"],
-        // @ts-ignore TODO: add BaseClass to CodecValue
         shopManifest,
       );
       setKeycard({

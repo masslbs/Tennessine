@@ -1,3 +1,5 @@
+import type { CodecKey, CodecValue } from "@massmarket/utils/codec";
+
 import { ChainAddress, Payee } from "./standin_manifest.ts";
 import {
   BaseClass,
@@ -46,7 +48,7 @@ export class Order extends BaseClass {
     this.TxDetails = txDetails;
   }
 
-  static fromCBOR(input: Map<string, unknown>): Order {
+  static fromCBOR(input: Map<CodecKey, CodecValue>): Order {
     const id = ensureNumber(input.get("ID"), "ID");
 
     const items: OrderedItem[] = [];
@@ -157,7 +159,7 @@ export class OrderedItem extends BaseClass {
     this.VariationIDs = variationIDs;
   }
 
-  static fromCBOR(input: Map<string, unknown>): OrderedItem {
+  static fromCBOR(input: Map<CodecKey, CodecValue>): OrderedItem {
     const listingID = ensureNumber(input.get("ListingID"), "ListingID");
     const quantity = ensureNumber(input.get("Quantity"), "Quantity");
 
@@ -233,7 +235,7 @@ export class AddressDetails extends BaseClass {
     this.PhoneNumber = phoneNumber;
   }
 
-  static fromCBOR(input: Map<string, unknown>): AddressDetails {
+  static fromCBOR(input: Map<CodecKey, CodecValue>): AddressDetails {
     const name = ensureString(input.get("Name"), "Name");
     const address1 = ensureString(input.get("Address1"), "Address1");
     const city = ensureString(input.get("City"), "City");
@@ -291,7 +293,7 @@ export class PaymentDetails extends BaseClass {
     this.ShopSignature = shopSignature;
   }
 
-  static fromCBOR(input: Map<string, unknown>): PaymentDetails {
+  static fromCBOR(input: Map<CodecKey, CodecValue>): PaymentDetails {
     const paymentID = ensureUint8Array(input.get("PaymentID"), "PaymentID", 32);
     const total = ensureSomeNumberAsBigInt(input.get("Total"), "Total");
     const ttl = ensureNumber(input.get("TTL"), "TTL");
@@ -335,7 +337,7 @@ export class OrderPaid extends BaseClass {
     this.TxHash = txHash;
   }
 
-  static fromCBOR(input: Map<string, unknown>): OrderPaid {
+  static fromCBOR(input: Map<CodecKey, CodecValue>): OrderPaid {
     const blockHash = ensureUint8Array(input.get("BlockHash"), "BlockHash", 32);
 
     let txHash: Uint8Array | undefined;

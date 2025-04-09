@@ -22,7 +22,6 @@ Deno.test("useBaseToken", {
     const chainCurrency = new ChainAddress(0, new Uint8Array(20));
     await stateManager.set(
       ["Manifest", "PricingCurrency"],
-      // @ts-ignore TODO: add BaseClass to CodecValue
       chainCurrency,
     );
 

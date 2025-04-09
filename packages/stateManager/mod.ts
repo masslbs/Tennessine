@@ -253,7 +253,7 @@ export default class StateManager {
   //   this.events.emit(state.root);
   // }
 
-  async set(path: codec.Path, value: codec.CodecValue) {
+  async set(path: codec.Path, value: codec.CodecValue | BaseClass) {
     if (BaseClass.isBaseClass(value)) {
       value = value.asCBORMap() as codec.CodecValue;
     }

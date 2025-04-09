@@ -28,7 +28,7 @@ export function getConfig() {
     appName: "Mass Labs",
     projectId: "6c432edcd930e0fa2c87a8d940ae5b91",
     ssr: false,
-    chains,
-    transports,
+    chains: chains as any,
+    transports: transports as any,
   });
 }

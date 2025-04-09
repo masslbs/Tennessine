@@ -5,10 +5,11 @@ import { userEvent } from "@testing-library/user-event";
 import { allListings } from "@massmarket/schema/testFixtures";
 import { random256BigInt, randUint64 } from "@massmarket/utils";
 import { Order, OrderedItem } from "@massmarket/schema";
+import type { CodecKey, CodecValue } from "@massmarket/utils/codec";
+
 import Navigation from "./Navigation.tsx";
 import { createRouterWrapper, testClient } from "../testutils/mod.tsx";
 import { OrderState } from "../types.ts";
-
 Deno.test("Check that we can render the navigation bar", {
   sanitizeResources: false,
   sanitizeOps: false,
@@ -28,7 +29,6 @@ Deno.test("Check that we can render the navigation bar", {
 
   // populate state manager with listings
   for (const [listingID, listing] of allListings.entries()) {
-    // @ts-ignore TODO: add BaseClass to CodecValue
     await merchantStateManager.set(["Listings", listingID], listing);
     await merchantStateManager.set(["Inventory", listingID], 100);
   }
@@ -65,7 +65,6 @@ Deno.test("Check that we can render the navigation bar", {
     ],
     OrderState.Open,
   );
-  // @ts-ignore TODO: add BaseClass to CodecValue
   await stateManager.set(["Orders", orderId], order);
 
   const { unmount } = render(<Navigation />, { wrapper });
@@ -118,7 +117,7 @@ Deno.test("Check that we can render the navigation bar", {
     // Check statemanager updated correctly.
     const updatedOrder = await stateManager.get(["Orders", orderId]);
     const updatedOrderItems =
-      Order.fromCBOR(updatedOrder as Map<string, unknown>).Items;
+      Order.fromCBOR(updatedOrder as Map<CodecKey, CodecValue>).Items;
     expect(updatedOrderItems[0].ListingID).toBe(item2ID);
     expect(updatedOrderItems[0].Quantity).toBe(25);
   });
@@ -136,7 +135,7 @@ Deno.test("Check that we can render the navigation bar", {
     // Check statemanager updated correctly.
     const updatedOrder = await stateManager.get(["Orders", orderId]);
     const updatedOrderItems =
-      Order.fromCBOR(updatedOrder as Map<string, unknown>).Items;
+      Order.fromCBOR(updatedOrder as Map<CodecKey, CodecValue>).Items;
     expect(updatedOrderItems[0].ListingID).toBe(item2ID);
     expect(updatedOrderItems[0].Quantity).toBe(24);
   });
@@ -152,15 +151,13 @@ Deno.test("Check that we can render the navigation bar", {
     });
     const updatedOrder = await stateManager.get(["Orders", orderId]);
     const updatedOrderItems =
-      Order.fromCBOR(updatedOrder as Map<string, unknown>).Items;
+      Order.fromCBOR(updatedOrder as Map<CodecKey, CodecValue>).Items;
     expect(updatedOrderItems.length).toBe(0);
   });
 
   await t.step("Checkout button", async () => {
     await stateManager.set(["Orders", orderId, "Items"], [
-      // @ts-ignore TODO: add BaseClass to CodecValue
       new OrderedItem(item1ID, 32).asCBORMap(),
-      // @ts-ignore TODO: add BaseClass to CodecValue
 
       new OrderedItem(item2ID, 24).asCBORMap(),
     ]);
@@ -176,7 +173,8 @@ Deno.test("Check that we can render the navigation bar", {
     });
     //Check that the order was committed after clicking checkout button.
     const updatedOrder = await stateManager.get(["Orders", orderId]);
-    const state = Order.fromCBOR(updatedOrder as Map<string, unknown>).State;
+    const state =
+      Order.fromCBOR(updatedOrder as Map<CodecKey, CodecValue>).State;
     expect(state).toBe(OrderState.Committed);
   });
 

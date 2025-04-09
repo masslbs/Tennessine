@@ -19,8 +19,9 @@ import {
   Order,
   OrderState,
   Payee,
+  PayeeMetadata,
 } from "@massmarket/schema";
-
+import { CodecKey, CodecValue } from "@massmarket/utils/codec";
 import Pay from "./Pay.tsx";
 import QRScan from "./QRScan.tsx";
 import TimerToast from "./TimerToast.tsx";
@@ -80,8 +81,9 @@ export default function ChoosePayment({
   useEffect(() => {
     if (!stateManager) return;
     stateManager.get(["Manifest"])
-      .then((res: Map<string, unknown>) => {
-        const m = Manifest.fromCBOR(res);
+      .then((res: CodecValue | undefined) => {
+        if (!res) return;
+        const m = Manifest.fromCBOR(res as Map<CodecKey, CodecValue>);
         getDisplayedChains(m).then((arr) => {
           setManifest(m);
           setChains(arr);
@@ -93,8 +95,8 @@ export default function ChoosePayment({
     if (!stateManager) return;
     if (!currentOrder) return;
     //Listen for client to send paymentDetails event.
-    function onPaymentDetails(res: Map<string, unknown>) {
-      const order = Order.fromCBOR(res);
+    function onPaymentDetails(res: CodecValue) {
+      const order = Order.fromCBOR(res as Map<CodecKey, CodecValue>);
       if (!order.PaymentDetails) return;
       getPaymentArgs().then(() => {
         debug("paymentDetails found for order");
@@ -117,7 +119,7 @@ export default function ChoosePayment({
     try {
       const oId = currentOrder!.ID;
       const committedOrder = Order.fromCBOR(
-        await stateManager.get(["Orders", oId]) as Map<string, unknown>,
+        await stateManager.get(["Orders", oId]) as Map<CodecKey, CodecValue>,
       );
       if (!committedOrder.ChosenPayee) {
         throw new Error("No chosen payee found");
@@ -192,7 +194,7 @@ export default function ChoosePayment({
       debug(`payment address: ${paymentAddr}`);
       setSrc(payLink);
       const displayedAmount = `${
-        formatUnits(details.Total, chosenCurrencyDecimals)
+        formatUnits(amount, chosenCurrencyDecimals)
       } ${symbol}`;
       if (symbol === "ETH") {
         setIcon("/icons/eth-coin.svg");
@@ -256,7 +258,10 @@ export default function ChoosePayment({
         selected.address,
       );
 
-      const payee = payeeAddresses.entries().next().value;
+      const payee = payeeAddresses.entries().next().value as [
+        Uint8Array,
+        PayeeMetadata,
+      ];
       if (!payee) {
         throw new Error("No payee found in shop manifest");
       }
@@ -268,13 +273,11 @@ export default function ChoosePayment({
         "Orders",
         currentOrder.ID,
         "ChosenPayee",
-        // @ts-ignore TODO: add BaseClass to CodecValue
       ], chosenPayee);
       await stateManager.set([
         "Orders",
         currentOrder.ID,
         "ChosenCurrency",
-        // @ts-ignore TODO: add BaseClass to CodecValue
       ], chosenCurrency);
       await stateManager.set([
         "Orders",

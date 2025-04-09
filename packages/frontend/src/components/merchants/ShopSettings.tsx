@@ -6,14 +6,15 @@ import { ChangeEvent, useEffect, useState } from "react";
 import { useWalletClient } from "wagmi";
 import { equal } from "@std/assert";
 
+import { CodecKey, CodecValue } from "@massmarket/utils/codec";
 import { setTokenURI } from "@massmarket/contracts";
 import { assert, logger } from "@massmarket/utils";
 import {
   AcceptedCurrencyMap,
   ChainAddress,
   Manifest,
-  ShippingRegion,
 } from "@massmarket/schema";
+
 import { CurrencyChainOption } from "../../types.ts";
 import Button from "../common/Button.tsx";
 import AvatarUpload from "../common/AvatarUpload.tsx";
@@ -27,6 +28,7 @@ import { useShopId } from "../../hooks/useShopId.ts";
 import { useRelayClient } from "../../hooks/useRelayClient.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 import { useAllCurrencyOptions } from "../../hooks/useAllCurrencyOptions.ts";
+
 const namespace = "frontend:StoreSettings";
 const errlog = logger(namespace, "error");
 
@@ -56,17 +58,16 @@ export default function ShopSettings() {
 
   useEffect(() => {
     if (!stateManager) return;
-    function onUpdateEvent(res: Map<string, unknown>) {
-      const m = Manifest.fromCBOR(res);
+    function onUpdateEvent(res: CodecValue | undefined) {
+      const m = Manifest.fromCBOR(res as Map<CodecKey, CodecValue>);
       setManifest(m);
       setAcceptedCurrencies(m.AcceptedCurrencies);
       // setPricingCurrency(m.PricingCurrency);
     }
 
     stateManager.get(["Manifest"])
-      // @ts-ignore TODO: add BaseClass to CodecValue
-      .then((res: Map<string, unknown>) => {
-        const m = Manifest.fromCBOR(res);
+      .then((res: CodecValue | undefined) => {
+        const m = Manifest.fromCBOR(res as Map<CodecKey, CodecValue>);
         setManifest(m);
         setAcceptedCurrencies(m.AcceptedCurrencies);
         setPricingCurrency(m.PricingCurrency);
@@ -92,7 +93,6 @@ export default function ShopSettings() {
       pricingCurrency!.Address !== manifest!.PricingCurrency.Address ||
       pricingCurrency!.ChainID !== manifest!.PricingCurrency.ChainID
     ) {
-      // @ts-ignore TODO: add BaseClass to CodecValue
       await stateManager.set(["Manifest", "PricingCurrency"], pricingCurrency);
     }
     if (

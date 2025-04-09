@@ -91,7 +91,6 @@ export default function ShippingDetails({
       }
       await stateManager.set(
         ["Orders", currentOrder.ID, "InvoiceAddress"],
-        // @ts-ignore TODO: add BaseClass to CodecValue
         invoiceAddress,
       );
       debug("Shipping details updated");

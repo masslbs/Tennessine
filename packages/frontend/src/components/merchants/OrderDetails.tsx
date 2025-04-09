@@ -11,6 +11,7 @@ import {
   OrderedItem,
   PaymentDetails,
 } from "@massmarket/schema";
+import { CodecKey, CodecValue } from "@massmarket/utils/codec";
 
 import BackButton from "../common/BackButton.tsx";
 import { ListingId, OrderState } from "../../types.ts";
@@ -40,9 +41,9 @@ export default function OrderDetails() {
   useEffect(() => {
     if (!orderId) return;
     stateManager.get(["Orders", orderId]).then(
-      // @ts-ignore TODO: add BaseClass to CodecValue
-      (res: Map<string, unknown>) => {
-        const o = Order.fromCBOR(res);
+      (res: CodecValue | undefined) => {
+        if (!res) throw new Error("Order not found");
+        const o = Order.fromCBOR(res as Map<CodecKey, CodecValue>);
         getAllCartItemDetails(o).then((cartItems) => {
           setCartMap(cartItems);
           setOrder(o);
@@ -109,7 +110,7 @@ export default function OrderDetails() {
           "Listings",
           orderItem.ListingID,
         ]);
-        const l = Listing.fromCBOR(listing as Map<string, unknown>);
+        const l = Listing.fromCBOR(listing as Map<CodecKey, CodecValue>);
         allCartItems.set(orderItem.ListingID, l);
       }),
     );

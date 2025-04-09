@@ -62,13 +62,13 @@ const RelayClientTestPage: React.FC<RelayClientTestPageProps> = ({
         // Connect to relay
         await newClient.connect((error: Event) => {
           console.error("connect error", error);
-          setError(error.message);
+          setError(error instanceof Error ? error.message : String(error));
           setConnectionStatus("failed");
         });
         setConnectionStatus("connected");
       } catch (err) {
         console.error("setupClient error", err);
-        setError(err.toString());
+        setError(err instanceof Error ? err.message : String(err));
         setConnectionStatus("disconnected");
       }
     };

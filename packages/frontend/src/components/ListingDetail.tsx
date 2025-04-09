@@ -8,7 +8,7 @@ import { formatUnits } from "viem";
 
 import { logger } from "@massmarket/utils";
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
-
+import type { CodecKey, CodecValue } from "@massmarket/utils/codec";
 import { ListingId, OrderId, OrderState } from "../types.ts";
 import Button from "./common/Button.tsx";
 import BackButton from "./common/BackButton.tsx";
@@ -42,12 +42,11 @@ export default function ListingDetail() {
       //set item details
       stateManager
         .get(["Listings", itemId])
-        // @ts-ignore TODO: add BaseClass to CodecValue
-        .then((res: Map<string, unknown>) => {
+        .then((res: CodecValue | undefined) => {
           if (!res) {
             throw new Error(`Listing ${itemId} not found`);
           }
-          const item = Listing.fromCBOR(res);
+          const item = Listing.fromCBOR(res as Map<CodecKey, CodecValue>);
           setListing(item);
           if (item.Metadata.Images && item.Metadata.Images.length > 0) {
             setDisplayedImg(item.Metadata.Images[0]);
@@ -92,7 +91,7 @@ export default function ListingDetail() {
           "Orders",
           orderId,
         ]);
-        const order: Order = Order.fromCBOR(o as Map<string, unknown>);
+        const order: Order = Order.fromCBOR(o as Map<CodecKey, CodecValue>);
         // If item already exists in the items array, filter it out so we can replace it with the new quantity
         const updatedOrderItems = (order.Items ?? []).filter(
           (item: OrderedItem) => item.ListingID !== itemId,
@@ -103,8 +102,9 @@ export default function ListingDetail() {
 
         await stateManager.set(
           ["Orders", orderId, "Items"],
-          // @ts-ignore TODO: add BaseClass to CodecValue
-          updatedOrderItems.map((item: OrderedItem) => item.asCBORMap()),
+          updatedOrderItems.map((item: OrderedItem) =>
+            item.asCBORMap()
+          ) as CodecValue,
         );
         setQuantity("");
         setMsg("Cart updated");

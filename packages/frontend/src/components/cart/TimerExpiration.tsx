@@ -18,7 +18,7 @@ export default function TimerExpiration() {
       <h1>Timer expired</h1>
       <p className="text-lg">Sorry your timer has expired.</p>
       <Button>
-        <Link href="/products">Return to shop</Link>
+        <Link to="/products">Return to shop</Link>
       </Button>
     </section>
   );

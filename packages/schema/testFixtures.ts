@@ -1,6 +1,6 @@
 import { Listing, Order } from "@massmarket/schema";
 import { extractEntriesFromHAMT, fetchAndDecode } from "@massmarket/utils";
-import type { CodecValue } from "@massmarket/utils/codec";
+import type { CodecKey, CodecValue } from "@massmarket/utils/codec";
 
 type TestVector = Map<
   string,
@@ -38,7 +38,7 @@ ordersVector.get("Snapshots")?.forEach((snapshot) => {
   for (const [_key, orderMap] of ordersHamt.entries()) {
     ordersMap.set(
       _key,
-      Order.fromCBOR(orderMap as Map<string, CodecValue>),
+      Order.fromCBOR(orderMap as Map<CodecKey, CodecValue>),
     );
   }
   for (const [_key, listingMap] of listingsHamt.entries()) {

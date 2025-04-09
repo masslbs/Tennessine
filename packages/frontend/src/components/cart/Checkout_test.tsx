@@ -16,7 +16,7 @@ import {
   ShippingRegion,
   ShippingRegionsMap,
 } from "@massmarket/schema";
-
+import { CodecKey, CodecValue } from "@massmarket/utils/codec";
 import { createRouterWrapper, testClient } from "../../testutils/mod.tsx";
 import CheckoutFlow from "./CheckoutFlow.tsx";
 
@@ -43,7 +43,9 @@ Deno.test("Check that we can render the checkout screen", {
   await waitFor(async () => {
     const manifest = await merchantStateManager.get(["Manifest"]);
     expect(manifest).toBeDefined();
-    const manifestObj = Manifest.fromCBOR(manifest as Map<string, unknown>);
+    const manifestObj = Manifest.fromCBOR(
+      manifest as Map<CodecKey, CodecValue>,
+    );
     // console.log({manifestObj})
     expect(manifestObj.ShopID).toBe(shopId);
     // expect(manifestObj.AcceptedCurrencies.size).toBe(1);
@@ -63,7 +65,7 @@ Deno.test("Check that we can render the checkout screen", {
   // work around it by replacing the whole manifest instead
   const currentManifestMap = await merchantStateManager.get(["Manifest"]);
   const currentManifest = Manifest.fromCBOR(
-    currentManifestMap as Map<string, unknown>,
+    currentManifestMap as Map<CodecKey, CodecValue>,
   );
   currentManifest.AcceptedCurrencies.addAddress(
     testCurrency.ChainID,
@@ -83,7 +85,6 @@ Deno.test("Check that we can render the checkout screen", {
       ],
     ]),
   );
-  // @ts-ignore TODO: add BaseClass to CodecValue
   await merchantStateManager.set(["Manifest"], currentManifest);
 
   // await merchantStateManager.set(["Manifest", "PricingCurrency"],
@@ -93,7 +94,6 @@ Deno.test("Check that we can render the checkout screen", {
 
   // Create listings
   for (const [listingID, listing] of allListings.entries()) {
-    // @ts-ignore TODO: add BaseClass to CodecValue
     await merchantStateManager.set(["Listings", listingID], listing);
     await merchantStateManager.set(["Inventory", listingID], 100);
   }
@@ -134,7 +134,6 @@ Deno.test("Check that we can render the checkout screen", {
     ],
     OrderState.Open,
   );
-  // @ts-ignore TODO: add BaseClass to CodecValue
   await stateManager.set(["Orders", orderId], order);
 
   const { unmount } = render(<CheckoutFlow />, { wrapper });
@@ -218,7 +217,7 @@ Deno.test("Check that we can render the checkout screen", {
 
     // Verify order details were saved correctly
     const updatedOrderData = await stateManager.get(["Orders", orderId]);
-    const o = Order.fromCBOR(updatedOrderData as Map<string, unknown>);
+    const o = Order.fromCBOR(updatedOrderData as Map<CodecKey, CodecValue>);
     expect(o.InvoiceAddress).toBeDefined();
     expect(o.ShippingAddress).toBeUndefined();
 
@@ -296,7 +295,7 @@ Deno.test("Check that we can render the checkout screen", {
       // Verify the transaction hash is displayed
       const txHashInput = screen.getByTestId("tx-hash-input");
       expect(txHashInput).toBeTruthy();
-      expect(txHashInput.value).toContain("0x");
+      expect(txHashInput.textContent).toContain("0x");
 
       // Verify USDC amount is displayed
       const amountElement = screen.getByTestId("displayed-amount");

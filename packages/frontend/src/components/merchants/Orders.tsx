@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+
 import { Order } from "@massmarket/schema";
+import { CodecKey, CodecValue } from "@massmarket/utils/codec";
 
 import { OrderId } from "../../types.ts";
 import Transactions from "./Transactions.tsx";
@@ -10,7 +12,7 @@ export default function Orders() {
 
   const [orders, setOrders] = useState<Map<OrderId, Order>>(new Map());
 
-  function getAllOrders(orders: Map<OrderId, unknown>) {
+  function getAllOrders(orders: Map<CodecKey, CodecValue>) {
     const allOrders = new Map();
     for (
       const [
@@ -18,7 +20,7 @@ export default function Orders() {
         o,
       ] of orders.entries()
     ) {
-      allOrders.set(id, new Order(o));
+      allOrders.set(id, Order.fromCBOR(o as Map<CodecKey, CodecValue>));
     }
     return allOrders;
   }
@@ -26,13 +28,13 @@ export default function Orders() {
   useEffect(() => {
     if (!stateManager) return;
 
-    function onUpdateOrder(orders: Map<OrderId, unknown>) {
-      const allOrders = getAllOrders(orders);
+    function onUpdateOrder(orders: CodecValue | undefined) {
+      const allOrders = getAllOrders(orders as Map<CodecKey, CodecValue>);
       setOrders(allOrders);
     }
 
-    stateManager.get(["Orders"]).then((orders: Map<OrderId, unknown>) => {
-      const allOrders = getAllOrders(orders);
+    stateManager.get(["Orders"]).then((orders: CodecValue | undefined) => {
+      const allOrders = getAllOrders(orders as Map<CodecKey, CodecValue>);
       setOrders(allOrders);
     });
     stateManager.events.on(onUpdateOrder, ["Orders"]);

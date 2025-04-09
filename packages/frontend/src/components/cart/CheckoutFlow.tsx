@@ -8,6 +8,7 @@ import { toHex } from "viem";
 
 import { assert, logger } from "@massmarket/utils";
 import { Order } from "@massmarket/schema";
+import { CodecKey, CodecValue } from "@massmarket/utils/codec";
 
 import { CheckoutStep, OrderState } from "../../types.ts";
 import Cart from "./Cart.tsx";
@@ -62,8 +63,8 @@ export default function CheckoutFlow() {
 
   useEffect(() => {
     if (!currentOrder) return;
-    function txHashDetected(o: Map<string, unknown>) {
-      const order = Order.fromCBOR(o);
+    function txHashDetected(o: CodecValue) {
+      const order = Order.fromCBOR(o as Map<CodecKey, CodecValue>);
       if (order.TxDetails) {
         const tx = order.TxDetails.TxHash;
         const bh = order.TxDetails.BlockHash;

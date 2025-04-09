@@ -6,6 +6,7 @@ import { userEvent } from "@testing-library/user-event";
 import { random256BigInt } from "@massmarket/utils";
 import { Listing, Order } from "@massmarket/schema";
 import { allListings } from "@massmarket/schema/testFixtures";
+import type { CodecKey, CodecValue } from "@massmarket/utils/codec";
 
 import ListingDetail from "./ListingDetail.tsx";
 import { createRouterWrapper, testClient } from "../testutils/mod.tsx";
@@ -33,7 +34,6 @@ Deno.test("Check that we can render the listing details screen", {
     throw new Error(`Listing ${listingId} not found`);
   }
   for (const [key, entry] of allListings.entries()) {
-    // @ts-ignore TODO: add BaseClass to CodecValue
     await merchantStateManager.set(["Listings", key], entry);
     if (key === listingId) {
       listing = entry as Listing;
@@ -93,7 +93,7 @@ Deno.test("Check that we can render the listing details screen", {
 
   const orderId = Array.from(allOrders.keys())[0];
   const orderData = await stateManager.get(["Orders", orderId]);
-  const order = Order.fromCBOR(orderData as Map<string, unknown>);
+  const order = Order.fromCBOR(orderData as Map<CodecKey, CodecValue>);
   expect(order.Items[0].ListingID).toBe(listingId);
   expect(order.Items[0].Quantity).toBe(5);
 
@@ -109,8 +109,8 @@ Deno.test("Check that we can render the listing details screen", {
 
   let items;
   await waitFor(async () => {
-    // @ts-ignore TODO: add BaseClass to CodecValue
-    items = Order.fromCBOR(await stateManager.get(["Orders", orderId])).Items;
+    const d = await stateManager.get(["Orders", orderId]);
+    const items = Order.fromCBOR(d as Map<CodecKey, CodecValue>).Items;
     expect(items[0].ListingID).toBe(listingId);
     expect(items[0].Quantity).toBe(10);
   });
@@ -132,14 +132,16 @@ Deno.test("Check that we can render the listing details screen", {
     const successToast = screen.getByTestId("success-toast");
     expect(successToast).toBeTruthy();
     const updatedOrders = await stateManager.get(["Orders"]) as Map<
-      bigint,
-      unknown
+      CodecKey,
+      CodecValue
     >;
     expect(updatedOrders.size).toBe(2);
     const newOrderId = Array.from(updatedOrders.keys())[1];
-    // @ts-ignore TODO: add BaseClass to CodecValue
-    const newOrderData = await stateManager.get(["Orders", newOrderId]);
-    const newOrder = Order.fromCBOR(newOrderData as Map<string, unknown>);
+    const newOrderData = await stateManager.get(["Orders", newOrderId]) as Map<
+      CodecKey,
+      CodecValue
+    >;
+    const newOrder = Order.fromCBOR(newOrderData);
     expect(newOrder.Items[0].ListingID).toBe(listingId);
     expect(newOrder.Items[0].Quantity).toBe(1);
   });

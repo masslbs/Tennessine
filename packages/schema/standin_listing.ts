@@ -1,3 +1,4 @@
+import { CodecKey, CodecValue } from "@massmarket/utils/codec";
 import { PriceModifier } from "./standin_manifest.ts";
 import {
   BaseClass,
@@ -13,7 +14,7 @@ export class Listing extends BaseClass {
   Price: bigint;
   Metadata: ListingMetadata;
   ViewState: ListingViewState;
-  Options?: Map<string, ListingOption>;
+  Options?: Map<CodecKey, ListingOption>;
   StockStatuses?: ListingStockStatus[];
 
   constructor(
@@ -29,7 +30,7 @@ export class Listing extends BaseClass {
     this.ViewState = viewState;
   }
 
-  static fromCBOR(input: Map<string, unknown>): Listing {
+  static fromCBOR(input: Map<CodecKey, CodecValue>): Listing {
     const id = ensureNumber(input.get("ID"), "ID");
     const price = ensureSomeNumberAsBigInt(input.get("Price"), "Price");
 
@@ -50,7 +51,7 @@ export class Listing extends BaseClass {
       if (!(options instanceof Map)) {
         throw new TypeError("Expected Options to be a Map");
       }
-      const map = new Map<string, ListingOption>();
+      const map = new Map<CodecKey, ListingOption>();
       for (const [key, value] of options) {
         if (!(value instanceof Map)) {
           throw new TypeError(`Expected option value for ${key} to be a Map`);
@@ -88,7 +89,7 @@ export class ListingMetadata {
     this.Images = images;
   }
 
-  static fromCBOR(input: Map<string, unknown>): ListingMetadata {
+  static fromCBOR(input: Map<CodecKey, CodecValue>): ListingMetadata {
     const title = ensureString(input.get("Title"), "Title");
     const description = ensureString(input.get("Description"), "Description");
 
@@ -104,8 +105,8 @@ export class ListingMetadata {
     return new ListingMetadata(title, description);
   }
 
-  asCBORMap(): Map<string, unknown> {
-    const map = new Map<string, unknown>();
+  asCBORMap(): Map<CodecKey, CodecValue> {
+    const map = new Map<CodecKey, CodecValue>();
     map.set("Title", this.Title);
     map.set("Description", this.Description);
     if (this.Images) {
@@ -150,7 +151,7 @@ export class ListingVariation extends BaseClass {
     this.SKU = sku;
   }
 
-  static fromCBOR(input: Map<string, unknown>): ListingVariation {
+  static fromCBOR(input: Map<CodecKey, CodecValue>): ListingVariation {
     const variation = new ListingVariation();
 
     const metadata = input.get("VariationInfo");
@@ -167,7 +168,7 @@ export class ListingVariation extends BaseClass {
         throw new TypeError("Expected PriceModifier to be a Map");
       }
       variation.PriceModifier = PriceModifier.fromCBOR(
-        priceModifier as Map<string, unknown>,
+        priceModifier as Map<CodecKey, CodecValue>,
       );
     }
 
@@ -182,15 +183,15 @@ export class ListingVariation extends BaseClass {
 
 export class ListingOption extends BaseClass {
   Title: string;
-  Variations: Map<string, ListingVariation> | undefined;
+  Variations: Map<CodecKey, ListingVariation> | undefined;
 
-  constructor(title: string, variations?: Map<string, ListingVariation>) {
+  constructor(title: string, variations?: Map<CodecKey, ListingVariation>) {
     super();
     this.Title = title;
     this.Variations = variations;
   }
 
-  static fromCBOR(input: Map<string, unknown>): ListingOption {
+  static fromCBOR(input: Map<CodecKey, CodecValue>): ListingOption {
     const title = ensureString(input.get("Title"), "Title");
     const option = new ListingOption(title);
 
@@ -199,7 +200,7 @@ export class ListingOption extends BaseClass {
       if (!(variations instanceof Map)) {
         throw new TypeError("Expected Variations to be a Map");
       }
-      const map = new Map<string, ListingVariation>();
+      const map = new Map<CodecKey, ListingVariation>();
       for (const [key, val] of variations) {
         if (!(val instanceof Map)) {
           throw new TypeError(
@@ -234,7 +235,7 @@ export class ListingStockStatus extends BaseClass {
     this.ExpectedInStockBy = expectedInStockBy;
   }
 
-  static fromCBOR(input: Map<string, unknown>): ListingStockStatus {
+  static fromCBOR(input: Map<CodecKey, CodecValue>): ListingStockStatus {
     const stockStatus = new ListingStockStatus();
 
     const variationIDs = input.get("VariationIDs");

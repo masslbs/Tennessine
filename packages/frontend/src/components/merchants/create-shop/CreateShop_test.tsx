@@ -9,6 +9,7 @@ import { hardhat } from "wagmi/chains";
 import { Manifest } from "@massmarket/schema";
 import { random256BigInt } from "@massmarket/utils";
 import { abi } from "@massmarket/contracts";
+import { CodecKey, CodecValue } from "@massmarket/utils/codec";
 
 import CreateShop from "./CreateShop.tsx";
 import { createRouterWrapper } from "../../../testutils/mod.tsx";
@@ -99,7 +100,7 @@ Deno.test("Check that we can create a shop", {
   let manifest = new Manifest();
   await waitFor(async () => {
     manifest = Manifest.fromCBOR(
-      await stateManager.get(["Manifest"]) as Map<string, unknown>,
+      await stateManager.get(["Manifest"]) as Map<CodecKey, CodecValue>,
     );
     expect(manifest.AcceptedCurrencies.size).toBe(1);
   });

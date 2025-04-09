@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 
 import { Order } from "@massmarket/schema";
+import { CodecKey, CodecValue } from "@massmarket/utils/codec";
 
 import Transactions from "./Transactions.tsx";
 import { OrderId } from "../../types.ts";
@@ -15,7 +16,7 @@ export default function MerchantDashboard() {
   const { stateManager } = useStateManager();
   const [orders, setOrders] = useState<Map<OrderId, Order>>(new Map());
 
-  function mapToOrderClass(orders: Map<OrderId, Map<string, unknown>>) {
+  function mapToOrderClass(orders: Map<CodecKey, CodecValue>) {
     const allOrders = new Map();
     for (
       const [
@@ -23,7 +24,7 @@ export default function MerchantDashboard() {
         o,
       ] of orders.entries()
     ) {
-      allOrders.set(id, Order.fromCBOR(o));
+      allOrders.set(id, Order.fromCBOR(o as Map<CodecKey, CodecValue>));
     }
     return allOrders;
   }
@@ -31,15 +32,15 @@ export default function MerchantDashboard() {
   useEffect(() => {
     if (!stateManager) return;
 
-    function ordersEvent(res: Map<OrderId, Map<string, unknown>>) {
-      const allOrders = mapToOrderClass(res);
+    function ordersEvent(res: CodecValue) {
+      const allOrders = mapToOrderClass(res as Map<CodecKey, CodecValue>);
       setOrders(allOrders);
     }
 
-    // @ts-ignore TODO: add BaseClass to CodecValue
     stateManager.get(["Orders"]).then(
-      (res: Map<OrderId, Map<string, unknown>>) => {
-        const allOrders = mapToOrderClass(res);
+      (res: CodecValue | undefined) => {
+        if (!res) return;
+        const allOrders = mapToOrderClass(res as Map<CodecKey, CodecValue>);
         setOrders(allOrders);
       },
     );

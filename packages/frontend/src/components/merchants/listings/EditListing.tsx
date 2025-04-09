@@ -8,7 +8,7 @@ import { formatUnits, parseUnits } from "viem";
 
 import { assert, logger, randUint64 } from "@massmarket/utils";
 import { Listing } from "@massmarket/schema";
-import { CodecValue } from "@massmarket/utils/codec";
+import { CodecKey, CodecValue } from "@massmarket/utils/codec";
 
 import { ListingId, ListingViewState } from "../../../types.ts";
 import ErrorMessage from "../../common/ErrorMessage.tsx";
@@ -46,14 +46,13 @@ export default function EditProduct() {
   useEffect(() => {
     if (!stateManager || !itemId) return;
     stateManager.get(["Listings", itemId])
-      // @ts-ignore TODO: add BaseClass to CodecValue
-      .then((item: Map<string, unknown> | undefined) => {
+      .then((item: CodecValue | undefined) => {
         if (!item) {
           setErrorMsg("Error fetching listing");
           errlog("Error fetching listing. No item found");
           return;
         }
-        setListing(Listing.fromCBOR(item));
+        setListing(Listing.fromCBOR(item as Map<CodecKey, CodecValue>));
       })
       .catch((e: unknown) => {
         assert(e instanceof Error, "Error is not an instance of Error");
@@ -70,7 +69,6 @@ export default function EditProduct() {
 
   async function create(newListing: Listing) {
     assert(stateManager, "State manager is required");
-    // @ts-ignore TODO: add BaseClass to CodecValue
     await stateManager.set(["Listings", newListing.ID], newListing);
     await stateManager.set(["Inventory", newListing.ID], stock);
   }
@@ -80,7 +78,7 @@ export default function EditProduct() {
     //compare the edited fields against the original object.
     const listingPath = ["Listings", newListing.ID];
     const oldListing = Listing.fromCBOR(
-      await stateManager.get(listingPath) as Map<string, unknown>,
+      await stateManager.get(listingPath) as Map<CodecKey, CodecValue>,
     );
     if (oldListing === undefined) {
       throw new Error("Listing not found");
@@ -89,8 +87,10 @@ export default function EditProduct() {
       await stateManager.set([...listingPath, "Price"], newListing.Price);
     }
     if (newListing.Metadata !== oldListing!.Metadata) {
-      // @ts-ignore TODO: add BaseClass to CodecValue
-      await stateManager.set([...listingPath, "Metadata"], newListing.Metadata);
+      await stateManager.set(
+        [...listingPath, "Metadata"],
+        newListing.Metadata.asCBORMap(),
+      );
     }
     if (newListing.ViewState !== oldListing!.ViewState) {
       await stateManager.set(
@@ -103,7 +103,9 @@ export default function EditProduct() {
   }
 
   async function onPublish() {
-    const newListing = Listing.fromCBOR(listing.asCBORMap());
+    const newListing = Listing.fromCBOR(
+      listing.asCBORMap() as Map<CodecKey, CodecValue>,
+    );
     if (!newListing.Metadata.Title) {
       setValidationError("Product must include title.");
     } else if (!newListing.Metadata.Description) {
@@ -158,7 +160,9 @@ export default function EditProduct() {
     field: string,
   ) {
     // We need to create a deep copy of the class and call setListing, or else react will not recognize it as a state change, and will not re-render the component.
-    const newListing = Listing.fromCBOR(listing.asCBORMap());
+    const newListing = Listing.fromCBOR(
+      listing.asCBORMap() as Map<CodecKey, CodecValue>,
+    );
     if (field === "Price") {
       newListing.Price = parseUnits(e.target.value, baseToken.decimals);
     } else if (field === "ViewState") {
@@ -199,7 +203,9 @@ export default function EditProduct() {
           if (typeof url === "string") {
             const images = listing.Metadata.Images ?? [];
             images.push(url);
-            const newListing = Listing.fromCBOR(listing.asCBORMap());
+            const newListing = Listing.fromCBOR(
+              listing.asCBORMap() as Map<CodecKey, CodecValue>,
+            );
             newListing.Metadata.Images = images;
             setListing(newListing);
           }

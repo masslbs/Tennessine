@@ -79,7 +79,7 @@ Deno.test("unpack order vectors", async () => {
   for (const orderMap of orders) {
     for (const [id, order] of orderMap.entries()) {
       console.log("order id", id);
-      const unpacked = Order.fromCBOR(order as Map<string, unknown>);
+      const unpacked = Order.fromCBOR(order);
       console.log(unpacked);
       assertEquals(unpacked.asCBORMap(), order);
     }
