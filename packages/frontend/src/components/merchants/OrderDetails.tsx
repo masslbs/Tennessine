@@ -1,15 +1,26 @@
 import { useEffect, useState } from "react";
-import { toHex } from "viem";
-import { type Chain, mainnet, optimism, sepolia } from "wagmi/chains";
+import { createPublicClient, formatUnits, http, toHex } from "viem";
+import { type Chain } from "wagmi/chains";
 import { useSearch } from "@tanstack/react-router";
+import { useChains } from "wagmi";
 
-import { Listing, Order, OrderedItem } from "@massmarket/schema";
+import {
+  AddressDetails,
+  Listing,
+  Order,
+  OrderedItem,
+  PaymentDetails,
+} from "@massmarket/schema";
 
 import BackButton from "../common/BackButton.tsx";
 import { ListingId, OrderState } from "../../types.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
+import { env } from "../../utils/env.ts";
+import { getTokenInformation } from "../../utils/mod.ts";
+
 export default function OrderDetails() {
   const { stateManager } = useStateManager();
+  const chains = useChains();
   const search = useSearch({ strict: false });
   const orderId = search.orderId;
   const [cartItemsMap, setCartMap] = useState<Map<ListingId, Listing>>(
@@ -22,6 +33,10 @@ export default function OrderDetails() {
   const [blockHash, setBlockHash] = useState<string | null>(null);
   const [etherScanLink, setLink] = useState<string | null>(null);
   const [order, setOrder] = useState<Order>(new Order());
+  const [token, setToken] = useState<{ symbol: string; decimals: number }>({
+    symbol: "",
+    decimals: 0,
+  });
   useEffect(() => {
     if (!orderId) return;
     stateManager.get(["Orders", orderId]).then(
@@ -43,18 +58,31 @@ export default function OrderDetails() {
       order.TxDetails!.BlockHash &&
         setBlockHash(toHex(order.TxDetails!.BlockHash!));
 
-      let chain: Chain | null = null;
-      if (id === optimism.id) {
-        chain = optimism;
-      } else if (id === sepolia.id) {
-        chain = sepolia;
-      } else if (id === mainnet.id) {
-        chain = mainnet;
-      }
+      const chain = chains.find((chain: Chain) => chain.id === id) || null;
 
       if (chain) {
         setLink(chain.blockExplorers?.default?.url || null);
       }
+    }
+    // TODO: might need to useToken(...)s. one for items, one for order summary
+    // this not necessarily the same currency as pricing currency was at the time of order...
+    if (order?.ChosenCurrency) {
+      const chain = chains.find((chain: Chain) =>
+        chain.id === Number(order.ChosenCurrency!.ChainID)
+      );
+      if (!chain) {
+        throw new Error(`Chain (${order.ChosenCurrency!.ChainID}) not found`);
+      }
+      const tokenPublicClient = createPublicClient({
+        chain,
+        transport: http(env.ethRPCUrl),
+      });
+      getTokenInformation(
+        tokenPublicClient,
+        toHex(order.ChosenCurrency!.Address),
+      ).then(([symbol, decimals]) => {
+        setToken({ symbol, decimals });
+      });
     }
   }, [order]);
 
@@ -102,10 +130,65 @@ export default function OrderDetails() {
             className="w-12 h-12 object-cover object-center rounded-lg"
           />
           <h3 data-testid="item-title">{listing.Metadata.Title}</h3>
+          <p data-testid="item-quantity">{selectedQty.get(listing.ID)} x</p>
+          <p data-testid="item-price">
+            {formatUnits(listing.Price, token!.decimals)} {token!.symbol}
+          </p>
         </div>
       );
     });
   }
+
+  function renderAddressDetails(addr: AddressDetails, isShipping: boolean) {
+    return (
+      <section
+        className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg"
+        data-testid={isShipping ? "shipping-details" : "billing-details"}
+      >
+        <h2>{isShipping ? "Shipping Details" : "Billing Details"}</h2>
+        <div className="flex gap-2">
+          <h3>Name</h3>
+          <p>{addr.Name}</p>
+        </div>
+        <div className="flex gap-2">
+          <h3>Address</h3>
+          <div>
+            <p>{addr.Address1}</p>
+            {addr.Address2 && <p>{addr.Address2}</p>}
+            <p>{addr.City}</p>
+            <p>{addr.Country}</p>
+            <p>{addr.PostalCode}</p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <h3>Email</h3>
+          <p>{addr.EmailAddress}</p>
+        </div>
+        {addr.PhoneNumber && (
+          <div className="flex gap-2">
+            <h3>Phone</h3>
+            <p>{addr.PhoneNumber}</p>
+          </div>
+        )}
+      </section>
+    );
+  }
+
+  function renderPaymentDetails(details: PaymentDetails) {
+    if (!details) {
+      throw new Error("Payment details not found");
+    }
+    return (
+      <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
+        <h2>Order summary</h2>
+        <div className="flex gap-2">
+          <p>Total</p>
+          <p>{formatUnits(details.Total, token!.decimals)} {token!.symbol}</p>
+        </div>
+      </section>
+    );
+  }
+
   if (!order) return <p data-testid="order-details-page">No order found</p>;
   return (
     <main
@@ -124,36 +207,12 @@ export default function OrderDetails() {
         {renderItems()}
       </section>
       {order.ShippingAddress
-        ? (
-          <section
-            className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg"
-            data-testid="shipping-details"
-          >
-            <h2>Shipping Details</h2>
-            <div className="flex gap-2">
-              <h3>Name</h3>
-              <p>{order.ShippingAddress.Name}</p>
-            </div>
-            <div className="flex gap-2">
-              <h3>Address</h3>
-              <div>
-                <p>{order.ShippingAddress.Address1}</p>
-                <p>{order.ShippingAddress.City}</p>
-                <p>{order.ShippingAddress.Country}</p>
-                <p>{order.ShippingAddress.PostalCode}</p>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <h3>Email</h3>
-              <p>{order.ShippingAddress.EmailAddress}</p>
-            </div>
-            <div className="flex gap-2">
-              <h3>Phone</h3>
-              <p>{order.ShippingAddress.PhoneNumber}</p>
-            </div>
-          </section>
-        )
+        ? renderAddressDetails(order.ShippingAddress, true)
         : null}
+      {order.InvoiceAddress
+        ? renderAddressDetails(order.InvoiceAddress, false)
+        : null}
+      {order.PaymentDetails ? renderPaymentDetails(order.PaymentDetails) : null}
       <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
         <div className={txHash ? "" : "hidden"}>
           <h2>Tx Hash</h2>

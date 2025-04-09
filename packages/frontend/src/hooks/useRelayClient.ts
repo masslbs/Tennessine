@@ -31,7 +31,7 @@ export function useRelayClient() {
       return;
     }
     if (relayClient?.keycard.address === keycard.address) {
-      debug("RelayClient already set");
+      debug(`RelayClient already set ${relayClient.keycard.address}`);
       return;
     }
     const account = privateKeyToAccount(keycard.privateKey);
