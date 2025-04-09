@@ -12,7 +12,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     relay = {
-      url = "git+ssh://git@github.com/masslbs/relay.git?ref=process-compose";
+      url = "github:masslbs/relay/network-v4";
     };
     contracts.follows = "relay/contracts";
     # schema.follows = "relay/schema";
