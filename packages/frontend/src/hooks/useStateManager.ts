@@ -1,8 +1,8 @@
 import { privateKeyToAccount } from "viem/accounts";
-import { createWalletClient, http } from "viem";
+import { createWalletClient, type Hex, http } from "viem";
 
 import { getWindowLocation, logger } from "@massmarket/utils";
-import { JollyToadStore } from "@massmarket/store/jollytoad";
+import { LevelStore } from "@massmarket/store/browserLevel";
 import StateManager from "@massmarket/stateManager";
 
 import { KeycardRole } from "../types.ts";
@@ -18,7 +18,7 @@ import { useChain } from "./useChain.ts";
 const namespace = "frontend:useStateManager";
 const debug = logger(namespace);
 
-async function createStateManager(shopId: bigint) {
+async function createStateManager(shopId: bigint, pk: Hex) {
   debug("Creating state manager");
   const startingState = new Map(Object.entries({
     Tags: new Map(),
@@ -31,7 +31,7 @@ async function createStateManager(shopId: bigint) {
   }));
 
   const db = new StateManager({
-    store: new JollyToadStore(),
+    store: new LevelStore(`${pk}-${shopId}`),
     id: shopId,
     defaultState: startingState,
   });
@@ -58,7 +58,8 @@ export function useStateManager() {
     if (!shopId) {
       throw new Error("Shop ID is required");
     }
-    const db = stateManager ?? await createStateManager(shopId);
+    const db = stateManager ??
+      await createStateManager(shopId, keycard.privateKey);
 
     // Skip this logic if /create-shop or /merchant-connect, since we need to enroll merchant keycard before we call addConnection in those cases.
     if (!isMerchantPath && relayClient) {
