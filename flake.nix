@@ -15,8 +15,8 @@
       url = "github:masslbs/relay/network-v4";
     };
     contracts.follows = "relay/contracts";
-    # schema.follows = "relay/schema";
-    schema.url = "github:masslbs/network-schema/cbor";
+    schema.follows = "relay/schema";
+    # schema.url = "github:masslbs/network-schema/cbor";
   };
 
   outputs = inputs @ {
