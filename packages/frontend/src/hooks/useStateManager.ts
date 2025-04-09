@@ -1,5 +1,6 @@
 import { privateKeyToAccount } from "viem/accounts";
 import { createWalletClient, type Hex, http } from "viem";
+import { BrowserLevel } from "browser-level";
 
 import { getWindowLocation, logger } from "@massmarket/utils";
 import { LevelStore } from "@massmarket/store/browserLevel";
@@ -29,9 +30,14 @@ async function createStateManager(shopId: bigint, pk: Hex) {
     Manifest: new Map(),
     SchemeVersion: 1,
   }));
-
+  const dbName = `${pk}-${shopId}`;
   const db = new StateManager({
-    store: new LevelStore(`${pk}-${shopId}`),
+    store: new LevelStore(
+      new BrowserLevel(dbName, {
+        valueEncoding: "view",
+        keyEncoding: "view",
+      }),
+    ),
     id: shopId,
     defaultState: startingState,
   });

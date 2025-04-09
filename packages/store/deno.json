@@ -7,8 +7,7 @@
     "./mem": "./mem.ts",
     "./level": "./level.ts",
     "./jollytoad": "./jollytoad.ts",
-    "./abstract": "./abstract.ts",
-    "./browserLevel": "./browserLevel.ts"
+    "./abstract": "./abstract.ts"
   },
   "license": "MPL-2.0",
   "imports": {
