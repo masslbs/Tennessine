@@ -23,10 +23,6 @@ Deno.test("Database Testings", async (t) => {
       "TestGenerateVectorsListingOkay/replace_expectedInStockBy", // the tests vectors automatically remove an instock field
       "TestGenerateVectorsListingOkay/remove_stock_status", // removing the last item of an array
       "TestGenerateVectorsListingOkay/remove_an_option", // removing the last item from a map
-      "replace quantity of an item", // this test appears to changes two orders with one patch
-      "increment item quantity", // this test appears to changes two orders with one patch
-      "decrement item quantity", // this test appears to changes two orders with one patch
-      "remove an item from an order", // this test appears to changes two orders with one patch
       "CreateCustomerAccount", // extractFromHAMT returns integer as keys and Account should have bytes as keys
     ],
   );
