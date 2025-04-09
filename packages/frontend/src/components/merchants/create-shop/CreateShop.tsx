@@ -50,7 +50,7 @@ const debug = logger(namespace);
 const errlog = logger(namespace, "error");
 const { shopRegAbi, shopRegAddress } = abi;
 
-const retryCount = 20;
+const retryCount = 10;
 
 export default function () {
   const addRecentTransaction = useAddRecentTransaction();
@@ -240,7 +240,7 @@ export default function () {
         shopManifest,
       );
       setKeycard({
-        privateKey: keycard.privateKey,
+        ...keycard,
         role: KeycardRole.MERCHANT,
       });
       debug("Manifest created");

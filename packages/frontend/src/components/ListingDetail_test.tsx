@@ -106,11 +106,14 @@ Deno.test("Check that we can render the listing details screen", {
     const addToBasket = screen.getByTestId("addToBasket");
     await user.click(addToBasket);
   });
-  const items =
+
+  let items;
+  await waitFor(async () => {
     // @ts-ignore TODO: add BaseClass to CodecValue
-    Order.fromCBOR(await stateManager.get(["Orders", orderId])).Items;
-  expect(items[0].ListingID).toBe(listingId);
-  expect(items[0].Quantity).toBe(10);
+    items = Order.fromCBOR(await stateManager.get(["Orders", orderId])).Items;
+    expect(items[0].ListingID).toBe(listingId);
+    expect(items[0].Quantity).toBe(10);
+  });
 
   // Commit order and try to update quantity. Tests cancelAndRecreateOrder fn
   await stateManager.set(

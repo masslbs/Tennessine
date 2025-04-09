@@ -82,6 +82,11 @@ jobs:
         run: nix develop -c bash -c "deno test -A packages/{schema,client,stateManager,frontend} --no-check"
         working-directory: Tennessine/
 
+      - name: Shut down local testnet
+        run: |
+          nix develop -c local-testnet down
+        working-directory: Tennessine/
+
       - name: build frontend
         run: nix develop -c bash -c "deno run production"
         working-directory: Tennessine/packages/frontend

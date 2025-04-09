@@ -3,8 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { ChangeEvent, useEffect, useState } from "react";
-import { useChains, useWalletClient } from "wagmi";
-import { hexToBytes, zeroAddress } from "viem";
+import { useWalletClient } from "wagmi";
 import { equal } from "@std/assert";
 
 import { setTokenURI } from "@massmarket/contracts";
@@ -34,7 +33,6 @@ export default function ShopSettings() {
   const { shopDetails, setShopDetails } = useShopDetails();
   const { shopId } = useShopId();
   const { data: wallet } = useWalletClient();
-  const chains = useChains();
   const { stateManager } = useStateManager();
   const { relayClient } = useRelayClient();
 

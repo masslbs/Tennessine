@@ -3,7 +3,7 @@ import { createWalletClient, type Hex, http } from "viem";
 import { BrowserLevel } from "browser-level";
 
 import { getWindowLocation, logger } from "@massmarket/utils";
-import { LevelStore } from "@massmarket/store/browserLevel";
+import { LevelStore } from "@massmarket/store/level";
 import StateManager from "@massmarket/stateManager";
 
 import { KeycardRole } from "../types.ts";

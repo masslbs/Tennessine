@@ -40,7 +40,7 @@ export default function EditProduct() {
   const itemId = typeof search.itemId === "number"
     ? Number(search.itemId) as ListingId
     : null;
-  const hed = itemId ? "Edit product" : "Add Product";
+  const heading = itemId ? "Edit product" : "Add Product";
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -249,7 +249,7 @@ export default function EditProduct() {
         <BackButton href="/listings" />
         <section className="mt-3">
           <div className="flex">
-            <h2>{hed}</h2>
+            <h2>{heading}</h2>
           </div>
           <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
             <form
