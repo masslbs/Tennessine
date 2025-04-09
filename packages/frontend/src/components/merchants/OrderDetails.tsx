@@ -184,7 +184,10 @@ export default function OrderDetails() {
         <h2>Order summary</h2>
         <div className="flex gap-2">
           <p>Total</p>
-          <p>{formatUnits(details.Total, token!.decimals)} {token!.symbol}</p>
+          <p>
+            {formatUnits(BigInt(details.Total), token!.decimals)}{" "}
+            {token!.symbol}
+          </p>
         </div>
       </section>
     );
