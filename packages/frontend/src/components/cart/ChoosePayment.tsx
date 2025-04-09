@@ -5,7 +5,6 @@ import {
   type ContractFunctionArgs,
   createPublicClient,
   formatUnits,
-  fromHex,
   http,
   pad,
   toHex,
@@ -32,7 +31,7 @@ import ConnectWalletButton from "../common/ConnectWalletButton.tsx";
 import { useShopId } from "../../hooks/useShopId.ts";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { CheckoutStep, CurrencyChainOption } from "../../types.ts";
-import { defaultRPC, getTokenInformation } from "../../utils/mod.ts";
+import { env, getTokenInformation } from "../../utils/mod.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 
 const namespace = "frontend:ChoosePayment";
@@ -147,7 +146,7 @@ export default function ChoosePayment({
       //Create public client with correct chainId.
       const paymentRPC = createPublicClient({
         chain: chosenPaymentChain,
-        transport: http(defaultRPC),
+        transport: http(env.ethRPCUrl),
       });
 
       const [symbol, chosenCurrencyDecimals] = await getTokenInformation(
@@ -219,7 +218,7 @@ export default function ChoosePayment({
       if (!chain) continue;
       const tokenPublicClient = createPublicClient({
         chain,
-        transport: http(defaultRPC),
+        transport: http(env.ethRPCUrl),
       });
       for (const [address, _val] of addresses.entries()) {
         const res = await getTokenInformation(

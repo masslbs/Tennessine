@@ -3,9 +3,9 @@ import { hexToBigInt } from "viem";
 import { env } from "../utils/env.ts";
 
 export function useShopId() {
-  if (env?.["VITE_SHOP_TOKEN_ID"]) {
+  if (env.shopTokenId) {
     return {
-      shopId: BigInt(env?.["VITE_SHOP_TOKEN_ID"] as `0x${string}`),
+      shopId: BigInt(env.shopTokenId),
     };
   }
   const search = useSearch({ strict: false });

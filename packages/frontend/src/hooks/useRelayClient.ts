@@ -9,7 +9,7 @@ import { useKeycard } from "./useKeycard.ts";
 import { useChain } from "./useChain.ts";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";
 import { useShopId } from "./useShopId.ts";
-import { defaultRPC } from "../utils/mod.ts";
+import { env } from "../utils/mod.ts";
 import { useQuery } from "./useQuery.ts";
 import { isTesting } from "../utils/env.ts";
 
@@ -37,7 +37,7 @@ export function useRelayClient() {
       account,
       chain,
       transport: http(
-        defaultRPC,
+        env.ethRPCUrl,
       ),
     });
     if (!relayEndpoint) {

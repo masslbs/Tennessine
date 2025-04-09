@@ -7,7 +7,7 @@ import { LevelStore } from "@massmarket/store/browserLevel";
 import StateManager from "@massmarket/stateManager";
 
 import { KeycardRole } from "../types.ts";
-import { defaultRPC } from "../utils/env.ts";
+import { env } from "../utils/env.ts";
 import { useMassMarketContext } from "../MassMarketContext.ts";
 import { useShopId } from "./useShopId.ts";
 import { useQuery } from "./useQuery.ts";
@@ -76,7 +76,7 @@ export function useStateManager() {
           account,
           chain,
           transport: http(
-            defaultRPC,
+            env.ethRPCUrl,
           ),
         });
         const res = await relayClient.enrollKeycard(
