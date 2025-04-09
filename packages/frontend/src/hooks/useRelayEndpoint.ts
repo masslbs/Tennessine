@@ -8,10 +8,10 @@ const debug = logger(namespace);
 
 export function useRelayEndpoint() {
   const { result } = useQuery(async () => {
-    if (env?.["VITE_RELAY_TOKEN_ID"]) {
+    if (env.relayTokenId && env.relayEndpoint) {
       const re = {
-        url: new URL(env?.["VITE_RELAY_ENDPOINT"] as string),
-        tokenId: env?.["VITE_RELAY_TOKEN_ID"] as `0x${string}`,
+        url: new URL(env.relayEndpoint),
+        tokenId: env.relayTokenId,
       };
       debug(`using environment variables for relay endpoint ${re.url}`);
       return re;

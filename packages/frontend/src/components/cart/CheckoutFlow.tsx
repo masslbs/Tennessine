@@ -67,9 +67,14 @@ export default function CheckoutFlow() {
       if (order.TxDetails) {
         const tx = order.TxDetails.TxHash;
         const bh = order.TxDetails.BlockHash;
+        assert(tx || bh, "No tx or bh");
         tx && setTxHash(toHex(tx));
         bh && setBlockHash(toHex(bh));
-        debug(`Hash received: ${tx ?? bh}`);
+        debug(
+          `Hash received: ${
+            tx ? `Tx: ${toHex(tx)}` : bh ? `Block: ${toHex(bh)}` : "unreachable"
+          }`,
+        );
         setStep(CheckoutStep.confirmation);
       }
     }

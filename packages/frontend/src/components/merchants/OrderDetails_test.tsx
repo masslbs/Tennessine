@@ -41,7 +41,7 @@ Deno.test("Check that we can render the order details screen", {
   await stateManager.set(["Orders", orderId], order);
 
   const { unmount } = render(<OrderDetails />, { wrapper });
-  screen.debug();
+  // screen.debug();
   screen.getByTestId("order-details-page");
 
   await waitFor(() => {
