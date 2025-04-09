@@ -7,14 +7,10 @@ import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useNavigate } from "@tanstack/react-router";
 import { hexToBigInt, isHex, toHex } from "viem";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 import { abi } from "@massmarket/contracts";
-import {
-  assert,
-  getWindowLocation,
-  logger,
-  random32BytesHex,
-} from "@massmarket/utils";
+import { assert, getWindowLocation, logger } from "@massmarket/utils";
 
 import ConnectConfirmation from "./ConnectConfirmation.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
@@ -56,9 +52,12 @@ export default function MerchantConnect() {
   useEffect(() => {
     // only create merchant keycard if it doesn't exist
     if (shopId && keycard.role === KeycardRole.NEW_GUEST) {
+      const privateKey = generatePrivateKey();
+      const account = privateKeyToAccount(privateKey);
       setKeycard({
-        privateKey: random32BytesHex(),
+        privateKey,
         role: KeycardRole.MERCHANT,
+        address: account.address,
       });
     }
   }, [shopId !== null, keycard.role === KeycardRole.NEW_GUEST, shopId]);

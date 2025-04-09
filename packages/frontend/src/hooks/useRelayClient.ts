@@ -1,6 +1,6 @@
 import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-
+import { useEffect } from "react";
 import { RelayClient } from "@massmarket/client";
 import { logger } from "@massmarket/utils";
 
@@ -10,7 +10,6 @@ import { useChain } from "./useChain.ts";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";
 import { useShopId } from "./useShopId.ts";
 import { env } from "../utils/mod.ts";
-import { useQuery } from "./useQuery.ts";
 import { isTesting } from "../utils/env.ts";
 
 const namespace = "frontend:useRelayClient";
@@ -23,13 +22,16 @@ export function useRelayClient() {
   const { relayEndpoint } = useRelayEndpoint();
   const { shopId } = useShopId();
 
-  // @ts-ignore TODO: useQuery needs async, even though we are not using it.
-  useQuery(async () => {
+  useEffect(() => {
     // TODO: this is a bit annoying.. in testing we are already supplying a relayClient,
     // so we don't want to create another one.
     // but, there are features in the app that want to un/reset the relayClient,
     // so we need to be careful about this.
     if (isTesting && relayClient) {
+      return;
+    }
+    if (relayClient?.keycard.address === keycard.address) {
+      debug("RelayClient already set");
       return;
     }
     const account = privateKeyToAccount(keycard.privateKey);
@@ -48,7 +50,7 @@ export function useRelayClient() {
       debug("Shop ID is required");
       return;
     }
-    debug(`Setting RelayClient with keycard: ${keycard.privateKey}`);
+    debug(`Setting RelayClient with keycard: ${account.address}`);
     const rc = new RelayClient({
       relayEndpoint,
       walletClient: keycardWallet,
@@ -57,10 +59,10 @@ export function useRelayClient() {
     });
 
     setRelayClient(rc);
-    debug(`RelayClient set!`);
   }, [
     String(shopId),
     relayEndpoint,
+    keycard.privateKey,
   ]);
 
   return { relayClient };
