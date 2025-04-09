@@ -12,6 +12,7 @@ import {
   AcceptedCurrencyMap,
   ChainAddress,
   Manifest,
+  ShippingRegion,
 } from "@massmarket/schema";
 import { CurrencyChainOption } from "../../types.ts";
 import Button from "../common/Button.tsx";

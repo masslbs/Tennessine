@@ -106,6 +106,9 @@ export default function MerchantConnect() {
 
   async function enroll() {
     try {
+      if (!relayClient) {
+        throw new Error("Relay client not found");
+      }
       const res = await relayClient.enrollKeycard(
         wallet!,
         wallet!.account,

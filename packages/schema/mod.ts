@@ -24,6 +24,7 @@ import {
   Order,
   OrderedItem,
   OrderState,
+  PaymentDetails,
 } from "./standin_order.ts";
 import { BaseClass } from "./utils.ts";
 export {
@@ -41,6 +42,7 @@ export {
   Payee,
   PayeeMap,
   PayeeMetadata,
+  PaymentDetails,
   ShippingRegion,
   ShippingRegionsMap,
 };
