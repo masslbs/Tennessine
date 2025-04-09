@@ -288,7 +288,11 @@ export class RelayClient {
     this.lastPingReceived = new Date();
   }
 
-  async createSubscription(_path: Path, seqNo = 0) {
+  async createSubscription(
+    _path: Path,
+    seqNo = 0,
+    controller?: ReadableStreamDefaultController<PushedPatchSet>,
+  ) {
     const { response } = await this.encodeAndSend({
       subscriptionRequest: {
         startShopSeqNo: seqNo,
@@ -297,6 +301,11 @@ export class RelayClient {
     });
 
     assert(response?.payload, "response.payload is required");
+    if (controller) {
+      const id = response.payload!;
+      this.#subscriptions.set(id.toString(), controller);
+      debug(`registered subscription[${id.toString()}]`);
+    }
     return response;
   }
 
@@ -314,10 +323,8 @@ export class RelayClient {
     return new ReadableStream<PushedPatchSet>({
       start: async (c) => {
         await this.connect();
-        const r = await this.createSubscription(path, seqNum);
-        id = r.payload!;
-        this.#subscriptions.set(id.toString(), c);
-        debug(`registered subscription[${id.toString()}]`);
+        const { payload } = await this.createSubscription(path, seqNum, c);
+        id = payload!;
       },
       cancel: async (reason) => {
         this.#subscriptions.delete(id.toString());
