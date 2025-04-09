@@ -271,8 +271,8 @@ function Navigation() {
         </section>
       </section>
       {(basketOpen || menuOpen) && (
-        <span 
-          className="fixed bg-black w-full h-full opacity-60" 
+        <span
+          className="fixed bg-black w-full h-full opacity-60"
           onClick={() => {
             basketOpen && setBasketOpen(false);
             menuOpen && setMenuOpen(false);
