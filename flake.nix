@@ -11,9 +11,8 @@
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    relay = {
-      url = "github:masslbs/relay/network-v4";
-    };
+
+    relay.url = "github:masslbs/relay/network-v4";
     contracts.follows = "relay/contracts";
     schema.follows = "relay/schema";
     # schema.url = "github:masslbs/network-schema/cbor";
