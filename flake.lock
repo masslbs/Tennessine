@@ -647,18 +647,18 @@
         "systems": "systems_4"
       },
       "locked": {
-        "lastModified": 1744122938,
-        "narHash": "sha256-7000/M2gam1+29sc3sU7abZCtIL+YHJlwzG5LQMsCfA=",
-        "ref": "process-compose",
-        "rev": "83ac03c8589373fbff7b38905f6ef664b59bbcc0",
-        "revCount": 53,
-        "type": "git",
-        "url": "ssh://git@github.com/masslbs/relay.git"
+        "lastModified": 1744189705,
+        "narHash": "sha256-Rb43624C4lN7MVJ8pkCLhd7zyJ6FUomyjAyGcNMsMvE=",
+        "owner": "masslbs",
+        "repo": "relay",
+        "rev": "0d7912743e570778ff31ea655cd75079e42a7448",
+        "type": "github"
       },
       "original": {
-        "ref": "process-compose",
-        "type": "git",
-        "url": "ssh://git@github.com/masslbs/relay.git"
+        "owner": "masslbs",
+        "ref": "network-v4",
+        "repo": "relay",
+        "type": "github"
       }
     },
     "root": {
