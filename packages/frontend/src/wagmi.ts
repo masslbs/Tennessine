@@ -3,13 +3,14 @@ import { hardhat, mainnet, optimism, sepolia } from "wagmi/chains";
 import { fallback, http, unstable_connector } from "wagmi";
 import { injected } from "wagmi/connectors";
 import { isTesting } from "./utils/env.ts";
+import { env } from "./utils/env.ts";
 
 export function getConfig() {
   // First we try to connect to the block using window.ethereum
   // if that does not exist (metamask is not installed) we try to connect using the http provider
   const transport = fallback([
     unstable_connector(injected),
-    http(),
+    http(env.ethRPCUrl),
   ]);
 
   const transports = isTesting
