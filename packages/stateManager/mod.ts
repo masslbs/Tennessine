@@ -260,13 +260,19 @@ export default class StateManager {
     const state = this.#state;
     assert(state, "open not finished");
     let sendpromise: Promise<void[]>;
+    const oldStateRoot = state.root;
     state.root = this.graph.set(state.root, path, (parent, p) => {
       const v = get(parent, p);
       set(parent, p, value);
       const op = v === undefined ? "add" : "replace";
       sendpromise = this.#sendPatch(
         { Op: op, Path: path, Value: value },
-      );
+      ).catch((e) => {
+        // Here we revert the back to the old state root
+        // If the relay gives an error
+        state.root = oldStateRoot;
+        throw e;
+      });
     });
     const r = await state.root;
     this.events.emit(r);
