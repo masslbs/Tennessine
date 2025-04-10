@@ -64,6 +64,7 @@ export function useRelayClient() {
 
     setRelayClient(rc);
   }, [
+    keycard !== undefined,
     String(shopId),
     relayEndpoint,
     keycard.privateKey,

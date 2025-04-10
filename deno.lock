@@ -27,6 +27,7 @@
     "npm:@scure/bip32@1.6.2": "1.6.2",
     "npm:@scure/bip39@1.5.4": "1.5.4",
     "npm:@sentry/browser@*": "9.6.1",
+    "npm:@sentry/browser@^9.12.0": "9.12.0",
     "npm:@tailwindcss/vite@^4.0.15": "4.0.15_vite@6.2.2__@types+node@22.13.10_@types+node@22.12.0_lightningcss@1.29.2",
     "npm:@tanstack/react-query@^5.60.6": "5.69.0_react@19.0.0",
     "npm:@tanstack/react-router@^1.82.1": "1.114.25_react@19.0.0_react-dom@19.0.0__react@19.0.0",
@@ -1024,41 +1025,80 @@
         "@scure/base@1.2.4"
       ]
     },
+    "@sentry-internal/browser-utils@9.12.0": {
+      "integrity": "sha512-GXuDEG2Ix8DmVtTkjsItWdusk2CvJ6EPWKYVqFKifxt+IAT3ZbhGZd99Rg3wdRmt9xhCNuS4QrDzDTPMPgfdCw==",
+      "dependencies": [
+        "@sentry/core@9.12.0"
+      ]
+    },
     "@sentry-internal/browser-utils@9.6.1": {
       "integrity": "sha512-3bQDHc/extRnjzPaq8SjNxwPLHeWa5jT8O99kYq2MHg+xZr5wb5PkbaBIPZNHZp4CChNkzzSEQI9p1aBIfy0rQ==",
       "dependencies": [
-        "@sentry/core"
+        "@sentry/core@9.6.1"
+      ]
+    },
+    "@sentry-internal/feedback@9.12.0": {
+      "integrity": "sha512-3+UxoT97QIXNSUQS4ATL1FFws0RkUb6PeaQN8CPndI6mFlqTW5tuVVLNg9Eo1seNg7R/dfk6WHCWrYN1NbFFKQ==",
+      "dependencies": [
+        "@sentry/core@9.12.0"
       ]
     },
     "@sentry-internal/feedback@9.6.1": {
       "integrity": "sha512-mjvEYzBFnV3RmpGsqGeKCIvyYBoHoapevEYgNS2Q+kcFXfSYvA1EozzlhlTVaflWzI2kfLN0Uh/OBcjwCRvCkQ==",
       "dependencies": [
-        "@sentry/core"
+        "@sentry/core@9.6.1"
+      ]
+    },
+    "@sentry-internal/replay-canvas@9.12.0": {
+      "integrity": "sha512-p8LuKZgWT/CoQBbDOXkSGjWWnc8WsnAayWgna8M/ZFWNITCNEM2rCuqZOyWOElIlrni+M7qoEA3jS7MZe8Ejxw==",
+      "dependencies": [
+        "@sentry-internal/replay@9.12.0",
+        "@sentry/core@9.12.0"
       ]
     },
     "@sentry-internal/replay-canvas@9.6.1": {
       "integrity": "sha512-3enNu2YwG4SycodMyenR6Q6MfFwbvatD6ms1gupxB0HGui2xxfgb2ySYZI2iuvMPO2VL544kFkIfwNyqax2YyA==",
       "dependencies": [
-        "@sentry-internal/replay",
-        "@sentry/core"
+        "@sentry-internal/replay@9.6.1",
+        "@sentry/core@9.6.1"
+      ]
+    },
+    "@sentry-internal/replay@9.12.0": {
+      "integrity": "sha512-njEQosFeO/UX+gG+DMRANkPUuz6OIJLb+A1GVylhq9adUgFQydQ9Ay3v7/x1gMhdfHVP6Jeb27qkti0BWYbzBQ==",
+      "dependencies": [
+        "@sentry-internal/browser-utils@9.12.0",
+        "@sentry/core@9.12.0"
       ]
     },
     "@sentry-internal/replay@9.6.1": {
       "integrity": "sha512-iV5E48fI+IQzyI2hJ+KKOullWMbv/SWDFtyQoRN6drimScDP9Tn1rJ5uNsAiVF3m8Vsj+w3UQwPBzcd+WDeQmw==",
       "dependencies": [
-        "@sentry-internal/browser-utils",
-        "@sentry/core"
+        "@sentry-internal/browser-utils@9.6.1",
+        "@sentry/core@9.6.1"
+      ]
+    },
+    "@sentry/browser@9.12.0": {
+      "integrity": "sha512-4xQYoZqi+VVhNvlhWiwRd57+SMr3Og4sLjuayAA+zIp1Wx/bDcIld697cugLwml/BR+mVJI2eokkgh1CBl6zag==",
+      "dependencies": [
+        "@sentry-internal/browser-utils@9.12.0",
+        "@sentry-internal/feedback@9.12.0",
+        "@sentry-internal/replay@9.12.0",
+        "@sentry-internal/replay-canvas@9.12.0",
+        "@sentry/core@9.12.0"
       ]
     },
     "@sentry/browser@9.6.1": {
       "integrity": "sha512-m6rCoR+dafZkHTJdQhPrIq4vdTrfRhmP3FVEPlBCVClnNeo6TShVJwtEu3kfBsmnYfGWaac2tn1oczMD2wjmZQ==",
       "dependencies": [
-        "@sentry-internal/browser-utils",
-        "@sentry-internal/feedback",
-        "@sentry-internal/replay",
-        "@sentry-internal/replay-canvas",
-        "@sentry/core"
+        "@sentry-internal/browser-utils@9.6.1",
+        "@sentry-internal/feedback@9.6.1",
+        "@sentry-internal/replay@9.6.1",
+        "@sentry-internal/replay-canvas@9.6.1",
+        "@sentry/core@9.6.1"
       ]
+    },
+    "@sentry/core@9.12.0": {
+      "integrity": "sha512-jOqQK/90uzHmsBvkPTj/DAEFvA5poX4ZRyC7LE1zjg4F5jdOp3+M4W3qCy0CkSTu88Zu5VWBoppCU2Bs34XEqg=="
     },
     "@sentry/core@9.6.1": {
       "integrity": "sha512-BHaRxyFF3sNlKP6lNcB5cxFogvfMOtWw0Est6mK/Mbewnim0qEbmqKyuMj67ebfgo+pmUJJc2wgugdxkxvqGRQ=="
@@ -4477,6 +4517,7 @@
           "npm:@deno/vite-plugin@^1.0.4",
           "npm:@happy-dom/global-registrator@^17.4.4",
           "npm:@rainbow-me/rainbowkit@^2.2.0",
+          "npm:@sentry/browser@^9.12.0",
           "npm:@tailwindcss/vite@^4.0.15",
           "npm:@tanstack/react-query@^5.60.6",
           "npm:@tanstack/react-router@^1.82.1",
