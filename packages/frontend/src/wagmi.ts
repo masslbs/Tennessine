@@ -1,6 +1,5 @@
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
 import { hardhat, mainnet, optimism, sepolia } from "wagmi/chains";
-import type { Chain } from "wagmi/chains";
 import type { Transport } from "viem";
 import { fallback, http, unstable_connector } from "wagmi";
 import { injected } from "wagmi/connectors";
@@ -25,12 +24,11 @@ export function getConfig() {
       [sepolia.id]: transport,
       [optimism.id]: transport,
     };
-  const chains = isTesting ? [hardhat] : [hardhat, mainnet, optimism, sepolia];
   return getDefaultConfig({
     appName: "Mass Labs",
     projectId: "6c432edcd930e0fa2c87a8d940ae5b91",
     ssr: false,
-    chains: chains as unknown as Chain[],
+    chains: isTesting ? [hardhat] : [hardhat, mainnet, optimism, sepolia],
     transports: transports as unknown as Record<string, Transport>,
   });
 }
