@@ -108,7 +108,6 @@ Deno.test("Check that we can render the listing details screen", {
     await user.click(addToBasket);
   });
 
-  let items;
   await waitFor(async () => {
     const d = await stateManager.get(["Orders", orderId]);
     expect(d).toBeDefined();

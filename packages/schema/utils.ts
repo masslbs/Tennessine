@@ -1,4 +1,4 @@
-import { CodecValue } from "@massmarket/utils/codec";
+import type { CodecValue } from "@massmarket/utils/codec";
 export class BaseClass {
   static isBaseClass(value: unknown): value is BaseClass {
     return (

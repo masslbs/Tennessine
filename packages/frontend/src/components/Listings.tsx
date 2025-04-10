@@ -10,7 +10,6 @@ import CustomerViewListings from "./CustomerViewListings.tsx";
 import { useKeycard } from "../hooks/useKeycard.ts";
 import { useStateManager } from "../hooks/useStateManager.ts";
 import MerchantViewListings from "./merchants/listings/MerchantViewListings.tsx";
-import { ListingId } from "../types.ts";
 
 export default function Listings() {
   const { stateManager } = useStateManager();

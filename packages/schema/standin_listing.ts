@@ -1,4 +1,4 @@
-import { CodecKey, CodecValue } from "@massmarket/utils/codec";
+import type { CodecKey, CodecValue } from "@massmarket/utils/codec";
 import { PriceModifier } from "./standin_manifest.ts";
 import {
   BaseClass,

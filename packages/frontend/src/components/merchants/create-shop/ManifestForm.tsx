@@ -1,6 +1,4 @@
 import { ChangeEvent, useState } from "react";
-import { useChains } from "wagmi";
-import { hardhat } from "wagmi/chains";
 import { toBytes } from "viem";
 
 import { ChainAddress, Manifest } from "@massmarket/schema";
