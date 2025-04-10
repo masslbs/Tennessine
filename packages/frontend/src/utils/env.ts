@@ -16,7 +16,7 @@ let mode = "development";
 const viteEnv = Reflect.get(import.meta, "env");
 if (viteEnv && viteEnv.MODE) {
   mode = viteEnv.MODE;
-} else if (Deno && Deno.env.get("MODE")) {
+} else if (typeof Deno !== "undefined" && Deno.env.get("MODE")) {
   mode = Deno.env.get("MODE")!;
 }
 const isProduction = mode === "production";
