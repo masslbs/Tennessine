@@ -223,7 +223,7 @@ export default function () {
       // Since we don't currently have UI for inputting payment address for each chain,
       // Get all unique chain IDs for selected accepted currencies and add payee for each chain.
       const uniqueByChainId = Array.from(
-        shopManifest.AcceptedCurrencies.asCBORMap().keys(),
+        shopManifest.AcceptedCurrencies.data.keys(),
       );
       uniqueByChainId.forEach((chainId) => {
         shopManifest.Payees.addAddress(
@@ -236,7 +236,6 @@ export default function () {
 
       await stateManager.set(
         ["Manifest"],
-        // @ts-ignore TODO: add BaseClass to CodecValue
         shopManifest,
       );
       setKeycard({

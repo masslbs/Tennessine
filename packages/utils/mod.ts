@@ -238,13 +238,13 @@ export async function fetchAndDecode(filename: string): Promise<TestVector> {
 
 export function extractEntriesFromHAMT(
   hamtNode: unknown,
-): Map<number, unknown> {
+): CodecValue {
   if (!hamtNode || !Array.isArray(hamtNode) || hamtNode.length < 2) {
     return new Map();
   }
 
   const entries = hamtNode[1];
-  const result = new Map<number, unknown>();
+  const result = new Map<number, CodecValue>();
 
   if (Array.isArray(entries)) {
     for (const entry of entries) {
@@ -254,7 +254,13 @@ export function extractEntriesFromHAMT(
           // This is another HAMT node, recurse into it
           const subEntries = extractEntriesFromHAMT(entry[2]);
           // Merge the results
+          if (!(subEntries instanceof Map)) {
+            throw new TypeError("Expected subEntries to be a Map");
+          }
           for (const [subKey, subValue] of subEntries.entries()) {
+            if (typeof subKey !== "number") {
+              throw new TypeError("Expected subKey to be a number");
+            }
             result.set(subKey, subValue);
           }
         } else {

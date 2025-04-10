@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 
 import { Listing } from "@massmarket/schema";
-
+import { CodecKey, CodecValue } from "@massmarket/utils/codec";
 import CustomerViewListings from "./CustomerViewListings.tsx";
 import { useKeycard } from "../hooks/useKeycard.ts";
 import { useStateManager } from "../hooks/useStateManager.ts";
@@ -21,10 +21,10 @@ export default function Listings() {
     return <main data-testid="listings-page">Loading...</main>;
   }
 
-  function mapToListingClass(allListings: Map<ListingId, unknown>) {
+  function mapToListingClass(allListings: Map<CodecKey, CodecValue>) {
     const listings: Listing[] = [];
     for (const [_id, l] of allListings.entries()) {
-      listings.push(Listing.fromCBOR(l as Map<string, unknown>));
+      listings.push(Listing.fromCBOR(l));
     }
     return listings;
   }
@@ -32,13 +32,16 @@ export default function Listings() {
   useEffect(() => {
     if (!stateManager) return;
 
-    function allListingsEvent(res: Map<ListingId, unknown>) {
+    function allListingsEvent(res: Map<CodecKey, CodecValue>) {
       const listings = mapToListingClass(res);
       setProducts(listings);
     }
 
-    // @ts-ignore TODO: add BaseClass to CodecValue
-    stateManager.get(["Listings"]).then((res: Map<ListingId, unknown>) => {
+    stateManager.get(["Listings"]).then((res: CodecValue | undefined) => {
+      if (!res) return;
+      if (!(res instanceof Map)) {
+        throw new Error("Listings is not a Map");
+      }
       const listings = mapToListingClass(res);
       setProducts(listings);
     });

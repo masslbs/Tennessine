@@ -8,8 +8,9 @@ import { useDisconnect } from "wagmi";
 
 import { assert, logger } from "@massmarket/utils";
 import { Order, OrderedItem } from "@massmarket/schema";
+import { CodecKey, CodecValue } from "@massmarket/utils/codec";
 
-import { CheckoutStep, OrderId, OrderState } from "../types.ts";
+import { CheckoutStep, OrderState } from "../types.ts";
 import Cart from "./cart/Cart.tsx";
 import { useStateManager } from "../hooks/useStateManager.ts";
 import { useShopDetails } from "../hooks/useShopDetails.ts";
@@ -68,9 +69,11 @@ function Navigation() {
   useEffect(() => {
     if (!currentOrder) return;
     stateManager?.get(["Orders", currentOrder.ID])
-      // @ts-ignore TODO: add BaseClass to CodecValue
-      .then((o: Map<string, unknown>) => {
-        const order = Order.fromCBOR(o as Map<string, unknown>);
+      .then((o: CodecValue | undefined) => {
+        if (!o) {
+          throw new Error("No order found");
+        }
+        const order = Order.fromCBOR(o);
         // Getting number of items in order.
         let length = 0;
         order.Items.map((item: OrderedItem) => (length += item.Quantity));

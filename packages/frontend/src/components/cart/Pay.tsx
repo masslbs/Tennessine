@@ -8,6 +8,7 @@ import { ContractFunctionArgs, toHex, zeroAddress } from "viem";
 import { assert, logger } from "@massmarket/utils";
 import { abi, approveERC20, getAllowance, pay } from "@massmarket/contracts";
 import { Order } from "@massmarket/schema";
+import { CodecValue } from "@massmarket/utils/codec";
 
 import Button from "../common/Button.tsx";
 import BackButton from "../common/BackButton.tsx";
@@ -21,13 +22,12 @@ const debug = logger(namespace);
 const errlog = logger(namespace, "error");
 
 const defaultShopChainName = isTesting ? "hardhat" : "mainnet";
-const configuredChainName = env?.VITE_CHAIN_NAME || defaultShopChainName;
+const configuredChainName = env.chainName || defaultShopChainName;
 
 const {
   eddiesAbi,
   paymentsByAddressAbi,
   paymentsByAddressAddress,
-  // useSimulatePaymentsByAddressPay
 } = abi;
 
 export default function Pay({
@@ -60,14 +60,17 @@ export default function Pay({
 
   useEffect(() => {
     if (!currentOrder) return;
-    function txHashDetected(o: Map<string, unknown>) {
+    function txHashDetected(o: CodecValue) {
       const order = Order.fromCBOR(o);
-      if (order.TxDetails) {
-        debug("txHashDetected", order.TxDetails);
-        setTxHash(order.TxDetails?.TxHash ?? order.TxDetails?.BlockHash);
+      if (order?.TxDetails) {
+        const hash = order.TxDetails?.TxHash
+          ? toHex(order.TxDetails?.TxHash)
+          : toHex(order.TxDetails?.BlockHash);
+        debug(`txHashDetected: ${hash}`);
+        setTxHash(hash);
         // TODO: are we sure this works for block hashes?
         addRecentTransaction({
-          hash: toHex(order.TxDetails?.TxHash ?? order.TxDetails?.BlockHash),
+          hash: hash,
           description: "Order Payment",
           // confirmations: 3,
         });
@@ -127,7 +130,7 @@ export default function Pay({
         chainId: paymentChainId,
         abi: paymentsByAddressAbi,
         address: paymentsByAddressAddress,
-        functionName: "pay",
+        functionName: "pay" as const,
         args: paymentArgs,
         connector,
       };

@@ -2,6 +2,7 @@ import { useEffect } from "react";
 
 import { logger, randUint64 } from "@massmarket/utils";
 import { Order, OrderedItem } from "@massmarket/schema";
+import { CodecValue } from "@massmarket/utils/codec";
 
 import { useStateManager } from "./useStateManager.ts";
 import { KeycardRole, ListingId, OrderState } from "../types.ts";
@@ -18,7 +19,7 @@ export function useCurrentOrder() {
   const { stateManager } = useStateManager();
   const [keycard] = useKeycard();
 
-  function onCurrentOrderChange(o: Map<string, unknown>) {
+  function onCurrentOrderChange(o: CodecValue) {
     const order = Order.fromCBOR(o);
     switch (order.State) {
       case OrderState.Canceled:
@@ -46,7 +47,6 @@ export function useCurrentOrder() {
     );
     await stateManager.set(
       ["Orders", orderId],
-      // @ts-ignore TODO: add BaseClass to CodecValue
       newOrder,
     );
     debug(`New Order ID: ${orderId}`);
@@ -79,7 +79,6 @@ export function useCurrentOrder() {
 
     await stateManager.set(
       ["Orders", newOrderID],
-      // @ts-ignore TODO: add BaseClass to CodecValue
       newOrder,
     );
     debug("Order recreated.");
@@ -96,7 +95,7 @@ export function useCurrentOrder() {
     }
 
     for (const [_, o] of allOrders.entries()) {
-      const order = Order.fromCBOR(o as Map<string, unknown>);
+      const order = Order.fromCBOR(o);
       if (order.State === OrderState.Open) {
         openOrders.push(order);
       } else if (order.State === OrderState.Committed) {

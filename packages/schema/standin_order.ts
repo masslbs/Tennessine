@@ -1,3 +1,5 @@
+import type { CodecKey, CodecValue } from "@massmarket/utils/codec";
+
 import { ChainAddress, Payee } from "./standin_manifest.ts";
 import {
   BaseClass,
@@ -46,7 +48,11 @@ export class Order extends BaseClass {
     this.TxDetails = txDetails;
   }
 
-  static fromCBOR(input: Map<string, unknown>): Order {
+  static fromCBOR(value: CodecValue): Order {
+    if (!(value instanceof Map)) {
+      throw new TypeError("Expected value to be a Map");
+    }
+    const input = value as Map<CodecKey, CodecValue>;
     const id = ensureNumber(input.get("ID"), "ID");
 
     const items: OrderedItem[] = [];
@@ -157,7 +163,11 @@ export class OrderedItem extends BaseClass {
     this.VariationIDs = variationIDs;
   }
 
-  static fromCBOR(input: Map<string, unknown>): OrderedItem {
+  static fromCBOR(value: CodecValue): OrderedItem {
+    if (!(value instanceof Map)) {
+      throw new TypeError("Expected value to be a Map");
+    }
+    const input = value as Map<CodecKey, CodecValue>;
     const listingID = ensureNumber(input.get("ListingID"), "ListingID");
     const quantity = ensureNumber(input.get("Quantity"), "Quantity");
 
@@ -233,7 +243,11 @@ export class AddressDetails extends BaseClass {
     this.PhoneNumber = phoneNumber;
   }
 
-  static fromCBOR(input: Map<string, unknown>): AddressDetails {
+  static fromCBOR(value: CodecValue): AddressDetails {
+    if (!(value instanceof Map)) {
+      throw new TypeError("Expected value to be a Map");
+    }
+    const input = value as Map<CodecKey, CodecValue>;
     const name = ensureString(input.get("Name"), "Name");
     const address1 = ensureString(input.get("Address1"), "Address1");
     const city = ensureString(input.get("City"), "City");
@@ -291,7 +305,11 @@ export class PaymentDetails extends BaseClass {
     this.ShopSignature = shopSignature;
   }
 
-  static fromCBOR(input: Map<string, unknown>): PaymentDetails {
+  static fromCBOR(value: CodecValue): PaymentDetails {
+    if (!(value instanceof Map)) {
+      throw new TypeError("Expected value to be a Map");
+    }
+    const input = value as Map<CodecKey, CodecValue>;
     const paymentID = ensureUint8Array(input.get("PaymentID"), "PaymentID", 32);
     const total = ensureSomeNumberAsBigInt(input.get("Total"), "Total");
     const ttl = ensureNumber(input.get("TTL"), "TTL");
@@ -335,7 +353,11 @@ export class OrderPaid extends BaseClass {
     this.TxHash = txHash;
   }
 
-  static fromCBOR(input: Map<string, unknown>): OrderPaid {
+  static fromCBOR(value: CodecValue): OrderPaid {
+    if (!(value instanceof Map)) {
+      throw new TypeError("Expected value to be a Map");
+    }
+    const input = value as Map<CodecKey, CodecValue>;
     const blockHash = ensureUint8Array(input.get("BlockHash"), "BlockHash", 32);
 
     let txHash: Uint8Array | undefined;

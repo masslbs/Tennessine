@@ -5,6 +5,7 @@ import { expect } from "@std/expect";
 import { parseEther } from "viem";
 import { Listing } from "@massmarket/schema";
 import { random256BigInt } from "@massmarket/utils";
+import { CodecKey, CodecValue } from "@massmarket/utils/codec";
 
 import EditListing from "./EditListing.tsx";
 import { createRouterWrapper } from "../../../testutils/mod.tsx";
@@ -79,12 +80,12 @@ Deno.test("Edit Listing", {
     });
 
     // Check the db to see that listing was created
-    let allListings: Map<string, unknown> = new Map();
+    let allListings: Map<string, CodecValue> = new Map();
     let listingCount = 0;
     await waitFor(async () => {
       const gotListings = await stateManager.get(["Listings"]);
       expect(gotListings).toBeInstanceOf(Map<string, unknown>);
-      allListings = gotListings as Map<string, unknown>;
+      allListings = gotListings as Map<string, CodecValue>;
       expect(allListings.size).toEqual(1);
       const allInventory = await stateManager.get(["Inventory"]) as Map<
         number,
@@ -97,8 +98,7 @@ Deno.test("Edit Listing", {
       listingCount++;
       expect(typeof id).toBe("number");
       listingID = Number(id);
-
-      const l = Listing.fromCBOR(listingData as Map<string, unknown>);
+      const l = Listing.fromCBOR(listingData);
       expect(l.Metadata.Title).toBe("product 1");
       expect(l.Metadata.Description).toBe("product 1 description");
       expect(l.Price).toEqual(parseEther("555"));
@@ -168,7 +168,10 @@ Deno.test("Edit Listing", {
     // the end of act does not mean the update is back from the relay yet, so we need to waitFor
     await waitFor(async () => {
       const updatedListing = Listing.fromCBOR(
-        await stateManager.get(["Listings", listingID]) as Map<string, unknown>,
+        await stateManager.get(["Listings", listingID]) as Map<
+          CodecKey,
+          CodecValue
+        >,
       );
       expect(updatedListing.Metadata.Title).toBe("Updated title");
       expect(updatedListing.Metadata.Description).toBe("Updated description");

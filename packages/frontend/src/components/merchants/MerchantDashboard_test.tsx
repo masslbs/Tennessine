@@ -28,12 +28,10 @@ Deno.test("Merchant Dashboard", {
     stateManager.addConnection(relayClient);
 
     for (const [key, entry] of allOrderListings.entries()) {
-      // @ts-ignore TODO: add BaseClass to CodecValue
       await stateManager.set(["Listings", key], entry);
     }
     let orderId: number;
     for (const [key, entry] of allOrders.entries()) {
-      // @ts-ignore TODO: add BaseClass to CodecValue
       await stateManager.set(["Orders", key], entry);
       orderId = key;
     }

@@ -29,7 +29,6 @@ Deno.test(
     await t.step("should return open order", async () => {
       const order = new Order(12);
       order.State = OrderState.Open;
-      // @ts-ignore TODO: add BaseClass to CodecValue
       await stateManager.set(["Orders", order.ID], order);
       const { result, unmount } = renderHook(() => useCurrentOrder(), {
         wrapper,

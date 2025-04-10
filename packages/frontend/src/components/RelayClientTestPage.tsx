@@ -46,34 +46,24 @@ const RelayClientTestPage: React.FC<RelayClientTestPageProps> = ({
   const [client, setClient] = useState<RelayClient | null>(null);
 
   useEffect(() => {
-    const setupClient = async () => {
-      try {
-        // Create relay client
-        const newClient = new RelayClient({
-          relayEndpoint,
-          walletClient,
-          keycard,
-          shopId,
-        });
+    const newClient = new RelayClient({
+      relayEndpoint,
+      walletClient,
+      keycard,
+      shopId,
+    });
 
-        setClient(newClient);
-        setConnectionStatus("connecting");
+    setClient(newClient);
+    setConnectionStatus("connecting");
 
-        // Connect to relay
-        await newClient.connect((error: Event) => {
-          console.error("connect error", error);
-          setError(error.message);
-          setConnectionStatus("failed");
-        });
-        setConnectionStatus("connected");
-      } catch (err) {
-        console.error("setupClient error", err);
-        setError(err.toString());
-        setConnectionStatus("disconnected");
-      }
-    };
-
-    setupClient().then();
+    // Connect to relay
+    newClient.connect((error: Event) => {
+      console.error("connect error", error);
+      setError((error as ErrorEvent).message);
+      setConnectionStatus("failed");
+    }).then(() => {
+      setConnectionStatus("connected");
+    });
 
     // Cleanup function to disconnect when component unmounts
     return () => {

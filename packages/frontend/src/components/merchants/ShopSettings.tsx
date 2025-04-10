@@ -6,14 +6,15 @@ import { ChangeEvent, useEffect, useState } from "react";
 import { useWalletClient } from "wagmi";
 import { equal } from "@std/assert";
 
+import { CodecValue } from "@massmarket/utils/codec";
 import { setTokenURI } from "@massmarket/contracts";
 import { assert, logger } from "@massmarket/utils";
 import {
   AcceptedCurrencyMap,
   ChainAddress,
   Manifest,
-  ShippingRegion,
 } from "@massmarket/schema";
+
 import { CurrencyChainOption } from "../../types.ts";
 import Button from "../common/Button.tsx";
 import AvatarUpload from "../common/AvatarUpload.tsx";
@@ -27,6 +28,7 @@ import { useShopId } from "../../hooks/useShopId.ts";
 import { useRelayClient } from "../../hooks/useRelayClient.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 import { useAllCurrencyOptions } from "../../hooks/useAllCurrencyOptions.ts";
+
 const namespace = "frontend:StoreSettings";
 const errlog = logger(namespace, "error");
 
@@ -56,7 +58,8 @@ export default function ShopSettings() {
 
   useEffect(() => {
     if (!stateManager) return;
-    function onUpdateEvent(res: Map<string, unknown>) {
+    function onUpdateEvent(res: CodecValue | undefined) {
+      if (!res) throw new Error("Manifest not found");
       const m = Manifest.fromCBOR(res);
       setManifest(m);
       setAcceptedCurrencies(m.AcceptedCurrencies);
@@ -64,8 +67,8 @@ export default function ShopSettings() {
     }
 
     stateManager.get(["Manifest"])
-      // @ts-ignore TODO: add BaseClass to CodecValue
-      .then((res: Map<string, unknown>) => {
+      .then((res: CodecValue | undefined) => {
+        if (!res) throw new Error("Manifest not found");
         const m = Manifest.fromCBOR(res);
         setManifest(m);
         setAcceptedCurrencies(m.AcceptedCurrencies);
@@ -92,7 +95,6 @@ export default function ShopSettings() {
       pricingCurrency!.Address !== manifest!.PricingCurrency.Address ||
       pricingCurrency!.ChainID !== manifest!.PricingCurrency.ChainID
     ) {
-      // @ts-ignore TODO: add BaseClass to CodecValue
       await stateManager.set(["Manifest", "PricingCurrency"], pricingCurrency);
     }
     if (
@@ -101,7 +103,7 @@ export default function ShopSettings() {
     ) {
       await stateManager.set(
         ["Manifest", "AcceptedCurrencies"],
-        acceptedCurrencies.asCBORMap(),
+        acceptedCurrencies,
       );
     }
 
@@ -147,7 +149,7 @@ export default function ShopSettings() {
     e: ChangeEvent<HTMLInputElement>,
     c: CurrencyChainOption,
   ) {
-    const copy = new AcceptedCurrencyMap(acceptedCurrencies.asCBORMap());
+    const copy = AcceptedCurrencyMap.fromCBOR(acceptedCurrencies.asCBORMap());
     if (e.target.checked) {
       copy.addAddress(c.chainId, c.address, true);
     } else {

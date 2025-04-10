@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
 import { usePublicClient } from "wagmi";
+
 import { ChainAddress } from "@massmarket/schema";
+import type { CodecValue } from "@massmarket/utils/codec";
+
 import { useStateManager } from "./useStateManager.ts";
 import { getTokenInformation } from "../utils/token.ts";
 import { useQuery } from "./useQuery.ts";
 import { bytesToHex } from "viem";
-import type { CodecValue } from "@massmarket/utils/codec";
+import { logger } from "@massmarket/utils";
+const namespace = "frontend:useBaseToken";
+const warn = logger(namespace, "warn");
 
 export function useBaseToken() {
   const [pricingCurrency, setChainAddress] = useState<
@@ -21,13 +26,16 @@ export function useBaseToken() {
   useEffect(() => {
     if (!stateManager) return;
 
-    const setCurrency = (currency: Map<string, unknown>) => {
+    const setCurrency = (currency: CodecValue) => {
       setChainAddress(ChainAddress.fromCBOR(currency));
     };
     const path = ["Manifest", "PricingCurrency"];
     stateManager.get(path).then((currency: CodecValue | undefined) => {
-      if (!currency) return;
-      setChainAddress(ChainAddress.fromCBOR(currency as Map<string, unknown>));
+      if (!currency) {
+        warn("No PricingCurrency found");
+        return;
+      }
+      setChainAddress(ChainAddress.fromCBOR(currency));
     });
     stateManager.events.on(setCurrency, path);
     return () => {

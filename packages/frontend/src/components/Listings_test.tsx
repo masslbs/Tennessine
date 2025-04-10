@@ -30,7 +30,6 @@ Deno.test(
     const stateManager = await createTestStateManager(shopId);
 
     for (const [key, entry] of allListings.entries()) {
-      // @ts-ignore TODO: add BaseClass to CodecValue
       await stateManager.set(["Listings", key], entry);
     }
 

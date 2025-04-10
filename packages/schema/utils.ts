@@ -1,3 +1,4 @@
+import { CodecValue } from "@massmarket/utils/codec";
 export class BaseClass {
   static isBaseClass(value: unknown): value is BaseClass {
     return (
@@ -7,7 +8,7 @@ export class BaseClass {
     );
   }
 
-  asCBORMap(): Map<string, unknown> {
+  asCBORMap(): CodecValue {
     const map = new Map();
     for (const [key, value] of Object.entries(this)) {
       if (

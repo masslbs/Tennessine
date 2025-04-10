@@ -2,6 +2,7 @@ import "../happyDomSetup.ts";
 import { assertEquals } from "@std/assert";
 import { cleanup, renderHook } from "@testing-library/react";
 import { expect } from "@std/expect";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 import { random256BigInt, random32BytesHex } from "@massmarket/utils";
 
@@ -13,11 +14,17 @@ Deno.test("useKeycard", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async (t) => {
-  const randomKC = random32BytesHex();
+  const randomKC = generatePrivateKey();
+  const account = privateKeyToAccount(randomKC);
   await t.step("should set and get keycards", async () => {
     const { wrapper } = await createRouterWrapper({});
     const { result, unmount } = renderHook(
-      () => useKeycard({ privateKey: randomKC, role: KeycardRole.NEW_GUEST }),
+      () =>
+        useKeycard({
+          privateKey: randomKC,
+          role: KeycardRole.NEW_GUEST,
+          address: account.address,
+        }),
       { wrapper },
     );
     const [keycard] = result.current;

@@ -11,6 +11,7 @@ import {
   OrderedItem,
   PaymentDetails,
 } from "@massmarket/schema";
+import { CodecValue } from "@massmarket/utils/codec";
 
 import BackButton from "../common/BackButton.tsx";
 import { ListingId, OrderState } from "../../types.ts";
@@ -40,8 +41,8 @@ export default function OrderDetails() {
   useEffect(() => {
     if (!orderId) return;
     stateManager.get(["Orders", orderId]).then(
-      // @ts-ignore TODO: add BaseClass to CodecValue
-      (res: Map<string, unknown>) => {
+      (res: CodecValue | undefined) => {
+        if (!res) throw new Error("Order not found");
         const o = Order.fromCBOR(res);
         getAllCartItemDetails(o).then((cartItems) => {
           setCartMap(cartItems);
@@ -109,7 +110,8 @@ export default function OrderDetails() {
           "Listings",
           orderItem.ListingID,
         ]);
-        const l = Listing.fromCBOR(listing as Map<string, unknown>);
+        if (!listing) throw new Error("Listing not found");
+        const l = Listing.fromCBOR(listing);
         allCartItems.set(orderItem.ListingID, l);
       }),
     );
@@ -183,7 +185,10 @@ export default function OrderDetails() {
         <h2>Order summary</h2>
         <div className="flex gap-2">
           <p>Total</p>
-          <p>{formatUnits(details.Total, token!.decimals)} {token!.symbol}</p>
+          <p>
+            {formatUnits(BigInt(details.Total), token!.decimals)}{" "}
+            {token!.symbol}
+          </p>
         </div>
       </section>
     );

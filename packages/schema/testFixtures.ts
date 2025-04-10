@@ -18,11 +18,12 @@ listingVector.get("Snapshots")?.forEach((snapshot) => {
   const listingsHamt = extractEntriesFromHAMT(
     snapshot!.get("After")!.get("Value")!.get("Listings"),
   );
+  if (!listingsHamt) throw new Error("No listings found");
+  if (!(listingsHamt instanceof Map)) {
+    throw new Error("Listings HAMT is not a Map");
+  }
   for (const [_key, listingMap] of listingsHamt.entries()) {
-    listingsMap.set(
-      _key,
-      Listing.fromCBOR(listingMap as Map<string, CodecValue>),
-    );
+    listingsMap.set(Number(_key), Listing.fromCBOR(listingMap));
   }
 });
 const ordersVector = await fetchAndDecode("OrderOkay") as TestVector;
@@ -32,20 +33,21 @@ ordersVector.get("Snapshots")?.forEach((snapshot) => {
   const ordersHamt = extractEntriesFromHAMT(
     snapshot!.get("After")!.get("Value")!.get("Orders"),
   );
+  if (!ordersHamt) throw new Error("No orders found");
+  if (!(ordersHamt instanceof Map)) throw new Error("Orders HAMT is not a Map");
   const listingsHamt = extractEntriesFromHAMT(
     snapshot!.get("After")!.get("Value")!.get("Listings"),
   );
+
   for (const [_key, orderMap] of ordersHamt.entries()) {
-    ordersMap.set(
-      _key,
-      Order.fromCBOR(orderMap as Map<string, CodecValue>),
-    );
+    ordersMap.set(Number(_key), Order.fromCBOR(orderMap));
+  }
+  if (!listingsHamt) throw new Error("No listings found");
+  if (!(listingsHamt instanceof Map)) {
+    throw new Error("Listings HAMT is not a Map");
   }
   for (const [_key, listingMap] of listingsHamt.entries()) {
-    orderListingsMap.set(
-      _key,
-      Listing.fromCBOR(listingMap as Map<string, CodecValue>),
-    );
+    orderListingsMap.set(Number(_key), Listing.fromCBOR(listingMap));
   }
 });
 export const allOrders = ordersMap;

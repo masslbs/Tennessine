@@ -31,13 +31,11 @@ Deno.test("Check that we can render the order details screen", {
   stateManager.addConnection(relayClient);
   let listing: Listing;
   for (const [key, entry] of allOrderListings.entries()) {
-    // @ts-ignore TODO: add BaseClass to CodecValue
     await stateManager.set(["Listings", key], entry);
     if (key === order.Items[0].ListingID) {
       listing = entry as Listing;
     }
   }
-  // @ts-ignore TODO: add BaseClass to CodecValue
   await stateManager.set(["Orders", orderId], order);
 
   const { unmount } = render(<OrderDetails />, { wrapper });

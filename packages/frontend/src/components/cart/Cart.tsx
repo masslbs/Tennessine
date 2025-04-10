@@ -6,6 +6,7 @@ import { formatUnits } from "viem";
 
 import { assert, logger } from "@massmarket/utils";
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
+import { CodecKey, CodecValue } from "@massmarket/utils/codec";
 
 import { ListingId, OrderState } from "../../types.ts";
 import Button from "../common/Button.tsx";
@@ -40,7 +41,7 @@ export default function Cart({
   );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  function onOrderUpdate(order: Map<string, unknown>) {
+  function onOrderUpdate(order: CodecValue) {
     const o = Order.fromCBOR(order);
     getAllCartItemDetails(o).then((allCartItems) => {
       setCartMap(allCartItems);
@@ -51,8 +52,10 @@ export default function Cart({
     if (!currentOrder || !stateManager) return;
     debug(`Showing cart items for order ID: ${currentOrder.ID}`);
     stateManager.get(["Orders", currentOrder.ID])
-      // @ts-ignore TODO: add BaseClass to CodecValue
-      .then(async (res: Map<string, unknown>) => {
+      .then(async (res: CodecValue | undefined) => {
+        if (!res) {
+          throw new Error("No order found");
+        }
         const o = Order.fromCBOR(res);
         const allCartItems = await getAllCartItemDetails(o);
         setCartMap(allCartItems);
@@ -79,12 +82,14 @@ export default function Cart({
         updatedQtyMap.set(orderItem.ListingID, orderItem.Quantity);
         // If the selected quantity is 0, don't add the item to cart items map
         if (orderItem.Quantity === 0) return;
-        const listing = Listing.fromCBOR(
-          await stateManager.get([
-            "Listings",
-            orderItem.ListingID,
-          ]) as Map<string, unknown>,
-        );
+        const current = await stateManager.get([
+          "Listings",
+          orderItem.ListingID,
+        ]);
+        if (!current) {
+          throw new Error(`Listing ${orderItem.ListingID} not found`);
+        }
+        const listing = Listing.fromCBOR(current);
         allCartItems.set(orderItem.ListingID, listing);
       }),
     );
@@ -141,10 +146,9 @@ export default function Cart({
       const updatedOrderItems = Array.from(cartItemsMap.keys())
         .map((key) => {
           return new OrderedItem(key, updatedQtyMap.get(key)!).asCBORMap();
-        });
+        }) as CodecValue;
       await stateManager.set(
         ["Orders", currentOrder!.ID, "Items"],
-        // @ts-ignore TODO: add BaseClass to CodecValue
         updatedOrderItems,
       );
     } catch (error) {
@@ -157,7 +161,7 @@ export default function Cart({
       const updatedQtyMap = new Map(selectedQty);
       updatedQtyMap.delete(id);
       setSelectedQty(updatedQtyMap);
-      const updatedOrderItems: Map<string, unknown>[] = Array.from(
+      const updatedOrderItems: CodecValue[] = Array.from(
         cartItemsMap.keys(),
       )
         .filter((key) => key !== id) // TODO: i _think_ cartItemsMap should be muted already but...
@@ -168,7 +172,6 @@ export default function Cart({
         });
       await stateManager.set(
         ["Orders", currentOrder!.ID, "Items"],
-        // @ts-ignore TODO: add BaseClass to CodecValue
         updatedOrderItems,
       );
     } catch (error) {
