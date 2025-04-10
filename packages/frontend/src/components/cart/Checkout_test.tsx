@@ -297,7 +297,7 @@ Deno.test("Check that we can render the checkout screen", {
       // Verify the transaction hash is displayed
       const txHashInput = screen.getByTestId("tx-hash-input");
       expect(txHashInput).toBeTruthy();
-      expect(txHashInput.textContent).toContain("0x");
+      expect((txHashInput as HTMLInputElement).value).toContain("0x");
 
       // Verify USDC amount is displayed
       const amountElement = screen.getByTestId("displayed-amount");

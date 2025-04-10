@@ -30,20 +30,21 @@ export function useRelayClient() {
     if (isTesting && relayClient) {
       return;
     }
-    const relayClientKeycard = typeof relayClient?.keycard == "string"
-      ? relayClient.keycard
-      : relayClient.keycard.address;
-    if (relayClientKeycard === keycard.address) {
-      debug(`RelayClient already set ${relayClientKeycard}`);
+    const hasRelayClient = relayClient !== undefined;
+    const getKeyCardAddress = () => {
+      return typeof relayClient?.keycard == "string"
+        ? relayClient.keycard
+        : relayClient.keycard.address;
+    };
+    if (hasRelayClient && getKeyCardAddress() === keycard.address) {
+      debug(`RelayClient already set ${getKeyCardAddress()}`);
       return;
     }
     const account = privateKeyToAccount(keycard.privateKey);
     const keycardWallet = createWalletClient({
       account,
       chain,
-      transport: http(
-        env.ethRPCUrl,
-      ),
+      transport: http(env.ethRPCUrl),
     });
     if (!relayEndpoint) {
       debug("Relay endpoint is required");
