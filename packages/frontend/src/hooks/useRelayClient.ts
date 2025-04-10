@@ -2,7 +2,7 @@ import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { useEffect } from "react";
 import { RelayClient } from "@massmarket/client";
-import { logger } from "@massmarket/utils";
+import { assert, logger } from "@massmarket/utils";
 
 import { useMassMarketContext } from "../MassMarketContext.ts";
 import { useKeycard } from "./useKeycard.ts";
@@ -32,6 +32,7 @@ export function useRelayClient() {
     }
     const hasRelayClient = relayClient !== undefined;
     const getKeyCardAddress = () => {
+      assert(relayClient, "relayClient is undefined");
       return typeof relayClient?.keycard == "string"
         ? relayClient.keycard
         : relayClient.keycard.address;

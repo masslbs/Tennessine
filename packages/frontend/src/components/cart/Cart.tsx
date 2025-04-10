@@ -6,7 +6,7 @@ import { formatUnits } from "viem";
 
 import { assert, logger } from "@massmarket/utils";
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
-import { CodecKey, CodecValue } from "@massmarket/utils/codec";
+import { CodecValue } from "@massmarket/utils/codec";
 
 import { ListingId, OrderState } from "../../types.ts";
 import Button from "../common/Button.tsx";
@@ -18,6 +18,7 @@ import { multiplyAndFormatUnits } from "../../utils/helper.ts";
 
 const namespace = "frontend:Cart";
 const debug = logger(namespace);
+const warn = logger(namespace, "warn");
 const logerr = logger(namespace, "error");
 
 export default function Cart({
@@ -44,6 +45,7 @@ export default function Cart({
   function onOrderUpdate(order: CodecValue) {
     const o = Order.fromCBOR(order);
     getAllCartItemDetails(o).then((allCartItems) => {
+      if (!allCartItems) return;
       setCartMap(allCartItems);
     });
   }
@@ -58,6 +60,7 @@ export default function Cart({
         }
         const o = Order.fromCBOR(res);
         const allCartItems = await getAllCartItemDetails(o);
+        if (!allCartItems) return;
         setCartMap(allCartItems);
       });
 
@@ -73,6 +76,10 @@ export default function Cart({
   }
 
   async function getAllCartItemDetails(order: Order) {
+    if (!stateManager) {
+      warn("stateManager is undefined");
+      return;
+    }
     const ci = order.Items;
     const allCartItems: Map<ListingId, Listing> = new Map();
     // Get price and metadata for all the selected items in the order.
@@ -117,6 +124,10 @@ export default function Cart({
   }
 
   async function clearCart() {
+    if (!stateManager) {
+      warn("stateManager is undefined");
+      return;
+    }
     try {
       if (currentOrder?.State === OrderState.Committed) {
         await cancelOrder();
@@ -139,6 +150,10 @@ export default function Cart({
   }
 
   async function adjustItemQuantity(id: ListingId, add: boolean = true) {
+    if (!stateManager) {
+      warn("stateManager is undefined");
+      return;
+    }
     try {
       const updatedQtyMap = new Map(selectedQty);
       updatedQtyMap.set(id, selectedQty.get(id)! + (add ? 1 : -1));
@@ -157,6 +172,10 @@ export default function Cart({
   }
 
   async function removeItem(id: ListingId) {
+    if (!stateManager) {
+      warn("stateManager is undefined");
+      return;
+    }
     try {
       const updatedQtyMap = new Map(selectedQty);
       updatedQtyMap.delete(id);

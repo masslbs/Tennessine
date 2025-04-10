@@ -11,10 +11,10 @@ import { RelayClient } from "@massmarket/client";
 import StateManager from "@massmarket/stateManager";
 
 type MassMarketContextType = {
-  relayClient: RelayClient;
-  setRelayClient: Dispatch<SetStateAction<RelayClient>>;
-  stateManager: StateManager;
-  setStateManager: Dispatch<SetStateAction<StateManager>>;
+  relayClient: RelayClient | undefined;
+  setRelayClient: Dispatch<SetStateAction<RelayClient | undefined>>;
+  stateManager: StateManager | undefined;
+  setStateManager: Dispatch<SetStateAction<StateManager | undefined>>;
   shopDetails: {
     name: string;
     profilePictureUrl: string;
@@ -34,8 +34,8 @@ export const MassMarketContext = createContext<
 
 export function MassMarketProvider(
   parameters: React.PropsWithChildren<{
-    relayClient: RelayClient;
-    stateManager: StateManager;
+    relayClient?: RelayClient;
+    stateManager?: StateManager;
   }>,
 ) {
   const [relayClient, setRelayClient] = useState(

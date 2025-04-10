@@ -37,6 +37,7 @@ import { useStateManager } from "../../hooks/useStateManager.ts";
 
 const namespace = "frontend:ChoosePayment";
 const debug = logger(namespace);
+const warn = logger(namespace, "warn");
 const errlog = logger(namespace, "error");
 const paymentsByAddressAbi = abi.paymentsByAddressAbi;
 
@@ -116,6 +117,10 @@ export default function ChoosePayment({
   }, [stateManager]);
 
   async function getPaymentArgs() {
+    if (!stateManager) {
+      warn("stateManager is undefined");
+      return;
+    }
     try {
       const oId = currentOrder!.ID;
       const committedOrder = Order.fromCBOR(
@@ -246,6 +251,10 @@ export default function ChoosePayment({
     }
     if (!currentOrder) {
       throw new Error("No current order found");
+    }
+    if (!stateManager) {
+      warn("stateManager is undefined");
+      return;
     }
     try {
       setPaymentCurrencyLoading(true);

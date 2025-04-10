@@ -8,7 +8,7 @@ import { useDisconnect } from "wagmi";
 
 import { assert, logger } from "@massmarket/utils";
 import { Order, OrderedItem } from "@massmarket/schema";
-import { CodecKey, CodecValue } from "@massmarket/utils/codec";
+import { CodecValue } from "@massmarket/utils/codec";
 
 import { CheckoutStep, OrderState } from "../types.ts";
 import Cart from "./cart/Cart.tsx";
@@ -19,6 +19,7 @@ import { useCurrentOrder } from "../hooks/useCurrentOrder.ts";
 
 const namespace = "frontend:Navigation";
 const debug = logger(namespace);
+const warn = logger(namespace, "warn");
 const errlog = logger(namespace, "error");
 
 const merchantMenu = [
@@ -96,6 +97,10 @@ function Navigation() {
   }
 
   async function onCheckout() {
+    if (!stateManager) {
+      warn("stateManager is undefined");
+      return;
+    }
     try {
       if (!currentOrder) {
         debug("orderId not found");

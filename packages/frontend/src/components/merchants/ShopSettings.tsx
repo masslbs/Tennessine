@@ -90,6 +90,10 @@ export default function ShopSettings() {
     navigator.clipboard.writeText(String(shopId));
   }
   async function updateShopManifest() {
+    if (!stateManager) {
+      errlog("stateManager is undefined");
+      return;
+    }
     //If pricing currency needs to update.
     if (
       pricingCurrency!.Address !== manifest!.PricingCurrency.Address ||

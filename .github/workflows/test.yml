@@ -32,17 +32,17 @@ jobs:
           nix develop -c local-testnet -D -L logs/process-compose.log
         working-directory: Tennessine/
 
-      # - name: Run Lint
-      #   run: nix develop -c bash -c "deno lint"
-      #   working-directory: Tennessine/
+      - name: Run Lint
+        run: nix develop -c bash -c "deno lint"
+        working-directory: Tennessine/
 
       - name: Run formatting check
         run: nix develop -c bash -c "deno fmt --check"
         working-directory: Tennessine/
 
-      # - name: Type Check packages
-      #   run: nix develop -c bash -c "deno check ."
-      #   working-directory: Tennessine/
+      - name: Type Check packages
+        run: nix develop -c bash -c "deno check ."
+        working-directory: Tennessine/
 
       # if this fails check the logs of the prior job. The relay should log it's failure reason there.
       # the logs for the other services might be bit harder to come by since they are orchestrated by docker.
@@ -79,7 +79,7 @@ jobs:
           curl http://localhost:8545/ -X POST -H 'content-type: application/json' --data-raw '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":0}'
 
       - name: Run tests
-        run: nix develop -c bash -c "deno test -A packages/{schema,client,stateManager,frontend} --no-check"
+        run: nix develop -c bash -c "deno test -A . --no-check"
         working-directory: Tennessine/
 
       - name: Shut down local testnet

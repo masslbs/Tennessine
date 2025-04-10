@@ -47,6 +47,7 @@ import { useStateManager } from "../../../hooks/useStateManager.ts";
 
 const namespace = "frontend: CreateShop";
 const debug = logger(namespace);
+const warn = logger(namespace, "warn");
 const errlog = logger(namespace, "error");
 const { shopRegAbi, shopRegAddress } = abi;
 
@@ -111,13 +112,22 @@ export default function () {
   }, [wallet]);
 
   async function mint() {
+    if (!shopPublicClient) {
+      warn("shopPublicClient not found");
+      return;
+    }
+    if (!relayClient) {
+      warn("relayClient not found");
+      return;
+    }
+    if (!stateManager) {
+      warn("stateManager not found");
+      return;
+    }
     debug(`creating shop for ${shopId}`);
     setStoreRegistrationStatus("Minting shop...");
     setCreatingShop(true);
     try {
-      if (!shopPublicClient) {
-        throw new Error("shopPublicClient not found");
-      }
       // This will throw error if simulate fails.
       await simulateContract(config, {
         abi: shopRegAbi,
@@ -180,6 +190,18 @@ export default function () {
   }
 
   async function enrollAndAddConnection() {
+    if (!shopPublicClient) {
+      warn("shopPublicClient not found");
+      return;
+    }
+    if (!relayClient) {
+      warn("relayClient not found");
+      return;
+    }
+    if (!stateManager) {
+      warn("stateManager not found");
+      return;
+    }
     setStoreRegistrationStatus("Checking permissions...");
     try {
       const hasAccess = await checkPermissions(shopPublicClient!, [
@@ -215,6 +237,18 @@ export default function () {
   }
 
   async function updateManifest() {
+    if (!shopPublicClient) {
+      warn("shopPublicClient not found");
+      return;
+    }
+    if (!relayClient) {
+      warn("relayClient not found");
+      return;
+    }
+    if (!stateManager) {
+      warn("stateManager not found");
+      return;
+    }
     if (!shopId) {
       throw new Error("shopId not found");
     }

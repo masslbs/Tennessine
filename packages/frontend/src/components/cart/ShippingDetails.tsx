@@ -18,6 +18,7 @@ import { useStateManager } from "../../hooks/useStateManager.ts";
 
 const namespace = "frontend:ShippingDetails";
 const debug = logger(namespace);
+const warn = logger(namespace, "warn");
 const errlog = logger(namespace, "error");
 
 export default function ShippingDetails({
@@ -79,6 +80,10 @@ export default function ShippingDetails({
   }
 
   async function onSubmitForm() {
+    if (!stateManager) {
+      warn("stateManager is undefined");
+      return;
+    }
     try {
       const warning = checkRequiredFields();
       if (warning) {

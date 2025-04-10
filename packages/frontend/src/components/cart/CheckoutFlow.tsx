@@ -8,7 +8,7 @@ import { toHex } from "viem";
 
 import { assert, logger } from "@massmarket/utils";
 import { Order } from "@massmarket/schema";
-import { CodecKey, CodecValue } from "@massmarket/utils/codec";
+import { CodecValue } from "@massmarket/utils/codec";
 
 import { CheckoutStep, OrderState } from "../../types.ts";
 import Cart from "./Cart.tsx";
@@ -22,6 +22,7 @@ import PaymentConfirmation from "./PaymentConfirmation.tsx";
 
 const namespace = "frontend:Checkout";
 const debug = logger(namespace);
+const warn = logger(namespace, "warn");
 const logerr = logger(namespace, "error");
 
 export default function CheckoutFlow() {
@@ -63,6 +64,10 @@ export default function CheckoutFlow() {
 
   useEffect(() => {
     if (!currentOrder) return;
+    if (!stateManager) {
+      warn("stateManager is undefined");
+      return;
+    }
     function txHashDetected(o: CodecValue) {
       const order = Order.fromCBOR(o);
       if (order.TxDetails) {
@@ -104,6 +109,10 @@ export default function CheckoutFlow() {
   }
 
   async function onCheckout() {
+    if (!stateManager) {
+      warn("stateManager is undefined");
+      return;
+    }
     if (!currentOrder) {
       throw new Error("No orderId");
     }

@@ -60,6 +60,7 @@ export default function Pay({
 
   useEffect(() => {
     if (!currentOrder) return;
+    if (!stateManager) return;
     function txHashDetected(o: CodecValue) {
       const order = Order.fromCBOR(o);
       if (order?.TxDetails) {

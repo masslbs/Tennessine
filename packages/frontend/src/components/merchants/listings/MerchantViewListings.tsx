@@ -10,6 +10,9 @@ import Button from "../../common/Button.tsx";
 import { ListingViewState } from "../../../types.ts";
 import { useBaseToken } from "../../../hooks/useBaseToken.ts";
 import { useStateManager } from "../../../hooks/useStateManager.ts";
+import { logger } from "@massmarket/utils";
+
+const warn = logger("MerchantViewProducts", "warn");
 
 export default function MerchantViewProducts({
   products,
@@ -20,6 +23,10 @@ export default function MerchantViewProducts({
   const { stateManager } = useStateManager();
 
   function renderProducts() {
+    if (!stateManager) {
+      warn("stateManager not found");
+      return;
+    }
     if (!products?.length) {
       return (
         <div className="flex justify-center w-full mb-4">

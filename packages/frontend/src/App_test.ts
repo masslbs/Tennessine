@@ -2,11 +2,10 @@ import "./happyDomSetup.ts";
 import { cleanup, render, screen } from "@testing-library/react";
 import { createConfig, http } from "wagmi";
 import { mainnet, sepolia } from "wagmi/chains";
-import { createWalletClient, custom } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { discoverRelay, RelayClient } from "@massmarket/client";
 import { random256BigInt, random32BytesHex } from "@massmarket/utils";
-import { relayURL } from "./testutils/mod.tsx";
+import { relayURL, testClient } from "./testutils/mod.tsx";
 
 Deno.test("check that we can render the app", {
   sanitizeResources: false,
@@ -42,18 +41,6 @@ Deno.test("check that we can connect to the relay client", {
   // Create a mock wallet client and account
   const privateKey = random32BytesHex();
   const account = privateKeyToAccount(privateKey as `0x${string}`);
-  const walletClient = createWalletClient({
-    account,
-    transport: custom({
-      request: ({ method }) => {
-        if (method === "personal_sign") {
-          // Mock signing functionality
-          return "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
-        }
-        throw new Error(`Unhandled method: ${method}`);
-      },
-    }),
-  });
 
   await t.step("can create and connect to relay client", async () => {
     // Create relay client
@@ -62,7 +49,7 @@ Deno.test("check that we can connect to the relay client", {
 
     const client = new RelayClient({
       relayEndpoint,
-      walletClient,
+      walletClient: testClient,
       keycard: account,
       shopId,
     });

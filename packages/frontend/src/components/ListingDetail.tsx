@@ -9,7 +9,7 @@ import { formatUnits } from "viem";
 import { logger } from "@massmarket/utils";
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
 import type { CodecValue } from "@massmarket/utils/codec";
-import { ListingId, OrderId, OrderState } from "../types.ts";
+import { ListingId, OrderState } from "../types.ts";
 import Button from "./common/Button.tsx";
 import BackButton from "./common/BackButton.tsx";
 import { useStateManager } from "../hooks/useStateManager.ts";
@@ -20,6 +20,7 @@ import SuccessToast from "./common/SuccessToast.tsx";
 import { useCurrentOrder } from "../hooks/useCurrentOrder.ts";
 
 const namespace = "frontend:listing-detail";
+const warn = logger(namespace, "warn");
 const errlog = logger(namespace, "error");
 
 export default function ListingDetail() {
@@ -38,25 +39,26 @@ export default function ListingDetail() {
   const [displayedImg, setDisplayedImg] = useState<string | null>(null);
 
   useEffect(() => {
-    if (itemId && baseToken) {
-      //set item details
-      stateManager
-        .get(["Listings", itemId])
-        .then((res: CodecValue | undefined) => {
-          if (!res) {
-            throw new Error(`Listing ${itemId} not found`);
-          }
-          const item = Listing.fromCBOR(res);
-          setListing(item);
-          if (item.Metadata.Images && item.Metadata.Images.length > 0) {
-            setDisplayedImg(item.Metadata.Images[0]);
-          }
-          if (baseToken?.symbol === "ETH") {
-            setIcon("/icons/eth-coin.svg");
-          }
-        });
+    if (!(itemId && baseToken && stateManager)) {
+      return;
     }
-  }, [itemId, baseToken]);
+    //set item details
+    stateManager
+      ?.get(["Listings", itemId])
+      .then((res: CodecValue | undefined) => {
+        if (!res) {
+          throw new Error(`Listing ${itemId} not found`);
+        }
+        const item = Listing.fromCBOR(res);
+        setListing(item);
+        if (item.Metadata.Images && item.Metadata.Images.length > 0) {
+          setDisplayedImg(item.Metadata.Images[0]);
+        }
+        if (baseToken?.symbol === "ETH") {
+          setIcon("/icons/eth-coin.svg");
+        }
+      });
+  }, [itemId, baseToken, stateManager]);
 
   if (!listing) {
     return (
@@ -72,40 +74,48 @@ export default function ListingDetail() {
   }
 
   async function changeItems() {
+    if (!stateManager) {
+      warn("stateManager is undefined");
+      return;
+    }
     try {
-      let orderId: OrderId | null = currentOrder?.ID || null;
+      let orderId = currentOrder?.ID;
       if (!orderId) {
         await createOrder(itemId, Number(quantity));
         setMsg("Item added to cart");
-      } else {
-        // Update existing order
-
-        // If the order is committed, cancel it and create a new one
-        if (currentOrder?.State === OrderState.Committed) {
-          orderId = await cancelAndRecreateOrder();
-        }
-
-        const o = await stateManager.get(["Orders", orderId]);
-        if (!o) {
-          throw new Error(`Order ${orderId} not found`);
-        }
-        const order: Order = Order.fromCBOR(o);
-        // If item already exists in the items array, filter it out so we can replace it with the new quantity
-        const updatedOrderItems = (order.Items ?? []).filter(
-          (item: OrderedItem) => item.ListingID !== itemId,
-        );
-        updatedOrderItems.push(
-          new OrderedItem(itemId, Number(quantity)),
-        );
-
-        await stateManager.set(
-          ["Orders", orderId, "Items"],
-          // TODO: this is a bit of a hack, since StateManager doesnt handle BaseClass[]
-          updatedOrderItems.map((item: OrderedItem) => item.asCBORMap()),
-        );
-        setQuantity("");
-        setMsg("Cart updated");
+        return;
       }
+
+      // Update existing order
+      // If the order is committed, cancel it and create a new one
+      if (currentOrder?.State === OrderState.Committed) {
+        orderId = await cancelAndRecreateOrder();
+      }
+
+      if (!orderId) {
+        throw new Error("Order ID is undefined");
+      }
+
+      const o = await stateManager.get(["Orders", orderId]);
+      if (!o) {
+        throw new Error(`Order ${orderId} not found`);
+      }
+      const order: Order = Order.fromCBOR(o);
+      // If item already exists in the items array, filter it out so we can replace it with the new quantity
+      const updatedOrderItems = (order.Items ?? []).filter(
+        (item: OrderedItem) => item.ListingID !== itemId,
+      );
+      updatedOrderItems.push(
+        new OrderedItem(itemId, Number(quantity)),
+      );
+
+      await stateManager.set(
+        ["Orders", orderId, "Items"],
+        // TODO: this is a bit of a hack, since StateManager doesnt handle BaseClass[]
+        updatedOrderItems.map((item: OrderedItem) => item.asCBORMap()),
+      );
+      setQuantity("");
+      setMsg("Cart updated");
     } catch (error) {
       errlog(`Error: changeItems ${error}`);
       setErrorMsg("There was an error updating cart");

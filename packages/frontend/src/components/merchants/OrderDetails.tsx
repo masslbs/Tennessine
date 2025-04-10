@@ -12,12 +12,15 @@ import {
   PaymentDetails,
 } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
+import { logger } from "@massmarket/utils";
 
 import BackButton from "../common/BackButton.tsx";
 import { ListingId, OrderState } from "../../types.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 import { env } from "../../utils/env.ts";
 import { getTokenInformation } from "../../utils/mod.ts";
+
+const warn = logger("OrderDetails", "warn");
 
 export default function OrderDetails() {
   const { stateManager } = useStateManager();
@@ -39,7 +42,7 @@ export default function OrderDetails() {
     decimals: 0,
   });
   useEffect(() => {
-    if (!orderId) return;
+    if (!orderId || !stateManager) return;
     stateManager.get(["Orders", orderId]).then(
       (res: CodecValue | undefined) => {
         if (!res) throw new Error("Order not found");
@@ -50,7 +53,7 @@ export default function OrderDetails() {
         });
       },
     );
-  }, [orderId]);
+  }, [orderId, stateManager]);
 
   useEffect(() => {
     if (order?.State === OrderState.Paid) {
@@ -96,6 +99,10 @@ export default function OrderDetails() {
   }
 
   async function getAllCartItemDetails(order: Order) {
+    if (!stateManager) {
+      warn("stateManager is undefined");
+      return new Map();
+    }
     const ci = order.Items;
     const allCartItems = new Map<ListingId, Listing>();
     await Promise.all(
