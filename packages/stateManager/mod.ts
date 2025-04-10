@@ -1,10 +1,10 @@
-import { assert, equal } from "@std/assert";
+import { assert } from "@std/assert";
 
 import { DAG, type RootValue } from "@massmarket/merkle-dag-builder";
 import type { AbstractStore } from "@massmarket/store";
 import EventTree from "@massmarket/eventTree";
 import type { Patch, PushedPatchSet, RelayClient } from "@massmarket/client";
-import { type codec, get, type Hash, set } from "@massmarket/utils";
+import { type codec, get, type Hash, remove, set } from "@massmarket/utils";
 import { BaseClass } from "@massmarket/schema/utils";
 import { WritableStream } from "web-streams-polyfill";
 
@@ -141,18 +141,7 @@ export default class StateManager {
               parent: codec.CodecValue,
               deleteKey: codec.CodecKey,
             ) => {
-              if (parent instanceof Map) {
-                const f = parent.entries().find(([k]) => equal(k, deleteKey));
-                if (f) parent.delete(f[0]);
-              } else if (
-                parent instanceof Array && typeof deleteKey === "number"
-              ) {
-                parent.splice(deleteKey, 1);
-              } else {
-                throw new Error(
-                  `Invalid current value ${parent} for path: ${patch.Path}`,
-                );
-              }
+              remove(parent, deleteKey);
               return parent;
             };
           } else if (patch.Op === "increment") {

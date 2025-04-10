@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { equal } from "@std/assert";
 import { Buffer } from "buffer";
 import {
   bytesToBigInt,
@@ -13,8 +12,9 @@ import {
   toBytes,
 } from "viem";
 import * as Sentry from "@sentry/browser";
-import { type CodecKey, type CodecValue, decode } from "./codec.ts";
+import { type CodecValue, decode } from "./codec.ts";
 export * as codec from "./codec.ts";
+export * from "./reflection.ts";
 
 // TODO: type case first argument to captureException
 // TODO: add extras arguments (https://docs.sentry.io/platforms/javascript/guides/nextjs/enriching-events/)
@@ -166,61 +166,6 @@ export function getWindowLocation() {
   return typeof window == "undefined"
     ? undefined
     : new URL(globalThis.location.href);
-}
-
-/**
- * Get a value from an array or map given a `key`, which can be a string, number, or object.
- * If the keys is an object then a deep equality check is performed while iterating through a map.
- * TODO: Iterateing through the map to find a key/value is suboptimal, consider using a more efficient data structure.
- */
-export function get(
-  obj: unknown,
-  key: CodecKey,
-) {
-  if (obj instanceof Map) {
-    if (
-      typeof key === "object" && key !== null
-    ) {
-      // find the key in the map if the key is an array
-      const f = obj.entries().find(([k]) => equal(k, key));
-      if (f) return f[1];
-    } else {
-      return obj.get(key);
-    }
-  } else if (
-    typeof obj === "object" && obj !== null &&
-    (typeof key === "number" ||
-      typeof key === "string" ||
-      typeof key === "symbol")
-  ) {
-    return Reflect.get(obj, key);
-  } else {
-    // obj was a number / bool / null / undefined / etc
-    return undefined;
-  }
-}
-
-/**
- * Set a value in an array or map given a `key`, which can be a string, number, or object.
- */
-export function set(
-  obj: unknown,
-  key: CodecKey,
-  value: unknown,
-): void {
-  if (obj instanceof Map) {
-    const f = obj.entries().find(([k]) => equal(k, key)) ?? [key];
-    obj.set(f[0] ?? key, value);
-  } else if (
-    typeof obj === "object" && obj !== null &&
-    (typeof key === "number" ||
-      typeof key === "string" ||
-      typeof key === "symbol")
-  ) {
-    Reflect.set(obj, key, value);
-  } else {
-    throw new Error(`Cannot set key ${key} on ${obj}`);
-  }
 }
 
 type TestVector = Map<
