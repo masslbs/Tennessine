@@ -116,8 +116,8 @@ Deno.test("Check that we can render the navigation bar", {
     });
     // Check statemanager updated correctly.
     const updatedOrder = await stateManager.get(["Orders", orderId]);
-    const updatedOrderItems =
-      Order.fromCBOR(updatedOrder as Map<CodecKey, CodecValue>).Items;
+    expect(updatedOrder).toBeDefined();
+    const updatedOrderItems = Order.fromCBOR(updatedOrder!).Items;
     expect(updatedOrderItems[0].ListingID).toBe(item2ID);
     expect(updatedOrderItems[0].Quantity).toBe(25);
   });
@@ -134,8 +134,8 @@ Deno.test("Check that we can render the navigation bar", {
     });
     // Check statemanager updated correctly.
     const updatedOrder = await stateManager.get(["Orders", orderId]);
-    const updatedOrderItems =
-      Order.fromCBOR(updatedOrder as Map<CodecKey, CodecValue>).Items;
+    expect(updatedOrder).toBeDefined();
+    const updatedOrderItems = Order.fromCBOR(updatedOrder!).Items;
     expect(updatedOrderItems[0].ListingID).toBe(item2ID);
     expect(updatedOrderItems[0].Quantity).toBe(24);
   });
@@ -150,8 +150,8 @@ Deno.test("Check that we can render the navigation bar", {
       expect(cartItems.length).toBe(0);
     });
     const updatedOrder = await stateManager.get(["Orders", orderId]);
-    const updatedOrderItems =
-      Order.fromCBOR(updatedOrder as Map<CodecKey, CodecValue>).Items;
+    expect(updatedOrder).toBeDefined();
+    const updatedOrderItems = Order.fromCBOR(updatedOrder!).Items;
     expect(updatedOrderItems.length).toBe(0);
   });
 
@@ -173,8 +173,8 @@ Deno.test("Check that we can render the navigation bar", {
     });
     //Check that the order was committed after clicking checkout button.
     const updatedOrder = await stateManager.get(["Orders", orderId]);
-    const state =
-      Order.fromCBOR(updatedOrder as Map<CodecKey, CodecValue>).State;
+    expect(updatedOrder).toBeDefined();
+    const state = Order.fromCBOR(updatedOrder!).State;
     expect(state).toBe(OrderState.Committed);
   });
 

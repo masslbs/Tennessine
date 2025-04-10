@@ -83,7 +83,7 @@ export default function ChoosePayment({
     stateManager.get(["Manifest"])
       .then((res: CodecValue | undefined) => {
         if (!res) return;
-        const m = Manifest.fromCBOR(res as Map<CodecKey, CodecValue>);
+        const m = Manifest.fromCBOR(res);
         getDisplayedChains(m).then((arr) => {
           setManifest(m);
           setChains(arr);
@@ -96,7 +96,7 @@ export default function ChoosePayment({
     if (!currentOrder) return;
     //Listen for client to send paymentDetails event.
     function onPaymentDetails(res: CodecValue) {
-      const order = Order.fromCBOR(res as Map<CodecKey, CodecValue>);
+      const order = Order.fromCBOR(res);
       if (!order.PaymentDetails) return;
       getPaymentArgs().then(() => {
         debug("paymentDetails found for order");

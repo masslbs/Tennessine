@@ -42,7 +42,7 @@ export default function Cart({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   function onOrderUpdate(order: CodecValue) {
-    const o = Order.fromCBOR(order as Map<CodecKey, CodecValue>);
+    const o = Order.fromCBOR(order);
     getAllCartItemDetails(o).then((allCartItems) => {
       setCartMap(allCartItems);
     });
@@ -56,7 +56,7 @@ export default function Cart({
         if (!res) {
           throw new Error("No order found");
         }
-        const o = Order.fromCBOR(res as Map<CodecKey, CodecValue>);
+        const o = Order.fromCBOR(res);
         const allCartItems = await getAllCartItemDetails(o);
         setCartMap(allCartItems);
       });
@@ -82,12 +82,14 @@ export default function Cart({
         updatedQtyMap.set(orderItem.ListingID, orderItem.Quantity);
         // If the selected quantity is 0, don't add the item to cart items map
         if (orderItem.Quantity === 0) return;
-        const listing = Listing.fromCBOR(
-          await stateManager.get([
-            "Listings",
-            orderItem.ListingID,
-          ]) as Map<CodecKey, CodecValue>,
-        );
+        const current = await stateManager.get([
+          "Listings",
+          orderItem.ListingID,
+        ]);
+        if (!current) {
+          throw new Error(`Listing ${orderItem.ListingID} not found`);
+        }
+        const listing = Listing.fromCBOR(current);
         allCartItems.set(orderItem.ListingID, listing);
       }),
     );
@@ -159,7 +161,7 @@ export default function Cart({
       const updatedQtyMap = new Map(selectedQty);
       updatedQtyMap.delete(id);
       setSelectedQty(updatedQtyMap);
-      const updatedOrderItems: Map<CodecKey, CodecValue>[] = Array.from(
+      const updatedOrderItems: CodecValue[] = Array.from(
         cartItemsMap.keys(),
       )
         .filter((key) => key !== id) // TODO: i _think_ cartItemsMap should be muted already but...

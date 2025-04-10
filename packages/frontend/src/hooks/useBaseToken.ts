@@ -24,18 +24,14 @@ export function useBaseToken() {
     if (!stateManager) return;
 
     const setCurrency = (currency: CodecValue) => {
-      setChainAddress(
-        ChainAddress.fromCBOR(currency as Map<CodecKey, CodecValue>),
-      );
+      setChainAddress(ChainAddress.fromCBOR(currency));
     };
     const path = ["Manifest", "PricingCurrency"];
     stateManager.get(path).then((currency: CodecValue | undefined) => {
       if (!currency) {
         throw new Error("No currency found");
       }
-      setChainAddress(
-        ChainAddress.fromCBOR(currency as Map<CodecKey, CodecValue>),
-      );
+      setChainAddress(ChainAddress.fromCBOR(currency));
     });
     stateManager.events.on(setCurrency, path);
     return () => {

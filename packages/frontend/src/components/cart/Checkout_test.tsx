@@ -64,9 +64,10 @@ Deno.test("Check that we can render the checkout screen", {
 
   // work around it by replacing the whole manifest instead
   const currentManifestMap = await merchantStateManager.get(["Manifest"]);
-  const currentManifest = Manifest.fromCBOR(
-    currentManifestMap as Map<CodecKey, CodecValue>,
-  );
+  if (!currentManifestMap) {
+    throw new Error("Manifest not found");
+  }
+  const currentManifest = Manifest.fromCBOR(currentManifestMap);
   currentManifest.AcceptedCurrencies.addAddress(
     testCurrency.ChainID,
     testCurrency.Address,
@@ -217,7 +218,8 @@ Deno.test("Check that we can render the checkout screen", {
 
     // Verify order details were saved correctly
     const updatedOrderData = await stateManager.get(["Orders", orderId]);
-    const o = Order.fromCBOR(updatedOrderData as Map<CodecKey, CodecValue>);
+    expect(updatedOrderData).toBeDefined();
+    const o = Order.fromCBOR(updatedOrderData!);
     expect(o.InvoiceAddress).toBeDefined();
     expect(o.ShippingAddress).toBeUndefined();
 

@@ -24,7 +24,7 @@ export default function Listings() {
   function mapToListingClass(allListings: Map<CodecKey, CodecValue>) {
     const listings: Listing[] = [];
     for (const [_id, l] of allListings.entries()) {
-      listings.push(Listing.fromCBOR(l as Map<CodecKey, CodecValue>));
+      listings.push(Listing.fromCBOR(l));
     }
     return listings;
   }
@@ -39,7 +39,10 @@ export default function Listings() {
 
     stateManager.get(["Listings"]).then((res: CodecValue | undefined) => {
       if (!res) return;
-      const listings = mapToListingClass(res as Map<CodecKey, CodecValue>);
+      if (!(res instanceof Map)) {
+        throw new Error("Listings is not a Map");
+      }
+      const listings = mapToListingClass(res);
       setProducts(listings);
     });
 

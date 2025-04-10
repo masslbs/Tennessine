@@ -62,7 +62,7 @@ export default function Pay({
   useEffect(() => {
     if (!currentOrder) return;
     function txHashDetected(o: CodecValue) {
-      const order = Order.fromCBOR(o as Map<CodecKey, CodecValue>);
+      const order = Order.fromCBOR(o);
       if (order?.TxDetails) {
         const hash = order.TxDetails?.TxHash
           ? toHex(order.TxDetails?.TxHash)

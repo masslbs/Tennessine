@@ -2,7 +2,7 @@ import { useEffect } from "react";
 
 import { logger, randUint64 } from "@massmarket/utils";
 import { Order, OrderedItem } from "@massmarket/schema";
-import { CodecKey, CodecValue } from "@massmarket/utils/codec";
+import { CodecValue } from "@massmarket/utils/codec";
 
 import { useStateManager } from "./useStateManager.ts";
 import { KeycardRole, ListingId, OrderState } from "../types.ts";
@@ -20,7 +20,7 @@ export function useCurrentOrder() {
   const [keycard] = useKeycard();
 
   function onCurrentOrderChange(o: CodecValue) {
-    const order = Order.fromCBOR(o as Map<CodecKey, CodecValue>);
+    const order = Order.fromCBOR(o);
     switch (order.State) {
       case OrderState.Canceled:
         setCurrentOrder(null);
@@ -95,7 +95,7 @@ export function useCurrentOrder() {
     }
 
     for (const [_, o] of allOrders.entries()) {
-      const order = Order.fromCBOR(o as Map<CodecKey, CodecValue>);
+      const order = Order.fromCBOR(o);
       if (order.State === OrderState.Open) {
         openOrders.push(order);
       } else if (order.State === OrderState.Committed) {

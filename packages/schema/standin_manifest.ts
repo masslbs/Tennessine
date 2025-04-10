@@ -35,7 +35,12 @@ export class Manifest extends BaseClass {
     this.ShippingRegions = shippingRegions;
   }
 
-  static fromCBOR(input: Map<CodecKey, CodecValue>): Manifest {
+  static fromCBOR(value: CodecValue): Manifest {
+    if (!(value instanceof Map)) {
+      throw new TypeError("Expected Manifest to be a Map");
+    }
+    const input = value as Map<CodecKey, CodecValue>;
+
     const shopID = ensureBigInt(input.get("ShopID"), "ShopID");
 
     const payees = input.get("Payees");
@@ -84,9 +89,11 @@ export class ShippingRegionsMap {
     this.data = regions || new Map();
   }
 
-  static fromCBOR(
-    shippingRegions: Map<CodecKey, CodecValue>,
-  ): ShippingRegionsMap {
+  static fromCBOR(input: CodecValue): ShippingRegionsMap {
+    if (!(input instanceof Map)) {
+      throw new TypeError("Expected input to be a Map");
+    }
+    const shippingRegions = input as Map<CodecKey, CodecValue>;
     const map = new Map<CodecKey, ShippingRegion>();
     for (const [key, value] of shippingRegions) {
       if (!(value instanceof Map)) {
@@ -99,8 +106,8 @@ export class ShippingRegionsMap {
     return new ShippingRegionsMap(map);
   }
 
-  asCBORMap(): Map<CodecKey, CodecValue> {
-    const map = new Map();
+  asCBORMap(): CodecValue {
+    const map = new Map<string, CodecValue>();
     for (const [key, value] of this.data) {
       map.set(key, value.asCBORMap());
     }
@@ -109,6 +116,9 @@ export class ShippingRegionsMap {
 }
 
 export class PayeeMap {
+  // TODO: this typing seems backwards. We should have the "higher level" types towards the top of the hierarchy
+  // and use the "network" types towards the bottom.
+  // so Map<number, Map<Uint8Array, PayeeMetadata>>
   data: Map<CodecKey, Map<CodecKey, PayeeMetadata>> = new Map();
 
   constructor(data?: Map<CodecKey, Map<CodecKey, PayeeMetadata>>) {
@@ -184,14 +194,14 @@ export class PayeeMap {
     return map;
   }
 
-  asCBORMap(): Map<number, Map<Uint8Array, Map<"CallAsContract", boolean>>> {
-    const map = new Map();
+  asCBORMap(): CodecValue {
+    const map = new Map<number, Map<Uint8Array, Map<"CallAsContract", boolean>>>();
     for (const [chainId, addressMap] of this.data) {
       const forChainID = new Map();
       for (const [address, metadata] of addressMap) {
         forChainID.set(address, metadata.asCBORMap());
       }
-      map.set(chainId, forChainID);
+      map.set(Number(chainId), forChainID);
     }
     return map;
   }
@@ -205,7 +215,11 @@ export class PayeeMetadata extends BaseClass {
     this.CallAsContract = callAsContract;
   }
 
-  static fromCBOR(input: Map<CodecKey, CodecValue>): PayeeMetadata {
+  static fromCBOR(value: CodecValue): PayeeMetadata {
+    if (!(value instanceof Map)) {
+      throw new TypeError("Expected PayeeMetadata to be a Map");
+    }
+    const input = value as Map<CodecKey, CodecValue>;
     const callAsContract = input.get("CallAsContract");
     const callAsContractValue = callAsContract !== undefined
       ? ensureBoolean(callAsContract, "CallAsContract")
@@ -224,7 +238,11 @@ export class Payee extends BaseClass {
     this.CallAsContract = callAsContract;
   }
 
-  static fromCBOR(input: Map<CodecKey, CodecValue>): Payee {
+  static fromCBOR(value: CodecValue): Payee {
+    if (!(value instanceof Map)) {
+      throw new TypeError("Expected Payee to be a Map");
+    }
+    const input = value as Map<CodecKey, CodecValue>;
     const addressData = input.get("Address");
     if (!(addressData instanceof Map)) {
       throw new TypeError("Expected Address to be a Map");
@@ -245,7 +263,11 @@ export class AcceptedCurrencyMap {
     this.data = data || new Map();
   }
 
-  static fromCBOR(input: Map<CodecKey, CodecValue>): AcceptedCurrencyMap {
+  static fromCBOR(value: CodecValue): AcceptedCurrencyMap {
+    if (!(value instanceof Map)) {
+      throw new TypeError("Expected AcceptedCurrencyMap to be a Map");
+    }
+    const input = value as Map<CodecKey, CodecValue>;
     const result = new Map<number, Map<Uint8Array, Map<string, boolean>>>();
     // Iterate through chain IDs
     for (const [chainId, addressSet] of input) {
@@ -305,18 +327,19 @@ export class AcceptedCurrencyMap {
     return null;
   }
 
-  asCBORMap(): Map<number, Map<Uint8Array, ContractStatus>> {
-    const map = new Map();
+  asCBORMap(): CodecValue {
+    const map = new Map<number, Map<Uint8Array, ContractStatus>>();
     for (const [chainId, addressMap] of this.data) {
       const addressMapMap = new Map();
       for (const [address, _metadata] of addressMap) {
-        //FIXME
+        //FIXME ???
         addressMapMap.set(address, new Map());
       }
       map.set(chainId, addressMapMap);
     }
     return map;
   }
+  
   addAddress(chainId: number, address: Uint8Array, isContract: boolean) {
     const allChainsMap = this.asCBORMap();
     const allAddressesMap = allChainsMap.has(chainId)
@@ -359,7 +382,11 @@ export class ChainAddress extends BaseClass {
     this.Address = address;
   }
 
-  static fromCBOR(input: Map<CodecKey, CodecValue>): ChainAddress {
+  static fromCBOR(value: CodecValue): ChainAddress {
+    if (!(value instanceof Map)) {
+      throw new TypeError("Expected ChainAddress to be a Map");
+    }
+    const input = value as Map<CodecKey, CodecValue>;
     const chainID = ensureNumber(input.get("ChainID"), "ChainID");
     const address = ensureUint8Array(input.get("Address"), "Address");
     return new ChainAddress(chainID, address);
@@ -382,7 +409,11 @@ export class ShippingRegion extends BaseClass {
     this.City = city;
   }
 
-  static fromCBOR(input: Map<CodecKey, CodecValue>): ShippingRegion {
+  static fromCBOR(value: CodecValue): ShippingRegion {
+    if (!(value instanceof Map)) {
+      throw new TypeError("Expected ShippingRegion to be a Map");
+    }
+    const input = value as Map<CodecKey, CodecValue>;
     const country = ensureString(input.get("Country"), "Country");
     const postalCode = ensureString(input.get("PostalCode"), "PostalCode");
     const city = ensureString(input.get("City"), "City");
@@ -410,7 +441,11 @@ export class PriceModifier {
     this.ModificationAbsolute = modificationAbsolute;
   }
 
-  static fromCBOR(input: Map<CodecKey, CodecValue>): PriceModifier {
+  static fromCBOR(value: CodecValue): PriceModifier {
+    if (!(value instanceof Map)) {
+      throw new TypeError("Expected PriceModifier to be a Map");
+    }
+    const input = value as Map<CodecKey, CodecValue>;
     // Make it a sum type - only one of these should be set
     if (input.has("ModificationPrecents")) {
       const modificationPercents = ensureBigInt(
@@ -434,8 +469,8 @@ export class PriceModifier {
     }
   }
 
-  asCBORMap(): Map<CodecKey, CodecValue> {
-    const map = new Map();
+  asCBORMap(): CodecValue {
+    const map = new Map<CodecKey, CodecValue>();
     if (this.ModificationAbsolute && this.ModificationPrecents) {
       throw new Error(
         "PriceModifier must have either ModificationPrecents or ModificationAbsolute",
@@ -461,7 +496,11 @@ export class ModificationAbsolute extends BaseClass {
     this.Plus = plus;
   }
 
-  static fromCBOR(input: Map<CodecKey, CodecValue>): ModificationAbsolute {
+  static fromCBOR(value: CodecValue): ModificationAbsolute {
+    if (!(value instanceof Map)) {
+      throw new TypeError("Expected ModificationAbsolute to be a Map");
+    }
+    const input = value as Map<CodecKey, CodecValue>;
     const amount = ensureBigInt(input.get("Amount"), "Amount");
     const plus = ensureBoolean(input.get("Plus"), "Plus");
     return new ModificationAbsolute(amount, plus);

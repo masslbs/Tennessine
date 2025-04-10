@@ -20,7 +20,7 @@ export default function Orders() {
         o,
       ] of orders.entries()
     ) {
-      allOrders.set(id, Order.fromCBOR(o as Map<CodecKey, CodecValue>));
+      allOrders.set(id, Order.fromCBOR(o));
     }
     return allOrders;
   }
@@ -29,12 +29,12 @@ export default function Orders() {
     if (!stateManager) return;
 
     function onUpdateOrder(orders: CodecValue | undefined) {
-      const allOrders = getAllOrders(orders as Map<CodecKey, CodecValue>);
+      const allOrders = getAllOrders(orders);
       setOrders(allOrders);
     }
 
     stateManager.get(["Orders"]).then((orders: CodecValue | undefined) => {
-      const allOrders = getAllOrders(orders as Map<CodecKey, CodecValue>);
+      const allOrders = getAllOrders(orders);
       setOrders(allOrders);
     });
     stateManager.events.on(onUpdateOrder, ["Orders"]);

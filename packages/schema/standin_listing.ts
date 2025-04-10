@@ -30,7 +30,11 @@ export class Listing extends BaseClass {
     this.ViewState = viewState;
   }
 
-  static fromCBOR(input: Map<CodecKey, CodecValue>): Listing {
+  static fromCBOR(value: CodecValue): Listing {
+    if (!(value instanceof Map)) {
+      throw new TypeError("Expected value to be a Map");
+    }
+    const input = value as Map<CodecKey, CodecValue>;
     const id = ensureNumber(input.get("ID"), "ID");
     const price = ensureSomeNumberAsBigInt(input.get("Price"), "Price");
 
@@ -105,7 +109,7 @@ export class ListingMetadata {
     return new ListingMetadata(title, description);
   }
 
-  asCBORMap(): Map<CodecKey, CodecValue> {
+  asCBORMap(): CodecValue {
     const map = new Map<CodecKey, CodecValue>();
     map.set("Title", this.Title);
     map.set("Description", this.Description);

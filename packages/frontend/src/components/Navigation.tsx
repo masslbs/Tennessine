@@ -73,7 +73,7 @@ function Navigation() {
         if (!o) {
           throw new Error("No order found");
         }
-        const order = Order.fromCBOR(o as Map<CodecKey, CodecValue>);
+        const order = Order.fromCBOR(o);
         // Getting number of items in order.
         let length = 0;
         order.Items.map((item: OrderedItem) => (length += item.Quantity));

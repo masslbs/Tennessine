@@ -43,7 +43,7 @@ export default function OrderDetails() {
     stateManager.get(["Orders", orderId]).then(
       (res: CodecValue | undefined) => {
         if (!res) throw new Error("Order not found");
-        const o = Order.fromCBOR(res as Map<CodecKey, CodecValue>);
+        const o = Order.fromCBOR(res);
         getAllCartItemDetails(o).then((cartItems) => {
           setCartMap(cartItems);
           setOrder(o);
@@ -110,7 +110,7 @@ export default function OrderDetails() {
           "Listings",
           orderItem.ListingID,
         ]);
-        const l = Listing.fromCBOR(listing as Map<CodecKey, CodecValue>);
+        const l = Listing.fromCBOR(listing);
         allCartItems.set(orderItem.ListingID, l);
       }),
     );

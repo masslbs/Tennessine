@@ -52,7 +52,7 @@ export default function EditProduct() {
           errlog("Error fetching listing. No item found");
           return;
         }
-        setListing(Listing.fromCBOR(item as Map<CodecKey, CodecValue>));
+        setListing(Listing.fromCBOR(item));
       })
       .catch((e: unknown) => {
         assert(e instanceof Error, "Error is not an instance of Error");
@@ -77,9 +77,11 @@ export default function EditProduct() {
     assert(stateManager, "State manager is required");
     //compare the edited fields against the original object.
     const listingPath = ["Listings", newListing.ID];
-    const oldListing = Listing.fromCBOR(
-      await stateManager.get(listingPath) as Map<CodecKey, CodecValue>,
-    );
+    const oldListingMap = await stateManager.get(listingPath);
+    if (!oldListingMap) {
+      throw new Error("Listing not found");
+    }
+    const oldListing = Listing.fromCBOR(oldListingMap);
     if (oldListing === undefined) {
       throw new Error("Listing not found");
     }

@@ -93,7 +93,8 @@ Deno.test("Check that we can render the listing details screen", {
 
   const orderId = Array.from(allOrders.keys())[0];
   const orderData = await stateManager.get(["Orders", orderId]);
-  const order = Order.fromCBOR(orderData as Map<CodecKey, CodecValue>);
+  expect(orderData).toBeDefined();
+  const order = Order.fromCBOR(orderData!);
   expect(order.Items[0].ListingID).toBe(listingId);
   expect(order.Items[0].Quantity).toBe(5);
 
@@ -110,7 +111,8 @@ Deno.test("Check that we can render the listing details screen", {
   let items;
   await waitFor(async () => {
     const d = await stateManager.get(["Orders", orderId]);
-    const items = Order.fromCBOR(d as Map<CodecKey, CodecValue>).Items;
+    expect(d).toBeDefined();
+    const items = Order.fromCBOR(d!).Items;
     expect(items[0].ListingID).toBe(listingId);
     expect(items[0].Quantity).toBe(10);
   });

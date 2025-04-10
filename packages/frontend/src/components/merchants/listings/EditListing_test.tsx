@@ -98,7 +98,7 @@ Deno.test("Edit Listing", {
       listingCount++;
       expect(typeof id).toBe("number");
       listingID = Number(id);
-      const l = Listing.fromCBOR(listingData as Map<CodecKey, CodecValue>);
+      const l = Listing.fromCBOR(listingData);
       expect(l.Metadata.Title).toBe("product 1");
       expect(l.Metadata.Description).toBe("product 1 description");
       expect(l.Price).toEqual(parseEther("555"));

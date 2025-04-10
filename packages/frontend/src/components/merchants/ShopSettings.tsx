@@ -59,7 +59,7 @@ export default function ShopSettings() {
   useEffect(() => {
     if (!stateManager) return;
     function onUpdateEvent(res: CodecValue | undefined) {
-      const m = Manifest.fromCBOR(res as Map<CodecKey, CodecValue>);
+      const m = Manifest.fromCBOR(res);
       setManifest(m);
       setAcceptedCurrencies(m.AcceptedCurrencies);
       // setPricingCurrency(m.PricingCurrency);
@@ -67,7 +67,7 @@ export default function ShopSettings() {
 
     stateManager.get(["Manifest"])
       .then((res: CodecValue | undefined) => {
-        const m = Manifest.fromCBOR(res as Map<CodecKey, CodecValue>);
+        const m = Manifest.fromCBOR(res);
         setManifest(m);
         setAcceptedCurrencies(m.AcceptedCurrencies);
         setPricingCurrency(m.PricingCurrency);
