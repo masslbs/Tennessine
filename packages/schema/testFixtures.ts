@@ -19,7 +19,9 @@ listingVector.get("Snapshots")?.forEach((snapshot) => {
     snapshot!.get("After")!.get("Value")!.get("Listings"),
   );
   if (!listingsHamt) throw new Error("No listings found");
-  if (!(listingsHamt instanceof Map)) throw new Error("Listings HAMT is not a Map");
+  if (!(listingsHamt instanceof Map)) {
+    throw new Error("Listings HAMT is not a Map");
+  }
   for (const [_key, listingMap] of listingsHamt.entries()) {
     listingsMap.set(Number(_key), Listing.fromCBOR(listingMap));
   }
@@ -41,7 +43,9 @@ ordersVector.get("Snapshots")?.forEach((snapshot) => {
     ordersMap.set(Number(_key), Order.fromCBOR(orderMap));
   }
   if (!listingsHamt) throw new Error("No listings found");
-  if (!(listingsHamt instanceof Map)) throw new Error("Listings HAMT is not a Map");
+  if (!(listingsHamt instanceof Map)) {
+    throw new Error("Listings HAMT is not a Map");
+  }
   for (const [_key, listingMap] of listingsHamt.entries()) {
     orderListingsMap.set(Number(_key), Listing.fromCBOR(listingMap));
   }
