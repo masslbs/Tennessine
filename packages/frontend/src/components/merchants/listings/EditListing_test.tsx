@@ -80,12 +80,12 @@ Deno.test("Edit Listing", {
     });
 
     // Check the db to see that listing was created
-    let allListings: Map<string, unknown> = new Map();
+    let allListings: Map<string, CodecValue> = new Map();
     let listingCount = 0;
     await waitFor(async () => {
       const gotListings = await stateManager.get(["Listings"]);
       expect(gotListings).toBeInstanceOf(Map<string, unknown>);
-      allListings = gotListings as Map<string, unknown>;
+      allListings = gotListings as Map<string, CodecValue>;
       expect(allListings.size).toEqual(1);
       const allInventory = await stateManager.get(["Inventory"]) as Map<
         number,

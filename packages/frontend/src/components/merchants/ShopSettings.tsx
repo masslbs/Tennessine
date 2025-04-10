@@ -6,7 +6,7 @@ import { ChangeEvent, useEffect, useState } from "react";
 import { useWalletClient } from "wagmi";
 import { equal } from "@std/assert";
 
-import { CodecKey, CodecValue } from "@massmarket/utils/codec";
+import { CodecValue } from "@massmarket/utils/codec";
 import { setTokenURI } from "@massmarket/contracts";
 import { assert, logger } from "@massmarket/utils";
 import {
@@ -59,6 +59,7 @@ export default function ShopSettings() {
   useEffect(() => {
     if (!stateManager) return;
     function onUpdateEvent(res: CodecValue | undefined) {
+      if (!res) throw new Error("Manifest not found");
       const m = Manifest.fromCBOR(res);
       setManifest(m);
       setAcceptedCurrencies(m.AcceptedCurrencies);
@@ -67,6 +68,7 @@ export default function ShopSettings() {
 
     stateManager.get(["Manifest"])
       .then((res: CodecValue | undefined) => {
+        if (!res) throw new Error("Manifest not found");
         const m = Manifest.fromCBOR(res);
         setManifest(m);
         setAcceptedCurrencies(m.AcceptedCurrencies);
@@ -101,7 +103,7 @@ export default function ShopSettings() {
     ) {
       await stateManager.set(
         ["Manifest", "AcceptedCurrencies"],
-        acceptedCurrencies.asCBORMap(),
+        acceptedCurrencies,
       );
     }
 
@@ -147,7 +149,7 @@ export default function ShopSettings() {
     e: ChangeEvent<HTMLInputElement>,
     c: CurrencyChainOption,
   ) {
-    const copy = new AcceptedCurrencyMap(acceptedCurrencies.asCBORMap());
+    const copy = AcceptedCurrencyMap.fromCBOR(acceptedCurrencies.asCBORMap());
     if (e.target.checked) {
       copy.addAddress(c.chainId, c.address, true);
     } else {

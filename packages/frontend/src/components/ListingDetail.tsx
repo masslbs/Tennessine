@@ -8,7 +8,7 @@ import { formatUnits } from "viem";
 
 import { logger } from "@massmarket/utils";
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
-import type { CodecKey, CodecValue } from "@massmarket/utils/codec";
+import type { CodecValue } from "@massmarket/utils/codec";
 import { ListingId, OrderId, OrderState } from "../types.ts";
 import Button from "./common/Button.tsx";
 import BackButton from "./common/BackButton.tsx";
@@ -101,9 +101,7 @@ export default function ListingDetail() {
         await stateManager.set(
           ["Orders", orderId, "Items"],
           // TODO: this is a bit of a hack, since StateManager doesnt handle BaseClass[]
-          updatedOrderItems.map((item: OrderedItem) =>
-            item.asCBORMap()
-          ) as CodecValue,
+          updatedOrderItems.map((item: OrderedItem) => item.asCBORMap()),
         );
         setQuantity("");
         setMsg("Cart updated");

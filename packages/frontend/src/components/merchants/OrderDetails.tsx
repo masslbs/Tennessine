@@ -11,7 +11,7 @@ import {
   OrderedItem,
   PaymentDetails,
 } from "@massmarket/schema";
-import { CodecKey, CodecValue } from "@massmarket/utils/codec";
+import { CodecValue } from "@massmarket/utils/codec";
 
 import BackButton from "../common/BackButton.tsx";
 import { ListingId, OrderState } from "../../types.ts";
@@ -110,6 +110,7 @@ export default function OrderDetails() {
           "Listings",
           orderItem.ListingID,
         ]);
+        if (!listing) throw new Error("Listing not found");
         const l = Listing.fromCBOR(listing);
         allCartItems.set(orderItem.ListingID, l);
       }),

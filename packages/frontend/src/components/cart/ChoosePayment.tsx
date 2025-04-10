@@ -212,7 +212,8 @@ export default function ChoosePayment({
 
   async function getDisplayedChains(manifest: Manifest) {
     // Only display chains that are in accepted currencies
-    const currenciesMap = manifest.AcceptedCurrencies.asCBORMap();
+    const currenciesMap = manifest.AcceptedCurrencies.data;
+    assert(currenciesMap instanceof Map, "AcceptedCurrencies is not a map");
     const displayed: CurrencyChainOption[] = [];
 
     for (const [id, addresses] of currenciesMap.entries()) {

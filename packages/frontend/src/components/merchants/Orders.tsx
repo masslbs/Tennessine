@@ -12,15 +12,10 @@ export default function Orders() {
 
   const [orders, setOrders] = useState<Map<OrderId, Order>>(new Map());
 
-  function getAllOrders(orders: Map<CodecKey, CodecValue>) {
+  function getAllOrders(o: Map<CodecKey, CodecValue>) {
     const allOrders = new Map();
-    for (
-      const [
-        id,
-        o,
-      ] of orders.entries()
-    ) {
-      allOrders.set(id, Order.fromCBOR(o));
+    for (const [id, order] of o.entries()) {
+      allOrders.set(id, Order.fromCBOR(order));
     }
     return allOrders;
   }
@@ -29,11 +24,13 @@ export default function Orders() {
     if (!stateManager) return;
 
     function onUpdateOrder(orders: CodecValue | undefined) {
+      if (!orders || !(orders instanceof Map)) return;
       const allOrders = getAllOrders(orders);
       setOrders(allOrders);
     }
 
     stateManager.get(["Orders"]).then((orders: CodecValue | undefined) => {
+      if (!orders || !(orders instanceof Map)) return;
       const allOrders = getAllOrders(orders);
       setOrders(allOrders);
     });

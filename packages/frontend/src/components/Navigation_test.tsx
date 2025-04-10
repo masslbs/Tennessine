@@ -5,7 +5,6 @@ import { userEvent } from "@testing-library/user-event";
 import { allListings } from "@massmarket/schema/testFixtures";
 import { random256BigInt, randUint64 } from "@massmarket/utils";
 import { Order, OrderedItem } from "@massmarket/schema";
-import type { CodecKey, CodecValue } from "@massmarket/utils/codec";
 
 import Navigation from "./Navigation.tsx";
 import { createRouterWrapper, testClient } from "../testutils/mod.tsx";
@@ -158,7 +157,6 @@ Deno.test("Check that we can render the navigation bar", {
   await t.step("Checkout button", async () => {
     await stateManager.set(["Orders", orderId, "Items"], [
       new OrderedItem(item1ID, 32).asCBORMap(),
-
       new OrderedItem(item2ID, 24).asCBORMap(),
     ]);
     await waitFor(async () => {

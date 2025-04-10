@@ -105,9 +105,7 @@ export default function EditProduct() {
   }
 
   async function onPublish() {
-    const newListing = Listing.fromCBOR(
-      listing.asCBORMap() as Map<CodecKey, CodecValue>,
-    );
+    const newListing = Listing.fromCBOR(listing.asCBORMap());
     if (!newListing.Metadata.Title) {
       setValidationError("Product must include title.");
     } else if (!newListing.Metadata.Description) {

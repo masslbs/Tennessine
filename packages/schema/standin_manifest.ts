@@ -1,6 +1,7 @@
 import { equal } from "@std/assert";
 
-import { CodecKey, CodecValue } from "@massmarket/utils/codec";
+import type { CodecKey, CodecValue } from "@massmarket/utils/codec";
+
 import {
   BaseClass,
   ensureBigInt,
@@ -195,7 +196,10 @@ export class PayeeMap {
   }
 
   asCBORMap(): CodecValue {
-    const map = new Map<number, Map<Uint8Array, Map<"CallAsContract", boolean>>>();
+    const map = new Map<
+      number,
+      Map<Uint8Array, Map<"CallAsContract", boolean>>
+    >();
     for (const [chainId, addressMap] of this.data) {
       const forChainID = new Map();
       for (const [address, metadata] of addressMap) {
@@ -256,10 +260,12 @@ export class Payee extends BaseClass {
   }
 }
 
-export class AcceptedCurrencyMap {
-  data: Map<number, Map<Uint8Array, ContractStatus>> = new Map();
+type AcceptedCurrencyMapData = Map<number, Map<Uint8Array, ContractStatus>>;
 
-  constructor(data?: Map<number, Map<Uint8Array, ContractStatus>>) {
+export class AcceptedCurrencyMap {
+  data: AcceptedCurrencyMapData = new Map();
+
+  constructor(data?: AcceptedCurrencyMapData) {
     this.data = data || new Map();
   }
 
@@ -304,7 +310,7 @@ export class AcceptedCurrencyMap {
       result.set(chainId, validatedAddressMap);
     }
     return new AcceptedCurrencyMap(
-      (result as unknown) as Map<number, Map<Uint8Array, ContractStatus>>,
+      (result as unknown) as AcceptedCurrencyMapData,
     );
   }
 
@@ -339,9 +345,9 @@ export class AcceptedCurrencyMap {
     }
     return map;
   }
-  
+
   addAddress(chainId: number, address: Uint8Array, isContract: boolean) {
-    const allChainsMap = this.asCBORMap();
+    const allChainsMap = this.asCBORMap() as AcceptedCurrencyMapData;
     const allAddressesMap = allChainsMap.has(chainId)
       ? allChainsMap.get(chainId)
       : new Map();
@@ -352,7 +358,7 @@ export class AcceptedCurrencyMap {
   }
 
   removeAddress(chainId: number, address: Uint8Array) {
-    const allChainsMap = this.asCBORMap();
+    const allChainsMap = this.asCBORMap() as AcceptedCurrencyMapData;
     const addressMap = allChainsMap.get(chainId);
     const map = new Map();
     if (addressMap) {

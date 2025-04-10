@@ -8,7 +8,7 @@ import { ContractFunctionArgs, toHex, zeroAddress } from "viem";
 import { assert, logger } from "@massmarket/utils";
 import { abi, approveERC20, getAllowance, pay } from "@massmarket/contracts";
 import { Order } from "@massmarket/schema";
-import { CodecKey, CodecValue } from "@massmarket/utils/codec";
+import { CodecValue } from "@massmarket/utils/codec";
 
 import Button from "../common/Button.tsx";
 import BackButton from "../common/BackButton.tsx";
@@ -22,13 +22,12 @@ const debug = logger(namespace);
 const errlog = logger(namespace, "error");
 
 const defaultShopChainName = isTesting ? "hardhat" : "mainnet";
-const configuredChainName = env?.VITE_CHAIN_NAME || defaultShopChainName;
+const configuredChainName = env.chainName || defaultShopChainName;
 
 const {
   eddiesAbi,
   paymentsByAddressAbi,
   paymentsByAddressAddress,
-  // useSimulatePaymentsByAddressPay
 } = abi;
 
 export default function Pay({
