@@ -15,7 +15,7 @@ export function get(
       typeof key === "object" && key !== null
     ) {
       // find the key in the map if the key is an array
-      const f = obj.entries().find(([k]) => equal(k, key));
+      const f = Array.from(obj.entries()).find(([k]) => equal(k, key));
       if (f) return f[1];
     } else {
       return obj.get(key);
@@ -41,7 +41,7 @@ export function set(
   value: unknown,
 ): void {
   if (obj instanceof Map) {
-    const f = obj.entries().find(([k]) => equal(k, key)) ?? [key];
+    const f = Array.from(obj.entries()).find(([k]) => equal(k, key)) ?? [key];
     obj.set(f[0], value);
   } else if (
     typeof obj === "object" && obj !== null &&
@@ -62,7 +62,7 @@ export function remove(
   key: CodecKey,
 ): void {
   if (obj instanceof Map) {
-    const f = obj.entries().find(([k]) => equal(k, key));
+    const f = Array.from(obj.entries()).find(([k]) => equal(k, key));
     if (f) obj.delete(f[0]);
   } else if (
     obj instanceof Array && typeof key === "number"
