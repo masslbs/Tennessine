@@ -40,12 +40,12 @@ export default function CheckoutFlow() {
   const [displayedAmount, setDisplayedAmount] = useState<null | string>(null);
   //Setting timer for 15 minutes
   const [countdown, setCountdown] = useState(900);
-  const [isRunning, setIsRunning] = useState(false);
+  const [timerRunning, setTimerRunning] = useState(false);
 
   useEffect(() => {
     let intervalId: ReturnType<typeof setInterval>;
 
-    if (isRunning && countdown > 0) {
+    if (timerRunning && countdown > 0) {
       intervalId = setInterval(() => {
         setCountdown((prev: number) => prev - 10);
       }, 10000);
@@ -61,7 +61,7 @@ export default function CheckoutFlow() {
     return () => {
       clearInterval(intervalId);
     };
-  }, [isRunning, countdown]);
+  }, [timerRunning, countdown]);
 
   useEffect(() => {
     if (!currentOrder) return;
@@ -83,6 +83,7 @@ export default function CheckoutFlow() {
           }`,
         );
         setStep(CheckoutStep.confirmation);
+        setTimerRunning(false);
       }
     }
 
@@ -106,7 +107,7 @@ export default function CheckoutFlow() {
   }
 
   function startTimer() {
-    setIsRunning(true);
+    setTimerRunning(true);
   }
 
   async function onCheckout() {
