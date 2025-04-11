@@ -53,17 +53,17 @@ export default function MerchantConnect() {
   >(null);
 
   useEffect(() => {
-    // only create merchant keycard if it doesn't exist
-    if (shopId && keycard.role === KeycardRole.NEW_GUEST) {
+    // If keycard is already enrolled as a customer, reset keycard
+    if (shopId && keycard.role === KeycardRole.RETURNING_GUEST) {
       const privateKey = generatePrivateKey();
       const account = privateKeyToAccount(privateKey);
       setKeycard({
         privateKey,
-        role: KeycardRole.MERCHANT,
+        role: KeycardRole.NEW_GUEST,
         address: account.address,
       });
     }
-  }, [shopId !== null, keycard.role === KeycardRole.NEW_GUEST, shopId]);
+  }, [keycard.role === KeycardRole.RETURNING_GUEST, shopId]);
 
   function handleClearShopIdInput() {
     setSearchShopId("");
@@ -117,6 +117,13 @@ export default function MerchantConnect() {
         false,
         getWindowLocation(),
       );
+      // Reassign keycard role as merchant after enroll.
+      setKeycard({
+        privateKey: keycard.privateKey,
+        role: KeycardRole.MERCHANT,
+        address: keycard.address,
+      });
+
       if (!res.ok) {
         throw new Error("Failed to enroll keycard");
       }
