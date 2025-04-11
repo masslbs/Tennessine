@@ -79,7 +79,7 @@ jobs:
           curl http://localhost:8545/ -X POST -H 'content-type: application/json' --data-raw '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":0}'
 
       - name: Run tests
-        run: nix develop -c bash -c "deno test -A . --no-check"
+        run: nix develop -c bash -c "deno test -A --no-check"
         working-directory: Tennessine/
 
       - name: Shut down local testnet
