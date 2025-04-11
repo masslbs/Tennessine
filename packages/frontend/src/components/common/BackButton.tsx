@@ -18,7 +18,8 @@ export default function BackButton({
         search={(prev: Record<string, string>) => ({
           shopId: prev.shopId,
         })}
-        className="flex gap-1 items-center text-black p-0"
+        className="flex gap-1 items-center p-0"
+        style={{ color: "black" }}
       >
         <img
           src="/icons/chevron-left.svg"

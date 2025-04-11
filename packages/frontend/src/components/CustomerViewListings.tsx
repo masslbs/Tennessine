@@ -41,7 +41,8 @@ export default function CustomerViewProducts({
             shopId: prev.shopId,
             itemId: item.ID,
           })}
-          className={`${!visible ? "hidden" : "text-black"}`}
+          className={`${!visible ? "hidden" : ""}`}
+          style={{ color: "black" }}
         >
           <div>
             <div data-testid="product-img">

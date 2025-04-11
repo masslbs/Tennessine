@@ -48,9 +48,8 @@ export default function MerchantViewProducts({
         <Link
           key={item.ID}
           data-testid="product-container"
-          className={`${
-            !visible ? "opacity-50" : ""
-          } flex w-full h-auto mb-4 text-black`}
+          className={`${!visible ? "opacity-50" : ""} flex w-full h-auto mb-4`}
+          style={{ color: "black" }}
           to="/listing-detail"
           search={(prev: Record<string, string>) => ({
             shopId: prev.shopId,
