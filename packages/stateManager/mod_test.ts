@@ -1,4 +1,4 @@
-import { assertEquals } from "@std/assert";
+import { assertEquals, assertNotEquals } from "@std/assert";
 import { assertInstanceOf } from "@std/assert/instance-of";
 
 import { MemStore } from "@massmarket/store/mem";
@@ -115,6 +115,8 @@ Deno.test("Database Testings", async (t) => {
       relayClient.keyCardNonce,
       "the new state manager should have loaded the nonce",
     );
+    const pricingCurrencyPath = ["Manifest", "PricingCurrency"];
+    const oldValue = await nsm.get(pricingCurrencyPath);
     await nsm.close();
 
     // Test that we can set new values after reopening
@@ -130,16 +132,15 @@ Deno.test("Database Testings", async (t) => {
       ["Address", randomBytes(20)],
       ["ChainID", 1337],
     ]);
-    await reopenedSm.set(
-      ["Manifest", "PricingCurrency"],
-      newTestValue,
-    );
+    await reopenedSm.set(pricingCurrencyPath, newTestValue);
 
     // Verify the value was set correctly
-    const retrievedValue = await reopenedSm.get([
-      "Manifest",
-      "PricingCurrency",
-    ]);
+    const retrievedValue = await reopenedSm.get(pricingCurrencyPath);
+    assertNotEquals(
+      retrievedValue,
+      oldValue,
+      "should not be the old value",
+    );
     assertEquals(
       retrievedValue,
       newTestValue,
