@@ -589,7 +589,7 @@ export class RelayClient {
       this.keycard,
     );
     const endpointURL = new URL(this.relayEndpoint.url);
-    endpointURL.protocol = this.relayEndpoint.url.protocol === "wss"
+    endpointURL.protocol = this.relayEndpoint.url.protocol.includes("wss")
       ? "https"
       : "http";
     endpointURL.pathname += `/enroll_key_card`;
