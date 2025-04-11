@@ -1,9 +1,9 @@
 import { expect } from "@std/expect";
 import { createClient, http, publicActions, walletActions } from "viem";
 import { hardhat } from "viem/chains";
-import { privateKeyToAccount } from "viem/accounts";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
-import { random256BigInt, random32BytesHex } from "@massmarket/utils";
+import { random256BigInt } from "@massmarket/utils";
 import {
   abi,
   checkPermissions,
@@ -89,7 +89,7 @@ Deno.test({
       expect(receipt.status).toBe("success");
     });
 
-    const sk = random32BytesHex();
+    const sk = generatePrivateKey();
     await t.step("publishInviteVerifier", async () => {
       const token = privateKeyToAccount(sk);
 

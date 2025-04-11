@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { Buffer } from "buffer";
-import { bytesToBigInt, bytesToHex, bytesToNumber, toBytes } from "viem";
+import { bytesToBigInt, bytesToNumber, toBytes } from "viem";
 import * as Sentry from "@sentry/browser";
 import { type CodecValue, decode } from "./codec.ts";
 export * as codec from "./codec.ts";
@@ -82,14 +82,6 @@ export function randomBytes(n: number) {
   const b = new Uint8Array(n);
   crypto.getRandomValues(b);
   return b;
-}
-
-export function random32BytesHex() {
-  return bytesToHex(randomBytes(32));
-}
-
-export function randomAddress() {
-  return bytesToHex(randomBytes(20));
 }
 
 export function hexToBase64(hex: string) {

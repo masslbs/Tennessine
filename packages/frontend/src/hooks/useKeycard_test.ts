@@ -4,7 +4,7 @@ import { cleanup, renderHook } from "@testing-library/react";
 import { expect } from "@std/expect";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
-import { random256BigInt, random32BytesHex } from "@massmarket/utils";
+import { random256BigInt } from "@massmarket/utils";
 
 import { KeycardRole } from "../types.ts";
 import { useKeycard } from "./useKeycard.ts";
@@ -47,7 +47,7 @@ Deno.test("useKeycard", {
 
     const { wrapper } = await createRouterWrapper({ shopId });
 
-    const privateKey = random32BytesHex();
+    const privateKey = generatePrivateKey();
 
     localStorage.setItem(
       `keycard${shopId}`,
