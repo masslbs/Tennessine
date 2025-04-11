@@ -12,8 +12,9 @@ import { envConfig as envVite } from "./env-vite.ts";
 import { envConfig as envProd } from "./env-production.ts";
 
 let mode = "development";
-// @ts-ignore TODO(issue 318): how can we teach deno to play with vite's env files?
-const viteEnv = Reflect.get(import.meta, "env");
+// somehow doesn't work
+// const viteEnv = import.meta as unknown as { env: { MODE: string } };
+const viteEnv = import.meta.env;
 if (viteEnv && viteEnv.MODE) {
   mode = viteEnv.MODE;
 } else if (typeof Deno !== "undefined" && Deno.env.get("MODE")) {
