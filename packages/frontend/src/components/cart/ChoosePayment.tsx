@@ -11,7 +11,7 @@ import {
   zeroAddress,
 } from "viem";
 
-import { assert, logger } from "@massmarket/utils";
+import { logger } from "@massmarket/utils";
 import { abi, getPaymentAddress, getPaymentId } from "@massmarket/contracts";
 import {
   ChainAddress,
@@ -209,7 +209,6 @@ export default function ChoosePayment({
       debug(`displayed amount: ${displayedAmount}`);
       setDisplayedAmount(displayedAmount);
     } catch (error: unknown) {
-      assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Error getting payment details", error as Error);
       setErrorMsg("Error getting payment details");
     }
@@ -218,7 +217,6 @@ export default function ChoosePayment({
   async function getDisplayedChains(manifest: Manifest) {
     // Only display chains that are in accepted currencies
     const currenciesMap = manifest.AcceptedCurrencies.data;
-    assert(currenciesMap instanceof Map, "AcceptedCurrencies is not a map");
     const displayed: CurrencyChainOption[] = [];
 
     for (const [id, addresses] of currenciesMap.entries()) {
@@ -296,7 +294,6 @@ export default function ChoosePayment({
       ], OrderState.PaymentChosen);
       debug("chosen payment set");
     } catch (error: unknown) {
-      assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Error setting chosen payment", error);
       setErrorMsg("Error setting chosen payment");
     }

@@ -5,7 +5,7 @@ import * as chains from "wagmi/chains";
 import { simulateContract } from "@wagmi/core";
 import { ContractFunctionArgs, toHex, zeroAddress } from "viem";
 
-import { assert, logger } from "@massmarket/utils";
+import { logger } from "@massmarket/utils";
 import { abi, approveERC20, getAllowance, pay } from "@massmarket/contracts";
 import { Order } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
@@ -151,7 +151,6 @@ export default function Pay({
       }
       setLoading(true);
     } catch (error) {
-      assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Error sending payment", error);
     }
   }

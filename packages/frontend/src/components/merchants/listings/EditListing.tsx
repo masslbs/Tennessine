@@ -4,9 +4,10 @@
 
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
+import { assert } from "@std/assert";
 import { formatUnits, parseUnits } from "viem";
 
-import { assert, logger, randUint64 } from "@massmarket/utils";
+import { logger, randUint64 } from "@massmarket/utils";
 import { Listing } from "@massmarket/schema";
 import { CodecKey, CodecValue } from "@massmarket/utils/codec";
 
@@ -55,7 +56,6 @@ export default function EditProduct() {
         setListing(Listing.fromCBOR(item));
       })
       .catch((e: unknown) => {
-        assert(e instanceof Error, "Error is not an instance of Error");
         setErrorMsg("Error fetching listing");
         errlog("Error fetching listing", e);
       });
@@ -146,7 +146,6 @@ export default function EditProduct() {
           }),
         });
       } catch (error: unknown) {
-        assert(error instanceof Error, "Error is not an instance of Error");
         errlog("Error publishing listing", error);
         setErrorMsg("Error publishing listing.");
       } finally {
@@ -216,7 +215,6 @@ export default function EditProduct() {
         e.target.value = "";
       }
     } catch (error: unknown) {
-      assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Error during image upload", error);
       setErrorMsg("Error during image upload");
     }

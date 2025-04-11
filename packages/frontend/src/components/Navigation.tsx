@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useDisconnect } from "wagmi";
 
-import { assert, logger } from "@massmarket/utils";
+import { logger } from "@massmarket/utils";
 import { Order, OrderedItem } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
 
@@ -123,7 +123,6 @@ function Navigation() {
         }),
       });
     } catch (error: unknown) {
-      assert(error instanceof Error, "Error is not an instance of Error");
       errlog("error committing order", error);
       throw error;
     }

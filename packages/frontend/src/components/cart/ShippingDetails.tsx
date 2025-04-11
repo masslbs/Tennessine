@@ -4,7 +4,7 @@
 
 import { useEffect, useState } from "react";
 
-import { assert, logger } from "@massmarket/utils";
+import { logger } from "@massmarket/utils";
 import { AddressDetails } from "@massmarket/schema";
 
 import Cart from "./Cart.tsx";
@@ -101,7 +101,6 @@ export default function ShippingDetails({
       debug("Shipping details updated");
       setStep(CheckoutStep.paymentDetails);
     } catch (error: unknown) {
-      assert(error instanceof Error, "Error is not an instance of Error");
       errlog("error updating shipping details", error);
       setErrorMsg("Error updating shipping details");
     }

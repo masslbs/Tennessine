@@ -3,14 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { Buffer } from "buffer";
-import {
-  bytesToBigInt,
-  bytesToHex,
-  bytesToNumber,
-  numberToBytes,
-  parseUnits,
-  toBytes,
-} from "viem";
+import { bytesToBigInt, bytesToHex, bytesToNumber, toBytes } from "viem";
 import * as Sentry from "@sentry/browser";
 import { type CodecValue, decode } from "./codec.ts";
 export * as codec from "./codec.ts";
@@ -22,7 +15,7 @@ export function logger(
   namespace: string,
   level: "debug" | "info" | "warn" | "error" = "debug",
 ) {
-  return (message: string, error?: Error) => {
+  return (message: string, error?: unknown) => {
     // Sentry handling
     // ===============
     if (level === "debug") {
@@ -73,38 +66,12 @@ export function logger(
       default:
         fn = console.log;
     }
-    const args: [string, Error?] = [stmt];
+    const args: [string, unknown?] = [stmt];
     if (error) {
       args.push(error);
     }
     fn.call(console, ...args);
   };
-}
-
-// Type predicate to narrow undefined | null | T to T
-function isDefined<T>(value: T | undefined | null): value is T {
-  return value !== undefined && value !== null;
-}
-
-// Custom assert function for protobuf optional fields
-export function assert(value: unknown, message: string): asserts value {
-  if (!isDefined(value)) {
-    throw new Error(message);
-  }
-}
-
-// For nested optional fields, you can create a more specific version
-export function assertField<T>(
-  value: { raw?: T | null } | undefined | null,
-  fieldName: string,
-): asserts value is { raw: T } {
-  if (!isDefined(value) || !isDefined(value.raw)) {
-    throw new Error(`${fieldName} is required`);
-  }
-}
-
-export function objectId() {
-  return randomBytes(8);
 }
 
 export function randUint64(): number {
@@ -130,21 +97,10 @@ export function hexToBase64(hex: string) {
   return Buffer.from(u8).toString("base64");
 }
 
-export function bufferToJSON(metadata: Uint8Array) {
-  return JSON.parse(new TextDecoder().decode(metadata));
-}
-
 // This is used to get the string value from an array buffer
 export function decodeBufferToString(buffer: Uint8Array) {
   const textDecoder = new TextDecoder();
   return textDecoder.decode(buffer);
-}
-
-export function priceToUint256(priceString: string, decimals = 18) {
-  // Parse the price string to a bigint
-  const priceInSmallestUnit = parseUnits(priceString, decimals);
-  // Convert bigint to 32 byte directly
-  return numberToBytes(priceInSmallestUnit, { size: 32 });
 }
 
 export function random256BigInt() {

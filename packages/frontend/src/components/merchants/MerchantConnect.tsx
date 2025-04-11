@@ -10,7 +10,7 @@ import { hexToBigInt, isHex, toHex } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 import { abi } from "@massmarket/contracts";
-import { assert, getWindowLocation, logger } from "@massmarket/utils";
+import { getWindowLocation, logger } from "@massmarket/utils";
 
 import ConnectConfirmation from "./ConnectConfirmation.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
@@ -98,7 +98,6 @@ export default function MerchantConnect() {
         setErrorMsg("Shop not found");
       }
     } catch (error: unknown) {
-      assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Error finding shop", error);
       setErrorMsg("Error finding shop");
     }
@@ -122,7 +121,6 @@ export default function MerchantConnect() {
       await relayClient.connect();
       setStep(SearchShopStep.Confirm);
     } catch (error: unknown) {
-      assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Error enrolling keycard", error);
       setErrorMsg(`Something went wrong. ${error}`);
     }

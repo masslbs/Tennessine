@@ -8,7 +8,7 @@ import { equal } from "@std/assert";
 
 import { CodecValue } from "@massmarket/utils/codec";
 import { setTokenURI } from "@massmarket/contracts";
-import { assert, logger } from "@massmarket/utils";
+import { logger } from "@massmarket/utils";
 import {
   AcceptedCurrencyMap,
   ChainAddress,
@@ -143,7 +143,6 @@ export default function ShopSettings() {
       setSuccess("Changes saved.");
       globalThis.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error: unknown) {
-      assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Failed: updateShopManifest", error);
       setError("Error updating shop manifest.");
     }

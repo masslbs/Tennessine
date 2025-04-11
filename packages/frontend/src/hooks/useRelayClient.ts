@@ -1,8 +1,9 @@
 import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { useEffect } from "react";
+import { assert } from "@std/assert";
 import { RelayClient } from "@massmarket/client";
-import { assert, logger } from "@massmarket/utils";
+import { logger } from "@massmarket/utils";
 
 import { useMassMarketContext } from "../MassMarketContext.ts";
 import { useKeycard } from "./useKeycard.ts";

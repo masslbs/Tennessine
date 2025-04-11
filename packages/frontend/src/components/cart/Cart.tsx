@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { formatUnits } from "viem";
 
-import { assert, logger } from "@massmarket/utils";
+import { logger } from "@massmarket/utils";
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
 
@@ -108,11 +108,12 @@ export default function Cart({
     try {
       await onCheckout!();
     } catch (error) {
-      assert(error instanceof Error, "Error is not an instance of Error");
       if (
-        error.message === "not enough items in stock for order" ||
-        error.message == "not enough stock" ||
-        error.message == "not in stock"
+        error instanceof Error && (
+          error.message === "not enough items in stock for order" ||
+          error.message == "not enough stock" ||
+          error.message == "not in stock"
+        )
       ) {
         setErrorMsg("Not enough stock. Cart cleared.");
         await clearCart();
@@ -143,7 +144,6 @@ export default function Cart({
       debug("cart cleared");
       closeBasket?.();
     } catch (error) {
-      assert(error instanceof Error, "Error is not an instance of Error");
       setErrorMsg("Error clearing cart");
       logerr("Error clearing cart", error);
     }
@@ -194,7 +194,6 @@ export default function Cart({
         updatedOrderItems,
       );
     } catch (error) {
-      assert(error instanceof Error, "Error is not an instance of Error");
       setErrorMsg("Error removing item");
       logerr(`Error:removeItem ${error}`);
     }

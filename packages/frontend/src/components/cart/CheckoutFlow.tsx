@@ -5,8 +5,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { toHex } from "viem";
+import { assert } from "@std/assert";
 
-import { assert, logger } from "@massmarket/utils";
+import { logger } from "@massmarket/utils";
 import { Order } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
 
@@ -127,7 +128,6 @@ export default function CheckoutFlow() {
       }
       setStep(CheckoutStep.shippingDetails);
     } catch (error: unknown) {
-      assert(error instanceof Error, "Error is not an instance of Error");
       logerr("Error during checkout", error);
       throw error;
     }

@@ -1,6 +1,6 @@
+import { assert } from "@std/assert";
 import { Address, PublicClient, toBytes, zeroAddress } from "viem";
 import { abi, tokenAddresses } from "@massmarket/contracts";
-import { assert } from "@massmarket/utils";
 
 // Any utility functions for tokens
 export const getTokenAddress = (

@@ -16,12 +16,7 @@ import {
   setTokenURI,
 } from "@massmarket/contracts";
 import { Manifest } from "@massmarket/schema";
-import {
-  assert,
-  getWindowLocation,
-  logger,
-  random256BigInt,
-} from "@massmarket/utils";
+import { getWindowLocation, logger, random256BigInt } from "@massmarket/utils";
 import { abi, permissions } from "@massmarket/contracts";
 
 import ManifestForm from "./ManifestForm.tsx";
@@ -180,7 +175,6 @@ export default function () {
         throw new Error("Error: addRelay");
       }
     } catch (err: unknown) {
-      assert(err instanceof Error, "Error is not an instance of Error");
       errlog("Error minting store", err);
       setErrorMsg(`Error minting store`);
       return;
@@ -225,10 +219,9 @@ export default function () {
       debug(`Keycard enrolled: ${keycard.privateKey}`);
       setStoreRegistrationStatus("Adding connection...");
 
-      await stateManager.addConnection(relayClient);
+      stateManager.addConnection(relayClient);
       debug("Relay client connected");
     } catch (error: unknown) {
-      assert(error instanceof Error, "Error is not an instance of Error");
       errlog("enrollAndAddConnection failed", error);
       setErrorMsg("Error connecting to client");
       return;
@@ -278,7 +271,6 @@ export default function () {
       });
       debug("Manifest created");
     } catch (error: unknown) {
-      assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Error creating shop manifest", error);
       setErrorMsg("Error creating shop manifest");
       return;
@@ -333,7 +325,6 @@ export default function () {
       setCreatingShop(false);
       setStep(CreateShopStep.Confirmation);
     } catch (error: unknown) {
-      assert(error instanceof Error, "Error is not an instance of Error");
       errlog("Error uploading metadata", error);
       setErrorMsg("Error uploading metadata");
     }
