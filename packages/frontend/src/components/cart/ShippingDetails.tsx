@@ -46,6 +46,11 @@ export default function ShippingDetails({
     }
   }, []);
 
+  useEffect(() => {
+    currentOrder?.InvoiceAddress &&
+      setInvoiceAddress(currentOrder.InvoiceAddress);
+  }, [currentOrder]);
+
   function checkRequiredFields() {
     let warning: null | string = null;
     if (!invoiceAddress.Name.length) {
@@ -94,11 +99,13 @@ export default function ShippingDetails({
       if (!currentOrder) {
         throw new Error("No committed order ID found");
       }
-      await stateManager.set(
-        ["Orders", currentOrder.ID, "InvoiceAddress"],
-        invoiceAddress,
-      );
-      debug("Shipping details updated");
+      if (invoiceAddress !== currentOrder.InvoiceAddress) {
+        await stateManager.set(
+          ["Orders", currentOrder.ID, "InvoiceAddress"],
+          invoiceAddress,
+        );
+        debug("Shipping details updated");
+      }
       setStep(CheckoutStep.paymentDetails);
     } catch (error: unknown) {
       errlog("error updating shipping details", error);
@@ -139,6 +146,7 @@ export default function ShippingDetails({
               id="name"
               name="name"
               data-testid="name"
+              value={invoiceAddress.Name}
               onChange={(e) => handleFormChange("Name", e.target.value)}
             />
             <label htmlFor="address">Address</label>
@@ -147,6 +155,7 @@ export default function ShippingDetails({
               id="address"
               name="address"
               data-testid="address"
+              value={invoiceAddress.Address1}
               onChange={(e) => handleFormChange("Address1", e.target.value)}
             />
             <div className="flex gap-2">
@@ -157,6 +166,7 @@ export default function ShippingDetails({
                   id="city"
                   name="city"
                   data-testid="city"
+                  value={invoiceAddress.City}
                   onChange={(e) => handleFormChange("City", e.target.value)}
                 />
               </div>
@@ -167,6 +177,7 @@ export default function ShippingDetails({
                   id="zip"
                   name="zip"
                   data-testid="zip"
+                  value={invoiceAddress.PostalCode}
                   onChange={(e) =>
                     handleFormChange("PostalCode", e.target.value)}
                 />
@@ -179,6 +190,7 @@ export default function ShippingDetails({
               id="country"
               name="country"
               data-testid="country"
+              value={invoiceAddress.Country}
               onChange={(e) => handleFormChange("Country", e.target.value)}
             />
             <h2 className="my-3">Contact detail</h2>
@@ -193,6 +205,7 @@ export default function ShippingDetails({
                 id="email"
                 name="email"
                 data-testid="email"
+                value={invoiceAddress.EmailAddress}
                 onChange={(e) =>
                   handleFormChange("EmailAddress", e.target.value)}
               />
@@ -202,6 +215,7 @@ export default function ShippingDetails({
                 id="phone"
                 name="phone"
                 data-testid="phone"
+                value={invoiceAddress.PhoneNumber}
                 onChange={(e) =>
                   handleFormChange("PhoneNumber", e.target.value)}
               />

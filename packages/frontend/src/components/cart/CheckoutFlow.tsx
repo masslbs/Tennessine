@@ -83,6 +83,7 @@ export default function CheckoutFlow() {
           }`,
         );
         setStep(CheckoutStep.confirmation);
+        setTimerRunning(false);
       }
     }
 
@@ -159,7 +160,6 @@ export default function CheckoutFlow() {
     } else if (step === CheckoutStep.expired) {
       return <TimerExpiration />;
     } else if (step === CheckoutStep.confirmation && displayedAmount) {
-      setTimerRunning(false)
       return (
         <PaymentConfirmation
           displayedAmount={displayedAmount}
