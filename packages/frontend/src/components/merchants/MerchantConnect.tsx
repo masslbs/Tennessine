@@ -20,9 +20,11 @@ import { useShopId } from "../../hooks/useShopId.ts";
 import { useChain } from "../../hooks/useChain.ts";
 import { KeycardRole, SearchShopStep } from "../../types.ts";
 import { useRelayClient } from "../../hooks/useRelayClient.ts";
+import { useStateManager } from "../../hooks/useStateManager.ts";
 
 const namespace = "frontend:connect-merchant";
 const debug = logger(namespace);
+const warn = logger(namespace, "warn");
 const errlog = logger(namespace, "error");
 
 export default function MerchantConnect() {
@@ -33,6 +35,7 @@ export default function MerchantConnect() {
   const { shopId } = useShopId();
   const [keycard, setKeycard] = useKeycard();
   const { relayClient } = useRelayClient();
+  const { stateManager } = useStateManager();
   const navigate = useNavigate({ from: "/merchant-connect" });
 
   const [searchShopId, setSearchShopId] = useState<string>(
@@ -118,7 +121,11 @@ export default function MerchantConnect() {
         throw new Error("Failed to enroll keycard");
       }
       debug(`Keycard enrolled: ${keycard.privateKey}`);
-      await relayClient.connect();
+      if (!stateManager) {
+        warn("stateManager is undefined");
+        return;
+      }
+      stateManager!.addConnection(relayClient);
       setStep(SearchShopStep.Confirm);
     } catch (error: unknown) {
       errlog("Error enrolling keycard", error);
