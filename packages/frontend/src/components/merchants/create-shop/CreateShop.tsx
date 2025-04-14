@@ -264,7 +264,10 @@ export default function () {
         );
       });
       shopManifest.ShopID = shopId;
-      if (shopManifest.ShippingRegions.size === 0) {
+      if (
+        !shopManifest.ShippingRegions ||
+        shopManifest.ShippingRegions.size === 0
+      ) {
         shopManifest.ShippingRegions = new ShippingRegionsMap(
           new Map([
             [
