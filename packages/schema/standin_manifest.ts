@@ -114,6 +114,10 @@ export class ShippingRegionsMap {
     }
     return map;
   }
+
+  public get size() {
+    return this.data.size;
+  }
 }
 
 export class PayeeMap {
