@@ -56,7 +56,6 @@ Deno.test("Check that we can render the checkout screen", {
 
   // TODO: allow for setting the whole accepted currencies map at once
   // await merchantStateManager.set(["Manifest", "AcceptedCurrencies", testCurrency.ChainID, testCurrency.Address],
-  //   // @ts-ignore TODO: add BaseClass to CodecValue
   //   new Map<number, Map<string, boolean>>([
   //     [testCurrency.ChainID, new Map([[testCurrency.Address, true]])],
   //   ])
@@ -82,14 +81,13 @@ Deno.test("Check that we can render the checkout screen", {
     new Map([
       [
         "default",
-        new ShippingRegion("nowhere"),
+        new ShippingRegion(""),
       ],
     ]),
   );
   await merchantStateManager.set(["Manifest"], currentManifest);
 
   // await merchantStateManager.set(["Manifest", "PricingCurrency"],
-  //   // @ts-ignore TODO: add BaseClass to CodecValue
   //   testCurrency
   // );
 
@@ -170,7 +168,7 @@ Deno.test("Check that we can render the checkout screen", {
     "123 Main St",
     "Anytown",
     "12345",
-    "nowhere",
+    "US",
     "john.doe@example.com",
     undefined, // Address 2 not used yet
     "+1234567890",

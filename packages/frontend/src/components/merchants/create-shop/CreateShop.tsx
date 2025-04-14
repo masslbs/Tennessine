@@ -15,7 +15,11 @@ import {
   mintShop,
   setTokenURI,
 } from "@massmarket/contracts";
-import { Manifest } from "@massmarket/schema";
+import {
+  Manifest,
+  ShippingRegion,
+  ShippingRegionsMap,
+} from "@massmarket/schema";
 import { getWindowLocation, logger, random256BigInt } from "@massmarket/utils";
 import { abi, permissions } from "@massmarket/contracts";
 
@@ -260,6 +264,16 @@ export default function () {
         );
       });
       shopManifest.ShopID = shopId;
+      if (shopManifest.ShippingRegions.size === 0) {
+        shopManifest.ShippingRegions = new ShippingRegionsMap(
+          new Map([
+            [
+              "default",
+              new ShippingRegion(""),
+            ],
+          ]),
+        );
+      }
 
       await stateManager.set(
         ["Manifest"],
