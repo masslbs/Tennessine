@@ -74,8 +74,9 @@
 
           shellHook = ''
             ${config.pre-commit.settings.installationScript}
-            # only runs when the contracts have changed
+            export IPFS_PATH=$FLAKE_ROOT/data/ipfs
             pushd $FLAKE_ROOT
+            # only runs when the contracts have changed
             touch .last-input
             if [[ "$(< .last-input)" != "${contracts}" ]]; then
               echo ${contracts} > .last-input
