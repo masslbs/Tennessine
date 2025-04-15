@@ -83,8 +83,7 @@ jobs:
         working-directory: Tennessine/
 
       - name: Shut down local testnet
-        run: |
-          nix develop -c local-testnet down
+        run: nix develop -c local-testnet down
         working-directory: Tennessine/
 
       - name: build frontend
@@ -99,6 +98,12 @@ jobs:
           cid=$(egrep -o 'CID: (.*)' pinata.log | cut -d ' ' -f2)
           echo "https://$cid.ipfs.nftstorage.link" >> $GITHUB_STEP_SUMMARY
         working-directory: Tennessine/packages/frontend
+
+      - name: Upload frontend build as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build.zip
+          path: Tennessine/packages/frontend/dist
 
       - name: Upload service compose log on failure
         if: ${{ failure() }}
