@@ -21,7 +21,7 @@ import {
   Payee,
   PayeeMetadata,
 } from "@massmarket/schema";
-import { CodecKey, CodecValue } from "@massmarket/utils/codec";
+import { CodecValue } from "@massmarket/utils/codec";
 import Pay from "./Pay.tsx";
 import QRScan from "./QRScan.tsx";
 import TimerToast from "./TimerToast.tsx";
@@ -123,9 +123,11 @@ export default function ChoosePayment({
     }
     try {
       const oId = currentOrder!.ID;
-      const committedOrder = Order.fromCBOR(
-        await stateManager.get(["Orders", oId]) as Map<CodecKey, CodecValue>,
-      );
+      const order = await stateManager.get(["Orders", oId]);
+      if (!order) {
+        throw new Error(`order ${oId} not found`);
+      }
+      const committedOrder = Order.fromCBOR(order);
       if (!committedOrder.ChosenPayee) {
         throw new Error("No chosen payee found");
       }
@@ -316,11 +318,14 @@ export default function ChoosePayment({
   }
 
   if (qrOpen) {
+    if (!imgSrc || !paymentAddress || !displayedAmount) {
+      return <p>Loading...</p>;
+    }
     return (
       <QRScan
-        imgSrc={imgSrc!}
-        purchaseAddress={paymentAddress!}
-        displayedAmount={displayedAmount!}
+        imgSrc={imgSrc}
+        purchaseAddress={paymentAddress}
+        displayedAmount={displayedAmount}
         goBack={() => setQrOpen(false)}
       />
     );

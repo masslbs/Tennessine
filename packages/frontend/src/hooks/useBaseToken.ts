@@ -10,7 +10,7 @@ import { useQuery } from "./useQuery.ts";
 import { bytesToHex } from "viem";
 import { logger } from "@massmarket/utils";
 const namespace = "frontend:useBaseToken";
-const warn = logger(namespace, "warn");
+const debug = logger(namespace, "debug");
 
 export function useBaseToken() {
   const [pricingCurrency, setChainAddress] = useState<
@@ -32,7 +32,7 @@ export function useBaseToken() {
     const path = ["Manifest", "PricingCurrency"];
     stateManager.get(path).then((currency: CodecValue | undefined) => {
       if (!currency) {
-        warn("No PricingCurrency found");
+        debug("No PricingCurrency found");
         return;
       }
       setChainAddress(ChainAddress.fromCBOR(currency));
