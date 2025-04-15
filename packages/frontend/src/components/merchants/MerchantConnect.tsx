@@ -111,27 +111,26 @@ export default function MerchantConnect() {
       if (!relayClient) {
         throw new Error("Relay client not found");
       }
+      if (!stateManager) {
+        warn("stateManager is undefined");
+        return;
+      }
       const res = await relayClient.enrollKeycard(
         wallet!,
         wallet!.account,
         false,
         getWindowLocation(),
       );
+      if (!res.ok) {
+        throw new Error("Failed to enroll keycard");
+      }
       // Reassign keycard role as merchant after enroll.
       setKeycard({
         privateKey: keycard.privateKey,
         role: KeycardRole.MERCHANT,
         address: keycard.address,
       });
-
-      if (!res.ok) {
-        throw new Error("Failed to enroll keycard");
-      }
       debug(`Keycard enrolled: ${keycard.privateKey}`);
-      if (!stateManager) {
-        warn("stateManager is undefined");
-        return;
-      }
       stateManager!.addConnection(relayClient);
       setStep(SearchShopStep.Confirm);
     } catch (error: unknown) {
