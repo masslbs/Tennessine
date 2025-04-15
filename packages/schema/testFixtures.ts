@@ -23,6 +23,9 @@ listingVector.get("Snapshots")?.forEach((snapshot) => {
     throw new Error("Listings HAMT is not a Map");
   }
   for (const [_key, listingMap] of listingsHamt.entries()) {
+    if (Number(_key) > 2 ** 32) { // TODO: fix ID type number | bigint
+      continue;
+    }
     listingsMap.set(Number(_key), Listing.fromCBOR(listingMap));
   }
 });
@@ -47,6 +50,9 @@ ordersVector.get("Snapshots")?.forEach((snapshot) => {
     throw new Error("Listings HAMT is not a Map");
   }
   for (const [_key, listingMap] of listingsHamt.entries()) {
+    if (Number(_key) > 2 ** 32) { // TODO: fix ID type number | bigint
+      continue;
+    }
     orderListingsMap.set(Number(_key), Listing.fromCBOR(listingMap));
   }
 });

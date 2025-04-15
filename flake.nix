@@ -4,6 +4,7 @@
 {
   description = "MassMarket Typescript Packages";
   inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     systems.url = "github:nix-systems/default";
     flake-parts.url = "github:hercules-ci/flake-parts";
     flake-root.url = "github:srid/flake-root";
@@ -15,6 +16,7 @@
     relay.url = "github:masslbs/relay/network-v4";
     contracts.follows = "relay/contracts";
     schema.follows = "relay/schema";
+    # in case we need to test new vectors, etc. we can override the input like this:
     # schema.url = "github:masslbs/network-schema/cbor";
   };
 
