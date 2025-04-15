@@ -82,7 +82,7 @@ export function ensureSomeNumberAsBigInt(
     return value;
   }
   const num = ensureNumber(value, fieldName);
-  // TODO: i'd prefer this but when going to asCBORMap() it needs to convert to smalles possible value, which is annoying..
+  // TODO: i'd prefer this but when going to asCBORMap() it needs to convert to smallest possible value, which is annoying..
   // return BigInt(num);
   return num;
 }
