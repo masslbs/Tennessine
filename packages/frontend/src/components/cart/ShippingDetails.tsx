@@ -81,6 +81,9 @@ export default function ShippingDetails({
       invoiceAddress.PhoneNumber,
     );
     Reflect.set(newAddress, field, value);
+    if (newAddress.PhoneNumber === "") {
+      newAddress.PhoneNumber = undefined;
+    }
     setInvoiceAddress(newAddress);
   }
 
