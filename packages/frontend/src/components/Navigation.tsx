@@ -203,7 +203,7 @@ function Navigation() {
     >
       <section className="w-full p-2 text-base flex justify-between bg-white md:px-8">
         <div
-          className="flex gap-2"
+          className="flex gap-2 cursor-pointer"
           onClick={() =>
             navigate({
               to: "/listings",
