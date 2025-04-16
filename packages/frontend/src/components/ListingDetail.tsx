@@ -20,6 +20,7 @@ import SuccessToast from "./common/SuccessToast.tsx";
 import { useCurrentOrder } from "../hooks/useCurrentOrder.ts";
 
 const namespace = "frontend:listing-detail";
+const debug = logger(namespace);
 const warn = logger(namespace, "warn");
 const errlog = logger(namespace, "error");
 
@@ -33,7 +34,7 @@ export default function ListingDetail() {
   const itemId = search.itemId as ListingId;
   const [listing, setListing] = useState<Listing>(new Listing());
   const [tokenIcon, setIcon] = useState("/icons/usdc-coin.png");
-  const [quantity, setQuantity] = useState<string>("");
+  const [quantity, setQuantity] = useState<number>(1);
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [successMsg, setMsg] = useState<string | null>(null);
   const [displayedImg, setDisplayedImg] = useState<string | null>(null);
@@ -69,7 +70,7 @@ export default function ListingDetail() {
   }
 
   function handlePurchaseQty(e: ChangeEvent<HTMLInputElement>) {
-    const newValue = e.target.value.replace(/^0+/, "");
+    const newValue = parseInt(e.target.value);
     setQuantity(newValue);
   }
 
@@ -81,7 +82,7 @@ export default function ListingDetail() {
     try {
       let orderId = currentOrder?.ID;
       if (!orderId) {
-        await createOrder(itemId, Number(quantity));
+        await createOrder(itemId, quantity);
         setMsg("Item added to cart");
         return;
       }
@@ -101,12 +102,25 @@ export default function ListingDetail() {
         throw new Error(`Order ${orderId} not found`);
       }
       const order: Order = Order.fromCBOR(o);
+      let cartItemQuantity = 0;
       // If item already exists in the items array, filter it out so we can replace it with the new quantity
       const updatedOrderItems = (order.Items ?? []).filter(
-        (item: OrderedItem) => item.ListingID !== itemId,
+        (item: OrderedItem) => {
+          if (item.ListingID === itemId) {
+            // this should never happen?
+            if (cartItemQuantity !== 0) {
+              debug(
+                "cart item quantity for the same item should not be changed more than at most once",
+              );
+            }
+            cartItemQuantity = item.Quantity;
+          }
+          return item.ListingID !== itemId;
+        },
       );
+      // note: cartItemQuantity is 0 if this is the first time we add the item to our cart, and adding with 0 is fine :)
       updatedOrderItems.push(
-        new OrderedItem(itemId, Number(quantity)),
+        new OrderedItem(itemId, cartItemQuantity + quantity),
       );
 
       await stateManager.set(
@@ -114,7 +128,7 @@ export default function ListingDetail() {
         // TODO: this is a bit of a hack, since StateManager doesnt handle BaseClass[]
         updatedOrderItems.map((item: OrderedItem) => item.asCBORMap()),
       );
-      setQuantity("");
+      setQuantity(1);
       setMsg("Cart updated");
     } catch (error) {
       errlog(`Error: changeItems ${error}`);
@@ -228,7 +242,7 @@ export default function ListingDetail() {
                   value={quantity}
                   data-testid="purchaseQty"
                   type="number"
-                  min="0"
+                  min="1"
                   step="1"
                   onChange={(e) => handlePurchaseQty(e)}
                 />

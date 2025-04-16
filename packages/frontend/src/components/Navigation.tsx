@@ -57,7 +57,7 @@ const customerMenu = [
 function Navigation() {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const [basketOpen, setBasketOpen] = useState<boolean>(false);
-  const [cartLength, setLength] = useState<number>(0);
+  const [cartSize, setCartSize] = useState<number>(0);
 
   const navigate = useNavigate();
   const { shopDetails } = useShopDetails();
@@ -68,7 +68,16 @@ function Navigation() {
   const isMerchantView = keycard.role === "merchant";
 
   useEffect(() => {
-    if (!currentOrder) return;
+    // in the hook `useCurrentOrder`, we "reset" currentOrder for the states OrderState.Canceled and OrderState.Paid.
+    // this is done by setting it to null.
+    // TODO (@alp 2025-04-17): raise the question of using a sentinel value for "reset" orderIDs e.g. currentOrder = SENTINEL_ORDER
+    //
+    // NOTE(@alp 2025-04-17): this same bug (setting currentOrder = null) *might* be afflicting ListingDetail.tsx and
+    // the call to cancelAndRecreateOrder
+    if (!currentOrder) {
+      setCartSize(0);
+      return;
+    }
     stateManager?.get(["Orders", currentOrder.ID])
       .then((o: CodecValue | undefined) => {
         if (!o) {
@@ -76,9 +85,9 @@ function Navigation() {
         }
         const order = Order.fromCBOR(o);
         // Getting number of items in order.
-        let length = 0;
-        order.Items.map((item: OrderedItem) => (length += item.Quantity));
-        setLength(length);
+        let cartSize = 0;
+        order.Items.forEach((item: OrderedItem) => (cartSize += item.Quantity));
+        setCartSize(cartSize);
       });
   }, [currentOrder]);
 
@@ -166,31 +175,31 @@ function Navigation() {
           key={i}
           onClick={() => setMenuOpen(false)}
         >
-          <div className="flex gap-3 items-center">
-            <img
-              src={`/icons/${opt.img}`}
-              width={20}
-              height={20}
-              alt="menu-item"
-              className="w-5 h-5"
-            />
-            <Link
-              to={opt.href!}
-              key={opt.title}
-              search={(prev: Record<string, string>) => ({
-                shopId: prev.shopId,
-              })}
-            >
+          <Link
+            to={opt.href!}
+            key={opt.title}
+            search={(prev: Record<string, string>) => ({
+              shopId: prev.shopId,
+            })}
+          >
+            <div className="flex gap-3 items-center">
+              <img
+                src={`/icons/${opt.img}`}
+                width={20}
+                height={20}
+                alt="menu-item"
+                className="w-5 h-5"
+              />
               <h2 className="font-normal text-black">{opt.title}</h2>
-            </Link>
-            <img
-              src="/icons/chevron-right.svg"
-              width={12}
-              height={12}
-              alt="chevron-right"
-              className="ml-auto w-3 h-3"
-            />
-          </div>
+              <img
+                src="/icons/chevron-right.svg"
+                width={12}
+                height={12}
+                alt="chevron-right"
+                className="ml-auto w-3 h-3"
+              />
+            </div>
+          </Link>
         </div>
       );
     });
@@ -203,7 +212,7 @@ function Navigation() {
     >
       <section className="w-full p-2 text-base flex justify-between bg-white md:px-8">
         <div
-          className="flex gap-2"
+          className="flex gap-2 cursor-pointer"
           onClick={() =>
             navigate({
               to: "/listings",
@@ -256,10 +265,10 @@ function Navigation() {
             />
             <div
               className={`${
-                !cartLength ? "hidden" : ""
+                !cartSize ? "hidden" : ""
               } bg-red-700 rounded-full absolute top-0 left-3 w-4 h-4 flex justify-center items-center`}
             >
-              <p className="text-white text-[10px]">{cartLength}</p>
+              <p className="text-white text-[10px]">{cartSize}</p>
             </div>
           </button>
           <button
