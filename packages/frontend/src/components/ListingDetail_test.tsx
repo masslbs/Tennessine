@@ -40,7 +40,7 @@ Deno.test("Check that we can render the listing details screen", {
     }
   }
 
-  await merchantStateManager.set(["Inventory", listingId], 10);
+  await merchantStateManager.set(["Inventory", listingId], 30);
 
   // Remove merchant's keycard to free up for customer
   localStorage.removeItem(`keycard${shopId}`);
@@ -80,10 +80,17 @@ Deno.test("Check that we can render the listing details screen", {
 
   // Test adding to cart
   const user = userEvent.setup();
+
+  // initial quantity chosen for item
+  const initialQty = 2;
+  // how much the quantity is increased with on the user's second pass
+  const qtyIncreasedBy = 7;
+
   await waitFor(async () => {
     const purchaseQty = screen.getByTestId("purchaseQty");
     expect(purchaseQty).toBeTruthy();
-    await user.type(purchaseQty, "5");
+    await user.clear(purchaseQty);
+    await user.type(purchaseQty, `${initialQty}`);
     const addToBasket = screen.getByTestId("addToBasket");
     await user.click(addToBasket);
   });
@@ -94,16 +101,17 @@ Deno.test("Check that we can render the listing details screen", {
   const orderId = Array.from(allOrders.keys())[0];
   const orderData = await stateManager.get(["Orders", orderId]);
   expect(orderData).toBeDefined();
+
   const order = Order.fromCBOR(orderData!);
   expect(order.Items[0].ListingID).toBe(listingId);
-  expect(order.Items[0].Quantity).toBe(5);
+  expect(order.Items[0].Quantity).toBe(initialQty);
 
   // Update quantity
   await waitFor(async () => {
     const purchaseQty = screen.getByTestId("purchaseQty");
     expect(purchaseQty).toBeTruthy();
     await user.clear(purchaseQty);
-    await user.type(purchaseQty, "10");
+    await user.type(purchaseQty, `${qtyIncreasedBy}`);
     const addToBasket = screen.getByTestId("addToBasket");
     await user.click(addToBasket);
   });
@@ -113,7 +121,7 @@ Deno.test("Check that we can render the listing details screen", {
     expect(d).toBeDefined();
     const items = Order.fromCBOR(d!).Items;
     expect(items[0].ListingID).toBe(listingId);
-    expect(items[0].Quantity).toBe(10);
+    expect(items[0].Quantity).toBe(initialQty + qtyIncreasedBy);
   });
 
   // Commit order and try to update quantity. Tests cancelAndRecreateOrder fn
@@ -144,7 +152,7 @@ Deno.test("Check that we can render the listing details screen", {
     >;
     const newOrder = Order.fromCBOR(newOrderData);
     expect(newOrder.Items[0].ListingID).toBe(listingId);
-    expect(newOrder.Items[0].Quantity).toBe(1);
+    expect(newOrder.Items[0].Quantity).toBe(initialQty + qtyIncreasedBy);
   });
 
   unmount();

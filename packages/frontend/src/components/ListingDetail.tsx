@@ -20,8 +20,7 @@ import SuccessToast from "./common/SuccessToast.tsx";
 import { useCurrentOrder } from "../hooks/useCurrentOrder.ts";
 
 const namespace = "frontend:listing-detail";
-const describe = (subNamespace: string) =>
-  logger(`${namespace}:${subNamespace}`, "warn");
+const debug = logger(namespace);
 const warn = logger(namespace, "warn");
 const errlog = logger(namespace, "error");
 
@@ -71,12 +70,11 @@ export default function ListingDetail() {
   }
 
   function handlePurchaseQty(e: ChangeEvent<HTMLInputElement>) {
-    const newValue = Number(e.target.value.replace(/^0+/, ""));
+    const newValue = parseInt(e.target.value);
     setQuantity(newValue);
   }
 
   async function changeItems() {
-    const say = describe("changeItems()");
     if (!stateManager) {
       warn("stateManager is undefined");
       return;
@@ -111,7 +109,7 @@ export default function ListingDetail() {
           if (item.ListingID === itemId) {
             // this should never happen?
             if (cartItemQuantity !== 0) {
-              say(
+              debug(
                 "cart item quantity for the same item should not be changed more than at most once",
               );
             }
