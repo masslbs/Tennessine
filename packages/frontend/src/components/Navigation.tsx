@@ -175,31 +175,31 @@ function Navigation() {
           key={i}
           onClick={() => setMenuOpen(false)}
         >
-          <div className="flex gap-3 items-center">
-            <img
-              src={`/icons/${opt.img}`}
-              width={20}
-              height={20}
-              alt="menu-item"
-              className="w-5 h-5"
-            />
-            <Link
-              to={opt.href!}
-              key={opt.title}
-              search={(prev: Record<string, string>) => ({
-                shopId: prev.shopId,
-              })}
-            >
+          <Link
+            to={opt.href!}
+            key={opt.title}
+            search={(prev: Record<string, string>) => ({
+              shopId: prev.shopId,
+            })}
+          >
+            <div className="flex gap-3 items-center">
+              <img
+                src={`/icons/${opt.img}`}
+                width={20}
+                height={20}
+                alt="menu-item"
+                className="w-5 h-5"
+              />
               <h2 className="font-normal text-black">{opt.title}</h2>
-            </Link>
-            <img
-              src="/icons/chevron-right.svg"
-              width={12}
-              height={12}
-              alt="chevron-right"
-              className="ml-auto w-3 h-3"
-            />
-          </div>
+              <img
+                src="/icons/chevron-right.svg"
+                width={12}
+                height={12}
+                alt="chevron-right"
+                className="ml-auto w-3 h-3"
+              />
+            </div>
+          </Link>
         </div>
       );
     });
