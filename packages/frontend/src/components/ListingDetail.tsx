@@ -20,7 +20,7 @@ import SuccessToast from "./common/SuccessToast.tsx";
 import { useCurrentOrder } from "../hooks/useCurrentOrder.ts";
 
 const namespace = "frontend:listing-detail";
-const describe = (subNamespace) =>
+const describe = (subNamespace: string) =>
   logger(`${namespace}:${subNamespace}`, "warn");
 const warn = logger(namespace, "warn");
 const errlog = logger(namespace, "error");
