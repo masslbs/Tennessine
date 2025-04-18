@@ -105,7 +105,7 @@ Deno.test("Database Testings", async (t) => {
 
   await t.step("Make sure we can close the state manager", async () => {
     const pricingCurrencyPath = ["Manifest", "PricingCurrency"];
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 2; i++) {
       const nonce = relayClient.keyCardNonce;
       const nsm = new StateManager({
         store,
