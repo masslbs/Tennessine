@@ -149,12 +149,12 @@ Deno.test("Database Testings", async (t) => {
     assertNotEquals(
       retrievedValue,
       oldValue,
-      `should not be the old value ${i}`,
+      `should not be the old value`,
     );
     assertEquals(
       retrievedValue,
       newTestValue,
-      `should be able to set and get values after reopening ${i}`,
+      `should be able to set and get values after reopening`,
     );
     await reopenedSm.close();
   });
