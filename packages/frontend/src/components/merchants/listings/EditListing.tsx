@@ -103,7 +103,11 @@ export default function EditProduct() {
 
     await stateManager.set(["Inventory", newListing.ID], stock);
   }
-
+  function scroll() {
+    // Deno doesn't support globalThis.scrollTo
+    const element = document.getElementById("top");
+    element?.scrollIntoView();
+  }
   async function onPublish() {
     const newListing = Listing.fromCBOR(listing.asCBORMap());
     if (!newListing.Metadata.Title) {
@@ -152,6 +156,7 @@ export default function EditProduct() {
         setPublishing(false);
       }
     }
+    scroll();
   }
 
   function handleInputChange(
