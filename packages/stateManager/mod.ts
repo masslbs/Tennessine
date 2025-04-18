@@ -4,7 +4,7 @@ import { DAG, type RootValue } from "@massmarket/merkle-dag-builder";
 import type { AbstractStore } from "@massmarket/store";
 import EventTree from "@massmarket/eventTree";
 import type { Patch, PushedPatchSet, RelayClient } from "@massmarket/client";
-import { type codec, get, type Hash, remove, set } from "@massmarket/utils";
+import { type codec, get, type Hash, set } from "@massmarket/utils";
 import { BaseClass } from "@massmarket/schema/utils";
 import { WritableStream } from "web-streams-polyfill";
 
@@ -99,86 +99,56 @@ export default class StateManager {
         // TODO: Validate keycard for a given time range
         //   throw new Error("Invalid keycard");
         for (const patch of patchSet.patches) {
-          let operation;
           // TODO validate the Operation's value if any
           // console.log("Applying patch:", patch);
           if (patch.Op === "add") {
-            // const addKey = patch.Path[patch.Path.length - 1];
-            // path = patch.Path.slice(0, -1);
-            operation = (parent: codec.CodecValue, key: codec.CodecKey) => {
-              assert(
-                parent,
-                `The Value at the path ${patch.Path.join("/")} does not exist`,
-              );
-              if (parent instanceof Array && typeof key === "number") {
-                parent.splice(key, 0, patch.Value);
-              } else {
-                set(parent, key, patch.Value);
-              }
-            };
+            state.root = await this.graph.add(
+              state.root,
+              patch.Path,
+              patch.Value,
+            );
           } else if (patch.Op === "replace") {
-            operation = patch.Value;
+            state.root = await this.graph.set(
+              state.root,
+              patch.Path,
+              patch.Value,
+            );
           } else if (patch.Op === "append") {
-            operation = (parent: codec.CodecValue, step: codec.CodecKey) => {
-              const value = get(parent, step);
-              if (Array.isArray(value)) {
-                value.push(patch.Value);
-              } else {
-                throw new Error(
-                  `tying to append to non-array, path ${patch.Path.join("/")}`,
-                );
-              }
-            };
+            state.root = await this.graph.append(
+              state.root,
+              patch.Path,
+              patch.Value,
+            );
           } else if (patch.Op === "remove") {
-            // const deleteKey = patch.Path[patch.Path.length - 1];
-            // path = patch.Path.slice(0, -1);
-            operation = (
-              parent: codec.CodecValue,
-              deleteKey: codec.CodecKey,
-            ) => {
-              remove(parent, deleteKey);
-              return parent;
-            };
+            state.root = await this.graph.remove(
+              state.root,
+              patch.Path,
+            );
           } else if (patch.Op === "increment") {
-            operation = (parent: codec.CodecValue, step: codec.CodecKey) => {
-              const val = get(parent, step);
-              if (typeof val === "number") {
-                set(parent, step, val + (patch.Value as number));
-              } else {
-                throw new Error(
-                  `Invalid current value ${val} for path: ${patch.Path}`,
-                );
-              }
-            };
+            state.root = this.graph.addNumber(
+              state.root,
+              patch.Path,
+              patch.Value,
+            );
           } else if (patch.Op === "decrement") {
-            operation = (parent: codec.CodecValue, step: codec.CodecKey) => {
-              const val = get(parent, step);
-              if (typeof val === "number") {
-                set(parent, step, val - (patch.Value as number));
-              } else {
-                throw new Error(
-                  `Invalid current value ${val} for path: ${patch.Path}`,
-                );
-              }
-            };
+            state.root = this.graph.addNumber(
+              state.root,
+              patch.Path,
+              -patch.Value,
+            );
           } else {
             console.error({ patch });
             throw new Error(`Unimplemented operation type: ${patch.Op}`);
           }
-
-          state.root = await this.graph.set(
-            state.root,
-            patch.Path,
-            operation,
-          );
         }
 
         subscriptionTree.set(
           subscriptionPath.toString(),
           patchSet.sequence,
         );
-        const r = await state.root;
-        this.events.emit(r);
+        // we want to wait to resolve the promise before emitting the new state
+        state.root = await state.root;
+        this.events.emit(state.root);
         // TODO: check stateroot
         // TODO: we are saving the patches here
         // incase we want to replay the log, but we have no way to get them out

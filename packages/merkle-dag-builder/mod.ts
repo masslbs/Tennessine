@@ -1,5 +1,12 @@
 import { assert } from "@std/assert";
-import { type codec, get, type Hash, isHash, set } from "@massmarket/utils";
+import {
+  type codec,
+  get,
+  type Hash,
+  isHash,
+  remove,
+  set,
+} from "@massmarket/utils";
 import { type AbstractStore, ContentAddressableStore } from "@massmarket/store";
 
 export type RootValue =
@@ -126,6 +133,83 @@ export class DAG {
       throw new Error(`Path ${path.join(".")} does not exist`);
     }
     return walk[0].value;
+  }
+
+  add(
+    root: RootValue,
+    path: codec.CodecKey[],
+    value: codec.CodecValue,
+  ): Promise<codec.CodecValue> {
+    return this.set(
+      root,
+      path,
+      (parent: codec.CodecValue, key: codec.CodecKey) => {
+        assert(
+          parent,
+          `The Value at the path ${path.join("/")} does not exist`,
+        );
+        if (parent instanceof Array && typeof key === "number") {
+          parent.splice(key, 0, value);
+        } else {
+          set(parent, key, value);
+        }
+      },
+    );
+  }
+
+  append(
+    root: RootValue,
+    path: codec.CodecKey[],
+    value: codec.CodecValue,
+  ): Promise<codec.CodecValue> {
+    return this.set(
+      root,
+      path,
+      (parent: codec.CodecValue, step: codec.CodecKey) => {
+        const arr = get(parent, step);
+        if (Array.isArray(arr)) {
+          arr.push(value);
+        } else {
+          throw new Error(
+            `tying to append to non-array, path ${path.join("/")}`,
+          );
+        }
+      },
+    );
+  }
+
+  remove(
+    root: RootValue,
+    path: codec.CodecKey[],
+  ): Promise<codec.CodecValue> {
+    return this.set(
+      root,
+      path,
+      (parent: codec.CodecValue, step: codec.CodecKey) => {
+        remove(parent, step);
+      },
+    );
+  }
+
+  addNumber(
+    root: RootValue,
+    path: codec.CodecKey[],
+    amount: number,
+  ): Promise<codec.CodecValue> {
+    return this.set(
+      root,
+      path,
+      (parent: codec.CodecValue, step: codec.CodecKey) => {
+        const currentValue = get(parent, step);
+        if (typeof currentValue === "number") {
+          set(parent, step, currentValue + amount);
+        } else {
+          throw new Error(
+            `tying to add number to non-number, path ${path.join("/")}`,
+          );
+        }
+      },
+    );
   }
 
   /**
