@@ -135,6 +135,9 @@ export class DAG {
     return walk[0].value;
   }
 
+  /**
+   * adds a value to a root object given its path. if the parent value is an array the added value will be sliced into the array
+   */
   add(
     root: RootValue,
     path: codec.CodecKey[],
@@ -157,6 +160,9 @@ export class DAG {
     );
   }
 
+  /**
+   * appends a value to an array. If the value at the given path is not an array, it will throw an error
+   */
   append(
     root: RootValue,
     path: codec.CodecKey[],
@@ -178,6 +184,9 @@ export class DAG {
     );
   }
 
+  /**
+   * removes a value. If the parent is an array, it will remove the value at the given index. If the parent is an object, it will delete the key.
+   */
   remove(
     root: RootValue,
     path: codec.CodecKey[],
@@ -191,6 +200,9 @@ export class DAG {
     );
   }
 
+  /**
+   * adds a number to a value at the given path. If the value at the path is not a number, it will throw an error.
+   */
   addNumber(
     root: RootValue,
     path: codec.CodecKey[],
