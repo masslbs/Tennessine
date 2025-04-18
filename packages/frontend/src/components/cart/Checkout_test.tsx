@@ -235,17 +235,18 @@ Deno.test("Check that we can render the checkout screen", {
       ) as HTMLInputElement;
       await user.click(dropdown);
     });
-    await act(async () => {
-      const dropdownOptions = screen.getByTestId("chains-dropdown-select");
-      expect(dropdownOptions).toBeTruthy();
-      const selectElement = dropdownOptions.querySelector("select");
-      expect(selectElement).toBeTruthy();
-      // // click on the ETH/Hardhat option
-      await user.selectOptions(
-        selectElement as HTMLSelectElement,
-        "ETH/Hardhat",
-      );
-    });
+    //TODO: post phase 1 of MVP, implement test for multiple payment currency options.
+    // await act(async () => {
+    //   const dropdownOptions = screen.getByTestId("chains-dropdown-select");
+    //   expect(dropdownOptions).toBeTruthy();
+    //   const selectElement = dropdownOptions.querySelector("select");
+    //   expect(selectElement).toBeTruthy();
+    //   // // click on the ETH/Hardhat option
+    //   await user.selectOptions(
+    //     selectElement as HTMLSelectElement,
+    //     "ETH/Hardhat",
+    //   );
+    // });
     await waitFor(() => {
       const paymentDetailsLoading = screen.getByTestId(
         "payment-details-loading",

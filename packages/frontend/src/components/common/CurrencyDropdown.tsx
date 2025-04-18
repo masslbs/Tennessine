@@ -9,7 +9,7 @@ export default function Dropdown({
   label,
   testId = "currency-dropdown",
 }: {
-  options: CurrencyChainOption[];
+  options: CurrencyChainOption[] | null;
   callback: (option: CurrencyChainOption) => void | Promise<void>;
   selected?: null | CurrencyChainOption;
   label: string;
@@ -24,7 +24,7 @@ export default function Dropdown({
   }, [selected]);
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const selectedValue = options.find((opt) => opt.label === e.target.value);
+    const selectedValue = options?.find((opt) => opt.label === e.target.value);
     if (!selectedValue) {
       throw new Error("Something went wrong in currency dropdown");
     }
@@ -46,7 +46,7 @@ export default function Dropdown({
         value={selectedOption?.label || ""}
       >
         <option value="" disabled>Select a currency</option>
-        {options.map((option) => (
+        {options?.map((option) => (
           <option
             data-testid={`${testId}-option-${option.label}`}
             key={option.label}
