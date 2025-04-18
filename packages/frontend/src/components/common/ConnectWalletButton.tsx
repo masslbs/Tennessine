@@ -1,7 +1,7 @@
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 
 export default function ConnectWalletButton(
-  { onClick }: { onClick?: () => void },
+  { onClick, disabled }: { onClick?: () => void; disabled?: boolean },
 ) {
   const { openConnectModal } = useConnectModal();
   return (
@@ -11,6 +11,7 @@ export default function ConnectWalletButton(
       style={{ backgroundColor: "transparent", padding: 0 }}
       onClick={onClick ?? openConnectModal}
       type="button"
+      disabled={disabled}
     >
       <img
         src="/icons/wallet-icon.svg"

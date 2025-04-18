@@ -116,6 +116,16 @@ export default function ChoosePayment({
     };
   }, [stateManager]);
 
+  useEffect(() => {
+    // If there is only one currency option, automatically select it.
+    if (
+      displayedChains?.length === 1 && !paymentArgs && !paymentCurrencyLoading
+    ) {
+      debug(`Getting payment args for ${displayedChains[0].label}`);
+      onSelectPaymentCurrency(displayedChains[0]);
+    }
+  }, [displayedChains]);
+
   async function getPaymentArgs() {
     if (!stateManager) {
       warn("stateManager is undefined");
@@ -330,13 +340,9 @@ export default function ChoosePayment({
       />
     );
   } else if (connectWalletOpen) {
-    if (!paymentArgs) {
-      setErrorMsg("No payment args found");
-      return;
-    }
     return (
       <Pay
-        paymentArgs={paymentArgs}
+        paymentArgs={paymentArgs!}
         paymentCurrencyLoading={paymentCurrencyLoading}
         goBack={() => setConnectWalletOpen(false)}
       />
@@ -361,14 +367,21 @@ export default function ChoosePayment({
         <TimerToast />
         <section className="mt-2 flex flex-col gap-4 bg-white rounded-lg p-5">
           <div data-testid="payment-currency">
-            {displayedChains && (
-              <Dropdown
-                label="Payment currency and chain"
-                options={displayedChains}
-                callback={onSelectPaymentCurrency}
-                testId="chains-dropdown-select"
-              />
-            )}
+            {displayedChains?.length === 1
+              ? (
+                <div>
+                  <h3>Payment currency and chain</h3>
+                  <p>{displayedChains[0].label}</p>
+                </div>
+              )
+              : (
+                <Dropdown
+                  label="Payment currency and chain"
+                  options={displayedChains}
+                  callback={onSelectPaymentCurrency}
+                  testId="chains-dropdown-select"
+                />
+              )}
           </div>
           <div className={displayedAmount ? "" : "hidden"}>
             <p>Total Price</p>
@@ -389,29 +402,43 @@ export default function ChoosePayment({
           >
             <p>Getting payment details...</p>
           </div>
-          <div
+          <section
             data-testid="payment-methods"
             className="flex flex-col md:flex-row gap-4 justify-around"
           >
-            <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg">
+            <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg relative">
+              <div
+                className={paymentArgs
+                  ? "none"
+                  : `absolute inset-0 bg-white opacity-50 rounded-lg z-10`}
+              >
+              </div>
               <ConnectWalletButton
                 onClick={payWithWallet}
+                disabled={!paymentArgs}
               />
             </div>
-            <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg">
+            <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg relative">
+              <div
+                className={paymentArgs
+                  ? ""
+                  : `absolute inset-0 bg-white opacity-50 rounded-lg z-10`}
+              >
+              </div>
               <button
                 type="button"
                 data-testid="pay-by-qr"
                 className="rounded-lg flex flex-col items-center gap-2"
                 style={{ backgroundColor: "transparent", padding: 0 }}
                 onClick={payByQr}
+                disabled={!paymentArgs}
               >
                 <img
-                  src="/icons/wallet-icon.svg"
+                  src="/icons/pay-by-QR.svg"
                   width={40}
                   height={40}
                   alt="wallet-icon"
-                  className="w-10 h-10 "
+                  className="w-13 h-10"
                 />
                 <div className="flex gap-2 items-center">
                   <p>Pay by QR code</p>
@@ -425,7 +452,7 @@ export default function ChoosePayment({
                 </div>
               </button>
             </div>
-          </div>
+          </section>
         </section>
       </section>
     </section>
