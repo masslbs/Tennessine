@@ -88,8 +88,8 @@ export default function ListingDetail() {
       }
 
       // Update existing order
-      // If the order is committed, cancel it and create a new one
-      if (currentOrder?.State === OrderState.Committed) {
+      // If the order is not an open order, cancel it and create a new one
+      if (currentOrder?.State !== OrderState.Open) {
         orderId = await cancelAndRecreateOrder();
       }
 

@@ -85,6 +85,7 @@ Deno.test("Check that we can render the listing details screen", {
   const initialQty = 2;
   // how much the quantity is increased with on the user's second pass
   const qtyIncreasedBy = 7;
+  const qtyIncreasedBy2 = 3;
 
   await waitFor(async () => {
     const purchaseQty = screen.getByTestId("purchaseQty");
@@ -133,7 +134,8 @@ Deno.test("Check that we can render the listing details screen", {
     const purchaseQty = screen.getByTestId("purchaseQty");
     expect(purchaseQty).toBeTruthy();
     await user.clear(purchaseQty);
-    await user.type(purchaseQty, "1");
+    // Third quantity update
+    await user.type(purchaseQty, `${qtyIncreasedBy2}`);
     const addToBasket = screen.getByTestId("addToBasket");
     await user.click(addToBasket);
   });
@@ -152,7 +154,10 @@ Deno.test("Check that we can render the listing details screen", {
     >;
     const newOrder = Order.fromCBOR(newOrderData);
     expect(newOrder.Items[0].ListingID).toBe(listingId);
-    expect(newOrder.Items[0].Quantity).toBe(initialQty + qtyIncreasedBy);
+    // Since quantity was updated 3 times, it should be the addition of the 3 quantities tested.
+    expect(newOrder.Items[0].Quantity).toBe(
+      initialQty + qtyIncreasedBy + qtyIncreasedBy2,
+    );
   });
 
   unmount();
