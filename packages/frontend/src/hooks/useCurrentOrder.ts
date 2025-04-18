@@ -79,10 +79,6 @@ export function useCurrentOrder() {
   }
 
   async function cancelAndRecreateOrder() {
-    if (!stateManager) {
-      warn("stateManager is undefined");
-      return;
-    }
     debug("Cancelling and recreating order");
     const items = currentOrder?.Items;
     await cancelOrder();
@@ -93,7 +89,7 @@ export function useCurrentOrder() {
       OrderState.Open,
     );
 
-    await stateManager.set(
+    await stateManager!.set(
       ["Orders", newOrderID],
       newOrder,
     );
