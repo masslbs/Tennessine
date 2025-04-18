@@ -57,7 +57,7 @@ export default function Listings() {
 
   return (
     <main
-      className="bg-background-gray pt-under-nav"
+      className="bg-background-gray"
       data-testid="listings-page"
     >
       {keycard.role === "merchant"

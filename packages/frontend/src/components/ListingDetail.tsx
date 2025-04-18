@@ -138,10 +138,10 @@ export default function ListingDetail() {
 
   return (
     <main
-      className="bg-gray-100 pt-under-nav md:flex justify-center"
+      className="bg-gray-100 md:flex justify-center"
       data-testid="listing-detail-page"
     >
-      <section className="flex flex-col md:w-2/3 mx-4">
+      <section className="flex flex-col md:w-[800px] mx-4">
         <ErrorMessage
           errorMessage={errorMsg}
           onClose={() => {

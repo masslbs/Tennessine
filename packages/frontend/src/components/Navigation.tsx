@@ -206,84 +206,90 @@ function Navigation() {
   }
 
   return (
-    <section
-      className={`absolute left-0 top-0 right-0`}
-      data-testid="navigation"
-    >
-      <section className="w-full p-2 text-base flex justify-between bg-white md:px-8">
-        <div
-          className="flex gap-2 cursor-pointer"
-          onClick={() =>
-            navigate({
-              to: "/listings",
-              search: (prev: Record<string, string>) => ({
-                shopId: prev.shopId,
-                step: CheckoutStep.shippingDetails,
-              }),
-            })}
-        >
-          {shopDetails.profilePictureUrl
-            ? (
-              <div className="overflow-hidden rounded-full w-12 h-12">
+    <section>
+      <section
+        className={`bg-white flex justify-center`}
+        data-testid="navigation"
+      >
+        <section className="w-full p-2 text-base flex justify-between md:w-[800px] mr-3">
+          <div
+            className="flex gap-2 cursor-pointer"
+            onClick={() =>
+              navigate({
+                to: "/listings",
+                search: (prev: Record<string, string>) => ({
+                  shopId: prev.shopId,
+                  step: CheckoutStep.shippingDetails,
+                }),
+              })}
+          >
+            {shopDetails.profilePictureUrl
+              ? (
+                <div className="overflow-hidden rounded-full w-12 h-12">
+                  <img
+                    src={shopDetails.profilePictureUrl}
+                    width={50}
+                    height={50}
+                    alt="profile-avatar"
+                    className="w-12 h-12"
+                  />
+                </div>
+              )
+              : (
                 <img
-                  src={shopDetails.profilePictureUrl}
-                  width={50}
-                  height={50}
-                  alt="profile-avatar"
-                  className="w-12 h-12"
+                  src={`/icons/mass-labs-logo.svg`}
+                  width={40}
+                  height={40}
+                  alt="mass-labs-logo"
+                  className="w-10 h-10"
                 />
-              </div>
-            )
-            : (
-              <img
-                src={`/icons/mass-labs-logo.svg`}
-                width={40}
-                height={40}
-                alt="mass-labs-logo"
-                className="w-10 h-10"
-              />
-            )}
+              )}
 
-          <h2 className="flex items-center">{shopDetails.name}</h2>
-        </div>
-        <section
-          className={`flex gap-6 p-2`}
-        >
-          <button
-            type="button"
-            data-testid="cart-toggle"
-            className={`relative ${isMerchantView ? "hidden" : ""}`}
-            style={{ backgroundColor: "transparent", padding: 0 }}
-            onClick={() => setBasketOpen(!basketOpen)}
+            <h2 className="flex items-center">{shopDetails.name}</h2>
+          </div>
+          <section
+            className={`flex gap-6`}
           >
-            <img
-              src="/icons/menu-basket.svg"
-              width={20}
-              height={20}
-              alt="basket-icon"
-              className="w-5 h-5"
-            />
-            <div
-              className={`${
-                !cartSize ? "hidden" : ""
-              } bg-red-700 rounded-full absolute top-0 left-3 w-4 h-4 flex justify-center items-center`}
+            <button
+              type="button"
+              data-testid="cart-toggle"
+              className={`relative ${isMerchantView ? "hidden" : ""}`}
+              style={{ backgroundColor: "transparent", padding: 0 }}
+              onClick={() => setBasketOpen(!basketOpen)}
             >
-              <p className="text-white text-[10px]">{cartSize}</p>
-            </div>
-          </button>
-          <button
-            onClick={menuSwitch}
-            style={{ backgroundColor: "transparent", padding: 0 }}
-            type="button"
-          >
-            <img
-              src={menuOpen ? "/icons/close-icon.svg" : "/icons/hamburger.svg"}
-              width={20}
-              height={20}
-              alt="menu-icon"
-              className="w-5 h-5"
-            />
-          </button>
+              <img
+                src={basketOpen
+                  ? "/icons/close-icon.svg"
+                  : "/icons/menu-basket.svg"}
+                width={20}
+                height={20}
+                alt="basket-icon"
+                className="w-5 h-5"
+              />
+              <div
+                className={`${
+                  (!cartSize || basketOpen) ? "hidden" : ""
+                } bg-red-700 rounded-full absolute top-0 left-3 w-4 h-4 flex justify-center items-center`}
+              >
+                <p className="text-white text-[10px]">{cartSize}</p>
+              </div>
+            </button>
+            <button
+              onClick={menuSwitch}
+              style={{ backgroundColor: "transparent", padding: 0 }}
+              type="button"
+            >
+              <img
+                src={menuOpen
+                  ? "/icons/close-icon.svg"
+                  : "/icons/hamburger.svg"}
+                width={20}
+                height={20}
+                alt="menu-icon"
+                className="w-5 h-5"
+              />
+            </button>
+          </section>
         </section>
       </section>
       {(basketOpen || menuOpen) && (
@@ -295,28 +301,32 @@ function Navigation() {
           }}
         />
       )}
-      {menuOpen
-        ? (
-          <section className="md:w-1/3 md:ml-auto">
-            <div className="fixed bg-background-gray z-10 w-full md:w-1/3 md:right-0 flex flex-col gap-5 rounded-b-lg p-5">
-              {renderMenuItems()}
-            </div>
-          </section>
-        )
-        : null}
-      {basketOpen
-        ? (
-          <section className="md:w-1/3 md:ml-auto">
-            <div className="fixed bg-background-gray z-10 w-full md:w-1/3 md:right-0 flex flex-col gap-5 rounded-b-lg p-5">
-              <h1>Basket</h1>
-              <Cart
-                onCheckout={onCheckout}
-                closeBasket={() => setBasketOpen(false)}
-              />
-            </div>
-          </section>
-        )
-        : null}
+      <section className="md:flex md:justify-center">
+        <section className="md:w-[800px] md:flex md:justify-end absolute">
+          {menuOpen
+            ? (
+              <section>
+                <div className="fixed bg-background-gray z-10 w-full flex flex-col gap-5 rounded-b-lg p-5 md:w-[200px] md:static">
+                  {renderMenuItems()}
+                </div>
+              </section>
+            )
+            : null}
+          {basketOpen
+            ? (
+              <section>
+                <div className="fixed bg-background-gray z-10 w-full flex flex-col gap-5 rounded-b-lg p-5 md:w-[350px] md:static">
+                  <h1>Basket</h1>
+                  <Cart
+                    onCheckout={onCheckout}
+                    closeBasket={() => setBasketOpen(false)}
+                  />
+                </div>
+              </section>
+            )
+            : null}
+        </section>
+      </section>
     </section>
   );
 }

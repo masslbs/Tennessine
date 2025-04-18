@@ -63,8 +63,6 @@ export default function ShippingDetails({
       warning = "Must include postal code";
     } else if (!invoiceAddress.City.length) {
       warning = "Must include postal code";
-    } else if (!invoiceAddress.EmailAddress.length) {
-      warning = "Must include email";
     }
     return warning;
   }
@@ -103,6 +101,9 @@ export default function ShippingDetails({
       if (!currentOrder) {
         throw new Error("No committed order ID found");
       }
+      if (!invoiceAddress.EmailAddress.length) {
+        invoiceAddress.EmailAddress = "example@email.com";
+      }
       if (invoiceAddress !== currentOrder.InvoiceAddress) {
         await stateManager.set(
           ["Orders", currentOrder.ID, "InvoiceAddress"],
@@ -110,6 +111,7 @@ export default function ShippingDetails({
         );
         debug("Shipping details updated");
       }
+
       setStep(CheckoutStep.paymentDetails);
     } catch (error: unknown) {
       errlog("error updating shipping details", error);
@@ -197,13 +199,13 @@ export default function ShippingDetails({
               value={invoiceAddress.Country}
               onChange={(e) => handleFormChange("Country", e.target.value)}
             />
-            <h2 className="my-3">Contact detail</h2>
+            <h2 className="my-3">Contact details</h2>
             <p>
               Let the seller contact you if there is an issue with the order
               (Recommended).
             </p>
             <div className="mt-3 flex flex-col">
-              <label htmlFor="email">Email</label>
+              <label htmlFor="email">Email (optional)</label>
               <input
                 className="border-2 border-solid mt-1 p-3 rounded-2xl"
                 id="email"
