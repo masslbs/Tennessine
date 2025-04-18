@@ -330,10 +330,6 @@ export default function ChoosePayment({
       />
     );
   } else if (connectWalletOpen) {
-    if (!paymentArgs) {
-      setErrorMsg("No payment args found");
-      return;
-    }
     return (
       <Pay
         paymentArgs={paymentArgs}
@@ -389,29 +385,43 @@ export default function ChoosePayment({
           >
             <p>Getting payment details...</p>
           </div>
-          <div
+          <section
             data-testid="payment-methods"
             className="flex flex-col md:flex-row gap-4 justify-around"
           >
-            <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg">
+            <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg relative">
+              <div
+                className={paymentArgs
+                  ? "none"
+                  : `absolute inset-0 bg-white opacity-50 rounded-lg z-10`}
+              >
+              </div>
               <ConnectWalletButton
                 onClick={payWithWallet}
+                disabled={!paymentArgs}
               />
             </div>
-            <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg">
+            <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg relative">
+              <div
+                className={paymentArgs
+                  ? ""
+                  : `absolute inset-0 bg-white opacity-50 rounded-lg z-10`}
+              >
+              </div>
               <button
                 type="button"
                 data-testid="pay-by-qr"
                 className="rounded-lg flex flex-col items-center gap-2"
                 style={{ backgroundColor: "transparent", padding: 0 }}
                 onClick={payByQr}
+                disabled={!paymentArgs}
               >
                 <img
-                  src="/icons/wallet-icon.svg"
+                  src="/icons/pay-by-QR.svg"
                   width={40}
                   height={40}
                   alt="wallet-icon"
-                  className="w-10 h-10 "
+                  className="w-13 h-10"
                 />
                 <div className="flex gap-2 items-center">
                   <p>Pay by QR code</p>
@@ -425,7 +435,7 @@ export default function ChoosePayment({
                 </div>
               </button>
             </div>
-          </div>
+          </section>
         </section>
       </section>
     </section>
