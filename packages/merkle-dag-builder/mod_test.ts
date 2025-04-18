@@ -121,3 +121,100 @@ Deno.test("should merklize", async (t) => {
     assert(cat === "cat");
   });
 });
+
+Deno.test.ignore(
+  "stress test - setting and retrieving many values",
+  async (t) => {
+    const store = new Store();
+    const dag = new DAG(store);
+    const root: RootValue = new Map();
+
+    await t.step("should handle many sequential sets and gets", async () => {
+      const iterations = 1000;
+      let currentRoot: RootValue = root;
+
+      // Create test data with nested structures
+      for (let i = 0; i < iterations; i++) {
+        const path = [`level1_${i}`];
+        const value = new Map<string, CodecValue>(
+          [
+            ["number", i],
+            ["text", `value_${i}`],
+            ["array", Array(10).fill(i)],
+            [
+              "nested",
+              new Map<string, CodecValue>([
+                ["a", i],
+                ["b", `nested_${i}`],
+                ["c", new Uint8Array([i % 256])],
+              ]),
+            ],
+          ],
+        );
+
+        currentRoot = dag.set(currentRoot, path, value);
+      }
+
+      // Verify all values can be retrieved correctly
+      for (let i = 0; i < iterations; i++) {
+        const path = [`level1_${i}`];
+        const retrieved = await dag.get(currentRoot, path);
+
+        const rvalue = new Map<string, CodecValue>(
+          [
+            ["number", i],
+            ["text", `value_${i}`],
+            ["array", Array(10).fill(i)],
+            [
+              "nested",
+              new Map<string, CodecValue>([
+                ["a", i],
+                ["b", `nested_${i}`],
+                ["c", new Uint8Array([i % 256])],
+              ]),
+            ],
+          ],
+        );
+
+        assertEquals(retrieved, rvalue);
+      }
+    });
+
+    await t.step("should handle parallel sets and gets", async () => {
+      const iterations = 100;
+      let currentRoot: RootValue = new Map();
+
+      // Parallel sets
+      Array(iterations).fill(0).map((_, i) => {
+        const path = [`parallel_${i}`];
+        const value = `parallel_value_${i}`;
+        currentRoot = dag.set(currentRoot, path, value);
+      });
+
+      // Parallel gets
+      const getPromises = Array(iterations).fill(0).map(async (_, i) => {
+        const path = [`parallel_${i}`];
+        const value = await dag.get(currentRoot, path);
+        assertEquals(value, `parallel_value_${i}`);
+      });
+
+      await Promise.all(getPromises);
+    });
+
+    await t.step("should handle large values", async () => {
+      let currentRoot: CodecValue = new Map();
+      const largeArray = Array(10000).fill(0).map((
+        _,
+        i,
+      ) => (new Map<string, CodecValue>([
+        ["index", i],
+        ["data", `data_${i}`],
+        ["buffer", new Uint8Array([i % 256])],
+      ])));
+
+      currentRoot = await dag.set(currentRoot, ["largeArray"], largeArray);
+      const retrieved = await dag.get(currentRoot, ["largeArray"]);
+      assertEquals(retrieved, largeArray);
+    });
+  },
+);
