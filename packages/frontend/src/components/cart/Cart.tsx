@@ -30,7 +30,8 @@ export default function Cart({
   closeBasket?: () => void;
   showActionButtons?: boolean;
 }) {
-  const { currentOrder, cancelOrder, createOrder } = useCurrentOrder();
+  const { currentOrder, cancelOrder, createOrder, cancelAndRecreateOrder } =
+    useCurrentOrder();
   const { baseToken } = useBaseToken();
   const { stateManager } = useStateManager();
 
@@ -130,7 +131,7 @@ export default function Cart({
       return;
     }
     try {
-      if (currentOrder?.State === OrderState.Committed) {
+      if (currentOrder?.State !== OrderState.Open) {
         await cancelOrder();
         await createOrder();
         return;
@@ -155,6 +156,10 @@ export default function Cart({
       return;
     }
     try {
+      let orderId = currentOrder!.ID;
+      if (currentOrder!.State !== OrderState.Open) {
+        orderId = await cancelAndRecreateOrder();
+      }
       const updatedQtyMap = new Map(selectedQty);
       updatedQtyMap.set(id, selectedQty.get(id)! + (add ? 1 : -1));
       setSelectedQty(updatedQtyMap);
@@ -163,11 +168,11 @@ export default function Cart({
           return new OrderedItem(key, updatedQtyMap.get(key)!).asCBORMap();
         }) as CodecValue;
       await stateManager.set(
-        ["Orders", currentOrder!.ID, "Items"],
+        ["Orders", orderId, "Items"],
         updatedOrderItems,
       );
     } catch (error) {
-      logerr(`Error:addQuantity ${error}`);
+      logerr(`Error:adjustItemQuantity ${error}`);
     }
   }
 
@@ -177,6 +182,10 @@ export default function Cart({
       return;
     }
     try {
+      let orderId = currentOrder!.ID;
+      if (currentOrder!.State !== OrderState.Open) {
+        orderId = await cancelAndRecreateOrder();
+      }
       const updatedQtyMap = new Map(selectedQty);
       updatedQtyMap.delete(id);
       setSelectedQty(updatedQtyMap);
@@ -190,7 +199,7 @@ export default function Cart({
           return new OrderedItem(key, selectedQty.get(key)!).asCBORMap();
         });
       await stateManager.set(
-        ["Orders", currentOrder!.ID, "Items"],
+        ["Orders", orderId, "Items"],
         updatedOrderItems,
       );
     } catch (error) {
