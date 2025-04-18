@@ -83,7 +83,10 @@ export default function ChoosePayment({
     if (!stateManager) return;
     stateManager.get(["Manifest"])
       .then((res: CodecValue | undefined) => {
-        if (!res) return;
+        if (!res) {
+          errlog("No manifest found.");
+          return;
+        }
         const m = Manifest.fromCBOR(res);
         getDisplayedChains(m).then((arr) => {
           setManifest(m);

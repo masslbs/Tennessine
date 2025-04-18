@@ -95,6 +95,9 @@ export default function ManifestForm(
     const warning = checkRequiredFields();
     if (warning) {
       setValidationError(warning);
+      // Deno doesn't support globalThis.scrollTo so we have to do this.
+      const element = document.getElementById("top");
+      element?.scrollIntoView();
       throw Error(`Check all required fields: ${warning}`);
     } else {
       setValidationError(null);

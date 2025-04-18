@@ -95,8 +95,9 @@ export default function ShippingDetails({
     try {
       const warning = checkRequiredFields();
       if (warning) {
-        globalThis.scrollTo({ top: 0, behavior: "smooth" });
-
+        // Deno doesn't support globalThis.scrollTo
+        const element = document.getElementById("top");
+        element?.scrollIntoView();
         return setValidationError(warning);
       }
       if (!currentOrder) {

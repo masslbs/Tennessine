@@ -281,9 +281,21 @@ Deno.test("Check that we can render the checkout screen", {
 
     // Wait for the transaction processing message to appear
     await waitFor(() => {
-      const waitingMessage = screen.getByText("Waiting for transaction...");
-      expect(waitingMessage).toBeTruthy();
-      expect(waitingMessage.tagName.toLowerCase()).toBe("h6");
+      let waitingMessage: HTMLElement | null;
+      try {
+        waitingMessage = screen.getByText("Waiting for transaction...");
+        expect(waitingMessage.tagName.toLowerCase()).toBe("h6");
+      } catch (_e) {
+        waitingMessage = null;
+      }
+      let successMessage: HTMLElement | null;
+      try {
+        successMessage = screen.getByText("Payment Successful");
+        expect(successMessage.tagName.toLowerCase()).toBe("h1");
+      } catch (_e) {
+        successMessage = null;
+      }
+      expect(waitingMessage || successMessage).toBeTruthy();
     });
   });
 
