@@ -115,8 +115,8 @@ function Navigation() {
         debug("orderId not found");
         throw new Error("No order found");
       }
-      // Commit the order if it is not already committed
-      if (currentOrder!.State !== OrderState.Committed) {
+      // Commit the order if it is an open order (not committed)
+      if (currentOrder!.State === OrderState.Open) {
         await stateManager.set(
           ["Orders", currentOrder!.ID, "State"],
           OrderState.Committed,
