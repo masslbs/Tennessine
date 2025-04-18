@@ -141,7 +141,9 @@ export default function ShopSettings() {
         });
       }
       setSuccess("Changes saved.");
-      globalThis.scrollTo({ top: 0, behavior: "smooth" });
+      // Deno doesn't support globalThis.scrollTo
+      const element = document.getElementById("top");
+      element?.scrollIntoView();
     } catch (error: unknown) {
       errlog("Failed: updateShopManifest", error);
       setError("Error updating shop manifest.");

@@ -5,7 +5,7 @@ import Footer from "../components/Footer.tsx";
 export const Route = createRootRoute({
   component: () => {
     return (
-      <main className="h-screen flex flex-col">
+      <main className="h-screen flex flex-col" id="top">
         <Navigation />
         <Outlet />
         <Footer />

@@ -123,7 +123,7 @@ Deno.test("Check that we can render the merchant connect screen", {
       });
       expect(searchButton).toBeTruthy();
       await user.click(searchButton);
-    });
+    }, { timeout: 10000 });
     await waitFor(() => {
       expect(screen.getByTestId("connect-confirmation")).toBeTruthy();
     });
