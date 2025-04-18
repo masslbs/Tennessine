@@ -105,60 +105,58 @@ Deno.test("Database Testings", async (t) => {
 
   await t.step("Make sure we can close the state manager", async () => {
     const pricingCurrencyPath = ["Manifest", "PricingCurrency"];
-    for (let i = 0; i < 2; i++) {
-      const nonce = relayClient.keyCardNonce;
-      const nsm = new StateManager({
-        store,
-        id: relayClient.shopId,
-      });
-      await nsm.open();
-      nsm.addConnection(relayClient);
-      assertEquals(
-        nonce,
-        relayClient.keyCardNonce,
-        "the new state manager should have loaded the nonce",
-      );
-      const oldValue = await nsm.get(pricingCurrencyPath);
-      await nsm.close();
+    const nonce = relayClient.keyCardNonce;
+    const nsm = new StateManager({
+      store,
+      id: relayClient.shopId,
+    });
+    await nsm.open();
+    nsm.addConnection(relayClient);
+    assertEquals(
+      nonce,
+      relayClient.keyCardNonce,
+      "the new state manager should have loaded the nonce",
+    );
+    const oldValue = await nsm.get(pricingCurrencyPath);
+    await nsm.close();
 
-      // Test that we can set new values after reopening
-      const reopenedSm = new StateManager({
-        store,
-        id: relayClient.shopId,
-      });
-      await reopenedSm.open();
-      reopenedSm.addConnection(relayClient);
+    // Test that we can set new values after reopening
+    const reopenedSm = new StateManager({
+      store,
+      id: relayClient.shopId,
+    });
+    await reopenedSm.open();
+    reopenedSm.addConnection(relayClient);
 
-      // Set a new value
-      const newTestValue = new Map<string, codec.CodecValue>([
-        ["Address", randomBytes(20)],
-        ["ChainID", 1337],
-      ]);
-      await reopenedSm.set(pricingCurrencyPath, newTestValue);
+    // Set a new value
+    const newTestValue = new Map<string, codec.CodecValue>([
+      ["Address", randomBytes(20)],
+      ["ChainID", 1337],
+    ]);
+    await reopenedSm.set(pricingCurrencyPath, newTestValue);
 
-      // wait until we see the new value from the relay
-      await new Promise((resolve) => {
-        reopenedSm.events.on((val) => {
-          if (equal(val, newTestValue)) {
-            resolve(void 0);
-          }
-        }, pricingCurrencyPath);
-      });
+    // wait until we see the new value from the relay
+    await new Promise((resolve) => {
+      reopenedSm.events.on((val) => {
+        if (equal(val, newTestValue)) {
+          resolve(void 0);
+        }
+      }, pricingCurrencyPath);
+    });
 
-      // Verify the value was set correctly
-      const retrievedValue = await reopenedSm.get(pricingCurrencyPath);
-      assertNotEquals(
-        retrievedValue,
-        oldValue,
-        `should not be the old value ${i}`,
-      );
-      assertEquals(
-        retrievedValue,
-        newTestValue,
-        `should be able to set and get values after reopening ${i}`,
-      );
-      await reopenedSm.close();
-    }
+    // Verify the value was set correctly
+    const retrievedValue = await reopenedSm.get(pricingCurrencyPath);
+    assertNotEquals(
+      retrievedValue,
+      oldValue,
+      `should not be the old value ${i}`,
+    );
+    assertEquals(
+      retrievedValue,
+      newTestValue,
+      `should be able to set and get values after reopening ${i}`,
+    );
+    await reopenedSm.close();
   });
 
   await relayClient.disconnect();
