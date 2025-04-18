@@ -116,6 +116,16 @@ export default function ChoosePayment({
     };
   }, [stateManager]);
 
+  useEffect(() => {
+    // If there is only one currency option, automatically select it.
+    if (
+      displayedChains?.length === 1 && !paymentArgs && !paymentCurrencyLoading
+    ) {
+      debug(`Getting payment args for ${displayedChains[0].label}`);
+      onSelectPaymentCurrency(displayedChains[0]);
+    }
+  }, [displayedChains]);
+
   async function getPaymentArgs() {
     if (!stateManager) {
       warn("stateManager is undefined");
@@ -332,7 +342,7 @@ export default function ChoosePayment({
   } else if (connectWalletOpen) {
     return (
       <Pay
-        paymentArgs={paymentArgs}
+        paymentArgs={paymentArgs!}
         paymentCurrencyLoading={paymentCurrencyLoading}
         goBack={() => setConnectWalletOpen(false)}
       />
@@ -357,14 +367,21 @@ export default function ChoosePayment({
         <TimerToast />
         <section className="mt-2 flex flex-col gap-4 bg-white rounded-lg p-5">
           <div data-testid="payment-currency">
-            {displayedChains && (
-              <Dropdown
-                label="Payment currency and chain"
-                options={displayedChains}
-                callback={onSelectPaymentCurrency}
-                testId="chains-dropdown-select"
-              />
-            )}
+            {displayedChains?.length === 1
+              ? (
+                <div>
+                  <h3>Payment currency and chain</h3>
+                  <p>{displayedChains[0].label}</p>
+                </div>
+              )
+              : (
+                <Dropdown
+                  label="Payment currency and chain"
+                  options={displayedChains}
+                  callback={onSelectPaymentCurrency}
+                  testId="chains-dropdown-select"
+                />
+              )}
           </div>
           <div className={displayedAmount ? "" : "hidden"}>
             <p>Total Price</p>
