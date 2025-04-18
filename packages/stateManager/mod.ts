@@ -90,22 +90,17 @@ export default class StateManager {
     const subscriptionTree = state.subscriptionTrees.get(remoteId) ?? new Map();
     return new WritableStream<PushedPatchSet>({
       write: async (patchSet) => {
-        // validate the Operation's schema
-        const _validityRange = await this.graph.get(state.root, [
-          "Account",
-          patchSet.signer,
-        ]) as Map<string, string>;
+        // TODO: validate the Operation's schema
+        // const _validityRange = await this.graph.get(state.root, [
+        //   "Account",
+        //   patchSet.signer,
+        // ]) as Map<string, string>;
 
         // TODO: Validate keycard for a given time range
         //   throw new Error("Invalid keycard");
         for (const patch of patchSet.patches) {
           let operation;
           // TODO validate the Operation's value if any
-          // const OpValschema = getSubSchema(this.params.schema, patch.Path);
-          // v.parse(OpValschema, value);
-          //
-          // apply the operation
-          //
           // console.log("Applying patch:", patch);
           if (patch.Op === "add") {
             // const addKey = patch.Path[patch.Path.length - 1];
