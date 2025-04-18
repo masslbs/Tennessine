@@ -597,11 +597,11 @@
         "systems": "systems_4"
       },
       "locked": {
-        "lastModified": 1744807567,
-        "narHash": "sha256-hN43K6uEh400M7Qo3QKE1yCnBu/CBaQJ7IR4lrHVMJI=",
+        "lastModified": 1744883967,
+        "narHash": "sha256-oaGwpAkkDEre+uyREC6A4TWGd7TxPPQA+PHHpW+kLpQ=",
         "owner": "masslbs",
         "repo": "relay",
-        "rev": "a53760b7785c4474f6b779c5ce5db1280d10b532",
+        "rev": "8755971f27f2def781fff630903b2e6de17600c7",
         "type": "github"
       },
       "original": {
