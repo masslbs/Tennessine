@@ -148,18 +148,6 @@ export default function Pay({
           >
             {loading ? <h6>Waiting for transaction...</h6> : <h6>Pay</h6>}
           </Button>
-          {
-            /* {txHash && (
-            <a
-              data-testid="tx-hash-link"
-              href={`${
-                paymentPublicClient!.chain.blockExplorers?.default?.url
-              }/tx/${txHash}`}
-            >
-              View TX
-            </a>
-          )} */
-          }
         </section>
       </section>
     </main>
