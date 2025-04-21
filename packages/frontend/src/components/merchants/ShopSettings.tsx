@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { ChangeEvent, useEffect, useState } from "react";
+import { toHex } from "viem";
 import { useWalletClient } from "wagmi";
 import { equal } from "@std/assert";
 
@@ -30,6 +31,7 @@ import { useStateManager } from "../../hooks/useStateManager.ts";
 import { useAllCurrencyOptions } from "../../hooks/useAllCurrencyOptions.ts";
 
 const namespace = "frontend:StoreSettings";
+const debug = logger(namespace);
 const errlog = logger(namespace, "error");
 
 export default function ShopSettings() {
@@ -55,7 +57,6 @@ export default function ShopSettings() {
   const [success, setSuccess] = useState<string | null>(null);
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const currencyOptions = useAllCurrencyOptions();
-
   useEffect(() => {
     if (!stateManager) return;
     function onUpdateEvent(res: CodecValue | undefined) {
@@ -73,6 +74,14 @@ export default function ShopSettings() {
         setManifest(m);
         setAcceptedCurrencies(m.AcceptedCurrencies);
         setPricingCurrency(m.PricingCurrency);
+
+        const p = m.Payees.get(m.PricingCurrency.ChainID);
+        if (p) {
+          const payee = p.keys().next().value;
+          if (payee instanceof Uint8Array) {
+            debug(`Payee Address: ${toHex(payee)}`);
+          }
+        }
       });
 
     stateManager.events.on(onUpdateEvent, ["Manifest"]);

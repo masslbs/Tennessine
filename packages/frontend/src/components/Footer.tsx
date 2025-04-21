@@ -1,8 +1,8 @@
 const Footer = () => {
   return (
-    <footer className="bg-gray-100 mt-auto py-4 md:flex justify-center">
-      <div className="container px-2 flex justify-center md:mx-0">
-        <div className="flex justify-between items-center md:w-[800px]">
+    <footer className="mt-auto md:flex justify-center">
+      <div className="mt-3 bg-white p-3 flex justify-center mx-0 rounded-md mx-2 md:mx-0 md:w-full">
+        <div className="flex justify-between items-center w-full md:w-[800px]">
           <img
             src="/icons/massmarket-logo.svg"
             alt="logo"
@@ -10,10 +10,10 @@ const Footer = () => {
           />
           <div>
             <nav className="space-x-4 flex">
-              <a href="#" className="text-xs text-black">
+              <a href="#" className="text-xs" style={{ color: "black" }}>
                 Privacy Policy
               </a>
-              <a href="#" className="text-xs text-black">
+              <a href="#" className="text-xs" style={{ color: "black" }}>
                 Terms & Conditions
               </a>
             </nav>

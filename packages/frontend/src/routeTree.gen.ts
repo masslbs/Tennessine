@@ -16,6 +16,7 @@ import { Route as rootRoute } from './routes/__root.tsx'
 
 // Create Virtual Routes
 
+const ShareLazyImport = createFileRoute('/share')()
 const SettingsLazyImport = createFileRoute('/settings')()
 const OrdersLazyImport = createFileRoute('/orders')()
 const OrderDetailsLazyImport = createFileRoute('/order-details')()
@@ -30,6 +31,12 @@ const CheckoutLazyImport = createFileRoute('/checkout')()
 const IndexLazyImport = createFileRoute('/')()
 
 // Create/Update Routes
+
+const ShareLazyRoute = ShareLazyImport.update({
+  id: '/share',
+  path: '/share',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/share.lazy.tsx').then((d) => d.Route))
 
 const SettingsLazyRoute = SettingsLazyImport.update({
   id: '/settings',
@@ -203,6 +210,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsLazyImport
       parentRoute: typeof rootRoute
     }
+    '/share': {
+      id: '/share'
+      path: '/share'
+      fullPath: '/share'
+      preLoaderRoute: typeof ShareLazyImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -221,6 +235,7 @@ export interface FileRoutesByFullPath {
   '/order-details': typeof OrderDetailsLazyRoute
   '/orders': typeof OrdersLazyRoute
   '/settings': typeof SettingsLazyRoute
+  '/share': typeof ShareLazyRoute
 }
 
 export interface FileRoutesByTo {
@@ -236,6 +251,7 @@ export interface FileRoutesByTo {
   '/order-details': typeof OrderDetailsLazyRoute
   '/orders': typeof OrdersLazyRoute
   '/settings': typeof SettingsLazyRoute
+  '/share': typeof ShareLazyRoute
 }
 
 export interface FileRoutesById {
@@ -252,6 +268,7 @@ export interface FileRoutesById {
   '/order-details': typeof OrderDetailsLazyRoute
   '/orders': typeof OrdersLazyRoute
   '/settings': typeof SettingsLazyRoute
+  '/share': typeof ShareLazyRoute
 }
 
 export interface FileRouteTypes {
@@ -269,6 +286,7 @@ export interface FileRouteTypes {
     | '/order-details'
     | '/orders'
     | '/settings'
+    | '/share'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -283,6 +301,7 @@ export interface FileRouteTypes {
     | '/order-details'
     | '/orders'
     | '/settings'
+    | '/share'
   id:
     | '__root__'
     | '/'
@@ -297,6 +316,7 @@ export interface FileRouteTypes {
     | '/order-details'
     | '/orders'
     | '/settings'
+    | '/share'
   fileRoutesById: FileRoutesById
 }
 
@@ -313,6 +333,7 @@ export interface RootRouteChildren {
   OrderDetailsLazyRoute: typeof OrderDetailsLazyRoute
   OrdersLazyRoute: typeof OrdersLazyRoute
   SettingsLazyRoute: typeof SettingsLazyRoute
+  ShareLazyRoute: typeof ShareLazyRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -328,6 +349,7 @@ const rootRouteChildren: RootRouteChildren = {
   OrderDetailsLazyRoute: OrderDetailsLazyRoute,
   OrdersLazyRoute: OrdersLazyRoute,
   SettingsLazyRoute: SettingsLazyRoute,
+  ShareLazyRoute: ShareLazyRoute,
 }
 
 export const routeTree = rootRoute
@@ -351,7 +373,8 @@ export const routeTree = rootRoute
         "/merchant-dashboard",
         "/order-details",
         "/orders",
-        "/settings"
+        "/settings",
+        "/share"
       ]
     },
     "/": {
@@ -389,6 +412,9 @@ export const routeTree = rootRoute
     },
     "/settings": {
       "filePath": "settings.lazy.tsx"
+    },
+    "/share": {
+      "filePath": "share.lazy.tsx"
     }
   }
 }

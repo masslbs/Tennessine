@@ -46,10 +46,12 @@ export default function ChoosePayment({
   setStep,
   displayedAmount,
   setDisplayedAmount,
+  setTimerRunning,
 }: {
   setStep: (step: CheckoutStep) => void;
   displayedAmount: string | null;
   setDisplayedAmount: Dispatch<SetStateAction<string | null>>;
+  setTimerRunning: (running: boolean) => void;
 }) {
   const { shopId } = useShopId();
   const { currentOrder } = useCurrentOrder();
@@ -348,6 +350,7 @@ export default function ChoosePayment({
       <Pay
         paymentArgs={paymentArgs!}
         paymentCurrencyLoading={paymentCurrencyLoading}
+        setTimerRunning={setTimerRunning}
         goBack={() => setConnectWalletOpen(false)}
       />
     );

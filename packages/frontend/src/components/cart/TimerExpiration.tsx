@@ -18,7 +18,17 @@ export default function TimerExpiration() {
       <h1>Timer expired</h1>
       <p className="text-lg">Sorry your timer has expired.</p>
       <Button>
-        <Link to="/listings">Return to shop</Link>
+        <Link
+          to="/listings"
+          search={(prev: Record<string, string>) => ({
+            shopId: prev.shopId,
+          })}
+          style={{
+            color: "white",
+          }}
+        >
+          Return to shop
+        </Link>
       </Button>
     </section>
   );
