@@ -76,8 +76,12 @@ export default function ShopSettings() {
         setPricingCurrency(m.PricingCurrency);
 
         const p = m.Payees.get(m.PricingCurrency.ChainID);
-        const payee = p.keys().next().value;
-        debug(`Payee Address: ${toHex(payee)}`);
+        if (p) {
+          const payee = p.keys().next().value;
+          if (payee instanceof Uint8Array) {
+            debug(`Payee Address: ${toHex(payee)}`);
+          }
+        }
       });
 
     stateManager.events.on(onUpdateEvent, ["Manifest"]);
