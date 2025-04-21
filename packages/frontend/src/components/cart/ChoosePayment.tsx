@@ -413,29 +413,19 @@ export default function ChoosePayment({
             data-testid="payment-methods"
             className="flex flex-col md:flex-row gap-4 justify-around"
           >
-            <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg relative">
-              <div
-                className={paymentArgs
-                  ? "none"
-                  : `absolute inset-0 bg-white opacity-50 rounded-lg z-10`}
-              >
-              </div>
+            <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg">
               <ConnectWalletButton
                 onClick={payWithWallet}
                 disabled={!paymentArgs}
               />
             </div>
-            <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg relative">
-              <div
-                className={paymentArgs
-                  ? ""
-                  : `absolute inset-0 bg-white opacity-50 rounded-lg z-10`}
-              >
-              </div>
+            <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg">
               <button
                 type="button"
                 data-testid="pay-by-qr"
-                className="rounded-lg flex flex-col items-center gap-2"
+                className={`rounded-lg flex flex-col items-center gap-2 ${
+                  !paymentArgs ? "opacity-50" : ""
+                }`}
                 style={{ backgroundColor: "transparent", padding: 0 }}
                 onClick={payByQr}
                 disabled={!paymentArgs}
