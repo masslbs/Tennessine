@@ -406,7 +406,7 @@ export default function () {
 
   return (
     <main
-      className="p-4 pt-under-nav flex justify-center"
+      className="p-4 flex justify-center"
       data-testid="create-shop-screen"
     >
       {renderContent()}

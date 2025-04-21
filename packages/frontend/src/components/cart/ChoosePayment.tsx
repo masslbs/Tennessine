@@ -34,6 +34,7 @@ import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { CheckoutStep, CurrencyChainOption } from "../../types.ts";
 import { env, getTokenInformation } from "../../utils/mod.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
+import LoadingSpinner from "../common/LoadingSpinner.tsx";
 
 const namespace = "frontend:ChoosePayment";
 const debug = logger(namespace);
@@ -401,9 +402,12 @@ export default function ChoosePayment({
           </div>
           <div
             data-testid="payment-details-loading"
-            className={paymentCurrencyLoading ? "" : "hidden"}
+            className={paymentCurrencyLoading
+              ? "flex flex-col items-center gap-2"
+              : "hidden"}
           >
             <p>Getting payment details...</p>
+            <LoadingSpinner />
           </div>
           <section
             data-testid="payment-methods"

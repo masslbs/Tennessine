@@ -192,7 +192,7 @@ export default function ShopSettings() {
 
   return (
     <main
-      className="pt-under-nav px-4 mt-3 md:flex justify-center"
+      className="px-4 mt-3 md:flex justify-center"
       data-testid="shop-settings-page"
     >
       <section className="md:w-[560px]">

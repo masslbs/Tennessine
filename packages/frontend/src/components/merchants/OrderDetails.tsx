@@ -204,7 +204,7 @@ export default function OrderDetails() {
   if (!order) return <p data-testid="order-details-page">No order found</p>;
   return (
     <main
-      className="p-4 pt-under-nav"
+      className="p-4"
       data-testid="order-details-page"
     >
       <BackButton href="/orders" />

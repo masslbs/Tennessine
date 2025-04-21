@@ -247,7 +247,7 @@ export default function Cart({
               className="w-32 h-28 object-cover object-center rounded-l-lg"
             />
           </div>
-          <div className="bg-background-gray w-full rounded-lg px-5 py-4">
+          <div className="bg-background-gray w-full rounded-lg px-3 py-4">
             <div className="flex">
               <h3 data-testid="title" className="leading-4">
                 {item.Metadata.Title}
