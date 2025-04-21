@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { toHex } from "viem";
 import { assert } from "@std/assert";
+import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 
 import { logger } from "@massmarket/utils";
 import { Order } from "@massmarket/schema";
@@ -29,6 +30,7 @@ const logerr = logger(namespace, "error");
 export default function CheckoutFlow() {
   const { stateManager } = useStateManager();
   const { currentOrder, cancelAndRecreateOrder } = useCurrentOrder();
+  const addRecentTransaction = useAddRecentTransaction();
 
   const search = useSearch({ strict: false });
   const navigate = useNavigate();
@@ -82,11 +84,15 @@ export default function CheckoutFlow() {
             tx ? `Tx: ${toHex(tx)}` : bh ? `Block: ${toHex(bh)}` : "unreachable"
           }`,
         );
+        addRecentTransaction({
+          hash: tx ? toHex(tx) : toHex(bh),
+          description: "Order Payment",
+          // confirmations: 3,
+        });
         setStep(CheckoutStep.confirmation);
         setTimerRunning(false);
       }
     }
-
     stateManager.events.on(txHashDetected, ["Orders", currentOrder!.ID]);
     return () => {
       stateManager.events.off(
@@ -94,7 +100,7 @@ export default function CheckoutFlow() {
         ["Orders", currentOrder!.ID],
       );
     };
-  }, [currentOrder != null]);
+  }, [currentOrder]);
 
   function setStep(step: CheckoutStep) {
     navigate({

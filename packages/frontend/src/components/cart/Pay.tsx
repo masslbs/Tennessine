@@ -1,19 +1,15 @@
-import { useEffect, useState } from "react";
-import { ConnectButton, useAddRecentTransaction } from "@rainbow-me/rainbowkit";
+import { useState } from "react";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount, useConfig, usePublicClient, useWalletClient } from "wagmi";
 import * as chains from "wagmi/chains";
 import { simulateContract } from "@wagmi/core";
-import { ContractFunctionArgs, toHex, zeroAddress } from "viem";
+import { ContractFunctionArgs, zeroAddress } from "viem";
 
 import { logger } from "@massmarket/utils";
 import { abi, approveERC20, getAllowance, pay } from "@massmarket/contracts";
-import { Order } from "@massmarket/schema";
-import { CodecValue } from "@massmarket/utils/codec";
 
 import Button from "../common/Button.tsx";
 import BackButton from "../common/BackButton.tsx";
-import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
-import { useStateManager } from "../../hooks/useStateManager.ts";
 import { env } from "../../utils/env.ts";
 import { isTesting } from "../../utils/env.ts";
 import ErrorMessage from "../common/ErrorMessage.tsx";
@@ -44,11 +40,8 @@ export default function Pay({
   paymentCurrencyLoading: boolean;
   goBack: () => void;
 }) {
-  const addRecentTransaction = useAddRecentTransaction();
   const { connector } = useAccount();
   const { data: wallet } = useWalletClient();
-  const { currentOrder } = useCurrentOrder();
-  const { stateManager } = useStateManager();
   const paymentChainId = Number(paymentArgs?.[0]?.chainId);
   // TODO: might want to do this in a hook
   const shopChainId = chains[configuredChainName as keyof typeof chains]?.id;
@@ -57,39 +50,7 @@ export default function Pay({
   const config = useConfig();
 
   const [loading, setLoading] = useState(false);
-  const [txHash, setTxHash] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
-
-  useEffect(() => {
-    if (!currentOrder) return;
-    if (!stateManager) return;
-    function txHashDetected(o: CodecValue) {
-      const order = Order.fromCBOR(o);
-      if (order?.TxDetails) {
-        const hash = order.TxDetails?.TxHash
-          ? toHex(order.TxDetails?.TxHash)
-          : toHex(order.TxDetails?.BlockHash);
-        debug(`txHashDetected: ${hash}`);
-        setTxHash(hash);
-        // TODO: are we sure this works for block hashes?
-        addRecentTransaction({
-          hash: hash,
-          description: "Order Payment",
-          // confirmations: 3,
-        });
-      }
-      // TODO: shouldn't this be inside the if?
-      setLoading(false);
-    }
-    stateManager.events.on(txHashDetected, ["Orders", currentOrder.ID]);
-
-    return () => {
-      stateManager.events.off(
-        txHashDetected,
-        ["Orders", currentOrder.ID],
-      );
-    };
-  }, [currentOrder !== null]);
 
   async function sendPayment() {
     const isNative = paymentArgs[0].currency === zeroAddress;
@@ -187,7 +148,8 @@ export default function Pay({
           >
             {loading ? <h6>Waiting for transaction...</h6> : <h6>Pay</h6>}
           </Button>
-          {txHash && (
+          {
+            /* {txHash && (
             <a
               data-testid="tx-hash-link"
               href={`${
@@ -196,7 +158,8 @@ export default function Pay({
             >
               View TX
             </a>
-          )}
+          )} */
+          }
         </section>
       </section>
     </main>

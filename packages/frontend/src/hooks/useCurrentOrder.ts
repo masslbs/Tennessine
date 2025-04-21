@@ -99,6 +99,7 @@ export function useCurrentOrder() {
   }
 
   async function orderFetcher(): Promise<Order | undefined> {
+    //TODO: We need a better way of handling current order.
     if (!stateManager) {
       warn("stateManager is undefined");
       return undefined;
@@ -107,6 +108,8 @@ export function useCurrentOrder() {
     const allOrders = await stateManager!.get(["Orders"]);
     const openOrders: Order[] = [];
     const committedOrders: Order[] = [];
+    const unpaidOrders: Order[] = [];
+
     if (!allOrders || !(allOrders instanceof Map)) {
       return undefined;
     }
@@ -117,6 +120,11 @@ export function useCurrentOrder() {
         openOrders.push(order);
       } else if (order.State === OrderState.Committed) {
         committedOrders.push(order);
+      } else if (
+        order.State === OrderState.Unpaid ||
+        order.State === OrderState.PaymentChosen
+      ) {
+        unpaidOrders.push(order);
       }
     }
 
@@ -138,13 +146,17 @@ export function useCurrentOrder() {
       return committedOrders[0];
     }
 
-    if (committedOrders.length > 1 && keycard?.role !== "merchant") {
+    if (committedOrders.length > 1 && keycard?.role !== KeycardRole.MERCHANT) {
       //Since merchants are subscribed to all orders, we don't need to worry about multiple committed orders.
       errlog("Multiple committed orders found");
     } else {
       debug("No order yet");
     }
 
+    // Look for any unpaid orders (aka orders with InvoiceAddress or/and ChosenCurrency)
+    if (unpaidOrders.length > 0) {
+      return unpaidOrders[0];
+    }
     return undefined;
   }
 
