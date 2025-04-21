@@ -154,9 +154,9 @@ export default function Pay({
         throw new Error("pay: transaction failed");
       }
     } catch (error: unknown) {
-      // @ts-ignore
+      // @ts-ignore TODO: fix this
       if (error.shortMessage) {
-        // @ts-ignore
+        // @ts-ignore TODO: fix this
         setErrorMsg(error.shortMessage);
       }
       errlog("Error sending payment", error);
