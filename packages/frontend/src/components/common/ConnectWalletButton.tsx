@@ -7,7 +7,9 @@ export default function ConnectWalletButton(
   return (
     <button
       data-testid="rainbowkit-connect-wallet"
-      className="rounded-lg flex flex-col items-center gap-2"
+      className={`rounded-lg flex flex-col items-center gap-2 ${
+        disabled ? "opacity-50" : ""
+      }`}
       style={{ backgroundColor: "transparent", padding: 0 }}
       onClick={onClick ?? openConnectModal}
       type="button"
