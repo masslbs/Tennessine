@@ -99,6 +99,8 @@ export default function ShippingDetails({
       warn("stateManager is undefined");
       return;
     }
+    setErrorMsg(null);
+    setValidationError(null);
     try {
       const warning = checkRequiredFields();
       if (warning) {

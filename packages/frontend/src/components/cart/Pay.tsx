@@ -16,6 +16,7 @@ import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 import { env } from "../../utils/env.ts";
 import { isTesting } from "../../utils/env.ts";
+import ErrorMessage from "../common/ErrorMessage.tsx";
 
 const namespace = "frontend:Pay";
 const debug = logger(namespace);
@@ -57,6 +58,7 @@ export default function Pay({
 
   const [loading, setLoading] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<null | string>(null);
 
   useEffect(() => {
     if (!currentOrder) return;
@@ -92,6 +94,8 @@ export default function Pay({
   async function sendPayment() {
     const isNative = paymentArgs[0].currency === zeroAddress;
     try {
+      setLoading(true);
+
       if (!isNative) {
         debug("Checking ERC20 allowance");
         const allowance = await getAllowance(paymentPublicClient!, [
@@ -149,16 +153,29 @@ export default function Pay({
       if (receipt!.status !== "success") {
         throw new Error("pay: transaction failed");
       }
-      setLoading(true);
-    } catch (error) {
+    } catch (error: unknown) {
+      // @ts-ignore
+      if (error.shortMessage) {
+        // @ts-ignore
+        setErrorMsg(error.shortMessage);
+      }
       errlog("Error sending payment", error);
     }
   }
 
   return (
-    <section className="md:flex justify-center">
-      <section className="md:w-[560px]">
+    <main className="md:flex justify-center">
+      <section className="md:w-[800px]">
         <BackButton onClick={goBack} />
+        <div className="my-3">
+          <ErrorMessage
+            errorMessage={errorMsg}
+            onClose={() => {
+              setErrorMsg(null);
+            }}
+          />
+        </div>
+
         <section className="flex flex-col gap-4 bg-white p-5 rounded-lg mt-2">
           <h1>Connect your wallet</h1>
           <ConnectButton chainStatus="name" />
@@ -182,6 +199,6 @@ export default function Pay({
           )}
         </section>
       </section>
-    </section>
+    </main>
   );
 }
