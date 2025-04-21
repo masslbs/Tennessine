@@ -324,10 +324,12 @@ export default function Cart({
                   height={20}
                   className="w-5 h-5 max-h-5"
                 />
-                <p data-testid="price">
+                <p data-testid="price" className="text-sm">
                   {price}
                 </p>
-                <p data-testid="symbol">{baseToken?.symbol}</p>
+                <p data-testid="symbol" className="text-sm">
+                  {baseToken?.symbol}
+                </p>
               </div>
             </div>
           </div>
