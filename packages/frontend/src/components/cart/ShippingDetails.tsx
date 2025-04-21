@@ -25,11 +25,9 @@ const errlog = logger(namespace, "error");
 export default function ShippingDetails({
   setStep,
   startTimer,
-  countdown,
 }: {
   setStep: (step: CheckoutStep) => void;
   startTimer: () => void;
-  countdown: number;
 }) {
   const { currentOrder } = useCurrentOrder();
   const { stateManager } = useStateManager();
@@ -40,11 +38,8 @@ export default function ShippingDetails({
   const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (countdown === 900) {
-      // Start checkout timer as soon as user lands on this screen, which is immediately after items are committed.
-      startTimer();
-      console.log("Timer started.");
-    }
+    // Start checkout timer as soon as user lands on this screen, which is immediately after items are committed.
+    startTimer();
   }, []);
 
   useEffect(() => {

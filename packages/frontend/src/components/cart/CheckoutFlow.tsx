@@ -49,7 +49,8 @@ export default function CheckoutFlow() {
       intervalId = setInterval(() => {
         setCountdown((prev: number) => prev - 10);
       }, 10000);
-    } else if (countdown === 0) {
+    } else if (countdown === 0 && timerRunning) {
+      debug("Timer expired.");
       cancelAndRecreateOrder()
         .then()
         .catch((e) => {
@@ -107,7 +108,10 @@ export default function CheckoutFlow() {
   }
 
   function startTimer() {
-    setTimerRunning(true);
+    if (countdown === 900) {
+      setTimerRunning(true);
+      debug("Timer started.");
+    }
   }
 
   async function onCheckout() {
@@ -148,7 +152,6 @@ export default function CheckoutFlow() {
         <ShippingDetails
           setStep={setStep}
           startTimer={startTimer}
-          countdown={countdown}
         />
       );
     } else if (step === CheckoutStep.paymentDetails) {
@@ -157,6 +160,7 @@ export default function CheckoutFlow() {
           setStep={setStep}
           setDisplayedAmount={setDisplayedAmount}
           displayedAmount={displayedAmount}
+          setTimerRunning={setTimerRunning}
         />
       );
     } else if (step === CheckoutStep.expired) {
