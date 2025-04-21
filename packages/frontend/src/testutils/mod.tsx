@@ -10,7 +10,7 @@ import {
 import { createConfig, http, WagmiProvider } from "wagmi";
 import { connect } from "wagmi/actions";
 import { hardhat } from "wagmi/chains";
-import { mock } from "npm:wagmi/connectors";
+import { mock } from "wagmi/connectors";
 import { createTestClient, publicActions, walletActions } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";

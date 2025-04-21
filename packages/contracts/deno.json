@@ -7,8 +7,8 @@
     "build": "deno run --allow-run --allow-sys --allow-env --allow-read  --allow-write npm:@wagmi/cli generate"
   },
   "imports": {
-    "@std/expect": "jsr:@std/expect@^1.0.13",
-    "viem": "npm:viem@^2.23.6",
-    "wagmi": "npm:wagmi"
+    "@std/expect": "jsr:@std/expect@^1.0.15",
+    "viem": "npm:viem@^2.27.2",
+    "wagmi": "npm:wagmi@^2.14.16"
   }
 }

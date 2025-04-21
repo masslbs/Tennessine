@@ -284,14 +284,14 @@ Deno.test("Check that we can render the checkout screen", {
       let waitingMessage: HTMLElement | null;
       try {
         waitingMessage = screen.getByText("Waiting for transaction...");
-        expect(waitingMessage.tagName.toLowerCase()).toBe("h6");
+        expect(waitingMessage!.tagName.toLowerCase()).toBe("h6");
       } catch (_e) {
         waitingMessage = null;
       }
       let successMessage: HTMLElement | null;
       try {
         successMessage = screen.getByText("Payment Successful");
-        expect(successMessage.tagName.toLowerCase()).toBe("h1");
+        expect(successMessage!.tagName.toLowerCase()).toBe("h1");
       } catch (_e) {
         successMessage = null;
       }

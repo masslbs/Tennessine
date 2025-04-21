@@ -27,6 +27,6 @@
     "jsxImportSourceTypes": "@types/react"
   },
   "imports": {
-    "@std/expect": "jsr:@std/expect@^1.0.13"
+    "@std/expect": "jsr:@std/expect@^1.0.15"
   }
 }

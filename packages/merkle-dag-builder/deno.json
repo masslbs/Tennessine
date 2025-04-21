@@ -10,6 +10,6 @@
   "license": "MPL-2.0",
   "imports": {
     "@std/assert": "jsr:@std/assert@^1.0.12",
-    "browser-level": "npm:browser-level@^2.0.0"
+    "browser-level": "npm:browser-level@^3.0.0"
   }
 }
