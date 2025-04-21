@@ -239,7 +239,7 @@ export default function EditProduct() {
   }
   return (
     <main
-      className="pt-4 px-3 pt-under-nav md:flex justify-center"
+      className="pt-4 px-3 md:flex justify-center"
       data-testid="edit-listing-screen"
     >
       <section className="md:w-[560px]">

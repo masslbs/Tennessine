@@ -18,7 +18,7 @@ export default function BackButton({
         search={(prev: Record<string, string>) => ({
           shopId: prev.shopId,
         })}
-        className="flex gap-1 items-center p-0"
+        className="flex gap-1 items-center p-0 mt-3"
         style={{ color: "black" }}
       >
         <img
@@ -35,7 +35,7 @@ export default function BackButton({
     return (
       <button
         onClick={onClick}
-        className="flex items-center gap-1"
+        className="flex items-center gap-1 mt-3"
         style={{ backgroundColor: "transparent", padding: 0 }}
         type="button"
       >

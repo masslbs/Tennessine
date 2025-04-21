@@ -15,6 +15,7 @@ import ValidationWarning from "../common/ValidationWarning.tsx";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { CheckoutStep } from "../../types.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
+import { isValidEmail } from "../../utils/mod.ts";
 
 const namespace = "frontend:ShippingDetails";
 const debug = logger(namespace);
@@ -51,6 +52,10 @@ export default function ShippingDetails({
       setInvoiceAddress(currentOrder.InvoiceAddress);
   }, [currentOrder]);
 
+  function scroll() {
+    const element = document.getElementById("top");
+    element?.scrollIntoView();
+  }
   function checkRequiredFields() {
     let warning: null | string = null;
     if (!invoiceAddress.Name.length) {
@@ -63,8 +68,10 @@ export default function ShippingDetails({
       warning = "Must include postal code";
     } else if (!invoiceAddress.City.length) {
       warning = "Must include postal code";
-    } else if (!invoiceAddress.EmailAddress.length) {
-      warning = "Must include email";
+    } else if (invoiceAddress.EmailAddress) {
+      warning = isValidEmail(invoiceAddress.EmailAddress)
+        ? null
+        : "Invalid Email Address";
     }
     return warning;
   }
@@ -92,16 +99,19 @@ export default function ShippingDetails({
       warn("stateManager is undefined");
       return;
     }
+    setErrorMsg(null);
+    setValidationError(null);
     try {
       const warning = checkRequiredFields();
       if (warning) {
-        // Deno doesn't support globalThis.scrollTo
-        const element = document.getElementById("top");
-        element?.scrollIntoView();
+        scroll();
         return setValidationError(warning);
       }
       if (!currentOrder) {
         throw new Error("No committed order ID found");
+      }
+      if (!invoiceAddress.EmailAddress.length) {
+        invoiceAddress.EmailAddress = "example@email.com";
       }
       if (invoiceAddress !== currentOrder.InvoiceAddress) {
         await stateManager.set(
@@ -110,10 +120,12 @@ export default function ShippingDetails({
         );
         debug("Shipping details updated");
       }
+
       setStep(CheckoutStep.paymentDetails);
     } catch (error: unknown) {
       errlog("error updating shipping details", error);
       setErrorMsg("Error updating shipping details");
+      scroll();
     }
   }
 
@@ -197,13 +209,13 @@ export default function ShippingDetails({
               value={invoiceAddress.Country}
               onChange={(e) => handleFormChange("Country", e.target.value)}
             />
-            <h2 className="my-3">Contact detail</h2>
+            <h2 className="my-3">Contact details</h2>
             <p>
               Let the seller contact you if there is an issue with the order
               (Recommended).
             </p>
             <div className="mt-3 flex flex-col">
-              <label htmlFor="email">Email</label>
+              <label htmlFor="email">Email (optional)</label>
               <input
                 className="border-2 border-solid mt-1 p-3 rounded-2xl"
                 id="email"

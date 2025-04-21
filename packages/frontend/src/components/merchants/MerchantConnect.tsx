@@ -224,7 +224,7 @@ export default function MerchantConnect() {
   }
   return (
     <main
-      className="pt-under-nav p-4 mt-5 md:flex justify-center"
+      className="p-4 mt-5 md:flex justify-center"
       data-testid="merchant-connect-page"
     >
       {renderContent()}

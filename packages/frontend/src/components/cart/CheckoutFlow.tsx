@@ -137,8 +137,10 @@ export default function CheckoutFlow() {
   function renderContent() {
     if (step === CheckoutStep.cart) {
       return (
-        <section data-testid="cart">
-          <Cart onCheckout={onCheckout} />
+        <section data-testid="cart" className="mt-5 flex justify-center">
+          <section className="  md:w-[800px]">
+            <Cart onCheckout={onCheckout} />
+          </section>
         </section>
       );
     } else if (step === CheckoutStep.shippingDetails) {
@@ -173,7 +175,7 @@ export default function CheckoutFlow() {
   }
   return (
     <main
-      className="pt-under-nav p-4"
+      className="px-4"
       data-testid="checkout-screen"
     >
       <ErrorMessage
