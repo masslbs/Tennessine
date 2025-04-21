@@ -245,9 +245,9 @@ export default function Cart({
             itemId: item.ID,
           })}
           style={{ color: "black" }}
+          key={item.ID}
         >
           <div
-            key={item.ID}
             className="flex"
             data-testid="cart-item"
             onClick={() => {
