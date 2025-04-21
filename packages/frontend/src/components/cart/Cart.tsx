@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useState } from "react";
 import { formatUnits } from "viem";
+import { useNavigate } from "@tanstack/react-router";
 
 import { logger } from "@massmarket/utils";
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
@@ -34,6 +35,7 @@ export default function Cart({
     useCurrentOrder();
   const { baseToken } = useBaseToken();
   const { stateManager } = useStateManager();
+  const navigate = useNavigate();
 
   const [cartItemsMap, setCartMap] = useState<
     Map<ListingId, Listing>
@@ -219,7 +221,16 @@ export default function Cart({
     });
     return formatUnits(total, baseToken.decimals);
   }
-
+  function navigateToListing(itemId: number) {
+    navigate({
+      to: "/listing-detail",
+      search: (prev: Record<string, string>) => ({
+        shopId: prev.shopId,
+        itemId,
+      }),
+    });
+    closeBasket?.();
+  }
   const icon = baseToken?.symbol === "ETH"
     ? "/icons/eth-coin.svg"
     : "/icons/usdc-coin.png";
@@ -238,18 +249,30 @@ export default function Cart({
       }
       return (
         <div key={item.ID} className="flex" data-testid="cart-item">
-          <div className="flex justify-center h-28" data-testid={`product-img`}>
+          <div
+            className="flex justify-center h-28"
+            data-testid={`product-img`}
+          >
             <img
               src={image}
               width={127}
               height={112}
               alt="product-thumb"
               className="w-32 h-28 object-cover object-center rounded-l-lg"
+              onClick={() => {
+                navigateToListing(item.ID);
+              }}
             />
           </div>
           <div className="bg-background-gray w-full rounded-lg px-3 py-4">
             <div className="flex">
-              <h3 data-testid="title" className="leading-4">
+              <h3
+                data-testid="title"
+                className="leading-4"
+                onClick={() => {
+                  navigateToListing(item.ID);
+                }}
+              >
                 {item.Metadata.Title}
               </h3>
               <button
@@ -272,7 +295,7 @@ export default function Cart({
             <div className="flex gap-2 items-center mt-4 pt-3 border-t border-gray-300 w-full">
               <div
                 className={showActionButtons
-                  ? "flex gap-2 items-center"
+                  ? "flex gap-1 items-center"
                   : "hidden"}
               >
                 <button
@@ -316,7 +339,7 @@ export default function Cart({
               >
                 Qty: {selectedQty.get(item.ID)}
               </p>
-              <div className="flex gap-2 items-center ml-auto">
+              <div className="flex gap-1 items-center ml-auto">
                 <img
                   src={icon}
                   alt="coin"
