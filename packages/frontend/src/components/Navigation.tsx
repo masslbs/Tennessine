@@ -50,7 +50,7 @@ const customerMenu = [
   {
     title: "Share",
     img: "menu-share.svg",
-    href: `/contact`,
+    href: `/share`,
   },
 ];
 
@@ -255,7 +255,10 @@ function Navigation() {
               data-testid="cart-toggle"
               className={`relative ${isMerchantView ? "hidden" : ""}`}
               style={{ backgroundColor: "transparent", padding: 0 }}
-              onClick={() => setBasketOpen(!basketOpen)}
+              onClick={() => {
+                setBasketOpen(!basketOpen);
+                menuOpen && setMenuOpen(false);
+              }}
             >
               <img
                 src={basketOpen
