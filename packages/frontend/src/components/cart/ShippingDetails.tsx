@@ -105,6 +105,12 @@ export default function ShippingDetails({
       if (!currentOrder) {
         throw new Error("No committed order ID found");
       }
+      //TODO: Need country code UI for phone number
+      if (invoiceAddress.PhoneNumber) {
+        if (!invoiceAddress.PhoneNumber.startsWith("+")) {
+          invoiceAddress.PhoneNumber = "+" + invoiceAddress.PhoneNumber;
+        }
+      }
       if (!invoiceAddress.EmailAddress.length) {
         invoiceAddress.EmailAddress = "example@email.com";
       }
