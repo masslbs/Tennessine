@@ -246,10 +246,10 @@ export default function Cart({
           })}
           style={{ color: "black" }}
           key={item.ID}
+          data-testid="cart-item"
         >
           <div
             className="flex"
-            data-testid="cart-item"
             onClick={() => {
               closeBasket?.();
             }}
