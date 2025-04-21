@@ -15,6 +15,7 @@ import ValidationWarning from "../common/ValidationWarning.tsx";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { CheckoutStep } from "../../types.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
+import { isValidEmail } from "../../utils/mod.ts";
 
 const namespace = "frontend:ShippingDetails";
 const debug = logger(namespace);
@@ -51,6 +52,10 @@ export default function ShippingDetails({
       setInvoiceAddress(currentOrder.InvoiceAddress);
   }, [currentOrder]);
 
+  function scroll() {
+    const element = document.getElementById("top");
+    element?.scrollIntoView();
+  }
   function checkRequiredFields() {
     let warning: null | string = null;
     if (!invoiceAddress.Name.length) {
@@ -63,6 +68,10 @@ export default function ShippingDetails({
       warning = "Must include postal code";
     } else if (!invoiceAddress.City.length) {
       warning = "Must include postal code";
+    } else if (invoiceAddress.EmailAddress) {
+      warning = isValidEmail(invoiceAddress.EmailAddress)
+        ? null
+        : "Invalid Email Address";
     }
     return warning;
   }
@@ -93,9 +102,7 @@ export default function ShippingDetails({
     try {
       const warning = checkRequiredFields();
       if (warning) {
-        // Deno doesn't support globalThis.scrollTo
-        const element = document.getElementById("top");
-        element?.scrollIntoView();
+        scroll();
         return setValidationError(warning);
       }
       if (!currentOrder) {
@@ -116,6 +123,7 @@ export default function ShippingDetails({
     } catch (error: unknown) {
       errlog("error updating shipping details", error);
       setErrorMsg("Error updating shipping details");
+      scroll();
     }
   }
 
