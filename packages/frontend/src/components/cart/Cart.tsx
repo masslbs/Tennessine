@@ -272,7 +272,7 @@ export default function Cart({
             <div className="flex gap-2 items-center mt-4 pt-3 border-t border-gray-300 w-full">
               <div
                 className={showActionButtons
-                  ? "flex gap-2 items-center"
+                  ? "flex gap-1 items-center"
                   : "hidden"}
               >
                 <button
@@ -316,7 +316,7 @@ export default function Cart({
               >
                 Qty: {selectedQty.get(item.ID)}
               </p>
-              <div className="flex gap-2 items-center ml-auto">
+              <div className="flex gap-1 items-center ml-auto">
                 <img
                   src={icon}
                   alt="coin"
