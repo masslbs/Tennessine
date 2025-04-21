@@ -238,123 +238,123 @@ export default function Cart({
         image = item.Metadata.Images[0];
       }
       return (
-        <Link
-          to={`/listing-detail`}
-          search={(prev: Record<string, string>) => ({
-            shopId: prev.shopId,
-            itemId: item.ID,
-          })}
-          style={{ color: "black" }}
-          key={item.ID}
-          data-testid="cart-item"
-        >
-          <div
-            className="flex"
-            onClick={() => {
-              closeBasket?.();
-            }}
+        <div data-testid="cart-item" key={item.ID}>
+          <Link
+            to={`/listing-detail`}
+            search={(prev: Record<string, string>) => ({
+              shopId: prev.shopId,
+              itemId: item.ID,
+            })}
+            style={{ color: "black" }}
           >
             <div
-              className="flex justify-center h-28"
-              data-testid={`product-img`}
+              className="flex"
+              onClick={() => {
+                closeBasket?.();
+              }}
             >
-              <img
-                src={image}
-                width={127}
-                height={112}
-                alt="product-thumb"
-                className="w-32 h-28 object-cover object-center rounded-l-lg"
-              />
-            </div>
-            <div className="bg-background-gray w-full rounded-lg px-3 py-4">
-              <div className="flex">
-                <h3 data-testid="title" className="leading-4">
-                  {item.Metadata.Title}
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => removeItem(item.ID)}
-                  data-testid={`remove-item-${item.ID}`}
-                  className={showActionButtons ? "ml-auto" : "hidden"}
-                  style={{ backgroundColor: "transparent", padding: 0 }}
-                >
-                  <img
-                    src="/icons/close-icon.svg"
-                    alt="close-icon"
-                    width={12}
-                    height={12}
-                    className="w-3 h-3"
-                  />
-                </button>
+              <div
+                className="flex justify-center h-28"
+                data-testid={`product-img`}
+              >
+                <img
+                  src={image}
+                  width={127}
+                  height={112}
+                  alt="product-thumb"
+                  className="w-32 h-28 object-cover object-center rounded-l-lg"
+                />
               </div>
-
-              <div className="flex gap-2 items-center mt-4 pt-3 border-t border-gray-300 w-full">
-                <div
-                  className={showActionButtons
-                    ? "flex gap-1 items-center"
-                    : "hidden"}
-                >
+              <div className="bg-background-gray w-full rounded-lg px-3 py-4">
+                <div className="flex">
+                  <h3 data-testid="title" className="leading-4">
+                    {item.Metadata.Title}
+                  </h3>
                   <button
                     type="button"
-                    onClick={() => adjustItemQuantity(item.ID, false)}
-                    data-testid={`remove-quantity-${item.ID}`}
-                    className="ml-auto"
+                    onClick={() => removeItem(item.ID)}
+                    data-testid={`remove-item-${item.ID}`}
+                    className={showActionButtons ? "ml-auto" : "hidden"}
                     style={{ backgroundColor: "transparent", padding: 0 }}
                   >
                     <img
-                      src="/icons/minus.svg"
-                      alt="minus"
-                      width={10}
-                      height={10}
-                      className="w-4 h-4 max-h-4"
-                    />
-                  </button>
-                  <p data-testid={`quantity-${item.ID}`}>
-                    {selectedQty.get(item.ID)}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => adjustItemQuantity(item.ID)}
-                    data-testid={`add-quantity-${item.ID}`}
-                    className="ml-auto"
-                    style={{ backgroundColor: "transparent", padding: 0 }}
-                  >
-                    <img
-                      src="/icons/plus.svg"
-                      alt="plus"
-                      width={10}
-                      height={10}
-                      className="w-4 h-4 max-h-4"
+                      src="/icons/close-icon.svg"
+                      alt="close-icon"
+                      width={12}
+                      height={12}
+                      className="w-3 h-3"
                     />
                   </button>
                 </div>
-                <p
-                  className={showActionButtons
-                    ? "hidden"
-                    : "flex gap-2 items-center"}
-                >
-                  Qty: {selectedQty.get(item.ID)}
-                </p>
 
-                <div className="flex gap-2 items-center ml-auto">
-                  <img
-                    src={icon}
-                    alt="coin"
-                    width={15}
-                    height={15}
-                    className="w-4 h-4 max-h-4"
-                  />
-                  <p data-testid="price" className="text-sm">
-                    {price}
+                <div className="flex gap-2 items-center mt-4 pt-3 border-t border-gray-300 w-full">
+                  <div
+                    className={showActionButtons
+                      ? "flex gap-1 items-center"
+                      : "hidden"}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => adjustItemQuantity(item.ID, false)}
+                      data-testid={`remove-quantity-${item.ID}`}
+                      className="ml-auto"
+                      style={{ backgroundColor: "transparent", padding: 0 }}
+                    >
+                      <img
+                        src="/icons/minus.svg"
+                        alt="minus"
+                        width={10}
+                        height={10}
+                        className="w-4 h-4 max-h-4"
+                      />
+                    </button>
+                    <p data-testid={`quantity-${item.ID}`}>
+                      {selectedQty.get(item.ID)}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => adjustItemQuantity(item.ID)}
+                      data-testid={`add-quantity-${item.ID}`}
+                      className="ml-auto"
+                      style={{ backgroundColor: "transparent", padding: 0 }}
+                    >
+                      <img
+                        src="/icons/plus.svg"
+                        alt="plus"
+                        width={10}
+                        height={10}
+                        className="w-4 h-4 max-h-4"
+                      />
+                    </button>
+                  </div>
+                  <p
+                    className={showActionButtons
+                      ? "hidden"
+                      : "flex gap-2 items-center"}
+                  >
+                    Qty: {selectedQty.get(item.ID)}
                   </p>
-                  <p data-testid="symbol" className="text-sm">
-                    {baseToken?.symbol}
-                  </p>
+
+                  <div className="flex gap-2 items-center ml-auto">
+                    <img
+                      src={icon}
+                      alt="coin"
+                      width={15}
+                      height={15}
+                      className="w-4 h-4 max-h-4"
+                    />
+                    <p data-testid="price" className="text-sm">
+                      {price}
+                    </p>
+                    <p data-testid="symbol" className="text-sm">
+                      {baseToken?.symbol}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </Link>
+          </Link>
+        </div>
       );
     });
   }
