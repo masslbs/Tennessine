@@ -13,10 +13,10 @@
   },
   "exclude": ["./compiled.d.ts", "./compiled.js", "./testVectors.json"],
   "imports": {
-    "@std/assert": "jsr:@std/assert@^1.0.11",
-    "protobufjs": "npm:protobufjs",
-    "long": "npm:long",
+    "@std/assert": "jsr:@std/assert@^1.0.12",
+    "protobufjs": "npm:protobufjs@7.5.0",
+    "long": "npm:long@5.3.2",
     "protobufjs-cli": "npm:protobufjs-cli",
-    "viem": "npm:viem@^2.23.4"
+    "viem": "npm:viem@^2.27.2"
   }
 }
