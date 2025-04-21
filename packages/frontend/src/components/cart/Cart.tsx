@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useState } from "react";
 import { formatUnits } from "viem";
-import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 
 import { logger } from "@massmarket/utils";
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
@@ -35,6 +35,7 @@ export default function Cart({
     useCurrentOrder();
   const { baseToken } = useBaseToken();
   const { stateManager } = useStateManager();
+  const navigate = useNavigate();
 
   const [cartItemsMap, setCartMap] = useState<
     Map<ListingId, Listing>
@@ -220,7 +221,16 @@ export default function Cart({
     });
     return formatUnits(total, baseToken.decimals);
   }
-
+  function navigateToListing(itemId: number) {
+    navigate({
+      to: "/listing-detail",
+      search: (prev: Record<string, string>) => ({
+        shopId: prev.shopId,
+        itemId,
+      }),
+    });
+    closeBasket?.();
+  }
   const icon = baseToken?.symbol === "ETH"
     ? "/icons/eth-coin.svg"
     : "/icons/usdc-coin.png";
@@ -238,119 +248,115 @@ export default function Cart({
         image = item.Metadata.Images[0];
       }
       return (
-        <Link
-          key={item.ID}
-          to="/listing-detail"
-          search={(prev: Record<string, string>) => ({
-            shopId: prev.shopId,
-            itemId: item.ID,
-          })}
-          onClick={() => {
-            closeBasket?.();
-          }}
-          style={{ color: "black" }}
-        >
-          <div className="flex" data-testid="cart-item">
-            <div
-              className="flex justify-center h-28"
-              data-testid={`product-img`}
-            >
-              <img
-                src={image}
-                width={127}
-                height={112}
-                alt="product-thumb"
-                className="w-32 h-28 object-cover object-center rounded-l-lg"
-              />
+        <div key={item.ID} className="flex" data-testid="cart-item">
+          <div
+            className="flex justify-center h-28"
+            data-testid={`product-img`}
+          >
+            <img
+              src={image}
+              width={127}
+              height={112}
+              alt="product-thumb"
+              className="w-32 h-28 object-cover object-center rounded-l-lg"
+              onClick={() => {
+                navigateToListing(item.ID);
+              }}
+            />
+          </div>
+          <div className="bg-background-gray w-full rounded-lg px-3 py-4">
+            <div className="flex">
+              <h3
+                data-testid="title"
+                className="leading-4"
+                onClick={() => {
+                  navigateToListing(item.ID);
+                }}
+              >
+                {item.Metadata.Title}
+              </h3>
+              <button
+                type="button"
+                onClick={() => removeItem(item.ID)}
+                data-testid={`remove-item-${item.ID}`}
+                className={showActionButtons ? "ml-auto" : "hidden"}
+                style={{ backgroundColor: "transparent", padding: 0 }}
+              >
+                <img
+                  src="/icons/close-icon.svg"
+                  alt="close-icon"
+                  width={12}
+                  height={12}
+                  className="w-3 h-3"
+                />
+              </button>
             </div>
-            <div className="bg-background-gray w-full rounded-lg px-3 py-4">
-              <div className="flex">
-                <h3 data-testid="title" className="leading-4">
-                  {item.Metadata.Title}
-                </h3>
+
+            <div className="flex gap-2 items-center mt-4 pt-3 border-t border-gray-300 w-full">
+              <div
+                className={showActionButtons
+                  ? "flex gap-1 items-center"
+                  : "hidden"}
+              >
                 <button
                   type="button"
-                  onClick={() => removeItem(item.ID)}
-                  data-testid={`remove-item-${item.ID}`}
-                  className={showActionButtons ? "ml-auto" : "hidden"}
+                  onClick={() => adjustItemQuantity(item.ID, false)}
+                  data-testid={`remove-quantity-${item.ID}`}
+                  className="ml-auto"
                   style={{ backgroundColor: "transparent", padding: 0 }}
                 >
                   <img
-                    src="/icons/close-icon.svg"
-                    alt="close-icon"
-                    width={12}
-                    height={12}
-                    className="w-3 h-3"
+                    src="/icons/minus.svg"
+                    alt="minus"
+                    width={10}
+                    height={10}
+                    className="w-5 h-5 max-h-5"
+                  />
+                </button>
+                <p data-testid={`quantity-${item.ID}`}>
+                  {selectedQty.get(item.ID)}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => adjustItemQuantity(item.ID)}
+                  data-testid={`add-quantity-${item.ID}`}
+                  className="ml-auto"
+                  style={{ backgroundColor: "transparent", padding: 0 }}
+                >
+                  <img
+                    src="/icons/plus.svg"
+                    alt="plus"
+                    width={10}
+                    height={10}
+                    className="w-5 h-5 max-h-5"
                   />
                 </button>
               </div>
-
-              <div className="flex gap-2 items-center mt-4 pt-3 border-t border-gray-300 w-full">
-                <div
-                  className={showActionButtons
-                    ? "flex gap-1 items-center"
-                    : "hidden"}
-                >
-                  <button
-                    type="button"
-                    onClick={() => adjustItemQuantity(item.ID, false)}
-                    data-testid={`remove-quantity-${item.ID}`}
-                    className="ml-auto"
-                    style={{ backgroundColor: "transparent", padding: 0 }}
-                  >
-                    <img
-                      src="/icons/minus.svg"
-                      alt="minus"
-                      width={10}
-                      height={10}
-                      className="w-5 h-5 max-h-5"
-                    />
-                  </button>
-                  <p data-testid={`quantity-${item.ID}`}>
-                    {selectedQty.get(item.ID)}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => adjustItemQuantity(item.ID)}
-                    data-testid={`add-quantity-${item.ID}`}
-                    className="ml-auto"
-                    style={{ backgroundColor: "transparent", padding: 0 }}
-                  >
-                    <img
-                      src="/icons/plus.svg"
-                      alt="plus"
-                      width={10}
-                      height={10}
-                      className="w-5 h-5 max-h-5"
-                    />
-                  </button>
-                </div>
-                <p
-                  className={showActionButtons
-                    ? "hidden"
-                    : "flex gap-2 items-center"}
-                >
-                  Qty: {selectedQty.get(item.ID)}
+              <p
+                className={showActionButtons
+                  ? "hidden"
+                  : "flex gap-2 items-center"}
+              >
+                Qty: {selectedQty.get(item.ID)}
+              </p>
+              <div className="flex gap-1 items-center ml-auto">
+                <img
+                  src={icon}
+                  alt="coin"
+                  width={20}
+                  height={20}
+                  className="w-5 h-5 max-h-5"
+                />
+                <p data-testid="price" className="text-sm">
+                  {price}
                 </p>
-                <div className="flex gap-1 items-center ml-auto">
-                  <img
-                    src={icon}
-                    alt="coin"
-                    width={20}
-                    height={20}
-                    className="w-5 h-5 max-h-5"
-                  />
-                  <p data-testid="price" className="text-sm">
-                    {price}
-                  </p>
-                  <p data-testid="symbol" className="text-sm">
-                    {baseToken?.symbol}
-                  </p>
-                </div>
+                <p data-testid="symbol" className="text-sm">
+                  {baseToken?.symbol}
+                </p>
               </div>
             </div>
           </div>
-        </Link>
+        </div>
       );
     });
   }
