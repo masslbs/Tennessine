@@ -1,8 +1,8 @@
 const Footer = () => {
   return (
     <footer className="bg-gray-100 mt-auto py-4 md:flex justify-center">
-      <div className="container px-2 flex justify-center md:mx-0">
-        <div className="flex justify-between items-center md:w-[800px]">
+      <div className="container px-2 flex justify-center mx-0">
+        <div className="flex justify-between items-center w-full md:w-[800px]">
           <img
             src="/icons/massmarket-logo.svg"
             alt="logo"
