@@ -16,7 +16,7 @@ export default function Share() {
               className="border-2 border-solid mt-1 p-2 rounded"
               id="shopId"
               name="shopId"
-              value={"demo-shop.mass.market"}
+              value="demo-shop.mass.market"
               onChange={() => {}}
             />
             <button
