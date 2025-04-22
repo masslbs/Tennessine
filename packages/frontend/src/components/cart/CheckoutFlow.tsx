@@ -85,11 +85,16 @@ export default function CheckoutFlow() {
             tx ? `Tx: ${toHex(tx)}` : bh ? `Block: ${toHex(bh)}` : "unreachable"
           }`,
         );
-        addRecentTransaction({
-          hash: tx ? toHex(tx) : toHex(bh),
-          description: "Order Payment",
-          // confirmations: 3,
-        });
+        try {
+          addRecentTransaction({
+            hash: tx ? toHex(tx) : toHex(bh),
+            description: "Order Payment",
+            // confirmations: 3,
+          });
+        } catch (error) {
+          warn("Error adding recent transaction to rainbowkit", error);
+        }
+
         setStep(CheckoutStep.confirmation);
         setTimerRunning(false);
       }
