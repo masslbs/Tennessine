@@ -181,6 +181,9 @@ Deno.test("Check that we can render the navigation bar", {
       const cartToggle = screen.getByTestId("cart-toggle");
       expect(cartToggle).toBeTruthy();
       await user.click(cartToggle);
+      // Verify the basket header is displayed
+      const basketHeader = screen.getByText("Basket");
+      expect(basketHeader).toBeTruthy();
     });
     // Try to clear cart that's already committed
     await waitFor(async () => {

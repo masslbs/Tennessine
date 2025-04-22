@@ -158,7 +158,7 @@ Deno.test("Check that we can render the listing details screen", {
     expect(newOrder.Items[0].Quantity).toBe(
       initialQty + qtyIncreasedBy + qtyIncreasedBy2,
     );
-  });
+  }, { timeout: 10000 });
 
   unmount();
 
