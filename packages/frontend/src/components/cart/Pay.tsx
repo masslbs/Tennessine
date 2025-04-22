@@ -1,6 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useAccount, useConfig, usePublicClient, useWalletClient } from "wagmi";
+import {
+  useAccount,
+  useChainId,
+  useConfig,
+  usePublicClient,
+  useSwitchChain,
+  useWalletClient,
+} from "wagmi";
 import * as chains from "wagmi/chains";
 import { simulateContract } from "@wagmi/core";
 import { ContractFunctionArgs, zeroAddress } from "viem";
@@ -44,15 +51,30 @@ export default function Pay({
 }) {
   const { connector } = useAccount();
   const { data: wallet } = useWalletClient();
+  const chainId = useChainId();
+
   const paymentChainId = Number(paymentArgs?.[0]?.chainId);
   // TODO: might want to do this in a hook
   const shopChainId = chains[configuredChainName as keyof typeof chains]?.id;
   const shopPublicClient = usePublicClient({ chainId: shopChainId });
   const paymentPublicClient = usePublicClient({ chainId: paymentChainId });
   const config = useConfig();
+  const { switchChain } = useSwitchChain({ config });
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
+
+  useEffect(() => {
+    if (wallet?.account) {
+      if (chainId !== paymentChainId) {
+        debug(`Switching chain from ${chainId} to ${paymentChainId}`);
+        switchChain({ chainId: paymentChainId });
+      }
+      //if wallet changes, reset loading and error message
+      setLoading(false);
+      setErrorMsg(null);
+    }
+  }, [wallet]);
 
   async function sendPayment() {
     const isNative = paymentArgs[0].currency === zeroAddress;

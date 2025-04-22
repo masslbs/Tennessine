@@ -62,7 +62,7 @@ export default function ShippingDetails({
     } else if (!invoiceAddress.PostalCode.length) {
       warning = "Must include postal code";
     } else if (!invoiceAddress.City.length) {
-      warning = "Must include postal code";
+      warning = "Must include city";
     } else if (invoiceAddress.EmailAddress) {
       warning = isValidEmail(invoiceAddress.EmailAddress)
         ? null
