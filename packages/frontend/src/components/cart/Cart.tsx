@@ -5,8 +5,11 @@ import { useEffect, useState } from "react";
 import { formatUnits } from "viem";
 import { useNavigate } from "@tanstack/react-router";
 
-import { logger } from "@massmarket/utils";
+// TODO: should somehow use this in the assertion below.. instanceof doesn't work tho...?
+// import { RelayResponseError } from "@massmarket/client";
+
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
+import { logger } from "@massmarket/utils";
 import { CodecValue } from "@massmarket/utils/codec";
 
 import { ListingId, OrderState } from "../../types.ts";
@@ -110,16 +113,15 @@ export default function Cart({
   async function handleCheckout() {
     try {
       await onCheckout!();
-    } catch (error) {
+    } catch (error: unknown) {
       if (
-        error instanceof Error && (
-          error.message === "not enough items in stock for order" ||
-          error.message == "not enough stock" ||
-          error.message == "not in stock"
-        )
+        // TODO: This is a big turd but i couldn't make it recdognize RelayResponseError for the life of me.
+        error.originalError.code === 9 && error.originalError.additionalInfo
       ) {
-        setErrorMsg("Not enough stock. Cart cleared.");
-        await clearCart();
+        const objectId = error.originalError.additionalInfo.object_id;
+        console.log("Object ID:", objectId);
+        setErrorMsg(`Item ${objectId} is out of stock.`);
+        // await clearCart();
       } else {
         setErrorMsg("Error during checkout");
         logerr("Error during checkout", error);

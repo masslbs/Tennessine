@@ -133,20 +133,15 @@ export default function CheckoutFlow() {
     if (!currentOrder) {
       throw new Error("No orderId");
     }
-    try {
-      // Commit the order if it is not already committed
-      if (currentOrder.State !== OrderState.Committed) {
-        await stateManager.set(
-          ["Orders", currentOrder.ID, "State"],
-          OrderState.Committed,
-        );
-        debug(`Order ID: ${currentOrder.ID} committed`);
-      }
-      setStep(CheckoutStep.shippingDetails);
-    } catch (error: unknown) {
-      logerr("Error during checkout", error);
-      throw error;
+    // Commit the order if it is not already committed
+    if (currentOrder.State !== OrderState.Committed) {
+      await stateManager.set(
+        ["Orders", currentOrder.ID, "State"],
+        OrderState.Committed,
+      );
+      debug(`Order ID: ${currentOrder.ID} committed`);
     }
+    setStep(CheckoutStep.shippingDetails);
   }
 
   function renderContent() {

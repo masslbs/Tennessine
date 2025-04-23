@@ -72,6 +72,7 @@
         devShells.default = pkgs.mkShell {
           inputsFrom = [config.flake-root.devShell]; # Provides $FLAKE_ROOT in dev shell
           MASS_TEST_VECTORS = "${schema.packages.${system}.default}";
+          NETWORK_SCHEMA_PATH = "${schema}";
           MASS_CONTRACTS_PATH = "${contracts.packages.${system}.default}";
 
           shellHook = ''

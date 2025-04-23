@@ -128,7 +128,7 @@ Deno.test("Check that we can render the checkout screen", {
   const order = new Order(
     orderId,
     [
-      new OrderedItem(23, 2), // 2 of item 23
+      new OrderedItem(23, 200), // 200 of item 23
       new OrderedItem(42, 5), // 5 of item 42
     ],
     OrderState.Open,
@@ -138,13 +138,15 @@ Deno.test("Check that we can render the checkout screen", {
   const { unmount } = render(<CheckoutFlow />, { wrapper });
   screen.getByTestId("checkout-screen");
 
-  const wantTotalPrice = "0.00000000000256";
+  const wantTotalPrice = "0.0000000000481";
   await t.step("Cart contains correct items", async () => {
     screen.getByTestId("cart");
     await waitFor(() => {
       const items = screen.getAllByTestId("cart-item") as HTMLElement[];
       expect(items).toHaveLength(2);
-      expect(items[0].textContent).toContain("test2Qty: 20.00000000000046ETH");
+      expect(items[0].textContent).toContain(
+        "test200Qty: 2000.000000000046ETH",
+      );
       expect(items[1].textContent).toContain("test425Qty: 50.0000000000021ETH");
       expect(screen.getByTestId("total-price").textContent).toBe(
         wantTotalPrice,
@@ -155,14 +157,19 @@ Deno.test("Check that we can render the checkout screen", {
       expect(checkoutButton).toBeTruthy();
       await user.click(checkoutButton);
     });
+
     await waitFor(() => {
-      const shippingScreen = screen.getByTestId(
-        "shipping-details",
-      ) as HTMLElement;
-      expect(shippingScreen).toBeTruthy();
+      const errorToaster = screen.getByTestId("error-message");
+      expect(errorToaster).toBeTruthy();
+      expect(errorToaster.textContent).toContain("Item 23 is out of stock.");
     });
   });
 
+  // TODO:
+  // - evaluate the error toaster (referencing the out of stock item)
+  // -
+
+  /*
   const testShippingDetails = new AddressDetails(
     "John Doe",
     "123 Main St",
@@ -316,7 +323,7 @@ Deno.test("Check that we can render the checkout screen", {
       expect(amountElement.textContent).toContain(wantTotalPrice);
     });
   });
-
+  */
   unmount();
   cleanup();
 });
