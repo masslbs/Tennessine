@@ -1,7 +1,7 @@
 import { assert, assertEquals, assertRejects } from "@std/assert";
 import { MemStore as Store } from "@massmarket/store/mem";
 import type { CodecValue } from "@massmarket/utils/codec";
-import { DAG, type RootValue } from "./mod.ts";
+import { DAG, type NodeValue, type RootValue } from "./mod.ts";
 import { assertNotEquals } from "@std/assert/not-equals";
 import { set } from "@massmarket/utils";
 
@@ -19,10 +19,10 @@ const store = new Store();
 
 Deno.test("basic set and get ", async (t) => {
   await t.step("Map with string keys", async () => {
-    const root: RootValue = new Map();
     const graph = new DAG(
       store,
     );
+    const root: RootValue = graph.createNewRoot();
     const newRoot = await graph.set(root, ["c"], "cat");
     assertNotEquals(root, newRoot);
     const val = await graph.get(newRoot, ["c"]);
@@ -30,10 +30,10 @@ Deno.test("basic set and get ", async (t) => {
   });
 
   await t.step("Map with Uint8Array keys", async () => {
-    let root: RootValue = new Map();
     const graph = new DAG(
       store,
     );
+    let root: RootValue = graph.createNewRoot();
     const addresses = new Map([
       [new Uint8Array([1, 2, 3]), "address1"],
       [new Uint8Array([4, 5, 6]), "address2"],
@@ -48,13 +48,16 @@ Deno.test("basic set and get ", async (t) => {
   });
 
   await t.step("A path that does not exist (pathing into a map)", async () => {
-    const root: RootValue = new Map();
     const graph = new DAG(
       store,
     );
+    const root: RootValue = graph.createNewRoot();
     const val = await graph.get(root, ["d"]);
     assertEquals(val, undefined);
-    assertRejects(() => graph.get(new Uint8Array(32), ["c"]), "invalid root");
+    assertRejects(
+      () => graph.get(new Uint8Array(32), ["c"]),
+      "invalid root",
+    );
     assertRejects(
       () => graph.set(root, ["c", "d", "c"], "catz"),
       "path does not exist",
@@ -65,10 +68,10 @@ Deno.test("basic set and get ", async (t) => {
   await t.step(
     "A path that cannot not exist (trying to path through a string)",
     async () => {
-      const root: RootValue = new Map();
       const graph = new DAG(
         store,
       );
+      const root: RootValue = graph.createNewRoot();
       const r = await graph.get(root, ["c", "d"]);
       assertEquals(r, undefined);
     },
@@ -81,15 +84,17 @@ Deno.test("upsert", async (t) => {
       store,
     );
 
-    const addresses: CodecValue | Promise<CodecValue> | undefined = new Map([
-      [new Uint8Array([1, 2, 3]), "address1"],
-      [new Uint8Array([4, 5, 6]), "address2"],
-    ]);
+    const addresses = graph.createNewRoot(
+      new Map([
+        [new Uint8Array([1, 2, 3]), "address1"],
+        [new Uint8Array([4, 5, 6]), "address2"],
+      ]),
+    ) as NodeValue;
     const newAddresses = graph.set(
       addresses,
       ["addresses"],
       (oldAddress, path) => {
-        assertEquals(oldAddress, addresses);
+        assertEquals(oldAddress, addresses[0]);
         set(oldAddress, path, "cat");
       },
     );
@@ -100,12 +105,12 @@ Deno.test("upsert", async (t) => {
 
 Deno.test("should merklize", async (t) => {
   let merkleRoot;
-  let root: RootValue = new Map();
+  let root: RootValue;
   await t.step("should create a merkle root", async () => {
     const graph = new DAG(
       store,
     );
-
+    root = graph.createNewRoot();
     merkleRoot = await graph.merklelize(root);
     assert(merkleRoot instanceof Uint8Array);
   });
@@ -122,12 +127,12 @@ Deno.test("should merklize", async (t) => {
   });
 });
 
-Deno.test.ignore(
+Deno.test(
   "stress test - setting and retrieving many values",
   async (t) => {
     const store = new Store();
     const dag = new DAG(store);
-    const root: RootValue = new Map();
+    const root = dag.createNewRoot();
 
     await t.step("should handle many sequential sets and gets", async () => {
       const iterations = 1000;
@@ -182,7 +187,7 @@ Deno.test.ignore(
 
     await t.step("should handle parallel sets and gets", async () => {
       const iterations = 100;
-      let currentRoot: RootValue = new Map();
+      let currentRoot = dag.createNewRoot();
 
       // Parallel sets
       Array(iterations).fill(0).map((_, i) => {
@@ -202,7 +207,7 @@ Deno.test.ignore(
     });
 
     await t.step("should handle large values", async () => {
-      let currentRoot: CodecValue = new Map();
+      let currentRoot = dag.createNewRoot();
       const largeArray = Array(10000).fill(0).map((
         _,
         i,
