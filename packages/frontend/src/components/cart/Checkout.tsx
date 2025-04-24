@@ -12,8 +12,8 @@ export default function Checkout() {
     });
   }
   return (
-    <main data-testid="checkout-screen" className="flex justify-center">
-      <section className="md:w-[800px]">
+    <main data-testid="checkout-screen" className="flex justify-center px-4">
+      <section className="w-full md:w-[800px]">
         <h1 className="my-5">Cart</h1>
         <Cart onCheckout={onCheckout} />
       </section>

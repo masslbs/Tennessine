@@ -2,10 +2,8 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { Link } from "@tanstack/react-router";
-import Button from "../../common/Button.tsx";
 import { useShopId } from "../../../hooks/useShopId.ts";
-
+import ButtonLink from "../../common/ButtonLink.tsx";
 export default function Confirmation() {
   const { shopId } = useShopId();
 
@@ -59,17 +57,7 @@ export default function Confirmation() {
       <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg ">
         <h2 className="font-bold">Next steps</h2>
         <div>
-          <Button>
-            <Link
-              to="/merchant-dashboard"
-              search={(prev: Record<string, string>) => ({
-                shopId: prev.shopId,
-              })}
-              style={{ color: "white" }}
-            >
-              View Dashboard
-            </Link>
-          </Button>
+          <ButtonLink to="/merchant-dashboard">View Dashboard</ButtonLink>
         </div>
       </section>
     </section>

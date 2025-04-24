@@ -1,7 +1,5 @@
-import { useNavigate } from "@tanstack/react-router";
 import { logger } from "@massmarket/utils";
-
-import Button from "../common/Button.tsx";
+import ButtonLink from "../common/ButtonLink.tsx";
 
 const namespace = "frontend:PaymentConfirmation";
 const debug = logger(namespace);
@@ -9,14 +7,12 @@ const debug = logger(namespace);
 export default function PaymentConfirmation(
   { displayedAmount, hash }: { displayedAmount: string; hash: string | null },
 ) {
-  const navigate = useNavigate();
-
   function copyToClipboard() {
     navigator.clipboard.writeText(hash || "Hash not available");
   }
 
   return (
-    <section className="md:flex justify-center">
+    <section className="md:flex justify-center px-4">
       <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg items-center md:w-[560px]">
         <img
           src="/icons/smiley.svg"
@@ -66,18 +62,7 @@ export default function PaymentConfirmation(
             </button>
           </div>
         </div>
-        <Button
-          onClick={() => {
-            navigate({
-              to: "/listings",
-              search: (prev: Record<string, string>) => ({
-                shopId: prev.shopId,
-              }),
-            });
-          }}
-        >
-          <p>Back to listings</p>
-        </Button>
+        <ButtonLink to="/listings">Back to listings</ButtonLink>
       </section>
     </section>
   );

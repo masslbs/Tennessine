@@ -9,7 +9,6 @@ import {
   Listing,
   Order,
   OrderedItem,
-  PaymentDetails,
 } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
 import { logger } from "@massmarket/utils";
@@ -17,6 +16,7 @@ import { logger } from "@massmarket/utils";
 import BackButton from "../common/BackButton.tsx";
 import { ListingId, OrderState } from "../../types.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
+import { useBaseToken } from "../../hooks/useBaseToken.ts";
 import { env } from "../../utils/env.ts";
 import { getTokenInformation } from "../../utils/mod.ts";
 
@@ -26,6 +26,7 @@ export default function OrderDetails() {
   const { stateManager } = useStateManager();
   const chains = useChains();
   const search = useSearch({ strict: false });
+  const { baseToken } = useBaseToken();
   const orderId = search.orderId;
   const [cartItemsMap, setCartMap] = useState<Map<ListingId, Listing>>(
     new Map(),
@@ -37,10 +38,14 @@ export default function OrderDetails() {
   const [blockHash, setBlockHash] = useState<string | null>(null);
   const [etherScanLink, setLink] = useState<string | null>(null);
   const [order, setOrder] = useState<Order>(new Order());
-  const [token, setToken] = useState<{ symbol: string; decimals: number }>({
+  const [token, setToken] = useState<
+    { symbol: string; decimals: number }
+  >({
     symbol: "",
     decimals: 0,
   });
+  const [orderDate, setOrderDate] = useState<string | null>(null);
+
   useEffect(() => {
     if (!orderId || !stateManager) return;
     stateManager.get(["Orders", orderId]).then(
@@ -50,6 +55,17 @@ export default function OrderDetails() {
         getAllCartItemDetails(o).then((cartItems) => {
           setCartMap(cartItems);
           setOrder(o);
+
+          if (o.PaymentDetails) {
+            const d = new Intl.DateTimeFormat("en-US", {
+              year: "numeric",
+              month: "numeric",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            }).format(o.PaymentDetails!.TTL * 1000);
+            setOrderDate(d);
+          }
         });
       },
     );
@@ -68,6 +84,8 @@ export default function OrderDetails() {
         setLink(chain.blockExplorers?.default?.url || null);
       }
     }
+    // Show price in pricing currency as default.
+    setToken(baseToken);
     // TODO: might need to useToken(...)s. one for items, one for order summary
     // this not necessarily the same currency as pricing currency was at the time of order...
     if (order?.ChosenCurrency) {
@@ -138,8 +156,10 @@ export default function OrderDetails() {
             alt="product-thumb"
             className="w-12 h-12 object-cover object-center rounded-lg"
           />
-          <h3 data-testid="item-title">{listing.Metadata.Title}</h3>
-          <p data-testid="item-quantity">{selectedQty.get(listing.ID)} x</p>
+          <h3 data-testid="item-title" className="line-clamp-2">
+            {listing.Metadata.Title}
+          </h3>
+          <p data-testid="item-quantity">{selectedQty.get(listing.ID)}</p>
           <p data-testid="item-price">
             {formatUnits(listing.Price, token!.decimals)} {token!.symbol}
           </p>
@@ -183,111 +203,123 @@ export default function OrderDetails() {
     );
   }
 
-  function renderPaymentDetails(details: PaymentDetails) {
-    if (!details) {
-      throw new Error("Payment details not found");
-    }
-    return (
-      <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
-        <h2>Order summary</h2>
-        <div className="flex gap-2">
-          <p>Total</p>
-          <p>
-            {formatUnits(BigInt(details.Total), token!.decimals)}{" "}
-            {token!.symbol}
-          </p>
-        </div>
-      </section>
-    );
-  }
-
   if (!order) return <p data-testid="order-details-page">No order found</p>;
+
   return (
     <main
-      className="p-4"
+      className="px-4 md:flex justify-center"
       data-testid="order-details-page"
     >
-      <BackButton href="/orders" />
-      <div className="mt-5">
-        <h1>Order overview</h1>
-      </div>
-      <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
-        <p>Order ID: {order.ID}</p>
-      </section>
-      <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
-        <h2>Order items</h2>
-        {renderItems()}
-      </section>
-      {order.ShippingAddress
-        ? renderAddressDetails(order.ShippingAddress, true)
-        : null}
-      {order.InvoiceAddress
-        ? renderAddressDetails(order.InvoiceAddress, false)
-        : null}
-      {order.PaymentDetails ? renderPaymentDetails(order.PaymentDetails) : null}
-      <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
-        <div className={txHash ? "" : "hidden"}>
-          <h2>Tx Hash</h2>
-          <div className="flex gap-2">
-            <div
-              className={`bg-background-gray p-2 rounded-md overflow-x-auto w-40 
-            }`}
-            >
-              <p>{txHash}</p>
-            </div>
-            <button
-              onClick={copyTxHash}
-              style={{ backgroundColor: "transparent", padding: 0 }}
-              type="button"
-            >
-              <img
-                src="/icons/copy-icon.svg"
-                width={20}
-                height={20}
-                alt="copy-icon"
-                className="w-auto h-auto ml-auto"
-              />
-            </button>
-          </div>
+      <section className="md:w-[560px]">
+        <BackButton href="/orders" />
+        <div className="my-5">
+          <h1>Order overview</h1>
         </div>
-        <div className={blockHash ? "" : "hidden"}>
-          <h2>Block Hash</h2>
-          <div className="flex gap-2">
-            <div
-              className={`bg-background-gray p-2 rounded-md overflow-x-auto w-40 ${
-                blockHash ? "" : "hidden"
-              }`}
-            >
-              <p>{blockHash}</p>
-            </div>
-            <button
-              onClick={copyBlockHash}
-              style={{ backgroundColor: "transparent", padding: 0 }}
-              type="button"
-            >
-              <img
-                src="/icons/copy-icon.svg"
-                width={20}
-                height={20}
-                alt="copy-icon"
-                className="w-auto h-auto ml-auto"
-              />
-            </button>
+        <section className="flex justify-between grid grid-cols-2 gap-1">
+          <div className="bg-white p-2 rounded-lg flex">
+            <p className="mr-2">Order ID:</p>
+            <p className="font-bold">{order.ID}</p>
           </div>
-        </div>
+          <div className="bg-white p-2 rounded-lg flex">
+            <p className="mr-2">
+              Total:
+            </p>
+            <p className="font-bold">
+              {order.PaymentDetails
+                ? `${
+                  formatUnits(
+                    BigInt(order.PaymentDetails!.Total),
+                    token!.decimals,
+                  )
+                } ${token!.symbol}`
+                : "N/A"}
+            </p>
+          </div>
+          <div className="bg-white p-2 rounded-lg flex">
+            <p className="mr-2">Order Date:</p>
+            <p className="font-bold">{orderDate}</p>
+          </div>
+        </section>
 
-        <a
-          href={`${etherScanLink}/tx/${txHash}`}
-          className={etherScanLink && txHash ? "" : "hidden"}
+        <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
+          <h2>Order items</h2>
+          {renderItems()}
+        </section>
+        {order.ShippingAddress
+          ? renderAddressDetails(order.ShippingAddress, true)
+          : null}
+        {order.InvoiceAddress
+          ? renderAddressDetails(order.InvoiceAddress, false)
+          : null}
+
+        <section
+          className={`mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg ${
+            txHash || blockHash ? "" : "hidden"
+          }`}
         >
-          View TX
-        </a>
-        <a
-          href={`${etherScanLink}/block/${blockHash}`}
-          className={etherScanLink && blockHash ? "" : "hidden"}
-        >
-          View block
-        </a>
+          <div className={txHash ? "" : "hidden"}>
+            <h2>Tx Hash</h2>
+            <div className="flex gap-2">
+              <div
+                className={`bg-background-gray p-2 rounded-md overflow-x-auto w-40 
+            }`}
+              >
+                <p>{txHash}</p>
+              </div>
+              <button
+                onClick={copyTxHash}
+                style={{ backgroundColor: "transparent", padding: 0 }}
+                type="button"
+              >
+                <img
+                  src="/icons/copy-icon.svg"
+                  width={20}
+                  height={20}
+                  alt="copy-icon"
+                  className="w-auto h-auto ml-auto"
+                />
+              </button>
+            </div>
+          </div>
+          <div className={blockHash ? "" : "hidden"}>
+            <h2>Block Hash</h2>
+            <div className="flex gap-2">
+              <div
+                className={`bg-background-gray p-2 rounded-md overflow-x-auto w-40 ${
+                  blockHash ? "" : "hidden"
+                }`}
+              >
+                <p>{blockHash}</p>
+              </div>
+              <button
+                onClick={copyBlockHash}
+                style={{ backgroundColor: "transparent", padding: 0 }}
+                type="button"
+              >
+                <img
+                  src="/icons/copy-icon.svg"
+                  width={20}
+                  height={20}
+                  alt="copy-icon"
+                  className="w-auto h-auto ml-auto"
+                />
+              </button>
+            </div>
+          </div>
+
+          <a
+            href={`${etherScanLink}/tx/${txHash}`}
+            className={etherScanLink && txHash ? "" : "hidden"}
+          >
+            View TX
+          </a>
+          <a
+            href={`${etherScanLink}/block/${blockHash}`}
+            className={etherScanLink && blockHash ? "" : "hidden"}
+          >
+            View block
+          </a>
+        </section>
       </section>
     </main>
   );

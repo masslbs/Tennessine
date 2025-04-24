@@ -27,7 +27,7 @@ export default function QRScan({
 
   return (
     <section className="md:flex justify-center">
-      <section className="md:w-[560px]">
+      <section className="md:w-[560px] px-4 md:px-0">
         <BackButton onClick={goBack} />
         <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
           <div className="rounded-lg p-2 flex flex-col items-center gap-4">
@@ -52,12 +52,13 @@ export default function QRScan({
             />
             <h1>Pay by transfer</h1>
             <h1>{displayedAmount}</h1>
-            <div className="flex text-center justify-center border-2 p-2 rounded-xl shadow-xl">
+            <div className="flex items-center border-1 p-1 rounded-xl shadow-xl">
               <p>{purchaseAddress.slice(0, 20)}...</p>
               <button
-                className="ml-4 p-0 bg-white"
+                className="ml-4 p-0"
                 onClick={copyToClipboard}
                 type="button"
+                style={{ backgroundColor: "transparent" }}
               >
                 <img
                   src="/icons/copy-icon.svg"

@@ -120,9 +120,12 @@ export default function MerchantDashboard() {
         </section>
         <section className="transactions-container">
           <h2 className="my-4">Latest orders</h2>
-          <div className="bg-primary-dark-green flex text-white p-4 rounded-t-xl">
+          <div className="bg-primary-dark-green grid grid-cols-5 text-white text-sm p-4 rounded-t-xl mt-4 text-center">
             <p>Order ID</p>
-            <p className="ml-auto">Status</p>
+            <p>Date</p>
+            <p>Time</p>
+            <p>Value</p>
+            <p>Status</p>
           </div>
           <Transactions orders={orders} />
         </section>

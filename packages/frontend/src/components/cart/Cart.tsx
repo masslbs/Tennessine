@@ -290,8 +290,8 @@ export default function Cart({
               }}
             />
           </div>
-          <div className="bg-background-gray w-full rounded-lg px-3 py-4">
-            <div className="flex">
+          <div className="bg-background-gray w-full rounded-lg px-3 py-4 md:w-[300px]">
+            <div className="flex gap-2">
               <h3
                 data-testid="title"
                 className="leading-4 cursor-pointer"
@@ -407,7 +407,7 @@ export default function Cart({
           proceed.
         </p>
       )}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 mt-2">
         {renderItems()}
       </div>
       <div className="mt-4">
