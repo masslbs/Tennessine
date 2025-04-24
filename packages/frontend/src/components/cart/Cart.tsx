@@ -19,6 +19,7 @@ import { useBaseToken } from "../../hooks/useBaseToken.ts";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 import { multiplyAndFormatUnits } from "../../utils/helper.ts";
+import { RelayResponseError } from "../../../../client/mod.ts";
 
 const namespace = "frontend:Cart";
 const debug = logger(namespace);
@@ -115,10 +116,10 @@ export default function Cart({
       await onCheckout!();
     } catch (error: unknown) {
       if (
-        // TODO: This is a big turd but i couldn't make it recdognize RelayResponseError for the life of me.
-        error.originalError.code === 9 && error.originalError.additionalInfo
+        error instanceof RelayResponseError &&
+        error.cause.code === 9 && error.cause.additionalInfo
       ) {
-        const objectId = error.originalError.additionalInfo.object_id;
+        const objectId = error.cause.additionalInfo.objectId;
         console.log("Object ID:", objectId);
         setErrorMsg(`Item ${objectId} is out of stock.`);
         // await clearCart();

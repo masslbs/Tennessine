@@ -80,13 +80,13 @@ export type SignedPatchSet = {
 
 export class RelayResponseError extends Error {
   constructor(
-    cause: {
+    public override cause: {
       message: string;
       id: unknown;
       requestType: string;
       code: number;
       additionalInfo?: {
-        object_id: number | bigint;
+        objectId: number | bigint;
       };
     },
   ) {
@@ -182,12 +182,12 @@ export class RelayClient {
       assert(code, "code is required");
       assert(message, "message is required");
       let unpackedExtraInfo: {
-        object_id: number | bigint;
+        objectId: number | bigint;
       } | undefined;
       if (additionalInfo && additionalInfo.objectId) {
         // TODO: pretty ugly Long > number conversion.
         unpackedExtraInfo = {
-          object_id: Number(additionalInfo.objectId),
+          objectId: Number(additionalInfo.objectId),
         };
       }
       throw new RelayResponseError(
@@ -388,6 +388,8 @@ export class RelayClient {
         } catch (error: unknown) {
           if (error instanceof Error) {
             throw new ClientWriteError(error, signedPatchSet);
+          } else if (error instanceof RelayResponseError) {
+            throw error;
           } else {
             throw error;
           }
