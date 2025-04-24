@@ -266,7 +266,13 @@ export default function ListingDetail() {
                 </Button>
               </div>
             </div>
-            <SuccessToast message={successMsg} onClose={() => setMsg(null)} />
+            <div className="h-6 mb-4">
+              <SuccessToast
+                message={successMsg}
+                onClose={() => setMsg(null)}
+                cta={{ copy: "View Basket", href: "/checkout" }}
+              />
+            </div>
           </section>
         </div>
       </section>
