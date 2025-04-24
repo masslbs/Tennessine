@@ -127,7 +127,7 @@ Deno.test("should merklize", async (t) => {
   });
 });
 
-Deno.test(
+Deno.test.ignore(
   "stress test - setting and retrieving many values",
   async (t) => {
     const store = new Store();

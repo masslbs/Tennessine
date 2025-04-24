@@ -24,16 +24,16 @@ class ContentAddressableStoreWithTimeStamp {
     this.objStore = castore.objStore;
   }
 
-  get(key: Hash): Promise<NodeValue> {
+  get(hash: Hash): Promise<NodeValue> {
     return Promise.all([
-      this.castore.get(key),
-      this.castore.objStore.get([key, "timestamps"]),
+      this.castore.get(hash),
+      this.castore.objStore.get([hash, "timestamps"]),
     ]) as Promise<NodeValue>;
   }
 
   async set(node: NodeValue): Promise<Hash> {
     const hash = await this.castore.set(node[0]);
-    await this.castore.objStore.set([hash, "metadata"], node[1]);
+    await this.castore.objStore.set([hash, "timestamps"], node[1]);
     return hash;
   }
 }
