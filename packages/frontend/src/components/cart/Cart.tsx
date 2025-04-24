@@ -125,14 +125,15 @@ export default function Cart({
       }
       onCheckout?.();
     } catch (error) {
-      console.log("error", error);
       if (
         error instanceof RelayResponseError &&
         error.cause.code === 9 && error.cause.additionalInfo
       ) {
         const objectId = error.cause.additionalInfo.objectId;
         console.log("Object ID:", objectId);
-        const l = await stateManager.get(["Listings", objectId]);
+        const l = await stateManager!.get(["Listings", objectId]);
+        if (!l) throw new Error("Listing not found");
+
         const listing = Listing.fromCBOR(l);
         setErrorListing(listing);
         setErrorMsg(`Not enough stock for item: ${listing.Metadata.Title}`);
@@ -157,6 +158,8 @@ export default function Cart({
       );
       setCartMap(new Map());
       setSelectedQty(new Map());
+      setErrorListing(null);
+      setErrorMsg(null);
       debug("cart cleared");
       closeBasket?.();
     } catch (error) {
@@ -186,6 +189,10 @@ export default function Cart({
         ["Orders", orderId, "Items"],
         updatedOrderItems,
       );
+      if (id === errorListing?.ID && !add) {
+        setErrorListing(null);
+        setErrorMsg(null);
+      }
     } catch (error) {
       logerr(`Error:adjustItemQuantity ${error}`);
     }
@@ -217,6 +224,10 @@ export default function Cart({
         ["Orders", orderId, "Items"],
         updatedOrderItems,
       );
+      if (id === errorListing?.ID) {
+        setErrorListing(null);
+        setErrorMsg(null);
+      }
     } catch (error) {
       setErrorMsg("Error removing item");
       logerr(`Error:removeItem ${error}`);

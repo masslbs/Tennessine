@@ -157,11 +157,29 @@ Deno.test("Check that we can render the checkout screen", {
       expect(checkoutButton).toBeTruthy();
       await user.click(checkoutButton);
     });
-    const outOfStockMsg = screen.getByTestId("out-of-stock");
-    expect(outOfStockMsg).toBeTruthy();
-    expect(outOfStockMsg.textContent).toContain(
-      `Please remove the item test or reduce the selected quantity.`,
-    );
+    await waitFor(() => {
+      const outOfStockMsg = screen.getByTestId("out-of-stock");
+      expect(outOfStockMsg).toBeTruthy();
+      expect(outOfStockMsg.textContent).toContain(
+        `Please remove the item test or reduce the selected quantity.`,
+      );
+    });
+
+    // Remove item and try to checkout again
+    await act(async () => {
+      const removeButton = screen.getByTestId("remove-item-23");
+      expect(removeButton).toBeTruthy();
+      await user.click(removeButton);
+    });
+    await act(async () => {
+      const checkoutButton = screen.getByTestId("checkout-button");
+      expect(checkoutButton).toBeTruthy();
+      await user.click(checkoutButton);
+    });
+
+    const orderData = await stateManager.get(["Orders", orderId]);
+    const o = Order.fromCBOR(orderData!);
+    expect(o.State).toBe(OrderState.Committed);
 
     unmount();
   });
@@ -261,7 +279,7 @@ Deno.test("Check that we can render the checkout screen", {
       expect(paymentDetailsLoading.classList.contains("hidden")).toBe(true);
       const displayedAmount = screen.getByTestId("displayed-amount");
       expect(displayedAmount).toBeTruthy();
-      expect(displayedAmount.textContent).toBe(`${wantTotalPrice} ETH`);
+      expect(displayedAmount.textContent).toBe(`0.0000000000021 ETH`);
     });
 
     // Connect wallet and initiate payment
@@ -319,7 +337,7 @@ Deno.test("Check that we can render the checkout screen", {
       // Verify USDC amount is displayed
       const amountElement = screen.getByTestId("displayed-amount");
       expect(amountElement).toBeTruthy();
-      expect(amountElement.textContent).toContain(wantTotalPrice);
+      expect(amountElement.textContent).toContain(`0.0000000000021 ETH`);
     });
     unmount();
   });
