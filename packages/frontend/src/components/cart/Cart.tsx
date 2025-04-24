@@ -27,7 +27,7 @@ export default function Cart({
   closeBasket,
   showActionButtons = true,
 }: {
-  onCheckout?: () => Promise<void>;
+  onCheckout?: () => void;
   closeBasket?: () => void;
   showActionButtons?: boolean;
 }) {
@@ -109,7 +109,19 @@ export default function Cart({
 
   async function handleCheckout() {
     try {
-      await onCheckout!();
+      if (!currentOrder) {
+        debug("orderId not found");
+        throw new Error("No order found");
+      }
+      // Commit the order if it is an open order (not committed)
+      if (currentOrder!.State === OrderState.Open) {
+        await stateManager!.set(
+          ["Orders", currentOrder!.ID, "State"],
+          OrderState.Committed,
+        );
+        debug(`Order ID: ${currentOrder!.ID} committed`);
+      }
+      onCheckout?.();
     } catch (error) {
       if (
         error instanceof Error && (
