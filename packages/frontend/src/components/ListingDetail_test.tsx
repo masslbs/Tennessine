@@ -1,4 +1,5 @@
 import "../happyDomSetup.ts";
+import { formatUnits } from "viem";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { expect } from "@std/expect";
 import { userEvent } from "@testing-library/user-event";
@@ -10,7 +11,6 @@ import type { CodecKey, CodecValue } from "@massmarket/utils/codec";
 
 import ListingDetail from "./ListingDetail.tsx";
 import { createRouterWrapper, testClient } from "../testutils/mod.tsx";
-import { formatUnits } from "viem";
 import { OrderState } from "../types.ts";
 
 Deno.test("Check that we can render the listing details screen", {
@@ -159,6 +159,8 @@ Deno.test("Check that we can render the listing details screen", {
       initialQty + qtyIncreasedBy + qtyIncreasedBy2,
     );
   }, { timeout: 10000 });
+
+  await stateManager.close();
 
   unmount();
 
