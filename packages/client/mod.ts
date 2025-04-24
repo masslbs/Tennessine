@@ -386,10 +386,10 @@ export class RelayClient {
         try {
           await this.encodeAndSend(envelope);
         } catch (error: unknown) {
-          if (error instanceof Error) {
+          if (
+            error instanceof Error && !(error instanceof RelayResponseError)
+          ) {
             throw new ClientWriteError(error, signedPatchSet);
-          } else if (error instanceof RelayResponseError) {
-            throw error;
           } else {
             throw error;
           }
