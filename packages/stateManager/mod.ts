@@ -249,7 +249,7 @@ export default class StateManager {
       });
     });
     const r = await state.root;
-    this.events.emit(r);
+    this.events.emit(r[0]);
     return sendpromise!;
   }
 
