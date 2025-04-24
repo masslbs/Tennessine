@@ -24,6 +24,7 @@ import {
 import { CodecValue } from "@massmarket/utils/codec";
 import Pay from "./Pay.tsx";
 import QRScan from "./QRScan.tsx";
+import PriceSummary from "./PriceSummary.tsx";
 import TimerToast from "./TimerToast.tsx";
 import Dropdown from "../common/CurrencyDropdown.tsx";
 import BackButton from "../common/BackButton.tsx";
@@ -348,6 +349,8 @@ export default function ChoosePayment({
   } else if (connectWalletOpen) {
     return (
       <Pay
+        displayedAmount={displayedAmount}
+        tokenIcon={chosenPaymentTokenIcon}
         paymentArgs={paymentArgs!}
         paymentCurrencyLoading={paymentCurrencyLoading}
         setTimerRunning={setTimerRunning}
@@ -390,19 +393,10 @@ export default function ChoosePayment({
                 />
               )}
           </div>
-          <div className={displayedAmount ? "" : "hidden"}>
-            <p>Total Price</p>
-            <div className="flex items-center gap-2">
-              <img
-                src={chosenPaymentTokenIcon}
-                alt="coin"
-                width={24}
-                height={24}
-                className="w-6 h-6 max-h-6"
-              />
-              <h1>{displayedAmount}</h1>
-            </div>
-          </div>
+          <PriceSummary
+            displayedAmount={displayedAmount}
+            tokenIcon={chosenPaymentTokenIcon}
+          />
           <div
             data-testid="payment-details-loading"
             className={paymentCurrencyLoading
