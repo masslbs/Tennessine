@@ -1,6 +1,10 @@
 import { assert } from "@std/assert";
 
-import { DAG, type RootValue } from "@massmarket/merkle-dag-builder";
+import {
+  DAG,
+  type NodeValue,
+  type RootValue,
+} from "@massmarket/merkle-dag-builder";
 import type { AbstractStore } from "@massmarket/store";
 import EventTree from "@massmarket/eventTree";
 import type { Patch, PushedPatchSet, RelayClient } from "@massmarket/client";
@@ -167,14 +171,14 @@ export default class StateManager {
 
   #addClientsWriteStream(client: RelayClient) {
     const remoteWritable = client.createWriteStream();
-    let writer = remoteWritable.getWriter();
+    const writer = remoteWritable.getWriter();
     writer.closed.catch((_error) => {
       // is this an error we can recover from?
       // if so do the following
+      console.log(_error);
       this.#streamsWriters.delete(writer);
       this.#addClientsWriteStream(client);
     });
-    writer = remoteWritable.getWriter();
     this.#streamsWriters.add(writer);
   }
 
