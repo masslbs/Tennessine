@@ -4,7 +4,9 @@ export default function Share() {
   const { shopId } = useShopId();
 
   function copyToClipboard() {
-    navigator.clipboard.writeText(`https://demo-shop.mass.market/listings?shopId=${shopId}`);
+    navigator.clipboard.writeText(
+      `https://demo-shop.mass.market/listings?shopId=${shopId}`,
+    );
   }
   return (
     <main className="px-4 flex justify-center">
