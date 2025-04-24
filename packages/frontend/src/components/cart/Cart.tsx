@@ -271,7 +271,7 @@ export default function Cart({
               width={127}
               height={112}
               alt="product-thumb"
-              className="w-32 h-28 object-cover object-center rounded-l-lg"
+              className="w-32 h-28 object-cover object-center rounded-l-lg cursor-pointer"
               onClick={() => {
                 navigateToListing(item.ID);
               }}
@@ -281,7 +281,7 @@ export default function Cart({
             <div className="flex">
               <h3
                 data-testid="title"
-                className="leading-4"
+                className="leading-4 cursor-pointer"
                 onClick={() => {
                   navigateToListing(item.ID);
                 }}
