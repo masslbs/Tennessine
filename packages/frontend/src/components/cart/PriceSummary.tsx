@@ -15,7 +15,7 @@ export default function PriceSummary(
           height={24}
           className="w-6 h-6 max-h-6"
         />
-        <h1>{displayedAmount}</h1>
+        <h1 data-testid="total-price">{displayedAmount}</h1>
       </div>
     </div>
   );
