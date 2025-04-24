@@ -1,8 +1,10 @@
 import BackButton from "./common/BackButton.tsx";
-
+import { useShopId } from "../hooks/useShopId.ts";
 export default function Share() {
+  const { shopId } = useShopId();
+
   function copyToClipboard() {
-    navigator.clipboard.writeText("https://demo-shop.mass.market");
+    navigator.clipboard.writeText(`https://demo-shop.mass.market/listings?shopId=${shopId}`);
   }
   return (
     <main className="px-4 flex justify-center">
@@ -13,10 +15,10 @@ export default function Share() {
           <h3>Link</h3>
           <div className="flex gap-2">
             <input
-              className="border-2 border-solid mt-1 p-2 rounded"
+              className="border-2 border-solid mt-1 p-2 rounded w-full"
               id="shopId"
               name="shopId"
-              value="demo-shop.mass.market"
+              value={`demo-shop.mass.market/listings?shopId=${shopId}`}
               onChange={() => {}}
             />
             <button
