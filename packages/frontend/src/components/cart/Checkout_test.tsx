@@ -129,14 +129,14 @@ Deno.test("Check that we can render the checkout screen", {
   const order = new Order(
     orderId,
     [
-      new OrderedItem(23, 2), // 2 of item 23
+      new OrderedItem(23, 200), // 200 of item 23
       new OrderedItem(42, 5), // 5 of item 42
     ],
     OrderState.Open,
   );
   await stateManager.set(["Orders", orderId], order);
 
-  const wantTotalPrice = "0.00000000000256";
+  const wantTotalPrice = "0.0000000000481";
   await t.step("Cart contains correct items", async () => {
     const { unmount } = render(<Checkout />, { wrapper });
 
@@ -144,7 +144,9 @@ Deno.test("Check that we can render the checkout screen", {
     await waitFor(() => {
       const items = screen.getAllByTestId("cart-item") as HTMLElement[];
       expect(items).toHaveLength(2);
-      expect(items[0].textContent).toContain("test2Qty: 20.00000000000046ETH");
+      expect(items[0].textContent).toContain(
+        "test200Qty: 2000.000000000046ETH",
+      );
       expect(items[1].textContent).toContain("test425Qty: 50.0000000000021ETH");
       expect(screen.getByTestId("total-price").textContent).toBe(
         wantTotalPrice,
@@ -155,12 +157,12 @@ Deno.test("Check that we can render the checkout screen", {
       expect(checkoutButton).toBeTruthy();
       await user.click(checkoutButton);
     });
-    // await waitFor(() => {
-    //   const shippingScreen = screen.getByTestId(
-    //     "shipping-details",
-    //   ) as HTMLElement;
-    //   expect(shippingScreen).toBeTruthy();
-    // });
+    const outOfStockMsg = screen.getByTestId("out-of-stock");
+    expect(outOfStockMsg).toBeTruthy();
+    expect(outOfStockMsg.textContent).toContain(
+      `Please remove the item test or reduce the selected quantity.`,
+    );
+
     unmount();
   });
 

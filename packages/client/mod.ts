@@ -85,6 +85,9 @@ export class RelayResponseError extends Error {
       id: unknown;
       requestType: string;
       code: number;
+      additionalInfo?: {
+        objectId: number | bigint;
+      };
     },
   ) {
     super(
@@ -174,15 +177,25 @@ export class RelayClient {
       Object.keys(response).filter((k) => k !== "requestId")[0];
     debug(`recvt[${id.raw}] ${requestType}`);
     if (response.response?.error) {
-      const { code, message } = response.response.error;
+      const { code, message, additionalInfo } = response.response.error;
       assert(code, "code is required");
       assert(message, "message is required");
+      let unpackedExtraInfo: {
+        objectId: number | bigint;
+      } | undefined;
+      if (additionalInfo && additionalInfo.objectId) {
+        // TODO: pretty ugly Long > number conversion.
+        unpackedExtraInfo = {
+          objectId: Number(additionalInfo.objectId),
+        };
+      }
       throw new RelayResponseError(
         {
           id: id.raw,
           message,
           code,
           requestType,
+          additionalInfo: unpackedExtraInfo,
         },
       );
     } else {

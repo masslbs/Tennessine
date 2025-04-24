@@ -8,6 +8,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { logger } from "@massmarket/utils";
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
+import { RelayResponseError } from "@massmarket/client";
 
 import { ListingId, OrderState } from "../../types.ts";
 import Button from "../common/Button.tsx";
@@ -44,6 +45,7 @@ export default function Cart({
     new Map(),
   );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [errorListing, setErrorListing] = useState<Listing | null>(null);
 
   function onOrderUpdate(order: CodecValue) {
     const o = Order.fromCBOR(order);
@@ -123,18 +125,17 @@ export default function Cart({
       }
       onCheckout?.();
     } catch (error) {
+      console.log("error", error);
       if (
-        error instanceof Error && (
-          error.message === "not enough items in stock for order" ||
-          error.message == "not enough stock" ||
-          error.message == "not in stock"
-        )
+        error instanceof RelayResponseError &&
+        error.cause.code === 9 && error.cause.additionalInfo
       ) {
-        setErrorMsg("Not enough stock. Cart cleared.");
-        await clearCart();
-      } else {
-        setErrorMsg("Error during checkout");
-        logerr("Error during checkout", error);
+        const objectId = error.cause.additionalInfo.objectId;
+        console.log("Object ID:", objectId);
+        const l = await stateManager.get(["Listings", objectId]);
+        const listing = Listing.fromCBOR(l);
+        setErrorListing(listing);
+        setErrorMsg(`Not enough stock for item: ${listing.Metadata.Title}`);
       }
     }
   }
@@ -379,8 +380,16 @@ export default function Cart({
         errorMessage={errorMsg}
         onClose={() => {
           setErrorMsg(null);
+          setErrorListing(null);
         }}
       />
+      {errorListing && (
+        <p data-testid="out-of-stock" className="my-2 text-red-500">
+          Please remove the item{" "}
+          <span className="font-bold">{errorListing.Metadata.Title}</span>{" "}
+          or reduce the selected quantity.
+        </p>
+      )}
       <div className="flex flex-col gap-2">
         {renderItems()}
       </div>
