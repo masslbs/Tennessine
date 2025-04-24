@@ -7,40 +7,83 @@ import {
   remove,
   set,
 } from "@massmarket/utils";
-import { type AbstractStore, ContentAddressableStore } from "@massmarket/store";
+import {
+  type AbstractStore,
+  ContentAddressableStore,
+  type ObjectStore,
+} from "@massmarket/store";
+import {
+  getOrExtend,
+  getTimestamp,
+  type TimestampTree,
+} from "./timestampTree.ts";
+
+class ContentAddressableStoreWithTimeStamp {
+  objStore: ObjectStore;
+  constructor(public castore: ContentAddressableStore) {
+    this.objStore = castore.objStore;
+  }
+
+  get(hash: Hash): Promise<NodeValue> {
+    return Promise.all([
+      this.castore.get(hash),
+      this.castore.objStore.get([hash, "timestamps"]),
+    ]) as Promise<NodeValue>;
+  }
+
+  async set(node: NodeValue): Promise<Hash> {
+    const hash = await this.castore.set(node[0]);
+    await this.castore.objStore.set([hash, "timestamps"], node[1]);
+    return hash;
+  }
+}
+
+export type NodeValue = [
+  value: codec.CodecValue,
+  timestamps: TimestampTree,
+];
 
 export type RootValue =
-  | codec.CodecValue
-  | Promise<codec.CodecValue>;
+  | NodeValue
+  | Hash
+  | Promise<NodeValue | Hash>;
 
-export class DAG {
+export class DAG<TimeStampT extends codec.CodecValue> {
+  createNewRoot(
+    value: codec.CodecValue = new Map(),
+    timestamp: TimeStampT = this.defaultTimeStamp(),
+  ): RootValue {
+    const timeStampTree: TimestampTree = [new Map(), timestamp];
+    return [value, timeStampTree];
+  }
   /** the store that the graph is stored in */
-  public store: ContentAddressableStore;
+  public store: ContentAddressableStoreWithTimeStamp;
 
   /**
    * Creates a new graph
    */
-  constructor(store: AbstractStore) {
-    this.store = new ContentAddressableStore(store);
+  constructor(
+    store: AbstractStore,
+    public timeStampComparator: (old: TimeStampT, n: TimeStampT) => boolean = (
+      old,
+      n,
+    ) => old! <= n!,
+    public defaultTimeStamp: () => TimeStampT = () => 0 as TimeStampT,
+  ) {
+    this.store = new ContentAddressableStoreWithTimeStamp(
+      new ContentAddressableStore(store),
+    );
   }
 
   // this loads a hash from the store
   async #loadHash(
     hash: Hash,
-    clone = false,
-  ): Promise<codec.CodecValue> {
-    const val = await this.store.get(hash);
-    if (!val) {
+  ): Promise<NodeValue> {
+    const node = await this.store.get(hash);
+    if (!node[0]) {
       throw new Error(`Hash not found: ${hash}`);
     }
-    if (clone) {
-      // we assume the store shares objects as a caching mechanism
-      // (TODO: it doesn't yet though)
-      // so we need to clone the object to avoid modifying the original
-      return structuredClone(val);
-    } else {
-      return val;
-    }
+    return node;
   }
 
   /**
@@ -48,37 +91,51 @@ export class DAG {
    */
   async *walk(
     root: RootValue,
-    path: codec.CodecKey[],
+    path: codec.Path,
     clone = false,
   ): AsyncGenerator<{
+    root: NodeValue;
     value: codec.CodecValue;
+    timestampTree: TimestampTree;
     step?: codec.CodecValue;
   }> {
     if (root instanceof Promise) {
       root = await root;
-    }
-    if (isHash(root)) {
-      root = (await this.#loadHash(root, clone))!;
+    } else if (isHash(root)) {
+      root = (await this.#loadHash(root))!;
     }
     if (clone) {
       root = structuredClone(root);
     }
+    // we know that the root is a nodvalue now
+    root = root as NodeValue;
+    let timestampTree = root[1];
+    let rootNode = root[0];
     yield {
-      value: root,
+      root,
+      value: rootNode,
+      timestampTree: timestampTree,
     };
     for (const step of path) {
-      let value = get(root, step) as codec.CodecValue;
-      if (value !== undefined) {
+      const nextNodeValue = get(rootNode, step);
+      timestampTree = getOrExtend(timestampTree, step, clone);
+
+      if (nextNodeValue !== undefined) {
         // load hash links
-        if (isHash(value)) {
+        if (isHash(nextNodeValue)) {
           // replace the hash with the value it loaded
-          value = await this.#loadHash(value, clone);
-          set(root, step, { "/": value });
+          root = await this.#loadHash(nextNodeValue);
+          if (root) {
+            root = structuredClone(root);
+          }
+          timestampTree = root[1];
+          set(rootNode, step, root[0]);
         }
-        root = value;
+        rootNode = nextNodeValue;
         yield {
-          value,
-          step,
+          root,
+          value: nextNodeValue,
+          timestampTree: timestampTree,
         };
       } else {
         return;
@@ -91,7 +148,7 @@ export class DAG {
    */
   async get(
     root: RootValue,
-    path: codec.CodecKey[],
+    path: codec.Path,
   ): Promise<codec.CodecValue | undefined> {
     const walk = await Array.fromAsync(
       this.walk(root, path),
@@ -107,15 +164,25 @@ export class DAG {
    */
   async set(
     root: RootValue,
-    path: codec.CodecKey[],
+    path: codec.Path,
     value:
       | codec.CodecValue
       | ((
         parent: codec.CodecValue,
         key: codec.CodecKey,
       ) => Promise<void> | void),
-  ): Promise<codec.CodecValue> {
+    timestamp: TimeStampT = this.defaultTimeStamp(),
+  ): Promise<NodeValue | Hash> {
     assert(path.length);
+    if (timestamp === undefined) {
+      if (this.defaultTimeStamp) {
+        timestamp = this.defaultTimeStamp();
+      } else {
+        throw new Error(
+          "either the timestamp, or the defaultTimeStamp should be set",
+        );
+      }
+    }
     const last = path[path.length - 1];
     path = path.slice(0, -1);
     const walk = await Array.fromAsync(
@@ -123,16 +190,25 @@ export class DAG {
     );
 
     if (walk.length === path.length + 1) {
-      const parent = walk[walk.length - 1].value;
-      if (typeof value === "function") {
-        await value(parent, last);
+      const { value: parent, timestampTree } = walk[walk.length - 1];
+      if (
+        this.timeStampComparator(
+          getTimestamp(timestampTree) as TimeStampT,
+          timestamp,
+        )
+      ) {
+        if (typeof value === "function") {
+          await value(parent, last);
+        } else {
+          set(parent, last, value);
+        }
+        return walk[0].root;
       } else {
-        set(parent, last, value);
+        return root;
       }
     } else {
       throw new Error(`Path ${path.join(".")} does not exist`);
     }
-    return walk[0].value;
   }
 
   /**
@@ -140,9 +216,10 @@ export class DAG {
    */
   add(
     root: RootValue,
-    path: codec.CodecKey[],
+    path: codec.Path,
     value: codec.CodecValue,
-  ): Promise<codec.CodecValue> {
+    timestamp: TimeStampT = this.defaultTimeStamp(),
+  ): Promise<NodeValue | Hash> {
     return this.set(
       root,
       path,
@@ -157,6 +234,7 @@ export class DAG {
           set(parent, key, value);
         }
       },
+      timestamp,
     );
   }
 
@@ -165,9 +243,10 @@ export class DAG {
    */
   append(
     root: RootValue,
-    path: codec.CodecKey[],
+    path: codec.Path,
     value: codec.CodecValue,
-  ): Promise<codec.CodecValue> {
+    timestamp: TimeStampT = this.defaultTimeStamp(),
+  ): Promise<NodeValue | Hash> {
     return this.set(
       root,
       path,
@@ -181,6 +260,7 @@ export class DAG {
           );
         }
       },
+      timestamp,
     );
   }
 
@@ -189,14 +269,16 @@ export class DAG {
    */
   remove(
     root: RootValue,
-    path: codec.CodecKey[],
-  ): Promise<codec.CodecValue> {
+    path: codec.Path,
+    timestamp: TimeStampT = this.defaultTimeStamp(),
+  ): Promise<NodeValue | Hash> {
     return this.set(
       root,
       path,
       (parent: codec.CodecValue, step: codec.CodecKey) => {
         remove(parent, step);
       },
+      timestamp,
     );
   }
 
@@ -205,9 +287,10 @@ export class DAG {
    */
   addNumber(
     root: RootValue,
-    path: codec.CodecKey[],
+    path: codec.Path,
     amount: number,
-  ): Promise<codec.CodecValue> {
+    timestamp: TimeStampT = this.defaultTimeStamp(),
+  ): Promise<NodeValue | Hash> {
     return this.set(
       root,
       path,
@@ -221,6 +304,7 @@ export class DAG {
           );
         }
       },
+      timestamp,
     );
   }
 
@@ -232,7 +316,9 @@ export class DAG {
   ): Promise<Hash> {
     if (root instanceof Promise) {
       root = await root;
+    } else if (isHash(root)) {
+      return root;
     }
-    return this.store.set(root);
+    return this.store.set(root as NodeValue);
   }
 }

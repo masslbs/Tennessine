@@ -4,6 +4,7 @@ import type { PushedPatchSet } from "@massmarket/client";
 import type { CodecValue, Path } from "@massmarket/utils/codec";
 import { extractEntriesFromHAMT, fetchAndDecode } from "@massmarket/utils";
 import { assertEquals } from "@std/assert/equals";
+import type { NodeValue } from "@massmarket/merkle-dag-builder";
 
 Deno.test("Database Testings", async (t) => {
   const testFiles = [
@@ -70,7 +71,8 @@ Deno.test("Database Testings", async (t) => {
             if (skippedTests.has(test.description)) {
               console.log("Skipping state check!!!!!!!");
             } else {
-              assertEquals(sm.root, after);
+              const root = sm.root as NodeValue;
+              assertEquals(root[0], after);
             }
             await sm.close();
           });

@@ -6,7 +6,7 @@ import {
   createTestBlockchainClient,
   createTestRelayClient,
 } from "@massmarket/client/test";
-import { ClientWriteError } from "@massmarket/client";
+import { RelayResponseError } from "@massmarket/client";
 import { type codec, randomBytes } from "@massmarket/utils";
 
 import StateManager from "./mod.ts";
@@ -91,14 +91,14 @@ Deno.test("Database Testings", async (t) => {
     "Make sure stateManager throws an error when a patch is rejected",
     async () => {
       const result = await assertRejects(() => sm.set(["Trash"], "Bad Value"));
-      assertInstanceOf(result, ClientWriteError);
+      assertInstanceOf(result, RelayResponseError);
     },
   );
   await t.step("Make sure we can do more then one bad write", async () => {
     const result = await assertRejects(() =>
       sm.set(["Trash"], "Another Bad Value")
     );
-    assertInstanceOf(result, ClientWriteError);
+    assertInstanceOf(result, RelayResponseError);
   });
 
   await sm.close();
