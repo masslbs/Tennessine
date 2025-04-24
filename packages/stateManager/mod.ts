@@ -221,10 +221,11 @@ export default class StateManager {
       const op = v === undefined ? "add" : "replace";
       sendpromise = this.#sendPatch(
         { Op: op, Path: path, Value: value },
-      ).catch((e) => {
+      ).catch(async (e) => {
         // Here we revert the back to the old state root
         // If the relay gives an error
-        state.root = oldStateRoot;
+        state.root = await oldStateRoot;
+        this.events.emit(state.root[0]);
         throw e;
       });
     });
