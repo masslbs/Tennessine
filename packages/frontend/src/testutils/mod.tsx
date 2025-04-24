@@ -200,17 +200,12 @@ export const createRouterWrapper = async ({
       path: "/merchant-connect",
       component: () => <>{children}</>,
     });
-    const checkoutRoute = createRoute({
-      getParentRoute: () => rootRoute,
-      path: "/checkout",
-      component: () => <>{children}</>,
-    });
+
     const router = createRouter({
       routeTree: rootRoute.addChildren([
         componentRoute,
         createShopRoute,
         merchantConnectRoute,
-        checkoutRoute,
       ]),
       history: createMemoryHistory({
         initialEntries: [initialURL],
