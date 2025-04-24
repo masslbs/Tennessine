@@ -48,7 +48,7 @@ export default function Pay({
     "nonpayable",
     "payTokenPreApproved"
   >;
-  displayedAmount: number;
+  displayedAmount: string | null;
   tokenIcon: string;
   paymentCurrencyLoading: boolean;
   goBack: () => void;

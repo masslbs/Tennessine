@@ -1,6 +1,6 @@
 export default function PriceSummary(
   { displayedAmount, tokenIcon }: {
-    displayedAmount: number;
+    displayedAmount: string | null;
     tokenIcon: string;
   },
 ) {
