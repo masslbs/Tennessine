@@ -1,10 +1,6 @@
 import { assert } from "@std/assert";
 
-import {
-  DAG,
-  type NodeValue,
-  type RootValue,
-} from "@massmarket/merkle-dag-builder";
+import { DAG, type RootValue } from "@massmarket/merkle-dag-builder";
 import type { AbstractStore } from "@massmarket/store";
 import EventTree from "@massmarket/eventTree";
 import type { Patch, PushedPatchSet, RelayClient } from "@massmarket/client";
@@ -169,6 +165,19 @@ export default class StateManager {
     });
   }
 
+  #addClientsWriteStream(client: RelayClient) {
+    const remoteWritable = client.createWriteStream();
+    let writer = remoteWritable.getWriter();
+    writer.closed.catch((_error) => {
+      // is this an error we can recover from?
+      // if so do the following
+      this.#streamsWriters.delete(writer);
+      this.#addClientsWriteStream(client);
+    });
+    writer = remoteWritable.getWriter();
+    this.#streamsWriters.add(writer);
+  }
+
   addConnection(client: RelayClient) {
     assert(this.#state, "open not finished");
     client.keyCardNonce = this.#state.keycardNonce;
@@ -184,9 +193,7 @@ export default class StateManager {
       id,
       [],
     );
-    const remoteWritable = client.createWriteStream();
-    const writer = remoteWritable.getWriter();
-    this.#streamsWriters.add(writer);
+    this.#addClientsWriteStream(client);
     const connection = remoteReadable.pipeTo(ourWritable);
     return { connection };
   }
