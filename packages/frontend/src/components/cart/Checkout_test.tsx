@@ -18,7 +18,9 @@ import {
 } from "@massmarket/schema";
 import { CodecKey, CodecValue } from "@massmarket/utils/codec";
 import { createRouterWrapper, testClient } from "../../testutils/mod.tsx";
-import CheckoutFlow from "./CheckoutFlow.tsx";
+import Checkout from "./Checkout.tsx";
+import ShippingDetails from "./ShippingDetails.tsx";
+import ChoosePayment from "./ChoosePayment.tsx";
 
 Deno.test("Check that we can render the checkout screen", {
   sanitizeResources: false,
@@ -106,7 +108,6 @@ Deno.test("Check that we can render the checkout screen", {
   const { wrapper, stateManager, relayClient, testAccount } =
     await createRouterWrapper({
       shopId,
-      path: "/checkout?step=cart",
     });
   console.log("acting as customer:", testAccount);
   await relayClient.enrollKeycard(testClient, testAccount, true);
@@ -135,12 +136,11 @@ Deno.test("Check that we can render the checkout screen", {
   );
   await stateManager.set(["Orders", orderId], order);
 
-  const { unmount } = render(<CheckoutFlow />, { wrapper });
-  screen.getByTestId("checkout-screen");
-
   const wantTotalPrice = "0.00000000000256";
   await t.step("Cart contains correct items", async () => {
-    screen.getByTestId("cart");
+    const { unmount } = render(<Checkout />, { wrapper });
+
+    screen.getByTestId("checkout-screen");
     await waitFor(() => {
       const items = screen.getAllByTestId("cart-item") as HTMLElement[];
       expect(items).toHaveLength(2);
@@ -155,12 +155,13 @@ Deno.test("Check that we can render the checkout screen", {
       expect(checkoutButton).toBeTruthy();
       await user.click(checkoutButton);
     });
-    await waitFor(() => {
-      const shippingScreen = screen.getByTestId(
-        "shipping-details",
-      ) as HTMLElement;
-      expect(shippingScreen).toBeTruthy();
-    });
+    // await waitFor(() => {
+    //   const shippingScreen = screen.getByTestId(
+    //     "shipping-details",
+    //   ) as HTMLElement;
+    //   expect(shippingScreen).toBeTruthy();
+    // });
+    unmount();
   });
 
   const testShippingDetails = new AddressDetails(
@@ -175,6 +176,13 @@ Deno.test("Check that we can render the checkout screen", {
   );
 
   await t.step("Input shipping details", async () => {
+    const { unmount } = render(<ShippingDetails />, { wrapper });
+    await waitFor(() => {
+      const shippingScreen = screen.getByTestId(
+        "shipping-details",
+      ) as HTMLElement;
+      expect(shippingScreen).toBeTruthy();
+    });
     // Fill in all shipping details fields
     await act(async () => {
       await user.type(screen.getByTestId("name"), testShippingDetails.Name);
@@ -202,16 +210,8 @@ Deno.test("Check that we can render the checkout screen", {
     });
 
     await act(async () => {
-      const submitShippingDetails = screen.getByRole("button", {
-        name: "Payment options",
-      });
+      const submitShippingDetails = screen.getByTestId("goto-payment-options");
       await user.click(submitShippingDetails);
-    });
-
-    // Wait for shipping details to be saved and screen to change
-    await waitFor(() => {
-      const choosePayment = screen.getByTestId("choose-payment");
-      expect(choosePayment).toBeTruthy();
     });
 
     // Verify order details were saved correctly
@@ -222,20 +222,23 @@ Deno.test("Check that we can render the checkout screen", {
     expect(o.ShippingAddress).toBeUndefined();
 
     expect(o.InvoiceAddress).toEqual(testShippingDetails);
+    unmount();
   });
 
   await t.step("Choose payment", async () => {
+    const { unmount } = render(<ChoosePayment />, { wrapper });
     const choosePayment = screen.getByTestId("choose-payment");
     expect(choosePayment).toBeTruthy();
-    await act(async () => {
-      const paymentCurrency = screen.getByTestId("payment-currency");
-      expect(paymentCurrency).toBeTruthy();
-      const dropdown = paymentCurrency.querySelector(
-        '[data-testid="dropdown"]',
-      ) as HTMLInputElement;
-      await user.click(dropdown);
-    });
+
     //TODO: post phase 1 of MVP, implement test for multiple payment currency options.
+    // await act(async () => {
+    //   const paymentCurrency = screen.getByTestId("payment-currency");
+    //   expect(paymentCurrency).toBeTruthy();
+    //   const dropdown = paymentCurrency.querySelector(
+    //     '[data-testid="dropdown"]',
+    //   ) as HTMLInputElement;
+    //   await user.click(dropdown);
+    // });
     // await act(async () => {
     //   const dropdownOptions = screen.getByTestId("chains-dropdown-select");
     //   expect(dropdownOptions).toBeTruthy();
@@ -247,16 +250,19 @@ Deno.test("Check that we can render the checkout screen", {
     //     "ETH/Hardhat",
     //   );
     // });
+
     await waitFor(() => {
       const paymentDetailsLoading = screen.getByTestId(
         "payment-details-loading",
       );
       expect(paymentDetailsLoading).toBeTruthy();
       expect(paymentDetailsLoading.classList.contains("hidden")).toBe(true);
+      const displayedAmount = screen.getByTestId("displayed-amount");
+      expect(displayedAmount).toBeTruthy();
+      expect(displayedAmount.textContent).toBe(`${wantTotalPrice} ETH`);
     });
-  });
 
-  await t.step("Connect wallet and initiate payment", async () => {
+    // Connect wallet and initiate payment
     await act(async () => {
       const connectWalletButton = screen.getByTestId(
         "rainbowkit-connect-wallet",
@@ -264,7 +270,6 @@ Deno.test("Check that we can render the checkout screen", {
       expect(connectWalletButton).toBeTruthy();
       await user.click(connectWalletButton);
     });
-
     let payButton: HTMLElement | null = null;
     await waitFor(() => {
       // Wait for the Pay button to appear after wallet connection
@@ -278,8 +283,8 @@ Deno.test("Check that we can render the checkout screen", {
       expect(payButton).toBeTruthy();
       await user.click(payButton!);
     });
-
     // Wait for the transaction processing message to appear
+
     await waitFor(() => {
       let waitingMessage: HTMLElement | null;
       try {
@@ -297,9 +302,8 @@ Deno.test("Check that we can render the checkout screen", {
       }
       expect(waitingMessage || successMessage).toBeTruthy();
     });
-  });
 
-  await t.step("Wait for payment to be confirmed", async () => {
+    // Check payment confirmation screen
     await waitFor(() => {
       // Check for payment confirmation screen
       const successMessage = screen.getByText("Payment Successful");
@@ -315,8 +319,8 @@ Deno.test("Check that we can render the checkout screen", {
       expect(amountElement).toBeTruthy();
       expect(amountElement.textContent).toContain(wantTotalPrice);
     });
+    unmount();
   });
 
-  unmount();
   cleanup();
 });

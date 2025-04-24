@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 
 import { logger } from "@massmarket/utils";
 import { AddressDetails } from "@massmarket/schema";
@@ -13,7 +14,6 @@ import Button from "../common/Button.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import ValidationWarning from "../common/ValidationWarning.tsx";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
-import { CheckoutStep } from "../../types.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 import { isValidEmail } from "../../utils/mod.ts";
 
@@ -22,25 +22,15 @@ const debug = logger(namespace);
 const warn = logger(namespace, "warn");
 const errlog = logger(namespace, "error");
 
-export default function ShippingDetails({
-  setStep,
-  startTimer,
-}: {
-  setStep: (step: CheckoutStep) => void;
-  startTimer: () => void;
-}) {
+export default function ShippingDetails() {
   const { currentOrder } = useCurrentOrder();
   const { stateManager } = useStateManager();
+  const navigate = useNavigate();
   const [invoiceAddress, setInvoiceAddress] = useState<AddressDetails>(
     new AddressDetails(),
   );
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Start checkout timer as soon as user lands on this screen, which is immediately after items are committed.
-    startTimer();
-  }, []);
 
   useEffect(() => {
     currentOrder?.InvoiceAddress &&
@@ -102,9 +92,6 @@ export default function ShippingDetails({
         scroll();
         return setValidationError(warning);
       }
-      if (!currentOrder) {
-        throw new Error("No committed order ID found");
-      }
       //TODO: Need country code UI for phone number
       if (invoiceAddress.PhoneNumber) {
         if (!invoiceAddress.PhoneNumber.startsWith("+")) {
@@ -114,15 +101,19 @@ export default function ShippingDetails({
       if (!invoiceAddress.EmailAddress.length) {
         invoiceAddress.EmailAddress = "example@email.com";
       }
-      if (invoiceAddress !== currentOrder.InvoiceAddress) {
+      if (invoiceAddress !== currentOrder!.InvoiceAddress) {
         await stateManager.set(
-          ["Orders", currentOrder.ID, "InvoiceAddress"],
+          ["Orders", currentOrder!.ID, "InvoiceAddress"],
           invoiceAddress,
         );
         debug("Shipping details updated");
       }
-
-      setStep(CheckoutStep.paymentDetails);
+      navigate({
+        to: "/pay",
+        search: (prev: Record<string, string>) => ({
+          shopId: prev.shopId,
+        }),
+      });
     } catch (error: unknown) {
       errlog("error updating shipping details", error);
       setErrorMsg("Error updating shipping details");
@@ -130,9 +121,13 @@ export default function ShippingDetails({
     }
   }
 
+  if (!currentOrder) {
+    return <div>No order found</div>;
+  }
+
   return (
     <section className="md:flex justify-center">
-      <section className="md:w-[900px]" data-testid="shipping-details">
+      <section className="md:w-[800px]" data-testid="shipping-details">
         <h1 className="my-5">Shipping details</h1>
         <section className="flex flex-row justify-center gap-12 bg-white p-5 rounded-lg">
           <form
@@ -238,7 +233,19 @@ export default function ShippingDetails({
               />
             </div>
             <div className="mt-3">
-              <Button onClick={onSubmitForm}>Payment options</Button>
+              <Button onClick={onSubmitForm} data-testid="goto-payment-options">
+                <div className="flex items-center gap-2">
+                  <p>
+                    Payment options
+                  </p>
+                  <img
+                    src="/icons/white-arrow.svg"
+                    alt="white-arrow"
+                    width={7}
+                    height={12}
+                  />
+                </div>
+              </Button>
             </div>
           </form>
           <section className="hidden md:block">
