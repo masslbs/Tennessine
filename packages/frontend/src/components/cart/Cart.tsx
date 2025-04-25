@@ -16,6 +16,7 @@ import { useBaseToken } from "../../hooks/useBaseToken.ts";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 import { multiplyAndFormatUnits } from "../../utils/helper.ts";
+import PriceSummary from "./PriceSummary.tsx";
 
 const namespace = "frontend:Cart";
 const debug = logger(namespace);
@@ -27,7 +28,7 @@ export default function Cart({
   closeBasket,
   showActionButtons = true,
 }: {
-  onCheckout?: () => Promise<void>;
+  onCheckout?: () => void;
   closeBasket?: () => void;
   showActionButtons?: boolean;
 }) {
@@ -109,7 +110,19 @@ export default function Cart({
 
   async function handleCheckout() {
     try {
-      await onCheckout!();
+      if (!currentOrder) {
+        debug("orderId not found");
+        throw new Error("No order found");
+      }
+      // Commit the order if it is an open order (not committed)
+      if (currentOrder!.State === OrderState.Open) {
+        await stateManager!.set(
+          ["Orders", currentOrder!.ID, "State"],
+          OrderState.Committed,
+        );
+        debug(`Order ID: ${currentOrder!.ID} committed`);
+      }
+      onCheckout?.();
     } catch (error) {
       if (
         error instanceof Error && (
@@ -373,17 +386,10 @@ export default function Cart({
         {renderItems()}
       </div>
       <div className="mt-4">
-        <p>Total Price:</p>
-        <div className="flex items-center gap-2">
-          <img
-            src={icon}
-            alt="coin"
-            width={20}
-            height={20}
-            className="w-5 h-5 max-h-5"
-          />
-          <h1 data-testid="total-price">{calculateTotal()}</h1>
-        </div>
+        <PriceSummary
+          displayedAmount={calculateTotal()}
+          tokenIcon={icon}
+        />
       </div>
       <div
         className={showActionButtons ? "flex gap-4 mt-2" : "hidden"}

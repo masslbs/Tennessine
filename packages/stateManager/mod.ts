@@ -1,6 +1,10 @@
 import { assert } from "@std/assert";
 
-import { DAG, type RootValue } from "@massmarket/merkle-dag-builder";
+import {
+  DAG,
+  type NodeValue,
+  type RootValue,
+} from "@massmarket/merkle-dag-builder";
 import type { AbstractStore } from "@massmarket/store";
 import EventTree from "@massmarket/eventTree";
 import type { Patch, PushedPatchSet, RelayClient } from "@massmarket/client";
@@ -25,7 +29,7 @@ interface IStoredState {
 
 export default class StateManager {
   readonly events = new EventTree<codec.CodecValue>(new Map());
-  readonly graph: DAG;
+  readonly graph: DAG<codec.CodecValue>;
   readonly clients: Set<RelayClient> = new Set();
   readonly id: bigint;
   #streamsWriters: Set<WritableStreamDefaultWriter<Patch[]>> = new Set();
@@ -36,12 +40,14 @@ export default class StateManager {
     params: {
       store: AbstractStore;
       id: bigint;
-      defaultState?: RootValue;
+      defaultState?: codec.CodecValue | Hash;
     },
   ) {
     this.id = params.id;
     this.graph = new DAG(params.store);
-    this.#defaultState = params?.defaultState ?? new Map();
+    this.#defaultState = this.graph.createNewRoot(
+      params?.defaultState ?? new Map(),
+    );
   }
 
   get root(): RootValue {
@@ -61,7 +67,8 @@ export default class StateManager {
         // root: v.getDefaults(this.params.schema) as CborValue,
       };
     this.#state = restored;
-    this.events.emit(this.#state.root as HashOrValue);
+    const root = this.#state.root as NodeValue;
+    this.events.emit(root[0]);
   }
 
   async close() {
@@ -74,14 +81,17 @@ export default class StateManager {
     });
     this.clients.clear();
     // wait for root to be resolved
-    state.root = await state.root;
-    return Promise.all([
+    const closingResults = await Promise.all([
       ...closingClients,
-      this.graph.store.objStore.set(
-        this.id,
-        new Map(Object.entries(state)),
-      ),
+      state.root,
     ]);
+
+    state.root = closingResults.pop() as RootValue;
+
+    return this.graph.store.objStore.set(
+      this.id,
+      new Map(Object.entries(state)),
+    );
   }
 
   createWriteStream(remoteId: string, subscriptionPath: codec.Path) {
@@ -100,27 +110,26 @@ export default class StateManager {
         //   throw new Error("Invalid keycard");
         for (const patch of patchSet.patches) {
           // TODO validate the Operation's value if any
-          // console.log("Applying patch:", patch);
           if (patch.Op === "add") {
-            state.root = await this.graph.add(
+            state.root = this.graph.add(
               state.root,
               patch.Path,
               patch.Value,
             );
           } else if (patch.Op === "replace") {
-            state.root = await this.graph.set(
+            state.root = this.graph.set(
               state.root,
               patch.Path,
               patch.Value,
             );
           } else if (patch.Op === "append") {
-            state.root = await this.graph.append(
+            state.root = this.graph.append(
               state.root,
               patch.Path,
               patch.Value,
             );
           } else if (patch.Op === "remove") {
-            state.root = await this.graph.remove(
+            state.root = this.graph.remove(
               state.root,
               patch.Path,
             );
@@ -148,7 +157,7 @@ export default class StateManager {
         );
         // we want to wait to resolve the promise before emitting the new state
         state.root = await state.root;
-        this.events.emit(state.root);
+        this.events.emit(state.root[0]);
         // TODO: check stateroot
         // TODO: we are saving the patches here
         // incase we want to replay the log, but we have no way to get them out
@@ -158,6 +167,19 @@ export default class StateManager {
         // );
       },
     });
+  }
+
+  #addClientsWriteStream(client: RelayClient) {
+    const remoteWritable = client.createWriteStream();
+    const writer = remoteWritable.getWriter();
+    writer.closed.catch((_error) => {
+      // is this an error we can recover from?
+      // if so do the following
+      console.log(_error);
+      this.#streamsWriters.delete(writer);
+      this.#addClientsWriteStream(client);
+    });
+    this.#streamsWriters.add(writer);
   }
 
   addConnection(client: RelayClient) {
@@ -175,9 +197,7 @@ export default class StateManager {
       id,
       [],
     );
-    const remoteWritable = client.createWriteStream();
-    const writer = remoteWritable.getWriter();
-    this.#streamsWriters.add(writer);
+    this.#addClientsWriteStream(client);
     const connection = remoteReadable.pipeTo(ourWritable);
     return { connection };
   }
@@ -221,15 +241,16 @@ export default class StateManager {
       const op = v === undefined ? "add" : "replace";
       sendpromise = this.#sendPatch(
         { Op: op, Path: path, Value: value },
-      ).catch((e) => {
+      ).catch(async (e) => {
         // Here we revert the back to the old state root
         // If the relay gives an error
-        state.root = oldStateRoot;
+        state.root = await oldStateRoot;
+        this.events.emit(state.root[0]);
         throw e;
       });
     });
     const r = await state.root;
-    this.events.emit(r);
+    this.events.emit(r[0]);
     return sendpromise!;
   }
 

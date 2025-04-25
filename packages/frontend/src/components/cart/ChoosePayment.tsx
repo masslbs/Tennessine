@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useChains } from "wagmi";
 import {
   Address,
@@ -10,6 +10,8 @@ import {
   toHex,
   zeroAddress,
 } from "viem";
+import { assert } from "@std/assert";
+import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 
 import { logger } from "@massmarket/utils";
 import { abi, getPaymentAddress, getPaymentId } from "@massmarket/contracts";
@@ -24,17 +26,19 @@ import {
 import { CodecValue } from "@massmarket/utils/codec";
 import Pay from "./Pay.tsx";
 import QRScan from "./QRScan.tsx";
+import PriceSummary from "./PriceSummary.tsx";
 import TimerToast from "./TimerToast.tsx";
+import PaymentConfirmation from "./PaymentConfirmation.tsx";
 import Dropdown from "../common/CurrencyDropdown.tsx";
 import BackButton from "../common/BackButton.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
+import LoadingSpinner from "../common/LoadingSpinner.tsx";
 import ConnectWalletButton from "../common/ConnectWalletButton.tsx";
 import { useShopId } from "../../hooks/useShopId.ts";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
-import { CheckoutStep, CurrencyChainOption } from "../../types.ts";
+import { CurrencyChainOption } from "../../types.ts";
 import { env, getTokenInformation } from "../../utils/mod.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
-import LoadingSpinner from "../common/LoadingSpinner.tsx";
 
 const namespace = "frontend:ChoosePayment";
 const debug = logger(namespace);
@@ -42,21 +46,12 @@ const warn = logger(namespace, "warn");
 const errlog = logger(namespace, "error");
 const paymentsByAddressAbi = abi.paymentsByAddressAbi;
 
-export default function ChoosePayment({
-  setStep,
-  displayedAmount,
-  setDisplayedAmount,
-  setTimerRunning,
-}: {
-  setStep: (step: CheckoutStep) => void;
-  displayedAmount: string | null;
-  setDisplayedAmount: Dispatch<SetStateAction<string | null>>;
-  setTimerRunning: (running: boolean) => void;
-}) {
+export default function ChoosePayment() {
   const { shopId } = useShopId();
   const { currentOrder } = useCurrentOrder();
   const chains = useChains();
   const { stateManager } = useStateManager();
+  const addRecentTransaction = useAddRecentTransaction();
 
   const [displayedChains, setChains] = useState<CurrencyChainOption[] | null>(
     null,
@@ -81,6 +76,9 @@ export default function ChoosePayment({
     null,
   );
   const [paymentCurrencyLoading, setPaymentCurrencyLoading] = useState(false);
+  const [displayedAmount, setDisplayedAmount] = useState<string | null>(null);
+  const [txHash, setTxHash] = useState<null | `0x${string}`>(null);
+  const [blockHash, setBlockHash] = useState<null | `0x${string}`>(null);
 
   useEffect(() => {
     if (!stateManager) return;
@@ -102,25 +100,54 @@ export default function ChoosePayment({
     if (!stateManager) return;
     if (!currentOrder) return;
     //Listen for client to send paymentDetails event.
-    function onPaymentDetails(res: CodecValue) {
-      const order = Order.fromCBOR(res);
-      if (!order.PaymentDetails) return;
+    function onPaymentDetails() {
       getPaymentArgs().then(() => {
         debug("paymentDetails found for order");
         setPaymentCurrencyLoading(false);
       });
     }
 
-    stateManager.events.on(onPaymentDetails, ["Orders", currentOrder!.ID]);
+    function txHashDetected(order: Order) {
+      if (order.TxDetails) {
+        const tx = order.TxDetails.TxHash;
+        const bh = order.TxDetails.BlockHash;
+        assert(tx || bh, "No tx or bh");
+        tx && setTxHash(toHex(tx));
+        bh && setBlockHash(toHex(bh));
+        debug(
+          `Hash received: ${
+            tx ? `Tx: ${toHex(tx)}` : bh ? `Block: ${toHex(bh)}` : "unreachable"
+          }`,
+        );
+        try {
+          addRecentTransaction({
+            hash: tx ? toHex(tx) : toHex(bh),
+            description: "Order Payment",
+            // confirmations: 3,
+          });
+        } catch (error) {
+          warn("Error adding recent transaction to rainbowkit", error);
+        }
+      }
+    }
+    function currentOrderUpdated(o: CodecValue) {
+      const order = Order.fromCBOR(o);
+      if (order.TxDetails) {
+        txHashDetected(order);
+      } else if (order.PaymentDetails) {
+        onPaymentDetails();
+      }
+    }
+    stateManager.events.on(currentOrderUpdated, ["Orders", currentOrder!.ID]);
 
     return () => {
       // Cleanup listeners on unmount
       stateManager.events.off(
-        onPaymentDetails,
+        currentOrderUpdated,
         ["Orders", currentOrder!.ID],
       );
     };
-  }, [stateManager]);
+  }, [stateManager, currentOrder]);
 
   useEffect(() => {
     // If there is only one currency option, automatically select it.
@@ -332,8 +359,14 @@ export default function ChoosePayment({
     }
     setConnectWalletOpen(true);
   }
-
-  if (qrOpen) {
+  if (txHash || blockHash) {
+    return (
+      <PaymentConfirmation
+        displayedAmount={displayedAmount!}
+        hash={txHash || blockHash}
+      />
+    );
+  } else if (qrOpen) {
     if (!imgSrc || !paymentAddress || !displayedAmount) {
       return <p>Loading...</p>;
     }
@@ -348,9 +381,10 @@ export default function ChoosePayment({
   } else if (connectWalletOpen) {
     return (
       <Pay
+        displayedAmount={displayedAmount}
+        tokenIcon={chosenPaymentTokenIcon}
         paymentArgs={paymentArgs!}
         paymentCurrencyLoading={paymentCurrencyLoading}
-        setTimerRunning={setTimerRunning}
         goBack={() => setConnectWalletOpen(false)}
       />
     );
@@ -361,7 +395,6 @@ export default function ChoosePayment({
       <section className="md:w-[560px]">
         <BackButton
           onClick={() => {
-            setStep(CheckoutStep.shippingDetails);
           }}
         />
         <ErrorMessage
@@ -390,19 +423,10 @@ export default function ChoosePayment({
                 />
               )}
           </div>
-          <div className={displayedAmount ? "" : "hidden"}>
-            <p>Total Price</p>
-            <div className="flex items-center gap-2">
-              <img
-                src={chosenPaymentTokenIcon}
-                alt="coin"
-                width={24}
-                height={24}
-                className="w-6 h-6 max-h-6"
-              />
-              <h1>{displayedAmount}</h1>
-            </div>
-          </div>
+          <PriceSummary
+            displayedAmount={displayedAmount}
+            tokenIcon={chosenPaymentTokenIcon}
+          />
           <div
             data-testid="payment-details-loading"
             className={paymentCurrencyLoading

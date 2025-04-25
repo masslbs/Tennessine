@@ -20,6 +20,7 @@ import BackButton from "../common/BackButton.tsx";
 import { env } from "../../utils/env.ts";
 import { isTesting } from "../../utils/env.ts";
 import ErrorMessage from "../common/ErrorMessage.tsx";
+import PriceSummary from "./PriceSummary.tsx";
 
 const namespace = "frontend:Pay";
 const debug = logger(namespace);
@@ -35,19 +36,21 @@ const {
 } = abi;
 
 export default function Pay({
+  displayedAmount,
+  tokenIcon,
   paymentArgs,
   paymentCurrencyLoading,
   goBack,
-  setTimerRunning,
 }: {
   paymentArgs: ContractFunctionArgs<
     typeof paymentsByAddressAbi,
     "nonpayable",
     "payTokenPreApproved"
   >;
+  displayedAmount: string | null;
+  tokenIcon: string;
   paymentCurrencyLoading: boolean;
   goBack: () => void;
-  setTimerRunning: (running: boolean) => void;
 }) {
   const { connector } = useAccount();
   const { data: wallet } = useWalletClient();
@@ -81,7 +84,6 @@ export default function Pay({
     try {
       setLoading(true);
       //pause timer if user is paying.
-      setTimerRunning(false);
 
       if (!isNative) {
         debug("Checking ERC20 allowance");
@@ -165,6 +167,10 @@ export default function Pay({
 
         <section className="flex flex-col gap-4 bg-white p-5 rounded-lg mt-2">
           <h1>Connect your wallet</h1>
+          <PriceSummary
+            displayedAmount={displayedAmount}
+            tokenIcon={tokenIcon}
+          />
           <ConnectButton chainStatus="name" />
           <Button
             onClick={sendPayment}

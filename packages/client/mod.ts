@@ -80,7 +80,7 @@ export type SignedPatchSet = {
 
 export class RelayResponseError extends Error {
   constructor(
-    cause: {
+    public override cause: {
       message: string;
       id: unknown;
       requestType: string;
@@ -90,7 +90,6 @@ export class RelayResponseError extends Error {
     super(
       `network request ${cause.requestType} id: ${cause.id} failed with error[${cause.code}]: ${cause.message}`,
     );
-    Object.assign(this, cause);
   }
 }
 
@@ -373,7 +372,9 @@ export class RelayClient {
         try {
           await this.encodeAndSend(envelope);
         } catch (error: unknown) {
-          if (error instanceof Error) {
+          if (
+            error instanceof Error && !(error instanceof RelayResponseError)
+          ) {
             throw new ClientWriteError(error, signedPatchSet);
           } else {
             throw error;

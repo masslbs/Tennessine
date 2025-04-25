@@ -16,8 +16,10 @@ import { Route as rootRoute } from './routes/__root.tsx'
 
 // Create Virtual Routes
 
+const ShippingLazyImport = createFileRoute('/shipping')()
 const ShareLazyImport = createFileRoute('/share')()
 const SettingsLazyImport = createFileRoute('/settings')()
+const PayLazyImport = createFileRoute('/pay')()
 const OrdersLazyImport = createFileRoute('/orders')()
 const OrderDetailsLazyImport = createFileRoute('/order-details')()
 const MerchantDashboardLazyImport = createFileRoute('/merchant-dashboard')()
@@ -27,10 +29,16 @@ const ListingDetailLazyImport = createFileRoute('/listing-detail')()
 const EditListingLazyImport = createFileRoute('/edit-listing')()
 const CreateShopLazyImport = createFileRoute('/create-shop')()
 const ContactLazyImport = createFileRoute('/contact')()
-const CheckoutLazyImport = createFileRoute('/checkout')()
+const CartLazyImport = createFileRoute('/cart')()
 const IndexLazyImport = createFileRoute('/')()
 
 // Create/Update Routes
+
+const ShippingLazyRoute = ShippingLazyImport.update({
+  id: '/shipping',
+  path: '/shipping',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/shipping.lazy.tsx').then((d) => d.Route))
 
 const ShareLazyRoute = ShareLazyImport.update({
   id: '/share',
@@ -43,6 +51,12 @@ const SettingsLazyRoute = SettingsLazyImport.update({
   path: '/settings',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/settings.lazy.tsx').then((d) => d.Route))
+
+const PayLazyRoute = PayLazyImport.update({
+  id: '/pay',
+  path: '/pay',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/pay.lazy.tsx').then((d) => d.Route))
 
 const OrdersLazyRoute = OrdersLazyImport.update({
   id: '/orders',
@@ -110,11 +124,11 @@ const ContactLazyRoute = ContactLazyImport.update({
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/contact.lazy.tsx').then((d) => d.Route))
 
-const CheckoutLazyRoute = CheckoutLazyImport.update({
-  id: '/checkout',
-  path: '/checkout',
+const CartLazyRoute = CartLazyImport.update({
+  id: '/cart',
+  path: '/cart',
   getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/checkout.lazy.tsx').then((d) => d.Route))
+} as any).lazy(() => import('./routes/cart.lazy.tsx').then((d) => d.Route))
 
 const IndexLazyRoute = IndexLazyImport.update({
   id: '/',
@@ -133,11 +147,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexLazyImport
       parentRoute: typeof rootRoute
     }
-    '/checkout': {
-      id: '/checkout'
-      path: '/checkout'
-      fullPath: '/checkout'
-      preLoaderRoute: typeof CheckoutLazyImport
+    '/cart': {
+      id: '/cart'
+      path: '/cart'
+      fullPath: '/cart'
+      preLoaderRoute: typeof CartLazyImport
       parentRoute: typeof rootRoute
     }
     '/contact': {
@@ -203,6 +217,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrdersLazyImport
       parentRoute: typeof rootRoute
     }
+    '/pay': {
+      id: '/pay'
+      path: '/pay'
+      fullPath: '/pay'
+      preLoaderRoute: typeof PayLazyImport
+      parentRoute: typeof rootRoute
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -217,6 +238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShareLazyImport
       parentRoute: typeof rootRoute
     }
+    '/shipping': {
+      id: '/shipping'
+      path: '/shipping'
+      fullPath: '/shipping'
+      preLoaderRoute: typeof ShippingLazyImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -224,7 +252,7 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexLazyRoute
-  '/checkout': typeof CheckoutLazyRoute
+  '/cart': typeof CartLazyRoute
   '/contact': typeof ContactLazyRoute
   '/create-shop': typeof CreateShopLazyRoute
   '/edit-listing': typeof EditListingLazyRoute
@@ -234,13 +262,15 @@ export interface FileRoutesByFullPath {
   '/merchant-dashboard': typeof MerchantDashboardLazyRoute
   '/order-details': typeof OrderDetailsLazyRoute
   '/orders': typeof OrdersLazyRoute
+  '/pay': typeof PayLazyRoute
   '/settings': typeof SettingsLazyRoute
   '/share': typeof ShareLazyRoute
+  '/shipping': typeof ShippingLazyRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexLazyRoute
-  '/checkout': typeof CheckoutLazyRoute
+  '/cart': typeof CartLazyRoute
   '/contact': typeof ContactLazyRoute
   '/create-shop': typeof CreateShopLazyRoute
   '/edit-listing': typeof EditListingLazyRoute
@@ -250,14 +280,16 @@ export interface FileRoutesByTo {
   '/merchant-dashboard': typeof MerchantDashboardLazyRoute
   '/order-details': typeof OrderDetailsLazyRoute
   '/orders': typeof OrdersLazyRoute
+  '/pay': typeof PayLazyRoute
   '/settings': typeof SettingsLazyRoute
   '/share': typeof ShareLazyRoute
+  '/shipping': typeof ShippingLazyRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexLazyRoute
-  '/checkout': typeof CheckoutLazyRoute
+  '/cart': typeof CartLazyRoute
   '/contact': typeof ContactLazyRoute
   '/create-shop': typeof CreateShopLazyRoute
   '/edit-listing': typeof EditListingLazyRoute
@@ -267,15 +299,17 @@ export interface FileRoutesById {
   '/merchant-dashboard': typeof MerchantDashboardLazyRoute
   '/order-details': typeof OrderDetailsLazyRoute
   '/orders': typeof OrdersLazyRoute
+  '/pay': typeof PayLazyRoute
   '/settings': typeof SettingsLazyRoute
   '/share': typeof ShareLazyRoute
+  '/shipping': typeof ShippingLazyRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/checkout'
+    | '/cart'
     | '/contact'
     | '/create-shop'
     | '/edit-listing'
@@ -285,12 +319,14 @@ export interface FileRouteTypes {
     | '/merchant-dashboard'
     | '/order-details'
     | '/orders'
+    | '/pay'
     | '/settings'
     | '/share'
+    | '/shipping'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/checkout'
+    | '/cart'
     | '/contact'
     | '/create-shop'
     | '/edit-listing'
@@ -300,12 +336,14 @@ export interface FileRouteTypes {
     | '/merchant-dashboard'
     | '/order-details'
     | '/orders'
+    | '/pay'
     | '/settings'
     | '/share'
+    | '/shipping'
   id:
     | '__root__'
     | '/'
-    | '/checkout'
+    | '/cart'
     | '/contact'
     | '/create-shop'
     | '/edit-listing'
@@ -315,14 +353,16 @@ export interface FileRouteTypes {
     | '/merchant-dashboard'
     | '/order-details'
     | '/orders'
+    | '/pay'
     | '/settings'
     | '/share'
+    | '/shipping'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexLazyRoute: typeof IndexLazyRoute
-  CheckoutLazyRoute: typeof CheckoutLazyRoute
+  CartLazyRoute: typeof CartLazyRoute
   ContactLazyRoute: typeof ContactLazyRoute
   CreateShopLazyRoute: typeof CreateShopLazyRoute
   EditListingLazyRoute: typeof EditListingLazyRoute
@@ -332,13 +372,15 @@ export interface RootRouteChildren {
   MerchantDashboardLazyRoute: typeof MerchantDashboardLazyRoute
   OrderDetailsLazyRoute: typeof OrderDetailsLazyRoute
   OrdersLazyRoute: typeof OrdersLazyRoute
+  PayLazyRoute: typeof PayLazyRoute
   SettingsLazyRoute: typeof SettingsLazyRoute
   ShareLazyRoute: typeof ShareLazyRoute
+  ShippingLazyRoute: typeof ShippingLazyRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexLazyRoute: IndexLazyRoute,
-  CheckoutLazyRoute: CheckoutLazyRoute,
+  CartLazyRoute: CartLazyRoute,
   ContactLazyRoute: ContactLazyRoute,
   CreateShopLazyRoute: CreateShopLazyRoute,
   EditListingLazyRoute: EditListingLazyRoute,
@@ -348,8 +390,10 @@ const rootRouteChildren: RootRouteChildren = {
   MerchantDashboardLazyRoute: MerchantDashboardLazyRoute,
   OrderDetailsLazyRoute: OrderDetailsLazyRoute,
   OrdersLazyRoute: OrdersLazyRoute,
+  PayLazyRoute: PayLazyRoute,
   SettingsLazyRoute: SettingsLazyRoute,
   ShareLazyRoute: ShareLazyRoute,
+  ShippingLazyRoute: ShippingLazyRoute,
 }
 
 export const routeTree = rootRoute
@@ -363,7 +407,7 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/checkout",
+        "/cart",
         "/contact",
         "/create-shop",
         "/edit-listing",
@@ -373,15 +417,17 @@ export const routeTree = rootRoute
         "/merchant-dashboard",
         "/order-details",
         "/orders",
+        "/pay",
         "/settings",
-        "/share"
+        "/share",
+        "/shipping"
       ]
     },
     "/": {
       "filePath": "index.lazy.tsx"
     },
-    "/checkout": {
-      "filePath": "checkout.lazy.tsx"
+    "/cart": {
+      "filePath": "cart.lazy.tsx"
     },
     "/contact": {
       "filePath": "contact.lazy.tsx"
@@ -410,11 +456,17 @@ export const routeTree = rootRoute
     "/orders": {
       "filePath": "orders.lazy.tsx"
     },
+    "/pay": {
+      "filePath": "pay.lazy.tsx"
+    },
     "/settings": {
       "filePath": "settings.lazy.tsx"
     },
     "/share": {
       "filePath": "share.lazy.tsx"
+    },
+    "/shipping": {
+      "filePath": "shipping.lazy.tsx"
     }
   }
 }
