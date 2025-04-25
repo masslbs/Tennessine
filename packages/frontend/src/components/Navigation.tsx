@@ -6,21 +6,14 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useDisconnect } from "wagmi";
 
-import { logger } from "@massmarket/utils";
 import { Order, OrderedItem } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
 
-import { CheckoutStep, OrderState } from "../types.ts";
 import Cart from "./cart/Cart.tsx";
 import { useStateManager } from "../hooks/useStateManager.ts";
 import { useShopDetails } from "../hooks/useShopDetails.ts";
 import { useKeycard } from "../hooks/useKeycard.ts";
 import { useCurrentOrder } from "../hooks/useCurrentOrder.ts";
-
-const namespace = "frontend:Navigation";
-const debug = logger(namespace);
-const warn = logger(namespace, "warn");
-const errlog = logger(namespace, "error");
 
 const merchantMenu = [
   {
@@ -40,7 +33,7 @@ const customerMenu = [
   {
     title: "Basket",
     img: "menu-basket.svg",
-    href: `/checkout`,
+    href: `/cart`,
   },
   {
     title: "Contact",
@@ -105,36 +98,14 @@ function Navigation() {
     basketOpen && setBasketOpen(false);
   }
 
-  async function onCheckout() {
-    if (!stateManager) {
-      warn("stateManager is undefined");
-      return;
-    }
-    try {
-      if (!currentOrder) {
-        debug("orderId not found");
-        throw new Error("No order found");
-      }
-      // Commit the order if it is an open order (not committed)
-      if (currentOrder!.State === OrderState.Open) {
-        await stateManager.set(
-          ["Orders", currentOrder!.ID, "State"],
-          OrderState.Committed,
-        );
-        debug(`Order ID: ${currentOrder!.ID} committed`);
-      }
-      setBasketOpen(false);
-      navigate({
-        to: "/checkout",
-        search: (prev: Record<string, string>) => ({
-          shopId: prev.shopId,
-          step: CheckoutStep.shippingDetails,
-        }),
-      });
-    } catch (error: unknown) {
-      errlog("error committing order", error);
-      throw error;
-    }
+  function onCheckout() {
+    setBasketOpen(false);
+    navigate({
+      to: "/shipping",
+      search: (prev: Record<string, string>) => ({
+        shopId: prev.shopId,
+      }),
+    });
   }
 
   function renderMenuItems() {
@@ -219,7 +190,6 @@ function Navigation() {
                 to: "/listings",
                 search: (prev: Record<string, string>) => ({
                   shopId: prev.shopId,
-                  step: CheckoutStep.shippingDetails,
                 }),
               })}
           >
@@ -305,7 +275,7 @@ function Navigation() {
         />
       )}
       <section className="md:flex md:justify-center">
-        <section className="md:w-[800px] md:flex md:justify-end absolute">
+        <section className="md:ml-[calc(800px-13rem)] md:flex md:justify-end absolute">
           {menuOpen
             ? (
               <section>

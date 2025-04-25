@@ -41,7 +41,6 @@ export default function Pay({
   paymentArgs,
   paymentCurrencyLoading,
   goBack,
-  setTimerRunning,
 }: {
   paymentArgs: ContractFunctionArgs<
     typeof paymentsByAddressAbi,
@@ -52,7 +51,6 @@ export default function Pay({
   tokenIcon: string;
   paymentCurrencyLoading: boolean;
   goBack: () => void;
-  setTimerRunning: (running: boolean) => void;
 }) {
   const { connector } = useAccount();
   const { data: wallet } = useWalletClient();
@@ -86,7 +84,6 @@ export default function Pay({
     try {
       setLoading(true);
       //pause timer if user is paying.
-      setTimerRunning(false);
 
       if (!isNative) {
         debug("Checking ERC20 allowance");

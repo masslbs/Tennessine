@@ -29,14 +29,6 @@ export type CurrencyChainOption = {
   address: Uint8Array;
 };
 
-export enum CheckoutStep {
-  cart = "cart",
-  shippingDetails = "shippingDetails",
-  paymentDetails = "paymentDetails",
-  confirmation = "confirmation",
-  expired = "expired",
-}
-
 export enum SearchShopStep {
   Search = "SEARCH",
   Connect = "CONNECT",
