@@ -160,6 +160,18 @@ export default class StateManager {
     });
   }
 
+  #addClientsWriteStream(client: RelayClient) {
+    const remoteWritable = client.createWriteStream();
+    const writer = remoteWritable.getWriter();
+    writer.closed.catch((_error) => {
+      // is this an error we can recover from?
+      // if so do the following
+      this.#streamsWriters.delete(writer);
+      this.#addClientsWriteStream(client);
+    });
+    this.#streamsWriters.add(writer);
+  }
+
   addConnection(client: RelayClient) {
     assert(this.#state, "open not finished");
     client.keyCardNonce = this.#state.keycardNonce;
@@ -175,9 +187,7 @@ export default class StateManager {
       id,
       [],
     );
-    const remoteWritable = client.createWriteStream();
-    const writer = remoteWritable.getWriter();
-    this.#streamsWriters.add(writer);
+    this.#addClientsWriteStream(client);
     const connection = remoteReadable.pipeTo(ourWritable);
     return { connection };
   }
@@ -225,7 +235,7 @@ export default class StateManager {
         // Here we revert the back to the old state root
         // If the relay gives an error
         state.root = await oldStateRoot;
-        this.events.emit(state.root[0]);
+        this.events.emit(state.root);
         throw e;
       });
     });
