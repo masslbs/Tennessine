@@ -257,7 +257,7 @@ Deno.test("Check that we can render the checkout screen", {
       );
       expect(paymentDetailsLoading).toBeTruthy();
       expect(paymentDetailsLoading.classList.contains("hidden")).toBe(true);
-      const displayedAmount = screen.getByTestId("displayed-amount");
+      const displayedAmount = screen.getByTestId("total-price");
       expect(displayedAmount).toBeTruthy();
       expect(displayedAmount.textContent).toBe(`${wantTotalPrice} ETH`);
     });

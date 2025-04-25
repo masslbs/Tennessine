@@ -16,6 +16,7 @@ import { useBaseToken } from "../../hooks/useBaseToken.ts";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 import { multiplyAndFormatUnits } from "../../utils/helper.ts";
+import PriceSummary from "./PriceSummary.tsx";
 
 const namespace = "frontend:Cart";
 const debug = logger(namespace);
@@ -385,17 +386,10 @@ export default function Cart({
         {renderItems()}
       </div>
       <div className="mt-4">
-        <p>Total Price:</p>
-        <div className="flex items-center gap-2">
-          <img
-            src={icon}
-            alt="coin"
-            width={20}
-            height={20}
-            className="w-5 h-5 max-h-5"
-          />
-          <h1 data-testid="total-price">{calculateTotal()}</h1>
-        </div>
+        <PriceSummary
+          displayedAmount={calculateTotal()}
+          tokenIcon={icon}
+        />
       </div>
       <div
         className={showActionButtons ? "flex gap-4 mt-2" : "hidden"}
