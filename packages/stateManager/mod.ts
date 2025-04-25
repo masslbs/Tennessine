@@ -241,7 +241,6 @@ export default class StateManager {
         { Op: op, Path: path, Value: value },
       );
     });
-<<<<<<< HEAD
     try {
       // TODO (@nullradix 2025-04-28) If we revert the state
       // here, we would potentaily be reverting multiple operations
@@ -257,11 +256,6 @@ export default class StateManager {
       state.root = oldStateRoot;
       throw e;
     }
-=======
-    const r = await state.root;
-    this.events.emit(r[0]);
-    return sendpromise!;
->>>>>>> a4cc79d (Timestamp (#395))
   }
 
   get(

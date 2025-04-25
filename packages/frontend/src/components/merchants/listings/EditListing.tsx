@@ -329,6 +329,7 @@ export default function EditProduct() {
                         height={95}
                         data-testid="uploaded-product-image"
                         style={{
+                          objectFit: "cover",
                           maxHeight: "95px",
                           maxWidth: "105px",
                           minHeight: "95px",
