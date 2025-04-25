@@ -82,11 +82,10 @@ export default function MerchantViewProducts({
               />
             </div>
             <div className="flex justify-between mt-2 border-b border-gray-300 w-full pb-2">
-              <p>Stock Level</p>
+              <p>Stock #</p>
               <p>{quantity}</p>
             </div>
             <div className="flex justify-between pt-2 mt-auto">
-              <p>Price</p>
               <div className="flex gap-1 items-center">
                 <img
                   src={baseToken?.symbol === "ETH"
