@@ -239,7 +239,7 @@ export default function EditProduct() {
   }
   return (
     <main
-      className="pt-4 px-3 md:flex justify-center"
+      className="px-3 md:flex justify-center"
       data-testid="edit-listing-screen"
     >
       <section className="md:w-[560px]">
@@ -270,8 +270,9 @@ export default function EditProduct() {
               <label htmlFor="title">Product name</label>
               <input
                 value={listing.Metadata.Title}
-                className="border-2 border-solid mt-1 p-3 rounded-md bg-background-gray"
+                className="mt-1 p-2 rounded-md"
                 data-testid="title"
+                style={{ backgroundColor: "#F3F3F3" }}
                 name="title"
                 onChange={(e) => handleInputChange(e, "Title")}
               />
@@ -285,20 +286,21 @@ export default function EditProduct() {
               <label htmlFor="description">Product description</label>
               <input
                 value={listing.Metadata.Description}
-                className="border-2 border-solid mt-1 p-3 rounded-md bg-background-gray"
+                className="mt-1 p-2 rounded-md"
                 data-testid="description"
+                style={{ backgroundColor: "#F3F3F3" }}
                 name="description"
                 onChange={(e) => handleInputChange(e, "Description")}
               />
             </form>
             <section className="flex flex-col">
               <p className="mb-2">Product pics</p>
-              <div className="border-2 border-solid rounded-md bg-background-gray h-32 flex">
+              <div className="rounded-md h-32 flex">
                 <button
                   type="button"
                   onClick={triggerFileInput}
                   className="p-5 w-full text-white"
-                  style={{ backgroundColor: "white" }}
+                  style={{ backgroundColor: "#F3F3F3" }}
                 >
                   <div className="flex flex-col items-center gap-2">
                     <img
@@ -349,7 +351,7 @@ export default function EditProduct() {
                 })}
               </div>
             </section>
-            <div className="flex justify-between">
+            <div className="flex justify-between gap-1">
               <form
                 className="flex flex-col w-40"
                 onSubmit={(e) => {
@@ -361,8 +363,9 @@ export default function EditProduct() {
                   type="number"
                   step="any"
                   value={formatUnits(listing.Price, baseToken.decimals)}
-                  className="border-2 border-solid mt-1 p-3 rounded-md bg-background-gray"
+                  className="mt-1 p-2 rounded-md"
                   data-testid="price"
+                  style={{ backgroundColor: "#F3F3F3" }}
                   name="price"
                   onChange={(e) => handleInputChange(e, "Price")}
                 />
@@ -376,8 +379,9 @@ export default function EditProduct() {
                 <label htmlFor="stock">stock</label>
                 <input
                   value={stock}
-                  className="border-2 border-solid mt-1 p-3 rounded-md bg-background-gray"
+                  className="mt-1 p-2 rounded-md"
                   data-testid="stock"
+                  style={{ backgroundColor: "#F3F3F3" }}
                   name="stock"
                   onChange={(e) => handleStockChange(e)}
                 />
@@ -389,7 +393,7 @@ export default function EditProduct() {
                 type="file"
                 data-testid="file-upload"
                 ref={fileInputRef}
-                className="file-input"
+                className="file-input "
                 accept="image/*"
                 onChange={handleUpload}
               />

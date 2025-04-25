@@ -56,7 +56,10 @@ export default function CustomerViewProducts({
             </div>
             <div className="bg-white flex flex-col gap-2 rounded-b-lg p-3 min-h-24 max-h-24 h-24 w-40 xxs:w-36 md:w-[190px]">
               <div className="min-h-8">
-                <h3 data-testid="product-name" className="leading-4">
+                <h3
+                  data-testid="product-name"
+                  className="leading-4 line-clamp-2 md:p-1"
+                >
                   {item.Metadata.Title}
                 </h3>
               </div>

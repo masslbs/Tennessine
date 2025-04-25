@@ -392,7 +392,7 @@ export default function ChoosePayment() {
 
   return (
     <section data-testid="choose-payment" className="md:flex justify-center">
-      <section className="md:w-[560px]">
+      <section className="md:w-[600px] px-4 md:px-0">
         <BackButton
           onClick={() => {
           }}
@@ -438,7 +438,7 @@ export default function ChoosePayment() {
           </div>
           <section
             data-testid="payment-methods"
-            className="flex flex-col md:flex-row gap-4 justify-around"
+            className="flex flex-col md:flex-row gap-4 justify-center"
           >
             <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg">
               <ConnectWalletButton

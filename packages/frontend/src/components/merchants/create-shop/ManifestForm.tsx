@@ -106,7 +106,7 @@ export default function ManifestForm(
   }
 
   return (
-    <section data-testid="manifest-form" className="md:w-[560px]">
+    <section data-testid="manifest-form" className="w-full md:w-[560px]">
       <section>
         <ValidationWarning
           warning={validationError}
@@ -133,8 +133,9 @@ export default function ManifestForm(
             Shop Name
           </label>
           <input
-            className="border-2 border-solid mt-1 p-2 rounded-md bg-background-gray"
+            className="mt-1 p-2 rounded-md"
             data-testid="shopName"
+            style={{ backgroundColor: "#F3F3F3" }}
             value={shopName}
             onChange={(e) => {
               handleShopFormChange("shopName", e.target.value);
@@ -155,8 +156,9 @@ export default function ManifestForm(
             Description
           </label>
           <input
-            className="border-2 border-solid mt-1 p-2 rounded-md bg-background-gray"
+            className="mt-1 p-2 rounded-md"
             data-testid="description"
+            style={{ backgroundColor: "#F3F3F3" }}
             value={description}
             onChange={(e) =>
               handleShopFormChange("description", e.target.value)}
@@ -192,12 +194,14 @@ export default function ManifestForm(
             onSubmit={(e) => {
               e.preventDefault();
             }}
+            className="flex flex-col"
           >
             <label htmlFor="payee" className="font-medium">
               Payment Address
             </label>
             <input
-              className="border-2 border-solid mt-1 p-2 rounded-md w-full bg-background-gray"
+              className="mt-1 p-2 rounded-md"
+              style={{ backgroundColor: "#F3F3F3" }}
               id="payees"
               data-testid="payees"
               value={paymentAddress || ""}

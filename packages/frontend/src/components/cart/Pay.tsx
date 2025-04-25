@@ -154,7 +154,7 @@ export default function Pay({
 
   return (
     <main className="md:flex justify-center">
-      <section className="md:w-[800px]">
+      <section className="md:w-[800px] px-4 md:px-0">
         <BackButton onClick={goBack} />
         <div className="my-3">
           <ErrorMessage

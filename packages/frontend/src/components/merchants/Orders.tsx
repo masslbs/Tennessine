@@ -42,18 +42,24 @@ export default function Orders() {
         ["Orders"],
       );
     };
-  }, []);
+  }, [stateManager]);
 
   return (
-    <main className="p-4">
-      <div className="transactions-container">
-        <h2>Manage Orders</h2>
-        <div className="bg-primary-dark-green flex text-white p-4 rounded-t-xl mt-4">
+    <main className="p-4 md:flex justify-center">
+      <section
+        data-testid-="transactions-container"
+        className="md:w-[560px]"
+      >
+        <h1>Manage Orders</h1>
+        <div className="bg-primary-dark-green grid grid-cols-5 text-white text-sm p-4 rounded-t-xl mt-4 text-center">
           <p>Order ID</p>
-          <p className="ml-auto">Status</p>
+          <p>Date</p>
+          <p>Time</p>
+          <p>Value</p>
+          <p>Status</p>
         </div>
         <Transactions orders={orders} />
-      </div>
+      </section>
     </main>
   );
 }

@@ -236,7 +236,8 @@ export default function ListingDetail() {
               <div>
                 <p className="text-xs text-primary-gray mb-2">Quantity</p>
                 <input
-                  className="border-2 border-solid p-3 rounded-md max-w-[80px]"
+                  className="mt-1 p-2 rounded-md max-w-[80px]"
+                  style={{ backgroundColor: "#F3F3F3" }}
                   id="quantity"
                   name="quantity"
                   value={quantity}

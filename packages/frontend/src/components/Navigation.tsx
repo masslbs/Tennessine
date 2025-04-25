@@ -279,7 +279,7 @@ function Navigation() {
           {menuOpen
             ? (
               <section>
-                <div className="fixed bg-background-gray z-10 w-full flex flex-col gap-5 rounded-b-lg p-5 md:w-[200px] md:static">
+                <div className="fixed bg-background-gray z-10 w-full flex flex-col gap-5 rounded-b-lg p-5 md:w-fit md:static">
                   {renderMenuItems()}
                 </div>
               </section>

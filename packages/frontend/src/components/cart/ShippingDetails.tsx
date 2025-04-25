@@ -126,8 +126,11 @@ export default function ShippingDetails() {
   }
 
   return (
-    <section className="md:flex justify-center">
-      <section className="md:w-[800px]" data-testid="shipping-details">
+    <main className="md:flex justify-center">
+      <section
+        className="md:w-[800px] px-4 md:px-0"
+        data-testid="shipping-details"
+      >
         <h1 className="my-5">Shipping details</h1>
         <section className="flex flex-row justify-center gap-12 bg-white p-5 rounded-lg">
           <form
@@ -254,6 +257,6 @@ export default function ShippingDetails() {
           </section>
         </section>
       </section>
-    </section>
+    </main>
   );
 }
