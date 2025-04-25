@@ -8,6 +8,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { logger } from "@massmarket/utils";
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
+import { RelayResponseError } from "@massmarket/client";
 
 import { ListingId, OrderState } from "../../types.ts";
 import Button from "../common/Button.tsx";
@@ -45,6 +46,7 @@ export default function Cart({
     new Map(),
   );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [errorListing, setErrorListing] = useState<Listing | null>(null);
 
   function onOrderUpdate(order: CodecValue) {
     const o = Order.fromCBOR(order);
@@ -125,17 +127,18 @@ export default function Cart({
       onCheckout?.();
     } catch (error) {
       if (
-        error instanceof Error && (
-          error.message === "not enough items in stock for order" ||
-          error.message == "not enough stock" ||
-          error.message == "not in stock"
-        )
+        error instanceof RelayResponseError &&
+        error.cause.code === 9 && error.cause.additionalInfo
       ) {
-        setErrorMsg("Not enough stock. Cart cleared.");
-        await clearCart();
+        const objectId = error.cause.additionalInfo.objectId;
+        const l = await stateManager!.get(["Listings", objectId]);
+        if (!l) throw new Error("Listing not found");
+        const listing = Listing.fromCBOR(l);
+        setErrorListing(listing);
+        setErrorMsg(`Not enough stock for item: ${listing.Metadata.Title}`);
       } else {
-        setErrorMsg("Error during checkout");
-        logerr("Error during checkout", error);
+        setErrorMsg("Error checking out");
+        logerr("Error checking out", error);
       }
     }
   }
@@ -157,6 +160,8 @@ export default function Cart({
       );
       setCartMap(new Map());
       setSelectedQty(new Map());
+      setErrorListing(null);
+      setErrorMsg(null);
       debug("cart cleared");
       closeBasket?.();
     } catch (error) {
@@ -186,6 +191,10 @@ export default function Cart({
         ["Orders", orderId, "Items"],
         updatedOrderItems,
       );
+      if (id === errorListing?.ID && !add) {
+        setErrorListing(null);
+        setErrorMsg(null);
+      }
     } catch (error) {
       logerr(`Error:adjustItemQuantity ${error}`);
     }
@@ -217,6 +226,10 @@ export default function Cart({
         ["Orders", orderId, "Items"],
         updatedOrderItems,
       );
+      if (id === errorListing?.ID) {
+        setErrorListing(null);
+        setErrorMsg(null);
+      }
     } catch (error) {
       setErrorMsg("Error removing item");
       logerr(`Error:removeItem ${error}`);
@@ -374,14 +387,26 @@ export default function Cart({
     });
   }
 
+  const MAX_TITLE_LEN = 20;
+  const oosTitle = (errorListing?.Metadata.Title.length || 0) > MAX_TITLE_LEN
+    ? errorListing?.Metadata.Title.slice(0, MAX_TITLE_LEN) + "..."
+    : errorListing?.Metadata.Title;
   return (
     <div className="bg-white rounded-lg p-5">
       <ErrorMessage
         errorMessage={errorMsg}
         onClose={() => {
           setErrorMsg(null);
+          setErrorListing(null);
         }}
       />
+      {errorListing && (
+        <p data-testid="out-of-stock" className="my-2 text-red-500">
+          Item <span className="font-bold">{oosTitle}</span>{" "}
+          is out of stock. Please reduce quantity or remove from cart to
+          proceed.
+        </p>
+      )}
       <div className="flex flex-col gap-2">
         {renderItems()}
       </div>
