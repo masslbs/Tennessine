@@ -130,13 +130,14 @@ export default function Cart({
         error.cause.code === 9 && error.cause.additionalInfo
       ) {
         const objectId = error.cause.additionalInfo.objectId;
-        console.log("Object ID:", objectId);
         const l = await stateManager!.get(["Listings", objectId]);
         if (!l) throw new Error("Listing not found");
-
         const listing = Listing.fromCBOR(l);
         setErrorListing(listing);
         setErrorMsg(`Not enough stock for item: ${listing.Metadata.Title}`);
+      } else {
+        setErrorMsg("Error checking out");
+        logerr("Error checking out", error);
       }
     }
   }
