@@ -386,6 +386,10 @@ export default function Cart({
     });
   }
 
+  const MAX_TITLE_LEN = 20;
+  const oosTitle = (errorListing?.Metadata.Title.length || 0) > MAX_TITLE_LEN
+    ? errorListing?.Metadata.Title.slice(0, MAX_TITLE_LEN) + "..."
+    : errorListing?.Metadata.Title;
   return (
     <div className="bg-white rounded-lg p-5">
       <ErrorMessage
@@ -397,9 +401,9 @@ export default function Cart({
       />
       {errorListing && (
         <p data-testid="out-of-stock" className="my-2 text-red-500">
-          Please remove the item{" "}
-          <span className="font-bold">{errorListing.Metadata.Title}</span>{" "}
-          or reduce the selected quantity.
+          Item <span className="font-bold">{oosTitle}</span>{" "}
+          is out of stock. Please reduce quantity or remove from cart to
+          proceed.
         </p>
       )}
       <div className="flex flex-col gap-2">

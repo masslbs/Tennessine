@@ -161,7 +161,7 @@ Deno.test("Check that we can render the checkout screen", {
       const outOfStockMsg = screen.getByTestId("out-of-stock");
       expect(outOfStockMsg).toBeTruthy();
       expect(outOfStockMsg.textContent).toContain(
-        `Please remove the item test or reduce the selected quantity.`,
+        `Please reduce quantity or remove from cart to proceed.`,
       );
     });
 
