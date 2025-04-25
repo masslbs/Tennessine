@@ -20,6 +20,7 @@ import BackButton from "../common/BackButton.tsx";
 import { env } from "../../utils/env.ts";
 import { isTesting } from "../../utils/env.ts";
 import ErrorMessage from "../common/ErrorMessage.tsx";
+import PriceSummary from "./PriceSummary.tsx";
 
 const namespace = "frontend:Pay";
 const debug = logger(namespace);
@@ -35,6 +36,8 @@ const {
 } = abi;
 
 export default function Pay({
+  displayedAmount,
+  tokenIcon,
   paymentArgs,
   paymentCurrencyLoading,
   goBack,
@@ -44,6 +47,8 @@ export default function Pay({
     "nonpayable",
     "payTokenPreApproved"
   >;
+  displayedAmount: string | null;
+  tokenIcon: string;
   paymentCurrencyLoading: boolean;
   goBack: () => void;
 }) {
@@ -162,6 +167,10 @@ export default function Pay({
 
         <section className="flex flex-col gap-4 bg-white p-5 rounded-lg mt-2">
           <h1>Connect your wallet</h1>
+          <PriceSummary
+            displayedAmount={displayedAmount}
+            tokenIcon={tokenIcon}
+          />
           <ConnectButton chainStatus="name" />
           <Button
             onClick={sendPayment}
