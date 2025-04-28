@@ -223,25 +223,30 @@ export default class StateManager {
     }
     const state = this.#state;
     assert(state, "open not finished");
-    let sendpromise: Promise<void[]>;
     const oldStateRoot = state.root;
-    state.root = this.graph.set(state.root, path, (parent, p) => {
+    state.root = this.graph.set(state.root, path, async (parent, p) => {
       const v = get(parent, p);
       set(parent, p, value);
       const op = v === undefined ? "add" : "replace";
-      sendpromise = this.#sendPatch(
+      await this.#sendPatch(
         { Op: op, Path: path, Value: value },
-      ).catch(async (e) => {
-        // Here we revert the back to the old state root
-        // If the relay gives an error
-        state.root = await oldStateRoot;
-        this.events.emit(state.root);
-        throw e;
-      });
+      );
     });
-    const r = await state.root;
-    this.events.emit(r);
-    return sendpromise!;
+    try {
+      // TODO (@nullradix 2025-04-28) If we revert the state
+      // here, we would potentaily be reverting multiple operations
+      // for example, not awaiting here
+      // dag.set(path, bad-value)
+      // dag.set(path, good-value)
+      // would lead to the both sets failing
+      // we could take care of this in the merkle-dag builder by catching
+      // the error there (??)
+      const r = await state.root;
+      this.events.emit(r);
+    } catch (e) {
+      state.root = oldStateRoot;
+      throw e;
+    }
   }
 
   get(
