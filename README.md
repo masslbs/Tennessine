@@ -30,4 +30,3 @@ Enter the development environment
 ```bash
 nix develop
 ```
-
