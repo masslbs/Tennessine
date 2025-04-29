@@ -63,7 +63,7 @@ export default function MerchantViewProducts({
               style={{
                 width: 127,
                 minWidth: 127,
-                height: 130,
+                height: "100%",
               }}
               className="h-full object-cover object-center rounded-l-lg"
             />
