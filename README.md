@@ -22,3 +22,12 @@ builds around the [Mass Market](https://mass.market) system.
 - [`blockchain`](packages/blockchain) - Wrapper functions for contract calls.
 - [`statemanager`](packages/statemanager) - Module for formatting data during
   requesting and receiving events from the relay client.
+
+# Developing
+
+Enter the development environment
+
+```bash
+nix develop
+```
+
