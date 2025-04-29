@@ -5,7 +5,14 @@
 import { useEffect, useState } from "react";
 import { ConnectButton, useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { useAccount, useConfig, usePublicClient, useWalletClient } from "wagmi";
+import {
+  useAccount,
+  useChainId,
+  useConfig,
+  usePublicClient,
+  useSwitchChain,
+  useWalletClient,
+} from "wagmi";
 import { simulateContract } from "@wagmi/core";
 import { toBytes, toHex } from "viem";
 
@@ -55,7 +62,10 @@ const retryCount = 10;
 export default function () {
   const addRecentTransaction = useAddRecentTransaction();
   const { status } = useAccount();
+  //Env chain
   const { chain } = useChain();
+  // Chain that user is connected to
+  const chainId = useChainId();
   const shopPublicClient = usePublicClient({ chainId: chain.id });
   const { data: wallet } = useWalletClient();
   const { shopId } = useShopId();
@@ -63,15 +73,19 @@ export default function () {
   const [keycard, setKeycard] = useKeycard();
   const { relayClient } = useRelayClient();
   const { stateManager } = useStateManager();
-
   const { connector } = useAccount();
   const config = useConfig();
+  const { switchChain } = useSwitchChain({ config });
   const navigate = useNavigate({ from: "/create-shop" });
   const search = useSearch({ from: "/create-shop" });
-  const [step, setStep] = useState<
-    CreateShopStep
-  >(CreateShopStep.ManifestForm);
 
+  const [shopManifest, setShopManifest] = useState<Manifest>(new Manifest());
+  const [storeRegistrationStatus, setStoreRegistrationStatus] = useState<
+    string
+  >("");
+  const [mintedHash, setMintedHash] = useState<string | null>(null);
+  const [creatingShop, setCreatingShop] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [shopMetadata, setShopMetadata] = useState<ShopForm>(
     {
       shopName: "",
@@ -80,15 +94,9 @@ export default function () {
       paymentAddress: wallet?.account?.address || "",
     },
   );
-
-  const [shopManifest, setShopManifest] = useState<Manifest>(new Manifest());
-
-  const [storeRegistrationStatus, setStoreRegistrationStatus] = useState<
-    string
-  >("");
-  const [mintedHash, setMintedHash] = useState<string | null>(null);
-  const [creatingShop, setCreatingShop] = useState<boolean>(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [step, setStep] = useState<
+    CreateShopStep
+  >(CreateShopStep.ManifestForm);
 
   useEffect(() => {
     if (!search.shopId) {
@@ -107,6 +115,10 @@ export default function () {
         ...shopMetadata,
         paymentAddress: wallet.account.address,
       });
+      if (chainId !== chain.id) {
+        debug(`Switching chainID from ${chainId} to ${chain.id}`);
+        switchChain({ chainId: chain.id });
+      }
     }
   }, [wallet]);
 
