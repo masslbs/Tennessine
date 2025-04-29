@@ -234,10 +234,7 @@ export class RelayClient {
             .subscriptionId!.toString();
           const controller = this.#subscriptions.get(subscriptionId);
           if (!controller) {
-            assert(
-              controller,
-              "invalid subscription recv. id: " + subscriptionId,
-            );
+            warnLog(`invalid subscription recv. id: ${subscriptionId}`);
             return;
           }
           const sets = envelope.subscriptionPushRequest.sets ?? [];
@@ -303,6 +300,7 @@ export class RelayClient {
     seqNo = 0,
     controller?: ReadableStreamDefaultController<PushedPatchSet>,
   ) {
+    debug(`createSubscription seqNo: ${seqNo}`);
     const { response } = await this.encodeAndSend({
       subscriptionRequest: {
         startShopSeqNo: seqNo,
