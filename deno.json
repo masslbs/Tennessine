@@ -1,0 +1,33 @@
+{
+  "workspace": [
+    "./packages/utils",
+    "./packages/schema",
+    "./packages/eventTree",
+    "./packages/contracts",
+    "./packages/client",
+    "./packages/merkle-dag-builder",
+    "./packages/stateManager",
+    "./packages/frontend",
+    "./packages/store",
+    "./packages/mmr"
+  ],
+  "lint": {
+    "rules": {
+      "exclude": ["no-slow-types"]
+    }
+  },
+  "fmt": {
+    "exclude": [".direnv", "node_modules", ".pre-commit-config.yaml"]
+  },
+  "compilerOptions": {
+    "noErrorTruncation": true,
+    "lib": ["ES2020", "dom", "dom.iterable", "dom.asynciterable", "deno.ns"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "jsxImportSourceTypes": "@types/react"
+  },
+  "imports": {
+    "@std/expect": "jsr:@std/expect@^1.0.15"
+  },
+  "nodeModulesDir": "auto"
+}

@@ -2,18 +2,22 @@
 #
 # SPDX-License-Identifier: Unlicense
 {
-  description = "massmarket-typescript";
+  description = "MassMarket Typescript Packages";
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    systems.url = "github:nix-systems/default";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    pre-commit-hooks.url = "github:cachix/pre-commit-hooks.nix";
-    pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
-    contracts.url = "github:masslbs/contracts";
-    contracts.inputs.nixpkgs.follows = "nixpkgs";
-    schema = {
-      url = "github:masslbs/network-schema";
-      flake = false;
+    flake-root.url = "github:srid/flake-root";
+    pre-commit-hooks = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    relay.url = "github:masslbs/relay/network-v4";
+    contracts.follows = "relay/contracts";
+    schema.follows = "relay/schema";
+    # in case we need to test new vectors, etc. we can override the input like this:
+    # schema.url = "github:masslbs/network-schema/cbor";
   };
 
   outputs = inputs @ {
@@ -22,60 +26,80 @@
     schema,
     contracts,
     pre-commit-hooks,
+    relay,
     self,
+    systems,
     ...
   }:
     flake-parts.lib.mkFlake {inherit inputs;} {
-      systems = ["x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin"];
+      systems = import systems;
       imports = [
         inputs.pre-commit-hooks.flakeModule
+        inputs.flake-root.flakeModule
       ];
       perSystem = {
         config,
         pkgs,
         system,
-        self',
         ...
       }: {
-        pre-commit.settings = {
-          src = ./.;
-          hooks = {
-            alejandra.enable = true;
-            prettier.enable = true;
-            prettier.settings.write = true;
+        pre-commit = {
+          check.enable = true;
+          settings = {
+            src = ./.;
+            hooks = {
+              alejandra.enable = true;
+              typos = {
+                # this tell typos not to check excluded files even if pre-commit tell typos to check them
+                args = ["--force-exclude"];
+                enable = true;
+                settings = {
+                  configPath = "./typos.toml";
+                };
+              };
+              #TODO: tries to download modules on nix flake check
+              denolint = {
+                enable = true;
+                settings.configPath = "./deno.json";
+              };
+              denofmt = {
+                enable = true;
+                settings.configPath = "./deno.json";
+              };
+            };
           };
         };
-        devShells.default = with pkgs;
-          nixpkgs.legacyPackages.${system}.mkShell {
-            shellHook = ''
-              # these fail if 'nix develop' isnt run from the root of the project
-              if [ -d ./packages ]; then
-                cp ${schema}/testVectors.json ./packages/schema/testVectors.json
-                cp $MASS_CONTRACTS_PATH/abi/*.json ./packages/contracts/abi/
-                cp $MASS_CONTRACTS_PATH/deploymentAddresses.json ./packages/contracts/
-              fi
-            '';
+        devShells.default = pkgs.mkShell {
+          inputsFrom = [config.flake-root.devShell]; # Provides $FLAKE_ROOT in dev shell
+          MASS_TEST_VECTORS = "${schema.packages.${system}.default}";
+          NETWORK_SCHEMA_PATH = "${schema}";
+          MASS_CONTRACTS_PATH = "${contracts.packages.${system}.default}";
 
-            buildInputs =
-              [
-                # frontend dependencies
-                typescript
-                nodejs_latest
-                nodePackages.pnpm
-                nodePackages.typescript-language-server
-                playwright-driver.browsers
-                contracts.packages.${system}.default
-                reuse
-              ]
-              ++ config.pre-commit.settings.enabledPackages;
+          shellHook = ''
+            ${config.pre-commit.settings.installationScript}
+            export IPFS_PATH=$FLAKE_ROOT/data/ipfs
+            pushd $FLAKE_ROOT
+            # only runs when the contracts have changed
+            touch .last-input
+            if [[ "$(< .last-input)" != "${contracts}" ]]; then
+              echo ${contracts} > .last-input
+              deno task -r -f contracts build
+            fi
+            popd
+          '';
 
-            NETWORK_SCHEMA_PATH = "${schema}";
-            MASS_CONTRACTS_PATH = "${contracts.packages.${system}.default}";
-            PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS = true;
-            PLAYWRIGHT_NODEJS_PATH = "${pkgs.nodejs}/bin/node";
-            PLAYWRIGHT_BROWSERS_PATH = "${pkgs.playwright-driver.browsers}";
-            PLAYWRIGHT_LAUNCH_OPTIONS_EXECUTABLE_PATH = "${pkgs.playwright-driver.browsers}/chromium-1091/chrome-linux/chrome";
-          };
+          buildInputs = with pkgs;
+            [
+              relay.packages.${system}.local-testnet
+              nodejs # needed for protobuf generation
+              reuse
+              # Language servers
+              typos-lsp # code spell checker
+              nixd
+            ]
+            # deno is automatically pulled in here
+            ++ config.pre-commit.settings.enabledPackages;
+        };
       };
     };
 }

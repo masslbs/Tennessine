@@ -1,36 +1,59 @@
-<!--
-SPDX-FileCopyrightText: 2024 Mass Labs
-
-SPDX-License-Identifier: GPL-3.0-or-later
--->
-
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
-
 ## Getting Started
 
-First, run the development server:
+Enter the nix shell:
 
 ```
-pnpm dev
+nix develop
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then,
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+deno run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+## Testing
 
-## Learn More
+After entering nix shell,
 
-To learn more about Next.js, take a look at the following resources:
+To run all tests:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+deno test -A
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+To run a single test:
 
-## Deploy on Vercel
+```
+deno test src/hooks/useRelayEndpoint_test.ts -A
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Custom Hooks
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+All the custom hooks can be found in the [`hooks`](src/hooks) directory. These
+hooks can be called anywhere in the app to fetch/calculate the necessary data.
+
+Some of these hooks use [`useQuery`](src/hooks/useQuery.ts) which takes a
+function and a dependency array. This hook behaves like a cache, so that if the
+function has been called previously with no change in dependencies, the cached
+result will be returned instead of being recalculated.
+
+## TanStack Router
+
+[`TanStack Router`](https://tanstack.com/router) is used for routing. The routes
+can be found in the [`routes`](src/routes) directory.
+[`routeTree.gen.ts`](src/routeTree.gen.ts) is automatically updated when routes
+are added/removed.
+
+## MassMarketContext
+
+Preserves certain states across the app. These states and state setters are
+accessible anywhere in the app. For example, since we need the same instance of
+ClientWithStateManager across the app, we store it in the context.
+
+## Event Listeners
+
+The app listens to events from the state manager to update the UI when data is
+created or updated. The state manager emits events based on shop events received
+through the stream. The listeners must be removed when the component unmounts to
+avoid memory leaks.

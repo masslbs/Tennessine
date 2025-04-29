@@ -1,29 +1,33 @@
-// SPDX-FileCopyrightText: 2024 Mass Labs
-//
-// SPDX-License-Identifier: GPL-3.0-or-later
+import { getDefaultConfig } from "@rainbow-me/rainbowkit";
+import { hardhat, mainnet, optimism, sepolia } from "wagmi/chains";
+import type { Transport } from "viem";
+import { fallback, http, unstable_connector } from "wagmi";
+import { injected } from "wagmi/connectors";
+import { isTesting } from "./utils/env.ts";
+import { env } from "./utils/env.ts";
 
-import { http, createConfig } from "wagmi";
-import { mainnet, sepolia } from "wagmi/chains";
-import { coinbaseWallet, walletConnect, injected } from "wagmi/connectors";
-import { hardhat } from "viem/chains";
+// First we try to connect to the block using window.ethereum
+// if that does not exist (metamask is not installed) we try to connect using the http provider
+const transport = fallback([
+  unstable_connector(injected),
+  http(env.ethRPCUrl),
+]);
 
-export const config = createConfig({
-  chains: [mainnet, sepolia, hardhat],
-  connectors: [
-    coinbaseWallet({ appName: "masslbs" }),
-    walletConnect({ projectId: "6c432edcd930e0fa2c87a8d940ae5b91" }),
-    injected({ target: "metaMask" }),
-  ],
-  ssr: true,
-  transports: {
-    [mainnet.id]: http(),
-    [sepolia.id]: http(),
-    [hardhat.id]: http(),
-  },
-});
-
-declare module "wagmi" {
-  interface Register {
-    config: typeof config;
+const transports = isTesting
+  ? {
+    [hardhat.id]: transport,
   }
-}
+  : {
+    [hardhat.id]: transport,
+    [mainnet.id]: transport,
+    [sepolia.id]: transport,
+    [optimism.id]: transport,
+  };
+
+export const config = getDefaultConfig({
+  appName: "Mass Labs",
+  projectId: "6c432edcd930e0fa2c87a8d940ae5b91",
+  ssr: false,
+  chains: isTesting ? [hardhat] : [hardhat, mainnet, optimism, sepolia],
+  transports: transports as unknown as Record<string, Transport>,
+});

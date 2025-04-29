@@ -1,0 +1,9 @@
+[files]
+extend-exclude = [
+    "packages/schema",
+    "packages/contracts/src/generated.ts",
+    "packages/contracts/abi",
+]
+
+[default.extend-words]
+COSE = "COSE"

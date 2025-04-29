@@ -1,0 +1,18 @@
+{
+  "1": {
+    "chainName": "Mainnet",
+    "USDC": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+  },
+  "10": {
+    "chainName": "Optimism",
+    "USDC": "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85"
+  },
+  "31337": {
+    "chainName": "Hardhat",
+    "USDC": "0xB76331fe2b5a68d9609d7e391827ecB9a82ecaA6"
+  },
+  "11155111": {
+    "chainName": "Sepolia",
+    "USDC": "0x822585D682B973e4b1B47C0311f162b29586DD02"
+  }
+}
