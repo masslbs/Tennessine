@@ -1,9 +1,9 @@
 import { defineConfig, PluginOption } from "vite";
 import deno from "@deno/vite-plugin";
-import react from "@vitejs/plugin-react";
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 import tailwindcss from "@tailwindcss/vite";
+import react from "@vitejs/plugin-react-swc";
 
 // only needed for the build
 import { entryPoints } from "./generate-entry-points.ts";
@@ -20,14 +20,13 @@ export const config = defineConfig({
     rollupOptions: {
       input: buildInputs,
     },
-    outDir: "dist",
     copyPublicDir: true,
     sourcemap: true,
   },
   plugins: [
+    react() as PluginOption,
     deno() as PluginOption,
-    react(),
-    TanStackRouterVite({ addExtensions: true }),
+    TanStackRouterVite({ addExtensions: true }) as PluginOption,
     nodePolyfills() as PluginOption,
     tailwindcss() as PluginOption,
   ],

@@ -9,6 +9,6 @@
   "imports": {
     "@std/expect": "jsr:@std/expect@^1.0.15",
     "viem": "npm:viem@^2.27.2",
-    "wagmi": "npm:wagmi@^2.14.16"
+    "wagmi": "npm:wagmi@^2.15.1"
   }
 }

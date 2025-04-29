@@ -5,7 +5,7 @@
     "@std/assert": "jsr:@std/assert@^1.0.12",
     "viem": "npm:viem@^2.27.2",
     "buffer": "node:buffer",
-    "@sentry/browser": "npm:@sentry/browser@9.13.0",
+    "@sentry/browser": "npm:@sentry/browser@9.15.0",
     "cbor-x": "npm:cbor-x@^1.6.0"
   },
   "exports": {
