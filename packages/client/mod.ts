@@ -25,7 +25,6 @@ import {
   type CodecValue,
   decode,
   encode,
-  type Path,
 } from "@massmarket/utils/codec";
 import { ReadableStream, WritableStream } from "web-streams-polyfill";
 
@@ -301,7 +300,6 @@ export class RelayClient {
   }
 
   async createSubscription(
-    _path: Path,
     seqNo = 0,
     controller?: ReadableStreamDefaultController<PushedPatchSet>,
   ) {
@@ -330,12 +328,12 @@ export class RelayClient {
     });
   }
 
-  createSubscriptionStream(path: Path, seqNum: number) {
+  createSubscriptionStream(seqNum: number) {
     let id: Uint8Array;
     return new ReadableStream<PushedPatchSet>({
       start: async (c) => {
         await this.connect();
-        const { payload } = await this.createSubscription(path, seqNum, c);
+        const { payload } = await this.createSubscription(seqNum, c);
         id = payload!;
       },
       cancel: async (reason) => {

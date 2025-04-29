@@ -26,7 +26,7 @@ interface IStoredState {
 export default class StateManager {
   readonly events = new EventTree<codec.CodecValue>(new Map());
   readonly graph: DAG;
-  readonly clients: Set<RelayClient> = new Set();
+  client?: RelayClient;
   readonly id: bigint;
   #streamsWriters: Set<WritableStreamDefaultWriter<Patch[]>> = new Set();
   // very simple cache, we always want a reference to the same object
@@ -68,15 +68,15 @@ export default class StateManager {
     const state = this.#state;
     this.#state = undefined;
     assert(state, "open not finished");
-    const closingClients = [...this.clients].map((client) => {
-      state.keycardNonce = client.keyCardNonce;
-      return client.disconnect();
-    });
-    this.clients.clear();
+    let clientClosing = Promise.resolve<unknown>(undefined);
+    if (this.client) {
+      state.keycardNonce = this.client.keyCardNonce;
+      clientClosing = this.client.disconnect();
+    }
     // wait for root to be resolved
     state.root = await state.root;
     return Promise.all([
-      ...closingClients,
+      clientClosing,
       this.graph.store.objStore.set(
         this.id,
         new Map(Object.entries(state)),
@@ -171,11 +171,10 @@ export default class StateManager {
   addConnection(client: RelayClient) {
     assert(this.#state, "open not finished");
     client.keyCardNonce = this.#state.keycardNonce;
-    this.clients.add(client);
+    this.client = client;
     // TODO:  implement dynamic subscriptions
     // currently we subscribe to the root when any event is subscribed to
     const remoteReadable = client.createSubscriptionStream(
-      [],
       this.#state.subscriptionSequenceNumber,
     );
     const ourWritable = this.createWriteStream();
