@@ -97,7 +97,7 @@ Deno.test(
         expect(r.statusText).toBe("Created");
       });
 
-      const s = relayClient.createSubscriptionStream([], 0);
+      const s = relayClient.createSubscriptionStream(0);
       const reader = s.getReader();
       const ws = relayClient.createWriteStream();
       const writer = ws.getWriter();

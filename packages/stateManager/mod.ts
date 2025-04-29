@@ -175,7 +175,6 @@ export default class StateManager {
     // TODO:  implement dynamic subscriptions
     // currently we subscribe to the root when any event is subscribed to
     const remoteReadable = client.createSubscriptionStream(
-      [],
       this.#state.subscriptionSequenceNumber,
     );
     const ourWritable = this.createWriteStream();
