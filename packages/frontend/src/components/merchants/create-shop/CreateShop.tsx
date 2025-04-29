@@ -35,13 +35,14 @@ import Confirmation from "./CreateShopConfirmation.tsx";
 import ErrorMessage from "../../common/ErrorMessage.tsx";
 import Button from "../../common/Button.tsx";
 import LoadingSpinner from "../../common/LoadingSpinner.tsx";
+import BackButton from "../../common/BackButton.tsx";
 import ConnectWalletButton from "../../common/ConnectWalletButton.tsx";
 import { useShopId } from "../../../hooks/useShopId.ts";
 import { useKeycard } from "../../../hooks/useKeycard.ts";
 import { useShopDetails } from "../../../hooks/useShopDetails.ts";
 import { useChain } from "../../../hooks/useChain.ts";
 import { CreateShopStep, KeycardRole, ShopForm } from "../../../types.ts";
-import { removeCachedKeycards } from "../../../utils/helper.ts";
+import { isValidAddress, removeCachedKeycards } from "../../../utils/mod.ts";
 import { useRelayClient } from "../../../hooks/useRelayClient.ts";
 import { useStateManager } from "../../../hooks/useStateManager.ts";
 
@@ -86,6 +87,7 @@ export default function () {
   const [mintedHash, setMintedHash] = useState<string | null>(null);
   const [creatingShop, setCreatingShop] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const [shopMetadata, setShopMetadata] = useState<ShopForm>(
     {
       shopName: "",
@@ -122,6 +124,31 @@ export default function () {
     }
   }, [wallet]);
 
+  function checkRequiredFields() {
+    if (!shopMetadata.shopName.length) {
+      return "Shop name is required.";
+    } else if (!shopMetadata.description.length) {
+      return "Store description is required.";
+    } else if (!shopMetadata.paymentAddress) {
+      return "Payee address is required.";
+    } else if (
+      !shopManifest.PricingCurrency.Address ||
+      !shopManifest.PricingCurrency.ChainID
+    ) {
+      return "Pricing currency is required.";
+    } else if (!shopManifest.AcceptedCurrencies.data.size) {
+      return "Accepted currencies are required.";
+    }
+    const isTokenAddrHex = isValidAddress(shopManifest.PricingCurrency.Address);
+    const isPayeeAddHex = isValidAddress(toBytes(shopMetadata.paymentAddress));
+    if (!isTokenAddrHex) {
+      return "Token address must be a valid address.";
+    } else if (!isPayeeAddHex) {
+      return "Payee address must be a valid address.";
+    }
+    return null;
+  }
+
   async function mint() {
     if (!shopPublicClient) {
       warn("shopPublicClient not found");
@@ -134,6 +161,15 @@ export default function () {
     if (!stateManager) {
       warn("stateManager not found");
       return;
+    }
+    const warning = checkRequiredFields();
+    if (warning) {
+      setValidationError(warning);
+      setStep(CreateShopStep.ManifestForm);
+
+      throw Error(`Check all required fields: ${warning}`);
+    } else {
+      setValidationError(null);
     }
     debug(`creating shop for ${shopId}`);
     setStoreRegistrationStatus("Minting shop...");
@@ -368,6 +404,8 @@ export default function () {
           setStep={setStep}
           shopMetadata={shopMetadata}
           setShopMetadata={setShopMetadata}
+          validationError={validationError}
+          setValidationError={setValidationError}
         />
       );
     } else if (step === CreateShopStep.ConnectWallet) {
@@ -376,13 +414,14 @@ export default function () {
           className="md:w-[560px] h-[77vh]"
           data-testid="connect-wallet-screen"
         >
+          <BackButton onClick={() => setStep(CreateShopStep.ManifestForm)} />
           <ErrorMessage
             errorMessage={errorMsg}
             onClose={() => {
               setErrorMsg(null);
             }}
           />
-          <h1>Connect your wallet</h1>
+          <h1 className="mt-2">Connect your wallet</h1>
           <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
             {status === "connected"
               ? (
