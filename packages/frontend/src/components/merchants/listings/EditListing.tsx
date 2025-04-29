@@ -124,14 +124,17 @@ export default function EditProduct() {
       try {
         setPublishing(true);
         if (blobs.length > 0) {
-          const uploaded = await Promise.all(
+          const newUploads = await Promise.all(
             blobs.map(async (i: FormData) => {
               const { url } = await relayClient!
                 .uploadBlob(i);
               return url;
             }),
           );
-          newListing.Metadata.Images = uploaded;
+          const urls = newListing.Metadata.Images.filter((s: string) =>
+            !s.includes("data:image")
+          );
+          newListing.Metadata.Images = [...urls, ...newUploads];
         }
 
         if (itemId) {
@@ -232,10 +235,13 @@ export default function EditProduct() {
   }
 
   function removeImg(img: string) {
-    listing.Metadata.Images = listing.Metadata!.Images!.filter((a: string) =>
-      img !== a
+    const newListing = Listing.fromCBOR(
+      listing.asCBORMap() as Map<CodecKey, CodecValue>,
     );
-    setListing(listing);
+    newListing.Metadata.Images = newListing.Metadata!.Images!.filter((
+      a: string,
+    ) => img !== a);
+    setListing(newListing);
   }
   return (
     <main
