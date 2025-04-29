@@ -1,5 +1,4 @@
 import { ChangeEvent, useState } from "react";
-import { toBytes } from "viem";
 
 import { ChainAddress, Manifest } from "@massmarket/schema";
 
@@ -13,22 +12,30 @@ import {
   CurrencyChainOption,
   ShopForm,
 } from "../../../types.ts";
-import { isValidAddress } from "../../../utils/mod.ts";
 import { useAllCurrencyOptions } from "../../../hooks/useAllCurrencyOptions.ts";
 
 export default function ManifestForm(
-  { shopManifest, setShopManifest, setStep, setShopMetadata, shopMetadata }: {
+  {
+    shopManifest,
+    setShopManifest,
+    setStep,
+    setShopMetadata,
+    shopMetadata,
+    validationError,
+    setValidationError,
+  }: {
     shopManifest: Manifest;
     setShopManifest: (shopManifest: Manifest) => void;
     setStep: (step: CreateShopStep) => void;
     shopMetadata: ShopForm;
     setShopMetadata: (shopMetadata: ShopForm) => void;
+    validationError: string | null;
+    setValidationError: (validationError: string | null) => void;
   },
 ) {
   const { shopName, description, paymentAddress } = shopMetadata;
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [validationError, setValidationError] = useState<string | null>(null);
   const currencyOptions = useAllCurrencyOptions();
 
   function handleShopFormChange<K extends keyof ShopForm>(
@@ -66,42 +73,7 @@ export default function ManifestForm(
     setShopManifest(shopManifest);
   }
 
-  function checkRequiredFields() {
-    if (!shopMetadata.shopName.length) {
-      return "Shop name is required.";
-    } else if (!shopMetadata.description.length) {
-      return "Store description is required.";
-    } else if (!paymentAddress) {
-      return "Payee address is required.";
-    } else if (
-      !shopManifest.PricingCurrency.Address ||
-      !shopManifest.PricingCurrency.ChainID
-    ) {
-      return "Pricing currency is required.";
-    } else if (!shopManifest.AcceptedCurrencies.data.size) {
-      return "Accepted currencies are required.";
-    }
-    const isTokenAddrHex = isValidAddress(shopManifest.PricingCurrency.Address);
-    const isPayeeAddHex = isValidAddress(toBytes(paymentAddress));
-    if (!isTokenAddrHex) {
-      return "Token address must be a valid address.";
-    } else if (!isPayeeAddHex) {
-      return "Payee address must be a valid address.";
-    }
-    return null;
-  }
-
   function goToConnectWallet() {
-    const warning = checkRequiredFields();
-    if (warning) {
-      setValidationError(warning);
-      // Deno doesn't support globalThis.scrollTo so we have to do this.
-      const element = document.getElementById("top");
-      element?.scrollIntoView();
-      throw Error(`Check all required fields: ${warning}`);
-    } else {
-      setValidationError(null);
-    }
     setStep(CreateShopStep.ConnectWallet);
   }
 
