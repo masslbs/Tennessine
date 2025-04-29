@@ -267,7 +267,7 @@ function Navigation() {
       </section>
       {(basketOpen || menuOpen) && (
         <span
-          className="fixed bg-black w-full h-full opacity-60"
+          className="fixed bg-black w-full h-full opacity-60 z-5"
           onClick={() => {
             basketOpen && setBasketOpen(false);
             menuOpen && setMenuOpen(false);
@@ -275,7 +275,7 @@ function Navigation() {
         />
       )}
       <section className="md:flex md:justify-center">
-        <section className="md:ml-[calc(800px-13rem)] md:flex md:justify-end absolute">
+        <section className="md:ml-[calc(800px-13rem)] md:flex md:justify-end absolute z-10">
           {menuOpen
             ? (
               <section>
