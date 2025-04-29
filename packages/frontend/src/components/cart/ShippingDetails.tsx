@@ -157,7 +157,8 @@ export default function ShippingDetails() {
 
             <label className="mt-5" htmlFor="name">Name</label>
             <input
-              className="border-2 border-solid mt-1 p-3 rounded-2xl"
+              className="mt-1 p-3 rounded-2xl"
+              style={{ backgroundColor: "#F3F3F3" }}
               id="name"
               name="name"
               data-testid="name"
@@ -166,7 +167,8 @@ export default function ShippingDetails() {
             />
             <label htmlFor="address">Address</label>
             <input
-              className="border-2 border-solid mt-1 p-3 rounded-2xl"
+              className="mt-1 p-3 rounded-2xl"
+              style={{ backgroundColor: "#F3F3F3" }}
               id="address"
               name="address"
               data-testid="address"
@@ -177,7 +179,8 @@ export default function ShippingDetails() {
               <div>
                 <label htmlFor="city">City</label>
                 <input
-                  className="border-2 border-solid mt-1 p-3 rounded-2xl	w-full"
+                  className="mt-1 p-3 rounded-2xl	w-full"
+                  style={{ backgroundColor: "#F3F3F3" }}
                   id="city"
                   name="city"
                   data-testid="city"
@@ -188,7 +191,8 @@ export default function ShippingDetails() {
               <div>
                 <label htmlFor="postal">Zip/Postal</label>
                 <input
-                  className="border-2 border-solid mt-1 p-3 rounded-2xl	w-full"
+                  className="mt-1 p-3 rounded-2xl	w-full"
+                  style={{ backgroundColor: "#F3F3F3" }}
                   id="zip"
                   name="zip"
                   data-testid="zip"
@@ -201,7 +205,8 @@ export default function ShippingDetails() {
 
             <label htmlFor="country">Country</label>
             <input
-              className="border-2 border-solid mt-1 p-3 rounded-2xl"
+              className="mt-1 p-3 rounded-2xl"
+              style={{ backgroundColor: "#F3F3F3" }}
               id="country"
               name="country"
               data-testid="country"
@@ -216,7 +221,8 @@ export default function ShippingDetails() {
             <div className="mt-3 flex flex-col">
               <label htmlFor="email">Email (optional)</label>
               <input
-                className="border-2 border-solid mt-1 p-3 rounded-2xl"
+                className="mt-1 p-3 rounded-2xl"
+                style={{ backgroundColor: "#F3F3F3" }}
                 id="email"
                 name="email"
                 data-testid="email"
@@ -226,7 +232,8 @@ export default function ShippingDetails() {
               />
               <label htmlFor="phoneNumber">Phone Number (optional)</label>
               <input
-                className="border-2 border-solid mt-1 p-3 rounded-2xl"
+                className="mt-1 p-3 rounded-2xl"
+                style={{ backgroundColor: "#F3F3F3" }}
                 id="phone"
                 name="phone"
                 data-testid="phone"

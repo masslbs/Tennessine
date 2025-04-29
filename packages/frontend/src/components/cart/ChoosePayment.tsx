@@ -363,7 +363,11 @@ export default function ChoosePayment() {
     return (
       <PaymentConfirmation
         displayedAmount={displayedAmount!}
-        hash={txHash || blockHash}
+        txHash={txHash}
+        blockHash={blockHash}
+        paymentChain={chains.find((chain) =>
+          chain.id === Number(paymentArgs![0]!.chainId!)
+        )}
       />
     );
   } else if (qrOpen) {
