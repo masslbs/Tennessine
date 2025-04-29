@@ -18,7 +18,7 @@ interface IStoredState {
   // {"/": 1000}
   // where the sequence number is the lowest sequence number of all children paths
   // TODO: we are currently using a string, but need to use CodecKey[]
-  subscriptionTrees: Map<string, Map<string, number>>;
+  subscriptionSequenceNumber: number;
   keycardNonce: number;
   root: RootValue;
 }
@@ -84,10 +84,9 @@ export default class StateManager {
     ]);
   }
 
-  createWriteStream(remoteId: string, subscriptionPath: codec.Path) {
+  createWriteStream() {
     const state = this.#state;
     assert(state, "open not finished");
-    const subscriptionTree = state.subscriptionTrees.get(remoteId) ?? new Map();
     return new WritableStream<PushedPatchSet>({
       write: async (patchSet) => {
         // TODO: validate the Operation's schema
@@ -142,10 +141,7 @@ export default class StateManager {
           }
         }
 
-        subscriptionTree.set(
-          subscriptionPath.toString(),
-          patchSet.sequence,
-        );
+        state.subscriptionSequenceNumber = patchSet.sequence;
         // we want to wait to resolve the promise before emitting the new state
         state.root = await state.root;
         this.events.emit(state.root);
@@ -175,18 +171,14 @@ export default class StateManager {
   addConnection(client: RelayClient) {
     assert(this.#state, "open not finished");
     client.keyCardNonce = this.#state.keycardNonce;
-    const id = client.relayEndpoint.tokenId;
     this.clients.add(client);
     // TODO:  implement dynamic subscriptions
     // currently we subscribe to the root when any event is subscribed to
     const remoteReadable = client.createSubscriptionStream(
       [],
-      this.#state.subscriptionTrees.get(id)?.get("") ?? 0,
+      this.#state.subscriptionSequenceNumber,
     );
-    const ourWritable = this.createWriteStream(
-      id,
-      [],
-    );
+    const ourWritable = this.createWriteStream();
     this.#addClientsWriteStream(client);
     const connection = remoteReadable.pipeTo(ourWritable);
     return { connection };

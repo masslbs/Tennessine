@@ -63,7 +63,7 @@ Deno.test("Database Testings", async (t) => {
               defaultState: before,
             });
             await sm.open();
-            const stream = sm.createWriteStream("tests", []);
+            const stream = sm.createWriteStream();
             const writer = stream.getWriter();
             await writer.write(test.patchSet);
             await writer.close();
