@@ -69,6 +69,7 @@ export type PushedPatchSet = {
   patches: Patch[];
   header: CodecValue;
   sequence: number;
+  done: Promise<schema.Envelope>;
 };
 
 export type SignedPatchSet = {
@@ -264,17 +265,15 @@ export class RelayClient {
                 header,
                 signer,
                 sequence,
+                done: this.encodeAndSend({
+                  requestId: envelope.requestId,
+                  response: {},
+                }),
               });
             }
           } catch (e) {
             controller.error(e);
           }
-          // TODO: properly handle backpressure
-          // we should implement `pull` for the read stream, in the pull we should request the next chunk
-          this.encodeAndSendNoWait({
-            requestId: envelope.requestId,
-            response: {},
-          });
         }
         break;
       default:

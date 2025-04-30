@@ -142,6 +142,8 @@ export default class StateManager {
           }
         }
 
+        await patchSet.done();
+
         state.subscriptionSequenceNumber = patchSet.sequence;
         // we want to wait to resolve the promise before emitting the new state
         state.root = await state.root;
