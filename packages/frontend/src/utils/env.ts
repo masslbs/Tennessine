@@ -62,6 +62,7 @@ function getEnv(): EnvConfig {
     if (mode === "development") {
       theEnv = Reflect.get(globalThis, "__ENV__");
     } else if (mode === "production") {
+      // during production builds: esbuild only replaces exactly the __ENV__ variable in code, so builds need to reference the variable directly (and not indirectly via a Reflect call)
       theEnv = __ENV__;
     } else {
       throw new Error(
