@@ -20,14 +20,7 @@
     "exclude": [".direnv", "node_modules", ".pre-commit-config.yaml"]
   },
   "compilerOptions": {
-    "noErrorTruncation": true,
-    "lib": ["ES2020", "dom", "dom.iterable", "dom.asynciterable", "deno.ns"],
-    "jsx": "react-jsx",
-    "jsxImportSource": "react",
-    "jsxImportSourceTypes": "@types/react"
-  },
-  "imports": {
-    "@std/expect": "jsr:@std/expect@^1.0.15"
+    "noErrorTruncation": true
   },
   "nodeModulesDir": "auto"
 }
