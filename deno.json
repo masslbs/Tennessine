@@ -20,11 +20,7 @@
     "exclude": [".direnv", "node_modules", ".pre-commit-config.yaml"]
   },
   "compilerOptions": {
-    "noErrorTruncation": true,
-    "lib": ["ESNext", "dom", "dom.iterable", "dom.asynciterable", "deno.ns"],
-    "jsx": "react-jsx",
-    "jsxImportSource": "react",
-    "jsxImportSourceTypes": "@types/react"
+    "noErrorTruncation": true
   },
   "nodeModulesDir": "auto"
 }

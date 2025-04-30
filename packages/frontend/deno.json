@@ -48,5 +48,11 @@
     "vite-plugin-node-polyfills": "npm:vite-plugin-node-polyfills@^0.23.0",
     "wagmi": "npm:wagmi@^2.15.1",
     "@uidotdev/usehooks": "npm:@uidotdev/usehooks@^2.4.1"
+  },
+  "compilerOptions": {
+    "lib": ["ESNext", "dom", "dom.iterable", "dom.asynciterable", "deno.ns"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "jsxImportSourceTypes": "@types/react"
   }
 }
