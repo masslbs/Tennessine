@@ -87,14 +87,12 @@ Deno.test("Check that we can render the listing details screen", {
   const qtyIncreasedBy = 7;
   const qtyIncreasedBy2 = 3;
 
-  await waitFor(async () => {
-    const purchaseQty = screen.getByTestId("purchaseQty");
-    expect(purchaseQty).toBeTruthy();
-    await user.clear(purchaseQty);
-    await user.type(purchaseQty, `${initialQty}`);
-    const addToBasket = screen.getByTestId("addToBasket");
-    await user.click(addToBasket);
-  });
+  const purchaseQty = await screen.findByTestId("purchaseQty");
+  expect(purchaseQty).toBeTruthy();
+  await user.clear(purchaseQty);
+  await user.type(purchaseQty, `${initialQty}`);
+  const addToBasket = screen.getByTestId("addToBasket");
+  await user.click(addToBasket);
 
   allOrders = await stateManager.get(["Orders"]) as Map<string, unknown>;
   expect(allOrders.size).toBe(1);
