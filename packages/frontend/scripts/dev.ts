@@ -1,5 +1,5 @@
 import { createServer } from "rolldown-vite";
-import { config } from "./vite.ts";
+import config from "./vite.ts";
 
 const server = await createServer(config);
 await server.listen();
