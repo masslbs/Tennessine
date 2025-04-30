@@ -1,4 +1,5 @@
 import { defineConfig, loadEnv, PluginOption } from "rolldown-vite";
+import { normalize } from "@std/path";
 import deno from "@deno/vite-plugin";
 import react from "@vitejs/plugin-react";
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
@@ -11,20 +12,21 @@ const buildInputs = Object.fromEntries(
   entryPoints.map((path) => [path, "index.html"]),
 );
 
+const dirname = normalize(import.meta.dirname! + "/../");
 export default defineConfig(({ mode }) => {
-  const dirname = import.meta.dirname as string;
   const env = loadEnv(mode, dirname);
   return {
     build: {
       rollupOptions: {
         input: buildInputs,
+        logLevel: "debug",
       },
       outDir: "dist",
       copyPublicDir: true,
     },
     define: {
       __ENV__: JSON.stringify(env),
-      __MODE__: JSON.stringify(mode),
+      __MODE__: mode,
     },
     plugins: [
       deno() as PluginOption,

@@ -21,6 +21,7 @@
     "@sentry/browser": "npm:@sentry/browser@^9.15.0",
     "@std/assert": "jsr:@std/assert@^1.0.13",
     "@std/expect": "jsr:@std/expect@^1.0.15",
+    "@std/path": "jsr:@std/path@^1.0.9",
     "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.1.4",
     "@tanstack/react-query": "npm:@tanstack/react-query@^5.74.4",
     "@tanstack/react-router": "npm:@tanstack/react-router@^1.116.0",

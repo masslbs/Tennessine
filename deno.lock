@@ -16,6 +16,7 @@
     "jsr:@std/internal@^1.0.6": "1.0.6",
     "jsr:@std/path@*": "1.0.8",
     "jsr:@std/path@^1.0.8": "1.0.8",
+    "jsr:@std/path@^1.0.9": "1.0.9",
     "jsr:@std/testing@^1.0.11": "1.0.11",
     "npm:@deno/vite-plugin@^1.0.4": "1.0.4_vite@6.3.3__@types+node@22.12.0__picomatch@4.0.2_@types+node@22.12.0",
     "npm:@happy-dom/global-registrator@^17.4.4": "17.4.4",
@@ -121,6 +122,9 @@
     },
     "@std/path@1.0.8": {
       "integrity": "548fa456bb6a04d3c1a1e7477986b6cffbce95102d0bb447c67c4ee70e0364be"
+    },
+    "@std/path@1.0.9": {
+      "integrity": "260a49f11edd3db93dd38350bf9cd1b4d1366afa98e81b86167b4e3dd750129e"
     },
     "@std/testing@1.0.11": {
       "integrity": "12b3db12d34f0f385a26248933bde766c0f8c5ad8b6ab34d4d38f528ab852f48",
@@ -4731,6 +4735,7 @@
         "dependencies": [
           "jsr:@std/assert@^1.0.13",
           "jsr:@std/expect@^1.0.15",
+          "jsr:@std/path@^1.0.9",
           "npm:@deno/vite-plugin@^1.0.4",
           "npm:@happy-dom/global-registrator@^17.4.4",
           "npm:@rainbow-me/rainbowkit@^2.2.0",
