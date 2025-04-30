@@ -2,7 +2,6 @@
   "tasks": {
     "dev": "deno run -A ./scripts/dev.ts",
     "build": "deno run -A ./scripts/build.ts",
-    "preview": "deno run -A npm:vite preview",
     "serve": "deno run --allow-net --allow-read jsr:@std/http@1/file-server dist/",
     "update-release-info": "deno run -A scripts/write-current-release.ts",
     "generate": "deno run -A scripts/generate-entry-points.ts",
