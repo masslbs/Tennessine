@@ -15,7 +15,7 @@ export default function ErrorMessage({
 
   return (
     <div
-      className="px-4 py-2 bg-error-red text-white font-thin rounded-lg flex items-center"
+      className="mt-2 px-4 py-2 bg-error-red text-white font-thin rounded-lg flex items-center"
       data-testid="error-message"
     >
       <p>{errorMessage}</p>
