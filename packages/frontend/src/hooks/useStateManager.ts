@@ -66,7 +66,7 @@ export function useStateManager() {
     }
     const db = stateManager ??
       await createStateManager(shopId, keycard.privateKey);
-
+    globalThis.stateManager = db;
     // Skip this logic if /create-shop or /merchant-connect, since we need to enroll merchant keycard before we call addConnection in those cases.
     if (!isMerchantPath && relayClient) {
       if (keycard?.role === KeycardRole.NEW_GUEST) {

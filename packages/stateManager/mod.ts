@@ -89,6 +89,7 @@ export default class StateManager {
     assert(state, "open not finished");
     return new WritableStream<PushedPatchSet>({
       write: async (patchSet) => {
+        console.log("writing seq:", patchSet.sequence);
         // TODO: validate the Operation's schema
         // const _validityRange = await this.graph.get(state.root, [
         //   "Account",
