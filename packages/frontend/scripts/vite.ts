@@ -1,30 +1,32 @@
-import { defineConfig, PluginOption } from "vite";
+import { defineConfig, PluginOption } from "rolldown-vite";
 import deno from "@deno/vite-plugin";
-import react from "@vitejs/plugin-react";
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 import tailwindcss from "@tailwindcss/vite";
+import react from "@vitejs/plugin-react-swc";
 
 // only needed for the build
-import { entryPoints } from "./scripts/generate-entry-points.ts";
+import { entryPoints } from "./generate-entry-points.ts";
 // Take all the routes and create an object with the route name as the key and the index.html as the value.
 const buildInputs = Object.fromEntries(
   entryPoints.map((path) => [path, "index.html"]),
 );
 
-export default defineConfig({
+export const config = defineConfig({
+  server: {
+    port: 8000,
+  },
   build: {
     rollupOptions: {
       input: buildInputs,
     },
-    outDir: "dist",
     copyPublicDir: true,
     sourcemap: true,
   },
   plugins: [
     deno() as PluginOption,
-    react(),
-    TanStackRouterVite({ addExtensions: true }),
+    react() as PluginOption,
+    TanStackRouterVite({ addExtensions: true }) as PluginOption,
     nodePolyfills() as PluginOption,
     tailwindcss() as PluginOption,
   ],
