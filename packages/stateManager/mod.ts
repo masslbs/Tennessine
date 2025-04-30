@@ -142,8 +142,6 @@ export default class StateManager {
           }
         }
 
-        await patchSet.done();
-
         state.subscriptionSequenceNumber = patchSet.sequence;
         // we want to wait to resolve the promise before emitting the new state
         state.root = await state.root;
@@ -155,6 +153,9 @@ export default class StateManager {
         //   [patchSet.signer, "patches"],
         //   patchSet.patches,
         // );
+
+        // backpressure, request next chunk
+        await patchSet.done;
       },
     });
   }

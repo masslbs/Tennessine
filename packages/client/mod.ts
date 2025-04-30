@@ -334,8 +334,9 @@ export class RelayClient {
         id = payload!;
       },
       cancel: async (reason) => {
-        this.#subscriptions.delete(id.toString());
+        console.log("cancelling subscription:", reason);
         await this.cancelSubscriptionRequest(id, reason);
+        this.#subscriptions.delete(id.toString());
       },
     });
   }
