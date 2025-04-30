@@ -26,7 +26,7 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       __ENV__: JSON.stringify(env),
-      __MODE__: mode,
+      __MODE__: JSON.stringify(mode),
     },
     plugins: [
       deno() as PluginOption,
