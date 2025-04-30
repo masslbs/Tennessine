@@ -1,4 +1,4 @@
-import { createServer } from "rolldown-vite";
+import { createServer } from "vite";
 import config from "./vite.ts";
 
 const server = await createServer(

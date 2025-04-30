@@ -45,6 +45,7 @@
     "viem": "npm:viem@^2.28.1",
     "react": "npm:react@^19.1.0",
     "react-dom": "npm:react-dom@^19.1.0",
+    "vite": "npm:vite@^6.3.4",
     "vite-plugin-node-polyfills": "npm:vite-plugin-node-polyfills@^0.23.0",
     "wagmi": "npm:wagmi@^2.15.1",
     "@uidotdev/usehooks": "npm:@uidotdev/usehooks@^2.4.1"

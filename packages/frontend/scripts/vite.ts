@@ -1,4 +1,4 @@
-import { defineConfig, loadEnv, PluginOption } from "rolldown-vite";
+import { defineConfig, loadEnv, PluginOption } from "vite";
 import { normalize } from "@std/path";
 import deno from "@deno/vite-plugin";
 import react from "@vitejs/plugin-react";
