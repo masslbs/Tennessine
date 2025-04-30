@@ -58,7 +58,7 @@ export default function CustomerViewProducts({
               <div className="min-h-8">
                 <h3
                   data-testid="product-name"
-                  className="leading-4 line-clamp-2 md:p-1"
+                  className="leading-[1.1] line-clamp-2 md:p-1"
                 >
                   {item.Metadata.Title}
                 </h3>
