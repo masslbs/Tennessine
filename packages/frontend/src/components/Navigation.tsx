@@ -275,7 +275,7 @@ function Navigation() {
         />
       )}
       <section className="md:flex md:justify-center">
-        <section className="md:ml-[calc(800px-13rem)] md:flex md:justify-end absolute z-10">
+        <section className="md:ml-[calc(800px-26rem)] md:flex md:justify-end absolute z-10">
           {menuOpen
             ? (
               <section>
