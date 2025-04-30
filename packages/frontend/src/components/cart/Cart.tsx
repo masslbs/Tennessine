@@ -393,21 +393,7 @@ export default function Cart({
     : errorListing?.Metadata.Title;
   return (
     <div className="bg-white rounded-lg p-5">
-      <ErrorMessage
-        errorMessage={errorMsg}
-        onClose={() => {
-          setErrorMsg(null);
-          setErrorListing(null);
-        }}
-      />
-      {errorListing && (
-        <p data-testid="out-of-stock" className="my-2 text-red-500">
-          Item <span className="font-bold">{oosTitle}</span>{" "}
-          is out of stock. Please reduce quantity or remove from cart to
-          proceed.
-        </p>
-      )}
-      <div className="flex flex-col gap-2 mt-2">
+      <div className="flex flex-col gap-2 mt-2 max-h-[calc(100vh-20rem)] overflow-y-auto">
         {renderItems()}
       </div>
       <div className="mt-4">
@@ -450,6 +436,20 @@ export default function Cart({
           <p>Clear basket</p>
         </button>
       </div>
+      <ErrorMessage
+        errorMessage={errorMsg}
+        onClose={() => {
+          setErrorMsg(null);
+          setErrorListing(null);
+        }}
+      />
+      {errorListing && (
+        <p data-testid="out-of-stock" className="my-2 text-red-500">
+          Item <span className="font-bold">{oosTitle}</span>{" "}
+          is out of stock. Please reduce quantity or remove from cart to
+          proceed.
+        </p>
+      )}
     </div>
   );
 }

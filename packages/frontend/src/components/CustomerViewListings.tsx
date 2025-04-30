@@ -44,21 +44,21 @@ export default function CustomerViewProducts({
           className={`${!visible ? "hidden" : ""}`}
           style={{ color: "black" }}
         >
-          <div>
+          <div className="w-40 xxs:w-36 md:w-[190px]">
             <div data-testid="product-img">
               <img
                 src={productImage}
                 width={160}
                 height={144}
                 alt="product-thumb"
-                className="h-36 w-40 rounded-t-lg object-cover object-center xxs:w-36 md:w-[190px]"
+                className="h-36 rounded-t-lg object-cover object-center w-full"
               />
             </div>
-            <div className="bg-white flex flex-col gap-2 rounded-b-lg p-3 min-h-24 max-h-24 h-24 w-40 xxs:w-36 md:w-[190px]">
+            <div className="bg-white flex flex-col gap-2 rounded-b-lg p-3 h-24 w-full">
               <div className="min-h-8">
                 <h3
                   data-testid="product-name"
-                  className="leading-4 line-clamp-2 md:p-1"
+                  className="leading-[1.1] line-clamp-2 md:p-1"
                 >
                   {item.Metadata.Title}
                 </h3>
