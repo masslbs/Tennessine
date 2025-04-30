@@ -4,8 +4,9 @@ import { DAG, type RootValue } from "@massmarket/merkle-dag-builder";
 import type { AbstractStore } from "@massmarket/store";
 import EventTree from "@massmarket/eventTree";
 import type { Patch, PushedPatchSet, RelayClient } from "@massmarket/client";
-import { type codec, get, type Hash, set } from "@massmarket/utils";
+import { type codec, get, type Hash, logger, set } from "@massmarket/utils";
 import { BaseClass } from "@massmarket/schema/utils";
+const debug = logger("stateManager");
 
 type HashOrValue = Hash | codec.CodecValue;
 
@@ -88,6 +89,7 @@ export default class StateManager {
     assert(state, "open not finished");
     return new WritableStream<PushedPatchSet>({
       write: async (patchSet) => {
+        debug(`patchSet No.: ${patchSet.sequence} started`);
         // TODO: validate the Operation's schema
         // const _validityRange = await this.graph.get(state.root, [
         //   "Account",
@@ -151,6 +153,7 @@ export default class StateManager {
         //   [patchSet.signer, "patches"],
         //   patchSet.patches,
         // );
+        debug(`patchSet No.: ${patchSet.sequence} done`);
       },
     });
   }
