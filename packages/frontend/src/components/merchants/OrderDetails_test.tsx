@@ -40,7 +40,7 @@ Deno.test("Check that we can render the order details screen", {
 
   const { unmount } = render(<OrderDetails />, { wrapper });
   // screen.debug();
-  screen.getByTestId("order-details-page");
+  await screen.findByTestId("order-details-page");
 
   await waitFor(() => {
     const orderItem = screen.getAllByTestId("order-item");
