@@ -132,36 +132,30 @@ Deno.test("Check that we can render the listing details screen", {
   await user.type(purchaseQty3, `${qtyIncreasedBy2}`);
   const addToBasket3 = screen.getByTestId("addToBasket");
   await user.click(addToBasket3);
-  // wait for order to be updated
-  await new Promise((resolve) => {
-    let i = 0;
-    stateManager.events.on(() => {
-      i++;
-      // wait for 3 events
-      if (i === 3) {
-        resolve(0);
-      }
-    }, ["Orders"]);
-  });
 
   const successToast = await screen.findByTestId("success-toast");
   expect(successToast).toBeTruthy();
-  const updatedOrders = await stateManager.get(["Orders"]) as Map<
-    CodecKey,
-    CodecValue
-  >;
-  expect(updatedOrders.size).toBe(2);
-  const newOrderId = Array.from(updatedOrders.keys())[1];
-  const newOrderData = await stateManager.get(["Orders", newOrderId]) as Map<
-    CodecKey,
-    CodecValue
-  >;
-  const newOrder = Order.fromCBOR(newOrderData);
-  expect(newOrder.Items[0].ListingID).toBe(listingId);
-  // Since quantity was updated 3 times, it should be the addition of the 3 quantities tested.
-  expect(newOrder.Items[0].Quantity).toBe(
-    initialQty + qtyIncreasedBy + qtyIncreasedBy2,
-  );
+  let updatedOrders;
+  await waitFor(async () => {
+    updatedOrders = await stateManager.get(["Orders"]) as Map<
+      CodecKey,
+      CodecValue
+    >;
+    expect(updatedOrders.size).toBe(2);
+  });
+  const newOrderId = Array.from(updatedOrders!.keys())[1] as number;
+  await waitFor(async () => {
+    const newOrderData = await stateManager.get(["Orders", newOrderId]) as Map<
+      CodecKey,
+      CodecValue
+    >;
+    const newOrder = Order.fromCBOR(newOrderData);
+    expect(newOrder.Items[0].ListingID).toBe(listingId);
+    // Since quantity was updated 3 times, it should be the addition of the 3 quantities tested.
+    expect(newOrder.Items[0].Quantity).toBe(
+      initialQty + qtyIncreasedBy + qtyIncreasedBy2,
+    );
+  });
 
   unmount();
 

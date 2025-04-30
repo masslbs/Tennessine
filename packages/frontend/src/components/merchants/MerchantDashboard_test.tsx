@@ -1,6 +1,6 @@
 import "../../happyDomSetup.ts";
 
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { expect } from "@std/expect";
 
 import { random256BigInt } from "@massmarket/utils";
@@ -38,15 +38,15 @@ Deno.test("Merchant Dashboard", {
 
     const { unmount } = render(<MerchantDashboard />, { wrapper });
 
-    screen.getByTestId("merchant-dashboard-screen");
-
-    const orders = await screen.findAllByTestId("transaction");
-    expect(orders).toBeTruthy();
-    expect(orders.length).toBe(allOrders.size);
-    const order = screen.getAllByTestId(orderId!);
-    expect(order).toBeTruthy();
-    const status = screen.getAllByTestId("status");
-    expect(status[0].textContent).toBe("Open");
+    await waitFor(async () => {
+      const orders = await screen.findAllByTestId("transaction");
+      expect(orders).toBeTruthy();
+      expect(orders.length).toBe(allOrders.size);
+      const order = screen.getAllByTestId(orderId!);
+      expect(order).toBeTruthy();
+      const status = screen.getAllByTestId("status");
+      expect(status[0].textContent).toBe("Open");
+    });
     unmount();
   });
 });
