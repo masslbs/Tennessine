@@ -6,7 +6,7 @@
     "serve": "deno run --allow-net --allow-read jsr:@std/http@1/file-server dist/",
     "update-release-info": "deno run -A scripts/write-current-release.ts",
     "generate": "deno run -A scripts/generate-entry-points.ts",
-    "production": "deno task update-release-info && MODE=production deno task build && deno task generate"
+    "production": "deno task update-release-info && deno task build && deno task generate"
   },
   "exclude": ["./.vite/", "./dist/"],
   "lint": {
