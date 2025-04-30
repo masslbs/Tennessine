@@ -407,7 +407,7 @@ export default function Cart({
           proceed.
         </p>
       )}
-      <div className="flex flex-col gap-2 mt-2">
+      <div className="flex flex-col gap-2 mt-2 max-h-[calc(100vh-20rem)] overflow-y-auto">
         {renderItems()}
       </div>
       <div className="mt-4">
