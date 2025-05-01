@@ -26,7 +26,6 @@ import {
   decode,
   encode,
 } from "@massmarket/utils/codec";
-import { ReadableStream, WritableStream } from "web-streams-polyfill";
 
 const debug = logger("relayClient");
 const errLog = logger("relayClient", "error");

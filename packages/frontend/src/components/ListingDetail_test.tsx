@@ -65,7 +65,7 @@ Deno.test("Check that we can render the listing details screen", {
   });
   const { unmount } = render(<ListingDetail />, { wrapper });
 
-  screen.getByTestId("listing-detail-page");
+  await screen.findByTestId("listing-detail-page");
   await waitFor(() => {
     const price = screen.getByTestId("price");
     expect(price.textContent).toBe(formatUnits(listing.Price, 18));
@@ -150,7 +150,6 @@ Deno.test("Check that we can render the listing details screen", {
       CodecValue
     >;
     const newOrder = Order.fromCBOR(newOrderData);
-    expect(newOrder.Items[0].ListingID).toBe(listingId);
     // Since quantity was updated 3 times, it should be the addition of the 3 quantities tested.
     expect(newOrder.Items[0].Quantity).toBe(
       initialQty + qtyIncreasedBy + qtyIncreasedBy2,

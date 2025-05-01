@@ -140,7 +140,7 @@ Deno.test("Check that we can render the checkout screen", {
   await t.step("Cart contains correct items", async () => {
     const { unmount } = render(<Checkout />, { wrapper });
 
-    screen.getByTestId("checkout-screen");
+    await screen.findByTestId("checkout-screen");
     await waitFor(() => {
       const items = screen.getAllByTestId("cart-item") as HTMLElement[];
       expect(items).toHaveLength(2);
@@ -247,7 +247,7 @@ Deno.test("Check that we can render the checkout screen", {
 
   await t.step("Choose payment", async () => {
     const { unmount } = render(<ChoosePayment />, { wrapper });
-    const choosePayment = screen.getByTestId("choose-payment");
+    const choosePayment = await screen.findByTestId("choose-payment");
     expect(choosePayment).toBeTruthy();
 
     //TODO: post phase 1 of MVP, implement test for multiple payment currency options.
