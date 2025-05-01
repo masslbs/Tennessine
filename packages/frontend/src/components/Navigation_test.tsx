@@ -67,7 +67,7 @@ Deno.test("Check that we can render the navigation bar", {
   await stateManager.set(["Orders", orderId], order);
 
   const { unmount } = render(<Navigation />, { wrapper });
-  screen.getByTestId("navigation");
+  await screen.findByTestId("navigation");
 
   const user = userEvent.setup();
   await waitFor(async () => {

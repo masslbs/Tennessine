@@ -28,9 +28,9 @@ Deno.test("Check that we can render the merchant connect screen", {
     path: "/merchant-connect",
   });
 
-  await t.step("Render and unmount component", () => {
+  await t.step("Render and unmount component", async () => {
     const { unmount } = render(<MerchantConnect />, { wrapper });
-    screen.getByTestId("merchant-connect-page");
+    await screen.findByTestId("merchant-connect-page");
     expect(screen.getByTestId("merchant-connect-page")).toBeTruthy();
     unmount();
   });
@@ -63,7 +63,7 @@ Deno.test("Check that we can render the merchant connect screen", {
     const { unmount } = render(<MerchantConnect />, { wrapper });
     const user = userEvent.setup();
     await act(async () => {
-      const searchInput = screen.getByTestId("search-shopId");
+      const searchInput = await screen.findByTestId("search-shopId");
       expect(searchInput).toBeTruthy();
       await user.clear(searchInput);
       await user.type(searchInput, `Hello, world!`);

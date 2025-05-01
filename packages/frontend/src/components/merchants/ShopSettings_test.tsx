@@ -47,7 +47,7 @@ Deno.test("Check that we can render the shop settings screen", {
 
   await stateManager.set(["Manifest"], manifest);
   const { unmount } = render(<ShopSettings />, { wrapper });
-  screen.getByTestId("shop-settings-page");
+  await screen.findByTestId("shop-settings-page");
 
   await t.step("Check that manifest data is rendered correctly", async () => {
     await waitFor(() => {

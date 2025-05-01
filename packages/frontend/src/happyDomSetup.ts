@@ -10,6 +10,8 @@ const denoFormData = globalThis.FormData;
 const denoHeaders = globalThis.Headers;
 const denoRequest = globalThis.Request;
 const denoResponse = globalThis.Response;
+const denoWritableStream = globalThis.WritableStream;
+const denoReadableStream = globalThis.ReadableStream;
 
 GlobalRegistrator.register();
 
@@ -22,3 +24,5 @@ globalThis.FormData = denoFormData;
 globalThis.Headers = denoHeaders;
 globalThis.Request = denoRequest;
 globalThis.Response = denoResponse;
+globalThis.WritableStream = denoWritableStream;
+globalThis.ReadableStream = denoReadableStream;

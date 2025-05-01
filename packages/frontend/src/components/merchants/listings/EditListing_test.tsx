@@ -29,35 +29,31 @@ Deno.test("Edit Listing", {
   const user = userEvent.setup();
   await t.step("Create new listing", async () => {
     const { unmount } = render(<EditListing />, { wrapper });
-    screen.getByTestId("edit-listing-screen");
-    await act(async () => {
-      const titleInput = screen.getByTestId("title");
-      await user.type(titleInput, "product 1");
-      const descInput = screen.getByTestId("description");
-      await user.type(descInput, "product 1 description");
-      const priceInput = screen.getByTestId("price");
-      await user.type(priceInput, "555");
-      const stockInput = screen.getByTestId("stock");
-      await user.type(stockInput, "123");
+    await screen.findByTestId("edit-listing-screen");
+    const titleInput = screen.getByTestId("title");
+    await user.type(titleInput, "product 1");
+    const descInput = screen.getByTestId("description");
+    await user.type(descInput, "product 1 description");
+    const priceInput = screen.getByTestId("price");
+    await user.type(priceInput, "555");
+    const stockInput = screen.getByTestId("stock");
+    await user.type(stockInput, "123");
 
-      // Simulate file upload
-      const file = new File(["test image content"], "test.jpg", {
-        type: "image/jpeg",
-      });
-      const fileInput = screen.getByTestId("file-upload");
-      await user.upload(fileInput, file);
+    // Simulate file upload
+    const file = new File(["test image content"], "test.jpg", {
+      type: "image/jpeg",
     });
+    const fileInput = screen.getByTestId("file-upload");
+    await user.upload(fileInput, file);
 
-    await act(async () => {
-      // check we got listing images on screen
-      const listingImages = await screen.findByTestId("listing-images");
-      expect(listingImages.children.length).toEqual(1);
-      // Verify the image was uploaded
-      const uploadedImage = await screen.findByTestId(
-        "uploaded-product-image",
-      );
-      expect(uploadedImage).toBeDefined();
-    });
+    // check we got listing images on screen
+    const listingImages = await screen.findByTestId("listing-images");
+    expect(listingImages.children.length).toEqual(1);
+    // Verify the image was uploaded
+    const uploadedImage = await screen.findByTestId(
+      "uploaded-product-image",
+    );
+    expect(uploadedImage).toBeDefined();
 
     // if we do this before the image is uploaded, it will fail
     // for some reason the reader.onload fires after this,
@@ -128,42 +124,38 @@ Deno.test("Edit Listing", {
     const { unmount } = render(<EditListing />, {
       wrapper,
     });
-    screen.getByTestId("edit-listing-screen");
+    await screen.findByTestId("edit-listing-screen");
 
     await waitFor(() => {
       const priceInput = screen.getByTestId("price") as HTMLInputElement;
       expect(priceInput.value).toBe("555");
-      const titleInput = screen.getByTestId("title") as HTMLInputElement;
-      expect(titleInput.value).toBe("product 1");
-      const descInput = screen.getByTestId("description") as HTMLInputElement;
-      expect(descInput.value).toBe("product 1 description");
-      const quantityInput = screen.getByTestId("stock") as HTMLInputElement;
-      expect(quantityInput.value).toBe("123");
-      const publishCheckbox = screen.getByRole("checkbox", {
-        name: /Publish product/i,
-      }) as HTMLInputElement;
-      expect(publishCheckbox.checked).toBeTruthy();
     });
+    const titleInput = screen.getByTestId("title") as HTMLInputElement;
+    expect(titleInput.value).toBe("product 1");
+    const descInput = screen.getByTestId("description") as HTMLInputElement;
+    expect(descInput.value).toBe("product 1 description");
+    const quantityInput = screen.getByTestId("stock") as HTMLInputElement;
+    expect(quantityInput.value).toBe("123");
+    const publishCheckbox = screen.getByRole("checkbox", {
+      name: /Publish product/i,
+    }) as HTMLInputElement;
+    expect(publishCheckbox.checked).toBeTruthy();
 
     // Update the inputs
-    await act(async () => {
-      const stockInput = screen.getByTestId("stock");
-      await user.clear(stockInput);
-      await user.type(stockInput, "321");
-      const titleInput = screen.getByTestId("title");
-      await user.clear(titleInput);
-      await user.type(titleInput, "Updated title");
-      const descInput = screen.getByTestId("description");
-      await user.clear(descInput);
-      await user.type(descInput, "Updated description");
-    });
+    const stockInput = screen.getByTestId("stock");
+    await user.clear(stockInput);
+    await user.type(stockInput, "321");
+    const titleInput2 = screen.getByTestId("title");
+    await user.clear(titleInput2);
+    await user.type(titleInput2, "Updated title");
+    const descInput2 = screen.getByTestId("description");
+    await user.clear(descInput2);
+    await user.type(descInput2, "Updated description");
 
-    await act(async () => {
-      const publishButton = screen.getByRole("button", {
-        name: /Update product/i,
-      });
-      await user.click(publishButton);
+    const publishButton = screen.getByRole("button", {
+      name: /Update product/i,
     });
+    await user.click(publishButton);
 
     // the end of act does not mean the update is back from the relay yet, so we need to waitFor
     await waitFor(async () => {

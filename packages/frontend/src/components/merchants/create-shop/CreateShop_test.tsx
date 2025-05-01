@@ -35,7 +35,7 @@ Deno.test("Check that we can create a shop", {
   const { unmount } = render(<CreateShop />, { wrapper });
 
   // screen.debug();
-  screen.getByTestId("create-shop-screen");
+  await screen.findByTestId("create-shop-screen");
   await act(async () => {
     const shopName = screen.getByTestId("shopName");
     await user.type(shopName, "test shop");
