@@ -45,7 +45,7 @@ Deno.test("Check that we can render the order details screen", {
   const orderItem = await screen.findAllByTestId("order-item");
   expect(orderItem.length).toBe(2);
   expect(orderItem[0].textContent).toContain(`${listing!.Metadata.Title}`);
-  const details = screen.getByTestId("shipping-details");
+  const details = await screen.findByTestId("shipping-details");
   expect(details).toBeTruthy();
   expect(details.textContent).toContain(order.ShippingAddress!.Name);
   expect(details.textContent).toContain(order.ShippingAddress!.Address1);

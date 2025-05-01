@@ -151,9 +151,8 @@ Deno.test("Check that we can render the listing details screen", {
     >;
     const newOrder = Order.fromCBOR(newOrderData);
     // Since quantity was updated 3 times, it should be the addition of the 3 quantities tested.
-    expect(newOrder.Items[0].Quantity).toBe(
-      initialQty + qtyIncreasedBy + qtyIncreasedBy2,
-    );
+    const totalQuantity = initialQty + qtyIncreasedBy + qtyIncreasedBy2;
+    expect(newOrder.Items[0].Quantity).toBe(totalQuantity);
   });
 
   unmount();
