@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: MIT
 
-import { Buffer } from "buffer";
 import { bytesToBigInt, bytesToNumber, toBytes } from "viem";
 import * as Sentry from "@sentry/browser";
 import { type CodecValue, decode } from "./codec.ts";
@@ -85,8 +84,11 @@ export function randomBytes(n: number) {
 }
 
 export function hexToBase64(hex: string) {
-  const u8 = new Uint8Array(toBytes(hex));
-  return Buffer.from(u8).toString("base64");
+  const binString = Array.from(
+    toBytes(hex),
+    (byte) => String.fromCodePoint(byte),
+  ).join("");
+  return btoa(binString);
 }
 
 // This is used to get the string value from an array buffer
