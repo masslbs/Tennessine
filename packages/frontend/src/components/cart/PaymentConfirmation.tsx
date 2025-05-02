@@ -1,3 +1,5 @@
+import { type Chain } from "wagmi/chains";
+
 import { logger } from "@massmarket/utils";
 import ButtonLink from "../common/ButtonLink.tsx";
 
@@ -5,12 +7,20 @@ const namespace = "frontend:PaymentConfirmation";
 const debug = logger(namespace);
 
 export default function PaymentConfirmation(
-  { displayedAmount, hash }: { displayedAmount: string; hash: string | null },
+  { displayedAmount, txHash, blockHash, paymentChain }: {
+    displayedAmount: string;
+    txHash: string | null;
+    blockHash: string | null;
+    paymentChain: Chain | undefined;
+  },
 ) {
-  function copyToClipboard() {
-    navigator.clipboard.writeText(hash || "Hash not available");
+  if (!paymentChain) {
+    throw new Error("Payment chain not found");
   }
-
+  const explorerUrl = paymentChain.blockExplorers?.default?.url || null;
+  function copyToClipboard() {
+    navigator.clipboard.writeText(txHash || blockHash || "Hash not available");
+  }
   return (
     <section className="md:flex justify-center px-4">
       <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg items-center md:w-[560px]">
@@ -34,14 +44,20 @@ export default function PaymentConfirmation(
         </div>
         <p>Your order has been completed.</p>
         <div className="flex-col items-center gap-2 flex">
-          <p>Tx hash:</p>
+          <p>
+            {txHash
+              ? "Tx hash:"
+              : blockHash
+              ? "Block hash:"
+              : "Hash unavailable"}
+          </p>
           <div className="flex gap-2">
             <input
               className="border-2 border-solid mt-1 p-2 rounded"
               id="txHash"
               name="txHash"
               data-testid="tx-hash-input"
-              value={hash || ""}
+              value={txHash || blockHash || ""}
               onChange={() => {
                 debug("hash copied");
               }}
@@ -63,6 +79,19 @@ export default function PaymentConfirmation(
           </div>
         </div>
         <ButtonLink to="/listings">Back to listings</ButtonLink>
+
+        {explorerUrl && (
+          <a
+            href={`${explorerUrl}/${txHash ? "tx" : "block"}/${
+              txHash ?? blockHash
+            }`}
+            style={{ color: "black" }}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            View transaction
+          </a>
+        )}
       </section>
     </section>
   );

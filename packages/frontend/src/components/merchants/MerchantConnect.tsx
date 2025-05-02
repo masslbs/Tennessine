@@ -141,7 +141,14 @@ export default function MerchantConnect() {
 
   function getButton() {
     if (step === SearchShopStep.Search) {
-      return <Button onClick={handleSearchForShop}>Search for shop</Button>;
+      return (
+        <Button
+          onClick={handleSearchForShop}
+          disabled={searchShopId.length === 0}
+        >
+          Search for shop
+        </Button>
+      );
     } else if (shopData && step === SearchShopStep.Connect) {
       return (
         <div className="flex flex-col gap-4">

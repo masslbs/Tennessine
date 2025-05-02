@@ -204,6 +204,7 @@ export default function ListingDetail() {
                           maxWidth: "90px",
                           objectFit: "cover",
                           objectPosition: "center",
+                          border: "none",
                         }}
                         onClick={() => setDisplayedImg(image)}
                       />
