@@ -1,60 +1,11 @@
 // SPDX-FileCopyrightText: 2024 Mass Labs
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
-
-import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 
-import { Order } from "@massmarket/schema";
-import { CodecValue } from "@massmarket/utils/codec";
-
 import Transactions from "./Transactions.tsx";
-import { OrderId } from "../../types.ts";
-import { useStateManager } from "../../hooks/useStateManager.ts";
 
 export default function MerchantDashboard() {
-  const { stateManager } = useStateManager();
-  const [orders, setOrders] = useState<Map<OrderId, Order>>(new Map());
-
-  function mapToOrderClass(orders: CodecValue) {
-    if (!(orders instanceof Map)) {
-      throw new Error("Orders is not a Map");
-    }
-    const allOrders = new Map();
-    for (
-      const [id, o] of orders.entries()
-    ) {
-      allOrders.set(id, Order.fromCBOR(o));
-    }
-    return allOrders;
-  }
-
-  useEffect(() => {
-    if (!stateManager) return;
-
-    function ordersEvent(res: CodecValue) {
-      const allOrders = mapToOrderClass(res);
-      setOrders(allOrders);
-    }
-
-    stateManager.get(["Orders"]).then(
-      (res: CodecValue | undefined) => {
-        if (!res) return;
-        const allOrders = mapToOrderClass(res);
-        setOrders(allOrders);
-      },
-    );
-
-    stateManager.events.on(ordersEvent, ["Orders"]);
-
-    return () => {
-      stateManager.events.off(
-        ordersEvent,
-        ["Orders"],
-      );
-    };
-  }, [stateManager]);
-
   return (
     <main
       className="p-4 md:flex justify-center h-screen"
@@ -118,17 +69,8 @@ export default function MerchantDashboard() {
             </Link>
           </div>
         </section>
-        <section className="transactions-container">
-          <h2 className="my-4">Latest orders</h2>
-          <div className="bg-primary-dark-green grid grid-cols-5 text-white text-sm p-4 rounded-t-xl mt-4 text-center">
-            <p>Order ID</p>
-            <p>Date</p>
-            <p>Time</p>
-            <p>Value</p>
-            <p>Status</p>
-          </div>
-          <Transactions orders={orders} />
-        </section>
+        <h2>Latest Orders</h2>
+        <Transactions />
       </section>
     </main>
   );
