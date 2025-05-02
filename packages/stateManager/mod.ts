@@ -185,8 +185,7 @@ export default class StateManager {
   #sendPatch(patch: Patch) {
     // send patch to peers
     return Promise.all(
-      this.#streamsWriters.keys().map((writer) => writer.write([patch]))
-        .toArray(),
+      [...this.#streamsWriters].map((writer) => writer.write([patch])),
     );
   }
 
