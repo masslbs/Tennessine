@@ -534,9 +534,15 @@ export class RelayClient {
         },
       );
 
+      let messageDecoding = Promise.resolve();
       this.connection.addEventListener(
         "message",
-        this.#decodeMessage.bind(this),
+        (data) => {
+          // Here we wait to decode the message until the previous message is fully processed
+          messageDecoding = messageDecoding.then(() =>
+            this.#decodeMessage(data)
+          );
+        },
       );
     }
     return new Promise((resolve) => {
