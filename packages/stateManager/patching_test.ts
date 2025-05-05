@@ -10,20 +10,40 @@ Deno.test("Database Testings", async (t) => {
     "ManifestOkay",
     "ListingOkay",
     "OrderOkay",
-    // "ShopOkay", // skipping because extractFromHAMT returns integer as keys and Account should have bytes as keys
+    "ShopOkay",
     "InventoryOkay",
     "UserFlows/SimpleShoppingTrip",
   ];
 
-  const skippedTests = new Set(
+  const skippedTest = new Set(
     [
+      // similar array issue to below. How to deal with appending to an "empty" array
+      "TestGenerateVectorsShopOkay/append-listing-image",
+      "TestGenerateVectorsShopOkay/add-tag",
+      "TestGenerateVectorsShopOkay/append-listing-to-tag",
+      "TestGenerateVectorsShopOkay/append-listing-to-tag2",
+    ],
+  );
+
+  const skippedAfterCheck = new Set(
+    [
+      /* Related to Issue #342: figure out how to handle big IDs
+      "Listings" => Map(3) {
+        -       18446744073709551615n => Map(4) {
+        +       18446744073709552000 => Map(4) {
+      */
+      "TestGenerateVectorsShopOkay/biggest_item_ID",
+      "TestGenerateVectorsShopOkay/add-order",
+      "TestGenerateVectorsShopOkay/add-order2",
+      "TestGenerateVectorsShopOkay/biggest_order_ID",
+      "TestGenerateVectorsShopOkay/biggest_item_ID#01",
+
       "TestGenerateVectorsManifestOkay/remove_a_payee", // this removes the last payee from the manifest. The stateManager leaves an empty Map, while the tests do not.
       "TestGenerateVectorsManifestOkay/remove_a_shipping_region", // same
       "TestGenerateVectorsListingOkay/remove_an_image", // same but with an array
       "TestGenerateVectorsListingOkay/replace_expectedInStockBy", // the tests vectors automatically remove an instock field
       "TestGenerateVectorsListingOkay/remove_stock_status", // removing the last item of an array
       "TestGenerateVectorsListingOkay/remove_an_option", // removing the last item from a map
-      "CreateCustomerAccount", // extractFromHAMT returns integer as keys and Account should have bytes as keys
     ],
   );
 
@@ -44,15 +64,13 @@ Deno.test("Database Testings", async (t) => {
       const id = (rawPatchSet.get("Header") as Map<string, unknown>).get(
         "ShopID",
       ) as bigint;
-
       const testVectors = createtestvectors(
         snapShots,
         rawPatchSet,
       );
-
       let passing = true;
       for (const test of testVectors) {
-        if (passing) {
+        if (passing && !skippedTest.has(test.description)) {
           passing = await tt.step(test.description, async () => {
             const store = new MemStore();
             const before = test.snapshot.before;
@@ -67,7 +85,7 @@ Deno.test("Database Testings", async (t) => {
             const writer = stream.getWriter();
             await writer.write(test.patchSet);
             await writer.close();
-            if (skippedTests.has(test.description)) {
+            if (skippedAfterCheck.has(test.description)) {
               console.log("Skipping state check!!!!!!!");
             } else {
               assertEquals(sm.root, after);
