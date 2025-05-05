@@ -143,7 +143,11 @@ Deno.test("Check that we can render the listing details screen", {
     >;
     expect(updatedOrders.size).toBe(2);
   });
-  const newOrderId = Array.from(updatedOrders!.keys())[1] as number;
+  const orderIds = Array.from(updatedOrders!.keys()).filter((id) =>
+    id !== orderId
+  );
+  expect(orderIds.length).toBe(1);
+  const newOrderId = orderIds[0] as number;
   await waitFor(async () => {
     const newOrderData = await stateManager.get(["Orders", newOrderId]) as Map<
       CodecKey,
