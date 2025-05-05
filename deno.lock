@@ -11,6 +11,7 @@
     "jsr:@std/assert@^1.0.12": "1.0.12",
     "jsr:@std/assert@^1.0.13": "1.0.13",
     "jsr:@std/data-structures@^1.0.6": "1.0.6",
+    "jsr:@std/encoding@*": "1.0.8",
     "jsr:@std/expect@^1.0.15": "1.0.15",
     "jsr:@std/fs@^1.0.16": "1.0.16",
     "jsr:@std/internal@^1.0.6": "1.0.6",
@@ -101,6 +102,9 @@
     },
     "@std/data-structures@1.0.6": {
       "integrity": "76a7fd8080c66604c0496220a791860492ab21a04a63a969c0b9a0609bbbb760"
+    },
+    "@std/encoding@1.0.8": {
+      "integrity": "a6c8f3f933ab1bed66244f435d1dc0fd23a888e07195532122ddc3d5f8f0e6b4"
     },
     "@std/expect@1.0.15": {
       "integrity": "eca360007b5a7f13dbfa1294224baee7fb98dcd460d8461fe64eeae302902945",
@@ -4684,7 +4688,6 @@
           "npm:rolldown-vite@^6.3.6",
           "npm:tailwindcss@^4.1.4",
           "npm:viem@^2.28.1",
-
           "npm:wagmi@^2.15.1",
           "npm:web-streams-polyfill@^4.1.0"
         ]
@@ -4731,6 +4734,7 @@
       "packages/utils": {
         "dependencies": [
           "jsr:@std/assert@^1.0.13",
+          "jsr:@std/expect@^1.0.15",
           "npm:@sentry/browser@9.15.0",
           "npm:cbor-x@^1.6.0",
           "npm:viem@^2.28.1"

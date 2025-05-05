@@ -139,7 +139,7 @@ export function extractEntriesFromHAMT(
   }
 
   const entries = hamtNode[1];
-  const result = new Map<number, CodecValue>();
+  const result = new Map<number | Uint8Array, CodecValue>();
 
   if (Array.isArray(entries)) {
     for (const entry of entries) {
@@ -162,14 +162,18 @@ export function extractEntriesFromHAMT(
           // This is a leaf node
           const key = entry[0];
           const value = entry[1];
-          // Convert key (Uint8Array) to number (8-byte big endian)
-          const keyNum = new DataView(
-            key.buffer,
-            key.byteOffset,
-            key.byteLength,
-          )
-            .getBigUint64(0, false);
-          result.set(Number(keyNum), value);
+          if (key.length === 8) {
+            // Convert key (Uint8Array) to number (8-byte big endian)
+            const keyNum = new DataView(
+              key.buffer,
+              key.byteOffset,
+              key.byteLength,
+            )
+              .getBigUint64(0, false);
+            result.set(Number(keyNum), value);
+          } else {
+            result.set(key, value);
+          }
         }
       }
     }
