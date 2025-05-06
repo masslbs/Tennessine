@@ -131,6 +131,8 @@ export default function MerchantConnect() {
         address: keycard.address,
       });
       debug(`Keycard enrolled: ${keycard.privateKey}`);
+      await relayClient.connect();
+      await relayClient.authenticate();
       stateManager!.addConnection(relayClient);
       setStep(SearchShopStep.Confirm);
     } catch (error: unknown) {
