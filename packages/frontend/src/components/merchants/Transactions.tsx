@@ -1,14 +1,19 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { formatUnits } from "viem";
 
 import { Order } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
 
 import { OrderId, OrderState } from "../../types.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
+import { useBaseToken } from "../../hooks/useBaseToken.ts";
+import { formatDate } from "../../utils/helper.ts";
 
 export default function Transactions() {
   const { stateManager } = useStateManager();
+  const { baseToken } = useBaseToken();
+
   const [filter, setFilter] = useState<string>("all");
   const [orders, setOrders] = useState<Map<OrderId, Order>>(new Map());
 
@@ -65,50 +70,59 @@ export default function Transactions() {
           return value.State === OrderState.Paid;
         }
         return true;
-      })
-      .map(([key, value]) => {
-        const ID = key;
-        let status: string;
-        switch (value.State) {
-          case OrderState.Canceled:
-            status = "Cancelled";
-            break;
-          case OrderState.Open:
-            status = "Open";
-            break;
-          case OrderState.Committed:
-            status = "Committed";
-            break;
-          case OrderState.Paid:
-            status = "Paid";
-            break;
-          default:
-            status = "Unspecified";
-        }
-        return { ID, status };
       });
 
-    return transactions.map((o) => {
+    return transactions.map(([key, value]) => {
+      const ID = key;
+      let status: string;
+      let date = "-";
+      let time = "-";
+      let total = "-";
+      if (value.PaymentDetails) {
+        const d = formatDate(value.PaymentDetails!.TTL).split(",");
+        date = d[0];
+        time = d[1];
+
+        total = `${
+          formatUnits(BigInt(value.PaymentDetails.Total), baseToken.decimals)
+        } ${baseToken.symbol}`;
+      }
+      switch (value.State) {
+        case OrderState.Canceled:
+          status = "Cancelled";
+          break;
+        case OrderState.Open:
+          status = "Open";
+          break;
+        case OrderState.Committed:
+          status = "Committed";
+          break;
+        case OrderState.Paid:
+          status = "Paid";
+          break;
+        default:
+          status = "Unspecified";
+      }
       return (
         <Link
           data-testid="transaction"
-          key={o.ID}
+          key={ID}
           className="bg-white"
           to="/order-details"
           search={(prev: Record<string, string>) => ({
             shopId: prev.shopId,
-            orderId: o.ID,
+            orderId: ID,
           })}
           style={{ color: "black" }}
         >
           <div className=" p-3 grid grid-cols-5 text-center">
-            <p data-testid={o.ID} className="truncate">
-              {o.ID.toString().slice(0, 8)}...
+            <p data-testid={ID} className="truncate">
+              {ID.toString().slice(0, 8)}...
             </p>
-            <p className="truncate">-</p>
-            <p className="truncate">-</p>
-            <p className="truncate">-</p>
-            <p data-testid="status" className="truncate">{o.status}</p>
+            <p className="truncate">{date}</p>
+            <p className="truncate">{time}</p>
+            <p className="truncate">{total}</p>
+            <p data-testid="status" className="truncate">{status}</p>
           </div>
         </Link>
       );
