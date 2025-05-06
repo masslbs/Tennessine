@@ -4,7 +4,7 @@
 import { Link } from "@tanstack/react-router";
 
 import Transactions from "./Transactions.tsx";
-
+import ButtonLink from "../common/ButtonLink.tsx";
 export default function MerchantDashboard() {
   return (
     <main
@@ -70,7 +70,10 @@ export default function MerchantDashboard() {
           </div>
         </section>
         <h2>Latest Orders</h2>
-        <Transactions />
+        <Transactions displayFive />
+        <div className="flex justify-center mt-3">
+          <ButtonLink to="/orders">View all orders</ButtonLink>
+        </div>
       </section>
     </main>
   );

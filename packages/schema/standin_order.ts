@@ -70,7 +70,6 @@ export class Order extends BaseClass {
     }
 
     const stateNum = ensureNumber(input.get("State"), "State");
-    const state = OrderStateFromNumber(stateNum);
 
     let invoiceAddress: AddressDetails | undefined;
     const invoiceAddressData = input.get("InvoiceAddress");
@@ -135,7 +134,7 @@ export class Order extends BaseClass {
     return new Order(
       id,
       items,
-      state,
+      stateNum,
       invoiceAddress,
       shippingAddress,
       canceledAt,
@@ -189,27 +188,6 @@ export enum OrderState {
   PaymentChosen = 4,
   Unpaid = 5,
   Paid = 6,
-}
-
-export function OrderStateFromNumber(num: number): OrderState {
-  switch (num) {
-    case 0:
-      return OrderState.Unspecified;
-    case 1:
-      return OrderState.Open;
-    case 2:
-      return OrderState.Canceled;
-    case 3:
-      return OrderState.Committed;
-    case 4:
-      return OrderState.PaymentChosen;
-    case 5:
-      return OrderState.Unpaid;
-    case 6:
-      return OrderState.Paid;
-    default:
-      throw new Error(`Invalid order state: ${num}`);
-  }
 }
 
 export class AddressDetails extends BaseClass {

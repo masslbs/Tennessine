@@ -1,6 +1,6 @@
 import { formatUnits } from "viem";
 
-import { KeycardRole } from "../types.ts";
+import { KeycardRole, OrderState } from "../types.ts";
 
 export function multiplyAndFormatUnits(
   price: bigint,
@@ -34,4 +34,25 @@ export function formatDate(ttl: number) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(ttl * 1000);
+}
+
+export function OrderStateFromNumber(num: number) {
+  switch (num) {
+    case OrderState.Unspecified:
+      return `Unspecified`;
+    case OrderState.Open:
+      return `Open`;
+    case OrderState.Canceled:
+      return `Canceled`;
+    case OrderState.Committed:
+      return `Committed`;
+    case OrderState.PaymentChosen:
+      return `Payment Chosen`;
+    case OrderState.Unpaid:
+      return `Unpaid`;
+    case OrderState.Paid:
+      return `Paid`;
+    default:
+      throw new Error(`Invalid order state: ${num}`);
+  }
 }
