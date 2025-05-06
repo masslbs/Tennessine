@@ -202,7 +202,8 @@ export default function MerchantConnect() {
               </label>
               <div className="flex gap-2">
                 <input
-                  className="border-2 border-solid mt-1 p-2 rounded-md bg-background-gray grow"
+                  className="mt-1 p-2 rounded-md grow"
+                  style={{ backgroundColor: "#F3F3F3" }}
                   data-testid="search-shopId"
                   name="searchShopId"
                   value={searchShopId}

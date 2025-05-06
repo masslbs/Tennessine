@@ -8,13 +8,16 @@ import { CodecValue } from "@massmarket/utils/codec";
 import { OrderId, OrderState } from "../../types.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 import { useBaseToken } from "../../hooks/useBaseToken.ts";
-import { formatDate } from "../../utils/helper.ts";
+import { formatDate, OrderStateFromNumber } from "../../utils/helper.ts";
 
-export default function Transactions() {
+export default function Transactions(
+  { displayFive }: { displayFive?: boolean },
+) {
   const { stateManager } = useStateManager();
   const { baseToken } = useBaseToken();
 
   const [filter, setFilter] = useState<string>("all");
+  const [sort, setSort] = useState<string>("oldest");
   const [orders, setOrders] = useState<Map<OrderId, Order>>(new Map());
 
   function mapToOrderClass(orders: CodecValue) {
@@ -70,11 +73,22 @@ export default function Transactions() {
           return value.State === OrderState.Paid;
         }
         return true;
+      }).sort((a, b) => {
+        if (!a[1].PaymentDetails) return 1;
+        if (!b[1].PaymentDetails) return -1;
+
+        if (sort === "oldest") {
+          return a[1].PaymentDetails.TTL - b[1].PaymentDetails.TTL;
+        }
+        return b[1].PaymentDetails.TTL - a[1].PaymentDetails.TTL;
       });
 
-    return transactions.map(([key, value]) => {
+    const displayTransactions = displayFive
+      ? transactions.slice(0, 5)
+      : transactions;
+
+    return displayTransactions.map(([key, value]) => {
       const ID = key;
-      let status: string;
       let date = "-";
       let time = "-";
       let total = "-";
@@ -87,27 +101,11 @@ export default function Transactions() {
           formatUnits(BigInt(value.PaymentDetails.Total), baseToken.decimals)
         } ${baseToken.symbol}`;
       }
-      switch (value.State) {
-        case OrderState.Canceled:
-          status = "Cancelled";
-          break;
-        case OrderState.Open:
-          status = "Open";
-          break;
-        case OrderState.Committed:
-          status = "Committed";
-          break;
-        case OrderState.Paid:
-          status = "Paid";
-          break;
-        default:
-          status = "Unspecified";
-      }
+
       return (
         <Link
           data-testid="transaction"
           key={ID}
-          className="bg-white"
           to="/order-details"
           search={(prev: Record<string, string>) => ({
             shopId: prev.shopId,
@@ -115,14 +113,16 @@ export default function Transactions() {
           })}
           style={{ color: "black" }}
         >
-          <div className=" p-3 grid grid-cols-5 text-center">
+          <div className=" p-3 grid grid-cols-5 text-center bg-white">
             <p data-testid={ID} className="truncate">
               {ID.toString().slice(0, 8)}...
             </p>
             <p className="truncate">{date}</p>
             <p className="truncate">{time}</p>
             <p className="truncate">{total}</p>
-            <p data-testid="status" className="truncate">{status}</p>
+            <p data-testid="status" className="truncate">
+              {OrderStateFromNumber(value.State)}
+            </p>
           </div>
         </Link>
       );
@@ -130,18 +130,35 @@ export default function Transactions() {
   }
   return (
     <section className="transactions-container">
-      <section className="flex items-center gap-1">
-        <p>Filter:</p>
-        <select
-          name="filter"
-          id="filter"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-        >
-          <option value="all">All</option>
-          <option value="paid">Paid</option>
-        </select>
+      <section className="flex items-center gap-4">
+        <div className="flex items-center gap-1">
+          <p>Filter:</p>
+          <select
+            name="filter"
+            id="filter"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          >
+            <option value="all">All</option>
+            <option value="paid">Paid</option>
+          </select>
+        </div>
+        <div className="flex items-center gap-1">
+          <p>Sort:</p>
+          <select
+            name="date"
+            id="date"
+            value={sort}
+            onChange={(e) => {
+              setSort(e.target.value);
+            }}
+          >
+            <option value="oldest">Oldest</option>
+            <option value="newest">Newest</option>
+          </select>
+        </div>
       </section>
+
       <div className="bg-primary-dark-green grid grid-cols-5 text-white text-sm p-4 rounded-t-xl mt-4 text-center">
         <p>Order ID</p>
         <p>Date</p>

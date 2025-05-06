@@ -1,12 +1,14 @@
 import Transactions from "./Transactions.tsx";
+import BackButton from "../common/BackButton.tsx";
 
 export default function Orders() {
   return (
-    <main className="p-4 md:flex justify-center">
+    <main className="px-4 md:flex justify-center">
       <section
         data-testid-="transactions-container"
         className="md:w-[560px]"
       >
+        <BackButton href="/merchant-dashboard" />
         <h1>Orders</h1>
         <Transactions />
       </section>
