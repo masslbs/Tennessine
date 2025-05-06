@@ -89,15 +89,11 @@ export function useStateManager() {
           throw new Error(`Failed to enroll keycard: ${res}`);
         }
         debug("Success: Enrolled new guest keycard");
-        await relayClient.connect();
-        await relayClient.authenticate();
         db.addConnection(relayClient);
         //Set keycard role to guest-returning so we don't try enrolling again on refresh
         setKeycard({ ...keycard, role: KeycardRole.RETURNING_GUEST });
       } else {
         debug("Adding connection");
-        await relayClient.connect();
-        await relayClient.authenticate();
         db.addConnection(relayClient);
       }
     }
