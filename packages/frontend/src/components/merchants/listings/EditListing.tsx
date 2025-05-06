@@ -37,6 +37,8 @@ export default function EditProduct() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [blobs, setBlobs] = useState<FormData[]>([]);
   const [publishing, setPublishing] = useState(false);
+  // This state is to store the price input value as a string to allow flexibility when typing in decimals
+  const [priceInput, setPriceInput] = useState("");
 
   const itemId = typeof search.itemId === "number"
     ? Number(search.itemId) as ListingId
@@ -45,7 +47,7 @@ export default function EditProduct() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!stateManager || !itemId) return;
+    if (!stateManager || !itemId || !baseToken) return;
     stateManager.get(["Listings", itemId])
       .then((item: CodecValue | undefined) => {
         if (!item) {
@@ -53,7 +55,9 @@ export default function EditProduct() {
           errlog("Error fetching listing. No item found");
           return;
         }
-        setListing(Listing.fromCBOR(item));
+        const l = Listing.fromCBOR(item);
+        setListing(l);
+        setPriceInput(formatUnits(l.Price, baseToken.decimals));
       })
       .catch((e: unknown) => {
         setErrorMsg("Error fetching listing");
@@ -65,7 +69,7 @@ export default function EditProduct() {
           setStock(Number(item));
         }
       });
-  }, [stateManager, itemId]);
+  }, [stateManager, itemId, baseToken]);
 
   async function create(newListing: Listing) {
     assert(stateManager, "State manager is required");
@@ -114,7 +118,7 @@ export default function EditProduct() {
       setValidationError("Product must include title.");
     } else if (!newListing.Metadata.Description) {
       setValidationError("Product must include description.");
-    } else if (!newListing.Price) {
+    } else if (!priceInput) {
       setValidationError("Product must include price.");
     } else if (!newListing.Metadata.Images?.length) {
       setValidationError("Product must include image.");
@@ -136,6 +140,7 @@ export default function EditProduct() {
           );
           newListing.Metadata.Images = [...urls, ...newUploads];
         }
+        newListing.Price = parseUnits(priceInput, baseToken.decimals);
 
         if (itemId) {
           newListing.ID = itemId;
@@ -170,9 +175,7 @@ export default function EditProduct() {
     const newListing = Listing.fromCBOR(
       listing.asCBORMap() as Map<CodecKey, CodecValue>,
     );
-    if (field === "Price") {
-      newListing.Price = parseUnits(e.target.value, baseToken.decimals);
-    } else if (field === "ViewState") {
+    if (field === "ViewState") {
       newListing.ViewState = e.target.checked
         ? ListingViewState.Published
         : ListingViewState.Unspecified;
@@ -243,6 +246,15 @@ export default function EditProduct() {
     ) => img !== a);
     setListing(newListing);
   }
+
+  function handlePriceChange(e: ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value;
+    // Only allow numbers and a single decimal point
+    if (/^\d*\.?\d*$/.test(value)) {
+      setPriceInput(value);
+    }
+  }
+
   return (
     <main
       className="px-3 md:flex justify-center"
@@ -367,14 +379,17 @@ export default function EditProduct() {
               >
                 <label htmlFor="price">price</label>
                 <input
-                  type="number"
-                  step="any"
-                  value={formatUnits(listing.Price, baseToken.decimals)}
+                  type="text"
+                  value={priceInput}
+                  placeholder="0.00"
                   className="mt-1 p-2 rounded-md"
                   data-testid="price"
                   style={{ backgroundColor: "#F3F3F3" }}
                   name="price"
-                  onChange={(e) => handleInputChange(e, "Price")}
+                  // Only allow numbers and a single decimal point
+                  pattern="^\d*\.?\d*$"
+                  inputMode="decimal"
+                  onChange={handlePriceChange}
                 />
               </form>
               <form
