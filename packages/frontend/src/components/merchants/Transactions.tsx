@@ -93,15 +93,23 @@ export default function Transactions() {
         <Link
           data-testid="transaction"
           key={o.ID}
-          className="bg-white border-2  p-3 flex justify-between"
+          className="bg-white"
           to="/order-details"
           search={(prev: Record<string, string>) => ({
             shopId: prev.shopId,
             orderId: o.ID,
           })}
+          style={{ color: "black" }}
         >
-          <p data-testid={o.ID}>{o.ID}...</p>
-          <p data-testid="status">{o.status}</p>
+          <div className=" p-3 grid grid-cols-5 text-center">
+            <p data-testid={o.ID} className="truncate">
+              {o.ID.toString().slice(0, 8)}...
+            </p>
+            <p className="truncate">-</p>
+            <p className="truncate">-</p>
+            <p className="truncate">-</p>
+            <p data-testid="status" className="truncate">{o.status}</p>
+          </div>
         </Link>
       );
     });

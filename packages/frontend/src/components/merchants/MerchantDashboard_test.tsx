@@ -12,11 +12,10 @@ import { createRouterWrapper, testClient } from "../../testutils/mod.tsx";
 Deno.test("Merchant Dashboard", {
   sanitizeResources: false,
   sanitizeOps: false,
-}, async () => {
+}, async (t) => {
   const shopId = random256BigInt();
   // Setting up merchant
   const {
-    wrapper: merchantWrapper,
     stateManager: merchantStateManager,
     relayClient: merchantRelayClient,
   } = await createRouterWrapper({
@@ -39,8 +38,6 @@ Deno.test("Merchant Dashboard", {
 
   //Setting up customer
   await relayClient.enrollKeycard(testClient, testAccount, true);
-  await relayClient.connect();
-  await relayClient.authenticate();
   stateManager.addConnection(relayClient);
   let orderId: number;
 
@@ -48,21 +45,30 @@ Deno.test("Merchant Dashboard", {
     await stateManager.set(["Orders", key], entry);
     orderId = key;
   }
+
   localStorage.removeItem(`keycard${shopId}`);
 
-
-  const { unmount } = render(<MerchantDashboard />, {
+  const {
     wrapper: merchantWrapper,
+  } = await createRouterWrapper({
+    shopId,
+    createShop: false,
+    enrollMerchant: true,
   });
+  await t.step("Check if the merchant dashboard is rendered", async () => {
+    const { unmount } = render(<MerchantDashboard />, {
+      wrapper: merchantWrapper,
+    });
 
-  await waitFor(async () => {
-    const orders = await screen.findAllByTestId("transaction");
-    expect(orders).toBeTruthy();
-    expect(orders.length).toBe(allOrders.size);
-    const order = screen.getAllByTestId(orderId!);
-    expect(order).toBeTruthy();
-    const status = screen.getAllByTestId("status");
-    expect(status[0].textContent).toBe("Open");
+    await waitFor(async () => {
+      const orders = await screen.findAllByTestId("transaction");
+      expect(orders).toBeTruthy();
+      expect(orders.length).toBe(allOrders.size);
+      const order = screen.getAllByTestId(orderId!);
+      expect(order).toBeTruthy();
+      const status = screen.getAllByTestId("status");
+      expect(status[0].textContent).toBe("Open");
+    });
+    unmount();
   });
-  unmount();
 });
