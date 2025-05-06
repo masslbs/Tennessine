@@ -1,8 +1,16 @@
 import "../happyDomSetup.ts";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { expect } from "@std/expect";
 import { userEvent } from "@testing-library/user-event";
+
 import { allListings } from "@massmarket/schema/testFixtures";
+import type { CodecValue } from "@massmarket/utils/codec";
 import { random256BigInt, randUint64 } from "@massmarket/utils";
 import { Order, OrderedItem } from "@massmarket/schema";
 
@@ -78,8 +86,11 @@ Deno.test("Check that we can render the navigation bar", {
 
   await t.step("Remove item from cart", async () => {
     // Check that the cart items are rendered
+    const desktopBasket = screen.getByTestId("desktop-basket");
+
     await waitFor(() => {
-      const cartItems = screen.getAllByTestId("cart-item");
+      expect(desktopBasket).toBeDefined();
+      const cartItems = within(desktopBasket).getAllByTestId("cart-item");
       expect(cartItems.length).toBe(2);
       //check that the added quantity is displayed correctly
       expect(cartItems[0].textContent).toEqual(
@@ -91,26 +102,32 @@ Deno.test("Check that we can render the navigation bar", {
     });
 
     await waitFor(async () => {
-      const removeButton = screen.getByTestId(`remove-item-${item1ID}`);
+      const removeButton = within(desktopBasket).getByTestId(
+        `remove-item-${item1ID}`,
+      );
       expect(removeButton).toBeDefined();
       await user.click(removeButton);
     });
 
     await waitFor(() => {
-      const cartItems = screen.getAllByTestId("cart-item");
+      const cartItems = within(desktopBasket).getAllByTestId("cart-item");
       expect(cartItems.length).toBe(1);
       expect(cartItems[0].textContent).toContain("test4224Qty");
     });
   });
 
   await t.step("Add quantity to item", async () => {
+    const desktopBasket = screen.getByTestId("desktop-basket");
+
     await waitFor(async () => {
-      const addButton = screen.getByTestId(`add-quantity-${item2ID}`);
+      const addButton = within(desktopBasket).getByTestId(
+        `add-quantity-${item2ID}`,
+      );
       expect(addButton).toBeDefined();
       await user.click(addButton);
     });
     await waitFor(() => {
-      const quantity = screen.getByTestId(`quantity-${item2ID}`);
+      const quantity = within(desktopBasket).getByTestId(`quantity-${item2ID}`);
       expect(quantity.textContent).toContain("25");
     });
     // Check statemanager updated correctly.
@@ -122,13 +139,17 @@ Deno.test("Check that we can render the navigation bar", {
   });
 
   await t.step("Remove quantity from item", async () => {
+    const desktopBasket = screen.getByTestId("desktop-basket");
+
     await waitFor(async () => {
-      const minusQty = screen.getByTestId(`remove-quantity-${item2ID}`);
+      const minusQty = within(desktopBasket).getByTestId(
+        `remove-quantity-${item2ID}`,
+      );
       expect(minusQty).toBeDefined();
       await user.click(minusQty);
     });
     await waitFor(() => {
-      const quantity = screen.getByTestId(`quantity-${item2ID}`);
+      const quantity = within(desktopBasket).getByTestId(`quantity-${item2ID}`);
       expect(quantity.textContent).toContain("24");
     });
     // Check statemanager updated correctly.
@@ -140,12 +161,14 @@ Deno.test("Check that we can render the navigation bar", {
   });
 
   await t.step("Clear cart", async () => {
+    const desktopBasket = screen.getByTestId("desktop-basket");
+
     await waitFor(async () => {
-      const clearCart = screen.getByTestId("clear-cart");
+      const clearCart = within(desktopBasket).getByTestId("clear-cart");
       await user.click(clearCart);
     });
     await waitFor(() => {
-      const cartItems = screen.queryAllByTestId("cart-item");
+      const cartItems = within(desktopBasket).queryAllByTestId("cart-item");
       expect(cartItems.length).toBe(0);
     });
     const updatedOrder = await stateManager.get(["Orders", orderId]);
@@ -159,13 +182,18 @@ Deno.test("Check that we can render the navigation bar", {
       new OrderedItem(item1ID, 32).asCBORMap(),
       new OrderedItem(item2ID, 24).asCBORMap(),
     ]);
+
     await waitFor(async () => {
       const cartToggle = screen.getByTestId("cart-toggle");
       expect(cartToggle).toBeTruthy();
       await user.click(cartToggle);
     });
+    const desktopBasket = screen.getByTestId("desktop-basket");
+
     await waitFor(async () => {
-      const checkoutButton = screen.getByTestId("checkout-button");
+      const checkoutButton = within(desktopBasket).getByTestId(
+        "checkout-button",
+      );
       expect(checkoutButton).toBeDefined();
       await user.click(checkoutButton);
     });
@@ -181,24 +209,31 @@ Deno.test("Check that we can render the navigation bar", {
       const cartToggle = screen.getByTestId("cart-toggle");
       expect(cartToggle).toBeTruthy();
       await user.click(cartToggle);
-      // Verify the basket header is displayed
-      const basketHeader = screen.getByText("Basket");
-      expect(basketHeader).toBeTruthy();
     });
-    // Try to clear cart that's already committed
+    const desktopBasket = screen.getByTestId("desktop-basket");
+
     await waitFor(async () => {
-      const clearCart = screen.getByTestId("clear-cart");
+      // Verify the basket header is displayed
+      const basketHeader = within(desktopBasket).getByText("Basket");
+      expect(basketHeader).toBeTruthy();
+      // Try to clear cart that's already committed
+      const clearCart = within(desktopBasket).getByTestId("clear-cart");
       expect(clearCart).toBeDefined();
       await user.click(clearCart);
     });
     await waitFor(async () => {
-      const cartItems = screen.queryAllByTestId("cart-item");
+      const cartItems = within(desktopBasket).queryAllByTestId("cart-item");
       expect(cartItems.length).toBe(0);
       const orders = await stateManager.get(["Orders"]) as Map<
-        bigint,
+        number,
         unknown
       >;
+      //Clearing cart of an already committed order should cancel the order and recreate a new order with no items.
       expect(orders.size).toBe(2);
+      const o = orders.get(orderId) as CodecValue;
+      const order = Order.fromCBOR(o!);
+      expect(order.CanceledAt).toBeDefined();
+      expect(order.State).toBe(OrderState.Canceled);
     });
   });
 
