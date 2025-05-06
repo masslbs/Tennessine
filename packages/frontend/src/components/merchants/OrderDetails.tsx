@@ -18,7 +18,7 @@ import { ListingId, OrderState } from "../../types.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 import { useBaseToken } from "../../hooks/useBaseToken.ts";
 import { env } from "../../utils/env.ts";
-import { getTokenInformation } from "../../utils/mod.ts";
+import { formatDate, getTokenInformation } from "../../utils/mod.ts";
 
 const warn = logger("OrderDetails", "warn");
 
@@ -57,13 +57,7 @@ export default function OrderDetails() {
           setOrder(o);
 
           if (o.PaymentDetails) {
-            const d = new Intl.DateTimeFormat("en-US", {
-              year: "numeric",
-              month: "numeric",
-              day: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            }).format(o.PaymentDetails!.TTL * 1000);
+            const d = formatDate(o.PaymentDetails!.TTL);
             setOrderDate(d);
           }
         });
