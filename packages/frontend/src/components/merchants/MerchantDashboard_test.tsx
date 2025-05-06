@@ -7,36 +7,58 @@ import { random256BigInt } from "@massmarket/utils";
 import { allOrderListings, allOrders } from "@massmarket/schema/testFixtures";
 
 import MerchantDashboard from "./MerchantDashboard.tsx";
-import { createRouterWrapper } from "../../testutils/mod.tsx";
+import { createRouterWrapper, testClient } from "../../testutils/mod.tsx";
 
 Deno.test("Merchant Dashboard", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async (t) => {
   const shopId = random256BigInt();
+  // Setting up merchant
+  const {
+    stateManager: merchantStateManager,
+    relayClient: merchantRelayClient,
+  } = await createRouterWrapper({
+    shopId,
+    createShop: true,
+    enrollMerchant: true,
+  });
+  merchantStateManager.addConnection(merchantRelayClient);
 
-  await t.step("All orders render", async () => {
-    const {
-      wrapper,
-      stateManager,
-      relayClient,
-    } = await createRouterWrapper({
-      shopId,
-      createShop: true,
-      enrollMerchant: true,
+  //Add listings to shop
+  for (const [key, entry] of allOrderListings.entries()) {
+    await merchantStateManager.set(["Listings", key], entry);
+  }
+
+  localStorage.removeItem(`keycard${shopId}`);
+
+  const { stateManager, relayClient, testAccount } = await createRouterWrapper({
+    shopId,
+  });
+
+  //Setting up customer
+  await relayClient.enrollKeycard(testClient, testAccount, true);
+  stateManager.addConnection(relayClient);
+  let orderId: number;
+
+  for (const [key, entry] of allOrders.entries()) {
+    await stateManager.set(["Orders", key], entry);
+    orderId = key;
+  }
+
+  localStorage.removeItem(`keycard${shopId}`);
+
+  const {
+    wrapper: merchantWrapper,
+  } = await createRouterWrapper({
+    shopId,
+    createShop: false,
+    enrollMerchant: true,
+  });
+  await t.step("Check if the merchant dashboard is rendered", async () => {
+    const { unmount } = render(<MerchantDashboard />, {
+      wrapper: merchantWrapper,
     });
-    stateManager.addConnection(relayClient);
-
-    for (const [key, entry] of allOrderListings.entries()) {
-      await stateManager.set(["Listings", key], entry);
-    }
-    let orderId: number;
-    for (const [key, entry] of allOrders.entries()) {
-      await stateManager.set(["Orders", key], entry);
-      orderId = key;
-    }
-
-    const { unmount } = render(<MerchantDashboard />, { wrapper });
 
     await waitFor(async () => {
       const orders = await screen.findAllByTestId("transaction");
