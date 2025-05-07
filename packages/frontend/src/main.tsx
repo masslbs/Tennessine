@@ -6,10 +6,7 @@ import * as Sentry from "@sentry/browser";
 import { env } from "./utils/env.ts";
 import releaseInfo from "./release-info.json" with { type: "json" };
 
-// TODO: once we are on mainnet:
-// const isProd = env.chainName === "mainnet";
-// for now, we are using the "main sepolia" relay as production
-const isProd = env?.relayEndpoint?.indexOf("relay-sepolia.mass.market") !== -1;
+const isProd = env.chainName === "mainnet";
 
 if (env.sentryDSN) {
   Sentry.init({
