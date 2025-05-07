@@ -1,24 +1,23 @@
-import { defineConfig, loadEnv, PluginOption } from "rolldown-vite";
-import { normalize } from "@std/path";
+import { defineConfig, loadEnv, PluginOption } from "vite";
 import deno from "@deno/vite-plugin";
-import react from "@vitejs/plugin-react-swc";
+// import { denoPlugins } from "jsr:@luca/esbuild-deno-loader@^0.11.1";
+import react from "@vitejs/plugin-react";
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 import tailwindcss from "@tailwindcss/vite";
 // only needed for the build
-import { entryPoints } from "./generate-entry-points.ts";
+import { entryPoints } from "./scripts/generate-entry-points.ts";
 // Take all the routes and create an object with the route name as the key and the index.html as the value.
 const buildInputs = Object.fromEntries(
   entryPoints.map((path) => [path, "index.html"]),
 );
 
-const dirname = normalize(import.meta.dirname! + "/../");
 export default defineConfig(({ mode }) => {
+  const dirname = import.meta.dirname as string;
   const env = loadEnv(mode, dirname);
   return {
     build: {
       rollupOptions: {
         input: buildInputs,
-        logLevel: "debug",
       },
       outDir: "dist",
       copyPublicDir: true,
@@ -29,8 +28,8 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       deno() as PluginOption,
-      react() as PluginOption,
-      TanStackRouterVite({ addExtensions: true }) as PluginOption,
+      react(),
+      TanStackRouterVite({ addExtensions: true }),
       tailwindcss() as PluginOption,
     ],
     optimizeDeps: {
