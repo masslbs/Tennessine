@@ -117,6 +117,7 @@ function Navigation() {
           <button
             type="button"
             style={{ backgroundColor: "transparent", padding: 0 }}
+            className="cursor-pointer"
             key={i}
             onClick={onDisconnect}
           >
@@ -234,7 +235,7 @@ function Navigation() {
                   paddingRight: 15,
                 }}
                 type="button"
-                className="self-end h-[50px]"
+                className="self-end h-[50px] cursor-pointer"
               >
                 <img
                   src={menuOpen

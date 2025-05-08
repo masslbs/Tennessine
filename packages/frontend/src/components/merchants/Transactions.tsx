@@ -136,6 +136,7 @@ export default function Transactions(
           <select
             name="filter"
             id="filter"
+            className="cursor-pointer"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
           >
@@ -148,6 +149,7 @@ export default function Transactions(
           <select
             name="date"
             id="date"
+            className="cursor-pointer"
             value={sort}
             onChange={(e) => {
               setSort(e.target.value);
