@@ -12,6 +12,7 @@ dist
 dist-ssr
 .vite
 *.local
+cache.json
 
 # Editor directories and files
 .vscode/*
