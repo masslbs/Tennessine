@@ -13,7 +13,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ ...props }, ref: React.ForwardedRef<HTMLButtonElement>) => {
     return (
       <button
-        className={`flex justify-center items-center rounded-md
+        className={`flex justify-center cursor-pointer items-center rounded-md
            ${props.custom ? props.custom : ""}`}
         style={{
           padding: "8px 12px",
