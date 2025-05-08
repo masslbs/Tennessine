@@ -1,11 +1,13 @@
 import BackButton from "./common/BackButton.tsx";
 import { useShopId } from "../hooks/useShopId.ts";
+import { useShopDomain } from "../hooks/useShopDomain.ts";
 export default function Share() {
   const { shopId } = useShopId();
+  const { protocol, shopDomain } = useShopDomain();
 
   function copyToClipboard() {
     navigator.clipboard.writeText(
-      `https://demo-shop.mass.market/listings?shopId=${shopId}`,
+      `${protocol}//${shopDomain}/listings?shopId=${shopId}`,
     );
   }
   return (
@@ -20,12 +22,12 @@ export default function Share() {
               className="border-2 border-solid mt-1 p-2 rounded w-full"
               id="shopId"
               name="shopId"
-              value={`demo-shop.mass.market/listings?shopId=${shopId}`}
+              value={`${protocol}//${shopDomain}/listings?shopId=${shopId}`}
               onChange={() => {}}
             />
             <button
               type="button"
-              className="mr-4"
+              className="mr-4 cursor-pointer"
               style={{ backgroundColor: "transparent", padding: 0 }}
               onClick={copyToClipboard}
             >
