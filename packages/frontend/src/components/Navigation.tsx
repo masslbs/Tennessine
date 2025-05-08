@@ -9,6 +9,7 @@ import { useDisconnect } from "wagmi";
 import { Order, OrderedItem } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
 
+import { KeycardRole } from "../types.ts";
 import Cart from "./cart/Cart.tsx";
 import { useStateManager } from "../hooks/useStateManager.ts";
 import { useShopDetails } from "../hooks/useShopDetails.ts";
@@ -58,7 +59,7 @@ function Navigation() {
   const { currentOrder } = useCurrentOrder();
   const [keycard] = useKeycard();
   const { disconnect } = useDisconnect();
-  const isMerchantView = keycard.role === "merchant";
+  const isMerchantView = keycard.role === KeycardRole.MERCHANT;
 
   useEffect(() => {
     // in the hook `useCurrentOrder`, we "reset" currentOrder for the states OrderState.Canceled and OrderState.Paid.
@@ -182,9 +183,10 @@ function Navigation() {
         className={`bg-white flex justify-center`}
         data-testid="navigation"
       >
-        <section className="w-full p-2 text-base flex justify-between md:w-[800px] mr-3">
+        <section className="relative w-full text-base flex justify-between md:w-[800px] h-[50px] mr-3">
           <div
-            className="flex gap-2 cursor-pointer"
+            id="logo"
+            className="flex gap-2 cursor-pointer m-2"
             onClick={() =>
               navigate({
                 to: "/listings",
@@ -217,51 +219,95 @@ function Navigation() {
 
             <h2 className="flex items-center">{shopDetails.name}</h2>
           </div>
-          <section
-            className={`flex gap-6`}
-          >
-            <button
-              type="button"
-              data-testid="cart-toggle"
-              className={`relative ${isMerchantView ? "hidden" : ""}`}
-              style={{ backgroundColor: "transparent", padding: 0 }}
-              onClick={() => {
-                setBasketOpen(!basketOpen);
-                menuOpen && setMenuOpen(false);
-              }}
+          <section className="absolute right-0 flex">
+            <div
+              id="menu"
+              className={`${
+                basketOpen ? "invisible" : "visible"
+              } flex flex-col items-end`}
             >
-              <img
-                src={basketOpen
-                  ? "/icons/close-icon.svg"
-                  : "/icons/menu-basket.svg"}
-                width={20}
-                height={20}
-                alt="basket-icon"
-                className="w-5 h-5"
-              />
-              <div
-                className={`${
-                  (!cartSize || basketOpen) ? "hidden" : ""
-                } bg-red-700 rounded-full absolute top-0 left-3 w-4 h-4 flex justify-center items-center`}
+              <button
+                onClick={menuSwitch}
+                style={{
+                  backgroundColor: menuOpen ? "#F3F3F3" : "transparent",
+                  paddingLeft: 15,
+                  paddingRight: 15,
+                }}
+                type="button"
+                className="self-end h-[50px]"
               >
-                <p className="text-white text-[10px]">{cartSize}</p>
+                <img
+                  src={menuOpen
+                    ? "/icons/close-icon.svg"
+                    : "/icons/hamburger.svg"}
+                  width={20}
+                  height={20}
+                  alt="menu-icon"
+                  className="w-5 h-5"
+                />
+              </button>
+              <div
+                className={`${menuOpen ? "hidden md:block z-10" : "hidden"}`}
+              >
+                <div className="fixed bg-background-gray w-full flex flex-col gap-5 rounded-b-lg p-5 w-fit static">
+                  {renderMenuItems()}
+                </div>
               </div>
-            </button>
-            <button
-              onClick={menuSwitch}
-              style={{ backgroundColor: "transparent", padding: 0 }}
-              type="button"
+            </div>
+            <div
+              id="basket"
+              className={`${
+                menuOpen ? "invisible" : "visible"
+              } flex flex-col items-end relative`}
             >
-              <img
-                src={menuOpen
-                  ? "/icons/close-icon.svg"
-                  : "/icons/hamburger.svg"}
-                width={20}
-                height={20}
-                alt="menu-icon"
-                className="w-5 h-5"
-              />
-            </button>
+              <button
+                type="button"
+                data-testid="cart-toggle"
+                className={`${
+                  isMerchantView ? "hidden" : ""
+                } self-end h-[50px]`}
+                style={{
+                  backgroundColor: basketOpen ? "#F3F3F3" : "transparent",
+                  paddingLeft: 15,
+                  paddingRight: 15,
+                }}
+                onClick={() => {
+                  setBasketOpen(!basketOpen);
+                  menuOpen && setMenuOpen(false);
+                }}
+              >
+                <img
+                  src={basketOpen
+                    ? "/icons/close-icon.svg"
+                    : "/icons/menu-basket.svg"}
+                  width={20}
+                  height={20}
+                  alt="basket-icon"
+                  className="w-5 h-5"
+                />
+                <div
+                  className={`${
+                    (!cartSize || basketOpen) ? "hidden" : ""
+                  } bg-red-700 rounded-full absolute top-[5px] right-[3px] w-4 h-4 flex justify-center items-center`}
+                >
+                  <p className="text-white text-[10px]">{cartSize}</p>
+                </div>
+              </button>
+              <div
+                className={`${basketOpen ? "hidden md:block z-10" : "hidden"}`}
+              >
+                <div
+                  data-testid="desktop-basket"
+                  className="fixed bg-background-gray w-full flex flex-col gap-5 rounded-b-lg p-5 static"
+                >
+                  <h1>Basket</h1>
+                  <Cart
+                    onCheckout={onCheckout}
+                    closeBasket={() => setBasketOpen(false)}
+                  />
+                </div>
+              </div>
+            </div>
           </section>
         </section>
       </section>
@@ -274,31 +320,29 @@ function Navigation() {
           }}
         />
       )}
-      <section className="md:flex md:justify-center">
-        <section className="md:ml-[calc(800px-26rem)] md:flex md:justify-end absolute z-10">
-          {menuOpen
-            ? (
-              <section>
-                <div className="fixed bg-background-gray z-10 w-full flex flex-col gap-5 rounded-b-lg p-5 md:w-fit md:static">
-                  {renderMenuItems()}
-                </div>
-              </section>
-            )
-            : null}
-          {basketOpen
-            ? (
-              <section>
-                <div className="fixed bg-background-gray z-10 w-full flex flex-col gap-5 rounded-b-lg p-5 md:w-[350px] md:static">
-                  <h1>Basket</h1>
-                  <Cart
-                    onCheckout={onCheckout}
-                    closeBasket={() => setBasketOpen(false)}
-                  />
-                </div>
-              </section>
-            )
-            : null}
-        </section>
+      <section id="mobile-menu" className="md:hidden absolute z-10">
+        {menuOpen
+          ? (
+            <section>
+              <div className="fixed bg-background-gray w-full flex flex-col gap-5 rounded-b-lg p-5">
+                {renderMenuItems()}
+              </div>
+            </section>
+          )
+          : null}
+        {basketOpen
+          ? (
+            <section>
+              <div className="fixed bg-background-gray w-full flex flex-col gap-5 rounded-b-lg p-5">
+                <h1>Basket</h1>
+                <Cart
+                  onCheckout={onCheckout}
+                  closeBasket={() => setBasketOpen(false)}
+                />
+              </div>
+            </section>
+          )
+          : null}
       </section>
     </section>
   );
