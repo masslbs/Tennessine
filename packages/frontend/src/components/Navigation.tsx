@@ -184,27 +184,30 @@ function Navigation() {
         className={`bg-white flex justify-center`}
         data-testid="navigation"
       >
-        <section className="relative w-full text-base flex justify-between md:w-[800px] h-[50px] mr-3">
+        <section className="relative w-full text-base flex justify-between md:w-[800px] h-[56px] mr-3">
           <div
             id="logo"
             className="flex gap-2 cursor-pointer m-2"
-            onClick={() =>
+            onClick={() => {
               navigate({
-                to: "/listings",
+                to: isMerchantView ? "/merchant-dashboard" : "/listings",
                 search: (prev: Record<string, string>) => ({
                   shopId: prev.shopId,
                 }),
-              })}
+              });
+              setMenuOpen(false);
+              setBasketOpen(false);
+            }}
           >
             {shopDetails.profilePictureUrl
               ? (
-                <div className="overflow-hidden rounded-full w-12 h-12">
+                <div className="overflow-hidden rounded-full w-10 h-10">
                   <img
                     src={shopDetails.profilePictureUrl}
-                    width={50}
-                    height={50}
+                    width={40}
+                    height={40}
                     alt="profile-avatar"
-                    className="w-12 h-12"
+                    className="w-10 h-10"
                   />
                 </div>
               )
@@ -235,7 +238,7 @@ function Navigation() {
                   paddingRight: 15,
                 }}
                 type="button"
-                className="self-end h-[50px] cursor-pointer"
+                className="self-end h-[56px] cursor-pointer"
               >
                 <img
                   src={menuOpen
@@ -266,7 +269,7 @@ function Navigation() {
                 data-testid="cart-toggle"
                 className={`${
                   isMerchantView ? "hidden" : ""
-                } self-end h-[50px]`}
+                } self-end h-[56px]`}
                 style={{
                   backgroundColor: basketOpen ? "#F3F3F3" : "transparent",
                   paddingLeft: 15,
@@ -289,7 +292,7 @@ function Navigation() {
                 <div
                   className={`${
                     (!cartSize || basketOpen) ? "hidden" : ""
-                  } bg-red-700 rounded-full absolute top-[5px] right-[3px] w-4 h-4 flex justify-center items-center`}
+                  } bg-red-700 rounded-full absolute top-[10px] right-[7px] w-4 h-4 flex justify-center items-center`}
                 >
                   <p className="text-white text-[10px]">{cartSize}</p>
                 </div>

@@ -167,22 +167,28 @@ export default function EditProduct() {
     scroll();
   }
 
+  function isTextArea(
+    elem: HTMLInputElement | HTMLTextAreaElement,
+  ): elem is HTMLTextAreaElement {
+    return "rows" in elem;
+  }
   function handleInputChange(
-    e: ChangeEvent<HTMLInputElement>,
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     field: string,
   ) {
     // We need to create a deep copy of the class and call setListing, or else react will not recognize it as a state change, and will not re-render the component.
     const newListing = Listing.fromCBOR(
       listing.asCBORMap() as Map<CodecKey, CodecValue>,
     );
-    if (field === "ViewState") {
-      newListing.ViewState = e.target.checked
+    const target = e.target;
+    if (field === "ViewState" && !isTextArea(target)) {
+      newListing.ViewState = target.checked
         ? ListingViewState.Published
         : ListingViewState.Unspecified;
     } else if (field === "Title") {
-      newListing.Metadata.Title = e.target.value;
-    } else if (field === "Description") {
-      newListing.Metadata.Description = e.target.value;
+      newListing.Metadata.Title = target.value;
+    } else if (field === "Description" && isTextArea(target)) {
+      newListing.Metadata.Description = target.value;
     } else {
       throw new Error(`Unknown field: ${field}`);
     }

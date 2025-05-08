@@ -14,6 +14,7 @@ body {
   overflow: visible;
   color: black;
   background-color: #f3f3f3;
+  overflow-y: scroll;
   h1 {
     font-size: 24px;
     font-weight: 700;
