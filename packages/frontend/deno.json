@@ -30,6 +30,7 @@
     "@testing-library/user-event": "npm:@testing-library/user-event@^14.6.1",
     "@testing-library/react-hooks": "npm:@testing-library/react-hooks@^8.0.1",
     "@types/react": "npm:@types/react@^19.1.2",
+    "@vitejs/plugin-react": "npm:@vitejs/plugin-react@^4.4.1",
     "@wagmi/core": "npm:@wagmi/core@^2.17.0",
     "browser-level": "npm:browser-level@^3.0.0",
     "qrcode": "npm:qrcode@^1.5.4",
@@ -37,6 +38,7 @@
     "viem": "npm:viem@^2.28.1",
     "react": "npm:react@^19.1.0",
     "react-dom": "npm:react-dom@^19.1.0",
+    "vite": "npm:vite@^6.3.2",
     "wagmi": "npm:wagmi@^2.15.1",
     "@uidotdev/usehooks": "npm:@uidotdev/usehooks@^2.4.1",
     "web-streams-polyfill": "npm:web-streams-polyfill@^4.1.0"
