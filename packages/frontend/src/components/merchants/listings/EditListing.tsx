@@ -302,9 +302,9 @@ export default function EditProduct() {
               }}
             >
               <label htmlFor="description">Product description</label>
-              <input
+              <textarea
                 value={listing.Metadata.Description}
-                className="mt-1 p-2 rounded-md"
+                className="mt-1 p-2 rounded-md min-h-[7rem]"
                 data-testid="description"
                 style={{ backgroundColor: "#F3F3F3" }}
                 name="description"
