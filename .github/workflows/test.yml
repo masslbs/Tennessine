@@ -90,13 +90,12 @@ jobs:
         run: nix develop -c bash -c "deno run production"
         working-directory: Tennessine/packages/frontend
 
-      - name: Upload frontend to Pinata
+      - name: Upload frontend to IPFS
         run: |
-          pinata auth ${{ secrets.PINATA_JWT }}
           echo "Build Available as:" >> $GITHUB_STEP_SUMMARY
-          pinata upload --name "frontend-${{ github.sha }}" dist/ > pinata.log
-          cid=$(egrep -o 'CID: (.*)' pinata.log | cut -d ' ' -f2)
-          echo "https://$cid.ipfs.nftstorage.link" >> $GITHUB_STEP_SUMMARY
+          ipfs-cluster-ctl add -r -n frontend --cid-version 1 ./dist > ipfs-cluster-add.log
+          cid=$(egrep -o 'added (.*)' ipfs-cluster-add.log | cut -d ' ' -f2 | tail -n 1)
+          echo "https://$cid.ipfs.inbrowser.link" >> $GITHUB_STEP_SUMMARY
         working-directory: Tennessine/packages/frontend
 
       - name: Upload frontend build as artifact
