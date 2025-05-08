@@ -10,13 +10,6 @@ import { BaseClass } from "@massmarket/schema/utils";
 type HashOrValue = Hash | codec.CodecValue;
 
 interface IStoredState {
-  // holds a map of subscription paths to sequence numbers
-  // example: { "/accounts/": 1000, "/orders/": 12222  }
-  // This should actually be a radix tree. Since if we subscribe to the root path that sequence number will overwrite the children paths,
-  // so for example if a subscription to the root path is made the map will be
-  // {"/": 1000}
-  // where the sequence number is the lowest sequence number of all children paths
-  // TODO: we are currently using a string, but need to use CodecKey[]
   subscriptionSequenceNumber: number;
   keycardNonce: number;
   root: RootValue;
@@ -189,7 +182,6 @@ export default class StateManager {
     );
   }
 
-  // TODO: these need to be implemented in createWriteStream first
   // async increment(path: codec.Path, value: codec.CodecValue) {
   //   const state = this.#state;
   //   assert(state, "open not finished");
@@ -213,11 +205,12 @@ export default class StateManager {
     const state = this.#state;
     assert(state, "open not finished");
     const oldStateRoot = state.root;
-    state.root = this.graph.set(state.root, path, async (parent, p) => {
+    let sendPromise: Promise<void[]>;
+    state.root = this.graph.set(state.root, path, (parent, p) => {
       const v = get(parent, p);
       set(parent, p, value);
       const op = v === undefined ? "add" : "replace";
-      await this.#sendPatch(
+      sendPromise = this.#sendPatch(
         { Op: op, Path: path, Value: value },
       );
     });
@@ -230,8 +223,9 @@ export default class StateManager {
       // would lead to the both sets failing
       // we could take care of this in the merkle-dag builder by catching
       // the error there (??)
-      const r = await state.root;
-      this.events.emit(r);
+      state.root = await state.root;
+      await sendPromise!;
+      this.events.emit(state.root);
     } catch (e) {
       state.root = oldStateRoot;
       throw e;
