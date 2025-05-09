@@ -86,7 +86,7 @@ export default function ListingDetail() {
         if (quantity <= 1) {
           setMsg("Item added to cart");
         } else {
-          setMsg(`${quantity} items added to cart`);
+          setMsg(`${quantity} items added`);
         }
         return;
       }
@@ -135,7 +135,7 @@ export default function ListingDetail() {
       if (quantity <= 1) {
         setMsg("Cart updated");
       } else {
-        setMsg(`${quantity} items added to cart`);
+        setMsg(`${quantity} items added`);
       }
       setQuantity(1);
     } catch (error) {

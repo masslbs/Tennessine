@@ -99,7 +99,10 @@ Deno.test("Check that we can render the listing details screen", {
   successToast = await screen.findByTestId("success-toast");
   expect(successToast).toBeTruthy();
   // the success toast text should have its message begin with `${initialQty}`
-  successToastText = await screen.findByTestId("success-toast-text");
+  // first off: the toast text should begin with `${initialQty}` since initialQty > 1)
+  successToastText = await screen.findByText(
+    `${initialQty} items added`,
+  );
   expect(successToastText.textContent?.startsWith(`${initialQty}`))
     .toBeTruthy();
 
@@ -127,7 +130,7 @@ Deno.test("Check that we can render the listing details screen", {
   expect(successToast).toBeTruthy();
   // now: its text should begin with `${qtyIncreasedBy}`
   successToastText = await screen.findByText(
-    `${qtyIncreasedBy} items added to cart`,
+    `${qtyIncreasedBy} items added`,
   );
   expect(successToastText.textContent?.startsWith(`${qtyIncreasedBy}`))
     .toBeTruthy();
@@ -156,7 +159,7 @@ Deno.test("Check that we can render the listing details screen", {
   expect(successToast).toBeTruthy();
   // finally: its text should begin with `${qtyIncreasedBy2}`
   successToastText = await screen.findByText(
-    `${qtyIncreasedBy2} items added to cart`,
+    `${qtyIncreasedBy2} items added`,
   );
   expect(successToastText.textContent?.startsWith(`${qtyIncreasedBy2}`))
     .toBeTruthy();
