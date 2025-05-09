@@ -87,12 +87,21 @@ Deno.test("Check that we can render the listing details screen", {
   const qtyIncreasedBy = 7;
   const qtyIncreasedBy2 = 3;
 
+  let successToast;
+  let successToastText;
   const purchaseQty = await screen.findByTestId("purchaseQty");
   expect(purchaseQty).toBeTruthy();
   await user.clear(purchaseQty);
   await user.type(purchaseQty, `${initialQty}`);
   const addToBasket = screen.getByTestId("addToBasket");
   await user.click(addToBasket);
+  // wait for the success toast to appear
+  successToast = await screen.findByTestId("success-toast");
+  expect(successToast).toBeTruthy();
+  // the success toast text should have its message begin with `${initialQty}`
+  successToastText = await screen.findByTestId("success-toast-text");
+  expect(successToastText.textContent?.startsWith(`${initialQty}`))
+    .toBeTruthy();
 
   allOrders = await stateManager.get(["Orders"]) as Map<string, unknown>;
   expect(allOrders.size).toBe(1);
@@ -113,6 +122,15 @@ Deno.test("Check that we can render the listing details screen", {
   await user.type(purchaseQty2, `${qtyIncreasedBy}`);
   const addToBasket2 = screen.getByTestId("addToBasket");
   await user.click(addToBasket2);
+  // wait for the success toast to appear
+  successToast = await screen.findByTestId("success-toast");
+  expect(successToast).toBeTruthy();
+  // now: its text should begin with `${qtyIncreasedBy}`
+  successToastText = await screen.findByText(
+    `${qtyIncreasedBy} items added to cart`,
+  );
+  expect(successToastText.textContent?.startsWith(`${qtyIncreasedBy}`))
+    .toBeTruthy();
 
   const d = await stateManager.get(["Orders", orderId]);
   expect(d).toBeDefined();
@@ -128,13 +146,21 @@ Deno.test("Check that we can render the listing details screen", {
   const purchaseQty3 = await screen.findByTestId("purchaseQty");
   expect(purchaseQty3).toBeTruthy();
   await user.clear(purchaseQty3);
+
   // Third quantity update
   await user.type(purchaseQty3, `${qtyIncreasedBy2}`);
   const addToBasket3 = screen.getByTestId("addToBasket");
   await user.click(addToBasket3);
-
-  const successToast = await screen.findByTestId("success-toast");
+  // wait for the success toast to appear
+  successToast = await screen.findByTestId("success-toast");
   expect(successToast).toBeTruthy();
+  // finally: its text should begin with `${qtyIncreasedBy2}`
+  successToastText = await screen.findByText(
+    `${qtyIncreasedBy2} items added to cart`,
+  );
+  expect(successToastText.textContent?.startsWith(`${qtyIncreasedBy2}`))
+    .toBeTruthy();
+
   let updatedOrders;
   await waitFor(async () => {
     updatedOrders = await stateManager.get(["Orders"]) as Map<
