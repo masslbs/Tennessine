@@ -15,6 +15,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, dirname);
   return {
     build: {
+      target: "esnext",
       rollupOptions: {
         input: buildInputs,
       },
