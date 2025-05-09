@@ -83,7 +83,11 @@ export default function ListingDetail() {
       let orderId = currentOrder?.ID;
       if (!orderId) {
         await createOrder(itemId, quantity);
-        setMsg("Item added to cart");
+        if (quantity <= 1) {
+          setMsg("Item added to cart");
+        } else {
+          setMsg(`${quantity} items added to cart`);
+        }
         return;
       }
 
@@ -128,8 +132,12 @@ export default function ListingDetail() {
         // TODO: this is a bit of a hack, since StateManager doesnt handle BaseClass[]
         updatedOrderItems.map((item: OrderedItem) => item.asCBORMap()),
       );
+      if (quantity <= 1) {
+        setMsg("Cart updated");
+      } else {
+        setMsg(`${quantity} items added to cart`);
+      }
       setQuantity(1);
-      setMsg("Cart updated");
     } catch (error) {
       errlog(`Error: changeItems ${error}`);
       setErrorMsg("There was an error updating cart");
