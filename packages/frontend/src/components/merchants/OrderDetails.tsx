@@ -142,20 +142,29 @@ export default function OrderDetails() {
     const values: Listing[] = Array.from(cartItemsMap.values());
     return values.map((listing: Listing) => {
       return (
-        <div key={listing.ID} className="flex gap-4" data-testid="order-item">
-          <img
-            src={listing.Metadata.Images?.[0] || "/assets/no-image.png"}
-            width={48}
-            height={48}
-            alt="product-thumb"
-            className="w-12 h-12 object-cover object-center rounded-lg"
-          />
-          <h3 data-testid="item-title" className="line-clamp-2">
-            {listing.Metadata.Title}
-          </h3>
-          <p data-testid="item-quantity">{selectedQty.get(listing.ID)}</p>
+        <div
+          key={listing.ID}
+          className="flex gap-4 md:grid md:grid-cols-3 items-center"
+          data-testid="order-item"
+        >
+          <div className="flex gap-1 items-center">
+            <img
+              src={listing.Metadata.Images?.[0] || "/assets/no-image.png"}
+              width={48}
+              height={48}
+              alt="product-thumb"
+              className="w-12 h-12 object-cover object-center rounded-lg"
+            />
+            <h3 data-testid="item-title" className="line-clamp-2">
+              {listing.Metadata.Title}
+            </h3>
+          </div>
+
           <p data-testid="item-price">
             {formatUnits(listing.Price, token!.decimals)} {token!.symbol}
+          </p>
+          <p data-testid="item-quantity">
+            Quantity: {selectedQty.get(listing.ID)}
           </p>
         </div>
       );
@@ -169,11 +178,11 @@ export default function OrderDetails() {
         data-testid={isShipping ? "shipping-details" : "billing-details"}
       >
         <h2>{isShipping ? "Shipping Details" : "Billing Details"}</h2>
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2">
           <h3>Name</h3>
           <p>{addr.Name}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2">
           <h3>Address</h3>
           <div>
             <p>{addr.Address1}</p>
@@ -183,12 +192,12 @@ export default function OrderDetails() {
             <p>{addr.PostalCode}</p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2">
           <h3>Email</h3>
           <p>{addr.EmailAddress}</p>
         </div>
         {addr.PhoneNumber && (
-          <div className="flex gap-2">
+          <div className="grid grid-cols-2">
             <h3>Phone</h3>
             <p>{addr.PhoneNumber}</p>
           </div>

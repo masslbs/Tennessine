@@ -27,13 +27,15 @@ export function isValidEmail(email: string) {
   return emailPattern.test(email);
 }
 export function formatDate(ttl: number) {
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat("en-GB", {
     year: "numeric",
     month: "numeric",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(ttl * 1000);
+    //manually subtract 24 hours for now. We don't currently have data that tells us the last updated date/time.
+    //TTL is the last point in time you can make a purchase
+  }).format((ttl * 1000) - 86400000);
 }
 
 export function OrderStateFromNumber(num: number) {
