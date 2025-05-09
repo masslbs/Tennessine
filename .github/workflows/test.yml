@@ -92,10 +92,17 @@ jobs:
 
       - name: Upload frontend to IPFS
         run: |
-          echo "Build Available as:" >> $GITHUB_STEP_SUMMARY
-          ipfs-cluster-ctl add -r -n frontend --cid-version 1 ./dist > ipfs-cluster-add.log
+          REPO_NAME=$(echo "${{ github.repository }}" | tr '/' '-')
+          COMMIT_SHA="${{ github.event.pull_request.head.sha || github.sha }}"
+          COMMIT_SHA_SHORT="${COMMIT_SHA:0:7}"
+          ipfs-cluster-ctl add -r -n $REPO_NAME-$COMMIT_SHA_SHORT --cid-version 1 ./dist > ipfs-cluster-add.log
           cid=$(egrep -o 'added (.*)' ipfs-cluster-add.log | cut -d ' ' -f2 | tail -n 1)
+
+          echo "Build Available as:" >> $GITHUB_STEP_SUMMARY
           echo "https://$cid.ipfs.inbrowser.link" >> $GITHUB_STEP_SUMMARY
+          echo "https://$cid.ipfs.dweb.link" >> $GITHUB_STEP_SUMMARY
+
+          BLUMEN_PK=${{ secrets.BLUMEN_PK }} nix run --impure nixpkgs#deno -- run -A npm:blumen ens $cid shop.mass.eth --safe eth:0xec3DFB875fa5FdDe4916BEDdeB012Ef67a2f229F
         working-directory: Tennessine/packages/frontend
 
       - name: Upload frontend build as artifact
