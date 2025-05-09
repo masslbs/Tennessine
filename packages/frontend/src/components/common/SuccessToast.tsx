@@ -19,7 +19,7 @@ export default function SuccessToast(
       className="px-4 py-2 bg-success-green text-white font-thin rounded-lg flex items-center"
       data-testid="success-toast"
     >
-      <p>{message}</p>
+      <p data-testid="success-toast-text">{message}</p>
       {cta
         ? (
           <Link
