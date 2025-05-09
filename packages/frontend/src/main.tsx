@@ -5,14 +5,8 @@ import App from "./App.tsx";
 import { env } from "./utils/env.ts";
 import releaseInfo from "./release-info.json" with { type: "json" };
 
-// Dynamically import matomo, so that if the load fail because of blockers
-// the page will still work
-import("./matomo.js").catch((e) => {
-  console.log(`failed to load matomo ${e}`);
-});
-
 if (env.sentryDSN) {
-  // also dynamically loading because of ad blockers
+  // Dynamically loading because of ad blockers
   import("@sentry/browser").then((Sentry) => {
     const isProd = env.chainName === "mainnet";
     Sentry.init({
