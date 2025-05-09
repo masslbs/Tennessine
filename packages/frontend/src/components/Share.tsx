@@ -1,8 +1,11 @@
 import BackButton from "./common/BackButton.tsx";
-import { useShopId } from "../hooks/useShopId.ts";
 import { useShopDomain } from "../hooks/useShopDomain.ts";
+import { useSearch } from "@tanstack/react-router";
+import { env } from "../utils/env.ts";
+
 export default function Share() {
-  const { shopId } = useShopId();
+  const search = useSearch({ strict: false });
+  const shopId = search?.shopId || env.shopTokenId || "";
   const { protocol, shopDomain } = useShopDomain();
 
   function copyToClipboard() {
