@@ -16,18 +16,6 @@ export default function Listings() {
   const [keycard] = useKeycard();
   const [products, setProducts] = useState<Listing[]>([]);
 
-  if (!stateManager) {
-    return <main data-testid="listings-page">Loading...</main>;
-  }
-
-  function mapToListingClass(allListings: Map<CodecKey, CodecValue>) {
-    const listings: Listing[] = [];
-    for (const [_id, l] of allListings.entries()) {
-      listings.push(Listing.fromCBOR(l));
-    }
-    return listings;
-  }
-
   useEffect(() => {
     if (!stateManager) return;
 
@@ -54,6 +42,18 @@ export default function Listings() {
       );
     };
   }, [stateManager]);
+
+  if (!stateManager) {
+    return <main data-testid="listings-page">Loading...</main>;
+  }
+
+  function mapToListingClass(allListings: Map<CodecKey, CodecValue>) {
+    const listings: Listing[] = [];
+    for (const [_id, l] of allListings.entries()) {
+      listings.push(Listing.fromCBOR(l));
+    }
+    return listings;
+  }
 
   return (
     <main
