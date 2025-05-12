@@ -783,113 +783,135 @@ export default function PrivacyPolicy() {
             in the past twelve (12) months:
           </p>
 
-          <table className="text-center my-5">
+          <table className="text-[9px] md:text-sm text-center my-5 border-collapse border border-gray-300">
             <thead>
               <tr>
-                <th>Category</th>
-                <th>Examples</th>
-                <th>Collected</th>
+                <th className="border border-gray-300 p-2">Category</th>
+                <th className="border border-gray-300 p-2">Examples</th>
+                <th className="border border-gray-300 p-2">Collected</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>A. Identifiers</td>
-                <td>
+                <td className="border border-gray-300 p-2">A. Identifiers</td>
+                <td className="border border-gray-300 p-2">
                   Contact details, such as real name, alias, postal address,
                   telephone or mobile contact number, unique personal
                   identifier, online identifier, Internet Protocol address,
                   email address, and account name
                 </td>
-                <td>YES</td>
+                <td className="border border-gray-300 p-2">YES</td>
               </tr>
               <tr>
-                <td>
+                <td className="border border-gray-300 p-2">
                   B. Personal information categories listed in the California
                   Customer Records statute
                 </td>
-                <td>
+                <td className="border border-gray-300 p-2">
                   Name, contact information, education, employment, employment
                   history, and financial information
                 </td>
-                <td>YES</td>
+                <td className="border border-gray-300 p-2">YES</td>
               </tr>
               <tr>
-                <td>
+                <td className="border border-gray-300 p-2">
                   C. Protected classification characteristics under California
                   or federal law
                 </td>
-                <td>Gender and date of birth</td>
-                <td>NO</td>
+                <td className="border border-gray-300 p-2">
+                  Gender and date of birth
+                </td>
+                <td className="border border-gray-300 p-2">NO</td>
               </tr>
               <tr>
-                <td>D. Commercial information</td>
-                <td>
+                <td className="border border-gray-300 p-2">
+                  D. Commercial information
+                </td>
+                <td className="border border-gray-300 p-2">
                   Transaction information, purchase history, financial details,
                   and payment information
                 </td>
-                <td>YES</td>
+                <td className="border border-gray-300 p-2">YES</td>
               </tr>
               <tr>
-                <td>E. Biometric information</td>
-                <td>Fingerprints and voiceprints</td>
-                <td>NO</td>
+                <td className="border border-gray-300 p-2">
+                  E. Biometric information
+                </td>
+                <td className="border border-gray-300 p-2">
+                  Fingerprints and voiceprints
+                </td>
+                <td className="border border-gray-300 p-2">NO</td>
               </tr>
               <tr>
-                <td>F. Internet or other similar network activity</td>
-                <td>
+                <td className="border border-gray-300 p-2">
+                  F. Internet or other similar network activity
+                </td>
+                <td className="border border-gray-300 p-2">
                   Browsing history, search history, online behavior, interest
                   data, and interactions with our and other websites,
                   applications, systems, and advertisements
                 </td>
-                <td>NO</td>
+                <td className="border border-gray-300 p-2">NO</td>
               </tr>
               <tr>
-                <td>G. Geolocation data</td>
-                <td>Device location</td>
-                <td>YES</td>
+                <td className="border border-gray-300 p-2">
+                  G. Geolocation data
+                </td>
+                <td className="border border-gray-300 p-2">Device location</td>
+                <td className="border border-gray-300 p-2">YES</td>
               </tr>
               <tr>
-                <td>
+                <td className="border border-gray-300 p-2">
                   H. Audio, electronic, visual, thermal, olfactory, or similar
                   information
                 </td>
-                <td>
+                <td className="border border-gray-300 p-2">
                   Images and audio, video or call recordings created in
                   connection with our business activities
                 </td>
-                <td>NO</td>
+                <td className="border border-gray-300 p-2">NO</td>
               </tr>
               <tr>
-                <td>I. Professional or employment-related information</td>
-                <td>
+                <td className="border border-gray-300 p-2">
+                  I. Professional or employment-related information
+                </td>
+                <td className="border border-gray-300 p-2">
                   Business contact details in order to provide you our services
                   at a business level or job title, work history, and
                   professional qualifications if you apply for a job with us
                 </td>
-                <td>YES</td>
+                <td className="border border-gray-300 p-2">YES</td>
               </tr>
               <tr>
-                <td>J. Education Information</td>
-                <td>Student records and directory information</td>
-                <td>NO</td>
+                <td className="border border-gray-300 p-2">
+                  J. Education Information
+                </td>
+                <td className="border border-gray-300 p-2">
+                  Student records and directory information
+                </td>
+                <td className="border border-gray-300 p-2">NO</td>
               </tr>
               <tr>
-                <td>K. Inferences drawn from other personal information</td>
-                <td>
+                <td className="border border-gray-300 p-2">
+                  K. Inferences drawn from other personal information
+                </td>
+                <td className="border border-gray-300 p-2">
                   Inferences drawn from any of the collected personal
                   information listed above to create a profile or summary about,
                   for example, an individual's preferences and characteristics
                 </td>
-                <td>NO</td>
+                <td className="border border-gray-300 p-2">NO</td>
               </tr>
               <tr>
-                <td>L. Sensitive personal information</td>
-                <td>
+                <td className="border border-gray-300 p-2">
+                  L. Sensitive personal information
+                </td>
+                <td className="border border-gray-300 p-2">
                   Account login information, drivers' licenses, health data,
                   precise geolocation, racial or ethnic origin, religious or
                   philosophical beliefs, and sex life or sexual orientation
                 </td>
-                <td>NO</td>
+                <td className="border border-gray-300 p-2">NO</td>
               </tr>
             </tbody>
           </table>

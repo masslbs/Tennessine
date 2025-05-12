@@ -17,11 +17,6 @@ const Footer = () => {
               >
                 Privacy Policy
               </a>
-              {
-                /* <a href="/" className="text-xs" style={{ color: "black" }}>
-                Terms & Conditions
-              </a> */
-              }
             </nav>
           </div>
         </div>

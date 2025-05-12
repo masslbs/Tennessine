@@ -56,70 +56,76 @@ export default function Cookies() {
           <p>
             Matomo cookies:
           </p>
-          <table className="text-center my-5">
+          <table className="text-[9px] md:text-sm text-center my-5 border-collapse border border-gray-300">
             <thead>
               <tr>
-                <th>Name</th>
-                <th className="w-[130px]">Data recipient</th>
-                <th>Purpose</th>
-                <th>Max. storage duration</th>
+                <th className="border border-gray-300 p-2">Name</th>
+                <th className="border border-gray-300 p-2 w-[130px]">
+                  Data recipient
+                </th>
+                <th className="border border-gray-300 p-2">Purpose</th>
+                <th className="border border-gray-300 p-2">
+                  Max. storage duration
+                </th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>pk-id</td>
-                <td>Mass Labs</td>
-                <td>To store a unique visitor ID.</td>
-                <td>13 months</td>
+                <td className="border border-gray-300 p-2">pk-id</td>
+                <td className="border border-gray-300 p-2">Mass Labs</td>
+                <td className="border border-gray-300 p-2">
+                  To store a unique visitor ID.
+                </td>
+                <td className="border border-gray-300 p-2">13 months</td>
               </tr>
               <tr>
-                <td>-pk-ses</td>
-                <td>Mass Labs</td>
-                <td>
+                <td className="border border-gray-300 p-2">-pk-ses</td>
+                <td className="border border-gray-300 p-2">Mass Labs</td>
+                <td className="border border-gray-300 p-2">
                   Session cookie used to temporarily store data for the visit to
                   link actions performed during the session (e.g., page views,
                   downloads, events) to a unique visit, allowing Matomo to
                   accurately attribute these actions to a single session.
                 </td>
-                <td>30 minutes</td>
+                <td className="border border-gray-300 p-2">30 minutes</td>
               </tr>
               <tr>
-                <td>-pk-ref</td>
-                <td>Mass Labs</td>
-                <td>
+                <td className="border border-gray-300 p-2">-pk-ref</td>
+                <td className="border border-gray-300 p-2">Mass Labs</td>
+                <td className="border border-gray-300 p-2">
                   Cookie used to store the attribution information; the referrer
                   initially used to visit the website.
                 </td>
-                <td>6 months</td>
+                <td className="border border-gray-300 p-2">6 months</td>
               </tr>
               <tr>
-                <td>-pk-cvar</td>
-                <td>Mass Labs</td>
-                <td>
+                <td className="border border-gray-300 p-2">-pk-cvar</td>
+                <td className="border border-gray-300 p-2">Mass Labs</td>
+                <td className="border border-gray-300 p-2">
                   Session cookie used to temporarily store data for the visit.
                 </td>
-                <td>30 minutes</td>
+                <td className="border border-gray-300 p-2">30 minutes</td>
               </tr>
               <tr>
-                <td>-pk-hsr</td>
-                <td>Mass Labs</td>
-                <td>
+                <td className="border border-gray-300 p-2">-pk-hsr</td>
+                <td className="border border-gray-300 p-2">Mass Labs</td>
+                <td className="border border-gray-300 p-2">
                   The -pk-hsr cookie temporarily stores data to determine which
                   areas of a webpage visitors interact with most. The cookie
                   also captures the session recording process for the start,
                   continuation, and end of session recordings, ensuring the data
                   is linked to a specific visit.
                 </td>
-                <td>30 minutes</td>
+                <td className="border border-gray-300 p-2">30 minutes</td>
               </tr>
               <tr>
-                <td>-pk-testcookie</td>
-                <td>Mass Labs</td>
-                <td>
-                  Temporary cookie to check if a visitor’s browser supports
+                <td className="border border-gray-300 p-2">-pk-testcookie</td>
+                <td className="border border-gray-300 p-2">Mass Labs</td>
+                <td className="border border-gray-300 p-2">
+                  Temporary cookie to check if a visitor's browser supports
                   cookies (set in Internet Explorer only).
                 </td>
-                <td>
+                <td className="border border-gray-300 p-2">
                   Temporary cookie that expires almost immediately after being
                   set.
                 </td>
@@ -138,7 +144,7 @@ export default function Cookies() {
               (Referrer URL)
             </li>
             <li>• Screen resolution being used</li>
-            <li>• Time in local user’s time zone</li>
+            <li>• Time in local user's time zone</li>
             <li>
               • Files that were clicked and downloaded ( Downloads)
             </li>
