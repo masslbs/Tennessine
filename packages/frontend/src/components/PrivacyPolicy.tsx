@@ -1,4 +1,4 @@
-import BackButton from "./common/BackButton";
+import BackButton from "./common/BackButton.tsx";
 
 export default function PrivacyPolicy() {
   return (
@@ -15,12 +15,12 @@ export default function PrivacyPolicy() {
             you use our services ("Services"), such as when you:
           </p>
 
-          <ul>
-            <li className="pl-4">
+          <ul className="pl-4">
+            <li>
               • Visit our website at http://mass.market, our demo-shop, or any
               website of ours that links to this privacy notice
             </li>
-            <li className="pl-4">
+            <li>
               • Engage with us in other related ways ― including any sales,
               marketing, or events
             </li>
@@ -111,7 +111,7 @@ export default function PrivacyPolicy() {
             Review the notice in full below.
           </p>
 
-          <h2>TABLE OF CONTENTS</h2>
+          <h2 className="my-3">TABLE OF CONTENTS</h2>
 
           <ol>
             <li>1. What information do we collect?</li>
@@ -145,7 +145,7 @@ export default function PrivacyPolicy() {
             </li>
           </ol>
 
-          <h2>1. What information do we collect?</h2>
+          <h2 className="my-3">1. What information do we collect?</h2>
 
           <h3>Personal information you disclose to us</h3>
 
@@ -170,11 +170,11 @@ export default function PrivacyPolicy() {
             collect may include the following:
           </p>
 
-          <ul>
-            <li className="pl-4">• Name</li>
-            <li className="pl-4">• Company name</li>
-            <li className="pl-4">• Email address</li>
-            <li className="pl-4">• Mailing address</li>
+          <ul className="pl-4">
+            <li>• Name</li>
+            <li>• Company name</li>
+            <li>• Email address</li>
+            <li>• Mailing address</li>
           </ul>
 
           <p>
@@ -214,16 +214,16 @@ export default function PrivacyPolicy() {
             include device and usage information, such as:
           </p>
 
-          <ul>
-            <li className="pl-4">• IP address</li>
-            <li className="pl-4">• Device information (mobile or desktop)</li>
-            <li className="pl-4">• Operating system</li>
-            <li className="pl-4">• Browser type and version</li>
-            <li className="pl-4">
+          <ul className="pl-4">
+            <li>• IP address</li>
+            <li>• Device information (mobile or desktop)</li>
+            <li>• Operating system</li>
+            <li>• Browser type and version</li>
+            <li>
               • Pages visited and time spent on the website
             </li>
-            <li className="pl-4">• Referring URL</li>
-            <li className="pl-4">• Country and approximate location</li>
+            <li>• Referring URL</li>
+            <li>• Country and approximate location</li>
           </ul>
 
           <p>
@@ -261,7 +261,7 @@ export default function PrivacyPolicy() {
             system, and system configuration information.
           </p>
 
-          <h2>2. How do we process your information?</h2>
+          <h2 className="my-3">2. How do we process your information?</h2>
 
           <p>
             <b>In Short:</b>{" "}
@@ -274,58 +274,58 @@ export default function PrivacyPolicy() {
             depending on how you interact with our Services, including:
           </p>
 
-          <ul>
-            <li className="pl-4">
+          <ul className="pl-4">
+            <li>
               • To fulfil and manage your orders. We may process your
               information to fulfill and manage your orders, payments, returns,
               and exchanges made through the Services.
             </li>
-            <li className="pl-4">
+            <li>
               • To respond to user inquiries/offer support to users. We may
               process your information to respond to your inquiries and solve
               any potential issues you might have with the requested service.
             </li>
-            <li className="pl-4">
+            <li>
               • To send you our newsletter and communications. We may process
               the personal information you give to us in order to send you our
               newsletter or project updates by email. You can opt out of our
               newsletter emails at any time. For more information, see "What are
               your privacy rights?" below).
             </li>
-            <li className="pl-4">
+            <li>
               • To send administrative information to you. We may process your
               information to send you details about our products and services,
               changes to our terms and policies, and other similar information.
             </li>
-            <li className="pl-4">
+            <li>
               • To request feedback. We may process your information when
               necessary to request feedback and to contact you about your use of
               our Services.
             </li>
-            <li className="pl-4">
+            <li>
               • To protect our Services. We may process your information as part
               of our efforts to keep our Services safe and secure, including
               fraud monitoring and prevention.
             </li>
-            <li className="pl-4">
+            <li>
               • To identify usage trends. We may process information about how
               you use our Services to better understand how they are being used
               so we can improve them.
             </li>
-            <li className="pl-4">
+            <li>
               • To determine the effectiveness of our marketing and promotional
               campaigns. We may process your information to better understand
               how to provide marketing and promotional campaigns that are most
               relevant to you.
             </li>
-            <li className="pl-4">
+            <li>
               • To save or protect an individual's vital interest. We may
               process your information when necessary to save or protect an
               individual's vital interest, such as to prevent harm.
             </li>
           </ul>
 
-          <h2>
+          <h2 className="my-3">
             3. What legal bases do we rely on to process your information?
           </h2>
 
@@ -350,49 +350,49 @@ export default function PrivacyPolicy() {
             bases to process your personal information:
           </p>
 
-          <ul>
-            <li className="pl-4">
+          <ul className="pl-4">
+            <li>
               • <b>Consent.</b>{" "}
               We may process your information if you have given us permission
               (i.e., consent) to use your personal information for a specific
               purpose. You can withdraw your consent at any time.
             </li>
-            <li className="pl-4">
+            <li>
               • <b>Performance of a Contract.</b>{" "}
               We may process your personal information when we believe it is
               necessary to fulfil our contractual obligations to you, including
               providing our Services or at your request prior to entering into a
               contract with you.
             </li>
-            <li className="pl-4">
+            <li>
               • <b>Legitimate Interests.</b>{" "}
               We may process your information when we believe it is reasonably
               necessary to achieve our legitimate business interests and those
               interests do not outweigh your interests and fundamental rights
               and freedoms. For example, we may process your personal
               information for some of the purposes described in order to:
-              <ul>
-                <li className="pl-4">
+              <ul className="pl-4">
+                <li>
                   • Analyze how our services are used so we can improve them to
                   engage and retain users
                 </li>
-                <li className="pl-4">
+                <li>
                   • Understand how our users use our products and services so we
                   can improve user experience
                 </li>
-                <li className="pl-4">
+                <li>
                   • Support our marketing activities
                 </li>
-                <li className="pl-4">
+                <li>
                   • Send users information about special offers and discounts on
                   our products and services
                 </li>
-                <li className="pl-4">
+                <li>
                   • Diagnose problems and/or prevent fraudulent activities
                 </li>
               </ul>
             </li>
-            <li className="pl-4">
+            <li>
               •<b>Legal Obligations.</b>{" "}
               We may process your information where we believe it is necessary
               for compliance with our legal obligations, such as to cooperate
@@ -400,7 +400,7 @@ export default function PrivacyPolicy() {
               defend our legal rights, or disclose your information as evidence
               in litigation in which we are involved.
             </li>
-            <li className="pl-4">
+            <li>
               • <b>Vital Interests.</b>{" "}
               We may process your information where we believe it is necessary
               to protect your vital interests or the vital interests of a third
@@ -434,39 +434,41 @@ export default function PrivacyPolicy() {
             including, for example:
           </p>
 
-          <ul>
-            <li className="pl-4">
+          <ul className="pl-4">
+            <li>
               • If collection is clearly in the interests of an individual and
               consent cannot be obtained in a timely way
             </li>
-            <li className="pl-4">
+            <li>
               • For investigations and fraud detection and prevention
             </li>
-            <li className="pl-4">
+            <li>
               • For business transactions provided certain conditions are met
             </li>
-            <li className="pl-4">
+            <li>
               • If disclosure is required to comply with a subpoena, warrant,
               court order, or rules of the court relating to the production of
               records
             </li>
-            <li className="pl-4">
+            <li>
               • If it was produced by an individual in the course of their
               employment, business, or profession and the collection is
               consistent with the purposes for which the information was
               produced
             </li>
-            <li className="pl-4">
+            <li>
               • If the collection is solely for journalistic, artistic, or
               literary purposes
             </li>
-            <li className="pl-4">
+            <li>
               • If the information is publicly available and is specified by the
               regulations
             </li>
           </ul>
 
-          <h2>4. When and with whom do we share your personal information?</h2>
+          <h2 className="my-3">
+            4. When and with whom do we share your personal information?
+          </h2>
 
           <p>
             <b>In Short:</b>{" "}
@@ -499,24 +501,26 @@ export default function PrivacyPolicy() {
             follows:
           </p>
 
-          <ul>
-            <li className="pl-4">• Cloud Computing Services</li>
-            <li className="pl-4">• Communication & Collaboration Tools</li>
-            <li className="pl-4">• Data Analytics Services</li>
-            <li className="pl-4">• Data Storage Service Providers</li>
-            <li className="pl-4">• Finance & Accounting Tools</li>
-            <li className="pl-4">• Order Fulfilment Service Providers</li>
-            <li className="pl-4">• Payment Processors</li>
-            <li className="pl-4">• Performance Monitoring Tools</li>
-            <li className="pl-4">• Sales & Marketing Tools</li>
-            <li className="pl-4">• Testing Tools</li>
-            <li className="pl-4">
+          <ul className="pl-4">
+            <li>• Cloud Computing Services</li>
+            <li>• Communication & Collaboration Tools</li>
+            <li>• Data Analytics Services</li>
+            <li>• Data Storage Service Providers</li>
+            <li>• Finance & Accounting Tools</li>
+            <li>• Order Fulfilment Service Providers</li>
+            <li>• Payment Processors</li>
+            <li>• Performance Monitoring Tools</li>
+            <li>• Sales & Marketing Tools</li>
+            <li>• Testing Tools</li>
+            <li>
               • User Account Registration & Authentication Services
             </li>
-            <li className="pl-4">• Website Hosting Service Providers</li>
+            <li>• Website Hosting Service Providers</li>
           </ul>
 
-          <h2>5. What is our stance on third party websites?</h2>
+          <h2 className="my-3">
+            5. What is our stance on third party websites?
+          </h2>
 
           <p>
             <b>In Short:</b>{" "}
@@ -543,7 +547,9 @@ export default function PrivacyPolicy() {
             directly to respond to your questions.
           </p>
 
-          <h2>6. Do we use cookies and other tracking technologies?</h2>
+          <h2 className="my-3">
+            6. Do we use cookies and other tracking technologies?
+          </h2>
 
           <p>
             <b>In Short:</b>{" "}
@@ -560,7 +566,9 @@ export default function PrivacyPolicy() {
             in our Cookie Notice.
           </p>
 
-          <h2>7. Is your information transferred internationally?</h2>
+          <h2 className="my-3">
+            7. Is your information transferred internationally?
+          </h2>
 
           <p>
             <b>In Short:</b>{" "}
@@ -585,7 +593,7 @@ export default function PrivacyPolicy() {
             notice and applicable law.
           </p>
 
-          <h2>8. How long do we keep your information?</h2>
+          <h2 className="my-3">8. How long do we keep your information?</h2>
 
           <p>
             <b>In Short:</b>{" "}
@@ -610,7 +618,7 @@ export default function PrivacyPolicy() {
             any further processing until deletion is possible.
           </p>
 
-          <h2>9. How do we keep your information safe?</h2>
+          <h2 className="my-3">9. How do we keep your information safe?</h2>
 
           <p>
             <b>In Short:</b>{" "}
@@ -633,7 +641,7 @@ export default function PrivacyPolicy() {
             only access the Services within a secure environment.
           </p>
 
-          <h2>10. Do we collect information from minors?</h2>
+          <h2 className="my-3">10. Do we collect information from minors?</h2>
 
           <p>
             <b>In Short:</b>{" "}
@@ -653,7 +661,7 @@ export default function PrivacyPolicy() {
             info@mass.market.
           </p>
 
-          <h2>11. What are your privacy rights?</h2>
+          <h2 className="my-3">11. What are your privacy rights?</h2>
 
           <p>
             <b>In Short:</b>{" "}
@@ -733,7 +741,7 @@ export default function PrivacyPolicy() {
             email us at info@mass.market.
           </p>
 
-          <h2>12. Controls for Do-Not-Track features</h2>
+          <h2 className="my-3">12. Controls for Do-Not-Track features</h2>
 
           <p>
             Most web browsers and some mobile operating systems and mobile
@@ -749,7 +757,9 @@ export default function PrivacyPolicy() {
             of this privacy notice.
           </p>
 
-          <h2>13. Do United States residents have specific privacy rights?</h2>
+          <h2 className="my-3">
+            13. Do United States residents have specific privacy rights?
+          </h2>
 
           <p>
             <b>In Short:</b>{" "}
@@ -773,7 +783,7 @@ export default function PrivacyPolicy() {
             in the past twelve (12) months:
           </p>
 
-          <table>
+          <table className="text-center my-5">
             <thead>
               <tr>
                 <th>Category</th>
@@ -889,12 +899,12 @@ export default function PrivacyPolicy() {
             to provide the Services or for:
           </p>
 
-          <ul>
-            <li className="pl-4">• Category A - 1 year</li>
-            <li className="pl-4">• Category B - 1 year</li>
-            <li className="pl-4">• Category D - 1 year</li>
-            <li className="pl-4">• Category G - 1 year</li>
-            <li className="pl-4">• Category I - 1 year</li>
+          <ul className="pl-4">
+            <li>• Category A - 1 year</li>
+            <li>• Category B - 1 year</li>
+            <li>• Category D - 1 year</li>
+            <li>• Category G - 1 year</li>
+            <li>• Category I - 1 year</li>
           </ul>
 
           <p>
@@ -903,14 +913,14 @@ export default function PrivacyPolicy() {
             or by phone or mail in the context of:
           </p>
 
-          <ul>
-            <li className="pl-4">
+          <ul className="pl-4">
+            <li>
               • Receiving help through our customer support channels;
             </li>
-            <li className="pl-4">
+            <li>
               • Participation in customer surveys or contests;
             </li>
-            <li className="pl-4">
+            <li>
               • Facilitation in the delivery of our Services and to respond to
               your inquiries.
             </li>
@@ -951,23 +961,23 @@ export default function PrivacyPolicy() {
             decline your request as permitted by law. These rights include:
           </p>
 
-          <ul>
-            <li className="pl-4">
+          <ul className="pl-4">
+            <li>
               • Right to know whether or not we are processing your personal
               data
             </li>
-            <li className="pl-4">• Right to access your personal data</li>
-            <li className="pl-4">
+            <li>• Right to access your personal data</li>
+            <li>
               • Right to request the deletion of your personal data
             </li>
-            <li className="pl-4">
+            <li>
               • Right to obtain a copy of the personal data you previously
               shared with us
             </li>
-            <li className="pl-4">
+            <li>
               • Right to non-discrimination for exercising your rights
             </li>
-            <li className="pl-4">
+            <li>
               • Right to opt out of the processing of your personal data if it
               is used for targeted advertising (or sharing as defined under
               California's privacy law), the sale of personal data, or profiling
@@ -981,29 +991,29 @@ export default function PrivacyPolicy() {
             following rights:
           </p>
 
-          <ul>
-            <li className="pl-4">
+          <ul className="pl-4">
+            <li>
               • Right to access the categories of personal data being processed
               (as permitted by applicable law, including the privacy law in
               Minnesota)
             </li>
-            <li className="pl-4">
+            <li>
               • Right to obtain a list of the categories of third parties to
               which we have disclosed personal data (as permitted by applicable
               law, including the privacy law in California, Delaware and
               Maryland)
             </li>
-            <li className="pl-4">
+            <li>
               • Right to obtain a list of specific third parties to which we
               have disclosed personal data (as permitted by applicable law,
               including the privacy law in Minnesota and Oregon)
             </li>
-            <li className="pl-4">
+            <li>
               • Right to review, understand, question and correct how personal
               data has been profilied (as permitted by applicable law, including
               the privacy law in Minnesota)
             </li>
-            <li className="pl-4">
+            <li>
               • Right to limit use and disclosure of sensitive data and personal
               data (as permitted by applicable law, including the privacy law in
               California).
@@ -1066,7 +1076,7 @@ export default function PrivacyPolicy() {
             information provided below.
           </p>
 
-          <h2>
+          <h2 className="my-3">
             14. Do residents of other regions have specific privacy rights?
           </h2>
 
@@ -1122,7 +1132,7 @@ export default function PrivacyPolicy() {
             PAIAComplaints@inforegulator.org.za
           </p>
 
-          <h2>15. Do we make updates to this notice?</h2>
+          <h2 className="my-3">15. Do we make updates to this notice?</h2>
 
           <p>
             <b>In Short:</b>{" "}
@@ -1141,7 +1151,9 @@ export default function PrivacyPolicy() {
             informed of how we are protecting your information.
           </p>
 
-          <h2>16. How can you contact us about this notice?</h2>
+          <h2 className="my-3">
+            16. How can you contact us about this notice?
+          </h2>
 
           <p>
             If you have questions or comments about this notice, you may contact
@@ -1159,7 +1171,7 @@ export default function PrivacyPolicy() {
             Grand Cayman KY1-9010
           </p>
 
-          <h2>
+          <h2 className="my-3">
             17. How can you review, update or delete the data that we collect
             from you?
           </h2>
