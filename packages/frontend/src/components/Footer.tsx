@@ -10,7 +10,11 @@ const Footer = () => {
           />
           <div>
             <nav className="space-x-4 flex">
-              <a href="#" className="text-xs" style={{ color: "black" }}>
+              <a
+                href="/privacy-policy"
+                className="text-xs"
+                style={{ color: "black" }}
+              >
                 Privacy Policy
               </a>
               <a href="#" className="text-xs" style={{ color: "black" }}>

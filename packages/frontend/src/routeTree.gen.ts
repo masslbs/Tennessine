@@ -19,6 +19,7 @@ import { Route as rootRoute } from './routes/__root.tsx'
 const ShippingLazyImport = createFileRoute('/shipping')()
 const ShareLazyImport = createFileRoute('/share')()
 const SettingsLazyImport = createFileRoute('/settings')()
+const PrivacyPolicyLazyImport = createFileRoute('/privacy-policy')()
 const PayLazyImport = createFileRoute('/pay')()
 const OrdersLazyImport = createFileRoute('/orders')()
 const OrderDetailsLazyImport = createFileRoute('/order-details')()
@@ -51,6 +52,14 @@ const SettingsLazyRoute = SettingsLazyImport.update({
   path: '/settings',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/settings.lazy.tsx').then((d) => d.Route))
+
+const PrivacyPolicyLazyRoute = PrivacyPolicyLazyImport.update({
+  id: '/privacy-policy',
+  path: '/privacy-policy',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() =>
+  import('./routes/privacy-policy.lazy.tsx').then((d) => d.Route),
+)
 
 const PayLazyRoute = PayLazyImport.update({
   id: '/pay',
@@ -224,6 +233,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PayLazyImport
       parentRoute: typeof rootRoute
     }
+    '/privacy-policy': {
+      id: '/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof PrivacyPolicyLazyImport
+      parentRoute: typeof rootRoute
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -263,6 +279,7 @@ export interface FileRoutesByFullPath {
   '/order-details': typeof OrderDetailsLazyRoute
   '/orders': typeof OrdersLazyRoute
   '/pay': typeof PayLazyRoute
+  '/privacy-policy': typeof PrivacyPolicyLazyRoute
   '/settings': typeof SettingsLazyRoute
   '/share': typeof ShareLazyRoute
   '/shipping': typeof ShippingLazyRoute
@@ -281,6 +298,7 @@ export interface FileRoutesByTo {
   '/order-details': typeof OrderDetailsLazyRoute
   '/orders': typeof OrdersLazyRoute
   '/pay': typeof PayLazyRoute
+  '/privacy-policy': typeof PrivacyPolicyLazyRoute
   '/settings': typeof SettingsLazyRoute
   '/share': typeof ShareLazyRoute
   '/shipping': typeof ShippingLazyRoute
@@ -300,6 +318,7 @@ export interface FileRoutesById {
   '/order-details': typeof OrderDetailsLazyRoute
   '/orders': typeof OrdersLazyRoute
   '/pay': typeof PayLazyRoute
+  '/privacy-policy': typeof PrivacyPolicyLazyRoute
   '/settings': typeof SettingsLazyRoute
   '/share': typeof ShareLazyRoute
   '/shipping': typeof ShippingLazyRoute
@@ -320,6 +339,7 @@ export interface FileRouteTypes {
     | '/order-details'
     | '/orders'
     | '/pay'
+    | '/privacy-policy'
     | '/settings'
     | '/share'
     | '/shipping'
@@ -337,6 +357,7 @@ export interface FileRouteTypes {
     | '/order-details'
     | '/orders'
     | '/pay'
+    | '/privacy-policy'
     | '/settings'
     | '/share'
     | '/shipping'
@@ -354,6 +375,7 @@ export interface FileRouteTypes {
     | '/order-details'
     | '/orders'
     | '/pay'
+    | '/privacy-policy'
     | '/settings'
     | '/share'
     | '/shipping'
@@ -373,6 +395,7 @@ export interface RootRouteChildren {
   OrderDetailsLazyRoute: typeof OrderDetailsLazyRoute
   OrdersLazyRoute: typeof OrdersLazyRoute
   PayLazyRoute: typeof PayLazyRoute
+  PrivacyPolicyLazyRoute: typeof PrivacyPolicyLazyRoute
   SettingsLazyRoute: typeof SettingsLazyRoute
   ShareLazyRoute: typeof ShareLazyRoute
   ShippingLazyRoute: typeof ShippingLazyRoute
@@ -391,6 +414,7 @@ const rootRouteChildren: RootRouteChildren = {
   OrderDetailsLazyRoute: OrderDetailsLazyRoute,
   OrdersLazyRoute: OrdersLazyRoute,
   PayLazyRoute: PayLazyRoute,
+  PrivacyPolicyLazyRoute: PrivacyPolicyLazyRoute,
   SettingsLazyRoute: SettingsLazyRoute,
   ShareLazyRoute: ShareLazyRoute,
   ShippingLazyRoute: ShippingLazyRoute,
@@ -418,6 +442,7 @@ export const routeTree = rootRoute
         "/order-details",
         "/orders",
         "/pay",
+        "/privacy-policy",
         "/settings",
         "/share",
         "/shipping"
@@ -458,6 +483,9 @@ export const routeTree = rootRoute
     },
     "/pay": {
       "filePath": "pay.lazy.tsx"
+    },
+    "/privacy-policy": {
+      "filePath": "privacy-policy.lazy.tsx"
     },
     "/settings": {
       "filePath": "settings.lazy.tsx"
