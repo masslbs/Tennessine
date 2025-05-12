@@ -52,3 +52,5 @@ export enum KeycardRole {
   RETURNING_GUEST = "returning-guest",
   MERCHANT = "merchant",
 }
+
+export type CookieConsent = "accepted" | "rejected" | null;
