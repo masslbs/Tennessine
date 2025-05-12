@@ -190,10 +190,10 @@ export default function Cookies() {
           <h2 className="my-3">3. Contact</h2>
           <p>
             If you have any questions about this Cookie Notice, please email us
-            at info@mass.market.
+            at <b>info@mass.market.</b>
           </p>
 
-          <em>Published 12th May 2025</em>
+          <em className="mt-3">Published 12th May 2025</em>
         </section>
       </section>
     </main>

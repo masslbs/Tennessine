@@ -1179,7 +1179,7 @@ export default function PrivacyPolicy() {
 
           <p>
             If you have questions or comments about this notice, you may contact
-            us by email at info@mass.market.
+            us by email at <b>info@mass.market.</b>
           </p>
 
           <p>
