@@ -17,6 +17,8 @@ Deno.test("Check that we can render the listing details screen", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async () => {
+  // @alp: increase default timeout from 1000ms to 3000ms in an attempt to mitigate test flakiness
+  const waitForOpts = { timeout: 3000 };
   const shopId = random256BigInt();
 
   const {
@@ -62,7 +64,7 @@ Deno.test("Check that we can render the listing details screen", {
       unknown
     >;
     expect(storedListings.size).toBe(allListings.size);
-  });
+  }, waitForOpts);
   const { unmount } = render(<ListingDetail />, { wrapper });
 
   await screen.findByTestId("listing-detail-page");
@@ -73,7 +75,7 @@ Deno.test("Check that we can render the listing details screen", {
     expect(description.textContent).toBe(listing.Metadata.Description);
     const title = screen.getByTestId("title");
     expect(title.textContent).toBe(listing.Metadata.Title);
-  });
+  }, waitForOpts);
 
   let allOrders = await stateManager.get(["Orders"]) as Map<string, unknown>;
   expect(allOrders.size).toBe(0);
@@ -102,6 +104,8 @@ Deno.test("Check that we can render the listing details screen", {
   // first off: the toast text should begin with `${initialQty}` since initialQty > 1)
   successToastText = await screen.findByText(
     `${initialQty} items added`,
+    {},
+    waitForOpts,
   );
   expect(successToastText.textContent?.startsWith(`${initialQty}`))
     .toBeTruthy();
@@ -131,6 +135,8 @@ Deno.test("Check that we can render the listing details screen", {
   // now: its text should begin with `${qtyIncreasedBy}`
   successToastText = await screen.findByText(
     `${qtyIncreasedBy} items added`,
+    {},
+    waitForOpts,
   );
   expect(successToastText.textContent?.startsWith(`${qtyIncreasedBy}`))
     .toBeTruthy();
@@ -160,6 +166,8 @@ Deno.test("Check that we can render the listing details screen", {
   // finally: its text should begin with `${qtyIncreasedBy2}`
   successToastText = await screen.findByText(
     `${qtyIncreasedBy2} items added`,
+    {},
+    waitForOpts,
   );
   expect(successToastText.textContent?.startsWith(`${qtyIncreasedBy2}`))
     .toBeTruthy();
@@ -171,7 +179,7 @@ Deno.test("Check that we can render the listing details screen", {
       CodecValue
     >;
     expect(updatedOrders.size).toBe(2);
-  });
+  }, waitForOpts);
   const orderIds = Array.from(updatedOrders!.keys()).filter((id) =>
     id !== orderId
   );
@@ -186,7 +194,7 @@ Deno.test("Check that we can render the listing details screen", {
     // Since quantity was updated 3 times, it should be the addition of the 3 quantities tested.
     const totalQuantity = initialQty + qtyIncreasedBy + qtyIncreasedBy2;
     expect(newOrder.Items[0].Quantity).toBe(totalQuantity);
-  });
+  }, waitForOpts);
 
   unmount();
 
