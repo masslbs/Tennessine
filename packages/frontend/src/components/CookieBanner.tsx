@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
 import { CookieConsent } from "../types.ts";
+import { logger } from "@massmarket/utils";
+
+const namespace = "frontend: CookieBanner";
+const debug = logger(namespace, "debug");
+const errlog = logger(namespace, "error");
 
 const CookieBanner = () => {
   const [isVisible, setIsVisible] = useState(true);
@@ -15,19 +20,19 @@ const CookieBanner = () => {
 
   const handleAccept = () => {
     import("../matomo.js").catch((e) => {
-      console.log(`failed to load matomo ${e}`);
+      errlog(`failed to load matomo ${e}`);
     });
     setConsent("accepted");
     setIsVisible(false);
     sessionStorage.setItem("cookieConsent", "accepted");
-    console.log("Cookies accepted");
+    debug("Cookies accepted");
   };
 
   const handleReject = () => {
     setConsent("rejected");
     setIsVisible(false);
     sessionStorage.setItem("cookieConsent", "rejected");
-    console.log("Cookies rejected");
+    debug("Cookies rejected");
   };
 
   if (!isVisible && consent) {
