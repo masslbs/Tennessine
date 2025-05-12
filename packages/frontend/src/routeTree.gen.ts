@@ -19,6 +19,7 @@ import { Route as rootRoute } from './routes/__root.tsx'
 const ShippingLazyImport = createFileRoute('/shipping')()
 const ShareLazyImport = createFileRoute('/share')()
 const SettingsLazyImport = createFileRoute('/settings')()
+const PrivacyPolicyLazyImport = createFileRoute('/privacy-policy')()
 const PayLazyImport = createFileRoute('/pay')()
 const OrdersLazyImport = createFileRoute('/orders')()
 const OrderDetailsLazyImport = createFileRoute('/order-details')()
@@ -28,6 +29,7 @@ const ListingsLazyImport = createFileRoute('/listings')()
 const ListingDetailLazyImport = createFileRoute('/listing-detail')()
 const EditListingLazyImport = createFileRoute('/edit-listing')()
 const CreateShopLazyImport = createFileRoute('/create-shop')()
+const CookieNoticeLazyImport = createFileRoute('/cookie-notice')()
 const ContactLazyImport = createFileRoute('/contact')()
 const CartLazyImport = createFileRoute('/cart')()
 const IndexLazyImport = createFileRoute('/')()
@@ -51,6 +53,14 @@ const SettingsLazyRoute = SettingsLazyImport.update({
   path: '/settings',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/settings.lazy.tsx').then((d) => d.Route))
+
+const PrivacyPolicyLazyRoute = PrivacyPolicyLazyImport.update({
+  id: '/privacy-policy',
+  path: '/privacy-policy',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() =>
+  import('./routes/privacy-policy.lazy.tsx').then((d) => d.Route),
+)
 
 const PayLazyRoute = PayLazyImport.update({
   id: '/pay',
@@ -118,6 +128,14 @@ const CreateShopLazyRoute = CreateShopLazyImport.update({
   import('./routes/create-shop.lazy.tsx').then((d) => d.Route),
 )
 
+const CookieNoticeLazyRoute = CookieNoticeLazyImport.update({
+  id: '/cookie-notice',
+  path: '/cookie-notice',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() =>
+  import('./routes/cookie-notice.lazy.tsx').then((d) => d.Route),
+)
+
 const ContactLazyRoute = ContactLazyImport.update({
   id: '/contact',
   path: '/contact',
@@ -159,6 +177,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/cookie-notice': {
+      id: '/cookie-notice'
+      path: '/cookie-notice'
+      fullPath: '/cookie-notice'
+      preLoaderRoute: typeof CookieNoticeLazyImport
       parentRoute: typeof rootRoute
     }
     '/create-shop': {
@@ -224,6 +249,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PayLazyImport
       parentRoute: typeof rootRoute
     }
+    '/privacy-policy': {
+      id: '/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof PrivacyPolicyLazyImport
+      parentRoute: typeof rootRoute
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -254,6 +286,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexLazyRoute
   '/cart': typeof CartLazyRoute
   '/contact': typeof ContactLazyRoute
+  '/cookie-notice': typeof CookieNoticeLazyRoute
   '/create-shop': typeof CreateShopLazyRoute
   '/edit-listing': typeof EditListingLazyRoute
   '/listing-detail': typeof ListingDetailLazyRoute
@@ -263,6 +296,7 @@ export interface FileRoutesByFullPath {
   '/order-details': typeof OrderDetailsLazyRoute
   '/orders': typeof OrdersLazyRoute
   '/pay': typeof PayLazyRoute
+  '/privacy-policy': typeof PrivacyPolicyLazyRoute
   '/settings': typeof SettingsLazyRoute
   '/share': typeof ShareLazyRoute
   '/shipping': typeof ShippingLazyRoute
@@ -272,6 +306,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexLazyRoute
   '/cart': typeof CartLazyRoute
   '/contact': typeof ContactLazyRoute
+  '/cookie-notice': typeof CookieNoticeLazyRoute
   '/create-shop': typeof CreateShopLazyRoute
   '/edit-listing': typeof EditListingLazyRoute
   '/listing-detail': typeof ListingDetailLazyRoute
@@ -281,6 +316,7 @@ export interface FileRoutesByTo {
   '/order-details': typeof OrderDetailsLazyRoute
   '/orders': typeof OrdersLazyRoute
   '/pay': typeof PayLazyRoute
+  '/privacy-policy': typeof PrivacyPolicyLazyRoute
   '/settings': typeof SettingsLazyRoute
   '/share': typeof ShareLazyRoute
   '/shipping': typeof ShippingLazyRoute
@@ -291,6 +327,7 @@ export interface FileRoutesById {
   '/': typeof IndexLazyRoute
   '/cart': typeof CartLazyRoute
   '/contact': typeof ContactLazyRoute
+  '/cookie-notice': typeof CookieNoticeLazyRoute
   '/create-shop': typeof CreateShopLazyRoute
   '/edit-listing': typeof EditListingLazyRoute
   '/listing-detail': typeof ListingDetailLazyRoute
@@ -300,6 +337,7 @@ export interface FileRoutesById {
   '/order-details': typeof OrderDetailsLazyRoute
   '/orders': typeof OrdersLazyRoute
   '/pay': typeof PayLazyRoute
+  '/privacy-policy': typeof PrivacyPolicyLazyRoute
   '/settings': typeof SettingsLazyRoute
   '/share': typeof ShareLazyRoute
   '/shipping': typeof ShippingLazyRoute
@@ -311,6 +349,7 @@ export interface FileRouteTypes {
     | '/'
     | '/cart'
     | '/contact'
+    | '/cookie-notice'
     | '/create-shop'
     | '/edit-listing'
     | '/listing-detail'
@@ -320,6 +359,7 @@ export interface FileRouteTypes {
     | '/order-details'
     | '/orders'
     | '/pay'
+    | '/privacy-policy'
     | '/settings'
     | '/share'
     | '/shipping'
@@ -328,6 +368,7 @@ export interface FileRouteTypes {
     | '/'
     | '/cart'
     | '/contact'
+    | '/cookie-notice'
     | '/create-shop'
     | '/edit-listing'
     | '/listing-detail'
@@ -337,6 +378,7 @@ export interface FileRouteTypes {
     | '/order-details'
     | '/orders'
     | '/pay'
+    | '/privacy-policy'
     | '/settings'
     | '/share'
     | '/shipping'
@@ -345,6 +387,7 @@ export interface FileRouteTypes {
     | '/'
     | '/cart'
     | '/contact'
+    | '/cookie-notice'
     | '/create-shop'
     | '/edit-listing'
     | '/listing-detail'
@@ -354,6 +397,7 @@ export interface FileRouteTypes {
     | '/order-details'
     | '/orders'
     | '/pay'
+    | '/privacy-policy'
     | '/settings'
     | '/share'
     | '/shipping'
@@ -364,6 +408,7 @@ export interface RootRouteChildren {
   IndexLazyRoute: typeof IndexLazyRoute
   CartLazyRoute: typeof CartLazyRoute
   ContactLazyRoute: typeof ContactLazyRoute
+  CookieNoticeLazyRoute: typeof CookieNoticeLazyRoute
   CreateShopLazyRoute: typeof CreateShopLazyRoute
   EditListingLazyRoute: typeof EditListingLazyRoute
   ListingDetailLazyRoute: typeof ListingDetailLazyRoute
@@ -373,6 +418,7 @@ export interface RootRouteChildren {
   OrderDetailsLazyRoute: typeof OrderDetailsLazyRoute
   OrdersLazyRoute: typeof OrdersLazyRoute
   PayLazyRoute: typeof PayLazyRoute
+  PrivacyPolicyLazyRoute: typeof PrivacyPolicyLazyRoute
   SettingsLazyRoute: typeof SettingsLazyRoute
   ShareLazyRoute: typeof ShareLazyRoute
   ShippingLazyRoute: typeof ShippingLazyRoute
@@ -382,6 +428,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexLazyRoute: IndexLazyRoute,
   CartLazyRoute: CartLazyRoute,
   ContactLazyRoute: ContactLazyRoute,
+  CookieNoticeLazyRoute: CookieNoticeLazyRoute,
   CreateShopLazyRoute: CreateShopLazyRoute,
   EditListingLazyRoute: EditListingLazyRoute,
   ListingDetailLazyRoute: ListingDetailLazyRoute,
@@ -391,6 +438,7 @@ const rootRouteChildren: RootRouteChildren = {
   OrderDetailsLazyRoute: OrderDetailsLazyRoute,
   OrdersLazyRoute: OrdersLazyRoute,
   PayLazyRoute: PayLazyRoute,
+  PrivacyPolicyLazyRoute: PrivacyPolicyLazyRoute,
   SettingsLazyRoute: SettingsLazyRoute,
   ShareLazyRoute: ShareLazyRoute,
   ShippingLazyRoute: ShippingLazyRoute,
@@ -409,6 +457,7 @@ export const routeTree = rootRoute
         "/",
         "/cart",
         "/contact",
+        "/cookie-notice",
         "/create-shop",
         "/edit-listing",
         "/listing-detail",
@@ -418,6 +467,7 @@ export const routeTree = rootRoute
         "/order-details",
         "/orders",
         "/pay",
+        "/privacy-policy",
         "/settings",
         "/share",
         "/shipping"
@@ -431,6 +481,9 @@ export const routeTree = rootRoute
     },
     "/contact": {
       "filePath": "contact.lazy.tsx"
+    },
+    "/cookie-notice": {
+      "filePath": "cookie-notice.lazy.tsx"
     },
     "/create-shop": {
       "filePath": "create-shop.lazy.tsx"
@@ -458,6 +511,9 @@ export const routeTree = rootRoute
     },
     "/pay": {
       "filePath": "pay.lazy.tsx"
+    },
+    "/privacy-policy": {
+      "filePath": "privacy-policy.lazy.tsx"
     },
     "/settings": {
       "filePath": "settings.lazy.tsx"
