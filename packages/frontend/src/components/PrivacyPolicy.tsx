@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import BackButton from "./common/BackButton.tsx";
 
 export default function PrivacyPolicy() {
@@ -50,10 +51,10 @@ export default function PrivacyPolicy() {
           </p>
 
           <p>
-            <b>Do we process any sensitive personal information?</b>Some of the
-            information may be considered 'sensitive' in certain jurisdictions,
-            for example your ethnic origins, sexual orientation or religious
-            beliefs. We do not process any sensitive information.
+            <b>Do we process any sensitive personal information?</b>{" "}
+            Some of the information may be considered 'sensitive' in certain
+            jurisdictions, for example your ethnic origins, sexual orientation
+            or religious beliefs. We do not process any sensitive information.
           </p>
 
           <p>
@@ -97,10 +98,10 @@ export default function PrivacyPolicy() {
           </p>
 
           <p>
-            <b>How do I exercise my rights?</b>The easiest way to exercise your
-            rights is by contacting us at info@mass.market. We will consider and
-            act upon any request in accordance with applicable data protection
-            laws.
+            <b>How do I exercise my rights?</b>{" "}
+            The easiest way to exercise your rights is by contacting us at
+            info@mass.market. We will consider and act upon any request in
+            accordance with applicable data protection laws.
           </p>
 
           <p>
@@ -229,7 +230,15 @@ export default function PrivacyPolicy() {
           <p>
             Like many businesses, we also collect information through cookies
             and similar technologies. We use a privacy aware analytics service
-            for this, which you can read more about in our Cookie Notice.
+            for this, which you can read more about in our{" "}
+            <Link
+              to="/cookie-notice"
+              search={(prev: Record<string, string>) => ({
+                shopId: prev.shopId,
+              })}
+            >
+              Cookie Notice
+            </Link>.
           </p>
 
           <p>
@@ -563,7 +572,15 @@ export default function PrivacyPolicy() {
             use Matomo's privacy-aware tools for analysing and processing data
             as set out in section 2 above. Specific information about how we use
             such technologies and how you can refuse certain cookies is set out
-            in our Cookie Notice.
+            in our{" "}
+            <Link
+              to="/cookie-notice"
+              search={(prev: Record<string, string>) => ({
+                shopId: prev.shopId,
+              })}
+            >
+              Cookie Notice
+            </Link>.
           </p>
 
           <h2 className="my-3">
@@ -962,7 +979,15 @@ export default function PrivacyPolicy() {
 
           <p>
             More information about our data collection and sharing practices can
-            be found in this privacy notice and our Cookie Notice.
+            be found in this privacy notice and our{" "}
+            <Link
+              to="/cookie-notice"
+              search={(prev: Record<string, string>) => ({
+                shopId: prev.shopId,
+              })}
+            >
+              Cookie Notice.
+            </Link>
           </p>
 
           <p>
