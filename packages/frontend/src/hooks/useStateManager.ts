@@ -19,7 +19,7 @@ import { useChain } from "./useChain.ts";
 const namespace = "frontend:useStateManager";
 const debug = logger(namespace);
 
-async function createStateManager(shopId: bigint, pk: Hex) {
+function createStateManager(shopId: bigint, pk: Hex) {
   debug("Creating state manager");
   const startingState = new Map(Object.entries({
     Tags: new Map(),
@@ -41,7 +41,6 @@ async function createStateManager(shopId: bigint, pk: Hex) {
     id: shopId,
     defaultState: startingState,
   });
-  await db.open();
 
   return db;
 }
@@ -64,8 +63,7 @@ export function useStateManager() {
     if (!shopId) {
       throw new Error("Shop ID is required");
     }
-    const db = stateManager ??
-      await createStateManager(shopId, keycard.privateKey);
+    const db = stateManager ?? createStateManager(shopId, keycard.privateKey);
 
     // Skip this logic if /create-shop or /merchant-connect, since we need to enroll merchant keycard before we call addConnection in those cases.
     if (!isMerchantPath && relayClient) {
@@ -88,18 +86,13 @@ export function useStateManager() {
         if (!res.ok) {
           throw new Error(`Failed to enroll keycard: ${res}`);
         }
-        debug("Success: Enrolled new guest keycard");
-        await relayClient.connect();
-        await relayClient.authenticate();
-        db.addConnection(relayClient);
         //Set keycard role to guest-returning so we don't try enrolling again on refresh
         setKeycard({ ...keycard, role: KeycardRole.RETURNING_GUEST });
-      } else {
-        debug("Adding connection");
-        await relayClient.connect();
-        await relayClient.authenticate();
-        db.addConnection(relayClient);
       }
+      debug("Adding connection");
+      await relayClient.connect();
+      await relayClient.authenticate();
+      db.addConnection(relayClient);
     }
     debug("StateManager set");
     setStateManager(db);
