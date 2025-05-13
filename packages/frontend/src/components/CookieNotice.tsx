@@ -4,7 +4,7 @@ export default function Cookies() {
   return (
     <main className="px-4 flex justify-center">
       <section className="md:w-[800px] w-full">
-        <BackButton href="/listings" />
+        <BackButton />
         <h1 className="py-3">
           Cookie Notice
         </h1>

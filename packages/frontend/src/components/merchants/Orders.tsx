@@ -8,7 +8,7 @@ export default function Orders() {
         data-testid-="transactions-container"
         className="md:w-[560px]"
       >
-        <BackButton href="/merchant-dashboard" />
+        <BackButton />
         <h1>Orders</h1>
         <Transactions />
       </section>

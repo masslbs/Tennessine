@@ -156,7 +156,7 @@ export default function ListingDetail() {
             setErrorMsg(null);
           }}
         />
-        <BackButton href="/listings" />
+        <BackButton />
         <div className="my-3">
           <h1 className="flex items-center" data-testid="title">
             {listing.Metadata.Title}

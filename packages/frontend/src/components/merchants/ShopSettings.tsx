@@ -223,7 +223,7 @@ export default function ShopSettings() {
             setSuccess(null);
           }}
         />
-        <BackButton href="/merchant-dashboard" />
+        <BackButton />
         <section className="mt-2">
           <div className="flex">
             <h2>Edit shop details</h2>

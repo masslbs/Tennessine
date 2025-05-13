@@ -214,7 +214,7 @@ export default function OrderDetails() {
       data-testid="order-details-page"
     >
       <section className="md:w-[560px]">
-        <BackButton href="/orders" />
+        <BackButton />
         <div className="my-5">
           <h1>Order overview</h1>
         </div>

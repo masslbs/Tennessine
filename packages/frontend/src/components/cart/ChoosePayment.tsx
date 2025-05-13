@@ -397,10 +397,7 @@ export default function ChoosePayment() {
   return (
     <section data-testid="choose-payment" className="md:flex justify-center">
       <section className="md:w-[600px] px-4 md:px-0">
-        <BackButton
-          onClick={() => {
-          }}
-        />
+        <BackButton />
         <ErrorMessage
           errorMessage={errorMsg}
           onClose={() => {
