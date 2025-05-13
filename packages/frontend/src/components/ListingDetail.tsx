@@ -95,12 +95,16 @@ export default function ListingDetail() {
       // If the order is not an open order, cancel it and create a new one
       if (currentOrder?.State !== OrderState.Open) {
         orderId = await cancelAndRecreateOrder();
+        debug(`returned from cancel+recreate with orderId ${orderId}`);
       }
 
       if (!orderId) {
         throw new Error("Order ID is undefined");
       }
 
+      debug(`just before stateManager.get(Orders, ${orderId})`);
+      const stateRoot = await stateManager.root;
+      console.debug("ListingDetail", stateRoot);
       const o = await stateManager.get(["Orders", orderId]);
       if (!o) {
         throw new Error(`Order ${orderId} not found`);

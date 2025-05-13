@@ -85,6 +85,11 @@ export class DAG {
       }
     }
   }
+  createDebug(context: string): (m: string) => string {
+    return (m: string) => {
+      console.log(`DAG/${context}: ${m}`);
+    };
+  }
 
   /**
    * traverses an object's path and returns the resulting value, if any, in a Promise
@@ -93,13 +98,18 @@ export class DAG {
     root: RootValue,
     path: codec.CodecKey[],
   ): Promise<codec.CodecValue | undefined> {
+    const debug = this.createDebug(`get(${path})`);
+    debug(`walk`);
     const walk = await Array.fromAsync(
       this.walk(root, path),
     );
 
+    debug(`walk distance = path+1: ${walk.length === path.length + 1}`);
     if (walk.length === path.length + 1) {
+      debug("return <val>");
       return walk.pop()!.value;
     }
+    debug("return undefined");
   }
 
   /**
@@ -115,6 +125,8 @@ export class DAG {
         key: codec.CodecKey,
       ) => Promise<void> | void),
   ): Promise<codec.CodecValue> {
+    const debug = this.createDebug(`set(${path})`);
+    debug("start");
     assert(path.length);
     const last = path[path.length - 1];
     path = path.slice(0, -1);
@@ -125,8 +137,11 @@ export class DAG {
     if (walk.length === path.length + 1) {
       const parent = walk[walk.length - 1].value;
       if (typeof value === "function") {
+        debug("await value()");
         await value(parent, last);
+        debug("done value()");
       } else {
+        debug("parent");
         set(parent, last, value);
       }
     } else {

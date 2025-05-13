@@ -251,6 +251,7 @@ export class RelayClient {
                   decode(patch) as Map<string, CodecValue>,
                 ) as Patch
               );
+              debug(JSON.stringify(patches));
 
               // This doesn't really need to be async
               // viem does an async import of @noble/secp256k1

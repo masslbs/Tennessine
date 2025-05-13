@@ -79,7 +79,7 @@ export function useCurrentOrder() {
   }
 
   async function cancelAndRecreateOrder() {
-    debug("Cancelling and recreating order");
+    debug(`Cancelling order ${currentOrder!.ID} and recreating as new order`);
     const items = currentOrder?.Items;
     await cancelOrder();
     const newOrderID = randUint64();
@@ -93,19 +93,25 @@ export function useCurrentOrder() {
       ["Orders", newOrderID],
       newOrder,
     );
-    debug("Order recreated.");
+    debug(
+      `Order recreated as order ${newOrder!.ID}; calling setCurrentOrderHook`,
+    );
     setCurrentOrder(newOrder);
+    debug(`returning ${newOrderID}`);
     return newOrderID;
   }
 
   async function orderFetcher(): Promise<Order | undefined> {
+    debug(`orderFetcher called`);
     //TODO: We need a better way of handling current order.
     if (!stateManager) {
       warn("stateManager is undefined");
       return undefined;
     }
+    debug(`orderFetcher cont. `);
 
     const allOrders = await stateManager!.get(["Orders"]);
+    debug(`orderFetcher allOrders.size=${allOrders.size}`);
     const openOrders: Order[] = [];
     const committedOrders: Order[] = [];
     const unpaidOrders: Order[] = [];

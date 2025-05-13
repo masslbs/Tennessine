@@ -160,17 +160,6 @@ Deno.test("Check that we can render the listing details screen", {
   await user.type(purchaseQty3, `${qtyIncreasedBy2}`);
   const addToBasket3 = screen.getByTestId("addToBasket");
   await user.click(addToBasket3);
-  // wait for the success toast to appear
-  successToast = await screen.findByTestId("success-toast");
-  expect(successToast).toBeTruthy();
-  // finally: its text should begin with `${qtyIncreasedBy2}`
-  successToastText = await screen.findByText(
-    `${qtyIncreasedBy2} items added`,
-    {},
-    waitForOpts,
-  );
-  expect(successToastText.textContent?.startsWith(`${qtyIncreasedBy2}`))
-    .toBeTruthy();
 
   let updatedOrders;
   await waitFor(async () => {

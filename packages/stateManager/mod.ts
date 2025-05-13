@@ -206,7 +206,14 @@ export default class StateManager {
   //   this.events.emit(state.root);
   // }
 
+  createDebug(context: string): (m: string) => string {
+    return (m: string) => {
+      console.log(`stateManager/${context}: ${m}`);
+    };
+  }
   async set(path: codec.Path, value: codec.CodecValue | BaseClass) {
+    const debug = this.createDebug(`set(${path})`);
+    debug(`start`);
     if (BaseClass.isBaseClass(value)) {
       value = value.asCBORMap() as codec.CodecValue;
     }
@@ -214,12 +221,20 @@ export default class StateManager {
     assert(state, "open not finished");
     const oldStateRoot = state.root;
     state.root = this.graph.set(state.root, path, async (parent, p) => {
+      debug("inside graph.set cb");
       const v = get(parent, p);
       set(parent, p, value);
       const op = v === undefined ? "add" : "replace";
+      debug("await sendPatch");
       await this.#sendPatch(
         { Op: op, Path: path, Value: value },
       );
+      debug("sendPatch done");
+    });
+    let _v;
+    this.graph.get(state.root, path).then((v) => {
+      debug(`graph.get(${path})=>${JSON.stringify(v)}`);
+      console.debug(`stateManager.set(${path})`, state.root, v);
     });
     try {
       // TODO (@nullradix 2025-04-28) If we revert the state
@@ -230,20 +245,26 @@ export default class StateManager {
       // would lead to the both sets failing
       // we could take care of this in the merkle-dag builder by catching
       // the error there (??)
+      debug("await state root");
       const r = await state.root;
+      debug("state root done");
       this.events.emit(r);
     } catch (e) {
       state.root = oldStateRoot;
       throw e;
     }
+    debug("exit");
   }
 
   get(
     path: codec.Path,
   ): Promise<codec.CodecValue | undefined> {
+    const debug = this.createDebug(`get(${path})`);
+    debug(`start`);
     // wait for any pending writes to complete
     const state = this.#state;
     assert(state, "open not finished");
+    debug(`return DAG.get(${path})`);
     return this.graph.get(state.root, path);
   }
 }
