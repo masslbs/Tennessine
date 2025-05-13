@@ -1,0 +1,11 @@
+{
+  "name": "@massmarket/cli",
+  "version": "0.0.1",
+  "exports": {
+    ".": "./mod.ts"
+  },
+  "imports": {
+    "@faker-js/faker": "npm:@faker-js/faker@^9.7.0",
+    "viem": "npm:viem@^2.29.2"
+  }
+}

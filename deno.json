@@ -9,7 +9,8 @@
     "./packages/stateManager",
     "./packages/frontend",
     "./packages/store",
-    "./packages/mmr"
+    "./packages/mmr",
+    "./packages/cli"
   ],
   "lint": {
     "rules": {
