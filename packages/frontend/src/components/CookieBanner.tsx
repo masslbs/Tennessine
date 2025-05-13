@@ -55,9 +55,6 @@ const CookieBanner = () => {
             your experience on our site. View our{" "}
             <Link
               to="/cookie-notice"
-              search={(prev: Record<string, string>) => ({
-                shopId: prev.shopId,
-              })}
               className="underline hover:text-gray-200"
             >
               Cookie Notice
@@ -65,9 +62,6 @@ const CookieBanner = () => {
             and{" "}
             <Link
               to="/privacy-policy"
-              search={(prev: Record<string, string>) => ({
-                shopId: prev.shopId,
-              })}
               className="underline hover:text-gray-200"
             >
               Privacy Policy
