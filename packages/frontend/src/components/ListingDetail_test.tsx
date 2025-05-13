@@ -1,5 +1,5 @@
 import "../happyDomSetup.ts";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { expect } from "@std/expect";
 import { userEvent } from "@testing-library/user-event";
 
@@ -91,20 +91,25 @@ Deno.test("Check that we can render the listing details screen", {
   let successToastText;
   const purchaseQty = await screen.findByTestId("purchaseQty");
   expect(purchaseQty).toBeTruthy();
-  await user.clear(purchaseQty);
-  await user.type(purchaseQty, `${initialQty}`);
-  const addToBasket = screen.getByTestId("addToBasket");
-  await user.click(addToBasket);
-  // wait for the success toast to appear
-  successToast = await screen.findByTestId("success-toast");
-  expect(successToast).toBeTruthy();
-  // the success toast text should have its message begin with `${initialQty}`
-  // first off: the toast text should begin with `${initialQty}` since initialQty > 1)
-  successToastText = await screen.findByText(
-    `${initialQty} items added`,
-  );
-  expect(successToastText.textContent?.startsWith(`${initialQty}`))
-    .toBeTruthy();
+  await act(async () => {
+    await user.clear(purchaseQty);
+    await user.type(purchaseQty, `${initialQty}`);
+    const addToBasket = screen.getByTestId("addToBasket");
+    await user.click(addToBasket);
+  });
+
+  await waitFor(async () => {
+    // wait for the success toast to appear
+    successToast = await screen.findByTestId("success-toast");
+    expect(successToast).toBeTruthy();
+    // the success toast text should have its message begin with `${initialQty}`
+    // first off: the toast text should begin with `${initialQty}` since initialQty > 1)
+    successToastText = await screen.findByText(
+      `${initialQty} items added`,
+    );
+    expect(successToastText.textContent?.startsWith(`${initialQty}`))
+      .toBeTruthy();
+  });
 
   allOrders = await stateManager.get(["Orders"]) as Map<string, unknown>;
   expect(allOrders.size).toBe(1);
@@ -121,19 +126,25 @@ Deno.test("Check that we can render the listing details screen", {
 
   const purchaseQty2 = await screen.findByTestId("purchaseQty");
   expect(purchaseQty2).toBeTruthy();
-  await user.clear(purchaseQty2);
-  await user.type(purchaseQty2, `${qtyIncreasedBy}`);
-  const addToBasket2 = screen.getByTestId("addToBasket");
-  await user.click(addToBasket2);
-  // wait for the success toast to appear
-  successToast = await screen.findByTestId("success-toast");
-  expect(successToast).toBeTruthy();
-  // now: its text should begin with `${qtyIncreasedBy}`
-  successToastText = await screen.findByText(
-    `${qtyIncreasedBy} items added`,
-  );
-  expect(successToastText.textContent?.startsWith(`${qtyIncreasedBy}`))
-    .toBeTruthy();
+
+  await act(async () => {
+    await user.clear(purchaseQty2);
+    await user.type(purchaseQty2, `${qtyIncreasedBy}`);
+    const addToBasket2 = screen.getByTestId("addToBasket");
+    await user.click(addToBasket2);
+  });
+
+  await waitFor(async () => {
+    // wait for the success toast to appear
+    successToast = await screen.findByTestId("success-toast");
+    expect(successToast).toBeTruthy();
+    // now: its text should begin with `${qtyIncreasedBy}`
+    successToastText = await screen.findByText(
+      `${qtyIncreasedBy} items added`,
+    );
+    expect(successToastText.textContent?.startsWith(`${qtyIncreasedBy}`))
+      .toBeTruthy();
+  });
 
   const d = await stateManager.get(["Orders", orderId]);
   expect(d).toBeDefined();
@@ -148,45 +159,44 @@ Deno.test("Check that we can render the listing details screen", {
   );
   const purchaseQty3 = await screen.findByTestId("purchaseQty");
   expect(purchaseQty3).toBeTruthy();
-  await user.clear(purchaseQty3);
-
-  // Third quantity update
-  await user.type(purchaseQty3, `${qtyIncreasedBy2}`);
-  const addToBasket3 = screen.getByTestId("addToBasket");
-  await user.click(addToBasket3);
-  // wait for the success toast to appear
-  successToast = await screen.findByTestId("success-toast");
-  expect(successToast).toBeTruthy();
-  // finally: its text should begin with `${qtyIncreasedBy2}`
-  successToastText = await screen.findByText(
-    `${qtyIncreasedBy2} items added`,
-  );
-  expect(successToastText.textContent?.startsWith(`${qtyIncreasedBy2}`))
-    .toBeTruthy();
-
-  let updatedOrders;
-  await waitFor(async () => {
-    updatedOrders = await stateManager.get(["Orders"]) as Map<
-      CodecKey,
-      CodecValue
-    >;
-    expect(updatedOrders.size).toBe(2);
+  await act(async () => {
+    await user.clear(purchaseQty3);
+    // Third quantity update
+    await user.type(purchaseQty3, `${qtyIncreasedBy2}`);
+    const addToBasket3 = screen.getByTestId("addToBasket");
+    await user.click(addToBasket3);
   });
+
+  await waitFor(async () => {
+    // wait for the success toast to appear
+    successToast = await screen.findByTestId("success-toast");
+    expect(successToast).toBeTruthy();
+    // finally: its text should begin with `${qtyIncreasedBy2}`
+    successToastText = await screen.findByText(
+      `${qtyIncreasedBy2} items added`,
+    );
+    expect(successToastText.textContent?.startsWith(`${qtyIncreasedBy2}`))
+      .toBeTruthy();
+  });
+
+  const updatedOrders = await stateManager.get(["Orders"]) as Map<
+    CodecKey,
+    CodecValue
+  >;
+  expect(updatedOrders.size).toBe(2);
   const orderIds = Array.from(updatedOrders!.keys()).filter((id) =>
     id !== orderId
   );
   expect(orderIds.length).toBe(1);
   const newOrderId = orderIds[0] as number;
-  await waitFor(async () => {
-    const newOrderData = await stateManager.get(["Orders", newOrderId]) as Map<
-      CodecKey,
-      CodecValue
-    >;
-    const newOrder = Order.fromCBOR(newOrderData);
-    // Since quantity was updated 3 times, it should be the addition of the 3 quantities tested.
-    const totalQuantity = initialQty + qtyIncreasedBy + qtyIncreasedBy2;
-    expect(newOrder.Items[0].Quantity).toBe(totalQuantity);
-  });
+  const newOrderData = await stateManager.get(["Orders", newOrderId]) as Map<
+    CodecKey,
+    CodecValue
+  >;
+  const newOrder = Order.fromCBOR(newOrderData);
+  // Since quantity was updated 3 times, it should be the addition of the 3 quantities tested.
+  const totalQuantity = initialQty + qtyIncreasedBy + qtyIncreasedBy2;
+  expect(newOrder.Items[0].Quantity).toBe(totalQuantity);
 
   unmount();
 
