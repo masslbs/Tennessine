@@ -45,7 +45,7 @@
   },
   "compilerOptions": {
     "noErrorTruncation": true,
-    "lib": ["ESNext", "dom", "dom.iterable", "dom.asynciterable", "deno.ns"],
+    "lib": ["esnext", "dom", "dom.iterable", "dom.asynciterable", "deno.ns"],
     "jsx": "react-jsx",
     "jsxImportSource": "react",
     "jsxImportSourceTypes": "@types/react"
