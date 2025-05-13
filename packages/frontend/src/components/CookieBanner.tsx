@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
+
 import { CookieConsent } from "../types.ts";
 import { logger } from "@massmarket/utils";
 
@@ -51,13 +53,25 @@ const CookieBanner = () => {
           <p className="text-sm">
             Please accept our (absolutely minimal) cookies to help us improve
             your experience on our site. View our{" "}
-            <a href="/cookie-notice" className="underline hover:text-gray-200">
+            <Link
+              to="/cookie-notice"
+              search={(prev: Record<string, string>) => ({
+                shopId: prev.shopId,
+              })}
+              className="underline hover:text-gray-200"
+            >
               Cookie Notice
-            </a>{" "}
+            </Link>{" "}
             and{" "}
-            <a href="/privacy-policy" className="underline hover:text-gray-200">
+            <Link
+              to="/privacy-policy"
+              search={(prev: Record<string, string>) => ({
+                shopId: prev.shopId,
+              })}
+              className="underline hover:text-gray-200"
+            >
               Privacy Policy
-            </a>{" "}
+            </Link>{" "}
             to learn more.
           </p>
         </div>
