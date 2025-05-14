@@ -233,10 +233,8 @@ export default function PrivacyPolicy() {
             for this, which you can read more about in our{" "}
             <Link
               to="/cookie-notice"
-              search={(prev: Record<string, string>) => ({
-                shopId: prev.shopId,
-              })}
               style={{ color: "black" }}
+              className="underline"
             >
               Cookie Notice
             </Link>.
@@ -576,10 +574,8 @@ export default function PrivacyPolicy() {
             in our{" "}
             <Link
               to="/cookie-notice"
-              search={(prev: Record<string, string>) => ({
-                shopId: prev.shopId,
-              })}
               style={{ color: "black" }}
+              className="underline"
             >
               Cookie Notice
             </Link>.
@@ -984,13 +980,11 @@ export default function PrivacyPolicy() {
             be found in this privacy notice and our{" "}
             <Link
               to="/cookie-notice"
-              search={(prev: Record<string, string>) => ({
-                shopId: prev.shopId,
-              })}
               style={{ color: "black" }}
+              className="underline"
             >
-              Cookie Notice.
-            </Link>
+              Cookie Notice
+            </Link>.
           </p>
 
           <p>
