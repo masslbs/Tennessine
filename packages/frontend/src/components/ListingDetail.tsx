@@ -27,7 +27,7 @@ const errlog = logger(namespace, "error");
 export default function ListingDetail() {
   const { baseToken } = useBaseToken();
   const { stateManager } = useStateManager();
-  const [keycard] = useKeycard();
+  const { keycard } = useKeycard();
   const search = useSearch({ strict: false });
   const { currentOrder, createOrder, cancelAndRecreateOrder } =
     useCurrentOrder();

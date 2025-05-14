@@ -1,5 +1,5 @@
-import { privateKeyToAccount } from "viem/accounts";
-import { createWalletClient, type Hex, http } from "viem";
+import { useWalletClient } from "wagmi";
+import { type Hex } from "viem";
 import { BrowserLevel } from "browser-level";
 
 import { getWindowLocation, logger } from "@massmarket/utils";
@@ -15,7 +15,8 @@ import { useKeycard } from "./useKeycard.ts";
 import { useRelayClient } from "./useRelayClient.ts";
 import { usePathname } from "./usePathname.ts";
 import { useChain } from "./useChain.ts";
-
+import { useEffect } from "react";
+import { useRelayEndpoint } from "./useRelayEndpoint.ts";
 const namespace = "frontend:useStateManager";
 const debug = logger(namespace);
 
@@ -50,68 +51,39 @@ export function useStateManager() {
   const { stateManager, setStateManager } = useMassMarketContext();
   const { relayClient } = useRelayClient();
   const { shopId } = useShopId();
-  const [keycard, setKeycard] = useKeycard();
-  const { chain } = useChain();
-  const { isMerchantPath } = usePathname();
+  const { keycard, addKeycard } = useKeycard();
+  const { relayEndpoint } = useRelayEndpoint();
+  const { data: wallet } = useWalletClient();
 
-  // Since we are calling addConnection in this query with the relayClient, if the relayClient changes, we need to re-run this query
-  const accountDep = typeof relayClient?.keycard === "string"
-    ? relayClient.keycard
-    : relayClient?.keycard?.address;
-  const deps = [String(shopId), accountDep];
-
-  useQuery(async () => {
-    if (!shopId) {
-      throw new Error("Shop ID is required");
+  useEffect(() => {
+    if (!relayEndpoint || !shopId || !wallet) return;
+    if (!keycard) {
+      debug("Enrolling guest keycard");
+      addKeycard("guest").then();
     }
-    const db = stateManager ??
-      await createStateManager(shopId, keycard.privateKey);
 
-    // Skip this logic if /create-shop or /merchant-connect, since we need to enroll merchant keycard before we call addConnection in those cases.
-    if (!isMerchantPath && relayClient) {
-      if (keycard?.role === KeycardRole.NEW_GUEST) {
-        debug("Enrolling guest keycard");
-        const account = privateKeyToAccount(keycard.privateKey);
-        const keycardWallet = createWalletClient({
-          account,
-          chain,
-          transport: http(
-            env.ethRPCUrl,
-          ),
-        });
-        const res = await relayClient.enrollKeycard(
-          keycardWallet,
-          account,
-          true,
-          getWindowLocation(),
-        );
-        if (!res.ok) {
-          throw new Error(`Failed to enroll keycard: ${res}`);
-        }
-        debug("Success: Enrolled new guest keycard");
-        await relayClient.connect();
-        await relayClient.authenticate();
-        db.addConnection(relayClient);
-        //Set keycard role to guest-returning so we don't try enrolling again on refresh
-        setKeycard({ ...keycard, role: KeycardRole.RETURNING_GUEST });
-      } else {
-        debug("Adding connection");
-        await relayClient.connect();
-        await relayClient.authenticate();
-        db.addConnection(relayClient);
-      }
-    }
-    debug("StateManager set");
-    setStateManager(db);
+    // if (window && relayClient) {
+    //   globalThis.addEventListener("beforeunload", () => {
+    //     db.close().then(() => {
+    //       debug(`DB closed. Keycard nonce saved: ${relayClient.keyCardNonce}`);
+    //     });
+    //   });
+    // }
+  }, [keycard, relayEndpoint, shopId, wallet]);
 
-    if (window && relayClient) {
-      globalThis.addEventListener("beforeunload", () => {
-        db.close().then(() => {
-          debug(`DB closed. Keycard nonce saved: ${relayClient.keyCardNonce}`);
-        });
-      });
-    }
-  }, deps);
+  // useEffect(() => {
+  //   if (!shopId || !keycard || !relayClient) {
+  //     return;
+  //   }
+
+  //   // If stateManager is already set with the shopId, we don't need to addConnection again.
+  //   if (stateManager?.id !== shopId) return;
+  //   createStateManager(shopId, keycard.privateKey).then((db) => {
+  //     db.addConnection(relayClient);
+  //     setStateManager(db);
+  //     debug("StateManager set");
+  //   });
+  // }, [relayClient, keycard, shopId]);
 
   return { stateManager };
 }

@@ -1,8 +1,14 @@
-import { getDefaultConfig } from "@rainbow-me/rainbowkit";
-import { hardhat, mainnet, optimism, sepolia } from "wagmi/chains";
+import { connectorsForWallets, getDefaultConfig } from "@rainbow-me/rainbowkit";
+import {
+  metaMaskWallet,
+  walletConnectWallet,
+} from "@rainbow-me/rainbowkit/wallets";
+import { rainbowkitBurnerWallet } from "burner-connector";
 import type { Transport } from "viem";
 import { fallback, http, unstable_connector } from "wagmi";
+import { hardhat, mainnet, optimism, sepolia } from "wagmi/chains";
 import { injected } from "wagmi/connectors";
+
 import { isTesting } from "./utils/env.ts";
 import { env } from "./utils/env.ts";
 
@@ -24,10 +30,32 @@ const transports = isTesting
     [optimism.id]: transport,
   };
 
+const wallets = [
+  metaMaskWallet,
+  walletConnectWallet,
+  rainbowkitBurnerWallet,
+] as const;
+
+const wagmiConnectors = connectorsForWallets(
+  [
+    {
+      groupName: "Supported Wallets",
+      wallets,
+    },
+  ],
+  {
+    appName: "Mass Labs",
+
+    projectId: "6c432edcd930e0fa2c87a8d940ae5b91",
+  },
+);
 export const config = getDefaultConfig({
   appName: "Mass Labs",
+
   projectId: "6c432edcd930e0fa2c87a8d940ae5b91",
+
   ssr: false,
   chains: isTesting ? [hardhat] : [hardhat, mainnet, optimism, sepolia],
   transports: transports as unknown as Record<string, Transport>,
+  connectors: wagmiConnectors,
 });

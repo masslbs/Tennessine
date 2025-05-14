@@ -17,7 +17,7 @@ const debug = logger(namespace);
 export function useCurrentOrder() {
   const { currentOrder, setCurrentOrder } = useMassMarketContext();
   const { stateManager } = useStateManager();
-  const [keycard] = useKeycard();
+  const { keycard } = useKeycard();
 
   function onCurrentOrderChange(o: CodecValue) {
     if (!stateManager) {

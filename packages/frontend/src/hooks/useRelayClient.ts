@@ -1,76 +1,71 @@
-import { createWalletClient, http } from "viem";
+import { useRef } from "react";
+
+import { useWalletClient } from "wagmi";
 import { privateKeyToAccount } from "viem/accounts";
 import { useEffect } from "react";
 import { assert } from "@std/assert";
+
 import { RelayClient } from "@massmarket/client";
 import { logger } from "@massmarket/utils";
 
 import { useMassMarketContext } from "../MassMarketContext.ts";
 import { useKeycard } from "./useKeycard.ts";
-import { useChain } from "./useChain.ts";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";
 import { useShopId } from "./useShopId.ts";
-import { env } from "../utils/mod.ts";
-import { isTesting } from "../utils/env.ts";
 
 const namespace = "frontend:useRelayClient";
 const debug = logger(namespace);
 
 export function useRelayClient() {
   const { relayClient, setRelayClient } = useMassMarketContext();
-  const [keycard] = useKeycard();
-  const { chain } = useChain();
+  const { keycard } = useKeycard();
   const { relayEndpoint } = useRelayEndpoint();
   const { shopId } = useShopId();
+  const { data: wallet } = useWalletClient();
+  const connected = useRef(false);
+
+  const getKeyCardAddress = () => {
+    assert(relayClient, "relayClient is undefined");
+    return typeof relayClient?.keycard == "string"
+      ? relayClient.keycard
+      : relayClient.keycard.address;
+  };
+
 
   useEffect(() => {
-    // TODO: this is a bit annoying.. in testing we are already supplying a relayClient,
-    // so we don't want to create another one.
-    // but, there are features in the app that want to un/reset the relayClient,
-    // so we need to be careful about this.
-    if (isTesting && relayClient) {
-      return;
-    }
-    const hasRelayClient = relayClient !== undefined;
-    const getKeyCardAddress = () => {
-      assert(relayClient, "relayClient is undefined");
-      return typeof relayClient?.keycard == "string"
-        ? relayClient.keycard
-        : relayClient.keycard.address;
-    };
-    if (hasRelayClient && getKeyCardAddress() === keycard.address) {
+    if (!relayEndpoint || !keycard || !shopId || !wallet || connected.current) return;
+    if (
+      relayClient && ( getKeyCardAddress() === keycard.address) &&
+      relayClient.shopId === shopId
+    ) {
       debug(`RelayClient already set ${getKeyCardAddress()}`);
       return;
     }
+    console.log({relayClient})
+    connected.current = true
     const account = privateKeyToAccount(keycard.privateKey);
-    const keycardWallet = createWalletClient({
-      account,
-      chain,
-      transport: http(env.ethRPCUrl),
-    });
-    if (!relayEndpoint) {
-      debug("Relay endpoint is required");
-      return;
-    }
-    if (!shopId) {
-      debug("Shop ID is required");
-      return;
-    }
+
     debug(`Setting RelayClient with keycard: ${account.address}`);
     const rc = new RelayClient({
       relayEndpoint,
-      walletClient: keycardWallet,
+      walletClient: wallet,
       keycard: account,
       shopId,
     });
-
     setRelayClient(rc);
+
+    rc.connect().then(() => {
+      rc.authenticate().then(() => {
+      });
+    });
   }, [
-    keycard !== undefined,
-    String(shopId),
+    keycard,
+    shopId,
     relayEndpoint,
-    keycard.privateKey,
+    wallet,
   ]);
+
+
 
   return { relayClient };
 }

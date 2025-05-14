@@ -47,10 +47,6 @@ export type ShopForm = {
   paymentAddress: string;
 };
 
-export enum KeycardRole {
-  NEW_GUEST = "new-guest",
-  RETURNING_GUEST = "returning-guest",
-  MERCHANT = "merchant",
-}
+export type KeycardRole = "guest" | "merchant";
 
 export type CookieConsent = "accepted" | "rejected" | null;

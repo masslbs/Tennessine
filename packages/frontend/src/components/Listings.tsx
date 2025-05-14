@@ -13,7 +13,7 @@ import MerchantViewListings from "./merchants/listings/MerchantViewListings.tsx"
 
 export default function Listings() {
   const { stateManager } = useStateManager();
-  const [keycard] = useKeycard();
+  const { keycard } = useKeycard();
   const [products, setProducts] = useState<Listing[]>([]);
 
   useEffect(() => {
