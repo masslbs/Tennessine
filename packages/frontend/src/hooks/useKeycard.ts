@@ -1,27 +1,36 @@
+import { assert } from "@std/assert";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 import { useShopId } from "./useShopId.ts";
 import { KeycardRole } from "../types.ts";
 
-export function useKeycard(
-  keycard?: {
-    privateKey: `0x${string}`;
-    role: KeycardRole;
-    address: `0x${string}`;
-  },
-) {
-  if (!keycard) {
-    const privateKey = generatePrivateKey();
-    const account = privateKeyToAccount(privateKey);
-    keycard = {
-      privateKey,
-      role: KeycardRole.NEW_GUEST,
-      address: account.address,
-    };
-  }
+type Keycard = {
+  privateKey: `0x${string}`;
+  role: KeycardRole;
+  address: `0x${string}`;
+} | null;
+
+export function useKeycard() {
   const { shopId } = useShopId();
   const keyCardID = "keycard" + shopId;
-  // console.log({shopId, keyCardID});
-  return useLocalStorage(keyCardID, keycard);
+  const [keycard, setKeycard] = useLocalStorage<Keycard>(keyCardID, null);
+
+  function addKeycard(role: KeycardRole) {
+    if (!shopId) {
+      assert(false, "shopId is required");
+    }
+    const privateKey = generatePrivateKey();
+    const account = privateKeyToAccount(privateKey);
+    const kc = {
+      privateKey,
+      role,
+      address: account.address,
+    };
+    setKeycard(kc);
+  }
+  return {
+    keycard,
+    addKeycard,
+  };
 }
