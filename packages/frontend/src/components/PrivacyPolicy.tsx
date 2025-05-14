@@ -236,6 +236,7 @@ export default function PrivacyPolicy() {
               search={(prev: Record<string, string>) => ({
                 shopId: prev.shopId,
               })}
+              style={{ color: "black" }}
             >
               Cookie Notice
             </Link>.
@@ -578,6 +579,7 @@ export default function PrivacyPolicy() {
               search={(prev: Record<string, string>) => ({
                 shopId: prev.shopId,
               })}
+              style={{ color: "black" }}
             >
               Cookie Notice
             </Link>.
@@ -985,6 +987,7 @@ export default function PrivacyPolicy() {
               search={(prev: Record<string, string>) => ({
                 shopId: prev.shopId,
               })}
+              style={{ color: "black" }}
             >
               Cookie Notice.
             </Link>
