@@ -19,7 +19,7 @@ interface IStoredState {
   // TODO: we are currently using a string, but need to use CodecKey[]
   subscriptionSequenceNumber: number;
   keycardNonce: number;
-  root: RootValue;
+  root: Promise<codec.CodecValue>;
 }
 
 export default class StateManager {
@@ -60,7 +60,6 @@ export default class StateManager {
         // root: v.getDefaults(this.params.schema) as CborValue,
       };
     this.#state = restored;
-    this.events.emit(this.#state.root as HashOrValue);
   }
 
   async close() {
@@ -73,12 +72,15 @@ export default class StateManager {
       clientClosing = this.client.disconnect();
     }
     // wait for root to be resolved
-    state.root = await state.root;
+    const realState = {
+      ...state,
+      root: await state.root,
+    };
     return Promise.all([
       clientClosing,
       this.graph.store.objStore.set(
         this.id,
-        new Map(Object.entries(state)),
+        new Map(Object.entries(realState)),
       ),
     ]);
   }
