@@ -6,7 +6,6 @@ import { logger } from "@massmarket/utils";
 
 const namespace = "frontend:CookieBanner";
 const debug = logger(namespace, "debug");
-const errlog = logger(namespace, "error");
 
 const CookieBanner = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -18,7 +17,7 @@ const CookieBanner = () => {
       setConsent(sessionConsent as CookieConsent);
       if (sessionConsent === "accepted") {
         import("../matomo.js").catch((e) => {
-          errlog(`failed to load matomo ${e}`);
+          console.warn(`failed to load matomo ${e}`);
         });
       }
     } else {
