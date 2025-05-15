@@ -20,6 +20,7 @@
     "jsr:@std/path@^1.0.9": "1.0.9",
     "jsr:@std/testing@^1.0.11": "1.0.11",
     "npm:@deno/vite-plugin@^1.0.4": "1.0.4_vite@6.3.3__@types+node@22.12.0__picomatch@4.0.2_@types+node@22.12.0",
+    "npm:@faker-js/faker@^9.7.0": "9.7.0",
     "npm:@happy-dom/global-registrator@^17.4.4": "17.4.4",
     "npm:@rainbow-me/rainbowkit@^2.2.0": "2.2.4_@tanstack+react-query@5.74.4__react@19.1.0_react@19.1.0_react-dom@19.1.0__react@19.1.0_viem@2.28.1__ws@8.18.1_wagmi@2.15.1__@tanstack+react-query@5.74.4___react@19.1.0__react@19.1.0__viem@2.28.1___ws@8.18.1__@wagmi+core@2.17.0___viem@2.28.1____ws@8.18.1___@types+react@19.1.2___react@19.1.0___use-sync-external-store@1.4.0____react@19.1.0__@types+react@19.1.2__use-sync-external-store@1.4.0___react@19.1.0_@vanilla-extract+css@1.15.5_@types+react@19.1.2",
     "npm:@sentry/browser@9.15.0": "9.15.0",
@@ -56,6 +57,7 @@
     "npm:rolldown-vite@^6.3.6": "6.3.8_@types+node@22.12.0_picomatch@4.0.2_@oxc-project+runtime@0.68.1",
     "npm:tailwindcss@^4.1.4": "4.1.4",
     "npm:viem@^2.28.1": "2.28.1_ws@8.18.1",
+    "npm:viem@^2.29.2": "2.29.2_ws@8.18.1",
     "npm:vite-plugin-node-polyfills@0.23": "0.23.0_vite@6.3.3__@types+node@22.12.0__picomatch@4.0.2_@types+node@22.12.0",
     "npm:vite@*": "6.3.3_@types+node@22.12.0_picomatch@4.0.2",
     "npm:vite@^6.3.2": "6.3.3_@types+node@22.12.0_picomatch@4.0.2",
@@ -484,6 +486,9 @@
         "ethereum-cryptography",
         "micro-ftch"
       ]
+    },
+    "@faker-js/faker@9.7.0": {
+      "integrity": "sha512-aozo5vqjCmDoXLNUJarFZx2IN/GgGaogY4TMJ6so/WLZOWpSV7fvj2dmrV6sEAnUm1O7aCrhTibjpzeDFgNqbg=="
     },
     "@happy-dom/global-registrator@17.4.4": {
       "integrity": "sha512-njrU74GrYVHO43upIJr96f7pEmUG7YLZbHCGiHALBECeVnDKpepzL9kVc7KIl8S2nQOkPA0rAA1EyC3xASb54w==",
@@ -4401,6 +4406,19 @@
         "ws@8.18.1"
       ]
     },
+    "viem@2.29.2_ws@8.18.1": {
+      "integrity": "sha512-cukRxab90jvQ+TDD84sU3qB3UmejYqgCw4cX8SfWzvh7JPfZXI3kAMUaT5OSR2As1Mgvx1EJawccwPjGqkSSwA==",
+      "dependencies": [
+        "@noble/curves@1.8.2",
+        "@noble/hashes@1.7.2",
+        "@scure/bip32@1.6.2",
+        "@scure/bip39@1.5.4",
+        "abitype",
+        "isows@1.0.6_ws@8.18.1",
+        "ox@0.6.9",
+        "ws@8.18.1"
+      ]
+    },
     "vite-plugin-node-polyfills@0.23.0_vite@6.3.3__@types+node@22.12.0__picomatch@4.0.2_@types+node@22.12.0": {
       "integrity": "sha512-4n+Ys+2bKHQohPBKigFlndwWQ5fFKwaGY6muNDMTb0fSQLyBzS+jjUNRZG9sKF0S/Go4ApG6LFnUGopjkILg3w==",
       "dependencies": [
@@ -4666,6 +4684,12 @@
   },
   "workspace": {
     "members": {
+      "packages/cli": {
+        "dependencies": [
+          "npm:@faker-js/faker@^9.7.0",
+          "npm:viem@^2.29.2"
+        ]
+      },
       "packages/client": {
         "dependencies": [
           "jsr:@noble/secp256k1@^2.2.3",
