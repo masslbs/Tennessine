@@ -41,7 +41,7 @@ for (let i = 1; i < 100; i++) {
       ["Listings", i],
       new Listing(
         i,
-        BigInt(faker.commerce.price({ dec: 0 })),
+        faker.number.bigInt(),
         new ListingMetadata(
           faker.commerce.productName(),
           faker.commerce.productDescription(),
