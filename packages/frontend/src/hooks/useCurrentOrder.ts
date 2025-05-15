@@ -1,6 +1,7 @@
 import { useEffect } from "react";
+import { getLogger } from "@logtape/logtape";
 
-import { logger, randUint64 } from "@massmarket/utils";
+import { randUint64 } from "@massmarket/utils";
 import { Order, OrderedItem } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
 
@@ -9,10 +10,7 @@ import { KeycardRole, ListingId, OrderState } from "../types.ts";
 import { useKeycard } from "./useKeycard.ts";
 import { useMassMarketContext } from "../MassMarketContext.ts";
 
-const namespace = "frontend:useCurrentOrder";
-const warn = logger(namespace, "warn");
-const errlog = logger(namespace, "error");
-const debug = logger(namespace);
+const logger = getLogger(["mass-market", "frontend", "useCurrentOrder"]);
 
 export function useCurrentOrder() {
   const { currentOrder, setCurrentOrder } = useMassMarketContext();
@@ -21,7 +19,6 @@ export function useCurrentOrder() {
 
   function onCurrentOrderChange(o: CodecValue) {
     if (!stateManager) {
-      warn("stateManager is undefined");
       return;
     }
     const order = Order.fromCBOR(o);
@@ -40,7 +37,6 @@ export function useCurrentOrder() {
 
   async function createOrder(itemId?: ListingId, quantity?: number) {
     if (!stateManager) {
-      warn("stateManager is undefined");
       return;
     }
     const orderId = randUint64();
@@ -57,16 +53,15 @@ export function useCurrentOrder() {
       ["Orders", orderId],
       newOrder,
     );
-    debug(`New Order ID: ${orderId}`);
+    logger.debug`New Order ID: ${orderId}`;
     setCurrentOrder(newOrder);
   }
 
   async function cancelOrder() {
     if (!stateManager) {
-      warn("stateManager is undefined");
       return;
     }
-    debug("Cancelling order");
+    logger.debug("Cancelling order");
 
     await stateManager.set(
       ["Orders", currentOrder!.ID, "CanceledAt"],
@@ -79,7 +74,7 @@ export function useCurrentOrder() {
   }
 
   async function cancelAndRecreateOrder() {
-    debug("Cancelling and recreating order");
+    logger.debug("Cancelling and recreating order");
     const items = currentOrder?.Items;
     await cancelOrder();
     const newOrderID = randUint64();
@@ -93,7 +88,7 @@ export function useCurrentOrder() {
       ["Orders", newOrderID],
       newOrder,
     );
-    debug("Order recreated.");
+    logger.debug("Order recreated.");
     setCurrentOrder(newOrder);
     return newOrderID;
   }
@@ -101,7 +96,6 @@ export function useCurrentOrder() {
   async function orderFetcher(): Promise<Order | undefined> {
     //TODO: We need a better way of handling current order.
     if (!stateManager) {
-      warn("stateManager is undefined");
       return undefined;
     }
 
@@ -129,18 +123,18 @@ export function useCurrentOrder() {
     }
 
     if (openOrders.length === 1) {
-      debug(`Found 1 open order: ${openOrders[0].ID}`);
+      logger.debug`Found 1 open order: ${openOrders[0].ID}`;
       return openOrders[0];
     }
 
     if (openOrders.length > 1 && keycard?.role !== KeycardRole.MERCHANT) {
       //Since merchants are subscribed to all orders, we don't need to worry about multiple open orders.
-      errlog("Multiple open orders found");
+      logger.error("Multiple open orders found");
       return undefined;
     }
 
     // If no open order, look for committed order
-    debug("No open order found, looking for committed order");
+    logger.debug("No open order found, looking for committed order");
 
     if (committedOrders.length === 1) {
       return committedOrders[0];
@@ -148,9 +142,9 @@ export function useCurrentOrder() {
 
     if (committedOrders.length > 1 && keycard?.role !== KeycardRole.MERCHANT) {
       //Since merchants are subscribed to all orders, we don't need to worry about multiple committed orders.
-      errlog("Multiple committed orders found");
+      logger.error("Multiple committed orders found");
     } else {
-      debug("No order yet");
+      logger.debug("No order yet");
     }
 
     // Look for any unpaid orders (aka orders with InvoiceAddress or/and ChosenCurrency)

@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 
-import { CookieConsent } from "../types.ts";
-import { logger } from "@massmarket/utils";
+import { getLogger } from "@logtape/logtape";
 
-const namespace = "frontend:CookieBanner";
-const debug = logger(namespace, "debug");
+import { CookieConsent } from "../types.ts";
+
+const logger = getLogger(["mass-market", "frontend", "cookie-banner"]);
 
 const CookieBanner = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -30,14 +30,14 @@ const CookieBanner = () => {
     setConsent("accepted");
     setIsVisible(false);
     sessionStorage.setItem("cookieConsent", "accepted");
-    debug("Cookies accepted");
+    logger.debug`Cookies accepted`;
   };
 
   const handleReject = () => {
     setConsent("rejected");
     setIsVisible(false);
     sessionStorage.setItem("cookieConsent", "rejected");
-    debug("Cookies rejected");
+    logger.debug`Cookies rejected`;
   };
 
   if (!isVisible && consent) {

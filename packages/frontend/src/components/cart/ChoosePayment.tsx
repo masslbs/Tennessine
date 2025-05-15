@@ -12,8 +12,8 @@ import {
 } from "viem";
 import { assert } from "@std/assert";
 import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
+import { getLogger } from "@logtape/logtape";
 
-import { logger } from "@massmarket/utils";
 import { abi, getPaymentAddress, getPaymentId } from "@massmarket/contracts";
 import {
   ChainAddress,
@@ -40,10 +40,7 @@ import { CurrencyChainOption } from "../../types.ts";
 import { env, getTokenInformation } from "../../utils/mod.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 
-const namespace = "frontend:ChoosePayment";
-const debug = logger(namespace);
-const warn = logger(namespace, "warn");
-const errlog = logger(namespace, "error");
+const logger = getLogger(["mass-market", "frontend", "ChoosePayment"]);
 const paymentsByAddressAbi = abi.paymentsByAddressAbi;
 
 export default function ChoosePayment() {
@@ -85,7 +82,7 @@ export default function ChoosePayment() {
     stateManager.get(["Manifest"])
       .then((res: CodecValue | undefined) => {
         if (!res) {
-          errlog("No manifest found.");
+          logger.error("No manifest found.");
           return;
         }
         const m = Manifest.fromCBOR(res);
@@ -102,7 +99,7 @@ export default function ChoosePayment() {
     //Listen for client to send paymentDetails event.
     function onPaymentDetails() {
       getPaymentArgs().then(() => {
-        debug("paymentDetails found for order");
+        logger.debug("paymentDetails found for order");
         setPaymentCurrencyLoading(false);
       });
     }
@@ -114,11 +111,9 @@ export default function ChoosePayment() {
         assert(tx || bh, "No tx or bh");
         tx && setTxHash(toHex(tx));
         bh && setBlockHash(toHex(bh));
-        debug(
-          `Hash received: ${
-            tx ? `Tx: ${toHex(tx)}` : bh ? `Block: ${toHex(bh)}` : "unreachable"
-          }`,
-        );
+        logger.debug`Hash received: ${
+          tx ? `Tx: ${toHex(tx)}` : bh ? `Block: ${toHex(bh)}` : "unreachable"
+        }`;
         try {
           addRecentTransaction({
             hash: tx ? toHex(tx) : toHex(bh),
@@ -126,7 +121,9 @@ export default function ChoosePayment() {
             // confirmations: 3,
           });
         } catch (error) {
-          warn("Error adding recent transaction to rainbowkit", error);
+          logger.warn("Error adding recent transaction to rainbowkit", {
+            error,
+          });
         }
       }
     }
@@ -154,14 +151,14 @@ export default function ChoosePayment() {
     if (
       displayedChains?.length === 1 && !paymentArgs && !paymentCurrencyLoading
     ) {
-      debug(`Getting payment args for ${displayedChains[0].label}`);
+      logger.debug`Getting payment args for ${displayedChains[0].label}`;
       onSelectPaymentCurrency(displayedChains[0]);
     }
   }, [displayedChains]);
 
   async function getPaymentArgs() {
     if (!stateManager) {
-      warn("stateManager is undefined");
+      logger.warn("stateManager is undefined");
       return;
     }
     try {
@@ -229,19 +226,19 @@ export default function ChoosePayment() {
       const id = await getPaymentId(paymentRPC, [arg]);
 
       if (toHex(id) !== paymentId) {
-        debug(`received payment Id: ${paymentId}`);
-        debug(`calculated payment Id: ${toHex(id)}`);
+        logger.debug`received payment Id: ${paymentId}`;
+        logger.debug`calculated payment Id: ${toHex(id)}`;
         throw new Error("Payment ID mismatch");
       }
       setPaymentArgs([arg]);
       const amount = BigInt(details.Total);
-      debug(`amount: ${amount}`);
+      logger.debug`amount: ${amount}`;
       const hexCurrency = toHex(currency.Address);
       const payLink = hexCurrency === zeroAddress
         ? `ethereum:${paymentAddr}?value=${amount}`
         : `ethereum:${hexCurrency}/transfer?address=${paymentAddr}&uint256=${amount}`;
       setPaymentAddress(paymentAddr);
-      debug(`payment address: ${paymentAddr}`);
+      logger.debug`payment address: ${paymentAddr}`;
       setSrc(payLink);
       const displayedAmount = `${
         formatUnits(amount, chosenCurrencyDecimals)
@@ -251,10 +248,10 @@ export default function ChoosePayment() {
       } else {
         setIcon("/icons/usdc-coin.png");
       }
-      debug(`displayed amount: ${displayedAmount}`);
+      logger.debug`displayed amount: ${displayedAmount}`;
       setDisplayedAmount(displayedAmount);
     } catch (error: unknown) {
-      errlog("Error getting payment details", error as Error);
+      logger.error("Error getting payment details", { error });
       setErrorMsg("Error getting payment details");
     }
   }
@@ -296,7 +293,7 @@ export default function ChoosePayment() {
       throw new Error("No current order found");
     }
     if (!stateManager) {
-      warn("stateManager is undefined");
+      logger.warn("stateManager is undefined");
       return;
     }
     try {
@@ -337,9 +334,9 @@ export default function ChoosePayment() {
         currentOrder.ID,
         "State",
       ], OrderState.PaymentChosen);
-      debug("chosen payment set");
+      logger.debug("chosen payment set");
     } catch (error: unknown) {
-      errlog("Error setting chosen payment", error);
+      logger.error("Error setting chosen payment", { error });
       setErrorMsg("Error setting chosen payment");
     }
   }

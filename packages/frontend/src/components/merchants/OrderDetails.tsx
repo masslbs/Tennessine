@@ -3,7 +3,7 @@ import { createPublicClient, formatUnits, http, toHex } from "viem";
 import { type Chain } from "wagmi/chains";
 import { useSearch } from "@tanstack/react-router";
 import { useChains } from "wagmi";
-
+import { getLogger } from "@logtape/logtape";
 import {
   AddressDetails,
   Listing,
@@ -11,7 +11,6 @@ import {
   OrderedItem,
 } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
-import { logger } from "@massmarket/utils";
 
 import BackButton from "../common/BackButton.tsx";
 import { ListingId, OrderState } from "../../types.ts";
@@ -20,7 +19,7 @@ import { useBaseToken } from "../../hooks/useBaseToken.ts";
 import { env } from "../../utils/env.ts";
 import { formatDate, getTokenInformation } from "../../utils/mod.ts";
 
-const warn = logger("OrderDetails", "warn");
+const logger = getLogger(["mass-market", "frontend", "order-details"]);
 
 export default function OrderDetails() {
   const { stateManager } = useStateManager();
@@ -112,7 +111,7 @@ export default function OrderDetails() {
 
   async function getAllCartItemDetails(order: Order) {
     if (!stateManager) {
-      warn("stateManager is undefined");
+      logger.warn("stateManager is undefined");
       return new Map();
     }
     const ci = order.Items;
@@ -264,7 +263,7 @@ export default function OrderDetails() {
             <h2>Tx Hash</h2>
             <div className="flex gap-2">
               <div
-                className={`bg-background-gray p-2 rounded-md overflow-x-auto w-40 
+                className={`bg-background-gray p-2 rounded-md overflow-x-auto w-40
             }`}
               >
                 <p>{txHash}</p>

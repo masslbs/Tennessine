@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useState } from "react";
+import { getLogger } from "@logtape/logtape";
 import { ConnectButton, useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import {
@@ -27,7 +28,7 @@ import {
   ShippingRegion,
   ShippingRegionsMap,
 } from "@massmarket/schema";
-import { getWindowLocation, logger, random256BigInt } from "@massmarket/utils";
+import { getWindowLocation, random256BigInt } from "@massmarket/utils";
 import { abi, permissions } from "@massmarket/contracts";
 
 import ManifestForm from "./ManifestForm.tsx";
@@ -52,10 +53,8 @@ import { useStateManager } from "../../../hooks/useStateManager.ts";
 // 3. updateManifest
 // 4. uploadMetadata
 
-const namespace = "frontend: CreateShop";
-const debug = logger(namespace);
-const warn = logger(namespace, "warn");
-const errlog = logger(namespace, "error");
+const logger = getLogger(["mass-market", "frontend", "CreateShop"]);
+
 const { shopRegAbi, shopRegAddress } = abi;
 
 const retryCount = 10;
@@ -118,7 +117,7 @@ export default function () {
         paymentAddress: wallet.account.address,
       });
       if (chainId !== chain.id) {
-        debug(`Switching chainID from ${chainId} to ${chain.id}`);
+        logger.debug`Switching chainID from ${chainId} to ${chain.id}`;
         switchChain({ chainId: chain.id });
       }
     }
@@ -151,15 +150,15 @@ export default function () {
 
   async function mint() {
     if (!shopPublicClient) {
-      warn("shopPublicClient not found");
+      logger.warn("shopPublicClient not found");
       return;
     }
     if (!relayClient) {
-      warn("relayClient not found");
+      logger.warn("relayClient not found");
       return;
     }
     if (!stateManager) {
-      warn("stateManager not found");
+      logger.warn("stateManager not found");
       return;
     }
     const warning = checkRequiredFields();
@@ -171,7 +170,7 @@ export default function () {
     } else {
       setValidationError(null);
     }
-    debug(`creating shop for ${shopId}`);
+    logger.debug`creating shop for ${shopId}`;
     setStoreRegistrationStatus("Minting shop...");
     setCreatingShop(true);
     try {
@@ -183,12 +182,12 @@ export default function () {
         args: [shopId!, wallet!.account.address],
         connector,
       });
-      debug("simulateContract success");
+      logger.debug("simulateContract success");
       const hash = await mintShop(wallet!, wallet!.account.address, [
         shopId!,
         wallet!.account.address,
       ]);
-      debug(`Mint hash: ${hash}`);
+      logger.debug`Mint hash: ${hash}`;
 
       addRecentTransaction({
         hash,
@@ -215,9 +214,7 @@ export default function () {
         shopId!,
         tokenID,
       ]);
-      debug(
-        `Added relay token ID:${tokenID}`,
-      );
+      logger.debug`Added relay token ID:${tokenID}`;
       receipt = await shopPublicClient!.waitForTransactionReceipt({
         hash: tx,
         // confirmations: 2,
@@ -227,7 +224,7 @@ export default function () {
         throw new Error("Error: addRelay");
       }
     } catch (err: unknown) {
-      errlog("Error minting store", err);
+      logger.error("Error minting store", { err });
       setErrorMsg(`Error minting store`);
       return;
     }
@@ -237,15 +234,15 @@ export default function () {
 
   async function enrollAndAddConnection() {
     if (!shopPublicClient) {
-      warn("shopPublicClient not found");
+      logger.warn("shopPublicClient not found");
       return;
     }
     if (!relayClient) {
-      warn("relayClient not found");
+      logger.warn("relayClient not found");
       return;
     }
     if (!stateManager) {
-      warn("stateManager not found");
+      logger.warn("stateManager not found");
       return;
     }
     setStoreRegistrationStatus("Checking permissions...");
@@ -268,13 +265,13 @@ export default function () {
       if (!res.ok) {
         throw Error("Failed to enroll keycard");
       }
-      debug(`Keycard enrolled: ${keycard.privateKey}`);
+      logger.debug`Keycard enrolled: ${keycard.privateKey}`;
       setStoreRegistrationStatus("Adding connection...");
 
       stateManager.addConnection(relayClient);
-      debug("Relay client connected");
+      logger.debug("Relay client connected");
     } catch (error: unknown) {
-      errlog("enrollAndAddConnection failed", error);
+      logger.error("enrollAndAddConnection failed", { error });
       setErrorMsg("Error connecting to client");
       return;
     }
@@ -283,15 +280,15 @@ export default function () {
 
   async function updateManifest() {
     if (!shopPublicClient) {
-      warn("shopPublicClient not found");
+      logger.warn("shopPublicClient not found");
       return;
     }
     if (!relayClient) {
-      warn("relayClient not found");
+      logger.warn("relayClient not found");
       return;
     }
     if (!stateManager) {
-      warn("stateManager not found");
+      logger.warn("stateManager not found");
       return;
     }
     if (!shopId) {
@@ -334,9 +331,9 @@ export default function () {
         ...keycard,
         role: KeycardRole.MERCHANT,
       });
-      debug("Manifest created");
+      logger.debug("Manifest created");
     } catch (error: unknown) {
-      errlog("Error creating shop manifest", error);
+      logger.error("Error creating shop manifest", { error });
       setErrorMsg("Error creating shop manifest");
       return;
     }
@@ -386,11 +383,11 @@ export default function () {
         profilePictureUrl: imgPath.url,
       });
 
-      debug("Shop created");
+      logger.debug("Shop created");
       setCreatingShop(false);
       setStep(CreateShopStep.Confirmation);
     } catch (error: unknown) {
-      errlog("Error uploading metadata", error);
+      logger.error("Error uploading metadata", { error });
       setErrorMsg("Error uploading metadata");
     }
   }

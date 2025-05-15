@@ -6,8 +6,9 @@ import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { assert } from "@std/assert";
 import { formatUnits, parseUnits } from "viem";
+import { getLogger } from "@logtape/logtape";
 
-import { logger, randUint64 } from "@massmarket/utils";
+import { randUint64 } from "@massmarket/utils";
 import { Listing } from "@massmarket/schema";
 import { CodecKey, CodecValue } from "@massmarket/utils/codec";
 
@@ -20,9 +21,7 @@ import { useStateManager } from "../../../hooks/useStateManager.ts";
 import { useRelayClient } from "../../../hooks/useRelayClient.ts";
 import { useBaseToken } from "../../../hooks/useBaseToken.ts";
 
-const namespace = "frontend:edit-product";
-const errlog = logger(namespace, "error");
-const debug = logger(namespace, "debug");
+const logger = getLogger(["mass-market", "frontend", "useRelayEndpoint"]);
 
 export default function EditProduct() {
   const navigate = useNavigate();
@@ -52,7 +51,7 @@ export default function EditProduct() {
       .then((item: CodecValue | undefined) => {
         if (!item) {
           setErrorMsg("Error fetching listing");
-          errlog("Error fetching listing. No item found");
+          logger.error("Error fetching listing. No item found");
           return;
         }
         const l = Listing.fromCBOR(item);
@@ -61,7 +60,7 @@ export default function EditProduct() {
       })
       .catch((e: unknown) => {
         setErrorMsg("Error fetching listing");
-        errlog("Error fetching listing", e);
+        logger.error("Error fetching listing", { e });
       });
     stateManager.get(["Inventory", itemId])
       .then((item: CodecValue | undefined) => {
@@ -149,7 +148,7 @@ export default function EditProduct() {
           newListing.ID = randUint64();
           await create(newListing);
         }
-        debug("listing published");
+        logger.debug("listing published");
 
         navigate({
           to: "/listings", // TODO: the routes should be constants
@@ -158,7 +157,7 @@ export default function EditProduct() {
           }),
         });
       } catch (error: unknown) {
-        errlog("Error publishing listing", error);
+        logger.error("Error publishing listing", { error });
         setErrorMsg("Error publishing listing.");
       } finally {
         setPublishing(false);
@@ -232,8 +231,9 @@ export default function EditProduct() {
         e.target.value = "";
       }
     } catch (error: unknown) {
-      errlog("Error during image upload", error);
-      setErrorMsg("Error during image upload");
+      const msg = "Error during image upload";
+      logger.error(msg, { error });
+      setErrorMsg(msg);
     }
   }
 

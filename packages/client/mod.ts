@@ -17,9 +17,10 @@ import { parseAccount } from "viem/accounts";
 import { createSiweMessage } from "viem/siwe";
 import { hashMessage } from "viem/utils";
 import { ProjectivePoint } from "@noble/secp256k1";
+import { getLogger } from "@logtape/logtape";
 import LockMap from "@nullradix/lockmap";
 import schema, { EnvelopMessageTypes } from "@massmarket/schema";
-import { decodeBufferToString, hexToBase64, logger } from "@massmarket/utils";
+import { decodeBufferToString, hexToBase64 } from "@massmarket/utils";
 import {
   type CodecKey,
   type CodecValue,
@@ -27,9 +28,7 @@ import {
   encode,
 } from "@massmarket/utils/codec";
 
-const debug = logger("relayClient");
-const errLog = logger("relayClient", "error");
-const warnLog = logger("relayClient", "warn");
+const logger = getLogger(["mass-market", "relay-client"]);
 
 export interface IRelayEndpoint {
   url: URL; // the websocket URL to talk to
@@ -157,7 +156,7 @@ export class RelayClient {
     const requestType =
       Object.keys(envelope).filter((k) => k !== "requestId")[0];
     const reqId = envelope.requestId!.raw;
-    debug(` sent[${reqId}] ${requestType}`);
+    logger.debug`sent[${reqId}] ${requestType}`;
     this.#requestCounter++;
     return schema.RequestId.create(envelope.requestId);
   }
@@ -173,7 +172,7 @@ export class RelayClient {
     const response = await promise;
     const requestType =
       Object.keys(response).filter((k) => k !== "requestId")[0];
-    debug(`recvt[${id.raw}] ${requestType}`);
+    logger.debug`recvt[${id.raw}] ${requestType}`;
     if (response.response?.error) {
       const { code, message, additionalInfo } = response.response.error;
       assert(code, "code is required");
@@ -213,9 +212,9 @@ export class RelayClient {
     const reqId = envelope.requestId!.raw;
     if (requestType === "response") {
       const isError = envelope.response?.error ? "error" : "okay";
-      debug(`unbox[${reqId}] ${isError}`);
+      logger.debug`unbox[${reqId}] ${isError}`;
     } else if (requestType === "subscriptionPushRequest") {
-      debug(`unbox[${reqId}] ${requestType}`);
+      logger.debug`unbox[${reqId}] ${requestType}`;
     }
 
     switch (envelope.message) {
@@ -233,13 +232,12 @@ export class RelayClient {
             .subscriptionId!.toString();
           const controller = this.#subscriptions.get(subscriptionId);
           if (!controller) {
-            warnLog(`invalid subscription recv. id: ${subscriptionId}`);
+            logger.warn`invalid subscription recv. id: ${subscriptionId}`;
             return;
           }
           const sets = envelope.subscriptionPushRequest.sets ?? [];
-          debug(
-            `unbox[${reqId}] subscriptionPushRequest[${subscriptionId}]. SetCount: ${sets.length}`,
-          );
+          logger
+            .debug`unbox[${reqId}] subscriptionPushRequest[${subscriptionId}]. SetCount: ${sets.length}`;
           try {
             for (const ppset of sets) {
               const header = decode(ppset.header!);
@@ -299,7 +297,7 @@ export class RelayClient {
     seqNo = 0,
     controller?: ReadableStreamDefaultController<PushedPatchSet>,
   ) {
-    debug(`createSubscription seqNo: ${seqNo}`);
+    logger.debug`createSubscription seqNo: ${seqNo}`;
     const { response } = await this.encodeAndSend({
       subscriptionRequest: {
         startShopSeqNo: seqNo,
@@ -311,7 +309,7 @@ export class RelayClient {
     if (controller) {
       const id = response.payload!;
       this.#subscriptions.set(id.toString(), controller);
-      debug(`registered subscription[${id.toString()}]`);
+      logger.debug`registered subscription[${id.toString()}]`;
     }
     return response;
   }
@@ -518,7 +516,7 @@ export class RelayClient {
           assert(errEv instanceof ErrorEvent, "error event is required");
           const error = new Error(errEv.message);
           error.name = errEv.error?.name ?? "WebSocketError";
-          errLog("WebSocket error!", error);
+          logger.error`WebSocket error! ${error}`;
         },
       );
 
@@ -526,7 +524,7 @@ export class RelayClient {
         "close",
         (ev: CloseEvent) => {
           if (!ev.wasClean) {
-            warnLog("WebSocket closed uncleanly");
+            logger.warn`WebSocket closed uncleanly`;
           }
           this.#isAuthenticated = false;
           this.#authenticationPromise = this.#initialAuthPromise;
@@ -550,7 +548,7 @@ export class RelayClient {
         resolve(new Event("already open"));
       } else {
         this.connection!.addEventListener("open", (evt: Event) => {
-          debug("WebSocket opened");
+          logger.debug`WebSocket opened`;
           // TODO: unbox event to concrete values
           resolve(evt);
         });

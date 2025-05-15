@@ -10,9 +10,9 @@ import {
 } from "wagmi";
 import * as chains from "wagmi/chains";
 import { simulateContract } from "@wagmi/core";
+import { getLogger } from "@logtape/logtape";
 import { ContractFunctionArgs, zeroAddress } from "viem";
 
-import { logger } from "@massmarket/utils";
 import { abi, approveERC20, getAllowance, pay } from "@massmarket/contracts";
 
 import Button from "../common/Button.tsx";
@@ -22,9 +22,7 @@ import { isTesting } from "../../utils/env.ts";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import PriceSummary from "./PriceSummary.tsx";
 
-const namespace = "frontend:Pay";
-const debug = logger(namespace);
-const errlog = logger(namespace, "error");
+const logger = getLogger(["mass-market", "frontend", "pay"]);
 
 const defaultShopChainName = isTesting ? "hardhat" : "mainnet";
 const configuredChainName = env.chainName || defaultShopChainName;
@@ -70,7 +68,7 @@ export default function Pay({
   useEffect(() => {
     if (wallet?.account) {
       if (chainId !== paymentChainId) {
-        debug(`Switching chain from ${chainId} to ${paymentChainId}`);
+        logger.debug`Switching chain from ${chainId} to ${paymentChainId}`;
         switchChain({ chainId: paymentChainId });
       }
       //if wallet changes, reset loading and error message
@@ -86,7 +84,7 @@ export default function Pay({
       //pause timer if user is paying.
 
       if (!isNative) {
-        debug("Checking ERC20 allowance");
+        logger.debug("Checking ERC20 allowance");
         const allowance = await getAllowance(paymentPublicClient!, [
           paymentArgs[0].payeeAddress,
           paymentArgs[0].currency,
@@ -117,7 +115,7 @@ export default function Pay({
             // confirmations: 2,
             retryCount: 5,
           });
-          debug("ERC20 allowance approved");
+          logger.debug("ERC20 allowance approved");
         }
       }
       const simArgs = {
@@ -148,7 +146,7 @@ export default function Pay({
         // @ts-ignore TODO: fix this
         setErrorMsg(error.shortMessage);
       }
-      errlog("Error sending payment", error);
+      logger.error("Error sending payment", { error });
     }
   }
 
