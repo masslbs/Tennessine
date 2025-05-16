@@ -7,8 +7,8 @@
  * that can be imported in the rest of the codebase.
  */
 
-import { ensureDir } from "https://deno.land/std/fs/mod.ts";
-import * as path from "https://deno.land/std/path/mod.ts";
+import { ensureDir } from "@std/fs";
+import * as path from "@std/path";
 
 async function getCurrentGitInfo(): Promise<
   { commit: string; tag: string | null; timestamp: string }
