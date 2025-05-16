@@ -3,9 +3,9 @@ import { Link } from "@tanstack/react-router";
 
 import { getLogger } from "@logtape/logtape";
 
-import { CookieConsent } from "../types.ts";
-
 const logger = getLogger(["mass-market", "frontend", "cookie-banner"]);
+
+type CookieConsent = "accepted" | "rejected" | null;
 
 const CookieBanner = () => {
   const [isVisible, setIsVisible] = useState(false);

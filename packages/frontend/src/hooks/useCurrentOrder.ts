@@ -6,7 +6,7 @@ import { Order, OrderedItem } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
 
 import { useStateManager } from "./useStateManager.ts";
-import { KeycardRole, ListingId, OrderState } from "../types.ts";
+import { ListingId, OrderState } from "../types.ts";
 import { useKeycard } from "./useKeycard.ts";
 import { useMassMarketContext } from "../MassMarketContext.ts";
 
@@ -15,7 +15,7 @@ const logger = getLogger(["mass-market", "frontend", "useCurrentOrder"]);
 export function useCurrentOrder() {
   const { currentOrder, setCurrentOrder } = useMassMarketContext();
   const { stateManager } = useStateManager();
-  const [keycard] = useKeycard();
+  const { keycard } = useKeycard();
 
   function onCurrentOrderChange(o: CodecValue) {
     if (!stateManager) {
@@ -127,7 +127,7 @@ export function useCurrentOrder() {
       return openOrders[0];
     }
 
-    if (openOrders.length > 1 && keycard?.role !== KeycardRole.MERCHANT) {
+    if (openOrders.length > 1 && keycard?.role !== "merchant") {
       //Since merchants are subscribed to all orders, we don't need to worry about multiple open orders.
       logger.error("Multiple open orders found");
       return undefined;
@@ -140,7 +140,7 @@ export function useCurrentOrder() {
       return committedOrders[0];
     }
 
-    if (committedOrders.length > 1 && keycard?.role !== KeycardRole.MERCHANT) {
+    if (committedOrders.length > 1 && keycard?.role !== "merchant") {
       //Since merchants are subscribed to all orders, we don't need to worry about multiple committed orders.
       logger.error("Multiple committed orders found");
     } else {
