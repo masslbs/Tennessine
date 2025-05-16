@@ -13,10 +13,7 @@ import { random256BigInt } from "@massmarket/utils";
 import { allListings } from "@massmarket/schema/testFixtures";
 
 import Listings from "./Listings.tsx";
-import {
-  createRouterWrapper,
-  createTestStateManager,
-} from "../testutils/mod.tsx";
+import { createRouterWrapper } from "../testutils/mod.tsx";
 
 Deno.test(
   "Listings screen for both customer and merchant",
@@ -27,18 +24,14 @@ Deno.test(
   async (t) => {
     const shopId = random256BigInt();
 
-    const stateManager = await createTestStateManager(shopId);
-
-    for (const [key, entry] of allListings.entries()) {
-      await stateManager.set(["Listings", key], entry);
-    }
-
-    const { wrapper } = await createRouterWrapper({
+    const { wrapper, stateManager } = await createRouterWrapper({
       shopId,
       createShop: true,
       enrollMerchant: false,
-      stateManager,
     });
+    for (const [key, entry] of allListings.entries()) {
+      await stateManager.set(["Listings", key], entry);
+    }
 
     await t.step("Check that the listings are rendered correctly", async () => {
       const { unmount } = render(<Listings />, { wrapper });
