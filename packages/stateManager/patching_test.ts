@@ -88,7 +88,8 @@ Deno.test("Database Testings", async (t) => {
             if (skippedAfterCheck.has(test.description)) {
               console.log("Skipping state check!!!!!!!");
             } else {
-              assertEquals(sm.root, after);
+              const r = await sm.root;
+              assertEquals(r, after);
             }
             await sm.close();
           });

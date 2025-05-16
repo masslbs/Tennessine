@@ -19,7 +19,7 @@ interface IStoredState {
   // TODO: we are currently using a string, but need to use CodecKey[]
   subscriptionSequenceNumber: number;
   keycardNonce: number;
-  root: RootValue;
+  root: Promise<codec.CodecValue>;
 }
 
 export default class StateManager {
@@ -60,7 +60,6 @@ export default class StateManager {
         // root: v.getDefaults(this.params.schema) as CborValue,
       };
     this.#state = restored;
-    this.events.emit(this.#state.root as HashOrValue);
   }
 
   async close() {
@@ -73,12 +72,15 @@ export default class StateManager {
       clientClosing = this.client.disconnect();
     }
     // wait for root to be resolved
-    state.root = await state.root;
+    const realState = {
+      ...state,
+      root: await state.root,
+    };
     return Promise.all([
       clientClosing,
       this.graph.store.objStore.set(
         this.id,
-        new Map(Object.entries(state)),
+        new Map(Object.entries(realState)),
       ),
     ]);
   }
@@ -100,25 +102,25 @@ export default class StateManager {
           // TODO validate the Operation's value if any
           // console.log("Applying patch:", patch);
           if (patch.Op === "add") {
-            state.root = await this.graph.add(
+            state.root = this.graph.add(
               state.root,
               patch.Path,
               patch.Value,
             );
           } else if (patch.Op === "replace") {
-            state.root = await this.graph.set(
+            state.root = this.graph.set(
               state.root,
               patch.Path,
               patch.Value,
             );
           } else if (patch.Op === "append") {
-            state.root = await this.graph.append(
+            state.root = this.graph.append(
               state.root,
               patch.Path,
               patch.Value,
             );
           } else if (patch.Op === "remove") {
-            state.root = await this.graph.remove(
+            state.root = this.graph.remove(
               state.root,
               patch.Path,
             );
@@ -142,8 +144,8 @@ export default class StateManager {
 
         state.subscriptionSequenceNumber = patchSet.sequence;
         // we want to wait to resolve the promise before emitting the new state
-        state.root = await state.root;
-        this.events.emit(state.root);
+        const realState = await state.root;
+        this.events.emit(realState);
         // TODO: check stateroot
         // TODO: we are saving the patches here
         // incase we want to replay the log, but we have no way to get them out
