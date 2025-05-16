@@ -9,6 +9,7 @@ export type EnvConfig = {
   sentryDSN?: string;
   ethRPCUrl?: string;
   matomoURL?: string;
+  primaryExternalURL: string;
 };
 
 // Check if running in a HappyDOM environment (likely testing)
@@ -32,6 +33,7 @@ type DotEnvFormat = {
   VITE_ETH_RPC_URL?: string;
   VITE_MATOMO_URL?: string;
   VITE_SHOP_TOKEN_ID?: string;
+  VITE_PRIMARY_EXTERNAL_URL: string;
 };
 
 declare global {
@@ -78,6 +80,7 @@ function getEnv(): EnvConfig {
     relayTokenId: theEnv?.VITE_RELAY_TOKEN_ID as `0x${string}`,
     sentryDSN: theEnv?.VITE_SENTRY_DSN,
     matomoURL: theEnv?.VITE_MATOMO_URL,
+    primaryExternalURL: theEnv?.VITE_PRIMARY_EXTERNAL_URL,
   };
 }
 

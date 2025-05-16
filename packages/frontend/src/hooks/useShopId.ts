@@ -10,6 +10,9 @@ export function useShopId() {
     };
   }
   const search = useSearch({ strict: false });
+  if (!search?.shopId) {
+    globalThis.location.href = env.primaryExternalURL;
+  }
   return {
     shopId: search?.shopId ? hexToBigInt(search.shopId, { size: 32 }) : null,
   };
