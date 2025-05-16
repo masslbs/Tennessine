@@ -14,8 +14,11 @@ export default function ValidationWarning({
   if (!warning) return null;
 
   return (
-    <div className="px-4 py-2 bg-warning-yellow text-white font-thin rounded-lg flex items-center">
-      <p>{warning}</p>
+    <div className="mt-2 px-4 py-2 bg-warning-yellow text-white font-thin rounded-lg flex items-center">
+      <div className="flex flex-col">
+        <h3>Validation Warning</h3>
+        <p>{warning}</p>
+      </div>
       <button
         onClick={() => onClose()}
         className="ml-auto"
