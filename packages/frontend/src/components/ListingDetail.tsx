@@ -24,7 +24,7 @@ const logger = getLogger(["mass-market", "frontend", "listing-detail"]);
 export default function ListingDetail() {
   const { baseToken } = useBaseToken();
   const { stateManager } = useStateManager();
-  const [keycard] = useKeycard();
+  const { keycard } = useKeycard();
   const search = useSearch({ strict: false });
   const { currentOrder, createOrder, cancelAndRecreateOrder } =
     useCurrentOrder();
@@ -158,7 +158,7 @@ export default function ListingDetail() {
             {listing.Metadata.Title}
           </h1>
           <div
-            className={`mt-2 ${keycard.role === "merchant" ? "" : "hidden"}`}
+            className={`mt-2 ${keycard?.role === "merchant" ? "" : "hidden"}`}
           >
             <Button>
               <Link
@@ -236,7 +236,7 @@ export default function ListingDetail() {
               </h1>
             </div>
             <div
-              className={keycard.role === "merchant" ? "hidden" : "flex gap-2"}
+              className={keycard?.role === "merchant" ? "hidden" : "flex gap-2"}
             >
               <div>
                 <p className="text-xs text-primary-gray mb-2">Quantity</p>
