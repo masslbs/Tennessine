@@ -9,7 +9,7 @@ import { equal } from "@std/assert";
 
 import { CodecValue } from "@massmarket/utils/codec";
 import { setTokenURI } from "@massmarket/contracts";
-import { logger } from "@massmarket/utils";
+import { getLogger } from "@logtape/logtape";
 import {
   AcceptedCurrencyMap,
   ChainAddress,
@@ -30,9 +30,7 @@ import { useRelayClient } from "../../hooks/useRelayClient.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 import { useAllCurrencyOptions } from "../../hooks/useAllCurrencyOptions.ts";
 
-const namespace = "frontend:StoreSettings";
-const debug = logger(namespace);
-const errlog = logger(namespace, "error");
+const logger = getLogger(["mass-market", "frontend", "StoreSettings"]);
 
 export default function ShopSettings() {
   const { shopDetails, setShopDetails } = useShopDetails();
@@ -79,7 +77,7 @@ export default function ShopSettings() {
         if (p) {
           const payee = p.keys().next().value;
           if (payee instanceof Uint8Array) {
-            debug(`Payee Address: ${toHex(payee)}`);
+            logger.debug`Payee Address: ${toHex(payee)}`;
           }
         }
       });
@@ -100,7 +98,7 @@ export default function ShopSettings() {
   }
   async function updateShopManifest() {
     if (!stateManager) {
-      errlog("stateManager is undefined");
+      logger.error`stateManager is undefined"`;
       return;
     }
     //If pricing currency needs to update.
@@ -154,7 +152,7 @@ export default function ShopSettings() {
       const element = document.getElementById("top");
       element?.scrollIntoView();
     } catch (error: unknown) {
-      errlog("Failed: updateShopManifest", error);
+      logger.error("Failed: updateShopManifest", { error });
       setError("Error updating shop manifest.");
     }
   }

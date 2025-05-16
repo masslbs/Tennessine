@@ -1,10 +1,9 @@
-import { logger } from "@massmarket/utils";
+import { getLogger } from "@logtape/logtape";
 import { discoverRelay } from "@massmarket/client";
 import { env } from "../utils/env.ts";
 import { useQuery } from "../hooks/useQuery.ts";
 
-const namespace = "frontend:useRelayEndpoint";
-const debug = logger(namespace);
+const logger = getLogger(["mass-market", "frontend", "useRelayEndpoint"]);
 
 export function useRelayEndpoint() {
   const { result } = useQuery(async () => {
@@ -13,7 +12,7 @@ export function useRelayEndpoint() {
         url: new URL(env.relayEndpoint),
         tokenId: env.relayTokenId,
       };
-      debug(`using environment variables for relay endpoint ${re.url}`);
+      logger.debug(`using environment variables for relay endpoint ${re.url}`);
       return re;
     } else {
       const discovered = await discoverRelay("ws://localhost:4444/v4");
@@ -21,7 +20,7 @@ export function useRelayEndpoint() {
       if (!discovered.tokenId) {
         throw new Error("Relay endpoint tokenId not set");
       }
-      debug(`using testing relay endpoint ${discovered.url}`);
+      logger.debug(`using testing relay endpoint ${discovered.url}`);
       return discovered;
     }
   });

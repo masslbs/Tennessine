@@ -3,75 +3,9 @@
 // SPDX-License-Identifier: MIT
 
 import { bytesToBigInt, bytesToNumber, toBytes } from "viem";
-import * as Sentry from "@sentry/browser";
 import { type CodecValue, decode } from "./codec.ts";
 export * as codec from "./codec.ts";
 export * from "./reflection.ts";
-
-// TODO: type case first argument to captureException
-// TODO: add extras arguments (https://docs.sentry.io/platforms/javascript/guides/nextjs/enriching-events/)
-export function logger(
-  namespace: string,
-  level: "debug" | "info" | "warn" | "error" = "debug",
-) {
-  return (message: string, error?: unknown) => {
-    // Sentry handling
-    // ===============
-    if (level === "debug") {
-      // https://docs.sentry.io/platforms/javascript/guides/nextjs/enriching-events/breadcrumbs/
-      // > Sentry uses breadcrumbs to create a trail of events that happened prior to an issue. These events are very similar to traditional logs, but can record more rich structured data.
-      Sentry.addBreadcrumb({
-        level: level as Sentry.SeverityLevel,
-        category: namespace,
-        message,
-      });
-    } else {
-      // everything but debug get's reported directly
-      if (error) {
-        // if we have an error, we capture that and add the message and namespace as extras
-        Sentry.captureException(error, {
-          extra: {
-            message,
-            namespace,
-          },
-        });
-      } else {
-        // if we don't have an error, we just capture the message
-        Sentry.captureMessage(message, {
-          level: level as Sentry.SeverityLevel,
-          extra: {
-            namespace,
-          },
-        });
-      }
-    }
-    // standard console logging
-    // ========================
-    const stmt = `[${namespace}] ${message}`;
-    let fn = console.debug;
-    switch (level) {
-      case "debug":
-        fn = console.debug;
-        break;
-      case "info":
-        fn = console.info;
-        break;
-      case "warn":
-        fn = console.warn;
-        break;
-      case "error":
-        fn = console.error;
-        break;
-      default:
-        fn = console.log;
-    }
-    const args: [string, unknown?] = [stmt];
-    if (error) {
-      args.push(error);
-    }
-    fn.call(console, ...args);
-  };
-}
 
 export function randUint64(): number {
   return bytesToNumber(randomBytes(4));

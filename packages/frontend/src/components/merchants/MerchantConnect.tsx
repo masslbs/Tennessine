@@ -8,9 +8,10 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useNavigate } from "@tanstack/react-router";
 import { hexToBigInt, isHex, toHex } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { getLogger } from "@logtape/logtape";
 
 import { abi } from "@massmarket/contracts";
-import { getWindowLocation, logger } from "@massmarket/utils";
+import { getWindowLocation } from "@massmarket/utils";
 
 import ConnectConfirmation from "./ConnectConfirmation.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
@@ -22,10 +23,7 @@ import { KeycardRole, SearchShopStep } from "../../types.ts";
 import { useRelayClient } from "../../hooks/useRelayClient.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 
-const namespace = "frontend:connect-merchant";
-const debug = logger(namespace);
-const warn = logger(namespace, "warn");
-const errlog = logger(namespace, "error");
+const logger = getLogger(["mass-market", "frontend", "connect-merchant"]);
 
 export default function MerchantConnect() {
   const { status } = useAccount();
@@ -91,7 +89,7 @@ export default function MerchantConnect() {
       if (uri) {
         const res = await fetch(uri);
         const data = await res.json();
-        debug("Shop found");
+        logger.debug("Shop found");
         setShopData(data);
         navigate({
           search: { shopId: searchShopId },
@@ -101,7 +99,7 @@ export default function MerchantConnect() {
         setErrorMsg("Shop not found");
       }
     } catch (error: unknown) {
-      errlog("Error finding shop", error);
+      logger.error("Error finding shop", { error });
       setErrorMsg("Error finding shop");
     }
   }
@@ -112,7 +110,7 @@ export default function MerchantConnect() {
         throw new Error("Relay client not found");
       }
       if (!stateManager) {
-        warn("stateManager is undefined");
+        logger.warn("stateManager is undefined");
         return;
       }
       const res = await relayClient.enrollKeycard(
@@ -130,13 +128,13 @@ export default function MerchantConnect() {
         role: KeycardRole.MERCHANT,
         address: keycard.address,
       });
-      debug(`Keycard enrolled: ${keycard.privateKey}`);
+      logger.debug`Keycard enrolled: ${keycard.privateKey}`;
       await relayClient.connect();
       await relayClient.authenticate();
       stateManager!.addConnection(relayClient);
       setStep(SearchShopStep.Confirm);
     } catch (error: unknown) {
-      errlog("Error enrolling keycard", error);
+      logger.error("Error enrolling keycard", { error });
       setErrorMsg(`Something went wrong. ${error}`);
     }
   }

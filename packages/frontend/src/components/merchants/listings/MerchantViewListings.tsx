@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2024 Mass Labs
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
+import { getLogger } from "@logtape/logtape";
 import { Link } from "@tanstack/react-router";
 import { formatUnits } from "viem";
 
@@ -10,9 +11,8 @@ import Button from "../../common/Button.tsx";
 import { ListingViewState } from "../../../types.ts";
 import { useBaseToken } from "../../../hooks/useBaseToken.ts";
 import { useStateManager } from "../../../hooks/useStateManager.ts";
-import { logger } from "@massmarket/utils";
 
-const warn = logger("MerchantViewProducts", "warn");
+const logger = getLogger(["mass-market", "frontend", "MerchantViewProducts"]);
 
 export default function MerchantViewProducts({
   products,
@@ -24,7 +24,7 @@ export default function MerchantViewProducts({
 
   function renderProducts() {
     if (!stateManager) {
-      warn("stateManager not found");
+      logger.warn("stateManager not found");
       return;
     }
     if (!products?.length) {

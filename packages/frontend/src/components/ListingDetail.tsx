@@ -5,8 +5,8 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import { Link, useSearch } from "@tanstack/react-router";
 import { formatUnits } from "viem";
+import { getLogger } from "@logtape/logtape";
 
-import { logger } from "@massmarket/utils";
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
 import type { CodecValue } from "@massmarket/utils/codec";
 import { ListingId, OrderState } from "../types.ts";
@@ -19,10 +19,7 @@ import ErrorMessage from "./common/ErrorMessage.tsx";
 import SuccessToast from "./common/SuccessToast.tsx";
 import { useCurrentOrder } from "../hooks/useCurrentOrder.ts";
 
-const namespace = "frontend:listing-detail";
-const debug = logger(namespace);
-const warn = logger(namespace, "warn");
-const errlog = logger(namespace, "error");
+const logger = getLogger(["mass-market", "frontend", "listing-detail"]);
 
 export default function ListingDetail() {
   const { baseToken } = useBaseToken();
@@ -76,7 +73,6 @@ export default function ListingDetail() {
 
   async function changeItems() {
     if (!stateManager) {
-      warn("stateManager is undefined");
       return;
     }
     try {
@@ -113,7 +109,7 @@ export default function ListingDetail() {
           if (item.ListingID === itemId) {
             // this should never happen?
             if (cartItemQuantity !== 0) {
-              debug(
+              logger.debug(
                 "cart item quantity for the same item should not be changed more than at most once",
               );
             }
@@ -139,7 +135,7 @@ export default function ListingDetail() {
       }
       setQuantity(1);
     } catch (error) {
-      errlog(`Error: changeItems ${error}`);
+      logger.error`Error: changeItems ${error}`;
       setErrorMsg("There was an error updating cart");
     }
   }

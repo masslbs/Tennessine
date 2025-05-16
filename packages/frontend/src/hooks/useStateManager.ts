@@ -2,7 +2,8 @@ import { privateKeyToAccount } from "viem/accounts";
 import { createWalletClient, type Hex, http } from "viem";
 import { BrowserLevel } from "browser-level";
 
-import { getWindowLocation, logger } from "@massmarket/utils";
+import { getLogger } from "@logtape/logtape";
+import { getWindowLocation } from "@massmarket/utils";
 import { LevelStore } from "@massmarket/store/level";
 import StateManager from "@massmarket/stateManager";
 
@@ -16,11 +17,10 @@ import { useRelayClient } from "./useRelayClient.ts";
 import { usePathname } from "./usePathname.ts";
 import { useChain } from "./useChain.ts";
 
-const namespace = "frontend:useStateManager";
-const debug = logger(namespace);
+const logger = getLogger(["mass-market", "frontend", "useStateManager"]);
 
 async function createStateManager(shopId: bigint, pk: Hex) {
-  debug("Creating state manager");
+  logger.debug`Creating state manager`;
   const startingState = new Map(Object.entries({
     Tags: new Map(),
     Orders: new Map(),
@@ -70,7 +70,7 @@ export function useStateManager() {
     // Skip this logic if /create-shop or /merchant-connect, since we need to enroll merchant keycard before we call addConnection in those cases.
     if (!isMerchantPath && relayClient) {
       if (keycard?.role === KeycardRole.NEW_GUEST) {
-        debug("Enrolling guest keycard");
+        logger.debug`Enrolling guest keycard`;
         const account = privateKeyToAccount(keycard.privateKey);
         const keycardWallet = createWalletClient({
           account,
@@ -88,23 +88,24 @@ export function useStateManager() {
         if (!res.ok) {
           throw new Error(`Failed to enroll keycard: ${res}`);
         }
-        debug("Success: Enrolled new guest keycard");
+        logger.debug`Success: Enrolled new guest keycard`;
 
         //Set keycard role to guest-returning so we don't try enrolling again on refresh
         setKeycard({ ...keycard, role: KeycardRole.RETURNING_GUEST });
       }
-      debug("Adding connection");
+      logger.debug`Adding connection`;
       await relayClient.connect();
       await relayClient.authenticate();
       db.addConnection(relayClient);
     }
-    debug("StateManager set");
+    logger.debug`StateManager set`;
     setStateManager(db);
 
     if (window && relayClient) {
       globalThis.addEventListener("beforeunload", () => {
         db.close().then(() => {
-          debug(`DB closed. Keycard nonce saved: ${relayClient.keyCardNonce}`);
+          logger
+            .debug`DB closed. Keycard nonce saved: ${relayClient.keyCardNonce}`;
         });
       });
     }

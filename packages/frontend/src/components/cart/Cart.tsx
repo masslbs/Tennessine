@@ -4,8 +4,8 @@
 import { useEffect, useState } from "react";
 import { formatUnits } from "viem";
 import { useNavigate } from "@tanstack/react-router";
+import { getLogger } from "@logtape/logtape";
 
-import { logger } from "@massmarket/utils";
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
 import { RelayResponseError } from "@massmarket/client";
@@ -19,10 +19,7 @@ import { useStateManager } from "../../hooks/useStateManager.ts";
 import { multiplyAndFormatUnits } from "../../utils/helper.ts";
 import PriceSummary from "./PriceSummary.tsx";
 
-const namespace = "frontend:Cart";
-const debug = logger(namespace);
-const warn = logger(namespace, "warn");
-const logerr = logger(namespace, "error");
+const logger = getLogger(["mass-market", "frontend", "cart"]);
 
 export default function Cart({
   onCheckout,
@@ -58,7 +55,7 @@ export default function Cart({
 
   useEffect(() => {
     if (!currentOrder || !stateManager) return;
-    debug(`Showing cart items for order ID: ${currentOrder.ID}`);
+    logger.debug(`Showing cart items for order ID: ${currentOrder.ID}`);
     stateManager.get(["Orders", currentOrder.ID])
       .then(async (res: CodecValue | undefined) => {
         if (!res) {
@@ -83,7 +80,6 @@ export default function Cart({
 
   async function getAllCartItemDetails(order: Order) {
     if (!stateManager) {
-      warn("stateManager is undefined");
       return;
     }
     const ci = order.Items;
@@ -113,7 +109,7 @@ export default function Cart({
   async function handleCheckout() {
     try {
       if (!currentOrder) {
-        debug("orderId not found");
+        logger.debug("orderId not found");
         throw new Error("No order found");
       }
       // Commit the order if it is an open order (not committed)
@@ -122,7 +118,7 @@ export default function Cart({
           ["Orders", currentOrder!.ID, "State"],
           OrderState.Committed,
         );
-        debug(`Order ID: ${currentOrder!.ID} committed`);
+        logger.debug(`Order ID: ${currentOrder!.ID} committed`);
       }
       onCheckout?.();
     } catch (error) {
@@ -138,14 +134,13 @@ export default function Cart({
         setErrorMsg(`Not enough stock for item: ${listing.Metadata.Title}`);
       } else {
         setErrorMsg("Error checking out");
-        logerr("Error checking out", error);
+        logger.error("Error checking out", { error });
       }
     }
   }
 
   async function clearCart() {
     if (!stateManager) {
-      warn("stateManager is undefined");
       return;
     }
     try {
@@ -162,17 +157,16 @@ export default function Cart({
       setSelectedQty(new Map());
       setErrorListing(null);
       setErrorMsg(null);
-      debug("cart cleared");
+      logger.debug("cart cleared");
       closeBasket?.();
     } catch (error) {
       setErrorMsg("Error clearing cart");
-      logerr("Error clearing cart", error);
+      logger.error("Error clearing cart", { error });
     }
   }
 
   async function adjustItemQuantity(id: ListingId, add: boolean = true) {
     if (!stateManager) {
-      warn("stateManager is undefined");
       return;
     }
     try {
@@ -196,13 +190,13 @@ export default function Cart({
         setErrorMsg(null);
       }
     } catch (error) {
-      logerr(`Error:adjustItemQuantity ${error}`);
+      logger.error`Error:adjustItemQuantity ${error}`;
     }
   }
 
   async function removeItem(id: ListingId) {
     if (!stateManager) {
-      warn("stateManager is undefined");
+      logger.warn`stateManager is undefined`;
       return;
     }
     try {
@@ -232,7 +226,7 @@ export default function Cart({
       }
     } catch (error) {
       setErrorMsg("Error removing item");
-      logerr(`Error:removeItem ${error}`);
+      logger.error`Error:removeItem ${error}`;
     }
   }
 

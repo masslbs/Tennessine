@@ -1,9 +1,9 @@
+import { getLogger } from "@logtape/logtape";
 import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { useEffect } from "react";
 import { assert } from "@std/assert";
 import { RelayClient } from "@massmarket/client";
-import { logger } from "@massmarket/utils";
 
 import { useMassMarketContext } from "../MassMarketContext.ts";
 import { useKeycard } from "./useKeycard.ts";
@@ -13,8 +13,7 @@ import { useShopId } from "./useShopId.ts";
 import { env } from "../utils/mod.ts";
 import { isTesting } from "../utils/env.ts";
 
-const namespace = "frontend:useRelayClient";
-const debug = logger(namespace);
+const logger = getLogger(["mass-market", "frontend", "useRelayClient"]);
 
 export function useRelayClient() {
   const { relayClient, setRelayClient } = useMassMarketContext();
@@ -39,7 +38,7 @@ export function useRelayClient() {
         : relayClient.keycard.address;
     };
     if (hasRelayClient && getKeyCardAddress() === keycard.address) {
-      debug(`RelayClient already set ${getKeyCardAddress()}`);
+      logger.debug`RelayClient already set ${getKeyCardAddress()}`;
       return;
     }
     const account = privateKeyToAccount(keycard.privateKey);
@@ -49,14 +48,14 @@ export function useRelayClient() {
       transport: http(env.ethRPCUrl),
     });
     if (!relayEndpoint) {
-      debug("Relay endpoint is required");
+      logger.debug("Relay endpoint is required");
       return;
     }
     if (!shopId) {
-      debug("Shop ID is required");
+      logger.debug("Shop ID is required");
       return;
     }
-    debug(`Setting RelayClient with keycard: ${account.address}`);
+    logger.debug`Setting RelayClient with keycard: ${account.address}`;
     const rc = new RelayClient({
       relayEndpoint,
       walletClient: keycardWallet,

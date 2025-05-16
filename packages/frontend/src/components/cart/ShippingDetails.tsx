@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 
-import { logger } from "@massmarket/utils";
+import { getLogger } from "@logtape/logtape";
 import { AddressDetails } from "@massmarket/schema";
 
 import Cart from "./Cart.tsx";
@@ -17,10 +17,7 @@ import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 import { isValidEmail } from "../../utils/mod.ts";
 
-const namespace = "frontend:ShippingDetails";
-const debug = logger(namespace);
-const warn = logger(namespace, "warn");
-const errlog = logger(namespace, "error");
+const logger = getLogger(["mass-market", "frontend", "ShippingDetails"]);
 
 export default function ShippingDetails() {
   const { currentOrder } = useCurrentOrder();
@@ -81,7 +78,6 @@ export default function ShippingDetails() {
 
   async function onSubmitForm() {
     if (!stateManager) {
-      warn("stateManager is undefined");
       return;
     }
     setErrorMsg(null);
@@ -106,7 +102,7 @@ export default function ShippingDetails() {
           ["Orders", currentOrder!.ID, "InvoiceAddress"],
           invoiceAddress,
         );
-        debug("Shipping details updated");
+        logger.debug("Shipping details updated");
       }
       navigate({
         to: "/pay",
@@ -115,7 +111,7 @@ export default function ShippingDetails() {
         }),
       });
     } catch (error: unknown) {
-      errlog("error updating shipping details", error);
+      logger.error("error updating shipping details", { error });
       setErrorMsg("Error updating shipping details");
       scroll();
     }

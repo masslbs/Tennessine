@@ -1,10 +1,9 @@
 import { type Chain } from "wagmi/chains";
 
-import { logger } from "@massmarket/utils";
+import { getLogger } from "@logtape/logtape";
 import ButtonLink from "../common/ButtonLink.tsx";
 
-const namespace = "frontend:PaymentConfirmation";
-const debug = logger(namespace);
+const logger = getLogger(["mass-market", "frontend", "PaymentConfirmation"]);
 
 export default function PaymentConfirmation(
   { displayedAmount, txHash, blockHash, paymentChain }: {
@@ -59,7 +58,7 @@ export default function PaymentConfirmation(
               data-testid="tx-hash-input"
               value={txHash || blockHash || ""}
               onChange={() => {
-                debug("hash copied");
+                logger.debug("hash copied");
               }}
             />
             <button
