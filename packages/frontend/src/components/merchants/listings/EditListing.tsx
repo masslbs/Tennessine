@@ -123,7 +123,7 @@ export default function EditProduct() {
     } else if (!newListing.Metadata.Images?.length) {
       setValidationError("Product must include image.");
     } else if (!stock) {
-      setValidationError("Update the number of stock.");
+      setValidationError("Number of stock cannot be 0.");
     } else {
       try {
         setPublishing(true);
@@ -267,6 +267,7 @@ export default function EditProduct() {
       data-testid="edit-listing-screen"
     >
       <section className="md:w-[560px]">
+        <BackButton />
         <ValidationWarning
           warning={validationError}
           onClose={() => {
@@ -279,7 +280,6 @@ export default function EditProduct() {
             setErrorMsg(null);
           }}
         />
-        <BackButton />
         <section className="mt-3">
           <div className="flex">
             <h2>{heading}</h2>
