@@ -45,7 +45,7 @@ const CookieBanner = () => {
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-zinc-700 text-white p-4 md:px-14">
+    <div className="fixed bottom-0 left-0 right-0 bg-zinc-700 text-white p-4 md:px-14 z-10">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex-1">
           <h3 className="text-lg font-bold mb-2">Cookie Notice</h3>
