@@ -11,6 +11,7 @@ import { mintShop, setTokenURI } from "@massmarket/contracts";
 import MerchantConnect from "./MerchantConnect.tsx";
 import {
   createRouterWrapper,
+  createTestRelayClient,
   testAccount,
   testClient,
 } from "../../testutils/mod.tsx";
@@ -21,11 +22,14 @@ Deno.test("Check that we can render the merchant connect screen", {
   sanitizeOps: false,
 }, async (t) => {
   const shopId = random256BigInt();
+  const relayClient = await createTestRelayClient(shopId, false);
+  const user = userEvent.setup();
 
   const { wrapper } = await createRouterWrapper({
-    shopId,
+    shopId: null,
     enrollMerchant: false,
     path: "/merchant-connect",
+    relayClient,
   });
 
   await t.step("Render and unmount component", async () => {
@@ -59,7 +63,6 @@ Deno.test("Check that we can render the merchant connect screen", {
   // TODO: for some reason, making these three steps introduces problems
   await t.step("Test different shop ids", async () => {
     const { unmount } = render(<MerchantConnect />, { wrapper });
-    const user = userEvent.setup();
     await act(async () => {
       const searchInput = await screen.findByTestId("search-shopId");
       expect(searchInput).toBeTruthy();
@@ -76,7 +79,7 @@ Deno.test("Check that we can render the merchant connect screen", {
     await waitFor(() => {
       const errorMessage = screen.getByTestId("error-message") as HTMLElement;
       expect(errorMessage).toBeTruthy();
-      expect(errorMessage.textContent).toBe("Invalid shop ID (input not hex)");
+      expect(errorMessage.textContent).toBe("Invalid shop ID");
     });
 
     const testShopId = toHex(random256BigInt(), { size: 32 });
@@ -125,5 +128,31 @@ Deno.test("Check that we can render the merchant connect screen", {
     });
     unmount();
   });
+  await t.step(
+    "If shop ID is already provided, screen should display connect screen.",
+    async () => {
+      localStorage.removeItem(`keycard${shopId}`);
+      const { wrapper } = await createRouterWrapper({
+        // This sets the shopId in the search param.
+        shopId,
+        enrollMerchant: false,
+        path: "/merchant-connect",
+      });
+
+      const { unmount } = render(<MerchantConnect />, { wrapper });
+      await waitFor(async () => {
+        expect(screen.getByTestId("shop-name")).toBeTruthy();
+        const searchButton = screen.getByRole("button", {
+          name: "Connect to shop",
+        });
+        expect(searchButton).toBeTruthy();
+        await user.click(searchButton);
+      }, { timeout: 10000 });
+      await waitFor(() => {
+        expect(screen.getByTestId("connect-confirmation")).toBeTruthy();
+      });
+      unmount();
+    },
+  );
   cleanup();
 });
