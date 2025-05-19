@@ -9,7 +9,7 @@ type CookieConsent = "accepted" | "rejected" | null;
 
 const CookieBanner = () => {
   const [isVisible, setIsVisible] = useState(false);
-  const [consent, setConsent] = useState<CookieConsent | null>(null);
+  const [consent, setConsent] = useState<CookieConsent>(null);
   const sessionConsent = sessionStorage.getItem("cookieConsent");
 
   useEffect(() => {
