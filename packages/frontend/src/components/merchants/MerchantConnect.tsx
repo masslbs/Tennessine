@@ -63,9 +63,43 @@ export default function MerchantConnect() {
     }
   }, [keycard.role === KeycardRole.RETURNING_GUEST, shopId]);
 
+  useEffect(() => {
+    //If shopId is in env, skip the search step and go to connect step.
+    if (shopId && step === SearchShopStep.Search) {
+      findShopData().then();
+    }
+  }, [shopId]);
+
   function handleClearShopIdInput() {
     setSearchShopId("");
     setStep(SearchShopStep.Search);
+  }
+
+  async function findShopData() {
+    try {
+      const shopID = hexToBigInt(searchShopId as `0x${string}`, { size: 32 });
+
+      const uri = (await shopPublicClient!.readContract({
+        address: abi.shopRegAddress,
+        abi: abi.shopRegAbi,
+        functionName: "tokenURI",
+        args: [shopID],
+      })) as string;
+
+      if (uri) {
+        const res = await fetch(uri);
+        const data = await res.json();
+        logger.debug("Shop found");
+        setShopData(data);
+        setStep(SearchShopStep.Connect);
+        return shopID;
+      } else {
+        setErrorMsg("Shop not found");
+      }
+    } catch (error: unknown) {
+      logger.error("Error finding shop", { error });
+      setErrorMsg("Error finding shop");
+    }
   }
 
   async function handleSearchForShop() {
@@ -78,29 +112,12 @@ export default function MerchantConnect() {
       setErrorMsg("Invalid shop ID (input not hex)");
       return;
     }
-    const shopID = hexToBigInt(searchShopId as `0x${string}`, { size: 32 });
-    try {
-      const uri = (await shopPublicClient!.readContract({
-        address: abi.shopRegAddress,
-        abi: abi.shopRegAbi,
-        functionName: "tokenURI",
-        args: [shopID],
-      })) as string;
-      if (uri) {
-        const res = await fetch(uri);
-        const data = await res.json();
-        logger.debug("Shop found");
-        setShopData(data);
-        navigate({
-          search: { shopId: searchShopId },
-        });
-        setStep(SearchShopStep.Connect);
-      } else {
-        setErrorMsg("Shop not found");
-      }
-    } catch (error: unknown) {
-      logger.error("Error finding shop", { error });
-      setErrorMsg("Error finding shop");
+    const shopID = await findShopData();
+    // If shop exists, set shop ID in search param.
+    if (shopID) {
+      navigate({
+        search: { shopId: searchShopId },
+      });
     }
   }
 
