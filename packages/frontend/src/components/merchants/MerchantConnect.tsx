@@ -130,6 +130,18 @@ export default function MerchantConnect() {
         logger.warn("stateManager is undefined");
         return;
       }
+      if (keycard.role === KeycardRole.MERCHANT) {
+        logger.debug(
+          "Keycard is already enrolled as a merchant. Redirecting to merchant dashboard.",
+        );
+        navigate({
+          to: "/merchant-dashboard",
+          search: (prev: Record<string, string>) => ({
+            shopId: prev.shopId,
+          }),
+        });
+        return;
+      }
       const res = await relayClient.enrollKeycard(
         wallet!,
         wallet!.account,
