@@ -121,8 +121,6 @@ export default function EditProduct() {
       setValidationError("Product must include price.");
     } else if (!newListing.Metadata.Images?.length) {
       setValidationError("Product must include image.");
-    } else if (!stock) {
-      setValidationError("Number of stock cannot be 0.");
     } else {
       try {
         setPublishing(true);
