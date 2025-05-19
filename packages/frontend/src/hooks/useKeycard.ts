@@ -3,6 +3,7 @@ import { useLocalStorage } from "@uidotdev/usehooks";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { getLogger } from "@logtape/logtape";
 import { useWalletClient } from "wagmi";
+import { useQuery } from "@tanstack/react-query";
 
 import { RelayClient } from "@massmarket/client";
 import { getWindowLocation } from "@massmarket/utils";
@@ -19,62 +20,66 @@ type Keycard = {
 
 const logger = getLogger(["mass-market", "frontend", "useKeycard"]);
 
-export function useKeycard() {
+export function useKeycard(role: KeycardRole = "guest") {
   const { shopId } = useShopId();
-  const keyCardID = "keycard" + shopId;
-  const [keycard, setKeycard] = useLocalStorage<Keycard>(keyCardID, null);
   const { data: wallet } = useWalletClient();
   const { relayEndpoint } = useRelayEndpoint();
+  const [keycard, setKeycard] = useLocalStorage<Keycard>(
+    "keycard" + shopId,
+    null,
+  );
 
-  async function addKeycard(role: KeycardRole) {
-    // 1. Generate KC
-    // 2. Enroll KC
-    // 3. Save to localStorage
+  const { isPending, data } = useQuery({
+    queryKey: ["keycard", shopId?.toString(), relayEndpoint, wallet, role],
+    queryFn: async () => {
+      // 1. Generate KC
+      // 2. Enroll KC
+      // 3. Save to localStorage
 
-    if (!shopId) {
-      assert(shopId, "shopId is required");
-      return;
-    }
-    if (!relayEndpoint) {
-      assert(relayEndpoint, "relayEndpoint is required");
-      return;
-    }
-    if (!wallet) {
-      assert(wallet, "wallet is required");
-      return;
-    }
-    const privateKey = generatePrivateKey();
-    const account = privateKeyToAccount(privateKey);
+      // This is for instances when the user has a guest keycard and wants to log in as a merchant.
+      const guestToMerchant = role === "merchant" && keycard?.role === "guest";
+      if (keycard && !guestToMerchant) {
+        return keycard;
+      }
+      if (!shopId || !relayEndpoint || !wallet) {
+        assert(shopId, "shopId is required");
+        assert(relayEndpoint, "relayEndpoint is required");
+        assert(wallet, "wallet is required");
+      }
 
-    // This relay instance is just to enroll the keycard.
-    const relayClient = new RelayClient({
-      relayEndpoint,
-      walletClient: wallet,
-      keycard: account,
-      shopId,
-    });
+      const privateKey = generatePrivateKey();
+      const account = privateKeyToAccount(privateKey);
 
-    const res = await relayClient.enrollKeycard(
-      wallet,
-      account,
-      true,
-      getWindowLocation(),
-    );
-    if (!res.ok) {
-      throw new Error(`Failed to enroll keycard: ${res}`);
-    }
+      // This relay instance is just to enroll the keycard.
+      const relayClient = new RelayClient({
+        relayEndpoint,
+        walletClient: wallet,
+        keycard: account,
+        shopId,
+      });
 
-    setKeycard({
-      privateKey,
-      role,
-      address: account!.address,
-    });
-
-    logger.debug("Success: Enrolled new guest keycard");
-  }
+      const res = await relayClient.enrollKeycard(
+        wallet,
+        account,
+        true,
+        getWindowLocation(),
+      );
+      if (!res.ok) {
+        throw new Error(`Failed to enroll keycard: ${res}`);
+      }
+      const kc = {
+        privateKey,
+        role,
+        address: account!.address,
+      };
+      setKeycard(kc);
+      logger.debug("Success: Enrolled new guest keycard");
+      return kc;
+    },
+  });
 
   return {
-    keycard,
-    addKeycard,
+    data,
+    isPending,
   };
 }
