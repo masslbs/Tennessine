@@ -56,7 +56,7 @@ export function useKeycard(role: KeycardRole = "guest") {
         role,
         address: account!.address,
       };
-      // Return this keycard for all guest keycard queries. This is needed for merchant enrolls. 
+      // Return this keycard for all guest keycard queries. This is needed for merchant enrolls.
       queryClient.setQueriesData(
         { queryKey: ["keycard", account?.address, "guest"] },
         kc,

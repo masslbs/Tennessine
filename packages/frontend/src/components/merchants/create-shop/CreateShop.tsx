@@ -42,7 +42,7 @@ import { useShopId } from "../../../hooks/useShopId.ts";
 import { useKeycard } from "../../../hooks/useKeycard.ts";
 import { useShopDetails } from "../../../hooks/useShopDetails.ts";
 import { useChain } from "../../../hooks/useChain.ts";
-import { CreateShopStep, ShopForm } from "../../../types.ts";
+import { CreateShopStep, KeycardRole, ShopForm } from "../../../types.ts";
 import { isValidAddress, removeCachedKeycards } from "../../../utils/mod.ts";
 import { useRelayClient } from "../../../hooks/useRelayClient.ts";
 import { useStateManager } from "../../../hooks/useStateManager.ts";
@@ -70,7 +70,7 @@ export default function () {
   const { data: wallet } = useWalletClient();
   const { shopId } = useShopId();
   const { setShopDetails } = useShopDetails();
-  const { keycard, addKeycard } = useKeycard();
+  const [keycard, setKeycard] = useKeycard();
   const { relayClient } = useRelayClient();
   const { stateManager } = useStateManager();
   const { connector } = useAccount();
@@ -265,7 +265,7 @@ export default function () {
       if (!res.ok) {
         throw Error("Failed to enroll keycard");
       }
-      logger.debug`Keycard enrolled: ${keycard?.privateKey}`;
+      logger.debug`Keycard enrolled: ${keycard.privateKey}`;
       setStoreRegistrationStatus("Adding connection...");
 
       stateManager.addConnection(relayClient);
@@ -327,7 +327,10 @@ export default function () {
         ["Manifest"],
         shopManifest,
       );
-      await addKeycard("merchant");
+      setKeycard({
+        ...keycard,
+        role: KeycardRole.MERCHANT,
+      });
       logger.debug("Manifest created");
     } catch (error: unknown) {
       logger.error("Error creating shop manifest", { error });
