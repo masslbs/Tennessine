@@ -3,10 +3,10 @@ import { Address, PublicClient, toBytes, zeroAddress } from "viem";
 import { abi, tokenAddresses } from "@massmarket/contracts";
 
 // Any utility functions for tokens
-export const getTokenAddress = (
+export function getTokenAddress(
   symbol: string,
   chainId: number,
-): Uint8Array => {
+): Uint8Array {
   if (symbol === "ETH") return toBytes(zeroAddress);
   if (symbol === "EDD") return toBytes(abi.eddiesAddress);
   const addresses: {
@@ -20,12 +20,12 @@ export const getTokenAddress = (
     throw new Error(`Token not found for ${symbol} on chainId: ${chainId}`);
   }
   return toBytes(tokenAddress);
-};
+}
 
-export const getTokenInformation = (
+export function getTokenInformation(
   publicClient: PublicClient,
   tokenAddress: `0x${string}`,
-): Promise<[string, number]> => {
+): Promise<[string, number]> {
   assert(publicClient.chain, "publicClient.chain is undefined");
   if (tokenAddress === zeroAddress) {
     return new Promise((resolve) => {
@@ -45,4 +45,4 @@ export const getTokenInformation = (
     args: [],
   }) as Promise<number>;
   return Promise.all([symbol, decimal]);
-};
+}
