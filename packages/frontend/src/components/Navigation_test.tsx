@@ -86,11 +86,11 @@ Deno.test("Check that we can render the navigation bar", {
 
   await t.step("Remove item from cart", async () => {
     // Check that the cart items are rendered
-    const desktopBasket = screen.getByTestId("desktop-basket");
+    const desktopCart = screen.getByTestId("desktop-cart");
 
     await waitFor(() => {
-      expect(desktopBasket).toBeDefined();
-      const cartItems = within(desktopBasket).getAllByTestId("cart-item");
+      expect(desktopCart).toBeDefined();
+      const cartItems = within(desktopCart).getAllByTestId("cart-item");
       expect(cartItems.length).toBe(2);
       //check that the added quantity is displayed correctly
       expect(cartItems[0].textContent).toEqual(
@@ -102,7 +102,7 @@ Deno.test("Check that we can render the navigation bar", {
     });
 
     await waitFor(async () => {
-      const removeButton = within(desktopBasket).getByTestId(
+      const removeButton = within(desktopCart).getByTestId(
         `remove-item-${item1ID}`,
       );
       expect(removeButton).toBeDefined();
@@ -110,24 +110,24 @@ Deno.test("Check that we can render the navigation bar", {
     });
 
     await waitFor(() => {
-      const cartItems = within(desktopBasket).getAllByTestId("cart-item");
+      const cartItems = within(desktopCart).getAllByTestId("cart-item");
       expect(cartItems.length).toBe(1);
       expect(cartItems[0].textContent).toContain("test4224Qty");
     });
   });
 
   await t.step("Add quantity to item", async () => {
-    const desktopBasket = screen.getByTestId("desktop-basket");
+    const desktopCart = screen.getByTestId("desktop-cart");
 
     await waitFor(async () => {
-      const addButton = within(desktopBasket).getByTestId(
+      const addButton = within(desktopCart).getByTestId(
         `add-quantity-${item2ID}`,
       );
       expect(addButton).toBeDefined();
       await user.click(addButton);
     });
     await waitFor(() => {
-      const quantity = within(desktopBasket).getByTestId(`quantity-${item2ID}`);
+      const quantity = within(desktopCart).getByTestId(`quantity-${item2ID}`);
       expect(quantity.textContent).toContain("25");
     });
     // Check statemanager updated correctly.
@@ -139,17 +139,17 @@ Deno.test("Check that we can render the navigation bar", {
   });
 
   await t.step("Remove quantity from item", async () => {
-    const desktopBasket = screen.getByTestId("desktop-basket");
+    const desktopCart = screen.getByTestId("desktop-cart");
 
     await waitFor(async () => {
-      const minusQty = within(desktopBasket).getByTestId(
+      const minusQty = within(desktopCart).getByTestId(
         `remove-quantity-${item2ID}`,
       );
       expect(minusQty).toBeDefined();
       await user.click(minusQty);
     });
     await waitFor(() => {
-      const quantity = within(desktopBasket).getByTestId(`quantity-${item2ID}`);
+      const quantity = within(desktopCart).getByTestId(`quantity-${item2ID}`);
       expect(quantity.textContent).toContain("24");
     });
     // Check statemanager updated correctly.
@@ -161,14 +161,14 @@ Deno.test("Check that we can render the navigation bar", {
   });
 
   await t.step("Clear cart", async () => {
-    const desktopBasket = screen.getByTestId("desktop-basket");
+    const desktopCart = screen.getByTestId("desktop-cart");
 
     await waitFor(async () => {
-      const clearCart = within(desktopBasket).getByTestId("clear-cart");
+      const clearCart = within(desktopCart).getByTestId("clear-cart");
       await user.click(clearCart);
     });
     await waitFor(() => {
-      const cartItems = within(desktopBasket).queryAllByTestId("cart-item");
+      const cartItems = within(desktopCart).queryAllByTestId("cart-item");
       expect(cartItems.length).toBe(0);
     });
     const updatedOrder = await stateManager.get(["Orders", orderId]);
@@ -188,10 +188,10 @@ Deno.test("Check that we can render the navigation bar", {
       expect(cartToggle).toBeTruthy();
       await user.click(cartToggle);
     });
-    const desktopBasket = screen.getByTestId("desktop-basket");
+    const desktopCart = screen.getByTestId("desktop-cart");
 
     await waitFor(async () => {
-      const checkoutButton = within(desktopBasket).getByTestId(
+      const checkoutButton = within(desktopCart).getByTestId(
         "checkout-button",
       );
       expect(checkoutButton).toBeDefined();
@@ -210,19 +210,19 @@ Deno.test("Check that we can render the navigation bar", {
       expect(cartToggle).toBeTruthy();
       await user.click(cartToggle);
     });
-    const desktopBasket = screen.getByTestId("desktop-basket");
+    const desktopCart = screen.getByTestId("desktop-cart");
 
     await waitFor(async () => {
-      // Verify the basket header is displayed
-      const basketHeader = within(desktopBasket).getByText("Basket");
-      expect(basketHeader).toBeTruthy();
+      // Verify the cart header is displayed
+      const cartHeader = within(desktopCart).getByText("Cart");
+      expect(cartHeader).toBeTruthy();
       // Try to clear cart that's already committed
-      const clearCart = within(desktopBasket).getByTestId("clear-cart");
+      const clearCart = within(desktopCart).getByTestId("clear-cart");
       expect(clearCart).toBeDefined();
       await user.click(clearCart);
     });
     await waitFor(async () => {
-      const cartItems = within(desktopBasket).queryAllByTestId("cart-item");
+      const cartItems = within(desktopCart).queryAllByTestId("cart-item");
       expect(cartItems.length).toBe(0);
       const orders = await stateManager.get(["Orders"]) as Map<
         number,

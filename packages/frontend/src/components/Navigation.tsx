@@ -32,8 +32,8 @@ const merchantMenu = [
 const customerMenu = [
   { title: "Shop", img: "menu-products.svg", href: "/listings" },
   {
-    title: "Basket",
-    img: "menu-basket.svg",
+    title: "Cart",
+    img: "menu-cart.svg",
     href: `/cart`,
   },
   {
@@ -50,7 +50,7 @@ const customerMenu = [
 
 function Navigation() {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
-  const [basketOpen, setBasketOpen] = useState<boolean>(false);
+  const [cartVisible, setCartVisible] = useState<boolean>(false);
   const [cartSize, setCartSize] = useState<number>(0);
 
   const navigate = useNavigate();
@@ -96,11 +96,11 @@ function Navigation() {
 
   function menuSwitch() {
     setMenuOpen(!menuOpen);
-    basketOpen && setBasketOpen(false);
+    cartVisible && setCartVisible(false);
   }
 
   function onCheckout() {
-    setBasketOpen(false);
+    setCartVisible(false);
     navigate({
       to: "/shipping",
       search: (prev: Record<string, string>) => ({
@@ -196,7 +196,7 @@ function Navigation() {
                 }),
               });
               setMenuOpen(false);
-              setBasketOpen(false);
+              setCartVisible(false);
             }}
           >
             {shopDetails.profilePictureUrl
@@ -227,7 +227,7 @@ function Navigation() {
             <div
               id="menu"
               className={`${
-                basketOpen ? "invisible" : "visible"
+                cartVisible ? "invisible" : "visible"
               } flex flex-col items-end`}
             >
               <button
@@ -259,7 +259,7 @@ function Navigation() {
               </div>
             </div>
             <div
-              id="basket"
+              id="cart"
               className={`${
                 menuOpen ? "invisible" : "visible"
               } flex flex-col items-end relative`}
@@ -271,43 +271,43 @@ function Navigation() {
                   isMerchantView ? "hidden" : ""
                 } self-end h-[56px]`}
                 style={{
-                  backgroundColor: basketOpen ? "#F3F3F3" : "transparent",
+                  backgroundColor: cartVisible ? "#F3F3F3" : "transparent",
                   paddingLeft: 15,
                   paddingRight: 15,
                 }}
                 onClick={() => {
-                  setBasketOpen(!basketOpen);
+                  setCartVisible(!cartVisible);
                   menuOpen && setMenuOpen(false);
                 }}
               >
                 <img
-                  src={basketOpen
+                  src={cartVisible
                     ? "/icons/close-icon.svg"
-                    : "/icons/menu-basket.svg"}
+                    : "/icons/menu-cart.svg"}
                   width={20}
                   height={20}
-                  alt="basket-icon"
+                  alt="cart-icon"
                   className="w-5 h-5"
                 />
                 <div
                   className={`${
-                    (!cartSize || basketOpen) ? "hidden" : ""
+                    (!cartSize || cartVisible) ? "hidden" : ""
                   } bg-red-700 rounded-full absolute top-[10px] right-[7px] w-4 h-4 flex justify-center items-center`}
                 >
                   <p className="text-white text-[10px]">{cartSize}</p>
                 </div>
               </button>
               <div
-                className={`${basketOpen ? "hidden md:block z-10" : "hidden"}`}
+                className={`${cartVisible ? "hidden md:block z-10" : "hidden"}`}
               >
                 <div
-                  data-testid="desktop-basket"
+                  data-testid="desktop-cart"
                   className="fixed bg-background-gray w-full flex flex-col gap-5 rounded-b-lg p-5 static"
                 >
-                  <h1>Basket</h1>
+                  <h1>Cart</h1>
                   <Cart
                     onCheckout={onCheckout}
-                    closeBasket={() => setBasketOpen(false)}
+                    closeCart={() => setCartVisible(false)}
                   />
                 </div>
               </div>
@@ -315,11 +315,11 @@ function Navigation() {
           </section>
         </section>
       </section>
-      {(basketOpen || menuOpen) && (
+      {(cartVisible || menuOpen) && (
         <span
           className="fixed bg-black w-full h-full opacity-60 z-5"
           onClick={() => {
-            basketOpen && setBasketOpen(false);
+            cartVisible && setCartVisible(false);
             menuOpen && setMenuOpen(false);
           }}
         />
@@ -334,14 +334,14 @@ function Navigation() {
             </section>
           )
           : null}
-        {basketOpen
+        {cartVisible
           ? (
             <section>
               <div className="fixed bg-background-gray w-full flex flex-col gap-5 rounded-b-lg p-5">
-                <h1>Basket</h1>
+                <h1>Cart</h1>
                 <Cart
                   onCheckout={onCheckout}
-                  closeBasket={() => setBasketOpen(false)}
+                  closeCart={() => setCartVisible(false)}
                 />
               </div>
             </section>

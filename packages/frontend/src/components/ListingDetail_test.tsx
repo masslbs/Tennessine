@@ -93,8 +93,8 @@ Deno.test("Check that we can render the listing details screen", {
   expect(purchaseQty).toBeTruthy();
   await user.clear(purchaseQty);
   await user.type(purchaseQty, `${initialQty}`);
-  const addToBasket = screen.getByTestId("addToBasket");
-  await user.click(addToBasket);
+  const addToCart = screen.getByTestId("addToCart");
+  await user.click(addToCart);
   // wait for the success toast to appear
   successToast = await screen.findByTestId("success-toast");
   expect(successToast).toBeTruthy();
@@ -123,8 +123,8 @@ Deno.test("Check that we can render the listing details screen", {
   expect(purchaseQty2).toBeTruthy();
   await user.clear(purchaseQty2);
   await user.type(purchaseQty2, `${qtyIncreasedBy}`);
-  const addToBasket2 = screen.getByTestId("addToBasket");
-  await user.click(addToBasket2);
+  const addToCart2 = screen.getByTestId("addToCart");
+  await user.click(addToCart2);
   // wait for the success toast to appear
   successToast = await screen.findByTestId("success-toast");
   expect(successToast).toBeTruthy();
@@ -152,8 +152,8 @@ Deno.test("Check that we can render the listing details screen", {
 
   // Third quantity update
   await user.type(purchaseQty3, `${qtyIncreasedBy2}`);
-  const addToBasket3 = screen.getByTestId("addToBasket");
-  await user.click(addToBasket3);
+  const addToCart3 = screen.getByTestId("addToCart");
+  await user.click(addToCart3);
   // wait for the success toast to appear
   successToast = await screen.findByTestId("success-toast");
   expect(successToast).toBeTruthy();
