@@ -12,23 +12,33 @@ import { useRelayEndpoint } from "./useRelayEndpoint.ts";
 
 const logger = getLogger(["mass-market", "frontend", "useKeycard"]);
 
+/**
+ * This hook returns a keycard for the browser session.
+ * The async queryFn where we enroll the keycard only executes once unless variables in the queryKey changes.
+ * The keycard will be cached for the duration of the browser session regardless of refreshes.
+ */
 export function useKeycard(role: KeycardRole = "guest") {
   const { shopId } = useShopId();
   const { data: wallet } = useWalletClient();
-  const account = useAccount();
+  const { address } = useAccount();
   const { relayEndpoint } = useRelayEndpoint();
   const queryClient = useQueryClient();
 
   return useQuery({
+    // queryFn will not execute till these variables are defined.
+    enabled: !!shopId && !!wallet && !!relayEndpoint && !!address,
     queryKey: [
       "keycard",
-      account?.address,
+      address,
       role,
     ],
     queryFn: async () => {
-      // 1. Generate KC
-      // 2. Enroll KC
-      // 3. Save to localStorage
+      /**
+       * 1. Generate KC
+       * 2. Enroll KC
+       * 3. Return the KC
+       */
+
       const privateKey = generatePrivateKey();
 
       // This relay instance is just to enroll the keycard.
@@ -41,7 +51,7 @@ export function useKeycard(role: KeycardRole = "guest") {
 
       const res = await relayClient.enrollKeycard(
         wallet,
-        account,
+        address,
         role === "guest",
         getWindowLocation(),
       );
@@ -54,16 +64,20 @@ export function useKeycard(role: KeycardRole = "guest") {
       const kc = {
         privateKey,
         role,
-        address: account!.address,
+        address,
       };
-      // Return this keycard for all guest keycard queries. This is needed for merchant enrolls.
+      // Return this keycard for all guest keycard queries.
+      // This is needed for merchant enrolls, since we don't want enrolled merchant keycards to be overwritten by guest keycards.
+      // setQueriesData also ensures that any component using the query will re-render with the new keycard.
       queryClient.setQueriesData(
-        { queryKey: ["keycard", account?.address, "guest"] },
+        { queryKey: ["keycard", address, "guest"] },
         kc,
       );
 
       return kc;
     },
-    enabled: !!shopId && !!wallet && !!relayEndpoint && !!account,
+    // This ensures that the keycard is not discarded during the browser session.
+    gcTime: Infinity,
+    staleTime: Infinity,
   });
 }

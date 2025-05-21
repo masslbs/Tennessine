@@ -8,14 +8,7 @@ import { MassMarketProvider } from "./MassMarketContext.ts";
 import { config } from "./wagmi.ts";
 import { routeTree } from "./routeTree.gen.ts";
 
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      gcTime: Infinity,
-      staleTime: Infinity,
-    },
-  },
-});
+export const queryClient = new QueryClient();
 
 const persister = createSyncStoragePersister({
   storage: globalThis.localStorage,
