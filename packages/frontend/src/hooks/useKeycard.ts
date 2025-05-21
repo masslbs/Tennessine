@@ -9,7 +9,6 @@ import { getWindowLocation } from "@massmarket/utils";
 import { useShopId } from "./useShopId.ts";
 import { KeycardRole } from "../types.ts";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";
-import { queryClient } from "../App.tsx";
 
 const logger = getLogger(["mass-market", "frontend", "useKeycard"]);
 
@@ -23,6 +22,7 @@ export function useKeycard(role: KeycardRole = "guest") {
   return useQuery({
     queryKey: [
       "keycard",
+      account?.address,
       role,
     ],
     queryFn: async () => {
@@ -56,13 +56,11 @@ export function useKeycard(role: KeycardRole = "guest") {
         role,
         address: account!.address,
       };
-      if (role === "merchant") {
-        // Return this keycard for all keycard queries.
-        queryClient.setQueriesData(
-          { queryKey: ["keycard"] },
-          kc,
-        );
-      }
+      // Return this keycard for all guest keycard queries. This is needed for merchant enrolls. 
+      queryClient.setQueriesData(
+        { queryKey: ["keycard", account?.address, "guest"] },
+        kc,
+      );
 
       return kc;
     },
