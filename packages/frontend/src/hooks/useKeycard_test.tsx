@@ -16,7 +16,7 @@ import { KeycardRole } from "../types.ts";
 Deno.test("Should enroll guest keycard", {
   sanitizeResources: false,
   sanitizeOps: false,
-}, async (t) => {
+}, async () => {
   const { wrapper } = await createRouterWrapper({
     shopId: random256BigInt(),
     createShop: true,
@@ -33,7 +33,7 @@ Deno.test("Should enroll guest keycard", {
 Deno.test("Should enroll merchant keycard", {
   sanitizeResources: false,
   sanitizeOps: false,
-}, async (t) => {
+}, async () => {
   const { wrapper } = await createRouterWrapper({
     shopId: random256BigInt(),
     createShop: true,
@@ -53,7 +53,7 @@ Deno.test(
     sanitizeResources: false,
     sanitizeOps: false,
   },
-  async (t) => {
+  async () => {
     const { wrapper } = await createRouterWrapper({
       shopId: random256BigInt(),
       createShop: true,
@@ -75,7 +75,7 @@ Deno.test(
     sanitizeResources: false,
     sanitizeOps: false,
   },
-  async (t) => {
+  async () => {
     const { wrapper } = await createRouterWrapper({
       shopId: random256BigInt(),
       createShop: true,
