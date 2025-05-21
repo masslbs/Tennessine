@@ -11,8 +11,8 @@ import { routeTree } from "./routeTree.gen.ts";
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      gcTime: 1000 * 60 * 60 * 24 * 2,
-      staleTime: 1000 * 60 * 60 * 24 * 2,
+      gcTime: Infinity,
+      staleTime: Infinity,
     },
   },
 });
