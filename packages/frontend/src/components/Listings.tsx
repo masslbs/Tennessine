@@ -13,7 +13,7 @@ import MerchantViewListings from "./merchants/listings/MerchantViewListings.tsx"
 
 export default function Listings() {
   const { stateManager } = useStateManager();
-  const [keycard] = useKeycard();
+  const { data: keycard } = useKeycard();
   const [products, setProducts] = useState<Listing[]>([]);
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export default function Listings() {
       const listings = mapToListingClass(res);
       setProducts(listings);
     }
-
+    console.log("stateManager", stateManager)
     stateManager.get(["Listings"]).then((res: CodecValue | undefined) => {
       if (!res) return;
       if (!(res instanceof Map)) {
@@ -60,7 +60,7 @@ export default function Listings() {
       className="bg-background-gray"
       data-testid="listings-page"
     >
-      {keycard.role === "merchant"
+      {keycard?.role === "merchant"
         ? <MerchantViewListings products={products} />
         : (
           <CustomerViewListings

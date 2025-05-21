@@ -15,7 +15,9 @@ import { allListings } from "@massmarket/schema/testFixtures";
 import Listings from "./Listings.tsx";
 import {
   createRouterWrapper,
+  createTestRelayClient,
   createTestStateManager,
+  createTestShop
 } from "../testutils/mod.tsx";
 
 Deno.test(
@@ -26,25 +28,23 @@ Deno.test(
   },
   async (t) => {
     const shopId = random256BigInt();
-
-    const stateManager = await createTestStateManager(shopId);
+    await createTestShop(shopId)
+    const merchantRelayClient = await createTestRelayClient(shopId, true);
+    const merchantStateManager = await createTestStateManager(shopId);
+    merchantStateManager.addConnection(merchantRelayClient);
 
     for (const [key, entry] of allListings.entries()) {
-      await stateManager.set(["Listings", key], entry);
+      await merchantStateManager.set(["Listings", key], entry);
     }
 
-    const { wrapper } = await createRouterWrapper({
-      shopId,
-      createShop: true,
-      enrollMerchant: false,
-      stateManager,
-    });
-
-    await t.step("Check that the listings are rendered correctly", async () => {
+    await t.step("Listings render for guests.", async () => {
+      const {
+        wrapper,
+      } = await createRouterWrapper({
+        shopId,
+      });
       const { unmount } = render(<Listings />, { wrapper });
       await waitFor(() => {
-        // TODO: compare other listings
-        // screen.debug();
         const listings = screen.getAllByTestId("product-container");
         expect(listings.length).toBe(3);
         const title = within(listings[0]).getByTestId("product-name");

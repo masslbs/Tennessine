@@ -1,8 +1,9 @@
-import { getLogger } from "@logtape/logtape";
+import { useWalletClient } from "wagmi";
 import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { useEffect } from "react";
-import { assert } from "@std/assert";
+import { getLogger } from "@logtape/logtape";
+import { useQuery } from "@tanstack/react-query";
+
 import { RelayClient } from "@massmarket/client";
 
 import { useMassMarketContext } from "../MassMarketContext.ts";
@@ -17,59 +18,30 @@ const logger = getLogger(["mass-market", "frontend", "useRelayClient"]);
 
 export function useRelayClient() {
   const { relayClient, setRelayClient } = useMassMarketContext();
-  const [keycard] = useKeycard();
-  const { chain } = useChain();
+  const { data: keycard } = useKeycard();
   const { relayEndpoint } = useRelayEndpoint();
   const { shopId } = useShopId();
+  const { data: wallet } = useWalletClient();
 
-  useEffect(() => {
-    // TODO: this is a bit annoying.. in testing we are already supplying a relayClient,
-    // so we don't want to create another one.
-    // but, there are features in the app that want to un/reset the relayClient,
-    // so we need to be careful about this.
-    if (isTesting && relayClient) {
-      return;
-    }
-    const hasRelayClient = relayClient !== undefined;
-    const getKeyCardAddress = () => {
-      assert(relayClient, "relayClient is undefined");
-      return typeof relayClient?.keycard == "string"
-        ? relayClient.keycard
-        : relayClient.keycard.address;
-    };
-    if (hasRelayClient && getKeyCardAddress() === keycard.address) {
-      logger.debug`RelayClient already set ${getKeyCardAddress()}`;
-      return;
-    }
-    const account = privateKeyToAccount(keycard.privateKey);
-    const keycardWallet = createWalletClient({
-      account,
-      chain,
-      transport: http(env.ethRPCUrl),
-    });
-    if (!relayEndpoint) {
-      logger.debug("Relay endpoint is required");
-      return;
-    }
-    if (!shopId) {
-      logger.debug("Shop ID is required");
-      return;
-    }
-    logger.debug`Setting RelayClient with keycard: ${account.address}`;
-    const rc = new RelayClient({
-      relayEndpoint,
-      walletClient: keycardWallet,
-      keycard: account,
-      shopId,
-    });
-
-    setRelayClient(rc);
-  }, [
-    keycard !== undefined,
-    String(shopId),
-    relayEndpoint,
-    keycard.privateKey,
-  ]);
+  useQuery({
+    queryKey: ["relayClient"],
+    queryFn: async () => {
+      const rc = new RelayClient({
+        relayEndpoint,
+        walletClient: wallet,
+        keycard: privateKeyToAccount(keycard!.privateKey),
+        shopId,
+      });
+      await rc.connect();
+      await rc.authenticate();
+      setRelayClient(rc);
+      logger.debug`RelayClient connected and authenticated.`;
+      return rc;
+    },
+    enabled: !!relayEndpoint && !!keycard && !!shopId && !!wallet,
+    //do we want to connect and authenticate every time the browser is refreshed?
+    refetchOnWindowFocus: "always",
+  });
 
   return { relayClient };
 }

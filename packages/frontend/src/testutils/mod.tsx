@@ -98,17 +98,25 @@ export const createTestRelayClient = async (
       throw new Error("Failed to enroll keycard");
     }
 
-    localStorage.setItem(
-      keyCardID,
-      JSON.stringify({
-        privateKey: kcPrivateKey,
-        role: "merchant",
-      }),
-    );
   }
 
   return relayClient;
 };
+
+export async function createTestShop(shopId: bigint){
+  const transactionHash = await mintShop(testClient, testAccount, [
+    shopId,
+    testAccount,
+  ]);
+  // this is still causing a leak
+  // https://github.com/wevm/viem/issues/2903
+  const receipt = await testClient.waitForTransactionReceipt({
+    hash: transactionHash,
+  });
+  if (receipt.status !== "success") {
+    throw new Error("Shop creation failed");
+  }
+}
 
 export const createRouterWrapper = async ({
   shopId,
@@ -141,26 +149,15 @@ export const createRouterWrapper = async ({
     shopId = random256BigInt();
   }
   if (createShop) {
-    const transactionHash = await mintShop(testClient, testAccount, [
-      shopId,
-      testAccount,
-    ]);
-    // this is still causing a leak
-    // https://github.com/wevm/viem/issues/2903
-    const receipt = await testClient.waitForTransactionReceipt({
-      hash: transactionHash,
-    });
-    if (receipt.status !== "success") {
-      throw new Error("Shop creation failed");
-    }
+   await createTestShop(shopId!)
   }
-  if (!relayClient) {
-    relayClient = await createTestRelayClient(shopId, enrollMerchant);
-  }
+  // if (!relayClient) {
+  //   relayClient = await createTestRelayClient(shopId, enrollMerchant);
+  // }
 
-  if (!stateManager) {
-    stateManager = await createTestStateManager(shopId);
-  }
+  // if (!stateManager) {
+  //   stateManager = await createTestStateManager(shopId);
+  // }
 
   const initialURL = (() => {
     if (!shopId) return path;
@@ -223,8 +220,7 @@ export const createRouterWrapper = async ({
         <QueryClientProvider client={queryClient}>
           <WagmiProvider config={config}>
             <MassMarketProvider
-              stateManager={stateManager}
-              relayClient={relayClient}
+            
             >
               <RainbowKitProvider showRecentTransactions>
                 {
