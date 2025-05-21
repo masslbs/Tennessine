@@ -7,6 +7,7 @@ import { getWindowLocation } from "@massmarket/utils";
 import { LevelStore } from "@massmarket/store/level";
 import StateManager from "@massmarket/stateManager";
 
+import { KeycardRole } from "../types.ts";
 import { env } from "../utils/env.ts";
 import { useMassMarketContext } from "../MassMarketContext.ts";
 import { useShopId } from "./useShopId.ts";
@@ -49,7 +50,7 @@ export function useStateManager() {
   const { stateManager, setStateManager } = useMassMarketContext();
   const { relayClient } = useRelayClient();
   const { shopId } = useShopId();
-  const { keycard, addKeycard } = useKeycard();
+  const [keycard, setKeycard] = useKeycard();
   const { chain } = useChain();
   const { isMerchantPath } = usePathname();
 
@@ -68,7 +69,7 @@ export function useStateManager() {
 
     // Skip this logic if /create-shop or /merchant-connect, since we need to enroll merchant keycard before we call addConnection in those cases.
     if (!isMerchantPath && relayClient) {
-      if (keycard?.role === "guest") {
+      if (keycard?.role === KeycardRole.NEW_GUEST) {
         logger.debug`Enrolling guest keycard`;
         const account = privateKeyToAccount(keycard.privateKey);
         const keycardWallet = createWalletClient({
@@ -88,6 +89,9 @@ export function useStateManager() {
           throw new Error(`Failed to enroll keycard: ${res}`);
         }
         logger.debug`Success: Enrolled new guest keycard`;
+
+        //Set keycard role to guest-returning so we don't try enrolling again on refresh
+        setKeycard({ ...keycard, role: KeycardRole.RETURNING_GUEST });
       }
       logger.debug`Adding connection`;
       await relayClient.connect();
