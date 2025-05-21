@@ -269,10 +269,10 @@ export default function ListingDetail() {
                 <Button
                   onClick={changeItems}
                   disabled={!quantity}
-                  data-testid="addToBasket"
+                  data-testid="addToCart"
                 >
                   <div className="flex items-center gap-2">
-                    <p>Add to basket</p>
+                    <p>Add to cart</p>
                     <img
                       src="/icons/white-arrow.svg"
                       alt="white-arrow"
@@ -288,7 +288,7 @@ export default function ListingDetail() {
               <SuccessToast
                 message={successMsg}
                 onClose={() => setMsg(null)}
-                cta={{ copy: "View Basket", href: "/cart" }}
+                cta={{ copy: "View Cart", href: "/cart" }}
               />
             </div>
           </section>
