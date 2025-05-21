@@ -180,8 +180,17 @@ function Navigation() {
 
   return (
     <section>
+      {(basketOpen || menuOpen) && (
+        <span
+          className="fixed bg-black w-full h-full opacity-60 z-5"
+          onClick={() => {
+            basketOpen && setBasketOpen(false);
+            menuOpen && setMenuOpen(false);
+          }}
+        />
+      )}
       <section
-        className={`bg-white flex justify-center`}
+        className={`bg-white flex justify-center z-10 relative`}
         data-testid="navigation"
       >
         <section className="relative w-full text-base flex justify-between md:w-[800px] h-[56px] mr-3">
@@ -315,15 +324,6 @@ function Navigation() {
           </section>
         </section>
       </section>
-      {(cartVisible || menuOpen) && (
-        <span
-          className="fixed bg-black w-full h-full opacity-60 z-5"
-          onClick={() => {
-            cartVisible && setCartVisible(false);
-            menuOpen && setMenuOpen(false);
-          }}
-        />
-      )}
       <section id="mobile-menu" className="md:hidden absolute z-10">
         {menuOpen
           ? (
