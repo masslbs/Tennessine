@@ -7,16 +7,14 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { expect } from "@std/expect";
+
 import { random256BigInt } from "@massmarket/utils";
 
-import { createRouterWrapper } from "../testutils/mod.tsx";
+import { createRouterWrapper, denoTestOptions } from "../testutils/mod.tsx";
 import { useKeycard } from "./useKeycard.ts";
 import { KeycardRole } from "../types.ts";
 
-Deno.test("Should enroll guest keycard", {
-  sanitizeResources: false,
-  sanitizeOps: false,
-}, async () => {
+Deno.test("Should enroll guest keycard", denoTestOptions, async () => {
   const { wrapper } = await createRouterWrapper({
     shopId: random256BigInt(),
     createShop: true,
@@ -30,10 +28,7 @@ Deno.test("Should enroll guest keycard", {
   cleanup();
 });
 
-Deno.test("Should enroll merchant keycard", {
-  sanitizeResources: false,
-  sanitizeOps: false,
-}, async () => {
+Deno.test("Should enroll merchant keycard", denoTestOptions, async () => {
   const { wrapper } = await createRouterWrapper({
     shopId: random256BigInt(),
     createShop: true,

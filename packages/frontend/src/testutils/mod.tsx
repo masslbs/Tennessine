@@ -24,6 +24,11 @@ import { MemStore } from "@massmarket/store";
 
 import { MassMarketProvider } from "../MassMarketContext.ts";
 
+export const denoTestOptions = {
+  sanitizeResources: false,
+  sanitizeOps: false,
+};
+
 export const relayURL = Deno.env.get("RELAY_ENDPOINT") ||
   "http://localhost:4444/v4";
 const testRelayEndpoint = await discoverRelay(relayURL);
