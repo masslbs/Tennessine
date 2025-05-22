@@ -69,7 +69,7 @@ export function useKeycard(role: KeycardRole = "guest") {
         address,
       };
       // Return this keycard for all guest keycard queries.
-      // This is needed for merchant enrolls, since we don't want enrolled merchant keycards to be overwritten by guest keycards.
+      // This is needed for merchant enrolls, so that subsequent queries will return this merchant keycard instead of trying to enroll multiple different keycards.
       // setQueriesData also ensures that any component using the query will re-render with the new keycard.
       if (role === "merchant") {
         queryClient.setQueriesData(
