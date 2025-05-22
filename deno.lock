@@ -29,6 +29,8 @@
     "npm:@sentry/browser@9.15.0": "9.15.0",
     "npm:@sentry/browser@^9.15.0": "9.15.0",
     "npm:@sentry/browser@^9.19.0": "9.19.0",
+    "npm:@sentry/core@^8.40.0": "8.55.0",
+    "npm:@sentry/types@^8.40.0": "8.55.0",
     "npm:@tailwindcss/vite@^4.1.4": "4.1.4_vite@6.3.3__@types+node@22.12.0__picomatch@4.0.2_@types+node@22.12.0",
     "npm:@tanstack/react-query@^5.74.4": "5.74.4_react@19.1.0",
     "npm:@tanstack/react-router@^1.116.0": "1.116.0_react@19.1.0_react-dom@19.1.0__react@19.1.0",
@@ -4790,7 +4792,6 @@
           "npm:@deno/vite-plugin@^1.0.4",
           "npm:@happy-dom/global-registrator@^17.4.4",
           "npm:@logtape/logtape@~0.9.2",
-          "npm:@logtape/sentry@0.1",
           "npm:@rainbow-me/rainbowkit@^2.2.0",
           "npm:@sentry/browser@^9.19.0",
           "npm:@tailwindcss/vite@^4.1.4",
@@ -4813,6 +4814,15 @@
           "npm:vite@^6.3.2",
           "npm:wagmi@^2.15.1",
           "npm:web-streams-polyfill@^4.1.0"
+        ]
+      },
+      "packages/logtape-sentry-sink": {
+        "dependencies": [
+          "jsr:@deno/dnt@~0.41.3",
+          "jsr:@logtape/logtape@0.8",
+          "jsr:@std/dotenv@~0.225.2",
+          "npm:@sentry/core@^8.40.0",
+          "npm:@sentry/types@^8.40.0"
         ]
       },
       "packages/merkle-dag-builder": {
