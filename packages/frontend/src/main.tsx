@@ -1,7 +1,7 @@
 import "web-streams-polyfill/polyfill";
 import { init } from "@sentry/browser";
 import { Config, configure, getConsoleSink } from "@logtape/logtape";
-import { getSentrySink } from "@logtape/sentry";
+import { getSentrySink } from "@massmarket/logtape-sentry-sink";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
