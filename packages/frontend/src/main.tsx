@@ -1,16 +1,18 @@
 import "web-streams-polyfill/polyfill";
 import { init } from "@sentry/browser";
-import { configure, getConsoleSink } from "@logtape/logtape";
+import { Config, configure, getConsoleSink } from "@logtape/logtape";
 import { getSentrySink } from "@logtape/sentry";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import { env } from "./utils/env.ts";
 import releaseInfo from "./release-info.json" with { type: "json" };
+
+const isSentryEnabled = env.sentryDSN !== undefined;
 const isProd = env.chainName === "mainnet";
 
 let sentryClient;
-if (env.sentryDSN) {
+if (isSentryEnabled) {
   sentryClient = init({
     dsn: env.sentryDSN,
     environment: isProd ? "production" : "development",
@@ -19,17 +21,23 @@ if (env.sentryDSN) {
   });
 }
 
-await configure({
+const sentryConfig: Config<string, string> = {
   sinks: {
-    sentry: getSentrySink(sentryClient as undefined),
     console: getConsoleSink(),
   },
   loggers: [
-    isProd
-      ? { category: ["mass-market"], sinks: ["sentry"], level: "warning" }
-      : { category: [], sinks: ["console"], level: "debug" },
+    { category: [], sinks: ["console"], level: "debug" },
   ],
-});
+};
+if (isSentryEnabled) {
+  sentryConfig.sinks.sentry = getSentrySink(sentryClient as undefined);
+  sentryConfig.loggers.push({
+    category: ["mass-market"],
+    sinks: ["sentry"],
+    level: "warning",
+  });
+}
+await configure(sentryConfig);
 
 createRoot(document.getElementById("root") as HTMLElement).render(
   <StrictMode>
