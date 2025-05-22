@@ -4,6 +4,6 @@
   "exports": "./shopGen.ts",
   "imports": {
     "@faker-js/faker": "npm:@faker-js/faker@^9.7.0",
-    "viem": "npm:viem@^2.29.2"
+    "viem": "npm:viem@^2.30.0"
   }
 }
