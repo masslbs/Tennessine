@@ -9,17 +9,6 @@ import { env } from "./utils/env.ts";
 import releaseInfo from "./release-info.json" with { type: "json" };
 
 const isSentryEnabled = env.sentryDSN !== undefined;
-const isProd = env.chainName === "mainnet";
-
-let sentryClient;
-if (isSentryEnabled) {
-  sentryClient = init({
-    dsn: env.sentryDSN,
-    environment: isProd ? "production" : "development",
-    release: `tennessine@${releaseInfo.version}`, // TODO: we should start tagging our builds...
-    tracesSampleRate: isProd ? 0.1 : 1.0,
-  });
-}
 
 const sentryConfig: Config<string, string> = {
   sinks: {
@@ -30,6 +19,13 @@ const sentryConfig: Config<string, string> = {
   ],
 };
 if (isSentryEnabled) {
+  const isProd = env.chainName === "mainnet";
+  const sentryClient = init({
+    dsn: env.sentryDSN,
+    environment: isProd ? "production" : "development",
+    release: `tennessine@${releaseInfo.version}`, // TODO: we should start tagging our builds...
+    tracesSampleRate: isProd ? 0.1 : 1.0,
+  });
   sentryConfig.sinks.sentry = getSentrySink(sentryClient as undefined);
   sentryConfig.loggers.push({
     category: ["mass-market"],
