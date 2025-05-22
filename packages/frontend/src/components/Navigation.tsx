@@ -180,11 +180,11 @@ function Navigation() {
 
   return (
     <section>
-      {(basketOpen || menuOpen) && (
+      {(cartVisible || menuOpen) && (
         <span
           className="fixed bg-black w-full h-full opacity-60 z-5"
           onClick={() => {
-            basketOpen && setBasketOpen(false);
+            cartVisible && setCartVisible(false);
             menuOpen && setMenuOpen(false);
           }}
         />
