@@ -27,5 +27,8 @@
   "compilerOptions": {
     "noErrorTruncation": true
   },
-  "nodeModulesDir": "auto"
+  "nodeModulesDir": "auto",
+  "imports": {
+    "@masslbs/deno-vite-plugin": "npm:@masslbs/deno-vite-plugin@^1.0.4"
+  }
 }

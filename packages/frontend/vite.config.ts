@@ -1,5 +1,5 @@
 import { defineConfig, loadEnv, PluginOption } from "vite";
-import deno from "@deno/vite-plugin";
+import deno from "@masslbs/deno-vite-plugin";
 import react from "@vitejs/plugin-react";
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 import tailwindcss from "@tailwindcss/vite";
