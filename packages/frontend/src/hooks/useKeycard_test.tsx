@@ -28,6 +28,26 @@ Deno.test("Should enroll guest keycard", denoTestOptions, async () => {
   cleanup();
 });
 
+Deno.test(
+  "Hook should return error if keycard enrollment fails",
+  denoTestOptions,
+  async () => {
+    const { wrapper } = await createRouterWrapper({
+      shopId: random256BigInt(),
+    });
+    // Enroll should fail since we didn't create a shop.
+    const { result, unmount } = renderHook(() => useKeycard(), { wrapper });
+    await waitFor(() => {
+      expect(result.current.error).toBeDefined();
+      expect(result.current.error!.message).toContain(
+        "Failed to enroll keycard: 400",
+      );
+    });
+    unmount();
+    cleanup();
+  },
+);
+
 Deno.test("Should enroll merchant keycard", denoTestOptions, async () => {
   const { wrapper } = await createRouterWrapper({
     shopId: random256BigInt(),

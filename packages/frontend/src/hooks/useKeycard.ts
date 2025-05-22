@@ -57,7 +57,7 @@ export function useKeycard(role: KeycardRole = "guest") {
       );
 
       if (!res.ok) {
-        throw new Error(`Failed to enroll keycard: ${res}`);
+        throw new Error(`Failed to enroll keycard: ${res.status}`);
       }
       logger.debug(`Success: Enrolled new ${role} keycard`);
 
