@@ -13,9 +13,9 @@ import { useRelayEndpoint } from "./useRelayEndpoint.ts";
 const logger = getLogger(["mass-market", "frontend", "useKeycard"]);
 
 /**
- * This hook returns a keycard for the browser session.
+ * This hook returns a keycard for a shop - if there is no keycard already cached, it will generate and enroll a new keycard with the role passed as the param.
  * The async queryFn where we enroll the keycard only executes once unless variables in the queryKey changes.
- * The keycard will be cached for the duration of the browser session regardless of refreshes.
+ * The keycard will be cached with tanstack's cache for the duration of the browser session regardless of refreshes.
  */
 export function useKeycard(role: KeycardRole = "guest") {
   const { shopId } = useShopId();
@@ -30,6 +30,8 @@ export function useKeycard(role: KeycardRole = "guest") {
     queryKey: [
       "keycard",
       address,
+      // browser caches like localStorage cannot serialize BigInts, so we convert to string.
+      String(shopId),
       role,
     ],
     queryFn: async () => {
@@ -69,10 +71,12 @@ export function useKeycard(role: KeycardRole = "guest") {
       // Return this keycard for all guest keycard queries.
       // This is needed for merchant enrolls, since we don't want enrolled merchant keycards to be overwritten by guest keycards.
       // setQueriesData also ensures that any component using the query will re-render with the new keycard.
-      queryClient.setQueriesData(
-        { queryKey: ["keycard", address, "guest"] },
-        kc,
-      );
+      if (role === "merchant") {
+        queryClient.setQueriesData(
+          { queryKey: ["keycard", address, String(shopId), "guest"] },
+          kc,
+        );
+      }
 
       return kc;
     },
