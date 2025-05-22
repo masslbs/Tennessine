@@ -1,6 +1,6 @@
 import { formatUnits } from "viem";
 
-import { KeycardRole, OrderState } from "../types.ts";
+import { OrderState } from "../types.ts";
 
 export function multiplyAndFormatUnits(
   price: bigint,
@@ -15,7 +15,7 @@ export function removeCachedKeycards() {
     const key = localStorage.key(i);
     if (key && key.includes("keycard")) {
       const keycard = JSON.parse(localStorage.getItem(key)!);
-      if (keycard.role === KeycardRole.NEW_GUEST) {
+      if (keycard.role === "guest") {
         localStorage.removeItem(key);
         i--;
       }

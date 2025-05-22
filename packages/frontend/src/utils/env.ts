@@ -10,6 +10,7 @@ export type EnvConfig = {
   ethRPCUrl?: string;
   matomoURL?: string;
   primaryExternalURL: string;
+  walletConnectProjectId: string;
 };
 
 // Check if running in a HappyDOM environment (likely testing)
@@ -34,6 +35,7 @@ type DotEnvFormat = {
   VITE_MATOMO_URL?: string;
   VITE_SHOP_TOKEN_ID?: string;
   VITE_PRIMARY_EXTERNAL_URL: string;
+  VITE_WALLET_CONNECT_PROJECT_ID: string;
 };
 
 declare global {
@@ -81,6 +83,7 @@ function getEnv(): EnvConfig {
     sentryDSN: theEnv?.VITE_SENTRY_DSN,
     matomoURL: theEnv?.VITE_MATOMO_URL,
     primaryExternalURL: theEnv?.VITE_PRIMARY_EXTERNAL_URL,
+    walletConnectProjectId: theEnv?.VITE_WALLET_CONNECT_PROJECT_ID,
   };
 }
 
