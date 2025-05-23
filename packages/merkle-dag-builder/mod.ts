@@ -34,7 +34,7 @@ export class DAG {
   ): Promise<codec.CodecValue> {
     const val = await this.store.get(hash);
     if (!val) {
-      logger.error`Hash not found: ${hash}`;
+      logger.info`Hash not found: ${hash}`;
       throw new Error(`Hash not found`);
     }
     if (clone) {
@@ -134,7 +134,7 @@ export class DAG {
         set(parent, last, value);
       }
     } else {
-      logger.error`Path ${path.join(".")} does not exist`;
+      logger.info`Path ${path.join(".")} does not exist`;
       throw new Error(`Path does not exist`);
     }
     return walk[0].value;
@@ -181,7 +181,7 @@ export class DAG {
         if (Array.isArray(arr)) {
           arr.push(value);
         } else {
-          logger.error`Trying to append to non-array, path ${path.join("/")}`;
+          logger.info`Trying to append to non-array, path ${path.join("/")}`;
           throw new Error(`Trying to append to non-array`);
         }
       },
@@ -220,7 +220,7 @@ export class DAG {
         if (typeof currentValue === "number") {
           set(parent, step, currentValue + amount);
         } else {
-          logger.error`Trying to add number to non-number, path ${
+          logger.info`Trying to add number to non-number, path ${
             path.join("/")
           }`;
           throw new Error(`Trying to add number to non-number`);

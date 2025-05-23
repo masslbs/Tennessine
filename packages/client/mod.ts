@@ -88,7 +88,7 @@ export class RelayResponseError extends Error {
     },
   ) {
     logger
-      .error`RelayResponseError:network request ${cause.requestType} cause id ${cause.id} failed with error[${cause.code}]: ${cause.message}`;
+      .info`RelayResponseError:network request ${cause.requestType} cause id ${cause.id} failed with error[${cause.code}]: ${cause.message}`;
     super(
       `network request ${cause.requestType} failed with error[${cause.code}]: ${cause.message}`,
     );

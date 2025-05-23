@@ -45,7 +45,7 @@ export default function ListingDetail() {
       ?.get(["Listings", itemId])
       .then((res: CodecValue | undefined) => {
         if (!res) {
-          logger.error`Listing ${itemId} not found`;
+          logger.info`Listing ${itemId} not found`;
           throw new Error(`Listing not found`);
         }
         const item = Listing.fromCBOR(res);
@@ -100,7 +100,7 @@ export default function ListingDetail() {
 
       const o = await stateManager.get(["Orders", orderId]);
       if (!o) {
-        logger.error(`Order ${orderId} not found`);
+        logger.info`Order ${orderId} not found`;
         throw new Error(`Order not found`);
       }
       const order: Order = Order.fromCBOR(o);
