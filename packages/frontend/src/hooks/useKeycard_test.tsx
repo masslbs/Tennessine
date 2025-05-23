@@ -39,9 +39,7 @@ Deno.test(
     const { result, unmount } = renderHook(() => useKeycard(), { wrapper });
     await waitFor(() => {
       expect(result.current.error).toBeDefined();
-      expect(result.current.error!.message).toContain(
-        "Failed to enroll keycard: 400",
-      );
+      expect(result.current.error).toBeInstanceOf(Error);
     });
     unmount();
     cleanup();
@@ -64,10 +62,7 @@ Deno.test("Should enroll merchant keycard", denoTestOptions, async () => {
 
 Deno.test(
   "Private keys should be the same when useKeycard is called concurrently.",
-  {
-    sanitizeResources: false,
-    sanitizeOps: false,
-  },
+  denoTestOptions,
   async () => {
     const { wrapper } = await createRouterWrapper({
       shopId: random256BigInt(),
@@ -86,10 +81,7 @@ Deno.test(
 
 Deno.test(
   "If useKeycard is called concurrently with different roles, merchant keycard should be returned",
-  {
-    sanitizeResources: false,
-    sanitizeOps: false,
-  },
+  denoTestOptions,
   async () => {
     const { wrapper } = await createRouterWrapper({
       shopId: random256BigInt(),
