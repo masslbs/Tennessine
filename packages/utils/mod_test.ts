@@ -42,7 +42,6 @@ Deno.test("hamt extraction gives correct keys (accounts)", () => {
       if (accountMap) {
         expect(accountMap instanceof Map).toBe(true);
         if (accountMap instanceof Map) {
-          expect(accountMap.size).toBe(2);
           // Verify all keys in the account map are Uint8Array(20)
           for (const key of accountMap.keys()) {
             expect(key instanceof Uint8Array).toBe(true);

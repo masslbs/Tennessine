@@ -23,11 +23,11 @@ const logger = getLogger(["mass-market", "frontend", "cart"]);
 
 export default function Cart({
   onCheckout,
-  closeBasket,
+  closeCart,
   showActionButtons = true,
 }: {
   onCheckout?: () => void;
-  closeBasket?: () => void;
+  closeCart?: () => void;
   showActionButtons?: boolean;
 }) {
   const { currentOrder, cancelOrder, createOrder, cancelAndRecreateOrder } =
@@ -158,7 +158,7 @@ export default function Cart({
       setErrorListing(null);
       setErrorMsg(null);
       logger.debug("cart cleared");
-      closeBasket?.();
+      closeCart?.();
     } catch (error) {
       setErrorMsg("Error clearing cart");
       logger.error("Error clearing cart", { error });
@@ -249,7 +249,7 @@ export default function Cart({
         itemId,
       }),
     });
-    closeBasket?.();
+    closeCart?.();
   }
   const icon = baseToken?.symbol === "ETH"
     ? "/icons/eth-coin.svg"
@@ -427,7 +427,7 @@ export default function Cart({
           data-testid="clear-cart"
           style={{ backgroundColor: "transparent", padding: 0 }}
         >
-          <p>Clear basket</p>
+          <p>Clear cart</p>
         </button>
       </div>
       <ErrorMessage

@@ -74,7 +74,7 @@ export default function CustomerViewProducts({
                   className="w-5 h-5"
                   data-testid="coin-icon"
                 />
-                <p data-testid="product-price">
+                <p data-testid="product-price" className="truncate">
                   {formatUnits(item.Price, baseToken.decimals)}
                 </p>
               </div>

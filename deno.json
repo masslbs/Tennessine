@@ -10,7 +10,8 @@
     "./packages/frontend",
     "./packages/store",
     "./packages/mmr",
-    "./packages/cli"
+    "./packages/cli",
+    "./packages/logtape-sentry-sink"
   ],
   "lint": {
     "rules": {

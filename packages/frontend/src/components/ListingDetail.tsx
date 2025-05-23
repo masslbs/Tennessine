@@ -140,6 +140,10 @@ export default function ListingDetail() {
     }
   }
 
+  function splitTextByNewlines(input: string) {
+    return input.split("\n");
+  }
+
   return (
     <main
       className="bg-gray-100 md:flex justify-center"
@@ -221,7 +225,15 @@ export default function ListingDetail() {
           <section className="flex gap-4 flex-col bg-white mt-5 md:mt-0 rounded-md md:w-2/5 p-4">
             <div>
               <h3 className=" ">Description</h3>
-              <p data-testid="description">{listing.Metadata.Description}</p>
+              <section data-testid="description">
+                {splitTextByNewlines(listing.Metadata.Description).map(
+                  (line: string, index: number) => (
+                    <p key={`description-${index}`} className="min-h-[1ch]">
+                      {line}
+                    </p>
+                  ),
+                )}
+              </section>
             </div>
             <div className="flex gap-2 items-center mt-auto">
               <img
@@ -257,10 +269,10 @@ export default function ListingDetail() {
                 <Button
                   onClick={changeItems}
                   disabled={!quantity}
-                  data-testid="addToBasket"
+                  data-testid="addToCart"
                 >
                   <div className="flex items-center gap-2">
-                    <p>Add to basket</p>
+                    <p>Add to cart</p>
                     <img
                       src="/icons/white-arrow.svg"
                       alt="white-arrow"
@@ -276,7 +288,7 @@ export default function ListingDetail() {
               <SuccessToast
                 message={successMsg}
                 onClose={() => setMsg(null)}
-                cta={{ copy: "View Basket", href: "/cart" }}
+                cta={{ copy: "View Cart", href: "/cart" }}
               />
             </div>
           </section>
