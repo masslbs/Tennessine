@@ -11,6 +11,7 @@ import { mintShop, setTokenURI } from "@massmarket/contracts";
 import MerchantConnect from "./MerchantConnect.tsx";
 import {
   createRouterWrapper,
+  createTestRelayClient,
   testAccount,
   testClient,
 } from "../../testutils/mod.tsx";
@@ -21,47 +22,41 @@ Deno.test("Check that we can render the merchant connect screen", {
   sanitizeOps: false,
 }, async (t) => {
   const shopId = random256BigInt();
-
+  const relayClient = await createTestRelayClient(shopId, false);
   const { wrapper } = await createRouterWrapper({
-    shopId,
+    // Setting shopId to null so we don't set the shopId in the search param. So we can test the search feature in /merchant-connect.
+    shopId: null,
     enrollMerchant: false,
     path: "/merchant-connect",
+    relayClient,
   });
+  const user = userEvent.setup();
 
-  await t.step("Render and unmount component", async () => {
-    const { unmount } = render(<MerchantConnect />, { wrapper });
-    await screen.findByTestId("merchant-connect-page");
-    expect(screen.getByTestId("merchant-connect-page")).toBeTruthy();
-    unmount();
+  // Create shop and set tokenURI
+  const transactionHash = await mintShop(testClient, testAccount, [
+    shopId,
+    testAccount,
+  ]);
+  const receipt = await testClient.waitForTransactionReceipt({
+    hash: transactionHash,
   });
+  expect(receipt.status).toBe("success");
 
-  await t.step("should be able to search for existing shop", async () => {
-    const transactionHash = await mintShop(testClient, testAccount, [
-      shopId,
-      testAccount,
-    ]);
-    const receipt = await testClient.waitForTransactionReceipt({
-      hash: transactionHash,
-    });
-    expect(receipt.status).toBe("success");
-
-    const metadataHash = await setTokenURI(testClient!, testAccount, [
-      shopId!,
-      "https://dummyjson.com/c/0a7c-cc65-4739-8899",
-    ]);
-    const transaction = await testClient!.waitForTransactionReceipt({
-      hash: metadataHash,
-      retryCount: 10,
-    });
-    expect(transaction.status).toBe("success");
-    console.log({ "shop minted": shopId });
+  const metadataHash = await setTokenURI(testClient!, testAccount, [
+    shopId!,
+    "https://dummyjson.com/c/0a7c-cc65-4739-8899",
+  ]);
+  const transaction = await testClient!.waitForTransactionReceipt({
+    hash: metadataHash,
+    retryCount: 10,
   });
+  expect(transaction.status).toBe("success");
+  console.log({ "shop minted": shopId });
 
   // TODO: for some reason, making these three steps introduces problems
   await t.step("Test different shop ids", async () => {
     console.log("Test invalid shop id");
     const { unmount } = render(<MerchantConnect />, { wrapper });
-    const user = userEvent.setup();
     await act(async () => {
       const searchInput = await screen.findByTestId("search-shopId");
       expect(searchInput).toBeTruthy();
@@ -129,5 +124,31 @@ Deno.test("Check that we can render the merchant connect screen", {
     });
     unmount();
   });
+  await t.step(
+    "If shop ID is already provided, screen should display connect screen.",
+    async () => {
+      localStorage.removeItem(`keycard${shopId}`);
+      const { wrapper } = await createRouterWrapper({
+        // This sets the shopId in the search param.
+        shopId,
+        enrollMerchant: false,
+        path: "/merchant-connect",
+      });
+
+      const { unmount } = render(<MerchantConnect />, { wrapper });
+      await waitFor(async () => {
+        expect(screen.getByTestId("shop-name")).toBeTruthy();
+        const searchButton = screen.getByRole("button", {
+          name: "Connect to shop",
+        });
+        expect(searchButton).toBeTruthy();
+        await user.click(searchButton);
+      }, { timeout: 10000 });
+      await waitFor(() => {
+        expect(screen.getByTestId("connect-confirmation")).toBeTruthy();
+      });
+      unmount();
+    },
+  );
   cleanup();
 });
