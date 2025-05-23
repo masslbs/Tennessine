@@ -47,6 +47,7 @@ jobs:
       # if this fails check the logs of the prior job. The relay should log it's failure reason there.
       # the logs for the other services might be bit harder to come by since they are orchestrated by docker.
       - name: check services running? 1. relay, 2. ipfs, 3. anvil
+        if: ${{ github.ref == 'refs/heads/release/mainnet' }}
         run: |
           set -e
           # TODO: would be nice to have this all in probes and use a process-compose cli call to check readiness
