@@ -14,7 +14,9 @@ const logger = getLogger(["mass-market", "frontend", "useCurrentOrder"]);
 
 export function useCurrentOrder() {
   const { currentOrder, setCurrentOrder } = useMassMarketContext();
+
   const { stateManager } = useStateManager();
+
   const [keycard] = useKeycard();
 
   function onCurrentOrderChange(o: CodecValue) {
@@ -178,5 +180,6 @@ export function useCurrentOrder() {
       }
     };
   }, [stateManager, currentOrder?.ID]);
+
   return { currentOrder, createOrder, cancelAndRecreateOrder, cancelOrder };
 }

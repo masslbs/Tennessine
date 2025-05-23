@@ -1,7 +1,6 @@
 import "../../happyDomSetup.ts";
 
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
-import { act } from "@testing-library/react-hooks";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "@std/expect";
 
