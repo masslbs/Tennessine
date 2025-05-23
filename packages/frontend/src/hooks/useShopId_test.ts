@@ -1,6 +1,6 @@
 import "../happyDomSetup.ts";
 import { assertEquals } from "@std/assert";
-import { cleanup, renderHook } from "@testing-library/react";
+import { cleanup, renderHook, waitFor } from "@testing-library/react";
 
 import { random256BigInt } from "@massmarket/utils";
 
@@ -15,7 +15,9 @@ Deno.test(
       const shopId = random256BigInt();
       const { wrapper } = await createRouterWrapper({ shopId });
       const { result, unmount } = renderHook(() => useShopId(), { wrapper });
-      assertEquals(result.current.shopId, shopId);
+      await waitFor(() => {
+        assertEquals(result.current.shopId, shopId);
+      });
       unmount();
       cleanup();
     });
