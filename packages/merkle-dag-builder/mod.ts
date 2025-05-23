@@ -1,4 +1,5 @@
 import { assert } from "@std/assert";
+import { getLogger } from "@logtape/logtape";
 import {
   type codec,
   get,
@@ -8,6 +9,8 @@ import {
   set,
 } from "@massmarket/utils";
 import { type AbstractStore, ContentAddressableStore } from "@massmarket/store";
+
+const logger = getLogger(["mass-market", "merkle-dag-builder"]);
 
 export type RootValue =
   | codec.CodecValue
@@ -31,7 +34,8 @@ export class DAG {
   ): Promise<codec.CodecValue> {
     const val = await this.store.get(hash);
     if (!val) {
-      throw new Error(`Hash not found: ${hash}`);
+      logger.info`Hash not found: ${hash}`;
+      throw new Error(`Hash not found`);
     }
     if (clone) {
       // we assume the store shares objects as a caching mechanism
@@ -130,7 +134,8 @@ export class DAG {
         set(parent, last, value);
       }
     } else {
-      throw new Error(`Path ${path.join(".")} does not exist`);
+      logger.info`Path ${path.join(".")} does not exist`;
+      throw new Error(`Path does not exist`);
     }
     return walk[0].value;
   }
@@ -176,9 +181,8 @@ export class DAG {
         if (Array.isArray(arr)) {
           arr.push(value);
         } else {
-          throw new Error(
-            `tying to append to non-array, path ${path.join("/")}`,
-          );
+          logger.info`Trying to append to non-array, path ${path.join("/")}`;
+          throw new Error(`Trying to append to non-array`);
         }
       },
     );
@@ -216,9 +220,10 @@ export class DAG {
         if (typeof currentValue === "number") {
           set(parent, step, currentValue + amount);
         } else {
-          throw new Error(
-            `tying to add number to non-number, path ${path.join("/")}`,
-          );
+          logger.info`Trying to add number to non-number, path ${
+            path.join("/")
+          }`;
+          throw new Error(`Trying to add number to non-number`);
         }
       },
     );
