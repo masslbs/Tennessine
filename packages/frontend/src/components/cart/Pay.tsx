@@ -143,12 +143,16 @@ export default function Pay({
         throw new Error("pay: transaction failed");
       }
     } catch (error: unknown) {
+      // for context on typing errors from wagmi, see
+      // https://github.com/wevm/wagmi/discussions/233
+      setErrorMsg("Error sending payment");
       // @ts-ignore TODO: fix this
       if (error.shortMessage) {
         // @ts-ignore TODO: fix this
-        setErrorMsg(error.shortMessage);
+        logger.info`${error.shortMessage}`;
       }
-      logger.error("Error sending payment", { error });
+      // @ts-ignore TODO: fix this
+      logger.error("Error sending payment {error}", { error });
     }
   }
 
