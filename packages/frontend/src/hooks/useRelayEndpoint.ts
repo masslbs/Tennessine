@@ -13,7 +13,7 @@ export function useRelayEndpoint() {
         if (env.relayTokenId && env.relayEndpoint) {
           const re = {
             url: new URL(env.relayEndpoint),
-            tokenId: env.relayTokenId,
+            tokenId: env.relayTokenId as `0x${string}`,
           };
           logger.debug(
             `using environment variables for relay endpoint ${re.url}`,

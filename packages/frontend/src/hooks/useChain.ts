@@ -3,7 +3,7 @@ import { env } from "../utils/env.ts";
 
 export function useChain() {
   let chain: Chain;
-  switch (env.chainName) {
+  switch (env.VITE_CHAIN_NAME || "hardhat") {
     case "sepolia":
       chain = sepolia;
       break;
@@ -14,7 +14,7 @@ export function useChain() {
       chain = hardhat;
       break;
     default:
-      throw new Error(`Unknown chain: ${env.chainName}`);
+      throw new Error(`Unknown chain: ${env.VITE_CHAIN_NAME}`);
   }
   return { chain };
 }
