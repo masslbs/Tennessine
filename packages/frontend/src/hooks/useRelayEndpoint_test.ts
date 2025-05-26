@@ -1,10 +1,16 @@
 import "../happyDomSetup.ts";
 import { assertEquals } from "@std/assert";
-import { renderHook, waitFor } from "@testing-library/react";
+import { renderHook } from "@testing-library/react";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      experimental_prefetchInRender: true,
+    },
+  },
+});
 
 function wrapper({ children }: { children: React.ReactNode }) {
   return QueryClientProvider({ client: queryClient, children });
@@ -12,11 +18,13 @@ function wrapper({ children }: { children: React.ReactNode }) {
 
 Deno.test("useRelayEndpoint", async (t) => {
   await t.step("If no env vars, call discoverRelay fn", async () => {
-    const { result } = renderHook(() => useRelayEndpoint(), {
+    const { unmount, result, rerender } = renderHook(() => useRelayEndpoint(), {
       wrapper,
     });
-    await waitFor(() => {
-      assertEquals(!!result.current.relayEndpoint, true);
-    });
+    assertEquals(result.current.relayEndpoint, undefined);
+    await result.current.promise;
+    rerender();
+    assertEquals(!!result.current.relayEndpoint, true);
+    unmount();
   });
 });
