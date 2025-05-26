@@ -9,7 +9,6 @@ import { useDisconnect } from "wagmi";
 import { Order, OrderedItem } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
 
-import { KeycardRole } from "../types.ts";
 import Cart from "./cart/Cart.tsx";
 import { useStateManager } from "../hooks/useStateManager.ts";
 import { useShopDetails } from "../hooks/useShopDetails.ts";
@@ -57,9 +56,9 @@ function Navigation() {
   const { shopDetails } = useShopDetails();
   const { stateManager } = useStateManager();
   const { currentOrder } = useCurrentOrder();
-  const [keycard] = useKeycard();
+  const { data: keycard } = useKeycard();
   const { disconnect } = useDisconnect();
-  const isMerchantView = keycard.role === KeycardRole.MERCHANT;
+  const isMerchantView = keycard!.role === "merchant";
 
   useEffect(() => {
     // in the hook `useCurrentOrder`, we "reset" currentOrder for the states OrderState.Canceled and OrderState.Paid.

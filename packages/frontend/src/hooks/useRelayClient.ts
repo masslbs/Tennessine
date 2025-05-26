@@ -17,7 +17,7 @@ const logger = getLogger(["mass-market", "frontend", "useRelayClient"]);
 
 export function useRelayClient() {
   const { relayClient, setRelayClient } = useMassMarketContext();
-  const [keycard] = useKeycard();
+  const { data: keycard } = useKeycard();
   const { chain } = useChain();
   const { relayEndpoint } = useRelayEndpoint();
   const { shopId } = useShopId();
@@ -37,11 +37,11 @@ export function useRelayClient() {
         ? relayClient.keycard
         : relayClient.keycard.address;
     };
-    if (hasRelayClient && getKeyCardAddress() === keycard.address) {
+    if (hasRelayClient && getKeyCardAddress() === keycard!.address) {
       logger.debug`RelayClient already set ${getKeyCardAddress()}`;
       return;
     }
-    const account = privateKeyToAccount(keycard.privateKey);
+    const account = privateKeyToAccount(keycard!.privateKey);
     const keycardWallet = createWalletClient({
       account,
       chain,
@@ -68,7 +68,7 @@ export function useRelayClient() {
     keycard !== undefined,
     String(shopId),
     relayEndpoint,
-    keycard.privateKey,
+    keycard!.privateKey,
   ]);
 
   return { relayClient };

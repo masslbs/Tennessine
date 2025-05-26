@@ -2,26 +2,22 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { useEffect, useState } from "react";
-import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import { useState } from "react";
+import { useAccount, usePublicClient } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useNavigate } from "@tanstack/react-router";
 import { hexToBigInt, isHex, toHex } from "viem";
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { getLogger } from "@logtape/logtape";
 
 import { abi } from "@massmarket/contracts";
-import { getWindowLocation } from "@massmarket/utils";
 
 import ConnectConfirmation from "./ConnectConfirmation.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import Button from "../common/Button.tsx";
-import { useKeycard } from "../../hooks/useKeycard.ts";
 import { useShopId } from "../../hooks/useShopId.ts";
 import { useChain } from "../../hooks/useChain.ts";
-import { KeycardRole, SearchShopStep } from "../../types.ts";
-import { useRelayClient } from "../../hooks/useRelayClient.ts";
-import { useStateManager } from "../../hooks/useStateManager.ts";
+import { useKeycard } from "../../hooks/useKeycard.ts";
+import { SearchShopStep } from "../../types.ts";
 
 const logger = getLogger(["mass-market", "frontend", "connect-merchant"]);
 
@@ -29,12 +25,9 @@ export default function MerchantConnect() {
   const { status } = useAccount();
   const { chain } = useChain();
   const shopPublicClient = usePublicClient({ chainId: chain.id });
-  const { data: wallet } = useWalletClient();
   const { shopId } = useShopId();
-  const [keycard, setKeycard] = useKeycard();
-  const { relayClient } = useRelayClient();
-  const { stateManager } = useStateManager();
   const navigate = useNavigate({ from: "/merchant-connect" });
+  useKeycard("merchant");
 
   const [searchShopId, setSearchShopId] = useState<string>(
     shopId ? toHex(shopId, { size: 32 }) : "",
@@ -49,19 +42,6 @@ export default function MerchantConnect() {
       image: string;
     } | null
   >(null);
-
-  useEffect(() => {
-    // If keycard is already enrolled as a customer, reset keycard
-    if (shopId && keycard.role === KeycardRole.RETURNING_GUEST) {
-      const privateKey = generatePrivateKey();
-      const account = privateKeyToAccount(privateKey);
-      setKeycard({
-        privateKey,
-        role: KeycardRole.NEW_GUEST,
-        address: account.address,
-      });
-    }
-  }, [keycard.role === KeycardRole.RETURNING_GUEST, shopId]);
 
   function handleClearShopIdInput() {
     setSearchShopId("");
@@ -104,41 +84,6 @@ export default function MerchantConnect() {
     }
   }
 
-  async function enroll() {
-    try {
-      if (!relayClient) {
-        throw new Error("Relay client not found");
-      }
-      if (!stateManager) {
-        logger.warn("stateManager is undefined");
-        return;
-      }
-      const res = await relayClient.enrollKeycard(
-        wallet!,
-        wallet!.account,
-        false,
-        getWindowLocation(),
-      );
-      if (!res.ok) {
-        throw new Error("Failed to enroll keycard");
-      }
-      // Reassign keycard role as merchant after enroll.
-      setKeycard({
-        privateKey: keycard.privateKey,
-        role: KeycardRole.MERCHANT,
-        address: keycard.address,
-      });
-      logger.debug`Keycard enrolled: ${keycard.privateKey}`;
-      await relayClient.connect();
-      await relayClient.authenticate();
-      stateManager!.addConnection(relayClient);
-      setStep(SearchShopStep.Confirm);
-    } catch (error: unknown) {
-      logger.error("Error enrolling keycard", { error });
-      setErrorMsg(`Something went wrong. ${error}`);
-    }
-  }
-
   function getButton() {
     if (step === SearchShopStep.Search) {
       return (
@@ -169,7 +114,7 @@ export default function MerchantConnect() {
           </div>
           <ConnectButton chainStatus="name" />
           <div>
-            <Button disabled={status !== "connected"} onClick={enroll}>
+            <Button disabled={status !== "connected"}>
               Connect to shop
             </Button>
           </div>

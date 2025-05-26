@@ -17,6 +17,6 @@
     "protobufjs": "npm:protobufjs@7.5.0",
     "long": "npm:long@5.3.2",
     "protobufjs-cli": "npm:protobufjs-cli@1.2.0",
-    "viem": "npm:viem@^2.30.0"
+    "viem": "npm:viem@^2.30.1"
   }
 }

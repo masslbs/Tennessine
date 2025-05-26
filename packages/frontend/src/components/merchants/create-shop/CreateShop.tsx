@@ -2,20 +2,12 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { getLogger } from "@logtape/logtape";
 import { ConnectButton, useAddRecentTransaction } from "@rainbow-me/rainbowkit";
-import { useNavigate, useSearch } from "@tanstack/react-router";
-import {
-  useAccount,
-  useChainId,
-  useConfig,
-  usePublicClient,
-  useSwitchChain,
-  useWalletClient,
-} from "wagmi";
+import { useAccount, useConfig, usePublicClient, useWalletClient } from "wagmi";
 import { simulateContract } from "@wagmi/core";
-import { toBytes, toHex } from "viem";
+import { toBytes } from "viem";
 
 import {
   addRelay,
@@ -28,7 +20,7 @@ import {
   ShippingRegion,
   ShippingRegionsMap,
 } from "@massmarket/schema";
-import { getWindowLocation, random256BigInt } from "@massmarket/utils";
+import { getWindowLocation } from "@massmarket/utils";
 import { abi, permissions } from "@massmarket/contracts";
 
 import ManifestForm from "./ManifestForm.tsx";
@@ -39,11 +31,10 @@ import LoadingSpinner from "../../common/LoadingSpinner.tsx";
 import BackButton from "../../common/BackButton.tsx";
 import ConnectWalletButton from "../../common/ConnectWalletButton.tsx";
 import { useShopId } from "../../../hooks/useShopId.ts";
-import { useKeycard } from "../../../hooks/useKeycard.ts";
 import { useShopDetails } from "../../../hooks/useShopDetails.ts";
 import { useChain } from "../../../hooks/useChain.ts";
-import { CreateShopStep, KeycardRole, ShopForm } from "../../../types.ts";
-import { isValidAddress, removeCachedKeycards } from "../../../utils/mod.ts";
+import { CreateShopStep, ShopForm } from "../../../types.ts";
+import { isValidAddress } from "../../../utils/mod.ts";
 import { useRelayClient } from "../../../hooks/useRelayClient.ts";
 import { useStateManager } from "../../../hooks/useStateManager.ts";
 
@@ -65,19 +56,14 @@ export default function () {
   //Env chain
   const { chain } = useChain();
   // Chain that user is connected to
-  const chainId = useChainId();
   const shopPublicClient = usePublicClient({ chainId: chain.id });
   const { data: wallet } = useWalletClient();
   const { shopId } = useShopId();
   const { setShopDetails } = useShopDetails();
-  const [keycard, setKeycard] = useKeycard();
   const { relayClient } = useRelayClient();
   const { stateManager } = useStateManager();
   const { connector } = useAccount();
   const config = useConfig();
-  const { switchChain } = useSwitchChain({ config });
-  const navigate = useNavigate({ from: "/create-shop" });
-  const search = useSearch({ from: "/create-shop" });
 
   const [shopManifest, setShopManifest] = useState<Manifest>(new Manifest());
   const [storeRegistrationStatus, setStoreRegistrationStatus] = useState<
@@ -98,30 +84,6 @@ export default function () {
   const [step, setStep] = useState<
     CreateShopStep
   >(CreateShopStep.ManifestForm);
-
-  useEffect(() => {
-    if (!search.shopId) {
-      const newShopId = random256BigInt();
-      navigate({ search: { shopId: toHex(newShopId) } });
-    }
-    return () => {
-      // If user exits before creating shop, remove keycard from local storage.
-      removeCachedKeycards();
-    };
-  }, []);
-
-  useEffect(() => {
-    if (wallet?.account) {
-      setShopMetadata({
-        ...shopMetadata,
-        paymentAddress: wallet.account.address,
-      });
-      if (chainId !== chain.id) {
-        logger.debug`Switching chainID from ${chainId} to ${chain.id}`;
-        switchChain({ chainId: chain.id });
-      }
-    }
-  }, [wallet]);
 
   function checkRequiredFields() {
     if (!shopMetadata.shopName.length) {
@@ -182,7 +144,7 @@ export default function () {
         args: [shopId!, wallet!.account.address],
         connector,
       });
-      logger.debug("simulateContract success");
+      logger.debug`simulateContract success`;
       const hash = await mintShop(wallet!, wallet!.account.address, [
         shopId!,
         wallet!.account.address,
@@ -223,8 +185,8 @@ export default function () {
       if (receipt.status !== "success") {
         throw new Error("Error: addRelay");
       }
-    } catch (err: unknown) {
-      logger.error("Error minting store", { err });
+    } catch (error: unknown) {
+      logger.error("Error minting store", { error });
       setErrorMsg(`Error minting store`);
       return;
     }
@@ -265,7 +227,6 @@ export default function () {
       if (!res.ok) {
         throw Error("Failed to enroll keycard");
       }
-      logger.debug`Keycard enrolled: ${keycard.privateKey}`;
       setStoreRegistrationStatus("Adding connection...");
 
       stateManager.addConnection(relayClient);
@@ -327,10 +288,6 @@ export default function () {
         ["Manifest"],
         shopManifest,
       );
-      setKeycard({
-        ...keycard,
-        role: KeycardRole.MERCHANT,
-      });
       logger.debug("Manifest created");
     } catch (error: unknown) {
       logger.error("Error creating shop manifest", { error });

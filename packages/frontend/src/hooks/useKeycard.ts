@@ -43,6 +43,9 @@ export function useKeycard(role: KeycardRole = "guest") {
 
       assert(relayEndpoint);
       assert(shopId);
+      assert(address);
+      assert(wallet);
+
       const privateKey = generatePrivateKey();
       // This relay instance is just to enroll the keycard.
       const relayClient = new RelayClient({
@@ -61,7 +64,7 @@ export function useKeycard(role: KeycardRole = "guest") {
 
       if (!res.ok) {
         const error = new Error(`Failed to enroll keycard: ${res.status}`);
-        logger.error(`failed to enroll ${role} keycard for shop ${shopid}`, {
+        logger.error(`failed to enroll ${role} keycard for shop ${shopId}`, {
           error,
         });
         throw error;
