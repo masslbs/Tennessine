@@ -4827,7 +4827,8 @@
       },
       "packages/merkle-dag-builder": {
         "dependencies": [
-          "jsr:@std/assert@^1.0.13"
+          "jsr:@std/assert@^1.0.13",
+          "npm:@logtape/logtape@~0.9.2"
         ]
       },
       "packages/mmr": {
