@@ -59,7 +59,7 @@ export function getSentrySink(client?: BaseClient<ClientOptions>): Sink {
     const message = getParameterizedString(record);
     // const namespace = record.category;
     if (client == null) client = getClient();
-    if (record.level === "error" && record?.properties.error instanceof Error) {
+    if (record.level === "error" && record?.properties.error !== undefined) {
       client?.captureException(record?.properties.error, {
         data: record.properties,
       });

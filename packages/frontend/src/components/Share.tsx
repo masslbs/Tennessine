@@ -2,8 +2,14 @@ import { useState } from "react";
 import { useSearch } from "@tanstack/react-router";
 
 import BackButton from "./common/BackButton.tsx";
-import { useShopDomain } from "../hooks/useShopDomain.ts";
 import { env } from "../utils/env.ts";
+
+export function useShopDomain() {
+  return {
+    protocol: globalThis.location.protocol,
+    shopDomain: globalThis.location.host,
+  };
+}
 
 export default function Share() {
   const search = useSearch({ strict: false });
