@@ -32,8 +32,54 @@ jobs:
           nix develop -c local-testnet -D -L logs/process-compose.log
         working-directory: Tennessine/
 
+      - name: Run Lint
+        run: nix develop -c bash -c "deno lint"
+        working-directory: Tennessine/
+
+      - name: Run formatting check
+        run: nix develop -c bash -c "deno fmt --check"
+        working-directory: Tennessine/
+
+      - name: Type Check packages
+        run: nix develop -c bash -c "deno check ."
+        working-directory: Tennessine/
+
+      # if this fails check the logs of the prior job. The relay should log it's failure reason there.
+      # the logs for the other services might be bit harder to come by since they are orchestrated by docker.
+      - name: check services running? 1. relay, 2. ipfs, 3. anvil
+        run: |
+          set -e
+          # TODO: would be nice to have this all in probes and use a process-compose cli call to check readiness
+          curl http://localhost:8321/live
+          curl http://localhost:8321/processes | jq .data
+
+          timeout=10;
+          while [ $timeout -gt 0 ]; do
+            # check if relay is ready
+            processStateFname=Tennessine/logs/processes-${timeout}.json
+            curl http://localhost:8321/processes > $processStateFname
+            isReady=$(cat $processStateFname | jq -r '.data[] | select(.name == "relay") | .is_ready')
+            if [ "$isReady" == "Ready" ]; then
+              break
+            fi
+            echo "Relay is not ready, waiting for $timeout seconds"
+            timeout=$((timeout - 1))
+            sleep 5
+          done
+
+          if [ "$isReady" != "Ready" ]; then
+            echo "Relay is not ready"
+            nix run '.#local-testnet-dev' -- down
+            exit 1
+          fi
+
+          # TODO: redundant once probes are in place
+          curl http://localhost:4444/health
+          curl http://localhost:5001/api/v0/version -X POST
+          curl http://localhost:8545/ -X POST -H 'content-type: application/json' --data-raw '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":0}'
+
       - name: Run tests
-        run: nix develop -c bash -c "deno test -A --no-check --fail-fast --trace-leaks ./packages/frontend/src/hooks/useRelayEndpoint_test.ts"
+        run: nix develop -c bash -c "deno test -A --no-check --fail-fast"
         working-directory: Tennessine/
 
       - name: Shut down local testnet
