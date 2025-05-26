@@ -15,7 +15,7 @@ const sentryConfig: Config<string, string> = {
     console: getConsoleSink(),
   },
   loggers: [
-    { category: [], sinks: ["console"], level: "debug" },
+    { category: [], sinks: ["console"], lowestLevel: "debug" },
   ],
 };
 if (isSentryEnabled) {
@@ -30,7 +30,7 @@ if (isSentryEnabled) {
   sentryConfig.loggers.push({
     category: ["mass-market"],
     sinks: ["sentry"],
-    level: "warning",
+    lowestLevel: "warning",
   });
 }
 await configure(sentryConfig);
