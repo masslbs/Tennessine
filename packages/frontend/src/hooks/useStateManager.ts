@@ -9,7 +9,7 @@ import StateManager from "@massmarket/stateManager";
 import { useRouter } from "@tanstack/react-router";
 
 import { KeycardRole } from "../types.ts";
-import { useMassMarketContext } from "../MassMarketContext.ts";
+import { useMassMarketContext } from "@massmarket/react-hooks";
 import { useShopId } from "./useShopId.ts";
 import { useQuery } from "./useQuery.ts";
 import { useKeycard } from "./useKeycard.ts";

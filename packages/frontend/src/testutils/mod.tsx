@@ -22,7 +22,7 @@ import { random256BigInt } from "@massmarket/utils";
 import StateManager from "@massmarket/stateManager";
 import { MemStore } from "@massmarket/store";
 
-import { MassMarketProvider } from "../MassMarketContext.ts";
+import { MassMarketProvider } from "@massmarket/react-hooks";
 import { KeycardRole } from "../types.ts";
 import { env } from "../utils/env.ts";
 

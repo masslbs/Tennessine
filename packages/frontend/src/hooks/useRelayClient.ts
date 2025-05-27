@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { assert } from "@std/assert";
 import { RelayClient } from "@massmarket/client";
 
-import { useMassMarketContext } from "../MassMarketContext.ts";
+import { useMassMarketContext } from "@massmarket/react-hooks";
 import { useKeycard } from "./useKeycard.ts";
 import { useChain } from "./useChain.ts";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";

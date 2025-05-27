@@ -3,7 +3,6 @@ import { assertEquals } from "@std/assert";
 import { renderHook } from "@testing-library/react";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { MassMarketProvider } from "@massmarket/react-hooks";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -14,13 +13,11 @@ const queryClient = new QueryClient({
 });
 
 function wrapper({ children }: { children: React.ReactNode }) {
-  return MassMarketProvider({
-    children: QueryClientProvider({ client: queryClient, children }),
-  });
+  return QueryClientProvider({ client: queryClient, children });
 }
 
 Deno.test("useRelayEndpoint", async (t) => {
-  await import("../happyDomSetup.ts");
+  await import("./happyDomSetup.ts");
   await t.step("If no env vars, call discoverRelay fn", async () => {
     const { result, rerender } = renderHook(() => useRelayEndpoint(), {
       wrapper,
@@ -30,5 +27,6 @@ Deno.test("useRelayEndpoint", async (t) => {
     rerender();
     assertEquals(!!result.current.relayEndpoint, true);
   });
+
   await GlobalRegistrator.unregister();
 });

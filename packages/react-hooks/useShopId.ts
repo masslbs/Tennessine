@@ -1,13 +1,13 @@
 import { useSearch } from "@tanstack/react-router";
 import { hexToBigInt } from "viem";
-import { useMassMarketContext } from "@massmarket/react-hooks";
+import { useMassMarketContext } from "./useMassMarketContext.ts";
 
 export function useShopId() {
-  const { config: env } = useMassMarketContext();
+  const context = useMassMarketContext();
   // This is for prod builds so we can have a clean url without having to include shopId in the param.
-  if (env.shopTokenId) {
+  if (context?.config?.shopTokenId) {
     return {
-      shopId: BigInt(env.shopTokenId),
+      shopId: BigInt(context.config.shopTokenId),
     };
   }
   const search = useSearch({ strict: false });

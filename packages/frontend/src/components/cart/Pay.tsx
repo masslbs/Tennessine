@@ -17,7 +17,7 @@ import { abi, approveERC20, getAllowance, pay } from "@massmarket/contracts";
 
 import Button from "../common/Button.tsx";
 import BackButton from "../common/BackButton.tsx";
-import { useMassMarketContext } from "../../MassMarketContext.ts";
+import { useMassMarketContext } from "@massmarket/react-hooks";
 import { isTesting } from "../../utils/env.ts";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import PriceSummary from "./PriceSummary.tsx";
