@@ -18,6 +18,7 @@
     "@deno/vite-plugin": "npm:@deno/vite-plugin@^1.0.4",
     "@happy-dom/global-registrator": "npm:@happy-dom/global-registrator@^17.4.4",
     "@logtape/logtape": "npm:@logtape/logtape@^0.9.2",
+    "@masslbs/deno-vite-plugin": "npm:@masslbs/deno-vite-plugin@^1.0.4",
     "@rainbow-me/rainbowkit": "npm:@rainbow-me/rainbowkit@^2.2.0",
     "@sentry/browser": "npm:@sentry/browser@^9.19.0",
     "@std/assert": "jsr:@std/assert@^1.0.13",
