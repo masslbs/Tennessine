@@ -1,10 +1,10 @@
 import { register, unregister } from "./happyDomSetup.ts";
 import { assertEquals } from "@std/assert";
-import { act, renderHook } from "@testing-library/react";
 import { random256BigInt } from "@massmarket/utils";
 
 import { useShopId } from "./useShopId.ts";
 import { createWrapper } from "./_createWrapper.tsx";
+import { act, renderHook } from "@testing-library/react";
 
 Deno.test(
   "useShopId",

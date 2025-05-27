@@ -54,12 +54,10 @@ Deno.test("Check that we can render the merchant connect screen", {
       retryCount: 10,
     });
     expect(transaction.status).toBe("success");
-    console.log({ "shop minted": shopId });
   });
 
   // TODO: for some reason, making these three steps introduces problems
   await t.step("Test different shop ids", async () => {
-    console.log("Test invalid shop id");
     const { unmount } = render(<MerchantConnect />, { wrapper });
     const user = userEvent.setup();
     await act(async () => {
@@ -81,7 +79,6 @@ Deno.test("Check that we can render the merchant connect screen", {
       expect(errorMessage.textContent).toBe("Invalid shop ID (input not hex)");
     });
 
-    console.log("Test non-existent shop id");
     const testShopId = toHex(random256BigInt(), { size: 32 });
     await act(async () => {
       const searchInput = screen.getByTestId("search-shopId");
@@ -102,7 +99,6 @@ Deno.test("Check that we can render the merchant connect screen", {
       expect(errorMessage.textContent).toBe("Shop not found");
     });
 
-    console.log("Test valid shop id");
     await act(async () => {
       const searchInput = screen.getByTestId("search-shopId");
       expect(searchInput).toBeTruthy();

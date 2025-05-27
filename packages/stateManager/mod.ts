@@ -100,7 +100,6 @@ export default class StateManager {
         //   throw new Error("Invalid keycard");
         for (const patch of patchSet.patches) {
           // TODO validate the Operation's value if any
-          // console.log("Applying patch:", patch);
           if (patch.Op === "add") {
             state.root = this.graph.add(
               state.root,
@@ -137,7 +136,6 @@ export default class StateManager {
               -patch.Value,
             );
           } else {
-            console.error({ patch });
             throw new Error(`Unimplemented operation type: ${patch.Op}`);
           }
         }

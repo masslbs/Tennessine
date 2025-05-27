@@ -40,7 +40,6 @@ Deno.test("Check that we can render the checkout screen", {
     enrollMerchant: true,
   });
   merchantStateManager.addConnection(merchantRelayClient);
-  console.log("acting as merchant:", testMerchantAccount);
   // wait for manifest to sync
   await waitFor(async () => {
     const manifest = await merchantStateManager.get(["Manifest"]);
@@ -102,14 +101,11 @@ Deno.test("Check that we can render the checkout screen", {
   // Remove merchant's keycard to free up for customer
   localStorage.removeItem(`keycard${shopId}`);
 
-  console.log("merchant setup done. bringing up customer wrapper.");
-
   // Set up customer
   const { wrapper, stateManager, relayClient, testAccount } =
     await createRouterWrapper({
       shopId,
     });
-  console.log("acting as customer:", testAccount);
   await relayClient.enrollKeycard(testClient, testAccount, true);
   await relayClient.connect();
   await relayClient.authenticate();

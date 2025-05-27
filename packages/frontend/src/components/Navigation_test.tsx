@@ -43,8 +43,6 @@ Deno.test("Check that we can render the navigation bar", {
   // remove merchant's keycard to free up for customer
   localStorage.removeItem(`keycard${shopId}`);
 
-  console.log("merchant setup done. bringing up customer wrapper.");
-
   const { wrapper, stateManager, relayClient, testAccount } =
     await createRouterWrapper({
       shopId,

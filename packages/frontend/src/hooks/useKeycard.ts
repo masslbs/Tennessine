@@ -22,6 +22,5 @@ export function useKeycard(
   }
   const { shopId } = useShopId();
   const keyCardID = "keycard" + shopId;
-  // console.log({shopId, keyCardID});
   return useLocalStorage(keyCardID, keycard);
 }

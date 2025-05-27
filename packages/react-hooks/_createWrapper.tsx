@@ -9,6 +9,7 @@ import { createConfig, http, mock, WagmiProvider } from "wagmi";
 import { foundry } from "wagmi/chains";
 import { createTestClient, publicActions, walletActions } from "viem";
 import { mintShop } from "@massmarket/contracts";
+import { random256BigInt } from "@massmarket/utils";
 import { MassMarketProvider } from "./MassMarketContext.ts";
 // import { random256BigInt } from "@massmarket/utils";
 
@@ -26,7 +27,10 @@ export const testClient = createTestClient({
 const testAccounts = await testClient.requestAddresses();
 export const testAccount = testAccounts[0];
 
-export function createWrapper(shopId: bigint, testAccountIndex = 0) {
+export function createWrapper(
+  shopId: bigint = random256BigInt(),
+  testAccountIndex = 0,
+) {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {

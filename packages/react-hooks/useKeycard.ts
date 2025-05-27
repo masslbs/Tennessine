@@ -56,7 +56,6 @@ export function useKeycard(role: KeycardRole = "guest") {
         shopId,
       });
 
-      console.log("enrolling keycard");
       const res = await relayClient.enrollKeycard(
         wallet,
         address,

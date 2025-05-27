@@ -23,11 +23,9 @@ Deno.test("unpack manifest vectors", async (t) => {
     },
   ) || [];
 
-  console.log("count of manifests", vector.length);
   for (const manifest of vector) {
     await t.step(manifest.name as string, () => {
       const unpacked = Manifest.fromCBOR(manifest.value);
-      console.log(unpacked);
       assertEquals(unpacked.asCBORMap(), manifest.value);
     });
   }
@@ -48,17 +46,13 @@ Deno.test("unpack listing vectors", async (t) => {
     },
   ) || [];
 
-  console.log("count of listings", vectors.length);
   for (const vector of vectors) {
     if (!vector || !vector.values || !(vector.values instanceof Map)) {
       continue;
     }
     for (const [id, listing] of vector.values.entries()) {
       await t.step(`${vector.name} - ${id}`, () => {
-        // console.log("listing:", vector.name, id);
-        // console.log(listing);
         const unpacked = Listing.fromCBOR(listing);
-        // console.log(unpacked);
         assertEquals(unpacked.asCBORMap(), listing);
       });
     }
@@ -75,16 +69,12 @@ Deno.test("unpack order vectors", async () => {
     },
   ) || [];
 
-  console.log("count of orders", orders.length);
-
   for (const orderMap of orders) {
     if (!orderMap || !(orderMap instanceof Map)) {
       continue;
     }
-    for (const [id, order] of orderMap.entries()) {
-      console.log("order id", id);
+    for (const [_id, order] of orderMap.entries()) {
       const unpacked = Order.fromCBOR(order);
-      console.log(unpacked);
       assertEquals(unpacked.asCBORMap(), order);
     }
   }

@@ -40,7 +40,6 @@ Deno.test("Tree Event Testings", async (t) => {
       parentEvent = e;
     });
 
-    console.log(update);
     tree.emit(update);
     assertEquals(event, 1, "Event should be dispatched");
     assertEquals(parentEvent, update, "Event should be dispatched");
