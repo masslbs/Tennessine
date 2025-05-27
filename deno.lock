@@ -7,6 +7,7 @@
     "jsr:@jollytoad/store-common@0.4": "0.4.0",
     "jsr:@jollytoad/store-web-storage@0.4": "0.4.0",
     "jsr:@jollytoad/store@0.4": "0.4.0",
+    "jsr:@logtape/logtape@0.10": "0.10.0",
     "jsr:@logtape/logtape@0.8": "0.8.2",
     "jsr:@logtape/logtape@~0.9.2": "0.9.2",
     "jsr:@noble/hashes@^1.8.0": "1.8.0",
@@ -139,6 +140,9 @@
     },
     "@logtape/logtape@0.9.2": {
       "integrity": "b2699784930da54b597d4eed33811ad297e9ad6d9779eb59bdc9177ea0a5be15"
+    },
+    "@logtape/logtape@0.10.0": {
+      "integrity": "73556ca16d78397181b5fb16e2fd6fe4194c6d48fe5d677a73a26c89b6556547"
     },
     "@noble/hashes@1.8.0": {
       "integrity": "b52a2fcb4d02f8d8137871564a31f1ee9e2b0d15eedabbf32d2f7333f0abc939"
