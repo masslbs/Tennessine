@@ -19,7 +19,7 @@ import { useStateManager } from "../../hooks/useStateManager.ts";
 import { multiplyAndFormatUnits } from "../../utils/helper.ts";
 import PriceSummary from "./PriceSummary.tsx";
 
-const logger = getLogger(["mass-market", "frontend", "cart"]);
+const logger = getLogger(["mass-market", "frontend", "Cart"]);
 
 export default function Cart({
   onCheckout,

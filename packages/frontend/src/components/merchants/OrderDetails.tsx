@@ -19,7 +19,7 @@ import { useBaseToken } from "../../hooks/useBaseToken.ts";
 import { env } from "../../utils/env.ts";
 import { formatDate, getTokenInformation } from "../../utils/mod.ts";
 
-const logger = getLogger(["mass-market", "frontend", "order-details"]);
+const logger = getLogger(["mass-market", "frontend", "OrderDetails"]);
 
 export default function OrderDetails() {
   const { stateManager } = useStateManager();

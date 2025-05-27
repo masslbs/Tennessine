@@ -1,4 +1,5 @@
 import { ChangeEvent, useState } from "react";
+import { getLogger } from "@logtape/logtape";
 
 import { ChainAddress, Manifest } from "@massmarket/schema";
 
@@ -13,6 +14,8 @@ import {
   ShopForm,
 } from "../../../types.ts";
 import { useAllCurrencyOptions } from "../../../hooks/useAllCurrencyOptions.ts";
+
+const logger = getLogger(["mass-market", "frontend", "ManifestForm"]);
 
 export default function ManifestForm(
   {
@@ -120,6 +123,7 @@ export default function ManifestForm(
               handleShopFormChange("avatar", blob);
             }}
             setErrorMsg={setErrorMsg}
+            logger={logger}
           />
           <p className="flex items-center">Upload PFP</p>
         </div>
