@@ -1,5 +1,5 @@
 import "../happyDomSetup.ts";
-import { assertEquals } from "@std/assert";
+import { assertEquals, fail } from "@std/assert";
 import { renderHook, waitFor } from "@testing-library/react";
 
 import { Order } from "@massmarket/schema";
@@ -19,26 +19,18 @@ Deno.test(
 
     await t.step("should return null if no order is found", () => {
       const { result, unmount } = renderHook(() => {
-        console.log("Inside renderHook callback");
         return useCurrentOrder();
       }, {
         wrapper,
       });
-      console.log("Hook result:", { result });
-      console.log("result.current:", result.current);
-      console.log("typeof result.current:", typeof result.current);
 
       if (result.current === null) {
         console.error("Hook returned null - this should not happen");
-        // Let's try to understand what went wrong
       } else if (result.current && typeof result.current === "object") {
-        console.log(
-          "result.current.currentOrder:",
-          result.current.currentOrder,
-        );
         assertEquals(result.current.currentOrder, null);
       } else {
         console.error("Unexpected result.current:", result.current);
+        fail();
       }
       unmount();
     });
