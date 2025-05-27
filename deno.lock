@@ -1,7 +1,9 @@
 {
   "version": "4",
   "specifiers": {
+    "jsr:@astral/astral@*": "0.5.2",
     "jsr:@david/code-block-writer@^13.0.2": "13.0.3",
+    "jsr:@deno-library/progress@^1.5.1": "1.5.1",
     "jsr:@deno/cache-dir@~0.10.3": "0.10.3",
     "jsr:@deno/dnt@~0.41.3": "0.41.3",
     "jsr:@jollytoad/store-common@0.4": "0.4.0",
@@ -18,6 +20,7 @@
     "jsr:@std/assert@1": "1.0.12",
     "jsr:@std/assert@^1.0.12": "1.0.12",
     "jsr:@std/assert@^1.0.13": "1.0.13",
+    "jsr:@std/async@1": "1.0.12",
     "jsr:@std/bytes@0.223": "0.223.0",
     "jsr:@std/data-structures@^1.0.6": "1.0.6",
     "jsr:@std/dotenv@~0.225.2": "0.225.5",
@@ -25,6 +28,7 @@
     "jsr:@std/expect@^1.0.15": "1.0.15",
     "jsr:@std/fmt@0.223": "0.223.0",
     "jsr:@std/fmt@1": "1.0.8",
+    "jsr:@std/fmt@1.0.3": "1.0.3",
     "jsr:@std/fs@0.223": "0.223.0",
     "jsr:@std/fs@1": "1.0.17",
     "jsr:@std/fs@^1.0.16": "1.0.16",
@@ -32,6 +36,7 @@
     "jsr:@std/fs@~0.229.3": "0.229.3",
     "jsr:@std/internal@^1.0.6": "1.0.6",
     "jsr:@std/io@0.223": "0.223.0",
+    "jsr:@std/io@0.225.0": "0.225.0",
     "jsr:@std/path@*": "1.0.8",
     "jsr:@std/path@0.223": "0.223.0",
     "jsr:@std/path@1": "1.0.9",
@@ -42,6 +47,7 @@
     "jsr:@std/testing@^1.0.11": "1.0.11",
     "jsr:@ts-morph/bootstrap@0.24": "0.24.0",
     "jsr:@ts-morph/common@0.24": "0.24.0",
+    "jsr:@zip-js/zip-js@^2.7.52": "2.7.57",
     "npm:@deno/vite-plugin@^1.0.4": "1.0.4_vite@6.3.3__@types+node@22.12.0__picomatch@4.0.2_@types+node@22.12.0",
     "npm:@faker-js/faker@^9.7.0": "9.7.0",
     "npm:@happy-dom/global-registrator@^17.4.4": "17.4.4",
@@ -55,8 +61,10 @@
     "npm:@sentry/core@^8.40.0": "8.55.0",
     "npm:@sentry/types@^8.40.0": "8.55.0",
     "npm:@tailwindcss/vite@^4.1.4": "4.1.4_vite@6.3.3__@types+node@22.12.0__picomatch@4.0.2_@types+node@22.12.0",
+    "npm:@tanstack/react-query@5.74.4": "5.74.4_react@19.1.0",
     "npm:@tanstack/react-query@^5.74.4": "5.74.4_react@19.1.0",
     "npm:@tanstack/react-query@^5.77.2": "5.77.2_react@19.1.0",
+    "npm:@tanstack/react-router@1.116.0": "1.116.0_react@19.1.0_react-dom@19.1.0__react@19.1.0",
     "npm:@tanstack/react-router@^1.116.0": "1.116.0_react@19.1.0_react-dom@19.1.0__react@19.1.0",
     "npm:@tanstack/react-router@^1.120.10": "1.120.10_react@19.1.0_react-dom@19.1.0__react@19.1.0",
     "npm:@tanstack/router-plugin@^1.116.1": "1.117.2_@tanstack+react-router@1.116.0__react@19.1.0__react-dom@19.1.0___react@19.1.0_@babel+core@7.26.10_react@19.1.0_react-dom@19.1.0__react@19.1.0_vite@6.3.3__@types+node@22.12.0__picomatch@4.0.2_@types+node@22.12.0",
@@ -97,15 +105,32 @@
     "npm:web-streams-polyfill@^4.1.0": "4.1.0"
   },
   "jsr": {
+    "@astral/astral@0.5.2": {
+      "integrity": "dc4b7e0ea5d8186fcd9e33e2c54e62913d7eb99d5a2d4f987b1c5399d8e295de",
+      "dependencies": [
+        "jsr:@deno-library/progress",
+        "jsr:@std/async",
+        "jsr:@std/fs@1",
+        "jsr:@std/path@1",
+        "jsr:@zip-js/zip-js"
+      ]
+    },
     "@david/code-block-writer@13.0.3": {
       "integrity": "f98c77d320f5957899a61bfb7a9bead7c6d83ad1515daee92dbacc861e13bb7f"
+    },
+    "@deno-library/progress@1.5.1": {
+      "integrity": "966611826b8bb27baae73ab1c4fa4317cd4edd2abb99750cd6f8488d22d5b121",
+      "dependencies": [
+        "jsr:@std/fmt@1.0.3",
+        "jsr:@std/io@0.225.0"
+      ]
     },
     "@deno/cache-dir@0.10.3": {
       "integrity": "eb022f84ecc49c91d9d98131c6e6b118ff63a29e343624d058646b9d50404776",
       "dependencies": [
         "jsr:@std/fmt@0.223",
         "jsr:@std/fs@0.223",
-        "jsr:@std/io",
+        "jsr:@std/io@0.223",
         "jsr:@std/path@0.223"
       ]
     },
@@ -174,6 +199,9 @@
         "jsr:@std/internal"
       ]
     },
+    "@std/async@1.0.12": {
+      "integrity": "d1bfcec459e8012846fe4e38dfc4241ab23240ecda3d8d6dfcf6d81a632e803d"
+    },
     "@std/bytes@0.223.0": {
       "integrity": "84b75052cd8680942c397c2631318772b295019098f40aac5c36cead4cba51a8"
     },
@@ -195,6 +223,9 @@
     },
     "@std/fmt@0.223.0": {
       "integrity": "6deb37794127dfc7d7bded2586b9fc6f5d50e62a8134846608baf71ffc1a5208"
+    },
+    "@std/fmt@1.0.3": {
+      "integrity": "97765c16aa32245ff4e2204ecf7d8562496a3cb8592340a80e7e554e0bb9149f"
     },
     "@std/fmt@1.0.8": {
       "integrity": "71e1fc498787e4434d213647a6e43e794af4fd393ef8f52062246e06f7e372b7"
@@ -229,6 +260,9 @@
         "jsr:@std/assert@0.223",
         "jsr:@std/bytes"
       ]
+    },
+    "@std/io@0.225.0": {
+      "integrity": "c1db7c5e5a231629b32d64b9a53139445b2ca640d828c26bf23e1c55f8c079b3"
     },
     "@std/path@0.223.0": {
       "integrity": "593963402d7e6597f5a6e620931661053572c982fc014000459edc1f93cc3989",
@@ -273,6 +307,9 @@
         "jsr:@std/fs@~0.229.3",
         "jsr:@std/path@~0.225.2"
       ]
+    },
+    "@zip-js/zip-js@2.7.57": {
+      "integrity": "15465ff627e321775870ad493bc043ca2d97940bda58d709c49908d39f4b0524"
     }
   },
   "npm": {
@@ -5021,8 +5058,8 @@
           "npm:@rainbow-me/rainbowkit@^2.2.0",
           "npm:@sentry/browser@^9.19.0",
           "npm:@tailwindcss/vite@^4.1.4",
-          "npm:@tanstack/react-query@^5.74.4",
-          "npm:@tanstack/react-router@^1.116.0",
+          "npm:@tanstack/react-query@5.74.4",
+          "npm:@tanstack/react-router@1.116.0",
           "npm:@tanstack/router-plugin@^1.116.1",
           "npm:@testing-library/react-hooks@^8.0.1",
           "npm:@testing-library/react@^16.3.0",
@@ -5071,8 +5108,8 @@
           "jsr:@logtape/logtape@0.10",
           "jsr:@std/assert@^1.0.13",
           "npm:@happy-dom/global-registrator@^17.4.7",
-          "npm:@tanstack/react-query@^5.77.2",
-          "npm:@tanstack/react-router@^1.120.10",
+          "npm:@tanstack/react-query@5.74.4",
+          "npm:@tanstack/react-router@1.116.0",
           "npm:@testing-library/react@^16.3.0",
           "npm:react@^19.1.0",
           "npm:viem@^2.30.1"

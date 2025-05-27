@@ -30,6 +30,7 @@ import {
 } from "@massmarket/schema";
 import { getWindowLocation, random256BigInt } from "@massmarket/utils";
 import { abi, permissions } from "@massmarket/contracts";
+import { useShopId } from "@massmarket/react-hooks";
 
 import ManifestForm from "./ManifestForm.tsx";
 import Confirmation from "./CreateShopConfirmation.tsx";
@@ -38,7 +39,6 @@ import Button from "../../common/Button.tsx";
 import LoadingSpinner from "../../common/LoadingSpinner.tsx";
 import BackButton from "../../common/BackButton.tsx";
 import ConnectWalletButton from "../../common/ConnectWalletButton.tsx";
-import { useShopId } from "../../../hooks/useShopId.ts";
 import { useKeycard } from "../../../hooks/useKeycard.ts";
 import { useShopDetails } from "../../../hooks/useShopDetails.ts";
 import { useChain } from "../../../hooks/useChain.ts";

@@ -1,8 +1,7 @@
 import { usePublicClient } from "wagmi";
 import { abi } from "@massmarket/contracts";
-import { useShopId } from "./useShopId.ts";
+import { useMassMarketContext, useShopId } from "@massmarket/react-hooks";
 import { useQuery } from "./useQuery.ts";
-import { useMassMarketContext } from "@massmarket/react-hooks";
 import { useChain } from "./useChain.ts";
 
 export function useShopDetails() {

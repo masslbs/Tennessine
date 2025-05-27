@@ -1,7 +1,7 @@
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
-import { useShopId } from "./useShopId.ts";
+import { useShopId } from "@massmarket/react-hooks";
 import { KeycardRole } from "../types.ts";
 
 export function useKeycard(

@@ -9,10 +9,10 @@ export function useShopId() {
     return {
       shopId: BigInt(context.config.shopTokenId),
     };
+  } else {
+    const search = useSearch({ strict: false });
+    return {
+      shopId: search?.shopId ? hexToBigInt(search.shopId, { size: 32 }) : null,
+    };
   }
-  const search = useSearch({ strict: false });
-
-  return {
-    shopId: search?.shopId ? hexToBigInt(search.shopId, { size: 32 }) : null,
-  };
 }

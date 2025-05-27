@@ -9,6 +9,7 @@ import { equal } from "@std/assert";
 
 import { CodecValue } from "@massmarket/utils/codec";
 import { setTokenURI } from "@massmarket/contracts";
+import { useShopId } from "@massmarket/react-hooks";
 import { getLogger } from "@logtape/logtape";
 import {
   AcceptedCurrencyMap,
@@ -25,7 +26,6 @@ import SuccessToast from "../common/SuccessToast.tsx";
 import BackButton from "../common/BackButton.tsx";
 import Dropdown from "../common/CurrencyDropdown.tsx";
 import { useShopDetails } from "../../hooks/useShopDetails.ts";
-import { useShopId } from "../../hooks/useShopId.ts";
 import { useRelayClient } from "../../hooks/useRelayClient.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 import { useAllCurrencyOptions } from "../../hooks/useAllCurrencyOptions.ts";

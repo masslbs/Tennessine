@@ -9,7 +9,7 @@ import { useMassMarketContext } from "@massmarket/react-hooks";
 import { useKeycard } from "./useKeycard.ts";
 import { useChain } from "./useChain.ts";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";
-import { useShopId } from "./useShopId.ts";
+import { useShopId } from "@massmarket/react-hooks";
 import { env } from "../utils/mod.ts";
 import { isTesting } from "../utils/env.ts";
 
