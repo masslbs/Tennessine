@@ -9,7 +9,6 @@ import StateManager from "@massmarket/stateManager";
 import { useRouter } from "@tanstack/react-router";
 
 import { KeycardRole } from "../types.ts";
-import { env } from "../utils/env.ts";
 import { useMassMarketContext } from "../MassMarketContext.ts";
 import { useShopId } from "./useShopId.ts";
 import { useQuery } from "./useQuery.ts";
@@ -83,9 +82,7 @@ export function useStateManager() {
         const keycardWallet = createWalletClient({
           account,
           chain,
-          transport: http(
-            env.ethRPCUrl,
-          ),
+          transport: http(),
         });
         const res = await relayClient.enrollKeycard(
           keycardWallet,

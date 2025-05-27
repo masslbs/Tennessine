@@ -17,7 +17,7 @@ import { abi, approveERC20, getAllowance, pay } from "@massmarket/contracts";
 
 import Button from "../common/Button.tsx";
 import BackButton from "../common/BackButton.tsx";
-import { env } from "../../utils/env.ts";
+import { useMassMarketContext } from "../../MassMarketContext.ts";
 import { isTesting } from "../../utils/env.ts";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import PriceSummary from "./PriceSummary.tsx";
@@ -25,7 +25,6 @@ import PriceSummary from "./PriceSummary.tsx";
 const logger = getLogger(["mass-market", "frontend", "pay"]);
 
 const defaultShopChainName = isTesting ? "hardhat" : "mainnet";
-const configuredChainName = env.chainName || defaultShopChainName;
 
 const {
   eddiesAbi,
@@ -53,6 +52,9 @@ export default function Pay({
   const { connector } = useAccount();
   const { data: wallet } = useWalletClient();
   const chainId = useChainId();
+  const { config: env } = useMassMarketContext();
+
+  const configuredChainName = env.chainName || defaultShopChainName;
 
   const paymentChainId = Number(paymentArgs?.[0]?.chainId);
   // TODO: might want to do this in a hook

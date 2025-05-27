@@ -11,14 +11,16 @@ const router = createRouter({ routeTree });
 
 export default function App({
   wagmiConfig = config,
+  massMarketConfig = {},
 }: {
   wagmiConfig?: ReturnType<typeof getDefaultConfig> | Config;
   children?: React.ReactNode;
+  massMarketConfig?: Record<string, string>;
 }) {
   return (
     <QueryClientProvider client={queryClient}>
       <WagmiProvider config={wagmiConfig}>
-        <MassMarketProvider>
+        <MassMarketProvider config={massMarketConfig}>
           <RainbowKitProvider showRecentTransactions>
             <RouterProvider router={router} />
             <main data-testid="homepage">

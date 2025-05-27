@@ -1,9 +1,10 @@
+import { useMassMarketContext } from "../MassMarketContext.ts";
 import { type Chain, hardhat, mainnet, sepolia } from "viem/chains";
-import { env } from "../utils/env.ts";
 
 export function useChain() {
+  const context = useMassMarketContext();
   let chain: Chain;
-  switch (env.chainName) {
+  switch (context.config.chainName) {
     case "sepolia":
       chain = sepolia;
       break;
@@ -14,7 +15,7 @@ export function useChain() {
       chain = hardhat;
       break;
     default:
-      throw new Error(`Unknown chain: ${env.chainName}`);
+      throw new Error(`Unknown chain: ${context.config.chainName}`);
   }
   return { chain };
 }
