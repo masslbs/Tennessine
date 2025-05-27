@@ -1,14 +1,14 @@
-import React, {
+import {
   createContext,
   createElement,
-  Dispatch,
-  SetStateAction,
+  type Dispatch,
+  type SetStateAction,
   useContext,
   useState,
 } from "react";
-import { Order } from "@massmarket/schema";
-import { RelayClient } from "@massmarket/client";
-import StateManager from "@massmarket/stateManager";
+import type { Order } from "@massmarket/schema";
+import type { RelayClient } from "@massmarket/client";
+import type StateManager from "@massmarket/stateManager";
 
 type MassMarketContextType = {
   relayClient: RelayClient | undefined;
@@ -24,6 +24,7 @@ type MassMarketContextType = {
   >;
   currentOrder: Order | null;
   setCurrentOrder: Dispatch<SetStateAction<Order | null>>;
+  config: Record<string, string>;
 };
 
 export const MassMarketContext = createContext<
@@ -36,6 +37,7 @@ export function MassMarketProvider(
   parameters: React.PropsWithChildren<{
     relayClient?: RelayClient;
     stateManager?: StateManager;
+    config?: Record<string, string>;
   }>,
 ) {
   const [relayClient, setRelayClient] = useState(
@@ -59,6 +61,7 @@ export function MassMarketProvider(
     setShopDetails,
     currentOrder,
     setCurrentOrder,
+    config: parameters.config || {},
   };
 
   return createElement(MassMarketContext.Provider, {

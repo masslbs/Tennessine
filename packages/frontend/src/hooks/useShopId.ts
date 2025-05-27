@@ -1,8 +1,9 @@
 import { useSearch } from "@tanstack/react-router";
 import { hexToBigInt } from "viem";
-import { env } from "../utils/env.ts";
+import { useMassMarketContext } from "../MassMarketContext.ts";
 
 export function useShopId() {
+  const { config: env } = useMassMarketContext();
   // This is for prod builds so we can have a clean url without having to include shopId in the param.
   if (env.shopTokenId) {
     return {

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useSearch } from "@tanstack/react-router";
 
 import BackButton from "./common/BackButton.tsx";
-import { env } from "../utils/env.ts";
+import { useMassMarketContext } from "../MassMarketContext.ts";
 
 export function useShopDomain() {
   return {
@@ -13,6 +13,7 @@ export function useShopDomain() {
 
 export default function Share() {
   const search = useSearch({ strict: false });
+  const { config: env } = useMassMarketContext();
   const shopId = search?.shopId || env.shopTokenId || "";
   const { protocol, shopDomain } = useShopDomain();
   const [copiedToClipboard, setCopied] = useState<boolean>(false);

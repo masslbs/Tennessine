@@ -16,7 +16,6 @@ import BackButton from "../common/BackButton.tsx";
 import { ListingId, OrderState } from "../../types.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 import { useBaseToken } from "../../hooks/useBaseToken.ts";
-import { env } from "../../utils/env.ts";
 import { formatDate, getTokenInformation } from "../../utils/mod.ts";
 
 const logger = getLogger(["mass-market", "frontend", "order-details"]);
@@ -90,7 +89,7 @@ export default function OrderDetails() {
       }
       const tokenPublicClient = createPublicClient({
         chain,
-        transport: http(env.ethRPCUrl),
+        transport: http(),
       });
       getTokenInformation(
         tokenPublicClient,

@@ -24,6 +24,7 @@ import { MemStore } from "@massmarket/store";
 
 import { MassMarketProvider } from "../MassMarketContext.ts";
 import { KeycardRole } from "../types.ts";
+import { env } from "../utils/env.ts";
 
 export const relayURL = Deno.env.get("RELAY_ENDPOINT") ||
   "http://localhost:4444/v4";
@@ -226,6 +227,7 @@ export const createRouterWrapper = async ({
             <MassMarketProvider
               stateManager={stateManager}
               relayClient={relayClient}
+              config={env}
             >
               <RainbowKitProvider showRecentTransactions>
                 {

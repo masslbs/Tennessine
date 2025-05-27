@@ -37,6 +37,6 @@ await configure(sentryConfig);
 
 createRoot(document.getElementById("root") as HTMLElement).render(
   <StrictMode>
-    <App />
+    <App massMarketConfig={env} />
   </StrictMode>,
 );
