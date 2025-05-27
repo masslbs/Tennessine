@@ -24,3 +24,6 @@ cache.json
 *.njsproj
 *.sln
 *.sw?
+
+# local-only dev tooling
+glitch.ts

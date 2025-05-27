@@ -5,7 +5,7 @@ import { getLogger } from "@logtape/logtape";
 
 import { CookieConsent } from "../types.ts";
 
-const logger = getLogger(["mass-market", "frontend", "cookie-banner"]);
+const logger = getLogger(["mass-market", "frontend", "CookieBanner"]);
 
 const CookieBanner = () => {
   const [isVisible, setIsVisible] = useState(false);

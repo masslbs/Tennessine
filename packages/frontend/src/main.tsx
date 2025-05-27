@@ -1,6 +1,11 @@
 import "web-streams-polyfill/polyfill";
 import { init } from "@sentry/browser";
-import { Config, configure, getConsoleSink } from "@logtape/logtape";
+import {
+  Config,
+  configure,
+  defaultTextFormatter,
+  getConsoleSink,
+} from "@logtape/logtape";
 import { getSentrySink } from "@massmarket/logtape-sentry-sink";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -12,10 +17,12 @@ const isSentryEnabled = env.sentryDSN !== undefined;
 
 const sentryConfig: Config<string, string> = {
   sinks: {
-    console: getConsoleSink(),
+    console: getConsoleSink({ formatter: defaultTextFormatter }),
   },
   loggers: [
-    { category: [], sinks: ["console"], level: "debug" },
+    { category: [], sinks: ["console"], lowestLevel: "debug" },
+    // silence logtape's default warnings about meta logging
+    { category: ["logtape", "meta"], lowestLevel: "warning", sinks: [] },
   ],
 };
 if (isSentryEnabled) {
@@ -30,7 +37,7 @@ if (isSentryEnabled) {
   sentryConfig.loggers.push({
     category: ["mass-market"],
     sinks: ["sentry"],
-    level: "warning",
+    lowestLevel: "warning",
   });
 }
 await configure(sentryConfig);

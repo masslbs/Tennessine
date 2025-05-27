@@ -42,7 +42,7 @@ const RelayClientTestPage: React.FC<RelayClientTestPageProps> = ({
     "idle" | "connecting" | "connected" | "failed" | "disconnected"
   >("idle");
   const [lastPingReceived, setLastPingReceived] = useState<string>("Never");
-  const [error, setError] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [client, setClient] = useState<RelayClient | null>(null);
 
   useEffect(() => {
@@ -59,7 +59,7 @@ const RelayClientTestPage: React.FC<RelayClientTestPageProps> = ({
     // Connect to relay
     newClient.connect((error: Event) => {
       console.error("connect error", error);
-      setError((error as ErrorEvent).message);
+      setErrorMsg((error as ErrorEvent).message);
       setConnectionStatus("failed");
     }).then(() => {
       setConnectionStatus("connected");
@@ -82,7 +82,7 @@ const RelayClientTestPage: React.FC<RelayClientTestPageProps> = ({
         setConnectionStatus("disconnected");
       } catch (err: unknown) {
         console.error("disconnect error", err);
-        setError(err instanceof Error ? err.message : String(err));
+        setErrorMsg(err instanceof Error ? err.message : String(err));
         setConnectionStatus("failed");
         setLastPingReceived("Never");
       }
@@ -107,7 +107,7 @@ const RelayClientTestPage: React.FC<RelayClientTestPageProps> = ({
   return (
     <div data-testid="relay-client-tester">
       <div data-testid="connection-status">Status: {connectionStatus}</div>
-      {error && <div data-testid="connection-error">Error: {error}</div>}
+      {errorMsg && <div data-testid="connection-error">Error: {errorMsg}</div>}
       {connectionStatus === "connected" && (
         <button
           type="button"
