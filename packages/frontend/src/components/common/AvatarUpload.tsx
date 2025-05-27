@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+import { Logger } from "@logtape/logtape";
 import {
   ChangeEvent,
   Dispatch,
@@ -14,10 +15,12 @@ import {
 export default function AvatarUpload({
   setImgBlob,
   setErrorMsg,
+  logger,
   currentImg = null,
 }: {
   setImgBlob: (blob: FormData) => void;
   setErrorMsg: Dispatch<SetStateAction<string | null>>;
+  logger: Logger;
   currentImg?: string | null;
 }) {
   const [localImg, setLocalImg] = useState<null | string>(null);
@@ -53,7 +56,8 @@ export default function AvatarUpload({
         reader.readAsDataURL(fileInput.files[0]);
       }
     } catch (error) {
-      setErrorMsg(`Error uploading image: ${error}`);
+      logger.error("Error uploading image {error}", { error });
+      setErrorMsg(`Error uploading image`);
     }
   };
 

@@ -19,7 +19,7 @@ import ErrorMessage from "./common/ErrorMessage.tsx";
 import SuccessToast from "./common/SuccessToast.tsx";
 import { useCurrentOrder } from "../hooks/useCurrentOrder.ts";
 
-const logger = getLogger(["mass-market", "frontend", "listing-detail"]);
+const logger = getLogger(["mass-market", "frontend", "ListingDetail"]);
 
 export default function ListingDetail() {
   const { baseToken } = useBaseToken();

@@ -22,7 +22,7 @@ import { isTesting } from "../../utils/env.ts";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import PriceSummary from "./PriceSummary.tsx";
 
-const logger = getLogger(["mass-market", "frontend", "pay"]);
+const logger = getLogger(["mass-market", "frontend", "Pay"]);
 
 const defaultShopChainName = isTesting ? "hardhat" : "mainnet";
 

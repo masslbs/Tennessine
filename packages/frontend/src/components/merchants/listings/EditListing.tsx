@@ -21,7 +21,7 @@ import { useStateManager } from "../../../hooks/useStateManager.ts";
 import { useRelayClient } from "../../../hooks/useRelayClient.ts";
 import { useBaseToken } from "../../../hooks/useBaseToken.ts";
 
-const logger = getLogger(["mass-market", "frontend", "useRelayEndpoint"]);
+const logger = getLogger(["mass-market", "frontend", "EditListing"]);
 
 export default function EditProduct() {
   const navigate = useNavigate();
@@ -230,7 +230,7 @@ export default function EditProduct() {
       }
     } catch (error: unknown) {
       const msg = "Error during image upload";
-      logger.error(msg, { error });
+      logger.error(`${msg} {error}`, { error });
       setErrorMsg(msg);
     }
   }

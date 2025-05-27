@@ -179,8 +179,8 @@ export default function MerchantConnect() {
       stateManager!.addConnection(relayClient);
       setStep(SearchShopStep.Confirm);
     } catch (error: unknown) {
-      logger.error("Error enrolling keycard", { error });
-      setErrorMsg(`Something went wrong. ${error}`);
+      logger.error("Error enrolling keycard {error}", { error });
+      setErrorMsg(`Error occurred while enrolling keycard`);
     }
   }
 

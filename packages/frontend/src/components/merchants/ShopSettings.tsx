@@ -30,7 +30,7 @@ import { useRelayClient } from "../../hooks/useRelayClient.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 import { useAllCurrencyOptions } from "../../hooks/useAllCurrencyOptions.ts";
 
-const logger = getLogger(["mass-market", "frontend", "StoreSettings"]);
+const logger = getLogger(["mass-market", "frontend", "ShopSettings"]);
 
 export default function ShopSettings() {
   const { shopDetails, setShopDetails } = useShopDetails();
@@ -50,7 +50,7 @@ export default function ShopSettings() {
   >(
     null,
   );
-  const [error, setError] = useState<null | string>(null);
+  const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [manifest, setManifest] = useState<Manifest | null>(null);
@@ -153,7 +153,7 @@ export default function ShopSettings() {
       element?.scrollIntoView();
     } catch (error: unknown) {
       logger.error("Failed: updateShopManifest", { error });
-      setError("Error updating shop manifest.");
+      setErrorMsg("Error updating shop manifest.");
     }
   }
 
@@ -204,9 +204,9 @@ export default function ShopSettings() {
     >
       <section className="md:w-[560px]">
         <ErrorMessage
-          errorMessage={error}
+          errorMessage={errorMsg}
           onClose={() => {
-            setError(null);
+            setErrorMsg(null);
           }}
         />
         <ValidationWarning
@@ -230,7 +230,8 @@ export default function ShopSettings() {
             <p className="flex items-center font-medium">Shop PFP</p>
             <AvatarUpload
               setImgBlob={setAvatar}
-              setErrorMsg={setError}
+              setErrorMsg={setErrorMsg}
+              logger={logger}
               currentImg={shopDetails.profilePictureUrl}
             />
             <section className="text-sm flex flex-col gap-4">
