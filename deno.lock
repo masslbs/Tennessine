@@ -26,6 +26,7 @@
     "jsr:@std/dotenv@~0.225.2": "0.225.5",
     "jsr:@std/encoding@*": "1.0.8",
     "jsr:@std/expect@^1.0.15": "1.0.15",
+    "jsr:@std/expect@^1.0.16": "1.0.16",
     "jsr:@std/fmt@0.223": "0.223.0",
     "jsr:@std/fmt@1": "1.0.8",
     "jsr:@std/fmt@1.0.3": "1.0.3",
@@ -35,6 +36,7 @@
     "jsr:@std/fs@^1.0.17": "1.0.17",
     "jsr:@std/fs@~0.229.3": "0.229.3",
     "jsr:@std/internal@^1.0.6": "1.0.6",
+    "jsr:@std/internal@^1.0.7": "1.0.7",
     "jsr:@std/io@0.223": "0.223.0",
     "jsr:@std/io@0.225.0": "0.225.0",
     "jsr:@std/path@*": "1.0.8",
@@ -97,7 +99,6 @@
     "npm:tailwindcss@^4.1.4": "4.1.4",
     "npm:viem@^2.28.1": "2.28.1_ws@8.18.1",
     "npm:viem@^2.29.2": "2.29.2_ws@8.18.1",
-    "npm:viem@^2.30.1": "2.30.1_ws@8.18.2",
     "npm:vite-plugin-node-polyfills@0.23": "0.23.0_vite@6.3.3__@types+node@22.12.0__picomatch@4.0.2_@types+node@22.12.0",
     "npm:vite@*": "6.3.3_@types+node@22.12.0_picomatch@4.0.2",
     "npm:vite@^6.3.2": "6.3.3_@types+node@22.12.0_picomatch@4.0.2",
@@ -190,13 +191,13 @@
     "@std/assert@1.0.12": {
       "integrity": "08009f0926dda9cbd8bef3a35d3b6a4b964b0ab5c3e140a4e0351fbf34af5b9a",
       "dependencies": [
-        "jsr:@std/internal"
+        "jsr:@std/internal@^1.0.6"
       ]
     },
     "@std/assert@1.0.13": {
       "integrity": "ae0d31e41919b12c656c742b22522c32fb26ed0cba32975cb0de2a273cb68b29",
       "dependencies": [
-        "jsr:@std/internal"
+        "jsr:@std/internal@^1.0.6"
       ]
     },
     "@std/async@1.0.12": {
@@ -218,7 +219,14 @@
       "integrity": "eca360007b5a7f13dbfa1294224baee7fb98dcd460d8461fe64eeae302902945",
       "dependencies": [
         "jsr:@std/assert@^1.0.12",
-        "jsr:@std/internal"
+        "jsr:@std/internal@^1.0.6"
+      ]
+    },
+    "@std/expect@1.0.16": {
+      "integrity": "ceeef6dda21f256a5f0f083fcc0eaca175428b523359a9b1d9b3a1df11cc7391",
+      "dependencies": [
+        "jsr:@std/assert@^1.0.13",
+        "jsr:@std/internal@^1.0.7"
       ]
     },
     "@std/fmt@0.223.0": {
@@ -253,6 +261,9 @@
     },
     "@std/internal@1.0.6": {
       "integrity": "9533b128f230f73bd209408bb07a4b12f8d4255ab2a4d22a1fd6d87304aca9a4"
+    },
+    "@std/internal@1.0.7": {
+      "integrity": "39eeb5265190a7bc5d5591c9ff019490bd1f2c3907c044a11b0d545796158a0f"
     },
     "@std/io@0.223.0": {
       "integrity": "2d8c3c2ab3a515619b90da2c6ff5ea7b75a94383259ef4d02116b228393f84f1",
@@ -291,7 +302,7 @@
         "jsr:@std/assert@^1.0.12",
         "jsr:@std/data-structures",
         "jsr:@std/fs@^1.0.16",
-        "jsr:@std/internal",
+        "jsr:@std/internal@^1.0.6",
         "jsr:@std/path@^1.0.8"
       ]
     },
@@ -924,12 +935,6 @@
         "@noble/hashes@1.7.2"
       ]
     },
-    "@noble/curves@1.9.1": {
-      "integrity": "sha512-k11yZxZg+t+gWvBbIswW0yoJlu8cHOC7dhunwOzoWH/mXGBiYyR4YY6hAEK/3EUs4UpB8la1RfdRpeGsFHkWsA==",
-      "dependencies": [
-        "@noble/hashes@1.8.0"
-      ]
-    },
     "@noble/hashes@1.4.0": {
       "integrity": "sha512-V1JJ1WTRUqHHrOSh597hURcMqVKVGL/ea3kv0gSnEdsEZ0/+VyPghM1lMNGc00z7CIQorSvbKpuJkxvuHbvdbg=="
     },
@@ -941,9 +946,6 @@
     },
     "@noble/hashes@1.7.2": {
       "integrity": "sha512-biZ0NUSxyjLLqo6KxEJ1b+C2NAx0wtDoFvCaXHGgUkeHzf3Xc1xKumFKREuT7f7DARNZ/slvYUwFG6B0f2b6hQ=="
-    },
-    "@noble/hashes@1.8.0": {
-      "integrity": "sha512-jCs9ldd7NwzpgXDIf6P3+NrHh9/sD6CQdxHyjQI+h/6rDNo88ypBxxz45UDuZHz9r3tNz7N/VInSVoVdtXEI4A=="
     },
     "@oxc-project/runtime@0.68.1": {
       "integrity": "sha512-MMPhKwVPyykU7F6id79Bb9DAM8BqT3HbJNRxJnuh68uARDDAEn252dq/AjSa3i8JWmtnKZIdm+ORAyjFZD7bzQ=="
@@ -1251,14 +1253,6 @@
         "@scure/base@1.2.5"
       ]
     },
-    "@scure/bip32@1.7.0": {
-      "integrity": "sha512-E4FFX/N3f4B80AKWp5dP6ow+flD1LQZo/w8UnLGYZO674jS6YnYeepycOOksv+vLPSpgN35wgKgy+ybfTb2SMw==",
-      "dependencies": [
-        "@noble/curves@1.9.1",
-        "@noble/hashes@1.8.0",
-        "@scure/base@1.2.5"
-      ]
-    },
     "@scure/bip39@1.3.0": {
       "integrity": "sha512-disdg7gHuTDZtY+ZdkmLpPCk7fxZSu3gBiEGuoC1XYxv9cGx3Z6cpTggCgW6odSOOIXCiDjuGejW+aJKCY/pIQ==",
       "dependencies": [
@@ -1270,13 +1264,6 @@
       "integrity": "sha512-TFM4ni0vKvCfBpohoh+/lY05i9gRbSwXWngAsF4CABQxoaOHijxuaZ2R6cStDQ5CHtHO9aGJTr4ksVJASRRyMA==",
       "dependencies": [
         "@noble/hashes@1.7.2",
-        "@scure/base@1.2.5"
-      ]
-    },
-    "@scure/bip39@1.6.0": {
-      "integrity": "sha512-+lF0BbLiJNwVlev4eKelw1WWLaiKXw7sSl8T6FvBlWkdX+94aGJ4o8XjUdlyhTCjd8c+B3KT3JfS8P0bLRNU6A==",
-      "dependencies": [
-        "@noble/hashes@1.8.0",
         "@scure/base@1.2.5"
       ]
     },
@@ -3326,12 +3313,6 @@
         "ws@8.18.1"
       ]
     },
-    "isows@1.0.7_ws@8.18.2": {
-      "integrity": "sha512-I1fSfDCZL5P0v33sVqeTDSpcstAg/N+wF5HS033mogOVIp4B+oHC7oOCsA3axAbBSGTJ8QubbNmnIRN/h8U7hg==",
-      "dependencies": [
-        "ws@8.18.2"
-      ]
-    },
     "jiti@2.4.2": {
       "integrity": "sha512-rg9zJN+G4n2nfJl5MW3BMygZX56zKPNVEYYqq7adpmMh4Jn2QNEwhvQlFy6jPVdcod7txZtKHWnyZiA3a0zP7A=="
     },
@@ -3836,19 +3817,6 @@
         "@noble/hashes@1.7.2",
         "@scure/bip32@1.6.2",
         "@scure/bip39@1.5.4",
-        "abitype",
-        "eventemitter3"
-      ]
-    },
-    "ox@0.7.1": {
-      "integrity": "sha512-+k9fY9PRNuAMHRFIUbiK9Nt5seYHHzSQs9Bj+iMETcGtlpS7SmBzcGSVUQO3+nqGLEiNK4598pHNFlVRaZbRsg==",
-      "dependencies": [
-        "@adraffy/ens-normalize",
-        "@noble/ciphers@1.3.0",
-        "@noble/curves@1.9.1",
-        "@noble/hashes@1.8.0",
-        "@scure/bip32@1.7.0",
-        "@scure/bip39@1.6.0",
         "abitype",
         "eventemitter3"
       ]
@@ -4737,19 +4705,6 @@
         "ws@8.18.1"
       ]
     },
-    "viem@2.30.1_ws@8.18.2": {
-      "integrity": "sha512-CkoS5Vv6kiRGmRF2xO2z275Gu90vTrKZHf/ckYXxP2J94UvCnFvUcbRdfit6uebj1I8nFwkGlkkOMuOZDHyO4w==",
-      "dependencies": [
-        "@noble/curves@1.9.1",
-        "@noble/hashes@1.8.0",
-        "@scure/bip32@1.7.0",
-        "@scure/bip39@1.6.0",
-        "abitype",
-        "isows@1.0.7_ws@8.18.2",
-        "ox@0.7.1",
-        "ws@8.18.2"
-      ]
-    },
     "vite-plugin-node-polyfills@0.23.0_vite@6.3.3__@types+node@22.12.0__picomatch@4.0.2_@types+node@22.12.0": {
       "integrity": "sha512-4n+Ys+2bKHQohPBKigFlndwWQ5fFKwaGY6muNDMTb0fSQLyBzS+jjUNRZG9sKF0S/Go4ApG6LFnUGopjkILg3w==",
       "dependencies": [
@@ -4854,9 +4809,6 @@
     },
     "ws@8.18.1": {
       "integrity": "sha512-RKW2aJZMXeMxVpnZ6bck+RswznaxmzdULiBr6KY7XkTnW8uvt0iT9H5DkHUChXrc+uurzwa0rVI16n/Xzjdz1w=="
-    },
-    "ws@8.18.2": {
-      "integrity": "sha512-DMricUmwGZUVr++AEAe2uiVM7UoO9MAVZMDu05UQOaUII0lp+zOzLLU4Xqh/JvTqklB1T4uELaaPBKyjE1r4fQ=="
     },
     "xmlcreate@2.0.4": {
       "integrity": "sha512-nquOebG4sngPmGPICTS5EnxqhKbCmz5Ox5hsszI2T6U5qdrJizBc+0ilYSEjTSzU0yZcmvppztXe/5Al5fUwdg=="
@@ -5107,13 +5059,15 @@
         "dependencies": [
           "jsr:@logtape/logtape@0.10",
           "jsr:@std/assert@^1.0.13",
+          "jsr:@std/expect@^1.0.16",
           "npm:@happy-dom/global-registrator@^17.4.7",
           "npm:@tanstack/react-query@5.74.4",
           "npm:@tanstack/react-router@1.116.0",
           "npm:@testing-library/react@^16.3.0",
           "npm:@types/react@^19.1.2",
           "npm:react@^19.1.0",
-          "npm:viem@^2.30.1"
+          "npm:viem@^2.28.1",
+          "npm:wagmi@^2.15.1"
         ]
       },
       "packages/schema": {
