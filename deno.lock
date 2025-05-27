@@ -5111,6 +5111,7 @@
           "npm:@tanstack/react-query@5.74.4",
           "npm:@tanstack/react-router@1.116.0",
           "npm:@testing-library/react@^16.3.0",
+          "npm:@types/react@^19.1.2",
           "npm:react@^19.1.0",
           "npm:viem@^2.30.1"
         ]

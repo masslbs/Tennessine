@@ -16,7 +16,7 @@ export function useRelayEndpoint() {
         ) {
           const re = {
             url: new URL(context.config.relayEndpoint),
-            tokenId: context.config.relayTokenId,
+            tokenId: context.config.relayTokenId as `0x${string}`,
           };
           logger.debug(
             `using environment variables for relay endpoint ${re.url}`,
