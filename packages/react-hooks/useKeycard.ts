@@ -7,6 +7,7 @@ import { getWindowLocation } from "@massmarket/utils";
 
 import { useShopId } from "./useShopId.ts";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";
+import type { MassMarketConfig } from "./MassMarketContext.ts";
 
 const logger = getLogger(["mass-market", "frontend", "useKeycard"]);
 
@@ -20,7 +21,11 @@ export type KeycardRole = "merchant" | "guest";
  * The async queryFn where we enroll the keycard only executes once unless variables in the queryKey changes.
  * The keycard will be cached with tanstack's cache for the duration of the browser session regardless of refreshes.
  */
-export function useKeycard(role: KeycardRole = "guest") {
+export function useKeycard(
+  params: { config?: MassMarketConfig } & { role: KeycardRole } = {
+    role: "guest",
+  },
+) {
   const { shopId } = useShopId();
   const { data: wallet } = useWalletClient();
   const { address } = useAccount();
@@ -34,7 +39,7 @@ export function useKeycard(role: KeycardRole = "guest") {
       address,
       // browser caches like localStorage cannot serialize BigInts, so we convert to string.
       String(shopId),
-      role,
+      params.role,
     ],
     queryFn: enabled
       ? async ({ client }) => {
@@ -56,28 +61,31 @@ export function useKeycard(role: KeycardRole = "guest") {
         const res = await relayClient.enrollKeycard(
           wallet,
           address,
-          role === "guest",
+          params.role === "guest",
           getWindowLocation(),
         );
 
         if (!res.ok) {
           const error = new Error(`Failed to enroll keycard: ${res.status}`);
-          logger.error(`failed to enroll ${role} keycard for shop ${shopId}`, {
-            error,
-          });
+          logger.error(
+            `failed to enroll ${params.role} keycard for shop ${shopId}`,
+            {
+              error,
+            },
+          );
           throw error;
         }
-        logger.debug(`Success: Enrolled new ${role} keycard`);
+        logger.debug(`Success: Enrolled new ${params.role} keycard`);
 
         const kc = {
           privateKey,
-          role,
+          role: params.role,
           address,
         };
         // Return this keycard for all guest keycard queries.
         // This is needed for merchant enrolls, so that subsequent queries will return this merchant keycard instead of trying to enroll multiple different keycards.
         // setQueriesData also ensures that any component using the query will re-render with the new keycard.
-        if (role === "merchant") {
+        if (params.role === "merchant") {
           client.setQueriesData(
             { queryKey: ["keycard", address, String(shopId), "guest"] },
             kc,

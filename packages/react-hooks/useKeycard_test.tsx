@@ -30,9 +30,12 @@ Deno.test(
   denoTestOptions,
   testWrapper(async (shopId, t) => {
     await t.step("enroll merchant card", async () => {
-      const { result, unmount } = renderHook(() => useKeycard("merchant"), {
-        wrapper: createWrapper(shopId),
-      });
+      const { result, unmount } = renderHook(
+        () => useKeycard({ role: "merchant" }),
+        {
+          wrapper: createWrapper(shopId),
+        },
+      );
       await waitFor(() => {
         expect(result.current.data?.role).toEqual("merchant");
       });
@@ -40,9 +43,12 @@ Deno.test(
     });
 
     await t.step("enroll guest card", async () => {
-      const { result, unmount } = renderHook(() => useKeycard("guest"), {
-        wrapper: createWrapper(shopId),
-      });
+      const { result, unmount } = renderHook(
+        () => useKeycard({ role: "guest" }),
+        {
+          wrapper: createWrapper(shopId),
+        },
+      );
       await waitFor(() => {
         expect(result.current.data?.role).toEqual("guest");
       });
@@ -95,7 +101,7 @@ const ChildComponent = () => {
   );
 };
 const ChildComponent2 = ({ role }: { role: KeycardRole }) => {
-  const { data } = useKeycard(role);
+  const { data } = useKeycard({ role });
   return (
     <div>
       <p data-testid="component2-pk">{data?.privateKey}</p>

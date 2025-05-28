@@ -2,24 +2,25 @@ import { getLogger } from "@logtape/logtape";
 import { discoverRelay } from "@massmarket/client";
 import { useQuery } from "@tanstack/react-query";
 import { useMassMarketContext } from "./useMassMarketContext.ts";
+import type { MassMarketConfig } from "./MassMarketContext.ts";
 
 const logger = getLogger(["mass-market", "frontend", "useRelayEndpoint"]);
 
 /*
  * This hook is used to get the relay endpoint from the context or discover it.
  */
-export function useRelayEndpoint() {
-  const context = useMassMarketContext();
+export function useRelayEndpoint(params?: { config?: MassMarketConfig }) {
+  const config = params?.config ?? useMassMarketContext().config;
   const q = useQuery(
     {
       queryKey: ["relayEndpoint"],
       queryFn: async () => {
         if (
-          context && context.config.relayEndpoint && context.config.relayTokenId
+          config.relayEndpoint && config.relayTokenId
         ) {
           const re = {
-            url: new URL(context.config.relayEndpoint),
-            tokenId: context.config.relayTokenId as `0x${string}`,
+            url: new URL(config.relayEndpoint),
+            tokenId: config.relayTokenId as `0x${string}`,
           };
           logger.debug(
             `using environment variables for relay endpoint ${re.url}`,
