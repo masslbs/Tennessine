@@ -14,7 +14,7 @@ export function useShopDomain() {
 export default function Share() {
   const search = useSearch({ strict: false });
   const { config: env } = useMassMarketContext();
-  const shopId = search?.shopId || env.shopTokenId || "";
+  const shopId = search?.shopId || env.shopId || "";
   const { protocol, shopDomain } = useShopDomain();
   const [copiedToClipboard, setCopied] = useState<boolean>(false);
 

@@ -8,6 +8,15 @@ import {
 import type { Order } from "@massmarket/schema";
 import type { RelayClient } from "@massmarket/client";
 import type StateManager from "@massmarket/stateManager";
+import type { Hex } from "viem";
+
+export type MassMarketConfig = {
+  // todo @nullradix <2025-05-28> maybe should be a bigint
+  shopId?: string;
+  relayTokenId?: Hex;
+  chainName?: string;
+  relayEndpoint?: string;
+};
 
 type MassMarketContextType = {
   relayClient: RelayClient | undefined;
@@ -23,7 +32,7 @@ type MassMarketContextType = {
   >;
   currentOrder: Order | null;
   setCurrentOrder: Dispatch<SetStateAction<Order | null>>;
-  config: Record<string, string>;
+  config: MassMarketConfig;
 };
 
 export const MassMarketContext = createContext<
@@ -36,7 +45,7 @@ export function MassMarketProvider(
   parameters: React.PropsWithChildren<{
     relayClient?: RelayClient;
     stateManager?: StateManager;
-    config?: Record<string, string>;
+    config?: MassMarketConfig;
   }>,
 ) {
   const [relayClient, setRelayClient] = useState(
@@ -60,7 +69,7 @@ export function MassMarketProvider(
     setShopDetails,
     currentOrder,
     setCurrentOrder,
-    config: parameters.config || {},
+    config: parameters.config ?? {},
   };
 
   return createElement(MassMarketContext.Provider, {
