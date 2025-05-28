@@ -46,6 +46,7 @@ Deno.test("Check that we can render the merchant connect screen", {
     ]);
     const receipt = await testClient.waitForTransactionReceipt({
       hash: transactionHash,
+      retryCount: 10,
     });
     expect(receipt.status).toBe("success");
 
