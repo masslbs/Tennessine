@@ -4,7 +4,7 @@ import { random256BigInt } from "@massmarket/utils";
 
 import { useShopId } from "./useShopId.ts";
 import { createWrapper } from "./_createWrapper.tsx";
-import { act, renderHook } from "@testing-library/react";
+import { cleanup, renderHook, waitFor } from "@testing-library/react";
 
 Deno.test(
   "useShopId",
@@ -12,15 +12,14 @@ Deno.test(
     register();
     await t.step("should return shopId from search params", async () => {
       const shopId = random256BigInt();
-      let result;
-      await act(() => {
-        const { result: r } = renderHook(() => useShopId(), {
-          wrapper: createWrapper(shopId),
-        });
-        result = r;
+      const { result } = renderHook(() => useShopId(), {
+        wrapper: createWrapper(shopId),
       });
-      assertEquals(result!.current.shopId, shopId);
+      await waitFor(() => {
+        assertEquals(result!.current.shopId, shopId);
+      });
     });
+    cleanup();
     await unregister();
   },
 );

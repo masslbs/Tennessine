@@ -1,17 +1,18 @@
 import { useAccount, useWalletClient } from "wagmi";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { getLogger } from "@logtape/logtape";
-import { useQuery } from "@tanstack/react-query";
-
+import { skipToken, useQuery } from "@tanstack/react-query";
 import { RelayClient } from "@massmarket/client";
 import { getWindowLocation } from "@massmarket/utils";
 
 import { useShopId } from "./useShopId.ts";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";
-import { assert } from "@std/assert";
 
 const logger = getLogger(["mass-market", "frontend", "useKeycard"]);
 
+/**
+ *  The role of the keycard, which determines what state it can access and update
+ */
 export type KeycardRole = "merchant" | "guest";
 
 /**
@@ -25,9 +26,9 @@ export function useKeycard(role: KeycardRole = "guest") {
   const { address } = useAccount();
   const { relayEndpoint } = useRelayEndpoint();
 
-  return useQuery({
+  const enabled = !!shopId && !!wallet && !!relayEndpoint && !!address;
+  const qResult = useQuery({
     // queryFn will not execute till these variables are defined.
-    enabled: !!shopId && !!wallet && !!relayEndpoint && !!address,
     queryKey: [
       "keycard",
       address,
@@ -35,62 +36,60 @@ export function useKeycard(role: KeycardRole = "guest") {
       String(shopId),
       role,
     ],
-    queryFn: async ({ client }) => {
-      /**
-       * 1. Generate KC
-       * 2. Enroll KC
-       * 3. Return the KC
-       */
+    queryFn: enabled
+      ? async ({ client }) => {
+        /**
+         * 1. Generate KC
+         * 2. Enroll KC
+         * 3. Return the KC
+         */
 
-      assert(relayEndpoint);
-      assert(shopId);
-      assert(address);
-      assert(wallet);
-
-      const privateKey = generatePrivateKey();
-      // This relay instance is just to enroll the keycard.
-      const relayClient = new RelayClient({
-        relayEndpoint,
-        walletClient: wallet,
-        keycard: privateKeyToAccount(privateKey),
-        shopId,
-      });
-
-      const res = await relayClient.enrollKeycard(
-        wallet,
-        address,
-        role === "guest",
-        getWindowLocation(),
-      );
-
-      if (!res.ok) {
-        const error = new Error(`Failed to enroll keycard: ${res.status}`);
-        logger.error(`failed to enroll ${role} keycard for shop ${shopId}`, {
-          error,
+        const privateKey = generatePrivateKey();
+        // This relay instance is just to enroll the keycard.
+        const relayClient = new RelayClient({
+          relayEndpoint,
+          walletClient: wallet,
+          keycard: privateKeyToAccount(privateKey),
+          shopId,
         });
-        throw error;
-      }
-      logger.debug(`Success: Enrolled new ${role} keycard`);
 
-      const kc = {
-        privateKey,
-        role,
-        address,
-      };
-      // Return this keycard for all guest keycard queries.
-      // This is needed for merchant enrolls, so that subsequent queries will return this merchant keycard instead of trying to enroll multiple different keycards.
-      // setQueriesData also ensures that any component using the query will re-render with the new keycard.
-      if (role === "merchant") {
-        client.setQueriesData(
-          { queryKey: ["keycard", address, String(shopId), "guest"] },
-          kc,
+        const res = await relayClient.enrollKeycard(
+          wallet,
+          address,
+          role === "guest",
+          getWindowLocation(),
         );
-      }
 
-      return kc;
-    },
+        if (!res.ok) {
+          const error = new Error(`Failed to enroll keycard: ${res.status}`);
+          logger.error(`failed to enroll ${role} keycard for shop ${shopId}`, {
+            error,
+          });
+          throw error;
+        }
+        logger.debug(`Success: Enrolled new ${role} keycard`);
+
+        const kc = {
+          privateKey,
+          role,
+          address,
+        };
+        // Return this keycard for all guest keycard queries.
+        // This is needed for merchant enrolls, so that subsequent queries will return this merchant keycard instead of trying to enroll multiple different keycards.
+        // setQueriesData also ensures that any component using the query will re-render with the new keycard.
+        if (role === "merchant") {
+          client.setQueriesData(
+            { queryKey: ["keycard", address, String(shopId), "guest"] },
+            kc,
+          );
+        }
+
+        return kc;
+      }
+      : skipToken,
     // This ensures that the keycard is not discarded during the browser session.
     gcTime: Infinity,
     staleTime: Infinity,
   });
+  return { keycard: qResult.data, ...qResult };
 }

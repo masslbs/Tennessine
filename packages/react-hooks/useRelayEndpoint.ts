@@ -5,6 +5,9 @@ import { useMassMarketContext } from "./useMassMarketContext.ts";
 
 const logger = getLogger(["mass-market", "frontend", "useRelayEndpoint"]);
 
+/*
+ * This hook is used to get the relay endpoint from the context or discover it.
+ */
 export function useRelayEndpoint() {
   const context = useMassMarketContext();
   const q = useQuery(
