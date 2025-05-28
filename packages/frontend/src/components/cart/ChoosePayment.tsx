@@ -24,6 +24,7 @@ import {
   PayeeMetadata,
 } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
+import { useShopId } from "@massmarket/react-hooks";
 import Pay from "./Pay.tsx";
 import QRScan from "./QRScan.tsx";
 import PriceSummary from "./PriceSummary.tsx";
@@ -34,7 +35,6 @@ import BackButton from "../common/BackButton.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import LoadingSpinner from "../common/LoadingSpinner.tsx";
 import ConnectWalletButton from "../common/ConnectWalletButton.tsx";
-import { useShopId } from "../../hooks/useShopId.ts";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { CurrencyChainOption } from "../../types.ts";
 import { env, getTokenInformation } from "../../utils/mod.ts";

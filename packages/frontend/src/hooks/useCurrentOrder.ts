@@ -8,7 +8,7 @@ import { CodecValue } from "@massmarket/utils/codec";
 import { useStateManager } from "./useStateManager.ts";
 import { KeycardRole, ListingId, OrderState } from "../types.ts";
 import { useKeycard } from "./useKeycard.ts";
-import { useMassMarketContext } from "../MassMarketContext.ts";
+import { useMassMarketContext } from "@massmarket/react-hooks";
 
 const logger = getLogger(["mass-market", "frontend", "useCurrentOrder"]);
 

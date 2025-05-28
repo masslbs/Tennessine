@@ -12,12 +12,12 @@ import { getLogger } from "@logtape/logtape";
 
 import { abi } from "@massmarket/contracts";
 import { getWindowLocation } from "@massmarket/utils";
+import { useShopId } from "@massmarket/react-hooks";
 
 import ConnectConfirmation from "./ConnectConfirmation.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import Button from "../common/Button.tsx";
 import { useKeycard } from "../../hooks/useKeycard.ts";
-import { useShopId } from "../../hooks/useShopId.ts";
 import { useChain } from "../../hooks/useChain.ts";
 import { KeycardRole, SearchShopStep } from "../../types.ts";
 import { useRelayClient } from "../../hooks/useRelayClient.ts";

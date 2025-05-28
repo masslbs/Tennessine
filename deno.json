@@ -11,6 +11,7 @@
     "./packages/store",
     "./packages/mmr",
     "./packages/cli",
+    "./packages/react-hooks",
     "./packages/logtape-sentry-sink"
   ],
   "lint": {

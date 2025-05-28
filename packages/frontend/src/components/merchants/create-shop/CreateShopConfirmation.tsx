@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { useShopId } from "../../../hooks/useShopId.ts";
+import { useShopId } from "@massmarket/react-hooks";
 import ButtonLink from "../../common/ButtonLink.tsx";
 export default function Confirmation() {
   const { shopId } = useShopId();

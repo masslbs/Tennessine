@@ -5,7 +5,6 @@ import type { CodecValue } from "./codec.ts";
 let snapshots: Map<string, Map<string, CodecValue>>[];
 Deno.test("fetchAndDecode with ShopOkay vector", async () => {
   const testVector = await fetchAndDecode("ShopOkay");
-  console.log("fetchAndDecode with ShopOkay vector");
 
   // Verify the returned object is a Map (TestVector)
   expect(testVector instanceof Map).toBe(true);
@@ -47,7 +46,6 @@ Deno.test("hamt extraction gives correct keys (accounts)", () => {
             expect(key instanceof Uint8Array).toBe(true);
             const keyArr = key as Uint8Array;
             expect(keyArr.length).toBe(20);
-            // console.log("account key:", printKey(keyArr));
           }
         }
       }
@@ -90,7 +88,6 @@ Deno.test("hamt extraction gives correct keys (listings)", () => {
           // Verify all keys in the listing map are numbers
           for (const key of listingMap.keys()) {
             expect(typeof key).toBe("number");
-            // console.log("listing key:", key);
           }
         }
       }
@@ -134,7 +131,6 @@ Deno.test("hamt extraction gives correct keys (orders)", () => {
           // Verify all keys in the order map are numbers
           for (const key of orderMap.keys()) {
             expect(typeof key).toBe("number");
-            // console.log("order key:", key);
           }
         }
       }

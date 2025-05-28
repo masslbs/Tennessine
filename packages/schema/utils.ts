@@ -43,7 +43,6 @@ export class BaseClass {
       } else if (value === undefined) {
         // ignore
       } else {
-        console.error({ value });
         throw new Error(
           `Unknown value on ${key}. Type: ${typeof value}`,
         );

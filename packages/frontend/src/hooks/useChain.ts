@@ -1,4 +1,4 @@
-import { useMassMarketContext } from "../MassMarketContext.ts";
+import { useMassMarketContext } from "@massmarket/react-hooks";
 import { type Chain, hardhat, mainnet, sepolia } from "viem/chains";
 
 export function useChain() {

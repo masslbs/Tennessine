@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useSearch } from "@tanstack/react-router";
 
 import BackButton from "./common/BackButton.tsx";
-import { useMassMarketContext } from "../MassMarketContext.ts";
+import { useMassMarketContext } from "@massmarket/react-hooks";
 
 export function useShopDomain() {
   return {

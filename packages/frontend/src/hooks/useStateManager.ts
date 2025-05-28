@@ -7,10 +7,9 @@ import { getWindowLocation } from "@massmarket/utils";
 import { LevelStore } from "@massmarket/store/level";
 import StateManager from "@massmarket/stateManager";
 import { useRouter } from "@tanstack/react-router";
+import { useMassMarketContext, useShopId } from "@massmarket/react-hooks";
 
 import { KeycardRole } from "../types.ts";
-import { useMassMarketContext } from "../MassMarketContext.ts";
-import { useShopId } from "./useShopId.ts";
 import { useQuery } from "./useQuery.ts";
 import { useKeycard } from "./useKeycard.ts";
 import { useRelayClient } from "./useRelayClient.ts";

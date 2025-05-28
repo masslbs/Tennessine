@@ -3,7 +3,6 @@ import {
   createElement,
   type Dispatch,
   type SetStateAction,
-  useContext,
   useState,
 } from "react";
 import type { Order } from "@massmarket/schema";
@@ -68,14 +67,4 @@ export function MassMarketProvider(
     value,
     children: parameters.children,
   });
-}
-
-export function useMassMarketContext() {
-  const context = useContext(MassMarketContext);
-  if (!context) {
-    throw new Error(
-      "useMassMarketContext must be used within a MassMarketProvider",
-    );
-  }
-  return context;
 }
