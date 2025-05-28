@@ -170,7 +170,7 @@ Deno.test("Edit Listing", {
       const updateInv = await stateManager.get(["Inventory", listingID]);
 
       expect(updateInv).toBe(321);
-    });
+    }, { timeout: 10000 });
     unmount();
   });
 

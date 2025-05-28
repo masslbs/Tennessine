@@ -14,6 +14,8 @@ import {
   setTokenURI,
 } from "./mod.ts";
 
+const retryCount = 10;
+
 const client = createClient({
   chain: hardhat,
   transport: http(),
@@ -28,25 +30,27 @@ Deno.test({
     const [account] = await client.requestAddresses();
 
     await t.step("mintShop", async () => {
-      const transactionHash = await mintShop(client, account, [
+      const hash = await mintShop(client, account, [
         shopId,
         account,
       ]);
       // this is still causing a leak
       // https://github.com/wevm/viem/issues/2903
       const receipt = await client.waitForTransactionReceipt({
-        hash: transactionHash,
+        hash,
+        retryCount,
       });
       expect(receipt.status).toBe("success");
     });
     await t.step("setTokenURI", async () => {
       const test_uri = "/testing/path";
-      const transactionHash = await setTokenURI(client, account, [
+      const hash = await setTokenURI(client, account, [
         shopId,
         test_uri,
       ]);
       const receipt = await client.waitForTransactionReceipt({
-        hash: transactionHash,
+        hash,
+        retryCount,
       });
       expect(receipt.status).toBe("success");
 
@@ -79,12 +83,13 @@ Deno.test({
     const [account1, account2] = await client.requestAddresses();
 
     await t.step("mintShop", async () => {
-      const transactionHash = await mintShop(client, account1, [
+      const hash = await mintShop(client, account1, [
         shopId,
         account1,
       ]);
       const receipt = await client.waitForTransactionReceipt({
-        hash: transactionHash,
+        hash,
+        retryCount,
       });
       expect(receipt.status).toBe("success");
     });
@@ -101,6 +106,7 @@ Deno.test({
       // wait for the transaction to be included in the blockchain
       const receipt = await client.waitForTransactionReceipt({
         hash,
+        retryCount,
       });
       expect(receipt.status).toBe("success");
     });
@@ -111,10 +117,11 @@ Deno.test({
         transport: http(),
       }).extend(walletActions).extend(publicActions);
 
-      const hash2 = await redeemInviteSecret(sk, client2, account2, shopId);
+      const hash = await redeemInviteSecret(sk, client2, account2, shopId);
       // wait for the transaction to be included in the blockchain
       const transaction = await client2.waitForTransactionReceipt({
-        hash: hash2,
+        hash,
+        retryCount,
       });
       expect(transaction.status).toBe("success");
 

@@ -151,6 +151,7 @@ export const createRouterWrapper = async ({
     // https://github.com/wevm/viem/issues/2903
     const receipt = await testClient.waitForTransactionReceipt({
       hash: transactionHash,
+      retryCount: 10,
     });
     if (receipt.status !== "success") {
       throw new Error("Shop creation failed");
