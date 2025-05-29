@@ -6,6 +6,7 @@
     "jsr:@deno-library/progress@^1.5.1": "1.5.1",
     "jsr:@deno/cache-dir@~0.10.3": "0.10.3",
     "jsr:@deno/dnt@~0.41.3": "0.41.3",
+    "jsr:@deno/graph@~0.73.1": "0.73.1",
     "jsr:@jollytoad/store-common@0.4": "0.4.0",
     "jsr:@jollytoad/store-web-storage@0.4": "0.4.0",
     "jsr:@jollytoad/store@0.4": "0.4.0",
@@ -21,6 +22,7 @@
     "jsr:@std/assert@^1.0.12": "1.0.12",
     "jsr:@std/assert@^1.0.13": "1.0.13",
     "jsr:@std/async@1": "1.0.12",
+    "jsr:@std/async@^1.0.12": "1.0.12",
     "jsr:@std/bytes@0.223": "0.223.0",
     "jsr:@std/data-structures@^1.0.6": "1.0.6",
     "jsr:@std/dotenv@~0.225.2": "0.225.5",
@@ -63,6 +65,8 @@
     "npm:@sentry/core@^8.40.0": "8.55.0",
     "npm:@sentry/types@^8.40.0": "8.55.0",
     "npm:@tailwindcss/vite@^4.1.4": "4.1.4_vite@6.3.3__@types+node@22.12.0__picomatch@4.0.2_@types+node@22.12.0",
+    "npm:@tanstack/query-sync-storage-persister@^5.79.0": "5.79.0",
+    "npm:@tanstack/react-query-persist-client@^5.79.0": "5.79.0_@tanstack+react-query@5.74.4__react@19.1.0_react@19.1.0",
     "npm:@tanstack/react-query@5.74.4": "5.74.4_react@19.1.0",
     "npm:@tanstack/react-query@^5.74.4": "5.74.4_react@19.1.0",
     "npm:@tanstack/react-query@^5.77.2": "5.77.2_react@19.1.0",
@@ -111,7 +115,7 @@
       "integrity": "dc4b7e0ea5d8186fcd9e33e2c54e62913d7eb99d5a2d4f987b1c5399d8e295de",
       "dependencies": [
         "jsr:@deno-library/progress",
-        "jsr:@std/async",
+        "jsr:@std/async@1",
         "jsr:@std/fs@1",
         "jsr:@std/path@1",
         "jsr:@zip-js/zip-js"
@@ -130,6 +134,7 @@
     "@deno/cache-dir@0.10.3": {
       "integrity": "eb022f84ecc49c91d9d98131c6e6b118ff63a29e343624d058646b9d50404776",
       "dependencies": [
+        "jsr:@deno/graph",
         "jsr:@std/fmt@0.223",
         "jsr:@std/fs@0.223",
         "jsr:@std/io@0.223",
@@ -146,6 +151,9 @@
         "jsr:@std/path@1",
         "jsr:@ts-morph/bootstrap"
       ]
+    },
+    "@deno/graph@0.73.1": {
+      "integrity": "cd69639d2709d479037d5ce191a422eabe8d71bb68b0098344f6b07411c84d41"
     },
     "@jollytoad/store@0.4.0": {
       "integrity": "60c8fa324f90e91ba37dfc8aed9dcf0d98dae6a81dcf1241bc773f3546adf2c9",
@@ -304,6 +312,7 @@
       "integrity": "12b3db12d34f0f385a26248933bde766c0f8c5ad8b6ab34d4d38f528ab852f48",
       "dependencies": [
         "jsr:@std/assert@^1.0.12",
+        "jsr:@std/async@^1.0.12",
         "jsr:@std/data-structures",
         "jsr:@std/fs@^1.0.16",
         "jsr:@std/internal@^1.0.6",
@@ -1579,6 +1588,30 @@
     },
     "@tanstack/query-core@5.77.2": {
       "integrity": "sha512-1lqJwPsR6GX6nZFw06erRt518O19tWU6Q+x0fJUygl4lxHCYF2nhzBPwLKk2NPjYOrpR0K567hxPc5K++xDe9Q=="
+    },
+    "@tanstack/query-core@5.79.0": {
+      "integrity": "sha512-s+epTqqLM0/TbJzMAK7OEhZIzh63P9sWz5HEFc5XHL4FvKQXQkcjI8F3nee+H/xVVn7mrP610nVXwOytTSYd0w=="
+    },
+    "@tanstack/query-persist-client-core@5.79.0": {
+      "integrity": "sha512-j//0BLzzmUd9SoHesu5SIjmLE8eYuzGmHAeS02lh6mD1QyLuNEENps+DukKp0+fADtQ01MwSo3LNMF8A3j59+w==",
+      "dependencies": [
+        "@tanstack/query-core@5.79.0"
+      ]
+    },
+    "@tanstack/query-sync-storage-persister@5.79.0": {
+      "integrity": "sha512-TMfOisngsLy3lQttHKPaO7cL72YD3PeOMlu8ni07srbk8W/F9f4HLLEdmmVqDfo+0FlvIgvdR2S763algI89sw==",
+      "dependencies": [
+        "@tanstack/query-core@5.79.0",
+        "@tanstack/query-persist-client-core"
+      ]
+    },
+    "@tanstack/react-query-persist-client@5.79.0_@tanstack+react-query@5.74.4__react@19.1.0_react@19.1.0": {
+      "integrity": "sha512-LpiNa5LtrrE4j4VkoxhO+2KSeUzGyxFZuU4SojGrR7qEpU8Q4mhSqIe3E3Kx6AyyFaIzQTEzGAr0PKEecUDsEQ==",
+      "dependencies": [
+        "@tanstack/query-persist-client-core",
+        "@tanstack/react-query@5.74.4_react@19.1.0",
+        "react"
+      ]
     },
     "@tanstack/react-query@5.74.4_react@19.1.0": {
       "integrity": "sha512-mAbxw60d4ffQ4qmRYfkO1xzRBPUEf/72Dgo3qqea0J66nIKuDTLEqQt0ku++SDFlMGMnB6uKDnEG1xD/TDse4Q==",
@@ -5228,6 +5261,8 @@
           "npm:@rainbow-me/rainbowkit@^2.2.0",
           "npm:@sentry/browser@^9.19.0",
           "npm:@tailwindcss/vite@^4.1.4",
+          "npm:@tanstack/query-sync-storage-persister@^5.79.0",
+          "npm:@tanstack/react-query-persist-client@^5.79.0",
           "npm:@tanstack/react-query@5.74.4",
           "npm:@tanstack/react-router@1.116.0",
           "npm:@tanstack/router-plugin@^1.116.1",
