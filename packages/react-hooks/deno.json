@@ -16,8 +16,8 @@
     "@testing-library/react": "npm:@testing-library/react@^16.3.0",
     "@types/react": "npm:@types/react@^19.1.2",
     "react": "npm:react@^19.1.0",
-    "viem": "npm:viem@^2.28.1",
-    "wagmi": "npm:wagmi@^2.15.1"
+    "viem": "npm:viem@^2.30.5",
+    "wagmi": "npm:wagmi@^2.15.4"
   },
   "compilerOptions": {
     "noErrorTruncation": true,
