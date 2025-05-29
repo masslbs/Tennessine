@@ -6,8 +6,8 @@
     ".": "./mod.ts"
   },
   "imports": {
-    "@deno/dnt": "jsr:@deno/dnt@^0.41.3",
-    "@logtape/logtape": "jsr:@logtape/logtape@^0.8.0",
+    "@deno/dnt": "jsr:@deno/dnt@^0.42.1",
+    "@logtape/logtape": "jsr:@logtape/logtape@^0.10.0",
     "@logtape/sentry": "./mod.ts",
     "@sentry/core": "npm:@sentry/core@^8.40.0",
     "@sentry/types": "npm:@sentry/types@^8.40.0",
