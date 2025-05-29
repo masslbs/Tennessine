@@ -1,10 +1,19 @@
 // Any utility functions for form validation
 import { isAddress, isHex, toHex } from "viem";
 
-export const isValidHex = (hex: string) => {
+export function isValidHex(hex: string) {
   return isHex(hex);
-};
+}
 
-export const isValidAddress = (address: Uint8Array) => {
+export function isValidAddress(address: Uint8Array) {
   return isAddress(toHex(address));
-};
+}
+
+export function isValidUrl(urlString: string): boolean {
+  try {
+    new URL(urlString);
+    return true;
+  } catch (_e) {
+    return false;
+  }
+}

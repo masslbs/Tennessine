@@ -22,6 +22,7 @@ import { useChain } from "../../hooks/useChain.ts";
 import { KeycardRole, SearchShopStep } from "../../types.ts";
 import { useRelayClient } from "../../hooks/useRelayClient.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
+import { isValidUrl } from "../../utils/mod.ts";
 
 const logger = getLogger(["mass-market", "frontend", "connect-merchant"]);
 
@@ -63,44 +64,76 @@ export default function MerchantConnect() {
     }
   }, [keycard.role === KeycardRole.RETURNING_GUEST, shopId]);
 
+  useEffect(() => {
+    //If shopId is in env, skip the search step and go to connect step.
+    if (shopId && step === SearchShopStep.Search) {
+      findShopData(shopId).then();
+    }
+  }, [shopId]);
+
   function handleClearShopIdInput() {
     setSearchShopId("");
     setStep(SearchShopStep.Search);
   }
 
-  async function handleSearchForShop() {
-    setErrorMsg(null);
-    if (searchShopId.length > 66) {
-      setErrorMsg("Invalid shop ID (input too long)");
-      return;
-    }
-    if (!isHex(searchShopId)) {
-      setErrorMsg("Invalid shop ID (input not hex)");
-      return;
-    }
-    const shopID = hexToBigInt(searchShopId as `0x${string}`, { size: 32 });
+  async function findShopData(id: `0x${string}` | bigint) {
     try {
+      // shopId will be hex if user inputs hex, and bigint if shopId is in env or address bar.
+      const shopID = isHex(id)
+        ? hexToBigInt(id as `0x${string}`, { size: 32 })
+        : id;
+
       const uri = (await shopPublicClient!.readContract({
         address: abi.shopRegAddress,
         abi: abi.shopRegAbi,
         functionName: "tokenURI",
         args: [shopID],
       })) as string;
+
       if (uri) {
         const res = await fetch(uri);
         const data = await res.json();
         logger.debug("Shop found");
         setShopData(data);
-        navigate({
-          search: { shopId: searchShopId },
-        });
         setStep(SearchShopStep.Connect);
+        return true;
       } else {
         setErrorMsg("Shop not found");
+        return false;
       }
     } catch (error: unknown) {
       logger.error("Error finding shop", { error });
       setErrorMsg("Error finding shop");
+      return false;
+    }
+  }
+
+  function extractShopId(input: string) {
+    if (isHex(input)) {
+      return input;
+    }
+    // If user pastes shop URL in the search field instead of shop ID, extract the shop ID from the URL.
+    if (isValidUrl(searchShopId)) {
+      const searchParams = new URL(input).searchParams;
+      if (searchParams.has("shopId")) {
+        return searchParams.get("shopId");
+      }
+    }
+  }
+
+  async function handleSearchForShop() {
+    setErrorMsg(null);
+    const id = extractShopId(searchShopId);
+    if (!id) {
+      setErrorMsg("Invalid shop ID");
+      return;
+    }
+    const found = await findShopData(id as `0x${string}`);
+    // If shop exists, set shop ID in search param.
+    if (found) {
+      navigate({
+        search: { shopId: id },
+      });
     }
   }
 
@@ -111,6 +144,18 @@ export default function MerchantConnect() {
       }
       if (!stateManager) {
         logger.warn("stateManager is undefined");
+        return;
+      }
+      if (keycard.role === KeycardRole.MERCHANT) {
+        logger.debug(
+          "Keycard is already enrolled as a merchant. Redirecting to merchant dashboard.",
+        );
+        navigate({
+          to: "/merchant-dashboard",
+          search: (prev: Record<string, string>) => ({
+            shopId: prev.shopId,
+          }),
+        });
         return;
       }
       const res = await relayClient.enrollKeycard(
@@ -206,6 +251,7 @@ export default function MerchantConnect() {
                   name="searchShopId"
                   value={searchShopId}
                   onChange={(e) => setSearchShopId(e.target.value)}
+                  placeholder="0xf4fa..."
                 />
                 <button
                   onClick={handleClearShopIdInput}
