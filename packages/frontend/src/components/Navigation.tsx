@@ -190,10 +190,10 @@ function Navigation() {
         />
       )}
       <section
-        className={`bg-white flex justify-center z-10 relative`}
+        className={`bg-white flex justify-center z-10 fixed top-0 left-0 right-0`}
         data-testid="navigation"
       >
-        <section className="relative w-full text-base flex justify-between md:w-[800px] h-[56px] mr-3">
+        <section className="relative w-full text-base flex justify-between md:w-[800px] h-[56px] md:mr-3">
           <div
             id="logo"
             className="flex gap-2 cursor-pointer m-2"
@@ -260,9 +260,9 @@ function Navigation() {
                 />
               </button>
               <div
-                className={`${menuOpen ? "hidden md:block z-10" : "hidden"}`}
+                className={`${menuOpen ? "z-10" : "hidden"}`}
               >
-                <div className="fixed bg-background-gray w-full flex flex-col gap-5 rounded-b-lg p-5 w-fit static">
+                <div className="bg-background-gray w-screen flex flex-col gap-5 rounded-b-lg p-5 absolute right-0 md:w-full md:static">
                   {renderMenuItems()}
                 </div>
               </div>
@@ -307,7 +307,9 @@ function Navigation() {
                 </div>
               </button>
               <div
-                className={`${cartVisible ? "hidden md:block z-10" : "hidden"}`}
+                className={`${
+                  cartVisible ? "z-10 w-screen md:w-fit" : "hidden"
+                }`}
               >
                 <div
                   data-testid="desktop-cart"
@@ -323,30 +325,6 @@ function Navigation() {
             </div>
           </section>
         </section>
-      </section>
-      <section id="mobile-menu" className="md:hidden absolute z-10">
-        {menuOpen
-          ? (
-            <section>
-              <div className="fixed bg-background-gray w-full flex flex-col gap-5 rounded-b-lg p-5">
-                {renderMenuItems()}
-              </div>
-            </section>
-          )
-          : null}
-        {cartVisible
-          ? (
-            <section>
-              <div className="fixed bg-background-gray w-full flex flex-col gap-5 rounded-b-lg p-5">
-                <h1>Cart</h1>
-                <Cart
-                  onCheckout={onCheckout}
-                  closeCart={() => setCartVisible(false)}
-                />
-              </div>
-            </section>
-          )
-          : null}
       </section>
     </section>
   );

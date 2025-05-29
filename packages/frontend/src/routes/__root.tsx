@@ -9,7 +9,10 @@ export const Route = createRootRoute({
       <main className="h-screen flex flex-col" id="top">
         <CookieBanner />
         <Navigation />
-        <Outlet />
+        {/* Top margin on every screen to compensate for sticky nav */}
+        <div className="mt-[56px]">
+          <Outlet />
+        </div>
         <Footer />
       </main>
     );
