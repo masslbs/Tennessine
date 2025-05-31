@@ -26,7 +26,7 @@ function testWrapper(
 }
 
 Deno.test(
-  "Should enroll guest keycard",
+  "Enroll guest/merchantkeycard.",
   denoTestOptions,
   testWrapper(async (shopId, t) => {
     await t.step("enroll merchant card", async () => {
@@ -61,8 +61,8 @@ Deno.test(
   "Hook should return error if keycard enrollment fails",
   denoTestOptions,
   testWrapper(async (shopId) => {
+    // Enroll should fail since relay expects first keycard enrollment for a shop to be merchant.
     const wrapper = createWrapper(shopId);
-    // Enroll should fail since we didn't create a shop.
     const { result } = renderHook(() => useKeycard(), { wrapper });
     await waitFor(() => {
       expect(result.current.error).toBeDefined();
