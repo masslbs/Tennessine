@@ -8,10 +8,13 @@ import {
 import { createConfig, http, mock, WagmiProvider } from "wagmi";
 import { foundry } from "wagmi/chains";
 import { createTestClient, publicActions, walletActions } from "viem";
+import { cleanup } from "@testing-library/react";
+
 import { mintShop } from "@massmarket/contracts";
 import { random256BigInt } from "@massmarket/utils";
+
 import { MassMarketProvider } from "./MassMarketContext.ts";
-// import { random256BigInt } from "@massmarket/utils";
+import { register, unregister } from "./happyDomSetup.ts";
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -95,4 +98,17 @@ export async function createShop(shopId: bigint) {
   await testClient.waitForTransactionReceipt({
     hash: transactionHash,
   });
+}
+
+export function testWrapper(
+  cb: (id: bigint, t: Deno.TestContext) => Promise<void> | void,
+) {
+  return async (_t: Deno.TestContext) => {
+    register();
+    const shopId = random256BigInt();
+    await createShop(shopId);
+    await cb(shopId, _t);
+    cleanup();
+    await unregister();
+  };
 }
