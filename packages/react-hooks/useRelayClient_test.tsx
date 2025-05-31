@@ -1,31 +1,16 @@
-import { cleanup, render, renderHook, waitFor } from "@testing-library/react";
+import { render, renderHook, waitFor } from "@testing-library/react";
 import { expect } from "@std/expect";
 
-import { random256BigInt } from "@massmarket/utils";
 import { RelayClient } from "@massmarket/client";
 
-import { register, unregister } from "./happyDomSetup.ts";
 import { useRelayClient } from "./useRelayClient.ts";
 import { useKeycard } from "./useKeycard.ts";
-import { createShop, createWrapper } from "./_createWrapper.tsx";
+import { createWrapper, testWrapper } from "./_createWrapper.tsx";
 
 const denoTestOptions = {
   sanitizeResources: false,
   sanitizeOps: false,
 };
-
-function testWrapper(
-  cb: (id: bigint, t: Deno.TestContext) => Promise<void> | void,
-) {
-  return async (_t: Deno.TestContext) => {
-    register();
-    const shopId = random256BigInt();
-    await createShop(shopId);
-    await cb(shopId, _t);
-    cleanup();
-    await unregister();
-  };
-}
 
 Deno.test(
   "Hook returns RelayClient without errors.",
@@ -58,14 +43,28 @@ Deno.test(
     });
 
     await t.step("Calling hook concurrently does not error.", async () => {
-      const wrapper = createWrapper(shopId);
-      const rendered = render(<TestComponent />, { wrapper });
+      const rendered = render(<TestComponent />, {
+        wrapper: createWrapper(shopId),
+      });
       await waitFor(() => {
         const component1Pk = rendered.getByTestId("component1-readyState");
         const component2Pk = rendered.getByTestId("component2-readyState");
         expect(component1Pk.textContent).toEqual("1");
         expect(component1Pk.textContent).toEqual(component2Pk.textContent);
       });
+    });
+  }),
+);
+
+Deno.test(
+  "If keycard is undefined, hook does not return RelayClient",
+  denoTestOptions,
+  testWrapper(async (shopId) => {
+    const { result } = renderHook(() => useRelayClient(), {
+      wrapper: createWrapper(shopId),
+    });
+    await waitFor(() => {
+      expect(result.current.data).toBeUndefined();
     });
   }),
 );

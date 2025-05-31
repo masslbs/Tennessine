@@ -1,29 +1,13 @@
-import { cleanup, render, renderHook, waitFor } from "@testing-library/react";
+import { render, renderHook, waitFor } from "@testing-library/react";
 import { expect } from "@std/expect";
 
-import { random256BigInt } from "@massmarket/utils";
-
-import { register, unregister } from "./happyDomSetup.ts";
 import { type KeycardRole, useKeycard } from "./useKeycard.ts";
-import { createShop, createWrapper } from "./_createWrapper.tsx";
+import { createWrapper, testWrapper } from "./_createWrapper.tsx";
 
 const denoTestOptions = {
   sanitizeResources: false,
   sanitizeOps: false,
 };
-
-function testWrapper(
-  cb: (id: bigint, t: Deno.TestContext) => Promise<void> | void,
-) {
-  return async (_t: Deno.TestContext) => {
-    register();
-    const shopId = random256BigInt();
-    await createShop(shopId);
-    await cb(shopId, _t);
-    cleanup();
-    await unregister();
-  };
-}
 
 Deno.test(
   "Enroll guest/merchantkeycard.",
