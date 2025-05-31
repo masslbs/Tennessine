@@ -22,7 +22,7 @@ export function useRelayClient() {
   const { relayEndpoint } = useRelayEndpoint();
   const { shopId } = useShopId();
   const { data: wallet } = useWalletClient();
-  const enabled = !!relayEndpoint && !!keycard && !!shopId && !!wallet;
+  const enabled = !!shopId && !!wallet && !!relayEndpoint && !!keycard;
 
   return useQuery({
     queryKey: ["relayClient", keycard, String(shopId)],
