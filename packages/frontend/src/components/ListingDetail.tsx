@@ -20,7 +20,7 @@ import SuccessToast from "./common/SuccessToast.tsx";
 import { useCurrentOrder } from "../hooks/useCurrentOrder.ts";
 import { getErrLogger } from "../utils/helper.ts";
 
-const logger = getLogger(["mass-market", "frontend", "ListingDetail"]);
+const baseLogger = getLogger(["mass-market", "frontend", "ListingDetail"]);
 
 export default function ListingDetail() {
   const { baseToken } = useBaseToken();
@@ -37,6 +37,14 @@ export default function ListingDetail() {
   const [successMsg, setMsg] = useState<string | null>(null);
   const [displayedImg, setDisplayedImg] = useState<string | null>(null);
 
+  // set up the logger with information that will be included in error traces when crashes are reported.
+  // note: take care with the type of information that is logged, only include traces that are helpful for debugging at
+  // this early stage.
+  const logger = baseLogger.with({
+    listingId: itemId,
+    orderId: currentOrder?.ID,
+    keycardAddress: keycard?.address,
+  });
   const logError = getErrLogger(logger, setErrorMsg);
 
   useEffect(() => {

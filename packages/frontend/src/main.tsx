@@ -1,5 +1,5 @@
 import "web-streams-polyfill/polyfill";
-import { init } from "@sentry/browser";
+import { init, setTag } from "@sentry/browser";
 import {
   Config,
   configure,
@@ -11,6 +11,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import { env } from "./utils/env.ts";
+import { taggedKeys } from "./utils/mod.ts";
 import releaseInfo from "./release-info.json" with { type: "json" };
 
 const isSentryEnabled = env.sentryDSN !== undefined;
@@ -33,7 +34,11 @@ if (isSentryEnabled) {
     release: `tennessine@${releaseInfo.version}`, // TODO: we should start tagging our builds...
     tracesSampleRate: isProd ? 0.1 : 1.0,
   });
-  sentryConfig.sinks.sentry = getSentrySink(sentryClient as undefined);
+  sentryConfig.sinks.sentry = getSentrySink(
+    setTag,
+    taggedKeys,
+    sentryClient as undefined,
+  );
   sentryConfig.loggers.push({
     category: ["mass-market"],
     sinks: ["sentry"],
