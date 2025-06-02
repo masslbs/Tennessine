@@ -8,7 +8,7 @@ import { KeycardRole, OrderState } from "../types.ts";
 
 // This function accepts a logtape logger, and optionally a
 // react state setter function for setting an error message in the
-// interface. It returns a function, logError, that accepts and error message, and
+// interface. It returns a function, logError, that accepts an error message, and
 // optionally an error.
 //
 // `logError` encapsulates how we want to treat errors:
