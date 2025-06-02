@@ -1,4 +1,5 @@
 import { ChangeEvent, useState } from "react";
+import { getLogger } from "@logtape/logtape";
 
 import { ChainAddress, Manifest } from "@massmarket/schema";
 
@@ -13,6 +14,10 @@ import {
   ShopForm,
 } from "../../../types.ts";
 import { useAllCurrencyOptions } from "../../../hooks/useAllCurrencyOptions.ts";
+
+import { getErrLogger } from "../../../utils/mod.ts";
+
+const logger = getLogger(["mass-market", "frontend", "ManifestForm"]);
 
 export default function ManifestForm(
   {
@@ -37,6 +42,8 @@ export default function ManifestForm(
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const currencyOptions = useAllCurrencyOptions();
+
+  const logError = getErrLogger(logger, setErrorMsg);
 
   function handleShopFormChange<K extends keyof ShopForm>(
     field: K,
@@ -119,7 +126,7 @@ export default function ManifestForm(
             setImgBlob={(blob: FormData) => {
               handleShopFormChange("avatar", blob);
             }}
-            setErrorMsg={setErrorMsg}
+            logError={logError}
           />
           <p className="flex items-center">Upload PFP</p>
         </div>

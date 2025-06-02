@@ -18,8 +18,9 @@ import { useKeycard } from "../hooks/useKeycard.ts";
 import ErrorMessage from "./common/ErrorMessage.tsx";
 import SuccessToast from "./common/SuccessToast.tsx";
 import { useCurrentOrder } from "../hooks/useCurrentOrder.ts";
+import { getErrLogger } from "../utils/helper.ts";
 
-const logger = getLogger(["mass-market", "frontend", "listing-detail"]);
+const logger = getLogger(["mass-market", "frontend", "ListingDetail"]);
 
 export default function ListingDetail() {
   const { baseToken } = useBaseToken();
@@ -35,6 +36,8 @@ export default function ListingDetail() {
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [successMsg, setMsg] = useState<string | null>(null);
   const [displayedImg, setDisplayedImg] = useState<string | null>(null);
+
+  const logError = getErrLogger(logger, setErrorMsg);
 
   useEffect(() => {
     if (!(itemId && baseToken && stateManager)) {
@@ -137,8 +140,7 @@ export default function ListingDetail() {
       }
       setQuantity(1);
     } catch (error) {
-      logger.error`Error: changeItems ${error}`;
-      setErrorMsg("There was an error updating cart");
+      logError("There was an error updating cart", error);
     }
   }
 

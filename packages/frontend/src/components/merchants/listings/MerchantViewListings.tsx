@@ -12,7 +12,7 @@ import { ListingViewState } from "../../../types.ts";
 import { useBaseToken } from "../../../hooks/useBaseToken.ts";
 import { useStateManager } from "../../../hooks/useStateManager.ts";
 
-const logger = getLogger(["mass-market", "frontend", "MerchantViewProducts"]);
+const logger = getLogger(["mass-market", "frontend", "MerchantViewListings"]);
 
 export default function MerchantViewProducts({
   products,

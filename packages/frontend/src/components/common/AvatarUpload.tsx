@@ -2,22 +2,15 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import {
-  ChangeEvent,
-  Dispatch,
-  SetStateAction,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 
 export default function AvatarUpload({
   setImgBlob,
-  setErrorMsg,
+  logError,
   currentImg = null,
 }: {
   setImgBlob: (blob: FormData) => void;
-  setErrorMsg: Dispatch<SetStateAction<string | null>>;
+  logError: (msg: string, error: unknown) => void;
   currentImg?: string | null;
 }) {
   const [localImg, setLocalImg] = useState<null | string>(null);
@@ -53,7 +46,7 @@ export default function AvatarUpload({
         reader.readAsDataURL(fileInput.files[0]);
       }
     } catch (error) {
-      setErrorMsg(`Error uploading image: ${error}`);
+      logError("Error uploading image", error);
     }
   };
 
