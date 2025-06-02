@@ -18,7 +18,7 @@ import { abi, approveERC20, getAllowance, pay } from "@massmarket/contracts";
 import Button from "../common/Button.tsx";
 import BackButton from "../common/BackButton.tsx";
 import { useMassMarketContext } from "@massmarket/react-hooks";
-import { isTesting } from "../../utils/env.ts";
+import { getErrLogger, isTesting } from "../../utils/mod.ts";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import PriceSummary from "./PriceSummary.tsx";
 
@@ -66,6 +66,8 @@ export default function Pay({
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
+
+  const logError = getErrLogger(logger, setErrorMsg);
 
   useEffect(() => {
     if (wallet?.account) {
@@ -145,14 +147,13 @@ export default function Pay({
     } catch (error: unknown) {
       // for context on typing errors from wagmi, see
       // https://github.com/wevm/wagmi/discussions/233
-      setErrorMsg("Error sending payment");
       // @ts-ignore TODO: fix this
       if (error.shortMessage) {
         // @ts-ignore TODO: fix this
         logger.info`${error.shortMessage}`;
       }
       // @ts-ignore TODO: fix this
-      logger.error("Error sending payment {error}", { error });
+      logError("Error sending payment", error);
     }
   }
 

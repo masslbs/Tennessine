@@ -16,7 +16,7 @@ import ErrorMessage from "../common/ErrorMessage.tsx";
 import { useBaseToken } from "../../hooks/useBaseToken.ts";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
-import { multiplyAndFormatUnits } from "../../utils/helper.ts";
+import { getErrLogger, multiplyAndFormatUnits } from "../../utils/helper.ts";
 import PriceSummary from "./PriceSummary.tsx";
 
 const logger = getLogger(["mass-market", "frontend", "Cart"]);
@@ -44,6 +44,8 @@ export default function Cart({
   );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [errorListing, setErrorListing] = useState<Listing | null>(null);
+
+  const logError = getErrLogger(logger, setErrorMsg);
 
   function onOrderUpdate(order: CodecValue) {
     const o = Order.fromCBOR(order);
@@ -133,8 +135,7 @@ export default function Cart({
         setErrorListing(listing);
         setErrorMsg(`Not enough stock for item: ${listing.Metadata.Title}`);
       } else {
-        setErrorMsg("Error checking out");
-        logger.error("Error checking out", { error });
+        logError("Error checking out", error);
       }
     }
   }
@@ -160,8 +161,7 @@ export default function Cart({
       logger.debug("cart cleared");
       closeCart?.();
     } catch (error) {
-      setErrorMsg("Error clearing cart");
-      logger.error("Error clearing cart", { error });
+      logError("Error clearing cart", error);
     }
   }
 
@@ -190,7 +190,7 @@ export default function Cart({
         setErrorMsg(null);
       }
     } catch (error) {
-      logger.error`Error:adjustItemQuantity ${error}`;
+      logError("Error adjusting item quantity", error);
     }
   }
 
@@ -225,8 +225,7 @@ export default function Cart({
         setErrorMsg(null);
       }
     } catch (error) {
-      setErrorMsg("Error removing item");
-      logger.error`Error:removeItem ${error}`;
+      logError("Error removing item", error);
     }
   }
 

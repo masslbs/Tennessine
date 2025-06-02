@@ -29,6 +29,7 @@ import { useShopDetails } from "../../hooks/useShopDetails.ts";
 import { useRelayClient } from "../../hooks/useRelayClient.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 import { useAllCurrencyOptions } from "../../hooks/useAllCurrencyOptions.ts";
+import { getErrLogger } from "../../utils/mod.ts";
 
 const logger = getLogger(["mass-market", "frontend", "ShopSettings"]);
 
@@ -55,6 +56,9 @@ export default function ShopSettings() {
   const [success, setSuccess] = useState<string | null>(null);
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const currencyOptions = useAllCurrencyOptions();
+
+  const logError = getErrLogger(logger, setErrorMsg);
+
   useEffect(() => {
     if (!stateManager) return;
     function onUpdateEvent(res: CodecValue | undefined) {
@@ -152,8 +156,7 @@ export default function ShopSettings() {
       const element = document.getElementById("top");
       element?.scrollIntoView();
     } catch (error: unknown) {
-      logger.error("Failed: updateShopManifest", { error });
-      setErrorMsg("Error updating shop manifest.");
+      logError("Error updating shop manifest", error);
     }
   }
 
@@ -230,8 +233,7 @@ export default function ShopSettings() {
             <p className="flex items-center font-medium">Shop PFP</p>
             <AvatarUpload
               setImgBlob={setAvatar}
-              setErrorMsg={setErrorMsg}
-              logger={logger}
+              logError={logError}
               currentImg={shopDetails.profilePictureUrl}
             />
             <section className="text-sm flex flex-col gap-4">

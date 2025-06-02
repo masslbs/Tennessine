@@ -1,6 +1,39 @@
 import { formatUnits } from "viem";
 
+import { Logger } from "@logtape/logtape";
+
+import { Dispatch, SetStateAction } from "react";
+
 import { KeycardRole, OrderState } from "../types.ts";
+
+// This function accepts a logtape logger, and optionally a
+// react state setter function for setting an error message in the
+// interface. It returns a function, logError, that accepts and error message, and
+// optionally an error.
+//
+// `logError` encapsulates how we want to treat errors:
+//
+// If the logged error has an error, output it into the console with the
+// error object first, and then log the error message. If the state setter
+// function is present, then we call that with the passed-in error message.
+export function getErrLogger(
+  logger: Logger,
+  setErrorMsg?: Dispatch<SetStateAction<string | null>>,
+) {
+  return (msg: string, error: unknown = null) => {
+    // `logger.info` won't reach glitchtip but will include thrown error + its details in the dev console
+    // `logger.error` will reach glitchtip but won't pollute glitchtip's glitchtip's logs r
+    if (setErrorMsg) {
+      setErrorMsg(msg);
+    }
+    if (error) {
+      logger.info(`${msg} {error}`, { error });
+      logger.error(msg, { error });
+    } else {
+      logger.error(msg);
+    }
+  };
+}
 
 export function multiplyAndFormatUnits(
   price: bigint,

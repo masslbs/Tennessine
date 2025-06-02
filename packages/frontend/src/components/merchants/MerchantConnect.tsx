@@ -22,7 +22,7 @@ import { useChain } from "../../hooks/useChain.ts";
 import { KeycardRole, SearchShopStep } from "../../types.ts";
 import { useRelayClient } from "../../hooks/useRelayClient.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
-import { isValidUrl } from "../../utils/mod.ts";
+import { getErrLogger, isValidUrl } from "../../utils/mod.ts";
 
 const logger = getLogger(["mass-market", "frontend", "connect-merchant"]);
 
@@ -50,6 +50,8 @@ export default function MerchantConnect() {
       image: string;
     } | null
   >(null);
+
+  const logError = getErrLogger(logger);
 
   useEffect(() => {
     // If keycard is already enrolled as a customer, reset keycard
@@ -102,8 +104,7 @@ export default function MerchantConnect() {
         return false;
       }
     } catch (error: unknown) {
-      logger.error("Error finding shop", { error });
-      setErrorMsg("Error finding shop");
+      logError("Error finding shop", error);
       return false;
     }
   }
@@ -179,8 +180,7 @@ export default function MerchantConnect() {
       stateManager!.addConnection(relayClient);
       setStep(SearchShopStep.Confirm);
     } catch (error: unknown) {
-      logger.error("Error enrolling keycard {error}", { error });
-      setErrorMsg(`Error occurred while enrolling keycard`);
+      logError("Error enrolling keycard", error);
     }
   }
 

@@ -20,6 +20,7 @@ import BackButton from "../../common/BackButton.tsx";
 import { useStateManager } from "../../../hooks/useStateManager.ts";
 import { useRelayClient } from "../../../hooks/useRelayClient.ts";
 import { useBaseToken } from "../../../hooks/useBaseToken.ts";
+import { getErrLogger } from "../../../utils/mod.ts";
 
 const logger = getLogger(["mass-market", "frontend", "EditListing"]);
 
@@ -39,6 +40,8 @@ export default function EditProduct() {
   // This state is to store the price input value as a string to allow flexibility when typing in decimals
   const [priceInput, setPriceInput] = useState("");
 
+  const logError = getErrLogger(logger, setErrorMsg);
+
   const itemId = typeof search.itemId === "number"
     ? Number(search.itemId) as ListingId
     : null;
@@ -50,17 +53,15 @@ export default function EditProduct() {
     stateManager.get(["Listings", itemId])
       .then((item: CodecValue | undefined) => {
         if (!item) {
-          setErrorMsg("Error fetching listing");
-          logger.error("Error fetching listing. No item found");
+          logError("Error fetching listing. No item found");
           return;
         }
         const l = Listing.fromCBOR(item);
         setListing(l);
         setPriceInput(formatUnits(l.Price, baseToken.decimals));
       })
-      .catch((e: unknown) => {
-        setErrorMsg("Error fetching listing");
-        logger.error("Error fetching listing", { e });
+      .catch((error: unknown) => {
+        logError("Error fetching listing", error);
       });
     stateManager.get(["Inventory", itemId])
       .then((item: CodecValue | undefined) => {
@@ -155,8 +156,7 @@ export default function EditProduct() {
           }),
         });
       } catch (error: unknown) {
-        logger.error("Error publishing listing", { error });
-        setErrorMsg("Error publishing listing.");
+        logError("Error publishing listing", error);
       } finally {
         setPublishing(false);
       }
@@ -229,9 +229,7 @@ export default function EditProduct() {
         e.target.value = "";
       }
     } catch (error: unknown) {
-      const msg = "Error during image upload";
-      logger.error(`${msg} {error}`, { error });
-      setErrorMsg(msg);
+      logError("Error during image upload", error);
     }
   }
 
