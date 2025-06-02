@@ -44,6 +44,25 @@ jobs:
         run: nix develop -c bash -c "deno check ."
         working-directory: Tennessine/
 
+      - name: Check dependency pinning
+        run: |
+          echo "Checking that all deno.json files use pinned dependencies (no carets or tildes)..."
+
+          # Find all deno.json files
+          find . -name "deno.json" -type f | while read -r file; do
+            echo "Checking $file..."
+
+            # Check for caret (^) or tilde (~) version specifiers in the imports section
+            if jq -r '.imports // {} | to_entries[] | .value' "$file" 2>/dev/null | grep -E '[\^~]'; then
+              echo "ERROR: Found unpinned dependency in $file:"
+              jq -r '.imports // {} | to_entries[] | select(.value | test("[\\^~]")) | "\(.key): \(.value)"' "$file"
+              exit 1
+            fi
+          done
+
+          echo "✅ All deno.json files use pinned dependencies"
+        working-directory: Tennessine/
+
       # if this fails check the logs of the prior job. The relay should log it's failure reason there.
       # the logs for the other services might be bit harder to come by since they are orchestrated by docker.
       - name: check services running? 1. relay, 2. ipfs, 3. anvil

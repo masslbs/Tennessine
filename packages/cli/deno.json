@@ -3,6 +3,6 @@
   "version": "0.0.1",
   "exports": "./shopGen.ts",
   "imports": {
-    "@faker-js/faker": "npm:@faker-js/faker@^9.7.0"
+    "@faker-js/faker": "npm:@faker-js/faker@9.8.0"
   }
 }

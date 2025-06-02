@@ -2,7 +2,7 @@
   "name": "@massmarket/utils",
   "version": "0.0.1",
   "imports": {
-    "cbor-x": "npm:cbor-x@^1.6.0"
+    "cbor-x": "npm:cbor-x@1.6.0"
   },
   "exports": {
     ".": "./mod.ts",
