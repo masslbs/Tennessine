@@ -85,14 +85,16 @@ export default function Pay({
     const isNative = paymentArgs[0].currency === zeroAddress;
     try {
       setLoading(true);
-      //pause timer if user is paying.
 
       if (!isNative) {
-        logger.debug("Checking ERC20 allowance");
-        const allowance = await getAllowance(paymentPublicClient!, [
-          paymentArgs[0].payeeAddress,
+        const allowance = await getAllowance(
+          paymentPublicClient!,
           paymentArgs[0].currency,
-        ]);
+          [wallet!.account.address, abi.paymentsByAddressAddress],
+        );
+        logger.debug(
+          `allowance for payments contract: ${allowance}`,
+        );
         if (allowance < paymentArgs[0].amount) {
           // This will throw an error if simulate fails.
           await simulateContract(config, {
@@ -100,7 +102,7 @@ export default function Pay({
             address: paymentArgs[0].currency,
             functionName: "approve",
             args: [
-              paymentArgs[0].payeeAddress,
+              abi.paymentsByAddressAddress,
               paymentArgs[0].amount,
             ],
             connector,
@@ -110,7 +112,7 @@ export default function Pay({
             wallet!.account,
             paymentArgs[0].currency,
             [
-              paymentArgs[0].payeeAddress,
+              abi.paymentsByAddressAddress,
               paymentArgs[0].amount,
             ],
           );
@@ -119,7 +121,7 @@ export default function Pay({
             // confirmations: 2,
             retryCount: 5,
           });
-          logger.debug("ERC20 allowance approved");
+          logger.info("ERC20 allowance updated");
         }
       }
       const simArgs = {
