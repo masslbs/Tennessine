@@ -1,32 +1,16 @@
-import { cleanup, render, renderHook, waitFor } from "@testing-library/react";
+import { render, renderHook, waitFor } from "@testing-library/react";
 import { expect } from "@std/expect";
 
-import { random256BigInt } from "@massmarket/utils";
-
-import { register, unregister } from "./happyDomSetup.ts";
 import { type KeycardRole, useKeycard } from "./useKeycard.ts";
-import { createShop, createWrapper } from "./_createWrapper.tsx";
+import { createWrapper, testWrapper } from "./_createWrapper.tsx";
 
 const denoTestOptions = {
   sanitizeResources: false,
   sanitizeOps: false,
 };
 
-function testWrapper(
-  cb: (id: bigint, t: Deno.TestContext) => Promise<void> | void,
-) {
-  return async (_t: Deno.TestContext) => {
-    register();
-    const shopId = random256BigInt();
-    await createShop(shopId);
-    await cb(shopId, _t);
-    cleanup();
-    await unregister();
-  };
-}
-
 Deno.test(
-  "Should enroll guest keycard",
+  "Enroll guest/merchantkeycard.",
   denoTestOptions,
   testWrapper(async (shopId, t) => {
     await t.step("enroll merchant card", async () => {
@@ -61,8 +45,8 @@ Deno.test(
   "Hook should return error if keycard enrollment fails",
   denoTestOptions,
   testWrapper(async (shopId) => {
+    // Enroll should fail since relay expects first keycard enrollment for a shop to be merchant.
     const wrapper = createWrapper(shopId);
-    // Enroll should fail since we didn't create a shop.
     const { result } = renderHook(() => useKeycard(), { wrapper });
     await waitFor(() => {
       expect(result.current.error).toBeDefined();
