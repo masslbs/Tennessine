@@ -19,6 +19,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { discoverRelay, RelayClient } from "@massmarket/client";
 import { mintShop } from "@massmarket/contracts";
 import { random256BigInt } from "@massmarket/utils";
+// enable logging in tests with `import from "@massmarket/utils/logger"`
+import "@massmarket/utils/logger";
 import StateManager from "@massmarket/stateManager";
 import { MemStore } from "@massmarket/store";
 
