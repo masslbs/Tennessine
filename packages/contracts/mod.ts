@@ -120,11 +120,22 @@ export function pay(
       { value: args[0].amount }),
   });
 }
-export const getAllowance = genericReadContract(
-  abi.eddiesAbi,
-  "allowance",
-  abi.eddiesAddress,
-);
+export function getAllowance(
+  publicClient: PublicClient,
+  contractAddress: Hex,
+  args: ContractFunctionArgs<
+    typeof abi.eddiesAbi,
+    "view" | "pure",
+    "allowance"
+  >,
+) {
+  return publicClient.readContract({
+    address: contractAddress,
+    abi: abi.eddiesAbi,
+    functionName: "allowance",
+    args,
+  });
+}
 
 export const getPaymentAddress = genericReadContract(
   abi.paymentsByAddressAbi,
