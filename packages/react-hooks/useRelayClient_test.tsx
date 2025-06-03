@@ -16,7 +16,9 @@ Deno.test(
   "Hook returns RelayClient without errors.",
   denoTestOptions,
   testWrapper(async (shopId, t) => {
-    //Enrolling merchant keycard since relay expects first keycard enrollment for a shop to be merchant.
+    // FIXME: Enrolling merchant keycard since relay expects first keycard enrollment for a shop to be merchant.
+    // We can remove this once this relay restriction is removed.
+
     await t.step("Enroll merchant keycard.", async () => {
       const { result, unmount } = renderHook(
         () => useKeycard({ role: "merchant" }),
@@ -37,6 +39,8 @@ Deno.test(
       await waitFor(() => {
         expect(result.current.data).toBeInstanceOf(RelayClient);
         expect(result.current.data?.shopId).toEqual(shopId);
+        // Trying to serialize RelayClient class should throw error since we don't want it to be cached during refreshes.
+        expect(() => JSON.stringify(result.current.data)).toThrow();
       });
 
       unmount();
