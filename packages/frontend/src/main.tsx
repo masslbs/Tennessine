@@ -15,19 +15,28 @@ import { taggedKeys } from "./utils/mod.ts";
 import releaseInfo from "./release-info.json" with { type: "json" };
 
 const isSentryEnabled = env.sentryDSN !== undefined;
+const isLocalDeploy = env.chainName === "hardhat" ||
+  (typeof env.chainName === "undefined");
+const isProd = env.chainName === "mainnet";
+
+const massLowestLevelLogger = isProd ? "warning" : "debug";
 
 const sentryConfig: Config<string, string> = {
   sinks: {
     console: getConsoleSink({ formatter: defaultTextFormatter }),
   },
   loggers: [
-    { category: [], sinks: ["console"], lowestLevel: "debug" },
+    {
+      category: ["mass-market"],
+      sinks: ["console"],
+      lowestLevel: massLowestLevelLogger,
+    },
     // silence logtape's default warnings about meta logging
     { category: ["logtape", "meta"], lowestLevel: "warning", sinks: [] },
   ],
 };
-if (isSentryEnabled) {
-  const isProd = env.chainName === "mainnet";
+
+if (isSentryEnabled && !isLocalDeploy) {
   const sentryClient = init({
     dsn: env.sentryDSN,
     environment: isProd ? "production" : "development",
@@ -39,11 +48,6 @@ if (isSentryEnabled) {
     taggedKeys,
     sentryClient as undefined,
   );
-  sentryConfig.loggers.push({
-    category: ["mass-market"],
-    sinks: ["sentry"],
-    lowestLevel: "warning",
-  });
 }
 await configure(sentryConfig);
 
