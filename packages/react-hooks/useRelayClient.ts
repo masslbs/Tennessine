@@ -42,6 +42,7 @@ export function useRelayClient() {
       : skipToken,
     // This ensures that the query will only run once during the app session.
     gcTime: Infinity,
+    //TODO: May need to reconfigure refetchOnReconnect to ensure the query runs when app regains access to the network.
     staleTime: Infinity,
   });
 }
