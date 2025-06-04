@@ -5,16 +5,18 @@ import {
   getConsoleSink,
 } from "@logtape/logtape";
 
-await configure({
-  sinks: {
-    console: getConsoleSink({ formatter: defaultTextFormatter }),
-  },
-  loggers: [
-    {
-      category: "mass-market",
-      sinks: ["console"],
+export async function enableLogging() {
+  await configure({
+    sinks: {
+      console: getConsoleSink({ formatter: defaultTextFormatter }),
     },
-    // silence logtape's default warnings about meta logging
-    { category: ["logtape", "meta"], lowestLevel: "warning", sinks: [] },
-  ],
-});
+    loggers: [
+      {
+        category: "mass-market",
+        sinks: ["console"],
+      },
+      // silence logtape's default warnings about meta logging
+      { category: ["logtape", "meta"], lowestLevel: "warning", sinks: [] },
+    ],
+  });
+}
