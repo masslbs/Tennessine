@@ -1,9 +1,9 @@
 import { renderHook, waitFor } from "@testing-library/react";
-import { MemoryLevel } from "memory-level";
 import { expect } from "@std/expect";
 
 import StateManager from "@massmarket/stateManager";
 import { allListings } from "@massmarket/schema/testFixtures";
+import { LevelStore } from "@massmarket/store/level";
 
 import { useStateManager } from "./useStateManager.ts";
 import {
@@ -17,14 +17,6 @@ const denoTestOptions = {
   sanitizeResources: false,
   sanitizeOps: false,
 };
-
-const db = new MemoryLevel<
-  Uint8Array,
-  Uint8Array
->({
-  valueEncoding: "view",
-  keyEncoding: "view",
-});
 
 Deno.test(
   "useStateManager hook",
@@ -54,7 +46,7 @@ Deno.test(
 
     await t.step("StateManager returns the added listings", async () => {
       const { result, unmount } = renderHook(
-        () => useStateManager({ db }),
+        () => useStateManager({ db: new LevelStore() }),
         { wrapper: createWrapper(shopId) },
       );
       await waitFor(async () => {

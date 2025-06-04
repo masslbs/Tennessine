@@ -15,7 +15,7 @@ import { mintShop } from "@massmarket/contracts";
 import { discoverRelay, RelayClient } from "@massmarket/client";
 import { random256BigInt } from "@massmarket/utils";
 import StateManager from "@massmarket/stateManager";
-import { MemStore } from "@massmarket/store";
+import { LevelStore } from "@massmarket/store";
 
 import { MassMarketProvider } from "./MassMarketContext.ts";
 import { register, unregister } from "./happyDomSetup.ts";
@@ -132,7 +132,7 @@ export const createTestStateManager = async (shopId: bigint) => {
     SchemeVersion: 1,
   }));
   const stateManager = new StateManager({
-    store: new MemStore(),
+    store: new LevelStore(),
     id: shopId,
     defaultState: root,
   });

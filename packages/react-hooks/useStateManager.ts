@@ -1,10 +1,8 @@
 import { skipToken, useQuery } from "@tanstack/react-query";
-import { BrowserLevel } from "browser-level";
-import type { AbstractLevel } from "abstract-level";
 import { getLogger } from "@logtape/logtape";
 
 import StateManager from "@massmarket/stateManager";
-import { LevelStore } from "@massmarket/store/level";
+import { type AbstractStore, BrowserLevelStore } from "@massmarket/store";
 
 import { useRelayClient } from "./useRelayClient.ts";
 import { useShopId } from "./useShopId.ts";
@@ -20,10 +18,7 @@ const logger = getLogger(["mass-market", "frontend", "useStateManager"]);
  */
 
 export function useStateManager(params?: {
-  db?: Pick<
-    AbstractLevel<Uint8Array, Uint8Array, Uint8Array>,
-    "get" | "put"
-  >;
+  db?: AbstractStore;
 }) {
   const { data: relayClient } = useRelayClient();
   const { shopId } = useShopId();
@@ -46,12 +41,7 @@ export function useStateManager(params?: {
         }));
         const dbName = `${keycard.privateKey}-${shopId}`;
         const db = new StateManager({
-          store: new LevelStore(
-            params?.db ?? new BrowserLevel(dbName, {
-              valueEncoding: "view",
-              keyEncoding: "view",
-            }),
-          ),
+          store: params?.db ?? BrowserLevelStore(dbName),
           id: shopId,
           defaultState,
         });

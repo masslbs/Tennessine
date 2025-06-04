@@ -5,6 +5,7 @@ export * from "./mem.ts";
 // export * from "./jollytoad.ts";
 export * from "./level.ts";
 export * from "./abstract.ts";
+export * from "./BrowserLevelStore.ts";
 
 /*
  * ObjectStore stores objects store's objects, as long as they can be encoded as CBOR
