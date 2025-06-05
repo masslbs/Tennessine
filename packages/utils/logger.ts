@@ -1,12 +1,12 @@
 // import this file to enable basic logging to the console
 import {
-  configure,
+  configureSync,
   defaultTextFormatter,
   getConsoleSink,
 } from "@logtape/logtape";
 
-export async function enableLogging() {
-  await configure({
+export function enableLogging() {
+  configureSync({
     sinks: {
       console: getConsoleSink({ formatter: defaultTextFormatter }),
     },
