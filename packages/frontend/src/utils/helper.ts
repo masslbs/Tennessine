@@ -23,15 +23,16 @@ export function getErrLogger(
   setErrorMsg?: Dispatch<SetStateAction<string | null>>,
 ) {
   return (msg: string, error: unknown = null) => {
-    // `logger.error` will reach glitchtip but won't pollute glitchtip's logs
     if (setErrorMsg) {
       setErrorMsg(msg);
     }
+    // `logger.error` and logger.warn will both reach glitchtip.
+    // as the sentry sink is currently set up, the contents of `msg` will only be exposed in glitchtip from the call to logger.warn.
+    // with logger.error, it is the error message itself that will be used to populate glitchtip's title field
     if (error) {
-      logger.info(`${msg} {error}`, { error });
       logger.error(msg, { error });
     } else {
-      logger.error(msg);
+      logger.warn(msg);
     }
   };
 }

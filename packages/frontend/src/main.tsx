@@ -1,5 +1,5 @@
 import "web-streams-polyfill/polyfill";
-import { init, setTag } from "@sentry/browser";
+import { init, setContext, setTag } from "@sentry/browser";
 import {
   Config,
   configure,
@@ -19,8 +19,6 @@ const isLocalDeploy = env.chainName === "hardhat" ||
   (typeof env.chainName === "undefined");
 const isProd = env.chainName === "mainnet";
 
-const massLowestLevelLogger = isProd ? "warning" : "debug";
-
 const sentryConfig: Config<string, string> = {
   sinks: {
     console: getConsoleSink({ formatter: defaultTextFormatter }),
@@ -29,7 +27,7 @@ const sentryConfig: Config<string, string> = {
     {
       category: ["mass-market"],
       sinks: ["console"],
-      lowestLevel: massLowestLevelLogger,
+      lowestLevel: "debug", // default to debug logger. this is overridden to "warning" if sentry is enabled -- see below
     },
     // silence logtape's default warnings about meta logging
     { category: ["logtape", "meta"], lowestLevel: "warning", sinks: [] },
@@ -45,9 +43,17 @@ if (isSentryEnabled && !isLocalDeploy) {
   });
   sentryConfig.sinks.sentry = getSentrySink(
     setTag,
+    setContext,
     taggedKeys,
     sentryClient as undefined,
   );
+  // make sure the "mass-market" logger also pushes out logs to the new sentry sink
+  const massIndex = sentryConfig.loggers.findIndex((logger) =>
+    logger.category[0] === "mass-market"
+  );
+  // if sentry is enabled, then set the lowestLevel to warning
+  sentryConfig.loggers[massIndex].sinks?.push("sentry");
+  sentryConfig.loggers[massIndex].lowestLevel = "warning";
 }
 await configure(sentryConfig);
 

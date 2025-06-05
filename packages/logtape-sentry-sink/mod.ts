@@ -62,6 +62,10 @@ const inspect: (value: unknown) => string =
  */
 export function getSentrySink(
   setTag: (key: string, val: Primitive) => void,
+  setContext: (
+    name: string,
+    context: { [key: string]: unknown } | null,
+  ) => void,
   taggedKeys: Array<string> = [],
   client?: BaseClient<ClientOptions>,
 ): Sink {
@@ -73,9 +77,17 @@ export function getSentrySink(
         setTag(key.replace(/\s+/g, "-"), val as Primitive);
       }
     }
+    if (Object.keys(record.properties || {}).length > 0) {
+      const properties = { ...record.properties, error: "" };
+      setContext("debug context info", properties);
+    }
     // const namespace = record.category;
     if (client == null) client = getClient();
     if (record.level === "error" && record?.properties.error !== undefined) {
+      setContext(
+        "thrown error",
+        record.properties.error as { [key: string]: unknown },
+      );
       client?.captureException(record?.properties.error, {
         data: record.properties,
       });
