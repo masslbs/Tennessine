@@ -31,7 +31,7 @@ import { useStateManager } from "../../hooks/useStateManager.ts";
 import { useAllCurrencyOptions } from "../../hooks/useAllCurrencyOptions.ts";
 import { getErrLogger } from "../../utils/mod.ts";
 
-const logger = getLogger(["mass-market", "frontend", "ShopSettings"]);
+const baseLogger = getLogger(["mass-market", "frontend", "ShopSettings"]);
 
 export default function ShopSettings() {
   const { shopDetails, setShopDetails } = useShopDetails();
@@ -57,6 +57,9 @@ export default function ShopSettings() {
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const currencyOptions = useAllCurrencyOptions();
 
+  const logger = baseLogger.with({
+    shopId,
+  });
   const logError = getErrLogger(logger, setErrorMsg);
 
   useEffect(() => {
@@ -102,7 +105,7 @@ export default function ShopSettings() {
   }
   async function updateShopManifest() {
     if (!stateManager) {
-      logger.error`stateManager is undefined"`;
+      logError(`stateManager is undefined`);
       return;
     }
     //If pricing currency needs to update.

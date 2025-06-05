@@ -11,7 +11,8 @@ import {
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { foundry } from "viem/chains";
 import { mintShop, relayRegGetOwnerOf } from "@massmarket/contracts";
-import "@massmarket/utils/logger";
+import { enableLogging } from "@massmarket/utils/logger";
+enableLogging();
 
 import { discoverRelay, type Patch, RelayClient } from "./mod.ts";
 

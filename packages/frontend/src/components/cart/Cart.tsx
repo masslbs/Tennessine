@@ -19,7 +19,7 @@ import { useStateManager } from "../../hooks/useStateManager.ts";
 import { getErrLogger, multiplyAndFormatUnits } from "../../utils/helper.ts";
 import PriceSummary from "./PriceSummary.tsx";
 
-const logger = getLogger(["mass-market", "frontend", "Cart"]);
+const baseLogger = getLogger(["mass-market", "frontend", "Cart"]);
 
 export default function Cart({
   onCheckout,
@@ -45,7 +45,10 @@ export default function Cart({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [errorListing, setErrorListing] = useState<Listing | null>(null);
 
-  const logError = getErrLogger(logger, setErrorMsg);
+  const logger = baseLogger.with({
+    orderId: currentOrder?.ID,
+  });
+  const logError = getErrLogger(baseLogger, setErrorMsg);
 
   function onOrderUpdate(order: CodecValue) {
     const o = Order.fromCBOR(order);

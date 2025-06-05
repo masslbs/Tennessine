@@ -43,7 +43,11 @@ import { useKeycard } from "../../../hooks/useKeycard.ts";
 import { useShopDetails } from "../../../hooks/useShopDetails.ts";
 import { useChain } from "../../../hooks/useChain.ts";
 import { CreateShopStep, KeycardRole, ShopForm } from "../../../types.ts";
-import { isValidAddress, removeCachedKeycards } from "../../../utils/mod.ts";
+import {
+  getErrLogger,
+  isValidAddress,
+  removeCachedKeycards,
+} from "../../../utils/mod.ts";
 import { useRelayClient } from "../../../hooks/useRelayClient.ts";
 import { useStateManager } from "../../../hooks/useStateManager.ts";
 
@@ -53,7 +57,7 @@ import { useStateManager } from "../../../hooks/useStateManager.ts";
 // 3. updateManifest
 // 4. uploadMetadata
 
-const logger = getLogger(["mass-market", "frontend", "CreateShop"]);
+const baseLogger = getLogger(["mass-market", "frontend", "CreateShop"]);
 
 const { shopRegAbi, shopRegAddress } = abi;
 
@@ -98,6 +102,11 @@ export default function () {
   const [step, setStep] = useState<
     CreateShopStep
   >(CreateShopStep.ManifestForm);
+
+  const logger = baseLogger.with({
+    keycardAddress: keycard?.address,
+  });
+  const logError = getErrLogger(logger, setErrorMsg);
 
   useEffect(() => {
     if (!search.shopId) {
@@ -224,8 +233,7 @@ export default function () {
         throw new Error("Error: addRelay");
       }
     } catch (err: unknown) {
-      logger.error("Error minting store", { err });
-      setErrorMsg(`Error minting store`);
+      logError("Error minting store", err);
       return;
     }
 
@@ -271,8 +279,7 @@ export default function () {
       stateManager.addConnection(relayClient);
       logger.debug("Relay client connected");
     } catch (error: unknown) {
-      logger.error("enrollAndAddConnection failed", { error });
-      setErrorMsg("Error connecting to client");
+      logError("Error connecting to client", error);
       return;
     }
     await updateManifest();
@@ -333,8 +340,7 @@ export default function () {
       });
       logger.debug("Manifest created");
     } catch (error: unknown) {
-      logger.error("Error creating shop manifest", { error });
-      setErrorMsg("Error creating shop manifest");
+      logError("Error creating shop manifest", error);
       return;
     }
 
@@ -387,8 +393,7 @@ export default function () {
       setCreatingShop(false);
       setStep(CreateShopStep.Confirmation);
     } catch (error: unknown) {
-      logger.error("Error uploading metadata", { error });
-      setErrorMsg("Error uploading metadata");
+      logError("Error uploading metadata", error);
     }
   }
 

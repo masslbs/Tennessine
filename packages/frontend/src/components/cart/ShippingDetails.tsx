@@ -15,9 +15,9 @@ import ErrorMessage from "../common/ErrorMessage.tsx";
 import ValidationWarning from "../common/ValidationWarning.tsx";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
-import { isValidEmail } from "../../utils/mod.ts";
+import { getErrLogger, isValidEmail } from "../../utils/mod.ts";
 
-const logger = getLogger(["mass-market", "frontend", "ShippingDetails"]);
+const baseLogger = getLogger(["mass-market", "frontend", "ShippingDetails"]);
 
 export default function ShippingDetails() {
   const { currentOrder } = useCurrentOrder();
@@ -28,6 +28,11 @@ export default function ShippingDetails() {
   );
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  const logger = baseLogger.with({
+    orderId: currentOrder?.ID,
+  });
+  const logError = getErrLogger(logger, setErrorMsg);
 
   useEffect(() => {
     currentOrder?.InvoiceAddress &&
@@ -111,8 +116,7 @@ export default function ShippingDetails() {
         }),
       });
     } catch (error: unknown) {
-      logger.error("error updating shipping details", { error });
-      setErrorMsg("Error updating shipping details");
+      logError("Error updating shipping details", error);
       scroll();
     }
   }
