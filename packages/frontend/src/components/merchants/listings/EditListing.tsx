@@ -22,7 +22,7 @@ import { useRelayClient } from "../../../hooks/useRelayClient.ts";
 import { useBaseToken } from "../../../hooks/useBaseToken.ts";
 import { getErrLogger } from "../../../utils/mod.ts";
 
-const logger = getLogger(["mass-market", "frontend", "EditListing"]);
+const baseLogger = getLogger(["mass-market", "frontend", "EditListing"]);
 
 export default function EditProduct() {
   const navigate = useNavigate();
@@ -40,13 +40,16 @@ export default function EditProduct() {
   // This state is to store the price input value as a string to allow flexibility when typing in decimals
   const [priceInput, setPriceInput] = useState("");
 
-  const logError = getErrLogger(logger, setErrorMsg);
-
   const itemId = typeof search.itemId === "number"
     ? Number(search.itemId) as ListingId
     : null;
   const heading = itemId ? "Edit product" : "Add Product";
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const logger = baseLogger.with({
+    listingId: itemId,
+  });
+  const logError = getErrLogger(logger, setErrorMsg);
 
   useEffect(() => {
     if (!stateManager || !itemId || !baseToken) return;
