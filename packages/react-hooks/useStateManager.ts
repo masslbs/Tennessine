@@ -3,6 +3,7 @@ import { getLogger } from "@logtape/logtape";
 
 import StateManager from "@massmarket/stateManager";
 import { type AbstractStore, BrowserLevelStore } from "@massmarket/store";
+import { defaultState } from "@massmarket/schema";
 
 import { useRelayClient } from "./useRelayClient.ts";
 import { useShopId } from "./useShopId.ts";
@@ -27,19 +28,10 @@ export function useStateManager(params?: {
   const enabled = !!relayClient && !!keycard && !!shopId;
 
   return useQuery({
-    queryKey: ["stateManager", String(shopId), keycard?.privateKey],
+    queryKey: ["stateManager", String(shopId), keycard?.address],
     queryFn: enabled
       ? async () => {
-        const defaultState = new Map(Object.entries({
-          Tags: new Map(),
-          Orders: new Map(),
-          Accounts: new Map(),
-          Inventory: new Map(),
-          Listings: new Map(),
-          Manifest: new Map(),
-          SchemeVersion: 1,
-        }));
-        const dbName = `${keycard.privateKey}-${shopId}`;
+        const dbName = `${keycard.address}-${shopId}`;
         const db = new StateManager({
           store: params?.db ?? BrowserLevelStore(dbName),
           id: shopId,

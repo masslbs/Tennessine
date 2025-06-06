@@ -53,3 +53,12 @@ export const EnvelopMessageTypes = {
   PingRequest: "pingRequest",
   SubscriptionPushRequest: "subscriptionPushRequest",
 };
+export const defaultState = new Map(Object.entries({
+  Tags: new Map(),
+  Orders: new Map(),
+  Accounts: new Map(),
+  Inventory: new Map(),
+  Listings: new Map(),
+  Manifest: new Map(),
+  SchemeVersion: 1,
+}));

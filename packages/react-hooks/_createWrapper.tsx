@@ -16,6 +16,7 @@ import { discoverRelay, RelayClient } from "@massmarket/client";
 import { random256BigInt } from "@massmarket/utils";
 import StateManager from "@massmarket/stateManager";
 import { LevelStore } from "@massmarket/store";
+import { defaultState } from "@massmarket/schema";
 
 import { MassMarketProvider } from "./MassMarketContext.ts";
 import { register, unregister } from "./happyDomSetup.ts";
@@ -122,19 +123,10 @@ export async function createTestRelayClient(shopId: bigint) {
 }
 
 export const createTestStateManager = async (shopId: bigint) => {
-  const root = new Map(Object.entries({
-    Tags: new Map(),
-    Orders: new Map(),
-    Accounts: new Map(),
-    Inventory: new Map(),
-    Listings: new Map(),
-    Manifest: new Map(),
-    SchemeVersion: 1,
-  }));
   const stateManager = new StateManager({
     store: new LevelStore(),
     id: shopId,
-    defaultState: root,
+    defaultState,
   });
   await stateManager.open();
 
