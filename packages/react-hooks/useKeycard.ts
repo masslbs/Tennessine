@@ -22,14 +22,16 @@ export type KeycardRole = "merchant" | "guest";
  * The keycard will be cached with tanstack's cache for the duration of the browser session regardless of refreshes.
  */
 export function useKeycard(
-  params: { config?: MassMarketConfig } & { role: KeycardRole } = {
+  params: { config?: MassMarketConfig; role?: KeycardRole } = {
     role: "guest",
   },
 ) {
-  const { shopId } = useShopId();
+  // wagmi hooks
   const { data: wallet } = useWalletClient();
   const { address } = useAccount();
-  const { relayEndpoint } = useRelayEndpoint();
+  // massmarket hooks
+  const { shopId } = useShopId(params);
+  const { relayEndpoint } = useRelayEndpoint(params);
 
   const enabled = !!shopId && !!wallet && !!relayEndpoint && !!address;
   const qResult = useQuery({

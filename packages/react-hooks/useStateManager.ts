@@ -33,9 +33,9 @@ export function useStateManager(params?: {
   config?: MassMarketConfig;
 }) {
   const config = params?.config ?? useMassMarketContext().config;
-  const { data: relayClient } = useRelayClient();
+  const { data: relayClient } = useRelayClient({ config });
   const { shopId } = useShopId({ config });
-  const { data: keycard } = useKeycard();
+  const { data: keycard } = useKeycard({ config });
 
   const enabled = !!relayClient && !!keycard && !!shopId;
 

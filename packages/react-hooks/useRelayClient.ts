@@ -5,6 +5,7 @@ import { skipToken, useQuery } from "@tanstack/react-query";
 
 import { RelayClient } from "@massmarket/client";
 
+import type { MassMarketConfig } from "./MassMarketContext.ts";
 import { useKeycard } from "./useKeycard.ts";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";
 import { useShopId } from "./useShopId.ts";
@@ -17,10 +18,10 @@ const logger = getLogger(["mass-market", "frontend", "useRelayClient"]);
  * Since useQuery caches data in memory during a single app session, it will return the RelayClient class.
  * However, during refreshes (or when the app unmounts), data is cached in the configured persister (localStorage), and since the class cannot be serialized the query is not cached.
  */
-export function useRelayClient() {
-  const { data: keycard } = useKeycard();
-  const { relayEndpoint } = useRelayEndpoint();
-  const { shopId } = useShopId();
+export function useRelayClient(params?: { config?: MassMarketConfig }) {
+  const { data: keycard } = useKeycard(params);
+  const { relayEndpoint } = useRelayEndpoint(params);
+  const { shopId } = useShopId(params);
   const { data: wallet } = useWalletClient();
   const enabled = !!shopId && !!wallet && !!relayEndpoint && !!keycard;
 
