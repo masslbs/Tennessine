@@ -8,6 +8,7 @@ import {
 } from "@massmarket/client/test";
 import { RelayResponseError } from "@massmarket/client";
 import { type codec, randomBytes } from "@massmarket/utils";
+import { defaultState } from "@massmarket/schema";
 
 import StateManager from "./mod.ts";
 import { assertRejects } from "@std/assert/rejects";
@@ -16,22 +17,12 @@ import { assertRejects } from "@std/assert/rejects";
 const blockchainClient = createTestBlockchainClient();
 const relayClient = await createTestRelayClient(blockchainClient);
 
-const root = new Map(Object.entries({
-  Tags: new Map(),
-  Orders: new Map(),
-  Accounts: new Map(),
-  Inventory: new Map(),
-  Listings: new Map(),
-  Manifest: new Map(),
-  SchemeVersion: 1,
-}));
-
 Deno.test("Database Testings", async (t) => {
   const store = new MemStore();
   const sm = new StateManager({
     store,
     id: relayClient.shopId,
-    defaultState: root,
+    defaultState,
   });
 
   await sm.open();

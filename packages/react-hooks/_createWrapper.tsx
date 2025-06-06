@@ -9,9 +9,14 @@ import { createConfig, http, mock, WagmiProvider } from "wagmi";
 import { foundry } from "wagmi/chains";
 import { createTestClient, publicActions, walletActions } from "viem";
 import { cleanup } from "@testing-library/react";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 
 import { mintShop } from "@massmarket/contracts";
+import { discoverRelay, RelayClient } from "@massmarket/client";
 import { random256BigInt } from "@massmarket/utils";
+import StateManager from "@massmarket/stateManager";
+import { LevelStore } from "@massmarket/store";
+import { defaultState } from "@massmarket/schema";
 
 import { MassMarketProvider } from "./MassMarketContext.ts";
 import { register, unregister } from "./happyDomSetup.ts";
@@ -29,6 +34,10 @@ export const testClient = createTestClient({
 
 const testAccounts = await testClient.requestAddresses();
 export const testAccount = testAccounts[0];
+
+export const relayURL = Deno.env.get("RELAY_ENDPOINT") ||
+  "http://localhost:4444/v4";
+const testRelayEndpoint = await discoverRelay(relayURL);
 
 export function createWrapper(
   shopId: bigint = random256BigInt(),
@@ -99,6 +108,30 @@ export async function createShop(shopId: bigint) {
     hash: transactionHash,
   });
 }
+
+export async function createTestRelayClient(shopId: bigint) {
+  const kcPrivateKey = generatePrivateKey();
+  const keycard = privateKeyToAccount(kcPrivateKey);
+  const relayClient = new RelayClient({
+    relayEndpoint: testRelayEndpoint,
+    walletClient: testClient,
+    keycard,
+    shopId,
+  });
+  await relayClient.enrollKeycard(testClient, testAccount, false);
+  return relayClient;
+}
+
+export const createTestStateManager = async (shopId: bigint) => {
+  const stateManager = new StateManager({
+    store: new LevelStore(),
+    id: shopId,
+    defaultState,
+  });
+  await stateManager.open();
+
+  return stateManager;
+};
 
 export function testWrapper(
   cb: (id: bigint, t: Deno.TestContext) => Promise<void> | void,

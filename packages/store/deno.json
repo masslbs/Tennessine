@@ -7,7 +7,8 @@
     "./mem": "./mem.ts",
     "./level": "./level.ts",
     "./jollytoad": "./jollytoad.ts",
-    "./abstract": "./abstract.ts"
+    "./abstract": "./abstract.ts",
+    "./BrowserLevelStore": "./BrowserLevelStore.ts"
   },
   "license": "MPL-2.0",
   "imports": {
@@ -15,7 +16,6 @@
     "@jollytoad/store-common": "jsr:@jollytoad/store-common@0.4.0",
     "$store": "jsr:@jollytoad/store-web-storage@0.4.0",
     "abstract-level": "npm:abstract-level@3.1.0",
-    "browser-level": "npm:browser-level@3.0.0",
     "memory-level": "npm:memory-level@3.1.0"
   }
 }
