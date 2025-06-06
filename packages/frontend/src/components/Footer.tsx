@@ -2,7 +2,7 @@ const Footer = () => {
   return (
     <footer className="mt-auto md:flex justify-center">
       <div className="mt-3 bg-white p-3 flex justify-center mx-0 rounded-md mx-2 md:mx-0 md:w-full">
-        <div className="flex justify-between items-center w-full md:w-[800px]">
+        <div className="flex justify-between items-center w-full md:w-[1000px]">
           <img
             src="/icons/massmarket-logo.svg"
             alt="logo"

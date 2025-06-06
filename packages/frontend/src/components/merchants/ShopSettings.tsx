@@ -205,7 +205,7 @@ export default function ShopSettings() {
 
   return (
     <main
-      className="px-4 mt-3 md:flex justify-center"
+      className="px-4 md:flex justify-center"
       data-testid="shop-settings-page"
     >
       <section className="md:w-[560px]">
@@ -230,7 +230,7 @@ export default function ShopSettings() {
         <BackButton />
         <section className="mt-2">
           <div className="flex">
-            <h2>Edit shop details</h2>
+            <h1>Edit shop details</h1>
           </div>
           <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
             <p className="flex items-center font-medium">Shop PFP</p>
@@ -253,16 +253,17 @@ export default function ShopSettings() {
                       Shop Name
                     </label>
                     <input
-                      className="border-2 border-solid mt-1 p-2 rounded"
+                      className="mt-1 p-2 rounded"
                       data-testid="storeName"
                       name="storeName"
+                      style={{ backgroundColor: "#F3F3F3" }}
                       value={storeName}
                       placeholder={shopDetails.name}
                       onChange={(e) => setStoreName(e.target.value)}
                     />
                   </form>
                 </section>
-                <section className="mt-4 flex">
+                <section className="mt-4">
                   <form
                     className="flex flex-col"
                     onSubmit={(e) => e.preventDefault()}
@@ -272,9 +273,10 @@ export default function ShopSettings() {
                     </label>
                     <div className="flex gap-2">
                       <input
-                        className="border-2 border-solid mt-1 p-2 rounded"
+                        className="mt-1 p-2 rounded w-full"
                         id="shopId"
                         name="shopId"
+                        style={{ backgroundColor: "#F3F3F3" }}
                         value={String(shopId)}
                         onChange={() => {}}
                       />
@@ -334,10 +336,10 @@ export default function ShopSettings() {
                 </section>
               </div>
             </section>
+            <div>
+              <Button onClick={updateShopManifest}>Save</Button>
+            </div>
           </section>
-          <div className="my-4">
-            <Button onClick={updateShopManifest}>Update</Button>
-          </div>
         </section>
       </section>
     </main>

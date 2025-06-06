@@ -12,7 +12,7 @@ export default function Confirmation() {
   }
 
   return (
-    <section className="md:w-[560px]" data-testid="mint-shop-confirmation">
+    <section className="md:w-[560px] p-5" data-testid="mint-shop-confirmation">
       <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg items-center text-center">
         <img
           src="/icons/smiley.svg"

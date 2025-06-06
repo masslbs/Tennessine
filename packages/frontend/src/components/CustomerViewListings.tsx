@@ -86,12 +86,12 @@ export default function CustomerViewProducts({
   }
   return (
     <section
-      className="mt-4 flex justify-center"
+      className="mt-[10px] flex justify-center"
       data-testid="customer-view-listings"
     >
       <section>
         <h1>Shop</h1>
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-5 pt-5">
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-5 pt-[10px]">
           {renderProducts()}
         </section>
       </section>

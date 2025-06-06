@@ -405,7 +405,7 @@ export default function ChoosePayment() {
             setErrorMsg(null);
           }}
         />
-        <h1 className="my-5">Choose payment method</h1>
+        <h1 className="my-[10px]">Choose payment method</h1>
         <TimerToast />
         <section className="mt-2 flex flex-col gap-4 bg-white rounded-lg p-5">
           <div data-testid="payment-currency">
@@ -440,15 +440,15 @@ export default function ChoosePayment() {
           </div>
           <section
             data-testid="payment-methods"
-            className="flex flex-col md:flex-row gap-4 justify-center"
+            className="flex gap-4 justify-center"
           >
-            <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg">
+            <div className="flex items-center justify-center bg-background-gray py-5 px-3 md:px-5 rounded-lg md:w-full">
               <ConnectWalletButton
                 onClick={payWithWallet}
                 disabled={!paymentArgs}
               />
             </div>
-            <div className="flex items-center justify-center bg-background-gray p-5 rounded-lg">
+            <div className="flex items-center justify-center bg-background-gray py-5 px-3 md:px-5 rounded-lg md:w-full">
               <button
                 type="button"
                 data-testid="pay-by-qr"
@@ -466,14 +466,14 @@ export default function ChoosePayment() {
                   alt="wallet-icon"
                   className="w-13 h-10"
                 />
-                <div className="flex gap-2 items-center">
-                  <p>Pay by QR code</p>
+                <div className="flex gap-[5px] items-center whitespace-nowrap">
+                  <p className="whitespace-nowrap">Pay by QR code</p>
                   <img
                     src="/icons/chevron-right.svg"
                     width={12}
                     height={12}
                     alt="chevron"
-                    className="w-3 h-3"
+                    className="w-2 h-2"
                   />
                 </div>
               </button>

@@ -46,7 +46,8 @@ Deno.test(
         // TODO: compare other listings
         // screen.debug();
         const listings = screen.getAllByTestId("product-container");
-        expect(listings.length).toBe(3);
+        //Should not display deleted listings.
+        expect(listings.length).toBe(2);
         const title = within(listings[0]).getByTestId("product-name");
         expect(title.textContent).toEqual("test");
         const price = within(listings[0]).getByTestId("product-price");

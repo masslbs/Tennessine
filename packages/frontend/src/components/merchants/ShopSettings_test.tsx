@@ -100,7 +100,7 @@ Deno.test("Check that we can render the shop settings screen", {
         expect((selectElement as HTMLSelectElement).value).toBe("EDD/Hardhat");
       });
       await act(async () => {
-        const submitButton = screen.getByRole("button", { name: "Update" });
+        const submitButton = screen.getByRole("button", { name: "Save" });
         expect(submitButton).toBeTruthy();
         await user.click(submitButton);
       });

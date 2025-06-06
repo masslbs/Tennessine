@@ -11,7 +11,7 @@ import { useBaseToken } from "../../hooks/useBaseToken.ts";
 import { formatDate, OrderStateFromNumber } from "../../utils/helper.ts";
 
 export default function Transactions(
-  { displayFive }: { displayFive?: boolean },
+  { displayLastFour }: { displayLastFour?: boolean },
 ) {
   const { stateManager } = useStateManager();
   const { baseToken } = useBaseToken();
@@ -83,11 +83,11 @@ export default function Transactions(
         return b[1].PaymentDetails.TTL - a[1].PaymentDetails.TTL;
       });
 
-    const displayTransactions = displayFive
-      ? transactions.slice(0, 5)
+    const displayTransactions = displayLastFour
+      ? transactions.slice(0, 4)
       : transactions;
 
-    return displayTransactions.map(([key, value]) => {
+    return displayTransactions.map(([key, value], index) => {
       const ID = key;
       let date = "-";
       let time = "-";
@@ -113,9 +113,13 @@ export default function Transactions(
           })}
           style={{ color: "black" }}
         >
-          <div className=" p-3 grid grid-cols-5 text-center bg-white">
+          <div
+            className={`p-3 grid grid-cols-5 text-center ${
+              index % 2 === 0 ? "bg-white" : "bg-background-gray"
+            }`}
+          >
             <p data-testid={ID} className="truncate">
-              {ID.toString().slice(0, 8)}...
+              {ID.toString()}
             </p>
             <p className="truncate">{date}</p>
             <p className="truncate">{time}</p>
@@ -129,7 +133,10 @@ export default function Transactions(
     });
   }
   return (
-    <section className="transactions-container">
+    <section
+      id="transactions-container"
+      className="font-inter text-sm bg-white p-3 rounded-lg"
+    >
       <section className="flex items-center gap-4">
         <div className="flex items-center gap-1">
           <p>Filter:</p>
@@ -161,8 +168,8 @@ export default function Transactions(
         </div>
       </section>
 
-      <div className="bg-primary-dark-green grid grid-cols-5 text-white text-sm p-4 rounded-t-xl mt-4 text-center">
-        <p>Order ID</p>
+      <div className="bg-primary-dark-green grid grid-cols-5 text-white text-sm py-3 rounded-t-xl mt-4 text-center">
+        <p>Order</p>
         <p>Date</p>
         <p>Time</p>
         <p>Value</p>

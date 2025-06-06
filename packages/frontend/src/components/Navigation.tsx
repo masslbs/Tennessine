@@ -15,6 +15,7 @@ import { useStateManager } from "../hooks/useStateManager.ts";
 import { useShopDetails } from "../hooks/useShopDetails.ts";
 import { useKeycard } from "../hooks/useKeycard.ts";
 import { useCurrentOrder } from "../hooks/useCurrentOrder.ts";
+import ChevronRight from "./common/ChevronRight.tsx";
 
 const merchantMenu = [
   {
@@ -22,10 +23,14 @@ const merchantMenu = [
     img: "menu-dashboard.svg",
     href: "/merchant-dashboard",
   },
-  //TODO: href for orders, contact, share.
   { title: "Manage Products", img: "menu-products.svg", href: "/listings" },
   { title: "Manage Orders", img: "menu-order.svg", href: "/orders" },
   { title: "Shop Settings", img: "menu-settings.svg", href: "/settings" },
+  {
+    title: "Share",
+    img: "menu-share.svg",
+    href: `/share`,
+  },
   { title: "Disconnect", img: "menu-disconnect.svg" },
 ];
 
@@ -112,6 +117,21 @@ function Navigation() {
   function renderMenuItems() {
     const menuItems = isMerchantView ? merchantMenu : customerMenu;
     return menuItems.map((opt, i) => {
+      const content = (
+        <div className="flex gap-3 items-center">
+          <img
+            src={`/icons/${opt.img}`}
+            width={20}
+            height={20}
+            alt="menu-item"
+            className="w-5 h-5"
+          />
+          <p className="text-xl text-black">{opt.title}</p>
+          <div className="ml-auto w-3 h-3">
+            <ChevronRight />
+          </div>
+        </div>
+      );
       if (opt.title === "Disconnect") {
         return (
           <button
@@ -121,23 +141,7 @@ function Navigation() {
             key={i}
             onClick={onDisconnect}
           >
-            <div className="flex gap-3 items-center">
-              <img
-                src={`/icons/${opt.img}`}
-                width={20}
-                height={20}
-                alt="menu-item"
-                className="w-5 h-5"
-              />
-              <h2 className="font-normal">{opt.title}</h2>
-              <img
-                src="/icons/chevron-right.svg"
-                width={12}
-                height={12}
-                alt="chevron-right"
-                className="ml-auto w-3 h-3"
-              />
-            </div>
+            {content}
           </button>
         );
       }
@@ -155,23 +159,7 @@ function Navigation() {
               shopId: prev.shopId,
             })}
           >
-            <div className="flex gap-3 items-center">
-              <img
-                src={`/icons/${opt.img}`}
-                width={20}
-                height={20}
-                alt="menu-item"
-                className="w-5 h-5"
-              />
-              <h2 className="font-normal text-black">{opt.title}</h2>
-              <img
-                src="/icons/chevron-right.svg"
-                width={12}
-                height={12}
-                alt="chevron-right"
-                className="ml-auto w-3 h-3"
-              />
-            </div>
+            {content}
           </Link>
         </div>
       );
@@ -193,10 +181,10 @@ function Navigation() {
         className={`bg-white flex justify-center z-10 fixed top-0 left-0 right-0`}
         data-testid="navigation"
       >
-        <section className="relative w-full text-base flex justify-between md:w-[800px] h-[56px] md:mr-3">
+        <section className="relative w-full text-base flex justify-between md:w-[1000px] h-[56px] md:mr-3">
           <div
             id="logo"
-            className="flex gap-2 cursor-pointer m-2"
+            className="flex gap-2 cursor-pointer m-2 ml-5 md:ml-0"
             onClick={() => {
               navigate({
                 to: isMerchantView ? "/merchant-dashboard" : "/listings",
@@ -234,51 +222,17 @@ function Navigation() {
           </div>
           <section className="absolute right-0 flex">
             <div
-              id="menu"
-              className={`${
-                cartVisible ? "invisible" : "visible"
-              } flex flex-col items-end`}
-            >
-              <button
-                onClick={menuSwitch}
-                style={{
-                  backgroundColor: menuOpen ? "#F3F3F3" : "transparent",
-                  paddingLeft: 15,
-                  paddingRight: 15,
-                }}
-                type="button"
-                className="self-end h-[56px] cursor-pointer"
-              >
-                <img
-                  src={menuOpen
-                    ? "/icons/close-icon.svg"
-                    : "/icons/hamburger.svg"}
-                  width={20}
-                  height={20}
-                  alt="menu-icon"
-                  className="w-5 h-5"
-                />
-              </button>
-              <div
-                className={`${menuOpen ? "z-10" : "hidden"}`}
-              >
-                <div className="bg-background-gray w-screen flex flex-col gap-5 rounded-b-lg p-5 absolute right-0 md:w-full md:static">
-                  {renderMenuItems()}
-                </div>
-              </div>
-            </div>
-            <div
               id="cart"
               className={`${
-                menuOpen ? "invisible" : "visible"
-              } flex flex-col items-end relative`}
+                menuOpen ? "hidden md:block" : "visible"
+              } flex flex-col items-end`}
             >
               <button
                 type="button"
                 data-testid="cart-toggle"
                 className={`${
                   isMerchantView ? "hidden" : ""
-                } self-end h-[56px]`}
+                } self-end h-[56px] ${cartVisible ? "mr-[50px] md:mr-0" : ""}`}
                 style={{
                   backgroundColor: cartVisible ? "#F3F3F3" : "transparent",
                   paddingLeft: 15,
@@ -301,7 +255,7 @@ function Navigation() {
                 <div
                   className={`${
                     (!cartSize || cartVisible) ? "hidden" : ""
-                  } bg-red-700 rounded-full absolute top-[10px] right-[7px] w-4 h-4 flex justify-center items-center`}
+                  } bg-red-700 rounded-full absolute top-[12px] left-[27px] w-[14px] h-[14px] flex justify-center items-center`}
                 >
                   <p className="text-white text-[10px]">{cartSize}</p>
                 </div>
@@ -312,14 +266,49 @@ function Navigation() {
                 }`}
               >
                 <div
-                  data-testid="desktop-cart"
-                  className="fixed bg-background-gray w-full flex flex-col gap-5 rounded-b-lg p-5 static"
+                  data-testid="cart"
+                  className="fixed bg-background-gray w-full flex flex-col gap-5 rounded-b-lg p-5 pt-2 static"
                 >
                   <h1>Cart</h1>
                   <Cart
                     onCheckout={onCheckout}
                     closeCart={() => setCartVisible(false)}
                   />
+                </div>
+              </div>
+            </div>
+
+            <div
+              id="menu"
+              className={`${
+                cartVisible ? "hidden md:block" : "visible"
+              } w-[50px] flex flex-col items-end`}
+            >
+              <button
+                onClick={menuSwitch}
+                style={{
+                  backgroundColor: menuOpen ? "#F3F3F3" : "transparent",
+                  paddingLeft: 15,
+                  paddingRight: 15,
+                }}
+                type="button"
+                className="self-end h-[56px] cursor-pointer"
+              >
+                <img
+                  src={menuOpen
+                    ? "/icons/close-icon.svg"
+                    : "/icons/hamburger.svg"}
+                  width={20}
+                  height={20}
+                  alt="menu-icon"
+                  className="w-5 h-5"
+                />
+              </button>
+              <div
+                className={`${menuOpen ? "z-10 min-w-50" : "hidden"}`}
+              >
+                <div className="bg-background-gray w-screen flex flex-col gap-5 rounded-b-lg p-5 absolute right-0 md:w-full md:static">
+                  {renderMenuItems()}
                 </div>
               </div>
             </div>

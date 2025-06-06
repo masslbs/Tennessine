@@ -16,7 +16,11 @@ import BackButton from "../common/BackButton.tsx";
 import { ListingId, OrderState } from "../../types.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 import { useBaseToken } from "../../hooks/useBaseToken.ts";
-import { formatDate, getTokenInformation } from "../../utils/mod.ts";
+import {
+  formatDate,
+  getTokenInformation,
+  OrderStateFromNumber,
+} from "../../utils/mod.ts";
 
 const baseLogger = getLogger(["mass-market", "frontend", "OrderDetails"]);
 
@@ -26,10 +30,9 @@ export default function OrderDetails() {
   const search = useSearch({ strict: false });
   const { baseToken } = useBaseToken();
   const orderId = search.orderId;
-  const [cartItemsMap, setCartMap] = useState<Map<ListingId, Listing>>(
-    new Map(),
-  );
-  const [selectedQty, setSelectedQty] = useState<Map<ListingId, number>>(
+  const [cartItemsMap, setCartMap] = useState<
+    Map<ListingId, { selectedQty: number; listing: Listing }>
+  >(
     new Map(),
   );
   const [txHash, setTxHash] = useState<string | null>(null);
@@ -118,12 +121,12 @@ export default function OrderDetails() {
       return new Map();
     }
     const ci = order.Items;
-    const allCartItems = new Map<ListingId, Listing>();
+    const allCartItems = new Map<
+      ListingId,
+      { selectedQty: number; listing: Listing }
+    >();
     await Promise.all(
       ci.map(async (orderItem: OrderedItem) => {
-        const updatedQtyMap = new Map(selectedQty);
-        updatedQtyMap.set(orderItem.ListingID, orderItem.Quantity);
-        setSelectedQty(updatedQtyMap);
         // If the selected quantity is 0, don't add the item to cart items map
         if (orderItem.Quantity === 0) return;
         // Get price and metadata for all the selected items in the order.
@@ -133,7 +136,10 @@ export default function OrderDetails() {
         ]);
         if (!listing) throw new Error("Listing not found");
         const l = Listing.fromCBOR(listing);
-        allCartItems.set(orderItem.ListingID, l);
+        allCartItems.set(orderItem.ListingID, {
+          selectedQty: orderItem.Quantity,
+          listing: l,
+        });
       }),
     );
     return allCartItems;
@@ -141,36 +147,36 @@ export default function OrderDetails() {
 
   function renderItems() {
     if (!order || !cartItemsMap.size) return <p>No items in cart</p>;
-    const values: Listing[] = Array.from(cartItemsMap.values());
-    return values.map((listing: Listing) => {
-      return (
-        <div
-          key={listing.ID}
-          className="flex gap-4 md:grid md:grid-cols-3 items-center"
-          data-testid="order-item"
-        >
-          <div className="flex gap-1 items-center">
-            <img
-              src={listing.Metadata.Images?.[0] || "/assets/no-image.png"}
-              width={48}
-              height={48}
-              alt="product-thumb"
-              className="w-12 h-12 object-cover object-center rounded-lg"
-            />
-            <h3 data-testid="item-title" className="line-clamp-2">
-              {listing.Metadata.Title}
-            </h3>
+    return Array.from(cartItemsMap.values()).map(
+      ({ selectedQty, listing }: { selectedQty: number; listing: Listing }) => {
+        return (
+          <div
+            key={listing.ID}
+            className="flex gap-4 md:grid md:grid-cols-3 items-center"
+            data-testid="order-item"
+          >
+            <div className="flex gap-1 items-center">
+              <img
+                src={listing.Metadata.Images?.[0] || "/assets/no-image.png"}
+                width={48}
+                height={48}
+                alt="product-thumb"
+                className="w-12 h-12 object-cover object-center rounded-lg"
+              />
+              <p
+                data-testid="item-title"
+                className="line-clamp-2 font-bold text-base text-sm/6 max-w-28"
+              >
+                {listing.Metadata.Title}
+              </p>
+            </div>
+            <p data-testid="item-quantity" className="ml-auto">
+              Quantity: {selectedQty}
+            </p>
           </div>
-
-          <p data-testid="item-price">
-            {formatUnits(listing.Price, token!.decimals)} {token!.symbol}
-          </p>
-          <p data-testid="item-quantity">
-            Quantity: {selectedQty.get(listing.ID)}
-          </p>
-        </div>
-      );
-    });
+        );
+      },
+    );
   }
 
   function renderAddressDetails(addr: AddressDetails, isShipping: boolean) {
@@ -182,28 +188,26 @@ export default function OrderDetails() {
         <h2>{isShipping ? "Shipping Details" : "Billing Details"}</h2>
         <div className="grid grid-cols-2">
           <h3>Name</h3>
-          <p>{addr.Name}</p>
+          <p className="font-light">{addr.Name}</p>
         </div>
         <div className="grid grid-cols-2">
           <h3>Address</h3>
           <div>
-            <p>{addr.Address1}</p>
-            {addr.Address2 && <p>{addr.Address2}</p>}
-            <p>{addr.City}</p>
-            <p>{addr.Country}</p>
-            <p>{addr.PostalCode}</p>
+            <p className="font-light">{addr.Address1}</p>
+            {addr.Address2 && <p className="font-light">{addr.Address2}</p>}
+            <p className="font-light">{addr.City}</p>
+            <p className="font-light">{addr.Country}</p>
+            <p className="font-light">{addr.PostalCode}</p>
           </div>
         </div>
         <div className="grid grid-cols-2">
           <h3>Email</h3>
-          <p>{addr.EmailAddress}</p>
+          <p className="font-light">{addr.EmailAddress}</p>
         </div>
-        {addr.PhoneNumber && (
-          <div className="grid grid-cols-2">
-            <h3>Phone</h3>
-            <p>{addr.PhoneNumber}</p>
-          </div>
-        )}
+        <div className="grid grid-cols-2">
+          <h3>Phone</h3>
+          <p className="font-light">{addr.PhoneNumber ?? "N/A"}</p>
+        </div>
       </section>
     );
   }
@@ -217,36 +221,42 @@ export default function OrderDetails() {
     >
       <section className="md:w-[560px]">
         <BackButton />
-        <div className="my-5">
+        <div className="my-1">
           <h1>Order overview</h1>
         </div>
-        <section className="flex justify-between grid grid-cols-2 gap-1">
-          <div className="bg-white p-2 rounded-lg flex">
-            <p className="mr-2">Order ID:</p>
+        <section>
+          <div className="bg-white p-2 rounded-lg flex whitespace-nowrap">
+            <p className="mr-2">Order no:</p>
             <p className="font-bold">{order.ID}</p>
           </div>
-          <div className="bg-white p-2 rounded-lg flex">
-            <p className="mr-2">
-              Total:
-            </p>
-            <p className="font-bold">
-              {order.PaymentDetails
-                ? `${
-                  formatUnits(
-                    BigInt(order.PaymentDetails!.Total),
-                    token!.decimals,
-                  )
-                } ${token!.symbol}`
-                : "N/A"}
-            </p>
+          <div className="flex justify-between grid grid-cols-2 gap-1 mt-1">
+            <div className="bg-white p-2 rounded-lg flex">
+              <p className="mr-2">
+                Total Price:
+              </p>
+              <p className="font-bold">
+                {order.PaymentDetails
+                  ? `${
+                    formatUnits(
+                      BigInt(order.PaymentDetails!.Total),
+                      token!.decimals,
+                    )
+                  } ${token!.symbol}`
+                  : "N/A"}
+              </p>
+            </div>
+            <div className="bg-white p-2 rounded-lg flex whitespace-nowrap">
+              <p className="mr-2">Status:</p>
+              <p className="font-bold">{OrderStateFromNumber(order.State)}</p>
+            </div>
           </div>
-          <div className="bg-white p-2 rounded-lg flex">
-            <p className="mr-2">Order Date:</p>
+          <div className="bg-white p-2 rounded-lg flex mt-1">
+            <p className="mr-2">Date:</p>
             <p className="font-bold">{orderDate}</p>
           </div>
         </section>
 
-        <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
+        <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
           <h2>Order items</h2>
           {renderItems()}
         </section>
@@ -262,8 +272,9 @@ export default function OrderDetails() {
             txHash || blockHash ? "" : "hidden"
           }`}
         >
+          <h2>Transaction Hash</h2>
           <div className={txHash ? "" : "hidden"}>
-            <h2>Tx Hash</h2>
+            <h4>Tx Hash</h4>
             <div className="flex gap-2">
               <div
                 className={`bg-background-gray p-2 rounded-md overflow-x-auto w-40
@@ -287,7 +298,7 @@ export default function OrderDetails() {
             </div>
           </div>
           <div className={blockHash ? "" : "hidden"}>
-            <h2>Block Hash</h2>
+            <h4>Block Hash</h4>
             <div className="flex gap-2">
               <div
                 className={`bg-background-gray p-2 rounded-md overflow-x-auto w-40 ${

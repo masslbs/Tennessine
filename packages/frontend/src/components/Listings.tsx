@@ -10,6 +10,7 @@ import CustomerViewListings from "./CustomerViewListings.tsx";
 import { useKeycard } from "../hooks/useKeycard.ts";
 import { useStateManager } from "../hooks/useStateManager.ts";
 import MerchantViewListings from "./merchants/listings/MerchantViewListings.tsx";
+import { ListingViewState } from "../types.ts";
 
 export default function Listings() {
   const { stateManager } = useStateManager();
@@ -29,7 +30,9 @@ export default function Listings() {
       if (!(res instanceof Map)) {
         throw new Error("Listings is not a Map");
       }
-      const listings = mapToListingClass(res);
+      const listings = mapToListingClass(res).filter((listing) =>
+        listing.ViewState !== ListingViewState.Deleted
+      );
       setProducts(listings);
     });
 
