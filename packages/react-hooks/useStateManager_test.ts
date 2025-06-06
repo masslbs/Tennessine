@@ -50,15 +50,37 @@ Deno.test(
         { wrapper: createWrapper(shopId) },
       );
       await waitFor(async () => {
-        expect(result.current.data).toBeDefined();
-        expect(result.current.data).toBeInstanceOf(StateManager);
-        const listing = await stateManager.get(["Listings"]) as Map<
+        expect(result.current.stateManager).toBeInstanceOf(StateManager);
+        const listing = await result.current.stateManager?.get([
+          "Listings",
+        ]) as Map<
           number,
           unknown
         >;
         expect(listing?.size).toEqual(allListings?.size);
       });
       unmount();
+    });
+
+    await t.step("StateManager save the state on unload", async () => {
+      const db = new LevelStore();
+      const { result, unmount } = renderHook(
+        () => useStateManager({ db }),
+        { wrapper: createWrapper(shopId) },
+      );
+
+      await waitFor(() => {
+        expect(result.current.stateManager).toBeInstanceOf(StateManager);
+      });
+      globalThis.dispatchEvent(new Event("beforeunload"));
+      unmount();
+
+      await waitFor(() => {
+        expect(
+          () => result.current.stateManager?.root,
+          "StateManager should be closed",
+        ).toThrow();
+      });
     });
   }),
 );

@@ -1,15 +1,26 @@
 import { skipToken, useQuery } from "@tanstack/react-query";
 import { getLogger } from "@logtape/logtape";
+import { BrowserLevel } from "browser-level";
 
 import StateManager from "@massmarket/stateManager";
-import { type AbstractStore, BrowserLevelStore } from "@massmarket/store";
+import { type AbstractStore, LevelStore } from "@massmarket/store";
 import { defaultState } from "@massmarket/schema";
 
 import { useRelayClient } from "./useRelayClient.ts";
 import { useShopId } from "./useShopId.ts";
 import { useKeycard } from "./useKeycard.ts";
+import { useMassMarketContext } from "./useMassMarketContext.ts";
+import type { MassMarketConfig } from "./MassMarketContext.ts";
 
 const logger = getLogger(["mass-market", "frontend", "useStateManager"]);
+
+const BrowserLevelStore = (dbName: string) =>
+  new LevelStore(
+    new BrowserLevel(dbName, {
+      valueEncoding: "view",
+      keyEncoding: "view",
+    }),
+  );
 
 /**
  * This hook instantiates the StateManager and adds relay connection.
@@ -17,17 +28,18 @@ const logger = getLogger(["mass-market", "frontend", "useStateManager"]);
  * Subscription to the relay is requested with the subscription sequence number, to only receive events beginning with the event the state has not already been updated with.
  * db.close() is called on beforeunload to save the keycard nonce for any writes.
  */
-
 export function useStateManager(params?: {
   db?: AbstractStore;
+  config?: MassMarketConfig;
 }) {
+  const config = params?.config ?? useMassMarketContext().config;
   const { data: relayClient } = useRelayClient();
-  const { shopId } = useShopId();
+  const { shopId } = useShopId({ config });
   const { data: keycard } = useKeycard();
 
   const enabled = !!relayClient && !!keycard && !!shopId;
 
-  return useQuery({
+  const query = useQuery({
     queryKey: ["stateManager", String(shopId), keycard?.address],
     queryFn: enabled
       ? async () => {
@@ -51,4 +63,5 @@ export function useStateManager(params?: {
       }
       : skipToken,
   });
+  return { stateManager: query.data, ...query };
 }
