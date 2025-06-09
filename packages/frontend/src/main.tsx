@@ -34,6 +34,19 @@ const sentryConfig: Config<string, string> = {
   ],
 };
 
+const getMassBrowserDebug = () => {
+  const params = new URLSearchParams(globalThis.location.search);
+  return params.has("mass-debug") && params.get("mass-debug") === "true";
+};
+
+if (getMassBrowserDebug()) {
+  sentryConfig.loggers.push({
+    category: ["mass-market", "relay-client"],
+    sinks: ["console"],
+    lowestLevel: "debug",
+  });
+}
+
 if (isSentryEnabled && !isLocalDeploy) {
   const sentryClient = init({
     dsn: env.sentryDSN,
