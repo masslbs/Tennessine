@@ -18,7 +18,7 @@ import { useStateManager } from "../../hooks/useStateManager.ts";
 import { useBaseToken } from "../../hooks/useBaseToken.ts";
 import { formatDate, getTokenInformation } from "../../utils/mod.ts";
 
-const logger = getLogger(["mass-market", "frontend", "OrderDetails"]);
+const baseLogger = getLogger(["mass-market", "frontend", "OrderDetails"]);
 
 export default function OrderDetails() {
   const { stateManager } = useStateManager();
@@ -43,6 +43,10 @@ export default function OrderDetails() {
     decimals: 0,
   });
   const [orderDate, setOrderDate] = useState<string | null>(null);
+
+  const logger = baseLogger.with({
+    orderId: orderId,
+  });
 
   useEffect(() => {
     if (!orderId || !stateManager) return;

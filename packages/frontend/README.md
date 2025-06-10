@@ -43,6 +43,15 @@ To run a single test:
 deno test src/hooks/useRelayEndpoint_test.ts -A
 ```
 
+**Enable debug logs**
+
+If you are debugging something difficult, you might need full access to the
+internal logging. To enable all logs, set the environment variable `MAX_LOGS`
+and then run your tests. The following sets the environment variable for
+`deno test`, after which it will no longer be set:
+
+    MAX_LOGS=1 deno test -A
+
 ## Interacting with the State Manager
 
 The frontend interacts with the state manager to send patches to the relay,

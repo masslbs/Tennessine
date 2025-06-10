@@ -19,6 +19,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { discoverRelay, RelayClient } from "@massmarket/client";
 import { mintShop } from "@massmarket/contracts";
 import { random256BigInt } from "@massmarket/utils";
+// to enable logging `import from "@massmarket/utils/logger"`,
+import { enableLogging } from "@massmarket/utils/logger";
+if (Deno.env.get("MAX_LOGS")) {
+  enableLogging();
+}
 import StateManager from "@massmarket/stateManager";
 import { MemStore } from "@massmarket/store";
 

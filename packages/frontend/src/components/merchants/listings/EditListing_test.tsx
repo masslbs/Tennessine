@@ -134,7 +134,7 @@ Deno.test("Edit Listing", {
     expect(titleInput.value).toBe("product 1");
     const descInput = screen.getByTestId("description") as HTMLInputElement;
     expect(descInput.value).toBe("product 1 description");
-    const quantityInput = screen.getByTestId("stock") as HTMLInputElement;
+    let quantityInput = screen.getByTestId("stock") as HTMLInputElement;
     expect(quantityInput.value).toBe("123");
     const publishCheckbox = screen.getByRole("checkbox", {
       name: /Publish product/i,
@@ -142,9 +142,13 @@ Deno.test("Edit Listing", {
     expect(publishCheckbox.checked).toBeTruthy();
 
     // Update the inputs
-    const stockInput = screen.getByTestId("stock");
-    await user.clear(stockInput);
-    await user.type(stockInput, "321");
+    // update stock from 123 to instead read `1234`
+    await user.type(screen.getByTestId("stock"), "4");
+    quantityInput = screen.getByTestId("stock") as HTMLInputElement;
+    waitFor(() => {
+      expect(quantityInput.value).toBe("1234");
+    });
+
     const titleInput2 = screen.getByTestId("title");
     await user.clear(titleInput2);
     await user.type(titleInput2, "Updated title");
@@ -168,8 +172,7 @@ Deno.test("Edit Listing", {
       expect(updatedListing.Metadata.Title).toBe("Updated title");
       expect(updatedListing.Metadata.Description).toBe("Updated description");
       const updateInv = await stateManager.get(["Inventory", listingID]);
-
-      expect(updateInv).toBe(321);
+      expect(updateInv).toBe(1234);
     }, { timeout: 10000 });
     unmount();
   });

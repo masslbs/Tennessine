@@ -24,7 +24,7 @@ import { useRelayClient } from "../../hooks/useRelayClient.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 import { getErrLogger, isValidUrl } from "../../utils/mod.ts";
 
-const logger = getLogger(["mass-market", "frontend", "connect-merchant"]);
+const baseLogger = getLogger(["mass-market", "frontend", "connect-merchant"]);
 
 export default function MerchantConnect() {
   const { status } = useAccount();
@@ -51,6 +51,10 @@ export default function MerchantConnect() {
     } | null
   >(null);
 
+  const logger = baseLogger.with({
+    shopId,
+    keycardAddress: keycard?.address,
+  });
   const logError = getErrLogger(logger);
 
   useEffect(() => {

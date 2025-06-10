@@ -37,10 +37,10 @@ import LoadingSpinner from "../common/LoadingSpinner.tsx";
 import ConnectWalletButton from "../common/ConnectWalletButton.tsx";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { CurrencyChainOption } from "../../types.ts";
-import { env, getTokenInformation } from "../../utils/mod.ts";
+import { env, getErrLogger, getTokenInformation } from "../../utils/mod.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 
-const logger = getLogger(["mass-market", "frontend", "ChoosePayment"]);
+const baseLogger = getLogger(["mass-market", "frontend", "ChoosePayment"]);
 const paymentsByAddressAbi = abi.paymentsByAddressAbi;
 
 export default function ChoosePayment() {
@@ -76,6 +76,12 @@ export default function ChoosePayment() {
   const [displayedAmount, setDisplayedAmount] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<null | `0x${string}`>(null);
   const [blockHash, setBlockHash] = useState<null | `0x${string}`>(null);
+
+  const logger = baseLogger.with({
+    shopId,
+    orderId: currentOrder?.ID,
+  });
+  const logError = getErrLogger(baseLogger, setErrorMsg);
 
   useEffect(() => {
     if (!stateManager) return;
@@ -251,8 +257,7 @@ export default function ChoosePayment() {
       logger.debug`displayed amount: ${displayedAmount}`;
       setDisplayedAmount(displayedAmount);
     } catch (error: unknown) {
-      logger.error("Error getting payment details", { error });
-      setErrorMsg("Error getting payment details");
+      logError("Error getting payment details", error);
     }
   }
 
@@ -336,8 +341,7 @@ export default function ChoosePayment() {
       ], OrderState.PaymentChosen);
       logger.debug("chosen payment set");
     } catch (error: unknown) {
-      logger.error("Error setting chosen payment", { error });
-      setErrorMsg("Error setting chosen payment");
+      logError("Error setting chosen payment", error);
     }
   }
 
