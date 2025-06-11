@@ -1,11 +1,11 @@
-interface AuthenticationModalProps {
+interface InteractionModalProps {
   children: React.ReactNode;
   description: React.ReactNode;
   title: string;
   errorMessage: string;
 }
-export function AuthenticationBlockingModal(
-  { children, title, description, errorMessage }: AuthenticationModalProps,
+export function InteractionBlockingModal(
+  { children, title, description, errorMessage }: InteractionModalProps,
 ) {
   return (
     <>

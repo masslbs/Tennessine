@@ -7,7 +7,7 @@ import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 
 import { MassMarketProvider } from "@massmarket/react-hooks";
 
-import { AuthenticationBlockingModal } from "./components/AuthenticationBlockingModal.tsx";
+import { InteractionBlockingModal } from "./components/InteractionBlockingModal.tsx";
 
 import { config } from "./wagmi.ts";
 import { routeTree } from "./routeTree.gen.ts";
@@ -49,7 +49,7 @@ const getBlockingModal = (children: React.ReactNode, errorMessage: string) => {
       </p>
     </div>
   );
-  return AuthenticationBlockingModal({
+  return InteractionBlockingModal({
     children,
     title: "Multi-tab drifting detected!",
     description,
