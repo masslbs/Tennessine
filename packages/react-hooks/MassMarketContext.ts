@@ -48,7 +48,7 @@ export function MassMarketProvider(
     relayClient?: RelayClient;
     stateManager?: StateManager;
     config?: MassMarketConfig;
-    blockingModal: (
+    blockingModal?: (
       children: React.ReactNode,
       errorMessage: string,
     ) => React.ReactNode;
@@ -84,6 +84,11 @@ export function MassMarketProvider(
   };
 
   if (authenticationError instanceof Error) {
+    if (!parameters.blockingModal) {
+      throw new Error(
+        "authentication error occurred but blocking modal was not supplied",
+      );
+    }
     return createElement(MassMarketContext.Provider, {
       value,
       children: parameters.blockingModal(
