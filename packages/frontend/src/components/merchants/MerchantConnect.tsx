@@ -104,7 +104,7 @@ export default function MerchantConnect() {
         setStep(SearchShopStep.Connect);
         return true;
       } else {
-        setErrorMsg("Shop not found");
+        setErrorMsg("Shop metadata not found");
         return false;
       }
     } catch (error: unknown) {
