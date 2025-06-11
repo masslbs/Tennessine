@@ -107,12 +107,12 @@ export class ClientWriteError extends Error {
 export class RelayClient {
   connection: WebSocket | null = null;
   keyCardNonce: number;
-  private pingsReceived: number = 0;
-  private lastPingReceived: Date = new Date(0);
   readonly walletClient: WalletClient;
   readonly keycard;
   readonly relayEndpoint;
   readonly shopId;
+  #pingsReceived: number = 0;
+  #lastPingReceived: Date = new Date(0);
   // TODO; we can use the subscription path for the id
   #subscriptions: Map<string, ReadableStreamDefaultController<PushedPatchSet>> =
     new Map();
@@ -131,8 +131,8 @@ export class RelayClient {
 
   get stats() {
     return {
-      pingsReceived: this.pingsReceived,
-      lastPingReceived: this.lastPingReceived,
+      pingsReceived: this.#pingsReceived,
+      lastPingReceived: this.#lastPingReceived,
       subscriptions: this.#subscriptions.size,
       waitingMessagesResponse: this.#waitingMessagesResponse.size,
       requestCounter: this.#requestCounter,
@@ -287,8 +287,8 @@ export class RelayClient {
       requestId: ping.requestId,
       response: {},
     });
-    this.pingsReceived++;
-    this.lastPingReceived = new Date();
+    this.#pingsReceived++;
+    this.#lastPingReceived = new Date();
   }
 
   async createSubscription(
@@ -388,9 +388,9 @@ export class RelayClient {
     });
   }
 
-  // TODO: this is a bit of a mess.
-  // What these promises are trying to achieve would usually be a mutex/lock,
-  // to make sure we are not running multiple authentication attempts at the same time.
+  /**
+   * Authenticate the client with the relay.
+   */
   async authenticate(): Promise<boolean> {
     // Use a bypass function for auth requests to avoid potential recursive auth checks
     // within encodeAndSend if it calls authenticate itself.
