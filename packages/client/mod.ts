@@ -94,6 +94,11 @@ export class RelayResponseError extends Error {
     );
   }
 }
+export class RelayAuthenticationError extends Error {
+  constructor(message: string) {
+    super(message);
+  }
+}
 
 export class ClientWriteError extends Error {
   constructor(
@@ -467,7 +472,12 @@ export class RelayClient {
         const { code, message } = authResponse.error;
         assert(code, "error.code is required");
         assert(message, "error.message is required");
-        throw new Error(`Authentication failed with code: ${code}: ${message}`);
+        // TODO (@alp 2025-06-10): figure out whether client/mod.ts's "reject" should be called in addition to returning Promise.reject
+        return Promise.reject(
+          new RelayAuthenticationError(
+            `Authentication failed with code: ${code}: ${message}`,
+          ),
+        );
       }
 
       const sig = await this.walletClient.signMessage({
