@@ -392,18 +392,6 @@ export class RelayClient {
    * Authenticate the client with the relay.
    */
   async authenticate(): Promise<boolean> {
-    // Use a bypass function for auth requests to avoid potential recursive auth checks
-    // within encodeAndSend if it calls authenticate itself.
-    const authRequestFunction = (env: schema.IEnvelope) => {
-      const id = this.encodeAndSendNoWait(env);
-      const { promise: waitPromise } = this.#waitingMessagesResponse.lock(
-        id.raw.toString(),
-      )!;
-      // Ensure the lock exists before awaiting
-      assert(waitPromise, `Lock not found for request ID: ${id.raw}`);
-      return waitPromise;
-    };
-
     if (this.#authenticationPromise === undefined) {
       const { promise, resolve, reject } = Promise.withResolvers<boolean>();
       this.#authenticationPromise = promise;
@@ -415,7 +403,7 @@ export class RelayClient {
           this.keycard,
         );
 
-        const { response: authResponse } = await authRequestFunction({
+        const { response: authResponse } = await this.encodeAndSend({
           authRequest: {
             publicKey: {
               raw: hexToBytes(`0x${publicKey}`),
@@ -444,7 +432,7 @@ export class RelayClient {
           },
         });
 
-        await authRequestFunction({
+        await this.encodeAndSend({
           challengeSolutionRequest: {
             signature: { raw: hexToBytes(sig) },
           },
