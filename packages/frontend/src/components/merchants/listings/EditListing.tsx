@@ -331,19 +331,31 @@ export default function EditProduct() {
               }}
             >
               <label htmlFor="price">Price</label>
-              <input
-                type="text"
-                value={priceInput}
-                placeholder="0.00"
-                className="mt-1 p-2 rounded-md"
-                data-testid="price"
-                style={{ backgroundColor: "#F3F3F3" }}
-                name="price"
-                // Only allow numbers and a single decimal point
-                pattern="^\d*\.?\d*$"
-                inputMode="decimal"
-                onChange={handlePriceChange}
-              />
+              <div className="flex gap-2 items-center">
+                <img
+                  src={baseToken?.symbol === "ETH"
+                    ? "/icons/eth-coin.svg"
+                    : "/icons/usdc-coin.png"}
+                  alt="coin"
+                  width={20}
+                  height={20}
+                  className="w-5 h-5"
+                  data-testid="coin-icon"
+                />
+                <input
+                  type="text"
+                  value={priceInput}
+                  placeholder="0.00"
+                  className="mt-1 p-2 rounded-md w-full"
+                  data-testid="price"
+                  style={{ backgroundColor: "#F3F3F3" }}
+                  name="price"
+                  // Only allow numbers and a single decimal point
+                  pattern="^\d*\.?\d*$"
+                  inputMode="decimal"
+                  onChange={handlePriceChange}
+                />
+              </div>
             </form>
             <form
               className="flex flex-col"
