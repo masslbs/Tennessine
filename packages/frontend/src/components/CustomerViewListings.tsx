@@ -54,11 +54,11 @@ export default function CustomerViewProducts({
                 className="h-36 rounded-t-lg object-cover object-center w-full"
               />
             </div>
-            <div className="bg-white flex flex-col gap-2 rounded-b-lg p-3 h-24 w-full">
-              <div className="min-h-8">
+            <div className="bg-white flex flex-col gap-2 rounded-b-lg p-3 h-26 w-full">
+              <div className="min-h-12">
                 <h3
                   data-testid="product-name"
-                  className="leading-[1.1] line-clamp-2 md:p-1"
+                  className="leading-6 line-clamp-2 md:p-1"
                 >
                   {item.Metadata.Title}
                 </h3>
@@ -86,12 +86,12 @@ export default function CustomerViewProducts({
   }
   return (
     <section
-      className="mt-4 flex justify-center"
+      className="mt-[10px] flex justify-center"
       data-testid="customer-view-listings"
     >
       <section>
         <h1>Shop</h1>
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-5 pt-5">
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-5 pt-[10px]">
           {renderProducts()}
         </section>
       </section>

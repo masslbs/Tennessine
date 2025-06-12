@@ -22,14 +22,14 @@ export default function ConnectWalletButton(
         alt="wallet-icon"
         className="w-10 h-10"
       />
-      <div className="flex gap-2 items-center">
-        <p>Connect wallet</p>
+      <div className="flex gap-[5px] items-center whitespace-nowrap">
+        <p className="whitespace-nowrap">Connect wallet</p>
         <img
           src="/icons/chevron-right.svg"
           width={12}
           height={12}
           alt="chevron"
-          className="w-3 h-3"
+          className="w-2 h-2"
         />
       </div>
     </button>

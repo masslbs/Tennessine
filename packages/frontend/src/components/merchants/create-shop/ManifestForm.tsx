@@ -8,6 +8,8 @@ import ErrorMessage from "../../common/ErrorMessage.tsx";
 import Button from "../../common/Button.tsx";
 import AvatarUpload from "../../common/AvatarUpload.tsx";
 import Dropdown from "../../common/CurrencyDropdown.tsx";
+import ChevronRight from "../../common/ChevronRight.tsx";
+
 import {
   CreateShopStep,
   CurrencyChainOption,
@@ -85,7 +87,7 @@ export default function ManifestForm(
   }
 
   return (
-    <section data-testid="manifest-form" className="w-full md:w-[560px]">
+    <section data-testid="manifest-form" className="w-full md:w-[560px] p-5">
       <section>
         <ValidationWarning
           warning={validationError}
@@ -103,10 +105,11 @@ export default function ManifestForm(
           <h1>Create new shop</h1>
         </div>
       </section>
-      <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg">
+      <section className="mt-2 flex flex-col gap-[25px] bg-white p-5 rounded-lg">
         <form
           className="flex flex-col grow"
-          onSubmit={(e) => e.preventDefault()}
+          onSubmit={(e) =>
+            e.preventDefault()}
         >
           <label className="font-medium" htmlFor="shopName">
             Shop Name
@@ -128,9 +131,12 @@ export default function ManifestForm(
             }}
             logError={logError}
           />
-          <p className="flex items-center">Upload PFP</p>
         </div>
-        <form className="flex flex-col" onSubmit={(e) => e.preventDefault()}>
+        <form
+          className="flex flex-col"
+          onSubmit={(e) =>
+            e.preventDefault()}
+        >
           <label htmlFor="desc" className="font-medium">
             Description
           </label>
@@ -144,7 +150,7 @@ export default function ManifestForm(
           />
         </form>
         <div data-testid="accepted-currencies">
-          <label className="font-medium">Accepted currency</label>
+          <label className="font-medium">Accepted Currencies</label>
           <div className="flex flex-col gap-2">
             {currencyOptions.map((c, i) => (
               <div key={i}>
@@ -156,7 +162,7 @@ export default function ManifestForm(
                     className="form-checkbox h-4 w-4"
                     value={c.value}
                   />
-                  <span>{c.label}</span>
+                  <span className="font-light">{c.label}</span>
                 </label>
               </div>
             ))}
@@ -191,7 +197,8 @@ export default function ManifestForm(
         </div>
         <div>
           <Button onClick={goToConnectWallet}>
-            <h6>Connect Wallet</h6>
+            <h6 className="mr-2">Connect Wallet</h6>
+            <ChevronRight hex="#FFF" />
           </Button>
         </div>
       </section>

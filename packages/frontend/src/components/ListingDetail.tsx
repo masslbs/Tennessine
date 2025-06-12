@@ -9,6 +9,7 @@ import { getLogger } from "@logtape/logtape";
 
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
 import type { CodecValue } from "@massmarket/utils/codec";
+
 import { ListingId, OrderState } from "../types.ts";
 import Button from "./common/Button.tsx";
 import BackButton from "./common/BackButton.tsx";
@@ -19,6 +20,7 @@ import ErrorMessage from "./common/ErrorMessage.tsx";
 import SuccessToast from "./common/SuccessToast.tsx";
 import { useCurrentOrder } from "../hooks/useCurrentOrder.ts";
 import { getErrLogger } from "../utils/helper.ts";
+import ChevronRight from "./common/ChevronRight.tsx";
 
 const baseLogger = getLogger(["mass-market", "frontend", "ListingDetail"]);
 
@@ -35,7 +37,7 @@ export default function ListingDetail() {
   const [quantity, setQuantity] = useState<number>(1);
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [successMsg, setMsg] = useState<string | null>(null);
-  const [displayedImg, setDisplayedImg] = useState<string | null>(null);
+  const [displayedImg, setDisplayedImg] = useState<number>(0);
 
   // set up the logger with information that will be included in error traces when crashes are reported.
   // note: take care with the type of information that is logged, only include traces that are helpful for debugging at
@@ -61,9 +63,7 @@ export default function ListingDetail() {
         }
         const item = Listing.fromCBOR(res);
         setListing(item);
-        if (item.Metadata.Images && item.Metadata.Images.length > 0) {
-          setDisplayedImg(item.Metadata.Images[0]);
-        }
+
         if (baseToken?.symbol === "ETH") {
           setIcon("/icons/eth-coin.svg");
         }
@@ -156,12 +156,13 @@ export default function ListingDetail() {
     return input.split("\n");
   }
 
+  const { Metadata, ID, Price } = listing;
   return (
     <main
       className="bg-gray-100 md:flex justify-center"
       data-testid="listing-detail-page"
     >
-      <section className="flex flex-col md:w-[800px] mx-4">
+      <section className="flex flex-col md:w-[1000px] mx-4">
         <ErrorMessage
           errorMessage={errorMsg}
           onClose={() => {
@@ -169,9 +170,9 @@ export default function ListingDetail() {
           }}
         />
         <BackButton />
-        <div className="my-3">
+        <div className="my-[10px]">
           <h1 className="flex items-center" data-testid="title">
-            {listing.Metadata.Title}
+            {Metadata.Title}
           </h1>
           <div
             className={`mt-2 ${keycard.role === "merchant" ? "" : "hidden"}`}
@@ -181,36 +182,96 @@ export default function ListingDetail() {
                 to="/edit-listing"
                 search={(prev: Record<string, string>) => ({
                   shopId: prev.shopId,
-                  itemId: listing.ID,
+                  itemId: ID,
                 })}
                 style={{
                   color: "white",
                 }}
               >
-                Edit Product
+                <div className="flex items-center gap-2">
+                  <p>Edit product</p>
+                  <ChevronRight hex="#FFF" />
+                </div>
               </Link>
             </Button>
           </div>
         </div>
         <div className="md:flex md:gap-8">
-          <div className="listing-image-container md:w-3/5">
-            {displayedImg && (
-              <img
-                src={displayedImg}
-                alt="product-detail-image"
-                className="rounded-lg w-full max-h-1/2 md:max-h-[380px]"
-                style={{
-                  objectFit: "cover",
-                  objectPosition: "center",
-                  border: "none",
-                }}
-              />
-            )}
-            {listing.Metadata.Images && listing.Metadata.Images.length > 1
+          <div className="listing-image-container md:w-3/5 relative">
+            {Metadata.Images?.length
+              ? (
+                <div>
+                  <img
+                    src={Metadata.Images?.[displayedImg]}
+                    alt="product-detail-image"
+                    className="rounded-lg w-full max-h-[340px] md:max-h-1/2 md:max-h-[380px]"
+                    style={{
+                      objectFit: "cover",
+                      objectPosition: "center",
+                      border: "none",
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className={`${
+                      Metadata.Images?.length > 1
+                        ? "absolute top-[170px] left-[15px]"
+                        : "hidden"
+                    }`}
+                    onClick={() => {
+                      setDisplayedImg(
+                        (displayedImg - 1 + Metadata.Images!.length) %
+                          Metadata.Images!.length,
+                      );
+                    }}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="12"
+                      height="23"
+                      viewBox="0 0 12 23"
+                      fill="none"
+                    >
+                      <path
+                        d="M10.722 0.76123C11.0386 0.76123 11.3779 0.874331 11.6268 1.12315C12.1244 1.6208 12.1244 2.4125 11.6268 2.91015L3.05372 11.5058L11.6268 20.0789C12.1244 20.5765 12.1244 21.3682 11.6268 21.8659C11.1291 22.3635 10.3374 22.3635 9.83977 21.8659L0.361922 12.4106C0.113101 12.1618 -4.84492e-07 11.8451 -4.69661e-07 11.5058C-4.54829e-07 11.1665 0.135721 10.8498 0.361922 10.601L9.83977 1.12315C10.0886 0.874331 10.4053 0.76123 10.722 0.76123Z"
+                        fill="black"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    className={`${
+                      Metadata.Images?.length > 1
+                        ? "absolute top-[170px] right-[15px]"
+                        : "hidden"
+                    }`}
+                    onClick={() => {
+                      setDisplayedImg(
+                        (displayedImg + 1) % Metadata.Images!.length,
+                      );
+                    }}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="12"
+                      height="23"
+                      viewBox="0 0 12 23"
+                      fill="none"
+                    >
+                      <path
+                        d="M1.27804 22.2393C0.961357 22.2393 0.622055 22.1262 0.373233 21.8773C-0.124411 21.3797 -0.124411 20.588 0.373233 20.0903L8.94628 11.4947L0.373232 2.92163C-0.124412 2.42399 -0.124412 1.63228 0.373232 1.13464C0.870876 0.636995 1.66258 0.636995 2.16023 1.13464L11.6381 10.5899C11.8869 10.8387 12 11.1554 12 11.4947C12 11.834 11.8643 12.1507 11.6381 12.3995L2.16023 21.8773C1.9114 22.1262 1.59472 22.2393 1.27804 22.2393Z"
+                        fill="black"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              )
+              : null}
+            {Metadata.Images?.length
               ? (
                 <div className="flex mt-2 gap-2">
-                  {listing.Metadata.Images.map((image: string, i: number) => {
-                    if (image === displayedImg) return;
+                  {Metadata.Images?.map((image: string, i: number) => {
+                    if (i === displayedImg) return;
                     return (
                       <img
                         key={i}
@@ -226,7 +287,7 @@ export default function ListingDetail() {
                           objectPosition: "center",
                           border: "none",
                         }}
-                        onClick={() => setDisplayedImg(image)}
+                        onClick={() => setDisplayedImg(i)}
                       />
                     );
                   })}
@@ -236,11 +297,14 @@ export default function ListingDetail() {
           </div>
           <section className="flex gap-4 flex-col bg-white mt-5 md:mt-0 rounded-md md:w-2/5 p-4">
             <div>
-              <h3 className=" ">Description</h3>
-              <section data-testid="description">
-                {splitTextByNewlines(listing.Metadata.Description).map(
+              <h3 className="font-bold">Description</h3>
+              <section data-testid="description" className="mt-5">
+                {splitTextByNewlines(Metadata.Description).map(
                   (line: string, index: number) => (
-                    <p key={`description-${index}`} className="min-h-[1ch]">
+                    <p
+                      key={`description-${index}`}
+                      className="min-h-[1ch] font-light"
+                    >
                       {line}
                     </p>
                   ),
@@ -256,7 +320,7 @@ export default function ListingDetail() {
                 className="w-6 h-6 max-h-6"
               />
               <h1 data-testid="price">
-                {formatUnits(listing.Price, baseToken.decimals)}
+                {formatUnits(Price, baseToken.decimals)}
               </h1>
             </div>
             <div

@@ -1,5 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import Cart from "./Cart.tsx";
+import BackButton from "../common/BackButton.tsx";
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -13,8 +14,9 @@ export default function Checkout() {
   }
   return (
     <main data-testid="checkout-screen" className="flex justify-center px-4">
-      <section className="w-full md:w-[800px]">
-        <h1 className="my-5">Cart</h1>
+      <section className="w-full md:w-[1000px]">
+        <BackButton />
+        <h1 className="my-[10px]">Cart</h1>
         <Cart onCheckout={onCheckout} />
       </section>
     </main>

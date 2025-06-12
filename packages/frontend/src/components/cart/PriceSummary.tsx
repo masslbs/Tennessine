@@ -6,7 +6,7 @@ export default function PriceSummary(
 ) {
   return (
     <div className={displayedAmount ? "" : "hidden"}>
-      <p>Total price</p>
+      <p className="font-light text-lg">Total price:</p>
       <div className="flex items-center gap-2">
         <img
           src={tokenIcon}

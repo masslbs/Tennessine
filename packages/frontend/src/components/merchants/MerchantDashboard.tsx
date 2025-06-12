@@ -5,18 +5,19 @@ import { Link } from "@tanstack/react-router";
 
 import Transactions from "./Transactions.tsx";
 import ButtonLink from "../common/ButtonLink.tsx";
+import ChevronRight from "../common/ChevronRight.tsx";
 export default function MerchantDashboard() {
   return (
     <main
-      className="p-4 md:flex justify-center h-screen"
+      className="px-4 pt-[10px] md:flex justify-center"
       data-testid="merchant-dashboard-screen"
     >
-      <section className="md:w-[560px]">
-        <section className="mb-4">
+      <section className="md:w-[1000px] md:flex justify-center gap-2">
+        <section className="mb-2 md:w-1/3">
           <h1>Dashboard</h1>
-          <div className="flex flex-col gap-1 pt-4">
+          <div className="flex flex-col gap-1 pt-1">
             <Link
-              className="flex items-center gap-1 p-3 bg-white rounded-md"
+              className="flex items-center gap-1 px-3 py-[10px] bg-white rounded-md"
               to="/edit-listing"
               search={(prev: Record<string, string>) => ({
                 shopId: prev.shopId,
@@ -24,16 +25,12 @@ export default function MerchantDashboard() {
               style={{ color: "black" }}
             >
               Add new product
-              <img
-                src={`/icons/chevron-right.svg`}
-                width={8}
-                height={8}
-                alt="chevron-right"
-                className="w-2 h-2 ml-auto"
-              />
+              <div className="ml-auto">
+                <ChevronRight />
+              </div>
             </Link>
             <Link
-              className="flex items-center gap-1 p-3 bg-white rounded-md"
+              className="flex items-center gap-1 px-3 py-[10px] bg-white rounded-md"
               to="/listings"
               search={(prev: Record<string, string>) => ({
                 shopId: prev.shopId,
@@ -41,13 +38,9 @@ export default function MerchantDashboard() {
               style={{ color: "black" }}
             >
               <p>View products</p>
-              <img
-                src={`/icons/chevron-right.svg`}
-                width={8}
-                height={8}
-                alt="chevron-right"
-                className="w-2 h-2 ml-auto"
-              />
+              <div className="ml-auto">
+                <ChevronRight />
+              </div>
             </Link>
 
             <Link
@@ -55,25 +48,23 @@ export default function MerchantDashboard() {
               search={(prev: Record<string, string>) => ({
                 shopId: prev.shopId,
               })}
-              className="flex items-center gap-1 p-3 bg-white rounded-md"
+              className="flex items-center gap-1 px-3 py-[10px] bg-white rounded-md"
               style={{ color: "black" }}
             >
               <p>Shop settings</p>
-              <img
-                src={`/icons/chevron-right.svg`}
-                width={8}
-                height={8}
-                alt="chevron-right"
-                className="w-2 h-2 ml-auto"
-              />
+              <div className="ml-auto">
+                <ChevronRight />
+              </div>
             </Link>
           </div>
         </section>
-        <h2>Latest Orders</h2>
-        <Transactions displayFive />
-        <div className="flex justify-center mt-3">
-          <ButtonLink to="/orders">View all orders</ButtonLink>
-        </div>
+        <section className="bg-white rounded-md md:w-2/3 md:bg-transparent md:pt-0 py-3">
+          <h2 className="md:mb-2 px-3">Latest Orders</h2>
+          <Transactions displayLastFour />
+          <div className="flex mt-3 ml-3">
+            <ButtonLink to="/orders">View all orders</ButtonLink>
+          </div>
+        </section>
       </section>
     </main>
   );

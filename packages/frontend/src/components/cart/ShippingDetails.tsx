@@ -16,6 +16,7 @@ import ValidationWarning from "../common/ValidationWarning.tsx";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 import { getErrLogger, isValidEmail } from "../../utils/mod.ts";
+import BackButton from "../common/BackButton.tsx";
 
 const baseLogger = getLogger(["mass-market", "frontend", "ShippingDetails"]);
 
@@ -128,10 +129,11 @@ export default function ShippingDetails() {
   return (
     <main className="md:flex justify-center">
       <section
-        className="md:w-[800px] px-4 md:px-0"
+        className="md:w-[1000px] px-4 md:px-0"
         data-testid="shipping-details"
       >
-        <h1 className="my-5">Shipping details</h1>
+        <BackButton />
+        <h1 className="my-[10px]">Shipping details</h1>
         <section className="flex flex-row justify-center gap-12 bg-white p-5 rounded-lg">
           <form
             className="flex flex-col"

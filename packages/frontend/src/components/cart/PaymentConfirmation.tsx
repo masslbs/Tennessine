@@ -22,7 +22,7 @@ export default function PaymentConfirmation(
   }
   return (
     <section className="md:flex justify-center px-4">
-      <section className="mt-2 flex flex-col gap-4 bg-white p-5 rounded-lg items-center md:w-[560px]">
+      <section className="mt-15 flex flex-col gap-4 bg-white p-5 rounded-lg items-center md:w-[560px]">
         <img
           src="/icons/smiley.svg"
           width={80}
@@ -41,7 +41,7 @@ export default function PaymentConfirmation(
           />
           <h1 data-testid="displayed-amount">{displayedAmount}</h1>
         </div>
-        <p>Your order has been completed.</p>
+        <p className="font-inter">Your order has been completed.</p>
         <div className="flex-col items-center gap-2 flex">
           <p>
             {txHash

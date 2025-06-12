@@ -286,38 +286,44 @@ export default function Cart({
               }}
             />
           </div>
-          <div className="bg-background-gray w-full rounded-lg px-3 py-4 md:w-[300px]">
+          <div className="bg-background-gray w-full rounded-r-lg px-3 py-4 md:w-[300px]">
             <div className="flex gap-2">
               <h3
                 data-testid="title"
-                className="leading-4 cursor-pointer"
+                className="leading-6 cursor-pointer max-w-[150px] md:max-w-[200px]"
                 onClick={() => {
                   navigateToListing(item.ID);
                 }}
               >
                 {item.Metadata.Title}
               </h3>
-              <button
-                type="button"
-                onClick={() => removeItem(item.ID)}
-                data-testid={`remove-item-${item.ID}`}
-                className={showActionButtons ? "ml-auto" : "hidden"}
-                style={{ backgroundColor: "transparent", padding: 0 }}
-              >
-                <img
-                  src="/icons/close-icon.svg"
-                  alt="close-icon"
-                  width={12}
-                  height={12}
-                  className="w-3 h-3"
-                />
-              </button>
+              <div className="ml-auto">
+                <button
+                  type="button"
+                  onClick={() => removeItem(item.ID)}
+                  data-testid={`remove-item-${item.ID}`}
+                  className={showActionButtons ? "ml-auto" : "hidden"}
+                  style={{
+                    backgroundColor: "black",
+                    padding: 5,
+                    borderRadius: 100,
+                  }}
+                >
+                  <img
+                    src="/icons/remove-icon.svg"
+                    alt="remove-icon"
+                    width={12}
+                    height={12}
+                    className="w-[10px] h-[10px]"
+                  />
+                </button>
+              </div>
             </div>
 
             <div className="flex gap-2 items-center mt-4 pt-3 border-t border-gray-300 w-full">
               <div
                 className={showActionButtons
-                  ? "flex gap-1 items-center"
+                  ? "flex gap-2 items-center"
                   : "hidden"}
               >
                 <button
@@ -369,7 +375,10 @@ export default function Cart({
                   height={20}
                   className="w-5 h-5 max-h-5"
                 />
-                <p data-testid="price" className="text-sm">
+                <p
+                  data-testid="price"
+                  className="text-sm max-w-12 md:max-w-28 truncate"
+                >
                   {price}
                 </p>
                 <p data-testid="symbol" className="text-sm">
@@ -388,7 +397,7 @@ export default function Cart({
     ? errorListing?.Metadata.Title.slice(0, MAX_TITLE_LEN) + "..."
     : errorListing?.Metadata.Title;
   return (
-    <div className="bg-white rounded-lg p-5">
+    <div className="bg-white rounded-lg p-5 pt-[10px]">
       <div className="flex flex-col gap-2 mt-2 max-h-[calc(100vh-20rem)] overflow-y-auto">
         {renderItems()}
       </div>
