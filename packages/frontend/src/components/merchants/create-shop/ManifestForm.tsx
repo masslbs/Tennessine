@@ -150,7 +150,7 @@ export default function ManifestForm(
           />
         </form>
         <div data-testid="accepted-currencies">
-          <label className="font-medium">Accepted Currency</label>
+          <label className="font-medium">Accepted Currencies</label>
           <div className="flex flex-col gap-2">
             {currencyOptions.map((c, i) => (
               <div key={i}>

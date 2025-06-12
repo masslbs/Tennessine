@@ -118,26 +118,38 @@ function Navigation() {
     const menuItems = isMerchantView ? merchantMenu : customerMenu;
     return menuItems.map((opt, i) => {
       const content = (
-        <div className="flex gap-3 items-center">
-          <img
-            src={`/icons/${opt.img}`}
-            width={20}
-            height={20}
-            alt="menu-item"
-            className="w-5 h-5"
-          />
-          <p className="text-xl text-black">{opt.title}</p>
-          <div className="ml-auto w-3 h-3">
-            <ChevronRight />
+        <Link
+          to={opt.href!}
+          key={opt.title}
+          search={(prev: Record<string, string>) => ({
+            shopId: prev.shopId,
+          })}
+        >
+          <div className="flex gap-3 items-center px-6 py-[10px]">
+            <img
+              src={`/icons/${opt.img}`}
+              width={20}
+              height={20}
+              alt="menu-item"
+              className="w-5 h-5"
+            />
+            <p className="text-xl text-black whitespace-nowrap">{opt.title}</p>
+            <div className="ml-auto w-3 h-3">
+              <ChevronRight />
+            </div>
           </div>
-        </div>
+        </Link>
       );
       if (opt.title === "Disconnect") {
         return (
           <button
             type="button"
-            style={{ backgroundColor: "transparent", padding: 0 }}
-            className="cursor-pointer"
+            style={{
+              cursor: "pointer",
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#FFF"}
+            onMouseLeave={(e) =>
+              e.currentTarget.style.backgroundColor = "transparent"}
             key={i}
             onClick={onDisconnect}
           >
@@ -151,16 +163,11 @@ function Navigation() {
           data-testid={`menu-button-${opt.title}`}
           key={i}
           onClick={() => setMenuOpen(false)}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#FFF"}
+          onMouseLeave={(e) =>
+            e.currentTarget.style.backgroundColor = "transparent"}
         >
-          <Link
-            to={opt.href!}
-            key={opt.title}
-            search={(prev: Record<string, string>) => ({
-              shopId: prev.shopId,
-            })}
-          >
-            {content}
-          </Link>
+          {content}
         </div>
       );
     });
@@ -305,9 +312,9 @@ function Navigation() {
                 />
               </button>
               <div
-                className={`${menuOpen ? "z-10 min-w-50" : "hidden"}`}
+                className={`${menuOpen ? "z-10 md:min-w-70" : "hidden"}`}
               >
-                <div className="bg-background-gray w-screen flex flex-col gap-5 rounded-b-lg p-5 absolute right-0 md:w-full md:static">
+                <div className="bg-background-gray w-screen flex flex-col rounded-b-lg py-4 absolute right-0 md:w-full md:static">
                   {renderMenuItems()}
                 </div>
               </div>

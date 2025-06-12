@@ -101,9 +101,9 @@ export default function MerchantViewProducts({
               <p className="text-sm font-light">Live</p>
             </div>
           </div>
-          <div className="bg-background-gray w-full rounded-r-lg px-5 py-[10px] flex flex-col h-[100px] md:w-[203px]">
-            <div className="flex border-b border-gray-300 w-full py-1 gap-2">
-              <h3 data-testid="product-name" className="leading-4 line-clamp-1">
+          <div className="bg-background-gray w-full rounded-r-lg px-5 pb-[10px] pt-1 flex flex-col h-[100px] md:w-[203px]">
+            <div className="flex border-b border-gray-300 w-full py-1 gap-2 min-h-8">
+              <h3 data-testid="product-name" className="leading-5 line-clamp-1">
                 {item.Metadata.Title}
               </h3>
               <div className="ml-auto flex items-center">
@@ -116,7 +116,7 @@ export default function MerchantViewProducts({
             </div>
             <div className="flex justify-between pt-1">
               <p className="text-sm font-inter">Price</p>
-              <div className="flex gap-1 items-center">
+              <div className="flex gap-1 items-center max-w-20 md:max-w-25">
                 <img
                   src={baseToken?.symbol === "ETH"
                     ? "/icons/eth-coin.svg"

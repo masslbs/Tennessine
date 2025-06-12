@@ -286,11 +286,11 @@ export default function Cart({
               }}
             />
           </div>
-          <div className="bg-background-gray w-full rounded-lg px-3 py-4 md:w-[300px]">
+          <div className="bg-background-gray w-full rounded-r-lg px-3 py-4 md:w-[300px]">
             <div className="flex gap-2">
               <h3
                 data-testid="title"
-                className="leading-4 cursor-pointer max-w-[150px] md:max-w-[200px]"
+                className="leading-6 cursor-pointer max-w-[150px] md:max-w-[200px]"
                 onClick={() => {
                   navigateToListing(item.ID);
                 }}
@@ -375,7 +375,10 @@ export default function Cart({
                   height={20}
                   className="w-5 h-5 max-h-5"
                 />
-                <p data-testid="price" className="text-sm">
+                <p
+                  data-testid="price"
+                  className="text-sm max-w-12 md:max-w-28 truncate"
+                >
                   {price}
                 </p>
                 <p data-testid="symbol" className="text-sm">
