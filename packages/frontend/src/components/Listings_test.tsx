@@ -1,50 +1,40 @@
-import "../happyDomSetup.ts";
-import {
-  cleanup,
-  render,
-  screen,
-  waitFor,
-  within,
-} from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import { expect } from "@std/expect";
 import { formatEther } from "viem";
 
-import { random256BigInt } from "@massmarket/utils";
 import { allListings } from "@massmarket/schema/testFixtures";
 
 import Listings from "./Listings.tsx";
 import {
-  createRouterWrapper,
+  createTestRelayClient,
   createTestStateManager,
-} from "../testutils/mod.tsx";
+  createWrapper,
+  denoTestOptions,
+  testWrapper,
+} from "../testutils/_createWrapper.tsx";
+import "../happyDomSetup.ts";
 
 Deno.test(
-  "Listings screen for both customer and merchant",
-  {
-    sanitizeResources: false,
-    sanitizeOps: false,
-  },
-  async (t) => {
-    const shopId = random256BigInt();
-
+  "Listings",
+  denoTestOptions,
+  testWrapper(async (shopId, t) => {
+    const relayClient = await createTestRelayClient(shopId);
     const stateManager = await createTestStateManager(shopId);
 
-    for (const [key, entry] of allListings.entries()) {
-      await stateManager.set(["Listings", key], entry);
-    }
-
-    const { wrapper } = await createRouterWrapper({
-      shopId,
-      createShop: true,
-      enrollMerchant: false,
-      stateManager,
+    await t.step("Add a listing to the shop", async () => {
+      await relayClient.connect();
+      await relayClient.authenticate();
+      stateManager.addConnection(relayClient);
+      for (const [key, entry] of allListings.entries()) {
+        await stateManager.set(["Listings", key], entry);
+      }
     });
 
-    await t.step("Check that the listings are rendered correctly", async () => {
-      const { unmount } = render(<Listings />, { wrapper });
+    await t.step("Render listings", async () => {
+      const { unmount } = render(<Listings />, {
+        wrapper: createWrapper(shopId),
+      });
       await waitFor(() => {
-        // TODO: compare other listings
-        // screen.debug();
         const listings = screen.getAllByTestId("product-container");
         //Should not display deleted listings.
         expect(listings.length).toBe(2);
@@ -66,6 +56,5 @@ Deno.test(
       });
       unmount();
     });
-    cleanup();
-  },
+  }),
 );
