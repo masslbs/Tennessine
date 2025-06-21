@@ -3,7 +3,6 @@ import { expect } from "@std/expect";
 
 import StateManager from "@massmarket/stateManager";
 import { allListings } from "@massmarket/schema/testFixtures";
-import { LevelStore } from "@massmarket/store/level";
 
 import { useStateManager } from "./useStateManager.ts";
 import {
@@ -22,7 +21,7 @@ Deno.test(
   "useStateManager hook",
   denoTestOptions,
   testWrapper(async (shopId, t) => {
-    // We want to add listings to a shop, then test that the StateManager that is returned by the hook,
+    // We want to add listings to a shop, then test that the StateManager is returned by the hook,
     // which is a separate instance of the StateManager than the one we used to add the listings, also contains the listings.
     // This will test that the StateManager successfully addedConnection to the given shop's relayClient.
     // 1. create test relay client
@@ -46,7 +45,7 @@ Deno.test(
 
     await t.step("StateManager returns the added listings", async () => {
       const { result, unmount } = renderHook(
-        () => useStateManager({ db: new LevelStore() }),
+        () => useStateManager(),
         { wrapper: createWrapper(shopId) },
       );
       await waitFor(async () => {
@@ -63,9 +62,8 @@ Deno.test(
     });
 
     await t.step("StateManager save the state on unload", async () => {
-      const db = new LevelStore();
       const { result, unmount } = renderHook(
-        () => useStateManager({ db }),
+        () => useStateManager(),
         { wrapper: createWrapper(shopId) },
       );
 

@@ -19,8 +19,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { discoverRelay, RelayClient } from "@massmarket/client";
 import { mintShop } from "@massmarket/contracts";
 import { random256BigInt } from "@massmarket/utils";
-// to enable logging `import from "@massmarket/utils/logger"`,
+import { LevelStore } from "@massmarket/store";
 import { enableLogging } from "@massmarket/utils/logger";
+
 if (Deno.env.get("MAX_LOGS")) {
   enableLogging();
 }
@@ -233,7 +234,7 @@ export const createRouterWrapper = async ({
             <MassMarketProvider
               stateManager={stateManager}
               relayClient={relayClient}
-              config={env}
+              config={{ db: new LevelStore(), ...env }}
             >
               <RainbowKitProvider showRecentTransactions>
                 {

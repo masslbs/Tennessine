@@ -3,7 +3,7 @@ import { getLogger } from "@logtape/logtape";
 import { BrowserLevel } from "browser-level";
 
 import StateManager from "@massmarket/stateManager";
-import { type AbstractStore, LevelStore } from "@massmarket/store";
+import { LevelStore } from "@massmarket/store";
 import { defaultState } from "@massmarket/schema";
 
 import { useRelayClient } from "./useRelayClient.ts";
@@ -29,7 +29,6 @@ const BrowserLevelStore = (dbName: string) =>
  * db.close() is called on beforeunload to save the keycard nonce for any writes.
  */
 export function useStateManager(params?: {
-  db?: AbstractStore;
   config?: MassMarketConfig;
 }) {
   const config = params?.config ?? useMassMarketContext().config;
@@ -45,7 +44,7 @@ export function useStateManager(params?: {
       ? async () => {
         const dbName = `${keycard.address}-${shopId}`;
         const db = new StateManager({
-          store: params?.db ?? BrowserLevelStore(dbName),
+          store: config?.db ?? BrowserLevelStore(dbName),
           id: shopId,
           defaultState,
         });
