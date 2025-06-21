@@ -1,12 +1,21 @@
-import { expect } from "@std/expect";
-import { createClient, http, publicActions, walletActions } from "viem";
+import {
+  createClient,
+  createPublicClient,
+  http,
+  publicActions,
+  walletActions,
+  zeroAddress,
+} from "viem";
 import { hardhat } from "viem/chains";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { assertEquals } from "@std/assert";
+import { expect } from "@std/expect";
 
 import { random256BigInt } from "@massmarket/utils";
 import {
   abi,
   checkPermissions,
+  getTokenInformation,
   mintShop,
   permissions,
   publishInviteVerifier,
@@ -133,4 +142,23 @@ Deno.test({
       expect(canUpdateRootHash).toBe(true);
     });
   },
+});
+
+Deno.test("getTokenInformation", async () => {
+  const publicClient = createPublicClient({
+    chain: hardhat,
+    transport: http(),
+  });
+  const eth = await getTokenInformation(
+    publicClient,
+    zeroAddress,
+  );
+  assertEquals(eth[0], "ETH");
+  assertEquals(eth[1], 18);
+  const edd = await getTokenInformation(
+    publicClient,
+    abi.eddiesAddress,
+  );
+  assertEquals(edd[0], "EDD");
+  assertEquals(edd[1], 2);
 });

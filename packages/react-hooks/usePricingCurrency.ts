@@ -1,25 +1,29 @@
 import { useEffect, useState } from "react";
 import { usePublicClient } from "wagmi";
+import { skipToken, useQuery } from "@tanstack/react-query";
 import { getLogger } from "@logtape/logtape";
+import { bytesToHex } from "viem";
 
 import { ChainAddress } from "@massmarket/schema";
 import type { CodecValue } from "@massmarket/utils/codec";
 import { getTokenInformation } from "@massmarket/contracts";
 
 import { useStateManager } from "./useStateManager.ts";
-import { useQuery } from "./useQuery.ts";
-import { bytesToHex } from "viem";
 
 const logger = getLogger(["mass-market", "frontend", "useBaseToken"]);
 
-export function useBaseToken() {
-  const [pricingCurrency, setChainAddress] = useState<
-    ChainAddress
-  >(
-    new ChainAddress(0, new Uint8Array(20)),
-  );
+// This hook 1. retrieves the pricing currency from the shop manifest,
+// 2. creates a public client with the chain ID of the pricing currency,
+// 3. then retrieves the currency symbol and decimals from the contract and returns them.
+
+export function usePricingCurrency() {
   const { stateManager } = useStateManager();
-  const shopPublicClient = usePublicClient({
+  const [pricingCurrency, setChainAddress] = useState<
+    ChainAddress | null
+  >(
+    null,
+  );
+  const publicClient = usePublicClient({
     chainId: pricingCurrency?.ChainID,
   });
 
@@ -43,14 +47,20 @@ export function useBaseToken() {
     };
   }, [stateManager]);
 
-  const { result: baseToken } = useQuery(async () => {
-    if (!pricingCurrency || !shopPublicClient) return;
-    const [symbol, decimals] = await getTokenInformation(
-      shopPublicClient!,
-      bytesToHex(pricingCurrency.Address),
-    );
-    return { symbol, decimals };
-  }, [pricingCurrency, shopPublicClient?.chain.id]);
+  const enabled = !!pricingCurrency && !!publicClient;
 
-  return { baseToken: baseToken ?? { symbol: "", decimals: 0 } };
+  const query = useQuery({
+    queryKey: ["pricingCurrency", pricingCurrency],
+    queryFn: enabled
+      ? async () => {
+        const [symbol, decimals] = await getTokenInformation(
+          publicClient!,
+          bytesToHex(pricingCurrency.Address),
+        );
+        return { symbol, decimals };
+      }
+      : skipToken,
+  });
+
+  return { pricingCurrency: query.data };
 }

@@ -14,7 +14,12 @@ import { assert } from "@std/assert";
 import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 import { getLogger } from "@logtape/logtape";
 
-import { abi, getPaymentAddress, getPaymentId } from "@massmarket/contracts";
+import {
+  abi,
+  getPaymentAddress,
+  getPaymentId,
+  getTokenInformation,
+} from "@massmarket/contracts";
 import {
   ChainAddress,
   Manifest,
@@ -25,6 +30,7 @@ import {
 } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
 import { useShopId } from "@massmarket/react-hooks";
+
 import Pay from "./Pay.tsx";
 import QRScan from "./QRScan.tsx";
 import PriceSummary from "./PriceSummary.tsx";
@@ -37,7 +43,7 @@ import LoadingSpinner from "../common/LoadingSpinner.tsx";
 import ConnectWalletButton from "../common/ConnectWalletButton.tsx";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { CurrencyChainOption } from "../../types.ts";
-import { env, getErrLogger, getTokenInformation } from "../../utils/mod.ts";
+import { env, getErrLogger } from "../../utils/mod.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 
 const baseLogger = getLogger(["mass-market", "frontend", "ChoosePayment"]);
