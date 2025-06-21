@@ -8,6 +8,8 @@ import {
 import type { Order } from "@massmarket/schema";
 import type { RelayClient } from "@massmarket/client";
 import type StateManager from "@massmarket/stateManager";
+import type { AbstractStore } from "@massmarket/store";
+
 import type { Hex } from "viem";
 
 export type MassMarketConfig = {
@@ -16,6 +18,7 @@ export type MassMarketConfig = {
   relayTokenId?: Hex;
   chainName?: string;
   relayEndpoint?: string;
+  db?: AbstractStore;
 };
 
 type MassMarketContextType = {
