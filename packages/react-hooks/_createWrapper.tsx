@@ -87,7 +87,7 @@ export function createWrapper(
 
     return (
       <WagmiProvider config={config}>
-        <MassMarketProvider>
+        <MassMarketProvider config={{ db: new LevelStore() }}>
           <QueryClientProvider client={queryClient}>
             <RouterProvider router={router} />,
           </QueryClientProvider>
