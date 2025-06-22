@@ -18,7 +18,7 @@ const logger = getLogger(["mass-market", "frontend", "useBaseToken"]);
 
 export function usePricingCurrency() {
   const { stateManager } = useStateManager();
-  const [pricingCurrency, setChainAddress] = useState<
+  const [pricingCurrency, setPricingCurrency] = useState<
     ChainAddress | null
   >(
     null,
@@ -27,28 +27,30 @@ export function usePricingCurrency() {
     chainId: pricingCurrency?.ChainID,
   });
 
+  function setCurrency(currency: CodecValue) {
+    setPricingCurrency(ChainAddress.fromCBOR(currency));
+  }
+
   useEffect(() => {
     if (!stateManager) return;
 
-    const setCurrency = (currency: CodecValue) => {
-      setChainAddress(ChainAddress.fromCBOR(currency));
-    };
     const path = ["Manifest", "PricingCurrency"];
-    stateManager.get(path).then((currency: CodecValue | undefined) => {
-      if (!currency) {
+    stateManager.get(path).then((c: CodecValue | undefined) => {
+      if (!c) {
         logger.debug("No PricingCurrency found");
         return;
       }
-      setChainAddress(ChainAddress.fromCBOR(currency));
+      setCurrency(c);
     });
+
     stateManager.events.on(setCurrency, path);
+
     return () => {
       stateManager.events.off(setCurrency, path);
     };
   }, [stateManager]);
 
   const enabled = !!pricingCurrency && !!publicClient;
-
   const query = useQuery({
     queryKey: ["pricingCurrency", pricingCurrency],
     queryFn: enabled
@@ -62,5 +64,5 @@ export function usePricingCurrency() {
       : skipToken,
   });
 
-  return { pricingCurrency: query.data };
+  return { pricingCurrency: query.data, ...query };
 }
