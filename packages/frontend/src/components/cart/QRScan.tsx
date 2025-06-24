@@ -39,7 +39,7 @@ export default function QRScan({
             />
             <h1>Pay by QR code</h1>
             <h1>{displayedAmount}</h1>
-            {src && <img src={src} width={215} height={215} alt="QR-code" />}
+            {src && <img src={src} width={161} height={161} alt="QR-code" />}
           </div>
         </section>
         <section className="mt-2 flex flex-col gap-4 bg-white p-5 pb-10 rounded-lg">
@@ -52,8 +52,8 @@ export default function QRScan({
             />
             <h1>Pay by transfer</h1>
             <h1>{displayedAmount}</h1>
-            <div className="flex items-center border-1 p-1 rounded-xl shadow-xl">
-              <p>{purchaseAddress.slice(0, 20)}...</p>
+            <div className="flex items-center p-[10px] rounded-xl bg-background-gray">
+              <p className="font-light">{purchaseAddress.slice(0, 20)}...</p>
               <button
                 className="ml-4 p-0"
                 onClick={copyToClipboard}

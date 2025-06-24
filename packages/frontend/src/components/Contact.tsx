@@ -3,7 +3,7 @@ import BackButton from "./common/BackButton.tsx";
 export default function Contact() {
   return (
     <main className="px-4 flex justify-center">
-      <section className="md:w-[800px] w-full">
+      <section className="md:w-[560px] w-full">
         <BackButton />
         <h1 className="py-3">Contact</h1>
         <section className="mt-2 flex flex-col gap-1 bg-white p-5 rounded-lg">

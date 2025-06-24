@@ -112,20 +112,18 @@ export class ClientWriteError extends Error {
 export class RelayClient {
   connection: WebSocket | null = null;
   keyCardNonce: number;
-  private pingsReceived: number = 0;
-  private lastPingReceived: Date = new Date(0);
   readonly walletClient: WalletClient;
   readonly keycard;
   readonly relayEndpoint;
   readonly shopId;
+  #pingsReceived: number = 0;
+  #lastPingReceived: Date = new Date(0);
   // TODO; we can use the subscription path for the id
   #subscriptions: Map<string, ReadableStreamDefaultController<PushedPatchSet>> =
     new Map();
   #requestCounter;
   #waitingMessagesResponse: LockMap<string, schema.Envelope> = new LockMap();
-  #initialAuthPromise = Promise.resolve(false);
-  #authenticationPromise: Promise<boolean> = this.#initialAuthPromise;
-  #isAuthenticated = false;
+  #authenticationPromise?: Promise<boolean>;
 
   constructor(params: IRelayClientOptions) {
     this.walletClient = params.walletClient;
@@ -134,14 +132,12 @@ export class RelayClient {
     this.shopId = params.shopId;
     this.keycard = params.keycard;
     this.#requestCounter = 1;
-    this.#authenticationPromise = this.#initialAuthPromise;
-    this.#isAuthenticated = false;
   }
 
   get stats() {
     return {
-      pingsReceived: this.pingsReceived,
-      lastPingReceived: this.lastPingReceived,
+      pingsReceived: this.#pingsReceived,
+      lastPingReceived: this.#lastPingReceived,
       subscriptions: this.#subscriptions.size,
       waitingMessagesResponse: this.#waitingMessagesResponse.size,
       requestCounter: this.#requestCounter,
@@ -296,8 +292,8 @@ export class RelayClient {
       requestId: ping.requestId,
       response: {},
     });
-    this.pingsReceived++;
-    this.lastPingReceived = new Date();
+    this.#pingsReceived++;
+    this.#lastPingReceived = new Date();
   }
 
   async createSubscription(
@@ -397,116 +393,69 @@ export class RelayClient {
     });
   }
 
-  // TODO: this is a bit of a mess.
-  // What these promises are trying to achieve would usually be a mutex/lock,
-  // to make sure we are not running multiple authentication attempts at the same time.
+  /**
+   * Authenticate the client with the relay.
+   */
   async authenticate(): Promise<boolean> {
-    // 1. Already authenticated? Return true.
-    if (this.#isAuthenticated) {
-      return true;
-    }
+    if (this.#authenticationPromise === undefined) {
+      const { promise, resolve, reject } = Promise.withResolvers<boolean>();
+      this.#authenticationPromise = promise;
 
-    // 2. Authentication already in progress? Wait for it.
-    // Grab the promise *before* potentially creating a new one.
-    const currentAuthAttempt = this.#authenticationPromise;
-    if (currentAuthAttempt !== this.#initialAuthPromise) {
-      // An attempt is/was in progress. Wait for it.
       try {
-        await currentAuthAttempt;
-        // If it succeeded, #isAuthenticated should now be true.
-        // If it failed, an error is thrown.
-        return this.#isAuthenticated; // Return the final state
-      } catch (_error) {
-        // The ongoing attempt failed. The state should have been reset
-        // by the catch block of that attempt. We fall through to retry.
-        // Ensure state is reset if the original call didn't handle it properly.
-        if (this.#authenticationPromise === currentAuthAttempt) {
-          this.#authenticationPromise = this.#initialAuthPromise;
-          this.#isAuthenticated = false;
-        }
-      }
-    }
-    // Check again if authentication succeeded while waiting
-    if (this.#isAuthenticated) {
-      return true;
-    }
+        // Perform authentication process
+        const publicKey = await getAccountPublicKey(
+          this.walletClient,
+          this.keycard,
+        );
 
-    // 3. No authentication in progress, or previous attempt failed. Start a new one.
-    const { promise, resolve, reject } = Promise.withResolvers<boolean>();
-    // IMPORTANT: Set the shared promise *before* the first await
-    this.#authenticationPromise = promise;
-
-    try {
-      // Perform authentication process
-      const publicKey = await getAccountPublicKey(
-        this.walletClient,
-        this.keycard,
-      );
-
-      // Use a bypass function for auth requests to avoid potential recursive auth checks
-      // within encodeAndSend if it calls authenticate itself.
-      const authRequestFunction = async (env: schema.IEnvelope) => {
-        const id = this.encodeAndSendNoWait(env);
-        const { promise: waitPromise } = this.#waitingMessagesResponse.lock(
-          id.raw.toString(),
-        )!;
-        // Ensure the lock exists before awaiting
-        assert(waitPromise, `Lock not found for request ID: ${id.raw}`);
-        return await waitPromise;
-      };
-
-      const { response: authResponse } = await authRequestFunction({
-        authRequest: {
-          publicKey: {
-            raw: hexToBytes(`0x${publicKey}`),
+        const { response: authResponse } = await this.encodeAndSend({
+          authRequest: {
+            publicKey: {
+              raw: hexToBytes(`0x${publicKey}`),
+            },
           },
-        },
-      });
+        });
 
-      // either authResponse.payload or authResponse.error is required
-      if (!authResponse?.payload) {
-        assert(
-          authResponse?.error,
-          "Authentication response error is required",
-        );
-        const { code, message } = authResponse.error;
-        assert(code, "error.code is required");
-        assert(message, "error.message is required");
-        // TODO (@alp 2025-06-10): figure out whether client/mod.ts's "reject" should be called in addition to returning Promise.reject
-        return Promise.reject(
-          new RelayAuthenticationError(
+        // either authResponse.payload or authResponse.error is required
+        if (!authResponse?.payload) {
+          assert(
+            authResponse?.error,
+            "Authentication response error is required",
+          );
+          const { code, message } = authResponse.error;
+          assert(code, "error.code is required");
+          assert(message, "error.message is required");
+          throw new Error(
             `Authentication failed with code: ${code}: ${message}`,
-          ),
-        );
+          );
+        }
+
+        const sig = await this.walletClient.signMessage({
+          account: this.keycard,
+          message: {
+            raw: authResponse.payload,
+          },
+        });
+
+        await this.encodeAndSend({
+          challengeSolutionRequest: {
+            signature: { raw: hexToBytes(sig) },
+          },
+        });
+
+        // Mark as authenticated
+        resolve(true); // Resolve the promise we created
+        return true;
+      } catch (error) {
+        this.#authenticationPromise = undefined;
+        reject(error); // Reject the promise we created
+        if (error instanceof RelayResponseError) {
+          throw new RelayAuthenticationError(error.message);
+        }
+        throw error; // Rethrow
       }
-
-      const sig = await this.walletClient.signMessage({
-        account: this.keycard,
-        message: {
-          raw: authResponse.payload,
-        },
-      });
-
-      await authRequestFunction({
-        challengeSolutionRequest: {
-          signature: { raw: hexToBytes(sig) },
-        },
-      });
-
-      // Mark as authenticated
-      this.#isAuthenticated = true;
-      resolve(true); // Resolve the promise we created
-      return true;
-    } catch (error) {
-      // Mark as not authenticated
-      this.#isAuthenticated = false;
-      // Reset the main promise *only if* it's still our promise.
-      // This prevents a late failure from overwriting a newer attempt's promise.
-      if (this.#authenticationPromise === promise) {
-        this.#authenticationPromise = this.#initialAuthPromise;
-      }
-      reject(error); // Reject the promise we created
-      throw error; // Rethrow
+    } else {
+      return this.#authenticationPromise;
     }
   }
 
@@ -519,8 +468,7 @@ export class RelayClient {
       this.connection = new WebSocket(this.relayEndpoint.url + "/sessions");
 
       // Reset authentication state when creating a new connection
-      this.#isAuthenticated = false;
-      this.#authenticationPromise = this.#initialAuthPromise; // Use the initial promise instance
+      this.#authenticationPromise = undefined;
 
       this.connection.addEventListener(
         "error",
@@ -538,8 +486,6 @@ export class RelayClient {
           if (!ev.wasClean) {
             logger.warn`WebSocket closed uncleanly`;
           }
-          this.#isAuthenticated = false;
-          this.#authenticationPromise = this.#initialAuthPromise;
           this.connection = null;
         },
       );
@@ -580,8 +526,7 @@ export class RelayClient {
       // Add listener before closing
       this.connection.addEventListener("close", (event) => {
         // Reset authentication state on disconnect
-        this.#isAuthenticated = false;
-        this.#authenticationPromise = this.#initialAuthPromise; // Use the initial promise instance
+        this.#authenticationPromise = undefined;
         resolve(event); // Resolve with the close event
       });
       // Handle cases where close might happen before listener is added (less likely but possible)
@@ -590,8 +535,7 @@ export class RelayClient {
         this.connection.readyState === WebSocket.CLOSED
       ) {
         // If already closing/closed after check but before listener, resolve immediately after resetting state
-        this.#isAuthenticated = false;
-        this.#authenticationPromise = this.#initialAuthPromise;
+        this.#authenticationPromise = undefined;
         resolve("closed before listener attached");
         return;
       }

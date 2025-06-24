@@ -17,6 +17,7 @@ import { useShopId } from "@massmarket/react-hooks";
 import ConnectConfirmation from "./ConnectConfirmation.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import Button from "../common/Button.tsx";
+import ChevronRight from "../common/ChevronRight.tsx";
 import { useKeycard } from "../../hooks/useKeycard.ts";
 import { useChain } from "../../hooks/useChain.ts";
 import { KeycardRole, SearchShopStep } from "../../types.ts";
@@ -219,7 +220,10 @@ export default function MerchantConnect() {
           <ConnectButton chainStatus="name" />
           <div>
             <Button disabled={status !== "connected"} onClick={enroll}>
-              Connect to shop
+              <div className="flex items-center gap-2">
+                <p>Connect to shop</p>
+                <ChevronRight hex="#FFF" />
+              </div>
             </Button>
           </div>
         </div>
@@ -238,7 +242,7 @@ export default function MerchantConnect() {
               setErrorMsg(null);
             }}
           />
-          <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
+          <section className="flex flex-col gap-4 bg-white p-6 rounded-lg">
             <h1>Connect to your shop</h1>
             <form
               className="flex flex-col"
@@ -282,7 +286,7 @@ export default function MerchantConnect() {
   }
   return (
     <main
-      className="p-4 mt-5 md:flex justify-center"
+      className="p-5 md:flex justify-center"
       data-testid="merchant-connect-page"
     >
       {renderContent()}

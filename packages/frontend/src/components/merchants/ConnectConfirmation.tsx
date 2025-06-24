@@ -9,7 +9,7 @@ export default function ConnectConfirmation() {
   const { shopDetails } = useShopDetails();
   return (
     <div data-testid="connect-confirmation" className="md:w-[560px]">
-      <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg items-center">
+      <section className="flex flex-col gap-10 bg-white py-[50px] rounded-lg items-center">
         <img
           src="/icons/smiley.svg"
           width={80}
@@ -19,9 +19,12 @@ export default function ConnectConfirmation() {
         />
         <h1 className="font-bold">Welcome Back</h1>
       </section>
-      <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg items-center">
-        <h2 className="font-bold">{shopDetails.name}</h2>
-        <ButtonLink to="/merchant-dashboard">Shop Dashboard</ButtonLink>
+      <section className="mt-2 flex flex-col bg-white p-6 rounded-lg">
+        <p>Connect to:</p>
+        <h2 className="font-bold mb-5">{shopDetails.name}</h2>
+        <div className="flex">
+          <ButtonLink to="/merchant-dashboard">Shop Dashboard</ButtonLink>
+        </div>
       </section>
     </div>
   );

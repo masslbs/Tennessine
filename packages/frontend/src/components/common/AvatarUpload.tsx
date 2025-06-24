@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { ChangeEvent, useEffect, useRef, useState } from "react";
+import Button from "./Button.tsx";
 
 export default function AvatarUpload({
   setImgBlob,
@@ -52,7 +53,7 @@ export default function AvatarUpload({
 
   return (
     <section>
-      <div className="flex">
+      <div className="flex gap-4">
         <button
           onClick={triggerFileInput}
           style={{ backgroundColor: "transparent", padding: 0 }}
@@ -71,7 +72,7 @@ export default function AvatarUpload({
               </div>
             )
             : (
-              <div className="bg-background-gray rounded-full p-3">
+              <div className="bg-background-gray rounded-full px-[7px] py-[10px]">
                 <img
                   src="/icons/picture-upload.svg"
                   width={27}
@@ -82,6 +83,7 @@ export default function AvatarUpload({
               </div>
             )}
         </button>
+        <Button onClick={triggerFileInput}>Upload New</Button>
         <div className="hidden">
           <input
             data-testid="file-upload"

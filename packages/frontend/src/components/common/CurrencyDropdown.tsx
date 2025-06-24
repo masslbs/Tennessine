@@ -40,10 +40,11 @@ export default function Dropdown({
       className="flex flex-col"
       data-testid={testId}
     >
-      <label className="font-medium">{label}</label>
+      <label className="font-medium text-base mb-1">{label}</label>
       <select
         onChange={(e) => handleChange(e)}
         value={selectedOption?.label || ""}
+        style={{ backgroundColor: "#F3F3F3", padding: 10, borderRadius: 8 }}
       >
         <option value="" disabled>Select a currency</option>
         {options?.map((option) => (

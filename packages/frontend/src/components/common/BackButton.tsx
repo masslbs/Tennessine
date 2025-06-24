@@ -13,7 +13,7 @@ export default function BackButton({
   return (
     <button
       onClick={onClick ? onClick : () => router.history.back()}
-      className="flex gap-1 items-center p-0 mt-3"
+      className="flex gap-[10px] items-center p-0 mt-[10px] text-lg font-light"
       style={{ color: "black" }}
       type="button"
     >

@@ -413,7 +413,7 @@ export default function () {
     } else if (step === CreateShopStep.ConnectWallet) {
       return (
         <section
-          className="md:w-[560px] h-[77vh]"
+          className="w-full md:w-[560px] px-5"
           data-testid="connect-wallet-screen"
         >
           <BackButton onClick={() => setStep(CreateShopStep.ManifestForm)} />
@@ -459,7 +459,7 @@ export default function () {
 
   return (
     <main
-      className="p-4 flex justify-center"
+      className="flex justify-center"
       data-testid="create-shop-screen"
     >
       {renderContent()}

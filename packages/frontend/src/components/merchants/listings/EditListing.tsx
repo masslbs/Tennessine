@@ -12,6 +12,7 @@ import { randUint64 } from "@massmarket/utils";
 import { Listing } from "@massmarket/schema";
 import { CodecKey, CodecValue } from "@massmarket/utils/codec";
 
+import DeleteListing from "./DeleteListing.tsx";
 import { ListingId, ListingViewState } from "../../../types.ts";
 import ErrorMessage from "../../common/ErrorMessage.tsx";
 import ValidationWarning from "../../common/ValidationWarning.tsx";
@@ -39,6 +40,7 @@ export default function EditProduct() {
   const [publishing, setPublishing] = useState(false);
   // This state is to store the price input value as a string to allow flexibility when typing in decimals
   const [priceInput, setPriceInput] = useState("");
+  const [showDeleteScreen, setDeleteScreen] = useState(false);
 
   const itemId = typeof search.itemId === "number"
     ? Number(search.itemId) as ListingId
@@ -260,9 +262,13 @@ export default function EditProduct() {
     }
   }
 
+  if (showDeleteScreen) {
+    return <DeleteListing listing={listing} />;
+  }
+
   return (
     <main
-      className="px-3 md:flex justify-center"
+      className="px-5 md:flex justify-center"
       data-testid="edit-listing-screen"
     >
       <section className="md:w-[560px]">
@@ -279,7 +285,7 @@ export default function EditProduct() {
             setErrorMsg(null);
           }}
         />
-        <section className="mt-3">
+        <section className="mt-[10px]">
           <div className="flex">
             <h2>{heading}</h2>
           </div>
@@ -293,6 +299,7 @@ export default function EditProduct() {
               <label htmlFor="title">Product name</label>
               <input
                 value={listing.Metadata.Title}
+                placeholder="Product name"
                 className="mt-1 p-2 rounded-md"
                 data-testid="title"
                 style={{ backgroundColor: "#F3F3F3" }}
@@ -309,6 +316,7 @@ export default function EditProduct() {
               <label htmlFor="description">Product description</label>
               <textarea
                 value={listing.Metadata.Description}
+                placeholder="Product text"
                 className="mt-1 p-2 rounded-md min-h-[7rem]"
                 data-testid="description"
                 style={{ backgroundColor: "#F3F3F3" }}
@@ -316,8 +324,57 @@ export default function EditProduct() {
                 onChange={(e) => handleInputChange(e, "Description")}
               />
             </form>
+            <form
+              className="flex flex-col"
+              onSubmit={(e) => {
+                e.preventDefault();
+              }}
+            >
+              <label htmlFor="price">Price</label>
+              <div className="flex gap-2 items-center">
+                <img
+                  src={baseToken?.symbol === "ETH"
+                    ? "/icons/eth-coin.svg"
+                    : "/icons/usdc-coin.png"}
+                  alt="coin"
+                  width={20}
+                  height={20}
+                  className="w-5 h-5"
+                  data-testid="coin-icon"
+                />
+                <input
+                  type="text"
+                  value={priceInput}
+                  placeholder="0.00"
+                  className="mt-1 p-2 rounded-md w-full"
+                  data-testid="price"
+                  style={{ backgroundColor: "#F3F3F3" }}
+                  name="price"
+                  // Only allow numbers and a single decimal point
+                  pattern="^\d*\.?\d*$"
+                  inputMode="decimal"
+                  onChange={handlePriceChange}
+                />
+              </div>
+            </form>
+            <form
+              className="flex flex-col"
+              onSubmit={(e) => {
+                e.preventDefault();
+              }}
+            >
+              <label htmlFor="stock">Units available</label>
+              <input
+                value={stock}
+                className="mt-1 p-2 rounded-md"
+                data-testid="stock"
+                style={{ backgroundColor: "#F3F3F3" }}
+                name="stock"
+                onChange={(e) => handleStockChange(e)}
+              />
+            </form>
             <section className="flex flex-col">
-              <p className="mb-2">Product pics</p>
+              <p className="mb-2">Product images</p>
               <div className="rounded-md h-32 flex">
                 <button
                   type="button"
@@ -340,12 +397,12 @@ export default function EditProduct() {
                 </button>
               </div>
               <div
-                className="flex flex-wrap gap-2 mt-2 justify-start"
+                className="grid grid-cols-3 md:flex md:flex-wrap gap-2 mt-2"
                 data-testid="listing-images"
               >
                 {listing.Metadata.Images?.map((img: string, i: number) => {
                   return (
-                    <div key={i} className="relative mb-2">
+                    <div key={i} className="relative">
                       <img
                         src={img}
                         width={105}
@@ -353,10 +410,8 @@ export default function EditProduct() {
                         data-testid="uploaded-product-image"
                         style={{
                           objectFit: "cover",
-                          maxHeight: "95px",
-                          maxWidth: "105px",
-                          minHeight: "95px",
-                          minWidth: "105px",
+                          height: "95px",
+                          width: "105px",
                         }}
                         className="rounded-md"
                       />
@@ -375,45 +430,6 @@ export default function EditProduct() {
                 })}
               </div>
             </section>
-            <div className="flex justify-between gap-1">
-              <form
-                className="flex flex-col w-40"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                }}
-              >
-                <label htmlFor="price">price</label>
-                <input
-                  type="text"
-                  value={priceInput}
-                  placeholder="0.00"
-                  className="mt-1 p-2 rounded-md"
-                  data-testid="price"
-                  style={{ backgroundColor: "#F3F3F3" }}
-                  name="price"
-                  // Only allow numbers and a single decimal point
-                  pattern="^\d*\.?\d*$"
-                  inputMode="decimal"
-                  onChange={handlePriceChange}
-                />
-              </form>
-              <form
-                className="flex flex-col w-40"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                }}
-              >
-                <label htmlFor="stock">stock</label>
-                <input
-                  value={stock}
-                  className="mt-1 p-2 rounded-md"
-                  data-testid="stock"
-                  style={{ backgroundColor: "#F3F3F3" }}
-                  name="stock"
-                  onChange={(e) => handleStockChange(e)}
-                />
-              </form>
-            </div>
 
             <div className="hidden">
               <input
@@ -439,13 +455,27 @@ export default function EditProduct() {
               />
               <label htmlFor="published">Publish product</label>
             </div>
-            <Button
-              disabled={publishing}
-              onClick={onPublish}
-              data-testid="save-button"
-            >
-              {itemId ? "Update product" : "Create product"}
-            </Button>
+            <div className="flex gap-2 whitespace-nowrap">
+              <Button
+                disabled={publishing}
+                onClick={onPublish}
+                data-testid="save-button"
+                custom="w-fit"
+              >
+                {itemId ? "Update product" : "Create product"}
+              </Button>
+              {itemId
+                ? (
+                  <button
+                    type="button"
+                    className="bg-[#F3F3F3] text-lg text-black px-3 py-2 rounded-md"
+                    onClick={() => setDeleteScreen(true)}
+                  >
+                    Delete product
+                  </button>
+                )
+                : null}
+            </div>
           </section>
         </section>
       </section>
