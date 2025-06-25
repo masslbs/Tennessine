@@ -13,6 +13,7 @@ import { KeycardRole } from "../types.ts";
 import { useQuery } from "./useQuery.ts";
 import { useKeycard } from "./useKeycard.ts";
 import { useRelayClient } from "./useRelayClient.ts";
+import { RelayAuthenticationError } from "@massmarket/client";
 import { useChain } from "./useChain.ts";
 
 const logger = getLogger(["mass-market", "frontend", "useStateManager"]);
@@ -53,7 +54,11 @@ async function createStateManager(shopId: bigint, pk: Hex) {
 }
 
 export function useStateManager() {
-  const { stateManager, setStateManager } = useMassMarketContext();
+  const {
+    stateManager,
+    setStateManager,
+    setAuthenticationError,
+  } = useMassMarketContext();
   const { relayClient } = useRelayClient();
   const { shopId } = useShopId();
   const [keycard, setKeycard] = useKeycard();
@@ -97,10 +102,24 @@ export function useStateManager() {
         //Set keycard role to guest-returning so we don't try enrolling again on refresh
         setKeycard({ ...keycard, role: KeycardRole.RETURNING_GUEST });
       }
-      logger.debug`Adding connection`;
-      await relayClient.connect();
-      await relayClient.authenticate();
-      db.addConnection(relayClient);
+      try {
+        logger.debug`Adding connection`;
+        // 1: connect
+        await relayClient.connect();
+        // 2: authenticate
+        await relayClient.authenticate();
+        db.addConnection(relayClient);
+      } catch (error: unknown) {
+        if (error instanceof RelayAuthenticationError) {
+          logger.debug("relay auth error!", { error }); // TODO (@alp 2025-06-10): remove this logger.error
+          // this call sets state in MassMarketContext which triggers a blocking modal relating to this authentication problem (multiple-tabs open)
+          setAuthenticationError(error as Error);
+        } else {
+          logger.info("Error during authentication", { error });
+        }
+        // do not continue - this is a fatal error for the current tab (another tab is open and happily working:)
+        return;
+      }
     }
     logger.debug`StateManager set`;
     setStateManager(db);

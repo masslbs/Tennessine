@@ -94,6 +94,11 @@ export class RelayResponseError extends Error {
     );
   }
 }
+export class RelayAuthenticationError extends Error {
+  constructor(message: string) {
+    super(message);
+  }
+}
 
 export class ClientWriteError extends Error {
   constructor(
@@ -444,6 +449,9 @@ export class RelayClient {
       } catch (error) {
         this.#authenticationPromise = undefined;
         reject(error); // Reject the promise we created
+        if (error instanceof RelayResponseError) {
+          throw new RelayAuthenticationError(error.message);
+        }
         throw error; // Rethrow
       }
     } else {

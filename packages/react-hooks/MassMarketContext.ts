@@ -35,6 +35,8 @@ type MassMarketContextType = {
   >;
   currentOrder: Order | null;
   setCurrentOrder: Dispatch<SetStateAction<Order | null>>;
+  authenticationError: Error | null;
+  setAuthenticationError: Dispatch<SetStateAction<Error | null>>;
   config: MassMarketConfig;
 };
 
@@ -49,6 +51,10 @@ export function MassMarketProvider(
     relayClient?: RelayClient;
     stateManager?: StateManager;
     config?: MassMarketConfig;
+    blockingModal?: (
+      children: React.ReactNode,
+      errorMessage: string,
+    ) => React.ReactNode;
   }>,
 ) {
   const [relayClient, setRelayClient] = useState(
@@ -62,6 +68,9 @@ export function MassMarketProvider(
     profilePictureUrl: "",
   });
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
+  const [authenticationError, setAuthenticationError] = useState<Error | null>(
+    null,
+  );
 
   const value = {
     relayClient,
@@ -72,9 +81,25 @@ export function MassMarketProvider(
     setShopDetails,
     currentOrder,
     setCurrentOrder,
+    authenticationError,
+    setAuthenticationError,
     config: parameters.config ?? {},
   };
 
+  if (authenticationError instanceof Error) {
+    if (!parameters.blockingModal) {
+      throw new Error(
+        "authentication error occurred but blocking modal was not supplied",
+      );
+    }
+    return createElement(MassMarketContext.Provider, {
+      value,
+      children: parameters.blockingModal(
+        parameters.children,
+        authenticationError.message,
+      ),
+    });
+  }
   return createElement(MassMarketContext.Provider, {
     value,
     children: parameters.children,
