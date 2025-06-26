@@ -11,10 +11,11 @@ import { getTokenInformation } from "@massmarket/contracts";
 import { useStateManager } from "./useStateManager.ts";
 
 const logger = getLogger(["mass-market", "frontend", "useBaseToken"]);
-
-// This hook 1. retrieves the pricing currency from the shop manifest,
-// 2. creates a public client with the chain ID of the pricing currency,
-// 3. then retrieves the currency symbol and decimals from the contract and returns them.
+/**
+ * This hook 1. retrieves the pricing currency from the shop manifest,
+ * 2. creates a public client with the chain ID of the pricing currency,
+ * 3. then retrieves the currency symbol and decimals from the contract and returns them.
+ */
 
 export function usePricingCurrency() {
   const { stateManager } = useStateManager();
@@ -55,11 +56,11 @@ export function usePricingCurrency() {
     queryKey: ["pricingCurrency", pricingCurrency],
     queryFn: enabled
       ? async () => {
-        const [symbol, decimals] = await getTokenInformation(
+        const { symbol, decimal } = await getTokenInformation(
           publicClient!,
           bytesToHex(pricingCurrency.Address),
         );
-        return { symbol, decimals };
+        return { symbol, decimals: decimal };
       }
       : skipToken,
   });

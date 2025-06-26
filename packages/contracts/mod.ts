@@ -141,10 +141,10 @@ export function getAllowance(
 export function getTokenInformation(
   publicClient: PublicClient,
   tokenAddress: `0x${string}`,
-): Promise<[string, number]> {
+): Promise<{ symbol: string; decimal: number }> {
   if (tokenAddress === zeroAddress) {
     return new Promise((resolve) => {
-      resolve(["ETH", 18]);
+      resolve({ symbol: "ETH", decimal: 18 });
     });
   }
 
@@ -162,7 +162,10 @@ export function getTokenInformation(
     args: [],
   }) as Promise<number>;
 
-  return Promise.all([symbol, decimal]);
+  return Promise.all([symbol, decimal]).then(([symbol, decimal]) => ({
+    symbol,
+    decimal,
+  }));
 }
 
 export const getPaymentAddress = genericReadContract(

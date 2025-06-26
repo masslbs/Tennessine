@@ -98,8 +98,8 @@ export default function OrderDetails() {
       getTokenInformation(
         tokenPublicClient,
         toHex(order.ChosenCurrency!.Address),
-      ).then(([symbol, decimals]) => {
-        setToken({ symbol, decimals });
+      ).then(({ symbol, decimal }) => {
+        setToken({ symbol, decimals: decimal });
       });
     }
   }, [order]);

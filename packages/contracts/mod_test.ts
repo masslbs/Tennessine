@@ -153,12 +153,12 @@ Deno.test("getTokenInformation", async () => {
     publicClient,
     zeroAddress,
   );
-  assertEquals(eth[0], "ETH");
-  assertEquals(eth[1], 18);
+  assertEquals(eth.symbol, "ETH");
+  assertEquals(eth.decimal, 18);
   const edd = await getTokenInformation(
     publicClient,
     abi.eddiesAddress,
   );
-  assertEquals(edd[0], "EDD");
-  assertEquals(edd[1], 2);
+  assertEquals(edd.symbol, "EDD");
+  assertEquals(edd.decimal, 2);
 });

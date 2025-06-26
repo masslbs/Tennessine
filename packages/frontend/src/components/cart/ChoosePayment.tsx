@@ -210,10 +210,11 @@ export default function ChoosePayment() {
         transport: http(env.ethRPCUrl),
       });
 
-      const [symbol, chosenCurrencyDecimals] = await getTokenInformation(
-        paymentRPC,
-        toHex(currency.Address, { size: 20 }),
-      );
+      const { symbol, decimal: chosenCurrencyDecimals } =
+        await getTokenInformation(
+          paymentRPC,
+          toHex(currency.Address, { size: 20 }),
+        );
       //FIXME: get orderHash from paymentDetails.
       const zeros32Bytes = pad(zeroAddress, { size: 32 });
       const arg = {
@@ -280,14 +281,14 @@ export default function ChoosePayment() {
         transport: http(env.ethRPCUrl),
       });
       for (const [address, _val] of addresses.entries()) {
-        const res = await getTokenInformation(
+        const { symbol } = await getTokenInformation(
           tokenPublicClient,
           toHex(address, { size: 20 }),
         );
         displayed.push({
           address,
           chainId: chain!.id,
-          label: `${res[0]}/${chain!.name}`,
+          label: `${symbol}/${chain!.name}`,
           value: `${address}/${chain!.id}`,
         });
       }

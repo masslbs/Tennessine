@@ -45,11 +45,11 @@ export function useBaseToken() {
 
   const { result: baseToken } = useQuery(async () => {
     if (!pricingCurrency || !shopPublicClient) return;
-    const [symbol, decimals] = await getTokenInformation(
+    const { symbol, decimal } = await getTokenInformation(
       shopPublicClient!,
       bytesToHex(pricingCurrency.Address),
     );
-    return { symbol, decimals };
+    return { symbol, decimals: decimal };
   }, [pricingCurrency, shopPublicClient?.chain.id]);
 
   return { baseToken: baseToken ?? { symbol: "", decimals: 0 } };
