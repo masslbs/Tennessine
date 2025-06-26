@@ -9,13 +9,9 @@ import {
   createTestRelayClient,
   createTestStateManager,
   createWrapper,
+  denoTestOptions,
   testWrapper,
 } from "./_createWrapper.tsx";
-
-const denoTestOptions = {
-  sanitizeResources: false,
-  sanitizeOps: false,
-};
 
 Deno.test(
   "useStateManager hook",
