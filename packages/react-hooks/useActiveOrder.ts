@@ -5,13 +5,13 @@ import type { CodecValue } from "@massmarket/utils/codec";
 
 import { useStateManager } from "./useStateManager.ts";
 
-export function useCurrentOrder() {
+export function useActiveOrder() {
   const { stateManager } = useStateManager();
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
 
   function getLastActiveOrder() {
     stateManager!.get(["Orders"]).then((orders: CodecValue | undefined) => {
-      if (!(orders instanceof Map)) return;
+      if (!(orders instanceof Map) || !orders.size) return;
       const lastUpdatedOrder = [...orders.values()].pop();
       const order = Order.fromCBOR(lastUpdatedOrder!);
       if (

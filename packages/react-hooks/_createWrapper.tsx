@@ -26,6 +26,11 @@ declare global {
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
+export const denoTestOptions = {
+  sanitizeResources: false,
+  sanitizeOps: false,
+};
+
 export const testClient = createTestClient({
   transport: http(),
   chain: foundry,
