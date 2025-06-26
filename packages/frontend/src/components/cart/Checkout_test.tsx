@@ -39,14 +39,14 @@ const CURRENCY_CONFIGS: CurrencyTestConfig[] = [
     address: zeroAddress,
     expectedSymbol: "ETH",
     isContract: false,
-    expectedTotalAmount: "0.0000000000021 ETH",
+    expectedTotalAmount: "0.0035 ETH",
   },
   {
     name: "ERC20 (EDD)",
     address: abi.eddiesAddress as `0x${string}`,
     expectedSymbol: "EDD",
     isContract: true,
-    expectedTotalAmount: "42000 EDD", // EDD has 2 decimals, so amounts are much larger
+    expectedTotalAmount: "5.25 EDD", // EDD has 2 decimals
   },
 ];
 
@@ -109,6 +109,12 @@ async function runCheckoutTest(currencyConfig: CurrencyTestConfig) {
 
   // Create listings
   for (const [listingID, listing] of allListings.entries()) {
+    // increase price of the test items to make sure we get more then a cent in EDD
+    if (listingID === 23) {
+      listing.Price = 300000000000000n;
+    } else if (listingID === 42) {
+      listing.Price = 700000000000000n;
+    }
     await merchantStateManager.set(["Listings", listingID], listing);
     await merchantStateManager.set(["Inventory", listingID], 100);
   }
@@ -136,8 +142,7 @@ async function runCheckoutTest(currencyConfig: CurrencyTestConfig) {
       args: [testAccount],
     });
 
-    const neededAmount =
-      BigInt(currencyConfig.expectedTotalAmount.split(" ")[0]) * 100n;
+    const neededAmount = 525n;
 
     if (balance < neededAmount) {
       // Mint enough tokens for the test account to cover the payment
@@ -183,7 +188,7 @@ async function runCheckoutTest(currencyConfig: CurrencyTestConfig) {
   );
   await stateManager.set(["Orders", orderId], order);
 
-  const wantTotalPrice = "0.0000000000481";
+  const wantTotalPrice = "0.0635";
 
   // Test cart contains correct items
   const { unmount: unmountCheckout } = render(<Checkout />, { wrapper });
@@ -193,9 +198,9 @@ async function runCheckoutTest(currencyConfig: CurrencyTestConfig) {
     const items = screen.getAllByTestId("cart-item") as HTMLElement[];
     expect(items).toHaveLength(2);
     expect(items[0].textContent).toContain(
-      "test200Qty: 2000.000000000046ETH",
+      "test200Qty: 2000.06ETH",
     );
-    expect(items[1].textContent).toContain("test425Qty: 50.0000000000021ETH");
+    expect(items[1].textContent).toContain("test425Qty: 50.0035ETH");
     expect(screen.getByTestId("total-price").textContent).toBe(
       wantTotalPrice,
     );
@@ -295,6 +300,14 @@ async function runCheckoutTest(currencyConfig: CurrencyTestConfig) {
   const choosePayment = await screen.findByTestId("choose-payment");
   expect(choosePayment).toBeTruthy();
 
+  await waitFor(async () => {
+    const orderWithPaymentData = await stateManager.get(["Orders", orderId]);
+    expect(orderWithPaymentData).toBeDefined();
+    const orderWithPayment = Order.fromCBOR(orderWithPaymentData!);
+    expect(orderWithPayment.PaymentDetails).toBeDefined();
+    expect(orderWithPayment.PaymentDetails!.Total).toBeGreaterThan(0);
+  });
+
   await waitFor(() => {
     const paymentDetailsLoading = screen.getByTestId(
       "payment-details-loading",
@@ -329,8 +342,8 @@ async function runCheckoutTest(currencyConfig: CurrencyTestConfig) {
     expect(payButton).toBeTruthy();
     await user.click(payButton!);
   });
-  // Wait for the transaction processing message to appear
 
+  // Wait for the transaction processing message to appear
   await waitFor(() => {
     let waitingMessage: HTMLElement | null;
     try {
