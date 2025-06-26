@@ -27,6 +27,8 @@ import { getErrLogger, isValidUrl } from "../../utils/mod.ts";
 
 const baseLogger = getLogger(["mass-market", "frontend", "connect-merchant"]);
 
+const SHOP_NOT_FOUND_ERROR = "Shop not found";
+
 export default function MerchantConnect() {
   const { status } = useAccount();
   const { chain } = useChain();
@@ -74,7 +76,11 @@ export default function MerchantConnect() {
   useEffect(() => {
     //If shopId is in env, skip the search step and go to connect step.
     if (shopId && step === SearchShopStep.Search) {
-      findShopData(shopId).then();
+      findShopData(shopId).then((found) => {
+        if (!found) {
+          setErrorMsg(SHOP_NOT_FOUND_ERROR);
+        }
+      });
     }
   }, [shopId]);
 
@@ -84,6 +90,7 @@ export default function MerchantConnect() {
   }
 
   async function findShopData(id: `0x${string}` | bigint) {
+    setErrorMsg(null);
     try {
       // shopId will be hex if user inputs hex, and bigint if shopId is in env or address bar.
       const shopID = isHex(id)
@@ -105,7 +112,6 @@ export default function MerchantConnect() {
         setStep(SearchShopStep.Connect);
         return true;
       } else {
-        setErrorMsg("Shop not found");
         return false;
       }
     } catch (error: unknown) {
@@ -140,6 +146,8 @@ export default function MerchantConnect() {
       navigate({
         search: { shopId: id },
       });
+    } else {
+      setErrorMsg(SHOP_NOT_FOUND_ERROR);
     }
   }
 
