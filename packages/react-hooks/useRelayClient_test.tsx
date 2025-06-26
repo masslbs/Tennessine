@@ -5,12 +5,11 @@ import { RelayClient } from "@massmarket/client";
 
 import { useRelayClient } from "./useRelayClient.ts";
 import { useKeycard } from "./useKeycard.ts";
-import { createWrapper, testWrapper } from "./_createWrapper.tsx";
-
-const denoTestOptions = {
-  sanitizeResources: false,
-  sanitizeOps: false,
-};
+import {
+  createWrapper,
+  denoTestOptions,
+  testWrapper,
+} from "./_createWrapper.tsx";
 
 Deno.test(
   "Hook returns RelayClient without errors.",

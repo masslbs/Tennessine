@@ -2,12 +2,11 @@ import { render, renderHook, waitFor } from "@testing-library/react";
 import { expect } from "@std/expect";
 
 import { type KeycardRole, useKeycard } from "./useKeycard.ts";
-import { createWrapper, testWrapper } from "./_createWrapper.tsx";
-
-const denoTestOptions = {
-  sanitizeResources: false,
-  sanitizeOps: false,
-};
+import {
+  createWrapper,
+  denoTestOptions,
+  testWrapper,
+} from "./_createWrapper.tsx";
 
 Deno.test(
   "Enroll guest/merchantkeycard.",
