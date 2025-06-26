@@ -3,7 +3,7 @@ import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "@std/expect";
 import { hardhat } from "wagmi/chains";
-import { hexToBytes, zeroAddress } from "viem";
+import { hexToBytes } from "viem";
 import { equal } from "@std/assert";
 
 import { CodecKey, CodecValue } from "@massmarket/utils/codec";
@@ -39,10 +39,10 @@ Deno.test("Check that we can render the shop settings screen", {
   manifest.ShopID = shopId;
   manifest.PricingCurrency = new ChainAddress(
     hardhat.id,
-    hexToBytes(zeroAddress),
+    new Uint8Array(20),
   );
   const ac = new AcceptedCurrencyMap();
-  ac.addAddress(hardhat.id, hexToBytes(zeroAddress), false);
+  ac.addAddress(hardhat.id, new Uint8Array(20), false);
   manifest.AcceptedCurrencies = ac;
 
   await stateManager.set(["Manifest"], manifest);

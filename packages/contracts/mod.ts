@@ -120,6 +120,7 @@ export function pay(
       { value: args[0].amount }),
   });
 }
+
 export function getAllowance(
   publicClient: PublicClient,
   contractAddress: Hex,
@@ -135,6 +136,36 @@ export function getAllowance(
     functionName: "allowance",
     args,
   });
+}
+
+export function getTokenInformation(
+  publicClient: PublicClient,
+  tokenAddress: `0x${string}`,
+): Promise<{ symbol: string; decimal: number }> {
+  if (tokenAddress === zeroAddress) {
+    return new Promise((resolve) => {
+      resolve({ symbol: "ETH", decimal: 18 });
+    });
+  }
+
+  const symbol = publicClient.readContract({
+    address: tokenAddress,
+    abi: abi.eddiesAbi,
+    functionName: "symbol",
+    args: [],
+  }) as Promise<string>;
+
+  const decimal = publicClient.readContract({
+    address: tokenAddress,
+    abi: abi.eddiesAbi,
+    functionName: "decimals",
+    args: [],
+  }) as Promise<number>;
+
+  return Promise.all([symbol, decimal]).then(([symbol, decimal]) => ({
+    symbol,
+    decimal,
+  }));
 }
 
 export const getPaymentAddress = genericReadContract(

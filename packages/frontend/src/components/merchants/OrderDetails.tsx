@@ -11,16 +11,13 @@ import {
   OrderedItem,
 } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
+import { getTokenInformation } from "@massmarket/contracts";
 
 import BackButton from "../common/BackButton.tsx";
 import { ListingId, OrderState } from "../../types.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 import { useBaseToken } from "../../hooks/useBaseToken.ts";
-import {
-  formatDate,
-  getTokenInformation,
-  OrderStateFromNumber,
-} from "../../utils/mod.ts";
+import { formatDate, OrderStateFromNumber } from "../../utils/mod.ts";
 
 const baseLogger = getLogger(["mass-market", "frontend", "OrderDetails"]);
 
@@ -101,8 +98,8 @@ export default function OrderDetails() {
       getTokenInformation(
         tokenPublicClient,
         toHex(order.ChosenCurrency!.Address),
-      ).then(([symbol, decimals]) => {
-        setToken({ symbol, decimals });
+      ).then(({ symbol, decimal }) => {
+        setToken({ symbol, decimals: decimal });
       });
     }
   }, [order]);

@@ -14,7 +14,12 @@ import { assert } from "@std/assert";
 import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 import { getLogger } from "@logtape/logtape";
 
-import { abi, getPaymentAddress, getPaymentId } from "@massmarket/contracts";
+import {
+  abi,
+  getPaymentAddress,
+  getPaymentId,
+  getTokenInformation,
+} from "@massmarket/contracts";
 import {
   ChainAddress,
   Manifest,
@@ -25,6 +30,7 @@ import {
 } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
 import { useShopId } from "@massmarket/react-hooks";
+
 import Pay from "./Pay.tsx";
 import QRScan from "./QRScan.tsx";
 import PriceSummary from "./PriceSummary.tsx";
@@ -37,7 +43,7 @@ import LoadingSpinner from "../common/LoadingSpinner.tsx";
 import ConnectWalletButton from "../common/ConnectWalletButton.tsx";
 import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { CurrencyChainOption } from "../../types.ts";
-import { env, getErrLogger, getTokenInformation } from "../../utils/mod.ts";
+import { env, getErrLogger } from "../../utils/mod.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 
 const baseLogger = getLogger(["mass-market", "frontend", "ChoosePayment"]);
@@ -204,10 +210,11 @@ export default function ChoosePayment() {
         transport: http(env.ethRPCUrl),
       });
 
-      const [symbol, chosenCurrencyDecimals] = await getTokenInformation(
-        paymentRPC,
-        toHex(currency.Address, { size: 20 }),
-      );
+      const { symbol, decimal: chosenCurrencyDecimals } =
+        await getTokenInformation(
+          paymentRPC,
+          toHex(currency.Address, { size: 20 }),
+        );
       //FIXME: get orderHash from paymentDetails.
       const zeros32Bytes = pad(zeroAddress, { size: 32 });
       const arg = {
@@ -274,14 +281,14 @@ export default function ChoosePayment() {
         transport: http(env.ethRPCUrl),
       });
       for (const [address, _val] of addresses.entries()) {
-        const res = await getTokenInformation(
+        const { symbol } = await getTokenInformation(
           tokenPublicClient,
           toHex(address, { size: 20 }),
         );
         displayed.push({
           address,
           chainId: chain!.id,
-          label: `${res[0]}/${chain!.name}`,
+          label: `${symbol}/${chain!.name}`,
           value: `${address}/${chain!.id}`,
         });
       }
