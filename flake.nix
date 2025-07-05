@@ -76,16 +76,26 @@
           MASS_CONTRACTS_PATH = "${contracts.packages.${system}.default}";
 
           shellHook = ''
-            ${config.pre-commit.settings.installationScript}
-            export IPFS_PATH=$FLAKE_ROOT/data/ipfs
-            pushd $FLAKE_ROOT
-            # only runs when the contracts have changed
-            touch .last-input
-            if [[ "$(< .last-input)" != "${contracts}" ]]; then
-              echo ${contracts} > .last-input
-              deno task -r -f contracts build
-            fi
-            popd
+                        ${config.pre-commit.settings.installationScript}
+
+                        if [ -z IPFS_PATH ]; then
+                          export IPFS_PATH=$FLAKE_ROOT/data/ipfs
+                        fi
+                        pushd $FLAKE_ROOT
+                        # only runs when the contracts have changed
+                        touch .last-input
+                        if [[ "$(< .last-input)" != "${contracts}" ]]; then
+                          echo ${contracts} > .last-input
+                          deno task -r -f contracts build
+                        fi
+                        popd
+                        # Bright blue ANSI color: \033[1;34m ... \033[0m
+                        echo -e "\033[1;34m\
+             ╔══════════════∘∴∴∵∴∘═════════════════╗\n\
+            :║ ███████████████████████████████████ ║:\n\
+            :║ ████  M Λ S S   M Λ R K Ξ T ███████ ║:\n\
+            :║ ███████████████████████████████████ ║:\n\
+             ╚══════════════∘∴∴∵∴∘═════════════════╝\033[0m"
           '';
 
           buildInputs = with pkgs;
