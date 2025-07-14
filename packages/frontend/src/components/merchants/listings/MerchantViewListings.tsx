@@ -6,11 +6,9 @@ import { Link } from "@tanstack/react-router";
 import { formatUnits } from "viem";
 
 import { Listing } from "@massmarket/schema";
-
+import { usePricingCurrency, useStateManager } from "@massmarket/react-hooks";
 import Button from "../../common/Button.tsx";
 import { ListingViewState } from "../../../types.ts";
-import { useBaseToken } from "../../../hooks/useBaseToken.ts";
-import { useStateManager } from "../../../hooks/useStateManager.ts";
 import ChevronRight from "../../common/ChevronRight.tsx";
 
 export default function MerchantViewProducts({
@@ -18,7 +16,7 @@ export default function MerchantViewProducts({
 }: {
   products: Listing[] | null;
 }) {
-  const { baseToken } = useBaseToken();
+  const { pricingCurrency } = usePricingCurrency();
   const { stateManager } = useStateManager();
   const [stockLevels, setStockLevels] = useState<Map<number, number>>(
     new Map(),
@@ -41,7 +39,7 @@ export default function MerchantViewProducts({
   }, [stateManager, products]);
 
   function renderProducts() {
-    if (!products?.length) {
+    if (!products?.length || !pricingCurrency) {
       return (
         <div className="flex justify-center w-full mb-4">
           <p>No Products</p>
@@ -112,7 +110,7 @@ export default function MerchantViewProducts({
               <p className="text-sm font-inter">Price</p>
               <div className="flex gap-1 items-center max-w-20 md:max-w-25">
                 <img
-                  src={baseToken?.symbol === "ETH"
+                  src={pricingCurrency?.symbol === "ETH"
                     ? "/icons/eth-coin.svg"
                     : "/icons/usdc-coin.png"}
                   alt="coin"
@@ -121,7 +119,7 @@ export default function MerchantViewProducts({
                   className="w-5 h-5"
                 />
                 <p data-testid="product-price" className="truncate">
-                  {formatUnits(item.Price, baseToken.decimals)}
+                  {formatUnits(item.Price, pricingCurrency!.decimals)}
                 </p>
               </div>
             </div>

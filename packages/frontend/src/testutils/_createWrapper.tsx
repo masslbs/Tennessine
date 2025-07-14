@@ -44,6 +44,7 @@ const testRelayEndpoint = await discoverRelay(relayURL);
 
 export function createWrapper(
   shopId: bigint = random256BigInt(),
+  searchParams: string | null = null,
   testAccountIndex = 0,
 ) {
   const queryClient = new QueryClient({
@@ -54,7 +55,9 @@ export function createWrapper(
     },
   });
   globalThis.location.replace(
-    `http://localhost?shopId=0x${shopId.toString(16)}`,
+    `http://localhost?shopId=0x${shopId.toString(16)}${
+      searchParams ? `&${searchParams}` : ""
+    }`,
   );
   return ({ children }: { children: React.ReactNode }) => {
     const rootRoute = createRootRoute({

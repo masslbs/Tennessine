@@ -25,7 +25,7 @@ export function useRelayClient(params?: { config?: MassMarketConfig }) {
   const { data: wallet } = useWalletClient();
   const enabled = !!shopId && !!wallet && !!relayEndpoint && !!keycard;
 
-  return useQuery({
+  const qResult = useQuery({
     queryKey: ["relayClient", keycard, String(shopId)],
     queryFn: enabled
       ? async () => {
@@ -46,4 +46,5 @@ export function useRelayClient(params?: { config?: MassMarketConfig }) {
     //TODO: May need to reconfigure refetchOnReconnect to ensure the query runs when app regains access to the network.
     staleTime: Infinity,
   });
+  return { relayClient: qResult.data, ...qResult };
 }

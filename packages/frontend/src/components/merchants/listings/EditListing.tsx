@@ -11,6 +11,11 @@ import { getLogger } from "@logtape/logtape";
 import { randUint64 } from "@massmarket/utils";
 import { Listing } from "@massmarket/schema";
 import { CodecKey, CodecValue } from "@massmarket/utils/codec";
+import {
+  usePricingCurrency,
+  useRelayClient,
+  useStateManager,
+} from "@massmarket/react-hooks";
 
 import DeleteListing from "./DeleteListing.tsx";
 import { ListingId, ListingViewState } from "../../../types.ts";
@@ -18,9 +23,6 @@ import ErrorMessage from "../../common/ErrorMessage.tsx";
 import ValidationWarning from "../../common/ValidationWarning.tsx";
 import Button from "../../common/Button.tsx";
 import BackButton from "../../common/BackButton.tsx";
-import { useStateManager } from "../../../hooks/useStateManager.ts";
-import { useRelayClient } from "../../../hooks/useRelayClient.ts";
-import { useBaseToken } from "../../../hooks/useBaseToken.ts";
 import { getErrLogger } from "../../../utils/mod.ts";
 
 const baseLogger = getLogger(["mass-market", "frontend", "EditListing"]);
@@ -28,10 +30,9 @@ const baseLogger = getLogger(["mass-market", "frontend", "EditListing"]);
 export default function EditProduct() {
   const navigate = useNavigate();
   const search = useSearch({ strict: false });
-  const { stateManager } = useStateManager();
   const { relayClient } = useRelayClient();
-  const { baseToken } = useBaseToken();
-
+  const { stateManager } = useStateManager();
+  const { pricingCurrency } = usePricingCurrency();
   const [listing, setListing] = useState<Listing>(new Listing());
   const [stock, setStock] = useState<number>(0);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -54,7 +55,7 @@ export default function EditProduct() {
   const logError = getErrLogger(logger, setErrorMsg);
 
   useEffect(() => {
-    if (!stateManager || !itemId || !baseToken) return;
+    if (!stateManager || !itemId || !pricingCurrency) return;
     stateManager.get(["Listings", itemId])
       .then((item: CodecValue | undefined) => {
         if (!item) {
@@ -63,7 +64,7 @@ export default function EditProduct() {
         }
         const l = Listing.fromCBOR(item);
         setListing(l);
-        setPriceInput(formatUnits(l.Price, baseToken.decimals));
+        setPriceInput(formatUnits(l.Price, pricingCurrency!.decimals));
       })
       .catch((error: unknown) => {
         logError("Error fetching listing", error);
@@ -74,7 +75,7 @@ export default function EditProduct() {
           setStock(Number(item));
         }
       });
-  }, [stateManager, itemId, baseToken]);
+  }, [stateManager, itemId, pricingCurrency]);
 
   async function create(newListing: Listing) {
     assert(stateManager, "State manager is required");
@@ -118,6 +119,9 @@ export default function EditProduct() {
     element?.scrollIntoView();
   }
   async function onPublish() {
+    if (!pricingCurrency) {
+      logError("Pricing currency not found");
+    }
     const newListing = Listing.fromCBOR(listing.asCBORMap());
     if (!newListing.Metadata.Title) {
       setValidationError("Product must include title.");
@@ -143,7 +147,7 @@ export default function EditProduct() {
           );
           newListing.Metadata.Images = [...urls, ...newUploads];
         }
-        newListing.Price = parseUnits(priceInput, baseToken.decimals);
+        newListing.Price = parseUnits(priceInput, pricingCurrency!.decimals);
 
         if (itemId) {
           newListing.ID = itemId;
@@ -333,7 +337,7 @@ export default function EditProduct() {
               <label htmlFor="price">Price</label>
               <div className="flex gap-2 items-center">
                 <img
-                  src={baseToken?.symbol === "ETH"
+                  src={pricingCurrency?.symbol === "ETH"
                     ? "/icons/eth-coin.svg"
                     : "/icons/usdc-coin.png"}
                   alt="coin"
