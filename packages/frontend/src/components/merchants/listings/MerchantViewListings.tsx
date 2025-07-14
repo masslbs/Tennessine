@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useState } from "react";
-import { getLogger } from "@logtape/logtape";
 import { Link } from "@tanstack/react-router";
 import { formatUnits } from "viem";
 
@@ -13,8 +12,6 @@ import { ListingViewState } from "../../../types.ts";
 import { useBaseToken } from "../../../hooks/useBaseToken.ts";
 import { useStateManager } from "../../../hooks/useStateManager.ts";
 import ChevronRight from "../../common/ChevronRight.tsx";
-
-const logger = getLogger(["mass-market", "frontend", "MerchantViewListings"]);
 
 export default function MerchantViewProducts({
   products,
@@ -44,10 +41,6 @@ export default function MerchantViewProducts({
   }, [stateManager, products]);
 
   function renderProducts() {
-    if (!stateManager) {
-      logger.warn("stateManager not found");
-      return;
-    }
     if (!products?.length) {
       return (
         <div className="flex justify-center w-full mb-4">
@@ -56,6 +49,7 @@ export default function MerchantViewProducts({
       );
     }
     return products.map((item: Listing) => {
+      if (item.ViewState === ListingViewState.Deleted) return null;
       const visible = item.ViewState === ListingViewState.Published;
       const quantity = stockLevels.get(item.ID) ?? 0;
 

@@ -1,8 +1,11 @@
+import "../happyDomSetup.ts";
+
 import { render, screen, waitFor, within } from "@testing-library/react";
 import { expect } from "@std/expect";
 import { formatEther } from "viem";
 
 import { allListings } from "@massmarket/schema/testFixtures";
+import { useKeycard } from "@massmarket/react-hooks";
 
 import Listings from "./Listings.tsx";
 import {
@@ -12,7 +15,6 @@ import {
   denoTestOptions,
   testWrapper,
 } from "../testutils/_createWrapper.tsx";
-import "../happyDomSetup.ts";
 
 Deno.test(
   "Listings",
@@ -30,7 +32,7 @@ Deno.test(
       }
     });
 
-    await t.step("Render listings", async () => {
+    await t.step("Render listings for customers", async () => {
       const { unmount } = render(<Listings />, {
         wrapper: createWrapper(shopId),
       });
@@ -53,8 +55,33 @@ Deno.test(
         expect(image.getAttribute("src")).toEqual(
           "https://http.cat/images/200.jpg",
         );
+
+        const title2 = within(listings[1]).getByTestId("product-name");
+        expect(title2.textContent).toEqual("test42");
       });
+      unmount();
+    });
+
+    await t.step("Render listings for merchants", async () => {
+      const { unmount } = render(<MerchantTestComponent />, {
+        wrapper: createWrapper(shopId),
+      });
+      await waitFor(() => {
+        const listings = screen.getAllByTestId("product-container");
+        // Should not display deleted item.
+        expect(listings.length).toBe(2);
+        const title = within(listings[0]).getByTestId("product-name");
+        expect(title.textContent).toEqual("test");
+        const price = within(listings[0]).getByTestId("product-price");
+        expect(price.textContent).toEqual(formatEther(BigInt(230000)));
+      });
+
       unmount();
     });
   }),
 );
+
+const MerchantTestComponent = () => {
+  useKeycard({ role: "merchant" });
+  return <Listings />;
+};

@@ -27,6 +27,7 @@ export default function CustomerViewProducts({
     }
     return products.map((item: Listing) => {
       const visible = item.ViewState === ListingViewState.Published;
+      if (!visible) return null;
 
       let productImage = "/assets/no-image.png";
       if (item.Metadata.Images && item.Metadata.Images.length > 0) {
@@ -41,7 +42,6 @@ export default function CustomerViewProducts({
             shopId: prev.shopId,
             itemId: item.ID,
           })}
-          className={`${!visible ? "hidden" : ""}`}
           style={{ color: "black" }}
         >
           <div className="w-40 xxs:w-36 md:w-[190px]">
