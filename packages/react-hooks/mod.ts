@@ -4,3 +4,5 @@ export * from "./useShopId.ts";
 export * from "./useRelayEndpoint.ts";
 export * from "./useStateManager.ts";
 export * from "./useKeycard.ts";
+export * from "./useRelayClient.ts";
+export * from "./usePricingCurrency.ts";

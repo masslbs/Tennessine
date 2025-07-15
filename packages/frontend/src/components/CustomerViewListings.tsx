@@ -6,19 +6,19 @@ import { Link } from "@tanstack/react-router";
 import { formatUnits } from "viem";
 
 import { Listing } from "@massmarket/schema";
+import { usePricingCurrency } from "@massmarket/react-hooks";
 
 import { ListingViewState } from "../types.ts";
-import { useBaseToken } from "../hooks/useBaseToken.ts";
 
 export default function CustomerViewProducts({
   products,
 }: {
   products: Listing[] | null;
 }) {
-  const { baseToken } = useBaseToken();
+  const { pricingCurrency } = usePricingCurrency();
 
   function renderProducts() {
-    if (!products?.length) {
+    if (!products?.length || !pricingCurrency) {
       return (
         <div className="flex justify-center w-full mb-4">
           <p>No Products</p>
@@ -27,6 +27,7 @@ export default function CustomerViewProducts({
     }
     return products.map((item: Listing) => {
       const visible = item.ViewState === ListingViewState.Published;
+      if (!visible) return null;
 
       let productImage = "/assets/no-image.png";
       if (item.Metadata.Images && item.Metadata.Images.length > 0) {
@@ -41,7 +42,6 @@ export default function CustomerViewProducts({
             shopId: prev.shopId,
             itemId: item.ID,
           })}
-          className={`${!visible ? "hidden" : ""}`}
           style={{ color: "black" }}
         >
           <div className="w-40 xxs:w-36 md:w-[190px]">
@@ -65,7 +65,7 @@ export default function CustomerViewProducts({
               </div>
               <div className="flex gap-2 items-center">
                 <img
-                  src={baseToken?.symbol === "ETH"
+                  src={pricingCurrency?.symbol === "ETH"
                     ? "/icons/eth-coin.svg"
                     : "/icons/usdc-coin.png"}
                   alt="coin"
@@ -75,7 +75,7 @@ export default function CustomerViewProducts({
                   data-testid="coin-icon"
                 />
                 <p data-testid="product-price" className="truncate">
-                  {formatUnits(item.Price, baseToken.decimals)}
+                  {formatUnits(item.Price, pricingCurrency!.decimals)}
                 </p>
               </div>
             </div>
