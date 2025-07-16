@@ -18,7 +18,7 @@ import {
   denoTestOptions,
   testWrapper,
 } from "../../testutils/_createWrapper.tsx";
-import { OrderState } from "../../types.ts";
+import { OrderPaymentState } from "../../types.ts";
 
 const listingID = 23;
 const listingID2 = 42;
@@ -104,7 +104,7 @@ Deno.test(
     //   await waitFor(async () => {
     //     const orderData = await stateManager.get(["Orders", orderId]);
     //     const o = Order.fromCBOR(orderData!);
-    //     expect(o.State).toBe(OrderState.Committed);
+    //     expect(o.State).toBe(OrderPaymentState.Committed);
     //   });
 
     //   unmount();
@@ -224,7 +224,7 @@ Deno.test(
         expect(o).toBeDefined();
         const order = Order.fromCBOR(o!);
         expect(order.CanceledAt).toBeDefined();
-        expect(order.State).toBe(OrderState.Canceled);
+        expect(order.PaymentState).toBe(OrderPaymentState.Canceled);
         // The new order should have the same items as the committed order.
         const newOrder = Array.from(orders.values()).pop() as CodecValue;
         const newOrderItems = Order.fromCBOR(newOrder).Items;
@@ -269,7 +269,7 @@ Deno.test(
         const o = orders.get(orderId) as CodecValue;
         const order = Order.fromCBOR(o!);
         expect(order.CanceledAt).toBeDefined();
-        expect(order.State).toBe(OrderState.Canceled);
+        expect(order.PaymentState).toBe(OrderPaymentState.Canceled);
         // The new order should have no items.
         const newOrder = Array.from(orders.values()).pop() as CodecValue;
         const newOrderItems = Order.fromCBOR(newOrder).Items;
@@ -316,12 +316,15 @@ const createTestComponent = (oId: number, commitOrder: boolean) => {
             new OrderedItem(listingID2, 24),
           ]
           : [new OrderedItem(listingID, 200), new OrderedItem(listingID2, 5)],
-        OrderState.Open,
+        OrderPaymentState.Open,
       );
 
       stateManager.set(["Orders", oId], order).then(() => {
         if (!commitOrder) return;
-        stateManager.set(["Orders", oId, "State"], OrderState.Committed);
+        stateManager.set(
+          ["Orders", oId, "PaymentState"],
+          OrderPaymentState.Committed,
+        );
       });
     }, [listingsLoaded]);
 

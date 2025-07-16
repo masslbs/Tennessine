@@ -15,7 +15,7 @@ import {
   usePricingCurrency,
   useStateManager,
 } from "@massmarket/react-hooks";
-import { ListingId, OrderState } from "../types.ts";
+import { ListingId, OrderPaymentState } from "../types.ts";
 import Button from "./common/Button.tsx";
 import BackButton from "./common/BackButton.tsx";
 
@@ -112,7 +112,7 @@ export default function ListingDetail() {
 
       // Update existing order
       // If the order is not an open order, cancel it and create a new one
-      if (activeOrder?.State !== OrderState.Open) {
+      if (activeOrder?.PaymentState !== OrderPaymentState.Open) {
         orderId = await cancelAndRecreateOrder();
       }
 

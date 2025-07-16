@@ -23,7 +23,7 @@ Deno.test("RelayClientTester component connects to relay", {
   sanitizeResources: false,
   sanitizeOps: false,
 }, async (t) => {
-  const relayEndpoint = await discoverRelay("ws://localhost:4444/v4");
+  const relayEndpoint = await discoverRelay();
   const user = userEvent.setup();
 
   await t.step("renders and connects to relay", async () => {
