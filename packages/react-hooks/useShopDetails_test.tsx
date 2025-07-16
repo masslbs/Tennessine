@@ -34,8 +34,8 @@ Deno.test(
         },
       );
       await waitFor(() => {
-        expect(result.current.shopDetails?.name).toEqual("shopName");
-        expect(result.current.shopDetails?.profilePictureUrl).toEqual(
+        expect(result.current.shopDetails?.name!).toEqual("shopName");
+        expect(result.current.shopDetails?.profilePictureUrl!).toEqual(
           "https://http.cat/images/201.jpg",
         );
       });

@@ -1,4 +1,4 @@
-import { usePublicClient } from "wagmi";
+import { useReadContract } from "wagmi";
 import { skipToken, useQuery } from "@tanstack/react-query";
 
 import { abi } from "@massmarket/contracts";
@@ -12,27 +12,25 @@ import { useShopId } from "./useShopId.ts";
 export function useShopDetails() {
   const { chain } = useShopChain();
   const { shopId } = useShopId();
-  const shopPublicClient = usePublicClient({ chainId: chain.id });
-  const enabled = !!shopPublicClient && !!shopId;
+  const result = useReadContract(
+    {
+      address: abi.shopRegAddress,
+      abi: abi.shopRegAbi,
+      functionName: "tokenURI",
+      args: [shopId!],
+    },
+  );
+  const enabled = !!result.data && !!shopId;
   const qResult = useQuery({
-    queryKey: ["shopDetails", String(shopId), chain.id],
+    queryKey: ["shopDetails", String(shopId), chain.id, result.data],
     queryFn: enabled
       ? async () => {
-        const uri = await shopPublicClient!.readContract({
-          address: abi.shopRegAddress,
-          abi: abi.shopRegAbi,
-          functionName: "tokenURI",
-          args: [shopId],
-        });
-        const url = uri as string;
-        if (url.length) {
-          const res = await fetch(url);
-          const data = await res.json();
-          return {
-            name: data.name,
-            profilePictureUrl: data.image,
-          };
-        }
+        const res = await fetch(result.data);
+        const data = await res.json();
+        return {
+          name: data.name,
+          profilePictureUrl: data.image,
+        };
       }
       : skipToken,
     // This ensures that the contract data is not discarded during the browser session.
