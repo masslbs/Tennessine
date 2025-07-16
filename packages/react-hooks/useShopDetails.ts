@@ -3,14 +3,12 @@ import { skipToken, useQuery } from "@tanstack/react-query";
 
 import { abi } from "@massmarket/contracts";
 
-import { useShopChain } from "./useShopChain.tsx";
 import { useShopId } from "./useShopId.ts";
 
 /**
  *  This hook returns the meta data of the shop from the contract.
  */
 export function useShopDetails() {
-  const { chain } = useShopChain();
   const { shopId } = useShopId();
   const result = useReadContract(
     {
@@ -22,7 +20,7 @@ export function useShopDetails() {
   );
   const enabled = !!result.data && !!shopId;
   const qResult = useQuery({
-    queryKey: ["shopDetails", String(shopId), chain.id, result.data],
+    queryKey: ["shopDetails", String(shopId), result.data],
     queryFn: enabled
       ? async () => {
         const res = await fetch(result.data);
