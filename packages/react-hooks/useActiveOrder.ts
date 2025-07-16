@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { Order, OrderState } from "@massmarket/schema";
+import { Order, OrderPaymentState } from "@massmarket/schema";
 import type { CodecValue } from "@massmarket/utils/codec";
 
 import { useStateManager } from "./useStateManager.ts";
@@ -20,7 +20,8 @@ export function useActiveOrder() {
       const lastUpdatedOrder = [...orders.values()].pop();
       const order = Order.fromCBOR(lastUpdatedOrder!);
       if (
-        order.State !== OrderState.Canceled && order.State !== OrderState.Paid
+        order.PaymentState !== OrderPaymentState.Canceled &&
+        order.PaymentState !== OrderPaymentState.Paid
       ) {
         setActiveOrder(order);
       }

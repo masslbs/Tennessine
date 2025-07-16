@@ -4,7 +4,7 @@ import { useEffect } from "react";
 
 import { allListings } from "@massmarket/schema/testFixtures";
 import { randUint64 } from "@massmarket/utils";
-import { Order, OrderedItem, OrderState } from "@massmarket/schema";
+import { Order, OrderedItem, OrderPaymentState } from "@massmarket/schema";
 
 import {
   createTestRelayClient,
@@ -64,7 +64,7 @@ const TestComponent = () => {
         new OrderedItem(23, 7), // 200 of item 23
         new OrderedItem(42, 5), // 5 of item 42
       ],
-      OrderState.Open,
+      OrderPaymentState.Open,
     );
     const order2 = new Order(
       orderId2,
@@ -72,7 +72,7 @@ const TestComponent = () => {
         new OrderedItem(23, 5), // 200 of item 23
         new OrderedItem(42, 5), // 5 of item 42
       ],
-      OrderState.Open,
+      OrderPaymentState.Open,
     );
     stateManager.set(["Orders", orderId], order).then(() => {
       stateManager.set(["Orders", orderId2], order2).then();

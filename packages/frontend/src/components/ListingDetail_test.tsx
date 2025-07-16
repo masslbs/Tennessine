@@ -11,7 +11,7 @@ import type { CodecKey, CodecValue } from "@massmarket/utils/codec";
 import ListingDetail from "./ListingDetail.tsx";
 import { createRouterWrapper, testClient } from "../testutils/mod.tsx";
 import { formatUnits } from "viem";
-import { OrderState } from "../types.ts";
+import { OrderPaymentState } from "../types.ts";
 
 Deno.test("Check that we can render the listing details screen", {
   sanitizeResources: false,
@@ -143,8 +143,8 @@ Deno.test("Check that we can render the listing details screen", {
 
   // Commit order and try to update quantity. Tests cancelAndRecreateOrder fn
   await stateManager.set(
-    ["Orders", orderId, "State"],
-    OrderState.Committed,
+    ["Orders", orderId, "PaymentState"],
+    OrderPaymentState.Committed,
   );
   const purchaseQty3 = await screen.findByTestId("purchaseQty");
   expect(purchaseQty3).toBeTruthy();

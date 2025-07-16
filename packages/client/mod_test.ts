@@ -16,8 +16,6 @@ enableLogging();
 
 import { discoverRelay, type Patch, RelayClient } from "./mod.ts";
 
-const relayURL = Deno.env.get("RELAY_ENDPOINT") || "http://localhost:4444/v4";
-
 // helper function
 async function writeAndReadPatch(
   patch: Patch,
@@ -64,12 +62,12 @@ Deno.test(
       });
 
       await t.step("should discover relay", async () => {
-        const relayEndpoint = await discoverRelay(relayURL);
+        const relayEndpoint = await discoverRelay();
         expect(relayEndpoint).toBeDefined();
       });
 
       // create a relay client
-      const relayEndpoint = await discoverRelay(relayURL);
+      const relayEndpoint = await discoverRelay();
       const pk = generatePrivateKey();
       const kc = privateKeyToAccount(pk);
       const keycardWallet = createWalletClient({

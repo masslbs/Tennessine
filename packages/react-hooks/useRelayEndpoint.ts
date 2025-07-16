@@ -27,7 +27,7 @@ export function useRelayEndpoint(params?: { config?: MassMarketConfig }) {
           );
           return re;
         } else {
-          const discovered = await discoverRelay("ws://localhost:4444/v4");
+          const discovered = await discoverRelay("ws://localhost:4444/v5");
           if (!discovered.url) throw new Error("Relay endpoint URL not set");
           if (!discovered.tokenId) {
             throw new Error("Relay endpoint tokenId not set");

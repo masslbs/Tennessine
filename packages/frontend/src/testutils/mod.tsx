@@ -32,9 +32,7 @@ import { MassMarketProvider } from "@massmarket/react-hooks";
 import { KeycardRole } from "../types.ts";
 import { env } from "../utils/env.ts";
 
-export const relayURL = Deno.env.get("RELAY_ENDPOINT") ||
-  "http://localhost:4444/v4";
-const testRelayEndpoint = await discoverRelay(relayURL);
+const testRelayEndpoint = await discoverRelay();
 
 export const testClient = createTestClient({
   transport: http(),

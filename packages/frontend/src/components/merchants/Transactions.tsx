@@ -5,10 +5,10 @@ import { formatUnits } from "viem";
 import { Order } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
 
-import { OrderId, OrderState } from "../../types.ts";
+import { OrderId, OrderPaymentState } from "../../types.ts";
 import { useStateManager } from "../../hooks/useStateManager.ts";
 import { useBaseToken } from "../../hooks/useBaseToken.ts";
-import { formatDate, OrderStateFromNumber } from "../../utils/helper.ts";
+import { formatDate, OrderPaymentStateFromNumber } from "../../utils/helper.ts";
 
 export default function Transactions(
   { displayLastFour }: { displayLastFour?: boolean },
@@ -70,7 +70,7 @@ export default function Transactions(
     const transactions = Array.from([...orders.entries()])
       .filter(([_, value]) => {
         if (filter === "paid") {
-          return value.State === OrderState.Paid;
+          return value.State === OrderPaymentState.Paid;
         }
         return true;
       }).sort((a, b) => {
@@ -125,7 +125,7 @@ export default function Transactions(
             <p className="truncate">{time}</p>
             <p className="truncate">{total}</p>
             <p data-testid="status" className="truncate">
-              {OrderStateFromNumber(value.State)}
+              {OrderPaymentStateFromNumber(value.State)}
             </p>
           </div>
         </Link>
