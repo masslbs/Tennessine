@@ -14,7 +14,7 @@ import {
 export class Order extends BaseClass {
   ID: number;
   Items: OrderedItem[];
-  State: OrderState;
+  PaymentState: OrderPaymentState;
   InvoiceAddress?: AddressDetails;
   ShippingAddress?: AddressDetails;
   CanceledAt?: Date;
@@ -22,11 +22,13 @@ export class Order extends BaseClass {
   ChosenCurrency?: ChainAddress;
   PaymentDetails?: PaymentDetails;
   TxDetails?: OrderPaid;
+  FulfilmentState?: string;
+  CommentForCustomer?: string;
 
   constructor(
     id: number = 0,
     items: OrderedItem[] = [],
-    state: OrderState = OrderState.Unspecified,
+    paymentState: OrderPaymentState = OrderPaymentState.Unspecified,
     invoiceAddress?: AddressDetails,
     shippingAddress?: AddressDetails,
     canceledAt?: Date,
@@ -34,11 +36,13 @@ export class Order extends BaseClass {
     chosenCurrency?: ChainAddress,
     paymentDetails?: PaymentDetails,
     txDetails?: OrderPaid,
+    fulfilmentState?: string,
+    commentForCustomer?: string,
   ) {
     super();
     this.ID = id;
     this.Items = items;
-    this.State = state;
+    this.PaymentState = paymentState;
     this.InvoiceAddress = invoiceAddress;
     this.ShippingAddress = shippingAddress;
     this.CanceledAt = canceledAt;
@@ -46,6 +50,8 @@ export class Order extends BaseClass {
     this.ChosenCurrency = chosenCurrency;
     this.PaymentDetails = paymentDetails;
     this.TxDetails = txDetails;
+    this.FulfilmentState = fulfilmentState;
+    this.CommentForCustomer = commentForCustomer;
   }
 
   static fromCBOR(value: CodecValue): Order {
@@ -69,7 +75,7 @@ export class Order extends BaseClass {
       }));
     }
 
-    const stateNum = ensureNumber(input.get("State"), "State");
+    const stateNum = ensureNumber(input.get("PaymentState"), "PaymentState");
 
     let invoiceAddress: AddressDetails | undefined;
     const invoiceAddressData = input.get("InvoiceAddress");
@@ -131,6 +137,24 @@ export class Order extends BaseClass {
       txDetails = OrderPaid.fromCBOR(txDetailsData);
     }
 
+    let fulfilmentState: string | undefined;
+    const fulfilmentStateData = input.get("FulfilmentState");
+    if (fulfilmentStateData !== undefined) {
+      if (!(typeof fulfilmentStateData === "string")) {
+        throw new TypeError("expected FulfilmentState to be string");
+      }
+      fulfilmentState = String(fulfilmentStateData);
+    }
+
+    let commentForCustomer: string | undefined;
+    const commentForCustomerData = input.get("CommentForCustomer");
+    if (commentForCustomerData !== undefined) {
+      if (!(typeof commentForCustomerData === "string")) {
+        throw new TypeError("expected CommentForCustomer to be string");
+      }
+      commentForCustomer = String(commentForCustomerData);
+    }
+
     return new Order(
       id,
       items,
@@ -142,6 +166,8 @@ export class Order extends BaseClass {
       chosenCurrency,
       paymentDetails,
       txDetails,
+      fulfilmentState,
+      commentForCustomer,
     );
   }
 }
@@ -180,14 +206,14 @@ export class OrderedItem extends BaseClass {
   }
 }
 
-export enum OrderState {
-  Unspecified = 0,
-  Open = 1,
-  Canceled = 2,
-  Committed = 3,
-  PaymentChosen = 4,
-  Unpaid = 5,
-  Paid = 6,
+export enum OrderPaymentState {
+  Unspecified,
+  Open,
+  Canceled,
+  Committed,
+  PaymentChosen,
+  Unpaid,
+  Paid,
 }
 
 export class AddressDetails extends BaseClass {

@@ -57,7 +57,6 @@ Deno.test(
         expect(image.getAttribute("src")).toEqual(
           "https://http.cat/images/200.jpg",
         );
-
         const title2 = within(listings[1]).getByTestId("product-name");
         expect(title2.textContent).toEqual("test42");
       });

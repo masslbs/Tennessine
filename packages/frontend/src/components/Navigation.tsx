@@ -82,7 +82,7 @@ function Navigation() {
   const isMerchantView = keycard?.role === "merchant";
 
   useEffect(() => {
-    // in the hook `useCurrentOrder`, we "reset" currentOrder for the states OrderState.Canceled and OrderState.Paid.
+    // in the hook `useCurrentOrder`, we "reset" currentOrder for the states OrderPaymentState.Canceled and OrderPaymentState.Paid.
     // this is done by setting it to null.
     // TODO (@alp 2025-04-17): raise the question of using a sentinel value for "reset" orderIDs e.g. currentOrder = SENTINEL_ORDER
     //

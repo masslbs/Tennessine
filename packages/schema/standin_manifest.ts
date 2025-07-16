@@ -15,6 +15,7 @@ type ContractStatus = Map<"IsContract", boolean>;
 
 export class Manifest extends BaseClass {
   ShopID: bigint;
+  OrderPaymentTimeout: bigint;
   Payees: PayeeMap;
   AcceptedCurrencies: AcceptedCurrencyMap;
   PricingCurrency: ChainAddress;
@@ -22,6 +23,7 @@ export class Manifest extends BaseClass {
 
   constructor(
     shopID: bigint = 0n,
+    orderPaymentTimeout: bigint = 39960000000000n,
     payees?: PayeeMap,
     acceptedCurrencies?: AcceptedCurrencyMap,
     pricingCurrency?: ChainAddress,
@@ -34,6 +36,7 @@ export class Manifest extends BaseClass {
     this.PricingCurrency = pricingCurrency ||
       new ChainAddress(0, new Uint8Array(20));
     this.ShippingRegions = shippingRegions;
+    this.OrderPaymentTimeout = orderPaymentTimeout;
   }
 
   static fromCBOR(value: CodecValue): Manifest {
@@ -43,6 +46,11 @@ export class Manifest extends BaseClass {
     const input = value as Map<CodecKey, CodecValue>;
 
     const shopID = ensureBigInt(input.get("ShopID"), "ShopID");
+
+    const orderPaymentTimeout = ensureBigInt(
+      input.get("OrderPaymentTimeout"),
+      "OrderPaymentTimeout",
+    );
 
     const payees = input.get("Payees");
     if (!(payees instanceof Map)) {
@@ -75,6 +83,7 @@ export class Manifest extends BaseClass {
 
     return new Manifest(
       shopID,
+      orderPaymentTimeout,
       payeeMap,
       acceptedCurrencyMap,
       pricingCurrencyObj,

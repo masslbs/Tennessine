@@ -4,7 +4,7 @@ import { Logger } from "@logtape/logtape";
 
 import { Dispatch, SetStateAction } from "react";
 
-import { KeycardRole, OrderState } from "../types.ts";
+import { KeycardRole, OrderPaymentState } from "../types.ts";
 
 export const taggedKeys = ["orderId", "listingId", "keycardAddress", "shopId"];
 
@@ -57,10 +57,12 @@ export function removeCachedKeycards() {
     }
   }
 }
+
 export function isValidEmail(email: string) {
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailPattern.test(email);
 }
+
 export function formatDate(ttl: number) {
   return new Intl.DateTimeFormat("en-GB", {
     year: "numeric",
@@ -73,23 +75,17 @@ export function formatDate(ttl: number) {
   }).format((ttl * 1000) - 86400000);
 }
 
-export function OrderStateFromNumber(num: number) {
+// OrderPaymentStateFromNumber is a helper for rendering strings as wanted
+export function OrderPaymentStateFromNumber(num: number) {
+  // most enum values are just the string itself anyway
+  if (typeof OrderPaymentState[num] === "string") {
+    return OrderPaymentState[num];
+  }
+  // different spelling / representation can be defined here
   switch (num) {
-    case OrderState.Unspecified:
-      return `Unspecified`;
-    case OrderState.Open:
-      return `Open`;
-    case OrderState.Canceled:
-      return `Canceled`;
-    case OrderState.Committed:
-      return `Committed`;
-    case OrderState.PaymentChosen:
+    case OrderPaymentState.PaymentChosen:
       return `Payment Chosen`;
-    case OrderState.Unpaid:
-      return `Unpaid`;
-    case OrderState.Paid:
-      return `Paid`;
     default:
-      throw new Error(`Invalid order state: ${num}`);
+      throw new Error(`Invalid order payment state: ${num}`);
   }
 }

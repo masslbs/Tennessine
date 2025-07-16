@@ -12,9 +12,6 @@ import { mintShop } from "@massmarket/contracts";
 
 import { discoverRelay, RelayClient } from "./mod.ts";
 
-export const relayURL = Deno.env.get("RELAY_ENDPOINT") ||
-  "http://localhost:4444/v4";
-
 export function createTestBlockchainClient() {
   return createTestClient({
     chain: foundry,
@@ -41,7 +38,7 @@ export async function createTestRelayClient(
     hash: transactionHash,
   });
 
-  const relayEndpoint = await discoverRelay(relayURL);
+  const relayEndpoint = await discoverRelay();
   const pk = generatePrivateKey();
   const kc = privateKeyToAccount(pk);
   const relayClient = new RelayClient({

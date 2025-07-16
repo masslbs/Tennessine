@@ -9,7 +9,7 @@ import type { CodecKey, CodecValue } from "@massmarket/utils/codec";
 
 import ListingDetail from "./ListingDetail.tsx";
 import { formatUnits } from "viem";
-import { OrderState } from "../types.ts";
+import { OrderPaymentState } from "../types.ts";
 import {
   createTestRelayClient,
   createTestStateManager,
@@ -129,8 +129,8 @@ Deno.test(
 
       // Commit order and try to update quantity. Tests cancelAndRecreateOrder fn
       await stateManager.set(
-        ["Orders", orderId!, "State"],
-        OrderState.Committed,
+        ["Orders", orderId!, "PaymentState"],
+        OrderPaymentState.Committed,
       );
 
       // Here we are updating the listing pricing.
