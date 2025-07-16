@@ -13,7 +13,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    relay.url = "github:masslbs/relay";
+    relay.url = "github:masslbs/relay/network-v5";
     contracts.follows = "relay/contracts";
     schema.follows = "relay/schema";
     # in case we need to test new vectors, etc. we can override the input like this:
@@ -77,6 +77,7 @@
 
           shellHook = ''
                         ${config.pre-commit.settings.installationScript}
+                        export RELAY_ENDPOINT=http://localhost:4444/v5
 
                         if [ -z "$IPFS_PATH" ]; then
                           export IPFS_PATH=$FLAKE_ROOT/data/ipfs

@@ -641,10 +641,13 @@ async function getAccountPublicKey(
 }
 
 // testing helper
-export async function discoverRelay(url: string): Promise<IRelayEndpoint> {
+const relayURLViaEnv = typeof Deno !== "undefined" &&
+  Deno.env.get("RELAY_ENDPOINT");
+export async function discoverRelay(): Promise<IRelayEndpoint> {
+  const url = relayURLViaEnv || "http://localhost:4444/v5";
   const discoveryURL = url
     .replace("ws", "http")
-    .replace("/v4", "/testing/discovery");
+    .replace("/v5", "/testing/discovery");
   const testingResponse = await fetch(discoveryURL);
   const testingData = await testingResponse.json();
   return {

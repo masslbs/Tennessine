@@ -15,7 +15,7 @@ import {
   useStateManager,
 } from "@massmarket/react-hooks";
 
-import { ListingId, OrderState } from "../../types.ts";
+import { ListingId, OrderPaymentState } from "../../types.ts";
 import Button from "../common/Button.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import { getErrLogger, multiplyAndFormatUnits } from "../../utils/helper.ts";
@@ -121,10 +121,10 @@ export default function Cart({
         throw new Error("No order found");
       }
       // Commit the order if it is an open order (not committed)
-      if (activeOrder!.State === OrderState.Open) {
+      if (activeOrder!.PaymentState === OrderPaymentState.Open) {
         await stateManager!.set(
-          ["Orders", activeOrder!.ID, "State"],
-          OrderState.Committed,
+          ["Orders", activeOrder!.ID, "PaymentState"],
+          OrderPaymentState.Committed,
         );
         logger.debug(`Order ID: ${activeOrder!.ID} committed`);
       }
@@ -151,7 +151,7 @@ export default function Cart({
       return;
     }
     try {
-      if (activeOrder?.State !== OrderState.Open) {
+      if (activeOrder?.PaymentState !== OrderPaymentState.Open) {
         await cancelOrder();
         await createOrder();
         return;
@@ -177,7 +177,7 @@ export default function Cart({
     }
     try {
       let orderId = activeOrder!.ID;
-      if (activeOrder!.State !== OrderState.Open) {
+      if (activeOrder!.PaymentState !== OrderPaymentState.Open) {
         orderId = await cancelAndRecreateOrder();
       }
       const updatedQtyMap = new Map(selectedQty);
@@ -207,7 +207,7 @@ export default function Cart({
     }
     try {
       let orderId = activeOrder!.ID;
-      if (activeOrder!.State !== OrderState.Open) {
+      if (activeOrder!.PaymentState !== OrderPaymentState.Open) {
         orderId = await cancelAndRecreateOrder();
       }
       const updatedQtyMap = new Map(selectedQty);

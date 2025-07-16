@@ -41,9 +41,7 @@ export const denoTestOptions = {
 const testAccounts = await testClient.requestAddresses();
 export const testAccount = testAccounts[0];
 
-export const relayURL = Deno.env.get("RELAY_ENDPOINT") ||
-  "http://localhost:4444/v4";
-const testRelayEndpoint = await discoverRelay(relayURL);
+const testRelayEndpoint = await discoverRelay();
 
 export function createWrapper(
   shopId: bigint | null = random256BigInt(),

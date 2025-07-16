@@ -15,7 +15,7 @@ import {
   Manifest,
   Order,
   OrderedItem,
-  OrderState,
+  OrderPaymentState,
   ShippingRegion,
   ShippingRegionsMap,
 } from "@massmarket/schema";
@@ -238,7 +238,7 @@ async function testPayWithCurrency(
     selectElement as HTMLSelectElement,
     `${currencyConfig.expectedSymbol}/Hardhat`,
   );
-  // First verify the selection was made in the UI
+  // First verify the selection was made in jthe UI
   expect((selectElement as HTMLSelectElement).value).toBe(
     `${currencyConfig.expectedSymbol}/Hardhat`,
   );
@@ -433,10 +433,13 @@ const createTestComponent = (
         [
           new OrderedItem(42, 5),
         ],
-        OrderState.Open,
+        OrderPaymentState.Open,
       );
       stateManager.set(["Orders", orderId], order).then(() => {
-        stateManager.set(["Orders", orderId, "State"], OrderState.Committed);
+        stateManager.set(
+          ["Orders", orderId, "PaymentState"],
+          OrderPaymentState.Committed,
+        );
       });
       stateManager.set(
         ["Orders", orderId, "InvoiceAddress"],

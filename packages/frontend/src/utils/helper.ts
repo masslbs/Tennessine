@@ -4,7 +4,7 @@ import { Logger } from "@logtape/logtape";
 
 import { Dispatch, SetStateAction } from "react";
 
-import { KeycardRole, OrderState } from "../types.ts";
+import { KeycardRole, OrderPaymentState } from "../types.ts";
 
 export const taggedKeys = ["orderId", "listingId", "keycardAddress", "shopId"];
 
@@ -57,10 +57,12 @@ export function removeCachedKeycards() {
     }
   }
 }
+
 export function isValidEmail(email: string) {
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailPattern.test(email);
 }
+
 export function formatDate(ttl: number) {
   return new Intl.DateTimeFormat("en-GB", {
     year: "numeric",
@@ -73,23 +75,24 @@ export function formatDate(ttl: number) {
   }).format((ttl * 1000) - 86400000);
 }
 
-export function OrderStateFromNumber(num: number) {
+// TODO: we might want to move this to a helper function on orders
+export function OrderPaymentStateFromNumber(num: number) {
   switch (num) {
-    case OrderState.Unspecified:
+    case OrderPaymentState.Unspecified:
       return `Unspecified`;
-    case OrderState.Open:
+    case OrderPaymentState.Open:
       return `Open`;
-    case OrderState.Canceled:
+    case OrderPaymentState.Canceled:
       return `Canceled`;
-    case OrderState.Committed:
+    case OrderPaymentState.Committed:
       return `Committed`;
-    case OrderState.PaymentChosen:
+    case OrderPaymentState.PaymentChosen:
       return `Payment Chosen`;
-    case OrderState.Unpaid:
+    case OrderPaymentState.Unpaid:
       return `Unpaid`;
-    case OrderState.Paid:
+    case OrderPaymentState.Paid:
       return `Paid`;
     default:
-      throw new Error(`Invalid order state: ${num}`);
+      throw new Error(`Invalid order payment state: ${num}`);
   }
 }

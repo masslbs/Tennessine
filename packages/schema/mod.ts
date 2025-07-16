@@ -23,7 +23,7 @@ import {
   AddressDetails,
   Order,
   OrderedItem,
-  OrderState,
+  OrderPaymentState,
   PaymentDetails,
 } from "./standin_order.ts";
 import { BaseClass } from "./utils.ts";
@@ -38,7 +38,7 @@ export {
   Manifest,
   Order,
   OrderedItem,
-  OrderState,
+  OrderPaymentState,
   Payee,
   PayeeMap,
   PayeeMetadata,
