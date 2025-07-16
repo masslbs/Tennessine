@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { ListingViewState, OrderState } from "@massmarket/schema";
-export { ListingViewState, OrderState };
+import { ListingViewState, OrderPaymentState } from "@massmarket/schema";
+export { ListingViewState, OrderPaymentState };
 export type KeyCard = `0x${string}`;
 export type ListingId = number;
 export type TagId = `0x${string}`;

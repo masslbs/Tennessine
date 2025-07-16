@@ -13,7 +13,7 @@ import { mintShop } from "@massmarket/contracts";
 import { discoverRelay, RelayClient } from "./mod.ts";
 
 export const relayURL = Deno.env.get("RELAY_ENDPOINT") ||
-  "http://localhost:4444/v4";
+  "http://localhost:4444/v5";
 
 export function createTestBlockchainClient() {
   return createTestClient({

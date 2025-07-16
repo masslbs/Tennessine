@@ -16,7 +16,7 @@ enableLogging();
 
 import { discoverRelay, type Patch, RelayClient } from "./mod.ts";
 
-const relayURL = Deno.env.get("RELAY_ENDPOINT") || "http://localhost:4444/v4";
+const relayURL = Deno.env.get("RELAY_ENDPOINT") || "http://localhost:4444/v5";
 
 // helper function
 async function writeAndReadPatch(

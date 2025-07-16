@@ -39,7 +39,7 @@ const testAccounts = await testClient.requestAddresses();
 export const testAccount = testAccounts[0];
 
 export const relayURL = Deno.env.get("RELAY_ENDPOINT") ||
-  "http://localhost:4444/v4";
+  "http://localhost:4444/v5";
 const testRelayEndpoint = await discoverRelay(relayURL);
 
 export function createWrapper(

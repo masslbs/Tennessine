@@ -644,7 +644,7 @@ async function getAccountPublicKey(
 export async function discoverRelay(url: string): Promise<IRelayEndpoint> {
   const discoveryURL = url
     .replace("ws", "http")
-    .replace("/v4", "/testing/discovery");
+    .replace("/v5", "/testing/discovery");
   const testingResponse = await fetch(discoveryURL);
   const testingData = await testingResponse.json();
   return {

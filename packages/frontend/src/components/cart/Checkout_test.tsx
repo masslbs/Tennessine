@@ -14,7 +14,7 @@ import {
   Manifest,
   Order,
   OrderedItem,
-  OrderState,
+  OrderPaymentState,
   ShippingRegion,
   ShippingRegionsMap,
 } from "@massmarket/schema";
@@ -184,7 +184,7 @@ async function runCheckoutTest(currencyConfig: CurrencyTestConfig) {
       new OrderedItem(23, 200), // 200 of item 23
       new OrderedItem(42, 5), // 5 of item 42
     ],
-    OrderState.Open,
+    OrderPaymentState.Open,
   );
   await stateManager.set(["Orders", orderId], order);
 
@@ -232,7 +232,7 @@ async function runCheckoutTest(currencyConfig: CurrencyTestConfig) {
 
   const orderData = await stateManager.get(["Orders", orderId]);
   const o = Order.fromCBOR(orderData!);
-  expect(o.State).toBe(OrderState.Committed);
+  expect(o.State).toBe(OrderPaymentState.Committed);
 
   unmountCheckout();
 
