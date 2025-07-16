@@ -4,6 +4,10 @@ import { usePublicClient } from "wagmi";
 
 import { useMassMarketContext } from "./useMassMarketContext.ts";
 
+/**
+ * This hook takes the shop chain from the config, and returns a public client with the provided chain.
+ */
+
 export function useShopPublicClient() {
   const context = useMassMarketContext();
   const chain =
