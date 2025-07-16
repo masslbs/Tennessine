@@ -33,7 +33,7 @@ import { KeycardRole } from "../types.ts";
 import { env } from "../utils/env.ts";
 
 export const relayURL = Deno.env.get("RELAY_ENDPOINT") ||
-  "http://localhost:4444/v4";
+  "http://localhost:4444/v5";
 const testRelayEndpoint = await discoverRelay(relayURL);
 
 export const testClient = createTestClient({

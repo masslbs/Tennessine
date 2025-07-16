@@ -16,7 +16,7 @@ import { Order, OrderedItem } from "@massmarket/schema";
 
 import Navigation from "./Navigation.tsx";
 import { createRouterWrapper, testClient } from "../testutils/mod.tsx";
-import { OrderState } from "../types.ts";
+import { OrderPaymentState } from "../types.ts";
 Deno.test("Check that we can render the navigation bar", {
   sanitizeResources: false,
   sanitizeOps: false,
@@ -68,7 +68,7 @@ Deno.test("Check that we can render the navigation bar", {
       new OrderedItem(item1ID, 32),
       new OrderedItem(item2ID, 24),
     ],
-    OrderState.Open,
+    OrderPaymentState.Open,
   );
   await stateManager.set(["Orders", orderId], order);
 
@@ -198,8 +198,8 @@ Deno.test("Check that we can render the navigation bar", {
     //Check that the order was committed after clicking checkout button.
     const updatedOrder = await stateManager.get(["Orders", orderId]);
     expect(updatedOrder).toBeDefined();
-    const state = Order.fromCBOR(updatedOrder!).State;
-    expect(state).toBe(OrderState.Committed);
+    const state = Order.fromCBOR(updatedOrder!).PaymentState;
+    expect(state).toBe(OrderPaymentState.Committed);
   });
 
   await t.step("clear cart when order is committed", async () => {
@@ -231,7 +231,7 @@ Deno.test("Check that we can render the navigation bar", {
       const o = orders.get(orderId) as CodecValue;
       const order = Order.fromCBOR(o!);
       expect(order.CanceledAt).toBeDefined();
-      expect(order.State).toBe(OrderState.Canceled);
+      expect(order.PaymentState).toBe(OrderPaymentState.Canceled);
     });
   });
 

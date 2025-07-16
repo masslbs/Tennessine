@@ -10,7 +10,7 @@ import { getLogger } from "@logtape/logtape";
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
 import type { CodecValue } from "@massmarket/utils/codec";
 
-import { ListingId, OrderState } from "../types.ts";
+import { ListingId, OrderPaymentState } from "../types.ts";
 import Button from "./common/Button.tsx";
 import BackButton from "./common/BackButton.tsx";
 import { useStateManager } from "../hooks/useStateManager.ts";
@@ -101,7 +101,7 @@ export default function ListingDetail() {
 
       // Update existing order
       // If the order is not an open order, cancel it and create a new one
-      if (currentOrder?.State !== OrderState.Open) {
+      if (currentOrder?.PaymentState !== OrderPaymentState.Open) {
         orderId = await cancelAndRecreateOrder();
       }
 

@@ -24,7 +24,7 @@ import {
   ChainAddress,
   Manifest,
   Order,
-  OrderState,
+  OrderPaymentState,
   Payee,
   PayeeMetadata,
 } from "@massmarket/schema";
@@ -345,7 +345,7 @@ export default function ChoosePayment() {
         "Orders",
         currentOrder.ID,
         "State",
-      ], OrderState.PaymentChosen);
+      ], OrderPaymentState.PaymentChosen);
       logger.debug("chosen payment set");
     } catch (error: unknown) {
       logError("Error setting chosen payment", error);

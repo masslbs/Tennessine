@@ -6,7 +6,7 @@ import { Order, OrderedItem } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
 
 import { useStateManager } from "./useStateManager.ts";
-import { KeycardRole, ListingId, OrderState } from "../types.ts";
+import { KeycardRole, ListingId, OrderPaymentState } from "../types.ts";
 import { useKeycard } from "./useKeycard.ts";
 import { useMassMarketContext } from "@massmarket/react-hooks";
 
@@ -22,11 +22,11 @@ export function useCurrentOrder() {
       return;
     }
     const order = Order.fromCBOR(o);
-    switch (order.State) {
-      case OrderState.Canceled:
+    switch (order.PaymentState) {
+      case OrderPaymentState.Canceled:
         setCurrentOrder(null);
         break;
-      case OrderState.Paid:
+      case OrderPaymentState.Paid:
         setCurrentOrder(null);
         break;
       default:
@@ -47,7 +47,7 @@ export function useCurrentOrder() {
           new OrderedItem(itemId, Number(quantity)),
         ]
         : [],
-      OrderState.Open,
+      OrderPaymentState.Open,
     );
     await stateManager.set(
       ["Orders", orderId],
@@ -68,8 +68,8 @@ export function useCurrentOrder() {
       new Date(),
     );
     await stateManager.set(
-      ["Orders", currentOrder!.ID, "State"],
-      OrderState.Canceled,
+      ["Orders", currentOrder!.ID, "PaymentState"],
+      OrderPaymentState.Canceled,
     );
   }
 
@@ -81,7 +81,7 @@ export function useCurrentOrder() {
     const newOrder = new Order(
       newOrderID,
       items,
-      OrderState.Open,
+      OrderPaymentState.Open,
     );
 
     await stateManager!.set(
@@ -110,13 +110,13 @@ export function useCurrentOrder() {
 
     for (const [_, o] of allOrders.entries()) {
       const order = Order.fromCBOR(o);
-      if (order.State === OrderState.Open) {
+      if (order.PaymentState === OrderPaymentState.Open) {
         openOrders.push(order);
-      } else if (order.State === OrderState.Committed) {
+      } else if (order.PaymentState === OrderPaymentState.Committed) {
         committedOrders.push(order);
       } else if (
-        order.State === OrderState.Unpaid ||
-        order.State === OrderState.PaymentChosen
+        order.PaymentState === OrderPaymentState.Unpaid ||
+        order.PaymentState === OrderPaymentState.PaymentChosen
       ) {
         unpaidOrders.push(order);
       }
