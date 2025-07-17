@@ -10,14 +10,10 @@ import {
   createTestRelayClient,
   createTestStateManager,
   createWrapper,
+  denoTestOptions,
   testWrapper,
 } from "./_createWrapper.tsx";
 import { hexToBytes } from "viem";
-
-const denoTestOptions = {
-  sanitizeResources: false,
-  sanitizeOps: false,
-};
 
 Deno.test(
   "usePricingCurrency hook",
