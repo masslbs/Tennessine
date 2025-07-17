@@ -2,9 +2,10 @@ import { render, waitFor } from "@testing-library/react";
 import { expect } from "@std/expect";
 import { useEffect } from "react";
 
-import { allListings } from "@massmarket/schema/testFixtures";
 import { randUint64 } from "@massmarket/utils";
+import type { CodecKey, CodecValue } from "@massmarket/utils/codec";
 import { Order, OrderedItem, OrderState } from "@massmarket/schema";
+import { allListings } from "@massmarket/schema/testFixtures";
 
 import {
   createTestRelayClient,
@@ -32,14 +33,29 @@ Deno.test(
       await relayClient.authenticate();
       stateManager.addConnection(relayClient);
       for (const [key, entry] of allListings.entries()) {
-        console.log("key", key);
         await stateManager.set(["Listings", key], entry);
         await stateManager.set(["Inventory", key], 100);
       }
     });
 
+    await t.step("Test CreateOrder function", async () => {
+      const rendered = render(<CreateOrderTestComponent />, {
+        wrapper: createWrapper(shopId),
+      });
+      await waitFor(async () => {
+        expect(rendered.getByTestId("order-success").textContent).toBe(
+          "successfully created order",
+        );
+        const orders = await stateManager.get(["Orders"]) as Map<
+          CodecKey,
+          CodecValue
+        >;
+        expect(orders.size).toBe(1);
+      });
+    });
+
     await t.step("Test that the hook returns the last order", async () => {
-      const rendered = render(<TestComponent />, {
+      const rendered = render(<LastOrderTestComponent />, {
         wrapper: createWrapper(shopId),
       });
       //Test that the hook returns orderID2, since that is the most recent order created.
@@ -52,7 +68,7 @@ Deno.test(
   }),
 );
 
-const TestComponent = () => {
+const LastOrderTestComponent = () => {
   const { stateManager } = useStateManager();
   const { activeOrder } = useActiveOrder();
 
@@ -61,16 +77,16 @@ const TestComponent = () => {
     const order = new Order(
       orderId,
       [
-        new OrderedItem(23, 7), // 200 of item 23
-        new OrderedItem(42, 5), // 5 of item 42
+        new OrderedItem(23, 7),
+        new OrderedItem(42, 5),
       ],
       OrderState.Open,
     );
     const order2 = new Order(
       orderId2,
       [
-        new OrderedItem(23, 5), // 200 of item 23
-        new OrderedItem(42, 5), // 5 of item 42
+        new OrderedItem(23, 5),
+        new OrderedItem(42, 5),
       ],
       OrderState.Open,
     );
@@ -79,4 +95,22 @@ const TestComponent = () => {
     });
   }, [stateManager]);
   return <div data-testid="active-order">{activeOrder?.ID}</div>;
+};
+
+const CreateOrderTestComponent = () => {
+  const { stateManager } = useStateManager();
+  const { createOrder, activeOrder } = useActiveOrder();
+  useEffect(() => {
+    if (!stateManager) return;
+
+    createOrder().then();
+  }, [stateManager]);
+
+  return (
+    <div>
+      {activeOrder && (
+        <p data-testid="order-success">successfully created order</p>
+      )}
+    </div>
+  );
 };

@@ -9,28 +9,29 @@ import { getLogger } from "@logtape/logtape";
 
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
 import type { CodecValue } from "@massmarket/utils/codec";
-
+import {
+  useActiveOrder,
+  useKeycard,
+  usePricingCurrency,
+  useStateManager,
+} from "@massmarket/react-hooks";
 import { ListingId, OrderState } from "../types.ts";
 import Button from "./common/Button.tsx";
 import BackButton from "./common/BackButton.tsx";
-import { useStateManager } from "../hooks/useStateManager.ts";
-import { useBaseToken } from "../hooks/useBaseToken.ts";
-import { useKeycard } from "../hooks/useKeycard.ts";
+
 import ErrorMessage from "./common/ErrorMessage.tsx";
 import SuccessToast from "./common/SuccessToast.tsx";
-import { useCurrentOrder } from "../hooks/useCurrentOrder.ts";
 import { getErrLogger } from "../utils/helper.ts";
 import ChevronRight from "./common/ChevronRight.tsx";
 
 const baseLogger = getLogger(["mass-market", "frontend", "ListingDetail"]);
 
 export default function ListingDetail() {
-  const { baseToken } = useBaseToken();
+  const { pricingCurrency } = usePricingCurrency();
   const { stateManager } = useStateManager();
-  const [keycard] = useKeycard();
+  const { keycard } = useKeycard();
+  const { activeOrder, createOrder, cancelAndRecreateOrder } = useActiveOrder();
   const search = useSearch({ strict: false });
-  const { currentOrder, createOrder, cancelAndRecreateOrder } =
-    useCurrentOrder();
   const itemId = search.itemId as ListingId;
   const [listing, setListing] = useState<Listing>(new Listing());
   const [tokenIcon, setIcon] = useState("/icons/usdc-coin.png");
@@ -44,18 +45,17 @@ export default function ListingDetail() {
   // this early stage.
   const logger = baseLogger.with({
     listingId: itemId,
-    orderId: currentOrder?.ID,
+    orderId: activeOrder?.ID,
     keycardAddress: keycard?.address,
   });
   const logError = getErrLogger(logger, setErrorMsg);
 
   useEffect(() => {
-    if (!(itemId && baseToken && stateManager)) {
+    if (!(itemId && pricingCurrency && stateManager)) {
       return;
     }
     //set item details
-    stateManager
-      ?.get(["Listings", itemId])
+    stateManager!.get(["Listings", itemId])
       .then((res: CodecValue | undefined) => {
         if (!res) {
           logger.info`Listing ${itemId} not found`;
@@ -64,11 +64,21 @@ export default function ListingDetail() {
         const item = Listing.fromCBOR(res);
         setListing(item);
 
-        if (baseToken?.symbol === "ETH") {
+        if (pricingCurrency?.symbol === "ETH") {
           setIcon("/icons/eth-coin.svg");
         }
       });
-  }, [itemId, baseToken, stateManager]);
+
+    function onListingChange(res: CodecValue) {
+      const item = Listing.fromCBOR(res);
+      setListing(item);
+    }
+
+    stateManager.events.on(onListingChange, ["Listings", itemId]);
+    return () => {
+      stateManager.events.off(onListingChange, ["Listings", itemId]);
+    };
+  }, [itemId, pricingCurrency, stateManager]);
 
   if (!listing) {
     return (
@@ -88,7 +98,7 @@ export default function ListingDetail() {
       return;
     }
     try {
-      let orderId = currentOrder?.ID;
+      let orderId = activeOrder?.ID;
       if (!orderId) {
         await createOrder(itemId, quantity);
         if (quantity <= 1) {
@@ -101,7 +111,7 @@ export default function ListingDetail() {
 
       // Update existing order
       // If the order is not an open order, cancel it and create a new one
-      if (currentOrder?.State !== OrderState.Open) {
+      if (activeOrder?.State !== OrderState.Open) {
         orderId = await cancelAndRecreateOrder();
       }
 
@@ -175,7 +185,7 @@ export default function ListingDetail() {
             {Metadata.Title}
           </h1>
           <div
-            className={`mt-2 ${keycard.role === "merchant" ? "" : "hidden"}`}
+            className={`mt-2 ${keycard?.role === "merchant" ? "" : "hidden"}`}
           >
             <Button>
               <Link
@@ -320,11 +330,13 @@ export default function ListingDetail() {
                 className="w-6 h-6 max-h-6"
               />
               <h1 data-testid="price">
-                {formatUnits(Price, baseToken.decimals)}
+                {pricingCurrency
+                  ? formatUnits(Price, pricingCurrency.decimals)
+                  : "Loading price..."}
               </h1>
             </div>
             <div
-              className={keycard.role === "merchant" ? "hidden" : "flex gap-2"}
+              className={keycard?.role === "merchant" ? "hidden" : "flex gap-2"}
             >
               <div>
                 <p className="text-xs text-primary-gray mb-2">Quantity</p>
