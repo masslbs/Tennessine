@@ -43,7 +43,7 @@ Deno.test(
     });
 
     await t.step("Customer can add to cart", async () => {
-      const wrapper = await createWrapper(shopId, `itemId=${listingId}`);
+      const wrapper = await createWrapper(shopId, `/?itemId=${listingId}`);
       const { unmount } = render(<ListingDetail />, {
         wrapper,
       });
