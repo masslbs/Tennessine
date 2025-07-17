@@ -43,6 +43,7 @@ export default function (
     shopMetadata: ShopForm;
   },
 ) {
+  // This useRef is to track if mint() is in progress to prevent mint() from being called multiple times during initial rerenders when the component mounts.
   const mintInProgress = useRef<boolean>(false);
   const [storeRegistrationStatus, setStoreRegistrationStatus] = useState<
     string
@@ -68,13 +69,14 @@ export default function (
   const logError = getErrLogger(logger, setErrorMsg);
 
   useEffect(() => {
-    // Start mint when we land on this screen.
+    // mint() is called when we land on this screen.
+    // wait for relayEndpoint to be loaded.
     if (mintInProgress.current || !relayEndpoint) return;
     mint();
   }, [relayEndpoint]);
 
   useEffect(() => {
-    // We have to wait for merchant keycard to be enrolled, and also for stateManager to be instantiated.
+    // We have to wait for merchant keycard to be enrolled, and also for stateManager + RC to be instantiated.
     if (
       keycard?.role === "merchant" &&
       stateManager && relayClient
