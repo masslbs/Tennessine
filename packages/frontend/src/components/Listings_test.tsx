@@ -33,8 +33,9 @@ Deno.test(
     });
 
     await t.step("Render listings for customers", async () => {
+      const wrapper = await createWrapper(shopId);
       const { unmount } = render(<Listings />, {
-        wrapper: createWrapper(shopId),
+        wrapper,
       });
       await waitFor(() => {
         const listings = screen.getAllByTestId("product-container");
@@ -63,8 +64,10 @@ Deno.test(
     });
 
     await t.step("Render listings for merchants", async () => {
+      const wrapper = await createWrapper(shopId);
+
       const { unmount } = render(<MerchantTestComponent />, {
-        wrapper: createWrapper(shopId),
+        wrapper,
       });
       await waitFor(() => {
         const listings = screen.getAllByTestId("product-container");

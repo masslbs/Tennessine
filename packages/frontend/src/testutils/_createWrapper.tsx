@@ -1,15 +1,18 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
+  createMemoryHistory,
   createRootRoute,
+  createRoute,
   createRouter,
   Outlet,
   RouterProvider,
 } from "@tanstack/react-router";
 import { createConfig, http, mock, WagmiProvider } from "wagmi";
-import { foundry } from "wagmi/chains";
+import { hardhat } from "wagmi/chains";
 import { createTestClient, publicActions, walletActions } from "viem";
 import { cleanup } from "@testing-library/react";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { connect } from "wagmi/actions";
 
 import { mintShop } from "@massmarket/contracts";
 import { discoverRelay, RelayClient } from "@massmarket/client";
@@ -18,6 +21,7 @@ import StateManager from "@massmarket/stateManager";
 import { LevelStore } from "@massmarket/store";
 import { defaultState } from "@massmarket/schema";
 import { MassMarketProvider } from "@massmarket/react-hooks";
+import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -26,7 +30,7 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 export const testClient = createTestClient({
   transport: http(),
-  chain: foundry,
+  chain: hardhat,
   mode: "anvil",
 }).extend(walletActions).extend(publicActions);
 
@@ -42,9 +46,9 @@ export const relayURL = Deno.env.get("RELAY_ENDPOINT") ||
   "http://localhost:4444/v4";
 const testRelayEndpoint = await discoverRelay(relayURL);
 
-export function createWrapper(
-  shopId: bigint = random256BigInt(),
-  searchParams: string | null = null,
+export async function createWrapper(
+  shopId: bigint | null = random256BigInt(),
+  path: string = "/",
   testAccountIndex = 0,
 ) {
   const queryClient = new QueryClient({
@@ -54,41 +58,62 @@ export function createWrapper(
       },
     },
   });
-  globalThis.location.replace(
-    `http://localhost?shopId=0x${shopId.toString(16)}${
-      searchParams ? `&${searchParams}` : ""
-    }`,
-  );
+  const initialURL = (() => {
+    const url = new URL(path, "http://localhost");
+    const searchParams = url.searchParams;
+
+    if (shopId) {
+      searchParams.set("shopId", `0x${shopId.toString(16)}`);
+    }
+
+    // Return the path with search params, but without the base URL
+    return `${url.pathname}${
+      searchParams.toString() ? "?" + searchParams.toString() : ""
+    }`;
+  })();
+  const connectors = [
+    mock({
+      accounts: [testAccounts[testAccountIndex]],
+      features: {
+        defaultConnected: true,
+        reconnect: true,
+      },
+    }),
+  ];
+
+  const config = createConfig({
+    chains: [hardhat],
+    connectors,
+    transports: {
+      [hardhat.id]: http(),
+    },
+  });
+  // Establish wallet connection
+  await connect(config, { connector: config.connectors[0] });
+
   return ({ children }: { children: React.ReactNode }) => {
+    function RootComponent() {
+      return <Outlet />;
+    }
     const rootRoute = createRootRoute({
-      component: () => (
-        <>
-          {children}
-          <Outlet />
-        </>
-      ),
+      component: RootComponent,
+    });
+    const root = createRoute({
+      getParentRoute: () => rootRoute,
+      path: "/",
+      component: () => <>{children}</>,
+    });
+    const createShopRoute = createRoute({
+      getParentRoute: () => rootRoute,
+      path: "/create-shop",
+      component: () => <>{children}</>,
     });
 
     const router = createRouter({
-      routeTree: rootRoute,
-    });
-
-    const connectors = [
-      mock({
-        accounts: [testAccounts[testAccountIndex]],
-        features: {
-          defaultConnected: true,
-          reconnect: true,
-        },
+      routeTree: rootRoute.addChildren([root, createShopRoute]),
+      history: createMemoryHistory({
+        initialEntries: [initialURL],
       }),
-    ];
-
-    const config = createConfig({
-      chains: [foundry],
-      connectors,
-      transports: {
-        [foundry.id]: http(),
-      },
     });
 
     return (
@@ -97,7 +122,9 @@ export function createWrapper(
           config={{ db: new LevelStore(), chainName: "hardhat" }}
         >
           <QueryClientProvider client={queryClient}>
-            <RouterProvider router={router} />,
+            <RainbowKitProvider showRecentTransactions>
+              <RouterProvider router={router} />
+            </RainbowKitProvider>
           </QueryClientProvider>
         </MassMarketProvider>
       </WagmiProvider>
