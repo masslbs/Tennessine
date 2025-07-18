@@ -70,7 +70,7 @@ export default function Transactions(
     const transactions = Array.from([...orders.entries()])
       .filter(([_, value]) => {
         if (filter === "paid") {
-          return value.State === OrderPaymentState.Paid;
+          return value.PaymentState === OrderPaymentState.Paid;
         }
         return true;
       }).sort((a, b) => {
@@ -125,7 +125,7 @@ export default function Transactions(
             <p className="truncate">{time}</p>
             <p className="truncate">{total}</p>
             <p data-testid="status" className="truncate">
-              {OrderPaymentStateFromNumber(value.State)}
+              {OrderPaymentStateFromNumber(value.PaymentState)}
             </p>
           </div>
         </Link>

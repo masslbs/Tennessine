@@ -68,7 +68,7 @@ export default function OrderDetails() {
   }, [orderId, stateManager]);
 
   useEffect(() => {
-    if (order?.State === OrderPaymentState.Paid) {
+    if (order?.PaymentState === OrderPaymentState.Paid) {
       const id = order.ChosenCurrency!.ChainID;
       order.TxDetails!.TxHash && setTxHash(toHex(order.TxDetails!.TxHash!));
       order.TxDetails!.BlockHash &&
@@ -245,7 +245,7 @@ export default function OrderDetails() {
             <div className="bg-white p-2 rounded-lg flex whitespace-nowrap">
               <p className="mr-2">Status:</p>
               <p className="font-bold">
-                {OrderPaymentStateFromNumber(order.State)}
+                {OrderPaymentStateFromNumber(order.PaymentState)}
               </p>
             </div>
           </div>

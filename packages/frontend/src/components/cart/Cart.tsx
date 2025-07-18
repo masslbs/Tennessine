@@ -118,7 +118,7 @@ export default function Cart({
         throw new Error("No order found");
       }
       // Commit the order if it is an open order (not committed)
-      if (currentOrder!.State === OrderPaymentState.Open) {
+      if (currentOrder!.PaymentState === OrderPaymentState.Open) {
         await stateManager!.set(
           ["Orders", currentOrder!.ID, "PaymentState"],
           OrderPaymentState.Committed,
@@ -174,7 +174,7 @@ export default function Cart({
     }
     try {
       let orderId = currentOrder!.ID;
-      if (currentOrder!.State !== OrderPaymentState.Open) {
+      if (currentOrder!.PaymentState !== OrderPaymentState.Open) {
         orderId = await cancelAndRecreateOrder();
       }
       const updatedQtyMap = new Map(selectedQty);
@@ -204,7 +204,7 @@ export default function Cart({
     }
     try {
       let orderId = currentOrder!.ID;
-      if (currentOrder!.State !== OrderPaymentState.Open) {
+      if (currentOrder!.PaymentState !== OrderPaymentState.Open) {
         orderId = await cancelAndRecreateOrder();
       }
       const updatedQtyMap = new Map(selectedQty);

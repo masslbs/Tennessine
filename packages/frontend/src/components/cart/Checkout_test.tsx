@@ -232,7 +232,7 @@ async function runCheckoutTest(currencyConfig: CurrencyTestConfig) {
 
   const orderData = await stateManager.get(["Orders", orderId]);
   const o = Order.fromCBOR(orderData!);
-  expect(o.State).toBe(OrderPaymentState.Committed);
+  expect(o.PaymentState).toBe(OrderPaymentState.Committed);
 
   unmountCheckout();
 
