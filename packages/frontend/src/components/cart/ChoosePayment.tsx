@@ -344,7 +344,7 @@ export default function ChoosePayment() {
       await stateManager.set([
         "Orders",
         currentOrder.ID,
-        "State",
+        "PaymentState",
       ], OrderPaymentState.PaymentChosen);
       logger.debug("chosen payment set");
     } catch (error: unknown) {

@@ -75,6 +75,7 @@ export function formatDate(ttl: number) {
   }).format((ttl * 1000) - 86400000);
 }
 
+// TODO: we might want to move this to a helper function on orders
 export function OrderPaymentStateFromNumber(num: number) {
   switch (num) {
     case OrderPaymentState.Unspecified:

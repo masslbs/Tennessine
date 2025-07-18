@@ -6,7 +6,7 @@ import { Order } from "@massmarket/schema";
 
 import { useCurrentOrder } from "./useCurrentOrder.ts";
 import { createRouterWrapper } from "../testutils/mod.tsx";
-import { OrderState } from "../types.ts";
+import { OrderPaymentState } from "../types.ts";
 
 Deno.test(
   "useCurrentOrder",
@@ -28,7 +28,7 @@ Deno.test(
 
     await t.step("should return open order", async () => {
       const order = new Order(12);
-      order.State = OrderState.Open;
+      order.PaymentState = OrderPaymentState.Open;
       await stateManager.set(["Orders", order.ID], order);
       const { result, unmount } = renderHook(() => useCurrentOrder(), {
         wrapper,
@@ -37,7 +37,7 @@ Deno.test(
       await waitFor(() => {
         const { currentOrder } = result.current;
         assertEquals(currentOrder?.ID, order.ID);
-        assertEquals(currentOrder?.State, OrderState.Open);
+        assertEquals(currentOrder?.PaymentState, OrderPaymentState.Open);
       });
 
       unmount();
