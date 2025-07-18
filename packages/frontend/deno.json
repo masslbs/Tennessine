@@ -12,7 +12,10 @@
     "exclude": ["./src/routeTree.gen.ts"]
   },
   "fmt": {
-    "exclude": ["./src/routeTree.gen.ts"]
+    "exclude": [
+      "./src/routeTree.gen.ts",
+      "./public/icons/"
+    ]
   },
   "imports": {
     "@happy-dom/global-registrator": "npm:@happy-dom/global-registrator@17.5.6",
