@@ -55,7 +55,7 @@ Deno.test(
     });
 
     await t.step("Check if the merchant dashboard is rendered", async () => {
-      const wrapper = createWrapper(shopId);
+      const wrapper = await createWrapper(shopId);
       const { unmount } = render(<TestComponent />, {
         wrapper,
       });

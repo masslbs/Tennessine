@@ -4,7 +4,7 @@
 
 import { ChangeEvent, useEffect, useState } from "react";
 import { toHex } from "viem";
-import { useWalletClient } from "wagmi";
+import { useChains, useWalletClient } from "wagmi";
 import { equal } from "@std/assert";
 
 import { CodecValue } from "@massmarket/utils/codec";
@@ -31,14 +31,14 @@ import ErrorMessage from "../common/ErrorMessage.tsx";
 import SuccessToast from "../common/SuccessToast.tsx";
 import BackButton from "../common/BackButton.tsx";
 import Dropdown from "../common/CurrencyDropdown.tsx";
-import { useAllCurrencyOptions } from "../../hooks/useAllCurrencyOptions.ts";
-import { getErrLogger } from "../../utils/mod.ts";
+import { getAllCurrencyOptions, getErrLogger } from "../../utils/mod.ts";
 
 const baseLogger = getLogger(["mass-market", "frontend", "ShopSettings"]);
 
 export default function ShopSettings() {
   const { shopDetails } = useShopDetails();
   const { shopId } = useShopId();
+  const chains = useChains();
   const { data: wallet } = useWalletClient();
   const { stateManager } = useStateManager();
   const { relayClient } = useRelayClient();
@@ -57,7 +57,7 @@ export default function ShopSettings() {
   const [validationError, setValidationError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [manifest, setManifest] = useState<Manifest | null>(null);
-  const currencyOptions = useAllCurrencyOptions();
+  const currencyOptions = getAllCurrencyOptions([...chains]);
 
   const logger = baseLogger.with({
     shopId,
