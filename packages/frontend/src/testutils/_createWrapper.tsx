@@ -108,9 +108,18 @@ export async function createWrapper(
       path: "/create-shop",
       component: () => <>{children}</>,
     });
+    const merchantConnectRoute = createRoute({
+      getParentRoute: () => rootRoute,
+      path: "/merchant-connect",
+      component: () => <>{children}</>,
+    });
 
     const router = createRouter({
-      routeTree: rootRoute.addChildren([root, createShopRoute]),
+      routeTree: rootRoute.addChildren([
+        root,
+        createShopRoute,
+        merchantConnectRoute,
+      ]),
       history: createMemoryHistory({
         initialEntries: [initialURL],
       }),
