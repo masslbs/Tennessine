@@ -7,7 +7,7 @@ import {
   denoTestOptions,
   testWrapper,
 } from "./_createWrapper.tsx";
-import { useShopPublicClient } from "./useShopPublicClient.tsx";
+import { useShopPublicClient } from "./useShopPublicClient.ts";
 
 Deno.test(
   "useShopChain",

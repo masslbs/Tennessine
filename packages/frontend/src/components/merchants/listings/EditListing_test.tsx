@@ -32,8 +32,9 @@ Deno.test(
     stateManager.addConnection(relayClient);
 
     await t.step("Create new listing", async () => {
+      const wrapper = await createWrapper(shopId);
       const { unmount } = render(<MerchantTestComponent />, {
-        wrapper: createWrapper(shopId),
+        wrapper,
       });
       await screen.findByTestId("edit-listing-screen");
       const titleInput = screen.getByTestId("title");
@@ -103,8 +104,9 @@ Deno.test(
     });
 
     await t.step("Edit an existing listing", async () => {
+      const wrapper = await createWrapper(shopId, `/?itemId=${listingId}`);
       const { unmount } = render(<MerchantTestComponent />, {
-        wrapper: createWrapper(shopId, `itemId=${listingId}`),
+        wrapper,
       });
 
       await screen.findByTestId("edit-listing-screen");
