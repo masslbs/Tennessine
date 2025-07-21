@@ -11,11 +11,17 @@ import { CodecValue } from "@massmarket/utils/codec";
 import { setTokenURI } from "@massmarket/contracts";
 import { useShopId } from "@massmarket/react-hooks";
 import { getLogger } from "@logtape/logtape";
+
 import {
   AcceptedCurrencyMap,
   ChainAddress,
   Manifest,
 } from "@massmarket/schema";
+import {
+  useRelayClient,
+  useShopDetails,
+  useStateManager,
+} from "@massmarket/react-hooks";
 
 import { CurrencyChainOption } from "../../types.ts";
 import Button from "../common/Button.tsx";
@@ -25,22 +31,18 @@ import ErrorMessage from "../common/ErrorMessage.tsx";
 import SuccessToast from "../common/SuccessToast.tsx";
 import BackButton from "../common/BackButton.tsx";
 import Dropdown from "../common/CurrencyDropdown.tsx";
-import { useShopDetails } from "../../hooks/useShopDetails.ts";
-import { useRelayClient } from "../../hooks/useRelayClient.ts";
-import { useStateManager } from "../../hooks/useStateManager.ts";
 import { useAllCurrencyOptions } from "../../hooks/useAllCurrencyOptions.ts";
 import { getErrLogger } from "../../utils/mod.ts";
 
 const baseLogger = getLogger(["mass-market", "frontend", "ShopSettings"]);
 
 export default function ShopSettings() {
-  const { shopDetails, setShopDetails } = useShopDetails();
+  const { shopDetails } = useShopDetails();
   const { shopId } = useShopId();
   const { data: wallet } = useWalletClient();
   const { stateManager } = useStateManager();
   const { relayClient } = useRelayClient();
-
-  const [storeName, setStoreName] = useState<string>(shopDetails.name || "");
+  const [shopName, setshopName] = useState<string>(shopDetails?.name || "");
   const [avatar, setAvatar] = useState<FormData | null>(null);
 
   const [acceptedCurrencies, setAcceptedCurrencies] = useState<
@@ -60,34 +62,31 @@ export default function ShopSettings() {
   const logger = baseLogger.with({
     shopId,
   });
+
   const logError = getErrLogger(logger, setErrorMsg);
 
   useEffect(() => {
     if (!stateManager) return;
     function onUpdateEvent(res: CodecValue | undefined) {
-      if (!res) throw new Error("Manifest not found");
+      if (!res || (res instanceof Map && !res.size)) {
+        logError("Manifest not found");
+        return;
+      }
       const m = Manifest.fromCBOR(res);
       setManifest(m);
       setAcceptedCurrencies(m.AcceptedCurrencies);
-      // setPricingCurrency(m.PricingCurrency);
-    }
+      setPricingCurrency(m.PricingCurrency);
 
-    stateManager.get(["Manifest"])
-      .then((res: CodecValue | undefined) => {
-        if (!res) throw new Error("Manifest not found");
-        const m = Manifest.fromCBOR(res);
-        setManifest(m);
-        setAcceptedCurrencies(m.AcceptedCurrencies);
-        setPricingCurrency(m.PricingCurrency);
-
-        const p = m.Payees.get(m.PricingCurrency.ChainID);
-        if (p) {
-          const payee = p.keys().next().value;
-          if (payee instanceof Uint8Array) {
-            logger.debug`Payee Address: ${toHex(payee)}`;
-          }
+      const p = m.Payees.get(m.PricingCurrency.ChainID);
+      if (p) {
+        const payee = p.keys().next().value;
+        if (payee instanceof Uint8Array) {
+          logger.debug`Payee Address: ${toHex(payee)}`;
         }
-      });
+      }
+    }
+    stateManager.get(["Manifest"])
+      .then(onUpdateEvent);
 
     stateManager.events.on(onUpdateEvent, ["Manifest"]);
 
@@ -105,7 +104,11 @@ export default function ShopSettings() {
   }
   async function updateShopManifest() {
     if (!stateManager) {
-      logError(`stateManager is undefined`);
+      logError("stateManager is undefined");
+      return;
+    }
+    if (!manifest) {
+      logError("Manifest not found");
       return;
     }
     //If pricing currency needs to update.
@@ -124,12 +127,12 @@ export default function ShopSettings() {
         acceptedCurrencies,
       );
     }
-
     try {
-      //If avatar or store name changed, setShopMetadataURI.
-      if (avatar || storeName !== shopDetails.name) {
+      //If avatar or shop name changed, setShopMetadataURI.
+
+      if (avatar || shopName !== shopDetails!.name) {
         const metadata = {
-          name: storeName.length ? storeName : shopDetails.name,
+          name: shopName.length ? shopName : shopDetails!.name,
           //If new avatar was uploaded, upload the image, otherwise use previous image.
           image: avatar
             ? (
@@ -137,7 +140,7 @@ export default function ShopSettings() {
                 avatar as FormData,
               )
             ).url
-            : shopDetails.profilePictureUrl,
+            : shopDetails!.profilePictureUrl,
         };
         //Upload metadata to IPFS
         const jsn = JSON.stringify(metadata);
@@ -149,10 +152,6 @@ export default function ShopSettings() {
           formData,
         );
         await setTokenURI(wallet!, wallet!.account, [shopId!, url]);
-        setShopDetails({
-          name: storeName,
-          profilePictureUrl: metadata.image,
-        });
       }
       setSuccess("Changes saved.");
       // Deno doesn't support globalThis.scrollTo
@@ -202,7 +201,8 @@ export default function ShopSettings() {
       }
     });
   }
-
+  // Loading manifest.
+  if (!manifest) return null;
   return (
     <main
       className="px-4 md:flex justify-center"
@@ -237,7 +237,7 @@ export default function ShopSettings() {
             <AvatarUpload
               setImgBlob={setAvatar}
               logError={logError}
-              currentImg={shopDetails.profilePictureUrl}
+              currentImg={shopDetails?.profilePictureUrl}
             />
             <section className="text-sm flex flex-col gap-4">
               <div>
@@ -248,18 +248,18 @@ export default function ShopSettings() {
                   >
                     <label
                       className="font-medium text-base"
-                      htmlFor="storeName"
+                      htmlFor="shopName"
                     >
                       Shop Name
                     </label>
                     <input
                       className="mt-1 p-2 rounded"
-                      data-testid="storeName"
-                      name="storeName"
+                      data-testid="shopName"
+                      name="shopName"
                       style={{ backgroundColor: "#F3F3F3" }}
-                      value={storeName}
-                      placeholder={shopDetails.name}
-                      onChange={(e) => setStoreName(e.target.value)}
+                      value={shopName}
+                      placeholder={shopDetails?.name}
+                      onChange={(e) => setshopName(e.target.value)}
                     />
                   </form>
                 </section>
@@ -268,7 +268,7 @@ export default function ShopSettings() {
                     className="flex flex-col"
                     onSubmit={(e) => e.preventDefault()}
                   >
-                    <label className="font-medium text-base" htmlFor="storeId">
+                    <label className="font-medium text-base" htmlFor="shopId">
                       Shop ID
                     </label>
                     <div className="flex gap-2">
