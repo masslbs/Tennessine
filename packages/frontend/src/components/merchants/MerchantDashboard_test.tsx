@@ -1,74 +1,84 @@
 import "../../happyDomSetup.ts";
 
-import { render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { expect } from "@std/expect";
 
-import { random256BigInt } from "@massmarket/utils";
 import { allOrderListings, allOrders } from "@massmarket/schema/testFixtures";
+import { useKeycard } from "@massmarket/react-hooks";
 
 import MerchantDashboard from "./MerchantDashboard.tsx";
-import { createRouterWrapper, testClient } from "../../testutils/mod.tsx";
+import {
+  createTestRelayClient,
+  createTestStateManager,
+  createWrapper,
+  denoTestOptions,
+  testAccount,
+  testClient,
+  testWrapper,
+} from "../../testutils/_createWrapper.tsx";
 
-Deno.test("Merchant Dashboard", {
-  sanitizeResources: false,
-  sanitizeOps: false,
-}, async (t) => {
-  const shopId = random256BigInt();
-  // Setting up merchant
-  const {
-    stateManager: merchantStateManager,
-    relayClient: merchantRelayClient,
-  } = await createRouterWrapper({
-    shopId,
-    createShop: true,
-    enrollMerchant: true,
-  });
-  merchantStateManager.addConnection(merchantRelayClient);
+Deno.test(
+  "Merchant Dashboard",
+  denoTestOptions,
+  testWrapper(async (shopId, t) => {
+    const openOrderId = 666;
+    const committedOrderId = 667;
 
-  //Add listings to shop
-  for (const [key, entry] of allOrderListings.entries()) {
-    await merchantStateManager.set(["Listings", key], entry);
-  }
-
-  localStorage.removeItem(`keycard${shopId}`);
-
-  const { stateManager, relayClient, testAccount } = await createRouterWrapper({
-    shopId,
-  });
-
-  //Setting up customer
-  await relayClient.enrollKeycard(testClient, testAccount, true);
-  stateManager.addConnection(relayClient);
-  let orderId: number;
-
-  for (const [key, entry] of allOrders.entries()) {
-    await stateManager.set(["Orders", key], entry);
-    orderId = key;
-  }
-
-  localStorage.removeItem(`keycard${shopId}`);
-
-  const {
-    wrapper: merchantWrapper,
-  } = await createRouterWrapper({
-    shopId,
-    createShop: false,
-    enrollMerchant: true,
-  });
-  await t.step("Check if the merchant dashboard is rendered", async () => {
-    const { unmount } = render(<MerchantDashboard />, {
-      wrapper: merchantWrapper,
+    await t.step("Add listings to shop.", async () => {
+      const relayClient = await createTestRelayClient(shopId);
+      const stateManager = await createTestStateManager(shopId);
+      await relayClient.connect();
+      await relayClient.authenticate();
+      stateManager.addConnection(relayClient);
+      //Add listings to shop
+      for (const [key, entry] of allOrderListings.entries()) {
+        await stateManager.set(["Listings", key], entry);
+      }
     });
 
-    await waitFor(async () => {
-      const orders = await screen.findAllByTestId("transaction");
-      expect(orders).toBeTruthy();
-      expect(orders.length).toBe(allOrders.size);
-      const order = screen.getAllByTestId(orderId!);
-      expect(order).toBeTruthy();
-      const status = screen.getAllByTestId("status");
-      expect(status[0].textContent).toBe("Open");
+    await t.step("Add order to shop.", async () => {
+      //Setting up customer
+      const relayClient = await createTestRelayClient(shopId);
+      const stateManager = await createTestStateManager(shopId);
+      await relayClient.enrollKeycard(testClient, testAccount, true);
+      stateManager.addConnection(relayClient);
+
+      for (const [key, entry] of allOrders.entries()) {
+        await stateManager.set(["Orders", key], entry);
+      }
     });
-    unmount();
-  });
-});
+
+    await t.step("Check if the merchant dashboard is rendered", async () => {
+      const wrapper = createWrapper(shopId);
+      const { unmount } = render(<TestComponent />, {
+        wrapper,
+      });
+      await waitFor(async () => {
+        const orders = await screen.findAllByTestId("transaction");
+        expect(orders).toBeTruthy();
+        expect(orders.length).toBe(allOrders.size);
+        const open = screen.getAllByTestId(openOrderId);
+        expect(open).toBeTruthy();
+        const committed = screen.getAllByTestId(committedOrderId);
+        expect(committed).toBeTruthy();
+        expect(within(open[0]).getByTestId("status").textContent).toBe("Open");
+        expect(within(committed[0]).getByTestId("status").textContent).toBe(
+          "Committed",
+        );
+      });
+      unmount();
+    });
+    cleanup();
+  }),
+);
+
+const TestComponent = () => {
+  useKeycard({ role: "merchant" });
+  return <MerchantDashboard />;
+};

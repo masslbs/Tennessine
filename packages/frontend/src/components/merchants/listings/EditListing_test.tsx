@@ -1,5 +1,5 @@
 import "../../../happyDomSetup.ts";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "@std/expect";
 import { parseEther } from "viem";
@@ -157,6 +157,7 @@ Deno.test(
       });
       unmount();
     });
+    cleanup();
   }),
 );
 
