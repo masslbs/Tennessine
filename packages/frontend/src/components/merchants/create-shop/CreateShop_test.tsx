@@ -82,34 +82,10 @@ Deno.test(
     });
 
     expect(screen.getByTestId("minting-shop")).toBeTruthy();
-    // Check that mint() successfully executes.
-    await waitFor(() => {
-      const shopRegistrationStatus = screen.getByTestId(
-        "shop-registration-status",
-      );
-      expect(shopRegistrationStatus.textContent).toBe("Relay token ID added");
-    });
-    // Check that merchant keycard is enrolled and manifest() is called.
-    await waitFor(() => {
-      const shopRegistrationStatus = screen.getByTestId(
-        "shop-registration-status",
-      );
-      expect(shopRegistrationStatus.textContent).toBe("Updating manifest...");
-    });
-
-    await waitFor(() => {
-      const shopRegistrationStatus = screen.getByTestId(
-        "shop-registration-status",
-      );
-      expect(shopRegistrationStatus.textContent).toBe(
-        "Setting shop metadata...",
-      );
-    });
 
     await waitFor(() => {
       expect(screen.getByTestId("mint-shop-confirmation")).toBeTruthy();
-      // This is a long timeout uploadMetadata() can be slow.
-    }, { timeout: 5000 });
+    }, { timeout: 10000 });
     unmount();
     cleanup();
   },

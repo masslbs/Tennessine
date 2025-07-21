@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 import { getLogger } from "@logtape/logtape";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import {
   useAccount,
   useChainId,
@@ -56,11 +56,10 @@ export default function () {
   const config = useConfig();
   const { switchChain } = useSwitchChain({ config });
   const navigate = useNavigate({ from: "/create-shop" });
-  const search = useSearch({ from: "/create-shop" });
   const shopChain = shopPublicClient?.chain;
 
   useEffect(() => {
-    if (!search.shopId) {
+    if (!shopId) {
       const newShopId = random256BigInt();
       navigate({ search: { shopId: toHex(newShopId) } });
     }

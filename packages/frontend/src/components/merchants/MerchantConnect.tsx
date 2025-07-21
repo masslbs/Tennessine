@@ -3,41 +3,39 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useState } from "react";
-import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import { useAccount } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useNavigate } from "@tanstack/react-router";
 import { hexToBigInt, isHex, toHex } from "viem";
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { getLogger } from "@logtape/logtape";
 
 import { abi } from "@massmarket/contracts";
-import { getWindowLocation } from "@massmarket/utils";
-import { useShopId } from "@massmarket/react-hooks";
+import {
+  useKeycard,
+  useShopId,
+  useShopPublicClient,
+} from "@massmarket/react-hooks";
 
 import ConnectConfirmation from "./ConnectConfirmation.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import Button from "../common/Button.tsx";
 import ChevronRight from "../common/ChevronRight.tsx";
-import { useKeycard } from "../../hooks/useKeycard.ts";
-import { useChain } from "../../hooks/useChain.ts";
-import { KeycardRole, SearchShopStep } from "../../types.ts";
-import { useRelayClient } from "../../hooks/useRelayClient.ts";
-import { useStateManager } from "../../hooks/useStateManager.ts";
+import { SearchShopStep } from "../../types.ts";
 import { getErrLogger, isValidUrl } from "../../utils/mod.ts";
 
-const baseLogger = getLogger(["mass-market", "frontend", "connect-merchant"]);
+const baseLogger = getLogger(["mass-market", "frontend", "merchant-connect"]);
 
 const SHOP_NOT_FOUND_ERROR = "Shop not found";
 
 export default function MerchantConnect() {
+  const [enrollKeycard, setEnrollKeycard] = useState(false);
   const { status } = useAccount();
-  const { chain } = useChain();
-  const shopPublicClient = usePublicClient({ chainId: chain.id });
-  const { data: wallet } = useWalletClient();
+  const { shopPublicClient } = useShopPublicClient();
   const { shopId } = useShopId();
-  const [keycard, setKeycard] = useKeycard();
-  const { relayClient } = useRelayClient();
-  const { stateManager } = useStateManager();
+  const { keycard } = useKeycard({
+    role: enrollKeycard ? "merchant" : "guest",
+  });
+
   const navigate = useNavigate({ from: "/merchant-connect" });
 
   const [searchShopId, setSearchShopId] = useState<string>(
@@ -61,19 +59,6 @@ export default function MerchantConnect() {
   const logError = getErrLogger(logger);
 
   useEffect(() => {
-    // If keycard is already enrolled as a customer, reset keycard
-    if (shopId && keycard.role === KeycardRole.RETURNING_GUEST) {
-      const privateKey = generatePrivateKey();
-      const account = privateKeyToAccount(privateKey);
-      setKeycard({
-        privateKey,
-        role: KeycardRole.NEW_GUEST,
-        address: account.address,
-      });
-    }
-  }, [keycard.role === KeycardRole.RETURNING_GUEST, shopId]);
-
-  useEffect(() => {
     //If shopId is in env, skip the search step and go to connect step.
     if (shopId && step === SearchShopStep.Search) {
       findShopData(shopId).then((found) => {
@@ -83,6 +68,12 @@ export default function MerchantConnect() {
       });
     }
   }, [shopId]);
+
+  useEffect(() => {
+    if (keycard?.role === "merchant") {
+      setStep(SearchShopStep.Confirm);
+    }
+  }, [keycard]);
 
   function handleClearShopIdInput() {
     setSearchShopId("");
@@ -96,14 +87,12 @@ export default function MerchantConnect() {
       const shopID = isHex(id)
         ? hexToBigInt(id as `0x${string}`, { size: 32 })
         : id;
-
       const uri = (await shopPublicClient!.readContract({
         address: abi.shopRegAddress,
         abi: abi.shopRegAbi,
         functionName: "tokenURI",
         args: [shopID],
       })) as string;
-
       if (uri) {
         const res = await fetch(uri);
         const data = await res.json();
@@ -141,59 +130,19 @@ export default function MerchantConnect() {
       return;
     }
     const found = await findShopData(id as `0x${string}`);
-    // If shop exists, set shop ID in search param.
-    if (found) {
-      navigate({
-        search: { shopId: id },
-      });
-    } else {
+    if (!found) {
       setErrorMsg(SHOP_NOT_FOUND_ERROR);
     }
   }
 
-  async function enroll() {
+  function connect() {
     try {
-      if (!relayClient) {
-        throw new Error("Relay client not found");
-      }
-      if (!stateManager) {
-        logger.warn("stateManager is undefined");
-        return;
-      }
-      if (keycard.role === KeycardRole.MERCHANT) {
-        logger.debug(
-          "Keycard is already enrolled as a merchant. Redirecting to merchant dashboard.",
-        );
-        navigate({
-          to: "/merchant-dashboard",
-          search: (prev: Record<string, string>) => ({
-            shopId: prev.shopId,
-          }),
-        });
-        return;
-      }
-      const res = await relayClient.enrollKeycard(
-        wallet!,
-        wallet!.account,
-        false,
-        getWindowLocation(),
-      );
-      if (!res.ok) {
-        throw new Error("Failed to enroll keycard");
-      }
-      // Reassign keycard role as merchant after enroll.
-      setKeycard({
-        privateKey: keycard.privateKey,
-        role: KeycardRole.MERCHANT,
-        address: keycard.address,
+      navigate({
+        search: { shopId: searchShopId },
       });
-      logger.debug`Keycard enrolled: ${keycard.privateKey}`;
-      await relayClient.connect();
-      await relayClient.authenticate();
-      stateManager!.addConnection(relayClient);
-      setStep(SearchShopStep.Confirm);
+      setEnrollKeycard(true);
     } catch (error: unknown) {
-      logError("Error enrolling keycard", error);
+      logError("Error connecting to shop", error);
     }
   }
 
@@ -227,7 +176,7 @@ export default function MerchantConnect() {
           </div>
           <ConnectButton chainStatus="name" />
           <div>
-            <Button disabled={status !== "connected"} onClick={enroll}>
+            <Button disabled={status !== "connected"} onClick={connect}>
               <div className="flex items-center gap-2">
                 <p>Connect to shop</p>
                 <ChevronRight hex="#FFF" />
