@@ -1,57 +1,90 @@
 import "../../happyDomSetup.ts";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { expect } from "@std/expect";
 
-import { random256BigInt } from "@massmarket/utils";
 import { allOrderListings, allOrders } from "@massmarket/schema/testFixtures";
 import { Listing, Order } from "@massmarket/schema";
+import { useKeycard } from "@massmarket/react-hooks";
 
 import OrderDetails from "./OrderDetails.tsx";
-import { createRouterWrapper } from "../../testutils/mod.tsx";
+import {
+  createTestRelayClient,
+  createTestStateManager,
+  createWrapper,
+  denoTestOptions,
+  testAccount,
+  testClient,
+  testWrapper,
+} from "../../testutils/_createWrapper.tsx";
 
-Deno.test("Check that we can render the order details screen", {
-  sanitizeResources: false,
-  sanitizeOps: false,
-}, async () => {
-  const shopId = random256BigInt();
-  const orderId = allOrders.keys().next().value!;
-  const order = allOrders.get(orderId) as Order;
-  order.ShippingAddress = order.InvoiceAddress;
+Deno.test(
+  "Order Detail",
+  denoTestOptions,
+  testWrapper(async (shopId, t) => {
+    const orderId = 666;
+    const listingId1 = 5555;
+    const listingId2 = 5556;
+    const order = allOrders.get(orderId) as Order;
+    order.ShippingAddress = order.InvoiceAddress;
 
-  const {
-    wrapper,
-    stateManager,
-    relayClient,
-  } = await createRouterWrapper({
-    shopId,
-    path: `/?orderId=${orderId}`,
-    createShop: true,
-    enrollMerchant: true,
-  });
-  stateManager.addConnection(relayClient);
-  let listing: Listing;
-  for (const [key, entry] of allOrderListings.entries()) {
-    await stateManager.set(["Listings", key], entry);
-    if (key === order.Items[0].ListingID) {
-      listing = entry as Listing;
-    }
-  }
-  await stateManager.set(["Orders", orderId], order);
+    await t.step("Add listings to shop.", async () => {
+      const relayClient = await createTestRelayClient(shopId);
+      const stateManager = await createTestStateManager(shopId);
+      await relayClient.connect();
+      await relayClient.authenticate();
+      stateManager.addConnection(relayClient);
+      //Add listings to shop
+      for (const [key, entry] of allOrderListings.entries()) {
+        await stateManager.set(["Listings", key], entry);
+      }
+    });
 
-  const { unmount } = render(<OrderDetails />, { wrapper });
-  // screen.debug();
-  await screen.findByTestId("order-details-page");
+    await t.step("Add order to shop.", async () => {
+      //Add order as customer.
+      const relayClient = await createTestRelayClient(shopId);
+      const stateManager = await createTestStateManager(shopId);
+      await relayClient.enrollKeycard(testClient, testAccount, true);
+      stateManager.addConnection(relayClient);
+      await stateManager.set(["Orders", orderId], order);
+    });
 
-  const orderItem = await screen.findAllByTestId("order-item");
-  expect(orderItem.length).toBe(2);
-  expect(orderItem[0].textContent).toContain(`${listing!.Metadata.Title}`);
-  const details = await screen.findByTestId("shipping-details");
-  expect(details).toBeTruthy();
-  expect(details.textContent).toContain(order.ShippingAddress!.Name);
-  expect(details.textContent).toContain(order.ShippingAddress!.Address1);
-  expect(details.textContent).toContain(order.ShippingAddress!.City);
-  expect(details.textContent).toContain(order.ShippingAddress!.Country);
-  expect(details.textContent).toContain(order.ShippingAddress!.PostalCode);
-  unmount();
-  cleanup();
-});
+    await t.step("Render order details.", async () => {
+      const wrapper = await createWrapper(shopId, `/?orderId=${orderId}`);
+      const { unmount } = render(<TestComponent />, { wrapper });
+      await screen.findByTestId("order-details-page");
+
+      const listing1 = allOrderListings.get(listingId1) as Listing;
+      const listing2 = allOrderListings.get(listingId2) as Listing;
+
+      await waitFor(async () => {
+        const orderItem = await screen.findAllByTestId("order-item");
+        expect(orderItem.length).toBe(2);
+        expect(orderItem[0].textContent).toContain(
+          `${listing1.Metadata.Title}`,
+        );
+        expect(orderItem[1].textContent).toContain(
+          `${listing2.Metadata.Title}`,
+        );
+
+        const details = await screen.findByTestId("shipping-details");
+        expect(details).toBeTruthy();
+        expect(details.textContent).toContain(order.ShippingAddress!.Name);
+        expect(details.textContent).toContain(order.ShippingAddress!.Address1);
+        expect(details.textContent).toContain(order.ShippingAddress!.City);
+        expect(details.textContent).toContain(order.ShippingAddress!.Country);
+        expect(details.textContent).toContain(
+          order.ShippingAddress!.PostalCode,
+        );
+      });
+
+      unmount();
+    });
+
+    cleanup();
+  }),
+);
+
+const TestComponent = () => {
+  useKeycard({ role: "merchant" });
+  return <OrderDetails />;
+};

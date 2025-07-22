@@ -6,6 +6,7 @@ import { Link } from "@tanstack/react-router";
 import Transactions from "./Transactions.tsx";
 import ButtonLink from "../common/ButtonLink.tsx";
 import ChevronRight from "../common/ChevronRight.tsx";
+
 export default function MerchantDashboard() {
   return (
     <main

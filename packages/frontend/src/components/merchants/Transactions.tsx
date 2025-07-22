@@ -1,24 +1,35 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { formatUnits } from "viem";
+import { getLogger } from "@logtape/logtape";
 
 import { Order } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
+import {
+  usePricingCurrency,
+  useShopId,
+  useStateManager,
+} from "@massmarket/react-hooks";
 
 import { OrderId, OrderState } from "../../types.ts";
-import { useStateManager } from "../../hooks/useStateManager.ts";
-import { useBaseToken } from "../../hooks/useBaseToken.ts";
 import { formatDate, OrderStateFromNumber } from "../../utils/helper.ts";
+
+const baseLogger = getLogger(["mass-market", "frontend", "Transactions"]);
 
 export default function Transactions(
   { displayLastFour }: { displayLastFour?: boolean },
 ) {
   const { stateManager } = useStateManager();
-  const { baseToken } = useBaseToken();
+  const { pricingCurrency } = usePricingCurrency();
+  const { shopId } = useShopId();
 
   const [filter, setFilter] = useState<string>("all");
   const [sort, setSort] = useState<string>("oldest");
   const [orders, setOrders] = useState<Map<OrderId, Order>>(new Map());
+
+  const logger = baseLogger.with({
+    shopId,
+  });
 
   function mapToOrderClass(orders: CodecValue) {
     if (!(orders instanceof Map)) {
@@ -37,6 +48,7 @@ export default function Transactions(
     if (!stateManager) return;
 
     function ordersEvent(res: CodecValue) {
+      logger.debug`Orders event received.`;
       const allOrders = mapToOrderClass(res);
       setOrders(allOrders);
     }
@@ -60,6 +72,10 @@ export default function Transactions(
   }, [stateManager]);
 
   function renderTransactions() {
+    if (!pricingCurrency) {
+      logger.debug`No pricing currency found`;
+      return;
+    }
     if (!orders.size) {
       return (
         <div data-testid="no-transactions">
@@ -98,8 +114,11 @@ export default function Transactions(
         time = d[1];
 
         total = `${
-          formatUnits(BigInt(value.PaymentDetails.Total), baseToken.decimals)
-        } ${baseToken.symbol}`;
+          formatUnits(
+            BigInt(value.PaymentDetails.Total),
+            pricingCurrency.decimals,
+          )
+        } ${pricingCurrency.symbol}`;
       }
 
       return (
@@ -117,8 +136,9 @@ export default function Transactions(
             className={`p-3 grid grid-cols-5 text-center ${
               index % 2 === 0 ? "bg-white" : "bg-background-gray"
             }`}
+            data-testid={ID}
           >
-            <p data-testid={ID} className="truncate">
+            <p className="truncate">
               {ID.toString()}
             </p>
             <p className="truncate">{date}</p>

@@ -12,11 +12,10 @@ import {
 } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
 import { getTokenInformation } from "@massmarket/contracts";
+import { usePricingCurrency, useStateManager } from "@massmarket/react-hooks";
 
 import BackButton from "../common/BackButton.tsx";
 import { ListingId, OrderState } from "../../types.ts";
-import { useStateManager } from "../../hooks/useStateManager.ts";
-import { useBaseToken } from "../../hooks/useBaseToken.ts";
 import { formatDate, OrderStateFromNumber } from "../../utils/mod.ts";
 
 const baseLogger = getLogger(["mass-market", "frontend", "OrderDetails"]);
@@ -25,7 +24,7 @@ export default function OrderDetails() {
   const { stateManager } = useStateManager();
   const chains = useChains();
   const search = useSearch({ strict: false });
-  const { baseToken } = useBaseToken();
+  const { pricingCurrency } = usePricingCurrency();
   const orderId = search.orderId;
   const [cartItemsMap, setCartMap] = useState<
     Map<ListingId, { selectedQty: number; listing: Listing }>
@@ -50,21 +49,35 @@ export default function OrderDetails() {
 
   useEffect(() => {
     if (!orderId || !stateManager) return;
+
+    function onOrderUpdate(res: CodecValue | undefined) {
+      if (!res) throw new Error("Order not found");
+      const o = Order.fromCBOR(res);
+      getAllCartItemDetails(o).then((cartItems) => {
+        setCartMap(cartItems);
+        setOrder(o);
+
+        if (o.PaymentDetails) {
+          const d = formatDate(o.PaymentDetails!.TTL);
+          setOrderDate(d);
+        }
+      });
+    }
     stateManager.get(["Orders", orderId]).then(
       (res: CodecValue | undefined) => {
-        if (!res) throw new Error("Order not found");
-        const o = Order.fromCBOR(res);
-        getAllCartItemDetails(o).then((cartItems) => {
-          setCartMap(cartItems);
-          setOrder(o);
-
-          if (o.PaymentDetails) {
-            const d = formatDate(o.PaymentDetails!.TTL);
-            setOrderDate(d);
-          }
-        });
+        if (!res) {
+          logger.debug("Order not found");
+          return;
+        }
+        onOrderUpdate(res);
       },
     );
+
+    stateManager.events.on(onOrderUpdate, ["Orders", orderId]);
+
+    return () => {
+      stateManager.events.off(onOrderUpdate, ["Orders", orderId]);
+    };
   }, [orderId, stateManager]);
 
   useEffect(() => {
@@ -81,7 +94,7 @@ export default function OrderDetails() {
       }
     }
     // Show price in pricing currency as default.
-    setToken(baseToken);
+    pricingCurrency && setToken(pricingCurrency);
     // TODO: might need to useToken(...)s. one for items, one for order summary
     // this not necessarily the same currency as pricing currency was at the time of order...
     if (order?.ChosenCurrency) {

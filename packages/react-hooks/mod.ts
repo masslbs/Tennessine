@@ -7,4 +7,5 @@ export * from "./useKeycard.ts";
 export * from "./useRelayClient.ts";
 export * from "./usePricingCurrency.ts";
 export * from "./useActiveOrder.ts";
+export * from "./useShopDetails.ts";
 export * from "./useShopPublicClient.ts";

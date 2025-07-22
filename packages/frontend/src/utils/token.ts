@@ -1,5 +1,7 @@
-import { Address, toBytes, zeroAddress } from "viem";
+import { Address, hexToBytes, toBytes, zeroAddress } from "viem";
+import { type Chain, hardhat } from "wagmi/chains";
 import { abi, tokenAddresses } from "@massmarket/contracts";
+import type { CurrencyChainOption } from "../types.ts";
 
 // Any utility functions for tokens
 export function getTokenAddress(
@@ -19,4 +21,26 @@ export function getTokenAddress(
     throw new Error(`Token not found for ${symbol} on chainId: ${chainId}`);
   }
   return toBytes(tokenAddress);
+}
+
+// This util formats all currencies for display for pricing/accepted currency.
+export function getAllCurrencyOptions(chains: Chain[]): CurrencyChainOption[] {
+  return [...chains].map((chain) => {
+    return {
+      label: `ETH/${chain.name}`,
+      value: `ETH/${chain.id}`,
+      address: hexToBytes(zeroAddress),
+      chainId: chain.id,
+    };
+  }).concat(
+    [...chains].map((chain) => {
+      const token = chain.id === hardhat.id ? "EDD" : "USDC";
+      return {
+        label: `${token}/${chain.name}`,
+        value: `${token}/${chain.id}`,
+        address: getTokenAddress(token, chain.id),
+        chainId: chain.id,
+      };
+    }),
+  );
 }
