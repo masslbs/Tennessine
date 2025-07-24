@@ -90,6 +90,7 @@ export function useActiveOrder() {
 
   return {
     activeOrder,
+    cancelOrder,
     createOrder,
     cancelAndRecreateOrder,
   };
