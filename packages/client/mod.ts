@@ -641,8 +641,10 @@ async function getAccountPublicKey(
 }
 
 // testing helper
+const relayURLViaEnv = typeof Deno !== "undefined" &&
+  Deno.env.get("RELAY_ENDPOINT");
 export async function discoverRelay(): Promise<IRelayEndpoint> {
-  const url = Deno.env.get("RELAY_ENDPOINT") || "http://localhost:4444/v5";
+  const url = relayURLViaEnv || "http://localhost:4444/v5";
   const discoveryURL = url
     .replace("ws", "http")
     .replace("/v5", "/testing/discovery");
