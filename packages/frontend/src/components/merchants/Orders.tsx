@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 
 import { CodecValue } from "@massmarket/utils/codec";
+import { useStateManager } from "@massmarket/react-hooks";
 
 import Transactions from "./Transactions.tsx";
 import BackButton from "../common/BackButton.tsx";
-import { useStateManager } from "../../hooks/useStateManager.ts";
 
 export default function Orders() {
   const { stateManager } = useStateManager();

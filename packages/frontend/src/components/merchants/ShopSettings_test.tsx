@@ -141,11 +141,7 @@ Deno.test(
           expect(submitButton).toBeTruthy();
           await user.click(submitButton);
         });
-        await waitFor(() => {
-          const successToast = screen.getByTestId("success-toast");
-          expect(successToast).toBeTruthy();
-          expect(successToast.textContent).toBe("Changes saved.");
-        });
+
         await waitFor(async () => {
           // check manifest is updated
           const m = await stateManager.get(["Manifest"]);
@@ -158,6 +154,12 @@ Deno.test(
               hexToBytes(abi.eddiesAddress),
             ),
           ).toBe(true);
+        });
+
+        await waitFor(() => {
+          const successToast = screen.getByTestId("success-toast");
+          expect(successToast).toBeTruthy();
+          expect(successToast.textContent).toBe("Changes saved.");
         });
         unmount();
       },
