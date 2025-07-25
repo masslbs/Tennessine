@@ -127,6 +127,9 @@ export class RelayClient {
 
   constructor(params: IRelayClientOptions) {
     this.walletClient = params.walletClient;
+    if (typeof params.relayEndpoint.url === "string") {
+      throw new Error("relayEndpoint.url is of type string");
+    }
     this.relayEndpoint = params.relayEndpoint;
     this.keyCardNonce = params.keyCardNonce ?? 0;
     this.shopId = params.shopId;
@@ -557,7 +560,16 @@ export class RelayClient {
       this.walletClient,
       this.keycard,
     );
-    const endpointURL = new URL(this.relayEndpoint.url);
+    let endpointURL: URL;
+    if (typeof this.relayEndpoint.url === "string") {
+      console.warn("unexpected URL type:", this.relayEndpoint);
+      endpointURL = new URL(this.relayEndpoint.url);
+    } else if (typeof this.relayEndpoint.url === "object") {
+      endpointURL = this.relayEndpoint.url;
+    } else {
+      console.error(this.relayEndpoint.url);
+      throw new Error("unexpected URL type");
+    }
     endpointURL.protocol = this.relayEndpoint.url.protocol.includes("wss")
       ? "https"
       : "http";

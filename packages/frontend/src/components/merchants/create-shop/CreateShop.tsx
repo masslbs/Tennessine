@@ -279,6 +279,7 @@ export default function () {
       stateManager.addConnection(relayClient);
       logger.debug("Relay client connected");
     } catch (error: unknown) {
+      console.log(error);
       logError("Error connecting to client", error);
       return;
     }
