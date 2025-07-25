@@ -39,5 +39,7 @@ export function useRelayEndpoint(params?: { config?: MassMarketConfig }) {
     },
   );
 
-  return { relayEndpoint: q.data, ...q };
+  const ret = { relayEndpoint: q.data, ...q };
+  console.debug("RelayEndpoint:", ret);
+  return ret;
 }
