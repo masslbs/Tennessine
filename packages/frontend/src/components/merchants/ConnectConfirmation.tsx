@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-import { useShopDetails } from "../../hooks/useShopDetails.ts";
+import { useShopDetails } from "@massmarket/react-hooks";
 import ButtonLink from "../common/ButtonLink.tsx";
 
 export default function ConnectConfirmation() {
@@ -21,7 +21,7 @@ export default function ConnectConfirmation() {
       </section>
       <section className="mt-2 flex flex-col bg-white p-6 rounded-lg">
         <p>Connect to:</p>
-        <h2 className="font-bold mb-5">{shopDetails.name}</h2>
+        <h2 className="font-bold mb-5">{shopDetails?.name}</h2>
         <div className="flex">
           <ButtonLink to="/merchant-dashboard">Shop Dashboard</ButtonLink>
         </div>

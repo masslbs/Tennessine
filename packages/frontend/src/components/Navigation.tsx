@@ -8,13 +8,14 @@ import { useDisconnect } from "wagmi";
 
 import { Order, OrderedItem } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
+import {
+  useActiveOrder,
+  useKeycard,
+  useShopDetails,
+  useStateManager,
+} from "@massmarket/react-hooks";
 
-import { KeycardRole } from "../types.ts";
 import Cart from "./cart/Cart.tsx";
-import { useStateManager } from "../hooks/useStateManager.ts";
-import { useShopDetails } from "../hooks/useShopDetails.ts";
-import { useKeycard } from "../hooks/useKeycard.ts";
-import { useCurrentOrder } from "../hooks/useCurrentOrder.ts";
 import ChevronRight from "./common/ChevronRight.tsx";
 
 const merchantMenu = [
@@ -61,10 +62,10 @@ function Navigation() {
   const navigate = useNavigate();
   const { shopDetails } = useShopDetails();
   const { stateManager } = useStateManager();
-  const { currentOrder } = useCurrentOrder();
-  const [keycard] = useKeycard();
+  const { activeOrder } = useActiveOrder();
+  const { keycard } = useKeycard();
   const { disconnect } = useDisconnect();
-  const isMerchantView = keycard.role === KeycardRole.MERCHANT;
+  const isMerchantView = keycard?.role === "merchant";
 
   useEffect(() => {
     // in the hook `useCurrentOrder`, we "reset" currentOrder for the states OrderState.Canceled and OrderState.Paid.
@@ -73,11 +74,11 @@ function Navigation() {
     //
     // NOTE(@alp 2025-04-17): this same bug (setting currentOrder = null) *might* be afflicting ListingDetail.tsx and
     // the call to cancelAndRecreateOrder
-    if (!currentOrder) {
+    if (!activeOrder) {
       setCartSize(0);
       return;
     }
-    stateManager?.get(["Orders", currentOrder.ID])
+    stateManager?.get(["Orders", activeOrder.ID])
       .then((o: CodecValue | undefined) => {
         if (!o) {
           throw new Error("No order found");
@@ -88,7 +89,7 @@ function Navigation() {
         order.Items.forEach((item: OrderedItem) => (cartSize += item.Quantity));
         setCartSize(cartSize);
       });
-  }, [currentOrder]);
+  }, [activeOrder]);
 
   function onDisconnect() {
     setMenuOpen(false);
@@ -203,11 +204,11 @@ function Navigation() {
               setCartVisible(false);
             }}
           >
-            {shopDetails.profilePictureUrl
+            {shopDetails?.profilePictureUrl
               ? (
                 <div className="overflow-hidden rounded-full w-10 h-10">
                   <img
-                    src={shopDetails.profilePictureUrl}
+                    src={shopDetails?.profilePictureUrl}
                     width={40}
                     height={40}
                     alt="profile-avatar"
@@ -225,7 +226,7 @@ function Navigation() {
                 />
               )}
 
-            <h2 className="flex items-center">{shopDetails.name}</h2>
+            <h2 className="flex items-center">{shopDetails?.name}</h2>
           </div>
           <section className="absolute right-0 flex">
             <div

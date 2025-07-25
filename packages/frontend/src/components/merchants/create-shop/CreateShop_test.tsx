@@ -33,7 +33,6 @@ Deno.test(
     await act(async () => {
       const pricingCurrency = screen.getByTestId("pricing-currency-dropdown");
       expect(pricingCurrency).toBeTruthy();
-      // Replace clicking with a proper select element change
       const selectElement = pricingCurrency.querySelector("select");
       expect(selectElement).toBeTruthy();
       // Simulate selecting the option using fireEvent

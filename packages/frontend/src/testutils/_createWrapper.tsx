@@ -153,7 +153,10 @@ export async function createShop(shopId: bigint) {
   });
 }
 
-export async function createTestRelayClient(shopId: bigint) {
+export async function createTestRelayClient(
+  shopId: bigint,
+  isGuest: boolean = false,
+) {
   const kcPrivateKey = generatePrivateKey();
   const keycard = privateKeyToAccount(kcPrivateKey);
   const relayClient = new RelayClient({
@@ -162,7 +165,7 @@ export async function createTestRelayClient(shopId: bigint) {
     keycard,
     shopId,
   });
-  await relayClient.enrollKeycard(testClient, testAccount, false);
+  await relayClient.enrollKeycard(testClient, testAccount, isGuest);
   return relayClient;
 }
 

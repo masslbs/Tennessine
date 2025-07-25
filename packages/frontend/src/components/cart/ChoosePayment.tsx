@@ -29,7 +29,11 @@ import {
   PayeeMetadata,
 } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
-import { useShopId } from "@massmarket/react-hooks";
+import {
+  useActiveOrder,
+  useShopId,
+  useStateManager,
+} from "@massmarket/react-hooks";
 
 import Pay from "./Pay.tsx";
 import QRScan from "./QRScan.tsx";
@@ -41,17 +45,15 @@ import BackButton from "../common/BackButton.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import LoadingSpinner from "../common/LoadingSpinner.tsx";
 import ConnectWalletButton from "../common/ConnectWalletButton.tsx";
-import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
 import { CurrencyChainOption } from "../../types.ts";
 import { env, getErrLogger } from "../../utils/mod.ts";
-import { useStateManager } from "../../hooks/useStateManager.ts";
 
 const baseLogger = getLogger(["mass-market", "frontend", "ChoosePayment"]);
 const paymentsByAddressAbi = abi.paymentsByAddressAbi;
 
 export default function ChoosePayment() {
   const { shopId } = useShopId();
-  const { currentOrder } = useCurrentOrder();
+  const { activeOrder } = useActiveOrder();
   const chains = useChains();
   const { stateManager } = useStateManager();
   const addRecentTransaction = useAddRecentTransaction();
@@ -82,32 +84,36 @@ export default function ChoosePayment() {
   const [displayedAmount, setDisplayedAmount] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<null | `0x${string}`>(null);
   const [blockHash, setBlockHash] = useState<null | `0x${string}`>(null);
-
   const logger = baseLogger.with({
     shopId,
-    orderId: currentOrder?.ID,
+    orderId: activeOrder?.ID,
   });
   const logError = getErrLogger(baseLogger, setErrorMsg);
 
   useEffect(() => {
+    function onManifestUpdate(res: CodecValue) {
+      const m = Manifest.fromCBOR(res);
+      getDisplayedChains(m).then((arr) => {
+        setManifest(m);
+        setChains(arr);
+      });
+    }
     if (!stateManager) return;
     stateManager.get(["Manifest"])
       .then((res: CodecValue | undefined) => {
-        if (!res) {
+        if (!res || (res instanceof Map && res.size === 0)) {
           logger.error("No manifest found.");
           return;
         }
-        const m = Manifest.fromCBOR(res);
-        getDisplayedChains(m).then((arr) => {
-          setManifest(m);
-          setChains(arr);
-        });
+        onManifestUpdate(res);
       });
+
+    stateManager.events.on(onManifestUpdate, ["Manifest"]);
   }, [stateManager]);
 
   useEffect(() => {
     if (!stateManager) return;
-    if (!currentOrder) return;
+    if (!activeOrder) return;
     //Listen for client to send paymentDetails event.
     function onPaymentDetails() {
       getPaymentArgs().then(() => {
@@ -147,16 +153,16 @@ export default function ChoosePayment() {
         onPaymentDetails();
       }
     }
-    stateManager.events.on(currentOrderUpdated, ["Orders", currentOrder!.ID]);
+    stateManager.events.on(currentOrderUpdated, ["Orders", activeOrder!.ID]);
 
     return () => {
       // Cleanup listeners on unmount
       stateManager.events.off(
         currentOrderUpdated,
-        ["Orders", currentOrder!.ID],
+        ["Orders", activeOrder!.ID],
       );
     };
-  }, [stateManager, currentOrder]);
+  }, [stateManager, activeOrder]);
 
   useEffect(() => {
     // If there is only one currency option, automatically select it.
@@ -174,7 +180,7 @@ export default function ChoosePayment() {
       return;
     }
     try {
-      const oId = currentOrder!.ID;
+      const oId = activeOrder!.ID;
       const order = await stateManager.get(["Orders", oId]);
       if (!order) {
         throw new Error(`order ${oId} not found`);
@@ -301,7 +307,7 @@ export default function ChoosePayment() {
     if (!selected.chainId || !selected.address) {
       throw new Error("Invalid currency chain option");
     }
-    if (!currentOrder) {
+    if (!activeOrder) {
       throw new Error("No current order found");
     }
     if (!stateManager) {
@@ -333,17 +339,17 @@ export default function ChoosePayment() {
       );
       await stateManager.set([
         "Orders",
-        currentOrder.ID,
+        activeOrder.ID,
         "ChosenPayee",
       ], chosenPayee);
       await stateManager.set([
         "Orders",
-        currentOrder.ID,
+        activeOrder.ID,
         "ChosenCurrency",
       ], chosenCurrency);
       await stateManager.set([
         "Orders",
-        currentOrder.ID,
+        activeOrder.ID,
         "State",
       ], OrderState.PaymentChosen);
       logger.debug("chosen payment set");
@@ -415,23 +421,25 @@ export default function ChoosePayment() {
         <h1 className="my-[10px]">Choose payment method</h1>
         <TimerToast />
         <section className="mt-2 flex flex-col gap-4 bg-white rounded-lg p-5">
-          <div data-testid="payment-currency">
-            {displayedChains?.length === 1
-              ? (
-                <div>
-                  <h3>Payment currency and chain</h3>
-                  <p>{displayedChains[0].label}</p>
-                </div>
-              )
-              : (
-                <Dropdown
-                  label="Payment currency and chain"
-                  options={displayedChains}
-                  callback={onSelectPaymentCurrency}
-                  testId="chains-dropdown-select"
-                />
-              )}
-          </div>
+          {displayedChains?.length && (
+            <div data-testid="payment-currency">
+              {displayedChains?.length === 1
+                ? (
+                  <div>
+                    <h3>Payment currency and chain</h3>
+                    <p>{displayedChains[0].label}</p>
+                  </div>
+                )
+                : (
+                  <Dropdown
+                    label="Payment currency and chain"
+                    options={displayedChains}
+                    callback={onSelectPaymentCurrency}
+                    testId="payment-currency-dropdown"
+                  />
+                )}
+            </div>
+          )}
           <PriceSummary
             displayedAmount={displayedAmount}
             tokenIcon={chosenPaymentTokenIcon}

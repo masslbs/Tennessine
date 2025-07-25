@@ -7,21 +7,20 @@ import { useNavigate } from "@tanstack/react-router";
 
 import { getLogger } from "@logtape/logtape";
 import { AddressDetails } from "@massmarket/schema";
+import { useActiveOrder, useStateManager } from "@massmarket/react-hooks";
 
 import Cart from "./Cart.tsx";
 import TimerToast from "./TimerToast.tsx";
 import Button from "../common/Button.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import ValidationWarning from "../common/ValidationWarning.tsx";
-import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
-import { useStateManager } from "../../hooks/useStateManager.ts";
 import { getErrLogger, isValidEmail } from "../../utils/mod.ts";
 import BackButton from "../common/BackButton.tsx";
 
 const baseLogger = getLogger(["mass-market", "frontend", "ShippingDetails"]);
 
 export default function ShippingDetails() {
-  const { currentOrder } = useCurrentOrder();
+  const { activeOrder } = useActiveOrder();
   const { stateManager } = useStateManager();
   const navigate = useNavigate();
   const [invoiceAddress, setInvoiceAddress] = useState<AddressDetails>(
@@ -31,14 +30,14 @@ export default function ShippingDetails() {
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const logger = baseLogger.with({
-    orderId: currentOrder?.ID,
+    orderId: activeOrder?.ID,
   });
   const logError = getErrLogger(logger, setErrorMsg);
 
   useEffect(() => {
-    currentOrder?.InvoiceAddress &&
-      setInvoiceAddress(currentOrder.InvoiceAddress);
-  }, [currentOrder]);
+    activeOrder?.InvoiceAddress &&
+      setInvoiceAddress(activeOrder.InvoiceAddress);
+  }, [activeOrder]);
 
   function scroll() {
     const element = document.getElementById("top");
@@ -103,9 +102,9 @@ export default function ShippingDetails() {
       if (!invoiceAddress.EmailAddress.length) {
         invoiceAddress.EmailAddress = "example@email.com";
       }
-      if (invoiceAddress !== currentOrder!.InvoiceAddress) {
+      if (invoiceAddress !== activeOrder!.InvoiceAddress) {
         await stateManager.set(
-          ["Orders", currentOrder!.ID, "InvoiceAddress"],
+          ["Orders", activeOrder!.ID, "InvoiceAddress"],
           invoiceAddress,
         );
         logger.debug("Shipping details updated");
@@ -122,7 +121,7 @@ export default function ShippingDetails() {
     }
   }
 
-  if (!currentOrder) {
+  if (!activeOrder) {
     return <div>No order found</div>;
   }
 

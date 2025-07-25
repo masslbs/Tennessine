@@ -1,5 +1,6 @@
 import { ChangeEvent, useState } from "react";
 import { getLogger } from "@logtape/logtape";
+import { useChains } from "wagmi";
 
 import { ChainAddress, Manifest } from "@massmarket/schema";
 
@@ -9,15 +10,12 @@ import Button from "../../common/Button.tsx";
 import AvatarUpload from "../../common/AvatarUpload.tsx";
 import Dropdown from "../../common/CurrencyDropdown.tsx";
 import ChevronRight from "../../common/ChevronRight.tsx";
-
 import {
   CreateShopStep,
   CurrencyChainOption,
   ShopForm,
 } from "../../../types.ts";
-import { useAllCurrencyOptions } from "../../../hooks/useAllCurrencyOptions.ts";
-
-import { getErrLogger } from "../../../utils/mod.ts";
+import { getAllCurrencyOptions, getErrLogger } from "../../../utils/mod.ts";
 
 const logger = getLogger(["mass-market", "frontend", "ManifestForm"]);
 
@@ -41,10 +39,10 @@ export default function ManifestForm(
   },
 ) {
   const { shopName, description, paymentAddress } = shopMetadata;
+  const chains = useChains();
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const currencyOptions = useAllCurrencyOptions();
-
+  const currencyOptions = getAllCurrencyOptions([...chains]);
   const logError = getErrLogger(logger, setErrorMsg);
 
   function handleShopFormChange<K extends keyof ShopForm>(
