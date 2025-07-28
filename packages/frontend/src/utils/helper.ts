@@ -30,6 +30,7 @@ export function getErrLogger(
     // as the sentry sink is currently set up, the contents of `msg` will only be exposed in glitchtip from the call to logger.warn.
     // with logger.error, it is the error message itself that will be used to populate glitchtip's title field
     if (error) {
+      console.error(error);
       logger.error(msg, { error });
     } else {
       logger.warn(msg);

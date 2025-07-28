@@ -21,6 +21,7 @@ export default defineConfig(({ mode }) => {
       },
       outDir: "dist",
       copyPublicDir: true,
+      sourcemap: true,
     },
     define: {
       __ENV__: JSON.stringify(env),
