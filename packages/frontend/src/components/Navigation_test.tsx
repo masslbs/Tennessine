@@ -11,230 +11,284 @@ import { userEvent } from "@testing-library/user-event";
 
 import { allListings } from "@massmarket/schema/testFixtures";
 import type { CodecValue } from "@massmarket/utils/codec";
-import { random256BigInt, randUint64 } from "@massmarket/utils";
+import { randUint64 } from "@massmarket/utils";
 import { Order, OrderedItem } from "@massmarket/schema";
 
 import Navigation from "./Navigation.tsx";
-import { createRouterWrapper, testClient } from "../testutils/mod.tsx";
 import { OrderState } from "../types.ts";
-Deno.test("Check that we can render the navigation bar", {
-  sanitizeResources: false,
-  sanitizeOps: false,
-}, async (t) => {
-  const shopId = random256BigInt();
+import {
+  createTestRelayClient,
+  createTestStateManager,
+  createWrapper,
+  denoTestOptions,
+  testWrapper,
+} from "../testutils/_createWrapper.tsx";
 
-  const {
-    stateManager: merchantStateManager,
-    relayClient: merchantRelayClient,
-  } = await createRouterWrapper({
-    shopId,
-    createShop: true,
-    enrollMerchant: true,
-  });
+Deno.test(
+  "Navigation",
+  denoTestOptions,
+  testWrapper(async (shopId, t) => {
+    const user = userEvent.setup();
+    const orderId = randUint64();
+    const listingID = 23;
+    const listingID2 = 42;
 
-  merchantStateManager.addConnection(merchantRelayClient);
+    // Merchant setup
+    const relayClient = await createTestRelayClient(shopId);
+    const stateManager = await createTestStateManager(shopId);
+    await relayClient.connect();
+    await relayClient.authenticate();
+    stateManager.addConnection(relayClient);
 
-  // populate state manager with listings
-  for (const [listingID, listing] of allListings.entries()) {
-    await merchantStateManager.set(["Listings", listingID], listing);
-    await merchantStateManager.set(["Inventory", listingID], 100);
-  }
+    // Customer setup
+    const customerRelayClient = await createTestRelayClient(shopId, true);
+    const customerStateManager = await createTestStateManager(shopId);
+    customerStateManager.addConnection(customerRelayClient);
 
-  // remove merchant's keycard to free up for customer
-  localStorage.removeItem(`keycard${shopId}`);
+    await t.step("Add listings.", async () => {
+      for (const [listingID, listing] of allListings.entries()) {
+        await stateManager.set(["Listings", listingID], listing);
+        await stateManager.set(["Inventory", listingID], 100);
+      }
 
-  const { wrapper, stateManager, relayClient, testAccount } =
-    await createRouterWrapper({
-      shopId,
+      await waitFor(async () => {
+        const storedListings = await stateManager.get(["Listings"]) as Map<
+          bigint,
+          unknown
+        >;
+        expect(storedListings.size).toBe(allListings.size);
+      });
     });
-  await relayClient.enrollKeycard(testClient, testAccount, true);
-  stateManager.addConnection(relayClient);
 
-  await waitFor(async () => {
-    const storedListings = await stateManager.get(["Listings"]) as Map<
-      bigint,
-      unknown
-    >;
-    expect(storedListings.size).toBe(allListings.size);
-  });
-
-  // Create order and add items to it
-  const orderId = randUint64();
-  const item1ID = 23;
-  const item2ID = 42;
-  const order = new Order(
-    orderId,
-    [
-      new OrderedItem(item1ID, 32),
-      new OrderedItem(item2ID, 24),
-    ],
-    OrderState.Open,
-  );
-  await stateManager.set(["Orders", orderId], order);
-
-  const { unmount } = render(<Navigation />, { wrapper });
-  await screen.findByTestId("navigation");
-
-  const user = userEvent.setup();
-  await waitFor(async () => {
-    const cartToggle = screen.getByTestId("cart-toggle");
-    expect(cartToggle).toBeDefined();
-    await user.click(cartToggle);
-  });
-
-  await t.step("Remove item from cart", async () => {
-    // Check that the cart items are rendered
-    const cartScreen = screen.getByTestId("cart");
-
-    await waitFor(() => {
-      expect(cartScreen).toBeDefined();
-      const cartItems = within(cartScreen).getAllByTestId("cart-item");
-      expect(cartItems.length).toBe(2);
-      //check that the added quantity is displayed correctly
-      expect(cartItems[0].textContent).toEqual(
-        "test32Qty: 320.00000000000736ETH",
+    await t.step("Add order as customer.", async () => {
+      const order = new Order(
+        orderId,
+        [
+          new OrderedItem(listingID, 32),
+          new OrderedItem(listingID2, 24),
+        ],
+        OrderState.Open,
       );
-      expect(cartItems[1].textContent).toEqual(
-        "test4224Qty: 240.00000000001008ETH",
-      );
+      await customerStateManager.set(["Orders", orderId], order);
     });
 
-    await waitFor(async () => {
-      const removeButton = within(cartScreen).getByTestId(
-        `remove-item-${item1ID}`,
-      );
-      expect(removeButton).toBeDefined();
-      await user.click(removeButton);
+    await t.step("Add/remove quantity from item", async () => {
+      const wrapper = await createWrapper(shopId);
+      const { unmount } = render(<Navigation />, { wrapper });
+
+      const cartScreen = screen.getByTestId("cart");
+      // +1 to listing 1
+      await waitFor(async () => {
+        const addButton = within(cartScreen).getByTestId(
+          `add-quantity-${listingID}`,
+        );
+        expect(addButton).toBeDefined();
+        await user.click(addButton);
+      });
+      await waitFor(() => {
+        const quantity = within(cartScreen).getByTestId(
+          `quantity-${listingID}`,
+        );
+        expect(quantity.textContent).toContain("33");
+      });
+      // -1 from listing 2
+      await waitFor(async () => {
+        const minusQty = within(cartScreen).getByTestId(
+          `remove-quantity-${listingID2}`,
+        );
+        expect(minusQty).toBeDefined();
+        await user.click(minusQty);
+      });
+      await waitFor(() => {
+        const quantity = within(cartScreen).getByTestId(
+          `quantity-${listingID2}`,
+        );
+        expect(quantity.textContent).toContain("23");
+      });
+      // Check statemanager updated correctly.
+      await waitFor(async () => {
+        const updatedOrder = await stateManager.get(["Orders", orderId]);
+        expect(updatedOrder).toBeDefined();
+        const updatedOrderItems = Order.fromCBOR(updatedOrder!).Items;
+        expect(updatedOrderItems[0].ListingID).toBe(listingID);
+        expect(updatedOrderItems[0].Quantity).toBe(33);
+        expect(updatedOrderItems[1].ListingID).toBe(listingID2);
+        expect(updatedOrderItems[1].Quantity).toBe(23);
+      });
+
+      unmount();
     });
 
-    await waitFor(() => {
-      const cartItems = within(cartScreen).getAllByTestId("cart-item");
-      expect(cartItems.length).toBe(1);
-      expect(cartItems[0].textContent).toContain("test4224Qty");
-    });
-  });
+    await t.step("Remove item from cart", async () => {
+      const wrapper = await createWrapper(shopId);
+      const { unmount } = render(<Navigation />, { wrapper });
 
-  await t.step("Add quantity to item", async () => {
-    const cartScreen = screen.getByTestId("cart");
+      await screen.findByTestId("navigation");
+      await waitFor(async () => {
+        const cartToggle = screen.getByTestId("cart-toggle");
+        expect(cartToggle).toBeDefined();
+        await user.click(cartToggle);
+      });
 
-    await waitFor(async () => {
-      const addButton = within(cartScreen).getByTestId(
-        `add-quantity-${item2ID}`,
-      );
-      expect(addButton).toBeDefined();
-      await user.click(addButton);
-    });
-    await waitFor(() => {
-      const quantity = within(cartScreen).getByTestId(`quantity-${item2ID}`);
-      expect(quantity.textContent).toContain("25");
-    });
-    // Check statemanager updated correctly.
-    const updatedOrder = await stateManager.get(["Orders", orderId]);
-    expect(updatedOrder).toBeDefined();
-    const updatedOrderItems = Order.fromCBOR(updatedOrder!).Items;
-    expect(updatedOrderItems[0].ListingID).toBe(item2ID);
-    expect(updatedOrderItems[0].Quantity).toBe(25);
-  });
+      // Check that the cart items are rendered
+      const cartScreen = screen.getByTestId("cart");
 
-  await t.step("Remove quantity from item", async () => {
-    const cartScreen = screen.getByTestId("cart");
+      await waitFor(() => {
+        expect(cartScreen).toBeDefined();
+        const titles = screen.getAllByTestId("listing-title");
+        expect(titles).toHaveLength(2);
+        expect(titles[0].textContent).toContain("test");
+        expect(titles[1].textContent).toContain("test42");
+        const selectedQty = screen.getAllByTestId("selected-qty");
+        expect(selectedQty).toHaveLength(2);
+        expect(selectedQty[0].textContent).toContain("33");
+        expect(selectedQty[1].textContent).toContain("23");
+      });
 
-    await waitFor(async () => {
-      const minusQty = within(cartScreen).getByTestId(
-        `remove-quantity-${item2ID}`,
-      );
-      expect(minusQty).toBeDefined();
-      await user.click(minusQty);
-    });
-    await waitFor(() => {
-      const quantity = within(cartScreen).getByTestId(`quantity-${item2ID}`);
-      expect(quantity.textContent).toContain("24");
-    });
-    // Check statemanager updated correctly.
-    const updatedOrder = await stateManager.get(["Orders", orderId]);
-    expect(updatedOrder).toBeDefined();
-    const updatedOrderItems = Order.fromCBOR(updatedOrder!).Items;
-    expect(updatedOrderItems[0].ListingID).toBe(item2ID);
-    expect(updatedOrderItems[0].Quantity).toBe(24);
-  });
+      await waitFor(async () => {
+        const removeButton = within(cartScreen).getByTestId(
+          `remove-item-${listingID}`,
+        );
+        expect(removeButton).toBeDefined();
+        await user.click(removeButton);
+      });
 
-  await t.step("Clear cart", async () => {
-    const cartScreen = screen.getByTestId("cart");
+      await waitFor(() => {
+        const listings = screen.getAllByTestId("cart-item");
+        expect(listings).toHaveLength(1);
+        const title = screen.getByTestId("listing-title");
+        expect(title.textContent).toContain("test42");
+      });
 
-    await waitFor(async () => {
+      // Check that the item was removed from the order.
+      await waitFor(async () => {
+        const updatedOrder = await stateManager.get(["Orders", orderId]);
+        expect(updatedOrder).toBeDefined();
+        const updatedOrderItems = Order.fromCBOR(updatedOrder!).Items;
+        expect(updatedOrderItems).toHaveLength(1);
+        expect(updatedOrderItems[0].ListingID).toBe(listingID2);
+      });
+
+      // Clear cart
       const clearCart = within(cartScreen).getByTestId("clear-cart");
       await user.click(clearCart);
-    });
-    await waitFor(() => {
-      const cartItems = within(cartScreen).queryAllByTestId("cart-item");
-      expect(cartItems.length).toBe(0);
-    });
-    const updatedOrder = await stateManager.get(["Orders", orderId]);
-    expect(updatedOrder).toBeDefined();
-    const updatedOrderItems = Order.fromCBOR(updatedOrder!).Items;
-    expect(updatedOrderItems.length).toBe(0);
-  });
 
-  await t.step("Checkout button", async () => {
-    await stateManager.set(["Orders", orderId, "Items"], [
-      new OrderedItem(item1ID, 32).asCBORMap(),
-      new OrderedItem(item2ID, 24).asCBORMap(),
-    ]);
+      await waitFor(() => {
+        const cartItems = within(cartScreen).queryAllByTestId("cart-item");
+        expect(cartItems.length).toBe(0);
+      });
+      await waitFor(async () => {
+        const updatedOrder = await stateManager.get(["Orders", orderId]);
+        expect(updatedOrder).toBeDefined();
+        const updatedOrderItems = Order.fromCBOR(updatedOrder!).Items;
+        expect(updatedOrderItems.length).toBe(0);
+      });
+      unmount();
+    });
 
-    await waitFor(async () => {
+    await t.step("Checkout button", async () => {
+      const wrapper = await createWrapper(shopId);
+      const { unmount } = render(<Navigation />, { wrapper });
+      // Add back the listings to order.
+      await customerStateManager.set(["Orders", orderId, "Items"], [
+        new OrderedItem(listingID, 32).asCBORMap(),
+        new OrderedItem(listingID2, 20).asCBORMap(),
+      ]);
+
       const cartToggle = screen.getByTestId("cart-toggle");
       expect(cartToggle).toBeTruthy();
       await user.click(cartToggle);
-    });
-    const cartScreen = screen.getByTestId("cart");
 
-    await waitFor(async () => {
+      await waitFor(() => {
+        const cartItems = screen.getAllByTestId("cart-item");
+        expect(cartItems.length).toBe(2);
+      });
+
+      const cartScreen = screen.getByTestId("cart");
       const checkoutButton = within(cartScreen).getByTestId(
         "checkout-button",
       );
       expect(checkoutButton).toBeDefined();
-      await user.click(checkoutButton);
-    });
-    //Check that the order was committed after clicking checkout button.
-    const updatedOrder = await stateManager.get(["Orders", orderId]);
-    expect(updatedOrder).toBeDefined();
-    const state = Order.fromCBOR(updatedOrder!).State;
-    expect(state).toBe(OrderState.Committed);
-  });
 
-  await t.step("clear cart when order is committed", async () => {
-    await waitFor(async () => {
+      await user.click(checkoutButton);
+
+      await waitFor(async () => {
+        // Check that the order was committed after clicking checkout button.
+        const updatedOrder = await stateManager.get(["Orders", orderId]);
+        expect(updatedOrder).toBeDefined();
+        const state = Order.fromCBOR(updatedOrder!).State;
+        expect(state).toBe(OrderState.Committed);
+      });
+      unmount();
+    });
+
+    await t.step("Changing items after order is committed", async () => {
+      const wrapper = await createWrapper(shopId);
+      const { unmount } = render(<Navigation />, { wrapper });
+
       const cartToggle = screen.getByTestId("cart-toggle");
       expect(cartToggle).toBeTruthy();
       await user.click(cartToggle);
-    });
-    const cartScreen = screen.getByTestId("cart");
 
-    await waitFor(async () => {
-      // Verify the cart header is displayed
-      const cartHeader = within(cartScreen).getByText("Cart");
-      expect(cartHeader).toBeTruthy();
-      // Try to clear cart that's already committed
+      const cartScreen = screen.getByTestId("cart");
+      // +1 to listing 2
+      await waitFor(async () => {
+        const addButton = within(cartScreen).getByTestId(
+          `add-quantity-${listingID2}`,
+        );
+        expect(addButton).toBeDefined();
+        await user.click(addButton);
+      });
+      await waitFor(() => {
+        const quantity = within(cartScreen).getByTestId(
+          `quantity-${listingID2}`,
+        );
+        expect(quantity.textContent).toContain("21");
+      });
+
+      await waitFor(async () => {
+        const orders = await stateManager.get(["Orders"]) as Map<
+          number,
+          unknown
+        >;
+        const o = orders.get(orderId) as CodecValue;
+        expect(o).toBeDefined();
+        const order = Order.fromCBOR(o!);
+        expect(order.CanceledAt).toBeDefined();
+        expect(order.State).toBe(OrderState.Canceled);
+        // The new order should have the same items as the committed order.
+        const newOrder = Array.from(orders.values()).pop() as CodecValue;
+        const newOrderItems = Order.fromCBOR(newOrder).Items;
+        expect(newOrderItems).toHaveLength(2);
+        expect(newOrderItems[1].ListingID).toBe(listingID2);
+        expect(newOrderItems[1].Quantity).toBe(21);
+      });
+
+      // Clearing cart of a committed order should cancel the order and recreate a new order with no items.
       const clearCart = within(cartScreen).getByTestId("clear-cart");
       expect(clearCart).toBeDefined();
       await user.click(clearCart);
-    });
-    await waitFor(async () => {
-      const cartItems = within(cartScreen).queryAllByTestId("cart-item");
-      expect(cartItems.length).toBe(0);
-      const orders = await stateManager.get(["Orders"]) as Map<
-        number,
-        unknown
-      >;
-      //Clearing cart of an already committed order should cancel the order and recreate a new order with no items.
-      expect(orders.size).toBe(2);
-      const o = orders.get(orderId) as CodecValue;
-      const order = Order.fromCBOR(o!);
-      expect(order.CanceledAt).toBeDefined();
-      expect(order.State).toBe(OrderState.Canceled);
-    });
-  });
 
-  unmount();
-  cleanup();
-});
+      await waitFor(async () => {
+        const cartItems = within(cartScreen).queryAllByTestId("cart-item");
+        expect(cartItems.length).toBe(0);
+        const orders = await stateManager.get(["Orders"]) as Map<
+          number,
+          unknown
+        >;
+        expect(orders.size).toBe(2);
+        const o = orders.get(orderId) as CodecValue;
+        const order = Order.fromCBOR(o!);
+        expect(order.CanceledAt).toBeDefined();
+        expect(order.State).toBe(OrderState.Canceled);
+        // The new order should have no items.
+        const newOrder = Array.from(orders.values()).pop() as CodecValue;
+        const newOrderItems = Order.fromCBOR(newOrder).Items;
+        expect(newOrderItems).toHaveLength(0);
+      });
+      unmount();
+    });
+
+    cleanup();
+  }),
+);

@@ -1,10 +1,10 @@
 import { useNavigate } from "@tanstack/react-router";
 
 import { Listing } from "@massmarket/schema";
+import { useStateManager } from "@massmarket/react-hooks";
 
 import BackButton from "../../common/BackButton.tsx";
 import Button from "../../common/Button.tsx";
-import { useStateManager } from "../../../hooks/useStateManager.ts";
 import { ListingViewState } from "../../../types.ts";
 
 export default function DeleteListing({ listing }: { listing: Listing }) {

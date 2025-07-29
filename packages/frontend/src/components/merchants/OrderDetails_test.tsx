@@ -12,8 +12,6 @@ import {
   createTestStateManager,
   createWrapper,
   denoTestOptions,
-  testAccount,
-  testClient,
   testWrapper,
 } from "../../testutils/_createWrapper.tsx";
 
@@ -40,10 +38,9 @@ Deno.test(
     });
 
     await t.step("Add order to shop.", async () => {
-      //Add order as customer.
-      const relayClient = await createTestRelayClient(shopId);
+      // Add order as customer.
+      const relayClient = await createTestRelayClient(shopId, true);
       const stateManager = await createTestStateManager(shopId);
-      await relayClient.enrollKeycard(testClient, testAccount, true);
       stateManager.addConnection(relayClient);
       await stateManager.set(["Orders", orderId], order);
     });

@@ -9,13 +9,15 @@ import { getLogger } from "@logtape/logtape";
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
 import { RelayResponseError } from "@massmarket/client";
+import {
+  useActiveOrder,
+  usePricingCurrency,
+  useStateManager,
+} from "@massmarket/react-hooks";
 
 import { ListingId, OrderState } from "../../types.ts";
 import Button from "../common/Button.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
-import { useBaseToken } from "../../hooks/useBaseToken.ts";
-import { useCurrentOrder } from "../../hooks/useCurrentOrder.ts";
-import { useStateManager } from "../../hooks/useStateManager.ts";
 import { getErrLogger, multiplyAndFormatUnits } from "../../utils/helper.ts";
 import PriceSummary from "./PriceSummary.tsx";
 
@@ -30,9 +32,9 @@ export default function Cart({
   closeCart?: () => void;
   showActionButtons?: boolean;
 }) {
-  const { currentOrder, cancelOrder, createOrder, cancelAndRecreateOrder } =
-    useCurrentOrder();
-  const { baseToken } = useBaseToken();
+  const { activeOrder, cancelOrder, createOrder, cancelAndRecreateOrder } =
+    useActiveOrder();
+  const { pricingCurrency } = usePricingCurrency();
   const { stateManager } = useStateManager();
   const navigate = useNavigate();
 
@@ -46,7 +48,7 @@ export default function Cart({
   const [errorListing, setErrorListing] = useState<Listing | null>(null);
 
   const logger = baseLogger.with({
-    orderId: currentOrder?.ID,
+    orderId: activeOrder?.ID,
   });
   const logError = getErrLogger(baseLogger, setErrorMsg);
 
@@ -59,12 +61,13 @@ export default function Cart({
   }
 
   useEffect(() => {
-    if (!currentOrder || !stateManager) return;
-    logger.debug(`Showing cart items for order ID: ${currentOrder.ID}`);
-    stateManager.get(["Orders", currentOrder.ID])
+    if (!activeOrder || !stateManager) return;
+    logger.debug(`Showing cart items for order ID: ${activeOrder.ID}`);
+    stateManager.get(["Orders", activeOrder.ID])
       .then(async (res: CodecValue | undefined) => {
         if (!res) {
-          throw new Error("No order found");
+          logError("No order found");
+          return;
         }
         const o = Order.fromCBOR(res);
         const allCartItems = await getAllCartItemDetails(o);
@@ -72,14 +75,14 @@ export default function Cart({
         setCartMap(allCartItems);
       });
 
-    stateManager.events.on(onOrderUpdate, ["Orders", currentOrder!.ID]);
+    stateManager.events.on(onOrderUpdate, ["Orders", activeOrder!.ID]);
 
     return () => {
-      stateManager.events.off(onOrderUpdate, ["Orders", currentOrder!.ID]);
+      stateManager.events.off(onOrderUpdate, ["Orders", activeOrder!.ID]);
     };
-  }, [currentOrder, stateManager]);
+  }, [activeOrder, stateManager]);
 
-  if (!currentOrder) {
+  if (!activeOrder) {
     return <p>No order</p>;
   }
 
@@ -113,17 +116,17 @@ export default function Cart({
 
   async function handleCheckout() {
     try {
-      if (!currentOrder) {
+      if (!activeOrder) {
         logger.debug("orderId not found");
         throw new Error("No order found");
       }
       // Commit the order if it is an open order (not committed)
-      if (currentOrder!.State === OrderState.Open) {
+      if (activeOrder!.State === OrderState.Open) {
         await stateManager!.set(
-          ["Orders", currentOrder!.ID, "State"],
+          ["Orders", activeOrder!.ID, "State"],
           OrderState.Committed,
         );
-        logger.debug(`Order ID: ${currentOrder!.ID} committed`);
+        logger.debug(`Order ID: ${activeOrder!.ID} committed`);
       }
       onCheckout?.();
     } catch (error) {
@@ -148,13 +151,13 @@ export default function Cart({
       return;
     }
     try {
-      if (currentOrder?.State !== OrderState.Open) {
+      if (activeOrder?.State !== OrderState.Open) {
         await cancelOrder();
         await createOrder();
         return;
       }
       await stateManager.set(
-        ["Orders", currentOrder!.ID, "Items"],
+        ["Orders", activeOrder!.ID, "Items"],
         [],
       );
       setCartMap(new Map());
@@ -173,8 +176,8 @@ export default function Cart({
       return;
     }
     try {
-      let orderId = currentOrder!.ID;
-      if (currentOrder!.State !== OrderState.Open) {
+      let orderId = activeOrder!.ID;
+      if (activeOrder!.State !== OrderState.Open) {
         orderId = await cancelAndRecreateOrder();
       }
       const updatedQtyMap = new Map(selectedQty);
@@ -203,8 +206,8 @@ export default function Cart({
       return;
     }
     try {
-      let orderId = currentOrder!.ID;
-      if (currentOrder!.State !== OrderState.Open) {
+      let orderId = activeOrder!.ID;
+      if (activeOrder!.State !== OrderState.Open) {
         orderId = await cancelAndRecreateOrder();
       }
       const updatedQtyMap = new Map(selectedQty);
@@ -233,7 +236,7 @@ export default function Cart({
   }
 
   function calculateTotal() {
-    if (!baseToken || cartItemsMap.size === 0) return "0";
+    if (!pricingCurrency || cartItemsMap.size === 0) return "0";
     const values: Listing[] = Array.from(cartItemsMap.values());
     let total = BigInt(0);
     values.forEach((item: Listing) => {
@@ -241,7 +244,7 @@ export default function Cart({
       // if (!qty) throw new Error(`Quantity for ${item.ID} not found`);
       total += BigInt(item.Price) * BigInt(qty);
     });
-    return formatUnits(total, baseToken.decimals);
+    return formatUnits(total, pricingCurrency.decimals);
   }
   function navigateToListing(itemId: number) {
     navigate({
@@ -253,18 +256,22 @@ export default function Cart({
     });
     closeCart?.();
   }
-  const icon = baseToken?.symbol === "ETH"
+  const icon = pricingCurrency?.symbol === "ETH"
     ? "/icons/eth-coin.svg"
     : "/icons/usdc-coin.png";
 
   function renderItems() {
-    if (!currentOrder || !cartItemsMap.size) return <p>No items in cart</p>;
+    if (!activeOrder || !cartItemsMap.size) return <p>No items in cart</p>;
 
     const values: Listing[] = Array.from(cartItemsMap.values());
     return values.map((item: Listing) => {
       const qty = selectedQty.get(item.ID) || 0;
       // if (!qty) throw new Error(`Quantity for ${item.ID} not found`);
-      const price = multiplyAndFormatUnits(item.Price, qty, baseToken.decimals);
+      const price = multiplyAndFormatUnits(
+        item.Price,
+        qty,
+        pricingCurrency?.decimals || 0,
+      );
       let image = "/assets/no-image.png";
       if (item.Metadata.Images && item.Metadata.Images.length > 0) {
         image = item.Metadata.Images[0];
@@ -289,7 +296,7 @@ export default function Cart({
           <div className="bg-background-gray w-full rounded-r-lg px-3 py-4 md:w-[300px]">
             <div className="flex gap-2">
               <h3
-                data-testid="title"
+                data-testid="listing-title"
                 className="leading-6 cursor-pointer max-w-[150px] md:max-w-[200px]"
                 onClick={() => {
                   navigateToListing(item.ID);
@@ -364,6 +371,7 @@ export default function Cart({
                 className={showActionButtons
                   ? "hidden"
                   : "flex gap-2 items-center"}
+                data-testid="selected-qty"
               >
                 Qty: {selectedQty.get(item.ID)}
               </p>
@@ -382,7 +390,7 @@ export default function Cart({
                   {price}
                 </p>
                 <p data-testid="symbol" className="text-sm">
-                  {baseToken?.symbol}
+                  {pricingCurrency?.symbol}
                 </p>
               </div>
             </div>
@@ -412,7 +420,7 @@ export default function Cart({
         id="cart-buttons-container"
       >
         <Button
-          disabled={!currentOrder || !cartItemsMap.size || !onCheckout}
+          disabled={!activeOrder || !cartItemsMap.size || !onCheckout}
           onClick={handleCheckout}
           data-testid="checkout-button"
         >
@@ -424,7 +432,7 @@ export default function Cart({
               width={7}
               height={12}
               style={{
-                display: !currentOrder || !cartItemsMap.size || !onCheckout
+                display: !activeOrder || !cartItemsMap.size || !onCheckout
                   ? "none"
                   : "",
               }}
@@ -433,7 +441,7 @@ export default function Cart({
         </Button>
         <button
           type="button"
-          disabled={!currentOrder || !cartItemsMap.size}
+          disabled={!activeOrder || !cartItemsMap.size}
           onClick={clearCart}
           data-testid="clear-cart"
           style={{ backgroundColor: "transparent", padding: 0 }}
