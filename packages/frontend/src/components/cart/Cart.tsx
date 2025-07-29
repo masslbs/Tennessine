@@ -66,7 +66,8 @@ export default function Cart({
     stateManager.get(["Orders", activeOrder.ID])
       .then(async (res: CodecValue | undefined) => {
         if (!res) {
-          return logError("No order found");
+          logError("No order found");
+          return;
         }
         const o = Order.fromCBOR(res);
         const allCartItems = await getAllCartItemDetails(o);
