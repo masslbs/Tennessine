@@ -1,5 +1,11 @@
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
 
+// Set up React act environment
+declare global {
+  var IS_REACT_ACT_ENVIRONMENT: boolean;
+}
+globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+
 // Store deno's web APIs and reassign them after happydom is registered
 const denoAbortController = globalThis.AbortController;
 const denoBlob = globalThis.Blob;

@@ -22,6 +22,7 @@ import { OrderState } from "../../types.ts";
 
 const orderId = randUint64();
 const committedOrderId = randUint64();
+const committedOrderId2 = randUint64();
 const listingID = 23;
 const listingID2 = 42;
 
@@ -83,15 +84,17 @@ Deno.test(
     await t.step("Changing items after order is committed", async () => {
       const wrapper = await createWrapper(shopId);
       const { unmount } = render(<CommittedOrderComponent />, { wrapper });
-
-      // +1 to listing 2
       await waitFor(async () => {
+        const cartScreen = screen.getByTestId("cart-screen");
+        expect(cartScreen).toBeDefined();
+        // +1 to listing 2
         const addButton = screen.getByTestId(
           `add-quantity-${listingID2}`,
         );
         expect(addButton).toBeDefined();
         await user.click(addButton);
       });
+
       await waitFor(() => {
         const quantity = screen.getByTestId(
           `quantity-${listingID2}`,
@@ -116,14 +119,24 @@ Deno.test(
         expect(newOrderItems[1].ListingID).toBe(listingID2);
         expect(newOrderItems[1].Quantity).toBe(25);
       });
+      unmount();
+    });
 
-      // Clearing cart of a committed order should cancel the order and recreate a new order with no items.
-      const clearCart = screen.getByTestId("clear-cart");
-      expect(clearCart).toBeDefined();
-      await user.click(clearCart);
+    await t.step("Clearing cart of a committed order.", async () => {
+      const wrapper = await createWrapper(shopId);
+      const { unmount } = render(<CommittedOrderComponent2 />, { wrapper });
+      await waitFor(async () => {
+        const cartScreen = screen.getByTestId("cart-screen");
+        expect(cartScreen).toBeDefined();
+
+        const clearCart = screen.getByTestId("clear-cart");
+        expect(clearCart).toBeDefined();
+        await user.click(clearCart);
+      });
 
       await waitFor(async () => {
         const cartItems = screen.queryAllByTestId("cart-item");
+
         expect(cartItems.length).toBe(0);
         const orders = await stateManager.get(["Orders"]) as Map<
           number,
@@ -171,7 +184,6 @@ const createTestComponent = (oId: number, commitOrder: boolean) => {
     useEffect(() => {
       if (!stateManager || !listingsLoaded) return;
       // Create order and add items
-
       const order = new Order(
         oId,
         [
@@ -193,3 +205,4 @@ const createTestComponent = (oId: number, commitOrder: boolean) => {
 
 const CartTest = createTestComponent(orderId, false);
 const CommittedOrderComponent = createTestComponent(committedOrderId, true);
+const CommittedOrderComponent2 = createTestComponent(committedOrderId2, true);

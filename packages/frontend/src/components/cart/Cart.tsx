@@ -134,6 +134,7 @@ export default function Cart({
         error instanceof RelayResponseError &&
         error.cause.code === 9 && error.cause.additionalInfo
       ) {
+        console.log("testing::::", error);
         const objectId = error.cause.additionalInfo.objectId;
         const l = await stateManager!.get(["Listings", objectId]);
         if (!l) throw new Error("Listing not found");
@@ -405,7 +406,10 @@ export default function Cart({
     ? errorListing?.Metadata.Title.slice(0, MAX_TITLE_LEN) + "..."
     : errorListing?.Metadata.Title;
   return (
-    <div className="bg-white rounded-lg p-5 pt-[10px]">
+    <div
+      className="bg-white rounded-lg p-5 pt-[10px]"
+      data-testid="cart-screen"
+    >
       <div className="flex flex-col gap-2 mt-2 max-h-[calc(100vh-20rem)] overflow-y-auto">
         {renderItems()}
       </div>

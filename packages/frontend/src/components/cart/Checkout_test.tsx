@@ -1,6 +1,6 @@
 import "../../happyDomSetup.ts";
 import React, { useEffect, useState } from "react";
-import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import { expect } from "@std/expect";
 import { fromHex, hexToBytes, zeroAddress } from "viem";
@@ -158,12 +158,11 @@ Deno.test(
   "Checkout - Render Cart Items",
   denoTestOptions,
   testWrapper(async (shopId, t) => {
-    const user = userEvent.setup();
     const { merchantStateManager } = await setShopManifestAndListings(shopId);
 
     await t.step("Out of stock error is displayed.", async () => {
-      const wrapper = await createWrapper(shopId, "/", 0);
-
+      const wrapper = await createWrapper(shopId);
+      const user = userEvent.setup();
       const { unmount } = render(<CheckoutTest />, { wrapper });
       const wantTotalPrice = "0.0635";
 
@@ -177,16 +176,16 @@ Deno.test(
         expect(selectedQty).toHaveLength(2);
         expect(selectedQty[0].textContent).toContain("200");
         expect(selectedQty[1].textContent).toContain("5");
-
         expect(screen.getByTestId("total-price").textContent).toBe(
           wantTotalPrice,
         );
       });
-      await act(async () => {
-        const checkoutButton = screen.getByTestId("checkout-button");
-        expect(checkoutButton).toBeTruthy();
-        await user.click(checkoutButton);
-      });
+
+      const checkoutButton1 = screen.getByTestId("checkout-button");
+      expect(checkoutButton1).toBeTruthy();
+      await user.click(checkoutButton1);
+
+      // Wait for the error message to appear after the error is caught and handled
       await waitFor(() => {
         const outOfStockMsg = screen.getByTestId("out-of-stock");
         expect(outOfStockMsg).toBeTruthy();
@@ -196,16 +195,12 @@ Deno.test(
       });
 
       // Remove item and try to checkout again
-      await act(async () => {
-        const removeButton = screen.getByTestId("remove-item-23");
-        expect(removeButton).toBeTruthy();
-        await user.click(removeButton);
-      });
-      await act(async () => {
-        const checkoutButton = screen.getByTestId("checkout-button");
-        expect(checkoutButton).toBeTruthy();
-        await user.click(checkoutButton);
-      });
+      const removeButton = screen.getByTestId("remove-item-23");
+      expect(removeButton).toBeTruthy();
+      await user.click(removeButton);
+      const checkoutButton2 = screen.getByTestId("checkout-button");
+      expect(checkoutButton2).toBeTruthy();
+      await user.click(checkoutButton2);
 
       await waitFor(async () => {
         const orderData = await merchantStateManager.get(["Orders", orderId1]);
@@ -238,37 +233,33 @@ Deno.test(
       });
 
       // Fill in all shipping details fields
-      await act(async () => {
-        await user.type(screen.getByTestId("name"), testShippingDetails.Name);
-        await user.type(
-          screen.getByTestId("address"),
-          testShippingDetails.Address1,
-        );
-        await user.type(screen.getByTestId("city"), testShippingDetails.City);
-        await user.type(
-          screen.getByTestId("zip"),
-          testShippingDetails.PostalCode,
-        );
-        await user.type(
-          screen.getByTestId("country"),
-          testShippingDetails.Country,
-        );
-        await user.type(
-          screen.getByTestId("email"),
-          testShippingDetails.EmailAddress,
-        );
-        await user.type(
-          screen.getByTestId("phone"),
-          testShippingDetails.PhoneNumber!,
-        );
-      });
+      await user.type(screen.getByTestId("name"), testShippingDetails.Name);
+      await user.type(
+        screen.getByTestId("address"),
+        testShippingDetails.Address1,
+      );
+      await user.type(screen.getByTestId("city"), testShippingDetails.City);
+      await user.type(
+        screen.getByTestId("zip"),
+        testShippingDetails.PostalCode,
+      );
+      await user.type(
+        screen.getByTestId("country"),
+        testShippingDetails.Country,
+      );
+      await user.type(
+        screen.getByTestId("email"),
+        testShippingDetails.EmailAddress,
+      );
+      await user.type(
+        screen.getByTestId("phone"),
+        testShippingDetails.PhoneNumber!,
+      );
 
-      await act(async () => {
-        const submitShippingDetails = screen.getByTestId(
-          "goto-payment-options",
-        );
-        await user.click(submitShippingDetails);
-      });
+      const submitShippingDetails = screen.getByTestId(
+        "goto-payment-options",
+      );
+      await user.click(submitShippingDetails);
 
       await waitFor(async () => {
         // Verify order details were saved correctly
@@ -284,8 +275,8 @@ Deno.test(
       });
 
       unmount();
-      cleanup();
     });
+    cleanup();
   }),
 );
 
@@ -306,20 +297,18 @@ async function testPayWithCurrency(
     expect(paymentCurrency).toBeTruthy();
   });
 
-  await act(async () => {
-    const paymentCurrency = screen.getByTestId("payment-currency-dropdown");
-    expect(paymentCurrency).toBeTruthy();
-    const selectElement = paymentCurrency.querySelector("select");
-    expect(selectElement).toBeTruthy();
-    await user.selectOptions(
-      selectElement as HTMLSelectElement,
-      `${currencyConfig.expectedSymbol}/Hardhat`,
-    );
-    // First verify the selection was made in the UI
-    expect((selectElement as HTMLSelectElement).value).toBe(
-      `${currencyConfig.expectedSymbol}/Hardhat`,
-    );
-  });
+  const paymentCurrency = screen.getByTestId("payment-currency-dropdown");
+  expect(paymentCurrency).toBeTruthy();
+  const selectElement = paymentCurrency.querySelector("select");
+  expect(selectElement).toBeTruthy();
+  await user.selectOptions(
+    selectElement as HTMLSelectElement,
+    `${currencyConfig.expectedSymbol}/Hardhat`,
+  );
+  // First verify the selection was made in the UI
+  expect((selectElement as HTMLSelectElement).value).toBe(
+    `${currencyConfig.expectedSymbol}/Hardhat`,
+  );
 
   await waitFor(async () => {
     // Check that the ChosenCurrency event was successfully sent to relay and order now has PaymentDetails.
@@ -347,13 +336,11 @@ async function testPayWithCurrency(
   });
 
   // Connect wallet and initiate payment
-  await act(async () => {
-    const connectWalletButton = screen.getByTestId(
-      "rainbowkit-connect-wallet",
-    );
-    expect(connectWalletButton).toBeTruthy();
-    await user.click(connectWalletButton);
-  });
+  const connectWalletButton = screen.getByTestId(
+    "rainbowkit-connect-wallet",
+  );
+  expect(connectWalletButton).toBeTruthy();
+  await user.click(connectWalletButton);
   let payButton: HTMLElement | null = null;
   await waitFor(() => {
     // Wait for the Pay button to appear after wallet connection
@@ -363,10 +350,8 @@ async function testPayWithCurrency(
     expect(payButton).toBeTruthy();
   });
 
-  await act(async () => {
-    expect(payButton).toBeTruthy();
-    await user.click(payButton!);
-  });
+  expect(payButton).toBeTruthy();
+  await user.click(payButton!);
 
   // Wait for the transaction processing message to appear
   await waitFor(() => {
@@ -407,7 +392,7 @@ async function testPayWithCurrency(
 }
 
 Deno.test(
-  "Checkout - Choose Payment",
+  "Checkout - Choose Payment ETH",
   denoTestOptions,
   testWrapper(async (shopId, t) => {
     await t.step("Pay with ETH", async () => {
@@ -427,7 +412,7 @@ Deno.test(
 );
 
 Deno.test(
-  "Checkout - Choose Payment",
+  "Checkout - Choose Payment EDD",
   denoTestOptions,
   testWrapper(async (shopId, t) => {
     await t.step("Mint ERC20 and add order.", async () => {

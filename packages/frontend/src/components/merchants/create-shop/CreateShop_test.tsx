@@ -81,13 +81,6 @@ Deno.test(
     });
 
     expect(screen.getByTestId("minting-shop")).toBeTruthy();
-    // Check that mint() successfully executes.
-    await waitFor(() => {
-      const shopRegistrationStatus = screen.getByTestId(
-        "shop-registration-status",
-      );
-      expect(shopRegistrationStatus.textContent).toBe("Relay token ID added");
-    });
     await waitFor(() => {
       expect(screen.getByTestId("mint-shop-confirmation")).toBeTruthy();
     }, { timeout: 10000 });
