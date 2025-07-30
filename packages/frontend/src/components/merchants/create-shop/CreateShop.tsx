@@ -5,7 +5,6 @@
 import { useEffect, useState } from "react";
 import { getLogger } from "@logtape/logtape";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useNavigate } from "@tanstack/react-router";
 import {
   useAccount,
   useChainId,
@@ -13,14 +12,15 @@ import {
   useSwitchChain,
   useWalletClient,
 } from "wagmi";
-import { toBytes, toHex } from "viem";
+import { toBytes } from "viem";
 
 import { Manifest } from "@massmarket/schema";
-import { random256BigInt } from "@massmarket/utils";
-import { useShopId, useShopPublicClient } from "@massmarket/react-hooks";
+import { useShopPublicClient } from "@massmarket/react-hooks";
 
-import MintShop from "./MintShop.tsx";
 import ManifestForm from "./ManifestForm.tsx";
+import MintShop from "./MintShop.tsx";
+import UpdateManifest from "./UpdateManifest.tsx";
+import UploadMetadata from "./UploadMetadata.tsx";
 import Confirmation from "./CreateShopConfirmation.tsx";
 import ErrorMessage from "../../common/ErrorMessage.tsx";
 import Button from "../../common/Button.tsx";
@@ -52,18 +52,9 @@ export default function () {
   const { shopPublicClient } = useShopPublicClient();
   // Chain that user is connected to
   const chainId = useChainId();
-  const { shopId } = useShopId();
   const config = useConfig();
   const { switchChain } = useSwitchChain({ config });
-  const navigate = useNavigate({ from: "/create-shop" });
   const shopChain = shopPublicClient?.chain;
-
-  useEffect(() => {
-    if (!shopId) {
-      const newShopId = random256BigInt();
-      navigate({ search: { shopId: toHex(newShopId) } });
-    }
-  }, []);
 
   useEffect(() => {
     if (wallet?.account) {
@@ -112,7 +103,7 @@ export default function () {
       setValidationError(null);
     }
 
-    setStep(CreateShopStep.CreatingShop);
+    setStep(CreateShopStep.MintShop);
   }
 
   function renderContent() {
@@ -149,7 +140,7 @@ export default function () {
                   <ConnectButton chainStatus="name" />
                   <Button
                     onClick={checkRequiredFields}
-                    disabled={!wallet || !shopId}
+                    disabled={!wallet}
                   >
                     <h6>Mint Shop</h6>
                   </Button>
@@ -159,14 +150,22 @@ export default function () {
           </section>
         </section>
       );
-    } else if (step === CreateShopStep.CreatingShop) {
+    } else if (step === CreateShopStep.MintShop) {
       return (
         <MintShop
+          setStep={setStep}
+        />
+      );
+    } else if (step === CreateShopStep.UpdateManifest) {
+      return (
+        <UpdateManifest
           setStep={setStep}
           shopManifest={shopManifest}
           shopMetadata={shopMetadata}
         />
       );
+    } else if (step === CreateShopStep.UploadMetadata) {
+      return <UploadMetadata setStep={setStep} shopMetadata={shopMetadata} />;
     } else if (step === CreateShopStep.Confirmation) {
       return <Confirmation />;
     }
