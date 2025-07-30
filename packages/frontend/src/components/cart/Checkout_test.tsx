@@ -23,7 +23,6 @@ import { CodecKey, CodecValue } from "@massmarket/utils/codec";
 import { useStateManager } from "@massmarket/react-hooks";
 
 import { testClient } from "../../testutils/mod.tsx";
-import Checkout from "./Checkout.tsx";
 import ShippingDetails from "./ShippingDetails.tsx";
 import ChoosePayment from "./ChoosePayment.tsx";
 import {
@@ -71,7 +70,6 @@ const testShippingDetails = new AddressDetails(
   "+1234567890",
 );
 const orderId1 = randUint64();
-const orderId2 = randUint64();
 
 async function setShopManifestAndListings(shopId: bigint) {
   const relayClient = await createTestRelayClient(shopId);
@@ -155,67 +153,6 @@ async function setShopManifestAndListings(shopId: bigint) {
 }
 
 Deno.test(
-  "Checkout - Render Cart Items",
-  denoTestOptions,
-  testWrapper(async (shopId, t) => {
-    const { merchantStateManager } = await setShopManifestAndListings(shopId);
-
-    await t.step("Out of stock error is displayed.", async () => {
-      const wrapper = await createWrapper(shopId);
-      const user = userEvent.setup();
-      const { unmount } = render(<CheckoutTest />, { wrapper });
-      const wantTotalPrice = "0.0635";
-
-      await waitFor(() => {
-        screen.findByTestId("checkout-screen");
-        const titles = screen.getAllByTestId("listing-title");
-        expect(titles).toHaveLength(2);
-        expect(titles[0].textContent).toContain("test");
-        expect(titles[1].textContent).toContain("test42");
-        const selectedQty = screen.getAllByTestId("selected-qty");
-        expect(selectedQty).toHaveLength(2);
-        expect(selectedQty[0].textContent).toContain("200");
-        expect(selectedQty[1].textContent).toContain("5");
-        expect(screen.getByTestId("total-price").textContent).toBe(
-          wantTotalPrice,
-        );
-      });
-
-      const checkoutButton1 = screen.getByTestId("checkout-button");
-      expect(checkoutButton1).toBeTruthy();
-      await user.click(checkoutButton1);
-
-      // Wait for the error message to appear after the error is caught and handled
-      await waitFor(() => {
-        const outOfStockMsg = screen.getByTestId("out-of-stock");
-        expect(outOfStockMsg).toBeTruthy();
-        expect(outOfStockMsg.textContent).toContain(
-          `Please reduce quantity or remove from cart to proceed.`,
-        );
-      });
-
-      // Remove item and try to checkout again
-      const removeButton = screen.getByTestId("remove-item-23");
-      expect(removeButton).toBeTruthy();
-      await user.click(removeButton);
-      const checkoutButton2 = screen.getByTestId("checkout-button");
-      expect(checkoutButton2).toBeTruthy();
-      await user.click(checkoutButton2);
-
-      await waitFor(async () => {
-        const orderData = await merchantStateManager.get(["Orders", orderId1]);
-        const o = Order.fromCBOR(orderData!);
-        expect(o.State).toBe(OrderState.Committed);
-      });
-
-      unmount();
-    });
-
-    cleanup();
-  }),
-);
-
-Deno.test(
   "Checkout - Update Shipping Details",
   denoTestOptions,
   testWrapper(async (shopId, t) => {
@@ -265,7 +202,7 @@ Deno.test(
         // Verify order details were saved correctly
         const updatedOrderData = await merchantStateManager.get([
           "Orders",
-          orderId2,
+          orderId1,
         ]);
         expect(updatedOrderData).toBeDefined();
         const updatedOrder = Order.fromCBOR(updatedOrderData!);
@@ -286,15 +223,11 @@ async function testPayWithCurrency(
   orderId: number,
   shopId: bigint,
 ) {
-  const user = userEvent.setup();
   const { merchantStateManager } = await setShopManifestAndListings(shopId);
-
-  const choosePayment = screen.getByTestId("choose-payment");
-  expect(choosePayment).toBeTruthy();
-
+  const user = userEvent.setup();
   await waitFor(() => {
-    const paymentCurrency = screen.getByTestId("payment-currency");
-    expect(paymentCurrency).toBeTruthy();
+    const choosePayment = screen.getByTestId("choose-payment");
+    expect(choosePayment).toBeTruthy();
   });
 
   const paymentCurrency = screen.getByTestId("payment-currency-dropdown");
@@ -400,7 +333,6 @@ Deno.test(
       const ChoosePaymentTest = createTestComponent(
         ChoosePayment,
         orderId,
-        true,
       );
       const wrapper = await createWrapper(shopId);
       const { unmount } = render(<ChoosePaymentTest />, { wrapper });
@@ -452,7 +384,6 @@ Deno.test(
       const ChoosePaymentTest = createTestComponent(
         ChoosePayment,
         orderId,
-        true,
       );
       const wrapper = await createWrapper(shopId);
       const { unmount } = render(<ChoosePaymentTest />, { wrapper });
@@ -466,7 +397,6 @@ Deno.test(
 const createTestComponent = (
   Component: React.ComponentType,
   orderId: number,
-  checkoutOrder: boolean = false,
 ) => {
   return () => {
     const { stateManager } = useStateManager();
@@ -494,42 +424,27 @@ const createTestComponent = (
       if (!stateManager || !listingsLoaded) return;
       // Create order and add items
 
-      if (checkoutOrder) {
-        const order = new Order(
-          orderId,
-          [
-            new OrderedItem(42, 5),
-          ],
-          OrderState.Open,
-        );
-        stateManager.set(["Orders", orderId], order).then(() => {
-          stateManager.set(["Orders", orderId, "State"], OrderState.Committed);
-        });
-        stateManager.set(
-          ["Orders", orderId, "InvoiceAddress"],
-          testShippingDetails,
-        );
-      } else {
-        const order = new Order(
-          orderId,
-          [
-            new OrderedItem(23, 200), // Purposefully select more than inventory amount so we can test the error msg is displayed.
-            new OrderedItem(42, 5),
-          ],
-          OrderState.Open,
-        );
-        stateManager.set(["Orders", orderId], order);
-      }
+      const order = new Order(
+        orderId,
+        [
+          new OrderedItem(42, 5),
+        ],
+        OrderState.Open,
+      );
+      stateManager.set(["Orders", orderId], order).then(() => {
+        stateManager.set(["Orders", orderId, "State"], OrderState.Committed);
+      });
+      stateManager.set(
+        ["Orders", orderId, "InvoiceAddress"],
+        testShippingDetails,
+      );
     }, [listingsLoaded]);
 
     return <Component />;
   };
 };
 
-const CheckoutTest = createTestComponent(Checkout, orderId1);
-
 const ShippingDetailsTest = createTestComponent(
   ShippingDetails,
-  orderId2,
-  true,
+  orderId1,
 );

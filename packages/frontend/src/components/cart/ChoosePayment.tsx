@@ -406,6 +406,14 @@ export default function ChoosePayment() {
         goBack={() => setConnectWalletOpen(false)}
       />
     );
+  } else if (!activeOrder) {
+    return (
+      <section data-testid="no-active-order" className="md:flex justify-center">
+        <section className="md:w-[600px] px-4 md:px-0">
+          <p>No order found</p>
+        </section>
+      </section>
+    );
   }
 
   return (

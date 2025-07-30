@@ -134,7 +134,6 @@ export default function Cart({
         error instanceof RelayResponseError &&
         error.cause.code === 9 && error.cause.additionalInfo
       ) {
-        console.log("testing::::", error);
         const objectId = error.cause.additionalInfo.objectId;
         const l = await stateManager!.get(["Listings", objectId]);
         if (!l) throw new Error("Listing not found");

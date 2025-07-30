@@ -27,11 +27,9 @@ const listingID = 23;
 const listingID2 = 42;
 
 Deno.test(
-  "Cart - Commit order",
+  "Cart - Before committing order",
   denoTestOptions,
   testWrapper(async (shopId, t) => {
-    const user = userEvent.setup();
-
     // Merchant setup
     const relayClient = await createTestRelayClient(shopId);
     const stateManager = await createTestStateManager(shopId);
@@ -40,9 +38,14 @@ Deno.test(
     stateManager.addConnection(relayClient);
 
     await t.step("Add listings.", async () => {
-      for (const [listingID, listing] of allListings.entries()) {
-        await stateManager.set(["Listings", listingID], listing);
-        await stateManager.set(["Inventory", listingID], 100);
+      for (const [id, listing] of allListings.entries()) {
+        if (id === listingID) {
+          listing.Price = 300000000000000n;
+        } else if (id === listingID2) {
+          listing.Price = 700000000000000n;
+        }
+        await stateManager.set(["Listings", id], listing);
+        await stateManager.set(["Inventory", id], 100);
       }
 
       await waitFor(async () => {
@@ -54,46 +57,105 @@ Deno.test(
       });
     });
 
-    await t.step(
-      "Clicking checkout button should update order state to committed",
-      async () => {
-        const wrapper = await createWrapper(shopId);
-        const { unmount } = render(<CartTest />, { wrapper });
-        await waitFor(() => {
-          const cartItems = screen.getAllByTestId("cart-item");
-          expect(cartItems.length).toBe(2);
-        });
+    await t.step("Out of stock error is displayed.", async () => {
+      const wrapper = await createWrapper(shopId);
+      const { unmount } = render(<CartTest />, { wrapper });
+      const user = userEvent.setup();
 
-        const checkoutButton = screen.getByTestId("checkout-button");
-        expect(checkoutButton).toBeDefined();
+      const wantTotalPrice = "0.0635";
 
-        await user.click(checkoutButton);
+      await waitFor(() => {
+        const titles = screen.getAllByTestId("listing-title");
+        expect(titles).toHaveLength(2);
+        expect(titles[0].textContent).toContain("test");
+        expect(titles[1].textContent).toContain("test42");
+        const selectedQty = screen.getAllByTestId("selected-qty");
+        expect(selectedQty).toHaveLength(2);
+        expect(selectedQty[0].textContent).toContain("200");
+        expect(selectedQty[1].textContent).toContain("5");
+        expect(screen.getByTestId("total-price").textContent).toBe(
+          wantTotalPrice,
+        );
+      });
 
-        await waitFor(async () => {
-          // Check that the order was committed after clicking checkout button.
-          const updatedOrder = await stateManager.get(["Orders", orderId]);
-          expect(updatedOrder).toBeDefined();
+      const checkoutButton1 = screen.getByTestId("checkout-button");
+      expect(checkoutButton1).toBeTruthy();
+      await user.click(checkoutButton1);
 
-          const state = Order.fromCBOR(updatedOrder!).State;
-          expect(state).toBe(OrderState.Committed);
-        });
-        unmount();
-      },
-    );
+      // Wait for the error message to appear after the error is caught and handled
+      await waitFor(() => {
+        const outOfStockMsg = screen.getByTestId("out-of-stock");
+        expect(outOfStockMsg).toBeTruthy();
+        expect(outOfStockMsg.textContent).toContain(
+          `Please reduce quantity or remove from cart to proceed.`,
+        );
+      });
 
+      // Remove item and try to checkout again
+      const removeButton = screen.getByTestId("remove-item-23");
+      expect(removeButton).toBeTruthy();
+      await user.click(removeButton);
+      const checkoutButton2 = screen.getByTestId("checkout-button");
+      expect(checkoutButton2).toBeTruthy();
+      await user.click(checkoutButton2);
+
+      await waitFor(async () => {
+        const orderData = await stateManager.get(["Orders", orderId]);
+        const o = Order.fromCBOR(orderData!);
+        expect(o.State).toBe(OrderState.Committed);
+      });
+
+      unmount();
+    });
+
+    cleanup();
+  }),
+);
+
+Deno.test(
+  "Cart - After committing order",
+  denoTestOptions,
+  testWrapper(async (shopId, t) => {
+    // Merchant setup
+    const relayClient = await createTestRelayClient(shopId);
+    const stateManager = await createTestStateManager(shopId);
+    await relayClient.connect();
+    await relayClient.authenticate();
+    stateManager.addConnection(relayClient);
+    const user = userEvent.setup();
+    await t.step("Add listings.", async () => {
+      for (const [id, listing] of allListings.entries()) {
+        if (id === listingID) {
+          listing.Price = 300000000000000n;
+        } else if (id === listingID2) {
+          listing.Price = 700000000000000n;
+        }
+        await stateManager.set(["Listings", id], listing);
+        await stateManager.set(["Inventory", id], 100);
+      }
+
+      await waitFor(async () => {
+        const storedListings = await stateManager.get(["Listings"]) as Map<
+          bigint,
+          unknown
+        >;
+        expect(storedListings.size).toBe(allListings.size);
+      });
+    });
     await t.step("Changing items after order is committed", async () => {
       const wrapper = await createWrapper(shopId);
       const { unmount } = render(<CommittedOrderComponent />, { wrapper });
-      await waitFor(async () => {
-        const cartScreen = screen.getByTestId("cart-screen");
-        expect(cartScreen).toBeDefined();
-        // +1 to listing 2
-        const addButton = screen.getByTestId(
-          `add-quantity-${listingID2}`,
-        );
-        expect(addButton).toBeDefined();
-        await user.click(addButton);
+
+      await waitFor(() => {
+        const cartScreen = screen.getAllByTestId("cart-item");
+        expect(cartScreen).toHaveLength(2);
       });
+      // +1 to listing 2
+      const addButton = screen.getByTestId(
+        `add-quantity-${listingID2}`,
+      );
+      expect(addButton).toBeDefined();
+      await user.click(addButton);
 
       await waitFor(() => {
         const quantity = screen.getByTestId(
@@ -125,14 +187,13 @@ Deno.test(
     await t.step("Clearing cart of a committed order.", async () => {
       const wrapper = await createWrapper(shopId);
       const { unmount } = render(<CommittedOrderComponent2 />, { wrapper });
-      await waitFor(async () => {
-        const cartScreen = screen.getByTestId("cart-screen");
-        expect(cartScreen).toBeDefined();
-
-        const clearCart = screen.getByTestId("clear-cart");
-        expect(clearCart).toBeDefined();
-        await user.click(clearCart);
+      await waitFor(() => {
+        const cartScreen = screen.getAllByTestId("cart-item");
+        expect(cartScreen).toHaveLength(2);
       });
+      const clearCart = screen.getByTestId("clear-cart");
+      expect(clearCart).toBeDefined();
+      await user.click(clearCart);
 
       await waitFor(async () => {
         const cartItems = screen.queryAllByTestId("cart-item");
@@ -183,13 +244,15 @@ const createTestComponent = (oId: number, commitOrder: boolean) => {
 
     useEffect(() => {
       if (!stateManager || !listingsLoaded) return;
-      // Create order and add items
+      // Create order
       const order = new Order(
         oId,
-        [
-          new OrderedItem(listingID, 32),
-          new OrderedItem(listingID2, 24),
-        ],
+        commitOrder
+          ? [
+            new OrderedItem(listingID, 32),
+            new OrderedItem(listingID2, 24),
+          ]
+          : [new OrderedItem(listingID, 200), new OrderedItem(listingID2, 5)],
         OrderState.Open,
       );
 
