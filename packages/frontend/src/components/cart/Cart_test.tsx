@@ -20,9 +20,6 @@ import {
 } from "../../testutils/_createWrapper.tsx";
 import { OrderState } from "../../types.ts";
 
-const orderId = randUint64();
-const committedOrderId = randUint64();
-const committedOrderId2 = randUint64();
 const listingID = 23;
 const listingID2 = 42;
 
@@ -58,7 +55,10 @@ Deno.test(
     });
 
     await t.step("Out of stock error is displayed.", async () => {
+      const orderId = randUint64();
+
       const wrapper = await createWrapper(shopId);
+      const CartTest = createTestComponent(orderId, false);
       const { unmount } = render(<CartTest />, { wrapper });
       const user = userEvent.setup();
 
@@ -108,6 +108,82 @@ Deno.test(
       unmount();
     });
 
+    await t.step("Add/remove quantity from item", async () => {
+      const orderId = randUint64();
+
+      const wrapper = await createWrapper(shopId);
+      const CartTest = createTestComponent(orderId, false);
+      const { unmount } = render(<CartTest />, { wrapper });
+      const user = userEvent.setup();
+
+      // +1 to listing 1
+      await waitFor(async () => {
+        const addButton = screen.getByTestId(
+          `add-quantity-${listingID}`,
+        );
+        expect(addButton).toBeDefined();
+        await user.click(addButton);
+      });
+      await waitFor(() => {
+        const quantity = screen.getByTestId(
+          `quantity-${listingID}`,
+        );
+        expect(quantity.textContent).toContain("201");
+      });
+      // -1 from listing 2
+      await waitFor(async () => {
+        const minusQty = screen.getByTestId(
+          `remove-quantity-${listingID2}`,
+        );
+        expect(minusQty).toBeDefined();
+        await user.click(minusQty);
+      });
+      await waitFor(() => {
+        const quantity = screen.getByTestId(
+          `quantity-${listingID2}`,
+        );
+        expect(quantity.textContent).toContain("4");
+      });
+
+      // Check statemanager updated correctly.
+      await waitFor(async () => {
+        const updatedOrder = await stateManager.get(["Orders", orderId]);
+        expect(updatedOrder).toBeDefined();
+        const updatedOrderItems = Order.fromCBOR(updatedOrder!).Items;
+        expect(updatedOrderItems[0].ListingID).toBe(listingID);
+        expect(updatedOrderItems[0].Quantity).toBe(201);
+        expect(updatedOrderItems[1].ListingID).toBe(listingID2);
+        expect(updatedOrderItems[1].Quantity).toBe(4);
+      });
+      unmount();
+    });
+    await t.step("Clear cart", async () => {
+      const orderId = randUint64();
+      const wrapper = await createWrapper(shopId);
+      const CartTest = createTestComponent(orderId, false);
+      const { unmount } = render(<CartTest />, { wrapper });
+      const user = userEvent.setup();
+      await waitFor(() => {
+        const items = screen.getAllByTestId("cart-item");
+        expect(items).toHaveLength(2);
+      });
+      const clearCart = screen.getByTestId("clear-cart");
+      await user.click(clearCart);
+
+      await waitFor(() => {
+        const cartItems = screen.queryAllByTestId("cart-item");
+        expect(cartItems.length).toBe(0);
+      });
+
+      await waitFor(async () => {
+        const updatedOrder = await stateManager.get(["Orders", orderId]);
+        expect(updatedOrder).toBeDefined();
+        const updatedOrderItems = Order.fromCBOR(updatedOrder!).Items;
+        expect(updatedOrderItems.length).toBe(0);
+      });
+      unmount();
+    });
+
     cleanup();
   }),
 );
@@ -144,7 +220,9 @@ Deno.test(
     });
     await t.step("Changing items after order is committed", async () => {
       const wrapper = await createWrapper(shopId);
-      const { unmount } = render(<CommittedOrderComponent />, { wrapper });
+      const orderId = randUint64();
+      const CartTest = createTestComponent(orderId, true);
+      const { unmount } = render(<CartTest />, { wrapper });
 
       await waitFor(() => {
         const cartScreen = screen.getAllByTestId("cart-item");
@@ -169,7 +247,7 @@ Deno.test(
           number,
           unknown
         >;
-        const o = orders.get(committedOrderId) as CodecValue;
+        const o = orders.get(orderId) as CodecValue;
         expect(o).toBeDefined();
         const order = Order.fromCBOR(o!);
         expect(order.CanceledAt).toBeDefined();
@@ -186,7 +264,9 @@ Deno.test(
 
     await t.step("Clearing cart of a committed order.", async () => {
       const wrapper = await createWrapper(shopId);
-      const { unmount } = render(<CommittedOrderComponent2 />, { wrapper });
+      const orderId = randUint64();
+      const CartTest = createTestComponent(orderId, true);
+      const { unmount } = render(<CartTest />, { wrapper });
       await waitFor(() => {
         const cartScreen = screen.getAllByTestId("cart-item");
         expect(cartScreen).toHaveLength(2);
@@ -203,7 +283,7 @@ Deno.test(
           number,
           unknown
         >;
-        const o = orders.get(committedOrderId) as CodecValue;
+        const o = orders.get(orderId) as CodecValue;
         const order = Order.fromCBOR(o!);
         expect(order.CanceledAt).toBeDefined();
         expect(order.State).toBe(OrderState.Canceled);
@@ -265,7 +345,3 @@ const createTestComponent = (oId: number, commitOrder: boolean) => {
     return <Cart />;
   };
 };
-
-const CartTest = createTestComponent(orderId, false);
-const CommittedOrderComponent = createTestComponent(committedOrderId, true);
-const CommittedOrderComponent2 = createTestComponent(committedOrderId2, true);
