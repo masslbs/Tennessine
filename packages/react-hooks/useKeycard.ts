@@ -26,6 +26,7 @@ export function useKeycard(
     role: "guest",
   },
 ) {
+  const role = params.role || "guest";
   // wagmi hooks
   const { data: wallet } = useWalletClient();
   const { address } = useAccount();
@@ -41,7 +42,7 @@ export function useKeycard(
       address,
       // browser caches like localStorage cannot serialize BigInts, so we convert to string.
       String(shopId),
-      params.role,
+      role,
     ],
     queryFn: enabled
       ? async ({ client }) => {
@@ -63,31 +64,31 @@ export function useKeycard(
         const res = await relayClient.enrollKeycard(
           wallet,
           address,
-          params.role === "guest",
+          role === "guest",
           getWindowLocation(),
         );
 
         if (!res.ok) {
           const error = new Error(`Failed to enroll keycard: ${res.status}`);
           logger.error(
-            `failed to enroll ${params.role} keycard for shop ${shopId}`,
+            `failed to enroll ${role} keycard for shop ${shopId}`,
             {
               error,
             },
           );
           throw error;
         }
-        logger.debug(`Success: Enrolled new ${params.role} keycard`);
+        logger.debug(`Success: Enrolled new ${role} keycard`);
 
         const kc = {
           privateKey,
-          role: params.role,
+          role,
           address,
         };
         // Return this keycard for all guest keycard queries.
         // This is needed for merchant enrolls, so that subsequent queries will return this merchant keycard instead of trying to enroll multiple different keycards.
         // setQueryData also ensures that any component using the query will re-render with the new keycard.
-        if (params.role === "merchant") {
+        if (role === "merchant") {
           client.setQueryData(
             ["keycard", address, String(shopId), "guest"],
             kc,

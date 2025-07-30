@@ -61,6 +61,8 @@ export function useStateManager(params?: {
         return db;
       }
       : skipToken,
+    gcTime: Infinity,
+    staleTime: Infinity,
   });
   return { stateManager: query.data, ...query };
 }
