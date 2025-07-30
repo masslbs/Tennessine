@@ -54,7 +54,7 @@ Deno.test(
       });
     });
 
-    await t.step("Out of stock error is displayed.", async () => {
+    await t.step("Out of stock error", async () => {
       const orderId = randUint64();
 
       const wrapper = await createWrapper(shopId);
@@ -110,20 +110,21 @@ Deno.test(
 
     await t.step("Add/remove quantity from item", async () => {
       const orderId = randUint64();
-
       const wrapper = await createWrapper(shopId);
       const CartTest = createTestComponent(orderId, false);
       const { unmount } = render(<CartTest />, { wrapper });
       const user = userEvent.setup();
 
-      // +1 to listing 1
-      await waitFor(async () => {
-        const addButton = screen.getByTestId(
-          `add-quantity-${listingID}`,
-        );
-        expect(addButton).toBeDefined();
-        await user.click(addButton);
+      await waitFor(() => {
+        const cartScreen = screen.getAllByTestId("cart-item");
+        expect(cartScreen).toHaveLength(2);
       });
+      // +1 to listing 1
+      const addButton = await screen.findByTestId(
+        `add-quantity-${listingID}`,
+      );
+      await user.click(addButton);
+
       await waitFor(() => {
         const quantity = screen.getByTestId(
           `quantity-${listingID}`,
@@ -131,22 +132,17 @@ Deno.test(
         expect(quantity.textContent).toContain("201");
       });
       // -1 from listing 2
+      const minusQty = await screen.findByTestId(
+        `remove-quantity-${listingID2}`,
+      );
+      await user.click(minusQty);
+
+      // Check statemanager updated correctly.
       await waitFor(async () => {
-        const minusQty = screen.getByTestId(
-          `remove-quantity-${listingID2}`,
-        );
-        expect(minusQty).toBeDefined();
-        await user.click(minusQty);
-      });
-      await waitFor(() => {
         const quantity = screen.getByTestId(
           `quantity-${listingID2}`,
         );
         expect(quantity.textContent).toContain("4");
-      });
-
-      // Check statemanager updated correctly.
-      await waitFor(async () => {
         const updatedOrder = await stateManager.get(["Orders", orderId]);
         expect(updatedOrder).toBeDefined();
         const updatedOrderItems = Order.fromCBOR(updatedOrder!).Items;
@@ -157,17 +153,19 @@ Deno.test(
       });
       unmount();
     });
+
     await t.step("Clear cart", async () => {
       const orderId = randUint64();
       const wrapper = await createWrapper(shopId);
       const CartTest = createTestComponent(orderId, false);
       const { unmount } = render(<CartTest />, { wrapper });
       const user = userEvent.setup();
+
       await waitFor(() => {
         const items = screen.getAllByTestId("cart-item");
         expect(items).toHaveLength(2);
       });
-      const clearCart = screen.getByTestId("clear-cart");
+      const clearCart = await screen.findByTestId("clear-cart");
       await user.click(clearCart);
 
       await waitFor(() => {
@@ -199,6 +197,7 @@ Deno.test(
     await relayClient.authenticate();
     stateManager.addConnection(relayClient);
     const user = userEvent.setup();
+
     await t.step("Add listings.", async () => {
       for (const [id, listing] of allListings.entries()) {
         if (id === listingID) {
@@ -218,6 +217,7 @@ Deno.test(
         expect(storedListings.size).toBe(allListings.size);
       });
     });
+
     await t.step("Changing items after order is committed", async () => {
       const wrapper = await createWrapper(shopId);
       const orderId = randUint64();
@@ -229,20 +229,16 @@ Deno.test(
         expect(cartScreen).toHaveLength(2);
       });
       // +1 to listing 2
-      const addButton = screen.getByTestId(
+      const addButton = await screen.findByTestId(
         `add-quantity-${listingID2}`,
       );
-      expect(addButton).toBeDefined();
       await user.click(addButton);
 
-      await waitFor(() => {
+      await waitFor(async () => {
         const quantity = screen.getByTestId(
           `quantity-${listingID2}`,
         );
         expect(quantity.textContent).toContain("25");
-      });
-
-      await waitFor(async () => {
         const orders = await stateManager.get(["Orders"]) as Map<
           number,
           unknown
@@ -267,17 +263,17 @@ Deno.test(
       const orderId = randUint64();
       const CartTest = createTestComponent(orderId, true);
       const { unmount } = render(<CartTest />, { wrapper });
+
       await waitFor(() => {
         const cartScreen = screen.getAllByTestId("cart-item");
         expect(cartScreen).toHaveLength(2);
       });
-      const clearCart = screen.getByTestId("clear-cart");
-      expect(clearCart).toBeDefined();
+
+      const clearCart = await screen.findByTestId("clear-cart");
       await user.click(clearCart);
 
       await waitFor(async () => {
         const cartItems = screen.queryAllByTestId("cart-item");
-
         expect(cartItems.length).toBe(0);
         const orders = await stateManager.get(["Orders"]) as Map<
           number,
