@@ -420,7 +420,7 @@ export default function Cart({
         id="cart-buttons-container"
       >
         <Button
-          disabled={!activeOrder || !cartItemsMap.size || !onCheckout}
+          disabled={!activeOrder || !cartItemsMap.size}
           onClick={handleCheckout}
           data-testid="checkout-button"
         >
@@ -432,9 +432,7 @@ export default function Cart({
               width={7}
               height={12}
               style={{
-                display: !activeOrder || !cartItemsMap.size || !onCheckout
-                  ? "none"
-                  : "",
+                display: !activeOrder || !cartItemsMap.size ? "none" : "",
               }}
             />
           </div>
