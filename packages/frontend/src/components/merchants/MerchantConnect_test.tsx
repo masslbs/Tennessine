@@ -21,26 +21,14 @@ import {
 Deno.test(
   "Merchant Connect",
   denoTestOptions,
-  testWrapper(async (shopId, t) => {
-    const user = userEvent.setup();
-
-    await t.step("Set shop metadata", async () => {
-      const metadataHash = await setTokenURI(testClient!, testAccount, [
-        shopId!,
-        "https://dummyjson.com/c/0a7c-cc65-4739-8899",
-      ]);
-      const transaction = await testClient!.waitForTransactionReceipt({
-        hash: metadataHash,
-        retryCount: 10,
-      });
-      expect(transaction.status).toBe("success");
-    });
-
+  testWrapper(async (_shopId, t) => {
     await t.step(
       "Display error message for invalid shop ID inputs",
       async () => {
         const wrapper = await createWrapper(null, "/merchant-connect");
         const { unmount } = render(<MerchantConnect />, { wrapper });
+        const user = userEvent.setup();
+
         await act(async () => {
           const searchInput = await screen.findByTestId("search-shopId");
           expect(searchInput).toBeTruthy();
@@ -88,9 +76,30 @@ Deno.test(
       },
     );
 
+    cleanup();
+  }),
+);
+
+Deno.test(
+  "MerchantConnect",
+  denoTestOptions,
+  testWrapper(async (shopId, t) => {
+    await t.step("Set shop metadata", async () => {
+      const metadataHash = await setTokenURI(testClient!, testAccount, [
+        shopId!,
+        "https://dummyjson.com/c/0a7c-cc65-4739-8899",
+      ]);
+      const transaction = await testClient!.waitForTransactionReceipt({
+        hash: metadataHash,
+        retryCount: 10,
+      });
+      expect(transaction.status).toBe("success");
+    });
+
     await t.step("Connect to shop with valid shop ID", async () => {
       const wrapper = await createWrapper(null, "/merchant-connect");
       const { unmount } = render(<MerchantConnect />, { wrapper });
+      const user = userEvent.setup();
 
       await act(async () => {
         const searchInput = screen.getByTestId("search-shopId");
@@ -128,6 +137,8 @@ Deno.test(
         const wrapper = await createWrapper(shopId, "/merchant-connect");
 
         const { unmount } = render(<MerchantConnect />, { wrapper });
+        const user = userEvent.setup();
+
         await waitFor(() => {
           expect(screen.getByTestId("shop-name")).toBeTruthy();
         });

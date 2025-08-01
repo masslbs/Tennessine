@@ -405,7 +405,10 @@ export default function Cart({
     ? errorListing?.Metadata.Title.slice(0, MAX_TITLE_LEN) + "..."
     : errorListing?.Metadata.Title;
   return (
-    <div className="bg-white rounded-lg p-5 pt-[10px]">
+    <div
+      className="bg-white rounded-lg p-5 pt-[10px]"
+      data-testid="cart-screen"
+    >
       <div className="flex flex-col gap-2 mt-2 max-h-[calc(100vh-20rem)] overflow-y-auto">
         {renderItems()}
       </div>
@@ -420,7 +423,7 @@ export default function Cart({
         id="cart-buttons-container"
       >
         <Button
-          disabled={!activeOrder || !cartItemsMap.size || !onCheckout}
+          disabled={!activeOrder || !cartItemsMap.size}
           onClick={handleCheckout}
           data-testid="checkout-button"
         >
@@ -432,9 +435,7 @@ export default function Cart({
               width={7}
               height={12}
               style={{
-                display: !activeOrder || !cartItemsMap.size || !onCheckout
-                  ? "none"
-                  : "",
+                display: !activeOrder || !cartItemsMap.size ? "none" : "",
               }}
             />
           </div>
