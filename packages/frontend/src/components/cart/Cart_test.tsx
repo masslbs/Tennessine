@@ -204,11 +204,13 @@ Deno.test(
       );
       await user.click(addButton);
 
-      await waitFor(async () => {
+      await waitFor(() => {
         const quantity = screen.getByTestId(
           `quantity-${listingID2}`,
         );
         expect(quantity.textContent).toContain("25");
+      });
+      await waitFor(async () => {
         const orders = await stateManager.get(["Orders"]) as Map<
           number,
           unknown
