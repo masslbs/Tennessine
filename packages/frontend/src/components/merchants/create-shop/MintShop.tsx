@@ -3,44 +3,30 @@ import { getLogger } from "@logtape/logtape";
 import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 import { useAccount, useConfig, useWalletClient } from "wagmi";
 import { simulateContract } from "@wagmi/core";
-import { toBytes } from "viem";
+import { toHex } from "viem";
+import { useNavigate } from "@tanstack/react-router";
 
-import { abi, addRelay, mintShop, setTokenURI } from "@massmarket/contracts";
-import {
-  Manifest,
-  ShippingRegion,
-  ShippingRegionsMap,
-} from "@massmarket/schema";
+import { abi, addRelay, mintShop } from "@massmarket/contracts";
+
 import {
   useKeycard,
-  useRelayClient,
   useRelayEndpoint,
-  useShopId,
   useShopPublicClient,
-  useStateManager,
 } from "@massmarket/react-hooks";
+import { random256BigInt } from "@massmarket/utils";
 
 import ErrorMessage from "../../common/ErrorMessage.tsx";
 import LoadingSpinner from "../../common/LoadingSpinner.tsx";
-import { CreateShopStep, ShopForm } from "../../../types.ts";
+import { CreateShopStep } from "../../../types.ts";
 import { getErrLogger } from "../../../utils/mod.ts";
 
 const { shopRegAbi, shopRegAddress } = abi;
 const logger = getLogger(["mass-market", "frontend", "MintShop"]);
 const retryCount = 10;
 
-/**
- * 1. mint() => if successful, setShopMinted is set to true.
- * 2. shopMinted = true will trigger useKeycard hook to enroll merchant keycard.
- * 3. the second useEffect will wait for merchant keycard to be enrolled, and for stateManager to update with merchant keycard before calling updateManifest().
- * 4. if updateManifest is successful, uploadMetadata() is called.
- */
-
 export default function (
-  { setStep, shopManifest, shopMetadata }: {
+  { setStep }: {
     setStep: (step: CreateShopStep) => void;
-    shopManifest: Manifest;
-    shopMetadata: ShopForm;
   },
 ) {
   // This useRef is to track if mint() is in progress to prevent mint() from being called multiple times during initial rerenders when the component mounts.
@@ -50,23 +36,21 @@ export default function (
   >("");
   const [mintedHash, setMintedHash] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [shopMinted, setShopMinted] = useState<boolean>(false);
 
   const { connector } = useAccount();
   const { shopPublicClient } = useShopPublicClient();
-  const { shopId } = useShopId();
   const config = useConfig();
   const { data: wallet } = useWalletClient();
-  // We can only enroll merchant keycard after shop is minted so we are checking if shopMinted = true.
   const { keycard } = useKeycard({
-    role: shopMinted ? "merchant" : "guest",
+    role: "merchant",
   });
-  const { relayClient } = useRelayClient();
-  const { stateManager } = useStateManager();
+
   const { relayEndpoint } = useRelayEndpoint();
+  const navigate = useNavigate({ from: "/create-shop" });
 
   const addRecentTransaction = useAddRecentTransaction();
   const logError = getErrLogger(logger, setErrorMsg);
+  const newShopId = random256BigInt();
 
   useEffect(() => {
     // mint() is called when we land on this screen.
@@ -76,21 +60,19 @@ export default function (
   }, [relayEndpoint]);
 
   useEffect(() => {
-    // We have to wait for merchant keycard to be enrolled, and also for stateManager + RC to be instantiated.
     if (
-      keycard?.role === "merchant" &&
-      stateManager && relayClient
+      keycard?.role === "merchant"
     ) {
-      updateManifest();
+      setStep(CreateShopStep.UpdateManifest);
     }
-  }, [keycard, stateManager, relayClient]);
+  }, [keycard]);
 
   async function mint() {
     if (!relayEndpoint) {
       logger.warn("relayClient not found");
       return;
     }
-    logger.debug`creating shop for ${shopId}`;
+    logger.debug`creating shop for ${newShopId}`;
     setStoreRegistrationStatus("Minting shop...");
     mintInProgress.current = true;
     try {
@@ -99,12 +81,12 @@ export default function (
         abi: shopRegAbi,
         address: shopRegAddress,
         functionName: "mint",
-        args: [shopId!, wallet!.account.address],
+        args: [newShopId!, wallet!.account.address],
         connector,
       });
       logger.debug("simulateContract success");
       const hash = await mintShop(wallet!, wallet!.account.address, [
-        shopId!,
+        newShopId!,
         wallet!.account.address,
       ]);
       logger.debug`Mint hash: ${hash}`;
@@ -131,7 +113,7 @@ export default function (
         relayEndpoint.tokenId,
       );
       const tx = await addRelay(wallet!, wallet!.account.address, [
-        shopId!,
+        newShopId!,
         tokenID,
       ]);
       logger.debug`Added relay token ID:${tokenID}`;
@@ -144,100 +126,10 @@ export default function (
         throw new Error("Error: addRelay");
       }
       setStoreRegistrationStatus("Relay token ID added");
-
-      // Set shopMinted as true, so useKeycard hook can enroll merchant keycard.
-      setShopMinted(true);
+      navigate({ search: { shopId: toHex(newShopId) } });
     } catch (err: unknown) {
       logError("Error minting store", err);
       return;
-    }
-  }
-  async function updateManifest() {
-    try {
-      setStoreRegistrationStatus("Updating manifest...");
-      // Since we don't currently have UI for inputting payment address for each chain,
-      // Get all unique chain IDs for selected accepted currencies and add payee for each chain.
-      // FIXME: separate this out into a util function.
-      const uniqueByChainId = Array.from(
-        shopManifest.AcceptedCurrencies.data.keys(),
-      );
-      uniqueByChainId.forEach((chainId) => {
-        shopManifest.Payees.addAddress(
-          chainId,
-          toBytes(shopMetadata.paymentAddress),
-          false,
-        );
-      });
-      shopManifest.ShopID = shopId!;
-      if (
-        !shopManifest.ShippingRegions ||
-        shopManifest.ShippingRegions.size === 0
-      ) {
-        shopManifest.ShippingRegions = new ShippingRegionsMap(
-          new Map([
-            [
-              "default",
-              new ShippingRegion(""),
-            ],
-          ]),
-        );
-      }
-
-      await stateManager!.set(
-        ["Manifest"],
-        shopManifest,
-      );
-
-      logger.debug("Manifest created");
-    } catch (error: unknown) {
-      logError("Error creating shop manifest", error);
-      return;
-    }
-
-    await uploadMetadata();
-  }
-
-  async function uploadMetadata() {
-    setStoreRegistrationStatus("Setting shop metadata...");
-    try {
-      const imgPath = shopMetadata.avatar
-        ? await relayClient!.uploadBlob(
-          shopMetadata.avatar as FormData,
-        )
-        : { url: null };
-      const metadata = {
-        name: shopMetadata.shopName,
-        description: shopMetadata.description,
-        image: imgPath.url,
-      };
-      const jsn = JSON.stringify(metadata);
-      const blob = new Blob([jsn], { type: "application/json" });
-      const file = new File([blob], "file.json");
-      const formData = new FormData();
-      formData.append("file", file);
-      const metadataPath = await relayClient!.uploadBlob(
-        formData,
-      );
-
-      //Write shop metadata to blockchain client.
-      const metadataHash = await setTokenURI(wallet!, wallet!.account, [
-        shopId!,
-        metadataPath.url,
-      ]);
-
-      const transaction = await shopPublicClient!.waitForTransactionReceipt({
-        hash: metadataHash,
-        retryCount,
-      });
-
-      if (transaction.status !== "success") {
-        throw new Error("Error: setShopMetadataURI");
-      }
-
-      logger.debug("Shop created");
-      setStep(CreateShopStep.Confirmation);
-    } catch (error: unknown) {
-      logError("Error uploading metadata", error);
     }
   }
 

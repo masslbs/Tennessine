@@ -37,7 +37,9 @@ export enum SearchShopStep {
 export enum CreateShopStep {
   ManifestForm = "MANIFEST_FORM",
   ConnectWallet = "CONNECT_WALLET",
-  CreatingShop = "CREATING_SHOP",
+  MintShop = "MINT_SHOP",
+  UpdateManifest = "UPDATE_MANIFEST",
+  UploadMetadata = "UPLOAD_METADATA",
   Confirmation = "CONFIRMATION",
 }
 
