@@ -14,10 +14,35 @@ import { routeTree } from "./routeTree.gen.ts";
 
 const router = createRouter({ routeTree });
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      experimental_prefetchInRender: true,
+    },
+  },
+});
 
 const persister = createSyncStoragePersister({
   storage: globalThis.localStorage,
+  serialize: (data) => {
+    return JSON.stringify(data, (_key, value) => {
+      if (typeof value === "bigint") {
+        return { __type: "bigint", value: value.toString() };
+      }
+      return value;
+    });
+  },
+  deserialize: (data) => {
+    return JSON.parse(data, (_key, value) => {
+      if (value && typeof value === "object" && value.__type === "bigint") {
+        return BigInt(value.value);
+      }
+      return value;
+    });
+  },
+  retry: ({ error }) => {
+    throw new Error("Persistence error", error);
+  },
 });
 
 const getBlockingModal = (children: React.ReactNode, errorMessage: string) => {
