@@ -5,7 +5,7 @@ import { mainnet, sepolia } from "wagmi/chains";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { discoverRelay, RelayClient } from "@massmarket/client";
 import { random256BigInt } from "@massmarket/utils";
-import { relayURL, testClient } from "./testutils/mod.tsx";
+import { relayURL, testClient } from "./testutils/_createWrapper.tsx";
 
 Deno.test("check that we can render the app", {
   sanitizeResources: false,
