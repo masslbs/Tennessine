@@ -138,13 +138,14 @@ Deno.test(
         `remove-quantity-${listingID2}`,
       );
       await user.click(minusQty);
-
-      // Check statemanager updated correctly.
-      await waitFor(async () => {
+      await waitFor(() => {
         const quantity = screen.getByTestId(
           `quantity-${listingID2}`,
         );
         expect(quantity.textContent).toContain("4");
+      });
+      // Check statemanager updated correctly.
+      await waitFor(async () => {
         const updatedOrder = await stateManager.get(["Orders", orderId]);
         expect(updatedOrder).toBeDefined();
         const updatedOrderItems = Order.fromCBOR(updatedOrder!).Items;
@@ -241,10 +242,11 @@ Deno.test(
 
       const clearCart = await screen.findByTestId("clear-cart");
       await user.click(clearCart);
-
-      await waitFor(async () => {
+      await waitFor(() => {
         const cartItems = screen.queryAllByTestId("cart-item");
         expect(cartItems.length).toBe(0);
+      });
+      await waitFor(async () => {
         const orders = await stateManager.get(["Orders"]) as Map<
           number,
           unknown
