@@ -22,7 +22,6 @@ import {
 import { CodecKey, CodecValue } from "@massmarket/utils/codec";
 import { useStateManager } from "@massmarket/react-hooks";
 
-import { testClient } from "../../testutils/mod.tsx";
 import ShippingDetails from "./ShippingDetails.tsx";
 import ChoosePayment from "./ChoosePayment.tsx";
 import {
@@ -31,6 +30,7 @@ import {
   createWrapper,
   denoTestOptions,
   testAccount,
+  testClient,
   testWrapper,
 } from "../../testutils/_createWrapper.tsx";
 

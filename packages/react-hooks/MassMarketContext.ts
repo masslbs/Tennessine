@@ -5,9 +5,7 @@ import {
   type SetStateAction,
   useState,
 } from "react";
-import type { Order } from "@massmarket/schema";
-import type { RelayClient } from "@massmarket/client";
-import type StateManager from "@massmarket/stateManager";
+
 import type { AbstractStore } from "@massmarket/store";
 
 import type { Hex } from "viem";
@@ -22,19 +20,6 @@ export type MassMarketConfig = {
 };
 
 type MassMarketContextType = {
-  relayClient: RelayClient | undefined;
-  setRelayClient: Dispatch<SetStateAction<RelayClient | undefined>>;
-  stateManager: StateManager | undefined;
-  setStateManager: Dispatch<SetStateAction<StateManager | undefined>>;
-  shopDetails: {
-    name: string;
-    profilePictureUrl: string;
-  };
-  setShopDetails: Dispatch<
-    SetStateAction<{ name: string; profilePictureUrl: string }>
-  >;
-  currentOrder: Order | null;
-  setCurrentOrder: Dispatch<SetStateAction<Order | null>>;
   authenticationError: Error | null;
   setAuthenticationError: Dispatch<SetStateAction<Error | null>>;
   config: MassMarketConfig;
@@ -48,8 +33,6 @@ export const MassMarketContext = createContext<
 
 export function MassMarketProvider(
   parameters: React.PropsWithChildren<{
-    relayClient?: RelayClient;
-    stateManager?: StateManager;
     config?: MassMarketConfig;
     blockingModal?: (
       children: React.ReactNode,
@@ -57,30 +40,11 @@ export function MassMarketProvider(
     ) => React.ReactNode;
   }>,
 ) {
-  const [relayClient, setRelayClient] = useState(
-    parameters.relayClient,
-  );
-  const [stateManager, setStateManager] = useState(
-    parameters.stateManager,
-  );
-  const [shopDetails, setShopDetails] = useState({
-    name: "",
-    profilePictureUrl: "",
-  });
-  const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
   const [authenticationError, setAuthenticationError] = useState<Error | null>(
     null,
   );
 
   const value = {
-    relayClient,
-    setRelayClient,
-    stateManager,
-    setStateManager,
-    shopDetails,
-    setShopDetails,
-    currentOrder,
-    setCurrentOrder,
     authenticationError,
     setAuthenticationError,
     config: parameters.config ?? {},
