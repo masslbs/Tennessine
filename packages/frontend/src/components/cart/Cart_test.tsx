@@ -24,7 +24,7 @@ const listingID = 23;
 const listingID2 = 42;
 
 Deno.test(
-  "Cart - Before committing order",
+  "Cart",
   denoTestOptions,
   testWrapper(async (shopId, t) => {
     // Merchant setup
@@ -182,47 +182,14 @@ Deno.test(
       unmount();
     });
 
-    cleanup();
-  }),
-);
-
-Deno.test(
-  "Cart - After committing order",
-  denoTestOptions,
-  testWrapper(async (shopId, t) => {
-    // Merchant setup
-    const relayClient = await createTestRelayClient(shopId);
-    const stateManager = await createTestStateManager(shopId);
-    await relayClient.connect();
-    await relayClient.authenticate();
-    stateManager.addConnection(relayClient);
-    const user = userEvent.setup();
-
-    await t.step("Add listings.", async () => {
-      for (const [id, listing] of allListings.entries()) {
-        if (id === listingID) {
-          listing.Price = 300000000000000n;
-        } else if (id === listingID2) {
-          listing.Price = 700000000000000n;
-        }
-        await stateManager.set(["Listings", id], listing);
-        await stateManager.set(["Inventory", id], 100);
-      }
-
-      await waitFor(async () => {
-        const storedListings = await stateManager.get(["Listings"]) as Map<
-          bigint,
-          unknown
-        >;
-        expect(storedListings.size).toBe(allListings.size);
-      });
-    });
+    //Committed order
 
     await t.step("Changing items after order is committed", async () => {
       const wrapper = await createWrapper(shopId);
       const orderId = randUint64();
       const CartTest = createTestComponent(orderId, true);
       const { unmount } = render(<CartTest />, { wrapper });
+      const user = userEvent.setup();
 
       await waitFor(() => {
         const cartScreen = screen.getAllByTestId("cart-item");
@@ -263,6 +230,7 @@ Deno.test(
       const orderId = randUint64();
       const CartTest = createTestComponent(orderId, true);
       const { unmount } = render(<CartTest />, { wrapper });
+      const user = userEvent.setup();
 
       await waitFor(() => {
         const cartScreen = screen.getAllByTestId("cart-item");
