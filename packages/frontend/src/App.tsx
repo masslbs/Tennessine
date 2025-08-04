@@ -14,13 +14,7 @@ import { routeTree } from "./routeTree.gen.ts";
 
 const router = createRouter({ routeTree });
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      experimental_prefetchInRender: true,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 const persister = createSyncStoragePersister({
   storage: globalThis.localStorage,
