@@ -4,6 +4,7 @@ import { getLogger } from "@logtape/logtape";
 import { skipToken, useQuery } from "@tanstack/react-query";
 import { RelayClient } from "@massmarket/client";
 import { getWindowLocation } from "@massmarket/utils";
+import { useBurnerWallet } from "@massmarket/react-hooks";
 
 import { useShopId } from "./useShopId.ts";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";
@@ -33,13 +34,16 @@ export function useKeycard(
   // massmarket hooks
   const { shopId } = useShopId(params);
   const { relayEndpoint } = useRelayEndpoint(params);
+  const { burnerWallet, burnerAccount } = useBurnerWallet();
+  const usedWallet = wallet ?? burnerWallet;
+  const usedAddress = address ?? burnerAccount?.address;
+  const enabled = !!shopId && !!usedWallet && !!relayEndpoint && !!usedAddress;
 
-  const enabled = !!shopId && !!wallet && !!relayEndpoint && !!address;
   const qResult = useQuery({
     // queryFn will not execute till these variables are defined.
     queryKey: [
       "keycard",
-      address,
+      usedAddress,
       // browser caches like localStorage cannot serialize BigInts, so we convert to string.
       String(shopId),
       role,
@@ -56,13 +60,13 @@ export function useKeycard(
         // This relay instance is just to enroll the keycard.
         const relayClient = new RelayClient({
           relayEndpoint,
-          walletClient: wallet,
+          walletClient: usedWallet,
           keycard: privateKeyToAccount(privateKey),
           shopId,
         });
 
         const res = await relayClient.enrollKeycard(
-          wallet,
+          usedWallet,
           address,
           role === "guest",
           getWindowLocation(),
@@ -83,14 +87,14 @@ export function useKeycard(
         const kc = {
           privateKey,
           role,
-          address,
+          address: usedAddress,
         };
         // Return this keycard for all guest keycard queries.
         // This is needed for merchant enrolls, so that subsequent queries will return this merchant keycard instead of trying to enroll multiple different keycards.
         // setQueryData also ensures that any component using the query will re-render with the new keycard.
         if (role === "merchant") {
           client.setQueryData(
-            ["keycard", address, String(shopId), "guest"],
+            ["keycard", usedAddress, String(shopId), "guest"],
             kc,
           );
         }
