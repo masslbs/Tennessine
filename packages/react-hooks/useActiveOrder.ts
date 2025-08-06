@@ -24,8 +24,10 @@ export function useActiveOrder() {
       const lastUpdatedOrder = [...orders.values()].pop();
       const order = Order.fromCBOR(lastUpdatedOrder!);
       if (
-        order.State !== OrderState.Canceled && order.State !== OrderState.Paid
+        order.State == OrderState.Canceled || order.State == OrderState.Paid
       ) {
+        setActiveOrder(null);
+      } else {
         setActiveOrder(order);
       }
     });
