@@ -3,11 +3,12 @@ import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { getLogger } from "@logtape/logtape";
 import { skipToken, useQuery } from "@tanstack/react-query";
 import { RelayClient } from "@massmarket/client";
-import { getWindowLocation } from "@massmarket/utils";
+import { getBurnerWallet, getWindowLocation } from "@massmarket/utils";
 
 import { useShopId } from "./useShopId.ts";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";
 import type { MassMarketConfig } from "./MassMarketContext.ts";
+import { useShopPublicClient } from "./useShopPublicClient.ts";
 
 const logger = getLogger(["mass-market", "frontend", "useKeycard"]);
 
@@ -28,18 +29,21 @@ export function useKeycard(
 ) {
   const role = params.role || "guest";
   // wagmi hooks
-  const { data: wallet } = useWalletClient();
-  const { address } = useAccount();
+  const { data: connectedWallet } = useWalletClient();
+  const { address: connectedAddress } = useAccount();
+
   // massmarket hooks
   const { shopId } = useShopId(params);
   const { relayEndpoint } = useRelayEndpoint(params);
+  const { shopPublicClient } = useShopPublicClient();
 
-  const enabled = !!shopId && !!wallet && !!relayEndpoint && !!address;
+  const enabled = !!shopId && !!relayEndpoint && !!shopPublicClient && (
+    role === "guest" ? true : !!connectedAddress
+  );
   const qResult = useQuery({
     // queryFn will not execute till these variables are defined.
     queryKey: [
       "keycard",
-      address,
       // browser caches like localStorage cannot serialize BigInts, so we convert to string.
       String(shopId),
       role,
@@ -52,7 +56,14 @@ export function useKeycard(
          * 3. Return the KC
          */
 
+        const { burnerWallet, burnerAccount } = getBurnerWallet(
+          shopPublicClient.chain,
+        );
+
         const privateKey = generatePrivateKey();
+        const account = connectedAddress ?? burnerAccount;
+        const wallet = connectedWallet ?? burnerWallet;
+
         // This relay instance is just to enroll the keycard.
         const relayClient = new RelayClient({
           relayEndpoint,
@@ -60,10 +71,9 @@ export function useKeycard(
           keycard: privateKeyToAccount(privateKey),
           shopId,
         });
-
         const res = await relayClient.enrollKeycard(
           wallet,
-          address,
+          account,
           role === "guest",
           getWindowLocation(),
         );
@@ -83,14 +93,14 @@ export function useKeycard(
         const kc = {
           privateKey,
           role,
-          address,
+          address: account,
         };
         // Return this keycard for all guest keycard queries.
         // This is needed for merchant enrolls, so that subsequent queries will return this merchant keycard instead of trying to enroll multiple different keycards.
         // setQueryData also ensures that any component using the query will re-render with the new keycard.
         if (role === "merchant") {
           client.setQueryData(
-            ["keycard", address, String(shopId), "guest"],
+            ["keycard", String(shopId), "guest"],
             kc,
           );
         }
@@ -102,5 +112,8 @@ export function useKeycard(
     gcTime: Infinity,
     staleTime: Infinity,
   });
+  if (qResult.error) {
+    throw new Error(`Failed to enroll keycard: ${qResult.error}`);
+  }
   return { keycard: qResult.data, ...qResult };
 }
