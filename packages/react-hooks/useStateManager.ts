@@ -63,6 +63,7 @@ export function useStateManager(params?: {
       : skipToken,
     gcTime: Infinity,
     staleTime: Infinity,
+    meta: { doNotPersist: true },
   });
   return { stateManager: query.data, ...query };
 }

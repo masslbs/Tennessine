@@ -45,6 +45,7 @@ export function useRelayClient(params?: { config?: MassMarketConfig }) {
     gcTime: Infinity,
     //TODO: May need to reconfigure refetchOnReconnect to ensure the query runs when app regains access to the network.
     staleTime: Infinity,
+    meta: { doNotPersist: true },
   });
   return { relayClient: qResult.data, ...qResult };
 }
