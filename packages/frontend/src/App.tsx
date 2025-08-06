@@ -87,7 +87,18 @@ export default function App({
   return (
     <PersistQueryClientProvider
       client={queryClient}
-      persistOptions={{ persister }}
+      persistOptions={{
+        persister,
+        dehydrateOptions: {
+          shouldDehydrateQuery: (query) => {
+            // Do not persist queries with meta.doNotPersist
+            if (query.meta?.doNotPersist) {
+              return false;
+            }
+            return query.state.status === "success" && !!query.state.data;
+          },
+        },
+      }}
     >
       <WagmiProvider config={wagmiConfig}>
         <MassMarketProvider
