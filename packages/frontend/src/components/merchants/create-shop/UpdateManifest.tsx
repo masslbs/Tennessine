@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getLogger } from "@logtape/logtape";
 import { toBytes } from "viem";
 
@@ -29,15 +29,19 @@ export default function (
   >("");
   const { stateManager } = useStateManager();
   const { shopId } = useShopId();
-
+  // This useRef is to track if createManifest() is in progress to prevent createManifest() from being called multiple times during initial rerenders when the component mounts.
+  const createManifestInProgress = useRef<boolean>(false);
   const logError = getErrLogger(logger, setErrorMsg);
+
   useEffect(() => {
-    if (!stateManager) return;
+    if (!stateManager || createManifestInProgress.current) return;
     createManifest();
   }, [stateManager]);
 
   async function createManifest() {
     setStoreRegistrationStatus("Creating manifest...");
+    createManifestInProgress.current = true;
+
     try {
       // Since we don't currently have UI for inputting payment address for each chain,
       // Get all unique chain IDs for selected accepted currencies and add payee for each chain.
