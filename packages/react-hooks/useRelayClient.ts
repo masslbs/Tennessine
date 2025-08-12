@@ -1,16 +1,16 @@
-import { http } from "wagmi";
+import { useWalletClient } from "wagmi";
 import { privateKeyToAccount } from "viem/accounts";
 import { getLogger } from "@logtape/logtape";
 import { skipToken, useQuery } from "@tanstack/react-query";
 
 import { RelayClient } from "@massmarket/client";
+import { getBurnerWallet } from "@massmarket/utils";
 
 import type { MassMarketConfig } from "./MassMarketContext.ts";
 import { useKeycard } from "./useKeycard.ts";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";
 import { useShopId } from "./useShopId.ts";
-import { hardhat } from "viem/chains";
-import { createWalletClient } from "viem";
+import { useShopPublicClient } from "./useShopPublicClient.ts";
 
 const logger = getLogger(["mass-market", "frontend", "useRelayClient"]);
 
@@ -23,23 +23,24 @@ const logger = getLogger(["mass-market", "frontend", "useRelayClient"]);
 export function useRelayClient(params?: { config?: MassMarketConfig }) {
   const { data: keycard } = useKeycard(params);
   const { relayEndpoint } = useRelayEndpoint(params);
+  const { shopPublicClient } = useShopPublicClient();
   const { shopId } = useShopId(params);
+  const { data: connectedWallet } = useWalletClient();
 
-  const enabled = !!shopId && !!relayEndpoint && !!keycard;
+  const enabled = !!shopId && !!relayEndpoint && !!keycard &&
+    (keycard.role === "guest" ? true : !!connectedWallet);
+
   const qResult = useQuery({
     queryKey: ["relayClient", keycard, String(shopId)],
     queryFn: enabled
       ? async () => {
-        const account = privateKeyToAccount(keycard.privateKey);
-        const walletClient = createWalletClient({
-          account,
-          chain: hardhat,
-          transport: http(),
-        });
+        console.log({ keycard });
+        const { burnerWallet } = getBurnerWallet(shopPublicClient!.chain);
+        const wallet = connectedWallet ?? burnerWallet;
         const rc = new RelayClient({
           relayEndpoint,
-          walletClient,
-          keycard: account,
+          walletClient: wallet,
+          keycard: privateKeyToAccount(keycard.privateKey),
           shopId,
         });
         await rc.connect();
