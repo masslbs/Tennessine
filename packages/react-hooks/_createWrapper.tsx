@@ -47,6 +47,7 @@ const testRelayEndpoint = await discoverRelay(relayURL);
 export function createWrapper(
   shopId: bigint = random256BigInt(),
   testAccountIndex = 0,
+  setupMockConnectors = true,
 ) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -84,7 +85,7 @@ export function createWrapper(
 
     const config = createConfig({
       chains: [foundry],
-      connectors,
+      connectors: setupMockConnectors ? connectors : [],
       transports: {
         [foundry.id]: http(),
       },

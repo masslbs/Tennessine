@@ -29,8 +29,9 @@ Deno.test(
     await t.step("enroll guest card", async () => {
       const { result, unmount } = renderHook(
         () => useKeycard({ role: "guest" }),
+        // createWrapper is called with setupMockConnectors = false, so we don't set up a test account.
         {
-          wrapper: createWrapper(shopId),
+          wrapper: createWrapper(shopId, 0, false),
         },
       );
       await waitFor(() => {

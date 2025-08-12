@@ -113,7 +113,7 @@ export function useKeycard(
     staleTime: Infinity,
   });
   if (qResult.error) {
-    throw new Error(`Failed to enroll keycard: ${qResult.error}`);
+    logger.error`Failed to enroll keycard: ${qResult.error}`;
   }
   return { keycard: qResult.data, ...qResult };
 }
