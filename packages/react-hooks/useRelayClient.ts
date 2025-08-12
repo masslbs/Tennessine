@@ -1,4 +1,3 @@
-import { useWalletClient } from "wagmi";
 import { privateKeyToAccount } from "viem/accounts";
 import { getLogger } from "@logtape/logtape";
 import { skipToken, useQuery } from "@tanstack/react-query";
@@ -25,21 +24,17 @@ export function useRelayClient(params?: { config?: MassMarketConfig }) {
   const { relayEndpoint } = useRelayEndpoint(params);
   const { shopPublicClient } = useShopPublicClient();
   const { shopId } = useShopId(params);
-  const { data: connectedWallet } = useWalletClient();
 
-  const enabled = !!shopId && !!relayEndpoint && !!keycard &&
-    (keycard.role === "guest" ? true : !!connectedWallet);
+  const enabled = !!shopId && !!relayEndpoint && !!keycard;
 
   const qResult = useQuery({
     queryKey: ["relayClient", keycard, String(shopId)],
     queryFn: enabled
       ? async () => {
-        console.log({ keycard });
         const { burnerWallet } = getBurnerWallet(shopPublicClient!.chain);
-        const wallet = connectedWallet ?? burnerWallet;
         const rc = new RelayClient({
           relayEndpoint,
-          walletClient: wallet,
+          walletClient: burnerWallet,
           keycard: privateKeyToAccount(keycard.privateKey),
           shopId,
         });
