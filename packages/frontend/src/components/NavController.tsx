@@ -9,7 +9,8 @@ import MassMarketNav from "./MassMarketNav.tsx";
 export default function NavController() {
   const location = useLocation();
   const currentPathname = location.pathname;
-  const merchantPath = currentPathname === "/create-shop";
+  const merchantPath = currentPathname === "/create-shop" ||
+    currentPathname === "/merchant-connect";
   if (merchantPath) {
     return <MassMarketNav />;
   } else return <Navigation />;

@@ -1,14 +1,15 @@
-import { useWalletClient } from "wagmi";
 import { privateKeyToAccount } from "viem/accounts";
 import { getLogger } from "@logtape/logtape";
 import { skipToken, useQuery } from "@tanstack/react-query";
 
 import { RelayClient } from "@massmarket/client";
+import { getBurnerWallet } from "@massmarket/utils";
 
 import type { MassMarketConfig } from "./MassMarketContext.ts";
 import { useKeycard } from "./useKeycard.ts";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";
 import { useShopId } from "./useShopId.ts";
+import { useShopPublicClient } from "./useShopPublicClient.ts";
 
 const logger = getLogger(["mass-market", "frontend", "useRelayClient"]);
 
@@ -21,17 +22,19 @@ const logger = getLogger(["mass-market", "frontend", "useRelayClient"]);
 export function useRelayClient(params?: { config?: MassMarketConfig }) {
   const { data: keycard } = useKeycard(params);
   const { relayEndpoint } = useRelayEndpoint(params);
+  const { shopPublicClient } = useShopPublicClient();
   const { shopId } = useShopId(params);
-  const { data: wallet } = useWalletClient();
-  const enabled = !!shopId && !!wallet && !!relayEndpoint && !!keycard;
+
+  const enabled = !!shopId && !!relayEndpoint && !!keycard;
 
   const qResult = useQuery({
     queryKey: ["relayClient", keycard, String(shopId)],
     queryFn: enabled
       ? async () => {
+        const { burnerWallet } = getBurnerWallet(shopPublicClient!.chain);
         const rc = new RelayClient({
           relayEndpoint,
-          walletClient: wallet,
+          walletClient: burnerWallet,
           keycard: privateKeyToAccount(keycard.privateKey),
           shopId,
         });
@@ -47,5 +50,8 @@ export function useRelayClient(params?: { config?: MassMarketConfig }) {
     staleTime: Infinity,
     meta: { doNotPersist: true },
   });
+  if (qResult.error) {
+    throw qResult.error;
+  }
   return { relayClient: qResult.data, ...qResult };
 }

@@ -31,19 +31,39 @@ Deno.test(
       unmount();
     });
 
-    await t.step("RelayClient is returned.", async () => {
-      const { result, unmount } = renderHook(() => useRelayClient(), {
-        wrapper: createWrapper(shopId),
-      });
-      await waitFor(() => {
-        expect(result.current.data).toBeInstanceOf(RelayClient);
-        expect(result.current.data?.shopId).toEqual(shopId);
-        // Trying to serialize RelayClient class should throw error since we don't want it to be cached during refreshes.
-        expect(() => JSON.stringify(result.current.data)).toThrow();
-      });
+    await t.step(
+      "RelayClient is returned when there is a connected wallet.",
+      async () => {
+        const { result, unmount } = renderHook(() => useRelayClient(), {
+          wrapper: createWrapper(shopId),
+        });
+        await waitFor(() => {
+          expect(result.current.data).toBeInstanceOf(RelayClient);
+          expect(result.current.data?.shopId).toEqual(shopId);
+          // Trying to serialize RelayClient class should throw error since we don't want it to be cached during refreshes.
+          expect(() => JSON.stringify(result.current.data)).toThrow();
+        });
 
-      unmount();
-    });
+        unmount();
+      },
+    );
+    await t.step(
+      "RelayClient is returned when there is no connected wallet.",
+      async () => {
+        const { result, unmount } = renderHook(() => useRelayClient(), {
+          // Testing that relayClient and connect and authenticate with burner wallet passed as the wallet client
+          wrapper: createWrapper(shopId, 0, false),
+        });
+        await waitFor(() => {
+          expect(result.current.data).toBeInstanceOf(RelayClient);
+          expect(result.current.data?.shopId).toEqual(shopId);
+          // Trying to serialize RelayClient class should throw error since we don't want it to be cached during refreshes.
+          expect(() => JSON.stringify(result.current.data)).toThrow();
+        });
+
+        unmount();
+      },
+    );
 
     await t.step("Calling hook concurrently does not error.", async () => {
       const rendered = render(<TestComponent />, {

@@ -6,6 +6,7 @@ import { bytesToBigInt, bytesToNumber, toBytes } from "viem";
 import { type CodecValue, decode } from "./codec.ts";
 export * as codec from "./codec.ts";
 export * from "./reflection.ts";
+export * from "./getBurnerWallet.ts";
 
 export function randUint64(): number {
   return bytesToNumber(randomBytes(4));
