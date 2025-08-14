@@ -1,11 +1,15 @@
 import { privateKeyToAccount } from "viem/accounts";
 import { getLogger } from "@logtape/logtape";
-import { skipToken, useQuery } from "@tanstack/react-query";
+import {
+  skipToken,
+  useQuery,
+  type UseQueryResult,
+} from "@tanstack/react-query";
 
 import { RelayClient } from "@massmarket/client";
 import { getBurnerWallet } from "@massmarket/utils";
 
-import type { MassMarketConfig } from "./MassMarketContext.ts";
+import type { HookParams } from "./types.ts";
 import { useKeycard } from "./useKeycard.ts";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";
 import { useShopId } from "./useShopId.ts";
@@ -13,25 +17,29 @@ import { useShopPublicClient } from "./useShopPublicClient.ts";
 
 const logger = getLogger(["mass-market", "frontend", "useRelayClient"]);
 
+export type UseRelayClientReturn = UseQueryResult<RelayClient> & {
+  relayClient: RelayClient | undefined;
+};
 /**
  * This hook instantiates a RelayClient class and connects and authenticates the relay.
  * This query will run on every app session.
  * Since useQuery caches data in memory during a single app session, it will return the RelayClient class.
  * However, during refreshes (or when the app unmounts), data is cached in the configured persister (localStorage), and since the class cannot be serialized the query is not cached.
  */
-export function useRelayClient(params?: { config?: MassMarketConfig }) {
+export function useRelayClient(params?: HookParams): UseRelayClientReturn {
   const { data: keycard } = useKeycard(params);
   const { relayEndpoint } = useRelayEndpoint(params);
-  const { shopPublicClient } = useShopPublicClient();
+  const { shopPublicClient } = useShopPublicClient(params);
   const { shopId } = useShopId(params);
 
-  const enabled = !!shopId && !!relayEndpoint && !!keycard;
+  const enabled = !!shopId && !!relayEndpoint && !!keycard &&
+    !!shopPublicClient;
 
   const qResult = useQuery({
     queryKey: ["relayClient", keycard, String(shopId)],
     queryFn: enabled
       ? async () => {
-        const { burnerWallet } = getBurnerWallet(shopPublicClient!.chain);
+        const { burnerWallet } = getBurnerWallet(shopPublicClient.chain!);
         const rc = new RelayClient({
           relayEndpoint,
           walletClient: burnerWallet,

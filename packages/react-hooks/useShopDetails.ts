@@ -1,15 +1,24 @@
 import { useReadContract } from "wagmi";
-import { skipToken, useQuery } from "@tanstack/react-query";
+import {
+  skipToken,
+  useQuery,
+  type UseQueryResult,
+} from "@tanstack/react-query";
 
 import { abi } from "@massmarket/contracts";
 
 import { useShopId } from "./useShopId.ts";
+import type { HookParams } from "./types.ts";
+
+export type UseShopDetailsReturn = UseQueryResult<unknown> & {
+  shopDetails: unknown;
+};
 
 /**
  *  This hook returns the meta data of the shop from the contract.
  */
-export function useShopDetails() {
-  const { shopId } = useShopId();
+export function useShopDetails(params?: HookParams) {
+  const { shopId } = useShopId(params);
   const result = useReadContract(
     {
       address: abi.shopRegAddress,

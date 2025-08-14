@@ -150,9 +150,7 @@ export default function (
       <p>
         {mintedHash && (
           <a
-            href={`${
-              shopPublicClient!.chain.blockExplorers?.default?.url
-            }/tx/${mintedHash}`}
+            href={`${shopPublicClient?.chain?.blockExplorers?.default?.url}/tx/${mintedHash}`}
           >
             View TX
           </a>

@@ -7,7 +7,7 @@ import { getBurnerWallet, getWindowLocation } from "@massmarket/utils";
 
 import { useShopId } from "./useShopId.ts";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";
-import type { MassMarketConfig } from "./MassMarketContext.ts";
+import type { HookParams } from "./types.ts";
 import { useShopPublicClient } from "./useShopPublicClient.ts";
 
 const logger = getLogger(["mass-market", "frontend", "useKeycard"]);
@@ -23,7 +23,7 @@ export type KeycardRole = "merchant" | "guest";
  * The keycard will be cached with tanstack's cache for the duration of the browser session regardless of refreshes.
  */
 export function useKeycard(
-  params: { config?: MassMarketConfig; role?: KeycardRole } = {
+  params: HookParams & { role?: KeycardRole } = {
     role: "guest",
   },
 ) {
@@ -35,7 +35,7 @@ export function useKeycard(
   // massmarket hooks
   const { shopId } = useShopId(params);
   const { relayEndpoint } = useRelayEndpoint(params);
-  const { shopPublicClient } = useShopPublicClient();
+  const { shopPublicClient } = useShopPublicClient(params);
 
   const enabled = !!shopId && !!relayEndpoint && !!shopPublicClient && (
     role === "guest" ? true : !!connectedAddress
@@ -57,7 +57,7 @@ export function useKeycard(
          */
 
         const { burnerWallet, burnerAccount } = getBurnerWallet(
-          shopPublicClient.chain,
+          shopPublicClient.chain!,
         );
 
         const privateKey = generatePrivateKey();

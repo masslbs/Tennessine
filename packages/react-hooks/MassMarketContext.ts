@@ -19,7 +19,7 @@ export type MassMarketConfig = {
   db?: AbstractStore;
 };
 
-type MassMarketContextType = {
+export type MassMarketContextType = {
   authenticationError: Error | null;
   setAuthenticationError: Dispatch<SetStateAction<Error | null>>;
   config: MassMarketConfig;
