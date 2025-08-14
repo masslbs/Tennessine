@@ -14,6 +14,7 @@ import { expect } from "@std/expect";
 import { random256BigInt } from "@massmarket/utils";
 import {
   abi,
+  balanceOf,
   checkPermissions,
   getTokenInformation,
   mintShop,
@@ -21,6 +22,7 @@ import {
   publishInviteVerifier,
   redeemInviteSecret,
   setTokenURI,
+  tokenOfOwnerByIndex,
 } from "./mod.ts";
 
 const retryCount = 10;
@@ -37,6 +39,7 @@ Deno.test({
   async fn(t) {
     const shopId = random256BigInt();
     const [account] = await client.requestAddresses();
+    const balance = await balanceOf(client, [account]);
 
     await t.step("mintShop", async () => {
       const hash = await mintShop(client, account, [
@@ -70,6 +73,16 @@ Deno.test({
         args: [shopId],
       });
       expect(uri).toEqual(test_uri);
+    });
+
+    await t.step("tokenOfOwnerByIndex", async () => {
+      const newBalance = await balanceOf(client, [account]);
+      expect(newBalance).toBe(balance + 1n);
+      const token = await tokenOfOwnerByIndex(client, [
+        account,
+        newBalance - 1n,
+      ]);
+      expect(token).toBe(shopId);
     });
   },
 });

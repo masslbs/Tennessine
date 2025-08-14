@@ -247,6 +247,18 @@ export const relayRegGetOwnerOf = genericReadContract(
   abi.relayRegAddress,
 );
 
+export const balanceOf = genericReadContract(
+  abi.shopRegAbi,
+  "balanceOf",
+  abi.shopRegAddress,
+);
+
+export const tokenOfOwnerByIndex = genericReadContract(
+  abi.shopRegAbi,
+  "tokenOfOwnerByIndex",
+  abi.shopRegAddress,
+);
+
 export async function redeemInviteSecret(
   secret: Hex,
   wallet: WalletClient,
