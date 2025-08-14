@@ -16,17 +16,23 @@ import {
 import { random256BigInt } from "@massmarket/utils";
 
 import ErrorMessage from "../../common/ErrorMessage.tsx";
-import LoadingSpinner from "../../common/LoadingSpinner.tsx";
-import { CreateShopStep } from "../../../types.ts";
+import { CreateShopStep, ShopForm } from "../../../types.ts";
 import { getErrLogger } from "../../../utils/mod.ts";
+import ProgressScreen from "../../common/ProgressScreen.tsx";
 
 const { shopRegAbi, shopRegAddress } = abi;
 const logger = getLogger(["mass-market", "frontend", "MintShop"]);
 const retryCount = 10;
 
+const steps = {
+  MINT: "Minting your shop",
+  ADD_RELAY: "Adding relay token ID",
+  ENROLL_KEYCARD: "Enrolling keycard",
+};
 export default function (
-  { setStep }: {
+  { setStep, shopMetadata }: {
     setStep: (step: CreateShopStep) => void;
+    shopMetadata: ShopForm;
   },
 ) {
   // This useRef is to track if mint() is in progress to prevent mint() from being called multiple times during initial rerenders when the component mounts.
@@ -34,7 +40,7 @@ export default function (
   const [storeRegistrationStatus, setStoreRegistrationStatus] = useState<
     string
   >("");
-  const [mintedHash, setMintedHash] = useState<string | null>(null);
+  // const [mintedHash, setMintedHash] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const { connector } = useAccount();
@@ -71,7 +77,7 @@ export default function (
       return;
     }
     logger.debug`creating shop for ${newShopId}`;
-    setStoreRegistrationStatus("Minting shop...");
+    setStoreRegistrationStatus(steps.MINT);
     mintInProgress.current = true;
     try {
       // This will throw error if simulate fails.
@@ -94,7 +100,7 @@ export default function (
         description: "Mint Shop",
         // confirmations: 2,
       });
-      setMintedHash(hash);
+      // setMintedHash(hash);
       setStoreRegistrationStatus("Waiting to confirm mint transaction...");
       let receipt = await shopPublicClient!.waitForTransactionReceipt({
         hash,
@@ -105,7 +111,7 @@ export default function (
         throw new Error("Mint shop: transaction failed");
       }
 
-      setStoreRegistrationStatus("Adding relay token ID...");
+      setStoreRegistrationStatus(steps.ADD_RELAY);
       // Add relay tokenId for event verification.
       const tokenID = BigInt(
         relayEndpoint.tokenId,
@@ -123,7 +129,8 @@ export default function (
       if (receipt.status !== "success") {
         throw new Error("Error: addRelay");
       }
-      setStoreRegistrationStatus("Relay token ID added");
+      // Adding the newShopId in search params will trigger useKeycard to enroll for merchant.
+      setStoreRegistrationStatus(steps.ENROLL_KEYCARD);
       navigate({ search: { shopId: toHex(newShopId) } });
     } catch (err: unknown) {
       logError("Error minting store", err);
@@ -131,6 +138,14 @@ export default function (
     }
   }
 
+  let step = 1;
+  if (storeRegistrationStatus === steps.MINT) {
+    step = 1;
+  } else if (storeRegistrationStatus === steps.ADD_RELAY) {
+    step = 2;
+  } else if (storeRegistrationStatus === steps.ENROLL_KEYCARD) {
+    step = 3;
+  }
   return (
     <section
       className="w-full md:w-[560px] px-5"
@@ -142,21 +157,11 @@ export default function (
           setErrorMsg(null);
         }}
       />
-      <p data-testid="shop-registration-status">
-        {storeRegistrationStatus}
-      </p>
-      <p>
-        {mintedHash && (
-          <a
-            href={`${shopPublicClient?.chain?.blockExplorers?.default?.url}/tx/${mintedHash}`}
-          >
-            View TX
-          </a>
-        )}
-      </p>
-      <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
-        <LoadingSpinner />
-      </section>
+      <ProgressScreen
+        step={step}
+        text={storeRegistrationStatus}
+        avatar={shopMetadata.avatar}
+      />
     </section>
   );
 }

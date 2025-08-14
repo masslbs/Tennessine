@@ -65,13 +65,7 @@ Deno.test(
       await user.click(eddHardhat as HTMLInputElement);
       await user.click(eddHardhat as HTMLInputElement);
     });
-    await act(async () => {
-      const connectWalletButton = screen.getByRole("button", {
-        name: /Connect Wallet/i,
-      });
-      expect(connectWalletButton).toBeTruthy();
-      await user.click(connectWalletButton);
-    });
+
     await act(async () => {
       const mintShopButton = await screen.findByRole("button", {
         name: /Mint Shop/i,

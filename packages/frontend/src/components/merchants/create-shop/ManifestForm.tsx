@@ -1,6 +1,7 @@
 import { ChangeEvent, useState } from "react";
 import { getLogger } from "@logtape/logtape";
 import { useChains } from "wagmi";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 import { ChainAddress, Manifest } from "@massmarket/schema";
 
@@ -10,11 +11,7 @@ import Button from "../../common/Button.tsx";
 import AvatarUpload from "../../common/AvatarUpload.tsx";
 import Dropdown from "../../common/CurrencyDropdown.tsx";
 import ChevronRight from "../../common/ChevronRight.tsx";
-import {
-  CreateShopStep,
-  CurrencyChainOption,
-  ShopForm,
-} from "../../../types.ts";
+import { CurrencyChainOption, ShopForm } from "../../../types.ts";
 import { getAllCurrencyOptions, getErrLogger } from "../../../utils/mod.ts";
 
 const logger = getLogger(["mass-market", "frontend", "ManifestForm"]);
@@ -23,7 +20,7 @@ export default function ManifestForm(
   {
     shopManifest,
     setShopManifest,
-    setStep,
+    nextStep,
     setShopMetadata,
     shopMetadata,
     validationError,
@@ -31,7 +28,7 @@ export default function ManifestForm(
   }: {
     shopManifest: Manifest;
     setShopManifest: (shopManifest: Manifest) => void;
-    setStep: (step: CreateShopStep) => void;
+    nextStep: () => void;
     shopMetadata: ShopForm;
     setShopMetadata: (shopMetadata: ShopForm) => void;
     validationError: string | null;
@@ -78,10 +75,6 @@ export default function ManifestForm(
       option.address,
     );
     setShopManifest(shopManifest);
-  }
-
-  function goToConnectWallet() {
-    setStep(CreateShopStep.ConnectWallet);
   }
 
   return (
@@ -193,9 +186,12 @@ export default function ManifestForm(
             />
           </form>
         </div>
-        <div>
-          <Button onClick={goToConnectWallet}>
-            <h6 className="mr-2">Connect Wallet</h6>
+      </section>
+      <section className="mt-2 flex flex-col gap-[25px] bg-white p-5 rounded-lg">
+        <ConnectButton chainStatus="name" />
+        <div className="flex">
+          <Button onClick={nextStep}>
+            <h6 className="mr-2">Mint Shop</h6>
             <ChevronRight hex="#FFF" />
           </Button>
         </div>
