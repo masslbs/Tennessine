@@ -9,6 +9,7 @@ import type { CodecValue } from "@massmarket/utils/codec";
 import { getTokenInformation } from "@massmarket/contracts";
 
 import { useStateManager } from "./useStateManager.ts";
+import type { HookParams } from "./types.ts";
 
 const logger = getLogger(["mass-market", "frontend", "useBaseToken"]);
 /**
@@ -17,8 +18,8 @@ const logger = getLogger(["mass-market", "frontend", "useBaseToken"]);
  * 3. then retrieves the currency symbol and decimals from the contract and returns them.
  */
 
-export function usePricingCurrency() {
-  const { stateManager } = useStateManager();
+export function usePricingCurrency(params?: HookParams) {
+  const { stateManager } = useStateManager(params);
   const [pricingCurrency, setPricingCurrency] = useState<
     ChainAddress | null
   >(

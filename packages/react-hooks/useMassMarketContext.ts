@@ -1,7 +1,10 @@
 import { useContext } from "react";
-import { MassMarketContext } from "./MassMarketContext.ts";
+import {
+  MassMarketContext,
+  type MassMarketContextType,
+} from "./MassMarketContext.ts";
 
-export function useMassMarketContext() {
+export function useMassMarketContext(): MassMarketContextType {
   const context = useContext(MassMarketContext);
   if (!context) {
     throw new Error(

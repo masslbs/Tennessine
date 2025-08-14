@@ -1,15 +1,21 @@
 import { getLogger } from "@logtape/logtape";
-import { discoverRelay } from "@massmarket/client";
-import { useQuery } from "@tanstack/react-query";
+import { discoverRelay, type IRelayEndpoint } from "@massmarket/client";
+import { useQuery, type UseQueryResult } from "@tanstack/react-query";
+
 import { useMassMarketContext } from "./useMassMarketContext.ts";
-import type { MassMarketConfig } from "./MassMarketContext.ts";
+
+import type { HookParams } from "./types.ts";
 
 const logger = getLogger(["mass-market", "frontend", "useRelayEndpoint"]);
+
+export type UseRelayEndpointReturn = UseQueryResult<IRelayEndpoint> & {
+  relayEndpoint: IRelayEndpoint | undefined;
+};
 
 /*
  * This hook is used to get the relay endpoint from the context or discover it.
  */
-export function useRelayEndpoint(params?: { config?: MassMarketConfig }) {
+export function useRelayEndpoint(params?: HookParams) {
   const config = params?.config ?? useMassMarketContext().config;
   const q = useQuery(
     {

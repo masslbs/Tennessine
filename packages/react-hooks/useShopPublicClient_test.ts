@@ -23,7 +23,7 @@ Deno.test(
       await waitFor(() => {
         // expect(result.current.chain).toBeDefined();
         expect(result.current.shopPublicClient).toBeDefined();
-        expect(result.current.shopPublicClient!.chain.id).toEqual(hardhat.id);
+        expect(result.current.shopPublicClient!.chain!.id).toEqual(hardhat.id);
       });
       unmount();
     });
