@@ -4,7 +4,16 @@
   "license": "MIT",
   "exports": {
     ".": "./mod.ts",
-    "./useShopId": "./useShopId.ts"
+    "./useActiveOrder": "./useActiveOrder.ts",
+    "./useKeycard": "./useKeycard.ts",
+    "./useMassMarketContext": "./useMassMarketContext.ts",
+    "./usePricingCurrency": "./usePricingCurrency.ts",
+    "./useRelayClient": "./useRelayClient.ts",
+    "./useRelayEndpoint": "./useRelayEndpoint.ts",
+    "./useShopDetails": "./useShopDetails.ts",
+    "./useShopId": "./useShopId.ts",
+    "./useShopPublicClient": "./useShopPublicClient.ts",
+    "./useStateManager": "./useStateManager.ts"
   },
   "imports": {
     "@happy-dom/global-registrator": "npm:@happy-dom/global-registrator@17.5.6",
