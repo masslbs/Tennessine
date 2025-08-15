@@ -29,9 +29,6 @@
   "tasks": {
     "genShop": "deno -A ./packages/cli/shopGen.ts"
   },
-  "fmt": {
-    "exclude": [".direnv", "node_modules", ".pre-commit-config.yaml"]
-  },
   "compilerOptions": {
     "noErrorTruncation": true
   },
