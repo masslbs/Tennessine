@@ -10,14 +10,24 @@ import { abi } from "@massmarket/contracts";
 import { useShopId } from "./useShopId.ts";
 import type { HookParams } from "./types.ts";
 
-export type UseShopDetailsReturn = UseQueryResult<unknown> & {
-  shopDetails: unknown;
+export type ShopDetails = {
+  name: string;
+  profilePictureUrl: string;
 };
 
 /**
- *  This hook returns the meta data of the shop from the contract.
+ * Return type for the useShopDetails hook.
+ * Extends UseQueryResult with additional shop details-specific properties.
  */
-export function useShopDetails(params?: HookParams) {
+export type UseShopDetailsReturn = UseQueryResult<ShopDetails> & {
+  shopDetails: ShopDetails | undefined;
+};
+
+/**
+ * This hook fetches the shop's metadata including name and profile picture
+ * from the shop registry contract.
+ */
+export function useShopDetails(params?: HookParams): UseShopDetailsReturn {
   const { shopId } = useShopId(params);
   const result = useReadContract(
     {

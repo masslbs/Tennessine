@@ -8,14 +8,20 @@ import type { HookParams } from "./types.ts";
 
 const logger = getLogger(["mass-market", "frontend", "useRelayEndpoint"]);
 
+/**
+ * Return type for the useRelayEndpoint hook.
+ * Extends UseQueryResult with additional relay endpoint-specific properties.
+ */
 export type UseRelayEndpointReturn = UseQueryResult<IRelayEndpoint> & {
   relayEndpoint: IRelayEndpoint | undefined;
 };
 
-/*
- * This hook is used to get the relay endpoint from the context or discover it.
+/**
+ * Hook to get the relay endpoint from configuration or discover it automatically.
+ * This hook will use the relay endpoint from the configuration if provided,
+ * otherwise it will attempt to discover the relay endpoint automatically.
  */
-export function useRelayEndpoint(params?: HookParams) {
+export function useRelayEndpoint(params?: HookParams): UseRelayEndpointReturn {
   const config = params?.config ?? useMassMarketContext().config;
   const q = useQuery(
     {

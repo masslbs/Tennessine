@@ -26,8 +26,12 @@ const BrowserLevelStore = (dbName: string) =>
     }),
   );
 
+/**
+ * Return type for the useStateManager hook.
+ * Extends UseQueryResult with additional stateManager-specific properties.
+ */
 export type UseStateManagerReturn = UseQueryResult<StateManager> & {
-  relayClient: StateManager | undefined;
+  stateManager: StateManager | undefined;
 };
 
 /**
@@ -36,7 +40,7 @@ export type UseStateManagerReturn = UseQueryResult<StateManager> & {
  * Subscription to the relay is requested with the subscription sequence number, to only receive events beginning with the event the state has not already been updated with.
  * db.close() is called on beforeunload to save the keycard nonce for any writes.
  */
-export function useStateManager(params?: HookParams) {
+export function useStateManager(params?: HookParams): UseStateManagerReturn {
   const config = params?.config ?? useMassMarketContext().config;
   const { relayClient } = useRelayClient(params);
   const { shopId } = useShopId(params);

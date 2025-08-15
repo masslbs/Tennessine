@@ -17,9 +17,13 @@ import { useShopPublicClient } from "./useShopPublicClient.ts";
 
 const logger = getLogger(["mass-market", "frontend", "useRelayClient"]);
 
+/**
+ * Return type for the useRelayClient hook.
+ */
 export type UseRelayClientReturn = UseQueryResult<RelayClient> & {
   relayClient: RelayClient | undefined;
 };
+
 /**
  * This hook instantiates a RelayClient class and connects and authenticates the relay.
  * This query will run on every app session.
@@ -27,7 +31,7 @@ export type UseRelayClientReturn = UseQueryResult<RelayClient> & {
  * However, during refreshes (or when the app unmounts), data is cached in the configured persister (localStorage), and since the class cannot be serialized the query is not cached.
  */
 export function useRelayClient(params?: HookParams): UseRelayClientReturn {
-  const { data: keycard } = useKeycard(params);
+  const { keycard } = useKeycard(params);
   const { relayEndpoint } = useRelayEndpoint(params);
   const { shopPublicClient } = useShopPublicClient(params);
   const { shopId } = useShopId(params);
@@ -43,7 +47,7 @@ export function useRelayClient(params?: HookParams): UseRelayClientReturn {
         const rc = new RelayClient({
           relayEndpoint,
           walletClient: burnerWallet,
-          keycard: privateKeyToAccount(keycard.privateKey),
+          keycard: privateKeyToAccount(keycard!.privateKey),
           shopId,
         });
         await rc.connect();

@@ -7,11 +7,6 @@ import { randUint64 } from "@massmarket/utils";
 
 import { useStateManager } from "./useStateManager.ts";
 import type { HookParams } from "./types.ts";
-/**
- * This hook returns the most recent active order for a shop.
- * Currently, an "active" order is any order that is not cancelled or paid. This definition may change once relay supports unlocking orders.
- * There may be multiple "active" orders associated with a keycard, but since the frontend app only cares about the last active order for now, we just return the latest active order.
- */
 
 const logger = getLogger(["mass-market", "frontend", "useCurrentOrder"]);
 
@@ -29,6 +24,11 @@ export interface UseActiveOrderReturn {
   cancelAndRecreateOrder: () => Promise<number>;
 }
 
+/**
+ * This hook returns the most recent active order for a shop.
+ * Currently, an "active" order is any order that is not cancelled or paid. This definition may change once relay supports unlocking orders.
+ * There may be multiple "active" orders associated with a keycard, but since the frontend app only cares about the last active order for now, we just return the latest active order.
+ */
 export function useActiveOrder(params?: HookParams): UseActiveOrderReturn {
   const { stateManager } = useStateManager(params);
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);

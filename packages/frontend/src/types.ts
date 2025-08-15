@@ -17,6 +17,7 @@ export enum Status {
   Complete = "COMPLETE",
 }
 
+// TODO @martin remove - we have this in react-hooks/useShopDetails.ts now
 export interface ShopDetails {
   name: string;
   profilePictureUrl: string;

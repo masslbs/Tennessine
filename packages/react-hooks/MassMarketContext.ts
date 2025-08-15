@@ -1,36 +1,24 @@
-import {
-  createContext,
-  createElement,
-  type Dispatch,
-  type SetStateAction,
-  useState,
-} from "react";
+import { createContext, createElement, useState } from "react";
 
-import type { AbstractStore } from "@massmarket/store";
+import type { MassMarketConfig, MassMarketContextType } from "./types.ts";
 
-import type { Hex } from "viem";
+export type { MassMarketConfig, MassMarketContextType };
 
-export type MassMarketConfig = {
-  // todo @nullradix <2025-05-28> maybe should be a bigint
-  shopId?: string;
-  relayTokenId?: Hex;
-  chainName?: string;
-  relayEndpoint?: string;
-  db?: AbstractStore;
-};
-
-export type MassMarketContextType = {
-  authenticationError: Error | null;
-  setAuthenticationError: Dispatch<SetStateAction<Error | null>>;
-  config: MassMarketConfig;
-};
-
-export const MassMarketContext = createContext<
+/**
+ * React context for MassMarket configuration and state.
+ */
+export const MassMarketContext: React.Context<
+  MassMarketContextType | undefined
+> = createContext<
   MassMarketContextType | undefined
 >(
   undefined,
 );
 
+/**
+ * This component should wrap your app to provide MassMarket configuration
+ * and state to all child components that use MassMarket hooks.
+ */
 export function MassMarketProvider(
   parameters: React.PropsWithChildren<{
     config?: MassMarketConfig;
@@ -39,7 +27,7 @@ export function MassMarketProvider(
       errorMessage: string,
     ) => React.ReactNode;
   }>,
-) {
+): React.ReactElement {
   const [authenticationError, setAuthenticationError] = useState<Error | null>(
     null,
   );

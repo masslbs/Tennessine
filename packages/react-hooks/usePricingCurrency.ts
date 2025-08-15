@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { usePublicClient } from "wagmi";
-import { skipToken, useQuery } from "@tanstack/react-query";
+import {
+  skipToken,
+  useQuery,
+  type UseQueryResult,
+} from "@tanstack/react-query";
 import { getLogger } from "@logtape/logtape";
 import { bytesToHex } from "viem";
 
@@ -11,14 +15,31 @@ import { getTokenInformation } from "@massmarket/contracts";
 import { useStateManager } from "./useStateManager.ts";
 import type { HookParams } from "./types.ts";
 
+export type CurrencyInfo = {
+  symbol: string;
+  decimals: number;
+};
+
+/**
+ * Return type for the usePricingCurrency hook.
+ */
+export type UsePricingCurrencyReturn =
+  & UseQueryResult<CurrencyInfo>
+  & {
+    pricingCurrency: CurrencyInfo | undefined;
+  };
+
 const logger = getLogger(["mass-market", "frontend", "useBaseToken"]);
 /**
- * This hook 1. retrieves the pricing currency from the shop manifest,
- * 2. creates a public client with the chain ID of the pricing currency,
- * 3. then retrieves the currency symbol and decimals from the contract and returns them.
+ * Hook to retrieve pricing currency information from the shop manifest.
+ * This hook:
+ * 1. Retrieves the pricing currency from the shop manifest
+ * 2. Creates a public client with the chain ID of the pricing currency
+ * 3. Retrieves the currency symbol and decimals from the contract
  */
-
-export function usePricingCurrency(params?: HookParams) {
+export function usePricingCurrency(
+  params?: HookParams,
+): UsePricingCurrencyReturn {
   const { stateManager } = useStateManager(params);
   const [pricingCurrency, setPricingCurrency] = useState<
     ChainAddress | null

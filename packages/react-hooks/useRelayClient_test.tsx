@@ -26,7 +26,7 @@ Deno.test(
         },
       );
       await waitFor(() => {
-        expect(result.current.data?.role).toEqual("merchant");
+        expect(result.current.keycard?.role).toEqual("merchant");
       });
       unmount();
     });

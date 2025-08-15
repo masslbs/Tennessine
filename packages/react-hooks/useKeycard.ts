@@ -1,7 +1,11 @@
 import { useAccount, useWalletClient } from "wagmi";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { getLogger } from "@logtape/logtape";
-import { skipToken, useQuery } from "@tanstack/react-query";
+import {
+  skipToken,
+  useQuery,
+  type UseQueryResult,
+} from "@tanstack/react-query";
 import { RelayClient } from "@massmarket/client";
 import { getBurnerWallet, getWindowLocation } from "@massmarket/utils";
 
@@ -9,6 +13,7 @@ import { useShopId } from "./useShopId.ts";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";
 import type { HookParams } from "./types.ts";
 import { useShopPublicClient } from "./useShopPublicClient.ts";
+import type { Hex } from "viem";
 
 const logger = getLogger(["mass-market", "frontend", "useKeycard"]);
 
@@ -18,15 +23,19 @@ const logger = getLogger(["mass-market", "frontend", "useKeycard"]);
 export type KeycardRole = "merchant" | "guest";
 
 /**
+ * The keycard which are device keys for Mass Market
+ */
+export type Keycard = { privateKey: Hex; role: KeycardRole; address: Hex };
+
+/**
  * This hook returns a keycard for a shop - if there is no keycard already cached, it will generate and enroll a new keycard with the role passed as the param.
- * The async queryFn where we enroll the keycard only executes once unless variables in the queryKey changes.
  * The keycard will be cached with tanstack's cache for the duration of the browser session regardless of refreshes.
  */
 export function useKeycard(
   params: HookParams & { role?: KeycardRole } = {
     role: "guest",
   },
-) {
+): UseQueryResult<Keycard> & { keycard: Keycard | undefined } {
   const role = params.role || "guest";
   // wagmi hooks
   const { data: connectedWallet } = useWalletClient();
@@ -55,13 +64,13 @@ export function useKeycard(
          * 2. Enroll KC
          * 3. Return the KC
          */
-
         const { burnerWallet, burnerAccount } = getBurnerWallet(
           shopPublicClient.chain!,
         );
 
         const privateKey = generatePrivateKey();
         const account = connectedAddress ?? burnerAccount;
+        const address = connectedAddress ?? burnerAccount.address;
         const wallet = connectedWallet ?? burnerWallet;
 
         // This relay instance is just to enroll the keycard.
@@ -93,7 +102,7 @@ export function useKeycard(
         const kc = {
           privateKey,
           role,
-          address: account,
+          address,
         };
         // Return this keycard for all guest keycard queries.
         // This is needed for merchant enrolls, so that subsequent queries will return this merchant keycard instead of trying to enroll multiple different keycards.
