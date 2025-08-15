@@ -1,5 +1,10 @@
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
 
+/**
+ * This function sets up HappyDOM for testing environments while ensuring that
+ * Deno's built-in web APIs (like fetch, Blob, etc.) are preserved and restored
+ * after HappyDOM registration.
+ */
 export const register = () => {
   // Store deno's web APIs and reassign them after happydom is registered
   const denoAbortController = globalThis.AbortController;
@@ -29,6 +34,10 @@ export const register = () => {
   globalThis.ReadableStream = denoReadableStream;
 };
 
+/**
+ * This function cleans up the HappyDOM registration and restores the original
+ * global environment. Should be called after testing is complete.
+ */
 export const unregister = () => {
   return GlobalRegistrator.unregister();
 };

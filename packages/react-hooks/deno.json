@@ -2,6 +2,9 @@
   "name": "@massmarket/react-hooks",
   "version": "0.0.0",
   "license": "MIT",
+  "tasks": {
+    "doclint": "deno doc --lint ./*.ts"
+  },
   "exports": {
     ".": "./mod.ts",
     "./types": "./types.ts",
