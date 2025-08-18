@@ -1,4 +1,4 @@
-import { useAccount, useWalletClient } from "wagmi";
+import { useAccount, useReadContract, useWalletClient } from "wagmi";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { getLogger } from "@logtape/logtape";
 import {
@@ -6,8 +6,10 @@ import {
   useQuery,
   type UseQueryResult,
 } from "@tanstack/react-query";
+
 import { RelayClient } from "@massmarket/client";
 import { getBurnerWallet, getWindowLocation } from "@massmarket/utils";
+import { abi } from "@massmarket/contracts";
 
 import { useShopId } from "./useShopId.ts";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";
@@ -32,11 +34,8 @@ export type Keycard = { privateKey: Hex; role: KeycardRole; address: Hex };
  * The keycard will be cached with tanstack's cache for the duration of the browser session regardless of refreshes.
  */
 export function useKeycard(
-  params: HookParams & { role?: KeycardRole } = {
-    role: "guest",
-  },
+  params?: HookParams,
 ): UseQueryResult<Keycard> & { keycard: Keycard | undefined } {
-  const role = params.role || "guest";
   // wagmi hooks
   const { data: connectedWallet } = useWalletClient();
   const { address: connectedAddress } = useAccount();
@@ -46,19 +45,27 @@ export function useKeycard(
   const { relayEndpoint } = useRelayEndpoint(params);
   const { shopPublicClient } = useShopPublicClient(params);
 
-  const enabled = !!shopId && !!relayEndpoint && !!shopPublicClient && (
-    role === "guest" ? true : !!connectedAddress
-  );
+  const result = useReadContract({
+    address: abi.shopRegAddress,
+    abi: abi.shopRegAbi,
+    functionName: "ownerOf",
+    args: [shopId!],
+  });
+  // There is an edge case with using isOwner as query key:
+  // If the user is initially enrolled as a guest, and they connect to a merchant account during checkout to pay, this query will rerun, and the user will lose their order.
+  const isOwner = result.data === connectedAddress;
+  const enabled = !!shopId && !!relayEndpoint && !!shopPublicClient &&
+    !!result.data;
   const qResult = useQuery({
     // queryFn will not execute till these variables are defined.
     queryKey: [
       "keycard",
       // browser caches like localStorage cannot serialize BigInts, so we convert to string.
       String(shopId),
-      role,
+      isOwner,
     ],
     queryFn: enabled
-      ? async ({ client }) => {
+      ? async () => {
         /**
          * 1. Generate KC
          * 2. Enroll KC
@@ -83,36 +90,27 @@ export function useKeycard(
         const res = await relayClient.enrollKeycard(
           wallet,
           account,
-          role === "guest",
+          !isOwner,
           getWindowLocation(),
         );
-
+        const enrolledAs: KeycardRole = isOwner ? "merchant" : "guest";
         if (!res.ok) {
           const error = new Error(`Failed to enroll keycard: ${res.status}`);
           logger.error(
-            `failed to enroll ${role} keycard for shop ${shopId}`,
+            `failed to enroll ${enrolledAs} keycard for shop ${shopId}`,
             {
               error,
             },
           );
           throw error;
         }
-        logger.debug(`Success: Enrolled new ${role} keycard`);
+        logger.debug(`Success: Enrolled new ${enrolledAs} keycard`);
 
         const kc = {
           privateKey,
-          role,
+          role: enrolledAs,
           address,
         };
-        // Return this keycard for all guest keycard queries.
-        // This is needed for merchant enrolls, so that subsequent queries will return this merchant keycard instead of trying to enroll multiple different keycards.
-        // setQueryData also ensures that any component using the query will re-render with the new keycard.
-        if (role === "merchant") {
-          client.setQueryData(
-            ["keycard", String(shopId), "guest"],
-            kc,
-          );
-        }
 
         return kc;
       }

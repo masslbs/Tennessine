@@ -59,7 +59,7 @@ Deno.test(
     // await t.step("Out of stock error", async () => {
     //   const orderId = randUint64();
 
-    //   const wrapper = await createWrapper(shopId);
+    //   const wrapper = createWrapper(shopId);
     //   const CartTest = createTestComponent(orderId, false);
     //   const { unmount } = render(<CartTest />, { wrapper });
     //   const user = userEvent.setup();
@@ -112,7 +112,7 @@ Deno.test(
 
     await t.step("Add/remove quantity from item", async () => {
       const orderId = randUint64();
-      const wrapper = await createWrapper(shopId);
+      const wrapper = createWrapper(shopId);
       const CartTest = createTestComponent(orderId, false);
       const { unmount } = render(<CartTest />, { wrapper });
       const user = userEvent.setup();
@@ -159,7 +159,7 @@ Deno.test(
 
     await t.step("Clear cart", async () => {
       const orderId = randUint64();
-      const wrapper = await createWrapper(shopId);
+      const wrapper = createWrapper(shopId);
       const CartTest = createTestComponent(orderId, false);
       const { unmount } = render(<CartTest />, { wrapper });
       const user = userEvent.setup();
@@ -188,7 +188,7 @@ Deno.test(
     //Committed order
 
     await t.step("Changing items after order is committed", async () => {
-      const wrapper = await createWrapper(shopId);
+      const wrapper = createWrapper(shopId);
       const orderId = randUint64();
       const CartTest = createTestComponent(orderId, true);
       const { unmount } = render(<CartTest />, { wrapper });
@@ -231,7 +231,7 @@ Deno.test(
     });
 
     await t.step("Clearing cart of a committed order.", async () => {
-      const wrapper = await createWrapper(shopId);
+      const wrapper = createWrapper(shopId);
       const orderId = randUint64();
       const CartTest = createTestComponent(orderId, true);
       const { unmount } = render(<CartTest />, { wrapper });

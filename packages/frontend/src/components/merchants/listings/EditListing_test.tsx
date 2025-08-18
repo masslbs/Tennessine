@@ -32,7 +32,7 @@ Deno.test(
     stateManager.addConnection(relayClient);
 
     await t.step("Create new listing", async () => {
-      const wrapper = await createWrapper(shopId);
+      const wrapper = createWrapper(shopId);
       const { unmount } = render(<MerchantTestComponent />, {
         wrapper,
       });
@@ -104,7 +104,7 @@ Deno.test(
     });
 
     await t.step("Edit an existing listing", async () => {
-      const wrapper = await createWrapper(shopId, `/?itemId=${listingId}`);
+      const wrapper = createWrapper(shopId, `/?itemId=${listingId}`);
       const { unmount } = render(<MerchantTestComponent />, {
         wrapper,
       });
@@ -162,6 +162,6 @@ Deno.test(
 );
 
 const MerchantTestComponent = () => {
-  useKeycard({ role: "merchant" });
+  useKeycard();
   return <EditListing />;
 };

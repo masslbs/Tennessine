@@ -28,13 +28,10 @@ const baseLogger = getLogger(["mass-market", "frontend", "merchant-connect"]);
 const SHOP_NOT_FOUND_ERROR = "Shop not found";
 
 export default function MerchantConnect() {
-  const [enrollKeycard, setEnrollKeycard] = useState(false);
   const { status } = useAccount();
   const { shopPublicClient } = useShopPublicClient();
   const { shopId } = useShopId();
-  const { keycard } = useKeycard({
-    role: enrollKeycard ? "merchant" : "guest",
-  });
+  const { keycard } = useKeycard();
 
   const navigate = useNavigate({ from: "/merchant-connect" });
 
@@ -140,7 +137,6 @@ export default function MerchantConnect() {
       navigate({
         search: { shopId: searchShopId },
       });
-      setEnrollKeycard(true);
     } catch (error: unknown) {
       logError("Error connecting to shop", error);
     }

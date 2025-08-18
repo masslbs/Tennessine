@@ -41,9 +41,7 @@ export default function (
   const { shopPublicClient } = useShopPublicClient();
   const config = useConfig();
   const { data: wallet } = useWalletClient();
-  const { keycard } = useKeycard({
-    role: "merchant",
-  });
+  const { keycard } = useKeycard();
 
   const { relayEndpoint } = useRelayEndpoint();
   const navigate = useNavigate({ from: "/create-shop" });

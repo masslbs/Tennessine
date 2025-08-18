@@ -54,7 +54,7 @@ Deno.test(
     await t.step(
       "Check that merchant dashboard is rendered with correct orders",
       async () => {
-        const wrapper = await createWrapper(shopId);
+        const wrapper = createWrapper(shopId);
         const { unmount } = render(<TestComponent />, {
           wrapper,
         });
@@ -81,6 +81,6 @@ Deno.test(
 );
 
 const TestComponent = () => {
-  useKeycard({ role: "merchant" });
+  useKeycard();
   return <MerchantDashboard />;
 };

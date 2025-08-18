@@ -20,7 +20,7 @@ Deno.test(
 
     await t.step("Enroll merchant keycard.", async () => {
       const { result, unmount } = renderHook(
-        () => useKeycard({ role: "merchant" }),
+        () => useKeycard(),
         {
           wrapper: createWrapper(shopId),
         },

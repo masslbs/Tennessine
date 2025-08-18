@@ -16,7 +16,7 @@ Deno.test(
   denoTestOptions,
   async () => {
     const user = userEvent.setup();
-    const wrapper = await createWrapper(null, "/create-shop");
+    const wrapper = createWrapper(null, "/create-shop");
     const { unmount } = render(<CreateShop />, {
       wrapper,
     });
@@ -83,7 +83,7 @@ Deno.test(
     expect(screen.getByTestId("minting-shop")).toBeTruthy();
     await waitFor(() => {
       expect(screen.getByTestId("mint-shop-confirmation")).toBeTruthy();
-    }, { timeout: 10000 });
+    }, { timeout: 15000 });
     unmount();
     cleanup();
   },

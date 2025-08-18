@@ -160,7 +160,7 @@ Deno.test(
     const { merchantStateManager } = await setShopManifestAndListings(shopId);
 
     await t.step("Update shipping details.", async () => {
-      const wrapper = await createWrapper(shopId);
+      const wrapper = createWrapper(shopId);
       const { unmount } = render(<ShippingDetailsTest />, { wrapper });
       await waitFor(() => {
         const shippingScreen = screen.getByTestId(
@@ -334,7 +334,7 @@ Deno.test(
         ChoosePayment,
         orderId,
       );
-      const wrapper = await createWrapper(shopId);
+      const wrapper = createWrapper(shopId);
       const { unmount } = render(<ChoosePaymentTest />, { wrapper });
       await testPayWithCurrency(ETH_CONFIG, orderId, shopId);
       unmount();
@@ -385,7 +385,7 @@ Deno.test(
         ChoosePayment,
         orderId,
       );
-      const wrapper = await createWrapper(shopId);
+      const wrapper = createWrapper(shopId);
       const { unmount } = render(<ChoosePaymentTest />, { wrapper });
       await testPayWithCurrency(EDD_CONFIG, orderId, shopId);
       unmount();

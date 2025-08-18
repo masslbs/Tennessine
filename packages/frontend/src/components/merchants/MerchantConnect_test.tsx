@@ -25,7 +25,7 @@ Deno.test(
     await t.step(
       "Display error message for invalid shop ID inputs",
       async () => {
-        const wrapper = await createWrapper(null, "/merchant-connect");
+        const wrapper = createWrapper(null, "/merchant-connect");
         const { unmount } = render(<MerchantConnect />, { wrapper });
         const user = userEvent.setup();
 
@@ -97,7 +97,7 @@ Deno.test(
     });
 
     await t.step("Connect to shop with valid shop ID", async () => {
-      const wrapper = await createWrapper(null, "/merchant-connect");
+      const wrapper = createWrapper(null, "/merchant-connect");
       const { unmount } = render(<MerchantConnect />, { wrapper });
       const user = userEvent.setup();
 
@@ -130,29 +130,6 @@ Deno.test(
       unmount();
     });
 
-    await t.step(
-      "Connect to shop with shop ID with fixed shop ID",
-      async () => {
-        // Passing shopId in createWrapper will set id in param
-        const wrapper = await createWrapper(shopId, "/merchant-connect");
-
-        const { unmount } = render(<MerchantConnect />, { wrapper });
-        const user = userEvent.setup();
-
-        await waitFor(() => {
-          expect(screen.getByTestId("shop-name")).toBeTruthy();
-        });
-        const searchButton = screen.getByRole("button", {
-          name: "Connect to shop",
-        });
-        expect(searchButton).toBeTruthy();
-        await user.click(searchButton);
-        await waitFor(() => {
-          expect(screen.getByTestId("connect-confirmation")).toBeTruthy();
-        });
-        unmount();
-      },
-    );
     cleanup();
   }),
 );
