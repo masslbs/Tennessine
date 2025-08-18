@@ -9,18 +9,6 @@ export type StoreData = {
 export abstract class AbstractStore {
   abstract get(key: Uint8Array): Promise<StoreData | undefined>;
   abstract set(data: StoreData): Promise<void>;
-  async append(data: StoreData): Promise<void> {
-    const existing = await this.get(data.key);
-    if (existing) {
-      return this.set({
-        key: data.key,
-        value: new Uint8Array([...existing.value, ...data.value]),
-        date: data.date,
-      });
-    } else {
-      return this.set(data);
-    }
-  }
 }
 
 export type AbstractStoreConstructor = new (

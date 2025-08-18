@@ -9,9 +9,13 @@ Deno.test("meta data", async (t) => {
   await t.step("testing storing and retrieving metadata", async () => {
     const store = new Store();
     const dag = new DAG(store);
-    await dag.store.objStore.set("pet", "cat");
+    await dag.store.objStore.set({
+      key: "pet",
+      value: "cat",
+      date: new Date(),
+    });
     const val = await dag.store.objStore.get("pet");
-    assertEquals(val, "cat");
+    assertEquals(val?.value, "cat");
   });
 });
 
@@ -38,11 +42,11 @@ Deno.test("basic set and get ", async (t) => {
       [new Uint8Array([1, 2, 3]), "address1"],
       [new Uint8Array([4, 5, 6]), "address2"],
     ]);
-    root = graph.set(root, ["addresses"], addresses);
+    root = await graph.set(root, ["addresses"], addresses);
     const val = await graph.get(root, ["addresses"]);
     assertEquals(val, addresses);
     const key3 = new Uint8Array([7, 8, 9]);
-    root = graph.set(root, ["addresses", key3], "address3");
+    root = await graph.set(root, ["addresses", key3], "address3");
     const result = await graph.get(root, ["addresses", key3]);
     assertEquals(result, "address3");
   });
@@ -85,7 +89,7 @@ Deno.test("upsert", async (t) => {
       [new Uint8Array([1, 2, 3]), "address1"],
       [new Uint8Array([4, 5, 6]), "address2"],
     ]);
-    const newAddresses = graph.set(
+    const newAddresses = await graph.set(
       addresses,
       ["addresses"],
       (oldAddress, path) => {
@@ -101,9 +105,11 @@ Deno.test("upsert", async (t) => {
 Deno.test("should merklize", async (t) => {
   let merkleRoot;
   let root: RootValue = new Map();
+  const sharedStore = new Store();
+
   await t.step("should create a merkle root", async () => {
     const graph = new DAG(
-      store,
+      sharedStore,
     );
 
     merkleRoot = await graph.merklelize(root);
@@ -112,10 +118,10 @@ Deno.test("should merklize", async (t) => {
 
   await t.step("should load from a merkle root", async () => {
     const graph = new DAG(
-      store,
+      sharedStore,
     );
 
-    root = graph.set(root, ["c"], "cat");
+    root = await graph.set(root, ["c"], "cat");
     merkleRoot = await graph.merklelize(root);
     const cat = await graph.get(merkleRoot, ["c"]);
     assert(cat === "cat");
