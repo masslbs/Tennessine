@@ -1,7 +1,9 @@
+import { useAccount } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import ButtonLink from "../common/ButtonLink.tsx";
 
 export default function ConnectMerchant() {
+  const { address } = useAccount();
   return (
     <main
       className="p-5 md:flex justify-center"
@@ -24,7 +26,9 @@ export default function ConnectMerchant() {
             <div className="flex flex-col gap-4 mt-5">
               <ConnectButton chainStatus="name" />
               <div className="flex">
-                <ButtonLink to="/my-shops">My Shops</ButtonLink>
+                <ButtonLink to="/my-shops" disabled={!address}>
+                  My Shops
+                </ButtonLink>
               </div>
             </div>
           </div>

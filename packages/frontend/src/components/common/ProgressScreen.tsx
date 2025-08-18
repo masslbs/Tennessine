@@ -23,9 +23,16 @@ export default function ProgressScreen(
       </h1>
       <div className="relative">
         <div className="absolute w-60 h-[10px] bg-gray-200 rounded-full"></div>
+        {/* FIXME: Browser cannot seem to render tailwind values that are calculated dynamically? i.e. w-${step * 15} */}
         <div
-          className={`absolute z-1 h-[10px] bg-black rounded-full w-${
-            step * 15
+          className={`absolute z-1 h-[10px] bg-black rounded-full ${
+            step === 1
+              ? "w-15"
+              : step === 2
+              ? "w-30"
+              : step === 3
+              ? "w-45"
+              : "w-60"
           }`}
         >
         </div>

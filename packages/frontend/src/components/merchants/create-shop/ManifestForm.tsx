@@ -7,6 +7,7 @@ import { ChainAddress, Manifest } from "@massmarket/schema";
 
 import ValidationWarning from "../../common/ValidationWarning.tsx";
 import ErrorMessage from "../../common/ErrorMessage.tsx";
+import BackButton from "../../common/BackButton.tsx";
 import Button from "../../common/Button.tsx";
 import AvatarUpload from "../../common/AvatarUpload.tsx";
 import Dropdown from "../../common/CurrencyDropdown.tsx";
@@ -78,7 +79,10 @@ export default function ManifestForm(
   }
 
   return (
-    <section data-testid="manifest-form" className="w-full md:w-[560px] p-5">
+    <section
+      data-testid="manifest-form"
+      className="w-full md:w-[560px] pb-5 px-5"
+    >
       <section>
         <ValidationWarning
           warning={validationError}
@@ -92,6 +96,7 @@ export default function ManifestForm(
             setErrorMsg(null);
           }}
         />
+        <BackButton />
         <div className="flex">
           <h1>Create new shop</h1>
         </div>
@@ -99,8 +104,7 @@ export default function ManifestForm(
       <section className="mt-2 flex flex-col gap-[25px] bg-white p-5 rounded-lg">
         <form
           className="flex flex-col grow"
-          onSubmit={(e) =>
-            e.preventDefault()}
+          onSubmit={(e) => e.preventDefault()}
         >
           <label className="font-medium" htmlFor="shopName">
             Shop Name
@@ -125,8 +129,7 @@ export default function ManifestForm(
         </div>
         <form
           className="flex flex-col"
-          onSubmit={(e) =>
-            e.preventDefault()}
+          onSubmit={(e) => e.preventDefault()}
         >
           <label htmlFor="desc" className="font-medium">
             Description

@@ -1,3 +1,4 @@
+import { toHex } from "viem";
 import { useMyShops } from "@massmarket/react-hooks";
 
 import ButtonLink from "../common/ButtonLink.tsx";
@@ -27,7 +28,7 @@ export default function MyShops() {
           className={`${
             !shops?.length
               ? "hidden"
-              : "mt-2 flex flex-col gap-1 bg-white p-5 rounded-lg"
+              : "mt-2 flex flex-col gap-3 bg-white p-5 rounded-lg"
           }`}
         >
           {shops?.map((shop, i) => (
@@ -37,16 +38,16 @@ export default function MyShops() {
                 <h2>{shop.name}</h2>
               </div>
 
-              <p>{shop.description}</p>
-              <ButtonLink to={`/merchants?shopId=${shop.id}`}>
+              <p className="mb-3">{shop.description}</p>
+              <ButtonLink to="/merchants" search={{ shopId: toHex(shop.id) }}>
                 Shop Dashboard
               </ButtonLink>
             </div>
           ))}
         </section>
         <section className="mt-2 flex flex-col gap-1 bg-white p-5 rounded-lg">
-          <h1>Create a new shop</h1>
-          <ButtonLink to="/create-shop">Get started</ButtonLink>
+          <h2>Create a new shop</h2>
+          <ButtonLink to="/create-shop" search={{}}>Get started</ButtonLink>
         </section>
       </section>
     </main>

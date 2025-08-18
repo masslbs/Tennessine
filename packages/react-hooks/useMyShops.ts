@@ -69,7 +69,7 @@ export function useMyShops(
   });
 
   if (qResult.error) {
-    logger.error`Failed to get shops: ${qResult.error}`;
+    logger.error`Failed to get shops: ${qResult.error.message}`;
   }
 
   return { shops: qResult.data, ...qResult };
