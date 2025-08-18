@@ -34,7 +34,7 @@ export type Keycard = { privateKey: Hex; role: KeycardRole; address: Hex };
  * The keycard will be cached with tanstack's cache for the duration of the browser session regardless of refreshes.
  */
 export function useKeycard(
-  params?: HookParams
+  params?: HookParams,
 ): UseQueryResult<Keycard> & { keycard: Keycard | undefined } {
   // wagmi hooks
   const { data: connectedWallet } = useWalletClient();
