@@ -46,7 +46,7 @@ Deno.test(
     });
 
     await t.step("Render order details.", async () => {
-      const wrapper = await createWrapper(shopId, `/?orderId=${orderId}`);
+      const wrapper = createWrapper(shopId, `/?orderId=${orderId}`);
       const { unmount } = render(<TestComponent />, { wrapper });
       await screen.findByTestId("order-details-page");
 
@@ -82,6 +82,6 @@ Deno.test(
 );
 
 const TestComponent = () => {
-  useKeycard({ role: "merchant" });
+  useKeycard();
   return <OrderDetails />;
 };

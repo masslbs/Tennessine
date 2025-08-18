@@ -69,7 +69,7 @@ Deno.test(
     await t.step(
       "Check that manifest data is rendered correctly.",
       async () => {
-        const wrapper = await createWrapper(shopId);
+        const wrapper = createWrapper(shopId);
         const { unmount } = render(<TestComponent />, { wrapper });
         await waitFor(() => {
           const pricingCurrency = screen.getByTestId(
@@ -100,7 +100,7 @@ Deno.test(
     await t.step(
       "Check that we can update accepted/pricing currency.",
       async () => {
-        const wrapper = await createWrapper(shopId);
+        const wrapper = createWrapper(shopId);
         const { unmount } = render(<TestComponent />, { wrapper });
         await waitFor(() => {
           const shopNameInput = screen.getByTestId(
@@ -169,6 +169,6 @@ Deno.test(
 );
 
 const TestComponent = () => {
-  useKeycard({ role: "merchant" });
+  useKeycard();
   return <ShopSettings />;
 };

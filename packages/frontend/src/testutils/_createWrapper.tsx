@@ -12,7 +12,6 @@ import { hardhat } from "wagmi/chains";
 import { createTestClient, publicActions, walletActions } from "viem";
 import { cleanup } from "@testing-library/react";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { connect } from "wagmi/actions";
 
 import { mintShop } from "@massmarket/contracts";
 import { discoverRelay, RelayClient } from "@massmarket/client";
@@ -46,9 +45,11 @@ export const relayURL = Deno.env.get("RELAY_ENDPOINT") ||
   "http://localhost:4444/v4";
 const testRelayEndpoint = await discoverRelay(relayURL);
 
-export async function createWrapper(
+export function createWrapper(
   shopId: bigint | null = random256BigInt(),
   path: string = "/",
+  // For certain tests, we do not want to set up mock connectors, since we want to test cases when the user has no wallet connected.
+  setupMockConnectors = true,
   testAccountIndex = 0,
 ) {
   const queryClient = new QueryClient({
@@ -83,13 +84,11 @@ export async function createWrapper(
 
   const config = createConfig({
     chains: [hardhat],
-    connectors,
+    connectors: setupMockConnectors ? connectors : [],
     transports: {
       [hardhat.id]: http(),
     },
   });
-  // Establish wallet connection
-  await connect(config, { connector: config.connectors[0] });
 
   return ({ children }: { children: React.ReactNode }) => {
     function RootComponent() {

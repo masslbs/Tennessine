@@ -33,7 +33,7 @@ Deno.test(
     });
 
     await t.step("Render listings for customers", async () => {
-      const wrapper = await createWrapper(shopId);
+      const wrapper = createWrapper(shopId, "/", false);
       const { unmount } = render(<Listings />, {
         wrapper,
       });
@@ -64,7 +64,7 @@ Deno.test(
     });
 
     await t.step("Render listings for merchants", async () => {
-      const wrapper = await createWrapper(shopId);
+      const wrapper = createWrapper(shopId);
 
       const { unmount } = render(<MerchantTestComponent />, {
         wrapper,
@@ -85,6 +85,6 @@ Deno.test(
 );
 
 const MerchantTestComponent = () => {
-  useKeycard({ role: "merchant" });
+  useKeycard();
   return <Listings />;
 };
