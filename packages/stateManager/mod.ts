@@ -49,11 +49,11 @@ export default class StateManager {
   }
 
   async open() {
-    const storedState = await this.graph.store.objStore.get(this.id);
+    const { value: storedState } = await this.graph.store.objStore.get(this.id);
     const restored: IStoredState = storedState instanceof Map
       ? Object.fromEntries(storedState)
       : {
-        subscriptionTrees: new Map(),
+        subscriptionSequenceNumber: 0,
         keycardNonce: 0,
         root: this.#defaultState,
         // TODO: add class for shop at some point
@@ -78,10 +78,11 @@ export default class StateManager {
     };
     return Promise.all([
       clientClosing,
-      this.graph.store.objStore.set(
-        this.id,
-        new Map(Object.entries(realState)),
-      ),
+      this.graph.store.objStore.set({
+        key: this.id,
+        value: new Map(Object.entries(realState)),
+        date: new Date(),
+      }),
     ]);
   }
 

@@ -58,8 +58,11 @@ Deno.test("basic set and get ", async (t) => {
     );
     const val = await graph.get(root, ["d"]);
     assertEquals(val, undefined);
-    assertRejects(() => graph.get(new Uint8Array(32), ["c"]), "invalid root");
-    assertRejects(
+    await assertRejects(
+      () => graph.get(new Uint8Array(32), ["c"]),
+      "invalid root",
+    );
+    await assertRejects(
       () => graph.set(root, ["c", "d", "c"], "catz"),
       "path does not exist",
     );

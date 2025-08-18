@@ -1,6 +1,5 @@
 import { assert, assertEquals } from "@std/assert";
 import type { AbstractStoreConstructor } from "./mod.ts";
-import type { StoreData } from "./abstract.ts";
 
 function generateRandomUint8Array(length: number): Uint8Array {
   return crypto.getRandomValues(new Uint8Array(length));
@@ -17,7 +16,7 @@ export default function Test(
     const value = generateRandomUint8Array(64);
 
     // Store the value
-    const storeData: StoreData = { key, value, date: new Date() };
+    const storeData = { key, value, date: new Date() };
     await store.set(storeData);
 
     // Retrieve and verify the value
@@ -47,7 +46,7 @@ export default function Test(
     const result = await store.get(nonExistentKey);
 
     assertEquals(
-      result,
+      result.value,
       undefined,
       "Getting non-existent key should return undefined",
     );
@@ -61,11 +60,11 @@ export default function Test(
     const value2 = generateRandomUint8Array(64);
 
     // Store initial value
-    const storeData1: StoreData = { key, value: value1, date: new Date() };
+    const storeData1 = { key, value: value1, date: new Date() };
     await store.set(storeData1);
 
     // Overwrite with new value
-    const storeData2: StoreData = { key, value: value2, date: new Date() };
+    const storeData2 = { key, value: value2, date: new Date() };
     await store.set(storeData2);
 
     // Retrieve and verify the new value
@@ -89,7 +88,7 @@ export default function Test(
 
     // Store all pairs
     for (const pair of pairs) {
-      const storeData: StoreData = {
+      const storeData = {
         key: pair.key,
         value: pair.value,
         date: new Date(),
@@ -122,12 +121,12 @@ export default function Test(
     const value1 = generateRandomUint8Array(64);
     const value2 = generateRandomUint8Array(64);
 
-    const storeData1: StoreData = {
+    const storeData1 = {
       key: key1,
       value: value1,
       date: new Date(),
     };
-    const storeData2: StoreData = {
+    const storeData2 = {
       key: key2,
       value: value2,
       date: new Date(),
@@ -175,7 +174,7 @@ export default function Test(
 
     // Store all pairs
     await Promise.all(pairs.map((pair) => {
-      const storeData: StoreData = {
+      const storeData = {
         key: pair.key,
         value: pair.value,
         date: new Date(),

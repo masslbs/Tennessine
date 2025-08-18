@@ -33,7 +33,7 @@ export class DAG {
     clone = false,
   ): Promise<codec.CodecValue> {
     const entry = await this.store.get(hash);
-    if (!entry) {
+    if (!entry.value) {
       logger.info`Hash not found: ${hash}`;
       throw new Error(`Hash not found`);
     }

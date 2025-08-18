@@ -53,7 +53,11 @@ Deno.test("ObjectStore - Basic operations", async () => {
     assertEquals(retrieved.key, key, "Key should match");
   }
   assertEquals(retrieved.value, value, "Value should match");
-  assertEquals(retrieved.date.getTime(), date.getTime(), "Date should match");
+  assertEquals(
+    (retrieved.date as Date).getTime(),
+    date.getTime(),
+    "Date should match",
+  );
 });
 
 Deno.test("ObjectStore - Different key types", async () => {
@@ -146,7 +150,11 @@ Deno.test("ObjectStore - Get non-existent key", async () => {
   const store = new ObjectStore(new MemStore());
 
   const result = await store.get("non-existent-key");
-  assertEquals(result, undefined, "Non-existent key should return undefined");
+  assertEquals(
+    result.value,
+    undefined,
+    "Non-existent key should return undefined",
+  );
 });
 
 Deno.test("ObjectStore - Overwrite existing key", async () => {
@@ -169,7 +177,7 @@ Deno.test("ObjectStore - Overwrite existing key", async () => {
   assert(retrieved !== undefined, "Retrieved entry should not be undefined");
   assertEquals(retrieved.value, value2, "Should get the overwritten value");
   assertEquals(
-    retrieved.date.getTime(),
+    retrieved.date!.getTime(),
     date2.getTime(),
     "Should get the new date",
   );
@@ -200,7 +208,7 @@ Deno.test("ObjectStore - Random data stress test", async () => {
       `Value should match for key ${entry.key}`,
     );
     assertEquals(
-      retrieved.date.getTime(),
+      retrieved.date!.getTime(),
       entry.date.getTime(),
       `Date should match for key ${entry.key}`,
     );
@@ -224,7 +232,7 @@ Deno.test("ContentAddressableStore - Basic operations", async () => {
   const retrieved = await store.get(hash1);
   assert(retrieved !== undefined, "Retrieved entry should not be undefined");
   assertEquals(retrieved.value, value, "Value should match");
-  assertEquals(retrieved.date.getTime(), date.getTime(), "Date should match");
+  assertEquals(retrieved.date!.getTime(), date.getTime(), "Date should match");
 });
 
 Deno.test("ContentAddressableStore - Same content produces same hash", async () => {
@@ -248,7 +256,7 @@ Deno.test("ContentAddressableStore - Same content produces same hash", async () 
   assert(retrieved !== undefined, "Retrieved entry should not be undefined");
   assertEquals(retrieved.value, value, "Value should match");
   assertEquals(
-    retrieved.date.getTime(),
+    retrieved.date!.getTime(),
     date2.getTime(),
     "Should have the latest date",
   );
@@ -312,7 +320,7 @@ Deno.test("ContentAddressableStore - Hash as value", async () => {
   // Note: When a hash is passed as value, ContentAddressableStore doesn't update
   // the stored entry - it just returns the hash. So the date remains unchanged.
   assertEquals(
-    retrieved.date.getTime(),
+    retrieved.date!.getTime(),
     date1.getTime(),
     "Date should remain unchanged when hash is used as value",
   );
@@ -326,7 +334,11 @@ Deno.test("ContentAddressableStore - Get non-existent hash", async () => {
   crypto.getRandomValues(fakeHash);
 
   const result = await store.get(fakeHash as Hash);
-  assertEquals(result, undefined, "Non-existent hash should return undefined");
+  assertEquals(
+    result.value,
+    undefined,
+    "Non-existent hash should return undefined",
+  );
 });
 
 Deno.test("ContentAddressableStore - Various data types", async () => {

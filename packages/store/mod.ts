@@ -12,6 +12,12 @@ export interface ObjectStoreEntry {
   date: Date;
 }
 
+export interface ObjectStoreNotFoundEntry {
+  key: codec.CodecValue;
+  value: undefined;
+  date: undefined;
+}
+
 /*
  * ObjectStore stores objects store's objects, as long as they can be encoded as CBOR
  * It is a key-value store Where
@@ -26,16 +32,22 @@ export class ObjectStore {
 
   async get(
     key: codec.CodecValue,
-  ): Promise<ObjectStoreEntry | undefined> {
+  ): Promise<ObjectStoreEntry | ObjectStoreNotFoundEntry> {
     if (!(key instanceof Uint8Array)) {
       key = codec.encode(key);
     }
     const entry = await this.store.get(key as Uint8Array);
-    if (entry) {
+    if (entry.value) {
       return {
         key,
         value: codec.decode(entry.value),
         date: new Date(entry.date),
+      };
+    } else {
+      return {
+        key,
+        value: undefined,
+        date: undefined,
       };
     }
   }
@@ -66,7 +78,7 @@ export class ContentAddressableStore {
     this.objStore = new ObjectStore(store);
   }
 
-  get(key: Hash): Promise<ObjectStoreEntry | undefined> {
+  get(key: Hash): Promise<ObjectStoreEntry | ObjectStoreNotFoundEntry> {
     return this.objStore.get(key);
   }
 

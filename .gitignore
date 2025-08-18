@@ -46,3 +46,7 @@ packages/contracts/src
 packages/stateManager/tmpDb
 **/coverage
 .last-input
+
+
+.crush
+.crush.json

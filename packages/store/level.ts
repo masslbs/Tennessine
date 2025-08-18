@@ -1,6 +1,10 @@
 import { MemoryLevel } from "memory-level";
 import type { AbstractLevel } from "abstract-level";
-import { AbstractStore, type StoreData } from "./abstract.ts";
+import {
+  AbstractStore,
+  type StoreEntry,
+  type StoreEntryNotFound,
+} from "./abstract.ts";
 
 export type AbstractLevelConstructor = new (
   ...params: ConstructorParameters<typeof AbstractLevel>
@@ -24,24 +28,26 @@ export class LevelStore extends AbstractStore {
 
   async get(
     key: Uint8Array,
-  ): Promise<StoreData | undefined> {
+  ): Promise<StoreEntry | StoreEntryNotFound> {
     try {
       const storedData = await this.level.get(key);
-      if (storedData) {
-        // Parse the stored JSON data
-        const parsed = JSON.parse(new TextDecoder().decode(storedData));
-        return {
-          key: new Uint8Array(parsed.key),
-          value: new Uint8Array(parsed.value),
-          date: new Date(parsed.date),
-        };
-      }
+      // Parse the stored JSON data
+      const parsed = JSON.parse(new TextDecoder().decode(storedData));
+      return {
+        key: new Uint8Array(parsed.key),
+        value: new Uint8Array(parsed.value),
+        date: new Date(parsed.date),
+      };
     } catch {
-      return undefined;
+      return {
+        key,
+        value: undefined,
+        date: undefined,
+      };
     }
   }
 
-  set(data: StoreData): Promise<void> {
+  set(data: StoreEntry): Promise<void> {
     // Serialize the StoreData to JSON for storage
     const serialized = {
       key: Array.from(data.key),
