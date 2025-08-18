@@ -17,6 +17,7 @@ import {
 
 import Cart from "./cart/Cart.tsx";
 import ChevronRight from "./common/ChevronRight.tsx";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 const merchantMenu = [
   {
@@ -227,6 +228,9 @@ function Navigation() {
               )}
 
             <h2 className="flex items-center">{shopDetails?.name}</h2>
+          </div>
+          <div className="hidden md:flex mr-30 h-[56px] items-center">
+            <ConnectButton chainStatus="name" />
           </div>
           <section className="absolute right-0 flex">
             <div
