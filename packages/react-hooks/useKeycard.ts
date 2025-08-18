@@ -30,7 +30,7 @@ export type KeycardRole = "merchant" | "guest";
 export type Keycard = { privateKey: Hex; role: KeycardRole; address: Hex };
 
 /**
- * This hook returns a keycard for a shop - if there is no keycard already cached, it will generate and enroll a new keycard with the role passed as the param.
+ * This hook returns a keycard for a shop - if there is no keycard already cached, it will generate and enroll a new keycard.
  * The keycard will be cached with tanstack's cache for the duration of the browser session regardless of refreshes.
  */
 export function useKeycard(

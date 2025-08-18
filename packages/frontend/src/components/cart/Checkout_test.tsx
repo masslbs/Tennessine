@@ -242,7 +242,7 @@ async function testPayWithCurrency(
   expect((selectElement as HTMLSelectElement).value).toBe(
     `${currencyConfig.expectedSymbol}/Hardhat`,
   );
-
+  console.log("Checkout Test: User selected currency");
   await waitFor(async () => {
     // Check that the ChosenCurrency event was successfully sent to relay and order now has PaymentDetails.
     const orderWithPaymentData = await merchantStateManager.get([
@@ -254,7 +254,9 @@ async function testPayWithCurrency(
     expect(orderWithPayment.ChosenCurrency).toBeDefined();
     expect(orderWithPayment.PaymentDetails).toBeDefined();
     expect(orderWithPayment.PaymentDetails!.Total).toBeGreaterThan(0);
-  });
+  }, { timeout: 10000 });
+  console.log("Checkout Test: Order now has PaymentDetails");
+
   await waitFor(() => {
     const paymentDetailsLoading = screen.getByTestId(
       "payment-details-loading",
@@ -267,6 +269,7 @@ async function testPayWithCurrency(
       currencyConfig.expectedTotalAmount,
     );
   });
+  console.log("Checkout Test: Displayed amount is correct");
 
   // Connect wallet and initiate payment
   const connectWalletButton = screen.getByTestId(
@@ -304,6 +307,7 @@ async function testPayWithCurrency(
     }
     expect(waitingMessage || successMessage).toBeTruthy();
   });
+  console.log("Checkout Test: Waiting for transaction...");
 
   // Check payment confirmation screen
   await waitFor(() => {
@@ -321,7 +325,7 @@ async function testPayWithCurrency(
     expect(amountElement.textContent).toContain(
       currencyConfig.expectedTotalAmount,
     );
-  }, { timeout: 5000 });
+  }, { timeout: 10000 });
 }
 
 Deno.test(

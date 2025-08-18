@@ -10,3 +10,4 @@ export * from "./usePricingCurrency.ts";
 export * from "./useActiveOrder.ts";
 export * from "./useShopDetails.ts";
 export * from "./useShopPublicClient.ts";
+export * from "./useMyShops.ts";

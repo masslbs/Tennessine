@@ -167,6 +167,11 @@ export function getTokenInformation(
     decimal,
   }));
 }
+export const getTokenURI = genericReadContract(
+  abi.shopRegAbi,
+  "tokenURI",
+  abi.shopRegAddress,
+);
 
 export const getPaymentAddress = genericReadContract(
   abi.paymentsByAddressAbi,

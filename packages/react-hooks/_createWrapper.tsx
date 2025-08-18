@@ -105,11 +105,15 @@ export function createWrapper(
   };
 }
 
-export async function createShop(shopId: bigint) {
-  const transactionHash = await mintShop(testClient, testAccount, [
-    shopId,
-    testAccount,
-  ]);
+export async function createShop(shopId: bigint, testAccountIndex = 0) {
+  const transactionHash = await mintShop(
+    testClient,
+    testAccounts[testAccountIndex],
+    [
+      shopId,
+      testAccounts[testAccountIndex],
+    ],
+  );
   // this is still causing a leak
   // https://github.com/wevm/viem/issues/2903
   await testClient.waitForTransactionReceipt({
@@ -143,11 +147,12 @@ export const createTestStateManager = async (shopId: bigint) => {
 
 export function testWrapper(
   cb: (id: bigint, t: Deno.TestContext) => Promise<void> | void,
+  testAccountIndex = 0,
 ) {
   return async (_t: Deno.TestContext) => {
     register();
     const shopId = random256BigInt();
-    await createShop(shopId);
+    await createShop(shopId, testAccountIndex);
     await cb(shopId, _t);
     cleanup();
     await unregister();
