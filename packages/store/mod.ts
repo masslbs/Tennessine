@@ -24,8 +24,8 @@ export class ObjectStore {
     if (!(key instanceof Uint8Array)) {
       key = codec.encode(key);
     }
-    const val = await this.store.get(key as Uint8Array);
-    return val ? codec.decode(val) : undefined;
+    const storeData = await this.store.get(key as Uint8Array);
+    return storeData ? codec.decode(storeData.value) : undefined;
   }
 
   async set(key: codec.CodecValue, value: codec.CodecValue): Promise<void> {
@@ -33,7 +33,11 @@ export class ObjectStore {
       key = codec.encode(key);
     }
     const ev = codec.encode(value);
-    await this.store.set(key as Uint8Array, ev);
+    await this.store.set({
+      key: key as Uint8Array,
+      value: ev,
+      date: new Date(),
+    });
   }
 
   append(key: codec.CodecValue, value: codec.CodecValue): Promise<void> {
@@ -42,7 +46,11 @@ export class ObjectStore {
     }
 
     const ev = codec.encode(value);
-    return this.store.append(key as Uint8Array, ev);
+    return this.store.append({
+      key: key as Uint8Array,
+      value: ev,
+      date: new Date(),
+    });
   }
 }
 
@@ -67,7 +75,11 @@ export class ContentAddressableStore {
       const ev = codec.encode(value);
       const keyb = await hash(ev);
       const key = new Uint8Array(keyb);
-      await this.objStore.store.set(key, ev);
+      await this.objStore.store.set({
+        key,
+        value: ev,
+        date: new Date(),
+      });
       return key;
     }
   }

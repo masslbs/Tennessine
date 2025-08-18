@@ -95,6 +95,10 @@ export default class StateManager {
         //   "Account",
         //   patchSet.signer,
         // ]) as Map<string, string>;
+        const timestamp = (patchSet!.header! as Map<string, string>).get(
+          "Timestamp",
+        );
+        const _date = new Date(timestamp!);
 
         // TODO: Validate keycard for a given time range
         //   throw new Error("Invalid keycard");
