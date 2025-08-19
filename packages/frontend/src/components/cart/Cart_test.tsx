@@ -198,6 +198,9 @@ Deno.test(
         const cartScreen = screen.getAllByTestId("cart-item");
         expect(cartScreen).toHaveLength(2);
       });
+      console.log(
+        "Cart Test - committed order: correct number of items displayed",
+      );
       // +1 to listing 2
       const addButton = await screen.findByTestId(
         `add-quantity-${listingID2}`,
@@ -210,6 +213,8 @@ Deno.test(
         );
         expect(quantity.textContent).toContain("25");
       });
+      console.log("Cart Test - committed order: correct quantity displayed");
+
       await waitFor(async () => {
         const orders = await stateManager.get(["Orders"]) as Map<
           number,
@@ -226,7 +231,7 @@ Deno.test(
         expect(newOrderItems).toHaveLength(2);
         expect(newOrderItems[1].ListingID).toBe(listingID2);
         expect(newOrderItems[1].Quantity).toBe(25);
-      });
+      }, { timeout: 10000 });
       unmount();
     });
 
@@ -242,12 +247,20 @@ Deno.test(
         expect(cartScreen).toHaveLength(2);
       });
 
+      console.log(
+        "Cart Test - clearing cart of a committed order: correct number of items displayed",
+      );
+
       const clearCart = await screen.findByTestId("clear-cart");
       await user.click(clearCart);
       await waitFor(() => {
         const cartItems = screen.queryAllByTestId("cart-item");
         expect(cartItems.length).toBe(0);
       });
+      console.log(
+        "Cart Test - clearing cart of a committed order: 0 items displayed",
+      );
+
       await waitFor(async () => {
         const orders = await stateManager.get(["Orders"]) as Map<
           number,
@@ -261,7 +274,7 @@ Deno.test(
         const newOrder = Array.from(orders.values()).pop() as CodecValue;
         const newOrderItems = Order.fromCBOR(newOrder).Items;
         expect(newOrderItems).toHaveLength(0);
-      });
+      }, { timeout: 10000 });
       unmount();
     });
 

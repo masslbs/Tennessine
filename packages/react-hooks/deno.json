@@ -17,7 +17,8 @@
     "./useShopDetails": "./useShopDetails.ts",
     "./useShopId": "./useShopId.ts",
     "./useShopPublicClient": "./useShopPublicClient.ts",
-    "./useStateManager": "./useStateManager.ts"
+    "./useStateManager": "./useStateManager.ts",
+    "./useMyShops": "./useMyShops.ts"
   },
   "imports": {
     "@happy-dom/global-registrator": "npm:@happy-dom/global-registrator@17.5.6",
