@@ -1,5 +1,4 @@
 import { useAccount, useReadContract } from "wagmi";
-import { toHex } from "viem";
 import { getLogger } from "@logtape/logtape";
 import {
   skipToken,
@@ -12,7 +11,10 @@ import { abi, getTokenURI, tokenOfOwnerByIndex } from "@massmarket/contracts";
 import { useShopPublicClient } from "./useShopPublicClient.ts";
 import type { HookParams } from "./types.ts";
 
-type ShopMetadata = {
+/**
+ * Shop metadata received from the contract to display merchant's shops.
+ */
+export type ShopMetadata = {
   id: bigint;
   name: string;
   image: string;
@@ -41,28 +43,27 @@ export function useMyShops(
     const uri = await getTokenURI(shopPublicClient!, [shopId]);
     const res = await fetch(uri);
     const data = await res.json();
-    return data;
+    return {
+      ...data,
+      id: shopId,
+    };
   }
 
   const qResult = useQuery({
     queryKey: ["shops", address, String(balance)],
     queryFn: balance
-      ? async () => {
-        const allShops: ShopMetadata[] = [];
+      ? () => {
+        const ShopDataPromises: Promise<ShopMetadata>[] = [];
         let i = 0n;
-
-        logger.info`Fetching ${balance} shops.`;
-
         while (i < balance) {
-          const token = await tokenOfOwnerByIndex(shopPublicClient!, [
+          const dataPromise = tokenOfOwnerByIndex(shopPublicClient!, [
             address!,
             i,
-          ]);
-          const data = await getShopData(token);
-          allShops.push({ ...data, id: toHex(token) });
+          ]).then((tokenId) => getShopData(tokenId));
+          ShopDataPromises.push(dataPromise);
           i++;
         }
-        return allShops;
+        return Promise.all(ShopDataPromises);
       }
       : skipToken,
   });
