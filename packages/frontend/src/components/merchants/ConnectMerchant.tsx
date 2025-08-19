@@ -1,9 +1,24 @@
+import { useEffect } from "react";
 import { useAccount } from "wagmi";
+import { useQueryClient } from "@tanstack/react-query";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { getLogger } from "@logtape/logtape";
+
 import ButtonLink from "../common/ButtonLink.tsx";
+
+const logger = getLogger(["mass-market", "frontend", "ConnectMerchant"]);
 
 export default function ConnectMerchant() {
   const { address } = useAccount();
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!address) {
+      logger.info`Invalidating keycard query`;
+      queryClient.invalidateQueries({ queryKey: ["keycard"] });
+    }
+  }, [address]);
+
   return (
     <main
       className="p-5 md:flex justify-center"

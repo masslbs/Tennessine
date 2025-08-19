@@ -56,6 +56,10 @@ const customerMenu = [
   },
 ];
 
+const massMarketMenu = [
+  { title: "Support", img: "menu-settings.svg", href: `/support` },
+];
+
 function Navigation() {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const [cartVisible, setCartVisible] = useState<boolean>(false);
@@ -95,8 +99,8 @@ function Navigation() {
 
   function onDisconnect() {
     setMenuOpen(false);
-    localStorage.clear();
     disconnect();
+    globalThis.localStorage.removeItem("burnerWallet-pk");
     navigate({
       to: "/",
     });
@@ -118,7 +122,11 @@ function Navigation() {
   }
 
   function renderMenuItems() {
-    const menuItems = isMerchantView ? merchantMenu : customerMenu;
+    const menuItems = !keycard
+      ? massMarketMenu
+      : isMerchantView
+      ? merchantMenu
+      : customerMenu;
     return menuItems.map((opt, i) => {
       const content = (
         <Link
@@ -244,7 +252,7 @@ function Navigation() {
                 type="button"
                 data-testid="cart-toggle"
                 className={`${
-                  isMerchantView ? "hidden" : ""
+                  isMerchantView || !keycard ? "hidden" : ""
                 } self-end h-[56px] ${cartVisible ? "mr-[50px] md:mr-0" : ""}`}
                 style={{
                   backgroundColor: cartVisible ? "#F3F3F3" : "transparent",
