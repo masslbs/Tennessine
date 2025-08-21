@@ -50,9 +50,10 @@ export default function MerchantViewProducts() {
 
   useEffect(() => {
     if (!stateManager || !products) return;
-    const stockLevels = new Map<number, number>();
 
-    (async () => {
+    const fetchStockLevels = async () => {
+      const stockLevels = new Map<number, number>();
+
       await Promise.all(products.map(async (item: Listing) => {
         const quantity = await stateManager.get([
           "Inventory",
@@ -60,8 +61,11 @@ export default function MerchantViewProducts() {
         ]) as number;
         stockLevels.set(item.ID, quantity);
       }));
+
       setStockLevels(stockLevels);
-    })();
+    };
+
+    fetchStockLevels();
   }, [stateManager, products]);
 
   function renderProducts() {
@@ -130,7 +134,7 @@ export default function MerchantViewProducts() {
             </div>
             <div className="text-sm flex justify-between border-b border-gray-300 w-full py-1 font-inter">
               <p>Stock Level</p>
-              <p>{quantity}</p>
+              <p data-testid="stock-level">{quantity}</p>
             </div>
             <div className="flex justify-between pt-1">
               <p className="text-sm font-inter">Price</p>

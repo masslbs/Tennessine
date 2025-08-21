@@ -29,6 +29,7 @@ Deno.test(
       stateManager.addConnection(relayClient);
       for (const [key, entry] of allListings.entries()) {
         await stateManager.set(["Listings", key], entry);
+        await stateManager.set(["Inventory", key], 100);
       }
     });
 
@@ -77,6 +78,8 @@ Deno.test(
         expect(title.textContent).toEqual("test");
         const price = within(listings[0]).getByTestId("product-price");
         expect(price.textContent).toEqual(formatEther(BigInt(230000)));
+        const stockLevel = within(listings[0]).getByTestId("stock-level");
+        expect(stockLevel.textContent).toEqual("100");
       });
 
       unmount();
