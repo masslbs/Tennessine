@@ -11,6 +11,13 @@ export function useIsOwner() {
     abi: abi.shopRegAbi,
     functionName: "ownerOf",
     args: [shopId!],
+    query: {
+      enabled: !!shopId,
+    },
   });
-  return { isPending: !result.data, isOwner: result.data === connectedAddress };
+
+  return {
+    isPending: result.isPending,
+    isOwner: result.data === connectedAddress,
+  };
 }
