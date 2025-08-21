@@ -19,7 +19,7 @@ export default function MerchantDashboard() {
           <div className="flex flex-col gap-1 pt-1">
             <Link
               className="flex items-center gap-1 px-3 py-[10px] bg-white rounded-md"
-              to="/edit-listing"
+              to="/merchants/edit-listing"
               search={(prev: Record<string, string>) => ({
                 shopId: prev.shopId,
               })}
@@ -32,7 +32,7 @@ export default function MerchantDashboard() {
             </Link>
             <Link
               className="flex items-center gap-1 px-3 py-[10px] bg-white rounded-md"
-              to="/listings"
+              to="/merchants/listings"
               search={(prev: Record<string, string>) => ({
                 shopId: prev.shopId,
               })}
@@ -45,7 +45,7 @@ export default function MerchantDashboard() {
             </Link>
 
             <Link
-              to="/settings"
+              to="/merchants/shop-settings"
               search={(prev: Record<string, string>) => ({
                 shopId: prev.shopId,
               })}
@@ -63,7 +63,7 @@ export default function MerchantDashboard() {
           <h2 className="md:mb-2 px-3">Latest Orders</h2>
           <Transactions displayLastFour />
           <div className="flex mt-3 ml-3">
-            <ButtonLink to="/orders">View all orders</ButtonLink>
+            <ButtonLink to="/merchants/orders">View all orders</ButtonLink>
           </div>
         </section>
       </section>

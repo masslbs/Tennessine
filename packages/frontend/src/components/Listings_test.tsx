@@ -5,9 +5,9 @@ import { expect } from "@std/expect";
 import { formatEther } from "viem";
 
 import { allListings } from "@massmarket/schema/testFixtures";
-import { useKeycard } from "@massmarket/react-hooks";
 
-import Listings from "./Listings.tsx";
+import CustomerViewListings from "./CustomerViewListings.tsx";
+import MerchantViewListings from "./merchants/listings/MerchantViewListings.tsx";
 import {
   createTestRelayClient,
   createTestStateManager,
@@ -29,12 +29,13 @@ Deno.test(
       stateManager.addConnection(relayClient);
       for (const [key, entry] of allListings.entries()) {
         await stateManager.set(["Listings", key], entry);
+        await stateManager.set(["Inventory", key], 100);
       }
     });
 
     await t.step("Render listings for customers", async () => {
       const wrapper = createWrapper(shopId, "/", false);
-      const { unmount } = render(<Listings />, {
+      const { unmount } = render(<CustomerViewListings />, {
         wrapper,
       });
       await waitFor(() => {
@@ -66,7 +67,7 @@ Deno.test(
     await t.step("Render listings for merchants", async () => {
       const wrapper = createWrapper(shopId);
 
-      const { unmount } = render(<MerchantTestComponent />, {
+      const { unmount } = render(<MerchantViewListings />, {
         wrapper,
       });
       await waitFor(() => {
@@ -77,14 +78,11 @@ Deno.test(
         expect(title.textContent).toEqual("test");
         const price = within(listings[0]).getByTestId("product-price");
         expect(price.textContent).toEqual(formatEther(BigInt(230000)));
+        const stockLevel = within(listings[0]).getByTestId("stock-level");
+        expect(stockLevel.textContent).toEqual("100");
       });
 
       unmount();
     });
   }),
 );
-
-const MerchantTestComponent = () => {
-  useKeycard();
-  return <Listings />;
-};

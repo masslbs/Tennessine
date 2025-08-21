@@ -159,7 +159,7 @@ export default function EditProduct() {
         logger.debug("listing published");
 
         navigate({
-          to: "/listings", // TODO: the routes should be constants
+          to: "/merchants/listings", // TODO: the routes should be constants
           search: (prev: Record<string, string>) => ({
             shopId: prev.shopId,
           }),

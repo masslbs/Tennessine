@@ -39,7 +39,10 @@ export default function MyShops() {
               </div>
 
               <p className="mb-3">{shop.description}</p>
-              <ButtonLink to="/merchants" search={{ shopId: toHex(shop.id) }}>
+              <ButtonLink
+                to="/merchant-dashboard"
+                search={{ shopId: toHex(shop.id) }}
+              >
                 Shop Dashboard
               </ButtonLink>
             </div>
