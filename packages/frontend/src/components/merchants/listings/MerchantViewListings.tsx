@@ -4,29 +4,56 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { formatUnits } from "viem";
-
+import { CodecKey, CodecValue } from "@massmarket/utils/codec";
 import { Listing } from "@massmarket/schema";
 import { usePricingCurrency, useStateManager } from "@massmarket/react-hooks";
 import Button from "../../common/Button.tsx";
 import { ListingViewState } from "../../../types.ts";
 import ChevronRight from "../../common/ChevronRight.tsx";
+import { mapToListingClass } from "../../../utils/mapToListingClass.ts";
 
-export default function MerchantViewProducts({
-  products,
-}: {
-  products: Listing[] | null;
-}) {
+export default function MerchantViewProducts() {
   const { pricingCurrency } = usePricingCurrency();
   const { stateManager } = useStateManager();
+  const [products, setProducts] = useState<Listing[]>([]);
   const [stockLevels, setStockLevels] = useState<Map<number, number>>(
     new Map(),
   );
 
+  function allListingsEvent(res: Map<CodecKey, CodecValue>) {
+    const listings = mapToListingClass(res).filter((listing) =>
+      listing.ViewState !== ListingViewState.Deleted
+    );
+    setProducts(listings);
+  }
+
+  useEffect(() => {
+    if (!stateManager) return;
+
+    stateManager.events.on(allListingsEvent, ["Listings"]);
+
+    stateManager.get(["Listings"]).then((res: CodecValue | undefined) => {
+      if (!res) return;
+      if (!(res instanceof Map)) {
+        throw new Error("Listings is not a Map");
+      }
+      allListingsEvent(res);
+    });
+
+    return () => {
+      stateManager.events.off(
+        allListingsEvent,
+        ["Listings"],
+      );
+    };
+  }, [stateManager]);
+
   useEffect(() => {
     if (!stateManager || !products) return;
-    const stockLevels = new Map<number, number>();
 
-    (async () => {
+    const fetchStockLevels = async () => {
+      const stockLevels = new Map<number, number>();
+
       await Promise.all(products.map(async (item: Listing) => {
         const quantity = await stateManager.get([
           "Inventory",
@@ -34,8 +61,11 @@ export default function MerchantViewProducts({
         ]) as number;
         stockLevels.set(item.ID, quantity);
       }));
+
       setStockLevels(stockLevels);
-    })();
+    };
+
+    fetchStockLevels();
   }, [stateManager, products]);
 
   function renderProducts() {
@@ -62,7 +92,7 @@ export default function MerchantViewProducts({
           data-testid="product-container"
           className={`${!visible ? "opacity-50" : ""} flex w-full h-auto mb-4`}
           style={{ color: "black" }}
-          to="/listing-detail"
+          to="/merchants/listing-detail"
           search={(prev: Record<string, string>) => ({
             shopId: prev.shopId,
             itemId: item.ID,
@@ -104,7 +134,7 @@ export default function MerchantViewProducts({
             </div>
             <div className="text-sm flex justify-between border-b border-gray-300 w-full py-1 font-inter">
               <p>Stock Level</p>
-              <p>{quantity}</p>
+              <p data-testid="stock-level">{quantity}</p>
             </div>
             <div className="flex justify-between pt-1">
               <p className="text-sm font-inter">Price</p>
@@ -141,7 +171,7 @@ export default function MerchantViewProducts({
           </h1>
           <Button custom="w-fit max-h-fit">
             <Link
-              to="/edit-listing"
+              to="/merchants/edit-listing"
               search={(prev: Record<string, string>) => ({
                 shopId: prev.shopId,
                 itemId: "new",

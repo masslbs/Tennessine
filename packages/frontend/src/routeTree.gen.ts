@@ -18,22 +18,31 @@ import { Route as rootRoute } from './routes/__root.tsx'
 
 const ShippingLazyImport = createFileRoute('/shipping')()
 const ShareLazyImport = createFileRoute('/share')()
-const SettingsLazyImport = createFileRoute('/settings')()
 const PrivacyPolicyLazyImport = createFileRoute('/privacy-policy')()
 const PayLazyImport = createFileRoute('/pay')()
-const OrdersLazyImport = createFileRoute('/orders')()
-const OrderDetailsLazyImport = createFileRoute('/order-details')()
 const MyShopsLazyImport = createFileRoute('/my-shops')()
-const MerchantsLazyImport = createFileRoute('/merchants')()
 const MerchantDashboardLazyImport = createFileRoute('/merchant-dashboard')()
 const ListingsLazyImport = createFileRoute('/listings')()
 const ListingDetailLazyImport = createFileRoute('/listing-detail')()
-const EditListingLazyImport = createFileRoute('/edit-listing')()
 const CreateShopLazyImport = createFileRoute('/create-shop')()
 const CookieNoticeLazyImport = createFileRoute('/cookie-notice')()
 const ContactLazyImport = createFileRoute('/contact')()
 const CartLazyImport = createFileRoute('/cart')()
 const IndexLazyImport = createFileRoute('/')()
+const MerchantsShopSettingsLazyImport = createFileRoute(
+  '/merchants/shop-settings',
+)()
+const MerchantsOrdersLazyImport = createFileRoute('/merchants/orders')()
+const MerchantsOrderDetailsLazyImport = createFileRoute(
+  '/merchants/order-details',
+)()
+const MerchantsListingsLazyImport = createFileRoute('/merchants/listings')()
+const MerchantsListingDetailLazyImport = createFileRoute(
+  '/merchants/listing-detail',
+)()
+const MerchantsEditListingLazyImport = createFileRoute(
+  '/merchants/edit-listing',
+)()
 
 // Create/Update Routes
 
@@ -49,12 +58,6 @@ const ShareLazyRoute = ShareLazyImport.update({
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/share.lazy.tsx').then((d) => d.Route))
 
-const SettingsLazyRoute = SettingsLazyImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/settings.lazy.tsx').then((d) => d.Route))
-
 const PrivacyPolicyLazyRoute = PrivacyPolicyLazyImport.update({
   id: '/privacy-policy',
   path: '/privacy-policy',
@@ -69,31 +72,11 @@ const PayLazyRoute = PayLazyImport.update({
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/pay.lazy.tsx').then((d) => d.Route))
 
-const OrdersLazyRoute = OrdersLazyImport.update({
-  id: '/orders',
-  path: '/orders',
-  getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/orders.lazy.tsx').then((d) => d.Route))
-
-const OrderDetailsLazyRoute = OrderDetailsLazyImport.update({
-  id: '/order-details',
-  path: '/order-details',
-  getParentRoute: () => rootRoute,
-} as any).lazy(() =>
-  import('./routes/order-details.lazy.tsx').then((d) => d.Route),
-)
-
 const MyShopsLazyRoute = MyShopsLazyImport.update({
   id: '/my-shops',
   path: '/my-shops',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/my-shops.lazy.tsx').then((d) => d.Route))
-
-const MerchantsLazyRoute = MerchantsLazyImport.update({
-  id: '/merchants',
-  path: '/merchants',
-  getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/merchants.lazy.tsx').then((d) => d.Route))
 
 const MerchantDashboardLazyRoute = MerchantDashboardLazyImport.update({
   id: '/merchant-dashboard',
@@ -115,14 +98,6 @@ const ListingDetailLazyRoute = ListingDetailLazyImport.update({
   getParentRoute: () => rootRoute,
 } as any).lazy(() =>
   import('./routes/listing-detail.lazy.tsx').then((d) => d.Route),
-)
-
-const EditListingLazyRoute = EditListingLazyImport.update({
-  id: '/edit-listing',
-  path: '/edit-listing',
-  getParentRoute: () => rootRoute,
-} as any).lazy(() =>
-  import('./routes/edit-listing.lazy.tsx').then((d) => d.Route),
 )
 
 const CreateShopLazyRoute = CreateShopLazyImport.update({
@@ -158,6 +133,56 @@ const IndexLazyRoute = IndexLazyImport.update({
   path: '/',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/index.lazy.tsx').then((d) => d.Route))
+
+const MerchantsShopSettingsLazyRoute = MerchantsShopSettingsLazyImport.update({
+  id: '/merchants/shop-settings',
+  path: '/merchants/shop-settings',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() =>
+  import('./routes/merchants/shop-settings.lazy.tsx').then((d) => d.Route),
+)
+
+const MerchantsOrdersLazyRoute = MerchantsOrdersLazyImport.update({
+  id: '/merchants/orders',
+  path: '/merchants/orders',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() =>
+  import('./routes/merchants/orders.lazy.tsx').then((d) => d.Route),
+)
+
+const MerchantsOrderDetailsLazyRoute = MerchantsOrderDetailsLazyImport.update({
+  id: '/merchants/order-details',
+  path: '/merchants/order-details',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() =>
+  import('./routes/merchants/order-details.lazy.tsx').then((d) => d.Route),
+)
+
+const MerchantsListingsLazyRoute = MerchantsListingsLazyImport.update({
+  id: '/merchants/listings',
+  path: '/merchants/listings',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() =>
+  import('./routes/merchants/listings.lazy.tsx').then((d) => d.Route),
+)
+
+const MerchantsListingDetailLazyRoute = MerchantsListingDetailLazyImport.update(
+  {
+    id: '/merchants/listing-detail',
+    path: '/merchants/listing-detail',
+    getParentRoute: () => rootRoute,
+  } as any,
+).lazy(() =>
+  import('./routes/merchants/listing-detail.lazy.tsx').then((d) => d.Route),
+)
+
+const MerchantsEditListingLazyRoute = MerchantsEditListingLazyImport.update({
+  id: '/merchants/edit-listing',
+  path: '/merchants/edit-listing',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() =>
+  import('./routes/merchants/edit-listing.lazy.tsx').then((d) => d.Route),
+)
 
 // Populate the FileRoutesByPath interface
 
@@ -198,13 +223,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CreateShopLazyImport
       parentRoute: typeof rootRoute
     }
-    '/edit-listing': {
-      id: '/edit-listing'
-      path: '/edit-listing'
-      fullPath: '/edit-listing'
-      preLoaderRoute: typeof EditListingLazyImport
-      parentRoute: typeof rootRoute
-    }
     '/listing-detail': {
       id: '/listing-detail'
       path: '/listing-detail'
@@ -226,32 +244,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MerchantDashboardLazyImport
       parentRoute: typeof rootRoute
     }
-    '/merchants': {
-      id: '/merchants'
-      path: '/merchants'
-      fullPath: '/merchants'
-      preLoaderRoute: typeof MerchantsLazyImport
-      parentRoute: typeof rootRoute
-    }
     '/my-shops': {
       id: '/my-shops'
       path: '/my-shops'
       fullPath: '/my-shops'
       preLoaderRoute: typeof MyShopsLazyImport
-      parentRoute: typeof rootRoute
-    }
-    '/order-details': {
-      id: '/order-details'
-      path: '/order-details'
-      fullPath: '/order-details'
-      preLoaderRoute: typeof OrderDetailsLazyImport
-      parentRoute: typeof rootRoute
-    }
-    '/orders': {
-      id: '/orders'
-      path: '/orders'
-      fullPath: '/orders'
-      preLoaderRoute: typeof OrdersLazyImport
       parentRoute: typeof rootRoute
     }
     '/pay': {
@@ -268,13 +265,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacyPolicyLazyImport
       parentRoute: typeof rootRoute
     }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsLazyImport
-      parentRoute: typeof rootRoute
-    }
     '/share': {
       id: '/share'
       path: '/share'
@@ -289,6 +279,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShippingLazyImport
       parentRoute: typeof rootRoute
     }
+    '/merchants/edit-listing': {
+      id: '/merchants/edit-listing'
+      path: '/merchants/edit-listing'
+      fullPath: '/merchants/edit-listing'
+      preLoaderRoute: typeof MerchantsEditListingLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/merchants/listing-detail': {
+      id: '/merchants/listing-detail'
+      path: '/merchants/listing-detail'
+      fullPath: '/merchants/listing-detail'
+      preLoaderRoute: typeof MerchantsListingDetailLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/merchants/listings': {
+      id: '/merchants/listings'
+      path: '/merchants/listings'
+      fullPath: '/merchants/listings'
+      preLoaderRoute: typeof MerchantsListingsLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/merchants/order-details': {
+      id: '/merchants/order-details'
+      path: '/merchants/order-details'
+      fullPath: '/merchants/order-details'
+      preLoaderRoute: typeof MerchantsOrderDetailsLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/merchants/orders': {
+      id: '/merchants/orders'
+      path: '/merchants/orders'
+      fullPath: '/merchants/orders'
+      preLoaderRoute: typeof MerchantsOrdersLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/merchants/shop-settings': {
+      id: '/merchants/shop-settings'
+      path: '/merchants/shop-settings'
+      fullPath: '/merchants/shop-settings'
+      preLoaderRoute: typeof MerchantsShopSettingsLazyImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -300,19 +332,20 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactLazyRoute
   '/cookie-notice': typeof CookieNoticeLazyRoute
   '/create-shop': typeof CreateShopLazyRoute
-  '/edit-listing': typeof EditListingLazyRoute
   '/listing-detail': typeof ListingDetailLazyRoute
   '/listings': typeof ListingsLazyRoute
   '/merchant-dashboard': typeof MerchantDashboardLazyRoute
-  '/merchants': typeof MerchantsLazyRoute
   '/my-shops': typeof MyShopsLazyRoute
-  '/order-details': typeof OrderDetailsLazyRoute
-  '/orders': typeof OrdersLazyRoute
   '/pay': typeof PayLazyRoute
   '/privacy-policy': typeof PrivacyPolicyLazyRoute
-  '/settings': typeof SettingsLazyRoute
   '/share': typeof ShareLazyRoute
   '/shipping': typeof ShippingLazyRoute
+  '/merchants/edit-listing': typeof MerchantsEditListingLazyRoute
+  '/merchants/listing-detail': typeof MerchantsListingDetailLazyRoute
+  '/merchants/listings': typeof MerchantsListingsLazyRoute
+  '/merchants/order-details': typeof MerchantsOrderDetailsLazyRoute
+  '/merchants/orders': typeof MerchantsOrdersLazyRoute
+  '/merchants/shop-settings': typeof MerchantsShopSettingsLazyRoute
 }
 
 export interface FileRoutesByTo {
@@ -321,19 +354,20 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactLazyRoute
   '/cookie-notice': typeof CookieNoticeLazyRoute
   '/create-shop': typeof CreateShopLazyRoute
-  '/edit-listing': typeof EditListingLazyRoute
   '/listing-detail': typeof ListingDetailLazyRoute
   '/listings': typeof ListingsLazyRoute
   '/merchant-dashboard': typeof MerchantDashboardLazyRoute
-  '/merchants': typeof MerchantsLazyRoute
   '/my-shops': typeof MyShopsLazyRoute
-  '/order-details': typeof OrderDetailsLazyRoute
-  '/orders': typeof OrdersLazyRoute
   '/pay': typeof PayLazyRoute
   '/privacy-policy': typeof PrivacyPolicyLazyRoute
-  '/settings': typeof SettingsLazyRoute
   '/share': typeof ShareLazyRoute
   '/shipping': typeof ShippingLazyRoute
+  '/merchants/edit-listing': typeof MerchantsEditListingLazyRoute
+  '/merchants/listing-detail': typeof MerchantsListingDetailLazyRoute
+  '/merchants/listings': typeof MerchantsListingsLazyRoute
+  '/merchants/order-details': typeof MerchantsOrderDetailsLazyRoute
+  '/merchants/orders': typeof MerchantsOrdersLazyRoute
+  '/merchants/shop-settings': typeof MerchantsShopSettingsLazyRoute
 }
 
 export interface FileRoutesById {
@@ -343,19 +377,20 @@ export interface FileRoutesById {
   '/contact': typeof ContactLazyRoute
   '/cookie-notice': typeof CookieNoticeLazyRoute
   '/create-shop': typeof CreateShopLazyRoute
-  '/edit-listing': typeof EditListingLazyRoute
   '/listing-detail': typeof ListingDetailLazyRoute
   '/listings': typeof ListingsLazyRoute
   '/merchant-dashboard': typeof MerchantDashboardLazyRoute
-  '/merchants': typeof MerchantsLazyRoute
   '/my-shops': typeof MyShopsLazyRoute
-  '/order-details': typeof OrderDetailsLazyRoute
-  '/orders': typeof OrdersLazyRoute
   '/pay': typeof PayLazyRoute
   '/privacy-policy': typeof PrivacyPolicyLazyRoute
-  '/settings': typeof SettingsLazyRoute
   '/share': typeof ShareLazyRoute
   '/shipping': typeof ShippingLazyRoute
+  '/merchants/edit-listing': typeof MerchantsEditListingLazyRoute
+  '/merchants/listing-detail': typeof MerchantsListingDetailLazyRoute
+  '/merchants/listings': typeof MerchantsListingsLazyRoute
+  '/merchants/order-details': typeof MerchantsOrderDetailsLazyRoute
+  '/merchants/orders': typeof MerchantsOrdersLazyRoute
+  '/merchants/shop-settings': typeof MerchantsShopSettingsLazyRoute
 }
 
 export interface FileRouteTypes {
@@ -366,19 +401,20 @@ export interface FileRouteTypes {
     | '/contact'
     | '/cookie-notice'
     | '/create-shop'
-    | '/edit-listing'
     | '/listing-detail'
     | '/listings'
     | '/merchant-dashboard'
-    | '/merchants'
     | '/my-shops'
-    | '/order-details'
-    | '/orders'
     | '/pay'
     | '/privacy-policy'
-    | '/settings'
     | '/share'
     | '/shipping'
+    | '/merchants/edit-listing'
+    | '/merchants/listing-detail'
+    | '/merchants/listings'
+    | '/merchants/order-details'
+    | '/merchants/orders'
+    | '/merchants/shop-settings'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -386,19 +422,20 @@ export interface FileRouteTypes {
     | '/contact'
     | '/cookie-notice'
     | '/create-shop'
-    | '/edit-listing'
     | '/listing-detail'
     | '/listings'
     | '/merchant-dashboard'
-    | '/merchants'
     | '/my-shops'
-    | '/order-details'
-    | '/orders'
     | '/pay'
     | '/privacy-policy'
-    | '/settings'
     | '/share'
     | '/shipping'
+    | '/merchants/edit-listing'
+    | '/merchants/listing-detail'
+    | '/merchants/listings'
+    | '/merchants/order-details'
+    | '/merchants/orders'
+    | '/merchants/shop-settings'
   id:
     | '__root__'
     | '/'
@@ -406,19 +443,20 @@ export interface FileRouteTypes {
     | '/contact'
     | '/cookie-notice'
     | '/create-shop'
-    | '/edit-listing'
     | '/listing-detail'
     | '/listings'
     | '/merchant-dashboard'
-    | '/merchants'
     | '/my-shops'
-    | '/order-details'
-    | '/orders'
     | '/pay'
     | '/privacy-policy'
-    | '/settings'
     | '/share'
     | '/shipping'
+    | '/merchants/edit-listing'
+    | '/merchants/listing-detail'
+    | '/merchants/listings'
+    | '/merchants/order-details'
+    | '/merchants/orders'
+    | '/merchants/shop-settings'
   fileRoutesById: FileRoutesById
 }
 
@@ -428,19 +466,20 @@ export interface RootRouteChildren {
   ContactLazyRoute: typeof ContactLazyRoute
   CookieNoticeLazyRoute: typeof CookieNoticeLazyRoute
   CreateShopLazyRoute: typeof CreateShopLazyRoute
-  EditListingLazyRoute: typeof EditListingLazyRoute
   ListingDetailLazyRoute: typeof ListingDetailLazyRoute
   ListingsLazyRoute: typeof ListingsLazyRoute
   MerchantDashboardLazyRoute: typeof MerchantDashboardLazyRoute
-  MerchantsLazyRoute: typeof MerchantsLazyRoute
   MyShopsLazyRoute: typeof MyShopsLazyRoute
-  OrderDetailsLazyRoute: typeof OrderDetailsLazyRoute
-  OrdersLazyRoute: typeof OrdersLazyRoute
   PayLazyRoute: typeof PayLazyRoute
   PrivacyPolicyLazyRoute: typeof PrivacyPolicyLazyRoute
-  SettingsLazyRoute: typeof SettingsLazyRoute
   ShareLazyRoute: typeof ShareLazyRoute
   ShippingLazyRoute: typeof ShippingLazyRoute
+  MerchantsEditListingLazyRoute: typeof MerchantsEditListingLazyRoute
+  MerchantsListingDetailLazyRoute: typeof MerchantsListingDetailLazyRoute
+  MerchantsListingsLazyRoute: typeof MerchantsListingsLazyRoute
+  MerchantsOrderDetailsLazyRoute: typeof MerchantsOrderDetailsLazyRoute
+  MerchantsOrdersLazyRoute: typeof MerchantsOrdersLazyRoute
+  MerchantsShopSettingsLazyRoute: typeof MerchantsShopSettingsLazyRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -449,19 +488,20 @@ const rootRouteChildren: RootRouteChildren = {
   ContactLazyRoute: ContactLazyRoute,
   CookieNoticeLazyRoute: CookieNoticeLazyRoute,
   CreateShopLazyRoute: CreateShopLazyRoute,
-  EditListingLazyRoute: EditListingLazyRoute,
   ListingDetailLazyRoute: ListingDetailLazyRoute,
   ListingsLazyRoute: ListingsLazyRoute,
   MerchantDashboardLazyRoute: MerchantDashboardLazyRoute,
-  MerchantsLazyRoute: MerchantsLazyRoute,
   MyShopsLazyRoute: MyShopsLazyRoute,
-  OrderDetailsLazyRoute: OrderDetailsLazyRoute,
-  OrdersLazyRoute: OrdersLazyRoute,
   PayLazyRoute: PayLazyRoute,
   PrivacyPolicyLazyRoute: PrivacyPolicyLazyRoute,
-  SettingsLazyRoute: SettingsLazyRoute,
   ShareLazyRoute: ShareLazyRoute,
   ShippingLazyRoute: ShippingLazyRoute,
+  MerchantsEditListingLazyRoute: MerchantsEditListingLazyRoute,
+  MerchantsListingDetailLazyRoute: MerchantsListingDetailLazyRoute,
+  MerchantsListingsLazyRoute: MerchantsListingsLazyRoute,
+  MerchantsOrderDetailsLazyRoute: MerchantsOrderDetailsLazyRoute,
+  MerchantsOrdersLazyRoute: MerchantsOrdersLazyRoute,
+  MerchantsShopSettingsLazyRoute: MerchantsShopSettingsLazyRoute,
 }
 
 export const routeTree = rootRoute
@@ -479,19 +519,20 @@ export const routeTree = rootRoute
         "/contact",
         "/cookie-notice",
         "/create-shop",
-        "/edit-listing",
         "/listing-detail",
         "/listings",
         "/merchant-dashboard",
-        "/merchants",
         "/my-shops",
-        "/order-details",
-        "/orders",
         "/pay",
         "/privacy-policy",
-        "/settings",
         "/share",
-        "/shipping"
+        "/shipping",
+        "/merchants/edit-listing",
+        "/merchants/listing-detail",
+        "/merchants/listings",
+        "/merchants/order-details",
+        "/merchants/orders",
+        "/merchants/shop-settings"
       ]
     },
     "/": {
@@ -509,9 +550,6 @@ export const routeTree = rootRoute
     "/create-shop": {
       "filePath": "create-shop.lazy.tsx"
     },
-    "/edit-listing": {
-      "filePath": "edit-listing.lazy.tsx"
-    },
     "/listing-detail": {
       "filePath": "listing-detail.lazy.tsx"
     },
@@ -521,17 +559,8 @@ export const routeTree = rootRoute
     "/merchant-dashboard": {
       "filePath": "merchant-dashboard.lazy.tsx"
     },
-    "/merchants": {
-      "filePath": "merchants.lazy.tsx"
-    },
     "/my-shops": {
       "filePath": "my-shops.lazy.tsx"
-    },
-    "/order-details": {
-      "filePath": "order-details.lazy.tsx"
-    },
-    "/orders": {
-      "filePath": "orders.lazy.tsx"
     },
     "/pay": {
       "filePath": "pay.lazy.tsx"
@@ -539,14 +568,29 @@ export const routeTree = rootRoute
     "/privacy-policy": {
       "filePath": "privacy-policy.lazy.tsx"
     },
-    "/settings": {
-      "filePath": "settings.lazy.tsx"
-    },
     "/share": {
       "filePath": "share.lazy.tsx"
     },
     "/shipping": {
       "filePath": "shipping.lazy.tsx"
+    },
+    "/merchants/edit-listing": {
+      "filePath": "merchants/edit-listing.lazy.tsx"
+    },
+    "/merchants/listing-detail": {
+      "filePath": "merchants/listing-detail.lazy.tsx"
+    },
+    "/merchants/listings": {
+      "filePath": "merchants/listings.lazy.tsx"
+    },
+    "/merchants/order-details": {
+      "filePath": "merchants/order-details.lazy.tsx"
+    },
+    "/merchants/orders": {
+      "filePath": "merchants/orders.lazy.tsx"
+    },
+    "/merchants/shop-settings": {
+      "filePath": "merchants/shop-settings.lazy.tsx"
     }
   }
 }

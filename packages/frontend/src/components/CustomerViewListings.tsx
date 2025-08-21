@@ -1,21 +1,49 @@
 // SPDX-FileCopyrightText: 2024 Mass Labs
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
-
+import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { formatUnits } from "viem";
 
 import { Listing } from "@massmarket/schema";
-import { usePricingCurrency } from "@massmarket/react-hooks";
+import { CodecKey, CodecValue } from "@massmarket/utils/codec";
+import { usePricingCurrency, useStateManager } from "@massmarket/react-hooks";
 
 import { ListingViewState } from "../types.ts";
+import { mapToListingClass } from "../utils/mapToListingClass.ts";
 
-export default function CustomerViewProducts({
-  products,
-}: {
-  products: Listing[] | null;
-}) {
+export default function CustomerViewProducts() {
   const { pricingCurrency } = usePricingCurrency();
+  const { stateManager } = useStateManager();
+  const [products, setProducts] = useState<Listing[]>([]);
+
+  function allListingsEvent(res: Map<CodecKey, CodecValue>) {
+    const listings = mapToListingClass(res).filter((listing) =>
+      listing.ViewState !== ListingViewState.Deleted
+    );
+    setProducts(listings);
+  }
+
+  useEffect(() => {
+    if (!stateManager) return;
+
+    stateManager.events.on(allListingsEvent, ["Listings"]);
+
+    stateManager.get(["Listings"]).then((res: CodecValue | undefined) => {
+      if (!res) return;
+      if (!(res instanceof Map)) {
+        throw new Error("Listings is not a Map");
+      }
+      allListingsEvent(res);
+    });
+
+    return () => {
+      stateManager.events.off(
+        allListingsEvent,
+        ["Listings"],
+      );
+    };
+  }, [stateManager]);
 
   function renderProducts() {
     if (!products?.length || !pricingCurrency) {
