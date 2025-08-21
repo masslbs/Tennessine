@@ -125,7 +125,7 @@ export default function Transactions(
         <Link
           data-testid="transaction"
           key={ID}
-          to="/order-details"
+          to="/merchants/order-details"
           search={(prev: Record<string, string>) => ({
             shopId: prev.shopId,
             orderId: ID,

@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { ChangeEvent, useEffect, useState } from "react";
-import { Link, useSearch } from "@tanstack/react-router";
+import { Link, useLocation, useSearch } from "@tanstack/react-router";
 import { formatUnits } from "viem";
 import { getLogger } from "@logtape/logtape";
 
@@ -39,7 +39,8 @@ export default function ListingDetail() {
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [successMsg, setMsg] = useState<string | null>(null);
   const [displayedImg, setDisplayedImg] = useState<number>(0);
-
+  const location = useLocation();
+  const isMerchantRoute = location.pathname.includes("/merchant");
   // set up the logger with information that will be included in error traces when crashes are reported.
   // note: take care with the type of information that is logged, only include traces that are helpful for debugging at
   // this early stage.
@@ -185,11 +186,11 @@ export default function ListingDetail() {
             {Metadata.Title}
           </h1>
           <div
-            className={`mt-2 ${keycard?.role === "merchant" ? "" : "hidden"}`}
+            className={`mt-2 ${isMerchantRoute ? "" : "hidden"}`}
           >
             <Button>
               <Link
-                to="/edit-listing"
+                to="/merchants/edit-listing"
                 search={(prev: Record<string, string>) => ({
                   shopId: prev.shopId,
                   itemId: ID,

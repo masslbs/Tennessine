@@ -1,7 +1,7 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
-import ShopSettings from "../components/merchants/ShopSettings.tsx";
+import ShopSettings from "../../components/merchants/ShopSettings.tsx";
 
-export const Route = createLazyFileRoute("/settings")({
+export const Route = createLazyFileRoute("/merchants/shop-settings")({
   component: RouteComponent,
 });
 
