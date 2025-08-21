@@ -1,10 +1,10 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
-import Listings from "../components/Listings.tsx";
+import ConnectMerchant from "../components/merchants/ConnectMerchant.tsx";
 
 export const Route = createLazyFileRoute("/")({
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  return <Listings />;
+  return <ConnectMerchant />;
 }

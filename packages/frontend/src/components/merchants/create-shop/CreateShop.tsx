@@ -4,14 +4,7 @@
 
 import { useEffect, useState } from "react";
 import { getLogger } from "@logtape/logtape";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-import {
-  useAccount,
-  useChainId,
-  useConfig,
-  useSwitchChain,
-  useWalletClient,
-} from "wagmi";
+import { useChainId, useConfig, useSwitchChain, useWalletClient } from "wagmi";
 import { toBytes } from "viem";
 
 import { Manifest } from "@massmarket/schema";
@@ -22,10 +15,7 @@ import MintShop from "./MintShop.tsx";
 import UpdateManifest from "./UpdateManifest.tsx";
 import UploadMetadata from "./UploadMetadata.tsx";
 import Confirmation from "./CreateShopConfirmation.tsx";
-import ErrorMessage from "../../common/ErrorMessage.tsx";
-import Button from "../../common/Button.tsx";
-import BackButton from "../../common/BackButton.tsx";
-import ConnectWalletButton from "../../common/ConnectWalletButton.tsx";
+
 import { CreateShopStep, ShopForm } from "../../../types.ts";
 import { isValidAddress } from "../../../utils/mod.ts";
 
@@ -34,7 +24,6 @@ const logger = getLogger(["mass-market", "frontend", "CreateShop"]);
 export default function () {
   const { data: wallet } = useWalletClient();
   const [shopManifest, setShopManifest] = useState<Manifest>(new Manifest());
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   // Form input fields that are not a part of the manifest.
   const [shopMetadata, setShopMetadata] = useState<ShopForm>(
@@ -48,7 +37,6 @@ export default function () {
   const [step, setStep] = useState<
     CreateShopStep
   >(CreateShopStep.ManifestForm);
-  const { status } = useAccount();
   const { shopPublicClient } = useShopPublicClient();
   // Chain that user is connected to
   const chainId = useChainId();
@@ -112,48 +100,21 @@ export default function () {
         <ManifestForm
           shopManifest={shopManifest}
           setShopManifest={setShopManifest}
-          setStep={setStep}
+          nextStep={() => {
+            checkRequiredFields();
+            setStep(CreateShopStep.MintShop);
+          }}
           shopMetadata={shopMetadata}
           setShopMetadata={setShopMetadata}
           validationError={validationError}
           setValidationError={setValidationError}
         />
       );
-    } else if (step === CreateShopStep.ConnectWallet) {
-      return (
-        <section
-          className="w-full md:w-[560px] px-5"
-          data-testid="connect-wallet-screen"
-        >
-          <BackButton onClick={() => setStep(CreateShopStep.ManifestForm)} />
-          <ErrorMessage
-            errorMessage={errorMsg}
-            onClose={() => {
-              setErrorMsg(null);
-            }}
-          />
-          <h1 className="mt-2">Connect your wallet</h1>
-          <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
-            {status === "connected"
-              ? (
-                <div className="flex flex-col gap-4">
-                  <ConnectButton chainStatus="name" />
-                  <Button
-                    onClick={checkRequiredFields}
-                    disabled={!wallet}
-                  >
-                    <h6>Mint Shop</h6>
-                  </Button>
-                </div>
-              )
-              : <ConnectWalletButton />}
-          </section>
-        </section>
-      );
     } else if (step === CreateShopStep.MintShop) {
       return (
         <MintShop
           setStep={setStep}
+          shopMetadata={shopMetadata}
         />
       );
     } else if (step === CreateShopStep.UpdateManifest) {

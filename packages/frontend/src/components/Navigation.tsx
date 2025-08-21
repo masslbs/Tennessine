@@ -17,6 +17,7 @@ import {
 
 import Cart from "./cart/Cart.tsx";
 import ChevronRight from "./common/ChevronRight.tsx";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 const merchantMenu = [
   {
@@ -33,6 +34,7 @@ const merchantMenu = [
     href: `/share`,
   },
   { title: "Disconnect", img: "menu-disconnect.svg" },
+  { title: "Switch shop", img: "switch-icon.svg", href: "/my-shops" },
 ];
 
 const customerMenu = [
@@ -96,7 +98,7 @@ function Navigation() {
     localStorage.clear();
     disconnect();
     navigate({
-      to: "/merchant-connect",
+      to: "/",
     });
   }
 
@@ -228,6 +230,9 @@ function Navigation() {
 
             <h2 className="flex items-center">{shopDetails?.name}</h2>
           </div>
+          <div className="hidden md:flex mr-25 h-[56px] items-center">
+            <ConnectButton chainStatus="name" />
+          </div>
           <section className="absolute right-0 flex">
             <div
               id="cart"
@@ -315,8 +320,15 @@ function Navigation() {
               <div
                 className={`${menuOpen ? "z-10 md:min-w-70" : "hidden"}`}
               >
-                <div className="bg-background-gray w-screen flex flex-col rounded-b-lg py-4 absolute right-0 md:w-full md:static">
+                <div
+                  id="menu-items-container"
+                  className="bg-background-gray w-screen flex flex-col rounded-b-lg pt-4 md:pb-4 absolute right-0 md:w-full md:static"
+                >
                   {renderMenuItems()}
+                  <div className="md:hidden flex flex-col gap-3 mt-4 px-6 py-4 bg-white rounded-b-lg">
+                    <h3>Your Wallet</h3>
+                    <ConnectButton chainStatus="name" />
+                  </div>
                 </div>
               </div>
             </div>

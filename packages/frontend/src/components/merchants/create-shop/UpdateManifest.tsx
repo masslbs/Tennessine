@@ -9,10 +9,10 @@ import {
   ShippingRegionsMap,
 } from "@massmarket/schema";
 
-import LoadingSpinner from "../../common/LoadingSpinner.tsx";
 import ErrorMessage from "../../common/ErrorMessage.tsx";
 import { CreateShopStep, ShopForm } from "../../../types.ts";
 import { getErrLogger } from "../../../utils/mod.ts";
+import ProgressScreen from "../../common/ProgressScreen.tsx";
 
 const logger = getLogger(["mass-market", "frontend", "createManifest"]);
 
@@ -94,12 +94,16 @@ export default function (
           setErrorMsg(null);
         }}
       />
-      <p data-testid="shop-registration-status">
-        {storeRegistrationStatus}
-      </p>
 
       <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg">
-        <LoadingSpinner />
+        <p data-testid="shop-registration-status">
+          {storeRegistrationStatus}
+        </p>
+        <ProgressScreen
+          step={3}
+          text={storeRegistrationStatus}
+          avatar={shopMetadata.avatar}
+        />
       </section>
     </section>
   );

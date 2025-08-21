@@ -23,6 +23,8 @@ const PrivacyPolicyLazyImport = createFileRoute('/privacy-policy')()
 const PayLazyImport = createFileRoute('/pay')()
 const OrdersLazyImport = createFileRoute('/orders')()
 const OrderDetailsLazyImport = createFileRoute('/order-details')()
+const MyShopsLazyImport = createFileRoute('/my-shops')()
+const MerchantsLazyImport = createFileRoute('/merchants')()
 const MerchantDashboardLazyImport = createFileRoute('/merchant-dashboard')()
 const ListingsLazyImport = createFileRoute('/listings')()
 const ListingDetailLazyImport = createFileRoute('/listing-detail')()
@@ -80,6 +82,18 @@ const OrderDetailsLazyRoute = OrderDetailsLazyImport.update({
 } as any).lazy(() =>
   import('./routes/order-details.lazy.tsx').then((d) => d.Route),
 )
+
+const MyShopsLazyRoute = MyShopsLazyImport.update({
+  id: '/my-shops',
+  path: '/my-shops',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/my-shops.lazy.tsx').then((d) => d.Route))
+
+const MerchantsLazyRoute = MerchantsLazyImport.update({
+  id: '/merchants',
+  path: '/merchants',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/merchants.lazy.tsx').then((d) => d.Route))
 
 const MerchantDashboardLazyRoute = MerchantDashboardLazyImport.update({
   id: '/merchant-dashboard',
@@ -212,6 +226,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MerchantDashboardLazyImport
       parentRoute: typeof rootRoute
     }
+    '/merchants': {
+      id: '/merchants'
+      path: '/merchants'
+      fullPath: '/merchants'
+      preLoaderRoute: typeof MerchantsLazyImport
+      parentRoute: typeof rootRoute
+    }
+    '/my-shops': {
+      id: '/my-shops'
+      path: '/my-shops'
+      fullPath: '/my-shops'
+      preLoaderRoute: typeof MyShopsLazyImport
+      parentRoute: typeof rootRoute
+    }
     '/order-details': {
       id: '/order-details'
       path: '/order-details'
@@ -276,6 +304,8 @@ export interface FileRoutesByFullPath {
   '/listing-detail': typeof ListingDetailLazyRoute
   '/listings': typeof ListingsLazyRoute
   '/merchant-dashboard': typeof MerchantDashboardLazyRoute
+  '/merchants': typeof MerchantsLazyRoute
+  '/my-shops': typeof MyShopsLazyRoute
   '/order-details': typeof OrderDetailsLazyRoute
   '/orders': typeof OrdersLazyRoute
   '/pay': typeof PayLazyRoute
@@ -295,6 +325,8 @@ export interface FileRoutesByTo {
   '/listing-detail': typeof ListingDetailLazyRoute
   '/listings': typeof ListingsLazyRoute
   '/merchant-dashboard': typeof MerchantDashboardLazyRoute
+  '/merchants': typeof MerchantsLazyRoute
+  '/my-shops': typeof MyShopsLazyRoute
   '/order-details': typeof OrderDetailsLazyRoute
   '/orders': typeof OrdersLazyRoute
   '/pay': typeof PayLazyRoute
@@ -315,6 +347,8 @@ export interface FileRoutesById {
   '/listing-detail': typeof ListingDetailLazyRoute
   '/listings': typeof ListingsLazyRoute
   '/merchant-dashboard': typeof MerchantDashboardLazyRoute
+  '/merchants': typeof MerchantsLazyRoute
+  '/my-shops': typeof MyShopsLazyRoute
   '/order-details': typeof OrderDetailsLazyRoute
   '/orders': typeof OrdersLazyRoute
   '/pay': typeof PayLazyRoute
@@ -336,6 +370,8 @@ export interface FileRouteTypes {
     | '/listing-detail'
     | '/listings'
     | '/merchant-dashboard'
+    | '/merchants'
+    | '/my-shops'
     | '/order-details'
     | '/orders'
     | '/pay'
@@ -354,6 +390,8 @@ export interface FileRouteTypes {
     | '/listing-detail'
     | '/listings'
     | '/merchant-dashboard'
+    | '/merchants'
+    | '/my-shops'
     | '/order-details'
     | '/orders'
     | '/pay'
@@ -372,6 +410,8 @@ export interface FileRouteTypes {
     | '/listing-detail'
     | '/listings'
     | '/merchant-dashboard'
+    | '/merchants'
+    | '/my-shops'
     | '/order-details'
     | '/orders'
     | '/pay'
@@ -392,6 +432,8 @@ export interface RootRouteChildren {
   ListingDetailLazyRoute: typeof ListingDetailLazyRoute
   ListingsLazyRoute: typeof ListingsLazyRoute
   MerchantDashboardLazyRoute: typeof MerchantDashboardLazyRoute
+  MerchantsLazyRoute: typeof MerchantsLazyRoute
+  MyShopsLazyRoute: typeof MyShopsLazyRoute
   OrderDetailsLazyRoute: typeof OrderDetailsLazyRoute
   OrdersLazyRoute: typeof OrdersLazyRoute
   PayLazyRoute: typeof PayLazyRoute
@@ -411,6 +453,8 @@ const rootRouteChildren: RootRouteChildren = {
   ListingDetailLazyRoute: ListingDetailLazyRoute,
   ListingsLazyRoute: ListingsLazyRoute,
   MerchantDashboardLazyRoute: MerchantDashboardLazyRoute,
+  MerchantsLazyRoute: MerchantsLazyRoute,
+  MyShopsLazyRoute: MyShopsLazyRoute,
   OrderDetailsLazyRoute: OrderDetailsLazyRoute,
   OrdersLazyRoute: OrdersLazyRoute,
   PayLazyRoute: PayLazyRoute,
@@ -439,6 +483,8 @@ export const routeTree = rootRoute
         "/listing-detail",
         "/listings",
         "/merchant-dashboard",
+        "/merchants",
+        "/my-shops",
         "/order-details",
         "/orders",
         "/pay",
@@ -474,6 +520,12 @@ export const routeTree = rootRoute
     },
     "/merchant-dashboard": {
       "filePath": "merchant-dashboard.lazy.tsx"
+    },
+    "/merchants": {
+      "filePath": "merchants.lazy.tsx"
+    },
+    "/my-shops": {
+      "filePath": "my-shops.lazy.tsx"
     },
     "/order-details": {
       "filePath": "order-details.lazy.tsx"
