@@ -5,9 +5,9 @@ import { expect } from "@std/expect";
 import { formatEther } from "viem";
 
 import { allListings } from "@massmarket/schema/testFixtures";
-import { useKeycard } from "@massmarket/react-hooks";
 
-import Listings from "./Listings.tsx";
+import CustomerViewListings from "./CustomerViewListings.tsx";
+import MerchantViewListings from "./merchants/listings/MerchantViewListings.tsx";
 import {
   createTestRelayClient,
   createTestStateManager,
@@ -34,7 +34,7 @@ Deno.test(
 
     await t.step("Render listings for customers", async () => {
       const wrapper = createWrapper(shopId, "/", false);
-      const { unmount } = render(<Listings />, {
+      const { unmount } = render(<CustomerViewListings />, {
         wrapper,
       });
       await waitFor(() => {
@@ -66,7 +66,7 @@ Deno.test(
     await t.step("Render listings for merchants", async () => {
       const wrapper = createWrapper(shopId);
 
-      const { unmount } = render(<MerchantTestComponent />, {
+      const { unmount } = render(<MerchantViewListings />, {
         wrapper,
       });
       await waitFor(() => {
@@ -83,8 +83,3 @@ Deno.test(
     });
   }),
 );
-
-const MerchantTestComponent = () => {
-  useKeycard();
-  return <Listings />;
-};

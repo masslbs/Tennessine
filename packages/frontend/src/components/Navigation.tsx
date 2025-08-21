@@ -25,8 +25,12 @@ const merchantMenu = [
     img: "menu-dashboard.svg",
     href: "/merchant-dashboard",
   },
-  { title: "Manage Products", img: "menu-products.svg", href: "/listings" },
-  { title: "Manage Orders", img: "menu-order.svg", href: "/orders" },
+  {
+    title: "Manage Products",
+    img: "menu-products.svg",
+    href: "/merchants/listings",
+  },
+  { title: "Manage Orders", img: "menu-order.svg", href: "/merchants/orders" },
   { title: "Shop Settings", img: "menu-settings.svg", href: "/settings" },
   {
     title: "Share",

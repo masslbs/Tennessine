@@ -4,23 +4,49 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { formatUnits } from "viem";
-
+import { CodecKey, CodecValue } from "@massmarket/utils/codec";
 import { Listing } from "@massmarket/schema";
 import { usePricingCurrency, useStateManager } from "@massmarket/react-hooks";
 import Button from "../../common/Button.tsx";
 import { ListingViewState } from "../../../types.ts";
 import ChevronRight from "../../common/ChevronRight.tsx";
+import { mapToListingClass } from "../../../utils/mapToListingClass.ts";
 
-export default function MerchantViewProducts({
-  products,
-}: {
-  products: Listing[] | null;
-}) {
+export default function MerchantViewProducts() {
   const { pricingCurrency } = usePricingCurrency();
   const { stateManager } = useStateManager();
+  const [products, setProducts] = useState<Listing[]>([]);
   const [stockLevels, setStockLevels] = useState<Map<number, number>>(
     new Map(),
   );
+
+  function allListingsEvent(res: Map<CodecKey, CodecValue>) {
+    const listings = mapToListingClass(res).filter((listing) =>
+      listing.ViewState !== ListingViewState.Deleted
+    );
+    setProducts(listings);
+  }
+
+  useEffect(() => {
+    if (!stateManager) return;
+
+    stateManager.events.on(allListingsEvent, ["Listings"]);
+
+    stateManager.get(["Listings"]).then((res: CodecValue | undefined) => {
+      if (!res) return;
+      if (!(res instanceof Map)) {
+        throw new Error("Listings is not a Map");
+      }
+      allListingsEvent(res);
+    });
+
+    return () => {
+      stateManager.events.off(
+        allListingsEvent,
+        ["Listings"],
+      );
+    };
+  }, [stateManager]);
 
   useEffect(() => {
     if (!stateManager || !products) return;
@@ -62,7 +88,7 @@ export default function MerchantViewProducts({
           data-testid="product-container"
           className={`${!visible ? "opacity-50" : ""} flex w-full h-auto mb-4`}
           style={{ color: "black" }}
-          to="/listing-detail"
+          to="/merchants/listing-detail"
           search={(prev: Record<string, string>) => ({
             shopId: prev.shopId,
             itemId: item.ID,
@@ -141,7 +167,7 @@ export default function MerchantViewProducts({
           </h1>
           <Button custom="w-fit max-h-fit">
             <Link
-              to="/edit-listing"
+              to="/merchants/edit-listing"
               search={(prev: Record<string, string>) => ({
                 shopId: prev.shopId,
                 itemId: "new",
