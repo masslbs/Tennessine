@@ -1,8 +1,9 @@
-import { useKeycard } from "@massmarket/react-hooks";
+import { useIsOwner, useKeycard } from "@massmarket/react-hooks";
 
 export default function KeycardEnrollModal() {
+  const { isOwner } = useIsOwner();
   const { isLoading } = useKeycard();
-  if (!isLoading) return null;
+  if (!isLoading || !isOwner) return null;
 
   return (
     <section>
