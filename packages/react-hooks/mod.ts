@@ -11,3 +11,4 @@ export * from "./useActiveOrder.ts";
 export * from "./useShopDetails.ts";
 export * from "./useShopPublicClient.ts";
 export * from "./useMyShops.ts";
+export * from "./useIsOwner.ts";

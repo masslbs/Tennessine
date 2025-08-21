@@ -1,4 +1,4 @@
-import { useAccount, useReadContract, useWalletClient } from "wagmi";
+import { useAccount, useWalletClient } from "wagmi";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { getLogger } from "@logtape/logtape";
 import {
@@ -9,12 +9,13 @@ import {
 
 import { RelayClient } from "@massmarket/client";
 import { getBurnerWallet, getWindowLocation } from "@massmarket/utils";
-import { abi } from "@massmarket/contracts";
 
 import { useShopId } from "./useShopId.ts";
 import { useRelayEndpoint } from "./useRelayEndpoint.ts";
-import type { HookParams } from "./types.ts";
 import { useShopPublicClient } from "./useShopPublicClient.ts";
+import { useIsOwner } from "./useIsOwner.ts";
+
+import type { HookParams } from "./types.ts";
 import type { Hex } from "viem";
 
 const logger = getLogger(["mass-market", "frontend", "useKeycard"]);
@@ -44,18 +45,12 @@ export function useKeycard(
   const { shopId } = useShopId(params);
   const { relayEndpoint } = useRelayEndpoint(params);
   const { shopPublicClient } = useShopPublicClient(params);
+  const { isOwner, isPending } = useIsOwner();
 
-  const result = useReadContract({
-    address: abi.shopRegAddress,
-    abi: abi.shopRegAbi,
-    functionName: "ownerOf",
-    args: [shopId!],
-  });
   // There is an edge case with using isOwner as query key:
   // If the user is initially enrolled as a guest, and they connect to a merchant account during checkout to pay, this query will rerun, and the user will lose their order.
-  const isOwner = result.data === connectedAddress;
   const enabled = !!shopId && !!relayEndpoint && !!shopPublicClient &&
-    !!result.data;
+    !isPending;
   const qResult = useQuery({
     // queryFn will not execute till these variables are defined.
     queryKey: [
