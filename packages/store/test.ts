@@ -16,15 +16,25 @@ export default function Test(
     const value = generateRandomUint8Array(64);
 
     // Store the value
-    await store.set(key, value);
+    const storeData = { key, value, date: new Date() };
+    await store.set(storeData);
 
     // Retrieve and verify the value
     const retrieved = await store.get(key);
     assert(retrieved !== undefined, "Retrieved value should not be undefined");
     assertEquals(
-      retrieved,
+      retrieved.value,
       value,
       "Retrieved value should match stored value",
+    );
+    assertEquals(
+      retrieved.key,
+      key,
+      "Retrieved key should match stored key",
+    );
+    assert(
+      retrieved.date instanceof Date,
+      "Retrieved date should be a Date object",
     );
   });
 
@@ -36,7 +46,7 @@ export default function Test(
     const result = await store.get(nonExistentKey);
 
     assertEquals(
-      result,
+      result.value,
       undefined,
       "Getting non-existent key should return undefined",
     );
@@ -50,16 +60,18 @@ export default function Test(
     const value2 = generateRandomUint8Array(64);
 
     // Store initial value
-    await store.set(key, value1);
+    const storeData1 = { key, value: value1, date: new Date() };
+    await store.set(storeData1);
 
     // Overwrite with new value
-    await store.set(key, value2);
+    const storeData2 = { key, value: value2, date: new Date() };
+    await store.set(storeData2);
 
     // Retrieve and verify the new value
     const retrieved = await store.get(key);
     assert(retrieved !== undefined, "Retrieved value should not be undefined");
     assertEquals(
-      retrieved,
+      retrieved.value,
       value2,
       "Retrieved value should match the overwritten value",
     );
@@ -76,7 +88,12 @@ export default function Test(
 
     // Store all pairs
     for (const pair of pairs) {
-      await store.set(pair.key, pair.value);
+      const storeData = {
+        key: pair.key,
+        value: pair.value,
+        date: new Date(),
+      };
+      await store.set(storeData);
     }
 
     // Verify all pairs
@@ -87,7 +104,7 @@ export default function Test(
         "Retrieved value should not be undefined",
       );
       assertEquals(
-        retrieved,
+        retrieved.value,
         pair.value,
         "Retrieved value should match stored value",
       );
@@ -104,8 +121,18 @@ export default function Test(
     const value1 = generateRandomUint8Array(64);
     const value2 = generateRandomUint8Array(64);
 
-    await store.set(key1, value1);
-    await store.set(key2, value2);
+    const storeData1 = {
+      key: key1,
+      value: value1,
+      date: new Date(),
+    };
+    const storeData2 = {
+      key: key2,
+      value: value2,
+      date: new Date(),
+    };
+    await store.set(storeData1);
+    await store.set(storeData2);
 
     const retrieved1 = await store.get(key1);
     const retrieved2 = await store.get(key2);
@@ -118,8 +145,16 @@ export default function Test(
       retrieved2 !== undefined,
       "Retrieved value 2 should not be undefined",
     );
-    assertEquals(retrieved1, value1, "First key should retrieve first value");
-    assertEquals(retrieved2, value2, "Second key should retrieve second value");
+    assertEquals(
+      retrieved1.value,
+      value1,
+      "First key should retrieve first value",
+    );
+    assertEquals(
+      retrieved2.value,
+      value2,
+      "Second key should retrieve second value",
+    );
   });
 
   Deno.test(`${Store.name} - Stress test with varying size data`, async () => {
@@ -138,7 +173,14 @@ export default function Test(
     });
 
     // Store all pairs
-    await Promise.all(pairs.map((pair) => store.set(pair.key, pair.value)));
+    await Promise.all(pairs.map((pair) => {
+      const storeData = {
+        key: pair.key,
+        value: pair.value,
+        date: new Date(),
+      };
+      return store.set(storeData);
+    }));
 
     // Verify all pairs
     for (const pair of pairs) {
@@ -148,7 +190,7 @@ export default function Test(
         "Retrieved value should not be undefined",
       );
       assertEquals(
-        retrieved,
+        retrieved.value,
         pair.value,
         "Retrieved value should match stored value",
       );

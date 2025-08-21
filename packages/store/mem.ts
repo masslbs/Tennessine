@@ -1,16 +1,29 @@
-import { AbstractStore } from "./abstract.ts";
+import {
+  AbstractStore,
+  type StoreEntry,
+  type StoreEntryNotFound,
+} from "./abstract.ts";
 
 export class MemStore extends AbstractStore {
-  #data: Map<string, Uint8Array> = new Map();
+  #data: Map<string, StoreEntry> = new Map();
 
   get(
     key: Uint8Array,
-  ): Promise<Uint8Array | undefined> {
-    return Promise.resolve(this.#data.get("key" + key.toString()));
+  ): Promise<StoreEntry | StoreEntryNotFound> {
+    const entry = this.#data.get("key" + key.toString());
+    if (entry) {
+      return Promise.resolve(entry);
+    } else {
+      return Promise.resolve({
+        key,
+        value: undefined,
+        date: undefined,
+      });
+    }
   }
 
-  set(key: Uint8Array, value: Uint8Array): Promise<void> {
-    this.#data.set("key" + key.toString(), value);
+  set(data: StoreEntry): Promise<void> {
+    this.#data.set("key" + data.key.toString(), data);
     return Promise.resolve();
   }
 }

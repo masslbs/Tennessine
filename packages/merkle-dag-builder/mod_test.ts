@@ -9,9 +9,13 @@ Deno.test("meta data", async (t) => {
   await t.step("testing storing and retrieving metadata", async () => {
     const store = new Store();
     const dag = new DAG(store);
-    await dag.store.objStore.set("pet", "cat");
+    await dag.store.objStore.set({
+      key: "pet",
+      value: "cat",
+      date: new Date(),
+    });
     const val = await dag.store.objStore.get("pet");
-    assertEquals(val, "cat");
+    assertEquals(val?.value, "cat");
   });
 });
 
@@ -38,11 +42,11 @@ Deno.test("basic set and get ", async (t) => {
       [new Uint8Array([1, 2, 3]), "address1"],
       [new Uint8Array([4, 5, 6]), "address2"],
     ]);
-    root = graph.set(root, ["addresses"], addresses);
+    root = await graph.set(root, ["addresses"], addresses);
     const val = await graph.get(root, ["addresses"]);
     assertEquals(val, addresses);
     const key3 = new Uint8Array([7, 8, 9]);
-    root = graph.set(root, ["addresses", key3], "address3");
+    root = await graph.set(root, ["addresses", key3], "address3");
     const result = await graph.get(root, ["addresses", key3]);
     assertEquals(result, "address3");
   });
@@ -54,8 +58,11 @@ Deno.test("basic set and get ", async (t) => {
     );
     const val = await graph.get(root, ["d"]);
     assertEquals(val, undefined);
-    assertRejects(() => graph.get(new Uint8Array(32), ["c"]), "invalid root");
-    assertRejects(
+    await assertRejects(
+      () => graph.get(new Uint8Array(32), ["c"]),
+      "invalid root",
+    );
+    await assertRejects(
       () => graph.set(root, ["c", "d", "c"], "catz"),
       "path does not exist",
     );
@@ -85,7 +92,7 @@ Deno.test("upsert", async (t) => {
       [new Uint8Array([1, 2, 3]), "address1"],
       [new Uint8Array([4, 5, 6]), "address2"],
     ]);
-    const newAddresses = graph.set(
+    const newAddresses = await graph.set(
       addresses,
       ["addresses"],
       (oldAddress, path) => {
@@ -101,9 +108,11 @@ Deno.test("upsert", async (t) => {
 Deno.test("should merklize", async (t) => {
   let merkleRoot;
   let root: RootValue = new Map();
+  const sharedStore = new Store();
+
   await t.step("should create a merkle root", async () => {
     const graph = new DAG(
-      store,
+      sharedStore,
     );
 
     merkleRoot = await graph.merklelize(root);
@@ -112,13 +121,30 @@ Deno.test("should merklize", async (t) => {
 
   await t.step("should load from a merkle root", async () => {
     const graph = new DAG(
-      store,
+      sharedStore,
     );
 
-    root = graph.set(root, ["c"], "cat");
+    root = await graph.set(root, ["c"], "cat");
     merkleRoot = await graph.merklelize(root);
     const cat = await graph.get(merkleRoot, ["c"]);
     assert(cat === "cat");
+  });
+});
+
+Deno.test("date functionality", async (t) => {
+  const store = new Store();
+  const dag = new DAG(store);
+
+  await t.step("should use provided date when setting values", async () => {
+    const root: RootValue = new Map();
+    const testDate = new Date("2023-01-15T10:30:00Z");
+
+    const newRoot = await dag.set(root, ["test"], "value", testDate);
+    const hash = await dag.merklelize(newRoot, testDate);
+
+    // Get the stored entry to verify the date was saved
+    const entry = await dag.store.get(hash);
+    assertEquals(entry.date?.getTime(), testDate.getTime());
   });
 });
 

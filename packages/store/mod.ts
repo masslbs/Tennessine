@@ -6,6 +6,18 @@ export * from "./mem.ts";
 export * from "./level.ts";
 export * from "./abstract.ts";
 
+export interface ObjectStoreEntry {
+  key: codec.CodecValue;
+  value: codec.CodecValue;
+  date: Date;
+}
+
+export interface ObjectStoreNotFoundEntry {
+  key: codec.CodecValue;
+  value: undefined;
+  date: undefined;
+}
+
 /*
  * ObjectStore stores objects store's objects, as long as they can be encoded as CBOR
  * It is a key-value store Where
@@ -20,29 +32,39 @@ export class ObjectStore {
 
   async get(
     key: codec.CodecValue,
-  ): Promise<codec.CodecValue | undefined> {
+  ): Promise<ObjectStoreEntry | ObjectStoreNotFoundEntry> {
     if (!(key instanceof Uint8Array)) {
       key = codec.encode(key);
     }
-    const val = await this.store.get(key as Uint8Array);
-    return val ? codec.decode(val) : undefined;
+    const entry = await this.store.get(key as Uint8Array);
+    if (entry.value) {
+      return {
+        key,
+        value: codec.decode(entry.value),
+        date: new Date(entry.date),
+      };
+    } else {
+      return {
+        key,
+        value: undefined,
+        date: undefined,
+      };
+    }
   }
 
-  async set(key: codec.CodecValue, value: codec.CodecValue): Promise<void> {
+  async set(
+    entry: ObjectStoreEntry,
+  ): Promise<void> {
+    let key = entry.key;
     if (!(key instanceof Uint8Array)) {
       key = codec.encode(key);
     }
-    const ev = codec.encode(value);
-    await this.store.set(key as Uint8Array, ev);
-  }
-
-  append(key: codec.CodecValue, value: codec.CodecValue): Promise<void> {
-    if (!(key instanceof Uint8Array)) {
-      key = codec.encode(key);
-    }
-
-    const ev = codec.encode(value);
-    return this.store.append(key as Uint8Array, ev);
+    const ev = codec.encode(entry.value);
+    await this.store.set({
+      key: key as Uint8Array,
+      value: ev,
+      date: entry.date,
+    });
   }
 }
 
@@ -56,18 +78,21 @@ export class ContentAddressableStore {
     this.objStore = new ObjectStore(store);
   }
 
-  get(key: Hash): Promise<codec.CodecValue | undefined> {
+  get(key: Hash): Promise<ObjectStoreEntry | ObjectStoreNotFoundEntry> {
     return this.objStore.get(key);
   }
 
-  async set(value: codec.CodecValue): Promise<Hash> {
-    if (isHash(value)) {
-      return value;
+  async set(entry: Omit<ObjectStoreEntry, "key">): Promise<Hash> {
+    if (isHash(entry.value)) {
+      return entry.value;
     } else {
-      const ev = codec.encode(value);
+      const ev = codec.encode(entry.value);
       const keyb = await hash(ev);
       const key = new Uint8Array(keyb);
-      await this.objStore.store.set(key, ev);
+      await this.objStore.set({
+        key,
+        ...entry,
+      });
       return key;
     }
   }

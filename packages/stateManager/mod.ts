@@ -49,11 +49,11 @@ export default class StateManager {
   }
 
   async open() {
-    const storedState = await this.graph.store.objStore.get(this.id);
+    const { value: storedState } = await this.graph.store.objStore.get(this.id);
     const restored: IStoredState = storedState instanceof Map
       ? Object.fromEntries(storedState)
       : {
-        subscriptionTrees: new Map(),
+        subscriptionSequenceNumber: 0,
         keycardNonce: 0,
         root: this.#defaultState,
         // TODO: add class for shop at some point
@@ -78,10 +78,11 @@ export default class StateManager {
     };
     return Promise.all([
       clientClosing,
-      this.graph.store.objStore.set(
-        this.id,
-        new Map(Object.entries(realState)),
-      ),
+      this.graph.store.objStore.set({
+        key: this.id,
+        value: new Map(Object.entries(realState)),
+        date: new Date(),
+      }),
     ]);
   }
 
@@ -95,6 +96,10 @@ export default class StateManager {
         //   "Account",
         //   patchSet.signer,
         // ]) as Map<string, string>;
+        const timestamp = (patchSet!.header! as Map<string, string>).get(
+          "Timestamp",
+        );
+        const date = new Date(timestamp!);
 
         // TODO: Validate keycard for a given time range
         //   throw new Error("Invalid keycard");
@@ -105,18 +110,21 @@ export default class StateManager {
               state.root,
               patch.Path,
               patch.Value,
+              date,
             );
           } else if (patch.Op === "replace") {
             state.root = this.graph.set(
               state.root,
               patch.Path,
               patch.Value,
+              date,
             );
           } else if (patch.Op === "append") {
             state.root = this.graph.append(
               state.root,
               patch.Path,
               patch.Value,
+              date,
             );
           } else if (patch.Op === "remove") {
             state.root = this.graph.remove(

@@ -32,8 +32,8 @@ export class DAG {
     hash: Hash,
     clone = false,
   ): Promise<codec.CodecValue> {
-    const val = await this.store.get(hash);
-    if (!val) {
+    const entry = await this.store.get(hash);
+    if (!entry.value) {
       logger.info`Hash not found: ${hash}`;
       throw new Error(`Hash not found`);
     }
@@ -41,9 +41,9 @@ export class DAG {
       // we assume the store shares objects as a caching mechanism
       // (TODO: it doesn't yet though)
       // so we need to clone the object to avoid modifying the original
-      return structuredClone(val);
+      return structuredClone(entry.value);
     } else {
-      return val;
+      return entry.value;
     }
   }
 
@@ -118,6 +118,7 @@ export class DAG {
         parent: codec.CodecValue,
         key: codec.CodecKey,
       ) => Promise<void> | void),
+    _date?: Date,
   ): Promise<codec.CodecValue> {
     assert(path.length);
     const last = path[path.length - 1];
@@ -147,6 +148,7 @@ export class DAG {
     root: RootValue,
     path: codec.CodecKey[],
     value: codec.CodecValue,
+    date?: Date,
   ): Promise<codec.CodecValue> {
     return this.set(
       root,
@@ -162,6 +164,7 @@ export class DAG {
           set(parent, key, value);
         }
       },
+      date,
     );
   }
 
@@ -172,6 +175,7 @@ export class DAG {
     root: RootValue,
     path: codec.CodecKey[],
     value: codec.CodecValue,
+    date?: Date,
   ): Promise<codec.CodecValue> {
     return this.set(
       root,
@@ -185,6 +189,7 @@ export class DAG {
           throw new Error(`Trying to append to non-array`);
         }
       },
+      date,
     );
   }
 
@@ -234,10 +239,11 @@ export class DAG {
    */
   async merklelize(
     root: RootValue,
+    date?: Date,
   ): Promise<Hash> {
     if (root instanceof Promise) {
       root = await root;
     }
-    return this.store.set(root);
+    return this.store.set({ value: root, date: date || new Date() });
   }
 }
