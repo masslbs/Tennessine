@@ -131,6 +131,145 @@ Deno.test("should merklize", async (t) => {
   });
 });
 
+Deno.test("date functionality", async (t) => {
+  const store = new Store();
+  const dag = new DAG(store);
+
+  await t.step("should use provided date when setting values", async () => {
+    const root: RootValue = new Map();
+    const testDate = new Date("2023-01-15T10:30:00Z");
+
+    const newRoot = await dag.set(root, ["test"], "value", testDate);
+    const hash = await dag.merklelize(newRoot, testDate);
+
+    // Get the stored entry to verify the date was saved
+    const entry = await dag.store.get(hash);
+    assertEquals(entry.date?.getTime(), testDate.getTime());
+  });
+
+  await t.step("should use provided date when adding values", async () => {
+    const root: RootValue = new Map([["items", []]]);
+    const testDate = new Date("2023-02-20T15:45:00Z");
+
+    const newRoot = await dag.add(root, ["items", 0], "first item", testDate);
+    const hash = await dag.merklelize(newRoot, testDate);
+
+    const entry = await dag.store.get(hash);
+    assertEquals(entry.date?.getTime(), testDate.getTime());
+  });
+
+  await t.step("should use provided date when appending values", async () => {
+    const root: RootValue = new Map([["list", ["existing"]]]);
+    const testDate = new Date("2023-03-10T08:20:00Z");
+
+    const newRoot = await dag.append(root, ["list"], "appended", testDate);
+    const hash = await dag.merklelize(newRoot, testDate);
+
+    const entry = await dag.store.get(hash);
+    assertEquals(entry.date?.getTime(), testDate.getTime());
+  });
+
+  await t.step("should use current date when no date provided", async () => {
+    const root: RootValue = new Map();
+    const beforeTime = Date.now();
+
+    const newRoot = await dag.set(root, ["test"], "value");
+    const hash = await dag.merklelize(newRoot);
+
+    const afterTime = Date.now();
+    const entry = await dag.store.get(hash);
+
+    // Verify the date is within the expected range
+    assert(entry.date);
+    const entryTime = entry.date.getTime();
+    assert(entryTime >= beforeTime && entryTime <= afterTime);
+  });
+
+  await t.step("should preserve dates across complex operations", async () => {
+    const root: RootValue = new Map();
+    const date1 = new Date("2023-01-01T00:00:00Z");
+    const date2 = new Date("2023-06-01T12:00:00Z");
+
+    // Create initial structure with date1
+    let currentRoot = await dag.set(root, ["users"], new Map(), date1);
+    const aliceData = new Map<string, CodecValue>([
+      ["name", "Alice"],
+      ["age", 30],
+    ]);
+    currentRoot = await dag.set(
+      currentRoot,
+      ["users", "alice"],
+      aliceData,
+      date1,
+    );
+
+    // Add more data with date2
+    currentRoot = await dag.set(
+      currentRoot,
+      ["users", "alice", "hobbies"],
+      ["reading"],
+      date2,
+    );
+    const bobData = new Map<string, CodecValue>([
+      ["name", "Bob"],
+      ["age", 25],
+    ]);
+    currentRoot = await dag.set(currentRoot, ["users", "bob"], bobData, date2);
+
+    const hash = await dag.merklelize(currentRoot, date2);
+    const entry = await dag.store.get(hash);
+
+    // The final merkle root should have the most recent date
+    assertEquals(entry.date?.getTime(), date2.getTime());
+
+    // Verify the data structure is correct
+    const alice = await dag.get(hash, ["users", "alice"]);
+    const bob = await dag.get(hash, ["users", "bob"]);
+
+    const expectedAlice = new Map<string, CodecValue>([
+      ["name", "Alice"],
+      ["age", 30],
+      ["hobbies", ["reading"]],
+    ]);
+    const expectedBob = new Map<string, CodecValue>([
+      ["name", "Bob"],
+      ["age", 25],
+    ]);
+    assertEquals(alice, expectedAlice);
+    assertEquals(bob, expectedBob);
+  });
+
+  await t.step("should handle date with addNumber operation", async () => {
+    const root: RootValue = new Map([["counter", 0]]);
+    const testDate = new Date("2023-12-25T18:30:00Z");
+
+    const newRoot = await dag.addNumber(root, ["counter"], 5);
+    const hash = await dag.merklelize(newRoot, testDate);
+
+    const entry = await dag.store.get(hash);
+    assertEquals(entry.date?.getTime(), testDate.getTime());
+
+    const counter = await dag.get(hash, ["counter"]);
+    assertEquals(counter, 5);
+  });
+
+  await t.step("should handle date with remove operation", async () => {
+    const root: RootValue = new Map([
+      ["items", new Map([["a", 1], ["b", 2], ["c", 3]])],
+    ]);
+    const testDate = new Date("2023-11-11T11:11:11Z");
+
+    const newRoot = await dag.remove(root, ["items", "b"]);
+    const hash = await dag.merklelize(newRoot, testDate);
+
+    const entry = await dag.store.get(hash);
+    assertEquals(entry.date?.getTime(), testDate.getTime());
+
+    const items = await dag.get(hash, ["items"]);
+    assertEquals(items, new Map([["a", 1], ["c", 3]]));
+  });
+});
+
 Deno.test.ignore(
   "stress test - setting and retrieving many values",
   async (t) => {

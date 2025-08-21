@@ -118,6 +118,7 @@ export class DAG {
         parent: codec.CodecValue,
         key: codec.CodecKey,
       ) => Promise<void> | void),
+    _date?: Date,
   ): Promise<codec.CodecValue> {
     assert(path.length);
     const last = path[path.length - 1];
@@ -147,6 +148,7 @@ export class DAG {
     root: RootValue,
     path: codec.CodecKey[],
     value: codec.CodecValue,
+    date?: Date,
   ): Promise<codec.CodecValue> {
     return this.set(
       root,
@@ -162,6 +164,7 @@ export class DAG {
           set(parent, key, value);
         }
       },
+      date,
     );
   }
 
@@ -172,6 +175,7 @@ export class DAG {
     root: RootValue,
     path: codec.CodecKey[],
     value: codec.CodecValue,
+    date?: Date,
   ): Promise<codec.CodecValue> {
     return this.set(
       root,
@@ -185,6 +189,7 @@ export class DAG {
           throw new Error(`Trying to append to non-array`);
         }
       },
+      date,
     );
   }
 
@@ -234,10 +239,11 @@ export class DAG {
    */
   async merklelize(
     root: RootValue,
+    date?: Date,
   ): Promise<Hash> {
     if (root instanceof Promise) {
       root = await root;
     }
-    return this.store.set({ value: root, date: new Date() });
+    return this.store.set({ value: root, date: date || new Date() });
   }
 }
