@@ -99,7 +99,7 @@ export default class StateManager {
         const timestamp = (patchSet!.header! as Map<string, string>).get(
           "Timestamp",
         );
-        const _date = new Date(timestamp!);
+        const date = new Date(timestamp!);
 
         // TODO: Validate keycard for a given time range
         //   throw new Error("Invalid keycard");
@@ -110,18 +110,21 @@ export default class StateManager {
               state.root,
               patch.Path,
               patch.Value,
+              date,
             );
           } else if (patch.Op === "replace") {
             state.root = this.graph.set(
               state.root,
               patch.Path,
               patch.Value,
+              date,
             );
           } else if (patch.Op === "append") {
             state.root = this.graph.append(
               state.root,
               patch.Path,
               patch.Value,
+              date,
             );
           } else if (patch.Op === "remove") {
             state.root = this.graph.remove(
