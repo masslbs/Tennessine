@@ -78,3 +78,23 @@ Deno.test(
     });
   }),
 );
+
+Deno.test(
+  "useIsOwner should return false for disconnected wallet state",
+  denoTestOptions,
+  testWrapper(async () => {
+    const randomShopId = BigInt("999999999999999999999999999999");
+
+    const { result, unmount } = renderHook(
+      () => useIsOwner(),
+      {
+        wrapper: createWrapper(randomShopId, 0),
+      },
+    );
+    await waitFor(() => {
+      expect(result.current.error).toBeDefined();
+      expect(result.current.isOwner).toBe(false);
+    });
+    unmount();
+  }),
+);
