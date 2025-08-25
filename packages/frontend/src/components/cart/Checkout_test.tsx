@@ -238,7 +238,7 @@ async function testPayWithCurrency(
     selectElement as HTMLSelectElement,
     `${currencyConfig.expectedSymbol}/Hardhat`,
   );
-  // First verify the selection was made in jthe UI
+  // First verify the selection was made in the UI
   expect((selectElement as HTMLSelectElement).value).toBe(
     `${currencyConfig.expectedSymbol}/Hardhat`,
   );
