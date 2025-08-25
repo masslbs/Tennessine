@@ -75,7 +75,7 @@ export function formatDate(ttl: number) {
   }).format((ttl * 1000) - 86400000);
 }
 
-// OrderPaymentStateFromNumber is a helper for
+// OrderPaymentStateFromNumber is a helper for rendering strings as wanted
 export function OrderPaymentStateFromNumber(num: number) {
   // most enum values are just the string itself anyway
   if (typeof OrderPaymentState[num] === "string") {
