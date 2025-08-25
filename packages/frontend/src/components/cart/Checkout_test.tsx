@@ -15,7 +15,7 @@ import {
   Manifest,
   Order,
   OrderedItem,
-  OrderState,
+  OrderPaymentState,
   ShippingRegion,
   ShippingRegionsMap,
 } from "@massmarket/schema";
@@ -433,10 +433,13 @@ const createTestComponent = (
         [
           new OrderedItem(42, 5),
         ],
-        OrderState.Open,
+        OrderPaymentState.Open,
       );
       stateManager.set(["Orders", orderId], order).then(() => {
-        stateManager.set(["Orders", orderId, "State"], OrderState.Committed);
+        stateManager.set(
+          ["Orders", orderId, "PaymentState"],
+          OrderPaymentState.Committed,
+        );
       });
       stateManager.set(
         ["Orders", orderId, "InvoiceAddress"],
