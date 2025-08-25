@@ -78,7 +78,7 @@
           shellHook = ''
                         ${config.pre-commit.settings.installationScript}
 
-                        if [ -z IPFS_PATH ]; then
+                        if [ -z "$IPFS_PATH" ]; then
                           export IPFS_PATH=$FLAKE_ROOT/data/ipfs
                         fi
                         pushd $FLAKE_ROOT
