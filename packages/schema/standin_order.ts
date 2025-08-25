@@ -207,13 +207,13 @@ export class OrderedItem extends BaseClass {
 }
 
 export enum OrderPaymentState {
-  Unspecified = 0,
-  Open = 1,
-  Canceled = 2,
-  Committed = 3,
-  PaymentChosen = 4,
-  Unpaid = 5,
-  Paid = 6,
+  Unspecified,
+  Open,
+  Canceled,
+  Committed,
+  PaymentChosen,
+  Unpaid,
+  Paid,
 }
 
 export class AddressDetails extends BaseClass {

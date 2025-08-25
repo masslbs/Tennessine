@@ -75,23 +75,16 @@ export function formatDate(ttl: number) {
   }).format((ttl * 1000) - 86400000);
 }
 
-// TODO: we might want to move this to a helper function on orders
+// OrderPaymentStateFromNumber is a helper for
 export function OrderPaymentStateFromNumber(num: number) {
+  // most enum values are just the string itself anyway
+  if (typeof OrderPaymentState[num] === "string") {
+    return OrderPaymentState[num];
+  }
+  // different spelling / representation can be defined here
   switch (num) {
-    case OrderPaymentState.Unspecified:
-      return `Unspecified`;
-    case OrderPaymentState.Open:
-      return `Open`;
-    case OrderPaymentState.Canceled:
-      return `Canceled`;
-    case OrderPaymentState.Committed:
-      return `Committed`;
     case OrderPaymentState.PaymentChosen:
       return `Payment Chosen`;
-    case OrderPaymentState.Unpaid:
-      return `Unpaid`;
-    case OrderPaymentState.Paid:
-      return `Paid`;
     default:
       throw new Error(`Invalid order payment state: ${num}`);
   }
