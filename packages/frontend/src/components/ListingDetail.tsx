@@ -74,7 +74,10 @@ export default function ListingDetail() {
       });
     stateManager.get(["Inventory", itemId])
       .then((res: CodecValue | undefined) => {
-        setStock(res);
+        if (typeof res !== "number") {
+          logger.debug`Inventory is not a number.`;
+        }
+        setStock(res as number);
       });
     function onListingChange(res: CodecValue) {
       const item = Listing.fromCBOR(res);
@@ -242,18 +245,13 @@ export default function ListingDetail() {
                       );
                     }}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="12"
-                      height="23"
-                      viewBox="0 0 12 23"
-                      fill="none"
-                    >
-                      <path
-                        d="M10.722 0.76123C11.0386 0.76123 11.3779 0.874331 11.6268 1.12315C12.1244 1.6208 12.1244 2.4125 11.6268 2.91015L3.05372 11.5058L11.6268 20.0789C12.1244 20.5765 12.1244 21.3682 11.6268 21.8659C11.1291 22.3635 10.3374 22.3635 9.83977 21.8659L0.361922 12.4106C0.113101 12.1618 -4.84492e-07 11.8451 -4.69661e-07 11.5058C-4.54829e-07 11.1665 0.135721 10.8498 0.361922 10.601L9.83977 1.12315C10.0886 0.874331 10.4053 0.76123 10.722 0.76123Z"
-                        fill="black"
-                      />
-                    </svg>
+                    <img
+                      src="/icons/chevron-left.svg"
+                      width={20}
+                      height={20}
+                      alt="chevron-left"
+                      className="w-5 h-5"
+                    />
                   </button>
                   <button
                     type="button"
@@ -268,18 +266,13 @@ export default function ListingDetail() {
                       );
                     }}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="12"
-                      height="23"
-                      viewBox="0 0 12 23"
-                      fill="none"
-                    >
-                      <path
-                        d="M1.27804 22.2393C0.961357 22.2393 0.622055 22.1262 0.373233 21.8773C-0.124411 21.3797 -0.124411 20.588 0.373233 20.0903L8.94628 11.4947L0.373232 2.92163C-0.124412 2.42399 -0.124412 1.63228 0.373232 1.13464C0.870876 0.636995 1.66258 0.636995 2.16023 1.13464L11.6381 10.5899C11.8869 10.8387 12 11.1554 12 11.4947C12 11.834 11.8643 12.1507 11.6381 12.3995L2.16023 21.8773C1.9114 22.1262 1.59472 22.2393 1.27804 22.2393Z"
-                        fill="black"
-                      />
-                    </svg>
+                    <img
+                      src="/icons/chevron-right.svg"
+                      width={20}
+                      height={20}
+                      alt="chevron-right"
+                      className="w-5 h-5"
+                    />
                   </button>
                 </div>
               )
@@ -343,51 +336,59 @@ export default function ListingDetail() {
               </h1>
             </div>
             <div
-              className={isMerchantRoute || !stock ? "hidden" : "flex gap-2"}
+              className={isMerchantRoute ? "hidden" : "flex gap-2"}
             >
-              <div>
-                <p className="text-xs text-primary-gray mb-2">Quantity</p>
-                <input
-                  className="mt-1 p-2 rounded-md max-w-[80px]"
-                  style={{ backgroundColor: "#F3F3F3" }}
-                  id="quantity"
-                  name="quantity"
-                  value={quantity}
-                  data-testid="purchaseQty"
-                  type="number"
-                  min="1"
-                  step="1"
-                  onChange={(e) => handlePurchaseQty(e)}
-                />
-              </div>
-              <div className="flex items-end">
-                <Button
-                  onClick={changeItems}
-                  disabled={!quantity || quantity > stock}
-                  data-testid="addToCart"
-                >
-                  <div className="flex items-center gap-2">
-                    <p>Add to cart</p>
-                    <img
-                      src="/icons/white-arrow.svg"
-                      alt="white-arrow"
-                      width={7}
-                      height={12}
-                      style={{
-                        display: (quantity && (stock > quantity)) ? "" : "none",
-                      }}
+              <div className="flex flex-col gap-2 min-w-full">
+                <StockMessage stock={stock} isToast />
+
+                <div className={!stock ? "hidden" : "flex gap-2"}>
+                  <div>
+                    <p className="text-xs text-primary-gray mb-2">Quantity</p>
+                    <input
+                      className="mt-1 p-2 rounded-md max-w-[80px]"
+                      style={{ backgroundColor: "#F3F3F3" }}
+                      id="quantity"
+                      name="quantity"
+                      value={quantity}
+                      data-testid="purchaseQty"
+                      type="number"
+                      min="1"
+                      step="1"
+                      onChange={(e) => handlePurchaseQty(e)}
                     />
                   </div>
-                </Button>
+
+                  <div className="flex items-end">
+                    <Button
+                      onClick={changeItems}
+                      data-testid="addToCart"
+                      disabled={!quantity || stock < quantity}
+                    >
+                      <div className="flex items-center gap-2">
+                        <p>Add to cart</p>
+                        <img
+                          src="/icons/white-arrow.svg"
+                          alt="white-arrow"
+                          width={7}
+                          height={12}
+                          style={{
+                            display: (quantity && (stock >= quantity))
+                              ? ""
+                              : "none",
+                          }}
+                        />
+                      </div>
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className={`${!stock ? "hidden" : "h-6 mb-4"}`}>
+            <div className="h-6 mb-4">
               <SuccessToast
                 message={successMsg}
                 onClose={() => setMsg(null)}
                 cta={{ copy: "View Cart", href: "/cart" }}
               />
-              <StockMessage stock={stock} />
             </div>
           </section>
         </div>
