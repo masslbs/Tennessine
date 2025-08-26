@@ -246,7 +246,7 @@ function Navigation() {
 
             <h2 className="flex items-center">{shopDetails?.name}</h2>
           </div>
-          <div className="hidden md:flex mr-25 h-[56px] items-center">
+          <div className="hidden md:flex mr-28 h-[56px] items-center">
             <ConnectButton chainStatus="name" />
           </div>
           <section className="absolute right-0 flex">
