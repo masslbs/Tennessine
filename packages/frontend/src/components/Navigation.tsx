@@ -23,7 +23,7 @@ const merchantMenu = [
   {
     title: "Dashboard",
     img: "menu-dashboard.svg",
-    href: "/merchant-dashboard",
+    href: "/merchants",
   },
   {
     title: "Manage Products",
@@ -213,7 +213,7 @@ function Navigation() {
             className="flex gap-2 cursor-pointer m-2 ml-5 md:ml-0"
             onClick={() => {
               navigate({
-                to: isMerchantView ? "/merchant-dashboard" : "/listings",
+                to: isMerchantView ? "/" : "/listings",
                 search: (prev: Record<string, string>) => ({
                   shopId: prev.shopId,
                 }),

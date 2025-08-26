@@ -24,7 +24,7 @@ export default function Confirmation() {
       <section className="mt-2 flex flex-col gap-4 bg-white p-6 rounded-lg ">
         <h2 className="font-bold">Next steps</h2>
         <div>
-          <ButtonLink to="/merchant-dashboard">View Dashboard</ButtonLink>
+          <ButtonLink to="/merchants">View Dashboard</ButtonLink>
         </div>
       </section>
     </section>

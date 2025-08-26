@@ -23,7 +23,7 @@ export default function ConnectConfirmation() {
         <p>Connect to:</p>
         <h2 className="font-bold mb-5">{shopDetails?.name}</h2>
         <div className="flex">
-          <ButtonLink to="/merchant-dashboard">Shop Dashboard</ButtonLink>
+          <ButtonLink to="/merchants">Shop Dashboard</ButtonLink>
         </div>
       </section>
     </div>

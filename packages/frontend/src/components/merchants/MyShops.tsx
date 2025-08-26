@@ -40,7 +40,7 @@ export default function MyShops() {
 
               <p className="mb-3">{shop.description}</p>
               <ButtonLink
-                to="/merchant-dashboard"
+                to="/merchants"
                 search={{ shopId: toHex(shop.id) }}
               >
                 Shop Dashboard
