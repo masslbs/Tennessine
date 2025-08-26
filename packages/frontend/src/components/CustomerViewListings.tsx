@@ -10,7 +10,6 @@ import { CodecKey, CodecValue } from "@massmarket/utils/codec";
 import { usePricingCurrency, useStateManager } from "@massmarket/react-hooks";
 
 import { ListingViewState } from "../types.ts";
-import { mapToListingClass } from "../utils/mapToListingClass.ts";
 
 export default function CustomerViewProducts() {
   const { pricingCurrency } = usePricingCurrency();
@@ -18,7 +17,7 @@ export default function CustomerViewProducts() {
   const [products, setProducts] = useState<Listing[]>([]);
 
   function allListingsEvent(res: Map<CodecKey, CodecValue>) {
-    const listings = mapToListingClass(res).filter((listing) =>
+    const listings = Listing.fromCBORList(res).filter((listing) =>
       listing.ViewState !== ListingViewState.Deleted
     );
     setProducts(listings);

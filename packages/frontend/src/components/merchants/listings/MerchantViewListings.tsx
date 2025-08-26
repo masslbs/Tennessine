@@ -10,7 +10,6 @@ import { usePricingCurrency, useStateManager } from "@massmarket/react-hooks";
 import Button from "../../common/Button.tsx";
 import { ListingViewState } from "../../../types.ts";
 import ChevronRight from "../../common/ChevronRight.tsx";
-import { mapToListingClass } from "../../../utils/mapToListingClass.ts";
 
 export default function MerchantViewProducts() {
   const { pricingCurrency } = usePricingCurrency();
@@ -21,7 +20,7 @@ export default function MerchantViewProducts() {
   );
 
   function allListingsEvent(res: Map<CodecKey, CodecValue>) {
-    const listings = mapToListingClass(res).filter((listing) =>
+    const listings = Listing.fromCBORList(res).filter((listing) =>
       listing.ViewState !== ListingViewState.Deleted
     );
     setProducts(listings);
