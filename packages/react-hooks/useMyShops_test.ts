@@ -15,6 +15,8 @@ Deno.test(
   "useMyShops",
   denoTestOptions,
   testWrapper(async (shopId, t) => {
+    // TODO: This test needs to create incomplete shops to exercise the skipping logic of the hook
+
     let balance: bigint;
     await t.step("Hook returns the correct data", async () => {
       const testAccounts = await testClient.requestAddresses();

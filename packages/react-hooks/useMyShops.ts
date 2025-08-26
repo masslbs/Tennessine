@@ -59,7 +59,9 @@ export function useMyShops(
           const dataPromise = tokenOfOwnerByIndex(shopPublicClient!, [
             address!,
             i,
-          ]).then((tokenId) => getShopData(tokenId));
+          ]).then((tokenId) => getShopData(tokenId)).catch((err) => {
+            logger.warn`incomplete shop? ${err}`;
+          });
           ShopDataPromises.push(dataPromise);
           i++;
         }
@@ -71,6 +73,10 @@ export function useMyShops(
   if (qResult.error) {
     logger.error`Failed to get shops: ${qResult.error.message}`;
   }
-
-  return { shops: qResult.data, ...qResult };
+  let shops = undefined;
+  if (qResult.data) {
+    // we might have incomplete shops, so we filter
+    shops = qResult.data.filter((data) => !!data);
+  }
+  return { shops, ...qResult };
 }
