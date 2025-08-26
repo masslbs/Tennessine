@@ -31,9 +31,8 @@ export function useMyShops(
 ): UseQueryResult<ShopMetadata[]> & { shops: ShopMetadata[] | undefined } {
   const { address } = useAccount();
   const { shopPublicClient } = useShopPublicClient(params);
-
   const { data: balance } = abi.useReadShopRegBalanceOf({
-    args: [address!],
+    args: address ? [address] : undefined,
   });
 
   async function getShopData(shopId: bigint) {
