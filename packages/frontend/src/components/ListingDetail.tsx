@@ -21,8 +21,10 @@ import BackButton from "./common/BackButton.tsx";
 
 import ErrorMessage from "./common/ErrorMessage.tsx";
 import SuccessToast from "./common/SuccessToast.tsx";
-import { getErrLogger } from "../utils/helper.ts";
 import ChevronRight from "./common/ChevronRight.tsx";
+import StockMessage from "./common/StockMessage.tsx";
+
+import { getErrLogger } from "../utils/helper.ts";
 
 const baseLogger = getLogger(["mass-market", "frontend", "ListingDetail"]);
 
@@ -34,6 +36,7 @@ export default function ListingDetail() {
   const search = useSearch({ strict: false });
   const itemId = search.itemId as ListingId;
   const [listing, setListing] = useState<Listing>(new Listing());
+  const [stock, setStock] = useState<number>(0);
   const [tokenIcon, setIcon] = useState("/icons/usdc-coin.png");
   const [quantity, setQuantity] = useState<number>(1);
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
@@ -69,7 +72,10 @@ export default function ListingDetail() {
           setIcon("/icons/eth-coin.svg");
         }
       });
-
+    stateManager.get(["Inventory", itemId])
+      .then((res: CodecValue | undefined) => {
+        setStock(res);
+      });
     function onListingChange(res: CodecValue) {
       const item = Listing.fromCBOR(res);
       setListing(item);
@@ -337,7 +343,7 @@ export default function ListingDetail() {
               </h1>
             </div>
             <div
-              className={keycard?.role === "merchant" ? "hidden" : "flex gap-2"}
+              className={isMerchantRoute || !stock ? "hidden" : "flex gap-2"}
             >
               <div>
                 <p className="text-xs text-primary-gray mb-2">Quantity</p>
@@ -357,7 +363,7 @@ export default function ListingDetail() {
               <div className="flex items-end">
                 <Button
                   onClick={changeItems}
-                  disabled={!quantity}
+                  disabled={!quantity || quantity > stock}
                   data-testid="addToCart"
                 >
                   <div className="flex items-center gap-2">
@@ -367,18 +373,21 @@ export default function ListingDetail() {
                       alt="white-arrow"
                       width={7}
                       height={12}
-                      style={{ display: quantity ? "" : "none" }}
+                      style={{
+                        display: (quantity && (stock > quantity)) ? "" : "none",
+                      }}
                     />
                   </div>
                 </Button>
               </div>
             </div>
-            <div className="h-6 mb-4">
+            <div className={`${!stock ? "hidden" : "h-6 mb-4"}`}>
               <SuccessToast
                 message={successMsg}
                 onClose={() => setMsg(null)}
                 cta={{ copy: "View Cart", href: "/cart" }}
               />
+              <StockMessage stock={stock} />
             </div>
           </section>
         </div>
