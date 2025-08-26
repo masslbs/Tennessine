@@ -30,6 +30,14 @@ export class Listing extends BaseClass {
     this.ViewState = viewState;
   }
 
+  static fromCBORList(allListings: Map<CodecKey, CodecValue>): Listing[] {
+    const listings: Listing[] = [];
+    for (const [_id, l] of allListings.entries()) {
+      listings.push(Listing.fromCBOR(l));
+    }
+    return listings;
+  }
+
   static fromCBOR(value: CodecValue): Listing {
     if (!(value instanceof Map)) {
       throw new TypeError("Expected value to be a Map");
