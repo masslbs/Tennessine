@@ -1,4 +1,4 @@
-import { useAccount, useReadContract } from "wagmi";
+import { useAccount } from "wagmi";
 import { getLogger } from "@logtape/logtape";
 import {
   skipToken,
@@ -32,10 +32,7 @@ export function useMyShops(
   const { address } = useAccount();
   const { shopPublicClient } = useShopPublicClient(params);
 
-  const { data: balance } = useReadContract({
-    address: abi.shopRegAddress,
-    abi: abi.shopRegAbi,
-    functionName: "balanceOf",
+  const { data: balance } = abi.useReadShopRegBalanceOf({
     args: [address!],
   });
 
