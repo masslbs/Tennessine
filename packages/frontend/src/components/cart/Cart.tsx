@@ -133,8 +133,7 @@ export default function Cart({
       }
       const items = activeOrder.Items;
       // If there is an item in the order that is no stock, remove the item.
-
-      await Promise.all(items.map(async (item) => {
+      await Promise.all(items.map((item) => {
         const inventory = inventoryMap.get(item.ListingID);
         if (typeof inventory !== "number") {
           logError(`Inventory is not a number`);
@@ -143,7 +142,7 @@ export default function Cart({
           logger.info(
             `Removing item ${item.ListingID} from order for checkout`,
           );
-          await removeItem(item.ListingID);
+          removeItem(item.ListingID);
         }
       }));
 
