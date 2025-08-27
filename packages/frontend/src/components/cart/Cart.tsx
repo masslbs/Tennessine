@@ -184,7 +184,7 @@ export default function Cart({
       if (activeOrder!.PaymentState === OrderPaymentState.Open) {
         await stateManager!.set(
           ["Orders", activeOrder!.ID, "PaymentState"],
-          OrderPaymentState.Committed,
+          OrderPaymentState.Locked,
         );
         logger.debug(`Order ID: ${activeOrder!.ID} committed`);
       }

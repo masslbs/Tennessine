@@ -70,7 +70,7 @@ Deno.test(
             "Open",
           );
           expect(within(committed[0]).getByTestId("status").textContent).toBe(
-            "Committed",
+            "Locked",
           );
         });
         unmount();

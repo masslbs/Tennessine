@@ -374,7 +374,7 @@ const createTestComponent = (oId: number, commitOrder: boolean) => {
         if (!commitOrder) return;
         stateManager.set(
           ["Orders", oId, "PaymentState"],
-          OrderPaymentState.Committed,
+          OrderPaymentState.Locked,
         );
       });
     }, [listingsLoaded]);
