@@ -132,7 +132,8 @@ export default function Cart({
         throw new Error("No order found");
       }
       const items = activeOrder.Items;
-      // If there is an item in the order that is no stock, remove the item.
+      // Check that each item is in stock before committing the order.
+      // If there are any items that we do not have enough inventory for, then we remove the item from the order before committing.
       await Promise.all(items.map((item) => {
         const inventory = inventoryMap.get(item.ListingID);
         if (typeof inventory !== "number") {
@@ -267,8 +268,8 @@ export default function Cart({
     let total = BigInt(0);
     values.forEach((item: Listing) => {
       const qty = selectedQty.get(item.ID) || 0;
-      // if (!qty) throw new Error(`Quantity for ${item.ID} not found`);
-      const price = inventoryMap.get(item.ID) === 0
+      // Do not add prices for items that we will remove during commit due to not enough inventory.
+      const price = inventoryMap.get(item.ID)! < qty
         ? 0n
         : BigInt(item.Price) * BigInt(qty);
       total += price;
