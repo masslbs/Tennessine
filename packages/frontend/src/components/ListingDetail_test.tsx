@@ -188,5 +188,74 @@ Deno.test(
       });
       unmount();
     });
+    await t.step(
+      "Low stock - message is displayed and user cannot add to cart more than stock available.",
+      async () => {
+        // Set inventory to 1
+        await stateManager.set(["Inventory", listingId], 1);
+        const wrapper = createWrapper(shopId, `/?itemId=${listingId}`);
+        const { unmount } = render(<ListingDetail />, {
+          wrapper,
+        });
+        const user = userEvent.setup();
+        await screen.findByTestId("listing-detail-page");
+        const lowStockMsg = await screen.findByTestId("low-stock-msg");
+        expect(lowStockMsg.textContent).toBe("Only 1 left in stock");
+        const purchaseQty = await screen.findByTestId("purchaseQty");
+        await user.type(purchaseQty, "2");
+        const addtoCartButton = screen.getByRole("button", {
+          name: /Add to cart/i,
+        }) as HTMLButtonElement;
+        expect(addtoCartButton.disabled).toBeTruthy();
+        await user.click(addtoCartButton);
+        await waitFor(async () => {
+          // Should not have created a new order, so all orders should be a length of 2, since twe created 2 in the previous test.
+          const orders = await stateManager.get(["Orders"]) as Map<
+            CodecKey,
+            CodecValue
+          >;
+          expect(orders.size).toBe(2);
+        });
+        await user.clear(purchaseQty);
+        await user.type(purchaseQty, "1");
+        await waitFor(() => {
+          expect(addtoCartButton.disabled).toBeFalsy();
+        });
+        await user.click(addtoCartButton);
+        await waitFor(async () => {
+          const orders = await stateManager.get(["Orders"]) as Map<
+            CodecKey,
+            CodecValue
+          >;
+          const orderId = Array.from(orders.keys())[1];
+          const o = await stateManager.get(["Orders", orderId]);
+          const order = Order.fromCBOR(o!);
+          const item = order.Items[0];
+          // 13 because we added 1 to the previous quantity of totalQuantity
+          expect(item.Quantity).toBe(13);
+        });
+
+        unmount();
+      },
+    );
+
+    await t.step(
+      "Out of stock - message is displayed and add to cart button is hidden.",
+      async () => {
+        await stateManager.set(["Inventory", listingId], 0);
+        const wrapper = createWrapper(shopId, `/?itemId=${listingId}`);
+        const { unmount } = render(<ListingDetail />, {
+          wrapper,
+        });
+        await screen.findByTestId("listing-detail-page");
+        const outOfStockMsg = await screen.findByTestId("no-stock-msg");
+        expect(outOfStockMsg.textContent).toBe("Sorry this is  out of stock");
+        const addToCartContainer = await screen.findByTestId(
+          "add-to-cart-container",
+        );
+        expect(addToCartContainer.classList.contains("hidden")).toBe(true);
+        unmount();
+      },
+    );
   }),
 );
