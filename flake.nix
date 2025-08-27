@@ -13,7 +13,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    relay.url = "github:masslbs/relay/network-v5";
+    relay.url = "github:masslbs/relay/order-state-locking";
     contracts.follows = "relay/contracts";
     schema.follows = "relay/schema";
     # in case we need to test new vectors, etc. we can override the input like this:

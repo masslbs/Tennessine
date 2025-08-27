@@ -208,12 +208,14 @@ export class OrderedItem extends BaseClass {
 
 export enum OrderPaymentState {
   Unspecified,
-  Open,
   Canceled,
-  Committed,
+  Open,
+  Locked,
   PaymentChosen,
   Unpaid,
+  UnpaidExpired,
   Paid,
+  PaidLate,
 }
 
 export class AddressDetails extends BaseClass {

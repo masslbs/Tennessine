@@ -130,7 +130,7 @@ Deno.test(
       // Commit order and try to update quantity. Tests cancelAndRecreateOrder fn
       await stateManager.set(
         ["Orders", orderId!, "PaymentState"],
-        OrderPaymentState.Committed,
+        OrderPaymentState.Locked,
       );
 
       // Here we are updating the listing pricing.

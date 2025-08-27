@@ -438,7 +438,7 @@ const createTestComponent = (
       stateManager.set(["Orders", orderId], order).then(() => {
         stateManager.set(
           ["Orders", orderId, "PaymentState"],
-          OrderPaymentState.Committed,
+          OrderPaymentState.Locked,
         );
       });
       stateManager.set(
