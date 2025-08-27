@@ -341,7 +341,7 @@ export default function ListingDetail() {
               <div className="flex flex-col gap-2 min-w-full">
                 <StockMessage stock={stock} isToast />
 
-                <div>
+                <div className={!stock ? "hidden" : "flex gap-2"}>
                   <div>
                     <p className="text-xs text-primary-gray mb-2">Quantity</p>
                     <input
@@ -362,7 +362,7 @@ export default function ListingDetail() {
                     <Button
                       onClick={changeItems}
                       data-testid="addToCart"
-                      // disabled={!quantity || stock < quantity}
+                      disabled={!quantity || stock < quantity}
                     >
                       <div className="flex items-center gap-2">
                         <p>Add to cart</p>
