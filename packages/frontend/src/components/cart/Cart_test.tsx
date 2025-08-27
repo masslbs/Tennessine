@@ -290,11 +290,17 @@ Deno.test(
         const CartTest = createTestComponent(orderId, false);
         const { unmount } = render(<CartTest />, { wrapper });
         const user = userEvent.setup();
+
+        await waitFor(() => {
+          const cartScreen = screen.getAllByTestId("cart-item");
+          expect(cartScreen).toHaveLength(3);
+        });
+
         // Reset inventory for listing 3
         await stateManager.set(["Inventory", listingID3], 1);
         await waitFor(() => {
           const cartScreen = screen.getAllByTestId("cart-item");
-          expect(cartScreen).toHaveLength(3);
+
           // Out of stock message is displayed for listing 3
           const noStockMessage = within(cartScreen[2]).getByTestId(
             "no-stock-msg",

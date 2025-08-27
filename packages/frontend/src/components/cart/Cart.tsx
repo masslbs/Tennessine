@@ -86,6 +86,39 @@ export default function Cart({
     };
   }, [activeOrder, stateManager]);
 
+  useEffect(() => {
+    if (!stateManager) return;
+    const listingIds = Array.from(inventoryMap.keys());
+
+    // Create a map to store event handlers for each key
+    const eventHandlers = new Map();
+
+    listingIds.forEach((key) => {
+      const onInventoryUpdate = (stockNo: CodecValue | undefined) => {
+        if (typeof stockNo !== "number") logError("Inventory is not a number");
+        const updatedInventoryMap = new Map(inventoryMap);
+        updatedInventoryMap.set(key, stockNo as number);
+        setInventoryMap(updatedInventoryMap);
+      };
+
+      // Store the handler reference so we can remove it after
+      eventHandlers.set(key, onInventoryUpdate);
+
+      stateManager.events.on(onInventoryUpdate, ["Inventory", key]);
+    });
+
+    return () => {
+      listingIds.forEach((key) => {
+        const handler = eventHandlers.get(key);
+        if (!handler) {
+          logError(`Handler for ${key} not found`);
+          return;
+        }
+        stateManager.events.off(handler, ["Inventory", key]);
+      });
+    };
+  }, [inventoryMap.keys(), stateManager]);
+
   if (!activeOrder) {
     return <p>No order</p>;
   }
