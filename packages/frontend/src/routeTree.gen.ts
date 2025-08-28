@@ -27,7 +27,7 @@ const ListingDetailLazyImport = createFileRoute('/listing-detail')()
 const CreateShopLazyImport = createFileRoute('/create-shop')()
 const CookieNoticeLazyImport = createFileRoute('/cookie-notice')()
 const ContactLazyImport = createFileRoute('/contact')()
-const CartLazyImport = createFileRoute('/cart')()
+const CheckoutLazyImport = createFileRoute('/checkout')()
 const IndexLazyImport = createFileRoute('/')()
 const MerchantsIndexLazyImport = createFileRoute('/merchants/')()
 const MerchantsShopSettingsLazyImport = createFileRoute(
@@ -115,11 +115,11 @@ const ContactLazyRoute = ContactLazyImport.update({
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/contact.lazy.tsx').then((d) => d.Route))
 
-const CartLazyRoute = CartLazyImport.update({
-  id: '/cart',
-  path: '/cart',
+const CheckoutLazyRoute = CheckoutLazyImport.update({
+  id: '/checkout',
+  path: '/checkout',
   getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/cart.lazy.tsx').then((d) => d.Route))
+} as any).lazy(() => import('./routes/checkout.lazy.tsx').then((d) => d.Route))
 
 const MerchantsRoute = MerchantsImport.update({
   id: '/merchants',
@@ -209,11 +209,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MerchantsImport
       parentRoute: typeof rootRoute
     }
-    '/cart': {
-      id: '/cart'
-      path: '/cart'
-      fullPath: '/cart'
-      preLoaderRoute: typeof CartLazyImport
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutLazyImport
       parentRoute: typeof rootRoute
     }
     '/contact': {
@@ -367,7 +367,7 @@ const MerchantsRouteWithChildren = MerchantsRoute._addFileChildren(
 export interface FileRoutesByFullPath {
   '/': typeof IndexLazyRoute
   '/merchants': typeof MerchantsRouteWithChildren
-  '/cart': typeof CartLazyRoute
+  '/checkout': typeof CheckoutLazyRoute
   '/contact': typeof ContactLazyRoute
   '/cookie-notice': typeof CookieNoticeLazyRoute
   '/create-shop': typeof CreateShopLazyRoute
@@ -389,7 +389,7 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexLazyRoute
-  '/cart': typeof CartLazyRoute
+  '/checkout': typeof CheckoutLazyRoute
   '/contact': typeof ContactLazyRoute
   '/cookie-notice': typeof CookieNoticeLazyRoute
   '/create-shop': typeof CreateShopLazyRoute
@@ -413,7 +413,7 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexLazyRoute
   '/merchants': typeof MerchantsRouteWithChildren
-  '/cart': typeof CartLazyRoute
+  '/checkout': typeof CheckoutLazyRoute
   '/contact': typeof ContactLazyRoute
   '/cookie-notice': typeof CookieNoticeLazyRoute
   '/create-shop': typeof CreateShopLazyRoute
@@ -438,7 +438,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/merchants'
-    | '/cart'
+    | '/checkout'
     | '/contact'
     | '/cookie-notice'
     | '/create-shop'
@@ -459,7 +459,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/cart'
+    | '/checkout'
     | '/contact'
     | '/cookie-notice'
     | '/create-shop'
@@ -481,7 +481,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/merchants'
-    | '/cart'
+    | '/checkout'
     | '/contact'
     | '/cookie-notice'
     | '/create-shop'
@@ -505,7 +505,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexLazyRoute: typeof IndexLazyRoute
   MerchantsRoute: typeof MerchantsRouteWithChildren
-  CartLazyRoute: typeof CartLazyRoute
+  CheckoutLazyRoute: typeof CheckoutLazyRoute
   ContactLazyRoute: typeof ContactLazyRoute
   CookieNoticeLazyRoute: typeof CookieNoticeLazyRoute
   CreateShopLazyRoute: typeof CreateShopLazyRoute
@@ -521,7 +521,7 @@ export interface RootRouteChildren {
 const rootRouteChildren: RootRouteChildren = {
   IndexLazyRoute: IndexLazyRoute,
   MerchantsRoute: MerchantsRouteWithChildren,
-  CartLazyRoute: CartLazyRoute,
+  CheckoutLazyRoute: CheckoutLazyRoute,
   ContactLazyRoute: ContactLazyRoute,
   CookieNoticeLazyRoute: CookieNoticeLazyRoute,
   CreateShopLazyRoute: CreateShopLazyRoute,
@@ -546,7 +546,7 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/merchants",
-        "/cart",
+        "/checkout",
         "/contact",
         "/cookie-notice",
         "/create-shop",
@@ -574,8 +574,8 @@ export const routeTree = rootRoute
         "/merchants/"
       ]
     },
-    "/cart": {
-      "filePath": "cart.lazy.tsx"
+    "/checkout": {
+      "filePath": "checkout.lazy.tsx"
     },
     "/contact": {
       "filePath": "contact.lazy.tsx"
