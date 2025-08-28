@@ -289,7 +289,7 @@ function Navigation() {
                   <div
                     className={isCartEmpty
                       ? "hidden"
-                      : "flex gap-4 bg-white px-5 pb-5"}
+                      : "flex gap-4 bg-white px-5 pb-5 rounded-b-lg"}
                     id="cart-buttons-container"
                   >
                     <Button

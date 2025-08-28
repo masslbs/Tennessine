@@ -318,35 +318,31 @@ export default function Cart({
         image = item.Metadata.Images[0];
       }
       return (
-        <div key={item.ID} className="flex w-full" data-testid="cart-item">
-          <div
-            className="flex justify-center h-28"
-            data-testid={`product-img`}
-          >
-            <img
-              src={image}
-              width={127}
-              height={112}
-              alt="product-thumb"
-              className="w-32 h-28 object-cover object-center rounded-l-lg cursor-pointer"
-              onClick={() => {
-                navigateToListing(item.ID);
-              }}
-            />
-          </div>
-          <div className="bg-background-gray w-full rounded-r-lg px-3 py-4 md:w-full">
-            <div className="flex gap-2">
-              <h3
-                data-testid="listing-title"
-                className="leading-6 cursor-pointer max-w-[150px] md:max-w-[200px]"
+        <div
+          key={item.ID}
+          className="flex w-full flex-col"
+          data-testid="cart-item"
+        >
+          <div className="flex">
+            <div
+              className="flex justify-center h-28 min-w-32"
+              data-testid={`product-img`}
+            >
+              <img
+                src={image}
+                width={127}
+                height={112}
+                alt="product-thumb"
+                className="w-32 h-28 object-cover object-center rounded-l-lg cursor-pointer"
                 onClick={() => {
                   navigateToListing(item.ID);
                 }}
               />
             </div>
+
             <div
-              className={`bg-background-gray w-full px-3 py-4 md:w-[300px] ${
-                inventory > qty ? "rounded-r-lg" : "rounded-tr-lg"
+              className={`bg-background-gray w-full px-3 py-4 ${
+                inventory < 5 ? "rounded-tr-lg" : "rounded-r-lg"
               }`}
             >
               <div className="flex gap-2">
@@ -465,7 +461,6 @@ export default function Cart({
               </div>
             </div>
           </div>
-
           <div>
             <StockMessage stock={qty > inventory ? 0 : inventory} />
           </div>

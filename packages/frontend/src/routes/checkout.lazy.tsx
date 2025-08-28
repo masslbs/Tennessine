@@ -1,9 +1,10 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
+import Checkout from "../components/cart/Checkout.tsx";
 
 export const Route = createLazyFileRoute("/checkout")({
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  return <div>Hello "/checkout"!</div>;
+  return <Checkout />;
 }
