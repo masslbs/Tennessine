@@ -9,7 +9,7 @@ import { getLogger } from "@logtape/logtape";
 import { AddressDetails } from "@massmarket/schema";
 import { useActiveOrder, useStateManager } from "@massmarket/react-hooks";
 
-import Cart from "./Cart.tsx";
+import CartItems from "./CartItems.tsx";
 import TimerToast from "./TimerToast.tsx";
 import Button from "../common/Button.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
@@ -261,7 +261,7 @@ export default function ShippingDetails() {
           </form>
           <section className="hidden md:block">
             <h1 className="pl-5">Order Summary</h1>
-            <Cart showActionButtons={false} />
+            <CartItems showActionButtons={false} />
           </section>
         </section>
       </section>
