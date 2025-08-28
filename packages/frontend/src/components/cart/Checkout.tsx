@@ -1,11 +1,15 @@
 import { useNavigate } from "@tanstack/react-router";
+import { useActiveOrder, useStateManager } from "@massmarket/react-hooks";
+
+import { OrderPaymentState } from "../../types.ts";
 import CartItems from "./CartItems.tsx";
 import BackButton from "../common/BackButton.tsx";
 import Button from "../common/Button.tsx";
 
 export default function Checkout() {
   const navigate = useNavigate();
-
+  const { stateManager } = useStateManager();
+  const { activeOrder } = useActiveOrder();
   return (
     <main data-testid="checkout-screen" className="flex justify-center px-4">
       <section className="w-full md:w-140">
@@ -15,11 +19,16 @@ export default function Checkout() {
         <div className="px-5 pb-5 bg-white rounded-b-lg">
           <Button
             onClick={() => {
-              navigate({
-                to: "/shipping",
-                search: (prev: Record<string, string>) => ({
-                  shopId: prev.shopId,
-                }),
+              stateManager.set(
+                ["Orders", activeOrder.ID, "PaymentState"],
+                OrderPaymentState.Locked,
+              ).then(() => {
+                navigate({
+                  to: "/shipping",
+                  search: (prev: Record<string, string>) => ({
+                    shopId: prev.shopId,
+                  }),
+                });
               });
             }}
           >
