@@ -8,7 +8,6 @@ import { getLogger } from "@logtape/logtape";
 
 import { Listing, Order, OrderedItem } from "@massmarket/schema";
 import { CodecValue } from "@massmarket/utils/codec";
-import { RelayResponseError } from "@massmarket/client";
 import {
   useActiveOrder,
   usePricingCurrency,
@@ -16,7 +15,6 @@ import {
 } from "@massmarket/react-hooks";
 
 import { ListingId, OrderPaymentState } from "../../types.ts";
-import Button from "../common/Button.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import StockMessage from "../common/StockMessage.tsx";
 import { getErrLogger, multiplyAndFormatUnits } from "../../utils/helper.ts";
@@ -25,16 +23,11 @@ import PriceSummary from "./PriceSummary.tsx";
 const baseLogger = getLogger(["mass-market", "frontend", "Cart"]);
 
 export default function Cart({
-  onCheckout,
-  closeCart,
   showActionButtons = true,
 }: {
-  onCheckout?: () => void;
-  closeCart?: () => void;
   showActionButtons?: boolean;
 }) {
-  const { activeOrder, cancelOrder, createOrder, cancelAndRecreateOrder } =
-    useActiveOrder();
+  const { activeOrder, cancelAndRecreateOrder } = useActiveOrder();
   const { pricingCurrency } = usePricingCurrency();
   const { stateManager } = useStateManager();
   const navigate = useNavigate();
@@ -158,78 +151,62 @@ export default function Cart({
     return allCartItems;
   }
 
-  async function handleCheckout() {
-    try {
-      if (!activeOrder) {
-        logger.debug("orderId not found");
-        throw new Error("No order found");
-      }
-      const items = activeOrder.Items;
-      // Check that each item is in stock before committing the order.
-      // If there are any items that we do not have enough inventory for, then we remove the item from the order before committing.
-      await Promise.all(items.map((item) => {
-        const inventory = inventoryMap.get(item.ListingID);
-        if (typeof inventory !== "number") {
-          logError(`Inventory is not a number`);
-        }
-        if (inventory! < item.Quantity) {
-          logger.info(
-            `Removing item ${item.ListingID} from order for checkout`,
-          );
-          removeItem(item.ListingID);
-        }
-      }));
+  // async function handleCheckout() {
+  //   try {
+  //     if (!activeOrder) {
+  //       logger.debug("orderId not found");
+  //       throw new Error("No order found");
+  //     }
+  //     // Commit the order if it is an open order (not committed)
+  //     if (activeOrder!.PaymentState === OrderPaymentState.Open) {
+  //       await stateManager!.set(
+  //         ["Orders", activeOrder!.ID, "PaymentState"],
+  //         OrderPaymentState.Locked,
+  //       );
+  //       logger.debug(`Order ID: ${activeOrder!.ID} committed`);
+  //     }
+  //     onCheckout?.();
+  //   } catch (error) {
+  //     if (
+  //       error instanceof RelayResponseError &&
+  //       error.cause.code === 9 && error.cause.additionalInfo
+  //     ) {
+  //       const objectId = error.cause.additionalInfo.objectId;
+  //       const l = await stateManager!.get(["Listings", objectId]);
+  //       if (!l) throw new Error("Listing not found");
+  //       const listing = Listing.fromCBOR(l);
+  //       setErrorListing(listing);
+  //       setErrorMsg(`Not enough stock for item: ${listing.Metadata.Title}`);
+  //     } else {
+  //       logError("Error checking out", error);
+  //     }
+  //   }
+  // }
 
-      // Commit the order if it is an open order (not committed)
-      if (activeOrder!.PaymentState === OrderPaymentState.Open) {
-        await stateManager!.set(
-          ["Orders", activeOrder!.ID, "PaymentState"],
-          OrderPaymentState.Locked,
-        );
-        logger.debug(`Order ID: ${activeOrder!.ID} committed`);
-      }
-      onCheckout?.();
-    } catch (error) {
-      if (
-        error instanceof RelayResponseError &&
-        error.cause.code === 9 && error.cause.additionalInfo
-      ) {
-        const objectId = error.cause.additionalInfo.objectId;
-        const l = await stateManager!.get(["Listings", objectId]);
-        if (!l) throw new Error("Listing not found");
-        const listing = Listing.fromCBOR(l);
-        setErrorListing(listing);
-        setErrorMsg(`Not enough stock for item: ${listing.Metadata.Title}`);
-      } else {
-        logError("Error checking out", error);
-      }
-    }
-  }
-
-  async function clearCart() {
-    if (!stateManager) {
-      return;
-    }
-    try {
-      if (activeOrder?.PaymentState !== OrderPaymentState.Open) {
-        await cancelOrder();
-        await createOrder();
-        return;
-      }
-      await stateManager.set(
-        ["Orders", activeOrder!.ID, "Items"],
-        [],
-      );
-      setCartMap(new Map());
-      setSelectedQty(new Map());
-      setErrorListing(null);
-      setErrorMsg(null);
-      logger.debug("cart cleared");
-      closeCart?.();
-    } catch (error) {
-      logError("Error clearing cart", error);
-    }
-  }
+  // async function clearCart() {
+  //   if (!stateManager) {
+  //     return;
+  //   }
+  //   try {
+  //     if (activeOrder?.PaymentState !== OrderPaymentState.Open) {
+  //       await cancelOrder();
+  //       await createOrder();
+  //       return;
+  //     }
+  //     await stateManager.set(
+  //       ["Orders", activeOrder!.ID, "Items"],
+  //       [],
+  //     );
+  //     setCartMap(new Map());
+  //     setSelectedQty(new Map());
+  //     setErrorListing(null);
+  //     setErrorMsg(null);
+  //     logger.debug("cart cleared");
+  //     closeCart?.();
+  //   } catch (error) {
+  //     logError("Error clearing cart", error);
+  //   }
+  // }
 
   async function adjustItemQuantity(id: ListingId, add: boolean = true) {
     if (!stateManager) {
@@ -317,7 +294,7 @@ export default function Cart({
         itemId,
       }),
     });
-    closeCart?.();
+    // closeCart?.();
   }
   const icon = pricingCurrency?.symbol === "ETH"
     ? "/icons/eth-coin.svg"
@@ -341,18 +318,27 @@ export default function Cart({
         image = item.Metadata.Images[0];
       }
       return (
-        <div key={item.ID} data-testid="cart-item" className="max-w-fit">
-          <div className="flex">
-            <div
-              className="flex justify-center h-28"
-              data-testid={`product-img`}
-            >
-              <img
-                src={image}
-                width={127}
-                height={112}
-                alt="product-thumb"
-                className="w-32 h-28 object-cover object-center rounded-l-lg cursor-pointer"
+        <div key={item.ID} className="flex w-full" data-testid="cart-item">
+          <div
+            className="flex justify-center h-28"
+            data-testid={`product-img`}
+          >
+            <img
+              src={image}
+              width={127}
+              height={112}
+              alt="product-thumb"
+              className="w-32 h-28 object-cover object-center rounded-l-lg cursor-pointer"
+              onClick={() => {
+                navigateToListing(item.ID);
+              }}
+            />
+          </div>
+          <div className="bg-background-gray w-full rounded-r-lg px-3 py-4 md:w-full">
+            <div className="flex gap-2">
+              <h3
+                data-testid="listing-title"
+                className="leading-6 cursor-pointer max-w-[150px] md:max-w-[200px]"
                 onClick={() => {
                   navigateToListing(item.ID);
                 }}
@@ -494,7 +480,7 @@ export default function Cart({
     : errorListing?.Metadata.Title;
   return (
     <div
-      className="bg-white rounded-lg p-5 pt-[10px]"
+      className="bg-white rounded-t-lg p-5 pt-[10px]"
       data-testid="cart-screen"
     >
       <div className="flex flex-col gap-2 mt-2 max-h-[calc(100vh-20rem)] overflow-y-auto">
@@ -506,38 +492,7 @@ export default function Cart({
           tokenIcon={icon}
         />
       </div>
-      <div
-        className={showActionButtons ? "flex gap-4 mt-2" : "hidden"}
-        id="cart-buttons-container"
-      >
-        <Button
-          disabled={!activeOrder || !cartItemsMap.size}
-          onClick={handleCheckout}
-          data-testid="checkout-button"
-        >
-          <div className="flex items-center gap-2">
-            <p>Checkout</p>
-            <img
-              src="/icons/white-arrow.svg"
-              alt="white-arrow"
-              width={7}
-              height={12}
-              style={{
-                display: !activeOrder || !cartItemsMap.size ? "none" : "",
-              }}
-            />
-          </div>
-        </Button>
-        <button
-          type="button"
-          disabled={!activeOrder || !cartItemsMap.size}
-          onClick={clearCart}
-          data-testid="clear-cart"
-          style={{ backgroundColor: "transparent", padding: 0 }}
-        >
-          <p>Clear cart</p>
-        </button>
-      </div>
+
       <ErrorMessage
         errorMessage={errorMsg}
         onClose={() => {
