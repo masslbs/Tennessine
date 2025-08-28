@@ -177,6 +177,7 @@ function Navigation() {
       );
     });
   }
+  const isCartEmpty = !activeOrder || activeOrder.Items.length < 1;
   return (
     <section>
       {(cartVisible || menuOpen) && (
@@ -286,11 +287,13 @@ function Navigation() {
                   <h1 className="mb-3">Cart</h1>
                   <CartItems />
                   <div
-                    className="flex gap-4 bg-white px-5 pb-5"
+                    className={isCartEmpty
+                      ? "hidden"
+                      : "flex gap-4 bg-white px-5 pb-5"}
                     id="cart-buttons-container"
                   >
                     <Button
-                      disabled={!activeOrder || activeOrder.Items.length < 1}
+                      disabled={isCartEmpty}
                       onClick={() => {
                         setCartVisible(false);
                         navigate({
@@ -310,17 +313,14 @@ function Navigation() {
                           width={7}
                           height={12}
                           style={{
-                            display:
-                              !activeOrder || activeOrder.Items.length < 1
-                                ? "none"
-                                : "",
+                            display: isCartEmpty ? "none" : "",
                           }}
                         />
                       </div>
                     </Button>
                     <button
                       type="button"
-                      disabled={!activeOrder || activeOrder.Items.length < 1}
+                      disabled={isCartEmpty}
                       onClick={() => {}}
                       data-testid="clear-cart"
                       style={{ backgroundColor: "transparent", padding: 0 }}
