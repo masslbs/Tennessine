@@ -47,11 +47,7 @@ const merchantMenu = [
 
 const customerMenu = [
   { title: "Shop", img: "menu-products.svg", href: "/listings" },
-  {
-    title: "Cart",
-    img: "menu-cart.svg",
-    href: `/cart`,
-  },
+
   {
     title: "Contact",
     img: "menu-contact.svg",
@@ -82,7 +78,7 @@ function Navigation() {
   const isMerchantView = keycard?.role === "merchant";
 
   useEffect(() => {
-    // in the hook `useCurrentOrder`, we "reset" currentOrder for the states OrderState.Canceled and OrderState.Paid.
+    // in the hook `useCurrentOrder`, we "reset" currentOrder for the states OrderPaymentState.Canceled and OrderPaymentState.Paid.
     // this is done by setting it to null.
     // TODO (@alp 2025-04-17): raise the question of using a sentinel value for "reset" orderIDs e.g. currentOrder = SENTINEL_ORDER
     //
@@ -246,7 +242,7 @@ function Navigation() {
 
             <h2 className="flex items-center">{shopDetails?.name}</h2>
           </div>
-          <div className="hidden md:flex mr-25 h-[56px] items-center">
+          <div className="hidden md:flex mr-28 h-[56px] items-center">
             <ConnectButton chainStatus="name" />
           </div>
           <section className="absolute right-0 flex">

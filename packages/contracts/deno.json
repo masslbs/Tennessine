@@ -1,11 +1,22 @@
 {
   "name": "@massmarket/contracts",
-  "description": "Functions for interacting with the 'smart' contracts",
-  "version": "0.0.1",
+  "description": "Functions for interacting with the smart contracts",
+  "version": "0.0.2",
   "exports": "./mod.ts",
   "tasks": {
     "build": "deno run --allow-run --allow-sys --allow-env --allow-read  --allow-write npm:@wagmi/cli generate"
   },
-  "imports": {
-  }
+  "publish": {
+    "exclude": [
+      "!src/",
+      "wagmi.contracts.ts"
+    ]
+  },
+  "lint": {
+    "exclude": ["src/"]
+  },
+  "fmt": {
+    "exclude": ["src/"]
+  },
+  "license": "MPL-2.0"
 }

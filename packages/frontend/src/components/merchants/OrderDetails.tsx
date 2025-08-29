@@ -15,8 +15,8 @@ import { getTokenInformation } from "@massmarket/contracts";
 import { usePricingCurrency, useStateManager } from "@massmarket/react-hooks";
 
 import BackButton from "../common/BackButton.tsx";
-import { ListingId, OrderState } from "../../types.ts";
-import { formatDate, OrderStateFromNumber } from "../../utils/mod.ts";
+import { ListingId, OrderPaymentState } from "../../types.ts";
+import { formatDate, OrderPaymentStateFromNumber } from "../../utils/mod.ts";
 
 const baseLogger = getLogger(["mass-market", "frontend", "OrderDetails"]);
 
@@ -81,7 +81,7 @@ export default function OrderDetails() {
   }, [orderId, stateManager]);
 
   useEffect(() => {
-    if (order?.State === OrderState.Paid) {
+    if (order?.PaymentState === OrderPaymentState.Paid) {
       const id = order.ChosenCurrency!.ChainID;
       order.TxDetails!.TxHash && setTxHash(toHex(order.TxDetails!.TxHash!));
       order.TxDetails!.BlockHash &&
@@ -257,7 +257,9 @@ export default function OrderDetails() {
             </div>
             <div className="bg-white p-2 rounded-lg flex whitespace-nowrap">
               <p className="mr-2">Status:</p>
-              <p className="font-bold">{OrderStateFromNumber(order.State)}</p>
+              <p className="font-bold">
+                {OrderPaymentStateFromNumber(order.PaymentState)}
+              </p>
             </div>
           </div>
           <div className="bg-white p-2 rounded-lg flex mt-1">

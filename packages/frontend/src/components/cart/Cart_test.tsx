@@ -1,6 +1,12 @@
 import "../../happyDomSetup.ts";
 import { useEffect, useState } from "react";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { expect } from "@std/expect";
 import { userEvent } from "@testing-library/user-event";
 
@@ -18,10 +24,11 @@ import {
   denoTestOptions,
   testWrapper,
 } from "../../testutils/_createWrapper.tsx";
-import { OrderState } from "../../types.ts";
+import { OrderPaymentState } from "../../types.ts";
 
 const listingID = 23;
 const listingID2 = 42;
+const listingID3 = 666;
 
 Deno.test(
   "Cart",
@@ -36,13 +43,18 @@ Deno.test(
 
     await t.step("Add listings.", async () => {
       for (const [id, listing] of allListings.entries()) {
+        console.log("ID!!", id);
         if (id === listingID) {
           listing.Price = 300000000000000n;
-        } else if (id === listingID2) {
+        } else {
           listing.Price = 700000000000000n;
         }
         await stateManager.set(["Listings", id], listing);
-        await stateManager.set(["Inventory", id], 100);
+        if (id === listingID2) {
+          await stateManager.set(["Inventory", id], 4);
+        } else {
+          await stateManager.set(["Inventory", id], 100);
+        }
       }
 
       await waitFor(async () => {
@@ -54,62 +66,6 @@ Deno.test(
       });
     });
 
-    //FIXME: This test fails in the CI, but passes locally.
-
-    // await t.step("Out of stock error", async () => {
-    //   const orderId = randUint64();
-
-    //   const wrapper = createWrapper(shopId);
-    //   const CartTest = createTestComponent(orderId, false);
-    //   const { unmount } = render(<CartTest />, { wrapper });
-    //   const user = userEvent.setup();
-
-    //   const wantTotalPrice = "0.0635";
-
-    //   await waitFor(() => {
-    //     const titles = screen.getAllByTestId("listing-title");
-    //     expect(titles).toHaveLength(2);
-    //     expect(titles[0].textContent).toContain("test");
-    //     expect(titles[1].textContent).toContain("test42");
-    //     const selectedQty = screen.getAllByTestId("selected-qty");
-    //     expect(selectedQty).toHaveLength(2);
-    //     expect(selectedQty[0].textContent).toContain("200");
-    //     expect(selectedQty[1].textContent).toContain("5");
-    //     expect(screen.getByTestId("total-price").textContent).toBe(
-    //       wantTotalPrice,
-    //     );
-    //   });
-
-    //   const checkoutButton1 = screen.getByTestId("checkout-button");
-    //   expect(checkoutButton1).toBeTruthy();
-    //   await user.click(checkoutButton1);
-
-    //   // Wait for the error message to appear after the error is caught and handled
-    //   await waitFor(() => {
-    //     const outOfStockMsg = screen.getByTestId("out-of-stock");
-    //     expect(outOfStockMsg).toBeTruthy();
-    //     expect(outOfStockMsg.textContent).toContain(
-    //       `Please reduce quantity or remove from cart to proceed.`,
-    //     );
-    //   });
-
-    //   // Remove item and try to checkout again
-    //   const removeButton = screen.getByTestId("remove-item-23");
-    //   expect(removeButton).toBeTruthy();
-    //   await user.click(removeButton);
-    //   const checkoutButton2 = screen.getByTestId("checkout-button");
-    //   expect(checkoutButton2).toBeTruthy();
-    //   await user.click(checkoutButton2);
-
-    //   await waitFor(async () => {
-    //     const orderData = await stateManager.get(["Orders", orderId]);
-    //     const o = Order.fromCBOR(orderData!);
-    //     expect(o.State).toBe(OrderState.Committed);
-    //   });
-
-    //   unmount();
-    // });
-
     await t.step("Add/remove quantity from item", async () => {
       const orderId = randUint64();
       const wrapper = createWrapper(shopId);
@@ -119,7 +75,7 @@ Deno.test(
 
       await waitFor(() => {
         const cartScreen = screen.getAllByTestId("cart-item");
-        expect(cartScreen).toHaveLength(2);
+        expect(cartScreen).toHaveLength(3);
       });
       // +1 to listing 1
       const addButton = await screen.findByTestId(
@@ -131,7 +87,7 @@ Deno.test(
         const quantity = screen.getByTestId(
           `quantity-${listingID}`,
         );
-        expect(quantity.textContent).toContain("201");
+        expect(quantity.textContent).toContain("91");
       });
       // -1 from listing 2
       const minusQty = await screen.findByTestId(
@@ -142,7 +98,7 @@ Deno.test(
         const quantity = screen.getByTestId(
           `quantity-${listingID2}`,
         );
-        expect(quantity.textContent).toContain("4");
+        expect(quantity.textContent).toContain("3");
       });
       // Check statemanager updated correctly.
       await waitFor(async () => {
@@ -150,12 +106,59 @@ Deno.test(
         expect(updatedOrder).toBeDefined();
         const updatedOrderItems = Order.fromCBOR(updatedOrder!).Items;
         expect(updatedOrderItems[0].ListingID).toBe(listingID);
-        expect(updatedOrderItems[0].Quantity).toBe(201);
+        expect(updatedOrderItems[0].Quantity).toBe(91);
         expect(updatedOrderItems[1].ListingID).toBe(listingID2);
-        expect(updatedOrderItems[1].Quantity).toBe(4);
+        expect(updatedOrderItems[1].Quantity).toBe(3);
       });
       unmount();
     });
+
+    await t.step(
+      "User cannot add more items than stock available",
+      async () => {
+        const orderId = randUint64();
+        const wrapper = createWrapper(shopId);
+        const CartTest = createTestComponent(orderId, false);
+        const { unmount } = render(<CartTest />, { wrapper });
+        const user = userEvent.setup();
+
+        await waitFor(() => {
+          const cartScreen = screen.getAllByTestId("cart-item");
+          expect(cartScreen).toHaveLength(3);
+          // Low stock message is displayed for listing 2.
+          const lowStockMessage = within(cartScreen[1]).getByTestId(
+            "low-stock-msg",
+          );
+          expect(lowStockMessage).toBeDefined();
+        });
+
+        const addButton = await screen.findByTestId(
+          `add-quantity-${listingID3}`,
+        );
+        await user.click(addButton);
+
+        await waitFor(() => {
+          const quantity = screen.getByTestId(
+            `quantity-${listingID3}`,
+          );
+          expect(quantity.textContent).toContain("100");
+        });
+
+        await waitFor(async () => {
+          // Expect the order items to not have changed
+          const updatedOrder = await stateManager.get(["Orders", orderId]);
+          expect(updatedOrder).toBeDefined();
+          const updatedOrderItems = Order.fromCBOR(updatedOrder!).Items;
+          expect(updatedOrderItems[0].ListingID).toBe(listingID);
+          expect(updatedOrderItems[0].Quantity).toBe(90);
+          expect(updatedOrderItems[1].ListingID).toBe(listingID2);
+          expect(updatedOrderItems[1].Quantity).toBe(4);
+          expect(updatedOrderItems[2].ListingID).toBe(listingID3);
+          expect(updatedOrderItems[2].Quantity).toBe(100);
+        });
+        unmount();
+      },
+    );
 
     await t.step("Clear cart", async () => {
       const orderId = randUint64();
@@ -166,7 +169,7 @@ Deno.test(
 
       await waitFor(() => {
         const items = screen.getAllByTestId("cart-item");
-        expect(items).toHaveLength(2);
+        expect(items).toHaveLength(3);
       });
       const clearCart = await screen.findByTestId("clear-cart");
       await user.click(clearCart);
@@ -185,7 +188,7 @@ Deno.test(
       unmount();
     });
 
-    //Committed order
+    // Testing committed order
 
     await t.step("Changing items after order is committed", async () => {
       const wrapper = createWrapper(shopId);
@@ -211,7 +214,7 @@ Deno.test(
         const quantity = screen.getByTestId(
           `quantity-${listingID2}`,
         );
-        expect(quantity.textContent).toContain("25");
+        expect(quantity.textContent).toContain("4");
       });
       console.log("Cart Test - committed order: correct quantity displayed");
 
@@ -220,17 +223,18 @@ Deno.test(
           number,
           unknown
         >;
+
         const o = orders.get(orderId) as CodecValue;
         expect(o).toBeDefined();
         const order = Order.fromCBOR(o!);
         expect(order.CanceledAt).toBeDefined();
-        expect(order.State).toBe(OrderState.Canceled);
+        expect(order.PaymentState).toBe(OrderPaymentState.Canceled);
         // The new order should have the same items as the committed order.
         const newOrder = Array.from(orders.values()).pop() as CodecValue;
         const newOrderItems = Order.fromCBOR(newOrder).Items;
         expect(newOrderItems).toHaveLength(2);
         expect(newOrderItems[1].ListingID).toBe(listingID2);
-        expect(newOrderItems[1].Quantity).toBe(25);
+        expect(newOrderItems[1].Quantity).toBe(4);
       }, { timeout: 10000 });
       unmount();
     });
@@ -269,7 +273,7 @@ Deno.test(
         const o = orders.get(orderId) as CodecValue;
         const order = Order.fromCBOR(o!);
         expect(order.CanceledAt).toBeDefined();
-        expect(order.State).toBe(OrderState.Canceled);
+        expect(order.PaymentState).toBe(OrderPaymentState.Canceled);
         // The new order should have no items.
         const newOrder = Array.from(orders.values()).pop() as CodecValue;
         const newOrderItems = Order.fromCBOR(newOrder).Items;
@@ -277,6 +281,49 @@ Deno.test(
       }, { timeout: 10000 });
       unmount();
     });
+
+    await t.step(
+      "Commit order with an item that is out of stock",
+      async () => {
+        const wrapper = createWrapper(shopId);
+        const orderId = randUint64();
+        const CartTest = createTestComponent(orderId, false);
+        const { unmount } = render(<CartTest />, { wrapper });
+        const user = userEvent.setup();
+
+        await waitFor(() => {
+          const cartScreen = screen.getAllByTestId("cart-item");
+          expect(cartScreen).toHaveLength(3);
+        });
+
+        // Reset inventory for listing 3
+        await stateManager.set(["Inventory", listingID3], 1);
+        await waitFor(() => {
+          const cartScreen = screen.getAllByTestId("cart-item");
+
+          // Out of stock message is displayed for listing 3
+          const noStockMessage = within(cartScreen[2]).getByTestId(
+            "no-stock-msg",
+          );
+          expect(noStockMessage).toBeDefined();
+        });
+
+        const checkoutButton = await screen.findByTestId("checkout-button");
+        await user.click(checkoutButton);
+
+        await waitFor(async () => {
+          // The order that is committed should omit the item that is out of stock.
+          const order = await stateManager.get(["Orders", orderId]);
+          const o = Order.fromCBOR(order!);
+          expect(o.PaymentState).toBe(OrderPaymentState.Locked);
+          expect(o.Items).toHaveLength(2);
+          // Listing 3 should be removed from the committed order.
+          expect(o.Items[0].ListingID).toBe(listingID);
+          expect(o.Items[1].ListingID).toBe(listingID2);
+        });
+        unmount();
+      },
+    );
 
     cleanup();
   }),
@@ -313,15 +360,22 @@ const createTestComponent = (oId: number, commitOrder: boolean) => {
         commitOrder
           ? [
             new OrderedItem(listingID, 32),
-            new OrderedItem(listingID2, 24),
+            new OrderedItem(listingID2, 3),
           ]
-          : [new OrderedItem(listingID, 200), new OrderedItem(listingID2, 5)],
-        OrderState.Open,
+          : [
+            new OrderedItem(listingID, 90),
+            new OrderedItem(listingID2, 4),
+            new OrderedItem(listingID3, 100),
+          ],
+        OrderPaymentState.Open,
       );
 
       stateManager.set(["Orders", oId], order).then(() => {
         if (!commitOrder) return;
-        stateManager.set(["Orders", oId, "State"], OrderState.Committed);
+        stateManager.set(
+          ["Orders", oId, "PaymentState"],
+          OrderPaymentState.Locked,
+        );
       });
     }, [listingsLoaded]);
 

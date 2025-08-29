@@ -5,7 +5,7 @@ import { mainnet, sepolia } from "wagmi/chains";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { discoverRelay, RelayClient } from "@massmarket/client";
 import { random256BigInt } from "@massmarket/utils";
-import { relayURL, testClient } from "./testutils/_createWrapper.tsx";
+import { testClient } from "./testutils/_createWrapper.tsx";
 
 Deno.test("check that we can render the app", {
   sanitizeResources: false,
@@ -45,7 +45,7 @@ Deno.test("check that we can connect to the relay client", {
   await t.step("can create and connect to relay client", async () => {
     // Create relay client
     const shopId = random256BigInt();
-    const relayEndpoint = await discoverRelay(relayURL);
+    const relayEndpoint = await discoverRelay();
 
     const client = new RelayClient({
       relayEndpoint,
