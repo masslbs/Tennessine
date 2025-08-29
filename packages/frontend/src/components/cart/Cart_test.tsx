@@ -315,7 +315,7 @@ Deno.test(
           // The order that is committed should omit the item that is out of stock.
           const order = await stateManager.get(["Orders", orderId]);
           const o = Order.fromCBOR(order!);
-          expect(o.PaymentState).toBe(OrderPaymentState.Committed);
+          expect(o.PaymentState).toBe(OrderPaymentState.Locked);
           expect(o.Items).toHaveLength(2);
           // Listing 3 should be removed from the committed order.
           expect(o.Items[0].ListingID).toBe(listingID);
