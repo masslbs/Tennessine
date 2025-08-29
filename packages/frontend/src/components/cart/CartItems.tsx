@@ -380,7 +380,9 @@ export default function Cart({
 
               <div
                 className={`flex gap-2 items-center mt-4 pt-3 border-t border-gray-300 w-full ${
-                  inventory === 0 ? "cursor-not-allowed opacity-30" : ""
+                  (inventory === 0 && showActionButtons)
+                    ? "cursor-not-allowed opacity-30"
+                    : ""
                 }`}
               >
                 <div
@@ -461,7 +463,7 @@ export default function Cart({
               </div>
             </div>
           </div>
-          <div>
+          <div className={showActionButtons ? "" : "hidden"}>
             <StockMessage stock={qty > inventory ? 0 : inventory} />
           </div>
         </div>

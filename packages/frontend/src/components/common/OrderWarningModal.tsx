@@ -14,7 +14,7 @@ export default function OrderWarningModal(
     <Modal>
       <h2 className="mb-4">Before you leave...</h2>
       <p>If you leave this page, your items will no longer be reserved.</p>
-      <section className="mt-5">
+      <section className="mt-5 flex gap-3">
         <Button onClick={() => reset()}>
           Continue checkout
         </Button>
