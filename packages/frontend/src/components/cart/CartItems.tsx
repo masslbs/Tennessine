@@ -183,31 +183,6 @@ export default function Cart({
   //   }
   // }
 
-  // async function clearCart() {
-  //   if (!stateManager) {
-  //     return;
-  //   }
-  //   try {
-  //     if (activeOrder?.PaymentState !== OrderPaymentState.Open) {
-  //       await cancelOrder();
-  //       await createOrder();
-  //       return;
-  //     }
-  //     await stateManager.set(
-  //       ["Orders", activeOrder!.ID, "Items"],
-  //       [],
-  //     );
-  //     setCartMap(new Map());
-  //     setSelectedQty(new Map());
-  //     setErrorListing(null);
-  //     setErrorMsg(null);
-  //     logger.debug("cart cleared");
-  //     closeCart?.();
-  //   } catch (error) {
-  //     logError("Error clearing cart", error);
-  //   }
-  // }
-
   async function adjustItemQuantity(id: ListingId, add: boolean = true) {
     if (!stateManager) {
       return;

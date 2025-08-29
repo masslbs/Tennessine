@@ -115,6 +115,13 @@ function Navigation() {
     cartVisible && setCartVisible(false);
   }
 
+  async function clearCart() {
+    await stateManager!.set(
+      ["Orders", activeOrder!.ID, "Items"],
+      [],
+    );
+  }
+
   function renderMenuItems() {
     const menuItems = !keycard
       ? massMarketMenu
@@ -321,7 +328,7 @@ function Navigation() {
                     <button
                       type="button"
                       disabled={isCartEmpty}
-                      onClick={() => {}}
+                      onClick={clearCart}
                       data-testid="clear-cart"
                       style={{ backgroundColor: "transparent", padding: 0 }}
                     >
