@@ -17,7 +17,6 @@ const baseLogger = getLogger(["mass-market", "frontend", "Checkout"]);
 
 export default function Checkout() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [errorListing, setErrorListing] = useState<Listing | null>(null);
   const navigate = useNavigate();
   const { stateManager } = useStateManager();
   const { activeOrder } = useActiveOrder();
@@ -45,7 +44,6 @@ export default function Checkout() {
         const l = await stateManager!.get(["Listings", objectId]);
         if (!l) throw new Error("Listing not found");
         const listing = Listing.fromCBOR(l);
-        setErrorListing(listing);
         setErrorMsg(`Not enough stock for item: ${listing.Metadata.Title}`);
       } else {
         logError("Error checking out", error);
@@ -53,17 +51,17 @@ export default function Checkout() {
     }
   }
 
-  const MAX_TITLE_LEN = 20;
-
-  const oosTitle = (errorListing?.Metadata.Title.length || 0) > MAX_TITLE_LEN
-    ? errorListing?.Metadata.Title.slice(0, MAX_TITLE_LEN) + "..."
-    : errorListing?.Metadata.Title;
-
   return (
     <main data-testid="checkout-screen" className="flex justify-center px-4">
       <section className="w-full md:w-140">
         <BackButton />
         <h1 className="my-[10px]">Checkout</h1>
+        <ErrorMessage
+          errorMessage={errorMsg}
+          onClose={() => {
+            setErrorMsg(null);
+          }}
+        />
         <CartItems />
         <div className="px-5 pb-5 bg-white rounded-b-lg">
           <Button
@@ -84,20 +82,6 @@ export default function Checkout() {
           </Button>
         </div>
       </section>
-      <ErrorMessage
-        errorMessage={errorMsg}
-        onClose={() => {
-          setErrorMsg(null);
-          setErrorListing(null);
-        }}
-      />
-      {errorListing && (
-        <p data-testid="out-of-stock" className="my-2 text-red-500">
-          Item <span className="font-bold">{oosTitle}</span>{" "}
-          is out of stock. Please reduce quantity or remove from cart to
-          proceed.
-        </p>
-      )}
     </main>
   );
 }

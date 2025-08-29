@@ -69,7 +69,7 @@ Deno.test(
     await t.step("Add/remove quantity from item", async () => {
       const orderId = randUint64();
       const wrapper = createWrapper(shopId);
-      const CartTest = createTestComponent(orderId, false);
+      const CartTest = createTestComponent(orderId);
       const { unmount } = render(<CartTest />, { wrapper });
       const user = userEvent.setup();
 
@@ -118,7 +118,7 @@ Deno.test(
       async () => {
         const orderId = randUint64();
         const wrapper = createWrapper(shopId);
-        const CartTest = createTestComponent(orderId, false);
+        const CartTest = createTestComponent(orderId);
         const { unmount } = render(<CartTest />, { wrapper });
         const user = userEvent.setup();
 
@@ -163,7 +163,7 @@ Deno.test(
     await t.step("Clear cart", async () => {
       const orderId = randUint64();
       const wrapper = createWrapper(shopId);
-      const CartTest = createTestComponent(orderId, false);
+      const CartTest = createTestComponent(orderId);
       const { unmount } = render(<CartTest />, { wrapper });
       const user = userEvent.setup();
 
@@ -192,7 +192,7 @@ Deno.test(
   }),
 );
 
-const createTestComponent = (oId: number, commitOrder: boolean) => {
+const createTestComponent = (oId: number) => {
   return () => {
     const { stateManager } = useStateManager();
     const [listingsLoaded, setLoading] = useState<boolean>(
@@ -220,26 +220,15 @@ const createTestComponent = (oId: number, commitOrder: boolean) => {
       // Create order
       const order = new Order(
         oId,
-        commitOrder
-          ? [
-            new OrderedItem(listingID, 32),
-            new OrderedItem(listingID2, 3),
-          ]
-          : [
-            new OrderedItem(listingID, 90),
-            new OrderedItem(listingID2, 4),
-            new OrderedItem(listingID3, 100),
-          ],
+        [
+          new OrderedItem(listingID, 90),
+          new OrderedItem(listingID2, 4),
+          new OrderedItem(listingID3, 100),
+        ],
         OrderPaymentState.Open,
       );
 
-      stateManager.set(["Orders", oId], order).then(() => {
-        if (!commitOrder) return;
-        stateManager.set(
-          ["Orders", oId, "PaymentState"],
-          OrderPaymentState.Locked,
-        );
-      });
+      stateManager.set(["Orders", oId], order);
     }, [listingsLoaded]);
 
     return <Navigation />;
