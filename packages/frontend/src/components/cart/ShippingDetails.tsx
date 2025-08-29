@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouter } from "@tanstack/react-router";
 
 import { getLogger } from "@logtape/logtape";
 import { AddressDetails } from "@massmarket/schema";
@@ -16,6 +16,7 @@ import ErrorMessage from "../common/ErrorMessage.tsx";
 import ValidationWarning from "../common/ValidationWarning.tsx";
 import { getErrLogger, isValidEmail } from "../../utils/mod.ts";
 import BackButton from "../common/BackButton.tsx";
+import { OrderPaymentState } from "../../types.ts";
 
 const baseLogger = getLogger(["mass-market", "frontend", "ShippingDetails"]);
 
@@ -23,6 +24,7 @@ export default function ShippingDetails() {
   const { activeOrder } = useActiveOrder();
   const { stateManager } = useStateManager();
   const navigate = useNavigate();
+  const router = useRouter();
   const [invoiceAddress, setInvoiceAddress] = useState<AddressDetails>(
     new AddressDetails(),
   );
@@ -33,6 +35,23 @@ export default function ShippingDetails() {
     orderId: activeOrder?.ID,
   });
   const logError = getErrLogger(logger, setErrorMsg);
+
+  useEffect(() => {
+    if (!stateManager) return;
+    const unsubscribe = router.subscribe("onBeforeNavigate", (event) => {
+      // If user navigates away to any other screen rather than proceeding with payment, then unlock the order, which will release the inventory.
+      if (event.toLocation.pathname !== "/pay") {
+        stateManager!.set(
+          ["Orders", activeOrder!.ID, "PaymentState"],
+          OrderPaymentState.Open,
+        );
+        logger.info`Order ${activeOrder!.ID} unlocked.`;
+      }
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, [stateManager]);
 
   useEffect(() => {
     activeOrder?.InvoiceAddress &&

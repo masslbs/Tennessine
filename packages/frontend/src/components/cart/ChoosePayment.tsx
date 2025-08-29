@@ -13,6 +13,7 @@ import {
 import { assert } from "@std/assert";
 import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 import { getLogger } from "@logtape/logtape";
+import { useRouter } from "@tanstack/react-router";
 
 import {
   abi,
@@ -52,8 +53,9 @@ const baseLogger = getLogger(["mass-market", "frontend", "ChoosePayment"]);
 const paymentsByAddressAbi = abi.paymentsByAddressAbi;
 
 export default function ChoosePayment() {
+  const router = useRouter();
   const { shopId } = useShopId();
-  const { activeOrder } = useActiveOrder();
+  const { activeOrder, cancelAndRecreateOrder } = useActiveOrder();
   const chains = useChains();
   const { stateManager } = useStateManager();
   const addRecentTransaction = useAddRecentTransaction();
@@ -89,7 +91,21 @@ export default function ChoosePayment() {
     orderId: activeOrder?.ID,
   });
   const logError = getErrLogger(baseLogger, setErrorMsg);
+  useEffect(() => {
+    const unsubscribe = router.subscribe("onBeforeNavigate", () => {
+      if (activeOrder && !activeOrder.TxDetails) {
+        //TODO: if there is a payment in flight, then don't cancel the order.
+        logger
+          .info`User has navigated away from payment screen before completing payment for order: ${activeOrder.ID}.`;
+        // If user navigates away from the payment screen without having paid, cancel and recreate the order.
+        cancelAndRecreateOrder();
+      }
+    });
 
+    return () => {
+      unsubscribe();
+    };
+  });
   useEffect(() => {
     function onManifestUpdate(res: CodecValue) {
       const m = Manifest.fromCBOR(res);

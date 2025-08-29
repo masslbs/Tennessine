@@ -18,9 +18,10 @@ export default function Checkout() {
         <CartItems />
         <div className="px-5 pb-5 bg-white rounded-b-lg">
           <Button
+            disabled={!activeOrder}
             onClick={() => {
-              stateManager.set(
-                ["Orders", activeOrder.ID, "PaymentState"],
+              stateManager!.set(
+                ["Orders", activeOrder!.ID, "PaymentState"],
                 OrderPaymentState.Locked,
               ).then(() => {
                 navigate({
