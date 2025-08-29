@@ -47,11 +47,7 @@ const merchantMenu = [
 
 const customerMenu = [
   { title: "Shop", img: "menu-products.svg", href: "/listings" },
-  {
-    title: "Cart",
-    img: "menu-cart.svg",
-    href: `/cart`,
-  },
+
   {
     title: "Contact",
     img: "menu-contact.svg",

@@ -390,7 +390,7 @@ export default function ListingDetail() {
               <SuccessToast
                 message={successMsg}
                 onClose={() => setMsg(null)}
-                cta={{ copy: "View Cart", href: "/cart" }}
+                cta={{ copy: "View Cart", href: "/checkout" }}
               />
             </div>
           </section>
