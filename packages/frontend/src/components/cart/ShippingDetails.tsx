@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useState } from "react";
-import { useNavigate, useRouter } from "@tanstack/react-router";
+import { useBlocker, useNavigate } from "@tanstack/react-router";
 
 import { getLogger } from "@logtape/logtape";
 import { AddressDetails } from "@massmarket/schema";
@@ -14,6 +14,7 @@ import TimerToast from "./TimerToast.tsx";
 import Button from "../common/Button.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import ValidationWarning from "../common/ValidationWarning.tsx";
+import OrderWarningModal from "../common/OrderWarningModal.tsx";
 import { getErrLogger, isValidEmail } from "../../utils/mod.ts";
 import BackButton from "../common/BackButton.tsx";
 import { OrderPaymentState } from "../../types.ts";
@@ -24,40 +25,37 @@ export default function ShippingDetails() {
   const { activeOrder } = useActiveOrder();
   const { stateManager } = useStateManager();
   const navigate = useNavigate();
-  const router = useRouter();
   const [invoiceAddress, setInvoiceAddress] = useState<AddressDetails>(
     new AddressDetails(),
   );
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
-
   const logger = baseLogger.with({
     orderId: activeOrder?.ID,
   });
   const logError = getErrLogger(logger, setErrorMsg);
 
-  useEffect(() => {
-    if (!stateManager) return;
-    const unsubscribe = router.subscribe("onBeforeNavigate", (event) => {
-      // If user navigates away to any other screen rather than proceeding with payment, then unlock the order, which will release the inventory.
-      if (event.toLocation.pathname !== "/pay") {
-        stateManager!.set(
-          ["Orders", activeOrder!.ID, "PaymentState"],
-          OrderPaymentState.Open,
-        );
-        logger.info`Order ${activeOrder!.ID} unlocked.`;
-      }
-    });
-    return () => {
-      unsubscribe();
-    };
-  }, [stateManager]);
+  const { proceed, reset, status } = useBlocker({
+    shouldBlockFn: ({ next }) => {
+      console.log({ next });
+      return !next.pathname.includes("/pay");
+    },
+    withResolver: true,
+  });
 
   useEffect(() => {
     activeOrder?.InvoiceAddress &&
       setInvoiceAddress(activeOrder.InvoiceAddress);
   }, [activeOrder]);
 
+  function unlockOrder() {
+    stateManager!.set(
+      ["Orders", activeOrder!.ID, "PaymentState"],
+      OrderPaymentState.Open,
+    );
+    logger.info`Order ${activeOrder!.ID} unlocked.`;
+    proceed!();
+  }
   function scroll() {
     const element = document.getElementById("top");
     element?.scrollIntoView();
@@ -145,142 +143,152 @@ export default function ShippingDetails() {
   }
 
   return (
-    <main className="md:flex justify-center">
-      <section
-        className="md:w-[1000px] px-4 md:px-0"
-        data-testid="shipping-details"
-      >
-        <BackButton />
-        <h1 className="my-[10px]">Shipping details</h1>
-        <section className="flex flex-row justify-center gap-12 bg-white p-5 rounded-lg">
-          <form
-            className="flex flex-col"
-            onSubmit={(e) => {
-              e.preventDefault();
-            }}
-          >
-            <TimerToast />
-            <div className="mt-2">
-              <ErrorMessage
-                errorMessage={errorMsg}
-                onClose={() => {
-                  setErrorMsg(null);
-                }}
-              />
-              <ValidationWarning
-                warning={validationError}
-                onClose={() => {
-                  setValidationError(null);
-                }}
-              />
-            </div>
-
-            <label className="mt-5" htmlFor="name">Name</label>
-            <input
-              className="mt-1 p-3 rounded-2xl"
-              style={{ backgroundColor: "#F3F3F3" }}
-              id="name"
-              name="name"
-              data-testid="name"
-              value={invoiceAddress.Name}
-              onChange={(e) => handleFormChange("Name", e.target.value)}
-            />
-            <label htmlFor="address">Address</label>
-            <input
-              className="mt-1 p-3 rounded-2xl"
-              style={{ backgroundColor: "#F3F3F3" }}
-              id="address"
-              name="address"
-              data-testid="address"
-              value={invoiceAddress.Address1}
-              onChange={(e) => handleFormChange("Address1", e.target.value)}
-            />
-            <div className="flex gap-2">
-              <div>
-                <label htmlFor="city">City</label>
-                <input
-                  className="mt-1 p-3 rounded-2xl	w-full"
-                  style={{ backgroundColor: "#F3F3F3" }}
-                  id="city"
-                  name="city"
-                  data-testid="city"
-                  value={invoiceAddress.City}
-                  onChange={(e) => handleFormChange("City", e.target.value)}
+    <main>
+      <OrderWarningModal
+        showModal={status === "blocked"}
+        proceed={unlockOrder}
+        reset={reset!}
+      />
+      <section className="md:flex justify-center">
+        <section
+          className="md:w-[1000px] px-4 md:px-0"
+          data-testid="shipping-details"
+        >
+          <BackButton />
+          <h1 className="my-[10px]">Shipping details</h1>
+          <section className="flex flex-row justify-center gap-12 bg-white p-5 rounded-lg">
+            <form
+              className="flex flex-col"
+              onSubmit={(e) => {
+                e.preventDefault();
+              }}
+            >
+              <TimerToast />
+              <div className="mt-2">
+                <ErrorMessage
+                  errorMessage={errorMsg}
+                  onClose={() => {
+                    setErrorMsg(null);
+                  }}
+                />
+                <ValidationWarning
+                  warning={validationError}
+                  onClose={() => {
+                    setValidationError(null);
+                  }}
                 />
               </div>
-              <div>
-                <label htmlFor="postal">Zip/Postal</label>
-                <input
-                  className="mt-1 p-3 rounded-2xl	w-full"
-                  style={{ backgroundColor: "#F3F3F3" }}
-                  id="zip"
-                  name="zip"
-                  data-testid="zip"
-                  value={invoiceAddress.PostalCode}
-                  onChange={(e) =>
-                    handleFormChange("PostalCode", e.target.value)}
-                />
-              </div>
-            </div>
 
-            <label htmlFor="country">Country</label>
-            <input
-              className="mt-1 p-3 rounded-2xl"
-              style={{ backgroundColor: "#F3F3F3" }}
-              id="country"
-              name="country"
-              data-testid="country"
-              value={invoiceAddress.Country}
-              onChange={(e) => handleFormChange("Country", e.target.value)}
-            />
-            <h2 className="my-3">Contact details</h2>
-            <p>
-              Let the seller contact you if there is an issue with the order
-              (Recommended).
-            </p>
-            <div className="mt-3 flex flex-col">
-              <label htmlFor="email">Email (optional)</label>
+              <label className="mt-5" htmlFor="name">Name</label>
               <input
                 className="mt-1 p-3 rounded-2xl"
                 style={{ backgroundColor: "#F3F3F3" }}
-                id="email"
-                name="email"
-                data-testid="email"
-                value={invoiceAddress.EmailAddress}
-                onChange={(e) =>
-                  handleFormChange("EmailAddress", e.target.value)}
+                id="name"
+                name="name"
+                data-testid="name"
+                value={invoiceAddress.Name}
+                onChange={(e) => handleFormChange("Name", e.target.value)}
               />
-              <label htmlFor="phoneNumber">Phone Number (optional)</label>
+              <label htmlFor="address">Address</label>
               <input
                 className="mt-1 p-3 rounded-2xl"
                 style={{ backgroundColor: "#F3F3F3" }}
-                id="phone"
-                name="phone"
-                data-testid="phone"
-                value={invoiceAddress.PhoneNumber}
-                onChange={(e) =>
-                  handleFormChange("PhoneNumber", e.target.value)}
+                id="address"
+                name="address"
+                data-testid="address"
+                value={invoiceAddress.Address1}
+                onChange={(e) => handleFormChange("Address1", e.target.value)}
               />
-            </div>
-            <div className="mt-3">
-              <Button onClick={onSubmitForm} data-testid="goto-payment-options">
-                <div className="flex items-center gap-2">
-                  <p>
-                    Payment options
-                  </p>
-                  <img
-                    src="/icons/white-arrow.svg"
-                    alt="white-arrow"
-                    width={7}
-                    height={12}
+              <div className="flex gap-2">
+                <div>
+                  <label htmlFor="city">City</label>
+                  <input
+                    className="mt-1 p-3 rounded-2xl	w-full"
+                    style={{ backgroundColor: "#F3F3F3" }}
+                    id="city"
+                    name="city"
+                    data-testid="city"
+                    value={invoiceAddress.City}
+                    onChange={(e) => handleFormChange("City", e.target.value)}
                   />
                 </div>
-              </Button>
-            </div>
-          </form>
-          <section className="hidden md:block">
-            <h1 className="pl-5">Order Summary</h1>
-            <CartItems showActionButtons={false} />
+                <div>
+                  <label htmlFor="postal">Zip/Postal</label>
+                  <input
+                    className="mt-1 p-3 rounded-2xl	w-full"
+                    style={{ backgroundColor: "#F3F3F3" }}
+                    id="zip"
+                    name="zip"
+                    data-testid="zip"
+                    value={invoiceAddress.PostalCode}
+                    onChange={(e) =>
+                      handleFormChange("PostalCode", e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <label htmlFor="country">Country</label>
+              <input
+                className="mt-1 p-3 rounded-2xl"
+                style={{ backgroundColor: "#F3F3F3" }}
+                id="country"
+                name="country"
+                data-testid="country"
+                value={invoiceAddress.Country}
+                onChange={(e) => handleFormChange("Country", e.target.value)}
+              />
+              <h2 className="my-3">Contact details</h2>
+              <p>
+                Let the seller contact you if there is an issue with the order
+                (Recommended).
+              </p>
+              <div className="mt-3 flex flex-col">
+                <label htmlFor="email">Email (optional)</label>
+                <input
+                  className="mt-1 p-3 rounded-2xl"
+                  style={{ backgroundColor: "#F3F3F3" }}
+                  id="email"
+                  name="email"
+                  data-testid="email"
+                  value={invoiceAddress.EmailAddress}
+                  onChange={(e) =>
+                    handleFormChange("EmailAddress", e.target.value)}
+                />
+                <label htmlFor="phoneNumber">Phone Number (optional)</label>
+                <input
+                  className="mt-1 p-3 rounded-2xl"
+                  style={{ backgroundColor: "#F3F3F3" }}
+                  id="phone"
+                  name="phone"
+                  data-testid="phone"
+                  value={invoiceAddress.PhoneNumber}
+                  onChange={(e) =>
+                    handleFormChange("PhoneNumber", e.target.value)}
+                />
+              </div>
+              <div className="mt-3">
+                <Button
+                  onClick={onSubmitForm}
+                  data-testid="goto-payment-options"
+                >
+                  <div className="flex items-center gap-2">
+                    <p>
+                      Payment options
+                    </p>
+                    <img
+                      src="/icons/white-arrow.svg"
+                      alt="white-arrow"
+                      width={7}
+                      height={12}
+                    />
+                  </div>
+                </Button>
+              </div>
+            </form>
+            <section className="hidden md:block">
+              <h1 className="pl-5">Order Summary</h1>
+              <CartItems showActionButtons={false} />
+            </section>
           </section>
         </section>
       </section>
