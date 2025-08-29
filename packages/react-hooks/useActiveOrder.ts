@@ -78,7 +78,7 @@ export function useActiveOrder(params?: HookParams): UseActiveOrderReturn {
   }
 
   async function cancelAndRecreateOrder() {
-    logger.debug("Cancelling and recreating order");
+    logger.debug(`Cancelling order ${activeOrder!.ID} and recreating order`);
     const items = activeOrder?.Items;
     await cancelOrder();
     const newOrderID = randUint64();
@@ -92,7 +92,7 @@ export function useActiveOrder(params?: HookParams): UseActiveOrderReturn {
       ["Orders", newOrderID],
       newOrder,
     );
-    logger.debug("Order recreated.");
+    logger.debug(`New order created: ${newOrderID}`);
     return newOrderID;
   }
 

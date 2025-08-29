@@ -13,6 +13,7 @@ import {
 import { assert } from "@std/assert";
 import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 import { getLogger } from "@logtape/logtape";
+import { useBlocker } from "@tanstack/react-router";
 
 import {
   abi,
@@ -45,6 +46,7 @@ import BackButton from "../common/BackButton.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
 import LoadingSpinner from "../common/LoadingSpinner.tsx";
 import ConnectWalletButton from "../common/ConnectWalletButton.tsx";
+import OrderWarningModal from "../common/OrderWarningModal.tsx";
 import { CurrencyChainOption } from "../../types.ts";
 import { env, getErrLogger } from "../../utils/mod.ts";
 
@@ -53,7 +55,7 @@ const paymentsByAddressAbi = abi.paymentsByAddressAbi;
 
 export default function ChoosePayment() {
   const { shopId } = useShopId();
-  const { activeOrder } = useActiveOrder();
+  const { activeOrder, cancelAndRecreateOrder } = useActiveOrder();
   const chains = useChains();
   const { stateManager } = useStateManager();
   const addRecentTransaction = useAddRecentTransaction();
@@ -89,6 +91,18 @@ export default function ChoosePayment() {
     orderId: activeOrder?.ID,
   });
   const logError = getErrLogger(baseLogger, setErrorMsg);
+
+  const { proceed, reset, status } = useBlocker({
+    // If no payment has been received and user tries to navigate away to any other screen than /shipping, trigger the warning modal.
+    shouldBlockFn: ({ next }) => {
+      //TODO: need to also see if there is a payment in flight.
+      if (next.pathname.includes("/shipping") || txHash || blockHash) {
+        return false;
+      }
+      return true;
+    },
+    withResolver: true,
+  });
 
   useEffect(() => {
     function onManifestUpdate(res: CodecValue) {
@@ -417,93 +431,105 @@ export default function ChoosePayment() {
   }
 
   return (
-    <section data-testid="choose-payment" className="md:flex justify-center">
-      <section className="md:w-[600px] px-4 md:px-0">
-        <BackButton />
-        <ErrorMessage
-          errorMessage={errorMsg}
-          onClose={() => {
-            setErrorMsg(null);
-          }}
-        />
-        <h1 className="my-[10px]">Choose payment method</h1>
-        <TimerToast />
-        <section className="mt-2 flex flex-col gap-4 bg-white rounded-lg p-5">
-          {displayedChains?.length && (
-            <div data-testid="payment-currency">
-              {displayedChains?.length === 1
-                ? (
-                  <div>
-                    <h3>Payment currency and chain</h3>
-                    <p>{displayedChains[0].label}</p>
-                  </div>
-                )
-                : (
-                  <Dropdown
-                    label="Payment currency and chain"
-                    options={displayedChains}
-                    callback={onSelectPaymentCurrency}
-                    testId="payment-currency-dropdown"
-                  />
-                )}
-            </div>
-          )}
-          <PriceSummary
-            displayedAmount={displayedAmount}
-            tokenIcon={chosenPaymentTokenIcon}
+    <main>
+      <OrderWarningModal
+        showModal={status === "blocked"}
+        proceed={() => {
+          cancelAndRecreateOrder().then(() => {
+            proceed!();
+          });
+        }}
+        reset={reset!}
+      />
+
+      <section data-testid="choose-payment" className="md:flex justify-center">
+        <section className="md:w-[600px] px-4 md:px-0">
+          <BackButton />
+          <ErrorMessage
+            errorMessage={errorMsg}
+            onClose={() => {
+              setErrorMsg(null);
+            }}
           />
-          <div
-            data-testid="payment-details-loading"
-            className={paymentCurrencyLoading
-              ? "flex flex-col items-center gap-2"
-              : "hidden"}
-          >
-            <p>Getting payment details...</p>
-            <LoadingSpinner />
-          </div>
-          <section
-            data-testid="payment-methods"
-            className="flex gap-4 justify-center"
-          >
-            <div className="flex items-center justify-center bg-background-gray py-5 px-3 md:px-5 rounded-lg md:w-full">
-              <ConnectWalletButton
-                onClick={payWithWallet}
-                disabled={!paymentArgs}
-              />
+          <h1 className="my-[10px]">Choose payment method</h1>
+          <TimerToast />
+          <section className="mt-2 flex flex-col gap-4 bg-white rounded-lg p-5">
+            {displayedChains?.length && (
+              <div data-testid="payment-currency">
+                {displayedChains?.length === 1
+                  ? (
+                    <div>
+                      <h3>Payment currency and chain</h3>
+                      <p>{displayedChains[0].label}</p>
+                    </div>
+                  )
+                  : (
+                    <Dropdown
+                      label="Payment currency and chain"
+                      options={displayedChains}
+                      callback={onSelectPaymentCurrency}
+                      testId="payment-currency-dropdown"
+                    />
+                  )}
+              </div>
+            )}
+            <PriceSummary
+              displayedAmount={displayedAmount}
+              tokenIcon={chosenPaymentTokenIcon}
+            />
+            <div
+              data-testid="payment-details-loading"
+              className={paymentCurrencyLoading
+                ? "flex flex-col items-center gap-2"
+                : "hidden"}
+            >
+              <p>Getting payment details...</p>
+              <LoadingSpinner />
             </div>
-            <div className="flex items-center justify-center bg-background-gray py-5 px-3 md:px-5 rounded-lg md:w-full">
-              <button
-                type="button"
-                data-testid="pay-by-qr"
-                className={`rounded-lg flex flex-col items-center gap-2 ${
-                  !paymentArgs ? "opacity-50" : ""
-                }`}
-                style={{ backgroundColor: "transparent", padding: 0 }}
-                onClick={payByQr}
-                disabled={!paymentArgs}
-              >
-                <img
-                  src="/icons/pay-by-QR.svg"
-                  width={40}
-                  height={40}
-                  alt="wallet-icon"
-                  className="w-13 h-10"
+            <section
+              data-testid="payment-methods"
+              className="flex gap-4 justify-center"
+            >
+              <div className="flex items-center justify-center bg-background-gray py-5 px-3 md:px-5 rounded-lg md:w-full">
+                <ConnectWalletButton
+                  onClick={payWithWallet}
+                  disabled={!paymentArgs}
                 />
-                <div className="flex gap-[5px] items-center whitespace-nowrap">
-                  <p className="whitespace-nowrap">Pay by QR code</p>
+              </div>
+              <div className="flex items-center justify-center bg-background-gray py-5 px-3 md:px-5 rounded-lg md:w-full">
+                <button
+                  type="button"
+                  data-testid="pay-by-qr"
+                  className={`rounded-lg flex flex-col items-center gap-2 ${
+                    !paymentArgs ? "opacity-50" : ""
+                  }`}
+                  style={{ backgroundColor: "transparent", padding: 0 }}
+                  onClick={payByQr}
+                  disabled={!paymentArgs}
+                >
                   <img
-                    src="/icons/chevron-right.svg"
-                    width={12}
-                    height={12}
-                    alt="chevron"
-                    className="w-2 h-2"
+                    src="/icons/pay-by-QR.svg"
+                    width={40}
+                    height={40}
+                    alt="wallet-icon"
+                    className="w-13 h-10"
                   />
-                </div>
-              </button>
-            </div>
+                  <div className="flex gap-[5px] items-center whitespace-nowrap">
+                    <p className="whitespace-nowrap">Pay by QR code</p>
+                    <img
+                      src="/icons/chevron-right.svg"
+                      width={12}
+                      height={12}
+                      alt="chevron"
+                      className="w-2 h-2"
+                    />
+                  </div>
+                </button>
+              </div>
+            </section>
           </section>
         </section>
       </section>
-    </section>
+    </main>
   );
 }
