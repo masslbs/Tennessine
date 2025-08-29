@@ -1,14 +1,13 @@
 {
   "name": "@massmarket/contracts",
   "description": "Functions for interacting with the smart contracts",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "exports": "./mod.ts",
   "tasks": {
     "build": "deno run --allow-run --allow-sys --allow-env --allow-read  --allow-write npm:@wagmi/cli generate"
   },
   "publish": {
     "exclude": [
-      // include the .gitignored dist folder
       "!src/",
       "wagmi.contracts.ts"
     ]
