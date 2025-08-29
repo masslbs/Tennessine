@@ -16,7 +16,7 @@ import { Order, OrderedItem } from "@massmarket/schema";
 import { useStateManager } from "@massmarket/react-hooks";
 import type { CodecValue } from "@massmarket/utils/codec";
 
-import Cart from "./Cart.tsx";
+import CartItems from "./CartItems.tsx";
 import {
   createTestRelayClient,
   createTestStateManager,
@@ -379,6 +379,6 @@ const createTestComponent = (oId: number, commitOrder: boolean) => {
       });
     }, [listingsLoaded]);
 
-    return <Cart />;
+    return <CartItems />;
   };
 };
