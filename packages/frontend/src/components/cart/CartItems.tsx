@@ -446,10 +446,6 @@ export default function Cart({
     });
   }
 
-  const MAX_TITLE_LEN = 20;
-  const oosTitle = (errorListing?.Metadata.Title.length || 0) > MAX_TITLE_LEN
-    ? errorListing?.Metadata.Title.slice(0, MAX_TITLE_LEN) + "..."
-    : errorListing?.Metadata.Title;
   return (
     <div
       className="bg-white rounded-t-lg p-5 pt-[10px]"
@@ -472,13 +468,6 @@ export default function Cart({
           setErrorListing(null);
         }}
       />
-      {errorListing && (
-        <p data-testid="out-of-stock" className="my-2 text-red-500">
-          Item <span className="font-bold">{oosTitle}</span>{" "}
-          is out of stock. Please reduce quantity or remove from cart to
-          proceed.
-        </p>
-      )}
     </div>
   );
 }
