@@ -7,6 +7,7 @@ import {
   ensureBigInt,
   ensureBoolean,
   ensureNumber,
+  ensureSomeNumberAsBigInt,
   ensureString,
   ensureUint8Array,
 } from "./utils.ts";
@@ -23,7 +24,7 @@ export class Manifest extends BaseClass {
 
   constructor(
     shopID: bigint = 0n,
-    orderPaymentTimeout: bigint = 39960000000000n,
+    orderPaymentTimeout: bigint = BigInt(60 * 60 * 30),
     payees?: PayeeMap,
     acceptedCurrencies?: AcceptedCurrencyMap,
     pricingCurrency?: ChainAddress,
@@ -47,10 +48,10 @@ export class Manifest extends BaseClass {
 
     const shopID = ensureBigInt(input.get("ShopID"), "ShopID");
 
-    const orderPaymentTimeout = ensureBigInt(
+    const orderPaymentTimeout = BigInt(ensureSomeNumberAsBigInt(
       input.get("OrderPaymentTimeout"),
       "OrderPaymentTimeout",
-    );
+    ));
 
     const payees = input.get("Payees");
     if (!(payees instanceof Map)) {
