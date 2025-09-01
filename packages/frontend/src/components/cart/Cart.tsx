@@ -240,13 +240,14 @@ export default function Cart({
       if (activeOrder!.PaymentState !== OrderPaymentState.Open) {
         orderId = await cancelAndRecreateOrder();
       }
-      const updatedQtyMap = new Map(selectedQty);
-      updatedQtyMap.set(id, selectedQty.get(id)! + (add ? 1 : -1));
-      setSelectedQty(updatedQtyMap);
-      const updatedOrderItems = Array.from(cartItemsMap.keys())
-        .map((key) => {
-          return new OrderedItem(key, updatedQtyMap.get(key)!).asCBORMap();
-        }) as CodecValue;
+
+      const updatedOrderItems = activeOrder!.Items.map((item) => {
+        if (item.ListingID === id) {
+          item.Quantity += add ? 1 : -1;
+        }
+        return item.asCBORMap();
+      });
+
       await stateManager.set(
         ["Orders", orderId, "Items"],
         updatedOrderItems,
