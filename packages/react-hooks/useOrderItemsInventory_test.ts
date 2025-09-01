@@ -12,7 +12,7 @@ import {
   denoTestOptions,
   testWrapper,
 } from "./_createWrapper.tsx";
-import useOrderItemsInventory from "./useOrderItemsInventory.ts";
+import { useOrderItemsInventory } from "./useOrderItemsInventory.ts";
 
 Deno.test(
   "useOrderItemsInventory",
