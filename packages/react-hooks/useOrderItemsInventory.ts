@@ -16,7 +16,7 @@ const baseLogger = getLogger([
  * This hook is used to get the inventory for all the items in current/active order.
  * It listens to inventory updates for those items.
  */
-export default function useOrderItemsInventory() {
+export function useOrderItemsInventory() {
   const { stateManager } = useStateManager();
   const { activeOrder } = useActiveOrder();
   const [inventoryMap, setInventoryMap] = useState<Map<number, number>>(
@@ -30,7 +30,7 @@ export default function useOrderItemsInventory() {
   useEffect(() => {
     if (!listingIds || !stateManager) return;
     const updateInventoryMap = new Map();
-    activeOrder?.Items.forEach((item) => {
+    activeOrder!.Items.forEach((item) => {
       stateManager.get(["Inventory", item.ListingID]).then((stockNo) => {
         updateInventoryMap.set(item.ListingID, stockNo);
       });
@@ -46,11 +46,9 @@ export default function useOrderItemsInventory() {
         if (typeof stockNo !== "number") {
           logger.error("Inventory is not a number");
         }
-        setInventoryMap((prev) => {
-          const updatedInventoryMap = new Map(prev);
-          updatedInventoryMap.set(key, stockNo as number);
-          return updatedInventoryMap;
-        });
+        const m = new Map(inventoryMap);
+        m.set(key, stockNo as number);
+        setInventoryMap(m);
       };
 
       // Store the handler reference so we can remove it after
@@ -68,7 +66,7 @@ export default function useOrderItemsInventory() {
         stateManager.events.off(handler, ["Inventory", key]);
       });
     };
-  }, [listingIds, stateManager]);
+  }, [activeOrder, !!stateManager]);
 
   return { inventoryMap };
 }

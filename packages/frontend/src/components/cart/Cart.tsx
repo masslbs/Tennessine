@@ -11,6 +11,7 @@ import { CodecValue } from "@massmarket/utils/codec";
 import { RelayResponseError } from "@massmarket/client";
 import {
   useActiveOrder,
+  useOrderItemsInventory,
   usePricingCurrency,
   useStateManager,
 } from "@massmarket/react-hooks";
@@ -37,6 +38,8 @@ export default function Cart({
     useActiveOrder();
   const { pricingCurrency } = usePricingCurrency();
   const { stateManager } = useStateManager();
+  const { inventoryMap } = useOrderItemsInventory();
+
   const navigate = useNavigate();
 
   const [cartItemsMap, setCartMap] = useState<
@@ -45,9 +48,7 @@ export default function Cart({
   const [selectedQty, setSelectedQty] = useState<Map<ListingId, number>>(
     new Map(),
   );
-  const [inventoryMap, setInventoryMap] = useState<Map<ListingId, number>>(
-    new Map(),
-  );
+
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [errorListing, setErrorListing] = useState<Listing | null>(null);
 
@@ -84,40 +85,7 @@ export default function Cart({
     return () => {
       stateManager.events.off(onOrderUpdate, ["Orders", activeOrder!.ID]);
     };
-  }, [activeOrder, stateManager]);
-
-  useEffect(() => {
-    if (!stateManager) return;
-    const listingIds = Array.from(inventoryMap.keys());
-
-    // Create a map to store event handlers for each key
-    const eventHandlers = new Map();
-
-    listingIds.forEach((key) => {
-      const onInventoryUpdate = (stockNo: CodecValue | undefined) => {
-        if (typeof stockNo !== "number") logError("Inventory is not a number");
-        const updatedInventoryMap = new Map(inventoryMap);
-        updatedInventoryMap.set(key, stockNo as number);
-        setInventoryMap(updatedInventoryMap);
-      };
-
-      // Store the handler reference so we can remove it after
-      eventHandlers.set(key, onInventoryUpdate);
-
-      stateManager.events.on(onInventoryUpdate, ["Inventory", key]);
-    });
-
-    return () => {
-      listingIds.forEach((key) => {
-        const handler = eventHandlers.get(key);
-        if (!handler) {
-          logError(`Handler for ${key} not found`);
-          return;
-        }
-        stateManager.events.off(handler, ["Inventory", key]);
-      });
-    };
-  }, [inventoryMap.keys(), stateManager]);
+  }, [activeOrder, !!stateManager]);
 
   if (!activeOrder) {
     return <p>No order</p>;
@@ -131,7 +99,6 @@ export default function Cart({
     const allCartItems: Map<ListingId, Listing> = new Map();
     // Get price and metadata for all the selected items in the order.
     const updatedQtyMap = new Map();
-    const updatedInventoryMap = new Map();
     await Promise.all(
       ci.map(async (orderItem: OrderedItem) => {
         updatedQtyMap.set(orderItem.ListingID, orderItem.Quantity);
@@ -141,11 +108,7 @@ export default function Cart({
           "Listings",
           orderItem.ListingID,
         ]);
-        const inventory = await stateManager.get([
-          "Inventory",
-          orderItem.ListingID,
-        ]);
-        updatedInventoryMap.set(orderItem.ListingID, inventory);
+
         if (!current) {
           throw new Error(`Listing ${orderItem.ListingID} not found`);
         }
@@ -154,7 +117,6 @@ export default function Cart({
       }),
     );
     setSelectedQty(updatedQtyMap);
-    setInventoryMap(updatedInventoryMap);
     return allCartItems;
   }
 
