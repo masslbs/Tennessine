@@ -4,7 +4,7 @@ import { useEffect } from "react";
 
 import { randUint64 } from "@massmarket/utils";
 import type { CodecKey, CodecValue } from "@massmarket/utils/codec";
-import { Order, OrderedItem, OrderState } from "@massmarket/schema";
+import { Order, OrderedItem, OrderPaymentState } from "@massmarket/schema";
 import { allListings } from "@massmarket/schema/testFixtures";
 
 import {
@@ -80,7 +80,7 @@ const LastOrderTestComponent = () => {
         new OrderedItem(23, 7),
         new OrderedItem(42, 5),
       ],
-      OrderState.Open,
+      OrderPaymentState.Open,
     );
     const order2 = new Order(
       orderId2,
@@ -88,7 +88,7 @@ const LastOrderTestComponent = () => {
         new OrderedItem(23, 5),
         new OrderedItem(42, 5),
       ],
-      OrderState.Open,
+      OrderPaymentState.Open,
     );
     stateManager.set(["Orders", orderId], order).then(() => {
       stateManager.set(["Orders", orderId2], order2).then();

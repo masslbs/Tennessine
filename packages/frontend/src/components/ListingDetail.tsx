@@ -15,14 +15,16 @@ import {
   usePricingCurrency,
   useStateManager,
 } from "@massmarket/react-hooks";
-import { ListingId, OrderState } from "../types.ts";
+import { ListingId, OrderPaymentState } from "../types.ts";
 import Button from "./common/Button.tsx";
 import BackButton from "./common/BackButton.tsx";
 
 import ErrorMessage from "./common/ErrorMessage.tsx";
 import SuccessToast from "./common/SuccessToast.tsx";
-import { getErrLogger } from "../utils/helper.ts";
 import ChevronRight from "./common/ChevronRight.tsx";
+import StockMessage from "./common/StockMessage.tsx";
+
+import { getErrLogger } from "../utils/helper.ts";
 
 const baseLogger = getLogger(["mass-market", "frontend", "ListingDetail"]);
 
@@ -34,6 +36,7 @@ export default function ListingDetail() {
   const search = useSearch({ strict: false });
   const itemId = search.itemId as ListingId;
   const [listing, setListing] = useState<Listing>(new Listing());
+  const [stock, setStock] = useState<number>(0);
   const [tokenIcon, setIcon] = useState("/icons/usdc-coin.png");
   const [quantity, setQuantity] = useState<number>(1);
   const [errorMsg, setErrorMsg] = useState<null | string>(null);
@@ -69,7 +72,13 @@ export default function ListingDetail() {
           setIcon("/icons/eth-coin.svg");
         }
       });
-
+    stateManager.get(["Inventory", itemId])
+      .then((res: CodecValue | undefined) => {
+        if (typeof res !== "number") {
+          logger.debug`Inventory is not a number.`;
+        }
+        setStock(res as number);
+      });
     function onListingChange(res: CodecValue) {
       const item = Listing.fromCBOR(res);
       setListing(item);
@@ -112,7 +121,7 @@ export default function ListingDetail() {
 
       // Update existing order
       // If the order is not an open order, cancel it and create a new one
-      if (activeOrder?.State !== OrderState.Open) {
+      if (activeOrder?.PaymentState !== OrderPaymentState.Open) {
         orderId = await cancelAndRecreateOrder();
       }
 
@@ -126,31 +135,26 @@ export default function ListingDetail() {
         throw new Error(`Order not found`);
       }
       const order: Order = Order.fromCBOR(o);
-      let cartItemQuantity = 0;
-      // If item already exists in the items array, filter it out so we can replace it with the new quantity
-      const updatedOrderItems = (order.Items ?? []).filter(
+      let isNewItem = true;
+      // If item already exists in the order, update the quantity, otherwise if it is a new item, add it to the order.
+      const updatedOrderItems = (order.Items ?? []).map(
         (item: OrderedItem) => {
           if (item.ListingID === itemId) {
-            // this should never happen?
-            if (cartItemQuantity !== 0) {
-              logger.debug(
-                "cart item quantity for the same item should not be changed more than at most once",
-              );
-            }
-            cartItemQuantity = item.Quantity;
+            isNewItem = false;
+            return new OrderedItem(itemId, item.Quantity + quantity)
+              .asCBORMap();
           }
-          return item.ListingID !== itemId;
+          return item.asCBORMap();
         },
       );
-      // note: cartItemQuantity is 0 if this is the first time we add the item to our cart, and adding with 0 is fine :)
-      updatedOrderItems.push(
-        new OrderedItem(itemId, cartItemQuantity + quantity),
-      );
+
+      if (isNewItem) {
+        updatedOrderItems.push(new OrderedItem(itemId, quantity).asCBORMap());
+      }
 
       await stateManager.set(
         ["Orders", orderId, "Items"],
-        // TODO: this is a bit of a hack, since StateManager doesnt handle BaseClass[]
-        updatedOrderItems.map((item: OrderedItem) => item.asCBORMap()),
+        updatedOrderItems,
       );
       if (quantity <= 1) {
         setMsg("Cart updated");
@@ -236,18 +240,13 @@ export default function ListingDetail() {
                       );
                     }}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="12"
-                      height="23"
-                      viewBox="0 0 12 23"
-                      fill="none"
-                    >
-                      <path
-                        d="M10.722 0.76123C11.0386 0.76123 11.3779 0.874331 11.6268 1.12315C12.1244 1.6208 12.1244 2.4125 11.6268 2.91015L3.05372 11.5058L11.6268 20.0789C12.1244 20.5765 12.1244 21.3682 11.6268 21.8659C11.1291 22.3635 10.3374 22.3635 9.83977 21.8659L0.361922 12.4106C0.113101 12.1618 -4.84492e-07 11.8451 -4.69661e-07 11.5058C-4.54829e-07 11.1665 0.135721 10.8498 0.361922 10.601L9.83977 1.12315C10.0886 0.874331 10.4053 0.76123 10.722 0.76123Z"
-                        fill="black"
-                      />
-                    </svg>
+                    <img
+                      src="/icons/chevron-left.svg"
+                      width={20}
+                      height={20}
+                      alt="chevron-left"
+                      className="w-5 h-5"
+                    />
                   </button>
                   <button
                     type="button"
@@ -262,18 +261,13 @@ export default function ListingDetail() {
                       );
                     }}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="12"
-                      height="23"
-                      viewBox="0 0 12 23"
-                      fill="none"
-                    >
-                      <path
-                        d="M1.27804 22.2393C0.961357 22.2393 0.622055 22.1262 0.373233 21.8773C-0.124411 21.3797 -0.124411 20.588 0.373233 20.0903L8.94628 11.4947L0.373232 2.92163C-0.124412 2.42399 -0.124412 1.63228 0.373232 1.13464C0.870876 0.636995 1.66258 0.636995 2.16023 1.13464L11.6381 10.5899C11.8869 10.8387 12 11.1554 12 11.4947C12 11.834 11.8643 12.1507 11.6381 12.3995L2.16023 21.8773C1.9114 22.1262 1.59472 22.2393 1.27804 22.2393Z"
-                        fill="black"
-                      />
-                    </svg>
+                    <img
+                      src="/icons/chevron-right.svg"
+                      width={20}
+                      height={20}
+                      alt="chevron-right"
+                      className="w-5 h-5"
+                    />
                   </button>
                 </div>
               )
@@ -337,47 +331,61 @@ export default function ListingDetail() {
               </h1>
             </div>
             <div
-              className={keycard?.role === "merchant" ? "hidden" : "flex gap-2"}
+              className={isMerchantRoute ? "hidden" : "flex gap-2"}
             >
-              <div>
-                <p className="text-xs text-primary-gray mb-2">Quantity</p>
-                <input
-                  className="mt-1 p-2 rounded-md max-w-[80px]"
-                  style={{ backgroundColor: "#F3F3F3" }}
-                  id="quantity"
-                  name="quantity"
-                  value={quantity}
-                  data-testid="purchaseQty"
-                  type="number"
-                  min="1"
-                  step="1"
-                  onChange={(e) => handlePurchaseQty(e)}
-                />
-              </div>
-              <div className="flex items-end">
-                <Button
-                  onClick={changeItems}
-                  disabled={!quantity}
-                  data-testid="addToCart"
+              <div className="flex flex-col gap-2 min-w-full">
+                <StockMessage stock={stock} isToast />
+
+                <div
+                  data-testid="add-to-cart-container"
+                  className={!stock ? "hidden" : "flex gap-2"}
                 >
-                  <div className="flex items-center gap-2">
-                    <p>Add to cart</p>
-                    <img
-                      src="/icons/white-arrow.svg"
-                      alt="white-arrow"
-                      width={7}
-                      height={12}
-                      style={{ display: quantity ? "" : "none" }}
+                  <div>
+                    <p className="text-xs text-primary-gray mb-2">Quantity</p>
+                    <input
+                      className="mt-1 p-2 rounded-md max-w-[80px]"
+                      style={{ backgroundColor: "#F3F3F3" }}
+                      id="quantity"
+                      name="quantity"
+                      value={quantity}
+                      data-testid="purchaseQty"
+                      type="number"
+                      min="1"
+                      step="1"
+                      onChange={(e) => handlePurchaseQty(e)}
                     />
                   </div>
-                </Button>
+
+                  <div className="flex items-end">
+                    <Button
+                      onClick={changeItems}
+                      data-testid="addToCart"
+                      disabled={!quantity || stock < quantity}
+                    >
+                      <div className="flex items-center gap-2">
+                        <p>Add to cart</p>
+                        <img
+                          src="/icons/white-arrow.svg"
+                          alt="white-arrow"
+                          width={7}
+                          height={12}
+                          style={{
+                            display: (quantity && (stock >= quantity))
+                              ? ""
+                              : "none",
+                          }}
+                        />
+                      </div>
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
             <div className="h-6 mb-4">
               <SuccessToast
                 message={successMsg}
                 onClose={() => setMsg(null)}
-                cta={{ copy: "View Cart", href: "/cart" }}
+                cta={{ copy: "View Cart", href: "/checkout" }}
               />
             </div>
           </section>

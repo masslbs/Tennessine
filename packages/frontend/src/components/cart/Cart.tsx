@@ -15,9 +15,10 @@ import {
   useStateManager,
 } from "@massmarket/react-hooks";
 
-import { ListingId, OrderState } from "../../types.ts";
+import { ListingId, OrderPaymentState } from "../../types.ts";
 import Button from "../common/Button.tsx";
 import ErrorMessage from "../common/ErrorMessage.tsx";
+import StockMessage from "../common/StockMessage.tsx";
 import { getErrLogger, multiplyAndFormatUnits } from "../../utils/helper.ts";
 import PriceSummary from "./PriceSummary.tsx";
 
@@ -42,6 +43,9 @@ export default function Cart({
     Map<ListingId, Listing>
   >(new Map());
   const [selectedQty, setSelectedQty] = useState<Map<ListingId, number>>(
+    new Map(),
+  );
+  const [inventoryMap, setInventoryMap] = useState<Map<ListingId, number>>(
     new Map(),
   );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -82,6 +86,39 @@ export default function Cart({
     };
   }, [activeOrder, stateManager]);
 
+  useEffect(() => {
+    if (!stateManager) return;
+    const listingIds = Array.from(inventoryMap.keys());
+
+    // Create a map to store event handlers for each key
+    const eventHandlers = new Map();
+
+    listingIds.forEach((key) => {
+      const onInventoryUpdate = (stockNo: CodecValue | undefined) => {
+        if (typeof stockNo !== "number") logError("Inventory is not a number");
+        const updatedInventoryMap = new Map(inventoryMap);
+        updatedInventoryMap.set(key, stockNo as number);
+        setInventoryMap(updatedInventoryMap);
+      };
+
+      // Store the handler reference so we can remove it after
+      eventHandlers.set(key, onInventoryUpdate);
+
+      stateManager.events.on(onInventoryUpdate, ["Inventory", key]);
+    });
+
+    return () => {
+      listingIds.forEach((key) => {
+        const handler = eventHandlers.get(key);
+        if (!handler) {
+          logError(`Handler for ${key} not found`);
+          return;
+        }
+        stateManager.events.off(handler, ["Inventory", key]);
+      });
+    };
+  }, [inventoryMap.keys(), stateManager]);
+
   if (!activeOrder) {
     return <p>No order</p>;
   }
@@ -94,6 +131,7 @@ export default function Cart({
     const allCartItems: Map<ListingId, Listing> = new Map();
     // Get price and metadata for all the selected items in the order.
     const updatedQtyMap = new Map();
+    const updatedInventoryMap = new Map();
     await Promise.all(
       ci.map(async (orderItem: OrderedItem) => {
         updatedQtyMap.set(orderItem.ListingID, orderItem.Quantity);
@@ -103,6 +141,11 @@ export default function Cart({
           "Listings",
           orderItem.ListingID,
         ]);
+        const inventory = await stateManager.get([
+          "Inventory",
+          orderItem.ListingID,
+        ]);
+        updatedInventoryMap.set(orderItem.ListingID, inventory);
         if (!current) {
           throw new Error(`Listing ${orderItem.ListingID} not found`);
         }
@@ -111,6 +154,7 @@ export default function Cart({
       }),
     );
     setSelectedQty(updatedQtyMap);
+    setInventoryMap(updatedInventoryMap);
     return allCartItems;
   }
 
@@ -120,11 +164,27 @@ export default function Cart({
         logger.debug("orderId not found");
         throw new Error("No order found");
       }
+      const items = activeOrder.Items;
+      // Check that each item is in stock before committing the order.
+      // If there are any items that we do not have enough inventory for, then we remove the item from the order before committing.
+      await Promise.all(items.map((item) => {
+        const inventory = inventoryMap.get(item.ListingID);
+        if (typeof inventory !== "number") {
+          logError(`Inventory is not a number`);
+        }
+        if (inventory! < item.Quantity) {
+          logger.info(
+            `Removing item ${item.ListingID} from order for checkout`,
+          );
+          removeItem(item.ListingID);
+        }
+      }));
+
       // Commit the order if it is an open order (not committed)
-      if (activeOrder!.State === OrderState.Open) {
+      if (activeOrder!.PaymentState === OrderPaymentState.Open) {
         await stateManager!.set(
-          ["Orders", activeOrder!.ID, "State"],
-          OrderState.Committed,
+          ["Orders", activeOrder!.ID, "PaymentState"],
+          OrderPaymentState.Locked,
         );
         logger.debug(`Order ID: ${activeOrder!.ID} committed`);
       }
@@ -151,7 +211,7 @@ export default function Cart({
       return;
     }
     try {
-      if (activeOrder?.State !== OrderState.Open) {
+      if (activeOrder?.PaymentState !== OrderPaymentState.Open) {
         await cancelOrder();
         await createOrder();
         return;
@@ -177,16 +237,17 @@ export default function Cart({
     }
     try {
       let orderId = activeOrder!.ID;
-      if (activeOrder!.State !== OrderState.Open) {
+      if (activeOrder!.PaymentState !== OrderPaymentState.Open) {
         orderId = await cancelAndRecreateOrder();
       }
-      const updatedQtyMap = new Map(selectedQty);
-      updatedQtyMap.set(id, selectedQty.get(id)! + (add ? 1 : -1));
-      setSelectedQty(updatedQtyMap);
-      const updatedOrderItems = Array.from(cartItemsMap.keys())
-        .map((key) => {
-          return new OrderedItem(key, updatedQtyMap.get(key)!).asCBORMap();
-        }) as CodecValue;
+
+      const updatedOrderItems = activeOrder!.Items.map((item) => {
+        if (item.ListingID === id) {
+          item.Quantity += add ? 1 : -1;
+        }
+        return item.asCBORMap();
+      });
+
       await stateManager.set(
         ["Orders", orderId, "Items"],
         updatedOrderItems,
@@ -207,7 +268,7 @@ export default function Cart({
     }
     try {
       let orderId = activeOrder!.ID;
-      if (activeOrder!.State !== OrderState.Open) {
+      if (activeOrder!.PaymentState !== OrderPaymentState.Open) {
         orderId = await cancelAndRecreateOrder();
       }
       const updatedQtyMap = new Map(selectedQty);
@@ -241,8 +302,11 @@ export default function Cart({
     let total = BigInt(0);
     values.forEach((item: Listing) => {
       const qty = selectedQty.get(item.ID) || 0;
-      // if (!qty) throw new Error(`Quantity for ${item.ID} not found`);
-      total += BigInt(item.Price) * BigInt(qty);
+      // Do not add prices for items that we will remove during commit due to not enough inventory.
+      const price = inventoryMap.get(item.ID)! < qty
+        ? 0n
+        : BigInt(item.Price) * BigInt(qty);
+      total += price;
     });
     return formatUnits(total, pricingCurrency.decimals);
   }
@@ -272,128 +336,153 @@ export default function Cart({
         qty,
         pricingCurrency?.decimals || 0,
       );
+      const inventory = inventoryMap.get(item.ID) || 0;
       let image = "/assets/no-image.png";
       if (item.Metadata.Images && item.Metadata.Images.length > 0) {
         image = item.Metadata.Images[0];
       }
       return (
-        <div key={item.ID} className="flex" data-testid="cart-item">
-          <div
-            className="flex justify-center h-28"
-            data-testid={`product-img`}
-          >
-            <img
-              src={image}
-              width={127}
-              height={112}
-              alt="product-thumb"
-              className="w-32 h-28 object-cover object-center rounded-l-lg cursor-pointer"
-              onClick={() => {
-                navigateToListing(item.ID);
-              }}
-            />
-          </div>
-          <div className="bg-background-gray w-full rounded-r-lg px-3 py-4 md:w-[300px]">
-            <div className="flex gap-2">
-              <h3
-                data-testid="listing-title"
-                className="leading-6 cursor-pointer max-w-[150px] md:max-w-[200px]"
+        <div key={item.ID} data-testid="cart-item" className="max-w-fit">
+          <div className="flex">
+            <div
+              className="flex justify-center h-28"
+              data-testid={`product-img`}
+            >
+              <img
+                src={image}
+                width={127}
+                height={112}
+                alt="product-thumb"
+                className="w-32 h-28 object-cover object-center rounded-l-lg cursor-pointer"
                 onClick={() => {
                   navigateToListing(item.ID);
                 }}
-              >
-                {item.Metadata.Title}
-              </h3>
-              <div className="ml-auto">
-                <button
-                  type="button"
-                  onClick={() => removeItem(item.ID)}
-                  data-testid={`remove-item-${item.ID}`}
-                  className={showActionButtons ? "ml-auto" : "hidden"}
-                  style={{
-                    backgroundColor: "black",
-                    padding: 5,
-                    borderRadius: 100,
+              />
+            </div>
+            <div
+              className={`bg-background-gray w-full px-3 py-4 md:w-[300px] ${
+                inventory > qty ? "rounded-r-lg" : "rounded-tr-lg"
+              }`}
+            >
+              <div className="flex gap-2">
+                <h3
+                  data-testid="listing-title"
+                  className="leading-6 cursor-pointer max-w-[150px] md:max-w-[200px]"
+                  onClick={() => {
+                    navigateToListing(item.ID);
                   }}
                 >
-                  <img
-                    src="/icons/remove-icon.svg"
-                    alt="remove-icon"
-                    width={12}
-                    height={12}
-                    className="w-[10px] h-[10px]"
-                  />
-                </button>
+                  {item.Metadata.Title}
+                </h3>
+                <div className="ml-auto">
+                  <button
+                    type="button"
+                    onClick={() => removeItem(item.ID)}
+                    data-testid={`remove-item-${item.ID}`}
+                    className={showActionButtons ? "ml-auto" : "hidden"}
+                    style={{
+                      backgroundColor: "black",
+                      padding: 5,
+                      borderRadius: 100,
+                    }}
+                  >
+                    <img
+                      src="/icons/remove-icon.svg"
+                      alt="remove-icon"
+                      width={12}
+                      height={12}
+                      className="w-[10px] h-[10px]"
+                    />
+                  </button>
+                </div>
               </div>
-            </div>
 
-            <div className="flex gap-2 items-center mt-4 pt-3 border-t border-gray-300 w-full">
               <div
-                className={showActionButtons
-                  ? "flex gap-2 items-center"
-                  : "hidden"}
+                className={`flex gap-2 items-center mt-4 pt-3 border-t border-gray-300 w-full ${
+                  inventory === 0 ? "cursor-not-allowed opacity-30" : ""
+                }`}
               >
-                <button
-                  type="button"
-                  onClick={() => adjustItemQuantity(item.ID, false)}
-                  data-testid={`remove-quantity-${item.ID}`}
-                  className="ml-auto"
-                  style={{ backgroundColor: "transparent", padding: 0 }}
+                <div
+                  className={showActionButtons
+                    ? "flex gap-2 items-center"
+                    : "hidden"}
                 >
-                  <img
-                    src="/icons/minus.svg"
-                    alt="minus"
-                    width={10}
-                    height={10}
-                    className="w-5 h-5 max-h-5"
-                  />
-                </button>
-                <p data-testid={`quantity-${item.ID}`}>
-                  {selectedQty.get(item.ID)}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => adjustItemQuantity(item.ID)}
-                  data-testid={`add-quantity-${item.ID}`}
-                  className="ml-auto"
-                  style={{ backgroundColor: "transparent", padding: 0 }}
-                >
-                  <img
-                    src="/icons/plus.svg"
-                    alt="plus"
-                    width={10}
-                    height={10}
-                    className="w-5 h-5 max-h-5"
-                  />
-                </button>
-              </div>
-              <p
-                className={showActionButtons
-                  ? "hidden"
-                  : "flex gap-2 items-center"}
-                data-testid="selected-qty"
-              >
-                Qty: {selectedQty.get(item.ID)}
-              </p>
-              <div className="flex gap-1 items-center ml-auto">
-                <img
-                  src={icon}
-                  alt="coin"
-                  width={20}
-                  height={20}
-                  className="w-5 h-5 max-h-5"
-                />
+                  <button
+                    type="button"
+                    onClick={() => adjustItemQuantity(item.ID, false)}
+                    data-testid={`remove-quantity-${item.ID}`}
+                    className={`${
+                      inventory === 0
+                        ? "opacity-30 cursor-not-allowed"
+                        : "ml-auto"
+                    }`}
+                    disabled={inventory === 0}
+                    style={{ backgroundColor: "transparent", padding: 0 }}
+                  >
+                    <img
+                      src="/icons/minus.svg"
+                      alt="minus"
+                      width={10}
+                      height={10}
+                      className="w-5 h-5 max-h-5"
+                    />
+                  </button>
+                  <p data-testid={`quantity-${item.ID}`}>
+                    {qty}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => adjustItemQuantity(item.ID)}
+                    data-testid={`add-quantity-${item.ID}`}
+                    className={`${
+                      qty >= inventory
+                        ? "opacity-30 cursor-not-allowed"
+                        : "ml-auto"
+                    }`}
+                    style={{ backgroundColor: "transparent", padding: 0 }}
+                    disabled={qty >= inventory}
+                  >
+                    <img
+                      src="/icons/plus.svg"
+                      alt="plus"
+                      width={10}
+                      height={10}
+                      className="w-5 h-5 max-h-5"
+                    />
+                  </button>
+                </div>
                 <p
-                  data-testid="price"
-                  className="text-sm max-w-12 md:max-w-28 truncate"
+                  className={showActionButtons
+                    ? "hidden"
+                    : "flex gap-2 items-center"}
+                  data-testid="selected-qty"
                 >
-                  {price}
+                  Qty: {qty}
                 </p>
-                <p data-testid="symbol" className="text-sm">
-                  {pricingCurrency?.symbol}
-                </p>
+                <div className="flex gap-1 items-center ml-auto">
+                  <img
+                    src={icon}
+                    alt="coin"
+                    width={20}
+                    height={20}
+                    className="w-5 h-5 max-h-5"
+                  />
+                  <p
+                    data-testid="price"
+                    className="text-sm max-w-12 md:max-w-28 truncate"
+                  >
+                    {price}
+                  </p>
+                  <p data-testid="symbol" className="text-sm">
+                    {pricingCurrency?.symbol}
+                  </p>
+                </div>
               </div>
             </div>
+          </div>
+
+          <div>
+            <StockMessage stock={qty > inventory ? 0 : inventory} />
           </div>
         </div>
       );

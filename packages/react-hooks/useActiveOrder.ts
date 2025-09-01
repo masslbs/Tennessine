@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getLogger } from "@logtape/logtape";
 
-import { Order, OrderedItem, OrderState } from "@massmarket/schema";
+import { Order, OrderedItem, OrderPaymentState } from "@massmarket/schema";
 import type { CodecValue } from "@massmarket/utils/codec";
 import { randUint64 } from "@massmarket/utils";
 
@@ -39,7 +39,8 @@ export function useActiveOrder(params?: HookParams): UseActiveOrderReturn {
       const lastUpdatedOrder = [...orders.values()].pop();
       const order = Order.fromCBOR(lastUpdatedOrder!);
       if (
-        order.State == OrderState.Canceled || order.State == OrderState.Paid
+        order.PaymentState == OrderPaymentState.Canceled ||
+        order.PaymentState == OrderPaymentState.Paid
       ) {
         setActiveOrder(null);
       } else {
@@ -54,7 +55,7 @@ export function useActiveOrder(params?: HookParams): UseActiveOrderReturn {
     const newOrder = new Order(
       orderId,
       itemId ? [new OrderedItem(itemId, quantity)] : [],
-      OrderState.Open,
+      OrderPaymentState.Open,
     );
     await stateManager!.set(
       ["Orders", orderId],
@@ -71,8 +72,8 @@ export function useActiveOrder(params?: HookParams): UseActiveOrderReturn {
       new Date(),
     );
     await stateManager!.set(
-      ["Orders", activeOrder!.ID, "State"],
-      OrderState.Canceled,
+      ["Orders", activeOrder!.ID, "PaymentState"],
+      OrderPaymentState.Canceled,
     );
   }
 
@@ -84,7 +85,7 @@ export function useActiveOrder(params?: HookParams): UseActiveOrderReturn {
     const newOrder = new Order(
       newOrderID,
       items,
-      OrderState.Open,
+      OrderPaymentState.Open,
     );
 
     await stateManager!.set(
