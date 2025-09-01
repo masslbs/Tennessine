@@ -12,3 +12,4 @@ export * from "./useShopDetails.ts";
 export * from "./useShopPublicClient.ts";
 export * from "./useMyShops.ts";
 export * from "./useIsOwner.ts";
+export * from "./useOrderItemsInventory.ts";
