@@ -15,9 +15,10 @@ import {
   useStateManager,
 } from "@massmarket/react-hooks";
 
-import Cart from "./cart/Cart.tsx";
+import CartItems from "./cart/CartItems.tsx";
 import ChevronRight from "./common/ChevronRight.tsx";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import Button from "./common/Button.tsx";
 
 const merchantMenu = [
   {
@@ -47,7 +48,6 @@ const merchantMenu = [
 
 const customerMenu = [
   { title: "Shop", img: "menu-products.svg", href: "/listings" },
-
   {
     title: "Contact",
     img: "menu-contact.svg",
@@ -115,14 +115,11 @@ function Navigation() {
     cartVisible && setCartVisible(false);
   }
 
-  function onCheckout() {
-    setCartVisible(false);
-    navigate({
-      to: "/shipping",
-      search: (prev: Record<string, string>) => ({
-        shopId: prev.shopId,
-      }),
-    });
+  async function clearCart() {
+    await stateManager!.set(
+      ["Orders", activeOrder!.ID, "Items"],
+      [],
+    );
   }
 
   function renderMenuItems() {
@@ -187,7 +184,7 @@ function Navigation() {
       );
     });
   }
-
+  const isCartEmpty = !activeOrder || activeOrder.Items.length < 1;
   return (
     <section>
       {(cartVisible || menuOpen) && (
@@ -292,13 +289,52 @@ function Navigation() {
               >
                 <div
                   data-testid="cart"
-                  className="fixed bg-background-gray w-full flex flex-col gap-5 rounded-b-lg p-5 pt-2 static"
+                  className="fixed bg-background-gray w-full md:min-w-100 flex flex-col rounded-b-lg p-5 pt-2 static"
                 >
-                  <h1>Cart</h1>
-                  <Cart
-                    onCheckout={onCheckout}
-                    closeCart={() => setCartVisible(false)}
-                  />
+                  <h1 className="mb-3">Cart</h1>
+                  <CartItems />
+                  <div
+                    className={isCartEmpty
+                      ? "hidden"
+                      : "flex gap-4 bg-white px-5 pb-5 rounded-b-lg"}
+                    id="cart-buttons-container"
+                  >
+                    <Button
+                      disabled={isCartEmpty}
+                      onClick={() => {
+                        setCartVisible(false);
+                        navigate({
+                          to: "/checkout",
+                          search: (prev: Record<string, string>) => ({
+                            shopId: prev.shopId,
+                          }),
+                        });
+                      }}
+                      data-testid="checkout-button"
+                    >
+                      <div className="flex items-center gap-2">
+                        <p>Checkout</p>
+                        <img
+                          src="/icons/white-arrow.svg"
+                          alt="white-arrow"
+                          width={7}
+                          height={12}
+                          style={{
+                            display: isCartEmpty ? "none" : "",
+                          }}
+                        />
+                      </div>
+                    </Button>
+                    <button
+                      type="button"
+                      disabled={isCartEmpty}
+                      onClick={clearCart}
+                      data-testid="clear-cart"
+                      style={{ backgroundColor: "transparent", padding: 0 }}
+                    >
+                      <p>Clear cart</p>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

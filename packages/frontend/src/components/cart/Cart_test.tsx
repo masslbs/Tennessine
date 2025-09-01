@@ -16,7 +16,7 @@ import { Order, OrderedItem } from "@massmarket/schema";
 import { useStateManager } from "@massmarket/react-hooks";
 import type { CodecValue } from "@massmarket/utils/codec";
 
-import Cart from "./Cart.tsx";
+import Navigation from "../Navigation.tsx";
 import {
   createTestRelayClient,
   createTestStateManager,
@@ -69,7 +69,7 @@ Deno.test(
     await t.step("Add/remove quantity from item", async () => {
       const orderId = randUint64();
       const wrapper = createWrapper(shopId);
-      const CartTest = createTestComponent(orderId, false);
+      const CartTest = createTestComponent(orderId);
       const { unmount } = render(<CartTest />, { wrapper });
       const user = userEvent.setup();
 
@@ -118,7 +118,7 @@ Deno.test(
       async () => {
         const orderId = randUint64();
         const wrapper = createWrapper(shopId);
-        const CartTest = createTestComponent(orderId, false);
+        const CartTest = createTestComponent(orderId);
         const { unmount } = render(<CartTest />, { wrapper });
         const user = userEvent.setup();
 
@@ -163,7 +163,7 @@ Deno.test(
     await t.step("Clear cart", async () => {
       const orderId = randUint64();
       const wrapper = createWrapper(shopId);
-      const CartTest = createTestComponent(orderId, false);
+      const CartTest = createTestComponent(orderId);
       const { unmount } = render(<CartTest />, { wrapper });
       const user = userEvent.setup();
 
@@ -188,148 +188,11 @@ Deno.test(
       unmount();
     });
 
-    // Testing committed order
-
-    await t.step("Changing items after order is committed", async () => {
-      const wrapper = createWrapper(shopId);
-      const orderId = randUint64();
-      const CartTest = createTestComponent(orderId, true);
-      const { unmount } = render(<CartTest />, { wrapper });
-      const user = userEvent.setup();
-
-      await waitFor(() => {
-        const cartScreen = screen.getAllByTestId("cart-item");
-        expect(cartScreen).toHaveLength(2);
-      });
-      console.log(
-        "Cart Test - committed order: correct number of items displayed",
-      );
-      // +1 to listing 2
-      const addButton = await screen.findByTestId(
-        `add-quantity-${listingID2}`,
-      );
-      await user.click(addButton);
-
-      await waitFor(() => {
-        const quantity = screen.getByTestId(
-          `quantity-${listingID2}`,
-        );
-        expect(quantity.textContent).toContain("4");
-      });
-      console.log("Cart Test - committed order: correct quantity displayed");
-
-      await waitFor(async () => {
-        const orders = await stateManager.get(["Orders"]) as Map<
-          number,
-          unknown
-        >;
-
-        const o = orders.get(orderId) as CodecValue;
-        expect(o).toBeDefined();
-        const order = Order.fromCBOR(o!);
-        expect(order.CanceledAt).toBeDefined();
-        expect(order.PaymentState).toBe(OrderPaymentState.Canceled);
-        // The new order should have the same items as the committed order.
-        const newOrder = Array.from(orders.values()).pop() as CodecValue;
-        const newOrderItems = Order.fromCBOR(newOrder).Items;
-        expect(newOrderItems).toHaveLength(2);
-        expect(newOrderItems[1].ListingID).toBe(listingID2);
-        expect(newOrderItems[1].Quantity).toBe(4);
-      }, { timeout: 10000 });
-      unmount();
-    });
-
-    await t.step("Clearing cart of a committed order.", async () => {
-      const wrapper = createWrapper(shopId);
-      const orderId = randUint64();
-      const CartTest = createTestComponent(orderId, true);
-      const { unmount } = render(<CartTest />, { wrapper });
-      const user = userEvent.setup();
-
-      await waitFor(() => {
-        const cartScreen = screen.getAllByTestId("cart-item");
-        expect(cartScreen).toHaveLength(2);
-      });
-
-      console.log(
-        "Cart Test - clearing cart of a committed order: correct number of items displayed",
-      );
-
-      const clearCart = await screen.findByTestId("clear-cart");
-      await user.click(clearCart);
-      await waitFor(() => {
-        const cartItems = screen.queryAllByTestId("cart-item");
-        expect(cartItems.length).toBe(0);
-      });
-      console.log(
-        "Cart Test - clearing cart of a committed order: 0 items displayed",
-      );
-
-      await waitFor(async () => {
-        const orders = await stateManager.get(["Orders"]) as Map<
-          number,
-          unknown
-        >;
-        const o = orders.get(orderId) as CodecValue;
-        const order = Order.fromCBOR(o!);
-        expect(order.CanceledAt).toBeDefined();
-        expect(order.PaymentState).toBe(OrderPaymentState.Canceled);
-        // The new order should have no items.
-        const newOrder = Array.from(orders.values()).pop() as CodecValue;
-        const newOrderItems = Order.fromCBOR(newOrder).Items;
-        expect(newOrderItems).toHaveLength(0);
-      }, { timeout: 10000 });
-      unmount();
-    });
-
-    await t.step(
-      "Commit order with an item that is out of stock",
-      async () => {
-        const wrapper = createWrapper(shopId);
-        const orderId = randUint64();
-        const CartTest = createTestComponent(orderId, false);
-        const { unmount } = render(<CartTest />, { wrapper });
-        const user = userEvent.setup();
-
-        await waitFor(() => {
-          const cartScreen = screen.getAllByTestId("cart-item");
-          expect(cartScreen).toHaveLength(3);
-        });
-
-        // Reset inventory for listing 3
-        await stateManager.set(["Inventory", listingID3], 1);
-        await waitFor(() => {
-          const cartScreen = screen.getAllByTestId("cart-item");
-
-          // Out of stock message is displayed for listing 3
-          const noStockMessage = within(cartScreen[2]).getByTestId(
-            "no-stock-msg",
-          );
-          expect(noStockMessage).toBeDefined();
-        });
-
-        const checkoutButton = await screen.findByTestId("checkout-button");
-        await user.click(checkoutButton);
-
-        await waitFor(async () => {
-          // The order that is committed should omit the item that is out of stock.
-          const order = await stateManager.get(["Orders", orderId]);
-          const o = Order.fromCBOR(order!);
-          expect(o.PaymentState).toBe(OrderPaymentState.Locked);
-          expect(o.Items).toHaveLength(2);
-          // Listing 3 should be removed from the committed order.
-          expect(o.Items[0].ListingID).toBe(listingID);
-          expect(o.Items[1].ListingID).toBe(listingID2);
-        });
-        unmount();
-      },
-    );
-
     cleanup();
   }),
 );
 
-const createTestComponent = (oId: number, commitOrder: boolean) => {
+const createTestComponent = (oId: number) => {
   return () => {
     const { stateManager } = useStateManager();
     const [listingsLoaded, setLoading] = useState<boolean>(
@@ -357,28 +220,17 @@ const createTestComponent = (oId: number, commitOrder: boolean) => {
       // Create order
       const order = new Order(
         oId,
-        commitOrder
-          ? [
-            new OrderedItem(listingID, 32),
-            new OrderedItem(listingID2, 3),
-          ]
-          : [
-            new OrderedItem(listingID, 90),
-            new OrderedItem(listingID2, 4),
-            new OrderedItem(listingID3, 100),
-          ],
+        [
+          new OrderedItem(listingID, 90),
+          new OrderedItem(listingID2, 4),
+          new OrderedItem(listingID3, 100),
+        ],
         OrderPaymentState.Open,
       );
 
-      stateManager.set(["Orders", oId], order).then(() => {
-        if (!commitOrder) return;
-        stateManager.set(
-          ["Orders", oId, "PaymentState"],
-          OrderPaymentState.Locked,
-        );
-      });
+      stateManager.set(["Orders", oId], order);
     }, [listingsLoaded]);
 
-    return <Cart />;
+    return <Navigation />;
   };
 };
