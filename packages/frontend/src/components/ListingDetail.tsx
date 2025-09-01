@@ -135,31 +135,26 @@ export default function ListingDetail() {
         throw new Error(`Order not found`);
       }
       const order: Order = Order.fromCBOR(o);
-      let cartItemQuantity = 0;
-      // If item already exists in the items array, filter it out so we can replace it with the new quantity
-      const updatedOrderItems = (order.Items ?? []).filter(
+      let isNewItem = true;
+      // If item already exists in the order, update the quantity, otherwise if it is a new item, add it to the order.
+      const updatedOrderItems = (order.Items ?? []).map(
         (item: OrderedItem) => {
           if (item.ListingID === itemId) {
-            // this should never happen?
-            if (cartItemQuantity !== 0) {
-              logger.debug(
-                "cart item quantity for the same item should not be changed more than at most once",
-              );
-            }
-            cartItemQuantity = item.Quantity;
+            isNewItem = false;
+            return new OrderedItem(itemId, item.Quantity + quantity)
+              .asCBORMap();
           }
-          return item.ListingID !== itemId;
+          return item.asCBORMap();
         },
       );
-      // note: cartItemQuantity is 0 if this is the first time we add the item to our cart, and adding with 0 is fine :)
-      updatedOrderItems.push(
-        new OrderedItem(itemId, cartItemQuantity + quantity),
-      );
+
+      if (isNewItem) {
+        updatedOrderItems.push(new OrderedItem(itemId, quantity).asCBORMap());
+      }
 
       await stateManager.set(
         ["Orders", orderId, "Items"],
-        // TODO: this is a bit of a hack, since StateManager doesnt handle BaseClass[]
-        updatedOrderItems.map((item: OrderedItem) => item.asCBORMap()),
+        updatedOrderItems,
       );
       if (quantity <= 1) {
         setMsg("Cart updated");
