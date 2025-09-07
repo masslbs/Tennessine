@@ -1,0 +1,29 @@
+{
+  "name": "react-shop-overview",
+  "version": "0.0.1",
+  "description": "",
+  "type": "module",
+  "main": "./dist/bundle.js",
+  "source": "./src/mod.tsx",
+  "scripts": {
+    "build": "node ./builder.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "mass market",
+  "license": "ISC",
+  "peerDependencies": {
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "styled-components": "^6.1.19"
+  },
+  "dependencies": {
+    "@wagmi/core": "^2.17.0",
+    "wagmi": "^2.15.4"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.9",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "styled-components": "^6.1.19"
+  }
+}
